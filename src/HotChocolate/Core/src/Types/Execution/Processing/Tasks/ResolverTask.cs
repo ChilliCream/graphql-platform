@@ -11,6 +11,7 @@ internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) 
     private readonly Dictionary<string, ArgumentValue> _args =
         new Dictionary<string, ArgumentValue>(StringComparer.Ordinal);
     private OperationContext _operationContext = null!;
+    private bool _isContextReleased;
     private Selection _selection = null!;
     private ExecutionTaskStatus _completionStatus = ExecutionTaskStatus.Completed;
 
