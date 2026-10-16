@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace Mocha.EntityFrameworkCore;
 
@@ -8,21 +9,15 @@ namespace Mocha.EntityFrameworkCore;
 /// </summary>
 public sealed class DbContextOutbox
 {
-    private DbContextOutboxScope? _scope;
-    private int _contextLease;
+    private readonly DbContextOutboxScope _scope;
 
-    internal DbContextOutbox(DbContext context)
+    internal DbContextOutbox(DbContext context, DbContextOutboxScope scope)
     {
         Context = context;
+        _scope = scope;
     }
 
     internal DbContext Context { get; }
-
-    internal void BindScope(DbContextOutboxScope scope)
-    {
-        _scope = scope;
-        _contextLease = Context.ContextId.Lease;
-    }
 
     /// <summary>
     /// Prepares a message for publication when the DbContext is saved.
@@ -43,7 +38,7 @@ public sealed class DbContextOutbox
     /// <param name="options">The options of the publish operation.</param>
     /// <param name="cancellationToken">A token to cancel preparation of the message.</param>
     /// <exception cref="ArgumentException">The options specify a scheduled time.</exception>
-    /// <exception cref="InvalidOperationException">The DbContext has not been bound to an application scope.</exception>
+    /// <exception cref="ObjectDisposedException">The DbContext has been disposed.</exception>
     public async ValueTask PublishAsync<T>(
         T message,
         PublishOptions options,
@@ -61,14 +56,7 @@ public sealed class DbContextOutbox
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (_scope is null || _contextLease != Context.ContextId.Lease)
-        {
-            throw new InvalidOperationException(
-                $"The DbContext '{Context.GetType().FullName}' has no application scope for its outbox. "
-                + "Register the DbContext before AddEntityFramework and resolve the DbContext itself "
-                + "from an application scope. Contexts created directly by IDbContextFactory are not bound to a scope.");
-        }
-
+        _ = Context.GetInfrastructure();
         var bus = _scope.Bus;
         using var publish = OutboxPublishContext.Begin(this);
         await bus.PublishAsync(message, options, cancellationToken);

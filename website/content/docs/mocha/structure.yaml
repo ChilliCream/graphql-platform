@@ -30,3 +30,5 @@ items:
     title: Mediator
   - path: diagnostics
     title: Diagnostics
+  - path: migration
+    title: Migration

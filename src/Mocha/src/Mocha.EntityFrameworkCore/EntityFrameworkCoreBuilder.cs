@@ -20,6 +20,4 @@ internal class EntityFrameworkCoreBuilder : IEntityFrameworkCoreBuilder
 
     /// <inheritdoc />
     public required string Name { get; init; }
-
-    internal bool IsOutboxEnabled { get; set; }
 }

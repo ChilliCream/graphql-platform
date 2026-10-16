@@ -31,6 +31,15 @@ public static class OutboxServiceCollectionExtensions
     /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
     public static IEntityFrameworkCoreBuilder UsePostgresOutbox(this IEntityFrameworkCoreBuilder builder)
     {
+        builder.UseOutboxCore();
+
+        if (builder.Services.Any(descriptor => descriptor.ServiceType == typeof(PostgresOutboxRegistration)))
+        {
+            return builder;
+        }
+
+        builder.Services.AddSingleton(new PostgresOutboxRegistration());
+
         var contextType = builder.ContextType;
 
         builder
@@ -38,7 +47,7 @@ public static class OutboxServiceCollectionExtensions
             .Configure<IServiceProvider>((options, sp) =>
             {
                 using var scope = sp.CreateScope();
-                var dbContext = (DbContext)scope.ServiceProvider.GetRequiredService(contextType);
+                var dbContext = scope.ServiceProvider.GetRequiredKeyedService<DbContextAccessor>(contextType).Context;
                 var model = dbContext.Model;
 
                 ConfigureOutboxTableInfo(options.Outbox, model);
@@ -50,7 +59,7 @@ public static class OutboxServiceCollectionExtensions
             {
                 options.CreateConnection = services =>
                 {
-                    var dbContext = (DbContext)services.GetRequiredService(contextType);
+                    var dbContext = services.GetRequiredKeyedService<DbContextAccessor>(contextType).Context;
                     return (NpgsqlConnection)((ICloneable)dbContext.Database.GetDbConnection()).Clone();
                 };
 
@@ -85,8 +94,6 @@ public static class OutboxServiceCollectionExtensions
             services.AddScoped<IInterceptor>(sp => sp.GetRequiredService<PostgresOutboxTracker>());
             services.AddScoped<IResettableService>(sp => sp.GetRequiredService<PostgresOutboxTracker>());
         });
-
-        builder.UseOutboxCore();
 
         return builder;
     }
@@ -158,4 +165,6 @@ public static class OutboxServiceCollectionExtensions
             }
         }
     }
+
+    private sealed class PostgresOutboxRegistration;
 }

@@ -134,7 +134,8 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
     }
 
     private DbContext OriginalDbContext
-        => _originalDbContext ??= (DbContext)_services.GetRequiredService(_contextType);
+        => _originalDbContext ??= _services.GetKeyedService<DbContextAccessor>(_contextType)?.Context
+            ?? (DbContext)_services.GetRequiredService(_contextType);
 
     private static void AddMessage(DbContextOutbox outbox, ReadOnlyMemory<byte> envelope)
     {
