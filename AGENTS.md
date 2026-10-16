@@ -22,7 +22,7 @@ cd website
 npm ci
 ```
 
-Until [npm/cli#10059](https://github.com/npm/cli/pull/10059) ships in npm 11, `npm install-scripts approve` writes `allowScripts` entries that npm cannot match under the linked install strategy ([npm/cli#9939](https://github.com/npm/cli/issues/9939)), so add approvals by hand as `"<package>@<version>": true`.
+npm 11 before 11.21.1 and npm 12 before 12.2.1 write `allowScripts` entries from `npm install-scripts approve` that npm cannot match under the linked install strategy ([npm/cli#9939](https://github.com/npm/cli/issues/9939)), so on those versions add approvals by hand as `"<package>@<version>": true`.
 
 ### C# Source Code
 
