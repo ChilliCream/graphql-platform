@@ -1,9 +1,163 @@
+using System.Collections.Concurrent;
 using System.Diagnostics.Tracing;
 
 namespace HotChocolate.Fusion.Text.Json;
 
 public class PathSegmentPoolTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Create_Should_ReserveOnlyInitialLevel_When_MaximumLevelIsLarge(bool preAllocate)
+    {
+        // arrange
+        // act
+        using var pool = new PathSegmentPool(64, [4, 13620260], TimeSpan.FromMinutes(1), preAllocate);
+
+        // assert
+        Assert.Equal(4, pool.Capacity);
+        Assert.Equal(0, pool.InUse);
+    }
+
+    [Theory]
+    [InlineData(0, 4)]
+    [InlineData(1, 4)]
+    [InlineData(4, 4)]
+    [InlineData(5, 8)]
+    [InlineData(8, 8)]
+    [InlineData(9, 16)]
+    [InlineData(16, 16)]
+    [InlineData(17, 16)]
+    public void Rent_Should_GrowToRequiredLevel_When_CrossingCapacity(int count, int capacity)
+    {
+        // arrange
+        using var pool = new PathSegmentPool(64, [4, 8, 16], TimeSpan.FromMinutes(1), false);
+        var arrays = new int[]?[count];
+
+        // act
+        pool.Rent(arrays);
+
+        // assert
+        Assert.Equal(capacity, pool.Capacity);
+        Assert.Equal(count, pool.InUse);
+        Assert.All(arrays, array => Assert.Equal(64, array?.Length));
+        Assert.Equal(count, new HashSet<int[]?>(arrays, ReferenceEqualityComparer.Instance).Count);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Rent_Should_PreserveReturnedArrays_When_GrowingWithCachedBuffers(bool preAllocate)
+    {
+        // arrange
+        using var pool = new PathSegmentPool(64, [4, 8, 16], TimeSpan.FromMinutes(1), preAllocate);
+        var first = new int[]?[4];
+        pool.Rent(first);
+        pool.Return(first);
+        var next = new int[]?[12];
+
+        // act
+        pool.Rent(next);
+
+        // assert
+        Assert.True(new HashSet<int[]?>(first, ReferenceEqualityComparer.Instance).IsSubsetOf(next));
+        Assert.Equal(12, new HashSet<int[]?>(next, ReferenceEqualityComparer.Instance).Count);
+        Assert.All(next, array => Assert.Equal(64, array?.Length));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Trim_Should_KeepFreeArrays_When_PoolShrinks(bool preAllocate)
+    {
+        // arrange
+        using var pool = new PathSegmentPool(64, [4, 8, 16], TimeSpan.FromMinutes(1), preAllocate);
+        var arrays = new int[]?[16];
+        pool.Rent(arrays);
+        pool.Return(arrays);
+
+        // act
+        pool.Trim();
+        var next = new int[]?[8];
+        pool.Rent(next);
+
+        // assert
+        Assert.Equal(8, pool.Capacity);
+        Assert.Equal(8, pool.InUse);
+        Assert.Equal(
+            new HashSet<int[]?>(arrays.Skip(8), ReferenceEqualityComparer.Instance),
+            new HashSet<int[]?>(next, ReferenceEqualityComparer.Instance));
+    }
+
+    [Fact]
+    public void Trim_Should_RespectOutstandingRentals_When_PoolWasExhausted()
+    {
+        // arrange
+        using var pool = new PathSegmentPool(64, [4, 8, 16], TimeSpan.FromMinutes(1), false);
+        var arrays = new int[]?[20];
+        pool.Rent(arrays);
+
+        // act
+        pool.Trim();
+        var occupiedCapacity = pool.Capacity;
+        pool.Return(arrays.AsSpan(0, 12));
+        pool.Trim();
+        var partialCapacity = pool.Capacity;
+        pool.Return(arrays.AsSpan(12));
+        pool.Trim();
+        pool.Trim();
+
+        // assert
+        Assert.Equal(16, occupiedCapacity);
+        Assert.Equal(8, partialCapacity);
+        Assert.Equal(4, pool.Capacity);
+        Assert.Equal(0, pool.InUse);
+    }
+
+    [Fact]
+    public void Rent_Should_PreserveExclusiveOwnership_When_TrimmingConcurrentBatches()
+    {
+        // arrange
+        using var pool = new PathSegmentPool(64, [4, 16, 64], TimeSpan.FromMinutes(1), false);
+        var active = new ConcurrentDictionary<int[], byte>(ReferenceEqualityComparer.Instance);
+        var failures = new ConcurrentQueue<string>();
+
+        // act
+        Parallel.For(0, 8, worker =>
+        {
+            var arrays = new int[]?[53];
+
+            for (var iteration = 0; iteration < 1000; iteration++)
+            {
+                pool.Rent(arrays);
+
+                foreach (var array in arrays)
+                {
+                    if (array is not { Length: 64 } || !active.TryAdd(array, 0))
+                    {
+                        failures.Enqueue("Invalid or concurrently rented array.");
+                    }
+                }
+
+                foreach (var array in arrays)
+                {
+                    if (array is not null)
+                    {
+                        active.TryRemove(array, out _);
+                    }
+                }
+
+                pool.Return(arrays);
+                pool.Trim();
+            }
+        });
+
+        // assert
+        Assert.Empty(failures);
+        Assert.Empty(active);
+        Assert.Equal(0, pool.InUse);
+    }
+
     [Fact]
     public void Rent_Should_FillEverySlot_When_PoolIsExhausted()
     {

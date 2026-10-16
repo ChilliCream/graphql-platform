@@ -1,0 +1,2226 @@
+{
+  "baselineIdentity": {
+    "baseline": "3a7d93b0eea45a365bc80d6445ba3d519865967b",
+    "productionPatchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source": "/workspaces/platform-1/.worktrees/fusion-path-pool-slots-20261016",
+    "sdkEnvironment": {
+      "DOTNET_LOCAL_DEV": "1",
+      "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "1"
+    }
+  },
+  "candidateIdentity": {
+    "baseline": "3a7d93b0eea45a365bc80d6445ba3d519865967b",
+    "productionPatchSha256": "358fa9a6a94a11dfe893e88abeadb4f6402765fcb55ec9f3639fc0565440d489",
+    "source": "/workspaces/platform-1/.worktrees/fusion-path-pool-slots-20261016",
+    "sdkEnvironment": {
+      "DOTNET_LOCAL_DEV": "1",
+      "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "1"
+    }
+  },
+  "primary": [
+    {
+      "variant": "path-pool-baseline-3a7d93b0ee",
+      "case": "list-10-lookup",
+      "metrics": {
+        "count": {
+          "median": 6001,
+          "min": 6001,
+          "max": 6001,
+          "total": 18003
+        },
+        "elapsed": {
+          "median": 60.017753087,
+          "min": 60.013006711,
+          "max": 60.017958042,
+          "total": 180.04871784
+        },
+        "requestsPerSecond": {
+          "median": 99.98708201056984,
+          "min": 99.98674056522478,
+          "max": 99.99498990108181,
+          "total": 299.9688124768764
+        },
+        "cpuSeconds": {
+          "median": 9.918240999999998,
+          "min": 9.192535000000001,
+          "max": 10.111382999999998,
+          "total": 29.222158999999998
+        },
+        "cpuMsPerRequest": {
+          "median": 1.6527647058823527,
+          "min": 1.531833861023163,
+          "max": 1.6849496750541573,
+          "total": 4.869548241959673
+        },
+        "allocationBytesPerRequest": {
+          "median": 23990.246958840195,
+          "min": 23989.064489251792,
+          "max": 24024.507915347443,
+          "total": 72003.81936343943
+        },
+        "allocationBytesPerSecond": {
+          "median": 2398786.261339133,
+          "min": 2398706.598769227,
+          "max": 2402140.4431954287,
+          "total": 7199633.303303789
+        },
+        "gatewayCores": {
+          "median": 0.16525512019123412,
+          "min": 0.1531630748511496,
+          "max": 0.16848652574087153,
+          "total": 0.48690472078325525
+        },
+        "subgraphCores": {
+          "median": 0.22893958647878426,
+          "min": 0.22294734215453788,
+          "max": 0.2304264576572401,
+          "total": 0.6823133862905622
+        },
+        "procCpuSeconds": {
+          "median": 9.913745744486995,
+          "min": 9.172214750555709,
+          "max": 10.094514704823638,
+          "total": 29.180475199866343
+        },
+        "loadGeneratorCores": {
+          "median": 0.07609832371844225,
+          "min": 0.07393948909695543,
+          "max": 0.07938550759408558,
+          "total": 0.22942332040948327
+        },
+        "gen0": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "gen1": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "gen2": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "gcPauseMs": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "total": 0.0
+        },
+        "gcPausePercent": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "total": 0.0
+        },
+        "heapEnd": {
+          "median": 192828192,
+          "min": 192828192,
+          "max": 192828192,
+          "total": 578484576
+        },
+        "fragmentationEnd": {
+          "median": 1013000,
+          "min": 1013000,
+          "max": 1013000,
+          "total": 3039000
+        },
+        "committedEnd": {
+          "median": 348893184,
+          "min": 348893184,
+          "max": 348893184,
+          "total": 1046679552
+        },
+        "workingSetEnd": {
+          "median": 483500032,
+          "min": 378105856,
+          "max": 622202880,
+          "total": 1483808768
+        },
+        "observedPeakRss": {
+          "median": 497213440,
+          "min": 378105856,
+          "max": 622202880,
+          "total": 1497522176
+        },
+        "failures": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "droppedStarts": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "responseBytesMin": {
+          "median": 895,
+          "min": 895,
+          "max": 895,
+          "total": 2685
+        },
+        "responseBytesMax": {
+          "median": 895,
+          "min": 895,
+          "max": 895,
+          "total": 2685
+        },
+        "p50Ms": {
+          "median": 13.389231,
+          "min": 13.21998,
+          "max": 13.719024,
+          "total": 40.328235
+        },
+        "httpP50Ms": {
+          "median": 13.065022,
+          "min": 12.897521,
+          "max": 13.385023,
+          "total": 39.347566
+        },
+        "p95Ms": {
+          "median": 17.019041,
+          "min": 16.762873,
+          "max": 17.23325,
+          "total": 51.015164
+        },
+        "httpP95Ms": {
+          "median": 16.515539,
+          "min": 16.378788,
+          "max": 16.798082,
+          "total": 49.692409
+        },
+        "p99Ms": {
+          "median": 20.300891,
+          "min": 20.205431,
+          "max": 21.632688,
+          "total": 62.139010000000006
+        },
+        "httpP99Ms": {
+          "median": 19.839888,
+          "min": 19.776971,
+          "max": 20.850351,
+          "total": 60.467209999999994
+        }
+      }
+    },
+    {
+      "variant": "path-pool-baseline-3a7d93b0ee",
+      "case": "list-1000-lookup",
+      "metrics": {
+        "count": {
+          "median": 1201,
+          "min": 1200,
+          "max": 1201,
+          "total": 3602
+        },
+        "elapsed": {
+          "median": 60.02437253,
+          "min": 60.004183226,
+          "max": 60.028246633,
+          "total": 180.056802389
+        },
+        "requestsPerSecond": {
+          "median": 20.007247710276463,
+          "min": 19.998605688545332,
+          "max": 20.00853902137409,
+          "total": 60.01439242019588
+        },
+        "cpuSeconds": {
+          "median": 6.943435000000005,
+          "min": 6.923975999999995,
+          "max": 7.297929000000003,
+          "total": 21.165340000000004
+        },
+        "cpuMsPerRequest": {
+          "median": 5.786195833333338,
+          "min": 5.765175686927556,
+          "max": 6.076543713572026,
+          "total": 17.62791523383292
+        },
+        "allocationBytesPerRequest": {
+          "median": 320170.0582847627,
+          "min": 318724.3097418818,
+          "max": 320274.2133333333,
+          "total": 959168.5813599778
+        },
+        "allocationBytesPerSecond": {
+          "median": 6405037.704662381,
+          "min": 6377207.7885309635,
+          "max": 6405721.6655169,
+          "total": 19187967.15871024
+        },
+        "gatewayCores": {
+          "median": 0.11571584890753739,
+          "min": 0.11534529806162287,
+          "max": 0.1215827620080913,
+          "total": 0.35264390897725156
+        },
+        "subgraphCores": {
+          "median": 0.46763923160572013,
+          "min": 0.42870395689334967,
+          "max": 0.4758008529113841,
+          "total": 1.3721440414104538
+        },
+        "procCpuSeconds": {
+          "median": 6.953603428725593,
+          "min": 6.922493119887449,
+          "max": 7.280955854502935,
+          "total": 21.157052403115976
+        },
+        "loadGeneratorCores": {
+          "median": 0.017000927406445977,
+          "min": 0.0166191413062665,
+          "max": 0.017776181378807522,
+          "total": 0.051396250091520004
+        },
+        "gen0": {
+          "median": 2,
+          "min": 2,
+          "max": 3,
+          "total": 7
+        },
+        "gen1": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "gen2": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "gcPauseMs": {
+          "median": 2.541999999999998,
+          "min": 1.7310000000000016,
+          "max": 4.189,
+          "total": 8.462
+        },
+        "gcPausePercent": {
+          "median": 0.004236371305023516,
+          "min": 0.0028838285633637456,
+          "max": 0.006978381403692597,
+          "total": 0.01409858127207986
+        },
+        "heapEnd": {
+          "median": 207634880,
+          "min": 205066464,
+          "max": 210397136,
+          "total": 623098480
+        },
+        "fragmentationEnd": {
+          "median": 928040,
+          "min": 912880,
+          "max": 942264,
+          "total": 2783184
+        },
+        "committedEnd": {
+          "median": 556634112,
+          "min": 556109824,
+          "max": 557617152,
+          "total": 1670361088
+        },
+        "workingSetEnd": {
+          "median": 524603392,
+          "min": 523644928,
+          "max": 528744448,
+          "total": 1576992768
+        },
+        "observedPeakRss": {
+          "median": 528744448,
+          "min": 525733888,
+          "max": 691417088,
+          "total": 1745895424
+        },
+        "failures": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "droppedStarts": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "responseBytesMin": {
+          "median": 93493,
+          "min": 93493,
+          "max": 93493,
+          "total": 280479
+        },
+        "responseBytesMax": {
+          "median": 93493,
+          "min": 93493,
+          "max": 93493,
+          "total": 280479
+        },
+        "p50Ms": {
+          "median": 26.827047,
+          "min": 26.2566065,
+          "max": 27.059423,
+          "total": 80.1430765
+        },
+        "httpP50Ms": {
+          "median": 26.452962,
+          "min": 25.9594385,
+          "max": 26.723796,
+          "total": 79.1361965
+        },
+        "p95Ms": {
+          "median": 34.51468815,
+          "min": 34.355958,
+          "max": 34.588834,
+          "total": 103.45948015
+        },
+        "httpP95Ms": {
+          "median": 34.0304147,
+          "min": 33.896539,
+          "max": 34.172749,
+          "total": 102.0997027
+        },
+        "p99Ms": {
+          "median": 36.996263,
+          "min": 36.675927,
+          "max": 37.10685367,
+          "total": 110.77904367
+        },
+        "httpP99Ms": {
+          "median": 36.6304305,
+          "min": 36.202967,
+          "max": 36.653844,
+          "total": 109.4872415
+        }
+      }
+    },
+    {
+      "variant": "path-pool-baseline-3a7d93b0ee",
+      "case": "list-20000-lookup",
+      "metrics": {
+        "count": {
+          "median": 31,
+          "min": 31,
+          "max": 31,
+          "total": 93
+        },
+        "elapsed": {
+          "median": 61.049979258,
+          "min": 61.048600634,
+          "max": 61.07007823,
+          "total": 183.168658122
+        },
+        "requestsPerSecond": {
+          "median": 0.5077806803011773,
+          "min": 0.5076135629505645,
+          "max": 0.5077921472082861,
+          "total": 1.5231863904600278
+        },
+        "cpuSeconds": {
+          "median": 3.1890519999999962,
+          "min": 2.4334029999999913,
+          "max": 3.4692060000000056,
+          "total": 9.091660999999993
+        },
+        "cpuMsPerRequest": {
+          "median": 102.8726451612902,
+          "min": 78.49687096774166,
+          "max": 111.90987096774212,
+          "total": 293.279387096774
+        },
+        "allocationBytesPerRequest": {
+          "median": 17533673.80645161,
+          "min": 16533077.677419355,
+          "max": 17774849.80645161,
+          "total": 51841601.29032258
+        },
+        "allocationBytesPerSecond": {
+          "median": 8903260.813618932,
+          "min": 8395367.01377816,
+          "max": 9022754.841164054,
+          "total": 26321382.668561146
+        },
+        "gatewayCores": {
+          "median": 0.05223792137544766,
+          "min": 0.039859194541513585,
+          "max": 0.05680696833127351,
+          "total": 0.14890408424823476
+        },
+        "subgraphCores": {
+          "median": 1.6433598845826292,
+          "min": 1.5884465839449742,
+          "max": 1.681632810907648,
+          "total": 4.913439279435251
+        },
+        "procCpuSeconds": {
+          "median": 3.186641137406454,
+          "min": 2.4460360330030966,
+          "max": 3.461035175925744,
+          "total": 9.093712346335295
+        },
+        "loadGeneratorCores": {
+          "median": 0.005942511314468272,
+          "min": 0.005780165763999972,
+          "max": 0.006472154800775011,
+          "total": 0.018194831879243256
+        },
+        "gen0": {
+          "median": 1,
+          "min": 0,
+          "max": 2,
+          "total": 3
+        },
+        "gen1": {
+          "median": 1,
+          "min": 0,
+          "max": 2,
+          "total": 3
+        },
+        "gen2": {
+          "median": 0,
+          "min": 0,
+          "max": 1,
+          "total": 1
+        },
+        "gcPauseMs": {
+          "median": 77.609,
+          "min": 0.0,
+          "max": 115.488,
+          "total": 193.09699999999998
+        },
+        "gcPausePercent": {
+          "median": 0.12708187421622694,
+          "min": 0.0,
+          "max": 0.18917386934448563,
+          "total": 0.31625574356071257
+        },
+        "heapEnd": {
+          "median": 1135928352,
+          "min": 837920400,
+          "max": 1143407504,
+          "total": 3117256256
+        },
+        "fragmentationEnd": {
+          "median": 188633448,
+          "min": 65388712,
+          "max": 860124560,
+          "total": 1114146720
+        },
+        "committedEnd": {
+          "median": 1150111744,
+          "min": 857059328,
+          "max": 2105044992,
+          "total": 4112216064
+        },
+        "workingSetEnd": {
+          "median": 1847668736,
+          "min": 1437937664,
+          "max": 2062450688,
+          "total": 5348057088
+        },
+        "observedPeakRss": {
+          "median": 1847668736,
+          "min": 1437937664,
+          "max": 2063757312,
+          "total": 5349363712
+        },
+        "failures": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "droppedStarts": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "responseBytesMin": {
+          "median": 1928496,
+          "min": 1928496,
+          "max": 1928496,
+          "total": 5785488
+        },
+        "responseBytesMax": {
+          "median": 1928496,
+          "min": 1928496,
+          "max": 1928496,
+          "total": 5785488
+        },
+        "p50Ms": {
+          "median": 995.612493,
+          "min": 986.042238,
+          "max": 1004.38791,
+          "total": 2986.042641
+        },
+        "httpP50Ms": {
+          "median": 992.755937,
+          "min": 983.424184,
+          "max": 1001.565313,
+          "total": 2977.745434
+        },
+        "p95Ms": {
+          "median": 1079.3435235,
+          "min": 1076.8608864999999,
+          "max": 1097.43109,
+          "total": 3253.6355
+        },
+        "httpP95Ms": {
+          "median": 1076.894032,
+          "min": 1074.3315825,
+          "max": 1094.922057,
+          "total": 3246.1476715
+        },
+        "p99Ms": {
+          "median": 1103.6144372,
+          "min": 1091.084247,
+          "max": 1107.7229941,
+          "total": 3302.4216783
+        },
+        "httpP99Ms": {
+          "median": 1100.9932827,
+          "min": 1088.414201,
+          "max": 1105.0026057,
+          "total": 3294.4100894
+        }
+      }
+    },
+    {
+      "variant": "path-pool-candidate2-3a7d93b0ee",
+      "case": "list-10-lookup",
+      "metrics": {
+        "count": {
+          "median": 6001,
+          "min": 6001,
+          "max": 6001,
+          "total": 18003
+        },
+        "elapsed": {
+          "median": 60.014033781,
+          "min": 60.013681799,
+          "max": 60.020086599,
+          "total": 180.047802179
+        },
+        "requestsPerSecond": {
+          "median": 99.9932786037767,
+          "min": 99.9831946277129,
+          "max": 99.99386506728194,
+          "total": 299.9703382987716
+        },
+        "cpuSeconds": {
+          "median": 11.038278000000002,
+          "min": 10.746312000000001,
+          "max": 11.239548000000003,
+          "total": 33.02413800000001
+        },
+        "cpuMsPerRequest": {
+          "median": 1.8394064322612902,
+          "min": 1.7907535410764874,
+          "max": 1.8729458423596073,
+          "total": 5.503105815697385
+        },
+        "allocationBytesPerRequest": {
+          "median": 23995.486085652392,
+          "min": 23981.88968505249,
+          "max": 24074.658223629394,
+          "total": 72052.03399433428
+        },
+        "allocationBytesPerSecond": {
+          "median": 2399145.35548836,
+          "min": 2398027.7767224927,
+          "max": 2407318.1259545274,
+          "total": 7204491.25816538
+        },
+        "gatewayCores": {
+          "median": 0.18392935859142592,
+          "min": 0.17904525982771652,
+          "max": 0.18728199542484944,
+          "total": 0.5502566138439919
+        },
+        "subgraphCores": {
+          "median": 0.265430152527891,
+          "min": 0.26203304066101063,
+          "max": 0.2663447528988907,
+          "total": 0.7938079460877923
+        },
+        "procCpuSeconds": {
+          "median": 11.014702533705684,
+          "min": 10.734223006390604,
+          "max": 11.213062749835942,
+          "total": 32.96198828993223
+        },
+        "loadGeneratorCores": {
+          "median": 0.08987772792749146,
+          "min": 0.08542833392188788,
+          "max": 0.09049153188415932,
+          "total": 0.2657975937335386
+        },
+        "gen0": {
+          "median": 0,
+          "min": 0,
+          "max": 1,
+          "total": 1
+        },
+        "gen1": {
+          "median": 0,
+          "min": 0,
+          "max": 1,
+          "total": 1
+        },
+        "gen2": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "gcPauseMs": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 34.047,
+          "total": 34.047
+        },
+        "gcPausePercent": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.05673173065527054,
+          "total": 0.05673173065527054
+        },
+        "heapEnd": {
+          "median": 83916816,
+          "min": 83717880,
+          "max": 83916816,
+          "total": 251551512
+        },
+        "fragmentationEnd": {
+          "median": 1280048,
+          "min": 1037480,
+          "max": 1280048,
+          "total": 3597576
+        },
+        "committedEnd": {
+          "median": 240021504,
+          "min": 240021504,
+          "max": 438566912,
+          "total": 918609920
+        },
+        "workingSetEnd": {
+          "median": 463130624,
+          "min": 391946240,
+          "max": 518819840,
+          "total": 1373896704
+        },
+        "observedPeakRss": {
+          "median": 464166912,
+          "min": 391946240,
+          "max": 530145280,
+          "total": 1386258432
+        },
+        "failures": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "droppedStarts": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "responseBytesMin": {
+          "median": 895,
+          "min": 895,
+          "max": 895,
+          "total": 2685
+        },
+        "responseBytesMax": {
+          "median": 895,
+          "min": 895,
+          "max": 895,
+          "total": 2685
+        },
+        "p50Ms": {
+          "median": 13.693115,
+          "min": 13.536698,
+          "max": 13.853699,
+          "total": 41.083512
+        },
+        "httpP50Ms": {
+          "median": 13.339947,
+          "min": 13.183237,
+          "max": 13.500656,
+          "total": 40.02384
+        },
+        "p95Ms": {
+          "median": 18.590266,
+          "min": 17.627428,
+          "max": 18.687183,
+          "total": 54.904877
+        },
+        "httpP95Ms": {
+          "median": 18.124889,
+          "min": 17.175008,
+          "max": 18.12993,
+          "total": 53.429827
+        },
+        "p99Ms": {
+          "median": 24.202838,
+          "min": 22.076619,
+          "max": 24.687424,
+          "total": 70.966881
+        },
+        "httpP99Ms": {
+          "median": 23.496417,
+          "min": 21.367656,
+          "max": 24.282046,
+          "total": 69.146119
+        }
+      }
+    },
+    {
+      "variant": "path-pool-candidate2-3a7d93b0ee",
+      "case": "list-1000-lookup",
+      "metrics": {
+        "count": {
+          "median": 1201,
+          "min": 1201,
+          "max": 1201,
+          "total": 3603
+        },
+        "elapsed": {
+          "median": 60.029841756,
+          "min": 60.023324736,
+          "max": 60.038463604,
+          "total": 180.091630096
+        },
+        "requestsPerSecond": {
+          "median": 20.006716074342467,
+          "min": 20.00384300173838,
+          "max": 20.008888299379393,
+          "total": 60.019447375460246
+        },
+        "cpuSeconds": {
+          "median": 6.722709000000003,
+          "min": 6.239467000000004,
+          "max": 7.595582000000002,
+          "total": 20.557758000000007
+        },
+        "cpuMsPerRequest": {
+          "median": 5.597592839300585,
+          "min": 5.195226477935058,
+          "max": 6.324381348875939,
+          "total": 17.117200666111582
+        },
+        "allocationBytesPerRequest": {
+          "median": 319654.10824313073,
+          "min": 318293.4487926728,
+          "max": 319774.0016652789,
+          "total": 957721.5587010824
+        },
+        "allocationBytesPerSecond": {
+          "median": 6394310.596156274,
+          "min": 6368006.658318268,
+          "max": 6398322.2803661255,
+          "total": 19160639.534840666
+        },
+        "gatewayCores": {
+          "median": 0.11198945063565932,
+          "min": 0.10395070628698078,
+          "max": 0.12651193158603669,
+          "total": 0.3424520885086768
+        },
+        "subgraphCores": {
+          "median": 0.4051934834418025,
+          "min": 0.3889877270302157,
+          "max": 0.4537675310544812,
+          "total": 1.2479487415264994
+        },
+        "procCpuSeconds": {
+          "median": 6.721139990086883,
+          "min": 6.2235269757675695,
+          "max": 7.5806022678429335,
+          "total": 20.525269233697387
+        },
+        "loadGeneratorCores": {
+          "median": 0.017797157619616557,
+          "min": 0.017480221307546333,
+          "max": 0.018080657357247086,
+          "total": 0.05335803628440997
+        },
+        "gen0": {
+          "median": 2,
+          "min": 2,
+          "max": 3,
+          "total": 7
+        },
+        "gen1": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "gen2": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "gcPauseMs": {
+          "median": 3.0390000000000015,
+          "min": 2.4650000000000034,
+          "max": 4.155999999999999,
+          "total": 9.660000000000004
+        },
+        "gcPausePercent": {
+          "median": 0.005062482110734953,
+          "min": 0.0041067368574496475,
+          "max": 0.006922229102017044,
+          "total": 0.016091448070201644
+        },
+        "heapEnd": {
+          "median": 100069568,
+          "min": 97006112,
+          "max": 102702584,
+          "total": 299778264
+        },
+        "fragmentationEnd": {
+          "median": 1102240,
+          "min": 1088000,
+          "max": 1115448,
+          "total": 3305688
+        },
+        "committedEnd": {
+          "median": 444469248,
+          "min": 443551744,
+          "max": 445321216,
+          "total": 1333342208
+        },
+        "workingSetEnd": {
+          "median": 521945088,
+          "min": 521170944,
+          "max": 522350592,
+          "total": 1565466624
+        },
+        "observedPeakRss": {
+          "median": 522670080,
+          "min": 522600448,
+          "max": 527015936,
+          "total": 1572286464
+        },
+        "failures": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "droppedStarts": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "responseBytesMin": {
+          "median": 93493,
+          "min": 93493,
+          "max": 93493,
+          "total": 280479
+        },
+        "responseBytesMax": {
+          "median": 93493,
+          "min": 93493,
+          "max": 93493,
+          "total": 280479
+        },
+        "p50Ms": {
+          "median": 25.448427,
+          "min": 24.653091,
+          "max": 27.41948,
+          "total": 77.52099799999999
+        },
+        "httpP50Ms": {
+          "median": 25.090093,
+          "min": 24.29538,
+          "max": 27.044312,
+          "total": 76.429785
+        },
+        "p95Ms": {
+          "median": 33.193844,
+          "min": 32.971135,
+          "max": 34.381184,
+          "total": 100.54616299999999
+        },
+        "httpP95Ms": {
+          "median": 32.806092,
+          "min": 32.556132,
+          "max": 33.909139,
+          "total": 99.27136300000001
+        },
+        "p99Ms": {
+          "median": 36.415403,
+          "min": 35.869108,
+          "max": 37.999328,
+          "total": 110.283839
+        },
+        "httpP99Ms": {
+          "median": 36.036026,
+          "min": 35.413398,
+          "max": 37.552326,
+          "total": 109.00174999999999
+        }
+      }
+    },
+    {
+      "variant": "path-pool-candidate2-3a7d93b0ee",
+      "case": "list-20000-lookup",
+      "metrics": {
+        "count": {
+          "median": 31,
+          "min": 30,
+          "max": 31,
+          "total": 92
+        },
+        "elapsed": {
+          "median": 60.900529917,
+          "min": 60.005713031,
+          "max": 60.961209223,
+          "total": 181.867452171
+        },
+        "requestsPerSecond": {
+          "median": 0.5085200965518912,
+          "min": 0.4999523959410577,
+          "max": 0.509026769426296,
+          "total": 1.517499261919245
+        },
+        "cpuSeconds": {
+          "median": 2.833380999999994,
+          "min": 2.7449609999999955,
+          "max": 2.851274999999994,
+          "total": 8.429616999999983
+        },
+        "cpuMsPerRequest": {
+          "median": 91.39938709677399,
+          "min": 88.54712903225793,
+          "max": 95.0424999999998,
+          "total": 274.9890161290317
+        },
+        "allocationBytesPerRequest": {
+          "median": 17462839.48387097,
+          "min": 17257578.4,
+          "max": 18473517.93548387,
+          "total": 53193935.81935483
+        },
+        "allocationBytesPerSecond": {
+          "median": 8889052.767484805,
+          "min": 8627967.669220645,
+          "max": 9394155.124205353,
+          "total": 26911175.560910806
+        },
+        "gatewayCores": {
+          "median": 0.04652473474141435,
+          "min": 0.04502799460487657,
+          "max": 0.04751672559122788,
+          "total": 0.1390694549375188
+        },
+        "subgraphCores": {
+          "median": 1.6526798594039638,
+          "min": 1.649719916385955,
+          "max": 1.6962675324233072,
+          "total": 4.998667308213226
+        },
+        "procCpuSeconds": {
+          "median": 2.8039473740101357,
+          "min": 2.7357061478216167,
+          "max": 2.8405665308630006,
+          "total": 8.380220052694753
+        },
+        "loadGeneratorCores": {
+          "median": 0.006091266966861623,
+          "min": 0.0057107713261936146,
+          "max": 0.006670231546006675,
+          "total": 0.018472269839061913
+        },
+        "gen0": {
+          "median": 1,
+          "min": 1,
+          "max": 2,
+          "total": 4
+        },
+        "gen1": {
+          "median": 1,
+          "min": 1,
+          "max": 1,
+          "total": 3
+        },
+        "gen2": {
+          "median": 1,
+          "min": 0,
+          "max": 1,
+          "total": 2
+        },
+        "gcPauseMs": {
+          "median": 42.81099999999999,
+          "min": 22.655,
+          "max": 67.51599999999999,
+          "total": 132.98199999999997
+        },
+        "gcPausePercent": {
+          "median": 0.0713448734087754,
+          "min": 0.037162976733493856,
+          "max": 0.11086274633737354,
+          "total": 0.2193705964796428
+        },
+        "heapEnd": {
+          "median": 672349368,
+          "min": 262945632,
+          "max": 1112053288,
+          "total": 2047348288
+        },
+        "fragmentationEnd": {
+          "median": 124968720,
+          "min": 83888896,
+          "max": 759637456,
+          "total": 968495072
+        },
+        "committedEnd": {
+          "median": 1134170112,
+          "min": 773517312,
+          "max": 1366069248,
+          "total": 3273756672
+        },
+        "workingSetEnd": {
+          "median": 1190088704,
+          "min": 869453824,
+          "max": 1437646848,
+          "total": 3497189376
+        },
+        "observedPeakRss": {
+          "median": 1190088704,
+          "min": 921059328,
+          "max": 1455116288,
+          "total": 3566264320
+        },
+        "failures": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "droppedStarts": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "responseBytesMin": {
+          "median": 1928496,
+          "min": 1928496,
+          "max": 1928496,
+          "total": 5785488
+        },
+        "responseBytesMax": {
+          "median": 1928496,
+          "min": 1928496,
+          "max": 1928496,
+          "total": 5785488
+        },
+        "p50Ms": {
+          "median": 986.974039,
+          "min": 985.964062,
+          "max": 1003.654139,
+          "total": 2976.59224
+        },
+        "httpP50Ms": {
+          "median": 984.423567,
+          "min": 983.015171,
+          "max": 1000.9721420000001,
+          "total": 2968.4108800000004
+        },
+        "p95Ms": {
+          "median": 1082.6275785,
+          "min": 1064.091035,
+          "max": 1130.5323447,
+          "total": 3277.2509582
+        },
+        "httpP95Ms": {
+          "median": 1080.1787325,
+          "min": 1061.2556244999998,
+          "max": 1128.03407295,
+          "total": 3269.4684299499995
+        },
+        "p99Ms": {
+          "median": 1090.4725328,
+          "min": 1066.8127577999999,
+          "max": 1152.97833698,
+          "total": 3310.26362758
+        },
+        "httpP99Ms": {
+          "median": 1087.4420333,
+          "min": 1064.0419264999998,
+          "max": 1150.69749544,
+          "total": 3302.18145524
+        }
+      }
+    }
+  ],
+  "confirmation": [
+    {
+      "variant": "path-pool-baseline-3a7d93b0ee",
+      "case": "list-10-lookup",
+      "metrics": {
+        "count": {
+          "median": 6001,
+          "min": 6001,
+          "max": 6001,
+          "total": 18003
+        },
+        "elapsed": {
+          "median": 60.018924147,
+          "min": 60.015032122,
+          "max": 60.019049517,
+          "total": 180.053005786
+        },
+        "requestsPerSecond": {
+          "median": 99.98513111135057,
+          "min": 99.98492225872815,
+          "max": 99.99161523068125,
+          "total": 299.96166860075994
+        },
+        "cpuSeconds": {
+          "median": 10.178244999999999,
+          "min": 10.075181,
+          "max": 10.450011,
+          "total": 30.703436999999997
+        },
+        "cpuMsPerRequest": {
+          "median": 1.696091484752541,
+          "min": 1.6789170138310283,
+          "max": 1.7413782702882854,
+          "total": 5.1163867688718545
+        },
+        "allocationBytesPerRequest": {
+          "median": 23991.960006665555,
+          "min": 23973.48708548575,
+          "max": 23992.06532244626,
+          "total": 71957.51241459756
+        },
+        "allocationBytesPerSecond": {
+          "median": 2398834.2561009703,
+          "min": 2397147.6963895974,
+          "max": 2398849.796896877,
+          "total": 7194831.749387444
+        },
+        "gatewayCores": {
+          "median": 0.16959492713941096,
+          "min": 0.16786673775297256,
+          "max": 0.17411157097781269,
+          "total": 0.5115732358701962
+        },
+        "subgraphCores": {
+          "median": 0.24643703376265272,
+          "min": 0.2428215593810978,
+          "max": 0.254571466709482,
+          "total": 0.7438300598532326
+        },
+        "procCpuSeconds": {
+          "median": 10.153969354425387,
+          "min": 10.05795951413548,
+          "max": 10.430432670944146,
+          "total": 30.642361539505014
+        },
+        "loadGeneratorCores": {
+          "median": 0.0815374828781334,
+          "min": 0.07671551338405865,
+          "max": 0.08343474347393004,
+          "total": 0.24168773973612206
+        },
+        "gen0": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "gen1": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "gen2": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "gcPauseMs": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "total": 0.0
+        },
+        "gcPausePercent": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "total": 0.0
+        },
+        "heapEnd": {
+          "median": 191809912,
+          "min": 191760224,
+          "max": 192107120,
+          "total": 575677256
+        },
+        "fragmentationEnd": {
+          "median": 156216,
+          "min": 154448,
+          "max": 1005624,
+          "total": 1316288
+        },
+        "committedEnd": {
+          "median": 348114944,
+          "min": 347840512,
+          "max": 348180480,
+          "total": 1044135936
+        },
+        "workingSetEnd": {
+          "median": 392749056,
+          "min": 388190208,
+          "max": 400838656,
+          "total": 1181777920
+        },
+        "observedPeakRss": {
+          "median": 392749056,
+          "min": 388190208,
+          "max": 400838656,
+          "total": 1181777920
+        },
+        "failures": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "droppedStarts": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "responseBytesMin": {
+          "median": 895,
+          "min": 895,
+          "max": 895,
+          "total": 2685
+        },
+        "responseBytesMax": {
+          "median": 895,
+          "min": 895,
+          "max": 895,
+          "total": 2685
+        },
+        "p50Ms": {
+          "median": 13.289617,
+          "min": 13.113823,
+          "max": 13.361203,
+          "total": 39.764643
+        },
+        "httpP50Ms": {
+          "median": 12.96824,
+          "min": 12.810404,
+          "max": 13.039827,
+          "total": 38.818471
+        },
+        "p95Ms": {
+          "median": 16.641719,
+          "min": 16.315559,
+          "max": 16.884225,
+          "total": 49.841503
+        },
+        "httpP95Ms": {
+          "median": 16.244509,
+          "min": 15.910763,
+          "max": 16.451471,
+          "total": 48.606742999999994
+        },
+        "p99Ms": {
+          "median": 20.640492,
+          "min": 20.417219,
+          "max": 21.213749,
+          "total": 62.27146
+        },
+        "httpP99Ms": {
+          "median": 20.259782,
+          "min": 20.048383,
+          "max": 20.516871,
+          "total": 60.825036
+        }
+      }
+    },
+    {
+      "variant": "path-pool-candidate2-3a7d93b0ee",
+      "case": "list-10-lookup",
+      "metrics": {
+        "count": {
+          "median": 6001,
+          "min": 6001,
+          "max": 6001,
+          "total": 18003
+        },
+        "elapsed": {
+          "median": 60.018422133,
+          "min": 60.017437763,
+          "max": 60.021535593,
+          "total": 180.05739548900002
+        },
+        "requestsPerSecond": {
+          "median": 99.98596742016753,
+          "min": 99.98078090990836,
+          "max": 99.98760733000738,
+          "total": 299.95435566008325
+        },
+        "cpuSeconds": {
+          "median": 10.537766999999999,
+          "min": 10.174871,
+          "max": 10.937261000000003,
+          "total": 31.649899
+        },
+        "cpuMsPerRequest": {
+          "median": 1.7560018330278284,
+          "min": 1.6955292451258122,
+          "max": 1.8225730711548078,
+          "total": 5.274104149308449
+        },
+        "allocationBytesPerRequest": {
+          "median": 24057.802366272288,
+          "min": 24043.920679886687,
+          "max": 24062.041659723378,
+          "total": 72163.76470588235
+        },
+        "allocationBytesPerSecond": {
+          "median": 2405482.0962217557,
+          "min": 2404054.6697522425,
+          "max": 2405741.715425891,
+          "total": 7215278.48139989
+        },
+        "gatewayCores": {
+          "median": 0.1755784217515597,
+          "min": 0.1695291318630907,
+          "max": 0.1822222789194277,
+          "total": 0.5273298325340781
+        },
+        "subgraphCores": {
+          "median": 0.25720006614864177,
+          "min": 0.25540778602020875,
+          "max": 0.2612477903733521,
+          "total": 0.7738556425422026
+        },
+        "procCpuSeconds": {
+          "median": 10.520697038022643,
+          "min": 10.15287140740972,
+          "max": 10.912697093680672,
+          "total": 31.586265539113032
+        },
+        "loadGeneratorCores": {
+          "median": 0.08578598473882339,
+          "min": 0.07466670799957598,
+          "max": 0.08625339136781054,
+          "total": 0.24670608410620992
+        },
+        "gen0": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "gen1": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "gen2": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "gcPauseMs": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "total": 0.0
+        },
+        "gcPausePercent": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "total": 0.0
+        },
+        "heapEnd": {
+          "median": 83854504,
+          "min": 83671120,
+          "max": 84160024,
+          "total": 251685648
+        },
+        "fragmentationEnd": {
+          "median": 1222144,
+          "min": 1189080,
+          "max": 1280144,
+          "total": 3691368
+        },
+        "committedEnd": {
+          "median": 238522368,
+          "min": 238182400,
+          "max": 240996352,
+          "total": 717701120
+        },
+        "workingSetEnd": {
+          "median": 369815552,
+          "min": 338178048,
+          "max": 370188288,
+          "total": 1078181888
+        },
+        "observedPeakRss": {
+          "median": 369815552,
+          "min": 365592576,
+          "max": 375119872,
+          "total": 1110528000
+        },
+        "failures": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "droppedStarts": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "responseBytesMin": {
+          "median": 895,
+          "min": 895,
+          "max": 895,
+          "total": 2685
+        },
+        "responseBytesMax": {
+          "median": 895,
+          "min": 895,
+          "max": 895,
+          "total": 2685
+        },
+        "p50Ms": {
+          "median": 13.43008,
+          "min": 13.029835,
+          "max": 13.437992,
+          "total": 39.897907000000004
+        },
+        "httpP50Ms": {
+          "median": 13.091286,
+          "min": 12.748,
+          "max": 13.104032,
+          "total": 38.943318000000005
+        },
+        "p95Ms": {
+          "median": 16.903892,
+          "min": 16.559108,
+          "max": 16.998221,
+          "total": 50.461220999999995
+        },
+        "httpP95Ms": {
+          "median": 16.451598,
+          "min": 16.197773,
+          "max": 16.577093,
+          "total": 49.22646400000001
+        },
+        "p99Ms": {
+          "median": 21.453793,
+          "min": 20.352342,
+          "max": 21.916623,
+          "total": 63.722758
+        },
+        "httpP99Ms": {
+          "median": 20.918623,
+          "min": 20.079923,
+          "max": 21.243454,
+          "total": 62.242000000000004
+        }
+      }
+    }
+  ],
+  "heaps": [
+    {
+      "phase": "Default GC normal 1",
+      "baseline": {
+        "live": 116215773,
+        "committed": 149553152,
+        "rss": 164691968,
+        "artifact": "/workspaces/platform-1/perf/path-pool-baseline-3a7d93b0ee/heaps/confirm-default-1/normal.report.txt"
+      },
+      "candidate": {
+        "live": 7288365,
+        "committed": 21393408,
+        "rss": 145440768,
+        "artifact": "/workspaces/platform-1/perf/path-pool-candidate2-3a7d93b0ee/heaps/confirm-default-1/normal.report.txt"
+      }
+    },
+    {
+      "phase": "Default GC normal 2",
+      "baseline": {
+        "live": 116502119,
+        "committed": 127610880,
+        "rss": 142995456,
+        "artifact": "/workspaces/platform-1/perf/path-pool-baseline-3a7d93b0ee/heaps/confirm-default-2/normal.report.txt"
+      },
+      "candidate": {
+        "live": 7225445,
+        "committed": 16883712,
+        "rss": 137953280,
+        "artifact": "/workspaces/platform-1/perf/path-pool-candidate2-3a7d93b0ee/heaps/confirm-default-2/normal.report.txt"
+      }
+    },
+    {
+      "phase": "Fixed heaps normal",
+      "baseline": {
+        "live": 117007447,
+        "committed": 266117120,
+        "rss": 278491136,
+        "artifact": "/workspaces/platform-1/perf/path-pool-baseline-3a7d93b0ee/heaps/normal.report.txt"
+      },
+      "candidate": {
+        "live": 7647141,
+        "committed": 156762112,
+        "rss": 276529152,
+        "artifact": "/workspaces/platform-1/perf/path-pool-candidate2-3a7d93b0ee/heaps/memory/normal.report.txt"
+      }
+    },
+    {
+      "phase": "Fixed heaps after burst",
+      "baseline": {
+        "live": 439137095,
+        "committed": 1814560768,
+        "rss": 1795031040,
+        "artifact": "/workspaces/platform-1/perf/path-pool-baseline-3a7d93b0ee/heaps/post-burst.report.txt"
+      },
+      "candidate": {
+        "live": 364629777,
+        "committed": 1511284736,
+        "rss": 1912156160,
+        "artifact": "/workspaces/platform-1/perf/path-pool-candidate2-3a7d93b0ee/heaps/memory/post-burst.report.txt"
+      }
+    },
+    {
+      "phase": "Fixed heaps after 90s idle",
+      "baseline": {
+        "live": 216962273,
+        "committed": 1563320320,
+        "rss": 1608105984,
+        "artifact": "/workspaces/platform-1/perf/path-pool-baseline-3a7d93b0ee/heaps/idle.report.txt"
+      },
+      "candidate": {
+        "live": 129881561,
+        "committed": 1154572288,
+        "rss": 1489768448,
+        "artifact": "/workspaces/platform-1/perf/path-pool-candidate2-3a7d93b0ee/heaps/memory/idle.report.txt"
+      }
+    }
+  ],
+  "micro": {
+    "baseline": {
+      "ConstructAndDispose": {
+        "statistics": {
+          "OriginalValues": [
+            13166,
+            15875,
+            20250,
+            10624,
+            9458,
+            27166,
+            9041,
+            17833,
+            17500,
+            21416,
+            14250,
+            15208,
+            13666,
+            11249,
+            18999,
+            11521,
+            16146,
+            11563,
+            14104,
+            14854,
+            15146,
+            15271,
+            18604,
+            17438,
+            14395,
+            17521,
+            15854,
+            12145,
+            11104,
+            7895,
+            15542,
+            20125,
+            17833,
+            22791,
+            14291,
+            19083,
+            13458,
+            23042,
+            15916,
+            11916,
+            13458,
+            21333,
+            11625,
+            14291,
+            8208
+          ],
+          "N": 45,
+          "Min": 7895,
+          "LowerFence": 3613,
+          "Q1": 12145,
+          "Median": 15146,
+          "Mean": 15381.644444444444,
+          "Q3": 17833,
+          "UpperFence": 26365,
+          "Max": 27166,
+          "InterquartileRange": 5688,
+          "LowerOutliers": [],
+          "UpperOutliers": [
+            27166
+          ],
+          "AllOutliers": [
+            27166
+          ],
+          "StandardError": 620.8182439944229,
+          "Variance": 17343688.14343435,
+          "StandardDeviation": 4164.575385730741,
+          "Skewness": 0.47623112717461213,
+          "Kurtosis": 3.008377977413726,
+          "ConfidenceInterval": {
+            "N": 45,
+            "Mean": 15381.644444444444,
+            "StandardError": 620.8182439944229,
+            "Level": 12,
+            "Margin": 2188.8817715340315,
+            "Lower": 13192.762672910412,
+            "Upper": 17570.526215978476
+          },
+          "Percentiles": {
+            "P0": 7895,
+            "P25": 12145,
+            "P50": 15146,
+            "P67": 16766.16,
+            "P80": 18683,
+            "P85": 19499.8,
+            "P90": 20899.800000000003,
+            "P95": 22515.999999999993,
+            "P100": 27166
+          }
+        },
+        "memory": {
+          "Gen0Collections": 0,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 1,
+          "BytesAllocatedPerOperation": 108962352
+        }
+      },
+      "GrowReturnAndTrim": {
+        "statistics": {
+          "OriginalValues": [
+            88194.92309570312,
+            82971.85009765625,
+            85935.49633789062,
+            92768.55639648438,
+            84495.21801757812,
+            79723.58520507812,
+            79796.08520507812,
+            85284.591796875,
+            88808.3515625,
+            89240.73803710938,
+            89195.87670898438,
+            91572.03442382812,
+            84378.24340820312,
+            86817.34912109375,
+            83757.6533203125,
+            79729.67077636719,
+            75256.50207519531,
+            72368.93701171875,
+            72025.26574707031,
+            74924.93103027344,
+            72529.40783691406,
+            75398.04138183594,
+            73326.73510742188,
+            72683.78686523438,
+            72616.92761230469,
+            73710.27209472656,
+            76421.25109863281,
+            72160.91101074219,
+            77385.07824707031,
+            82018.93524169922,
+            86419.19427490234,
+            80086.42877197266,
+            80693.36590576172,
+            82588.10162353516,
+            81741.9867553711,
+            80300.6685180664,
+            84967.32208251953,
+            82513.4857788086,
+            82230.3471069336,
+            83638.75701904297,
+            83232.4536743164,
+            85977.65313720703,
+            84283.56158447266,
+            81246.23077392578
+          ],
+          "N": 44,
+          "Min": 72025.26574707031,
+          "LowerFence": 62843.66240692139,
+          "Q1": 76165.4486694336,
+          "Median": 82124.6411743164,
+          "Mean": 81259.4718836004,
+          "Q3": 85046.6395111084,
+          "UpperFence": 98368.4257736206,
+          "Max": 92768.55639648438,
+          "InterquartileRange": 8881.190841674805,
+          "LowerOutliers": [],
+          "UpperOutliers": [],
+          "AllOutliers": [],
+          "StandardError": 861.8003005673675,
+          "Variance": 32678789.35455221,
+          "StandardDeviation": 5716.536482394931,
+          "Skewness": -0.09798929139137502,
+          "Kurtosis": 2.025546117589047,
+          "ConfidenceInterval": {
+            "N": 44,
+            "Mean": 81259.4718836004,
+            "StandardError": 861.8003005673675,
+            "Level": 12,
+            "Margin": 3043.5560651066107,
+            "Lower": 78215.9158184938,
+            "Upper": 84303.02794870701
+          },
+          "Percentiles": {
+            "P0": 72025.26574707031,
+            "P25": 76165.4486694336,
+            "P50": 82124.6411743164,
+            "P67": 84183.63901428223,
+            "P80": 85952.35905761718,
+            "P85": 86638.1794403076,
+            "P90": 88624.32302246094,
+            "P95": 89234.00883789064,
+            "P100": 92768.55639648438
+          }
+        },
+        "memory": {
+          "Gen0Collections": 28,
+          "Gen1Collections": 15,
+          "Gen2Collections": 0,
+          "TotalOperations": 8192,
+          "BytesAllocatedPerOperation": 573720
+        }
+      }
+    },
+    "prototype1": {
+      "ConstructAndDispose": {
+        "statistics": {
+          "OriginalValues": [
+            1666.5,
+            1625.5,
+            1417.5,
+            1625.5,
+            1499.5,
+            1500.5,
+            1958.5,
+            1666.5,
+            1625.5,
+            1541.5,
+            1541.5,
+            1583.5,
+            2084,
+            1959,
+            2292,
+            1583,
+            1709,
+            1583,
+            1459,
+            2042,
+            2166,
+            1583,
+            1667,
+            1875,
+            3584,
+            1333,
+            2792,
+            1584,
+            3084,
+            3875,
+            2250,
+            2084,
+            2250,
+            1250,
+            1500,
+            1792
+          ],
+          "N": 36,
+          "Min": 1250,
+          "LowerFence": 805.5625,
+          "Q1": 1572.625,
+          "Median": 1666.5,
+          "Mean": 1906.4444444444443,
+          "Q3": 2084,
+          "UpperFence": 2851.0625,
+          "Max": 3875,
+          "InterquartileRange": 511.375,
+          "LowerOutliers": [],
+          "UpperOutliers": [
+            3084,
+            3584,
+            3875
+          ],
+          "AllOutliers": [
+            3084,
+            3584,
+            3875
+          ],
+          "StandardError": 98.98162363074512,
+          "Variance": 352705.0253968254,
+          "StandardDeviation": 593.8897417844707,
+          "Skewness": 1.8014325982680002,
+          "Kurtosis": 5.83346229363257,
+          "ConfidenceInterval": {
+            "N": 36,
+            "Mean": 1906.4444444444443,
+            "StandardError": 98.98162363074512,
+            "Level": 12,
+            "Margin": 355.45753821754084,
+            "Lower": 1550.9869062269036,
+            "Upper": 2261.901982661985
+          },
+          "Percentiles": {
+            "P0": 1250,
+            "P25": 1572.625,
+            "P50": 1666.5,
+            "P67": 1958.725,
+            "P80": 2166,
+            "P85": 2250,
+            "P90": 2542,
+            "P95": 3209,
+            "P100": 3875
+          }
+        },
+        "memory": {
+          "Gen0Collections": 0,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 1,
+          "BytesAllocatedPerOperation": 33040
+        }
+      },
+      "GrowReturnAndTrim": {
+        "statistics": {
+          "OriginalValues": [
+            90297.65295410156,
+            88334.17602539062,
+            85433.26477050781,
+            89369.91833496094,
+            85478.42590332031,
+            86209.34655761719,
+            80834.75732421875,
+            87455.20874023438,
+            89201.75012207031,
+            85529.20239257812,
+            85677.57470703125,
+            91496.34985351562,
+            87251.40087890625,
+            86622.11962890625,
+            85949.48278808594,
+            94987.41345214844,
+            90688.43286132812,
+            86842.62561035156,
+            95291.23303222656,
+            94465.44287109375,
+            94061.16394042969,
+            91061.6396484375,
+            91316.21362304688,
+            92305.11608886719,
+            85568.79907226562,
+            84569.25085449219,
+            87324.28735351562,
+            85075.40319824219,
+            95547.505859375,
+            84024.57507324219,
+            86187.65344238281,
+            82760.92614746094,
+            79312.3076171875,
+            82135.34765625,
+            82050.98132324219,
+            85727.19128417969,
+            82555.7451171875,
+            81818.76159667969,
+            82335.54931640625,
+            83628.90209960938,
+            80939.52465820312,
+            81944.11828613281,
+            82037.39587402344,
+            84283.625
+          ],
+          "N": 44,
+          "Min": 79312.3076171875,
+          "LowerFence": 74126.99229431152,
+          "Q1": 83411.90811157227,
+          "Median": 85838.33703613281,
+          "Mean": 86726.9946122603,
+          "Q3": 89601.8519897461,
+          "UpperFence": 98886.76780700684,
+          "Max": 95547.505859375,
+          "InterquartileRange": 6189.943878173828,
+          "LowerOutliers": [],
+          "UpperOutliers": [],
+          "AllOutliers": [],
+          "StandardError": 649.9021967423375,
+          "Variance": 18584406.0745427,
+          "StandardDeviation": 4310.963474044138,
+          "Skewness": 0.481640775580545,
+          "Kurtosis": 2.260774719091608,
+          "ConfidenceInterval": {
+            "N": 44,
+            "Mean": 86726.9946122603,
+            "StandardError": 649.9021967423375,
+            "Level": 12,
+            "Margin": 2295.2112819164986,
+            "Lower": 84431.7833303438,
+            "Upper": 89022.2058941768
+          },
+          "Percentiles": {
+            "P0": 79312.3076171875,
+            "P25": 83411.90811157227,
+            "P50": 85838.33703613281,
+            "P67": 87430.33367675781,
+            "P80": 90837.71557617188,
+            "P85": 91415.28854980468,
+            "P90": 93534.34958496093,
+            "P95": 94909.11786499023,
+            "P100": 95547.505859375
+          }
+        },
+        "memory": {
+          "Gen0Collections": 38,
+          "Gen1Collections": 24,
+          "Gen2Collections": 0,
+          "TotalOperations": 8192,
+          "BytesAllocatedPerOperation": 778616
+        }
+      }
+    },
+    "candidate2": {
+      "ConstructAndDispose": {
+        "statistics": {
+          "OriginalValues": [
+            7542,
+            2000,
+            2041,
+            2583,
+            2458,
+            2042,
+            1791,
+            1875,
+            2416,
+            1916,
+            3791,
+            6000,
+            1958,
+            4541,
+            2167,
+            1709,
+            2792,
+            2875,
+            1833,
+            1667,
+            1583,
+            1667,
+            1459,
+            2416,
+            3084,
+            2875,
+            2417,
+            2250,
+            1833,
+            1666,
+            1708,
+            1667,
+            3000,
+            1458,
+            2250,
+            3083,
+            2291,
+            2208,
+            2208
+          ],
+          "N": 39,
+          "Min": 1458,
+          "LowerFence": 498.75,
+          "Q1": 1812,
+          "Median": 2208,
+          "Mean": 2490.25641025641,
+          "Q3": 2687.5,
+          "UpperFence": 4000.75,
+          "Max": 7542,
+          "InterquartileRange": 875.5,
+          "LowerOutliers": [],
+          "UpperOutliers": [
+            4541,
+            6000,
+            7542
+          ],
+          "AllOutliers": [
+            4541,
+            6000,
+            7542
+          ],
+          "StandardError": 193.35535282703546,
+          "Variance": 1458065.4062078279,
+          "StandardDeviation": 1207.5037913844526,
+          "Skewness": 2.5579971325963022,
+          "Kurtosis": 10.01757328311146,
+          "ConfidenceInterval": {
+            "N": 39,
+            "Mean": 2490.25641025641,
+            "StandardError": 193.35535282703546,
+            "Level": 12,
+            "Margin": 689.4429407268779,
+            "Lower": 1800.8134695295323,
+            "Upper": 3179.6993509832882
+          },
+          "Percentiles": {
+            "P0": 1458,
+            "P25": 1812,
+            "P50": 2208,
+            "P67": 2416.46,
+            "P80": 2875,
+            "P85": 3024.8999999999996,
+            "P90": 3225.400000000002,
+            "P95": 4686.900000000002,
+            "P100": 7542
+          }
+        },
+        "memory": {
+          "Gen0Collections": 0,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 1,
+          "BytesAllocatedPerOperation": 33040
+        }
+      },
+      "GrowReturnAndTrim": {
+        "statistics": {
+          "OriginalValues": [
+            82463.32189941406,
+            81801.25476074219,
+            81900.91040039062,
+            81893.44372558594,
+            81933.97644042969,
+            83013.3330078125,
+            82732.34094238281,
+            84021.06945800781,
+            81794.38830566406,
+            81943.32507324219,
+            82539.39245605469,
+            83344.68444824219,
+            82870.90161132812,
+            82125.15478515625,
+            79680.51574707031,
+            77688.86694335938,
+            78513.40539550781,
+            78533.72509765625,
+            77727.69067382812,
+            78771.890625,
+            78600.75744628906,
+            80132.82934570312,
+            79144.66491699219,
+            77608.15771484375,
+            78505.0283203125,
+            76766.73779296875,
+            78313.24975585938,
+            77469.75463867188,
+            82073.11682128906,
+            82763.44348144531,
+            82899.16101074219,
+            82294.75708007812,
+            82042.49230957031,
+            83548.56323242188,
+            83979.54504394531,
+            82572.78894042969,
+            84776.38854980469,
+            83577.18371582031,
+            82224.52563476562,
+            83550.31799316406,
+            82969.26025390625,
+            83105.30822753906
+          ],
+          "N": 42,
+          "Min": 76766.73779296875,
+          "LowerFence": 72824.56625366211,
+          "Q1": 78865.08419799805,
+          "Median": 82057.80456542969,
+          "Mean": 81290.75295293899,
+          "Q3": 82892.09616088867,
+          "UpperFence": 88932.61410522461,
+          "Max": 84776.38854980469,
+          "InterquartileRange": 4027.011962890625,
+          "LowerOutliers": [],
+          "UpperOutliers": [],
+          "AllOutliers": [],
+          "StandardError": 343.9118131390035,
+          "Variance": 4967564.079095389,
+          "StandardDeviation": 2228.8032840731794,
+          "Skewness": -0.5711520607528809,
+          "Kurtosis": 1.8687338814465948,
+          "ConfidenceInterval": {
+            "N": 42,
+            "Mean": 81290.75295293899,
+            "StandardError": 343.9118131390035,
+            "Level": 12,
+            "Margin": 1218.886620822506,
+            "Lower": 80071.86633211648,
+            "Upper": 82509.6395737615
+          },
+          "Percentiles": {
+            "P0": 76766.73779296875,
+            "P25": 78865.08419799805,
+            "P50": 82057.80456542969,
+            "P67": 82647.77838134766,
+            "P80": 83004.51845703126,
+            "P85": 83308.77801513672,
+            "P90": 83550.14251708984,
+            "P95": 83959.42697753906,
+            "P100": 84776.38854980469
+          }
+        },
+        "memory": {
+          "Gen0Collections": 38,
+          "Gen1Collections": 22,
+          "Gen2Collections": 0,
+          "TotalOperations": 8192,
+          "BytesAllocatedPerOperation": 778616
+        }
+      }
+    }
+  },
+  "audit": {
+    "procMaxDifferencePercent": 1.0388163819076368,
+    "runtimeCpuMaxDifferencePercent": 0.5499340099771377,
+    "runtimeAllocationMaxDifferencePercent": 0.421589378616094
+  }
+}

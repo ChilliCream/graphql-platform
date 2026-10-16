@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>HotChocolate.Fusion.Execution.Benchmarks</AssemblyName>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
+    <Reference Include="HotChocolate.Fusion.Execution">
+      <HintPath>$(MeasuredGateway)/HotChocolate.Fusion.Execution.dll</HintPath>
+    </Reference>
+    <Content Include="$(MeasuredGateway)/*.dll" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>
