@@ -258,6 +258,7 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
             // If the execution of the node was cancelled, either the entire request was cancelled
             // or the execution was halted. In both cases we do not want to produce any errors
             // and just exit the node as quickly as possible.
+            result?.Dispose();
             return ExecutionStatus.Failed;
         }
         catch (Exception exception)
