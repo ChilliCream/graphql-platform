@@ -194,6 +194,21 @@ public sealed class OperationExecutionNode : ExecutionNode
             // If the execution of the node was cancelled, either the entire request was cancelled
             // or the execution was halted. In both cases we do not want to produce any errors
             // and just exit the node as quickly as possible.
+            if (buffer is not null && bufferLength > 0)
+            {
+                foreach (var result in buffer.AsSpan(0, index))
+                {
+                    result?.Dispose();
+                }
+
+                buffer.AsSpan(0, index).Clear();
+                ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
+            }
+            else
+            {
+                singleResult?.Dispose();
+            }
+
             return ExecutionStatus.Failed;
         }
         catch (Exception exception)
