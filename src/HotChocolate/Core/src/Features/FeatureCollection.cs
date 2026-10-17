@@ -2,6 +2,7 @@
 
 // ReSharper disable NonAtomicCompoundOperator
 using System.Collections;
+using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Features;
@@ -176,6 +177,11 @@ public sealed class FeatureCollection : IFeatureCollection
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    internal FrozenDictionary<Type, object> CreateSnapshot()
+        => _defaults is null && _features is not null
+            ? _features.ToFrozenDictionary()
+            : ((IEnumerable<KeyValuePair<Type, object>>)this).ToFrozenDictionary();
 
     private sealed class KeyComparer : IEqualityComparer<KeyValuePair<Type, object>>
     {

@@ -20,7 +20,9 @@ public sealed class ReadOnlyFeatureCollection : IFeatureCollection
     /// </param>
     public ReadOnlyFeatureCollection(IFeatureCollection features)
     {
-        _features = features.ToFrozenDictionary();
+        _features = features is FeatureCollection collection
+            ? collection.CreateSnapshot()
+            : features.ToFrozenDictionary();
 
         // todo: this has an issues as it will also seal the defaults.
         foreach (var feature in _features.Values)
