@@ -1,0 +1,39 @@
+Completion instruction audit, 2026-10-17 16:46 UTC
+Owner: history_environment, delegated by root after the user instructed root to delegate/status only.
+
+Current scope and unresolved gates
+- Frozen C1 is abandoned with full negative evidence published. C2 completed its separately identified allocation-policy correction and first default timing campaign; interpretation/publication and terminal micro decision remain. C3 has an allocation-only micro gate and is queued for the relevant HTTP gate. Neither C2 nor C3 is a validated success yet.
+- Latest user exclusion of their prior performance experiments supersedes the original prompt allowance to revisit. Keep the25 mechanism exclusions and do not add candidates.
+- HTTP must retain the accepted explicit final-survivor order, source/framework/settings identities, original TestQuery/load semantics and full native/CPU/resource/retention evidence. No automatic retries or equivalent campaign reruns. Unresolved repeated adverse patterns, conflicting controls or inadequate headroom prevent success.
+- Allocation-only fixed-heap/noGC and scoped-byte findings must remain distinct from default-policy timing, HTTP CPU/request, process allocation totals, RSS and retained heap. Preserve all valid/invalid raw data and all limitations.
+
+Publication before success
+- Each owner publishes source, implementation, correctness tests, commands, fingerprints, analysis and sufficient raw/lossless observations on its evidence branch, including rejected variants and invalid attempts. Explicit paths only; no user files, credentials or indiscriminate build output.
+- Verify each exact remote SHA and immutable artifact link. State genuine publication gaps. Copy and publish the live report on the coordination branch, update at important handoffs and at least every10minutes. New delegation makes history_environment the report publication owner; root now delegates/status only.
+- Accurate statuses are INVESTIGATING, PROTOTYPING, QUEUED_FOR_MICRO, QUEUED_FOR_HTTP, RUNNING_BENCHMARKS, ANALYZING_RESULTS, VERIFYING, SUCCESS_PUSHED and ABANDONED.
+
+Only after a candidate qualifies
+- Create an independent clean tte/<short-descriptive-improvement-name> branch with no timestamp/run/investigation suffix, on the pinned appropriate baseline. Include only the measured production changes and necessary correctness tests. No benchmark projects/helpers/data/reports/generated artifacts or unrelated cleanup.
+- Verify extracted production/test source equals the measured implementation. Extraction does not justify another benchmark campaign. Substantive integration changes require relevant validation.
+- Run applicable Release/style and focused correctness checks only as needed; no gratuitous full suite. No coauthor trailers. Preserve shared native/Apollo semantics, cancellation, security and APIs.
+- Push and open a draft PR autonomously, never merge. Follow AGENTS bug-fix title rules when applicable. Use PR10559 as style reference only; its trade-offs do not override this investigation's stricter gate.
+
+Required PR description order
+1. Concrete issue/trigger and recurring performance cost.
+2. Solution and resulting behavior.
+3. Relevant production-path microbenchmarks, concise scope/method/environment and the exact six-column table below.
+4. Relevant HTTP evidence, correctness results and immutable evidence/reproduction links sufficient to assess the claim.
+5. Final paragraph at the absolute end: overall-performance verdict, demonstrated benefit, practical scope and material limitations.
+
+Exact micro table columns/order and adjacent rows:
+| Method | Version | Mean | Ratio | Allocated | Alloc Ratio |
+|---|---|---:|---:|---:|---:|
+| descriptive case(parameters) | `main` | measured arithmetic mean with units |1.00| measured bytes with units |1.00|
+| descriptive case(parameters) | PR | measured arithmetic mean with units | PR/main | measured bytes with units | PR/main |
+Use units in Mean/Allocated, ratios normally2decimals, N/A for undefined zero-baseline allocation ratios. Never relabel median as mean or add parameter columns. Derive means from retained raw observations; no rerun for formatting. Report full control range/trend and adverse observations in surrounding explanation/evidence, not a favorable selected control.
+
+Final audit
+- Verify actual PR base/head/draft state/description/changed files and immutable evidence links after publication. A later demonstrated regression or missing required proof means update/close an investigation PR while retaining evidence.
+- Every frozen candidate must become SUCCESS_PUSHED with qualifying minimal draft PR or ABANDONED with documented evidence. No promising unfinished states at completion.
+- Final chat lists validated successes first with draft links, measured result/scope. Do not list abandoned candidates in that success summary; keep their details at the live report bottom. If none qualifies, say so plainly.
+- Delegate/verify exact final remote commits, actual PR states, all owned PID/start cleanup, free shared measurement lock, original benchmark cleanliness and user prompt/report/index preservation. Never broad-kill processes or prune historical worktrees.
