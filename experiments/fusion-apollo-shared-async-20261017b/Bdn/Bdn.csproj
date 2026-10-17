@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>HotChocolate.Fusion.Execution.Benchmarks</AssemblyName>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>preview</LangVersion>
+    <RuntimeFrameworkVersion>10.0.12</RuntimeFrameworkVersion>
+    <RollForward>Disable</RollForward>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
+    <Compile Include="../../fusion-apollo-error-vars-20261017b/Micro/SchemaFixture.cs" Link="SchemaFixture.cs" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="../../../src/HotChocolate/Fusion/src/Fusion.Execution/HotChocolate.Fusion.Execution.csproj" />
+    <ProjectReference Include="../../../src/HotChocolate/Fusion/src/Fusion.Composition/HotChocolate.Fusion.Composition.csproj" />
+    <ProjectReference Include="../../../src/HotChocolate/AspNetCore/src/Transport.Formatters/HotChocolate.Transport.Formatters.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,5 @@
+{
+  "reason": "Explicit user requirement added native BenchmarkDotNet MemoryDiagnoser before any measurements. Original frozen host and check-only records retained.",
+  "manifestSha256": "c6ded1ce8cf221ec67f35e0e0d111eb07bf957e0e1cc4d1009b181d9010d17d9",
+  "runnerSha256": "6181088b197407dccb06311cb505278be2ac27b098c6f4652d168cd22e2a4258"
+}
