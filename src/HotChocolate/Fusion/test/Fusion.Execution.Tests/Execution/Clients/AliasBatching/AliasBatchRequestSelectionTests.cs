@@ -203,6 +203,48 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
             """{"_0___fusion_1_id":"1","_1___fusion_1_id":"2","_2___fusion_1_id":"B"}""");
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ExecuteAsync_Should_KeepSharedVariablesIsolated_When_RequestsHaveDifferentForwarding(
+        bool batch)
+    {
+        // arrange
+        await using var emptyFixture = await Fixture.CreateAsync(SourceSchemaClientCapabilities.AliasBatching);
+        await using var sharedFixture = await Fixture.CreateAsync(SourceSchemaClientCapabilities.AliasBatching);
+        var emptyRequest = emptyFixture.CreateLookupRequest();
+        var sharedRequest = sharedFixture.CreateLookupRequest() with
+        {
+            ForwardedVariables = ["__fusion_1_id"]
+        };
+
+        // act
+        var bodies = await Task.WhenAll(
+            SendAsync(emptyFixture, emptyRequest),
+            SendAsync(sharedFixture, sharedRequest));
+        var emptyAgain = await SendAsync(emptyFixture, emptyRequest);
+
+        // assert
+        ReadVariables(bodies[0]).MatchInlineSnapshot(
+            """{"_0___fusion_1_id":"1","_1___fusion_1_id":"2"}""");
+        ReadVariables(bodies[1]).MatchInlineSnapshot("""{"__fusion_1_id":"1"}""");
+        ReadVariables(emptyAgain).MatchInlineSnapshot(
+            """{"_0___fusion_1_id":"1","_1___fusion_1_id":"2"}""");
+
+        async Task<string> SendAsync(Fixture fixture, SourceSchemaClientRequest request)
+        {
+            var variables = fixture.CreateClientVariables("__fusion_1_id");
+
+            if (batch)
+            {
+                await fixture.SendBatchAsync([request], variables);
+                return fixture.Body;
+            }
+
+            return await fixture.SendAsync(request, variables);
+        }
+    }
+
     [Fact]
     public async Task ExecuteAsync_Should_FreeTheDocument_When_TheEnumerationIsAbandoned()
     {

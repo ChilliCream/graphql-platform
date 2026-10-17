@@ -1,0 +1,18 @@
+You must install or update .NET to run this application.
+
+App: /workspaces/platform-1/.worktrees/fusion-apollo-shared-variables-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/bin/Release/net10.0/HotChocolate.Fusion.Execution.Tests.dll
+Architecture: arm64
+Framework: 'Microsoft.NETCore.App', version '10.0.0' (arm64)
+.NET location: /usr/share/dotnet/
+
+The following frameworks were found:
+  8.0.31 at [/usr/share/dotnet/shared/Microsoft.NETCore.App]
+  9.0.20 at [/usr/share/dotnet/shared/Microsoft.NETCore.App]
+  10.0.12 at [/usr/share/dotnet/shared/Microsoft.NETCore.App]
+  11.0.0-rc.1.26425.128 at [/usr/share/dotnet/shared/Microsoft.NETCore.App]
+
+Learn more:
+https://aka.ms/dotnet/app-launch-failed
+
+To install missing framework, download:
+https://aka.ms/dotnet-core-applaunch?framework=Microsoft.NETCore.App&framework_version=10.0.0&arch=arm64&rid=linux-arm64&os=linux

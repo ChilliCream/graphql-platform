@@ -1,0 +1,18 @@
+{
+  "base": "43a8dca2bd479ddc411d832ed97e42d9fcc8bd85",
+  "engineHashes": {
+    "HotChocolate.Fusion.Execution.dll": "ead833aee16aeb90571c48857d0d2f32de804a8ed6aa47fb28242d96f1aa97d3",
+    "HotChocolate.Fusion.Execution.pdb": "dab89bde85bdec48b63110f94fc7b738a6b18db99372081e05af85cda360e19f"
+  },
+  "patchSha256": "4294b46fecc006cd3fe864444b55749893050f08aaf8b45cc0e03cd466280f7b",
+  "tests": {
+    "passed": 41,
+    "failed": 0,
+    "skipped": 0,
+    "new": 2
+  },
+  "build": {
+    "errors": 0,
+    "existingDeprecationWarnings": 2
+  }
+}

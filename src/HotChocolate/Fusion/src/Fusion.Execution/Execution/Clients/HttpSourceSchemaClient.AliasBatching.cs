@@ -12,6 +12,8 @@ namespace HotChocolate.Fusion.Execution.Clients;
 
 public sealed partial class HttpSourceSchemaClient
 {
+    private static readonly List<Utf8VariableDefinitionNode> s_emptySharedVariables = [];
+
     private static ReadOnlySpan<byte> ErrorsProperty => "errors"u8;
 
     /// <summary>
@@ -25,11 +27,11 @@ public sealed partial class HttpSourceSchemaClient
     {
         var requests = ImmutableArray.Create(request);
         var items = new AliasBatchItem[request.Variables.Length];
-        var sharedVariables = new List<Utf8VariableDefinitionNode>();
-        var itemCount = CollectItems(requests, items, sharedVariables);
+        List<Utf8VariableDefinitionNode>? sharedVariables = null;
+        var itemCount = CollectItems(requests, items, ref sharedVariables);
 
         await foreach (var result in ExecuteAliasBatchStreamAsync(
-            context, requests, items, itemCount, sharedVariables, cancellationToken)
+            context, requests, items, itemCount, sharedVariables ?? s_emptySharedVariables, cancellationToken)
             .WithCancellation(cancellationToken).ConfigureAwait(false))
         {
             yield return result.Result;
@@ -46,8 +48,8 @@ public sealed partial class HttpSourceSchemaClient
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var items = new AliasBatchItem[CountVariableSets(requests)];
-        var sharedVariables = new List<Utf8VariableDefinitionNode>();
-        var itemCount = CollectItems(requests, items, sharedVariables);
+        List<Utf8VariableDefinitionNode>? sharedVariables = null;
+        var itemCount = CollectItems(requests, items, ref sharedVariables);
 
         // A batch that merges fewer than two items gains nothing from the alias protocol, so
         // every request stays on the protocol the source schema natively supports.
@@ -64,7 +66,7 @@ public sealed partial class HttpSourceSchemaClient
         }
 
         await foreach (var result in ExecuteAliasBatchStreamAsync(
-            context, requests, items, itemCount, sharedVariables, cancellationToken)
+            context, requests, items, itemCount, sharedVariables ?? s_emptySharedVariables, cancellationToken)
             .WithCancellation(cancellationToken).ConfigureAwait(false))
         {
             yield return result;
@@ -255,7 +257,7 @@ public sealed partial class HttpSourceSchemaClient
     private static int CollectItems(
         ImmutableArray<SourceSchemaClientRequest> requests,
         AliasBatchItem[] items,
-        List<Utf8VariableDefinitionNode> sharedVariables)
+        ref List<Utf8VariableDefinitionNode>? sharedVariables)
     {
         var itemCount = 0;
 
@@ -270,7 +272,7 @@ public sealed partial class HttpSourceSchemaClient
 
             if (!request.ForwardedVariables.IsEmpty)
             {
-                CollectSharedVariables(request.ForwardedVariables, operation, sharedVariables);
+                CollectSharedVariables(request.ForwardedVariables, operation, sharedVariables ??= []);
             }
 
             var lookupTypeName = request.LookupTypeName!;
@@ -289,7 +291,7 @@ public sealed partial class HttpSourceSchemaClient
             }
         }
 
-        if (sharedVariables.Count > 0)
+        if (sharedVariables is { Count: > 0 })
         {
             DemoteConflictingVariables(requests, sharedVariables);
         }
