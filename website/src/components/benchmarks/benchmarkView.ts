@@ -30,7 +30,7 @@ const SCENARIO_ORDER = Object.keys(SCENARIO_INFO);
 /** The fixed load profile of each scenario that the report does not record. */
 export const SCENARIO_LOAD: Readonly<Record<ScenarioId, string>> = {
   "constant-latency":
-    "50 virtual users run the GraphQL operation for 120 seconds. Every subgraph request waits 4 ms to simulate downstream I/O.",
+    "50 virtual users run the GraphQL operation for 120 seconds. Subgraph requests have 4 ms of simulated downstream I/O.",
   constant:
     "50 virtual users run the GraphQL operation for 120 seconds. Subgraph requests have no simulated I/O, so the result leans on router overhead.",
   burst:

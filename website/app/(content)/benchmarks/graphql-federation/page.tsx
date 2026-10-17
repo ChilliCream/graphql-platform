@@ -9,7 +9,7 @@ import {
 import { pageMetadata } from "@/src/helpers/pageMetadata";
 
 const PAGE = {
-  title: "GraphQL Federation Performance Benchmarks",
+  title: "GraphQL Federation Benchmarks",
   description:
     "Compare GraphQL federation router and gateway performance for Fusion, Apollo, Hive, Cosmo, Grafbase, Caliban, and feddi. See throughput, latency, memory and CPU usage, and hardware.",
   path: "/benchmarks/graphql-federation",

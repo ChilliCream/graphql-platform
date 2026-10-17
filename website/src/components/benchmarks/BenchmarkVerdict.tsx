@@ -1,5 +1,3 @@
-import { type ReactNode } from "react";
-import { CrownIcon } from "@/src/icons/CrownIcon";
 import {
   COMPOSITION_GROUPS,
   formatNumber,
@@ -12,14 +10,16 @@ import { Link } from "@/src/design-system/Link";
 import {
   BENCHMARK_FUSION_DOCS_URL,
   benchmarkVariants,
-  gatewayLink,
   formatRuntimeTag,
+  gatewayLink,
   variantName,
   type BenchmarkCatalogEntry,
+  type BenchmarkCompletedVariantResult,
   type BenchmarkReport,
   type BenchmarkVariantResult,
-  type BenchmarkCompletedVariantResult,
 } from "@/src/helpers/benchmarkReport";
+import { CrownIcon } from "@/src/icons/CrownIcon";
+import { type ReactNode } from "react";
 
 /** A scenario verdict with its routers already named. */
 interface NamedVerdict {
@@ -249,7 +249,7 @@ export function BenchmarkVerdictSummary({
     <>
       <p className="text-cc-heading text-body mt-2">
         {commonWinner && (
-          <CrownIcon className="text-cc-accent mr-2 inline size-4 align-[-2px]" />
+          <CrownIcon className="text-cc-accent mr-1.5 inline size-4 align-[-2px]" />
         )}
         {linkFusion(summary)}
       </p>
