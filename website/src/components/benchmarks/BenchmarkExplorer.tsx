@@ -8,7 +8,6 @@ import { BenchmarkVerdictSummary } from "@/src/components/benchmarks/BenchmarkVe
 import {
   SCENARIO_INFO,
   SCENARIO_LOAD,
-  SCENARIO_STATUSES,
 } from "@/src/components/benchmarks/benchmarkView";
 import { useBenchmarkControls } from "@/src/components/benchmarks/useBenchmarkControls";
 import type {
@@ -89,11 +88,6 @@ export function BenchmarkExplorer({ report, history }: BenchmarkExplorerProps) {
                 <span className="text-caption text-cc-ink-dim mt-3 block">
                   {SCENARIO_LOAD[scenario.id]}
                 </span>
-                {scenario.status !== "complete" && (
-                  <span className="text-cc-warning mt-2 block text-xs">
-                    {SCENARIO_STATUSES[scenario.status].label}
-                  </span>
-                )}
               </span>
             </label>
           );

@@ -6,13 +6,16 @@ import {
   scenarioVerdict,
   type ScenarioVerdict,
 } from "@/src/components/benchmarks/benchmarkView";
+import { Link } from "@/src/design-system/Link";
 import {
+  BENCHMARK_FUSION_DOCS_URL,
   benchmarkVariants,
   formatRuntimeTag,
   variantName,
   type BenchmarkCatalogEntry,
   type BenchmarkReport,
   type BenchmarkVariantResult,
+  type BenchmarkCompletedVariantResult,
 } from "@/src/helpers/benchmarkReport";
 
 /** A scenario verdict with its routers already named. */
@@ -104,7 +107,7 @@ function nameVerdict(
     return undefined;
   }
   const named = (
-    row: BenchmarkVariantResult,
+    row: BenchmarkCompletedVariantResult,
     other: BenchmarkVariantResult | undefined,
   ) => ({
     name: routerName(row, variants, other),
@@ -134,16 +137,32 @@ function overallOf(
       ? [verdict.leader, verdict.runnerUp]
       : [verdict.leader],
   );
-  const shared = fastest[0].filter((row) =>
-    fastest.every((rows) => rows.some((item) => item.variant === row.variant)),
+  const gatewayId = (row: BenchmarkVariantResult) =>
+    variants.get(row.variant)!.gateway.id;
+  const shared = [...new Set(fastest[0].map(gatewayId))].filter((id) =>
+    fastest.every((rows) => rows.some((row) => gatewayId(row) === id)),
   );
   if (shared.length !== 1) {
     return { kind: "none" };
   }
-  const name = routerName(shared[0], variants);
+  const name = [...variants.values()].find(
+    (entry) => entry.gateway.id === shared[0],
+  )!.gateway.name;
   return present.every((verdict) => !verdict.tied)
     ? { kind: "leads", name }
     : { kind: "leadsOrTies", name };
+}
+
+function linkFusion(text: string) {
+  return text.split(/\b(Fusion)\b/).map((part, index) =>
+    part === "Fusion" ? (
+      <Link key={index} href={BENCHMARK_FUSION_DOCS_URL}>
+        {part}
+      </Link>
+    ) : (
+      part
+    ),
+  );
 }
 
 interface BenchmarkVerdictSummaryProps {
@@ -177,12 +196,12 @@ export function BenchmarkVerdictSummary({
   }));
   const body = (
     <>
-      <p className="text-cc-heading mt-1">{summary}</p>
+      <p className="text-cc-heading mt-1">{linkFusion(summary)}</p>
       <ul className="text-cc-prose mt-2 space-y-1 text-sm">
         {lines.map((line) => (
           <li key={line.id}>
             <span className="text-cc-heading font-semibold">{line.name}:</span>{" "}
-            {line.text}
+            {linkFusion(line.text)}
           </li>
         ))}
       </ul>
@@ -192,9 +211,9 @@ export function BenchmarkVerdictSummary({
     <section aria-labelledby="benchmark-results-heading">
       <h2
         id="benchmark-results-heading"
-        className="text-h6 text-cc-accent font-semibold"
+        className="text-h6 text-cc-heading font-semibold"
       >
-        Results
+        Results at a glance
       </h2>
       {body}
     </section>

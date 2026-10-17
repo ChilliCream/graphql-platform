@@ -1,6 +1,5 @@
 import { BenchmarkResultsTable } from "@/src/components/benchmarks/BenchmarkResultsTable";
 import {
-  SCENARIO_STATUSES,
   scenarioGroups,
   throughputNote,
   tableCaption,
@@ -18,7 +17,7 @@ interface BenchmarkScenarioResultsProps {
   readonly stableOnly: boolean;
 }
 
-/** The GraphQL Federation specification and Apollo Federation tables of one scenario, with its status and single-run notices. */
+/** The GraphQL Federation specification and Apollo Federation tables of one scenario, with single-run notices. */
 export function BenchmarkScenarioResults({
   report,
   scenario,
@@ -26,13 +25,14 @@ export function BenchmarkScenarioResults({
   stableOnly,
 }: BenchmarkScenarioResultsProps) {
   const groups = scenarioGroups(scenario, variants, stableOnly);
-  const status = SCENARIO_STATUSES[scenario.status];
   const { config } = scenario;
 
   if (groups.length === 0) {
     return (
       <div className="border-cc-card-border border-y py-10">
-        <p className="text-cc-heading font-semibold">{status.empty}</p>
+        <p className="text-cc-heading font-semibold">
+          No results were reported.
+        </p>
         <p className="mt-2 max-w-2xl">
           No throughput values from an older run have been substituted.
         </p>
@@ -42,12 +42,6 @@ export function BenchmarkScenarioResults({
 
   return (
     <div className="space-y-12">
-      {scenario.status !== "complete" && (
-        <p className="text-caption text-cc-warning">
-          This scenario is marked {status.label.toLowerCase()} in this run. The
-          results below may be incomplete.
-        </p>
-      )}
       {groups.map((group) => (
         <BenchmarkResultsTable
           key={group.id}

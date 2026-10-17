@@ -1,6 +1,8 @@
 export const BENCHMARK_REPOSITORY =
   "https://github.com/ChilliCream/graphql-federation-benchmarks";
 
+export const BENCHMARK_FUSION_DOCS_URL = "/docs/fusion";
+
 const VARIANT_NAMES: Readonly<Record<string, string>> = {
   fusion: "Fusion",
   "fusion-nightly": "Fusion",
@@ -19,7 +21,7 @@ const VARIANT_NAMES: Readonly<Record<string, string>> = {
 };
 
 const GATEWAY_LINKS: Readonly<Record<string, string>> = {
-  fusion: "/docs/fusion",
+  fusion: BENCHMARK_FUSION_DOCS_URL,
   "hive-router": "https://github.com/graphql-hive/router",
   "hive-gateway": "https://github.com/graphql-hive/gateway",
   "apollo-router": "https://github.com/apollographql/router",
@@ -39,16 +41,7 @@ export const COMPOSITIONS = {
   "composite-schema": "GraphQL Federation",
 } as const;
 
-export const SCENARIO_STATUSES = [
-  "pending",
-  "in-progress",
-  "complete",
-  "skipped",
-  "failed",
-] as const;
-
 export type ScenarioId = "constant-latency" | "burst" | "constant";
-export type ScenarioStatus = (typeof SCENARIO_STATUSES)[number];
 export type Composition = keyof typeof COMPOSITIONS;
 
 export interface BenchmarkFeature {
@@ -87,7 +80,8 @@ export interface BenchmarkGateway {
   readonly variants: readonly BenchmarkVariant[];
 }
 
-export interface BenchmarkVariantResult {
+export interface BenchmarkCompletedVariantResult {
+  readonly status: "complete";
   readonly variant: string;
   readonly throughput: {
     readonly medianRps: number;
@@ -118,11 +112,16 @@ export interface BenchmarkVariantResult {
   };
 }
 
+export type BenchmarkVariantResult =
+  | BenchmarkCompletedVariantResult
+  | ({ readonly variant: string; readonly status: "failed" } & Partial<
+      Omit<BenchmarkCompletedVariantResult, "variant" | "status">
+    >);
+
 export interface BenchmarkScenario {
   readonly id: ScenarioId;
   readonly name: string;
   readonly description?: string;
-  readonly status: ScenarioStatus;
   readonly config: {
     readonly durationSeconds?: number;
     readonly virtualUsers?: number;
@@ -149,6 +148,7 @@ export interface BenchmarkReport {
     readonly startedAt: string | null;
     readonly completedAt?: string;
     readonly sourceCommit: string;
+    readonly event: string;
     readonly inputs?: Readonly<Record<string, unknown>>;
   };
   readonly hardware: {
@@ -175,8 +175,8 @@ export interface BenchmarkHistoryRun {
 }
 
 export type BenchmarkHistoryVersion = Omit<
-  BenchmarkVariantResult,
-  "variant"
+  BenchmarkCompletedVariantResult,
+  "variant" | "status"
 > & {
   readonly version: string;
   readonly run: BenchmarkHistoryRun;
@@ -214,19 +214,13 @@ const DATE_TIME =
 function record(
   value: unknown,
   required: readonly string[],
-  optional: readonly string[] = [],
 ): Record<string, unknown> {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw new Error("Expected a benchmark report object.");
   }
   const result = value as Record<string, unknown>;
-  if (
-    required.some((key) => !Object.hasOwn(result, key)) ||
-    Object.keys(result).some(
-      (key) => !required.includes(key) && !optional.includes(key),
-    )
-  ) {
-    throw new Error("Unexpected or missing benchmark report fields.");
+  if (required.some((key) => !Object.hasOwn(result, key))) {
+    throw new Error("Missing required benchmark report fields.");
   }
   return result;
 }
@@ -327,17 +321,17 @@ function dateTime(value: unknown): number {
 
 function features(value: unknown): void {
   for (const item of list(value)) {
-    const feature = record(item, ["id"], ["description"]);
+    const feature = record(item, ["id"]);
     text(feature.id);
     optional(feature.description, text);
   }
 }
 
 function platform(value: unknown): void {
-  const result = record(value, ["language"], ["runtime", "features"]);
+  const result = record(value, ["language"]);
   text(record(result.language, ["name"]).name);
   optional(result.runtime, (value) => {
-    const runtime = record(value, ["name"], ["version"]);
+    const runtime = record(value, ["name"]);
     text(runtime.name);
     optional(runtime.version, text);
   });
@@ -345,11 +339,7 @@ function platform(value: unknown): void {
 }
 
 function cpuSet(value: unknown): void {
-  const set = record(
-    value,
-    ["threadIds", "hardwareThreads"],
-    ["physicalCores"],
-  );
+  const set = record(value, ["threadIds", "hardwareThreads"]);
   const seen = new Set<unknown>();
   for (const id of list(set.threadIds, 1)) {
     integer(id, 0);
@@ -363,39 +353,40 @@ function measurement(
   value: Record<string, unknown>,
   runs: number | undefined,
 ): void {
-  const throughput = record(
-    value.throughput,
-    ["medianRps", "bestRps", "worstRps", "cvPercent"],
-    ["runsRps"],
-  );
-  number(throughput.worstRps, 0);
-  number(throughput.medianRps, throughput.worstRps);
-  number(throughput.bestRps, throughput.medianRps);
-  number(throughput.cvPercent, 0);
-  optional(throughput.runsRps, (value) => {
-    const samples = list(value);
-    samples.forEach((sample) => number(sample, 0));
-    if (
-      (runs !== undefined && samples.length !== runs) ||
-      (samples.length > 0 &&
-        (Math.min(...(samples as number[])) !== throughput.worstRps ||
-          Math.max(...(samples as number[])) !== throughput.bestRps))
-    ) {
-      throw new Error("Benchmark throughput does not match its runs.");
-    }
+  optional(value.throughput, (value) => {
+    const throughput = record(value, [
+      "medianRps",
+      "bestRps",
+      "worstRps",
+      "cvPercent",
+    ]);
+    number(throughput.worstRps, 0);
+    number(throughput.medianRps, throughput.worstRps);
+    number(throughput.bestRps, throughput.medianRps);
+    number(throughput.cvPercent, 0);
+    optional(throughput.runsRps, (value) => {
+      const samples = list(value);
+      samples.forEach((sample) => number(sample, 0));
+      if (
+        (runs !== undefined && samples.length !== runs) ||
+        (samples.length > 0 &&
+          (Math.min(...(samples as number[])) !== throughput.worstRps ||
+            Math.max(...(samples as number[])) !== throughput.bestRps))
+      ) {
+        throw new Error("Benchmark throughput does not match its runs.");
+      }
+    });
   });
 
-  const requests = record(value.requests, ["total", "successful", "failed"]);
-  integer(requests.total, 0);
-  integer(requests.successful, 0);
-  integer(requests.failed, 0);
+  optional(value.requests, (value) => {
+    const requests = record(value, ["total", "successful", "failed"]);
+    integer(requests.total, 0);
+    integer(requests.successful, 0);
+    integer(requests.failed, 0);
+  });
 
   optional(value.latencyMs, (value) => {
-    const latency = record(
-      value,
-      ["avg", "med", "p90", "p95", "p99_9", "max"],
-      ["min", "p99"],
-    );
+    const latency = record(value, ["avg", "med", "p90", "p95", "p99_9", "max"]);
     let previous = -Number.MAX_VALUE;
     for (const key of ["min", "med", "p90", "p95", "p99", "p99_9", "max"]) {
       if (latency[key] !== undefined) {
@@ -431,22 +422,19 @@ function catalog(value: unknown): {
   const parents = new Map<unknown, unknown>();
   const gatewayIds = new Set<unknown>();
   for (const item of list(value)) {
-    const gateway = record(
-      item,
-      ["id", "name", "variants"],
-      ["vendor", "repositoryUrl"],
-    );
+    const gateway = record(item, ["id", "name", "variants"]);
     text(gateway.id);
     unique(gatewayIds, gateway.id);
     text(gateway.name);
     optional(gateway.vendor, text);
     optional(gateway.repositoryUrl, uri);
     for (const entry of list(gateway.variants, 1)) {
-      const variant = record(
-        entry,
-        ["id", "version", "composition", "platform"],
-        ["label", "preview", "features", "notes"],
-      );
+      const variant = record(entry, [
+        "id",
+        "version",
+        "composition",
+        "platform",
+      ]);
       optional(variant.preview, (value) => {
         if (typeof value !== "boolean") {
           throw new Error("Invalid benchmark preview flag.");
@@ -471,22 +459,14 @@ function catalog(value: unknown): {
 }
 
 function scenarioConfig(value: unknown): number | undefined {
-  const config = record(
-    value,
-    ["subgraphDelayMs", "warmupRuns"],
-    ["durationSeconds", "virtualUsers", "measuredRuns", "cpuAllocation"],
-  );
+  const config = record(value, ["subgraphDelayMs", "warmupRuns"]);
   optional(config.durationSeconds, (value) => integer(value, 0));
   optional(config.virtualUsers, (value) => integer(value, 1));
   number(config.subgraphDelayMs, 0);
   integer(config.warmupRuns, 0);
   optional(config.measuredRuns, (value) => integer(value, 1));
   optional(config.cpuAllocation, (value) => {
-    const allocation = record(
-      value,
-      [],
-      ["system", "gateway", "subgraphs", "k6"],
-    );
+    const allocation = record(value, []);
     optional(allocation.system, cpuSet);
     optional(allocation.gateway, cpuSet);
     optional(allocation.subgraphs, cpuSet);
@@ -495,7 +475,7 @@ function scenarioConfig(value: unknown): number | undefined {
   return config.measuredRuns as number | undefined;
 }
 
-/** Parses a benchmark report of at most 256 KiB and rejects anything its JSON schema does not allow. */
+/** Parses a benchmark report of at most 256 KiB and validates known fields while allowing unknown fields. */
 export function parseBenchmarkReport(json: string): BenchmarkReport {
   if (new TextEncoder().encode(json).byteLength > 262_144) {
     throw new Error("Benchmark report exceeds 256 KiB.");
@@ -508,11 +488,12 @@ export function parseBenchmarkReport(json: string): BenchmarkReport {
     "scenarios",
   ]);
 
-  const run = record(
-    report.run,
-    ["number", "startedAt", "sourceCommit"],
-    ["url", "completedAt", "inputs"],
-  );
+  const run = record(report.run, [
+    "number",
+    "startedAt",
+    "sourceCommit",
+    "event",
+  ]);
   integer(run.number, -Number.MAX_SAFE_INTEGER);
   optional(run.url, uri);
   const startedAt =
@@ -527,38 +508,37 @@ export function parseBenchmarkReport(json: string): BenchmarkReport {
     throw new Error("Benchmark run completed before it started.");
   }
   text(run.sourceCommit, /^[0-9a-f]{40}$/);
+  text(run.event, /^[\s\S]/);
   optional(run.inputs, object);
 
-  const hardware = record(
-    report.hardware,
-    ["host", "cpuModel", "hardwareThreads", "memoryGb", "os"],
-    ["physicalCores", "threadsPerCore", "coreThreads"],
-  );
+  const hardware = record(report.hardware, [
+    "host",
+    "cpuModel",
+    "hardwareThreads",
+    "memoryGb",
+    "os",
+  ]);
   text(hardware.host);
   text(hardware.cpuModel);
   text(hardware.os);
   integer(hardware.hardwareThreads, 1);
   number(hardware.memoryGb, 0);
-  if (
-    [
-      hardware.physicalCores,
-      hardware.threadsPerCore,
-      hardware.coreThreads,
-    ].some((value) => value !== undefined)
-  ) {
+  optional(hardware.physicalCores, (value) => integer(value, 1));
+  optional(hardware.threadsPerCore, (value) => integer(value, 1));
+  optional(hardware.coreThreads, (value) => {
     integer(hardware.physicalCores, 1);
     integer(hardware.threadsPerCore, 1);
-    for (const core of list(hardware.coreThreads, 1)) {
+    for (const core of list(value, 1)) {
       const seen = new Set<unknown>();
       for (const id of list(core, 1)) {
         integer(id, 0);
         unique(seen, id);
       }
     }
-  }
+  });
 
   const subgraphs = record(report.subgraphs, ["framework", "platform"]);
-  const framework = record(subgraphs.framework, ["name"], ["version"]);
+  const framework = record(subgraphs.framework, ["name"]);
   text(framework.name);
   optional(framework.version, text);
   platform(subgraphs.platform);
@@ -567,16 +547,11 @@ export function parseBenchmarkReport(json: string): BenchmarkReport {
 
   const scenarioIds = new Set<unknown>();
   for (const value of list(report.scenarios)) {
-    const scenario = record(
-      value,
-      ["id", "name", "status", "config", "results"],
-      ["description"],
-    );
+    const scenario = record(value, ["id", "name", "config", "results"]);
     member(scenario.id, ["constant-latency", "burst", "constant"]);
     unique(scenarioIds, scenario.id);
     text(scenario.name);
     optional(scenario.description, text);
-    member(scenario.status, SCENARIO_STATUSES);
     const measuredRuns = scenarioConfig(scenario.config);
 
     const resultGateways = new Set<unknown>();
@@ -589,11 +564,11 @@ export function parseBenchmarkReport(json: string): BenchmarkReport {
       }
       unique(resultGateways, result.gateway);
       for (const entry of list(result.variants, 1)) {
-        const variant = record(
-          entry,
-          ["variant", "throughput", "requests"],
-          ["latencyMs", "memory", "cpu"],
-        );
+        const variant = record(entry, ["variant", "status"]);
+        member(variant.status, ["complete", "failed"]);
+        if (variant.status === "complete") {
+          record(variant, ["throughput", "requests"]);
+        }
         if (parents.get(variant.variant) !== result.gateway) {
           throw new Error("Benchmark result variant is not in its gateway.");
         }
@@ -606,12 +581,12 @@ export function parseBenchmarkReport(json: string): BenchmarkReport {
 }
 
 function historyRun(value: unknown): void {
-  const run = record(value, ["number"], ["url"]);
+  const run = record(value, ["number"]);
   integer(run.number, -Number.MAX_SAFE_INTEGER);
   optional(run.url, uri);
 }
 
-/** Parses a benchmark history of at most 256 KiB and rejects anything its JSON schema does not allow. */
+/** Parses a benchmark history of at most 256 KiB and validates known fields while allowing unknown fields. */
 export function parseBenchmarkHistory(json: string): BenchmarkHistory {
   if (new TextEncoder().encode(json).byteLength > 262_144) {
     throw new Error("Benchmark history exceeds 256 KiB.");
@@ -644,11 +619,13 @@ export function parseBenchmarkHistory(json: string): BenchmarkHistory {
       }
       unique(variants, variant.variant);
       for (const entry of list(variant.versions, 1)) {
-        const version = record(
-          entry,
-          ["version", "run", "platform", "throughput", "requests"],
-          ["latencyMs", "memory", "cpu"],
-        );
+        const version = record(entry, [
+          "version",
+          "run",
+          "platform",
+          "throughput",
+          "requests",
+        ]);
         text(version.version);
         historyRun(version.run);
         platform(version.platform);

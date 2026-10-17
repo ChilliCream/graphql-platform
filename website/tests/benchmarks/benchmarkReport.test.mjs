@@ -14,12 +14,12 @@ import {
 } from "../../src/helpers/benchmarkReport.ts";
 
 const historyFixture = readFileSync(
-  new URL("../../src/data/federationBenchmarkHistory.json", import.meta.url),
+  new URL("./fixtures/federationBenchmarkHistory.json", import.meta.url),
   "utf8",
 );
 
 const fixture = readFileSync(
-  new URL("../../src/data/federationBenchmarkReport.json", import.meta.url),
+  new URL("./fixtures/federationBenchmarkReport.json", import.meta.url),
   "utf8",
 );
 
@@ -123,21 +123,6 @@ const parse = (mutate) => {
 
 const invalidReports = [
   [
-    "unknown fields",
-    (report) => {
-      report.script = "run me";
-    },
-  ],
-  [
-    "prototype fields",
-    (report) => {
-      Object.defineProperty(report.hardware, "__proto__", {
-        value: {},
-        enumerable: true,
-      });
-    },
-  ],
-  [
     "missing required fields",
     (report) => {
       delete report.run.sourceCommit;
@@ -209,12 +194,7 @@ const invalidReports = [
       report.scenarios[0].id = "soak";
     },
   ],
-  [
-    "unknown scenario statuses",
-    (report) => {
-      report.scenarios[0].status = "cancelled";
-    },
-  ],
+
   [
     "CPU allocations without hardware threads",
     (report) => {
@@ -277,12 +257,7 @@ const invalidReports = [
       report.scenarios[1].id = report.scenarios[0].id;
     },
   ],
-  [
-    "result status fields",
-    (report) => {
-      firstResult(report).status = "ok";
-    },
-  ],
+
   [
     "results without throughput",
     (report) => {
@@ -381,6 +356,7 @@ test("accepts a report with only the fields the schema requires", () => {
       number: 1,
       startedAt: null,
       sourceCommit: report.run.sourceCommit,
+      event: report.run.event,
     };
     delete report.subgraphs.framework.version;
     delete report.subgraphs.platform.runtime.version;
@@ -422,6 +398,7 @@ test("accepts a report with only the fields the schema requires", () => {
       subgraphs: ".NET",
       result: {
         variant: "apollo-gateway",
+        status: "complete",
         throughput: {
           medianRps: 266,
           bestRps: 271,
@@ -569,24 +546,6 @@ const firstHistoryVersion = (history) =>
 
 const invalidHistories = [
   [
-    "schema versions",
-    (history) => {
-      history.schemaVersion = 1;
-    },
-  ],
-  [
-    "run completion times",
-    (history) => {
-      history.latestRun.completedAt = "2026-10-16T10:24:10Z";
-    },
-  ],
-  [
-    "version run completion times",
-    (history) => {
-      firstHistoryVersion(history).run.completedAt = "2026-10-16T10:24:10Z";
-    },
-  ],
-  [
     "variants without versions",
     (history) => {
       history.scenarios[0].variants[0].versions = [];
@@ -652,7 +611,7 @@ for (const [name, mutate] of [
   [
     "partial topology",
     (report) => {
-      delete report.hardware.coreThreads;
+      delete report.hardware.threadsPerCore;
     },
   ],
   [
@@ -708,4 +667,86 @@ test("rejects preview metadata that is not boolean", () => {
       report.gateways[0].variants[0].preview = "true";
     }),
   );
+});
+
+test("accepts unknown fields throughout reports and histories", () => {
+  const addUnknownFields = (value) => {
+    if (Array.isArray(value)) {
+      value.forEach(addUnknownFields);
+    } else if (value !== null && typeof value === "object") {
+      Object.values(value).forEach(addUnknownFields);
+      value.futureField = { enabled: true };
+    }
+  };
+  const report = JSON.parse(fixture);
+  const history = JSON.parse(historyFixture);
+  addUnknownFields(report);
+  addUnknownFields(history);
+  assert.deepEqual(parseBenchmarkReport(JSON.stringify(report)), report);
+  assert.deepEqual(parseBenchmarkHistory(JSON.stringify(history)), history);
+});
+
+test("ignores scenario status values and accepts missing status", () => {
+  const report = parse((report) => {
+    delete report.scenarios[0].status;
+    report.scenarios[1].status = "cancelled";
+  });
+  assert.equal(report.scenarios[0].status, undefined);
+  assert.equal(report.scenarios[1].status, "cancelled");
+});
+
+test("accepts failed variants without measurements", () => {
+  const report = parse((report) => {
+    report.scenarios[0].results[0].variants[0] = {
+      variant: firstResult(report).variant,
+      status: "failed",
+    };
+  });
+  assert.deepEqual(firstResult(report), {
+    variant: "apollo-gateway",
+    status: "failed",
+  });
+});
+for (const [name, mutate] of [
+  [
+    "missing variant status",
+    (report) => {
+      delete firstResult(report).status;
+    },
+  ],
+  [
+    "unknown variant status",
+    (report) => {
+      firstResult(report).status = "pending";
+    },
+  ],
+  [
+    "failed variant with invalid measurements",
+    (report) => {
+      firstResult(report).status = "failed";
+      firstResult(report).throughput.medianRps = -1;
+    },
+  ],
+]) {
+  test(`rejects ${name}`, () => {
+    assert.throws(() => parse(mutate));
+  });
+}
+test("accepts physical core counts without sibling mappings", () => {
+  const report = parse((report) => {
+    delete report.hardware.coreThreads;
+  });
+  assert.equal(report.hardware.physicalCores, 8);
+});
+test("accepts the current generated report and history", () => {
+  for (const [name, parser] of [
+    ["federationBenchmarkReport.json", parseBenchmarkReport],
+    ["federationBenchmarkHistory.json", parseBenchmarkHistory],
+  ]) {
+    const json = readFileSync(
+      new URL(`../../src/data/${name}`, import.meta.url),
+      "utf8",
+    );
+    assert.deepEqual(parser(json), JSON.parse(json));
+  }
 });

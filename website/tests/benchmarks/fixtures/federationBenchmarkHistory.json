@@ -1,0 +1,1044 @@
+{
+  "latestRun": {
+    "number": 400,
+    "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982400"
+  },
+  "gateways": [
+    {
+      "id": "apollo-router",
+      "name": "Apollo Router",
+      "vendor": "Apollo",
+      "repositoryUrl": "https://github.com/apollographql/router",
+      "variants": [
+        {
+          "id": "apollo-router",
+          "version": "2.18.0",
+          "composition": "apollo-federation",
+          "platform": {
+            "language": {
+              "name": "Rust"
+            }
+          }
+        },
+        {
+          "id": "apollo-router-v3",
+          "version": "3.0.0-preview.0",
+          "composition": "apollo-federation",
+          "platform": {
+            "language": {
+              "name": "Rust"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "hive-router",
+      "name": "Hive Router",
+      "vendor": "The Guild",
+      "repositoryUrl": "https://github.com/graphql-hive/router",
+      "variants": [
+        {
+          "id": "hive-router",
+          "version": "0.3.5",
+          "composition": "apollo-federation",
+          "platform": {
+            "language": {
+              "name": "Rust"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "fusion",
+      "name": "Fusion",
+      "vendor": "ChilliCream",
+      "repositoryUrl": "https://github.com/ChilliCream/graphql-platform",
+      "variants": [
+        {
+          "id": "fusion",
+          "version": "16.6.8",
+          "composition": "composite-schema",
+          "platform": {
+            "language": {
+              "name": "C#"
+            },
+            "runtime": {
+              "name": ".NET",
+              "version": "10.0.13"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "constant",
+      "name": "constant-vus-over-time",
+      "config": {
+        "durationSeconds": 120,
+        "virtualUsers": 50,
+        "subgraphDelayMs": 0,
+        "warmupRuns": 1,
+        "measuredRuns": 9,
+        "cpuAllocation": {
+          "system": {
+            "threadIds": [0, 8],
+            "physicalCores": 1,
+            "hardwareThreads": 2
+          },
+          "k6": {
+            "threadIds": [1, 9],
+            "physicalCores": 1,
+            "hardwareThreads": 2
+          },
+          "gateway": {
+            "threadIds": [2, 3, 10, 11],
+            "physicalCores": 2,
+            "hardwareThreads": 4
+          },
+          "subgraphs": {
+            "threadIds": [4, 5, 6, 7, 12, 13, 14, 15],
+            "physicalCores": 4,
+            "hardwareThreads": 8
+          }
+        }
+      },
+      "variants": [
+        {
+          "variant": "apollo-router",
+          "gateway": "apollo-router",
+          "versions": [
+            {
+              "version": "2.16.0",
+              "run": {
+                "number": 397,
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982397"
+              },
+              "platform": {
+                "language": {
+                  "name": "Rust"
+                }
+              },
+              "throughput": {
+                "medianRps": 426,
+                "bestRps": 441,
+                "worstRps": 419,
+                "cvPercent": 1.5,
+                "runsRps": [441, 423, 432, 422, 419, 425, 426, 427, 428]
+              },
+              "latencyMs": {
+                "avg": 116.462,
+                "min": 5.502,
+                "med": 114.309,
+                "p90": 153.78,
+                "p95": 165.545,
+                "p99_9": 213.174,
+                "max": 336.448
+              },
+              "requests": {
+                "total": 485177,
+                "successful": 485177,
+                "failed": 0
+              },
+              "memory": {
+                "peakRssKiB": 184760
+              },
+              "cpu": {
+                "avgUtilizationPercent": 100,
+                "maxUtilizationPercent": 100
+              }
+            },
+            {
+              "version": "2.17.0",
+              "run": {
+                "number": 398,
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982398"
+              },
+              "platform": {
+                "language": {
+                  "name": "Rust"
+                }
+              },
+              "throughput": {
+                "medianRps": 433,
+                "bestRps": 448,
+                "worstRps": 426,
+                "cvPercent": 1.5,
+                "runsRps": [448, 430, 438, 429, 426, 432, 433, 434, 435]
+              },
+              "latencyMs": {
+                "avg": 114.661,
+                "min": 5.416,
+                "med": 112.541,
+                "p90": 151.402,
+                "p95": 162.985,
+                "p99_9": 209.877,
+                "max": 331.245
+              },
+              "requests": {
+                "total": 485177,
+                "successful": 485177,
+                "failed": 0
+              },
+              "memory": {
+                "peakRssKiB": 184760
+              },
+              "cpu": {
+                "avgUtilizationPercent": 100,
+                "maxUtilizationPercent": 100
+              }
+            },
+            {
+              "version": "2.18.0",
+              "run": {
+                "number": 400,
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982400"
+              },
+              "platform": {
+                "language": {
+                  "name": "Rust"
+                }
+              },
+              "throughput": {
+                "medianRps": 446,
+                "bestRps": 462,
+                "worstRps": 439,
+                "cvPercent": 1.5,
+                "runsRps": [462, 443, 452, 442, 439, 445, 446, 447, 448]
+              },
+              "latencyMs": {
+                "avg": 111.221,
+                "min": 5.254,
+                "med": 109.165,
+                "p90": 146.86,
+                "p95": 158.095,
+                "p99_9": 203.581,
+                "max": 321.308
+              },
+              "requests": {
+                "total": 485177,
+                "successful": 485177,
+                "failed": 0
+              },
+              "memory": {
+                "peakRssKiB": 184760
+              },
+              "cpu": {
+                "avgUtilizationPercent": 100,
+                "maxUtilizationPercent": 100
+              }
+            }
+          ]
+        },
+        {
+          "variant": "apollo-router-v3",
+          "gateway": "apollo-router",
+          "versions": [
+            {
+              "version": "3.0.0-preview.0",
+              "run": {
+                "number": 400,
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982400"
+              },
+              "platform": {
+                "language": {
+                  "name": "Rust"
+                }
+              },
+              "throughput": {
+                "medianRps": 379,
+                "bestRps": 397,
+                "worstRps": 375,
+                "cvPercent": 2.1,
+                "runsRps": [397, 390, 386, 382, 379, 375, 375, 375, 375]
+              },
+              "latencyMs": {
+                "avg": 130.876,
+                "min": 6.056,
+                "med": 128.384,
+                "p90": 170.644,
+                "p95": 183.995,
+                "p99_9": 240.106,
+                "max": 322.665
+              },
+              "requests": {
+                "total": 414220,
+                "successful": 414220,
+                "failed": 0
+              },
+              "memory": {
+                "peakRssKiB": 205540
+              },
+              "cpu": {
+                "avgUtilizationPercent": 100,
+                "maxUtilizationPercent": 100
+              }
+            }
+          ]
+        },
+        {
+          "variant": "hive-router",
+          "gateway": "hive-router",
+          "versions": [
+            {
+              "version": "0.3.3",
+              "run": {
+                "number": 397,
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982397"
+              },
+              "platform": {
+                "language": {
+                  "name": "Rust"
+                }
+              },
+              "throughput": {
+                "medianRps": 2388,
+                "bestRps": 2585,
+                "worstRps": 2353,
+                "cvPercent": 3.1,
+                "runsRps": [
+                  2585, 2489, 2437, 2424, 2388, 2381, 2373, 2353, 2361
+                ]
+              },
+              "latencyMs": {
+                "avg": 20.667,
+                "min": 1.647,
+                "med": 20.465,
+                "p90": 28.427,
+                "p95": 30.874,
+                "p99_9": 51.546,
+                "max": 307.203
+              },
+              "requests": {
+                "total": 2742683,
+                "successful": 2742683,
+                "failed": 0
+              },
+              "memory": {
+                "peakRssKiB": 134556
+              },
+              "cpu": {
+                "avgUtilizationPercent": 95.3,
+                "maxUtilizationPercent": 97
+              }
+            },
+            {
+              "version": "0.3.4",
+              "run": {
+                "number": 399,
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982399"
+              },
+              "platform": {
+                "language": {
+                  "name": "Rust"
+                }
+              },
+              "throughput": {
+                "medianRps": 2463,
+                "bestRps": 2666,
+                "worstRps": 2427,
+                "cvPercent": 3.1,
+                "runsRps": [
+                  2666, 2567, 2514, 2500, 2463, 2456, 2448, 2427, 2435
+                ]
+              },
+              "latencyMs": {
+                "avg": 20.038,
+                "min": 1.597,
+                "med": 19.842,
+                "p90": 27.561,
+                "p95": 29.934,
+                "p99_9": 49.976,
+                "max": 297.847
+              },
+              "requests": {
+                "total": 2742683,
+                "successful": 2742683,
+                "failed": 0
+              },
+              "memory": {
+                "peakRssKiB": 134556
+              },
+              "cpu": {
+                "avgUtilizationPercent": 95.3,
+                "maxUtilizationPercent": 97
+              }
+            },
+            {
+              "version": "0.3.5",
+              "run": {
+                "number": 400,
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982400"
+              },
+              "platform": {
+                "language": {
+                  "name": "Rust"
+                }
+              },
+              "throughput": {
+                "medianRps": 2501,
+                "bestRps": 2707,
+                "worstRps": 2464,
+                "cvPercent": 3.1,
+                "runsRps": [
+                  2707, 2606, 2552, 2538, 2501, 2493, 2485, 2464, 2472
+                ]
+              },
+              "latencyMs": {
+                "avg": 19.737,
+                "min": 1.573,
+                "med": 19.544,
+                "p90": 27.148,
+                "p95": 29.485,
+                "p99_9": 49.226,
+                "max": 293.379
+              },
+              "requests": {
+                "total": 2742683,
+                "successful": 2742683,
+                "failed": 0
+              },
+              "memory": {
+                "peakRssKiB": 134556
+              },
+              "cpu": {
+                "avgUtilizationPercent": 95.3,
+                "maxUtilizationPercent": 97
+              }
+            }
+          ]
+        },
+        {
+          "variant": "fusion",
+          "gateway": "fusion",
+          "versions": [
+            {
+              "version": "16.6.6",
+              "run": {
+                "number": 397,
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982397"
+              },
+              "platform": {
+                "language": {
+                  "name": "C#"
+                },
+                "runtime": {
+                  "name": ".NET",
+                  "version": "10.0.13"
+                }
+              },
+              "throughput": {
+                "medianRps": 2304,
+                "bestRps": 2410,
+                "worstRps": 2287,
+                "cvPercent": 1.8,
+                "runsRps": [
+                  2410, 2369, 2323, 2304, 2306, 2299, 2291, 2287, 2288
+                ]
+              },
+              "latencyMs": {
+                "avg": 21.434,
+                "min": 1.672,
+                "med": 17.903,
+                "p90": 35.436,
+                "p95": 43.318,
+                "p99_9": 156.16,
+                "max": 360.463
+              },
+              "requests": {
+                "total": 2627488,
+                "successful": 2627488,
+                "failed": 0
+              },
+              "memory": {
+                "peakRssKiB": 385164
+              },
+              "cpu": {
+                "avgUtilizationPercent": 98,
+                "maxUtilizationPercent": 99
+              }
+            },
+            {
+              "version": "16.6.7",
+              "run": {
+                "number": 399,
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982399"
+              },
+              "platform": {
+                "language": {
+                  "name": "C#"
+                },
+                "runtime": {
+                  "name": ".NET",
+                  "version": "10.0.13"
+                }
+              },
+              "throughput": {
+                "medianRps": 2377,
+                "bestRps": 2486,
+                "worstRps": 2359,
+                "cvPercent": 1.8,
+                "runsRps": [
+                  2486, 2444, 2396, 2377, 2379, 2371, 2363, 2359, 2360
+                ]
+              },
+              "latencyMs": {
+                "avg": 20.781,
+                "min": 1.621,
+                "med": 17.357,
+                "p90": 34.356,
+                "p95": 41.999,
+                "p99_9": 151.404,
+                "max": 349.484
+              },
+              "requests": {
+                "total": 2627488,
+                "successful": 2627488,
+                "failed": 0
+              },
+              "memory": {
+                "peakRssKiB": 385164
+              },
+              "cpu": {
+                "avgUtilizationPercent": 98,
+                "maxUtilizationPercent": 99
+              }
+            },
+            {
+              "version": "16.6.8",
+              "run": {
+                "number": 400,
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982400"
+              },
+              "platform": {
+                "language": {
+                  "name": "C#"
+                },
+                "runtime": {
+                  "name": ".NET",
+                  "version": "10.0.13"
+                }
+              },
+              "throughput": {
+                "medianRps": 2413,
+                "bestRps": 2524,
+                "worstRps": 2395,
+                "cvPercent": 1.8,
+                "runsRps": [
+                  2524, 2481, 2432, 2413, 2415, 2407, 2399, 2395, 2396
+                ]
+              },
+              "latencyMs": {
+                "avg": 20.469,
+                "min": 1.597,
+                "med": 17.097,
+                "p90": 33.841,
+                "p95": 41.369,
+                "p99_9": 149.133,
+                "max": 344.242
+              },
+              "requests": {
+                "total": 2627488,
+                "successful": 2627488,
+                "failed": 0
+              },
+              "memory": {
+                "peakRssKiB": 385164
+              },
+              "cpu": {
+                "avgUtilizationPercent": 98,
+                "maxUtilizationPercent": 99
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "burst",
+      "name": "burst-vus",
+      "config": {
+        "durationSeconds": 60,
+        "virtualUsers": 500,
+        "subgraphDelayMs": 0,
+        "warmupRuns": 1,
+        "measuredRuns": 9,
+        "cpuAllocation": {
+          "system": {
+            "threadIds": [0, 8],
+            "physicalCores": 1,
+            "hardwareThreads": 2
+          },
+          "k6": {
+            "threadIds": [1, 9],
+            "physicalCores": 1,
+            "hardwareThreads": 2
+          },
+          "gateway": {
+            "threadIds": [2, 3, 10, 11],
+            "physicalCores": 2,
+            "hardwareThreads": 4
+          },
+          "subgraphs": {
+            "threadIds": [4, 5, 6, 7, 12, 13, 14, 15],
+            "physicalCores": 4,
+            "hardwareThreads": 8
+          }
+        }
+      },
+      "variants": [
+        {
+          "variant": "apollo-router",
+          "gateway": "apollo-router",
+          "versions": [
+            {
+              "version": "2.16.0",
+              "run": {
+                "number": 397,
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982397"
+              },
+              "platform": {
+                "language": {
+                  "name": "Rust"
+                }
+              },
+              "throughput": {
+                "medianRps": 358,
+                "bestRps": 381,
+                "worstRps": 349,
+                "cvPercent": 2.8,
+                "runsRps": [381, 358, 349, 366, 365, 376, 358, 358, 357]
+              },
+              "latencyMs": {
+                "avg": 585.186,
+                "min": 5.674,
+                "med": 508.99,
+                "p90": 861.363,
+                "p95": 981.872,
+                "p99_9": 18158.573,
+                "max": 20333.356
+              },
+              "requests": {
+                "total": 216944,
+                "successful": 177876,
+                "failed": 39068
+              },
+              "memory": {
+                "peakRssKiB": 445304
+              },
+              "cpu": {
+                "avgUtilizationPercent": 100,
+                "maxUtilizationPercent": 100
+              }
+            },
+            {
+              "version": "2.17.0",
+              "run": {
+                "number": 398,
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982398"
+              },
+              "platform": {
+                "language": {
+                  "name": "Rust"
+                }
+              },
+              "throughput": {
+                "medianRps": 364,
+                "bestRps": 387,
+                "worstRps": 354,
+                "cvPercent": 2.8,
+                "runsRps": [387, 364, 354, 372, 371, 382, 364, 364, 363]
+              },
+              "latencyMs": {
+                "avg": 576.137,
+                "min": 5.587,
+                "med": 501.119,
+                "p90": 848.043,
+                "p95": 966.689,
+                "p99_9": 17877.77,
+                "max": 20018.923
+              },
+              "requests": {
+                "total": 216944,
+                "successful": 177876,
+                "failed": 39068
+              },
+              "memory": {
+                "peakRssKiB": 445304
+              },
+              "cpu": {
+                "avgUtilizationPercent": 100,
+                "maxUtilizationPercent": 100
+              }
+            },
+            {
+              "version": "2.18.0",
+              "run": {
+                "number": 400,
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982400"
+              },
+              "platform": {
+                "language": {
+                  "name": "Rust"
+                }
+              },
+              "throughput": {
+                "medianRps": 375,
+                "bestRps": 399,
+                "worstRps": 365,
+                "cvPercent": 2.8,
+                "runsRps": [399, 375, 365, 383, 382, 394, 375, 375, 374]
+              },
+              "latencyMs": {
+                "avg": 558.853,
+                "min": 5.419,
+                "med": 486.085,
+                "p90": 822.602,
+                "p95": 937.688,
+                "p99_9": 17341.437,
+                "max": 19418.355
+              },
+              "requests": {
+                "total": 216944,
+                "successful": 177876,
+                "failed": 39068
+              },
+              "memory": {
+                "peakRssKiB": 445304
+              },
+              "cpu": {
+                "avgUtilizationPercent": 100,
+                "maxUtilizationPercent": 100
+              }
+            }
+          ]
+        },
+        {
+          "variant": "apollo-router-v3",
+          "gateway": "apollo-router",
+          "versions": [
+            {
+              "version": "3.0.0-preview.0",
+              "run": {
+                "number": 400,
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982400"
+              },
+              "platform": {
+                "language": {
+                  "name": "Rust"
+                }
+              },
+              "throughput": {
+                "medianRps": 360,
+                "bestRps": 381,
+                "worstRps": 352,
+                "cvPercent": 3.0,
+                "runsRps": [377, 373, 365, 381, 354, 360, 353, 358, 352]
+              },
+              "latencyMs": {
+                "avg": 515.51,
+                "min": 6.039,
+                "med": 479.368,
+                "p90": 735.437,
+                "p95": 803.155,
+                "p99_9": 23798.844,
+                "max": 25082.988
+              },
+              "requests": {
+                "total": 209694,
+                "successful": 199370,
+                "failed": 10324
+              },
+              "memory": {
+                "peakRssKiB": 492060
+              },
+              "cpu": {
+                "avgUtilizationPercent": 99.8,
+                "maxUtilizationPercent": 100
+              }
+            }
+          ]
+        },
+        {
+          "variant": "hive-router",
+          "gateway": "hive-router",
+          "versions": [
+            {
+              "version": "0.3.3",
+              "run": {
+                "number": 397,
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982397"
+              },
+              "platform": {
+                "language": {
+                  "name": "Rust"
+                }
+              },
+              "throughput": {
+                "medianRps": 2198,
+                "bestRps": 2352,
+                "worstRps": 2175,
+                "cvPercent": 2.7,
+                "runsRps": [
+                  2352, 2273, 2260, 2221, 2198, 2191, 2180, 2175, 2186
+                ]
+              },
+              "latencyMs": {
+                "avg": 104.304,
+                "min": 1.68,
+                "med": 99.295,
+                "p90": 201.516,
+                "p95": 217.727,
+                "p99_9": 263.837,
+                "max": 301.642
+              },
+              "requests": {
+                "total": 1289602,
+                "successful": 1289602,
+                "failed": 0
+              },
+              "memory": {
+                "peakRssKiB": 200600
+              },
+              "cpu": {
+                "avgUtilizationPercent": 98.8,
+                "maxUtilizationPercent": 100
+              }
+            },
+            {
+              "version": "0.3.4",
+              "run": {
+                "number": 399,
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982399"
+              },
+              "platform": {
+                "language": {
+                  "name": "Rust"
+                }
+              },
+              "throughput": {
+                "medianRps": 2267,
+                "bestRps": 2426,
+                "worstRps": 2243,
+                "cvPercent": 2.7,
+                "runsRps": [
+                  2426, 2344, 2331, 2291, 2267, 2260, 2249, 2243, 2255
+                ]
+              },
+              "latencyMs": {
+                "avg": 101.127,
+                "min": 1.628,
+                "med": 96.271,
+                "p90": 195.379,
+                "p95": 211.095,
+                "p99_9": 255.801,
+                "max": 292.455
+              },
+              "requests": {
+                "total": 1289602,
+                "successful": 1289602,
+                "failed": 0
+              },
+              "memory": {
+                "peakRssKiB": 200600
+              },
+              "cpu": {
+                "avgUtilizationPercent": 98.8,
+                "maxUtilizationPercent": 100
+              }
+            },
+            {
+              "version": "0.3.5",
+              "run": {
+                "number": 400,
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982400"
+              },
+              "platform": {
+                "language": {
+                  "name": "Rust"
+                }
+              },
+              "throughput": {
+                "medianRps": 2302,
+                "bestRps": 2463,
+                "worstRps": 2277,
+                "cvPercent": 2.7,
+                "runsRps": [
+                  2463, 2380, 2366, 2326, 2302, 2294, 2283, 2277, 2289
+                ]
+              },
+              "latencyMs": {
+                "avg": 99.61,
+                "min": 1.604,
+                "med": 94.827,
+                "p90": 192.448,
+                "p95": 207.929,
+                "p99_9": 251.964,
+                "max": 288.068
+              },
+              "requests": {
+                "total": 1289602,
+                "successful": 1289602,
+                "failed": 0
+              },
+              "memory": {
+                "peakRssKiB": 200600
+              },
+              "cpu": {
+                "avgUtilizationPercent": 98.8,
+                "maxUtilizationPercent": 100
+              }
+            }
+          ]
+        },
+        {
+          "variant": "fusion",
+          "gateway": "fusion",
+          "versions": [
+            {
+              "version": "16.6.6",
+              "run": {
+                "number": 397,
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982397"
+              },
+              "platform": {
+                "language": {
+                  "name": "C#"
+                },
+                "runtime": {
+                  "name": ".NET",
+                  "version": "10.0.13"
+                }
+              },
+              "throughput": {
+                "medianRps": 2323,
+                "bestRps": 2424,
+                "worstRps": 2276,
+                "cvPercent": 2.1,
+                "runsRps": [
+                  2424, 2388, 2339, 2345, 2323, 2317, 2290, 2276, 2281
+                ]
+              },
+              "latencyMs": {
+                "avg": 98.902,
+                "min": 1.63,
+                "med": 85.249,
+                "p90": 190.022,
+                "p95": 220.508,
+                "p99_9": 766.807,
+                "max": 1376.972
+              },
+              "requests": {
+                "total": 1351157,
+                "successful": 1351157,
+                "failed": 0
+              },
+              "memory": {
+                "peakRssKiB": 642072
+              },
+              "cpu": {
+                "avgUtilizationPercent": 98.3,
+                "maxUtilizationPercent": 99.5
+              }
+            },
+            {
+              "version": "16.6.7",
+              "run": {
+                "number": 399,
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982399"
+              },
+              "platform": {
+                "language": {
+                  "name": "C#"
+                },
+                "runtime": {
+                  "name": ".NET",
+                  "version": "10.0.13"
+                }
+              },
+              "throughput": {
+                "medianRps": 2396,
+                "bestRps": 2500,
+                "worstRps": 2347,
+                "cvPercent": 2.1,
+                "runsRps": [
+                  2500, 2463, 2412, 2418, 2396, 2390, 2362, 2347, 2353
+                ]
+              },
+              "latencyMs": {
+                "avg": 95.889,
+                "min": 1.581,
+                "med": 82.653,
+                "p90": 184.235,
+                "p95": 213.792,
+                "p99_9": 743.453,
+                "max": 1335.034
+              },
+              "requests": {
+                "total": 1351157,
+                "successful": 1351157,
+                "failed": 0
+              },
+              "memory": {
+                "peakRssKiB": 642072
+              },
+              "cpu": {
+                "avgUtilizationPercent": 98.3,
+                "maxUtilizationPercent": 99.5
+              }
+            },
+            {
+              "version": "16.6.8",
+              "run": {
+                "number": 400,
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982400"
+              },
+              "platform": {
+                "language": {
+                  "name": "C#"
+                },
+                "runtime": {
+                  "name": ".NET",
+                  "version": "10.0.13"
+                }
+              },
+              "throughput": {
+                "medianRps": 2432,
+                "bestRps": 2538,
+                "worstRps": 2383,
+                "cvPercent": 2.1,
+                "runsRps": [
+                  2538, 2501, 2449, 2455, 2432, 2426, 2398, 2383, 2389
+                ]
+              },
+              "latencyMs": {
+                "avg": 94.451,
+                "min": 1.557,
+                "med": 81.413,
+                "p90": 181.471,
+                "p95": 210.585,
+                "p99_9": 732.301,
+                "max": 1315.008
+              },
+              "requests": {
+                "total": 1351157,
+                "successful": 1351157,
+                "failed": 0
+              },
+              "memory": {
+                "peakRssKiB": 642072
+              },
+              "cpu": {
+                "avgUtilizationPercent": 98.3,
+                "maxUtilizationPercent": 99.5
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

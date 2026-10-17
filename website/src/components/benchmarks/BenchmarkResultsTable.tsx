@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { WarningIcon } from "@/src/icons/Warning";
 import { BenchmarkColumnHint } from "@/src/components/benchmarks/BenchmarkColumnHint";
 import {
   formatLatency,
@@ -43,7 +44,7 @@ const theme = {
   winnerBar: "bg-cc-accent rounded-full",
   value: "font-mono text-xs",
   unit: "text-cc-ink-dim",
-  warning: "text-cc-warning",
+  danger: "text-cc-danger",
 } as const;
 
 interface BenchmarkResultsTableProps {
@@ -166,7 +167,7 @@ export function BenchmarkResultsTable({
               const entry = variants.get(row.variant)!;
               const name = variantName(entry);
               const link = gatewayLink(entry.gateway);
-              const runs = measuredRuns ?? row.throughput.runsRps?.length;
+              const runs = measuredRuns ?? row.throughput?.runsRps?.length;
               const winner = isWinner(row, group);
               const value = `${theme.cell} ${theme.value} text-right whitespace-nowrap tabular-nums`;
               return (
@@ -201,86 +202,106 @@ export function BenchmarkResultsTable({
                       ) && <span className={theme.previewTag}>Preview</span>}
                     </div>
                   </th>
-                  <td className={`${theme.cell} ${pad(1)}`}>
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={`w-12 shrink-0 text-right tabular-nums ${winner ? theme.winnerRps : theme.rps}`}
-                      >
-                        {formatNumber(row.throughput.medianRps)}
-                        {winner && (
-                          <span className="sr-only">, highest reported</span>
+                  {row.status === "failed" ? (
+                    <td
+                      colSpan={COLUMNS.length - 1}
+                      className="px-4 py-4 text-center text-sm"
+                    >
+                      <span className="text-cc-danger inline-flex items-center gap-1 leading-5 [&_button]:ml-0 [&_button]:translate-y-0">
+                        <WarningIcon className="relative top-px size-4 shrink-0" />
+                        <span>The benchmark failed to run for this router</span>
+                        <BenchmarkColumnHint label="benchmark failure">
+                          This could be due to benchmark misconfiguration and
+                          does not mean that the router is faulty.
+                        </BenchmarkColumnHint>
+                      </span>
+                    </td>
+                  ) : (
+                    <>
+                      <td className={`${theme.cell} ${pad(1)}`}>
+                        <div className="flex items-center gap-3">
+                          <span
+                            className={`w-12 shrink-0 text-right tabular-nums ${winner ? theme.winnerRps : theme.rps}`}
+                          >
+                            {formatNumber(row.throughput.medianRps)}
+                            {winner && (
+                              <span className="sr-only">
+                                , highest reported
+                              </span>
+                            )}
+                          </span>
+                          <div
+                            className={`flex-1 overflow-hidden ${theme.barTrack}`}
+                            aria-hidden="true"
+                          >
+                            <div
+                              className={`h-full ${winner ? theme.winnerBar : theme.bar}`}
+                              style={{
+                                width: `${group.maxRps === 0 ? 0 : (row.throughput.medianRps / group.maxRps) * 100}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </td>
+                      <td className={`${value} ${pad(2)}`}>
+                        {row.latencyMs ? (
+                          <>
+                            {formatLatency(row.latencyMs.p95)}
+                            {unit("ms")}
+                          </>
+                        ) : (
+                          notReported
                         )}
-                      </span>
-                      <div
-                        className={`flex-1 overflow-hidden ${theme.barTrack}`}
-                        aria-hidden="true"
+                      </td>
+                      <td className={`${value} ${pad(3)}`}>
+                        {row.latencyMs ? (
+                          <>
+                            {formatLatency(row.latencyMs.p99_9)}
+                            {unit("ms")}
+                          </>
+                        ) : (
+                          notReported
+                        )}
+                      </td>
+                      <td className={`${value} ${pad(4)}`}>
+                        {row.memory ? (
+                          <>
+                            {formatMemory(row.memory.peakRssKiB)}
+                            {unit("MiB")}
+                          </>
+                        ) : (
+                          notReported
+                        )}
+                      </td>
+                      <td className={`${value} ${pad(5)}`}>
+                        {row.cpu ? (
+                          <>
+                            {row.cpu.avgUtilizationPercent.toFixed(2)}
+                            {unit("%")}
+                          </>
+                        ) : (
+                          notReported
+                        )}
+                      </td>
+                      <td
+                        className={`${value} ${pad(6)} ${isReliable(row) ? "" : theme.danger}`}
                       >
-                        <div
-                          className={`h-full ${winner ? theme.winnerBar : theme.bar}`}
-                          style={{
-                            width: `${group.maxRps === 0 ? 0 : (row.throughput.medianRps / group.maxRps) * 100}%`,
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </td>
-                  <td className={`${value} ${pad(2)}`}>
-                    {row.latencyMs ? (
-                      <>
-                        {formatLatency(row.latencyMs.p95)}
-                        {unit("ms")}
-                      </>
-                    ) : (
-                      notReported
-                    )}
-                  </td>
-                  <td className={`${value} ${pad(3)}`}>
-                    {row.latencyMs ? (
-                      <>
-                        {formatLatency(row.latencyMs.p99_9)}
-                        {unit("ms")}
-                      </>
-                    ) : (
-                      notReported
-                    )}
-                  </td>
-                  <td className={`${value} ${pad(4)}`}>
-                    {row.memory ? (
-                      <>
-                        {formatMemory(row.memory.peakRssKiB)}
-                        {unit("MiB")}
-                      </>
-                    ) : (
-                      notReported
-                    )}
-                  </td>
-                  <td className={`${value} ${pad(5)}`}>
-                    {row.cpu ? (
-                      <>
-                        {row.cpu.avgUtilizationPercent.toFixed(2)}
-                        {unit("%")}
-                      </>
-                    ) : (
-                      notReported
-                    )}
-                  </td>
-                  <td
-                    className={`${value} ${pad(6)} ${isReliable(row) ? "" : theme.warning}`}
-                  >
-                    {formatReliability(
-                      row.requests.successful,
-                      row.requests.total,
-                    )}
-                  </td>
-                  <td className={`${value} ${pad(7)}`}>
-                    {runs !== 1 ? (
-                      `±${row.throughput.cvPercent.toFixed(1)}%`
-                    ) : (
-                      <span title="Variation cannot be estimated from one measured run">
-                        —
-                      </span>
-                    )}
-                  </td>
+                        {formatReliability(
+                          row.requests.successful,
+                          row.requests.total,
+                        )}
+                      </td>
+                      <td className={`${value} ${pad(7)}`}>
+                        {runs !== 1 ? (
+                          `±${row.throughput.cvPercent.toFixed(1)}%`
+                        ) : (
+                          <span title="Variation cannot be estimated from one measured run">
+                            —
+                          </span>
+                        )}
+                      </td>
+                    </>
+                  )}
                 </tr>
               );
             })}

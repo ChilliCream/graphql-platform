@@ -116,7 +116,8 @@ export function BenchmarkTestSetup({ report }: BenchmarkTestSetupProps) {
         </div>
       </div>
       <p className="text-caption text-cc-ink-dim mt-4">
-        Published by ChilliCream, the team behind Fusion, using a{" "}
+        Published by ChilliCream, the team behind{" "}
+        <Link href={facts.links.fusionDocs}>Fusion</Link>, using a{" "}
         <Link href={facts.links.repository}>harness</Link> based on{" "}
         <Link href={facts.links.guild}>
           The Guild&apos;s gateway benchmarks

@@ -1,5 +1,6 @@
 import {
   BENCHMARK_REPOSITORY,
+  BENCHMARK_FUSION_DOCS_URL,
   benchmarkRunId,
   formatPlatform,
   formatRuntimeTag,
@@ -10,9 +11,9 @@ import {
   type BenchmarkReport,
   type BenchmarkScenario,
   type BenchmarkVariantResult,
+  type BenchmarkCompletedVariantResult,
   type Composition,
   type ScenarioId,
-  type ScenarioStatus,
 } from "@/src/helpers/benchmarkReport";
 
 /** Display names for each scenario, in page order. */
@@ -47,23 +48,6 @@ export const COMPOSITION_GROUPS = [
   { id: "composite-schema", name: "GraphQL Federation specification" },
   { id: "apollo-federation", name: "Apollo Federation v2" },
 ] as const satisfies readonly { id: Composition; name: string }[];
-
-/** Labels and empty-state messages for each scenario status. */
-export const SCENARIO_STATUSES: Readonly<
-  Record<ScenarioStatus, { readonly label: string; readonly empty: string }>
-> = {
-  pending: { label: "Pending", empty: "Results are not available yet." },
-  "in-progress": {
-    label: "In progress",
-    empty: "This scenario is still running.",
-  },
-  complete: { label: "Complete", empty: "No results were reported." },
-  skipped: {
-    label: "Skipped",
-    empty: "This scenario was skipped in this run.",
-  },
-  failed: { label: "Failed", empty: "This scenario failed in this run." },
-};
 
 /** Returns the report scenarios in page order. */
 export function orderedScenarios(
@@ -171,6 +155,7 @@ export function historySeries(
     series.some(
       (other) =>
         other !== item &&
+        other.composition === item.composition &&
         other.name === item.name &&
         other.runtime === item.runtime,
     )
@@ -220,8 +205,12 @@ export const formatChange = (value: number) =>
   `${Math.abs(value * 100).toFixed(1)}%`;
 
 /** Returns whether every request of a result succeeded. */
-export const isReliable = (row: BenchmarkVariantResult) =>
-  row.requests.total > 0 && row.requests.successful === row.requests.total;
+export const isReliable = (
+  row: BenchmarkVariantResult,
+): row is BenchmarkCompletedVariantResult =>
+  row.status === "complete" &&
+  row.requests.total > 0 &&
+  row.requests.successful === row.requests.total;
 
 /** One composition table of a scenario. */
 export interface ResultsGroup {
@@ -255,7 +244,8 @@ export function scenarioGroups(
     })
     .toSorted(
       (a, b) =>
-        b.throughput.medianRps - a.throughput.medianRps ||
+        (b.status === "complete" ? b.throughput.medianRps : -1) -
+          (a.status === "complete" ? a.throughput.medianRps : -1) ||
         a.variant.localeCompare(b.variant),
     );
   return COMPOSITION_GROUPS.flatMap((group) => {
@@ -268,7 +258,12 @@ export function scenarioGroups(
     return {
       ...group,
       rows: groupRows,
-      maxRps: Math.max(0, ...groupRows.map((row) => row.throughput.medianRps)),
+      maxRps: Math.max(
+        0,
+        ...groupRows.map((row) =>
+          row.status === "complete" ? row.throughput.medianRps : 0,
+        ),
+      ),
       winnerRps: Math.max(
         0,
         ...groupRows.map((row) =>
@@ -396,7 +391,7 @@ export function benchmarkFacts(report: BenchmarkReport): BenchmarkFacts {
       readme: `${source}/README.md`,
       issues: `${BENCHMARK_REPOSITORY}/issues`,
       guild: "https://github.com/graphql-hive/graphql-gateways-benchmark",
-      fusionDocs: "/docs/fusion",
+      fusionDocs: BENCHMARK_FUSION_DOCS_URL,
     },
   };
 }
@@ -439,11 +434,11 @@ export function cpuMap(report: BenchmarkReport) {
   return cells.every((cell) => cell.group !== undefined) ? cells : undefined;
 }
 
-/** The fastest result without failed requests in a scenario, across both compositions. */
+/** The fastest successful gateway variant and its nearest competing gateway, across both compositions. */
 export interface ScenarioVerdict {
-  readonly leader: BenchmarkVariantResult;
-  /** The second fastest result without failed requests, or undefined when the leader is the only one. */
-  readonly runnerUp: BenchmarkVariantResult | undefined;
+  readonly leader: BenchmarkCompletedVariantResult;
+  /** The fastest successful variant of another gateway, or undefined when no other gateway succeeded. */
+  readonly runnerUp: BenchmarkCompletedVariantResult | undefined;
   /** The leader's throughput advantage over the runner-up as a fraction, or 0 without a runner-up. */
   readonly lead: number;
   /** Whether the lead is smaller than the run variance of either result. */
@@ -456,13 +451,18 @@ export function scenarioVerdict(
   variants: ReadonlyMap<string, BenchmarkCatalogEntry>,
   stableOnly: boolean,
 ): ScenarioVerdict | undefined {
-  const [leader, runnerUp] = scenarioGroups(scenario, variants, stableOnly)
+  const ranked = scenarioGroups(scenario, variants, stableOnly)
     .flatMap((group) => group.rows)
     .filter(isReliable)
     .toSorted((a, b) => b.throughput.medianRps - a.throughput.medianRps);
+  const leader = ranked[0];
   if (!leader) {
     return undefined;
   }
+  const gatewayId = variants.get(leader.variant)!.gateway.id;
+  const runnerUp = ranked.find(
+    (row) => variants.get(row.variant)!.gateway.id !== gatewayId,
+  );
   const lead =
     runnerUp && runnerUp.throughput.medianRps > 0
       ? leader.throughput.medianRps / runnerUp.throughput.medianRps - 1
