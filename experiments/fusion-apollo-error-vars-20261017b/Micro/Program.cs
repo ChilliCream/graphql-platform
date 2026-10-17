@@ -53,7 +53,8 @@ foreach (var shape in cases)
         setup.ClientConfigurationModifiers.Add(_ => new ClientConfiguration("a"));
         setup.ClientConfigurationModifiers.Add(_ => new ClientConfiguration("b"));
     });
-    var executor = await services.BuildGatewayAsync();
+    await using var provider = services.BuildServiceProvider();
+    var executor = await provider.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
     var request = OperationRequestBuilder.New().SetDocument(shape.Ordinary
         ? "{ products { id } }"
         : shape.Batch
