@@ -1,0 +1,524 @@
+{
+  "verified_at": "2026-10-17T17:12:34.862298+00:00",
+  "source_identity_count": 86,
+  "all_owned_absent": true,
+  "exclusive_lock_free": true,
+  "identities": [
+    {
+      "pid": 80836,
+      "expected_start_ticks": 502184,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 80838,
+      "expected_start_ticks": 502211,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 80839,
+      "expected_start_ticks": 502211,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 80840,
+      "expected_start_ticks": 502211,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 80841,
+      "expected_start_ticks": 502211,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 80842,
+      "expected_start_ticks": 502211,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 80959,
+      "expected_start_ticks": 502244,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 80986,
+      "expected_start_ticks": 502278,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 81263,
+      "expected_start_ticks": 505363,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 81563,
+      "expected_start_ticks": 508399,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 81716,
+      "expected_start_ticks": 510454,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 81717,
+      "expected_start_ticks": 510454,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 81718,
+      "expected_start_ticks": 510454,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 81719,
+      "expected_start_ticks": 510454,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 81720,
+      "expected_start_ticks": 510454,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 81834,
+      "expected_start_ticks": 510487,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 81860,
+      "expected_start_ticks": 510523,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 82111,
+      "expected_start_ticks": 513620,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 82276,
+      "expected_start_ticks": 516660,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 82430,
+      "expected_start_ticks": 518712,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 82431,
+      "expected_start_ticks": 518712,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 82432,
+      "expected_start_ticks": 518712,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 82433,
+      "expected_start_ticks": 518712,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 82434,
+      "expected_start_ticks": 518712,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 82549,
+      "expected_start_ticks": 518745,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 82576,
+      "expected_start_ticks": 518781,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 82914,
+      "expected_start_ticks": 521872,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 83070,
+      "expected_start_ticks": 524909,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 83168,
+      "expected_start_ticks": 526959,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 83169,
+      "expected_start_ticks": 526960,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 83170,
+      "expected_start_ticks": 526960,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 83171,
+      "expected_start_ticks": 526960,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 83172,
+      "expected_start_ticks": 526960,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 83288,
+      "expected_start_ticks": 527017,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 83314,
+      "expected_start_ticks": 527051,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 83684,
+      "expected_start_ticks": 530143,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 83875,
+      "expected_start_ticks": 533181,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 83978,
+      "expected_start_ticks": 535230,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 83979,
+      "expected_start_ticks": 535230,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 83980,
+      "expected_start_ticks": 535230,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 83981,
+      "expected_start_ticks": 535230,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 83982,
+      "expected_start_ticks": 535230,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 84098,
+      "expected_start_ticks": 535285,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 84124,
+      "expected_start_ticks": 535320,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 84411,
+      "expected_start_ticks": 538407,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 84679,
+      "expected_start_ticks": 541446,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 84791,
+      "expected_start_ticks": 543495,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 84792,
+      "expected_start_ticks": 543495,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 84793,
+      "expected_start_ticks": 543495,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 84794,
+      "expected_start_ticks": 543495,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 84795,
+      "expected_start_ticks": 543495,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 84911,
+      "expected_start_ticks": 543528,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 84936,
+      "expected_start_ticks": 543563,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 85194,
+      "expected_start_ticks": 546652,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 85321,
+      "expected_start_ticks": 549692,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 85473,
+      "expected_start_ticks": 551752,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 85474,
+      "expected_start_ticks": 551752,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 85475,
+      "expected_start_ticks": 551752,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 85476,
+      "expected_start_ticks": 551753,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 85477,
+      "expected_start_ticks": 551753,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 85596,
+      "expected_start_ticks": 551786,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 85619,
+      "expected_start_ticks": 551821,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 85867,
+      "expected_start_ticks": 554910,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 86045,
+      "expected_start_ticks": 556962,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 86046,
+      "expected_start_ticks": 556962,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 86047,
+      "expected_start_ticks": 556962,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 86048,
+      "expected_start_ticks": 556962,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 86049,
+      "expected_start_ticks": 556963,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 86164,
+      "expected_start_ticks": 556995,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 86192,
+      "expected_start_ticks": 557036,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 86470,
+      "expected_start_ticks": 560125,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 86583,
+      "expected_start_ticks": 562170,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 86584,
+      "expected_start_ticks": 562170,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 86585,
+      "expected_start_ticks": 562170,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 86586,
+      "expected_start_ticks": 562170,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 86587,
+      "expected_start_ticks": 562170,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 86701,
+      "expected_start_ticks": 562205,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 86730,
+      "expected_start_ticks": 562241,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 86973,
+      "expected_start_ticks": 565321,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 87073,
+      "expected_start_ticks": 567371,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 87074,
+      "expected_start_ticks": 567371,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 87075,
+      "expected_start_ticks": 567371,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 87076,
+      "expected_start_ticks": 567371,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 87077,
+      "expected_start_ticks": 567371,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 87203,
+      "expected_start_ticks": 567407,
+      "current_start_ticks": null,
+      "owned_alive": false
+    },
+    {
+      "pid": 87228,
+      "expected_start_ticks": 567443,
+      "current_start_ticks": null,
+      "owned_alive": false
+    }
+  ]
+}

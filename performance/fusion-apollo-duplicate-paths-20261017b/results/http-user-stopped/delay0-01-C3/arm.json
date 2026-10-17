@@ -1,0 +1,11 @@
+{
+  "family": "apollo",
+  "delay_ms": 0,
+  "index": 1,
+  "arm": "C3",
+  "name": "delay0-01-C3",
+  "cases": [
+    "TestQuery",
+    "entities9"
+  ]
+}

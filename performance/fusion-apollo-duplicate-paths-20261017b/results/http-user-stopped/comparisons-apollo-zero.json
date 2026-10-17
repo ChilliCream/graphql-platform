@@ -1,0 +1,1730 @@
+[
+  {
+    "launch": {
+      "family": "apollo",
+      "delay_ms": 0,
+      "index": 1,
+      "arm": "C3",
+      "name": "delay0-01-C3",
+      "cases": [
+        "TestQuery",
+        "entities9"
+      ]
+    },
+    "workload": "TestQuery",
+    "adjacent_controls": [
+      "retained-delay0-00-B",
+      "delay0-03-B"
+    ],
+    "candidate_start_epoch": 1792256500.8510592,
+    "seconds_after_previous_control_end": 553.3878362178802,
+    "seconds_before_next_control_start": 135.09060764312744,
+    "previous_control_is_retained_first_baseline": true,
+    "metrics": {
+      "gateway_cpu_ms_per_success": {
+        "candidate": 0.5880365832402609,
+        "before": 0.5777636565442877,
+        "after": 0.5945715151216476,
+        "relative_to_before": 0.017780500001362887,
+        "relative_to_after": -0.010990993875732102,
+        "relative_to_adjacent_mean": 0.003188503514122587,
+        "full_control_min": 0.5777636565442877,
+        "full_control_max": 0.6160851675753259,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 0.5777636565442877
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 0.5945715151216476
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 0.6160851675753259
+          }
+        ]
+      },
+      "throughput_success_per_second": {
+        "candidate": 4180.974011116816,
+        "before": 4113.9351467581455,
+        "after": 4008.0635469737254,
+        "relative_to_before": 0.016295556922305332,
+        "relative_to_after": 0.04314064937259943,
+        "relative_to_adjacent_mean": 0.029543138031644878,
+        "full_control_min": 3004.911959342739,
+        "full_control_max": 4113.9351467581455,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 4113.9351467581455
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 4008.0635469737254
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 3004.911959342739
+          }
+        ]
+      },
+      "latency_mean_ms": {
+        "candidate": 11.841067793922392,
+        "before": 12.042056209178176,
+        "after": 12.348150086721542,
+        "relative_to_before": -0.016690539536146298,
+        "relative_to_after": -0.04106544617921648,
+        "relative_to_adjacent_mean": -0.029030943792138775,
+        "full_control_min": 12.042056209178176,
+        "full_control_max": 16.522409157421887,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 12.042056209178176
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 12.348150086721542
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 16.522409157421887
+          }
+        ]
+      },
+      "latency_median_ms": {
+        "candidate": 11.125726,
+        "before": 11.433436,
+        "after": 11.477311,
+        "relative_to_before": -0.026913169409440885,
+        "relative_to_after": -0.030633046364257233,
+        "relative_to_adjacent_mean": -0.02877666974367965,
+        "full_control_min": 11.433436,
+        "full_control_max": 16.925173,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 11.433436
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 11.477311
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 16.925173
+          }
+        ]
+      },
+      "latency_p95_ms": {
+        "candidate": 20.975994399999998,
+        "before": 20.858993399999992,
+        "after": 22.3328164,
+        "relative_to_before": 0.005609139317336531,
+        "relative_to_after": -0.06075463012358806,
+        "relative_to_adjacent_mean": -0.02870500230809947,
+        "full_control_min": 20.858993399999992,
+        "full_control_max": 27.595696399999998,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 20.858993399999992
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 22.3328164
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 27.595696399999998
+          }
+        ]
+      },
+      "latency_p99_ms": {
+        "candidate": 27.91648192000001,
+        "before": 27.34628855999998,
+        "after": 30.96721198,
+        "relative_to_before": 0.020850849969968666,
+        "relative_to_after": -0.09851484408639322,
+        "relative_to_adjacent_mean": -0.04253794879452388,
+        "full_control_min": 27.34628855999998,
+        "full_control_max": 34.00099649999999,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 27.34628855999998
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 30.96721198
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 34.00099649999999
+          }
+        ]
+      },
+      "latency_p999_ms": {
+        "candidate": 41.716573540000574,
+        "before": 38.154130999999914,
+        "after": 44.34194929799999,
+        "relative_to_before": 0.0933697727252829,
+        "relative_to_after": -0.0592074953754419,
+        "relative_to_adjacent_mean": 0.011358924916387458,
+        "full_control_min": 38.154130999999914,
+        "full_control_max": 46.020139386000075,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 38.154130999999914
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 44.34194929799999
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 46.020139386000075
+          }
+        ]
+      },
+      "latency_max_ms": {
+        "candidate": 148.521998,
+        "before": 166.745095,
+        "after": 158.908928,
+        "relative_to_before": -0.1092871547435923,
+        "relative_to_after": -0.06536404298190224,
+        "relative_to_adjacent_mean": -0.08785405669623803,
+        "full_control_min": 158.908928,
+        "full_control_max": 175.24814,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 166.745095
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 158.908928
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 175.24814
+          }
+        ]
+      }
+    }
+  },
+  {
+    "launch": {
+      "family": "apollo",
+      "delay_ms": 0,
+      "index": 1,
+      "arm": "C3",
+      "name": "delay0-01-C3",
+      "cases": [
+        "TestQuery",
+        "entities9"
+      ]
+    },
+    "workload": "entities9",
+    "adjacent_controls": [
+      "retained-delay0-00-B",
+      "delay0-03-B"
+    ],
+    "candidate_start_epoch": 1792256531.1193593,
+    "seconds_after_previous_control_end": 563.3732223510742,
+    "seconds_before_next_control_start": 145.10843873023987,
+    "previous_control_is_retained_first_baseline": true,
+    "metrics": {
+      "gateway_cpu_ms_per_success": {
+        "candidate": 0.21436402020297513,
+        "before": 0.21496860130246068,
+        "after": 0.2195375719342647,
+        "relative_to_before": -0.002812415840371507,
+        "relative_to_after": -0.02356567800995213,
+        "relative_to_adjacent_mean": -0.013298160501915568,
+        "full_control_min": 0.21496860130246068,
+        "full_control_max": 0.2195375719342647,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 0.21496860130246068
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 0.2195375719342647
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 0.21731889493976253
+          }
+        ]
+      },
+      "throughput_success_per_second": {
+        "candidate": 10071.147255588,
+        "before": 9330.738302721576,
+        "after": 8728.243207642598,
+        "relative_to_before": 0.07935159350149834,
+        "relative_to_after": 0.15385731309245965,
+        "relative_to_adjacent_mean": 0.1153615999670965,
+        "full_control_min": 8728.243207642598,
+        "full_control_max": 9967.313502790452,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 9330.738302721576
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 8728.243207642598
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 9967.313502790452
+          }
+        ]
+      },
+      "latency_mean_ms": {
+        "candidate": 4.922847912293853,
+        "before": 5.316517787229825,
+        "after": 5.681195681027668,
+        "relative_to_before": -0.07404656406521559,
+        "relative_to_after": -0.13348383180433554,
+        "relative_to_adjacent_mean": -0.10475065085072777,
+        "full_control_min": 4.974614480735179,
+        "full_control_max": 5.681195681027668,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 5.316517787229825
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 5.681195681027668
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 4.974614480735179
+          }
+        ]
+      },
+      "latency_median_ms": {
+        "candidate": 4.251314,
+        "before": 4.754692,
+        "after": 4.9991520000000005,
+        "relative_to_before": -0.1058697387759292,
+        "relative_to_after": -0.14959297096787627,
+        "relative_to_adjacent_mean": -0.1282792712288613,
+        "full_control_min": 4.422898,
+        "full_control_max": 4.9991520000000005,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 4.754692
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 4.9991520000000005
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 4.422898
+          }
+        ]
+      },
+      "latency_p95_ms": {
+        "candidate": 10.232364849999993,
+        "before": 10.365234449999999,
+        "after": 11.694431049999997,
+        "relative_to_before": -0.012818774205344385,
+        "relative_to_after": -0.1250224310826994,
+        "relative_to_adjacent_mean": -0.07230099658582811,
+        "full_control_min": 9.749767799999999,
+        "full_control_max": 11.694431049999997,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 10.365234449999999
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 11.694431049999997
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 9.749767799999999
+          }
+        ]
+      },
+      "latency_p99_ms": {
+        "candidate": 17.043965749999998,
+        "before": 16.73435108,
+        "after": 18.473629499999994,
+        "relative_to_before": 0.01850174342105393,
+        "relative_to_after": -0.07738943503224405,
+        "relative_to_adjacent_mean": -0.031812363604751814,
+        "full_control_min": 15.623386600000014,
+        "full_control_max": 18.473629499999994,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 16.73435108
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 18.473629499999994
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 15.623386600000014
+          }
+        ]
+      },
+      "latency_p999_ms": {
+        "candidate": 27.926243500000098,
+        "before": 30.399644117001767,
+        "after": 30.3140312730002,
+        "relative_to_before": -0.08136281488961106,
+        "relative_to_after": -0.078768401058121,
+        "relative_to_adjacent_mean": -0.08006743717581444,
+        "full_control_min": 26.752715655999506,
+        "full_control_max": 30.399644117001767,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 30.399644117001767
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 30.3140312730002
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 26.752715655999506
+          }
+        ]
+      },
+      "latency_max_ms": {
+        "candidate": 43.309939,
+        "before": 44.498653,
+        "after": 43.769982,
+        "relative_to_before": -0.02671348276542207,
+        "relative_to_after": -0.010510468110313531,
+        "relative_to_adjacent_mean": -0.01867885461239982,
+        "full_control_min": 43.769982,
+        "full_control_max": 47.278043,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 44.498653
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 43.769982
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 47.278043
+          }
+        ]
+      }
+    }
+  },
+  {
+    "launch": {
+      "family": "apollo",
+      "delay_ms": 0,
+      "index": 2,
+      "arm": "C2",
+      "name": "delay0-02-C2",
+      "cases": [
+        "TestQuery",
+        "entities9"
+      ]
+    },
+    "workload": "TestQuery",
+    "adjacent_controls": [
+      "retained-delay0-00-B",
+      "delay0-03-B"
+    ],
+    "candidate_start_epoch": 1792256583.4337063,
+    "seconds_after_previous_control_end": 635.9704833030701,
+    "seconds_before_next_control_start": 52.51378679275513,
+    "previous_control_is_retained_first_baseline": true,
+    "metrics": {
+      "gateway_cpu_ms_per_success": {
+        "candidate": 0.5917777778829731,
+        "before": 0.5777636565442877,
+        "after": 0.5945715151216476,
+        "relative_to_before": 0.024255802835551288,
+        "relative_to_after": -0.004698740467078855,
+        "relative_to_adjacent_mean": 0.009570969438770893,
+        "full_control_min": 0.5777636565442877,
+        "full_control_max": 0.6160851675753259,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 0.5777636565442877
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 0.5945715151216476
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 0.6160851675753259
+          }
+        ]
+      },
+      "throughput_success_per_second": {
+        "candidate": 4161.422972927499,
+        "before": 4113.9351467581455,
+        "after": 4008.0635469737254,
+        "relative_to_before": 0.011543163534499357,
+        "relative_to_after": 0.038262723172033386,
+        "relative_to_adjacent_mean": 0.024728796407974096,
+        "full_control_min": 3004.911959342739,
+        "full_control_max": 4113.9351467581455,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 4113.9351467581455
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 4008.0635469737254
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 3004.911959342739
+          }
+        ]
+      },
+      "latency_mean_ms": {
+        "candidate": 11.893418519172553,
+        "before": 12.042056209178176,
+        "after": 12.348150086721542,
+        "relative_to_before": -0.012343215097462723,
+        "relative_to_after": -0.03682588601170156,
+        "relative_to_adjacent_mean": -0.024738177702746444,
+        "full_control_min": 12.042056209178176,
+        "full_control_max": 16.522409157421887,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 12.042056209178176
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 12.348150086721542
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 16.522409157421887
+          }
+        ]
+      },
+      "latency_median_ms": {
+        "candidate": 11.16383,
+        "before": 11.433436,
+        "after": 11.477311,
+        "relative_to_before": -0.023580487965297547,
+        "relative_to_after": -0.027313104959863832,
+        "relative_to_adjacent_mean": -0.02545037051825494,
+        "full_control_min": 11.433436,
+        "full_control_max": 16.925173,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 11.433436
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 11.477311
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 16.925173
+          }
+        ]
+      },
+      "latency_p95_ms": {
+        "candidate": 20.991747,
+        "before": 20.858993399999992,
+        "after": 22.3328164,
+        "relative_to_before": 0.006364333956786705,
+        "relative_to_after": -0.06004927349870648,
+        "relative_to_adjacent_mean": -0.027975576980800332,
+        "full_control_min": 20.858993399999992,
+        "full_control_max": 27.595696399999998,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 20.858993399999992
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 22.3328164
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 27.595696399999998
+          }
+        ]
+      },
+      "latency_p99_ms": {
+        "candidate": 27.9897113,
+        "before": 27.34628855999998,
+        "after": 30.96721198,
+        "relative_to_before": 0.023528704401268197,
+        "relative_to_after": -0.09615010488910014,
+        "relative_to_adjacent_mean": -0.040026373282100014,
+        "full_control_min": 27.34628855999998,
+        "full_control_max": 34.00099649999999,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 27.34628855999998
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 30.96721198
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 34.00099649999999
+          }
+        ]
+      },
+      "latency_p999_ms": {
+        "candidate": 40.40353574999954,
+        "before": 38.154130999999914,
+        "after": 44.34194929799999,
+        "relative_to_before": 0.058955732735719524,
+        "relative_to_after": -0.08881913425890109,
+        "relative_to_adjacent_mean": -0.020473806657232974,
+        "full_control_min": 38.154130999999914,
+        "full_control_max": 46.020139386000075,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 38.154130999999914
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 44.34194929799999
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 46.020139386000075
+          }
+        ]
+      },
+      "latency_max_ms": {
+        "candidate": 140.894541,
+        "before": 166.745095,
+        "after": 158.908928,
+        "relative_to_before": -0.1550303713581499,
+        "relative_to_after": -0.11336296347049801,
+        "relative_to_adjacent_mean": -0.13469798590512116,
+        "full_control_min": 158.908928,
+        "full_control_max": 175.24814,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 166.745095
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 158.908928
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 175.24814
+          }
+        ]
+      }
+    }
+  },
+  {
+    "launch": {
+      "family": "apollo",
+      "delay_ms": 0,
+      "index": 2,
+      "arm": "C2",
+      "name": "delay0-02-C2",
+      "cases": [
+        "TestQuery",
+        "entities9"
+      ]
+    },
+    "workload": "entities9",
+    "adjacent_controls": [
+      "retained-delay0-00-B",
+      "delay0-03-B"
+    ],
+    "candidate_start_epoch": 1792256613.7335963,
+    "seconds_after_previous_control_end": 645.9874594211578,
+    "seconds_before_next_control_start": 62.493958711624146,
+    "previous_control_is_retained_first_baseline": true,
+    "metrics": {
+      "gateway_cpu_ms_per_success": {
+        "candidate": 0.2179970258048266,
+        "before": 0.21496860130246068,
+        "after": 0.2195375719342647,
+        "relative_to_before": 0.0140877527416432,
+        "relative_to_after": -0.007017232248060834,
+        "relative_to_adjacent_mean": 0.003424297431367629,
+        "full_control_min": 0.21496860130246068,
+        "full_control_max": 0.2195375719342647,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 0.21496860130246068
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 0.2195375719342647
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 0.21731889493976253
+          }
+        ]
+      },
+      "throughput_success_per_second": {
+        "candidate": 9120.438644379408,
+        "before": 9330.738302721576,
+        "after": 8728.243207642598,
+        "relative_to_before": -0.022538372797448192,
+        "relative_to_after": 0.04493406375218756,
+        "relative_to_adjacent_mean": 0.01007231655286045,
+        "full_control_min": 8728.243207642598,
+        "full_control_max": 9967.313502790452,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 9330.738302721576
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 8728.243207642598
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 9967.313502790452
+          }
+        ]
+      },
+      "latency_mean_ms": {
+        "candidate": 5.438794957307547,
+        "before": 5.316517787229825,
+        "after": 5.681195681027668,
+        "relative_to_before": 0.02299948480778702,
+        "relative_to_after": -0.04266720199932872,
+        "relative_to_adjacent_mean": -0.010922593499922417,
+        "full_control_min": 4.974614480735179,
+        "full_control_max": 5.681195681027668,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 5.316517787229825
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 5.681195681027668
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 4.974614480735179
+          }
+        ]
+      },
+      "latency_median_ms": {
+        "candidate": 4.825151,
+        "before": 4.754692,
+        "after": 4.9991520000000005,
+        "relative_to_before": 0.014818835794200735,
+        "relative_to_after": -0.03480610311508847,
+        "relative_to_adjacent_mean": -0.01061550707597958,
+        "full_control_min": 4.422898,
+        "full_control_max": 4.9991520000000005,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 4.754692
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 4.9991520000000005
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 4.422898
+          }
+        ]
+      },
+      "latency_p95_ms": {
+        "candidate": 10.864557,
+        "before": 10.365234449999999,
+        "after": 11.694431049999997,
+        "relative_to_before": 0.04817281774075077,
+        "relative_to_after": -0.07096318294167869,
+        "relative_to_adjacent_mean": -0.014984429387652987,
+        "full_control_min": 9.749767799999999,
+        "full_control_max": 11.694431049999997,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 10.365234449999999
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 11.694431049999997
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 9.749767799999999
+          }
+        ]
+      },
+      "latency_p99_ms": {
+        "candidate": 17.261983599999965,
+        "before": 16.73435108,
+        "after": 18.473629499999994,
+        "relative_to_before": 0.03152990620775031,
+        "relative_to_after": -0.06558786404155337,
+        "relative_to_adjacent_mean": -0.01942779360622071,
+        "full_control_min": 15.623386600000014,
+        "full_control_max": 18.473629499999994,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 16.73435108
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 18.473629499999994
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 15.623386600000014
+          }
+        ]
+      },
+      "latency_p999_ms": {
+        "candidate": 29.336600219998516,
+        "before": 30.399644117001767,
+        "after": 30.3140312730002,
+        "relative_to_before": -0.03496895861385152,
+        "relative_to_after": -0.03224351931945957,
+        "relative_to_adjacent_mean": -0.03360816054863569,
+        "full_control_min": 26.752715655999506,
+        "full_control_max": 30.399644117001767,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 30.399644117001767
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 30.3140312730002
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 26.752715655999506
+          }
+        ]
+      },
+      "latency_max_ms": {
+        "candidate": 41.297011,
+        "before": 44.498653,
+        "after": 43.769982,
+        "relative_to_before": -0.071949189113657,
+        "relative_to_after": -0.05649924644702853,
+        "relative_to_adjacent_mean": -0.06428798859300355,
+        "full_control_min": 43.769982,
+        "full_control_max": 47.278043,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 44.498653
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 43.769982
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 47.278043
+          }
+        ]
+      }
+    }
+  },
+  {
+    "launch": {
+      "family": "apollo",
+      "delay_ms": 0,
+      "index": 4,
+      "arm": "C2",
+      "name": "delay0-04-C2",
+      "cases": [
+        "TestQuery",
+        "entities9"
+      ]
+    },
+    "workload": "TestQuery",
+    "adjacent_controls": [
+      "delay0-03-B",
+      "delay0-06-B"
+    ],
+    "candidate_start_epoch": 1792256748.6757636,
+    "seconds_after_previous_control_end": 52.715659618377686,
+    "seconds_before_next_control_start": 135.0687448978424,
+    "previous_control_is_retained_first_baseline": false,
+    "metrics": {
+      "gateway_cpu_ms_per_success": {
+        "candidate": 0.598687220187035,
+        "before": 0.5945715151216476,
+        "after": 0.6160851675753259,
+        "relative_to_before": 0.006922136295993475,
+        "relative_to_after": -0.028239516716110136,
+        "relative_to_adjacent_mean": -0.010971105609655418,
+        "full_control_min": 0.5777636565442877,
+        "full_control_max": 0.6160851675753259,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 0.5777636565442877
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 0.5945715151216476
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 0.6160851675753259
+          }
+        ]
+      },
+      "throughput_success_per_second": {
+        "candidate": 3946.1602209900857,
+        "before": 4008.0635469737254,
+        "after": 3004.911959342739,
+        "relative_to_before": -0.015444696736502506,
+        "relative_to_after": 0.31323655214618173,
+        "relative_to_adjacent_mean": 0.1253882798922792,
+        "full_control_min": 3004.911959342739,
+        "full_control_max": 4113.9351467581455,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 4113.9351467581455
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 4008.0635469737254
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 3004.911959342739
+          }
+        ]
+      },
+      "latency_mean_ms": {
+        "candidate": 12.55053298398007,
+        "before": 12.348150086721542,
+        "after": 16.522409157421887,
+        "relative_to_before": 0.01638973415752032,
+        "relative_to_after": -0.24039328257753778,
+        "relative_to_adjacent_mean": -0.13056530163848334,
+        "full_control_min": 12.042056209178176,
+        "full_control_max": 16.522409157421887,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 12.042056209178176
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 12.348150086721542
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 16.522409157421887
+          }
+        ]
+      },
+      "latency_median_ms": {
+        "candidate": 11.829271,
+        "before": 11.477311,
+        "after": 16.925173,
+        "relative_to_before": 0.030665719522630308,
+        "relative_to_after": -0.30108418980414564,
+        "relative_to_adjacent_mean": -0.1670256024085781,
+        "full_control_min": 11.433436,
+        "full_control_max": 16.925173,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 11.433436
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 11.477311
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 16.925173
+          }
+        ]
+      },
+      "latency_p95_ms": {
+        "candidate": 21.812844699999996,
+        "before": 22.3328164,
+        "after": 27.595696399999998,
+        "relative_to_before": -0.023282853836563255,
+        "relative_to_after": -0.20955628791451708,
+        "relative_to_adjacent_mean": -0.12623695452831518,
+        "full_control_min": 20.858993399999992,
+        "full_control_max": 27.595696399999998,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 20.858993399999992
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 22.3328164
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 27.595696399999998
+          }
+        ]
+      },
+      "latency_p99_ms": {
+        "candidate": 28.92175926,
+        "before": 30.96721198,
+        "after": 34.00099649999999,
+        "relative_to_before": -0.06605220777773091,
+        "relative_to_after": -0.14938495229103044,
+        "relative_to_adjacent_mean": -0.1096642515884253,
+        "full_control_min": 27.34628855999998,
+        "full_control_max": 34.00099649999999,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 27.34628855999998
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 30.96721198
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 34.00099649999999
+          }
+        ]
+      },
+      "latency_p999_ms": {
+        "candidate": 42.30321458599988,
+        "before": 44.34194929799999,
+        "after": 46.020139386000075,
+        "relative_to_before": -0.04597756175081058,
+        "relative_to_after": -0.08076735206784114,
+        "relative_to_adjacent_mean": -0.06369551208724367,
+        "full_control_min": 38.154130999999914,
+        "full_control_max": 46.020139386000075,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 38.154130999999914
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 44.34194929799999
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 46.020139386000075
+          }
+        ]
+      },
+      "latency_max_ms": {
+        "candidate": 168.61373,
+        "before": 158.908928,
+        "after": 175.24814,
+        "relative_to_before": 0.06107147107555844,
+        "relative_to_after": -0.037857234889910996,
+        "relative_to_adjacent_mean": 0.009188469417621414,
+        "full_control_min": 158.908928,
+        "full_control_max": 175.24814,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 166.745095
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 158.908928
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 175.24814
+          }
+        ]
+      }
+    }
+  },
+  {
+    "launch": {
+      "family": "apollo",
+      "delay_ms": 0,
+      "index": 4,
+      "arm": "C2",
+      "name": "delay0-04-C2",
+      "cases": [
+        "TestQuery",
+        "entities9"
+      ]
+    },
+    "workload": "entities9",
+    "adjacent_controls": [
+      "delay0-03-B",
+      "delay0-06-B"
+    ],
+    "candidate_start_epoch": 1792256778.9402707,
+    "seconds_after_previous_control_end": 62.71078658103943,
+    "seconds_before_next_control_start": 145.12691283226013,
+    "previous_control_is_retained_first_baseline": false,
+    "metrics": {
+      "gateway_cpu_ms_per_success": {
+        "candidate": 0.21501397921312568,
+        "before": 0.2195375719342647,
+        "after": 0.21731889493976253,
+        "relative_to_before": -0.020605095889889458,
+        "relative_to_after": -0.010606145072087458,
+        "relative_to_adjacent_mean": -0.01563101147760959,
+        "full_control_min": 0.21496860130246068,
+        "full_control_max": 0.2195375719342647,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 0.21496860130246068
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 0.2195375719342647
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 0.21731889493976253
+          }
+        ]
+      },
+      "throughput_success_per_second": {
+        "candidate": 8946.57105255038,
+        "before": 8728.243207642598,
+        "after": 9967.313502790452,
+        "relative_to_before": 0.0250139506557987,
+        "relative_to_after": -0.10240898412137878,
+        "relative_to_adjacent_mean": -0.04292007014075705,
+        "full_control_min": 8728.243207642598,
+        "full_control_max": 9967.313502790452,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 9330.738302721576
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 8728.243207642598
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 9967.313502790452
+          }
+        ]
+      },
+      "latency_mean_ms": {
+        "candidate": 5.546970675781381,
+        "before": 5.681195681027668,
+        "after": 4.974614480735179,
+        "relative_to_before": -0.02362618941194561,
+        "relative_to_after": 0.11505538715868813,
+        "relative_to_adjacent_mean": 0.04111664745793786,
+        "full_control_min": 4.974614480735179,
+        "full_control_max": 5.681195681027668,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 5.316517787229825
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 5.681195681027668
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 4.974614480735179
+          }
+        ]
+      },
+      "latency_median_ms": {
+        "candidate": 5.0740275,
+        "before": 4.9991520000000005,
+        "after": 4.422898,
+        "relative_to_before": 0.01497764020777903,
+        "relative_to_after": 0.14721784223827905,
+        "relative_to_adjacent_mean": 0.0770538258659208,
+        "full_control_min": 4.422898,
+        "full_control_max": 4.9991520000000005,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 4.754692
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 4.9991520000000005
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 4.422898
+          }
+        ]
+      },
+      "latency_p95_ms": {
+        "candidate": 10.442389,
+        "before": 11.694431049999997,
+        "after": 9.749767799999999,
+        "relative_to_before": -0.1070631007739361,
+        "relative_to_after": 0.07103976363416598,
+        "relative_to_adjacent_mean": -0.02608728140944261,
+        "full_control_min": 9.749767799999999,
+        "full_control_max": 11.694431049999997,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 10.365234449999999
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 11.694431049999997
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 9.749767799999999
+          }
+        ]
+      },
+      "latency_p99_ms": {
+        "candidate": 16.20494941000003,
+        "before": 18.473629499999994,
+        "after": 15.623386600000014,
+        "relative_to_before": -0.1228064084537348,
+        "relative_to_after": 0.037223863486807396,
+        "relative_to_adjacent_mean": -0.04947990976840777,
+        "full_control_min": 15.623386600000014,
+        "full_control_max": 18.473629499999994,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 16.73435108
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 18.473629499999994
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 15.623386600000014
+          }
+        ]
+      },
+      "latency_p999_ms": {
+        "candidate": 27.553486658999873,
+        "before": 30.3140312730002,
+        "after": 26.752715655999506,
+        "relative_to_before": -0.09106491278377293,
+        "relative_to_after": 0.02993232587289829,
+        "relative_to_adjacent_mean": -0.03434177899501156,
+        "full_control_min": 26.752715655999506,
+        "full_control_max": 30.399644117001767,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 30.399644117001767
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 30.3140312730002
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 26.752715655999506
+          }
+        ]
+      },
+      "latency_max_ms": {
+        "candidate": 54.170913,
+        "before": 43.769982,
+        "after": 47.278043,
+        "relative_to_before": 0.23762703397958895,
+        "relative_to_after": 0.14579431724786085,
+        "relative_to_adjacent_mean": 0.18994152811112608,
+        "full_control_min": 43.769982,
+        "full_control_max": 47.278043,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 44.498653
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 43.769982
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 47.278043
+          }
+        ]
+      }
+    }
+  },
+  {
+    "launch": {
+      "family": "apollo",
+      "delay_ms": 0,
+      "index": 5,
+      "arm": "C3",
+      "name": "delay0-05-C3",
+      "cases": [
+        "TestQuery",
+        "entities9"
+      ]
+    },
+    "workload": "TestQuery",
+    "adjacent_controls": [
+      "delay0-03-B",
+      "delay0-06-B"
+    ],
+    "candidate_start_epoch": 1792256831.288761,
+    "seconds_after_previous_control_end": 135.32865691184998,
+    "seconds_before_next_control_start": 52.45039176940918,
+    "previous_control_is_retained_first_baseline": false,
+    "metrics": {
+      "gateway_cpu_ms_per_success": {
+        "candidate": 0.6196555365922948,
+        "before": 0.5945715151216476,
+        "after": 0.6160851675753259,
+        "relative_to_before": 0.04218840094536813,
+        "relative_to_after": 0.005795252352885694,
+        "relative_to_adjacent_mean": 0.02366846926725974,
+        "full_control_min": 0.5777636565442877,
+        "full_control_max": 0.6160851675753259,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 0.5777636565442877
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 0.5945715151216476
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 0.6160851675753259
+          }
+        ]
+      },
+      "throughput_success_per_second": {
+        "candidate": 3030.6193412400826,
+        "before": 4008.0635469737254,
+        "after": 3004.911959342739,
+        "relative_to_before": -0.24386943826568286,
+        "relative_to_after": 0.008555119832185154,
+        "relative_to_adjacent_mean": -0.13571084384639398,
+        "full_control_min": 3004.911959342739,
+        "full_control_max": 4113.9351467581455,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 4113.9351467581455
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 4008.0635469737254
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 3004.911959342739
+          }
+        ]
+      },
+      "latency_mean_ms": {
+        "candidate": 16.3844717429363,
+        "before": 12.348150086721542,
+        "after": 16.522409157421887,
+        "relative_to_before": 0.32687662750027413,
+        "relative_to_after": -0.008348504940856372,
+        "relative_to_adjacent_mean": 0.1350297446184725,
+        "full_control_min": 12.042056209178176,
+        "full_control_max": 16.522409157421887,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 12.042056209178176
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 12.348150086721542
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 16.522409157421887
+          }
+        ]
+      },
+      "latency_median_ms": {
+        "candidate": 16.86234,
+        "before": 11.477311,
+        "after": 16.925173,
+        "relative_to_before": 0.46918908096155976,
+        "relative_to_after": -0.0037123992765096814,
+        "relative_to_adjacent_mean": 0.18738487802686543,
+        "full_control_min": 11.433436,
+        "full_control_max": 16.925173,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 11.433436
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 11.477311
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 16.925173
+          }
+        ]
+      },
+      "latency_p95_ms": {
+        "candidate": 27.411330749999998,
+        "before": 22.3328164,
+        "after": 27.595696399999998,
+        "relative_to_before": 0.22740142841992816,
+        "relative_to_after": -0.006680956600174759,
+        "relative_to_adjacent_mean": 0.09802312197049856,
+        "full_control_min": 20.858993399999992,
+        "full_control_max": 27.595696399999998,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 20.858993399999992
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 22.3328164
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 27.595696399999998
+          }
+        ]
+      },
+      "latency_p99_ms": {
+        "candidate": 34.08106261999994,
+        "before": 30.96721198,
+        "after": 34.00099649999999,
+        "relative_to_before": 0.10055314769734536,
+        "relative_to_after": 0.0023548168654394797,
+        "relative_to_adjacent_mean": 0.04916122569368864,
+        "full_control_min": 27.34628855999998,
+        "full_control_max": 34.00099649999999,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 27.34628855999998
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 30.96721198
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 34.00099649999999
+          }
+        ]
+      },
+      "latency_p999_ms": {
+        "candidate": 44.96055600000025,
+        "before": 44.34194929799999,
+        "after": 46.020139386000075,
+        "relative_to_before": 0.013950823357875342,
+        "relative_to_after": -0.02302434108494167,
+        "relative_to_adjacent_mean": -0.004880107248756538,
+        "full_control_min": 38.154130999999914,
+        "full_control_max": 46.020139386000075,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 38.154130999999914
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 44.34194929799999
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 46.020139386000075
+          }
+        ]
+      },
+      "latency_max_ms": {
+        "candidate": 160.980564,
+        "before": 158.908928,
+        "after": 175.24814,
+        "relative_to_before": 0.013036624348758963,
+        "relative_to_after": -0.08141356593000082,
+        "relative_to_adjacent_mean": -0.036497626918368886,
+        "full_control_min": 158.908928,
+        "full_control_max": 175.24814,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 166.745095
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 158.908928
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 175.24814
+          }
+        ]
+      }
+    }
+  },
+  {
+    "launch": {
+      "family": "apollo",
+      "delay_ms": 0,
+      "index": 5,
+      "arm": "C3",
+      "name": "delay0-05-C3",
+      "cases": [
+        "TestQuery",
+        "entities9"
+      ]
+    },
+    "workload": "entities9",
+    "adjacent_controls": [
+      "delay0-03-B",
+      "delay0-06-B"
+    ],
+    "candidate_start_epoch": 1792256861.5875435,
+    "seconds_after_previous_control_end": 145.35805940628052,
+    "seconds_before_next_control_start": 62.48382091522217,
+    "previous_control_is_retained_first_baseline": false,
+    "metrics": {
+      "gateway_cpu_ms_per_success": {
+        "candidate": 0.2194374823462225,
+        "before": 0.2195375719342647,
+        "after": 0.21731889493976253,
+        "relative_to_before": -0.0004559109730527533,
+        "relative_to_after": 0.009748749215052088,
+        "relative_to_adjacent_mean": 0.0046205057529795646,
+        "full_control_min": 0.21496860130246068,
+        "full_control_max": 0.2195375719342647,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 0.21496860130246068
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 0.2195375719342647
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 0.21731889493976253
+          }
+        ]
+      },
+      "throughput_success_per_second": {
+        "candidate": 9987.787906983043,
+        "before": 8728.243207642598,
+        "after": 9967.313502790452,
+        "relative_to_before": 0.1443067830921081,
+        "relative_to_after": 0.0020541547315491293,
+        "relative_to_adjacent_mean": 0.06846648769858366,
+        "full_control_min": 8728.243207642598,
+        "full_control_max": 9967.313502790452,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 9330.738302721576
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 8728.243207642598
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 9967.313502790452
+          }
+        ]
+      },
+      "latency_mean_ms": {
+        "candidate": 4.965233773109538,
+        "before": 5.681195681027668,
+        "after": 4.974614480735179,
+        "relative_to_before": -0.12602310290227847,
+        "relative_to_after": -0.0018857154985514324,
+        "relative_to_adjacent_mean": -0.06807015182633236,
+        "full_control_min": 4.974614480735179,
+        "full_control_max": 5.681195681027668,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 5.316517787229825
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 5.681195681027668
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 4.974614480735179
+          }
+        ]
+      },
+      "latency_median_ms": {
+        "candidate": 4.3244605,
+        "before": 4.9991520000000005,
+        "after": 4.422898,
+        "relative_to_before": -0.1349611894177254,
+        "relative_to_after": -0.022256335099746893,
+        "relative_to_adjacent_mean": -0.08205528520863303,
+        "full_control_min": 4.422898,
+        "full_control_max": 4.9991520000000005,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 4.754692
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 4.9991520000000005
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 4.422898
+          }
+        ]
+      },
+      "latency_p95_ms": {
+        "candidate": 10.1779605,
+        "before": 11.694431049999997,
+        "after": 9.749767799999999,
+        "relative_to_before": -0.12967458985531388,
+        "relative_to_after": 0.043918245929918553,
+        "relative_to_adjacent_mean": -0.05074928924192468,
+        "full_control_min": 9.749767799999999,
+        "full_control_max": 11.694431049999997,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 10.365234449999999
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 11.694431049999997
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 9.749767799999999
+          }
+        ]
+      },
+      "latency_p99_ms": {
+        "candidate": 16.172601250000003,
+        "before": 18.473629499999994,
+        "after": 15.623386600000014,
+        "relative_to_before": -0.12455745363952397,
+        "relative_to_after": 0.03515336745235431,
+        "relative_to_adjacent_mean": -0.05137732858682609,
+        "full_control_min": 15.623386600000014,
+        "full_control_max": 18.473629499999994,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 16.73435108
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 18.473629499999994
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 15.623386600000014
+          }
+        ]
+      },
+      "latency_p999_ms": {
+        "candidate": 25.647817244999857,
+        "before": 30.3140312730002,
+        "after": 26.752715655999506,
+        "relative_to_before": -0.15392918170393266,
+        "relative_to_after": -0.041300420682782835,
+        "relative_to_adjacent_mean": -0.10112916452343412,
+        "full_control_min": 26.752715655999506,
+        "full_control_max": 30.399644117001767,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 30.399644117001767
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 30.3140312730002
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 26.752715655999506
+          }
+        ]
+      },
+      "latency_max_ms": {
+        "candidate": 51.055563,
+        "before": 43.769982,
+        "after": 47.278043,
+        "relative_to_before": 0.16645154206369117,
+        "relative_to_after": 0.07990009231135065,
+        "relative_to_adjacent_mean": 0.12150841273053437,
+        "full_control_min": 43.769982,
+        "full_control_max": 47.278043,
+        "control_time_order": [
+          {
+            "launch": "retained-delay0-00-B",
+            "value": 44.498653
+          },
+          {
+            "launch": "delay0-03-B",
+            "value": 43.769982
+          },
+          {
+            "launch": "delay0-06-B",
+            "value": 47.278043
+          }
+        ]
+      }
+    }
+  }
+]

@@ -1,0 +1,88 @@
+2026-10-17T17:01:09.471631+00:00 delay0-01-C3 ready
+2026-10-17T17:01:09.472008+00:00 delay0-01-C3 preflight-start
+2026-10-17T17:01:09.814059+00:00 delay0-01-C3 preflight-end
+2026-10-17T17:01:09.814441+00:00 delay0-01-C3 warmup-before-setup
+2026-10-17T17:01:40.661167+00:00 delay0-01-C3 warmup-generator-complete
+2026-10-17T17:01:40.661934+00:00 delay0-01-C3 TestQuery-before-setup
+2026-10-17T17:02:11.020627+00:00 delay0-01-C3 TestQuery-generator-complete
+2026-10-17T17:02:11.021158+00:00 delay0-01-C3 entities9-before-setup
+2026-10-17T17:02:31.286182+00:00 delay0-01-C3 entities9-generator-complete
+Completed delay0-01-C3
+2026-10-17T17:02:31.902619+00:00 delay0-02-C2 ready
+2026-10-17T17:02:31.902975+00:00 delay0-02-C2 preflight-start
+2026-10-17T17:02:32.261364+00:00 delay0-02-C2 preflight-end
+2026-10-17T17:02:32.261799+00:00 delay0-02-C2 warmup-before-setup
+2026-10-17T17:03:03.236564+00:00 delay0-02-C2 warmup-generator-complete
+2026-10-17T17:03:03.237308+00:00 delay0-02-C2 TestQuery-before-setup
+2026-10-17T17:03:33.627868+00:00 delay0-02-C2 TestQuery-generator-complete
+2026-10-17T17:03:33.628386+00:00 delay0-02-C2 entities9-before-setup
+2026-10-17T17:03:53.927246+00:00 delay0-02-C2 entities9-generator-complete
+Completed delay0-02-C2
+2026-10-17T17:03:54.482994+00:00 delay0-03-B ready
+2026-10-17T17:03:54.483366+00:00 delay0-03-B preflight-start
+2026-10-17T17:03:54.838087+00:00 delay0-03-B preflight-end
+2026-10-17T17:03:54.838459+00:00 delay0-03-B warmup-before-setup
+2026-10-17T17:04:25.752008+00:00 delay0-03-B warmup-generator-complete
+2026-10-17T17:04:25.752842+00:00 delay0-03-B TestQuery-before-setup
+2026-10-17T17:04:56.125251+00:00 delay0-03-B TestQuery-generator-complete
+2026-10-17T17:04:56.125769+00:00 delay0-03-B entities9-before-setup
+2026-10-17T17:05:16.412768+00:00 delay0-03-B entities9-generator-complete
+Completed delay0-03-B
+2026-10-17T17:05:17.205862+00:00 delay0-04-C2 ready
+2026-10-17T17:05:17.206288+00:00 delay0-04-C2 preflight-start
+2026-10-17T17:05:17.541124+00:00 delay0-04-C2 preflight-end
+2026-10-17T17:05:17.541541+00:00 delay0-04-C2 warmup-before-setup
+2026-10-17T17:05:48.464047+00:00 delay0-04-C2 warmup-generator-complete
+2026-10-17T17:05:48.465182+00:00 delay0-04-C2 TestQuery-before-setup
+2026-10-17T17:06:18.841378+00:00 delay0-04-C2 TestQuery-generator-complete
+2026-10-17T17:06:18.841844+00:00 delay0-04-C2 entities9-before-setup
+2026-10-17T17:06:39.102293+00:00 delay0-04-C2 entities9-generator-complete
+Completed delay0-04-C2
+2026-10-17T17:06:39.878988+00:00 delay0-05-C3 ready
+2026-10-17T17:06:39.879388+00:00 delay0-05-C3 preflight-start
+2026-10-17T17:06:40.235839+00:00 delay0-05-C3 preflight-end
+2026-10-17T17:06:40.236277+00:00 delay0-05-C3 warmup-before-setup
+2026-10-17T17:07:11.105587+00:00 delay0-05-C3 warmup-generator-complete
+2026-10-17T17:07:11.106088+00:00 delay0-05-C3 TestQuery-before-setup
+2026-10-17T17:07:41.494971+00:00 delay0-05-C3 TestQuery-generator-complete
+2026-10-17T17:07:41.495518+00:00 delay0-05-C3 entities9-before-setup
+2026-10-17T17:08:01.774257+00:00 delay0-05-C3 entities9-generator-complete
+Completed delay0-05-C3
+2026-10-17T17:08:02.318207+00:00 delay0-06-B ready
+2026-10-17T17:08:02.318615+00:00 delay0-06-B preflight-start
+2026-10-17T17:08:02.666216+00:00 delay0-06-B preflight-end
+2026-10-17T17:08:02.666629+00:00 delay0-06-B warmup-before-setup
+2026-10-17T17:08:33.549990+00:00 delay0-06-B warmup-generator-complete
+2026-10-17T17:08:33.551680+00:00 delay0-06-B TestQuery-before-setup
+2026-10-17T17:09:03.949455+00:00 delay0-06-B TestQuery-generator-complete
+2026-10-17T17:09:03.950183+00:00 delay0-06-B entities9-before-setup
+2026-10-17T17:09:24.267120+00:00 delay0-06-B entities9-generator-complete
+Completed delay0-06-B
+2026-10-17T17:09:24.891050+00:00 ordinary-00-B ready
+2026-10-17T17:09:24.891396+00:00 ordinary-00-B preflight-start
+2026-10-17T17:09:25.244581+00:00 ordinary-00-B preflight-end
+2026-10-17T17:09:25.245001+00:00 ordinary-00-B warmup-before-setup
+2026-10-17T17:09:56.130511+00:00 ordinary-00-B warmup-generator-complete
+2026-10-17T17:09:56.131175+00:00 ordinary-00-B ordinary-fixed-before-setup
+2026-10-17T17:10:16.358848+00:00 ordinary-00-B ordinary-fixed-generator-complete
+Completed ordinary-00-B
+2026-10-17T17:10:16.989076+00:00 ordinary-01-C3 ready
+2026-10-17T17:10:16.989639+00:00 ordinary-01-C3 preflight-start
+2026-10-17T17:10:17.395187+00:00 ordinary-01-C3 preflight-end
+2026-10-17T17:10:17.395592+00:00 ordinary-01-C3 warmup-before-setup
+2026-10-17T17:10:48.276453+00:00 ordinary-01-C3 warmup-generator-complete
+2026-10-17T17:10:48.277677+00:00 ordinary-01-C3 ordinary-fixed-before-setup
+2026-10-17T17:11:08.513088+00:00 ordinary-01-C3 ordinary-fixed-generator-complete
+Completed ordinary-01-C3
+2026-10-17T17:11:09.088596+00:00 ordinary-02-C2 ready
+2026-10-17T17:11:09.089022+00:00 ordinary-02-C2 preflight-start
+2026-10-17T17:11:09.438898+00:00 ordinary-02-C2 preflight-end
+2026-10-17T17:11:09.439324+00:00 ordinary-02-C2 warmup-before-setup
+2026-10-17T17:11:40.238200+00:00 ordinary-02-C2 warmup-generator-complete
+2026-10-17T17:11:40.238689+00:00 ordinary-02-C2 ordinary-fixed-before-setup
+2026-10-17T17:12:00.475130+00:00 ordinary-02-C2 ordinary-fixed-generator-complete
+Completed ordinary-02-C2
+2026-10-17T17:12:01.101980+00:00 ordinary-03-B ready
+2026-10-17T17:12:01.102393+00:00 ordinary-03-B preflight-start
+2026-10-17T17:12:01.463285+00:00 ordinary-03-B preflight-end
+2026-10-17T17:12:01.463707+00:00 ordinary-03-B warmup-before-setup

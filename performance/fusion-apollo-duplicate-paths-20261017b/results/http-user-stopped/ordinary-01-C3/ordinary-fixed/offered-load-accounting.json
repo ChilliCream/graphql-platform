@@ -1,0 +1,12 @@
+{
+  "configured_rate_per_second": 5000,
+  "configured_duration_seconds": 20,
+  "preallocated_vus": 200,
+  "max_vus": 200,
+  "nominal_iterations": 100000,
+  "measured_iterations": 99998,
+  "setup_requests": 100,
+  "dropped_iterations": 0,
+  "actual_scheduled_iterations": 99998,
+  "native_count_time_and_rate_validation": "Required offline before interpretation; no arbitrary integer tolerance"
+}

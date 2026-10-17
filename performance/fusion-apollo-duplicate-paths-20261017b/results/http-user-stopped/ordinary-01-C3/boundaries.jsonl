@@ -1,0 +1,7 @@
+{"name": "ready", "utc": "2026-10-17T17:10:16.989076+00:00", "epoch": 1792257016.9890828, "monotonic": 5569.960871719}
+{"name": "preflight-start", "utc": "2026-10-17T17:10:16.989639+00:00", "epoch": 1792257016.9896417, "monotonic": 5569.961430394}
+{"name": "preflight-end", "utc": "2026-10-17T17:10:17.395187+00:00", "epoch": 1792257017.3951957, "monotonic": 5570.366984498}
+{"name": "warmup-before-setup", "utc": "2026-10-17T17:10:17.395592+00:00", "epoch": 1792257017.3955956, "monotonic": 5570.367384129}
+{"name": "warmup-generator-complete", "utc": "2026-10-17T17:10:48.276453+00:00", "epoch": 1792257048.27646, "monotonic": 5601.248248756}
+{"name": "ordinary-fixed-before-setup", "utc": "2026-10-17T17:10:48.277677+00:00", "epoch": 1792257048.2776818, "monotonic": 5601.249470554}
+{"name": "ordinary-fixed-generator-complete", "utc": "2026-10-17T17:11:08.513088+00:00", "epoch": 1792257068.5130928, "monotonic": 5621.484881638}

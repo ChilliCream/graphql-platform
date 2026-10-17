@@ -1,0 +1,9 @@
+{
+  "requested_at": "2026-10-17T17:12:01.487914+00:00",
+  "reason": "User-directed stop: BenchmarkDotNet positive allocation/performance gate required before further VU validation; reliable allocation savings qualify, meaningful added CPU cost disqualifies.",
+  "parent_pid": 80836,
+  "expected_start_ticks": 502184,
+  "signal": "SIGTERM",
+  "no_resume_or_retry": true,
+  "actual_start_ticks": 502184
+}

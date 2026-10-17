@@ -1,0 +1,31 @@
+{
+  "argv": [
+    "/workspaces/platform-1/perf/fusion-apollo-baseline-20261017b-tools/k6-v2.3.0-linux-arm64/k6",
+    "run",
+    "--quiet",
+    "--address",
+    "127.0.0.1:0",
+    "-e",
+    "MODE=constant",
+    "-e",
+    "BENCH_OVER_TIME=30s",
+    "-e",
+    "BENCH_VUS=50",
+    "-e",
+    "GATEWAY_ENDPOINT=http://127.0.0.1:5220/graphql",
+    "-e",
+    "SUMMARY_PATH=/workspaces/platform-1/perf/fusion-apollo-shared-http-continuation-20261017b/delay0-06-B/warmup",
+    "-e",
+    "WORKLOAD_PATH=/workspaces/platform-1/.worktrees/fusion-apollo-duplicate-paths-20261017b/performance/fusion-apollo-duplicate-paths-20261017b/http/vendor/workloads/TestQuery.json",
+    "-e",
+    "ORACLE_PATH=/workspaces/platform-1/.worktrees/fusion-apollo-duplicate-paths-20261017b/performance/fusion-apollo-duplicate-paths-20261017b/http/vendor/oracles/TestQuery-oracle.json",
+    "/workspaces/platform-1/.worktrees/fusion-apollo-duplicate-paths-20261017b/performance/fusion-apollo-duplicate-paths-20261017b/http/vendor/fixture/k6/k6.js"
+  ],
+  "start": "2026-10-17T17:08:02.666487+00:00",
+  "workload": "TestQuery",
+  "duration": 30,
+  "mode": "constant",
+  "vus": 50,
+  "timeout_seconds": 150,
+  "fixed_arrival_rate": null
+}

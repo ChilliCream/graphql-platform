@@ -1,0 +1,21 @@
+{
+  "start": "2026-10-17T17:01:09.139829+00:00",
+  "parent": {
+    "pid": 80836,
+    "start_ticks": 502184,
+    "cpu_seconds": 0.26,
+    "rss_bytes": 21688320,
+    "threads": 1
+  },
+  "parent_affinity": [
+    0,
+    8
+  ],
+  "session_bound": {
+    "work_seconds": 2880,
+    "cleanup_reserve_seconds": 120,
+    "total_seconds": 3000
+  },
+  "plan_sha256": "86af73ea7f095df2e68838bfe268b02898d1295f379c366d4db4b339e2a61d8d",
+  "root_grant": "root-approved-corrected-ordinary-continuation"
+}

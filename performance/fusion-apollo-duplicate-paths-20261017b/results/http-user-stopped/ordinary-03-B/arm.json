@@ -1,0 +1,10 @@
+{
+  "family": "ordinary",
+  "delay_ms": 0,
+  "index": 3,
+  "arm": "B",
+  "name": "ordinary-03-B",
+  "cases": [
+    "ordinary-fixed"
+  ]
+}

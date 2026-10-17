@@ -1,0 +1,92 @@
+[
+  {
+    "launch": "ordinary-03-B",
+    "case": "ordinary-fixed",
+    "reason": "No completed measurement before user-directed stop"
+  },
+  {
+    "launch": "ordinary-04-C2",
+    "case": "ordinary-fixed",
+    "reason": "No completed measurement before user-directed stop"
+  },
+  {
+    "launch": "ordinary-05-C3",
+    "case": "ordinary-fixed",
+    "reason": "No completed measurement before user-directed stop"
+  },
+  {
+    "launch": "ordinary-06-B",
+    "case": "ordinary-fixed",
+    "reason": "No completed measurement before user-directed stop"
+  },
+  {
+    "launch": "delay4-00-B",
+    "case": "TestQuery",
+    "reason": "No completed measurement before user-directed stop"
+  },
+  {
+    "launch": "delay4-00-B",
+    "case": "burst",
+    "reason": "No completed measurement before user-directed stop"
+  },
+  {
+    "launch": "delay4-01-C3",
+    "case": "TestQuery",
+    "reason": "No completed measurement before user-directed stop"
+  },
+  {
+    "launch": "delay4-01-C3",
+    "case": "burst",
+    "reason": "No completed measurement before user-directed stop"
+  },
+  {
+    "launch": "delay4-02-C2",
+    "case": "TestQuery",
+    "reason": "No completed measurement before user-directed stop"
+  },
+  {
+    "launch": "delay4-02-C2",
+    "case": "burst",
+    "reason": "No completed measurement before user-directed stop"
+  },
+  {
+    "launch": "delay4-03-B",
+    "case": "TestQuery",
+    "reason": "No completed measurement before user-directed stop"
+  },
+  {
+    "launch": "delay4-03-B",
+    "case": "burst",
+    "reason": "No completed measurement before user-directed stop"
+  },
+  {
+    "launch": "delay4-04-C2",
+    "case": "TestQuery",
+    "reason": "No completed measurement before user-directed stop"
+  },
+  {
+    "launch": "delay4-04-C2",
+    "case": "burst",
+    "reason": "No completed measurement before user-directed stop"
+  },
+  {
+    "launch": "delay4-05-C3",
+    "case": "TestQuery",
+    "reason": "No completed measurement before user-directed stop"
+  },
+  {
+    "launch": "delay4-05-C3",
+    "case": "burst",
+    "reason": "No completed measurement before user-directed stop"
+  },
+  {
+    "launch": "delay4-06-B",
+    "case": "TestQuery",
+    "reason": "No completed measurement before user-directed stop"
+  },
+  {
+    "launch": "delay4-06-B",
+    "case": "burst",
+    "reason": "No completed measurement before user-directed stop"
+  }
+]
