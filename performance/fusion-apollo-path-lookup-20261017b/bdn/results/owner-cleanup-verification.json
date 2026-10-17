@@ -1,0 +1,44 @@
+{
+  "checkedAt": "2026-10-17T17:28:46.056622+00:00",
+  "lockFree": true,
+  "ownedProcesses": [
+    {
+      "identity": {
+        "pid": 118931,
+        "startTicks": 661761
+      },
+      "alive": false
+    },
+    {
+      "identity": {
+        "pid": 119071,
+        "startTicks": 662890
+      },
+      "alive": false
+    },
+    {
+      "identity": {
+        "pid": 119291,
+        "startTicks": 664021
+      },
+      "alive": false
+    },
+    {
+      "identity": {
+        "pid": 119489,
+        "startTicks": 665154
+      },
+      "alive": false
+    },
+    {
+      "identity": {
+        "pid": 119697,
+        "startTicks": 666282
+      },
+      "alive": false
+    }
+  ],
+  "allCompleted": true,
+  "started": "2026-10-17T17:27:44.647514+00:00",
+  "finished": "2026-10-17T17:28:41.135653+00:00"
+}

@@ -1,0 +1,47 @@
+{
+  "checkedUtc": "2026-10-17T17:29:02.912226+00:00",
+  "identities": [
+    {
+      "expected": {
+        "pid": 118931,
+        "startTicks": 661761
+      },
+      "current": null,
+      "ownedAlive": false
+    },
+    {
+      "expected": {
+        "pid": 119071,
+        "startTicks": 662890
+      },
+      "current": null,
+      "ownedAlive": false
+    },
+    {
+      "expected": {
+        "pid": 119291,
+        "startTicks": 664021
+      },
+      "current": null,
+      "ownedAlive": false
+    },
+    {
+      "expected": {
+        "pid": 119489,
+        "startTicks": 665154
+      },
+      "current": null,
+      "ownedAlive": false
+    },
+    {
+      "expected": {
+        "pid": 119697,
+        "startTicks": 666282
+      },
+      "current": null,
+      "ownedAlive": false
+    }
+  ],
+  "lockFree": true,
+  "allAbsent": true
+}
