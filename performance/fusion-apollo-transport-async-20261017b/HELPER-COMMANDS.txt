@@ -1,0 +1,15 @@
+Preparation only, no measurement. Commands used shared flock /workspaces/platform-1/perf/fusion-common-path.lock.
+
+Build:
+dotnet build performance/fusion-apollo-transport-async-20261017b/Bdn/Bdn.csproj -c Release --nologo --disable-build-servers -p:UseSharedCompilation=false -v:q
+Build succeeded. 1 Warning(s), 0 Error(s), Time Elapsed 00:00:33.70. Warning NETSDK1210: IsAotCompatible and EnableAotAnalyzer are not supported for netstandard2.0 in HotChocolate.Utilities.Buffers.csproj.
+
+Initial freezer:
+python3 performance/fusion-apollo-transport-async-20261017b/freeze_bdn.py
+Exited 1 at exact engine SHA-256 assertion on line28, before any check or measurement. Original helper-rebuilt DLL b541d45a86e767114eb7d6519aad428f6da9b9bf22c1ee16e60d118fa9f73372; expected immutable tested candidate a5593442501444e2e6964065a5ab9b51666ecd38fbc096f79e67a5a2ce7adf83. Incomplete directory retained at /workspaces/platform-1/perf/fusion-apollo-transport-async-20261017b/incomplete-first-freeze. No assumption about cause or performance validity.
+
+Corrected freezer overlays original immutable tested candidate directly, no rebuild. Exited0: manifest8169abc50aa7d55e64645f390594126b77f6766343bb42b83650c02ae250288a; runner060b9bf2d44f2669906f80b22ea23c4bdb8e083ca69231b9fdee1731c80195a5;252files; only EngineDLL/PDB differ.
+
+Four check-only commands, exact argv and terminal timestamps in bdn-checks/commands.json, all exited0. Each checks four shapes with no warm loops: ordinary, async-ordinary, async-alias2, async-custom. All three async setup operations genuinely suspended on both engines/policies. No allocation.jsonl or benchmark measurements were produced.
+
+Review: execution_discovery independently reviewed fixture ownership, then final case/runtime/runner alignment and all result guards. No blocker. The measured Task.Yield handler suspends but its caller may observe completion, so every measured operation is not assumed to incur each async state box.

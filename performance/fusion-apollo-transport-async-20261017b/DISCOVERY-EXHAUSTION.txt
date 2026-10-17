@@ -1,0 +1,13 @@
+Remaining execution/scheduling leads screened, 2026-10-17
+
+Source: immutable warm discovery commit 2c47637e385c25a3cea65d8df1d9be8b4a37871e, alloc-summary.json and cpu-summary.json. Sampled ticks/weighted bytes are attribution estimates, not measured allocation totals or call counts. Filtered CPU sample time is 71,543.995 ms.
+
+ExecuteQueryAsync, EnqueueNextNodes, ApplyMerge, and CompleteNode exclusive CPU shares are about 0.030%, 0.009%, 0.015%, and 0.003%. Source inspection found no distinct high-cost scheduling primitive beyond terminal C6.
+
+ExecutionNode.ExecuteAsync contributes 701 sampled async-box ticks (2.16% weighted allocation). Its callers discard the ValueTask, so pooling would not receive the required GetResult return. Broader executor/middleware pooling would repeat terminal C8 with smaller evidence. C12 independently preserves public Task/custom-client routes.
+
+PooledArrayWriter has 107 warm ticks (50+39+18), all in DefaultGraphQLHttpClient.ExecuteInternalAsync, with 11,407,336 weighted sampled bytes (0.330207%). Fields suggest a roughly 40-byte writer object, an unmeasured estimate. Its rented buffer lives across HTTP suspension; Dispose clears written bytes/returns the array and marks disposed, while Reset retains the buffer. Safe object reuse needs lease reset and cross-thread ownership without retained confidential bytes. No distinct worthwhile mechanism established; not registered, prototyped, or measured. Future serialization ownership transferred to execution_discovery.
+
+Cancellation allocation is predominantly HttpClient policy/StreamPipeReader ownership. Replacing timeout or cancellation semantics is outside a performance-only change. Engine cancellation already uses UnsafeRegister and pooled CTS. TimeoutMiddleware attribution is 46 ticks with streaming lifetime constraints. SourceSchemaResult is public and cannot simply become a pooled or value object without API/retention changes.
+
+Authored-PR exclusions cover callback-null iterator flattening, client scope holders, homogeneous list completion and path pooling. None reopened. No additional candidate is justified by this screen.
