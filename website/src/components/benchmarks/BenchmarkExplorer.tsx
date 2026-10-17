@@ -1,5 +1,9 @@
 "use client";
 
+import Link from "next/link";
+import { BENCHMARK_SCENARIO_PATHS } from "@/src/components/benchmarks/benchmarkRoutes";
+
+import { BenchmarkFilterBar } from "@/src/components/benchmarks/BenchmarkFilterBar";
 import { BenchmarkHistoryChart } from "@/src/components/benchmarks/BenchmarkHistoryChart";
 import { BenchmarkLoadShape } from "@/src/components/benchmarks/BenchmarkLoadShape";
 import { BenchmarkNoscript } from "@/src/components/benchmarks/BenchmarkNoscript";
@@ -13,41 +17,43 @@ import { useBenchmarkControls } from "@/src/components/benchmarks/useBenchmarkCo
 import type {
   BenchmarkHistory,
   BenchmarkReport,
+  ScenarioId,
 } from "@/src/helpers/benchmarkReport";
 
 interface BenchmarkExplorerProps {
   readonly report: BenchmarkReport;
   readonly history: BenchmarkHistory;
+  readonly initialScenario: ScenarioId;
 }
 
 /** The version filter, the results summary, the scenario tiles with their load shapes, and the selected scenario's tables and history chart. */
-export function BenchmarkExplorer({ report, history }: BenchmarkExplorerProps) {
-  const controls = useBenchmarkControls(report, history);
+export function BenchmarkExplorer({
+  report,
+  history,
+  initialScenario,
+}: BenchmarkExplorerProps) {
+  const controls = useBenchmarkControls(report, history, initialScenario);
   const { scenarios, variants, historyVariants, stableOnly } = controls;
 
   return (
-    <>
+    <div className="relative [overflow-anchor:none]">
+      <div className="pointer-events-none sticky top-20 z-30 flex h-0 justify-end">
+        <BenchmarkFilterBar
+          technologies={controls.technologies}
+          filters={controls.filters}
+          onChange={controls.setFilters}
+        />
+      </div>
+      <h2
+        id="benchmark-results-heading"
+        className="text-h6 text-cc-heading pr-14 font-semibold"
+      >
+        Results at a glance
+      </h2>
       <BenchmarkVerdictSummary
         id="benchmark-results"
         report={report}
         stableOnly={stableOnly}
-        controls={
-          <label
-            data-benchmark-controls
-            className="text-cc-heading flex shrink-0 cursor-pointer items-center gap-2 text-sm"
-          >
-            <input
-              type="checkbox"
-              name="benchmark-previews"
-              checked={controls.showPreviews}
-              onChange={(event) =>
-                controls.setShowPreviews(event.target.checked)
-              }
-              className="accent-cc-accent focus-visible:outline-cc-accent size-4 cursor-pointer rounded focus-visible:outline-2"
-            />
-            Include previews
-          </label>
-        }
       />
       <fieldset
         className="border-cc-card-border mt-10 grid border-y sm:mt-14 md:grid-cols-3"
@@ -57,13 +63,15 @@ export function BenchmarkExplorer({ report, history }: BenchmarkExplorerProps) {
         {scenarios.map((scenario) => {
           const info = SCENARIO_INFO[scenario.id];
           return (
-            <button
+            <Link
               key={scenario.id}
-              type="button"
+              href={BENCHMARK_SCENARIO_PATHS[scenario.id]}
+              scroll={false}
               aria-label={info.name}
-              aria-pressed={controls.selected === scenario.id}
+              aria-current={
+                controls.selected === scenario.id ? "page" : undefined
+              }
               aria-controls={`benchmark-panel-${scenario.id}`}
-              onClick={() => controls.setSelected(scenario.id)}
               className="border-cc-card-border hover:bg-cc-white/2 focus-visible:bg-cc-white/5 focus-visible:outline-cc-accent flex cursor-pointer border-b text-left last:border-b-0 focus-visible:outline-2 focus-visible:-outline-offset-2 md:border-r md:border-b-0 md:last:border-r-0"
             >
               <span
@@ -77,56 +85,72 @@ export function BenchmarkExplorer({ report, history }: BenchmarkExplorerProps) {
                   {SCENARIO_LOAD[scenario.id]}
                 </span>
               </span>
-            </button>
+            </Link>
           );
         })}
       </fieldset>
       <BenchmarkNoscript />
+      {!controls.hasResults && (
+        <div
+          className="border-cc-card-border rounded-lg border px-5 py-8"
+          role="status"
+        >
+          <h2 className="text-h6 text-cc-heading font-semibold">
+            No results match these filters
+          </h2>
+          <p className="text-cc-ink-dim mt-2">
+            Choose another technology or include preview releases.
+          </p>
+        </div>
+      )}
+
       {scenarios.length === 0 && (
         <p className="text-cc-heading mt-10 font-semibold">
           This report contains no scenarios.
         </p>
       )}
-      {scenarios.map((scenario) => {
-        const scenarioHistory = controls.historyOf(scenario.id);
-        const name = SCENARIO_INFO[scenario.id].name;
-        return (
-          <section
-            key={scenario.id}
-            id={`benchmark-panel-${scenario.id}`}
-            data-benchmark-panel
-            aria-labelledby={`benchmark-heading-${scenario.id}`}
-            className={
-              controls.selected === scenario.id ? "mt-12" : "mt-12 hidden"
-            }
-          >
-            <h2 id={`benchmark-heading-${scenario.id}`} className="sr-only">
-              {name} results
-            </h2>
-            <BenchmarkScenarioResults
-              report={report}
-              scenario={scenario}
-              variants={variants}
-              stableOnly={stableOnly}
-            />
-            {scenarioHistory && historyVariants ? (
-              <div className="mt-16">
-                <BenchmarkHistoryChart
-                  id={`benchmark-${scenario.id}`}
-                  scenario={scenarioHistory}
-                  variants={historyVariants}
-                  stableOnly={stableOnly}
-                />
-              </div>
-            ) : (
-              <p className="text-caption text-cc-ink-dim mt-12">
-                No earlier runs of the {name.toLowerCase()} scenario are
-                recorded yet, so there is no version history to chart.
-              </p>
-            )}
-          </section>
-        );
-      })}
-    </>
+      {controls.hasResults &&
+        scenarios.map((scenario) => {
+          const scenarioHistory = controls.historyOf(scenario.id);
+          const name = SCENARIO_INFO[scenario.id].name;
+          return (
+            <section
+              key={scenario.id}
+              id={`benchmark-panel-${scenario.id}`}
+              data-benchmark-panel
+              aria-labelledby={`benchmark-heading-${scenario.id}`}
+              className={
+                controls.selected === scenario.id ? "mt-12" : "mt-12 hidden"
+              }
+            >
+              <h2 id={`benchmark-heading-${scenario.id}`} className="sr-only">
+                {name} results
+              </h2>
+              <BenchmarkScenarioResults
+                report={controls.report}
+                scenario={scenario}
+                variants={variants}
+                stableOnly={stableOnly}
+              />
+              {scenarioHistory && historyVariants ? (
+                <div className="mt-16">
+                  <BenchmarkHistoryChart
+                    key={`${stableOnly}:${controls.filters.technologies.join(",")}`}
+                    id={`benchmark-${scenario.id}`}
+                    scenario={scenarioHistory}
+                    variants={historyVariants}
+                    stableOnly={stableOnly}
+                  />
+                </div>
+              ) : (
+                <p className="text-caption text-cc-ink-dim mt-12">
+                  No earlier runs of the {name.toLowerCase()} scenario are
+                  recorded yet, so there is no version history to chart.
+                </p>
+              )}
+            </section>
+          );
+        })}
+    </div>
   );
 }

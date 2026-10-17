@@ -1,16 +1,35 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-/** The highlighted series of a history chart: the hovered one, otherwise the keyboard-focused one, otherwise the pinned one. */
+/** A pinned series takes precedence over pointer and keyboard highlights. */
 export function useSeriesHighlight() {
   const [hovered, setHovered] = useState<string>();
   const [focused, setFocused] = useState<string>();
   const [pinned, setPinned] = useState<string>();
+  const hoverTimeout = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(hoverTimeout.current), []);
   return {
-    active: hovered ?? focused ?? pinned,
+    active: pinned ?? hovered ?? focused,
     pinned,
-    setHovered,
+    setHovered: (id: string | undefined) => {
+      clearTimeout(hoverTimeout.current);
+      if (!pinned) {
+        setHovered(id);
+      }
+    },
     setFocused,
-    togglePinned: (id: string) =>
-      setPinned((current) => (current === id ? undefined : id)),
+    clearHoverSoon: () => {
+      clearTimeout(hoverTimeout.current);
+      hoverTimeout.current = setTimeout(() => setHovered(undefined), 100);
+    },
+    clearPointerHighlight: () => {
+      clearTimeout(hoverTimeout.current);
+      setHovered(undefined);
+    },
+    togglePinned: (id: string) => {
+      clearTimeout(hoverTimeout.current);
+      setHovered(undefined);
+      setFocused(undefined);
+      setPinned((current) => (current === id ? undefined : id));
+    },
   };
 }

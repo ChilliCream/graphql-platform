@@ -23,6 +23,8 @@ const DOCS_CONTENT_ROOT = path.join(process.cwd(), "content", "docs");
 
 // Pages that exist for a user flow but should not be indexed.
 const EXCLUDED_PATHS = new Set([
+  "/benchmarks/graphql-federation/synthetic",
+  "/benchmarks/graphql-federation/burst-traffic",
   "/platform/continuous-integration",
   "/services/support/thank-you",
 ]);

@@ -19,7 +19,6 @@ import {
   type BenchmarkVariantResult,
 } from "@/src/helpers/benchmarkReport";
 import { CrownIcon } from "@/src/icons/CrownIcon";
-import { type ReactNode } from "react";
 
 /** A scenario verdict with its routers already named. */
 interface NamedVerdict {
@@ -181,7 +180,6 @@ function linkFusion(text: string) {
 
 interface BenchmarkVerdictSummaryProps {
   readonly id: string;
-  readonly controls: ReactNode;
   readonly report: BenchmarkReport;
   readonly stableOnly: boolean;
 }
@@ -189,7 +187,6 @@ interface BenchmarkVerdictSummaryProps {
 /** A written summary of every scenario: one overall sentence and one sentence per scenario. */
 export function BenchmarkVerdictSummary({
   id,
-  controls,
   report,
   stableOnly,
 }: BenchmarkVerdictSummaryProps) {
@@ -314,18 +311,5 @@ export function BenchmarkVerdictSummary({
       </dl>
     </>
   );
-  return (
-    <section aria-labelledby={`${id}-heading`}>
-      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
-        <h2
-          id={`${id}-heading`}
-          className="text-h6 text-cc-heading font-semibold"
-        >
-          Results at a glance
-        </h2>
-        {controls}
-      </div>
-      {body}
-    </section>
-  );
+  return <section aria-labelledby={`${id}-heading`}>{body}</section>;
 }

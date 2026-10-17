@@ -116,7 +116,7 @@ export function BenchmarkResultsTable({
   );
 
   return (
-    <div>
+    <div data-benchmark-scroll-anchor={`table-${id}`}>
       <h3 id={headingId} className={theme.heading}>
         {group.id === "composite-schema" ? (
           <Link
@@ -178,6 +178,7 @@ export function BenchmarkResultsTable({
               return (
                 <tr
                   key={row.variant}
+                  data-benchmark-scroll-anchor={`row-${id}-${row.variant}`}
                   className={winner ? theme.winnerRow : theme.row}
                 >
                   <th
@@ -391,6 +392,7 @@ function BenchmarkMobileResults({
           return (
             <li
               key={row.variant}
+              data-benchmark-scroll-anchor={`mobile-row-${headingId}-${row.variant}`}
               className={`border-cc-card-border border-b px-3 py-4 ${winner ? "bg-cc-accent/10 shadow-[inset_3px_0_0_0_var(--color-cc-accent)]" : ""}`}
             >
               <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 text-sm">
