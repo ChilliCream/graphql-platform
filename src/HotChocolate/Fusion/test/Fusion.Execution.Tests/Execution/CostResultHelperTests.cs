@@ -86,7 +86,7 @@ public class CostResultHelperTests
         var value = BitConverter.Int64BitsToDouble(bits);
         var expected = double.IsPositiveInfinity(value)
             ? (typeof(string), 0L, "Infinity")
-            : (typeof(double), bits, (string?)null);
+            : (typeof(double), bits, null);
 
         // act
         await using var result = CostResultHelper.CreateResult([new CostEstimate(value, value, value)]);
