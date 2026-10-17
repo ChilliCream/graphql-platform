@@ -1,0 +1,206 @@
+Fusion Apollo Federation execution discovery
+Owner: execution_discovery
+Date: 2026-10-17
+Status: INVESTIGATING. No performance candidate is registered by this note.
+Source: 43a8dca2bd479ddc411d832ed97e42d9fcc8bd85
+Benchmark supplied pin: 941599e4e27719084189e12d737e147069fdf794
+Method: read-only source inspection under shared perf/fusion-common-path.lock.
+Instructions read: attached user request, root AGENTS.md, docs/profiling.md.
+No nested AGENTS.md was found under src or docs.
+
+Exclusion handoff received from history_environment: latest user instruction
+excludes previously authored experiment mechanisms, including closed experiments,
+regardless of possible Apollo-specific motivation. The authoritative matrix is
+environment-history/exclusion-register.json in that worker's evidence. No direct
+authored overlap was found for Apollo-specific representation buffer/dedup
+lifetime, eager ToVariableValues or alias body composition. Do not recreate
+the native encoded-requirement-key weak cache (#10554), homogeneous-list child
+selection reuse (#10560), path pool storage/lifetime changes (#10548/#10557),
+segment tables (#10559), single-client scope (#10573), conditional cost reuse
+(#10574), dictionary presizing (#10558/#10575), iterator flattening (#10578),
+feature snapshots/enumeration (#10576/#10577), output buffer (#10552), forwarded
+variables once per fetch (#10524), input field/enum UTF-8 lookup (#10522/#10534),
+enum literal caching (#10537) or ReadOnlyMemorySegment compaction (#10523).
+
+Source facts and warm-path map
+
+All paths below are relative to src/HotChocolate/Fusion/src/Fusion.Execution/.
+
+1. Actual Apollo routing
+   Planning/OperationPlanner.BuildExecutionTree.cs:895 chooses Apollo execution
+   only for IsInternal synthetic key lookups whose source connector kind is
+   apollo-federation. Real public root-field lookups on Apollo sources stay on
+   the native OperationExecutionNode path. Neither a far archive name nor an
+   Apollo schema directory proves this branch ran.
+   At :1256 GroupApolloLookupsIntoBatches groups independent query lookups by
+   schema and dependency depth when request grouping is enabled. Actual plan
+   and wire observations must determine the benchmark's node/fetch counts.
+
+2. Cold plan construction, excluded unless profile proves recurrence
+   Execution/Nodes/ApolloOperationExecutionNode.cs:70 rewrites the synthetic
+   lookup with LookupEntityQueryRewriter and parses the outgoing operation.
+   Its constructor compiles RepresentationShapeBuilder.Build once. Batch nodes
+   materialize one such shape and operation document per member. The request
+   path consumes these cached shapes and documents. Compilation, query hashing,
+   and planning are not recurring candidates merely because source is large.
+
+3. Representation creation, recurring per active entity fetch
+   ApolloOperationExecutionNode.OnExecuteAsync ->
+   OperationPlanContext.CreateRepresentationVariableValue (:481) ->
+   Results/FetchResultStore.RepresentationValue.cs:
+   CreateRepresentationVariableValue (:122) -> CollectTargetElements ->
+   BuildRepresentationValue (:277) -> TryWriteRepresentation (:408) ->
+   TryBufferRepresentation (:436) -> TryWriteShapeLevel (:580) ->
+   TryAppendRepresentation (:535) -> TryDeduplicateRepresentation (:559).
+
+   CollectTargetElements (FetchResultStore.cs:905) traverses target paths with
+   reusable double buffers, list unrolling, and an existing PropertyLookupMemo
+   per field segment. All representation production is protected by the
+   request store lock. BuildRepresentationValue creates one ChunkedArrayWriter,
+   VariableDedupTable, and JsonWriter per active lookup, rents result paths,
+   initializes dedup capacity, and serializes every representation before hash
+   and byte comparison. Unique serialized data is copied to the request-wide
+   variable writer. Duplicate entity paths accumulate separately.
+
+   RepresentationShapeNode already stores UTF-8 names. TryWriteShapeLevel does
+   one property resolution per required shape node, preserves nullability,
+   source aliases, abstract runtime types, nested requirements and list shapes.
+   Source-only observation: these lookups do not use the memoized overload that
+   CollectTargetElements uses. Whether property resolution matters is unknown.
+
+   CompleteRepresentationVariableValue (:373) copies the populated EntityResultPath
+   span to an immutable exact-length array. RepresentationPathAccumulator.ApplyTo
+   (:1879) creates one CompactPath[] for duplicate target paths. Above 256 distinct
+   representation slots it also creates three int[] scratch arrays. The primary
+   benchmark's actual distinct counts must be observed before this matters.
+
+   The imported snapshot/defer path is separate (:155, :188) and reads stored
+   JSON requirements. It is a relevant fallback correctness case if shared code
+   changes, but the unchanged TestQuery has no @defer.
+
+4. Error attribution arrays
+   Execution/RepresentationValue.cs:19 ToVariableValues creates an exact-length
+   VariableValues[] per distinct entity; its values all reference the same
+   combined JSON payload. Single Apollo nodes invoke it eagerly before transport.
+   Batch BuildRequests (:303) invokes it for every active member. The success
+   merge uses RepresentationValue.ResultPaths directly. VariableValueSets are
+   used for transport/store exception attribution, missing batch results and
+   PendingMerge.AddErrors. A separate one-element requestVariables array is
+   necessary to route the combined representations as ONE operation.
+   Any deferred-attribution change must preserve exceptional paths and ownership.
+   This is a source hypothesis only; no allocation or CPU benefit is claimed.
+
+5. Entity batching and outgoing request encoding
+   Execution/Nodes/ApolloOperationBatchExecutionNode.cs:138 rents four temporary
+   arrays (definitions, representations, per-entity variables, receipt flags),
+   builds immutable requests, and sends ISourceSchemaClient.ExecuteBatchAsync.
+   Request operation text and parsed documents are cached in the node.
+
+   Execution/Clients/HttpSourceSchemaClient.cs:94 selects single stream or alias
+   variable batching; :160 selects alias operation batching or native transport.
+   Alias batching is enabled only when capabilities allow it and the relevant
+   native request/variable batching support is absent. Unsupported request
+   batching falls back to sequential isolated requests. Never assume concurrent
+   per-member transport from the node name.
+
+   HttpSourceSchemaClient.AliasBatching.cs creates AliasBatchItem[], shared-variable
+   list, AliasBatchedRequestBody and SourceSchemaResult[] on each alias batch,
+   writes variables/operation aliases, then splits the result with shared document
+   ownership. Shared operation structure exists in cached UTF-8 documents but
+   the alias request body still performs composition per dispatch. Original query
+   uses no client variables, so shared-variable demotion is unlikely to matter.
+
+6. Response parsing, completion and output
+   HttpSourceSchemaClient reads downstream responses into SourceResultDocument
+   using request memory. SourceResultDocument.Parse and MetaDb methods are the
+   profile signatures for tokenization/metadata work. AliasBatchResponseSplitter
+   creates per-member views rather than independent reparsed documents.
+
+   Apollo result delivery -> PendingMerge.RepresentationSingle ->
+   ExecutionState.EnqueueMerge -> OperationPlanExecutor.ExecuteQueryAsync
+   (:1137) drains merges -> PendingMerge.Apply ->
+   OperationPlanContext.AddRepresentationResult ->
+   FetchResultStore.AddRepresentationResult (:28) -> SaveRepresentationResult
+   (:1427) -> SaveSafeResult (FetchResultStore.cs:701, :750) ->
+   ValueCompletion.BuildResult (:54), TryCompleteList (:967),
+   TryCompleteObjectValue (:1255).
+
+   Entity response length must exactly match distinct representations. Each
+   deduplicated response is merged into its primary path and all additional
+   paths. This preserves selected data while avoiding duplicate source fetches;
+   repeated destination completion can still dominate nested duplicate shapes.
+   ValueCompletion already has scalar fast paths, cached object contexts,
+   abstract type memoization and source snapshots. CompositeResultDocument.WriteTo
+   and JSON formatting remain shared Apollo/native final-response work.
+
+7. Concurrency and ownership
+   ExecutionState.StartNode calls BeginExecute directly. Query roots start in
+   parallel, then the executor drains ConcurrentQueue<PendingMerge> and completed
+   results before scheduling dependents. AsyncAutoResetEvent signals the loop.
+   Merges are serialized through this executor loop; the store's lock does not
+   prove contention. Runnable CPU, scheduler time, idle waits and contention need
+   separate interpretation. No lock-replacement candidate is warranted by source.
+
+   AddRepresentationResult registers SourceSchemaResult with request memory and
+   returns representation path segments in its finally block. PendingMerge's
+   canceled/unmerged branch has an existing TODO about path segments only being
+   reclaimed with the store; any buffering/array reuse must audit cancellation,
+   exceptions, request cleanup and maximum retained capacity.
+
+Existing correctness and production benchmark entry points
+
+* test/Fusion.Execution.Tests/Execution/Results/FetchResultStoreRepresentationTests.cs
+  covers direct/snapshot byte equivalence, duplicate representations, internal
+  aliases, nested and list requirements, abstract branches, nullability, entity
+  count/protocol errors, missing _entities data and rebased errors. Existing
+  helpers show how to initialize real FetchResultStore/MemoryArena, add a parsed
+  source result and call production CreateRepresentationVariableValue.
+* test/Fusion.Execution.Tests/Execution/Nodes/ApolloOperationExecutionNodeTests.cs
+  exercises cancellation and disposal of an unmerged source result.
+* test/Fusion.Execution.Tests/Execution/Nodes/ApolloOperationBatchExecutionNodeTests.cs
+  covers per-lookup documents and node construction guards.
+* test/Fusion.Connectors.ApolloFederation.Compliance.Tests/WireFormat/
+  ApolloEntityBatchWireFormatTests.cs and EntityBatchingCapabilityMatrixTests.cs
+  cover alias batching vs explicit fallback and multi-entity alignment.
+* test/Fusion.Execution.Tests/Execution/Clients/AliasBatching/ contains body,
+  variable writer, response splitter and request-selection tests.
+* test/Fusion.AspNetCore.Tests/AliasBatchingTests.cs covers end-to-end variables,
+  error attribution, and aliased wire requests.
+* benchmarks/Fusion.Execution.Benchmarks/ApolloParityBenchmark.cs calls real
+  Apollo composition/in-memory execution for products(first: 1, 10, 50), then
+  serializes and parses the final result. It compares Apollo versus native and
+  includes subgraph execution, so existing numbers would not isolate a gateway
+  change or establish target HTTP performance. It uses InProcessEmit ShortRun;
+  do not inherit its launch/count settings for this investigation implicitly.
+* Fusion.Execution exposes InternalsVisibleTo to
+  HotChocolate.Fusion.Execution.Benchmarks. A bounded benchmark can call actual
+  FetchResultStore production APIs without exposing new API or copying an
+  algorithm. Build schemas/plans/shapes outside timing, retain affected writes
+  inside timing, and consume output lengths/checksums. Match actual pooled-store
+  lifecycle; do not allow growing writers across unlimited benchmark invocations.
+* Existing VariableMergingBenchmark uses real FetchResultStore but measures the
+  defer-only native snapshot merge. It is a lifecycle example, not Apollo proof.
+  LockStoreBenchmark is a synthetic lock contest, not production evidence.
+
+Focused discovery questions pending initial warm profile
+
+These are evidence questions, NOT registered candidates or promised changes.
+
+A. Does representation construction contribute meaningful recurring CPU or
+   allocations after caches warm? Attribute sampled types/callers to new writers,
+   dedup tables, JsonWriter, EntityResultPath[], VariableValues[], and duplicate
+   CompactPath[]; correlate with actual lookup/representation counts. If present,
+   select only the smallest mechanism supported by the capture, then measure a
+   production-path microbenchmark with ordinary sizes, duplicates and fallbacks.
+B. Does warm CPU concentrate in TryWriteShapeLevel property resolution, hashing/
+   byte equality/copying, or result completion? Attribute source frames before
+   proposing a change. Source alone does not establish a measurable cost.
+C. Does alias composition/splitting recur often enough to matter for TestQuery?
+   First inspect actual node plan, capabilities, wire counts and warm stack.
+D. If scheduling/locks appear, distinguish runnable work from waits and capture
+   contention only if existing evidence leaves a concrete unanswered question.
+
+Stop discovery when the first valid warm CPU/allocation captures plus verified
+plan/wire shape bound these costs. Report no candidate when evidence is absent or
+the absolute opportunity is negligible. Do not manufacture extra candidates from
+the number of source observations in this note.

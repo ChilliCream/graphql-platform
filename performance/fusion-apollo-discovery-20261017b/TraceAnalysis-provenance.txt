@@ -1,0 +1,5 @@
+TraceAnalysis Program.cs and csproj extracted byte-for-byte from repository commit 1e75ce82d3ec18dea4b2083272e0e946ab7c0872, performance/fusion-fresh-alloc/TraceAnalysis/.
+The helper filters actual target PID, records trace start/end and event loss, and emits allocation type/caller stacks and sampled amounts. Sampled amounts are not exact byte totals or invocation counts.
+Reproduction: dotnet build TraceAnalysis/TraceAnalysis.csproj -c Release
+Analysis: dotnet TraceAnalysis/bin/Release/net10.0/TraceAnalysis.dll CAPTURE.nettrace TARGET_PID > allocation-analysis.json
+Take shared flock /workspaces/platform-1/perf/fusion-common-path.lock for build and substantial offline analysis.
