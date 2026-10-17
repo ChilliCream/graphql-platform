@@ -10,7 +10,7 @@ import {
   type ScenarioId,
 } from "@/src/helpers/benchmarkReport";
 
-/** The scenario selection and the preview toggle of the benchmark page. Previews start hidden. */
+/** The scenario selection and the preview toggle of the benchmark page. Previews are included by default. */
 export function useBenchmarkControls(
   report: BenchmarkReport,
   history: BenchmarkHistory | undefined,
@@ -19,7 +19,7 @@ export function useBenchmarkControls(
   const [selected, setSelected] = useState<ScenarioId | undefined>(() =>
     defaultScenarioId(scenarios),
   );
-  const [showPreviews, setShowPreviews] = useState(false);
+  const [showPreviews, setShowPreviews] = useState(true);
   return {
     scenarios,
     variants: benchmarkVariants(report),

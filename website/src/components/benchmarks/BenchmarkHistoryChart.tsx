@@ -1,10 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import {
   COMPOSITION_GROUPS,
   formatChange,
   formatNumber,
-  HISTORY_SLOTS,
+  historyTimeScale,
+  formatHistoryDate,
+  type HistoryPoint,
   historyScale,
   historySeries,
   seriesChange,
@@ -23,25 +26,11 @@ interface BenchmarkHistoryChartProps {
   readonly stableOnly: boolean;
 }
 
-const SLOT_X = Array.from(
-  { length: HISTORY_SLOTS },
-  (_, index) => ((index + 0.5) / HISTORY_SLOTS) * 100,
-);
-const SLOT_NAMES = [
-  { long: "Two releases ago", short: "Two back" },
-  { long: "Previous release", short: "Previous" },
-  { long: "Latest release", short: "Latest" },
-];
-const DASH = "4 4";
-/** Labels move below their points when the active series comes this close to the top, in percent. */
-const LABEL_CLEARANCE = 20;
-
 const compact = new Intl.NumberFormat("en-US", {
   notation: "compact",
   maximumFractionDigits: 1,
 });
 
-/** A dot and connector chart of each router's recent releases, framed as a panel with the legend in its footer. */
 export function BenchmarkHistoryChart({
   id,
   scenario,
@@ -50,79 +39,98 @@ export function BenchmarkHistoryChart({
 }: BenchmarkHistoryChartProps) {
   const { active, pinned, setHovered, setFocused, togglePinned } =
     useSeriesHighlight();
-
+  const [selected, setSelected] = useState<{
+    readonly seriesId: string;
+    readonly point: HistoryPoint;
+  }>();
   const series = historySeries(scenario, variants, stableOnly);
   if (series.length === 0) {
     return null;
   }
-
   const { ticks, y } = historyScale(
     series.flatMap((item) => item.points.map((point) => point.rps)),
   );
-  const widestTick = ticks
-    .map((tick) => compact.format(tick))
-    .reduce(
-      (widest, label) => (label.length > widest.length ? label : widest),
-      "",
+  const { x } = historyTimeScale(
+    series.flatMap((item) => item.points.map((point) => point.timestamp)),
+  );
+  const dates = series
+    .reduce((longest, item) =>
+      item.points.length > longest.points.length ? item : longest,
+    )
+    .points.map((point) => point.timestamp);
+  const timestamps = series.flatMap((item) =>
+    item.points.map((point) => point.timestamp),
+  );
+  const includeYear =
+    new Date(Math.min(...timestamps)).getUTCFullYear() !==
+    new Date(Math.max(...timestamps)).getUTCFullYear();
+  const dateLabel = (timestamp: number) =>
+    formatHistoryDate(timestamp, includeYear);
+  const maxPoints = Math.max(...series.map((item) => item.points.length));
+  const selectedSeries = series.find((item) => item.id === selected?.seriesId);
+  const point = selectedSeries?.points.find(
+    (point) =>
+      point === selected?.point ||
+      point.runNumber === selected?.point.runNumber,
+  );
+  const showRuntime =
+    point &&
+    series.some(
+      (item) =>
+        item.name === selectedSeries?.name &&
+        item.points.some((other) => other.runtime !== point.runtime),
     );
+  const compositionName = COMPOSITION_GROUPS.find(
+    (group) => group.id === selectedSeries?.composition,
+  )?.name;
+  const align = (position: number) =>
+    position > 85 ? "-100%" : position < 15 ? "0" : "-50%";
   const ordered = series.toSorted(
     (a, b) => (a.id === active ? 1 : 0) - (b.id === active ? 1 : 0),
   );
-  const activeSeries = series.find((item) => item.id === active);
-  const labelsBelow =
-    activeSeries?.points.some((point) => y(point.rps) < LABEL_CLEARANCE) ??
-    false;
-  const highlight = (seriesId: string | undefined) => () =>
-    setHovered(seriesId);
-  const titleId = `${id}-history`;
-
   return (
     <figure
       className="border-cc-card-border relative rounded-lg border"
-      aria-labelledby={titleId}
+      aria-labelledby={`${id}-history`}
+      onMouseLeave={() => {
+        setHovered(undefined);
+        setSelected(undefined);
+      }}
     >
-      <figcaption className="border-cc-card-border flex flex-col gap-1 border-b px-5 py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
-        <div>
-          <h3
-            id={titleId}
-            className="font-heading text-h6 text-cc-heading font-semibold"
-          >
-            Throughput across recent releases
-          </h3>
-          <p className="text-caption text-cc-ink-dim mt-1">
-            Median requests per second of each router&apos;s three newest
-            releases in this scenario. Select a router to see its versions.
-          </p>
-        </div>
+      <figcaption className="border-cc-card-border border-b px-5 py-4">
+        <h3
+          id={`${id}-history`}
+          className="font-heading text-h6 text-cc-heading font-semibold"
+        >
+          Throughput over time
+        </h3>
+        <p className="text-caption text-cc-ink-dim mt-1">
+          Median requests per second by date.
+        </p>
       </figcaption>
-
-      <div className="px-3 pt-10 pb-5 sm:px-5" aria-hidden="true">
-        <div className="grid grid-cols-[2.25rem_1fr]">
-          <div className="relative h-60 sm:h-72">
-            <div className="text-cc-ink-dim absolute inset-y-0 right-2 text-[11px] tabular-nums">
-              <span className="invisible block h-0 overflow-hidden">
-                {widestTick}
-              </span>
-              <abbr
-                title="Requests per second"
-                className="absolute bottom-full left-1/2 mb-3 -translate-x-1/2 no-underline"
+      <div className="px-5 pt-10 pb-5">
+        <div className="text-cc-ink-dim mb-4 text-xs">requests/s</div>
+        <div className="grid grid-cols-[2.5rem_1fr]">
+          <div
+            className="relative h-60 text-[11px] tabular-nums sm:h-72"
+            aria-hidden="true"
+          >
+            {ticks.map((tick) => (
+              <span
+                key={tick}
+                className="text-cc-ink-dim absolute right-2 -translate-y-1/2"
+                style={{ top: `${y(tick)}%` }}
               >
-                requests/s
-              </abbr>
-              {ticks.map((tick) => (
-                <span
-                  key={tick}
-                  className="absolute right-0 -translate-y-1/2"
-                  style={{ top: `${y(tick)}%` }}
-                >
-                  {compact.format(tick)}
-                </span>
-              ))}
-            </div>
+                {compact.format(tick)}
+              </span>
+            ))}
           </div>
           <div
             className="relative h-60 sm:h-72"
-            onMouseLeave={highlight(undefined)}
+            onMouseLeave={() => {
+              setHovered(undefined);
+              setSelected(undefined);
+            }}
           >
             {ticks.map((tick) => (
               <div
@@ -131,71 +139,76 @@ export function BenchmarkHistoryChart({
                 style={{ top: `${y(tick)}%` }}
               />
             ))}
-            {SLOT_X.map((x) => (
+            {dates.map((date) => (
               <div
-                key={x}
+                key={date}
                 className="border-cc-card-border/50 absolute inset-y-0 border-l"
-                style={{ left: `${x}%` }}
+                style={{ left: `${x(date)}%` }}
               />
             ))}
+            {point && (
+              <div
+                className="border-cc-ink-dim pointer-events-none absolute inset-y-0 z-[1] border-l border-dashed"
+                style={{ left: `${x(point.timestamp)}%` }}
+              />
+            )}
             <svg
               className="absolute inset-0 h-full w-full overflow-visible"
               viewBox="0 0 100 100"
               preserveAspectRatio="none"
+              aria-hidden="true"
             >
-              {ordered.map((item) => {
-                const points = item.points
-                  .map((point) => `${SLOT_X[point.slot]},${y(point.rps)}`)
-                  .join(" ");
-                const isActive = item.id === active;
-                return (
-                  <g key={item.id}>
-                    <polyline
-                      points={points}
-                      fill="none"
-                      stroke={item.color}
-                      strokeWidth={isActive ? 2 : 1.5}
-                      strokeOpacity={isActive ? 1 : active ? 0.12 : 0.6}
-                      strokeDasharray={item.dashed ? DASH : undefined}
-                      strokeLinejoin="round"
-                      strokeLinecap="round"
-                      vectorEffect="non-scaling-stroke"
-                      className="motion-safe:transition-[stroke-opacity]"
-                    />
-                    <polyline
-                      points={points}
-                      fill="none"
-                      stroke="transparent"
-                      strokeWidth={24}
-                      vectorEffect="non-scaling-stroke"
-                      pointerEvents="stroke"
-                      className="cursor-pointer"
-                      onMouseEnter={highlight(item.id)}
-                      onClick={() => togglePinned(item.id)}
-                    />
-                  </g>
-                );
-              })}
+              {ordered.map((item) => (
+                <g key={item.id}>
+                  <polyline
+                    points={item.points
+                      .map((point) => `${x(point.timestamp)},${y(point.rps)}`)
+                      .join(" ")}
+                    fill="none"
+                    stroke={item.color}
+                    strokeWidth={item.id === active ? 2 : 1.5}
+                    strokeOpacity={active && item.id !== active ? 0.12 : 0.8}
+                    strokeDasharray={item.dashed ? "4 4" : undefined}
+                    vectorEffect="non-scaling-stroke"
+                  />
+                </g>
+              ))}
             </svg>
-
             {ordered.flatMap((item) =>
-              item.points.map((point) => {
-                const isActive = item.id === active;
-                return (
-                  <span
-                    key={`${item.id}-${point.slot}`}
-                    className="absolute flex size-7 -translate-1/2 cursor-pointer items-center justify-center"
-                    style={{
-                      left: `${SLOT_X[point.slot]}%`,
-                      top: `${y(point.rps)}%`,
-                    }}
-                    onMouseEnter={highlight(item.id)}
-                    onClick={() => togglePinned(item.id)}
-                  >
+              item.points.map((point) => (
+                <button
+                  key={`${item.id}-${point.runNumber}`}
+                  type="button"
+                  aria-label={`${item.name}, ${dateLabel(point.timestamp)}, ${point.runtime}, ${COMPOSITION_GROUPS.find((group) => group.id === item.composition)?.name}, version ${point.version}, ${formatNumber(point.rps)} requests/s`}
+                  className={`focus-visible:outline-cc-accent absolute flex size-5 -translate-1/2 cursor-pointer items-center justify-center rounded-full focus-visible:outline-2 ${item.id === active ? "z-[2]" : ""}`}
+                  style={{
+                    width: `clamp(3px, ${100 / maxPoints}%, 20px)`,
+                    left: `${x(point.timestamp)}%`,
+                    top: `${y(point.rps)}%`,
+                  }}
+                  onMouseEnter={() => {
+                    setHovered(item.id);
+                    setSelected({ seriesId: item.id, point });
+                  }}
+                  onMouseLeave={() => setSelected(undefined)}
+                  onFocus={(event) => {
+                    if (event.currentTarget.matches(":focus-visible")) {
+                      setFocused(item.id);
+                      setSelected({ seriesId: item.id, point });
+                    }
+                  }}
+                  onBlur={() => {
+                    setFocused(undefined);
+                    setSelected(undefined);
+                  }}
+                  onClick={() => {
+                    togglePinned(item.id);
+                    setSelected({ seriesId: item.id, point });
+                  }}
+                >
+                  <span className="bg-cc-bg ring-cc-bg flex shrink-0 rounded-full ring-2">
                     <span
-                      className={`ring-cc-bg block rounded-full border-2 ring-2 motion-safe:transition-[opacity,width,height] ${
-                        isActive ? "size-3.5" : "size-3"
-                      } ${active && !isActive ? "opacity-20" : ""}`}
+                      className={`block ${maxPoints > 60 ? "size-0.75" : "size-1.25"} rounded-full border ${active && item.id !== active ? "opacity-20" : ""}`}
                       style={{
                         borderColor: item.color,
                         backgroundColor: item.dashed
@@ -204,47 +217,47 @@ export function BenchmarkHistoryChart({
                       }}
                     />
                   </span>
-                );
-              }),
+                </button>
+              )),
             )}
-
-            {activeSeries?.points.map((point) => (
+            {point && (
+              <>
+                <div
+                  role="tooltip"
+                  className="bg-cc-bg text-cc-heading border-cc-card-border pointer-events-none absolute z-10 rounded border px-3 py-2 text-xs whitespace-nowrap shadow-lg"
+                  style={{
+                    left: `${x(point.timestamp)}%`,
+                    top: `${y(point.rps)}%`,
+                    transform: `translate(${align(x(point.timestamp))}, ${y(point.rps) < 25 ? "16px" : "calc(-100% - 16px)"})`,
+                  }}
+                >
+                  <div className="font-semibold">
+                    {selectedSeries?.name}
+                    {showRuntime ? ` (${point.runtime})` : ""}
+                  </div>
+                  <div className="text-cc-ink-dim">{compositionName}</div>
+                  <div>Version {point.version}</div>
+                  <div>{formatNumber(point.rps)} requests/s</div>
+                </div>
+              </>
+            )}
+          </div>
+          <div className="relative col-start-2 mt-3 h-9 text-[10px] sm:text-[11px]">
+            {dates.map((date, index) => (
               <span
-                key={point.slot}
-                className={`bg-cc-bg/90 pointer-events-none absolute flex -translate-x-1/2 flex-col items-center rounded px-1.5 py-0.5 text-[11px] leading-4 whitespace-nowrap tabular-nums ${
-                  labelsBelow
-                    ? "translate-y-3"
-                    : "-translate-y-[calc(100%+0.75rem)]"
-                }`}
+                key={date}
+                className={`text-cc-ink-dim absolute whitespace-nowrap ${index % Math.ceil(dates.length / (includeYear ? 3 : 5)) !== 0 ? "hidden lg:block" : ""}`}
                 style={{
-                  left: `${SLOT_X[point.slot]}%`,
-                  top: `${y(point.rps)}%`,
+                  left: `${x(date)}%`,
+                  transform: `translateX(${x(date) === 0 ? "0" : x(date) === 100 ? "-100%" : "-50%"})`,
                 }}
               >
-                <span className="text-cc-heading font-medium">
-                  {point.version}
-                </span>
-                <span className="text-cc-ink-dim">
-                  {formatNumber(point.rps)}
-                </span>
-              </span>
-            ))}
-          </div>
-
-          <div className="col-start-2 grid grid-cols-3 pt-3">
-            {SLOT_NAMES.map((name) => (
-              <span
-                key={name.long}
-                className="text-cc-ink-dim text-center text-[11px] leading-4 sm:text-xs"
-              >
-                <span className="sm:hidden">{name.short}</span>
-                <span className="hidden sm:inline">{name.long}</span>
+                {dateLabel(date)}
               </span>
             ))}
           </div>
         </div>
       </div>
-
       <div className="border-cc-card-border space-y-4 border-t px-5 py-4">
         {COMPOSITION_GROUPS.map((group) => {
           const members = series
@@ -253,17 +266,16 @@ export function BenchmarkHistoryChart({
           if (members.length === 0) {
             return null;
           }
-          const groupId = `${id}-legend-${group.id}`;
           return (
             <div key={group.id}>
               <p
-                id={groupId}
+                id={`${id}-legend-${group.id}`}
                 className="text-cc-ink-dim mb-1.5 text-xs font-medium"
               >
                 {group.name}
               </p>
               <ul
-                aria-labelledby={groupId}
+                aria-labelledby={`${id}-legend-${group.id}`}
                 className="-mx-2 flex flex-wrap gap-x-1 gap-y-0.5"
               >
                 {members.map((item) => (
@@ -282,16 +294,14 @@ export function BenchmarkHistoryChart({
           );
         })}
       </div>
-
       <table className="sr-only">
-        <caption>
-          Median requests per second of the newest releases of each router,
-          oldest first.
-        </caption>
+        <caption>Median requests per second by run date, oldest first.</caption>
         <thead>
           <tr>
             <th scope="col">Router</th>
-            <th scope="col">Versions and median requests per second</th>
+            <th scope="col">
+              Run dates, versions and median requests per second
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -303,7 +313,8 @@ export function BenchmarkHistoryChart({
               <td>
                 {item.points
                   .map(
-                    (point) => `${point.version}: ${formatNumber(point.rps)}`,
+                    (point) =>
+                      `${new Date(point.timestamp).toISOString()}: ${point.version}, ${formatNumber(point.rps)} requests/s`,
                   )
                   .join(", ")}
               </td>

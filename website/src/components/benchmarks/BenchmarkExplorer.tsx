@@ -20,11 +20,6 @@ interface BenchmarkExplorerProps {
   readonly history: BenchmarkHistory;
 }
 
-const VERSION_OPTIONS = [
-  { label: "Stable releases", previews: false },
-  { label: "Include previews", previews: true },
-] as const;
-
 /** The version filter, the results summary, the scenario tiles with their load shapes, and the selected scenario's tables and history chart. */
 export function BenchmarkExplorer({ report, history }: BenchmarkExplorerProps) {
   const controls = useBenchmarkControls(report, history);
@@ -32,33 +27,28 @@ export function BenchmarkExplorer({ report, history }: BenchmarkExplorerProps) {
 
   return (
     <>
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-16">
-        <fieldset
-          className="lg:col-start-2 lg:row-start-1"
-          data-benchmark-controls
-        >
-          <legend className="text-cc-ink-dim mb-2 text-sm">Versions</legend>
-          <div className="border-cc-card-border grid grid-cols-2 rounded-md border p-0.5 sm:inline-grid lg:grid">
-            {VERSION_OPTIONS.map((option) => (
-              <label key={option.label} className="cursor-pointer">
-                <input
-                  className="peer sr-only"
-                  type="radio"
-                  name="benchmark-versions"
-                  checked={controls.showPreviews === option.previews}
-                  onChange={() => controls.setShowPreviews(option.previews)}
-                />
-                <span className="text-cc-ink-dim hover:text-cc-heading peer-checked:bg-cc-white/10 peer-checked:text-cc-heading peer-focus-visible:outline-cc-accent block rounded px-3 py-1 text-center text-sm whitespace-nowrap transition-colors peer-focus-visible:outline-2">
-                  {option.label}
-                </span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
-        <div className="lg:col-start-1 lg:row-start-1">
-          <BenchmarkVerdictSummary report={report} stableOnly={stableOnly} />
-        </div>
-      </div>
+      <BenchmarkVerdictSummary
+        id="benchmark-results"
+        report={report}
+        stableOnly={stableOnly}
+        controls={
+          <label
+            data-benchmark-controls
+            className="text-cc-heading flex shrink-0 cursor-pointer items-center gap-2 text-sm"
+          >
+            <input
+              type="checkbox"
+              name="benchmark-previews"
+              checked={controls.showPreviews}
+              onChange={(event) =>
+                controls.setShowPreviews(event.target.checked)
+              }
+              className="accent-cc-accent focus-visible:outline-cc-accent size-4 cursor-pointer rounded focus-visible:outline-2"
+            />
+            Include previews
+          </label>
+        }
+      />
       <fieldset
         className="border-cc-card-border mt-10 grid border-y sm:mt-14 md:grid-cols-3"
         data-benchmark-controls

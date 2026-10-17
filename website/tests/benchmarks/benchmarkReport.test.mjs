@@ -499,9 +499,9 @@ test("accepts the history and keeps versions oldest first", () => {
   assert.deepEqual(
     history.scenarios.map(({ id, variants }) => ({
       id,
-      variants: variants.map(({ variant, versions }) => [
+      variants: variants.map(({ variant, results }) => [
         variant,
-        versions.map(({ version, run, throughput }) => [
+        results.map(({ version, run, throughput }) => [
           version,
           run.number,
           throughput.medianRps,
@@ -542,13 +542,13 @@ test("accepts the history and keeps versions oldest first", () => {
 });
 
 const firstHistoryVersion = (history) =>
-  history.scenarios[0].variants[0].versions[0];
+  history.scenarios[0].variants[0].results[0];
 
 const invalidHistories = [
   [
-    "variants without versions",
+    "results without timestamps",
     (history) => {
-      history.scenarios[0].variants[0].versions = [];
+      delete firstHistoryVersion(history).run.completedAt;
     },
   ],
   [
