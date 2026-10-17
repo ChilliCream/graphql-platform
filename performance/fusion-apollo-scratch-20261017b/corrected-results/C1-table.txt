@@ -1,0 +1,28 @@
+| Case | Version | Mean | Ratio | Allocated | Alloc Ratio |
+|---|---|---:|---:|---:|---:|
+| unique1 | main | 2290.06 ns | 1.00 | 256 B | 1.00 |
+| unique1 | C1 | 2253.97 ns | 0.9842 | 248 B | 0.9688 |
+| unique5 | main | 5509.63 ns | 1.00 | 352 B | 1.00 |
+| unique5 | C1 | 5622.91 ns | 1.0206 | 344 B | 0.9773 |
+| unique6 | main | 6283.84 ns | 1.00 | 376 B | 1.00 |
+| unique6 | C1 | 6328.41 ns | 1.0071 | 368 B | 0.9787 |
+| unique9 | main | 8603.02 ns | 1.00 | 448 B | 1.00 |
+| unique9 | C1 | 8536.69 ns | 0.9923 | 440 B | 0.9821 |
+| duplicate96 | main | 84469.15 ns | 1.00 | 1040 B | 1.00 |
+| duplicate96 | C1 | 81834.38 ns | 0.9688 | 1032 B | 0.9923 |
+| duplicate1026 | main | 129882.91 ns | 1.00 | 8480 B | 1.00 |
+| duplicate1026 | C1 | 124121.80 ns | 0.9556 | 8472 B | 0.9991 |
+| unique96 | main | 12408.57 ns | 1.00 | 2536 B | 1.00 |
+| unique96 | C1 | 14541.70 ns | 1.1719 | 2528 B | 0.9968 |
+| unique1024 | main | 141638.95 ns | 1.00 | 24808 B | 1.00 |
+| unique1024 | C1 | 142754.77 ns | 1.0079 | 24800 B | 0.9997 |
+| mixed96 | main | 11554.00 ns | 1.00 | 1152 B | 1.00 |
+| mixed96 | C1 | 11423.69 ns | 0.9887 | 1144 B | 0.9931 |
+| testquery_sequence | main | 44976.92 ns | 1.00 | 5808 B | 1.00 |
+| testquery_sequence | C1 | 43165.62 ns | 0.9597 | 5240 B | 0.9022 |
+| large_then_small | main | 154172.18 ns | 1.00 | 26456 B | 1.00 |
+| large_then_small | C1 | 152896.39 ns | 0.9917 | 26280 B | 0.9933 |
+| snapshot96 | main | 25797.75 ns | 1.00 | 1152 B | 1.00 |
+| snapshot96 | C1 | 24969.30 ns | 0.9679 | 1144 B | 0.9931 |
+| null96 | main | 5178.64 ns | 1.00 | 208 B | 1.00 |
+| null96 | C1 | 5054.50 ns | 0.9760 | 200 B | 0.9615 |

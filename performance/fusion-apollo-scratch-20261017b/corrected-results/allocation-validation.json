@@ -1,0 +1,1306 @@
+{
+  "validatedRegions": 130,
+  "expectedCalibrationBytes": 523240,
+  "cases": [
+    {
+      "file": "allocation-00-B.stderr",
+      "case": "unique1",
+      "bytesPerRequest": [
+        256,
+        256,
+        256,
+        256
+      ]
+    },
+    {
+      "file": "allocation-00-B.stderr",
+      "case": "unique5",
+      "bytesPerRequest": [
+        352,
+        352,
+        352,
+        352
+      ]
+    },
+    {
+      "file": "allocation-00-B.stderr",
+      "case": "unique6",
+      "bytesPerRequest": [
+        376,
+        376,
+        376,
+        376
+      ]
+    },
+    {
+      "file": "allocation-00-B.stderr",
+      "case": "unique9",
+      "bytesPerRequest": [
+        448,
+        448,
+        448,
+        448
+      ]
+    },
+    {
+      "file": "allocation-00-B.stderr",
+      "case": "duplicate96",
+      "bytesPerRequest": [
+        1040,
+        1040,
+        1040,
+        1040
+      ]
+    },
+    {
+      "file": "allocation-00-B.stderr",
+      "case": "duplicate1026",
+      "bytesPerRequest": [
+        8480,
+        8480,
+        8480,
+        8480
+      ]
+    },
+    {
+      "file": "allocation-00-B.stderr",
+      "case": "unique96",
+      "bytesPerRequest": [
+        2536,
+        2536,
+        2536,
+        2536
+      ]
+    },
+    {
+      "file": "allocation-00-B.stderr",
+      "case": "unique1024",
+      "bytesPerRequest": [
+        24808,
+        24808,
+        24808,
+        24808
+      ]
+    },
+    {
+      "file": "allocation-00-B.stderr",
+      "case": "mixed96",
+      "bytesPerRequest": [
+        1152,
+        1152,
+        1152,
+        1152
+      ]
+    },
+    {
+      "file": "allocation-00-B.stderr",
+      "case": "testquery_sequence",
+      "bytesPerRequest": [
+        5808,
+        5808,
+        5808,
+        5808
+      ]
+    },
+    {
+      "file": "allocation-00-B.stderr",
+      "case": "large_then_small",
+      "bytesPerRequest": [
+        26456,
+        26456,
+        26456,
+        26456
+      ]
+    },
+    {
+      "file": "allocation-00-B.stderr",
+      "case": "snapshot96",
+      "bytesPerRequest": [
+        1152,
+        1152,
+        1152,
+        1152
+      ]
+    },
+    {
+      "file": "allocation-00-B.stderr",
+      "case": "null96",
+      "bytesPerRequest": [
+        208,
+        208,
+        208,
+        208
+      ]
+    },
+    {
+      "file": "allocation-01-C1.stderr",
+      "case": "unique1",
+      "bytesPerRequest": [
+        248,
+        248,
+        248,
+        248
+      ]
+    },
+    {
+      "file": "allocation-01-C1.stderr",
+      "case": "unique5",
+      "bytesPerRequest": [
+        344,
+        344,
+        344,
+        344
+      ]
+    },
+    {
+      "file": "allocation-01-C1.stderr",
+      "case": "unique6",
+      "bytesPerRequest": [
+        368,
+        368,
+        368,
+        368
+      ]
+    },
+    {
+      "file": "allocation-01-C1.stderr",
+      "case": "unique9",
+      "bytesPerRequest": [
+        440,
+        440,
+        440,
+        440
+      ]
+    },
+    {
+      "file": "allocation-01-C1.stderr",
+      "case": "duplicate96",
+      "bytesPerRequest": [
+        1032,
+        1032,
+        1032,
+        1032
+      ]
+    },
+    {
+      "file": "allocation-01-C1.stderr",
+      "case": "duplicate1026",
+      "bytesPerRequest": [
+        8472,
+        8472,
+        8472,
+        8472
+      ]
+    },
+    {
+      "file": "allocation-01-C1.stderr",
+      "case": "unique96",
+      "bytesPerRequest": [
+        2528,
+        2528,
+        2528,
+        2528
+      ]
+    },
+    {
+      "file": "allocation-01-C1.stderr",
+      "case": "unique1024",
+      "bytesPerRequest": [
+        24800,
+        24800,
+        24800,
+        24800
+      ]
+    },
+    {
+      "file": "allocation-01-C1.stderr",
+      "case": "mixed96",
+      "bytesPerRequest": [
+        1144,
+        1144,
+        1144,
+        1144
+      ]
+    },
+    {
+      "file": "allocation-01-C1.stderr",
+      "case": "testquery_sequence",
+      "bytesPerRequest": [
+        5240,
+        5240,
+        5240,
+        5240
+      ]
+    },
+    {
+      "file": "allocation-01-C1.stderr",
+      "case": "large_then_small",
+      "bytesPerRequest": [
+        26280,
+        26280,
+        26280,
+        26280
+      ]
+    },
+    {
+      "file": "allocation-01-C1.stderr",
+      "case": "snapshot96",
+      "bytesPerRequest": [
+        1144,
+        1144,
+        1144,
+        1144
+      ]
+    },
+    {
+      "file": "allocation-01-C1.stderr",
+      "case": "null96",
+      "bytesPerRequest": [
+        200,
+        200,
+        200,
+        200
+      ]
+    },
+    {
+      "file": "allocation-02-C3.stderr",
+      "case": "unique1",
+      "bytesPerRequest": [
+        256,
+        256,
+        256,
+        256
+      ]
+    },
+    {
+      "file": "allocation-02-C3.stderr",
+      "case": "unique5",
+      "bytesPerRequest": [
+        352,
+        352,
+        352,
+        352
+      ]
+    },
+    {
+      "file": "allocation-02-C3.stderr",
+      "case": "unique6",
+      "bytesPerRequest": [
+        376,
+        376,
+        376,
+        376
+      ]
+    },
+    {
+      "file": "allocation-02-C3.stderr",
+      "case": "unique9",
+      "bytesPerRequest": [
+        448,
+        448,
+        448,
+        448
+      ]
+    },
+    {
+      "file": "allocation-02-C3.stderr",
+      "case": "duplicate96",
+      "bytesPerRequest": [
+        256,
+        256,
+        256,
+        256
+      ]
+    },
+    {
+      "file": "allocation-02-C3.stderr",
+      "case": "duplicate1026",
+      "bytesPerRequest": [
+        8480,
+        8480,
+        8480,
+        8480
+      ]
+    },
+    {
+      "file": "allocation-02-C3.stderr",
+      "case": "unique96",
+      "bytesPerRequest": [
+        2536,
+        2536,
+        2536,
+        2536
+      ]
+    },
+    {
+      "file": "allocation-02-C3.stderr",
+      "case": "unique1024",
+      "bytesPerRequest": [
+        24808,
+        24808,
+        24808,
+        24808
+      ]
+    },
+    {
+      "file": "allocation-02-C3.stderr",
+      "case": "mixed96",
+      "bytesPerRequest": [
+        424,
+        424,
+        424,
+        424
+      ]
+    },
+    {
+      "file": "allocation-02-C3.stderr",
+      "case": "testquery_sequence",
+      "bytesPerRequest": [
+        3128,
+        3128,
+        3128,
+        3128
+      ]
+    },
+    {
+      "file": "allocation-02-C3.stderr",
+      "case": "large_then_small",
+      "bytesPerRequest": [
+        25672,
+        25672,
+        25672,
+        25672
+      ]
+    },
+    {
+      "file": "allocation-02-C3.stderr",
+      "case": "snapshot96",
+      "bytesPerRequest": [
+        424,
+        424,
+        424,
+        424
+      ]
+    },
+    {
+      "file": "allocation-02-C3.stderr",
+      "case": "null96",
+      "bytesPerRequest": [
+        208,
+        208,
+        208,
+        208
+      ]
+    },
+    {
+      "file": "allocation-03-B.stderr",
+      "case": "unique1",
+      "bytesPerRequest": [
+        256,
+        256,
+        256,
+        256
+      ]
+    },
+    {
+      "file": "allocation-03-B.stderr",
+      "case": "unique5",
+      "bytesPerRequest": [
+        352,
+        352,
+        352,
+        352
+      ]
+    },
+    {
+      "file": "allocation-03-B.stderr",
+      "case": "unique6",
+      "bytesPerRequest": [
+        376,
+        376,
+        376,
+        376
+      ]
+    },
+    {
+      "file": "allocation-03-B.stderr",
+      "case": "unique9",
+      "bytesPerRequest": [
+        448,
+        448,
+        448,
+        448
+      ]
+    },
+    {
+      "file": "allocation-03-B.stderr",
+      "case": "duplicate96",
+      "bytesPerRequest": [
+        1040,
+        1040,
+        1040,
+        1040
+      ]
+    },
+    {
+      "file": "allocation-03-B.stderr",
+      "case": "duplicate1026",
+      "bytesPerRequest": [
+        8480,
+        8480,
+        8480,
+        8480
+      ]
+    },
+    {
+      "file": "allocation-03-B.stderr",
+      "case": "unique96",
+      "bytesPerRequest": [
+        2536,
+        2536,
+        2536,
+        2536
+      ]
+    },
+    {
+      "file": "allocation-03-B.stderr",
+      "case": "unique1024",
+      "bytesPerRequest": [
+        24808,
+        24808,
+        24808,
+        24808
+      ]
+    },
+    {
+      "file": "allocation-03-B.stderr",
+      "case": "mixed96",
+      "bytesPerRequest": [
+        1152,
+        1152,
+        1152,
+        1152
+      ]
+    },
+    {
+      "file": "allocation-03-B.stderr",
+      "case": "testquery_sequence",
+      "bytesPerRequest": [
+        5808,
+        5808,
+        5808,
+        5808
+      ]
+    },
+    {
+      "file": "allocation-03-B.stderr",
+      "case": "large_then_small",
+      "bytesPerRequest": [
+        26456,
+        26456,
+        26456,
+        26456
+      ]
+    },
+    {
+      "file": "allocation-03-B.stderr",
+      "case": "snapshot96",
+      "bytesPerRequest": [
+        1152,
+        1152,
+        1152,
+        1152
+      ]
+    },
+    {
+      "file": "allocation-03-B.stderr",
+      "case": "null96",
+      "bytesPerRequest": [
+        208,
+        208,
+        208,
+        208
+      ]
+    },
+    {
+      "file": "allocation-04-C3.stderr",
+      "case": "unique1",
+      "bytesPerRequest": [
+        256,
+        256,
+        256,
+        256
+      ]
+    },
+    {
+      "file": "allocation-04-C3.stderr",
+      "case": "unique5",
+      "bytesPerRequest": [
+        352,
+        352,
+        352,
+        352
+      ]
+    },
+    {
+      "file": "allocation-04-C3.stderr",
+      "case": "unique6",
+      "bytesPerRequest": [
+        376,
+        376,
+        376,
+        376
+      ]
+    },
+    {
+      "file": "allocation-04-C3.stderr",
+      "case": "unique9",
+      "bytesPerRequest": [
+        448,
+        448,
+        448,
+        448
+      ]
+    },
+    {
+      "file": "allocation-04-C3.stderr",
+      "case": "duplicate96",
+      "bytesPerRequest": [
+        256,
+        256,
+        256,
+        256
+      ]
+    },
+    {
+      "file": "allocation-04-C3.stderr",
+      "case": "duplicate1026",
+      "bytesPerRequest": [
+        8480,
+        8480,
+        8480,
+        8480
+      ]
+    },
+    {
+      "file": "allocation-04-C3.stderr",
+      "case": "unique96",
+      "bytesPerRequest": [
+        2536,
+        2536,
+        2536,
+        2536
+      ]
+    },
+    {
+      "file": "allocation-04-C3.stderr",
+      "case": "unique1024",
+      "bytesPerRequest": [
+        24808,
+        24808,
+        24808,
+        24808
+      ]
+    },
+    {
+      "file": "allocation-04-C3.stderr",
+      "case": "mixed96",
+      "bytesPerRequest": [
+        424,
+        424,
+        424,
+        424
+      ]
+    },
+    {
+      "file": "allocation-04-C3.stderr",
+      "case": "testquery_sequence",
+      "bytesPerRequest": [
+        3128,
+        3128,
+        3128,
+        3128
+      ]
+    },
+    {
+      "file": "allocation-04-C3.stderr",
+      "case": "large_then_small",
+      "bytesPerRequest": [
+        25672,
+        25672,
+        25672,
+        25672
+      ]
+    },
+    {
+      "file": "allocation-04-C3.stderr",
+      "case": "snapshot96",
+      "bytesPerRequest": [
+        424,
+        424,
+        424,
+        424
+      ]
+    },
+    {
+      "file": "allocation-04-C3.stderr",
+      "case": "null96",
+      "bytesPerRequest": [
+        208,
+        208,
+        208,
+        208
+      ]
+    },
+    {
+      "file": "allocation-05-C1.stderr",
+      "case": "unique1",
+      "bytesPerRequest": [
+        248,
+        248,
+        248,
+        248
+      ]
+    },
+    {
+      "file": "allocation-05-C1.stderr",
+      "case": "unique5",
+      "bytesPerRequest": [
+        344,
+        344,
+        344,
+        344
+      ]
+    },
+    {
+      "file": "allocation-05-C1.stderr",
+      "case": "unique6",
+      "bytesPerRequest": [
+        368,
+        368,
+        368,
+        368
+      ]
+    },
+    {
+      "file": "allocation-05-C1.stderr",
+      "case": "unique9",
+      "bytesPerRequest": [
+        440,
+        440,
+        440,
+        440
+      ]
+    },
+    {
+      "file": "allocation-05-C1.stderr",
+      "case": "duplicate96",
+      "bytesPerRequest": [
+        1032,
+        1032,
+        1032,
+        1032
+      ]
+    },
+    {
+      "file": "allocation-05-C1.stderr",
+      "case": "duplicate1026",
+      "bytesPerRequest": [
+        8472,
+        8472,
+        8472,
+        8472
+      ]
+    },
+    {
+      "file": "allocation-05-C1.stderr",
+      "case": "unique96",
+      "bytesPerRequest": [
+        2528,
+        2528,
+        2528,
+        2528
+      ]
+    },
+    {
+      "file": "allocation-05-C1.stderr",
+      "case": "unique1024",
+      "bytesPerRequest": [
+        24800,
+        24800,
+        24800,
+        24800
+      ]
+    },
+    {
+      "file": "allocation-05-C1.stderr",
+      "case": "mixed96",
+      "bytesPerRequest": [
+        1144,
+        1144,
+        1144,
+        1144
+      ]
+    },
+    {
+      "file": "allocation-05-C1.stderr",
+      "case": "testquery_sequence",
+      "bytesPerRequest": [
+        5240,
+        5240,
+        5240,
+        5240
+      ]
+    },
+    {
+      "file": "allocation-05-C1.stderr",
+      "case": "large_then_small",
+      "bytesPerRequest": [
+        26280,
+        26280,
+        26280,
+        26280
+      ]
+    },
+    {
+      "file": "allocation-05-C1.stderr",
+      "case": "snapshot96",
+      "bytesPerRequest": [
+        1144,
+        1144,
+        1144,
+        1144
+      ]
+    },
+    {
+      "file": "allocation-05-C1.stderr",
+      "case": "null96",
+      "bytesPerRequest": [
+        200,
+        200,
+        200,
+        200
+      ]
+    },
+    {
+      "file": "allocation-06-B.stderr",
+      "case": "unique1",
+      "bytesPerRequest": [
+        256,
+        256,
+        256,
+        256
+      ]
+    },
+    {
+      "file": "allocation-06-B.stderr",
+      "case": "unique5",
+      "bytesPerRequest": [
+        352,
+        352,
+        352,
+        352
+      ]
+    },
+    {
+      "file": "allocation-06-B.stderr",
+      "case": "unique6",
+      "bytesPerRequest": [
+        376,
+        376,
+        376,
+        376
+      ]
+    },
+    {
+      "file": "allocation-06-B.stderr",
+      "case": "unique9",
+      "bytesPerRequest": [
+        448,
+        448,
+        448,
+        448
+      ]
+    },
+    {
+      "file": "allocation-06-B.stderr",
+      "case": "duplicate96",
+      "bytesPerRequest": [
+        1040,
+        1040,
+        1040,
+        1040
+      ]
+    },
+    {
+      "file": "allocation-06-B.stderr",
+      "case": "duplicate1026",
+      "bytesPerRequest": [
+        8480,
+        8480,
+        8480,
+        8480
+      ]
+    },
+    {
+      "file": "allocation-06-B.stderr",
+      "case": "unique96",
+      "bytesPerRequest": [
+        2536,
+        2536,
+        2536,
+        2536
+      ]
+    },
+    {
+      "file": "allocation-06-B.stderr",
+      "case": "unique1024",
+      "bytesPerRequest": [
+        24808,
+        24808,
+        24808,
+        24808
+      ]
+    },
+    {
+      "file": "allocation-06-B.stderr",
+      "case": "mixed96",
+      "bytesPerRequest": [
+        1152,
+        1152,
+        1152,
+        1152
+      ]
+    },
+    {
+      "file": "allocation-06-B.stderr",
+      "case": "testquery_sequence",
+      "bytesPerRequest": [
+        5808,
+        5808,
+        5808,
+        5808
+      ]
+    },
+    {
+      "file": "allocation-06-B.stderr",
+      "case": "large_then_small",
+      "bytesPerRequest": [
+        26456,
+        26456,
+        26456,
+        26456
+      ]
+    },
+    {
+      "file": "allocation-06-B.stderr",
+      "case": "snapshot96",
+      "bytesPerRequest": [
+        1152,
+        1152,
+        1152,
+        1152
+      ]
+    },
+    {
+      "file": "allocation-06-B.stderr",
+      "case": "null96",
+      "bytesPerRequest": [
+        208,
+        208,
+        208,
+        208
+      ]
+    },
+    {
+      "file": "allocation-07-C1.stderr",
+      "case": "unique1",
+      "bytesPerRequest": [
+        248,
+        248,
+        248,
+        248
+      ]
+    },
+    {
+      "file": "allocation-07-C1.stderr",
+      "case": "unique5",
+      "bytesPerRequest": [
+        344,
+        344,
+        344,
+        344
+      ]
+    },
+    {
+      "file": "allocation-07-C1.stderr",
+      "case": "unique6",
+      "bytesPerRequest": [
+        368,
+        368,
+        368,
+        368
+      ]
+    },
+    {
+      "file": "allocation-07-C1.stderr",
+      "case": "unique9",
+      "bytesPerRequest": [
+        440,
+        440,
+        440,
+        440
+      ]
+    },
+    {
+      "file": "allocation-07-C1.stderr",
+      "case": "duplicate96",
+      "bytesPerRequest": [
+        1032,
+        1032,
+        1032,
+        1032
+      ]
+    },
+    {
+      "file": "allocation-07-C1.stderr",
+      "case": "duplicate1026",
+      "bytesPerRequest": [
+        8472,
+        8472,
+        8472,
+        8472
+      ]
+    },
+    {
+      "file": "allocation-07-C1.stderr",
+      "case": "unique96",
+      "bytesPerRequest": [
+        2528,
+        2528,
+        2528,
+        2528
+      ]
+    },
+    {
+      "file": "allocation-07-C1.stderr",
+      "case": "unique1024",
+      "bytesPerRequest": [
+        24800,
+        24800,
+        24800,
+        24800
+      ]
+    },
+    {
+      "file": "allocation-07-C1.stderr",
+      "case": "mixed96",
+      "bytesPerRequest": [
+        1144,
+        1144,
+        1144,
+        1144
+      ]
+    },
+    {
+      "file": "allocation-07-C1.stderr",
+      "case": "testquery_sequence",
+      "bytesPerRequest": [
+        5240,
+        5240,
+        5240,
+        5240
+      ]
+    },
+    {
+      "file": "allocation-07-C1.stderr",
+      "case": "large_then_small",
+      "bytesPerRequest": [
+        26280,
+        26280,
+        26280,
+        26280
+      ]
+    },
+    {
+      "file": "allocation-07-C1.stderr",
+      "case": "snapshot96",
+      "bytesPerRequest": [
+        1144,
+        1144,
+        1144,
+        1144
+      ]
+    },
+    {
+      "file": "allocation-07-C1.stderr",
+      "case": "null96",
+      "bytesPerRequest": [
+        200,
+        200,
+        200,
+        200
+      ]
+    },
+    {
+      "file": "allocation-08-C3.stderr",
+      "case": "unique1",
+      "bytesPerRequest": [
+        256,
+        256,
+        256,
+        256
+      ]
+    },
+    {
+      "file": "allocation-08-C3.stderr",
+      "case": "unique5",
+      "bytesPerRequest": [
+        352,
+        352,
+        352,
+        352
+      ]
+    },
+    {
+      "file": "allocation-08-C3.stderr",
+      "case": "unique6",
+      "bytesPerRequest": [
+        376,
+        376,
+        376,
+        376
+      ]
+    },
+    {
+      "file": "allocation-08-C3.stderr",
+      "case": "unique9",
+      "bytesPerRequest": [
+        448,
+        448,
+        448,
+        448
+      ]
+    },
+    {
+      "file": "allocation-08-C3.stderr",
+      "case": "duplicate96",
+      "bytesPerRequest": [
+        256,
+        256,
+        256,
+        256
+      ]
+    },
+    {
+      "file": "allocation-08-C3.stderr",
+      "case": "duplicate1026",
+      "bytesPerRequest": [
+        8480,
+        8480,
+        8480,
+        8480
+      ]
+    },
+    {
+      "file": "allocation-08-C3.stderr",
+      "case": "unique96",
+      "bytesPerRequest": [
+        2536,
+        2536,
+        2536,
+        2536
+      ]
+    },
+    {
+      "file": "allocation-08-C3.stderr",
+      "case": "unique1024",
+      "bytesPerRequest": [
+        24808,
+        24808,
+        24808,
+        24808
+      ]
+    },
+    {
+      "file": "allocation-08-C3.stderr",
+      "case": "mixed96",
+      "bytesPerRequest": [
+        424,
+        424,
+        424,
+        424
+      ]
+    },
+    {
+      "file": "allocation-08-C3.stderr",
+      "case": "testquery_sequence",
+      "bytesPerRequest": [
+        3128,
+        3128,
+        3128,
+        3128
+      ]
+    },
+    {
+      "file": "allocation-08-C3.stderr",
+      "case": "large_then_small",
+      "bytesPerRequest": [
+        25672,
+        25672,
+        25672,
+        25672
+      ]
+    },
+    {
+      "file": "allocation-08-C3.stderr",
+      "case": "snapshot96",
+      "bytesPerRequest": [
+        424,
+        424,
+        424,
+        424
+      ]
+    },
+    {
+      "file": "allocation-08-C3.stderr",
+      "case": "null96",
+      "bytesPerRequest": [
+        208,
+        208,
+        208,
+        208
+      ]
+    },
+    {
+      "file": "allocation-09-B.stderr",
+      "case": "unique1",
+      "bytesPerRequest": [
+        256,
+        256,
+        256,
+        256
+      ]
+    },
+    {
+      "file": "allocation-09-B.stderr",
+      "case": "unique5",
+      "bytesPerRequest": [
+        352,
+        352,
+        352,
+        352
+      ]
+    },
+    {
+      "file": "allocation-09-B.stderr",
+      "case": "unique6",
+      "bytesPerRequest": [
+        376,
+        376,
+        376,
+        376
+      ]
+    },
+    {
+      "file": "allocation-09-B.stderr",
+      "case": "unique9",
+      "bytesPerRequest": [
+        448,
+        448,
+        448,
+        448
+      ]
+    },
+    {
+      "file": "allocation-09-B.stderr",
+      "case": "duplicate96",
+      "bytesPerRequest": [
+        1040,
+        1040,
+        1040,
+        1040
+      ]
+    },
+    {
+      "file": "allocation-09-B.stderr",
+      "case": "duplicate1026",
+      "bytesPerRequest": [
+        8480,
+        8480,
+        8480,
+        8480
+      ]
+    },
+    {
+      "file": "allocation-09-B.stderr",
+      "case": "unique96",
+      "bytesPerRequest": [
+        2536,
+        2536,
+        2536,
+        2536
+      ]
+    },
+    {
+      "file": "allocation-09-B.stderr",
+      "case": "unique1024",
+      "bytesPerRequest": [
+        24808,
+        24808,
+        24808,
+        24808
+      ]
+    },
+    {
+      "file": "allocation-09-B.stderr",
+      "case": "mixed96",
+      "bytesPerRequest": [
+        1152,
+        1152,
+        1152,
+        1152
+      ]
+    },
+    {
+      "file": "allocation-09-B.stderr",
+      "case": "testquery_sequence",
+      "bytesPerRequest": [
+        5808,
+        5808,
+        5808,
+        5808
+      ]
+    },
+    {
+      "file": "allocation-09-B.stderr",
+      "case": "large_then_small",
+      "bytesPerRequest": [
+        26456,
+        26456,
+        26456,
+        26456
+      ]
+    },
+    {
+      "file": "allocation-09-B.stderr",
+      "case": "snapshot96",
+      "bytesPerRequest": [
+        1152,
+        1152,
+        1152,
+        1152
+      ]
+    },
+    {
+      "file": "allocation-09-B.stderr",
+      "case": "null96",
+      "bytesPerRequest": [
+        208,
+        208,
+        208,
+        208
+      ]
+    }
+  ]
+}

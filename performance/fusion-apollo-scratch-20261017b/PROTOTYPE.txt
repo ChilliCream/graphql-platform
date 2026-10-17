@@ -1,7 +1,8 @@
 C1: reuse request-local representation deduplication table
 ======================================================
 
-Status: QUEUED_FOR_MICRO. No timing or allocation measurements yet.
+Status: ABANDONED at micro gate. This file preserves the pre-measurement plan;
+see REPORT.txt for complete results and final disposition.
 Base: 43a8dca2bd479ddc411d832ed97e42d9fcc8bd85.
 Source: perf/fusion-apollo-scratch-20261017b, independent of C2/C3.
 Discovery and frozen registration:

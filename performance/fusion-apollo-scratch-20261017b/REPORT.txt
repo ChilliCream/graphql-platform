@@ -1,0 +1,163 @@
+C1 ABANDONED AT MICRO GATE
+==========================
+
+The request-local representation deduplication table prototype did not pass
+its predeclared fallback regression gate. No HTTP campaign, clean
+implementation branch or PR is warranted. The experimental patch, rejected
+broader variant, tests, invalid fixture campaign and corrected full results
+are preserved. This is a failure to demonstrate the required improvement;
+it does not establish a universal production regression.
+
+Pinned platform: 43a8dca2bd479ddc411d832ed97e42d9fcc8bd85.
+Benchmark: 941599e4e27719084189e12d737e147069fdf794.
+Production prototype source: commit 564b1cd59b on this evidence branch.
+Broader unmeasured writer/table reuse variant: cfbb8fcdf1, rejected for its
+128KiB live writer chunk per request during downstream waits.
+Initial source, profile interpretation and frozen candidate registration:
+https://github.com/ChilliCream/graphql-platform/tree/2c47637e38/performance/fusion-apollo-discovery-20261017b
+Fresh raw source-built baseline, PID/traffic bounds and traces:
+https://github.com/ChilliCream/graphql-platform/tree/ef9fc1159a5a7a980754ebd42b511030320482cd/experiments/fusion-apollo-baseline-20261017b
+Independent C3 experimental source used only in its own shared-control arm:
+https://github.com/ChilliCream/graphql-platform/tree/049e0d587fbb9d9304a13954136fe9886f141845/performance/fusion-apollo-duplicate-paths-20261017b
+
+What changed
+------------
+Apollo representation construction reuses one deduplication table for the
+request, initializes it before each normal/snapshot lookup and releases it at
+Clean, subscription Reset or Dispose. Writers retain their original per-fetch
+lifetime. TryGet receives the active writer rather than retaining a writer
+field; the shared native caller changes only this private argument. No path
+pool, segment table, source behavior or public API policy is changed.
+
+The original operation has 11 representation creations, 335 target occurrences
+and 24 distinct representations; eight creations carry duplicate paths. This
+is recurring warm work supported by the fresh CPU/allocation caller profiles.
+The micro sequence uses those exact dimensions through the normal target
+collection entry point, with a deliberately simpler single-field key/schema.
+It measures all representation builds plus request Clean. Schema/planning,
+source parsing and result preparation are outside the measured scope.
+
+The store's existing lock serializes construction; output payloads are copied
+to its independent request writer before temporary buffers are released.
+Deduplication entries contain positions and scalar metadata, not retained
+writer references. Idle stores retain no representation table. Active peak
+capacity remains driven by lookup cardinality/collisions until request cleanup,
+so large requests may retain more memory during downstream waits than baseline.
+The original dimensions normally reach 8KiB, while 1024 unique needs at least
+64KiB. No HTTP retained-memory validation was performed because micro stopped.
+
+Correctness and reproduction
+----------------------------
+Release/style compilation succeeded. The direct test executable passed 122/122
+focused FetchResultStoreRepresentationTests and FetchResultStoreTests,
+including shared native variable handling, changing-size lookups and 32 parallel
+calls on one store. The three initial new snapshot failures were formatting,
+corrected to the emitted multiline form; their failed TRX remains alongside
+the successful TRX. The SDK 11 dotnet-test MTP handshake found zero tests, so the
+direct xUnit runner was used. Relevant commands are in PROTOTYPE.txt and the
+recorded micro runner. No full suite was run.
+
+The shared harness assembly uses existing internal benchmark access and calls
+the production FetchResultStore APIs. Check-only full payload/path oracles
+match for all 13 cases across baseline, C1 and C3. Snapshot96 is a separate
+fallback case. All source fixture changes are confined to evidence projects.
+
+Frozen engine SHA256 identities:
+B  9c436477e63d9c7f5c8668dcd75fec9771f500a5e71b14a1f02dd0bcf8fe6c5b
+C1 1ddc8f2f868361222ee46cee206d434c2d0b05ff9afd5ebe47a6561e483d258f
+C3 359a421c3387637ab022c658266252616e0ab58e262c72ad57a47c6ca6ae50cf
+Corrected harness SHA256:
+c79928c6ed41efdaf380be70f575e38e67bf8ef00b2fb51ebc5e4edfe1c8a9b6
+Corrected runner SHA256:
+036c88401d707c5f658a40b963b5eae598c5c918e3420faa0e6cda5be90712b9
+
+The exact previously frozen baseline engine was reused without rebuilding.
+All arm files match except Fusion.Execution DLL/PDB. Full dependency hashes,
+commands, PID/start ticks, UTC boundaries, loaded assembly hashes and runtime
+metadata are retained in corrected-results. Runtime is 10.0.12, ServerGC,
+affinity 2,3,10,11. No candidate stacking or runtime/package change occurred.
+
+Build the evidence project with the pinned SDK/environment and Release:
+  dotnet build performance/fusion-apollo-scratch-20261017b/MicroCorrected/Micro.csproj -c Release --disable-build-servers -p:UseSharedCompilation=false -m:2
+Its project references use the owning worktree's actual source implementation.
+Freeze its output independently, then overlay each identified engine DLL/PDB
+into its arm; the runner verifies only those two files differ. Never replace
+an existing frozen campaign. The recorded runner takes a new absolute root
+containing frozen/B, frozen/C1 and frozen/C3. Use the investigation's exclusive
+flock for measurement; builds, tests and analysis use shared flock.
+
+Measurement plan and method
+---------------------------
+The corrected session used exactly 20 independent launches: allocation then
+timing, each ordered B,C1,C3,B,C3,C1,B,C1,C3,B. Each timing case used 512 warmup
+requests and 20 observations of 128 requests. Allocation was separate, with
+64 warmup requests and 4 observations of 16 requests. Startup/cleanup of all launches
+was covered by one exclusive machine lock. There were no retries.
+
+The controlled allocation region requests 512 MiB; preparation allocation is
+within that region but outside the reported method/thread counter scope.
+Each of 130 regions completed with unchanged generation counts, NoGCRegion
+latency mode before exit, successful EndNoGCRegion, and before/after calibration
+of 523240 bytes from 127 allocations of 4096-byte arrays. Every arm's allocation
+result repeats exactly across launches and observations. These are scoped
+allocation bytes, not default process totals or sampled allocation estimates.
+
+Default-policy timing includes Seal and complete affected Clean. Arrays and
+JSON payloads/path lengths are consumed. Results contain all observations;
+no pause trimming, favorable control selection or replacement of arithmetic
+means by medians. Inspect both adjacent controls and the full baseline envelope.
+
+Results and decision
+--------------------
+The 11-build sequence arithmetic mean is 44.977 us baseline versus 43.166 us C1,
+a 1.811 us saving (ratio 0.9597). Each C1 launch is below both adjacent controls,
+but the final comparison is almost equal (ratio 0.9992). Sequence controls span
+42.890–46.728us. This bounded fixture saving is not a measured gateway CPU gain.
+
+Scoped bytes for that sequence fall 5808→5240, saving 568 B. Single-build cases
+save 8 B. The four-build large-then-small case saves 176 B. These values agree with
+removing one writer-reference field from the table and avoiding ten repeated
+table objects in the 11-build case. No JsonWriter or byte-writer object saving
+is claimed by the narrowed prototype.
+
+Unique96 violates the declared repeated fallback gate. Baseline launch means
+are 12.392,12.362,12.323,12.557us; C1 means are 17.433,13.308,12.885us. The first
+two candidate launches exceed both adjacent controls by more than 5%, and the
+third remains slower than both. Aggregate arithmetic ratio is 1.1719. All three
+C1 unique96 windows record one Gen2 completion versus zero in control windows.
+Raw samples show extra stalls and the first candidate also has elevated
+non-stall observations. This indicates GC/tiering phase differences are a
+possible contributor; existing evidence does not definitively attribute the
+cause. They are part of the default-policy observations and cannot be removed
+to claim a passing no-regression gate.
+
+Duplicate96 also changes substantially within individual launches, so the
+chosen 512 warmup count did not establish steady timing for every case. Its mean
+cannot be presented as a warmed isolated mechanism benefit. The late 11-build
+sequence is substantially steadier. Full first/last-five means, minima, maxima,
+GC counts and all per-observation values are retained, so this limitation is
+visible. No equivalent valid campaign was repeated to seek a different result.
+
+The small scoped saving and mixed timing do not overcome the failed fallback
+gate and unresolved live-memory tradeoff. Root accepted ABANDONED at micro.
+C1 has no HTTP result, default-total allocation claim, retained-memory claim,
+clean implementation branch or PR. C3 is interpreted independently by its
+owner using the same applicable controls.
+
+Invalid first campaign
+----------------------
+Micro/Program.cs originally omitted MemoryArena.Seal before disposal. The
+arena contract deliberately abandons unsealed pages/tables, creating large
+unrelated LOH garbage on every prepared request. Ten timing launches completed
+with large GC stalls; the first allocation launch stopped on the zero-GC guard.
+Those results are invalid for normal warm-lifecycle interpretation and retained
+under invalid-lifecycle, not discarded or mixed into the corrected comparison.
+The historical failing allocation case and exact cause are unknown because its
+original diagnostics did not record them. Correcting Seal made all subsequent
+regions pass, without a speculative GC-policy change.
+
+Root and C3 independently confirmed the lifecycle contract before authorizing
+one separately identified corrected campaign. MicroCorrected preserves normal
+Seal-before-Clean behavior, adds per-case diagnostics outside measured regions,
+and keeps the same candidates, sizes, settings and independent launch order.
+All original sources and frozen identities remain available.
