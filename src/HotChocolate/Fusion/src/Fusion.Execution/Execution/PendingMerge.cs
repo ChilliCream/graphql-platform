@@ -77,7 +77,6 @@ internal readonly struct PendingMerge
         string schemaName,
         SelectionPath sourcePath,
         ResultSelectionSet resultSelectionSet,
-        ImmutableArray<VariableValues> variableValueSets,
         RepresentationValue representation,
         SourceSchemaResult result,
         bool containsErrors)
@@ -86,7 +85,7 @@ internal readonly struct PendingMerge
             schemaName,
             sourcePath,
             resultSelectionSet,
-            variableValueSets,
+            variableValueSets: default,
             containsErrors,
             PendingMergeKind.Representation,
             result,
@@ -156,7 +155,12 @@ internal readonly struct PendingMerge
     /// would have populated.
     /// </summary>
     public void AddErrors(OperationPlanContext context, Exception exception)
-        => context.AddErrors(exception, VariableValueSets, ResultSelectionSet);
+        => context.AddErrors(
+            exception,
+            _kind is PendingMergeKind.Representation
+                ? _representation.ToVariableValues()
+                : VariableValueSets,
+            ResultSelectionSet);
 
     public void DisposeUnmerged()
     {

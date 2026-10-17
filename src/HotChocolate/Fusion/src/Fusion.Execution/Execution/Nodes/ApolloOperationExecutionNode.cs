@@ -205,7 +205,6 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
             return ExecutionStatus.Skipped;
         }
 
-        var variables = representation.ToVariableValues();
         var schemaName = _schemaName;
 
         // The combined representations object must be the request's single
@@ -265,7 +264,7 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
             diagnosticEvents.SourceSchemaTransportError(context, this, schemaName, exception);
             result?.Dispose();
 
-            context.AddErrors(exception, variables, _resultSelectionSet);
+            context.AddErrors(exception, representation.ToVariableValues(), _resultSelectionSet);
             return ExecutionStatus.Failed;
         }
 
@@ -281,7 +280,6 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
                     schemaName,
                     s_entitiesSource,
                     _resultSelectionSet,
-                    variables,
                     representation,
                     result,
                     hasSomeErrors);
@@ -319,7 +317,7 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
             }
 
             diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
-            context.AddErrors(exception, variables, _resultSelectionSet);
+            context.AddErrors(exception, representation.ToVariableValues(), _resultSelectionSet);
             return ExecutionStatus.Failed;
         }
 
