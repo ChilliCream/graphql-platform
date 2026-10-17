@@ -1,0 +1,72 @@
+{
+  "utc": "2026-10-17T17:58:41.256401+00:00",
+  "reviewer": "execution_discovery",
+  "identities": [
+    {
+      "label": "01-benchmark-B",
+      "identity": {
+        "pid": 170900,
+        "startTicks": 838467
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "02-benchmark-C4",
+      "identity": {
+        "pid": 171042,
+        "startTicks": 839464
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "03-benchmark-B",
+      "identity": {
+        "pid": 171177,
+        "startTicks": 840459
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "04-benchmark-C4",
+      "identity": {
+        "pid": 171351,
+        "startTicks": 841455
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "05-benchmark-B",
+      "identity": {
+        "pid": 171587,
+        "startTicks": 842451
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "06-allocation-B",
+      "identity": {
+        "pid": 171738,
+        "startTicks": 843467
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "07-allocation-C4",
+      "identity": {
+        "pid": 171910,
+        "startTicks": 844558
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    }
+  ],
+  "lockFree": true,
+  "nativeCompleted": 5,
+  "terminalStatus": "failed"
+}

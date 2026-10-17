@@ -1,0 +1,63 @@
+{
+  "utc": "2026-10-17T17:58:33.382857+00:00",
+  "identities": [
+    {
+      "label": "01-benchmark-B",
+      "identity": {
+        "pid": 170900,
+        "startTicks": 838467
+      },
+      "alive": false
+    },
+    {
+      "label": "02-benchmark-C4",
+      "identity": {
+        "pid": 171042,
+        "startTicks": 839464
+      },
+      "alive": false
+    },
+    {
+      "label": "03-benchmark-B",
+      "identity": {
+        "pid": 171177,
+        "startTicks": 840459
+      },
+      "alive": false
+    },
+    {
+      "label": "04-benchmark-C4",
+      "identity": {
+        "pid": 171351,
+        "startTicks": 841455
+      },
+      "alive": false
+    },
+    {
+      "label": "05-benchmark-B",
+      "identity": {
+        "pid": 171587,
+        "startTicks": 842451
+      },
+      "alive": false
+    },
+    {
+      "label": "06-allocation-B",
+      "identity": {
+        "pid": 171738,
+        "startTicks": 843467
+      },
+      "alive": false
+    },
+    {
+      "label": "07-allocation-C4",
+      "identity": {
+        "pid": 171910,
+        "startTicks": 844558
+      },
+      "alive": false
+    }
+  ],
+  "lockFree": true,
+  "serial": true
+}

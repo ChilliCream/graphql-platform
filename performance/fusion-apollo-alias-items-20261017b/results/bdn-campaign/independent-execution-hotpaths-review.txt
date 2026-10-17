@@ -1,0 +1,11 @@
+Independent C4 review, 2026-10-17
+
+Recommendation: ABANDON, no VU or measurement retry. Allocation-only gains remain acceptable; this candidate does not establish a reliable favorable full tradeoff on its common two-item alias path.
+
+Independently recomputed all 12 retained WorkloadResult observations per case from five raw native full JSON reports. Alias2 elapsed first candidate is +2.829%/+2.820% versus both adjacent controls; second is +2.636%/-0.351%. Three comparisons cost approximately 71-76 ns per operation while native MemoryDiagnoser saves 154-160 bytes. Alias-sequence10 improves against all adjacent controls by 2.535-5.316%; its first candidate native allocation is anomalous at 219,926 B versus baseline approximately 14,624 B, while second candidate is 13,840 B. All values retained.
+
+Ordinary first candidate is -1.444%/+1.029%; second is +64.027%/+55.337%, with standard deviation 1,825 ns and mean 2,472.8 ns versus adjacent controls 1,507.5/1,591.9 ns. This cannot be silently trimmed or asserted to be patch-caused. It leaves full unaffected-path tradeoff unresolved.
+
+Separate fixed-policy valid blocks support approximately 160 B per alias2 and 784 B per four-batch sequence savings. Final C4 sequence block failed its before calibration by +4,656 process bytes; it is excluded from valid allocation conclusions but preserved. The campaign correctly fail-stopped and did not run closing baseline allocation. No allocation retry requested.
+
+Native measurements are elapsed time, not measured process CPU. This decision does not require speedup when reliable allocation savings have no meaningful cost; here the common alias2 elapsed trend, incomplete corroboration and unresolved unaffected observation do not justify further real VU spending.

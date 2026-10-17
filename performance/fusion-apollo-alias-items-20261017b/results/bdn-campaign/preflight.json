@@ -1,0 +1,97 @@
+{
+  "utc": "2026-10-17T17:57:08.848586+00:00",
+  "lockFree": true,
+  "processes": {
+    "108014": {
+      "comm": "MSBuild",
+      "ticks": 3584,
+      "startTicks": 638464,
+      "deltaTicks": 0
+    },
+    "108096": {
+      "comm": "MSBuild",
+      "ticks": 1244,
+      "startTicks": 638519,
+      "deltaTicks": 0
+    },
+    "108099": {
+      "comm": "MSBuild",
+      "ticks": 1174,
+      "startTicks": 638519,
+      "deltaTicks": 0
+    },
+    "108101": {
+      "comm": "MSBuild",
+      "ticks": 1151,
+      "startTicks": 638519,
+      "deltaTicks": 0
+    },
+    "108105": {
+      "comm": "MSBuild",
+      "ticks": 1156,
+      "startTicks": 638519,
+      "deltaTicks": 0
+    },
+    "108106": {
+      "comm": "MSBuild",
+      "ticks": 1171,
+      "startTicks": 638519,
+      "deltaTicks": 0
+    },
+    "108304": {
+      "comm": "MSBuild",
+      "ticks": 1162,
+      "startTicks": 638563,
+      "deltaTicks": 0
+    },
+    "108358": {
+      "comm": "MSBuild",
+      "ticks": 1120,
+      "startTicks": 638574,
+      "deltaTicks": 0
+    },
+    "108376": {
+      "comm": "MSBuild",
+      "ticks": 1118,
+      "startTicks": 638582,
+      "deltaTicks": 0
+    },
+    "108698": {
+      "comm": "VBCSCompiler",
+      "ticks": 40197,
+      "startTicks": 638933,
+      "deltaTicks": 0
+    },
+    "122247": {
+      "comm": "MSBuild",
+      "ticks": 929,
+      "startTicks": 673913,
+      "deltaTicks": 0
+    },
+    "122248": {
+      "comm": "MSBuild",
+      "ticks": 949,
+      "startTicks": 673913,
+      "deltaTicks": 0
+    },
+    "145375": {
+      "comm": "MSBuild",
+      "ticks": 770,
+      "startTicks": 731290,
+      "deltaTicks": 0
+    },
+    "151210": {
+      "comm": "MSBuild",
+      "ticks": 495,
+      "startTicks": 779001,
+      "deltaTicks": 0
+    },
+    "162619": {
+      "comm": "MSBuild",
+      "ticks": 423,
+      "startTicks": 823190,
+      "deltaTicks": 0
+    }
+  },
+  "unexpectedActive": []
+}
