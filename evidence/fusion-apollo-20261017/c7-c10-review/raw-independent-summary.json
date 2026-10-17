@@ -1,0 +1,583 @@
+[
+  {
+    "launch": "05-benchmark-B",
+    "cases": {
+      "Shape=known128": {
+        "mean": 753.1425833333333,
+        "sd": 222.6086298990627,
+        "lateEarly": 1.0603963166213444,
+        "memory": {
+          "Gen0Collections": 0,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 1000,
+          "BytesAllocatedPerOperation": 1192
+        },
+        "allSamples": [
+          613.836,
+          641.545,
+          781.879,
+          643.253,
+          660.712,
+          1423.59,
+          813.92,
+          666.753,
+          631.92,
+          652.503,
+          810.088,
+          697.712
+        ]
+      },
+      "Shape=unknown32768": {
+        "mean": 3297.7110000000002,
+        "sd": 93.6937798100328,
+        "lateEarly": 0.9963868621265237,
+        "memory": {
+          "Gen0Collections": 0,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 1000,
+          "BytesAllocatedPerOperation": 1427
+        },
+        "allSamples": [
+          3205.933,
+          3339.35,
+          3245.099,
+          3347.934,
+          3265.974,
+          3312.891,
+          3448.768,
+          3230.475,
+          3421.1,
+          3217.183,
+          3389.684,
+          3148.141
+        ]
+      },
+      "Shape=unknown4096": {
+        "mean": 1209.3221666666666,
+        "sd": 88.29957173306349,
+        "lateEarly": 1.0246336389371584,
+        "memory": {
+          "Gen0Collections": 0,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 1000,
+          "BytesAllocatedPerOperation": 1281
+        },
+        "allSamples": [
+          1168.0055,
+          1324.5475,
+          1172.9225,
+          1188.6725,
+          1094.2145,
+          1320.7575,
+          1165.0895,
+          1166.5895,
+          1155.2975,
+          1396.1735,
+          1178.3815,
+          1181.2145
+        ]
+      }
+    }
+  },
+  {
+    "launch": "06-benchmark-C7",
+    "cases": {
+      "Shape=known128": {
+        "mean": 728.6245833333334,
+        "sd": 213.74304561252913,
+        "lateEarly": 0.9296253197220072,
+        "memory": {
+          "Gen0Collections": 0,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 1000,
+          "BytesAllocatedPerOperation": 1192
+        },
+        "allSamples": [
+          819.92,
+          626.836,
+          632.003,
+          635.627,
+          629.877,
+          1370.006,
+          815.962,
+          636.669,
+          644.128,
+          635.378,
+          647.586,
+          649.503
+        ]
+      },
+      "Shape=unknown32768": {
+        "mean": 2367.4945,
+        "sd": 83.64724664870386,
+        "lateEarly": 1.0032773957623122,
+        "memory": {
+          "Gen0Collections": 0,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 1000,
+          "BytesAllocatedPerOperation": 1099
+        },
+        "allSamples": [
+          2288.012,
+          2362.512,
+          2354.428,
+          2506.679,
+          2274.053,
+          2305.72,
+          2377.137,
+          2376.262,
+          2537.221,
+          2271.553,
+          2386.012,
+          2370.345
+        ]
+      },
+      "Shape=unknown4096": {
+        "mean": 841.5809166666667,
+        "sd": 73.25705386136525,
+        "lateEarly": 1.0243849943271714,
+        "memory": {
+          "Gen0Collections": 0,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 1000,
+          "BytesAllocatedPerOperation": 955
+        },
+        "allSamples": [
+          821.463,
+          795.796,
+          831.255,
+          986.4219999999999,
+          802.171,
+          755.296,
+          803.504,
+          802.171,
+          992.6720000000001,
+          851.129,
+          838.171,
+          818.921
+        ]
+      }
+    }
+  },
+  {
+    "launch": "07-benchmark-C10",
+    "cases": {
+      "Shape=known128": {
+        "mean": 744.8855833333333,
+        "sd": 222.38741499973676,
+        "lateEarly": 1.0550043457719975,
+        "memory": {
+          "Gen0Collections": 0,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 1000,
+          "BytesAllocatedPerOperation": 1192
+        },
+        "allSamples": [
+          640.7115,
+          629.2115,
+          638.2535,
+          638.3785,
+          832.6705,
+          1418.1315,
+          659.1705,
+          657.0445,
+          811.9205,
+          661.7535,
+          681.2115,
+          670.1695
+        ]
+      },
+      "Shape=unknown32768": {
+        "mean": 3021.9735833333334,
+        "sd": 89.99887768841481,
+        "lateEarly": 1.0070570042752214,
+        "memory": {
+          "Gen0Collections": 0,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 1000,
+          "BytesAllocatedPerOperation": 1139
+        },
+        "allSamples": [
+          3038.974,
+          2937.598,
+          3092.432,
+          2942.223,
+          3122.849,
+          2911.39,
+          2978.181,
+          3134.433,
+          2972.599,
+          3091.265,
+          2906.515,
+          3135.224
+        ]
+      },
+      "Shape=unknown4096": {
+        "mean": 935.6128333333334,
+        "sd": 70.42561897986391,
+        "lateEarly": 0.9249065605875818,
+        "memory": {
+          "Gen0Collections": 0,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 1000,
+          "BytesAllocatedPerOperation": 1139
+        },
+        "allSamples": [
+          929.255,
+          934.38,
+          1081.589,
+          862.214,
+          895.213,
+          907.63,
+          906.422,
+          909.672,
+          1076.922,
+          882.422,
+          902.88,
+          938.755
+        ]
+      }
+    }
+  },
+  {
+    "launch": "08-benchmark-B",
+    "cases": {
+      "Shape=known128": {
+        "mean": 752.02125,
+        "sd": 211.2599953784328,
+        "lateEarly": 1.0959274875640492,
+        "memory": {
+          "Gen0Collections": 0,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 1000,
+          "BytesAllocatedPerOperation": 1192
+        },
+        "allSamples": [
+          655.1915,
+          659.2325,
+          657.9825,
+          656.5245,
+          820.6505,
+          1393.6525,
+          668.1495,
+          684.2745,
+          666.9825,
+          676.5245,
+          825.7745,
+          659.3155
+        ]
+      },
+      "Shape=unknown32768": {
+        "mean": 3258.4086666666667,
+        "sd": 77.9969841239022,
+        "lateEarly": 0.9853937837004143,
+        "memory": {
+          "Gen0Collections": 0,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 1000,
+          "BytesAllocatedPerOperation": 1427
+        },
+        "allSamples": [
+          3198.725,
+          3286.892,
+          3424.684,
+          3173.682,
+          3219.433,
+          3244.849,
+          3371.058,
+          3202.808,
+          3213.224,
+          3219.641,
+          3328.933,
+          3216.975
+        ]
+      },
+      "Shape=unknown4096": {
+        "mean": 999.2730833333334,
+        "sd": 66.73369449666518,
+        "lateEarly": 0.9313863524851067,
+        "memory": {
+          "Gen0Collections": 0,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 1000,
+          "BytesAllocatedPerOperation": 1280
+        },
+        "allSamples": [
+          1167.09,
+          989.381,
+          967.922,
+          973.797,
+          984.0049999999999,
+          967.881,
+          1109.131,
+          971.381,
+          950.672,
+          973.381,
+          974.672,
+          961.964
+        ]
+      }
+    }
+  },
+  {
+    "launch": "09-benchmark-C10",
+    "cases": {
+      "Shape=known128": {
+        "mean": 783.1525833333334,
+        "sd": 260.4949515781826,
+        "lateEarly": 1.0055927340096247,
+        "memory": {
+          "Gen0Collections": 0,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 1000,
+          "BytesAllocatedPerOperation": 1192
+        },
+        "allSamples": [
+          876.878,
+          676.086,
+          660.086,
+          667.086,
+          683.962,
+          1576.048,
+          685.878,
+          675.711,
+          670.669,
+          857.712,
+          691.295,
+          676.42
+        ]
+      },
+      "Shape=unknown32768": {
+        "mean": 3023.7198333333336,
+        "sd": 82.13483497089989,
+        "lateEarly": 0.9721384282748854,
+        "memory": {
+          "Gen0Collections": 0,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 1000,
+          "BytesAllocatedPerOperation": 1139
+        },
+        "allSamples": [
+          2950.4725,
+          3104.8485,
+          3095.5985,
+          2940.5565,
+          3052.8075,
+          2921.0145,
+          3094.7235,
+          3080.2235,
+          3148.4325,
+          2921.8895,
+          2955.9315,
+          3018.1395
+        ]
+      },
+      "Shape=unknown4096": {
+        "mean": 928.2788333333333,
+        "sd": 66.88830308103658,
+        "lateEarly": 0.9399264808080474,
+        "memory": {
+          "Gen0Collections": 0,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 1000,
+          "BytesAllocatedPerOperation": 1139
+        },
+        "allSamples": [
+          896.171,
+          1085.172,
+          910.963,
+          899.129,
+          892.713,
+          892.88,
+          897.879,
+          891.213,
+          1054.671,
+          916.421,
+          902.796,
+          899.338
+        ]
+      }
+    }
+  },
+  {
+    "launch": "10-benchmark-C7",
+    "cases": {
+      "Shape=known128": {
+        "mean": 756.1665,
+        "sd": 244.41392707212526,
+        "lateEarly": 1.0194221111998145,
+        "memory": {
+          "Gen0Collections": 0,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 1000,
+          "BytesAllocatedPerOperation": 1192
+        },
+        "allSamples": [
+          635.503,
+          662.669,
+          643.378,
+          639.128,
+          831.879,
+          1493.465,
+          682.836,
+          643.211,
+          862.67,
+          678.962,
+          658.461,
+          641.836
+        ]
+      },
+      "Shape=unknown32768": {
+        "mean": 2312.3625,
+        "sd": 82.76671405440501,
+        "lateEarly": 1.0152979455356888,
+        "memory": {
+          "Gen0Collections": 0,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 1000,
+          "BytesAllocatedPerOperation": 1099
+        },
+        "allSamples": [
+          2282.845,
+          2445.846,
+          2178.511,
+          2270.178,
+          2269.929,
+          2430.471,
+          2301.47,
+          2288.845,
+          2267.387,
+          2297.803,
+          2441.887,
+          2273.178
+        ]
+      },
+      "Shape=unknown4096": {
+        "mean": 845.4178333333333,
+        "sd": 71.53415926335582,
+        "lateEarly": 0.9946699129681955,
+        "memory": {
+          "Gen0Collections": 0,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 1000,
+          "BytesAllocatedPerOperation": 952
+        },
+        "allSamples": [
+          832.5665,
+          821.8165,
+          831.3175,
+          819.2755,
+          820.6925,
+          822.4835,
+          827.0665,
+          1072.1935,
+          825.1505,
+          821.6085,
+          823.7755,
+          827.0675
+        ]
+      }
+    }
+  },
+  {
+    "launch": "11-benchmark-B",
+    "cases": {
+      "Shape=known128": {
+        "mean": 749.9585,
+        "sd": 277.0914754820476,
+        "lateEarly": 1.0072746410194375,
+        "memory": {
+          "Gen0Collections": 0,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 1000,
+          "BytesAllocatedPerOperation": 1192
+        },
+        "allSamples": [
+          654.92,
+          679.003,
+          670.712,
+          655.003,
+          666.67,
+          1629.424,
+          668.795,
+          675.253,
+          680.504,
+          667.212,
+          671.628,
+          680.378
+        ]
+      },
+      "Shape=unknown32768": {
+        "mean": 3326.7044166666665,
+        "sd": 101.23140627606037,
+        "lateEarly": 1.0162937542253845,
+        "memory": {
+          "Gen0Collections": 0,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 1000,
+          "BytesAllocatedPerOperation": 1427
+        },
+        "allSamples": [
+          3359.684,
+          3232.85,
+          3234.974,
+          3391.642,
+          3212.433,
+          3250.475,
+          3479.768,
+          3518.101,
+          3252.891,
+          3355.434,
+          3267.267,
+          3364.934
+        ]
+      },
+      "Shape=unknown4096": {
+        "mean": 988.4186666666667,
+        "sd": 59.87518658970105,
+        "lateEarly": 0.9304090122170349,
+        "memory": {
+          "Gen0Collections": 0,
+          "Gen1Collections": 0,
+          "Gen2Collections": 0,
+          "TotalOperations": 1000,
+          "BytesAllocatedPerOperation": 1280
+        },
+        "allSamples": [
+          1110.506,
+          969.464,
+          967.005,
+          955.38,
+          975.755,
+          983.8389999999998,
+          1107.298,
+          977.2969999999999,
+          979.547,
+          904.755,
+          967.964,
+          962.214
+        ]
+      }
+    }
+  }
+]
