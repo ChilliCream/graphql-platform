@@ -477,6 +477,7 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
             HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
+            await Task.Yield();
             _bodies.Add(await request.Content!.ReadAsStringAsync(cancellationToken));
 
             return new HttpResponseMessage(HttpStatusCode.OK)

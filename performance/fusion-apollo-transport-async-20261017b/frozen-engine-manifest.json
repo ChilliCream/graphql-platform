@@ -1,0 +1,22 @@
+{
+  "baseline": "43a8dca2bd479ddc411d832ed97e42d9fcc8bd85",
+  "frozenEngine": "/workspaces/platform-1/.worktrees/fusion-apollo-transport-async-20261017b/perf/fusion-apollo-transport-async-20261017b-43a8dca2/frozen-engine",
+  "engineFiles": {
+    "HotChocolate.Fusion.Execution.dll": "a5593442501444e2e6964065a5ab9b51666ecd38fbc096f79e67a5a2ce7adf83",
+    "HotChocolate.Fusion.Execution.pdb": "e23572502ccc133aedb0e3dd216fb3f8e81e77b9c332cb7a83343e4865274683"
+  },
+  "sourceFiles": {
+    "src/HotChocolate/AspNetCore/src/Transport.Http/DefaultGraphQLHttpClient.cs": "ae236e1b5a3099967b1def27f05394516d7478abcf07fb0f57aec2645df65743",
+    "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Clients/HttpSourceSchemaClient.AliasBatching.cs": "f78fac9badbde2a708bed1fdf9454a611e20972888cb8fb47b6a03d2de62c6f6",
+    "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Clients/HttpSourceSchemaClient.cs": "5e192c0652064363724287319c70d910a1fb10dde52a448cb5784ee266244425",
+    "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Clients/AliasBatching/AliasBatchRequestSelectionTests.cs": "ed01e1537ef58fa33c405e5638ea43aa1af90683f44eb791a5324b97f9d1d443",
+    "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Clients/BatchBufferTests.cs": "8d89799c74bbc2f2c56372d2b066aec5490ce8d28a96ba676bb44ae084bdb58d",
+    "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Transport/Http/DefaultGraphQLHttpClientAsyncTests.cs": "b660dbf7f5e3c09062ba710a42c7850907d8461ee5152acd81e4ea225c3576eb"
+  },
+  "tests": {
+    "total": 35,
+    "failed": 0,
+    "skipped": 0
+  },
+  "benchmarkFixture": "Source-only draft, not built or measured; derived from C4 6d4409fd with independent review."
+}

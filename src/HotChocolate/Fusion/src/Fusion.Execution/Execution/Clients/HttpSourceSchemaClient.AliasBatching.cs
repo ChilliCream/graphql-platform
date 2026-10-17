@@ -120,7 +120,7 @@ public sealed partial class HttpSourceSchemaClient
 
         try
         {
-            httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
+            httpResponse = await SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
             context.TrackTransport(node, httpRequest.Uri, httpResponse.RawContentType);
 
             var document = await httpResponse

@@ -1,0 +1,8 @@
+C12 heavy-work timestamp disclosure, 2026-10-17 UTC.
+
+Checkout .git modified 17:37:42.719744683; logs/HEAD modified 17:37:46.366270404.
+Layout helper output modified 17:38:00.476384482.
+Initial shared-lock build log last modified 17:39:28.806891768, MSBuild elapsed 8.91 s. Its elapsed duration implies MSBuild began around 17:39:19.897, but this is not an exact process-start or lock-entry timestamp.
+Corrected shared-lock build log last modified 17:39:34.983646709, MSBuild elapsed 1.68 s; test DLL modified 17:39:34.830375137.
+
+All checkout/build/layout commands used the shared /workspaces/platform-1/perf/fusion-common-path.lock. Exact lock-entry timestamps were not recorded. The C6/C8 benchmark owner reports its exclusive campaign ran 17:38:53 to approximately 17:39:12 before failing allocation calibration. Worker received no quiet/grant notification after reporting the final light review and continued C12 work under the shared lock; owner cleanup check briefly encountered the build after campaign lock release. On owner notification, both build sessions were already terminal. Worker then acknowledged quiet pending explicit root release. No overlap or invalidity is inferred from these bounds, and no repeat measurement was requested by this worker.

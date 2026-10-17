@@ -119,7 +119,7 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
                     request.Node,
                     _configuration);
 
-                httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
+                httpResponse = await SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
                 context.TrackTransport(request.Node, httpRequest.Uri, httpResponse.RawContentType);
 
                 var results = ReadAsResultStreamAsync(
@@ -240,7 +240,7 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
             var httpRequest = CreateHttpRequest(context, request, ref buffer);
             SourceSchemaCallbackHelper.ConfigureCallbacks(httpRequest, context, request.Node, _configuration);
 
-            httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
+            httpResponse = await SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
             context.TrackTransport(request.Node, httpRequest.Uri, httpResponse.RawContentType);
 
             // The read timeout bounds the wait for the next bytes of the event stream, keep-alives included.
@@ -344,7 +344,7 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
 
         try
         {
-            httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
+            httpResponse = await SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
             context.TrackTransport(requests[0].Node, httpRequest.Uri, httpResponse.RawContentType);
 
             await foreach (var result in httpResponse.ReadAsResultStreamAsync(arenaSource).WithCancellation(cancellationToken))
@@ -476,6 +476,13 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
             yield return batchResult;
         }
     }
+
+    private ValueTask<GraphQLHttpResponse> SendAsync(
+        GraphQLHttpRequest request,
+        CancellationToken cancellationToken)
+        => _client is DefaultGraphQLHttpClient client && request.Uri is { } requestUri
+            ? client.SendAsync(request, requestUri, cancellationToken)
+            : new ValueTask<GraphQLHttpResponse>(_client.SendAsync(request, cancellationToken));
 
     /// <summary>
     /// Creates the appropriate <see cref="GraphQLHttpRequest"/> for the given request,

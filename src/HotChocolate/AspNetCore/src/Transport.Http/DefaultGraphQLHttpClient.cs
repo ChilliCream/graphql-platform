@@ -7,6 +7,7 @@ using HotChocolate.Language;
 using static System.Net.Http.HttpCompletionOption;
 
 #if FUSION
+using System.Runtime.CompilerServices;
 using HotChocolate.Fusion.Transport.Serialization;
 using HotChocolate.Text.Json;
 using HotChocolate.Transport.Http;
@@ -140,6 +141,37 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
 
         return new GraphQLHttpResponse(responseMessage);
     }
+
+#if FUSION
+    [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder<>))]
+    internal async ValueTask<GraphQLHttpResponse> SendAsync(
+        GraphQLHttpRequest request,
+        Uri requestUri,
+        CancellationToken cancellationToken)
+    {
+        using var arrayWriter = new PooledArrayWriter();
+        using var requestMessage = CreateRequestMessage(arrayWriter, request, requestUri);
+
+        if (request.State is { } state)
+        {
+            request.OnMessageCreated?.Invoke(request, requestMessage, state);
+        }
+
+        requestMessage.Version = _http.DefaultRequestVersion;
+        requestMessage.VersionPolicy = _http.DefaultVersionPolicy;
+
+        var responseMessage = await _http
+            .SendAsync(requestMessage, ResponseHeadersRead, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (request.State is { } receivedState)
+        {
+            request.OnMessageReceived?.Invoke(request, responseMessage, receivedState);
+        }
+
+        return new GraphQLHttpResponse(responseMessage);
+    }
+#endif
 
     private static HttpRequestMessage CreateRequestMessage(
         PooledArrayWriter arrayWriter,

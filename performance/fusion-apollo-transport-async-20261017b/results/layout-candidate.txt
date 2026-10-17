@@ -1,0 +1,52 @@
+{
+  "enginePath": "/workspaces/platform-1/.worktrees/fusion-apollo-transport-async-20261017b/src/HotChocolate/Fusion/src/Fusion.Execution/bin/Release/net10.0/HotChocolate.Fusion.Execution.dll",
+  "engineSha256": "a5593442501444e2e6964065a5ab9b51666ecd38fbc096f79e67a5a2ce7adf83",
+  "runtime": ".NET 10.0.12",
+  "rows": [
+    {
+      "typeName": "DefaultGraphQLHttpClient",
+      "methodName": "SendAsync",
+      "stateMachine": "HotChocolate.Fusion.Transport.Http.DefaultGraphQLHttpClient\u002B\u003CSendAsync\u003Ed__7",
+      "stateSize": 88,
+      "fields": [
+        {
+          "Name": "\u003C\u003E1__state",
+          "type": "System.Int32"
+        },
+        {
+          "Name": "\u003C\u003Et__builder",
+          "type": "System.Runtime.CompilerServices.PoolingAsyncValueTaskMethodBuilder\u00601[[HotChocolate.Fusion.Transport.Http.GraphQLHttpResponse, HotChocolate.Fusion.Execution, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]"
+        },
+        {
+          "Name": "request",
+          "type": "HotChocolate.Fusion.Transport.Http.GraphQLHttpRequest"
+        },
+        {
+          "Name": "requestUri",
+          "type": "System.Uri"
+        },
+        {
+          "Name": "\u003C\u003E4__this",
+          "type": "HotChocolate.Fusion.Transport.Http.DefaultGraphQLHttpClient"
+        },
+        {
+          "Name": "cancellationToken",
+          "type": "System.Threading.CancellationToken"
+        },
+        {
+          "Name": "\u003CarrayWriter\u003E5__2",
+          "type": "HotChocolate.Buffers.PooledArrayWriter"
+        },
+        {
+          "Name": "\u003CrequestMessage\u003E5__3",
+          "type": "System.Net.Http.HttpRequestMessage"
+        },
+        {
+          "Name": "\u003C\u003Eu__1",
+          "type": "System.Runtime.CompilerServices.ConfiguredTaskAwaitable\u00601\u002BConfiguredTaskAwaiter[[System.Net.Http.HttpResponseMessage, System.Net.Http, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a]]"
+        }
+      ]
+    }
+  ],
+  "limitation": "Unsafe.SizeOf reports the generated state struct layout, not boxed object allocation. This audit performs no timing or allocation measurement."
+}

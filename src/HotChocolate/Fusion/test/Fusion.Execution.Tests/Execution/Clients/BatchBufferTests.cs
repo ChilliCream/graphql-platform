@@ -16,14 +16,18 @@ namespace HotChocolate.Fusion.Execution.Clients;
 
 public sealed class BatchBufferTests : FusionTestBase
 {
-    [Fact]
-    public async Task ExecuteBatchStreamAsync_Should_DisposeRequestBuffer_When_StreamIsConsumed()
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task ExecuteBatchStreamAsync_Should_DisposeRequestBuffer_When_StreamIsConsumed(
+        bool customClient,
+        bool missingUri)
     {
         // arrange
         await using var fixture = await BatchBufferTestFixture.CreateAsync();
-        using var graphQLClient = new DefaultGraphQLHttpClient(
-            new HttpClient(new BatchHandler()),
-            disposeInnerClient: true);
+        using var graphQLClient = CreateClient(new BatchHandler(), customClient);
         await using var client = new HttpSourceSchemaClient(
             graphQLClient,
             new HttpSourceSchemaClientConfiguration("A", new Uri("http://localhost:5000/graphql")));
@@ -34,7 +38,7 @@ public sealed class BatchBufferTests : FusionTestBase
             CreateRequest(fixture.RootNode));
         var httpRequest = new GraphQLHttpRequest(CreateBatchRequest())
         {
-            Uri = new Uri("http://localhost:5000/graphql"),
+            Uri = missingUri ? null : new Uri("http://localhost:5000/graphql"),
             AcceptHeaderValue = "application/json",
             OperationKind = OperationType.Query
         };
@@ -69,17 +73,17 @@ public sealed class BatchBufferTests : FusionTestBase
         }
     }
 
-    [Fact]
-    public async Task ExecuteBatchAsync_Should_IsolateFailure_When_OneRequestFailsMidSequence()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ExecuteBatchAsync_Should_IsolateFailure_When_OneRequestFailsMidSequence(bool customClient)
     {
         // arrange
         // Capabilities without request batching force the fallback that sends
         // each request as its own HTTP round-trip, so a single failure must not
         // abort the batch.
         await using var fixture = await BatchBufferTestFixture.CreateAsync();
-        using var graphQLClient = new DefaultGraphQLHttpClient(
-            new HttpClient(new SelectiveFailureHandler()),
-            disposeInnerClient: true);
+        using var graphQLClient = CreateClient(new SelectiveFailureHandler(), customClient);
         await using var client = new HttpSourceSchemaClient(
             graphQLClient,
             new HttpSourceSchemaClientConfiguration(
@@ -109,6 +113,23 @@ public sealed class BatchBufferTests : FusionTestBase
         Assert.Equal(new[] { "0:a", "2:c" }, produced);
         Assert.True(context.TryGetBatchRequestError(fixture.RootNode, 1, out var recordedError));
         Assert.IsType<HttpRequestException>(recordedError);
+    }
+
+    private static GraphQLHttpClient CreateClient(HttpMessageHandler handler, bool customClient)
+    {
+        var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000/graphql") };
+        var client = new DefaultGraphQLHttpClient(httpClient, disposeInnerClient: true);
+        return customClient ? new CustomClient(client) : client;
+    }
+
+    private sealed class CustomClient(DefaultGraphQLHttpClient client) : GraphQLHttpClient
+    {
+        public override Task<GraphQLHttpResponse> SendAsync(
+            GraphQLHttpRequest request,
+            CancellationToken cancellationToken = default)
+            => client.SendAsync(request, cancellationToken);
+
+        protected override void Dispose(bool disposing) => client.Dispose();
     }
 
     private static SourceSchemaClientRequest CreateRequest(ExecutionNode node)
@@ -255,10 +276,11 @@ public sealed class BatchBufferTests : FusionTestBase
     {
         private int _callCount;
 
-        protected override Task<HttpResponseMessage> SendAsync(
+        protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
+            await Task.Yield();
             var call = Interlocked.Increment(ref _callCount);
 
             if (call == 2)
@@ -276,16 +298,17 @@ public sealed class BatchBufferTests : FusionTestBase
                     "application/json")
             };
 
-            return Task.FromResult(response);
+            return response;
         }
     }
 
     private sealed class BatchHandler : HttpMessageHandler
     {
-        protected override Task<HttpResponseMessage> SendAsync(
+        protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
+            await Task.Yield();
             var response = new HttpResponseMessage(System.Net.HttpStatusCode.OK)
             {
                 Content = new StringContent(
@@ -309,7 +332,7 @@ public sealed class BatchBufferTests : FusionTestBase
                     "application/json")
             };
 
-            return Task.FromResult(response);
+            return response;
         }
     }
 }
