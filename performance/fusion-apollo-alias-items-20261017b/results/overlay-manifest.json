@@ -1,0 +1,20 @@
+{
+  "baseline": "43a8dca2bd479ddc411d832ed97e42d9fcc8bd85",
+  "production_files": [
+    "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Clients/HttpSourceSchemaClient.AliasBatching.cs"
+  ],
+  "runtime": "10.0.12",
+  "configuration": "Release",
+  "framework": "net10.0",
+  "files": {
+    "HotChocolate.Fusion.Execution.dll": "d6ff7da5e203adeebb888c02c5b37965b3bac749ba8b359523f9d78d85cb1180",
+    "production.patch": "c55a4345d0ef055da9fc768db37631be4b72c7e34a26daa75b828f297b356876",
+    "HotChocolate.Fusion.Execution.pdb": "63f969a48cddbe6a0c4f55a85b02415a41a98d66422108a46a669932df2a8faa"
+  },
+  "focused_tests": {
+    "passed": 44,
+    "failed": 0,
+    "source": "results/alias-tests.xml"
+  },
+  "measurements": "none; exact-engine overlay ready for independent BDN preparation"
+}

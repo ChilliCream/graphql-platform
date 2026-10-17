@@ -1,0 +1,1 @@
+Intended check-only verify-fixed accidentally dispatched allocation mode due an overly broad source edit. This unauthorized shared-lock run is excluded from candidate evidence. It stopped at the first process-calibration mismatch. No timing or performance acceptance claim is made; no measurement retry is authorized. Full source and output are retained.

@@ -1,0 +1,19 @@
+{
+  "command": [
+    "dotnet",
+    "test",
+    "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/HotChocolate.Fusion.Execution.Tests.csproj",
+    "-c",
+    "Release",
+    "--no-restore",
+    "--no-launch-profile",
+    "--disable-build-servers",
+    "-p:UseSharedCompilation=false",
+    "--",
+    "--filter-class",
+    "*AliasBatch*"
+  ],
+  "started": "2026-10-17T17:23:19.975550+00:00",
+  "finished": "2026-10-17T17:23:25.683043+00:00",
+  "exit_code": 5
+}

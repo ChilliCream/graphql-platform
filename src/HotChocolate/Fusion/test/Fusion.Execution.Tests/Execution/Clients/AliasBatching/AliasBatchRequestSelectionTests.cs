@@ -222,6 +222,104 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
         Assert.Throws<ObjectDisposedException>(() => root.GetProperty("field").GetString());
     }
 
+    [Fact]
+    public async Task ExecuteBatchAsync_Should_PreserveRequestIndices_When_AliasStreamsOverlap()
+    {
+        // arrange
+        await using var fixture = await Fixture.CreateAsync(SourceSchemaClientCapabilities.AliasBatching);
+        var request = fixture.CreateLookupRequest();
+        await using var first = fixture.ReadBatch(
+            [request with { Variables = [request.Variables[0]] },
+                request with { Variables = [request.Variables[1]] }],
+            TestContext.Current.CancellationToken).GetAsyncEnumerator(TestContext.Current.CancellationToken);
+        var indices = new List<int>();
+        var values = new List<string?>();
+
+        // act
+        Assert.True(await first.MoveNextAsync());
+        indices.Add(first.Current.RequestIndex);
+        values.Add(first.Current.Result.LookupData!.Value.GetProperty("field").GetString());
+        first.Current.Result.Dispose();
+        var nested = await fixture.SendBatchAsync([request]);
+        while (await first.MoveNextAsync())
+        {
+            indices.Add(first.Current.RequestIndex);
+            values.Add(first.Current.Result.LookupData!.Value.GetProperty("field").GetString());
+            first.Current.Result.Dispose();
+        }
+
+        // assert
+        Assert.Equal([0, 1], indices);
+        Assert.Equal(["A", "B"], values);
+        Assert.Equal([0, 0], nested);
+    }
+
+    [Fact]
+    public async Task ExecuteBatchAsync_Should_SendNextBatch_When_PreviousSendWasCanceled()
+    {
+        // arrange
+        await using var fixture = await Fixture.CreateAsync(SourceSchemaClientCapabilities.AliasBatching);
+        var request = fixture.CreateLookupRequest();
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+
+        // act
+        await using (var canceled = fixture.ReadBatch([request], cancellation.Token).GetAsyncEnumerator(TestContext.Current.CancellationToken))
+        {
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(
+                () => canceled.MoveNextAsync().AsTask());
+        }
+        var indices = await fixture.SendBatchAsync([request]);
+
+        // assert
+        Assert.Equal([0, 0], indices);
+        ReadVariables(fixture.Body).MatchInlineSnapshot(
+            """{"_0___fusion_1_id":"1","_1___fusion_1_id":"2"}""");
+    }
+
+    [Theory]
+    [InlineData(1024)]
+    [InlineData(1025)]
+    public async Task ExecuteAsync_Should_SerializeEveryVariable_When_BatchIsLarge(int count)
+    {
+        // arrange
+        await using var fixture = await Fixture.CreateAsync(SourceSchemaClientCapabilities.AliasBatching);
+        var request = fixture.CreateLookupRequest() with
+        {
+            Variables = Enumerable.Range(0, count)
+                .Select(i => fixture.CreateVariableValues(i.ToString()))
+                .ToImmutableArray()
+        };
+
+        // act
+        var body = await fixture.SendAsync(request);
+
+        // assert
+        using var document = JsonDocument.Parse(body);
+        var variables = document.RootElement.GetProperty("variables");
+        Assert.Equal(count, variables.EnumerateObject().Count());
+        Assert.Equal("0", variables.GetProperty("_0___fusion_1_id").GetString());
+        Assert.Equal((count - 1).ToString(),
+            variables.GetProperty($"_{count - 1}___fusion_1_id").GetString());
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_PreserveRequestBody_When_CustomClientRetainsIt()
+    {
+        // arrange
+        await using var fixture = await Fixture.CreateWithRetainingClientAsync();
+
+        // act
+        var sent = await fixture.SendAsync(fixture.CreateLookupRequest());
+        using var buffer = new PooledArrayWriter();
+        var writer = new HotChocolate.Text.Json.JsonWriter(buffer, default, default);
+        fixture.RetainedRequest!.Body.WriteTo(writer);
+        var retained = Encoding.UTF8.GetString(buffer.WrittenSpan);
+
+        // assert
+        Assert.Equal(sent, retained);
+    }
+
     private static OperationSourceText CreateSourceText(string sourceText)
     {
         var value = Encoding.UTF8.GetBytes(sourceText);
@@ -258,6 +356,7 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
         private readonly Utf8OperationDocument _twoRootFieldDocument = ParseLookup(TwoRootFieldLookup);
         private readonly CapturingHandler _handler = new();
         private readonly HttpSourceSchemaClient _client;
+        private readonly RetainingClient? _retainingClient;
         private readonly List<OperationPlanContext> _contexts = [];
         private readonly List<CancellationTokenSource> _ctsList = [];
         private readonly List<(ObjectPool<PooledRequestContext> Pool, PooledRequestContext Context)>
@@ -268,13 +367,21 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
             IRequestExecutor executor,
             OperationPlan operationPlan,
             SourceSchemaClientCapabilities capabilities,
-            ErrorHandlingMode? onError)
+            ErrorHandlingMode? onError,
+            bool retainRequestBody)
         {
             _services = services;
             _executor = executor;
             _operationPlan = operationPlan;
+            GraphQLHttpClient client = new DefaultGraphQLHttpClient(
+                new HttpClient(_handler), disposeInnerClient: true);
+            if (retainRequestBody)
+            {
+                _retainingClient = new RetainingClient(client);
+                client = _retainingClient;
+            }
             _client = new HttpSourceSchemaClient(
-                new DefaultGraphQLHttpClient(new HttpClient(_handler), disposeInnerClient: true),
+                client,
                 new HttpSourceSchemaClientConfiguration(
                     "A",
                     new Uri("http://localhost:5000/graphql"),
@@ -282,9 +389,20 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
                     onError: onError));
         }
 
-        public static async Task<Fixture> CreateAsync(
+        public GraphQLHttpRequest? RetainedRequest => _retainingClient?.Request;
+
+        public static Task<Fixture> CreateAsync(
             SourceSchemaClientCapabilities capabilities,
             ErrorHandlingMode? onError = null)
+            => CreateAsync(capabilities, onError, false);
+
+        public static Task<Fixture> CreateWithRetainingClientAsync()
+            => CreateAsync(SourceSchemaClientCapabilities.AliasBatching, null, true);
+
+        private static async Task<Fixture> CreateAsync(
+            SourceSchemaClientCapabilities capabilities,
+            ErrorHandlingMode? onError,
+            bool retainRequestBody)
         {
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddHttpClient();
@@ -304,7 +422,7 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
             var schema = (FusionSchemaDefinition)executor.Schema;
             var operationPlan = PlanOperation(schema, "{ field }");
 
-            return new Fixture(services, executor, operationPlan, capabilities, onError);
+            return new Fixture(services, executor, operationPlan, capabilities, onError, retainRequestBody);
         }
 
         /// <summary>
@@ -411,6 +529,12 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
             return requestIndices;
         }
 
+        public IAsyncEnumerable<SourceSchemaBatchResult> ReadBatch(
+            ImmutableArray<SourceSchemaClientRequest> requests,
+            CancellationToken cancellationToken)
+            => _client.ExecuteBatchAsync(
+                CreateContext(VariableValueCollection.Empty), requests, cancellationToken);
+
         private OperationPlanContext CreateContext(VariableValueCollection variables)
         {
             var contextPool = _executor.Schema.Services.GetRequiredService<OperationPlanContextPool>();
@@ -464,6 +588,27 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
             _twoRootFieldDocument.Dispose();
             _memory.Dispose();
             await _services.DisposeAsync();
+        }
+    }
+
+    private sealed class RetainingClient(GraphQLHttpClient inner) : GraphQLHttpClient
+    {
+        public GraphQLHttpRequest? Request { get; private set; }
+
+        public override Task<GraphQLHttpResponse> SendAsync(
+            GraphQLHttpRequest request,
+            CancellationToken cancellationToken)
+        {
+            Request = request;
+            return inner.SendAsync(request, cancellationToken);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                inner.Dispose();
+            }
         }
     }
 

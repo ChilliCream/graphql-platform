@@ -1,0 +1,13 @@
+{
+  "command": [
+    "dotnet",
+    "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/bin/Release/net10.0/HotChocolate.Fusion.Execution.Tests.dll",
+    "-class",
+    "*AliasBatch*",
+    "-result-xml",
+    "/workspaces/platform-1/.worktrees/fusion-apollo-alias-items-20261017b/performance/fusion-apollo-alias-items-20261017b/results/alias-tests.xml"
+  ],
+  "started": "2026-10-17T17:24:07.457683+00:00",
+  "finished": "2026-10-17T17:24:08.349548+00:00",
+  "exit_code": 0
+}

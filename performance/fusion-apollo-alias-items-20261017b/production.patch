@@ -1,0 +1,144 @@
+diff --git a/src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Clients/HttpSourceSchemaClient.AliasBatching.cs b/src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Clients/HttpSourceSchemaClient.AliasBatching.cs
+index 8171c7f98f..8d9af36460 100644
+--- a/src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Clients/HttpSourceSchemaClient.AliasBatching.cs
++++ b/src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Clients/HttpSourceSchemaClient.AliasBatching.cs
+@@ -12,6 +12,8 @@ namespace HotChocolate.Fusion.Execution.Clients;
+ 
+ public sealed partial class HttpSourceSchemaClient
+ {
++    private const int MaxPooledAliasBatchItemCount = 1024;
++
+     private static ReadOnlySpan<byte> ErrorsProperty => "errors"u8;
+ 
+     /// <summary>
+@@ -24,15 +26,26 @@ public sealed partial class HttpSourceSchemaClient
+         [EnumeratorCancellation] CancellationToken cancellationToken)
+     {
+         var requests = ImmutableArray.Create(request);
+-        var items = new AliasBatchItem[request.Variables.Length];
+-        var sharedVariables = new List<Utf8VariableDefinitionNode>();
+-        var itemCount = CollectItems(requests, items, sharedVariables);
++        var items = RentAliasBatchItems(request.Variables.Length, out var pooled);
+ 
+-        await foreach (var result in ExecuteAliasBatchStreamAsync(
+-            context, requests, items, itemCount, sharedVariables, cancellationToken)
+-            .WithCancellation(cancellationToken).ConfigureAwait(false))
++        try
++        {
++            var sharedVariables = new List<Utf8VariableDefinitionNode>();
++            var itemCount = CollectItems(requests, items, sharedVariables);
++
++            await foreach (var result in ExecuteAliasBatchStreamAsync(
++                context, requests, items, itemCount, sharedVariables, cancellationToken)
++                .WithCancellation(cancellationToken).ConfigureAwait(false))
++            {
++                yield return result.Result;
++            }
++        }
++        finally
+         {
+-            yield return result.Result;
++            if (pooled)
++            {
++                ArrayPool<AliasBatchItem>.Shared.Return(items, clearArray: true);
++            }
+         }
+     }
+ 
+@@ -45,48 +58,69 @@ public sealed partial class HttpSourceSchemaClient
+         ImmutableArray<SourceSchemaClientRequest> requests,
+         [EnumeratorCancellation] CancellationToken cancellationToken)
+     {
+-        var items = new AliasBatchItem[CountVariableSets(requests)];
+-        var sharedVariables = new List<Utf8VariableDefinitionNode>();
+-        var itemCount = CollectItems(requests, items, sharedVariables);
++        var items = RentAliasBatchItems(CountVariableSets(requests), out var pooled);
+ 
+-        // A batch that merges fewer than two items gains nothing from the alias protocol, so
+-        // every request stays on the protocol the source schema natively supports.
+-        if (itemCount < 2)
++        try
+         {
+-            await foreach (var result in ExecuteBatchWithNativeProtocolAsync(
+-                context, requests, cancellationToken)
++            var sharedVariables = new List<Utf8VariableDefinitionNode>();
++            var itemCount = CollectItems(requests, items, sharedVariables);
++
++            // A batch that merges fewer than two items gains nothing from the alias protocol, so
++            // every request stays on the protocol the source schema natively supports.
++            if (itemCount < 2)
++            {
++                await foreach (var result in ExecuteBatchWithNativeProtocolAsync(
++                    context, requests, cancellationToken)
++                    .WithCancellation(cancellationToken).ConfigureAwait(false))
++                {
++                    yield return result;
++                }
++
++                yield break;
++            }
++
++            await foreach (var result in ExecuteAliasBatchStreamAsync(
++                context, requests, items, itemCount, sharedVariables, cancellationToken)
+                 .WithCancellation(cancellationToken).ConfigureAwait(false))
+             {
+                 yield return result;
+             }
+ 
+-            yield break;
+-        }
++            // A request that cannot join the batch, for example because it uploads files, is sent on
++            // its own so that the remaining requests still share one round-trip.
++            for (var i = 0; i < requests.Length; i++)
++            {
++                if (CanAliasBatch(requests[i], out _, out _))
++                {
++                    continue;
++                }
+ 
+-        await foreach (var result in ExecuteAliasBatchStreamAsync(
+-            context, requests, items, itemCount, sharedVariables, cancellationToken)
+-            .WithCancellation(cancellationToken).ConfigureAwait(false))
+-        {
+-            yield return result;
++                await foreach (var result in ExecuteIsolatedAsync(context, requests[i], i, cancellationToken)
++                    .WithCancellation(cancellationToken).ConfigureAwait(false))
++                {
++                    yield return result;
++                }
++            }
+         }
+-
+-        // A request that cannot join the batch, for example because it uploads files, is sent on
+-        // its own so that the remaining requests still share one round-trip.
+-        for (var i = 0; i < requests.Length; i++)
++        finally
+         {
+-            if (CanAliasBatch(requests[i], out _, out _))
++            if (pooled)
+             {
+-                continue;
+-            }
+-
+-            await foreach (var result in ExecuteIsolatedAsync(context, requests[i], i, cancellationToken)
+-                .WithCancellation(cancellationToken).ConfigureAwait(false))
+-            {
+-                yield return result;
++                ArrayPool<AliasBatchItem>.Shared.Return(items, clearArray: true);
+             }
+         }
+     }
+ 
++    private AliasBatchItem[] RentAliasBatchItems(int count, out bool pooled)
++    {
++        pooled = _client is DefaultGraphQLHttpClient
++            && count is > 0 and <= MaxPooledAliasBatchItemCount;
++
++        return pooled
++            ? ArrayPool<AliasBatchItem>.Shared.Rent(count)
++            : new AliasBatchItem[count];
++    }
++
+     private async IAsyncEnumerable<SourceSchemaBatchResult> ExecuteAliasBatchStreamAsync(
+         OperationPlanContext context,
+         ImmutableArray<SourceSchemaClientRequest> requests,
