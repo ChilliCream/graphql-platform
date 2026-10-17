@@ -62,6 +62,18 @@ Suggested bounded order is allocation B/C7/B, timing B/C7/B/C7/B with adjacent c
 No performance run without root's exclusive grant. VU testing follows a positive BDN gate.
 An inconclusive or adverse valid campaign ends this idea without a favorable-result repeat.
 
+Final shared plan
+Before any performance run, the user explicitly requested native BenchmarkDotNet
+MemoryDiagnoser. The original no-diagnoser freeze is retained as superseded unmeasured
+preparation. The replacement fixture enables MemoryDiagnoser and retains its native allocated
+and GC outputs alongside the separately calibrated scoped allocation measurements. Timing
+means are elapsed time, not process CPU; no per-case process CPU claim is made.
+C10 is an independent parser-only candidate that uses the identical fixture and dependency
+set. Share applicable controls: allocation B/C7/C10/B; timing B/C7/C10/B/C10/C7/B. The candidates
+remain independent engine overlays. Child bound75seconds, campaign bound420seconds plus
+10seconds cleanup; expected140-180seconds. run_bdn.py records PID/start identity, actual
+timestamps, raw output, exact guards and bounded owned-group cleanup, stopping on first failure.
+
 Preparation
 Initial build wrongly passed global TargetFrameworks/TargetFramework overrides, making the
 analyzer restore omit netstandard2.0. No code ran. The corrected standard local-dev Release

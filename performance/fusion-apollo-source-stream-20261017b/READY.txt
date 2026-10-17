@@ -1,0 +1,42 @@
+C7/C10 shared BenchmarkDotNet readiness
+
+Frozen manifest SHA256: 381d5c2a69ae95c27164fb463df452ec16975ec592dd92df446d46ad3e42b8e5
+Runner SHA256: 5f3cf4ee810ff7e05467aea47eb58d4c65639cef1d88f771245fbab2baa64fd5
+Frozen root: /workspaces/platform-1/perf/fusion-apollo-source-stream-20261017b-43a8dca2/frozen-shared
+Output root: /workspaces/platform-1/perf/fusion-apollo-source-stream-20261017b-43a8dca2/bdn-shared-campaign
+
+Exact command (root must grant exclusive measurement first):
+flock -x /workspaces/platform-1/perf/fusion-common-path.lock taskset -c 0,8 python3 /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/performance/fusion-apollo-source-stream-20261017b/run_bdn.py
+
+Source baseline: 43a8dca2bd479ddc411d832ed97e42d9fcc8bd85
+Execution engines SHA256:
+B: 9c436477e63d9c7f5c8668dcd75fec9771f500a5e71b14a1f02dd0bcf8fe6c5b
+C7: c651030acc2ca721ee56a9bb0d85290f432cfeeb675d5b45f359bf33117be052
+C10: f6c74c8d89833eccca5fa5bfb5643c925e8ba34bc72a8f10e8982432072904b8
+Only Execution DLL/PDB differs; runtime10.0.12/net10, all other harness/dependency files identical.
+
+Cases: known128 unchanged control, unknown4096, unknown32768.
+The actual GraphQLHttpResponse method is called, outputs checked and disposed, arena sealed
+before disposal. Identical message/stream/arena construction is included; payload bytes are
+prepared outside timing. Non-seekable memory-backed streams complete synchronously, which
+bounds the result to response reading/parsing overhead and does not establish network CPU.
+All three arms passed exact payload and ownership oracles without executing benchmarks.
+C7 passes54focusedtests including17new; C10 passes95including14new; Release/style checks pass.
+
+Allocation order: B/C7/C10/B, five1000-operation blocks per case. Allocation-only fixedfour
+heaps,512MiBno-GCregion, zero collection counts, successful region exit, completed1000ops and
+same-thread guards; exact523240byte calibrations before/after each block. Raw failure records
+are preserved. Timing/MemoryDiagnoser processes use default adaptive serverGC.
+BDN order: B/C7/C10/B/C10/C7/B,3second casewarmup,3BDNwarmupiterations,12actual observations
+of1000operations, nooutlierremoval. NativeMemoryDiagnoser enabled per explicit user request;
+retain nativeallocated/GCoutputs and compare with scoped calibration, flag inconsistencies.
+
+Expected140-180seconds. Hard75seconds perchild and420seconds wholecampaign,10seconds cleanup.
+Targetaffinity2,3,10,11; observer0,8. Shared lock held exclusively for startup through cleanup.
+
+Decision: require worthwhile repeated allocation saving or elapsed improvement, with no
+repeated meaningful added elapsed cost against both adjacent controls and no ordinary-case
+regression. Inspect raw distributions/control drift, including adverse observations. Native
+allocated/GC output alone does not prove total process allocation accuracy. No per-case process
+CPU metric is collected. Only a positive bounded micro gate permits relevant VU CPU/tail tests.
+Valid inconclusive or adverse results terminate the candidate, with no favorable-result retry.

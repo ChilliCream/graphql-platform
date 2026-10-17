@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.Json;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Exporters.Json;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
@@ -79,6 +80,7 @@ public static class Program
             .WithId("DefaultGC-1000SourceResponses");
         var config = ManualConfig.Create(DefaultConfig.Instance)
             .AddJob(job)
+            .AddDiagnoser(MemoryDiagnoser.Default)
             .AddExporter(JsonExporter.Full)
             .WithArtifactsPath(args[1]);
         var summary = BenchmarkRunner.Run<SourceResponseBenchmarks>(config);
