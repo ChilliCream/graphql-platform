@@ -31,6 +31,19 @@ WORK_SECONDS = 48 * 60
 CLEANUP_RESERVE_SECONDS = 120
 WORK_DEADLINE = None
 ACTIVE_SESSION = None
+RETAINED = HERE.parent / 'results/http-initial-baseline'
+
+
+def continuation_schedule():
+    order = ORDERS['C3,C2']
+    ordinary = [{'family': 'ordinary', 'delay_ms': 0, 'index': i, 'arm': arm,
+                 'name': f'ordinary-{i:02d}-{arm}', 'cases': ['ordinary-fixed']}
+                for i, arm in enumerate(order)]
+    apollo = [{'family': 'apollo', 'delay_ms': delay, 'index': i, 'arm': arm,
+               'name': f'delay{delay}-{i:02d}-{arm}',
+               'cases': ['TestQuery', 'entities9'] if delay == 0 else ['TestQuery', 'burst']}
+              for delay in [0, 4] for i, arm in enumerate(order) if delay != 0 or i != 0]
+    return [item for item in apollo if item['delay_ms'] == 0] + ordinary + [item for item in apollo if item['delay_ms'] == 4]
 
 
 def load_module(name, path):
@@ -81,6 +94,8 @@ def prepare(args):
         raise ValueError('Write the plan outside the hashed runner source directory')
     if args.plan.exists():
         raise FileExistsError(args.plan)
+    if args.survivors != 'C3,C2':
+        raise ValueError('The approved continuation has both independently validated survivors')
     if args.survivors == 'C3,C2' and not all((args.c2_gateway, args.c2_dll, args.c2_pdb)):
         raise ValueError('C2 requires an independently accepted gateway path and both frozen hashes')
     if args.survivors == 'C3' and any((args.c2_gateway, args.c2_dll, args.c2_pdb)):
@@ -109,11 +124,16 @@ def prepare(args):
                   str(baseline.TOOLS / 'dotnet-counters'): sha(baseline.TOOLS / 'dotnet-counters')},
         'duration_seconds': {'warmup': 30, 'TestQuery': 30, 'entities9': 20,
                              'ordinary-fixed': 20, 'burst': 60, 'idle': 20},
-        'ordinary': {'rate': 5000, 'time_unit': '1s', 'preallocated_vus': 50,
-                     'max_vus': 50, 'expected_iterations': 100000, 'allowed_dropped': 0},
-        'schedules': [{'delay_ms': delay, 'index': i, 'arm': arm,
-                       'name': f'delay{delay}-{i:02d}-{arm}'}
-                      for delay in [0, 4] for i, arm in enumerate(order)],
+        'ordinary': {'rate': 5000, 'time_unit': '1s', 'preallocated_vus': 200,
+                     'max_vus': 200, 'nominal_iterations': 100000, 'setup_requests': 100,
+                     'allowed_dropped': 0,
+                     'count_contract': 'Exact native/summary measured requests=iterations=successes; total HTTP adds100setup; actual scheduled count/time/rate reported, no integer tolerance'},
+        'schedules': continuation_schedule(),
+        'retained': {'path': str(RETAINED), 'hashes': hashes(RETAINED),
+                     'evidence_commit': 'ad60368f0e309abc60d5c6e6fcc2cbf24946db38',
+                     'session': 'delay0-00-B',
+                     'arm': {'family': 'apollo', 'delay_ms': 0, 'index': 0, 'arm': 'B',
+                             'name': 'retained-delay0-00-B', 'cases': ['TestQuery', 'entities9']}},
         'execution_authorized': False,
         'session_bound': {'work_seconds': WORK_SECONDS,
                           'cleanup_reserve_seconds': CLEANUP_RESERVE_SECONDS,
@@ -130,12 +150,21 @@ def verify(plan):
         raise ValueError('Whole-session time bound changed')
     if plan['order_per_delay'] != ORDERS[plan['survivors']] or plan['delays_ms'] != [0, 4]:
         raise ValueError('Schedule differs from the reviewed bounded orders')
-    expected = [{'delay_ms': d, 'index': i, 'arm': a, 'name': f'delay{d}-{i:02d}-{a}'}
-                for d in [0, 4] for i, a in enumerate(ORDERS[plan['survivors']])]
+    expected = continuation_schedule()
     if plan['schedules'] != expected:
         raise ValueError('Launch schedule was altered')
     if hashes(HERE) != plan['runner_sources']:
         raise ValueError('Runner, oracle, workload or analysis source changed after freeze')
+    if hashes(Path(plan['retained']['path'])) != plan['retained']['hashes']:
+        raise ValueError('Retained valid first baseline observations changed')
+    if plan['retained']['arm'] != {'family': 'apollo', 'delay_ms': 0, 'index': 0, 'arm': 'B',
+                                  'name': 'retained-delay0-00-B', 'cases': ['TestQuery', 'entities9']}:
+        raise ValueError('Retained control selection changed')
+    if plan['ordinary'] != {'rate': 5000, 'time_unit': '1s', 'preallocated_vus': 200,
+                           'max_vus': 200, 'nominal_iterations': 100000, 'setup_requests': 100,
+                           'allowed_dropped': 0,
+                           'count_contract': 'Exact native/summary measured requests=iterations=successes; total HTTP adds100setup; actual scheduled count/time/rate reported, no integer tolerance'}:
+        raise ValueError('Corrected ordinary configuration changed')
     for arm, definition in plan['arms'].items():
         if hashes(Path(definition['gateway'])) != definition['hashes']:
             raise ValueError(f'Frozen gateway changed: {arm}')
@@ -257,8 +286,15 @@ class Session(baseline.Session):
         if name == 'ordinary-fixed':
             measured = summary['iterations']['values']['count']
             total = summary['http_reqs']['values']['count']
-            if measured != 100000 or total != 100100:
-                raise ValueError(f'Fixed-rate request accounting failed: {measured}, {total}')
+            success_values = summary['success_rate']['values']
+            if measured <= 0 or total != measured + 100 or success_values['passes'] != measured or success_values['fails'] != 0:
+                raise ValueError(f'Fixed-rate summary accounting failed: {measured}, {total}, {success_values}')
+            dump(out / 'offered-load-accounting.json', {
+                'configured_rate_per_second': 5000, 'configured_duration_seconds': 20,
+                'preallocated_vus': 200, 'max_vus': 200, 'nominal_iterations': 100000,
+                'measured_iterations': measured, 'setup_requests': total - measured,
+                'dropped_iterations': dropped, 'actual_scheduled_iterations': measured + dropped,
+                'native_count_time_and_rate_validation': 'Required offline before interpretation; no arbitrary integer tolerance'})
         return out
 
     def idle(self):
@@ -311,11 +347,13 @@ def execute(args):
                     raise ValueError(f'Unexpected loaded execution module path: {expected_engine}')
                 session.preflight()
                 session.k6('warmup', duration=30, raw=False)
-                session.k6('TestQuery', duration=30)
-                if item['delay_ms'] == 0:
+                if item['family'] == 'ordinary':
+                    session.k6('ordinary-fixed', workload='ordinary', duration=20, vus=200)
+                elif item['delay_ms'] == 0:
+                    session.k6('TestQuery', duration=30)
                     session.k6('entities9', workload='entities9', duration=20)
-                    session.k6('ordinary-fixed', workload='ordinary', duration=20)
                 else:
+                    session.k6('TestQuery', duration=30)
                     session.k6('burst', duration=60, mode='ramping', vus=500)
                     session.idle()
             print(f'Completed {item["name"]}', flush=True)

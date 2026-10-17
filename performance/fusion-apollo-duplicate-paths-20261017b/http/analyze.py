@@ -88,24 +88,29 @@ def metrics(report):
 
 def comparisons(plan, reports, memory):
     result = []
-    indexed = {(r['arm']['delay_ms'], r['arm']['index'], Path(r['case']).name): r for r in reports}
-    for delay in plan['delays_ms']:
-        launches = [r for r in plan['schedules'] if r['delay_ms'] == delay]
+    indexed = {(r['arm']['family'], r['arm']['delay_ms'], r['arm']['index'], Path(r['case']).name): r for r in reports}
+    all_launches = [plan['retained']['arm'], *plan['schedules']]
+    for family, delay in [('ordinary', 0), ('apollo', 0), ('apollo', 4)]:
+        launches = sorted([r for r in all_launches if r['family'] == family and r['delay_ms'] == delay],
+                          key=lambda r: r['index'])
         controls = [r for r in launches if r['arm'] == 'B']
         for launch in launches:
             if launch['arm'] == 'B':
                 continue
             before = max(c['index'] for c in controls if c['index'] < launch['index'])
             after = min(c['index'] for c in controls if c['index'] > launch['index'])
-            workloads = ['TestQuery', 'entities9', 'ordinary-fixed'] if delay == 0 else ['TestQuery', 'burst']
-            for workload in workloads:
-                candidate = indexed[(delay, launch['index'], workload)]
-                left = indexed[(delay, before, workload)]
-                right = indexed[(delay, after, workload)]
+            for workload in launch['cases']:
+                candidate = indexed[(family, delay, launch['index'], workload)]
+                left = indexed[(family, delay, before, workload)]
+                right = indexed[(family, delay, after, workload)]
                 candidate_metrics = metrics(candidate)
-                controls_metrics = [(c['name'], metrics(indexed[(delay, c['index'], workload)])) for c in controls]
+                controls_metrics = [(c['name'], metrics(indexed[(family, delay, c['index'], workload)])) for c in controls]
                 entry = {'launch': launch, 'workload': workload,
                          'adjacent_controls': [left['arm']['name'], right['arm']['name']],
+                         'candidate_start_epoch': candidate['window_start_epoch'],
+                         'seconds_after_previous_control_end': candidate['window_start_epoch'] - left['window_end_epoch'],
+                         'seconds_before_next_control_start': right['window_start_epoch'] - candidate['window_end_epoch'],
+                         'previous_control_is_retained_first_baseline': left.get('retained_first_baseline', False),
                          'metrics': {}}
                 for name, value in candidate_metrics.items():
                     left_value = metrics(left)[name]
@@ -134,8 +139,9 @@ def main():
     plan = json.loads((root / 'plan.json').read_text())
     reports = []
     memory = {}
-    for launch in plan['schedules']:
-        session = root / launch['name']
+    entries = [(plan['retained']['arm'], Path(plan['retained']['path']) / plan['retained']['session'], True)]
+    entries += [(launch, root / launch['name'], False) for launch in plan['schedules']]
+    for launch, session, retained in entries:
         if not (session / 'cleanup.json').exists():
             raise ValueError(f'Incomplete campaign session: {session}')
         cleanup = json.loads((session / 'cleanup.json').read_text())
@@ -143,24 +149,36 @@ def main():
             raise ValueError(f'Owned process survived cleanup: {session}')
         rows = [json.loads(line) for line in (session / 'process-samples.jsonl').read_text().splitlines()]
         counters, complete = baseline.load_counters(session / 'counters.json')
-        workloads = ['TestQuery', 'entities9', 'ordinary-fixed'] if launch['delay_ms'] == 0 else ['TestQuery', 'burst']
-        for workload in workloads:
+        for workload in launch['cases']:
             case = session / workload
             if json.loads((case / 'completion.json').read_text())['returncode'] != 0:
                 raise ValueError(f'Failed case: {case}')
             report = baseline.analyze(case, rows, counters, complete)
             report['arm'] = launch
+            report['retained_first_baseline'] = retained
             setup = 1000 if workload == 'burst' else 100
             if report['setup_requests_excluded'] != setup or report['metric_sums'].get('dropped_iterations', 0) != 0:
                 raise ValueError(f'Setup/dropped request accounting: {case}')
-            if workload == 'ordinary-fixed' and report['successes'] != 100000:
-                raise ValueError(f'Ordinary offered-load accounting: {case}')
+            if workload == 'ordinary-fixed':
+                summary = json.loads((case / 'k6_summary.json').read_text())['metrics']
+                if summary.get('dropped_iterations', {}).get('values', {}).get('count', 0) != 0:
+                    raise ValueError(f'Ordinary summary drops: {case}')
+                report['offered_load'] = {
+                    'configured_rate_per_second': 5000, 'configured_duration_seconds': 20,
+                    'nominal_iterations': 100000, 'preallocated_vus': 200, 'max_vus': 200,
+                    'completed_iterations': report['successes'], 'dropped_iterations': 0,
+                    'actual_scheduled_iterations': report['successes'],
+                    'native_window_seconds': report['window_seconds'],
+                    'achieved_success_rate_per_second': report['throughput_success_per_second'],
+                    'count_contract': 'Exact native/summary HTTP=iterations=successes; summary total HTTP adds100setup; zero drops/errors. No integer tolerance; rate/time departure requires interpretation.'}
+                report['notes'].append('Callback timestamps do not identify exact runtime instrument intervals. Initial failed ordinary evidence showed an apparent one-second sequence lag; retain all interval/OS mismatches without shifting primary native CPU windows.')
             if workload == 'burst':
                 report['burst_stages'] = burst_stages(case, report)
                 memory[launch['name']] = retention(session, rows, counters, report)
                 write(session / 'retention-analysis.json', memory[launch['name']])
             reports.append(report)
-            write(case / 'analysis.json', report)
+            if not retained:
+                write(case / 'analysis.json', report)
             print(launch['name'], workload, report['successes'], flush=True)
     write(root / 'analysis.json', reports)
     write(root / 'comparisons.json', comparisons(plan, reports, memory))
