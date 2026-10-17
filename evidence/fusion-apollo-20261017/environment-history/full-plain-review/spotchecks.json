@@ -1,0 +1,1340 @@
+[
+  {
+    "case": "baseline-r2-delay0--TestQuery",
+    "command": {
+      "argv": [
+        "/workspaces/platform-1/perf/fusion-apollo-baseline-20261017b-tools/k6-v2.3.0-linux-arm64/k6",
+        "run",
+        "--quiet",
+        "--address",
+        "127.0.0.1:0",
+        "--out",
+        "json=/workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/baseline-r2-delay0/TestQuery/samples.json.gz",
+        "-e",
+        "MODE=constant",
+        "-e",
+        "BENCH_OVER_TIME=30s",
+        "-e",
+        "BENCH_VUS=50",
+        "-e",
+        "GATEWAY_ENDPOINT=http://127.0.0.1:5220/graphql",
+        "-e",
+        "SUMMARY_PATH=/workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/baseline-r2-delay0/TestQuery",
+        "-e",
+        "WORKLOAD_PATH=/workspaces/platform-1/.worktrees/fusion-apollo-baseline-20261017b/experiments/fusion-apollo-baseline-20261017b/workloads/TestQuery.json",
+        "-e",
+        "ORACLE_PATH=/workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/fidelity/TestQuery-oracle.json",
+        "/workspaces/platform-1/.worktrees/fusion-apollo-baseline-20261017b/experiments/fusion-apollo-baseline-20261017b/fixture/k6/k6.js"
+      ],
+      "start": "2026-10-17T15:53:56.657755+00:00",
+      "workload": "TestQuery",
+      "duration": 30,
+      "mode": "constant",
+      "vus": 50
+    },
+    "counts": {
+      "counts": {
+        "http_reqs": 88126,
+        "http_req_duration": 88126,
+        "http_req_failed": 88126,
+        "success_rate": 88126,
+        "iterations": 88126
+      },
+      "values": {
+        "http_reqs": 88126,
+        "http_req_duration": 1490983.3344509944,
+        "http_req_failed": 0,
+        "success_rate": 88126,
+        "iterations": 88126
+      },
+      "setup_requests": 100,
+      "first": 1792252436.8494034,
+      "last": 1792252466.863868,
+      "non200": 0,
+      "scenarios": [
+        "default"
+      ]
+    },
+    "duration_seconds": 30.014464616775513,
+    "success_requests_per_second": 2936.1176727685197,
+    "latency_ms": {
+      "arithmetic_mean": 16.91876783753943,
+      "p50": 17.579231,
+      "p95": 27.671902,
+      "p99": 33.65623025,
+      "p999": 46.553803875,
+      "maximum": 122.383722
+    },
+    "gateway_cpu_ms_per_success": 0.6044892580816831,
+    "processes": {
+      "gateway": {
+        "cpu_seconds": 53.271220357706405,
+        "average_cores": 1.7748515936523606,
+        "assigned_shared_cpu_count": 4,
+        "max_full_1s_cores": 1.9683741897900973,
+        "p95_full_1s_cores": 1.878991278734089,
+        "rss_min_bytes": 179896320,
+        "rss_max_bytes": 233570304,
+        "rss_first_bytes": 221696000,
+        "rss_last_bytes": 194215936,
+        "max_threads": 59,
+        "pid_start_identities": [
+          [
+            16554,
+            95809
+          ]
+        ]
+      },
+      "Accounts": {
+        "cpu_seconds": 13.285888622529486,
+        "average_cores": 0.44264952889094056,
+        "assigned_shared_cpu_count": 8,
+        "max_full_1s_cores": 0.47979238783729095,
+        "p95_full_1s_cores": 0.4733281149234021,
+        "rss_min_bytes": 123453440,
+        "rss_max_bytes": 124801024,
+        "rss_first_bytes": 123453440,
+        "rss_last_bytes": 124801024,
+        "max_threads": 36,
+        "pid_start_identities": [
+          [
+            16550,
+            95809
+          ]
+        ]
+      },
+      "Inventory": {
+        "cpu_seconds": 13.625888622529486,
+        "average_cores": 0.45397740044690926,
+        "assigned_shared_cpu_count": 8,
+        "max_full_1s_cores": 0.4990010483931915,
+        "p95_full_1s_cores": 0.4783820519868159,
+        "rss_min_bytes": 120049664,
+        "rss_max_bytes": 127328256,
+        "rss_first_bytes": 125583360,
+        "rss_last_bytes": 124674048,
+        "max_threads": 42,
+        "pid_start_identities": [
+          [
+            16551,
+            95809
+          ]
+        ]
+      },
+      "Products": {
+        "cpu_seconds": 13.595863794466986,
+        "average_cores": 0.4529770551651974,
+        "assigned_shared_cpu_count": 8,
+        "max_full_1s_cores": 0.4962513104914894,
+        "p95_full_1s_cores": 0.46936689386285363,
+        "rss_min_bytes": 124850176,
+        "rss_max_bytes": 126390272,
+        "rss_first_bytes": 124850176,
+        "rss_last_bytes": 126390272,
+        "max_threads": 37,
+        "pid_start_identities": [
+          [
+            16552,
+            95809
+          ]
+        ]
+      },
+      "Reviews": {
+        "cpu_seconds": 23.68177724505897,
+        "average_cores": 0.7890121495561473,
+        "assigned_shared_cpu_count": 8,
+        "max_full_1s_cores": 0.8572109814658688,
+        "p95_full_1s_cores": 0.8197403139886774,
+        "rss_min_bytes": 145997824,
+        "rss_max_bytes": 156618752,
+        "rss_first_bytes": 155455488,
+        "rss_last_bytes": 147304448,
+        "max_threads": 102,
+        "pid_start_identities": [
+          [
+            16553,
+            95809
+          ]
+        ]
+      },
+      "TestQuery": {
+        "cpu_seconds": 19.183455177867945,
+        "average_cores": 0.6391403419252075,
+        "assigned_shared_cpu_count": 2,
+        "max_full_1s_cores": 0.7797948490353727,
+        "p95_full_1s_cores": 0.6838069041108901,
+        "rss_min_bytes": 79044608,
+        "rss_max_bytes": 118624256,
+        "rss_first_bytes": 79044608,
+        "rss_last_bytes": 109350912,
+        "max_threads": 8,
+        "pid_start_identities": [
+          [
+            16934,
+            98963
+          ]
+        ]
+      },
+      "counters": {
+        "cpu_seconds": 0.06,
+        "average_cores": 0.001999036156935651,
+        "assigned_shared_cpu_count": 2,
+        "max_full_1s_cores": 0.010000000000000009,
+        "p95_full_1s_cores": 0.010000000000000009,
+        "rss_min_bytes": 56197120,
+        "rss_max_bytes": 59097088,
+        "rss_first_bytes": 56197120,
+        "rss_last_bytes": 59097088,
+        "max_threads": 13,
+        "pid_start_identities": [
+          [
+            16669,
+            95842
+          ]
+        ]
+      }
+    },
+    "combined_subgraphs": {
+      "average_cores": 2.1386161340591947,
+      "max_full_1s_cores": 2.329110208502298,
+      "assigned_shared_cpus": 8
+    },
+    "counter_container_complete": false,
+    "cpu_counter_checks": [
+      {
+        "name": "dotnet.process.cpu.time (s / 1 sec)",
+        "tags": "cpu.mode=user",
+        "first_boundary": "2026-10-17T15:53:57.6114643+00:00",
+        "last_boundary": "2026-10-17T15:54:26.6117583+00:00",
+        "included_intervals": 29,
+        "runtime_cpu_seconds": 43.475514000000004,
+        "os_total_cpu_same_callback_window": 51.63969127371639,
+        "window_seconds": 29.000293970108032
+      },
+      {
+        "name": "dotnet.process.cpu.time (s / 1 sec)",
+        "tags": "cpu.mode=system",
+        "first_boundary": "2026-10-17T15:53:57.6114653+00:00",
+        "last_boundary": "2026-10-17T15:54:26.6117592+00:00",
+        "included_intervals": 29,
+        "runtime_cpu_seconds": 7.651368000000001,
+        "os_total_cpu_same_callback_window": 51.63969120116618,
+        "window_seconds": 29.000293970108032
+      }
+    ],
+    "runtime_cpu_check_combined_seconds": 51.126882,
+    "os_cpu_check_seconds": 51.63969123744128,
+    "runtime_cpu_relative_difference": -0.0099305248570013,
+    "cpu_counter_coverage_fraction": 0.966210603466815,
+    "gc_counter_windows": [
+      {
+        "name": "dotnet.gc.collections ({collection} / 1 sec)",
+        "tags": "gc.heap.generation=gen2",
+        "first_boundary": "2026-10-17T15:53:57.6114347+00:00",
+        "last_boundary": "2026-10-17T15:54:26.6113586+00:00",
+        "included_intervals": 29,
+        "sum_interval_values_excluding_first": 1,
+        "max_interval_value": 1,
+        "top_intervals": [
+          {
+            "timestamp": "2026-10-17T15:54:14.6084366+00:00",
+            "value": 1
+          },
+          {
+            "timestamp": "2026-10-17T15:53:58.6119304+00:00",
+            "value": 0
+          },
+          {
+            "timestamp": "2026-10-17T15:53:59.6118175+00:00",
+            "value": 0
+          },
+          {
+            "timestamp": "2026-10-17T15:54:00.6102238+00:00",
+            "value": 0
+          },
+          {
+            "timestamp": "2026-10-17T15:54:01.6103815+00:00",
+            "value": 0
+          },
+          {
+            "timestamp": "2026-10-17T15:54:02.6119661+00:00",
+            "value": 0
+          }
+        ]
+      },
+      {
+        "name": "dotnet.gc.collections ({collection} / 1 sec)",
+        "tags": "gc.heap.generation=gen0",
+        "first_boundary": "2026-10-17T15:53:57.6114415+00:00",
+        "last_boundary": "2026-10-17T15:54:26.6113644+00:00",
+        "included_intervals": 29,
+        "sum_interval_values_excluding_first": 28,
+        "max_interval_value": 7,
+        "top_intervals": [
+          {
+            "timestamp": "2026-10-17T15:53:59.6118341+00:00",
+            "value": 7
+          },
+          {
+            "timestamp": "2026-10-17T15:53:58.6119366+00:00",
+            "value": 4
+          },
+          {
+            "timestamp": "2026-10-17T15:54:14.6084431+00:00",
+            "value": 3
+          },
+          {
+            "timestamp": "2026-10-17T15:54:00.6102303+00:00",
+            "value": 2
+          },
+          {
+            "timestamp": "2026-10-17T15:54:04.6165289+00:00",
+            "value": 2
+          },
+          {
+            "timestamp": "2026-10-17T15:54:01.6103879+00:00",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "name": "dotnet.gc.collections ({collection} / 1 sec)",
+        "tags": "gc.heap.generation=gen1",
+        "first_boundary": "2026-10-17T15:53:57.6114428+00:00",
+        "last_boundary": "2026-10-17T15:54:26.6113655+00:00",
+        "included_intervals": 29,
+        "sum_interval_values_excluding_first": 192,
+        "max_interval_value": 9,
+        "top_intervals": [
+          {
+            "timestamp": "2026-10-17T15:54:24.6109744+00:00",
+            "value": 9
+          },
+          {
+            "timestamp": "2026-10-17T15:54:10.6104968+00:00",
+            "value": 8
+          },
+          {
+            "timestamp": "2026-10-17T15:54:11.6084261+00:00",
+            "value": 8
+          },
+          {
+            "timestamp": "2026-10-17T15:54:13.6124939+00:00",
+            "value": 8
+          },
+          {
+            "timestamp": "2026-10-17T15:54:17.6101718+00:00",
+            "value": 8
+          },
+          {
+            "timestamp": "2026-10-17T15:54:19.6142628+00:00",
+            "value": 8
+          }
+        ]
+      },
+      {
+        "name": "dotnet.gc.pause.time (s / 1 sec)",
+        "tags": "",
+        "first_boundary": "2026-10-17T15:53:57.6114467+00:00",
+        "last_boundary": "2026-10-17T15:54:26.6113689+00:00",
+        "included_intervals": 29,
+        "sum_interval_values_excluding_first": 0.505182,
+        "max_interval_value": 0.021930000000000005,
+        "top_intervals": [
+          {
+            "timestamp": "2026-10-17T15:53:59.6118426+00:00",
+            "value": 0.021930000000000005
+          },
+          {
+            "timestamp": "2026-10-17T15:54:14.6084482+00:00",
+            "value": 0.02124499999999996
+          },
+          {
+            "timestamp": "2026-10-17T15:54:04.6165312+00:00",
+            "value": 0.019713000000000036
+          },
+          {
+            "timestamp": "2026-10-17T15:54:22.6106214+00:00",
+            "value": 0.019588999999999968
+          },
+          {
+            "timestamp": "2026-10-17T15:54:01.6107646+00:00",
+            "value": 0.01951200000000003
+          },
+          {
+            "timestamp": "2026-10-17T15:54:18.6111150+00:00",
+            "value": 0.01924199999999998
+          }
+        ]
+      }
+    ],
+    "five_second_blocks": [
+      {
+        "start_seconds": 0,
+        "end_seconds": 5,
+        "completed": 14725,
+        "gateway_cpu_seconds": 8.861599936674331,
+        "gateway_cpu_ms_per_completion": 0.6018064473123484,
+        "latency_p50_ms": 17.140084,
+        "latency_p95_ms": 28.218812599999996,
+        "latency_p99_ms": 36.957827000000016,
+        "latency_p999_ms": 90.18822987999971,
+        "tail_999_count": 65
+      },
+      {
+        "start_seconds": 5,
+        "end_seconds": 10,
+        "completed": 14603,
+        "gateway_cpu_seconds": 8.796226076462439,
+        "gateway_cpu_ms_per_completion": 0.6023574660318044,
+        "latency_p50_ms": 17.581502,
+        "latency_p95_ms": 28.1641161,
+        "latency_p99_ms": 33.69191451999999,
+        "latency_p999_ms": 43.94836872799928,
+        "tail_999_count": 12
+      },
+      {
+        "start_seconds": 10,
+        "end_seconds": 15,
+        "completed": 14885,
+        "gateway_cpu_seconds": 8.95748221987342,
+        "gateway_cpu_ms_per_completion": 0.6017791212545126,
+        "latency_p50_ms": 17.212293,
+        "latency_p95_ms": 27.6270356,
+        "latency_p99_ms": 33.47142083999999,
+        "latency_p999_ms": 43.98501211599999,
+        "tail_999_count": 8
+      },
+      {
+        "start_seconds": 15,
+        "end_seconds": 20,
+        "completed": 14435,
+        "gateway_cpu_seconds": 9.068175011400186,
+        "gateway_cpu_ms_per_completion": 0.628207482604793,
+        "latency_p50_ms": 18.114378,
+        "latency_p95_ms": 27.9351566,
+        "latency_p99_ms": 34.39922693999999,
+        "latency_p999_ms": 41.98222920600001,
+        "tail_999_count": 0
+      },
+      {
+        "start_seconds": 20,
+        "end_seconds": 25,
+        "completed": 14733,
+        "gateway_cpu_seconds": 8.854024326307751,
+        "gateway_cpu_ms_per_completion": 0.6009654738551382,
+        "latency_p50_ms": 17.56721,
+        "latency_p95_ms": 27.384043,
+        "latency_p99_ms": 32.468821120000015,
+        "latency_p999_ms": 43.780511,
+        "tail_999_count": 4
+      },
+      {
+        "start_seconds": 25,
+        "end_seconds": 30,
+        "completed": 14695,
+        "gateway_cpu_seconds": 8.723692140846623,
+        "gateway_cpu_ms_per_completion": 0.5936503668490386,
+        "latency_p50_ms": 17.749836,
+        "latency_p95_ms": 26.843684,
+        "latency_p99_ms": 30.983391519999998,
+        "latency_p999_ms": 36.333521306000236,
+        "tail_999_count": 0
+      }
+    ],
+    "p999_rank0": 88036.875,
+    "p999_neighbors": [
+      {
+        "rank0": 88031,
+        "latency_ms": 45.513655
+      },
+      {
+        "rank0": 88032,
+        "latency_ms": 45.730073
+      },
+      {
+        "rank0": 88033,
+        "latency_ms": 45.816115
+      },
+      {
+        "rank0": 88034,
+        "latency_ms": 45.875823
+      },
+      {
+        "rank0": 88035,
+        "latency_ms": 46.083948
+      },
+      {
+        "rank0": 88036,
+        "latency_ms": 46.519825
+      },
+      {
+        "rank0": 88037,
+        "latency_ms": 46.558658
+      },
+      {
+        "rank0": 88038,
+        "latency_ms": 46.659908
+      },
+      {
+        "rank0": 88039,
+        "latency_ms": 46.785825
+      },
+      {
+        "rank0": 88040,
+        "latency_ms": 47.215034
+      },
+      {
+        "rank0": 88041,
+        "latency_ms": 47.256576
+      },
+      {
+        "rank0": 88042,
+        "latency_ms": 47.753327
+      }
+    ],
+    "p999_exceedance_bins_seconds": {
+      "0": 61,
+      "1": 2,
+      "3": 2,
+      "5": 2,
+      "9": 10,
+      "14": 8,
+      "20": 1,
+      "23": 1,
+      "24": 2
+    },
+    "top30_latencies": [
+      {
+        "completion_seconds_after_start": 0.12369871139526367,
+        "latency_ms": 122.383722
+      },
+      {
+        "completion_seconds_after_start": 0.11842560768127441,
+        "latency_ms": 117.635169
+      },
+      {
+        "completion_seconds_after_start": 0.11779451370239258,
+        "latency_ms": 117.044834
+      },
+      {
+        "completion_seconds_after_start": 0.11536860466003418,
+        "latency_ms": 114.574328
+      },
+      {
+        "completion_seconds_after_start": 0.11187553405761719,
+        "latency_ms": 110.82311
+      },
+      {
+        "completion_seconds_after_start": 0.12143063545227051,
+        "latency_ms": 109.04023
+      },
+      {
+        "completion_seconds_after_start": 0.1056675910949707,
+        "latency_ms": 104.359969
+      },
+      {
+        "completion_seconds_after_start": 0.10231256484985352,
+        "latency_ms": 101.512169
+      },
+      {
+        "completion_seconds_after_start": 0.10185050964355469,
+        "latency_ms": 101.036377
+      },
+      {
+        "completion_seconds_after_start": 0.0997157096862793,
+        "latency_ms": 99.714915
+      },
+      {
+        "completion_seconds_after_start": 0.09876060485839844,
+        "latency_ms": 98.003786
+      },
+      {
+        "completion_seconds_after_start": 0.0966036319732666,
+        "latency_ms": 95.308696
+      },
+      {
+        "completion_seconds_after_start": 0.09565567970275879,
+        "latency_ms": 94.910236
+      },
+      {
+        "completion_seconds_after_start": 0.09360957145690918,
+        "latency_ms": 92.552564
+      },
+      {
+        "completion_seconds_after_start": 0.09258770942687988,
+        "latency_ms": 91.473062
+      },
+      {
+        "completion_seconds_after_start": 0.09045863151550293,
+        "latency_ms": 89.698432
+      },
+      {
+        "completion_seconds_after_start": 0.0890195369720459,
+        "latency_ms": 88.277886
+      },
+      {
+        "completion_seconds_after_start": 0.08677268028259277,
+        "latency_ms": 85.985381
+      },
+      {
+        "completion_seconds_after_start": 0.0903165340423584,
+        "latency_ms": 83.916251
+      },
+      {
+        "completion_seconds_after_start": 0.12259268760681152,
+        "latency_ms": 79.403448
+      },
+      {
+        "completion_seconds_after_start": 0.07993960380554199,
+        "latency_ms": 79.142281
+      },
+      {
+        "completion_seconds_after_start": 0.07918858528137207,
+        "latency_ms": 77.830361
+      },
+      {
+        "completion_seconds_after_start": 0.07867860794067383,
+        "latency_ms": 77.607526
+      },
+      {
+        "completion_seconds_after_start": 0.12282872200012207,
+        "latency_ms": 76.467482
+      },
+      {
+        "completion_seconds_after_start": 0.12296557426452637,
+        "latency_ms": 76.180399
+      },
+      {
+        "completion_seconds_after_start": 0.12247562408447266,
+        "latency_ms": 75.983273
+      },
+      {
+        "completion_seconds_after_start": 0.12309670448303223,
+        "latency_ms": 75.960981
+      },
+      {
+        "completion_seconds_after_start": 0.1232156753540039,
+        "latency_ms": 75.539063
+      },
+      {
+        "completion_seconds_after_start": 0.0761566162109375,
+        "latency_ms": 74.853436
+      },
+      {
+        "completion_seconds_after_start": 0.07559466361999512,
+        "latency_ms": 74.810895
+      }
+    ],
+    "limitations": [
+      "Subgraph processes share8cores; process_cpu sum is aggregate headroom, not proof against percore or nonCPU bottlenecks.",
+      "No percore utilization or perthread samples in plain phases. No saturation-capacity conclusion from closed50VU offered workload.",
+      "Runtime counters are interval deltas labelled Rate; incomplete JSON container recovered without modifying source. Sample timestamps are callback delivery, not exact meter read boundaries.",
+      "GC collection/pause sums omit partial edge intervals and do not establish exact perrequest allocation.",
+      "Timestamped native duration excludes blocked/connect/TLS; CPU brackets use earliest duration-start and final completion.100ms sample interpolation/10msCPU ticks limit exact edges.",
+      "Five-second blocks and requests within one launch are dependent; they are not independent replications."
+    ]
+  },
+  {
+    "case": "baseline-r2-delay4--burst",
+    "command": {
+      "argv": [
+        "/workspaces/platform-1/perf/fusion-apollo-baseline-20261017b-tools/k6-v2.3.0-linux-arm64/k6",
+        "run",
+        "--quiet",
+        "--address",
+        "127.0.0.1:0",
+        "--out",
+        "json=/workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/baseline-r2-delay4/burst/samples.json.gz",
+        "-e",
+        "MODE=ramping",
+        "-e",
+        "BENCH_OVER_TIME=60s",
+        "-e",
+        "BENCH_VUS=500",
+        "-e",
+        "GATEWAY_ENDPOINT=http://127.0.0.1:5220/graphql",
+        "-e",
+        "SUMMARY_PATH=/workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/baseline-r2-delay4/burst",
+        "-e",
+        "WORKLOAD_PATH=/workspaces/platform-1/.worktrees/fusion-apollo-baseline-20261017b/experiments/fusion-apollo-baseline-20261017b/workloads/TestQuery.json",
+        "-e",
+        "ORACLE_PATH=/workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/fidelity/TestQuery-oracle.json",
+        "/workspaces/platform-1/.worktrees/fusion-apollo-baseline-20261017b/experiments/fusion-apollo-baseline-20261017b/fixture/k6/k6.js"
+      ],
+      "start": "2026-10-17T15:56:14.452232+00:00",
+      "workload": "TestQuery",
+      "duration": 60,
+      "mode": "ramping",
+      "vus": 500
+    },
+    "counts": {
+      "counts": {
+        "http_reqs": 115971,
+        "http_req_duration": 115971,
+        "http_req_failed": 115971,
+        "success_rate": 115971,
+        "iterations": 115971
+      },
+      "values": {
+        "http_reqs": 115971,
+        "http_req_duration": 14251999.613006996,
+        "http_req_failed": 0,
+        "success_rate": 115971,
+        "iterations": 115971
+      },
+      "setup_requests": 1000,
+      "first": 1792252604.1931834,
+      "last": 1792252664.214138,
+      "non200": 0,
+      "scenarios": [
+        "stress"
+      ]
+    },
+    "duration_seconds": 60.020954608917236,
+    "success_requests_per_second": 1932.1752004052655,
+    "latency_ms": {
+      "arithmetic_mean": 122.89278882657733,
+      "p50": 118.670587,
+      "p95": 237.268007,
+      "p99": 256.41517560000005,
+      "p999": 270.48633301999996,
+      "maximum": 289.387846
+    },
+    "gateway_cpu_ms_per_success": 0.6548026750512648,
+    "processes": {
+      "gateway": {
+        "cpu_seconds": 75.93812102837022,
+        "average_cores": 1.2651934898930812,
+        "assigned_shared_cpu_count": 4,
+        "max_full_1s_cores": 1.6874376519954666,
+        "p95_full_1s_cores": 1.3633438853567583,
+        "rss_min_bytes": 173494272,
+        "rss_max_bytes": 276549632,
+        "rss_first_bytes": 173494272,
+        "rss_last_bytes": 251260928,
+        "max_threads": 51,
+        "pid_start_identities": [
+          [
+            17408,
+            106092
+          ]
+        ]
+      },
+      "Accounts": {
+        "cpu_seconds": 21.000584250103362,
+        "average_cores": 0.34988754155841656,
+        "assigned_shared_cpu_count": 8,
+        "max_full_1s_cores": 0.4070659191325561,
+        "p95_full_1s_cores": 0.3796855534290916,
+        "rss_min_bytes": 121102336,
+        "rss_max_bytes": 130060288,
+        "rss_first_bytes": 126038016,
+        "rss_last_bytes": 123162624,
+        "max_threads": 53,
+        "pid_start_identities": [
+          [
+            17404,
+            106092
+          ]
+        ]
+      },
+      "Inventory": {
+        "cpu_seconds": 20.209373676123413,
+        "average_cores": 0.33670530246982994,
+        "assigned_shared_cpu_count": 8,
+        "max_full_1s_cores": 0.3764253354028959,
+        "p95_full_1s_cores": 0.368052040678843,
+        "rss_min_bytes": 121212928,
+        "rss_max_bytes": 130551808,
+        "rss_first_bytes": 126738432,
+        "rss_last_bytes": 128901120,
+        "max_threads": 62,
+        "pid_start_identities": [
+          [
+            17405,
+            106092
+          ]
+        ]
+      },
+      "Products": {
+        "cpu_seconds": 21.61937367612341,
+        "average_cores": 0.360197098113322,
+        "assigned_shared_cpu_count": 8,
+        "max_full_1s_cores": 0.4277994393494211,
+        "p95_full_1s_cores": 0.396485044352746,
+        "rss_min_bytes": 123760640,
+        "rss_max_bytes": 133341184,
+        "rss_first_bytes": 123760640,
+        "rss_last_bytes": 126423040,
+        "max_threads": 56,
+        "pid_start_identities": [
+          [
+            17406,
+            106092
+          ]
+        ]
+      },
+      "Reviews": {
+        "cpu_seconds": 41.178455227195144,
+        "average_cores": 0.6860679823489064,
+        "assigned_shared_cpu_count": 8,
+        "max_full_1s_cores": 0.7577261962167867,
+        "p95_full_1s_cores": 0.7470917718205982,
+        "rss_min_bytes": 143310848,
+        "rss_max_bytes": 154902528,
+        "rss_first_bytes": 143310848,
+        "rss_last_bytes": 151932928,
+        "max_threads": 60,
+        "pid_start_identities": [
+          [
+            17407,
+            106092
+          ]
+        ]
+      },
+      "burst": {
+        "cpu_seconds": 30.670876375155036,
+        "average_cores": 0.5110028085191152,
+        "assigned_shared_cpu_count": 2,
+        "max_full_1s_cores": 0.6006557745657441,
+        "p95_full_1s_cores": 0.5868557518028388,
+        "rss_min_bytes": 162037760,
+        "rss_max_bytes": 411291648,
+        "rss_first_bytes": 162037760,
+        "rss_last_bytes": 388567040,
+        "max_threads": 9,
+        "pid_start_identities": [
+          [
+            17947,
+            112742
+          ]
+        ]
+      },
+      "counters": {
+        "cpu_seconds": 0.07000000000000006,
+        "average_cores": 0.001166259358187553,
+        "assigned_shared_cpu_count": 2,
+        "max_full_1s_cores": 0.010000000000000009,
+        "p95_full_1s_cores": 0.010000000000000009,
+        "rss_min_bytes": 44470272,
+        "rss_max_bytes": 58552320,
+        "rss_first_bytes": 57372672,
+        "rss_last_bytes": 48152576,
+        "max_threads": 14,
+        "pid_start_identities": [
+          [
+            17524,
+            106125
+          ]
+        ]
+      }
+    },
+    "combined_subgraphs": {
+      "average_cores": 1.732857924490475,
+      "max_full_1s_cores": 1.928515803242501,
+      "assigned_shared_cpus": 8
+    },
+    "counter_container_complete": false,
+    "cpu_counter_checks": [
+      {
+        "name": "dotnet.process.cpu.time (s / 1 sec)",
+        "tags": "cpu.mode=user",
+        "first_boundary": "2026-10-17T15:56:44.4437814+00:00",
+        "last_boundary": "2026-10-17T15:57:42.4445742+00:00",
+        "included_intervals": 58,
+        "runtime_cpu_seconds": 61.891779,
+        "os_total_cpu_same_callback_window": 73.56130686535977,
+        "window_seconds": 58.00079321861267
+      },
+      {
+        "name": "dotnet.process.cpu.time (s / 1 sec)",
+        "tags": "cpu.mode=system",
+        "first_boundary": "2026-10-17T15:56:44.4437828+00:00",
+        "last_boundary": "2026-10-17T15:57:42.4445756+00:00",
+        "included_intervals": 58,
+        "runtime_cpu_seconds": 10.629502,
+        "os_total_cpu_same_callback_window": 73.5613068885957,
+        "window_seconds": 58.00079298019409
+      }
+    ],
+    "runtime_cpu_check_combined_seconds": 72.521281,
+    "os_cpu_check_seconds": 73.56130687697774,
+    "runtime_cpu_relative_difference": -0.01413821914171609,
+    "cpu_counter_coverage_fraction": 0.9663423962068454,
+    "gc_counter_windows": [
+      {
+        "name": "dotnet.gc.collections ({collection} / 1 sec)",
+        "tags": "gc.heap.generation=gen2",
+        "first_boundary": "2026-10-17T15:56:44.4434066+00:00",
+        "last_boundary": "2026-10-17T15:57:42.4445426+00:00",
+        "included_intervals": 58,
+        "sum_interval_values_excluding_first": 2,
+        "max_interval_value": 1,
+        "top_intervals": [
+          {
+            "timestamp": "2026-10-17T15:57:00.4435058+00:00",
+            "value": 1
+          },
+          {
+            "timestamp": "2026-10-17T15:57:18.4443994+00:00",
+            "value": 1
+          },
+          {
+            "timestamp": "2026-10-17T15:56:45.4438184+00:00",
+            "value": 0
+          },
+          {
+            "timestamp": "2026-10-17T15:56:46.4423732+00:00",
+            "value": 0
+          },
+          {
+            "timestamp": "2026-10-17T15:56:47.4438362+00:00",
+            "value": 0
+          },
+          {
+            "timestamp": "2026-10-17T15:56:48.4428112+00:00",
+            "value": 0
+          }
+        ]
+      },
+      {
+        "name": "dotnet.gc.collections ({collection} / 1 sec)",
+        "tags": "gc.heap.generation=gen0",
+        "first_boundary": "2026-10-17T15:56:44.4434153+00:00",
+        "last_boundary": "2026-10-17T15:57:42.4445438+00:00",
+        "included_intervals": 58,
+        "sum_interval_values_excluding_first": 24,
+        "max_interval_value": 3,
+        "top_intervals": [
+          {
+            "timestamp": "2026-10-17T15:56:46.4423740+00:00",
+            "value": 3
+          },
+          {
+            "timestamp": "2026-10-17T15:56:47.4438493+00:00",
+            "value": 3
+          },
+          {
+            "timestamp": "2026-10-17T15:56:48.4428122+00:00",
+            "value": 2
+          },
+          {
+            "timestamp": "2026-10-17T15:56:49.4433863+00:00",
+            "value": 2
+          },
+          {
+            "timestamp": "2026-10-17T15:56:58.4450794+00:00",
+            "value": 2
+          },
+          {
+            "timestamp": "2026-10-17T15:57:00.4435070+00:00",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "name": "dotnet.gc.collections ({collection} / 1 sec)",
+        "tags": "gc.heap.generation=gen1",
+        "first_boundary": "2026-10-17T15:56:44.4434161+00:00",
+        "last_boundary": "2026-10-17T15:57:42.4445446+00:00",
+        "included_intervals": 58,
+        "sum_interval_values_excluding_first": 94,
+        "max_interval_value": 3,
+        "top_intervals": [
+          {
+            "timestamp": "2026-10-17T15:56:50.4490709+00:00",
+            "value": 3
+          },
+          {
+            "timestamp": "2026-10-17T15:56:51.4443864+00:00",
+            "value": 3
+          },
+          {
+            "timestamp": "2026-10-17T15:56:52.4435284+00:00",
+            "value": 3
+          },
+          {
+            "timestamp": "2026-10-17T15:56:53.4445978+00:00",
+            "value": 3
+          },
+          {
+            "timestamp": "2026-10-17T15:56:55.4431772+00:00",
+            "value": 3
+          },
+          {
+            "timestamp": "2026-10-17T15:56:56.4447409+00:00",
+            "value": 3
+          }
+        ]
+      },
+      {
+        "name": "dotnet.gc.pause.time (s / 1 sec)",
+        "tags": "",
+        "first_boundary": "2026-10-17T15:56:44.4437756+00:00",
+        "last_boundary": "2026-10-17T15:57:42.4445682+00:00",
+        "included_intervals": 58,
+        "sum_interval_values_excluding_first": 0.6582959999999999,
+        "max_interval_value": 0.017854000000000037,
+        "top_intervals": [
+          {
+            "timestamp": "2026-10-17T15:57:36.4435381+00:00",
+            "value": 0.017854000000000037
+          },
+          {
+            "timestamp": "2026-10-17T15:57:32.4468138+00:00",
+            "value": 0.01755300000000004
+          },
+          {
+            "timestamp": "2026-10-17T15:57:35.4444146+00:00",
+            "value": 0.01744699999999999
+          },
+          {
+            "timestamp": "2026-10-17T15:57:33.4458324+00:00",
+            "value": 0.01721499999999998
+          },
+          {
+            "timestamp": "2026-10-17T15:57:29.4426928+00:00",
+            "value": 0.01657299999999995
+          },
+          {
+            "timestamp": "2026-10-17T15:57:30.4450743+00:00",
+            "value": 0.016244000000000036
+          }
+        ]
+      }
+    ],
+    "five_second_blocks": [
+      {
+        "start_seconds": 0,
+        "end_seconds": 5,
+        "completed": 7486,
+        "gateway_cpu_seconds": 4.9271230956582315,
+        "gateway_cpu_ms_per_completion": 0.6581783456663414,
+        "latency_p50_ms": 32.145892,
+        "latency_p95_ms": 41.213874000000004,
+        "latency_p99_ms": 59.11559454999972,
+        "latency_p999_ms": 150.32381225500217,
+        "tail_999_count": 0
+      },
+      {
+        "start_seconds": 5,
+        "end_seconds": 10,
+        "completed": 7858,
+        "gateway_cpu_seconds": 5.0509636904236,
+        "gateway_cpu_ms_per_completion": 0.642779802802698,
+        "latency_p50_ms": 31.583183,
+        "latency_p95_ms": 40.28389824999999,
+        "latency_p99_ms": 43.57081268000001,
+        "latency_p999_ms": 48.591270387000016,
+        "tail_999_count": 0
+      },
+      {
+        "start_seconds": 10,
+        "end_seconds": 15,
+        "completed": 9614,
+        "gateway_cpu_seconds": 6.293902189269687,
+        "gateway_cpu_ms_per_completion": 0.6546600987382658,
+        "latency_p50_ms": 38.504658500000005,
+        "latency_p95_ms": 58.369145350000004,
+        "latency_p99_ms": 66.61292912000005,
+        "latency_p999_ms": 72.61910325000001,
+        "tail_999_count": 0
+      },
+      {
+        "start_seconds": 15,
+        "end_seconds": 20,
+        "completed": 10085,
+        "gateway_cpu_seconds": 6.892290969213306,
+        "gateway_cpu_ms_per_completion": 0.683420026694428,
+        "latency_p50_ms": 65.888373,
+        "latency_p95_ms": 84.80926059999996,
+        "latency_p99_ms": 94.53938815999999,
+        "latency_p999_ms": 108.60340602799992,
+        "tail_999_count": 0
+      },
+      {
+        "start_seconds": 20,
+        "end_seconds": 25,
+        "completed": 10226,
+        "gateway_cpu_seconds": 6.641251751242052,
+        "gateway_cpu_ms_per_completion": 0.6494476580522249,
+        "latency_p50_ms": 92.6860015,
+        "latency_p95_ms": 112.87990575,
+        "latency_p99_ms": 122.51380525,
+        "latency_p999_ms": 131.00428827499974,
+        "tail_999_count": 0
+      },
+      {
+        "start_seconds": 25,
+        "end_seconds": 30,
+        "completed": 10133,
+        "gateway_cpu_seconds": 6.575960238986937,
+        "gateway_cpu_ms_per_completion": 0.6489647921629268,
+        "latency_p50_ms": 119.922882,
+        "latency_p95_ms": 142.4981544,
+        "latency_p99_ms": 149.51355056,
+        "latency_p999_ms": 156.15414045600008,
+        "tail_999_count": 0
+      },
+      {
+        "start_seconds": 30,
+        "end_seconds": 35,
+        "completed": 10005,
+        "gateway_cpu_seconds": 6.911241879910861,
+        "gateway_cpu_ms_per_completion": 0.6907787985917901,
+        "latency_p50_ms": 150.309707,
+        "latency_p95_ms": 174.0083422,
+        "latency_p99_ms": 188.37836599999997,
+        "latency_p999_ms": 204.50930932799986,
+        "tail_999_count": 0
+      },
+      {
+        "start_seconds": 35,
+        "end_seconds": 40,
+        "completed": 10141,
+        "gateway_cpu_seconds": 6.57369951436624,
+        "gateway_cpu_ms_per_completion": 0.648229909709717,
+        "latency_p50_ms": 174.848101,
+        "latency_p95_ms": 199.107829,
+        "latency_p99_ms": 207.24304900000004,
+        "latency_p999_ms": 214.88343524,
+        "tail_999_count": 0
+      },
+      {
+        "start_seconds": 40,
+        "end_seconds": 45,
+        "completed": 10234,
+        "gateway_cpu_seconds": 6.623039699767787,
+        "gateway_cpu_ms_per_completion": 0.6471604162368367,
+        "latency_p50_ms": 202.85208849999998,
+        "latency_p95_ms": 220.98986250000002,
+        "latency_p99_ms": 227.36957722,
+        "latency_p999_ms": 235.18521933899993,
+        "tail_999_count": 0
+      },
+      {
+        "start_seconds": 45,
+        "end_seconds": 50,
+        "completed": 10030,
+        "gateway_cpu_seconds": 6.476089164660777,
+        "gateway_cpu_ms_per_completion": 0.6456719007637864,
+        "latency_p50_ms": 233.4575185,
+        "latency_p95_ms": 258.77197145,
+        "latency_p99_ms": 270.17134975,
+        "latency_p999_ms": 280.3806811569999,
+        "tail_999_count": 89
+      },
+      {
+        "start_seconds": 50,
+        "end_seconds": 55,
+        "completed": 10066,
+        "gateway_cpu_seconds": 6.49227367800566,
+        "gateway_cpu_ms_per_completion": 0.6449705620907669,
+        "latency_p50_ms": 192.946751,
+        "latency_p95_ms": 256.40344075,
+        "latency_p99_ms": 266.97338945,
+        "latency_p999_ms": 272.94836666499987,
+        "tail_999_count": 27
+      },
+      {
+        "start_seconds": 55,
+        "end_seconds": 60,
+        "completed": 10061,
+        "gateway_cpu_seconds": 6.461519276647294,
+        "gateway_cpu_ms_per_completion": 0.6422342984442198,
+        "latency_p50_ms": 84.462919,
+        "latency_p95_ms": 131.957786,
+        "latency_p99_ms": 151.73129479999994,
+        "latency_p999_ms": 171.01569952000008,
+        "tail_999_count": 0
+      }
+    ],
+    "p999_rank0": 115854.03,
+    "p999_neighbors": [
+      {
+        "rank0": 115849,
+        "latency_ms": 270.46359
+      },
+      {
+        "rank0": 115850,
+        "latency_ms": 270.465214
+      },
+      {
+        "rank0": 115851,
+        "latency_ms": 270.475465
+      },
+      {
+        "rank0": 115852,
+        "latency_ms": 270.478924
+      },
+      {
+        "rank0": 115853,
+        "latency_ms": 270.484965
+      },
+      {
+        "rank0": 115854,
+        "latency_ms": 270.485798
+      },
+      {
+        "rank0": 115855,
+        "latency_ms": 270.503632
+      },
+      {
+        "rank0": 115856,
+        "latency_ms": 270.509673
+      },
+      {
+        "rank0": 115857,
+        "latency_ms": 270.597007
+      },
+      {
+        "rank0": 115858,
+        "latency_ms": 270.645299
+      },
+      {
+        "rank0": 115859,
+        "latency_ms": 270.665132
+      },
+      {
+        "rank0": 115860,
+        "latency_ms": 270.750591
+      }
+    ],
+    "p999_exceedance_bins_seconds": {
+      "48": 9,
+      "49": 80,
+      "50": 27
+    },
+    "top30_latencies": [
+      {
+        "completion_seconds_after_start": 49.83215546607971,
+        "latency_ms": 289.387846
+      },
+      {
+        "completion_seconds_after_start": 49.83009147644043,
+        "latency_ms": 286.777506
+      },
+      {
+        "completion_seconds_after_start": 49.826207637786865,
+        "latency_ms": 282.778787
+      },
+      {
+        "completion_seconds_after_start": 49.85331654548645,
+        "latency_ms": 281.914243
+      },
+      {
+        "completion_seconds_after_start": 49.82380747795105,
+        "latency_ms": 281.803577
+      },
+      {
+        "completion_seconds_after_start": 49.823575496673584,
+        "latency_ms": 281.704576
+      },
+      {
+        "completion_seconds_after_start": 49.83189368247986,
+        "latency_ms": 280.799199
+      },
+      {
+        "completion_seconds_after_start": 49.83261251449585,
+        "latency_ms": 280.743032
+      },
+      {
+        "completion_seconds_after_start": 49.8320255279541,
+        "latency_ms": 280.589281
+      },
+      {
+        "completion_seconds_after_start": 49.83401846885681,
+        "latency_ms": 280.510448
+      },
+      {
+        "completion_seconds_after_start": 49.8380765914917,
+        "latency_ms": 280.386573
+      },
+      {
+        "completion_seconds_after_start": 49.8389105796814,
+        "latency_ms": 280.183406
+      },
+      {
+        "completion_seconds_after_start": 49.837735652923584,
+        "latency_ms": 279.554738
+      },
+      {
+        "completion_seconds_after_start": 50.06198859214783,
+        "latency_ms": 279.320612
+      },
+      {
+        "completion_seconds_after_start": 49.83736062049866,
+        "latency_ms": 278.953403
+      },
+      {
+        "completion_seconds_after_start": 49.94681167602539,
+        "latency_ms": 278.737527
+      },
+      {
+        "completion_seconds_after_start": 49.83658766746521,
+        "latency_ms": 278.300984
+      },
+      {
+        "completion_seconds_after_start": 50.06036949157715,
+        "latency_ms": 277.828484
+      },
+      {
+        "completion_seconds_after_start": 50.06026554107666,
+        "latency_ms": 277.823525
+      },
+      {
+        "completion_seconds_after_start": 49.836087465286255,
+        "latency_ms": 277.467232
+      },
+      {
+        "completion_seconds_after_start": 49.89333653450012,
+        "latency_ms": 277.442691
+      },
+      {
+        "completion_seconds_after_start": 49.92515254020691,
+        "latency_ms": 277.012356
+      },
+      {
+        "completion_seconds_after_start": 49.892693519592285,
+        "latency_ms": 276.909148
+      },
+      {
+        "completion_seconds_after_start": 49.83547067642212,
+        "latency_ms": 276.638438
+      },
+      {
+        "completion_seconds_after_start": 49.83538556098938,
+        "latency_ms": 276.336562
+      },
+      {
+        "completion_seconds_after_start": 49.854137659072876,
+        "latency_ms": 276.246812
+      },
+      {
+        "completion_seconds_after_start": 49.85439467430115,
+        "latency_ms": 276.182646
+      },
+      {
+        "completion_seconds_after_start": 49.892152547836304,
+        "latency_ms": 276.155854
+      },
+      {
+        "completion_seconds_after_start": 49.85387468338013,
+        "latency_ms": 276.082604
+      },
+      {
+        "completion_seconds_after_start": 50.621296644210815,
+        "latency_ms": 276.071604
+      }
+    ],
+    "limitations": [
+      "Subgraph processes share8cores; process_cpu sum is aggregate headroom, not proof against percore or nonCPU bottlenecks.",
+      "No percore utilization or perthread samples in plain phases. No saturation-capacity conclusion from closed50VU offered workload.",
+      "Runtime counters are interval deltas labelled Rate; incomplete JSON container recovered without modifying source. Sample timestamps are callback delivery, not exact meter read boundaries.",
+      "GC collection/pause sums omit partial edge intervals and do not establish exact perrequest allocation.",
+      "Timestamped native duration excludes blocked/connect/TLS; CPU brackets use earliest duration-start and final completion.100ms sample interpolation/10msCPU ticks limit exact edges.",
+      "Five-second blocks and requests within one launch are dependent; they are not independent replications."
+    ]
+  }
+]

@@ -1,0 +1,45 @@
+{
+  "primary_analyzer_sha256": "0894b388afb5dcf54dce391a4eafdb4708d12a47d6ae94394c47049b32dc6531",
+  "cases": [
+    {
+      "path": "perf/fusion-apollo-baseline-20261017b/baseline-r1-delay0/TestQuery",
+      "analysis_sha256": "c8c89ee51f9801b671ff4bd6d900a103ea20054c34f53bf639295adae95d715d"
+    },
+    {
+      "path": "perf/fusion-apollo-baseline-20261017b/baseline-r1-delay0-continuation/entities9",
+      "analysis_sha256": "e4598b36b7bf970fee48554628a3b10a4cb77471ca75d8e0ec489084af020359"
+    },
+    {
+      "path": "perf/fusion-apollo-baseline-20261017b/baseline-r1-delay0-continuation/ordinary",
+      "analysis_sha256": "7e64b732d2125896172e0ff8456ccaddeb291f0a80175aca522f65041c47a77f"
+    },
+    {
+      "path": "perf/fusion-apollo-baseline-20261017b/baseline-r1-delay4/TestQuery",
+      "analysis_sha256": "c2d72dd6b64eba9459412335a15e7d389cfaada4304115057df19b9435bb45ca"
+    },
+    {
+      "path": "perf/fusion-apollo-baseline-20261017b/baseline-r1-delay4/burst",
+      "analysis_sha256": "e75fd59b3fe900ead16042cd500acca3def3a07ac464068a44939dc94a43ffd4"
+    },
+    {
+      "path": "perf/fusion-apollo-baseline-20261017b/baseline-r2-delay0/TestQuery",
+      "analysis_sha256": "6a535b000ad05fa0faef88c79a7b3156d2c9683f6fc54bb1d8d4deca2bb1957c"
+    },
+    {
+      "path": "perf/fusion-apollo-baseline-20261017b/baseline-r2-delay0/entities9",
+      "analysis_sha256": "16607255f7efb73b48303f9392a056d778ac094d7956ad28a8d0447b3926dec7"
+    },
+    {
+      "path": "perf/fusion-apollo-baseline-20261017b/baseline-r2-delay0/ordinary",
+      "analysis_sha256": "705411ae04136f805e7eb6b8b2693d67193a5f940cf29bcff8e24b11fa83f2bf"
+    },
+    {
+      "path": "perf/fusion-apollo-baseline-20261017b/baseline-r2-delay4/TestQuery",
+      "analysis_sha256": "d37be514f951aaf869667c79d9e6b61535ce0e58690940071b0e0917f7490a43"
+    },
+    {
+      "path": "perf/fusion-apollo-baseline-20261017b/baseline-r2-delay4/burst",
+      "analysis_sha256": "8d636cf699594fd2cadf747929f7a3907204e55c84efa8c7f65b2155b26a6570"
+    }
+  ]
+}

@@ -1,10 +1,10 @@
 # Fusion Apollo Federation performance investigation
 
-Updated: 2026-10-17 16:02 UTC. Status: **ANALYZING_RESULTS**. Discovery is open; no optimization candidate has yet been registered or accepted.
+Updated: 2026-10-17 16:08 UTC. Status: **ANALYZING_RESULTS**. Discovery is **closed** and the candidate list is **frozen**. Three candidates are registered; none is accepted yet.
 
 ## Active work and decisions
 
-The investigation starts from fresh source builds and fresh measurements. The first gate is proving that the source-built gateway runs the benchmark's Apollo Federation composition and `_entities` path. Warm CPU and allocation evidence will determine the candidate list; after it is frozen, only registered candidates will be pursued to terminal decisions.
+Fresh source builds, composition/wire fidelity and the bounded baseline campaign are complete. Warm CPU/allocation evidence supports the three candidates below. Only these registered mechanisms will now be pursued to terminal decisions; no unrelated ideas will be added.
 
 | Owner | Status | Ownership and next handoff |
 |---|---|---|
@@ -13,9 +13,9 @@ The investigation starts from fresh source builds and fresh measurements. The fi
 | `execution_discovery` | ANALYZING_RESULTS | Fresh CPU/allocation traces, recurring-cost evidence and bounded candidate recommendations, with prior experiments excluded. |
 | `history_environment` | ANALYZING_RESULTS | Independent full-campaign accounting, headroom, GC/memory and tail review; completed exclusion and composition audits. |
 
-Measurement queue: empty. All granted baseline and profile sessions completed; owner and root verified owned cleanup and the free lock. Shared work explicitly resumed for all workers. No further measurement is authorized without a specific ready request. Full HTTP and CPU/allocation analysis is in progress, with no candidate registered yet.
+Measurement queue: empty. All granted baseline and profile sessions completed; owner and root verified owned cleanup and the free lock. Shared work explicitly resumed for all workers. No further measurement is authorized without a specific ready request. Full HTTP and CPU/allocation analysis is in progress, and the three evidence-backed candidates are now frozen below.
 
-Plain final cleanup was 15:57:44.579 UTC. Profiles ran 15:58:11.307–16:00:59.462 UTC, target gateway PID 18692 / start ticks 124428, and all three trace collectors exited 0. Actual trace boundaries, loss and containment remain to be verified by analysis. Source files are `profiles/{cpu.nettrace,cpu.speedscope.json,alloc.nettrace,entities9-alloc.nettrace}` under the baseline artifact directory. The runner reused `trace.log`, so the initial CPU console log was overwritten; actual invocation, process identity and machine-readable trace remain. This does not authorize a repeated capture. Raw/lossless data and traces will be compressed and pushed on the baseline evidence branch; frozen binaries are represented by fingerprints and reproduction commands, not indiscriminate build output.
+Plain final cleanup was 15:57:44.579 UTC. Profiles ran 15:58:11.307–16:00:59.462 UTC, target gateway PID 18692 / start ticks 124428, and all three trace collectors exited 0. Analysis verified actual durations 30.089 s CPU / 15.121 s original allocation / 15.080 s entities9 allocation, correct target PID and zero reported event loss. CPU window contains 114,759 successful requests and 68.595359 process CPU-s; original allocation window 61,630 successes and 37.092032 CPU-s. Entities9 window has 138,914 HTTP 200 completions versus 138,913 success callbacks due to one boundary crossing, with 30.031472 CPU-s and no failures. These are diagnostic windows, separate from plain timing. Source files are `profiles/{cpu.nettrace,cpu.speedscope.json,alloc.nettrace,entities9-alloc.nettrace}` under the baseline artifact directory. The runner reused `trace.log`, so the initial CPU console log was overwritten; actual invocation, process identity and machine-readable trace remain. This does not authorize a repeated capture. Raw/lossless data and traces will be compressed and pushed on the baseline evidence branch; frozen binaries are represented by fingerprints and reproduction commands, not indiscriminate build output.
 
 Profile runner SHA-256 `e02f4b626bca2ece21a741932de1ad5aacb46ec495fdb4607ab06ed47bf7285b`, changing only trace duration format to documented `dd:hh:mm:ss`. Plain runner `c5fa13be9f1846333533727f225489dcb341684e41b0fceba797567a4f984d5f` is preserved at `perf/fusion-apollo-baseline-20261017b/campaign-plain.py`; focused driver and frozen binaries unchanged.
 
@@ -62,7 +62,7 @@ Fidelity frozen manifest SHA-256 `8c468238e50eac57ad679df87d08938dc699935736cc5c
 
 Shared-lock preflight caught inherited lock FDs in completed MSBuild/compiler servers. Root validated 17 exact investigation-owned PID/start identities and terminated them, then verified the lock free. No preexisting .NET processes were present at entry. Cleanup evidence: `perf/fusion-apollo-20261017-43a8dca2/build-server-cleanup.json`. Future shared commands use `flock -s -o` so background build servers cannot inherit the lock.
 
-Discovery source map and byte-identical reused TraceAnalysis helper are published at `4a436850f0` on `origin/perf/fusion-apollo-discovery-20261017b`; its Release build passed.
+Discovery source map, byte-identical reused TraceAnalysis helper, CPU analysis, lossless allocation observations and candidate registration are published at `fcb10a2aa8efc58cb5f36e654a8061306ef32e1a` on `origin/perf/fusion-apollo-discovery-20261017b`; its Release build passed.
 
 Preparation is in progress, with no measurements yet. Actual environment is ARM64 Linux under OrbStack with 16 allowed CPUs and approximately 33.67 GB RAM; root cgroup CPU and memory are unlimited. SDK is 11.0.100-rc.1.26425.128; the benchmark Federation variant targets .NET 10 (installed runtime 10.0.12). Expected profiling executables and k6 were absent at entry and are being prepared with pinned versions.
 
@@ -82,9 +82,33 @@ The completed audit covers the last 100 authored PRs (back to June 30), independ
 
 Other authors' open PRs remain duplication checks, including #9462 result-document work. Current Apollo representation ownership/materialization and alias-body hypotheses have no direct authored PR overlap, but still require fresh warm profile evidence before registration.
 
-## Candidate register
+## Candidate register (frozen)
 
-Discovery open. No candidates registered. Source-only hypotheses do not qualify as measured recurring costs. Acceptance requires worthwhile production-path evidence, relevant HTTP validation, correctness checks and published reproduction artifacts. An inconclusive valid campaign terminates without a success claim.
+Freeze time: 2026-10-17 16:05 UTC. Evidence uses the unchanged warm TestQuery and nested entities9. The original plan performs 11 representation builds across 7 transports (10 batched members and 1 single member), with 335 target occurrences, 24 distinct representations, and 311 duplicate paths across 8 fetches. All are distinct from the 25 excluded prior mechanisms.
+
+| ID | Status / owner | Bounded hypothesis and smallest prototype | Gate and terminal stopping condition |
+|---|---|---|---|
+| C1 | PROTOTYPING / `execution_discovery` | Reuse the Apollo deduplication table and reduce repeated oversized clearing, keeping writer/JsonWriter lifetimes unchanged. Warm caller stacks show 5.329 s sampled thread time in representation building, including 2.107 s in dedup resize/rent/zeroing; these are sampled thread times, not exact process CPU or call counts. Allocation caller evidence includes 546 JsonWriter, 349 VariableDedupTable and 334 ChunkedArrayWriter ticks. | Prove parallel-fetch isolation, detached output lifetime, reset/cancellation and retained-capacity limits. Production-path micro: unique 1/5/6/9/96/1024, duplicate 96→1, mixed, null/snapshot and post-large retention. Abandon if ownership cannot be preserved, ordinary/unique cases regress materially, or valid HTTP leaves benefit inconclusive/adverse. |
+| C2 | INVESTIGATING / `benchmark_baseline` | Delay per-entity error-attribution `VariableValues[]` until needed while preserving public `ToVariableValues` behavior. Warm allocation samples contain 783 ticks at this caller. Static 64-bit layout estimates 1,224 B per original request, to validate rather than claim as a measurement. | Production-path micro includes ordinary/unique/duplicate/mixed and error fallback; correctness covers null/missing entities, errors, callbacks, cancellation and shared native behavior. Require measured scoped savings and no unresolved repeated adverse HTTP behavior. Abandon on contract failure, negligible practical saving or inconclusive/adverse HTTP. |
+| C3 | PROTOTYPING / `history_environment` | Pool duplicate-representation `CompactPath[]` backing with explicit request-store cleanup ownership. This is separate from excluded integer path-segment pools/slot sizing. Largest newly actionable array caller: 1,600 allocation ticks at accumulator application. Static original-request estimate is 2,680 B, pending micro validation. | Prove duplicate error-path mapping, callback/detach lifetimes, cancellation/exception cleanup, parallel/cross-request isolation and bounded retention. Preserve the `EntityResultPath[]`/ImmutableArray contract. Production-path micro covers unique 1/5/6/9, duplicate 96→1 and mixed cases. Abandon on unsafe ownership, adverse micro or inconclusive/adverse HTTP. |
+
+C1 ownership refinement: full scratch reuse would retain the ChunkedArrayWriter first chunk (128 KiB) during downstream waits, potentially about 64 MiB at 500 concurrent requests. That variant is rejected before measurement and preserved in experimental history. The bounded prototype reuses only the dedup table (original-query peak about 8 KiB), releases it on request cleanup/reset/dispose, and passes the active writer explicitly to shared internal lookup callers. Shared native behavior requires focused correctness checks.
+
+C3 ownership audit proposes store-owned pooled duplicate-path backing retained through all pending/error/detached consumers until cleanup, cleared before return, with bounded bookkeeping/oversized fallback. The immutable EntityResultPath array remains unchanged. Tests must establish this lifetime before performance promotion.
+
+All micro timing uses actual baseline/candidate production implementations and explicit independent launches, with validated scoped allocation methods kept separate from default-policy timing. No benchmark runs without a ready request and exclusive slot. Required HTTP includes unchanged TestQuery, nested entities9 and an ordinary control with applicable matched/interleaved controls and fixed inputs. Delayed/burst cases and retained-memory checks apply where the mechanism's concurrency/ownership warrants them. Planned campaigns must preserve every valid run and inspect both adjacent controls; no rerun to seek a favorable result.
+
+The initial original zero-delay envelope is not stationary: r1 4,071.99 requests/s and 0.584605 CPU ms/request versus r2 2,936.12 requests/s and 0.604489 CPU ms/request (throughput −27.90%, CPU/request +3.40%). Original p99.9 is 42.084 versus 46.554 ms. The ordinary 50-VU case uses 1.907/2 generator cores, so its throughput/tails are generator-limited and cannot establish gateway capacity. Future bounded ordinary diagnostics require their own applicable controls and explicit configuration. No valid baseline is repeated to erase this drift.
+
+Not registered: representation-shape lookup and alias-body composition lack sufficient isolated opportunity; pooling `EntityResultPath[]` would conflict with public immutable ownership without a sufficiently small safe change. These are discovery dispositions, not an open backlog. Published historical experiments remain excluded.
+
+Candidate worktrees, all independently based on `43a8dca2bd479ddc411d832ed97e42d9fcc8bd85`:
+
+- C1: `.worktrees/fusion-apollo-scratch-20261017b`, `perf/fusion-apollo-scratch-20261017b`. Owns representation scratch/pooling lifecycle, focused tests and evidence.
+- C2: `.worktrees/fusion-apollo-error-vars-20261017b`, `perf/fusion-apollo-error-vars-20261017b`. Owns lazy error-variable handling, focused tests and evidence; baseline publication completes first.
+- C3: `.worktrees/fusion-apollo-duplicate-paths-20261017b`, `perf/fusion-apollo-duplicate-paths-20261017b`. Owns duplicate path backing/lifetime, focused tests and evidence; independent baseline review completes first.
+
+Prototype branches preserve full accepted or rejected patches, tests and evidence. Only validated successes get clean `tte/<description>` branches and draft PRs; no such branch or PR exists yet.
 
 ## Validated successes
 
