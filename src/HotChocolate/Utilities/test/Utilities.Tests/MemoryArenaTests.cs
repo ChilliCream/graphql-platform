@@ -191,6 +191,31 @@ public class MemoryArenaTests
         Assert.Equal(1, arena.RentedTableCount);
     }
 
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(4)]
+    [InlineData(8)]
+    public void GrowSegmentTable_Should_PreserveEntriesAndClearNewSlots_When_UsingSmallTables(int length)
+    {
+        // arrange
+        using var arena = new MemoryArena();
+        var table = arena.RentSegmentTable(length);
+        var segment = new MemorySegment(new byte[8], 1, 2);
+        Array.Fill(table, segment);
+        var expected = Enumerable.Repeat(segment, length)
+            .Concat(Enumerable.Repeat(default(MemorySegment), length))
+            .ToArray();
+
+        // act
+        arena.GrowSegmentTable(ref table);
+        arena.Seal();
+
+        // assert
+        Assert.Equal(expected, table);
+        Assert.Equal(1, arena.RentedTableCount);
+    }
+
     [Fact]
     public void GrowSegmentTable_Should_CopyEntriesAndKeepSingleTracked_When_Grown()
     {

@@ -9,15 +9,12 @@ namespace HotChocolate.Buffers;
 
 /// <summary>
 /// Pools the <see cref="MemorySegment"/>[] tables that arenas rent to track their segments, keyed by
-/// length. It keeps enough of each length to cover the tables in use at once, so renting after a
-/// return does not allocate.
+/// length. Each bucket retains at most 4,096 returned tables.
 /// </summary>
 internal static class MemorySegmentTablePool
 {
-    // The smallest and largest bucketed table lengths. Both are powers of two. The two hot lengths
-    // proven by the trace are 16 and 64; the neighbors are covered so a slightly larger or smaller
-    // rent still lands in a bucket instead of the fallback pool.
-    private const int MinLength = 16;
+    // Tables are bucketed by power-of-two lengths from one through 128.
+    private const int MinLength = 1;
     private const int MaxLength = 128;
 
     // The number of tables a single bucket retains. The live working set per hot length is on the
