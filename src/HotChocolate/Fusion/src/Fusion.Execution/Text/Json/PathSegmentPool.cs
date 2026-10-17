@@ -133,16 +133,27 @@ internal sealed class PathSegmentPool : IDisposable
     /// </summary>
     internal int InUse => _bucket.InUse;
 
+    /// <summary>
+    /// Gets the number of segment-array references reserved by the pool.
+    /// </summary>
+    internal int Capacity => _bucket.Capacity;
+
+    internal void Trim() => _bucket.Trim();
+
     public void Dispose() => _bucket.Dispose();
 
     private sealed class Bucket : IDisposable
     {
+        private const int PageShift = 12;
+        private const int PageSize = 1 << PageShift;
+        private const int PageMask = PageSize - 1;
         private readonly int _poolId;
         private readonly int _segmentArraySize;
-        private readonly int[]?[] _buffers;
+        private readonly int[]?[]?[] _pages;
         private readonly int[] _levels;
         private readonly Timer _trimTimer;
         private int _currentLevel;
+        private int _capacity;
         private int _inUse;
         private SpinLock _lock;
         private int _index;
@@ -154,31 +165,33 @@ internal sealed class PathSegmentPool : IDisposable
             TimeSpan trimInterval,
             bool preAllocate)
         {
-            var numberOfBuffers = levels[levels.Length - 1];
-
             _poolId = poolId;
             _segmentArraySize = segmentArraySize;
-            _buffers = new int[numberOfBuffers][];
             _levels = levels;
-            _currentLevel = 0;
+            _pages = new int[]?[]?[((levels[^1] - 1) >> PageShift) + 1];
+
+            for (var i = 0; i < levels[0]; i += PageSize)
+            {
+                var page = new int[Math.Min(PageSize, levels[0] - i)][];
+                _pages[i >> PageShift] = page;
+                _capacity += page.Length;
+            }
 
             if (preAllocate)
             {
-                var stableLevel = levels[0];
-                for (var i = 0; i < stableLevel; i++)
+                for (var i = 0; i < levels[0]; i++)
                 {
-                    _buffers[i] = new int[_segmentArraySize];
+                    _pages[i >> PageShift]![i & PageMask] = new int[_segmentArraySize];
                 }
             }
 
             _lock = new SpinLock(Debugger.IsAttached);
-            _index = 0;
-            _inUse = 0;
-
             _trimTimer = new Timer(static b => ((Bucket)b!).Trim(), this, trimInterval, trimInterval);
         }
 
         internal int InUse => _inUse;
+
+        internal int Capacity => _capacity;
 
         /// <summary>
         /// Takes one pool slot per destination element until the pool is exhausted and
@@ -188,28 +201,47 @@ internal sealed class PathSegmentPool : IDisposable
         {
             Interlocked.Add(ref _inUse, destination.Length);
 
-            var buffers = _buffers;
             var served = 0;
             var lockTaken = false;
 
             try
             {
                 _lock.Enter(ref lockTaken);
+                var limit = _levels[_currentLevel];
 
                 while (served < destination.Length)
                 {
-                    if (_index >= _levels[_currentLevel] && _currentLevel < _levels.Length - 1)
+                    if (_index >= limit && _currentLevel < _levels.Length - 1)
                     {
-                        _currentLevel++;
+                        limit = _levels[++_currentLevel];
                     }
 
-                    if (_index >= _levels[_currentLevel])
+                    if (_index >= limit)
                     {
                         break;
                     }
 
-                    destination[served++] = buffers[_index];
-                    buffers[_index++] = null;
+                    var pageIndex = _index >> PageShift;
+                    var page = _pages[pageIndex];
+                    var offset = _index & PageMask;
+
+                    if (page is null || offset >= page.Length)
+                    {
+                        var length = Math.Min(PageSize, limit - (pageIndex << PageShift));
+                        var previousLength = page?.Length ?? 0;
+                        page = new int[length][];
+                        _pages[pageIndex] = page;
+                        _capacity += length - previousLength;
+                    }
+
+                    var count = Math.Min(
+                        destination.Length - served,
+                        Math.Min(limit - _index, page.Length - offset));
+                    var slots = page.AsSpan(offset, count);
+                    slots.CopyTo(destination.Slice(served, count));
+                    slots.Clear();
+                    _index += count;
+                    served += count;
                 }
             }
             finally
@@ -262,8 +294,11 @@ internal sealed class PathSegmentPool : IDisposable
             try
             {
                 _lock.Enter(ref lockTaken);
+                var index = _index;
+                var page = index == 0 ? null : _pages[(index - 1) >> PageShift]!;
+                var offset = (index - 1) & PageMask;
 
-                for (var i = 0; i < arrays.Length && _index > 0; i++)
+                for (var i = 0; i < arrays.Length && index > 0; i++)
                 {
                     var array = arrays[i];
 
@@ -272,9 +307,18 @@ internal sealed class PathSegmentPool : IDisposable
                         continue;
                     }
 
-                    _buffers[--_index] = array;
+                    if (offset < 0)
+                    {
+                        page = _pages[(index - 1) >> PageShift]!;
+                        offset = (index - 1) & PageMask;
+                    }
+
+                    page![offset--] = array;
+                    index--;
                     accepted++;
                 }
+
+                _index = index;
             }
             finally
             {
@@ -287,45 +331,67 @@ internal sealed class PathSegmentPool : IDisposable
             return accepted;
         }
 
-        private void Trim()
+        internal void Trim()
         {
-            var currentLevel = _currentLevel;
-
-            if (currentLevel == 0)
+            if (_currentLevel == 0)
             {
                 return;
             }
 
-            var previousLevel = currentLevel - 1;
-            var previousLimit = _levels[previousLevel];
-
-            if (_inUse > previousLimit)
-            {
-                return;
-            }
-
+            int previousLimit;
+            int inUse;
             var trimmed = 0;
             var lockTaken = false;
 
             try
             {
-                var currentLimit = _levels[currentLevel];
-
                 _lock.Enter(ref lockTaken);
 
-                for (var i = previousLimit; i < currentLimit; i++)
+                if (_currentLevel == 0)
                 {
-                    if (_buffers[i] != null)
+                    return;
+                }
+
+                previousLimit = _levels[_currentLevel - 1];
+                inUse = _inUse;
+
+                if (inUse > previousLimit)
+                {
+                    return;
+                }
+
+                var currentLimit = _levels[_currentLevel];
+
+                for (var i = previousLimit; i < currentLimit;)
+                {
+                    var offset = i & PageMask;
+                    var count = Math.Min(currentLimit - i, PageSize - offset);
+                    var page = _pages[i >> PageShift];
+
+                    if (page is not null)
                     {
-                        _buffers[i] = null;
-                        trimmed++;
+                        var slots = page.AsSpan(offset, count);
+
+                        foreach (var array in slots)
+                        {
+                            if (array is not null)
+                            {
+                                trimmed++;
+                            }
+                        }
+
+                        slots.Clear();
                     }
+
+                    i += count;
                 }
 
                 if (_index > previousLimit)
                 {
                     _index = previousLimit;
                 }
+
+                _currentLevel--;
             }
             finally
             {
@@ -335,12 +401,10 @@ internal sealed class PathSegmentPool : IDisposable
                 }
             }
 
-            _currentLevel = previousLevel;
-
             var log = Log;
             if (log.IsEnabled())
             {
-                log.PoolTrimmed(_poolId, trimmed, previousLimit, _inUse);
+                log.PoolTrimmed(_poolId, trimmed, previousLimit, inUse);
             }
         }
 
