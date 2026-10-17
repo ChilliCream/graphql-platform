@@ -797,6 +797,44 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void AddErrors_Should_KeepDuplicateErrors_When_SameErrorMapsToSamePath()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              value: String
+            }
+            """);
+        using var resultArena = new MemoryArena();
+        using var store = CreateEmptyStore(schema, "{ value }", resultArena, out var selectionSet);
+        var path = HotChocolate.Path.Root.Append("value");
+        var source = ErrorBuilder.New()
+            .SetMessage("boom")
+            .SetCode("TEST")
+            .SetPath(path)
+            .Build();
+        var sourceHash = source.GetHashCode();
+
+        // act
+        var firstAdded = store.AddErrors(source, selectionSet, HotChocolate.Path.Root);
+        var secondAdded = store.AddErrors(source, selectionSet, HotChocolate.Path.Root);
+
+        // assert
+        Assert.Equal((true, true, sourceHash, path),
+            (firstAdded, secondAdded, source.GetHashCode(), source.Path));
+        var expected = (Message: "boom", Code: (string?)"TEST", Path: (string?)"value");
+        Assert.Equal(new[] { expected, expected },
+            store.Errors!.Select(error => (error.Message, error.Code, error.Path?.Print())).ToArray());
+        Assert.All(store.Errors!, error => Assert.NotSame(source, error));
+        RenderData(store).MatchInlineSnapshot(
+            """
+            {"value":null}
+            """);
+    }
+
+    [Fact]
     public void AddPartialResults_Should_PreserveErrorMetadata_When_PathIsRemapped()
     {
         // arrange
