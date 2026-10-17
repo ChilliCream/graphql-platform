@@ -1,0 +1,26 @@
+Fusion resolves the same concrete object type and invokes the cached child-selection resolver for each object in a homogeneous list.
+
+This PR keeps the concrete type and lazily resolved selection set at list scope, then passes the prepared set directly to object completion.
+
+### Benchmarks
+
+The direct benchmark completes resident parsed source data through the real result store and ValueCompletion. Store initialization, completion and cleanup are timed; operation compilation, source parsing, HTTP and formatting are excluded.
+
+BenchmarkDotNet 0.15.8, Release .NET 10.0.12 ARM64, server/concurrent GC: three launches, five warmup iterations and fifteen measured iterations per launch. Values are medians after BDN outlier filtering; ratios are relative to the baseline. Baseline `main` is `9a563e814f`; the PR is `4bb15b20bf`.
+
+Both variants use `DOTNET_GCDynamicAdaptationMode=0` for microbenchmarks and HTTP comparisons to avoid observed allocation-counter discontinuities. This is a measurement setting, not a production change; default-GC HTTP CPU/allocation effects are not independently established.
+
+| Case | Version | Median | Ratio | Allocated | Alloc Ratio |
+|---|---|---:|---:|---:|---:|
+| 1,000 rows | `main` | 114.407 µs | 1.00 | 472 B | 1.00 |
+| 1,000 rows | PR | 86.527 µs | 0.76 | 472 B | 1.00 |
+| 20,000 rows | `main` | 2,218.957 µs | 1.00 | 1,656 B | 1.00 |
+| 20,000 rows | PR | 1,688.506 µs | 0.76 | 1,656 B | 1.00 |
+
+Direct completion is 24.37% and 23.91% faster with unchanged allocations. A later full baseline repeat remained slower at 115.359 and 2,313.593 µs respectively; all measured BDN jobs reported zero collections.
+
+### Verdict
+
+Three fresh interleaved 20,000-row HTTP pairs reduced median gateway CPU/request from 8.139 to 7.618 ms (6.40%); individual paired reductions ranged from 1.25% to 9.37%. HTTP allocation medians rose 0.46%, while direct allocations were unchanged. Latency ranges overlap. These runs used a fixed 20 requests/s and do not establish a throughput or retained-memory improvement.
+
+Release builds passed; 226 focused tests passed, with three existing skips. [Full results and reproduction](https://github.com/ChilliCream/graphql-platform/blob/4bb15b20bf4919a548e598b5917b0ddde9eac7f1/PERFORMANCE-list-completion.md).

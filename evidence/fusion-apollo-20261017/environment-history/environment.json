@@ -1,0 +1,213 @@
+{
+  "time_utc": "2026-10-17T15:41:33.482283+00:00",
+  "platform": "Linux-7.2.9-orbstack-00391-g2b298d05fbd4-aarch64-with-glibc2.36",
+  "affinity": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15
+  ],
+  "commands": {
+    "uname": {
+      "command": [
+        "uname",
+        "-a"
+      ],
+      "exit_code": 0,
+      "stdout": "Linux 0e6603bad940 7.2.9-orbstack-00391-g2b298d05fbd4 #1 SMP PREEMPT Mon Oct 12 05:39:36 UTC 2026 aarch64 GNU/Linux\n",
+      "stderr": ""
+    },
+    "cpu": {
+      "command": [
+        "lscpu"
+      ],
+      "exit_code": 0,
+      "stdout": "Architecture:                            aarch64\nCPU op-mode(s):                          64-bit\nByte Order:                              Little Endian\nCPU(s):                                  16\nOn-line CPU(s) list:                     0-15\nVendor ID:                               Apple\nModel name:                              -\nModel:                                   0\nThread(s) per core:                      1\nCore(s) per cluster:                     16\nSocket(s):                               -\nCluster(s):                              1\nStepping:                                0x0\nCPU(s) scaling MHz:                      100%\nCPU max MHz:                             2000.0000\nCPU min MHz:                             2000.0000\nBogoMIPS:                                48.00\nFlags:                                   fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 asimddp sha512 asimdfhm dit uscat ilrcpc flagm sb dcpodp flagm2 frint i8mm bf16 ecv afp rpres\nL1d cache:                               2 MiB (16 instances)\nL1i cache:                               3 MiB (16 instances)\nL2 cache:                                48 MiB (3 instances)\nL3 cache:                                64 MiB (1 instance)\nVulnerability Gather data sampling:      Not affected\nVulnerability Ghostwrite:                Not affected\nVulnerability Indirect target selection: Not affected\nVulnerability Itlb multihit:             Not affected\nVulnerability L1tf:                      Not affected\nVulnerability Mds:                       Not affected\nVulnerability Meltdown:                  Not affected\nVulnerability Mmio stale data:           Not affected\nVulnerability Old microcode:             Not affected\nVulnerability Reg file data sampling:    Not affected\nVulnerability Retbleed:                  Not affected\nVulnerability Spec rstack overflow:      Not affected\nVulnerability Spec store bypass:         Vulnerable\nVulnerability Spectre v1:                Mitigation; __user pointer sanitization\nVulnerability Spectre v2:                Mitigation; CSV2, but not BHB\nVulnerability Srbds:                     Not affected\nVulnerability Tsa:                       Not affected\nVulnerability Tsx async abort:           Not affected\nVulnerability Vmscape:                   Not affected\n",
+      "stderr": ""
+    },
+    "memory": {
+      "command": [
+        "free",
+        "-b"
+      ],
+      "exit_code": 0,
+      "stdout": "               total        used        free      shared  buff/cache   available\nMem:     33670590464  3009761280 29835149312    23527424  1246158848 30660829184\nSwap:    34744324096           0 34744324096\n",
+      "stderr": ""
+    },
+    "dotnet_info": {
+      "command": [
+        "dotnet",
+        "--info"
+      ],
+      "exit_code": 0,
+      "stdout": ".NET SDK:\n Version:           11.0.100-rc.1.26425.128\n Commit:            3551975be0\n Workload version:  11.0.100-manifests.a6e318ce\n MSBuild version:   18.11.0-1.26425.128+3551975be\n\nRuntime Environment:\n OS Name:     debian\n OS Version:  12\n OS Platform: Linux\n RID:         linux-arm64\n Base Path:   /usr/share/dotnet/sdk/11.0.100-rc.1.26425.128\n\n.NET workloads installed:\nThere are no installed workloads to display.\nConfigured to use workload sets when installing new manifests.\nNo workload sets are installed. Run \"dotnet workload restore\" to install a workload set.\n\nHost:\n  Version:      11.0.0-rc.1.26425.128\n  Architecture: arm64\n  Commit:       3551975be0\n\n.NET SDKs installed:\n  8.0.425 [/usr/share/dotnet/sdk]\n  9.0.318 [/usr/share/dotnet/sdk]\n  10.0.401 [/usr/share/dotnet/sdk]\n  11.0.100-rc.1.26425.128 [/usr/share/dotnet/sdk]\n\n.NET runtimes installed:\n  Microsoft.AspNetCore.App 8.0.31 [/usr/share/dotnet/shared/Microsoft.AspNetCore.App]\n  Microsoft.AspNetCore.App 9.0.20 [/usr/share/dotnet/shared/Microsoft.AspNetCore.App]\n  Microsoft.AspNetCore.App 10.0.12 [/usr/share/dotnet/shared/Microsoft.AspNetCore.App]\n  Microsoft.AspNetCore.App 11.0.0-rc.1.26425.128 [/usr/share/dotnet/shared/Microsoft.AspNetCore.App]\n  Microsoft.NETCore.App 8.0.31 [/usr/share/dotnet/shared/Microsoft.NETCore.App]\n  Microsoft.NETCore.App 9.0.20 [/usr/share/dotnet/shared/Microsoft.NETCore.App]\n  Microsoft.NETCore.App 10.0.12 [/usr/share/dotnet/shared/Microsoft.NETCore.App]\n  Microsoft.NETCore.App 11.0.0-rc.1.26425.128 [/usr/share/dotnet/shared/Microsoft.NETCore.App]\n\nOther architectures found:\n  None\n\nEnvironment variables:\n  DOTNET_LOCAL_DEV                         [1]\n  DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK [1]\n\nglobal.json file:\n  /workspaces/platform-1/global.json\n\nLearn more:\n  https://aka.ms/dotnet/info\n\nDownload .NET:\n  https://aka.ms/dotnet/download\n",
+      "stderr": ""
+    },
+    "dotnet_sdks": {
+      "command": [
+        "dotnet",
+        "--list-sdks"
+      ],
+      "exit_code": 0,
+      "stdout": "8.0.425 [/usr/share/dotnet/sdk]\n9.0.318 [/usr/share/dotnet/sdk]\n10.0.401 [/usr/share/dotnet/sdk]\n11.0.100-rc.1.26425.128 [/usr/share/dotnet/sdk]\n",
+      "stderr": ""
+    },
+    "dotnet_runtimes": {
+      "command": [
+        "dotnet",
+        "--list-runtimes"
+      ],
+      "exit_code": 0,
+      "stdout": "Microsoft.AspNetCore.App 8.0.31 [/usr/share/dotnet/shared/Microsoft.AspNetCore.App]\nMicrosoft.AspNetCore.App 9.0.20 [/usr/share/dotnet/shared/Microsoft.AspNetCore.App]\nMicrosoft.AspNetCore.App 10.0.12 [/usr/share/dotnet/shared/Microsoft.AspNetCore.App]\nMicrosoft.AspNetCore.App 11.0.0-rc.1.26425.128 [/usr/share/dotnet/shared/Microsoft.AspNetCore.App]\nMicrosoft.NETCore.App 8.0.31 [/usr/share/dotnet/shared/Microsoft.NETCore.App]\nMicrosoft.NETCore.App 9.0.20 [/usr/share/dotnet/shared/Microsoft.NETCore.App]\nMicrosoft.NETCore.App 10.0.12 [/usr/share/dotnet/shared/Microsoft.NETCore.App]\nMicrosoft.NETCore.App 11.0.0-rc.1.26425.128 [/usr/share/dotnet/shared/Microsoft.NETCore.App]\n",
+      "stderr": ""
+    },
+    "dotnet_tools": {
+      "command": [
+        "dotnet",
+        "tool",
+        "list",
+        "-g"
+      ],
+      "exit_code": 0,
+      "stdout": "Package Id      Version      Commands\n-------------------------------------\n",
+      "stderr": ""
+    },
+    "node": {
+      "command": [
+        "node",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stdout": "v24.21.0\n",
+      "stderr": ""
+    },
+    "npm": {
+      "command": [
+        "npm",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stdout": "11.19.0\n",
+      "stderr": ""
+    },
+    "gh": {
+      "command": [
+        "gh",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stdout": "gh version 2.102.0 (2026-09-30)\nhttps://github.com/cli/cli/releases/tag/v2.102.0\n",
+      "stderr": ""
+    },
+    "k6": {
+      "command": [
+        "k6",
+        "version"
+      ],
+      "error": "[Errno 2] No such file or directory: 'k6'"
+    },
+    "trace": {
+      "command": [
+        "dotnet-trace",
+        "--version"
+      ],
+      "error": "[Errno 2] No such file or directory: 'dotnet-trace'"
+    },
+    "counters": {
+      "command": [
+        "dotnet-counters",
+        "--version"
+      ],
+      "error": "[Errno 2] No such file or directory: 'dotnet-counters'"
+    },
+    "gcdump": {
+      "command": [
+        "dotnet-gcdump",
+        "--version"
+      ],
+      "error": "[Errno 2] No such file or directory: 'dotnet-gcdump'"
+    },
+    "dump": {
+      "command": [
+        "dotnet-dump",
+        "--version"
+      ],
+      "error": "[Errno 2] No such file or directory: 'dotnet-dump'"
+    },
+    "symbol": {
+      "command": [
+        "dotnet-symbol",
+        "--version"
+      ],
+      "error": "[Errno 2] No such file or directory: 'dotnet-symbol'"
+    },
+    "dottrace": {
+      "command": [
+        "dottrace",
+        "--version"
+      ],
+      "error": "[Errno 2] No such file or directory: 'dottrace'"
+    },
+    "dotmemory": {
+      "command": [
+        "dotmemory",
+        "--version"
+      ],
+      "error": "[Errno 2] No such file or directory: 'dotmemory'"
+    },
+    "processes": {
+      "command": [
+        "ps",
+        "-eo",
+        "pid,ppid,lstart,comm",
+        "--sort=pid"
+      ],
+      "exit_code": 0,
+      "stdout": "    PID    PPID                  STARTED COMMAND\n      1       0 Sat Oct 17 15:38:45 2026 sh\n     23       1 Sat Oct 17 15:38:45 2026 dockerd\n     35      23 Sat Oct 17 15:38:45 2026 containerd\n    438       0 Sat Oct 17 15:38:45 2026 sh\n    479     438 Sat Oct 17 15:38:45 2026 MainThread\n    480       0 Sat Oct 17 15:38:45 2026 sh\n    488     480 Sat Oct 17 15:38:45 2026 MainThread\n    955     488 Sat Oct 17 15:38:47 2026 MainThread\n   3181       0 Sat Oct 17 15:40:42 2026 sh\n   3186    3181 Sat Oct 17 15:40:42 2026 sh\n   3200       0 Sat Oct 17 15:40:42 2026 sh\n   3267       0 Sat Oct 17 15:40:42 2026 sh\n   3382       0 Sat Oct 17 15:40:42 2026 sh\n   3428    3382 Sat Oct 17 15:40:42 2026 MainThread\n   3489       0 Sat Oct 17 15:40:42 2026 MainThread\n   3514       0 Sat Oct 17 15:40:42 2026 MainThread\n   3525     488 Sat Oct 17 15:40:42 2026 MainThread\n   3536     488 Sat Oct 17 15:40:42 2026 MainThread\n   3673    3536 Sat Oct 17 15:40:43 2026 codex\n   3734    3536 Sat Oct 17 15:40:43 2026 MainThread\n   3777    3536 Sat Oct 17 15:40:44 2026 MainThread\n   3825    3536 Sat Oct 17 15:40:44 2026 MainThread\n   3958    3536 Sat Oct 17 15:40:45 2026 MainThread\n   3964    3536 Sat Oct 17 15:40:45 2026 MainThread\n   3972     955 Sat Oct 17 15:40:45 2026 zsh\n   4304    3536 Sat Oct 17 15:40:46 2026 MainThread\n   4567       0 Sat Oct 17 15:40:51 2026 sh\n   5246    3673 Sat Oct 17 15:41:08 2026 codex-code-mode\n   6103    3536 Sat Oct 17 15:41:31 2026 MainThread\n   6228    3673 Sat Oct 17 15:41:33 2026 flock\n   6229       1 Sat Oct 17 15:41:33 2026 sleep\n   6230    6228 Sat Oct 17 15:41:33 2026 python3\n   6299    6230 Sat Oct 17 15:41:33 2026 ps\n",
+      "stderr": ""
+    },
+    "ports": {
+      "command": [
+        "ss",
+        "-ltnp"
+      ],
+      "exit_code": 0,
+      "stdout": "State  Recv-Q Send-Q Local Address:Port  Peer Address:PortProcess                               \nLISTEN 0      511        127.0.0.1:36653      0.0.0.0:*    users:((\"MainThread\",pid=6103,fd=21))\nLISTEN 0      511        127.0.0.1:55504      0.0.0.0:*    users:((\"MainThread\",pid=3536,fd=74))\nLISTEN 0      511        127.0.0.1:43837      0.0.0.0:*    users:((\"MainThread\",pid=488,fd=21)) \n",
+      "stderr": ""
+    },
+    "docker": {
+      "command": [
+        "docker",
+        "ps",
+        "--format",
+        "{{.ID}} {{.Image}} {{.Names}} {{.Ports}}"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  },
+  "cgroup": {
+    "/proc/self/cgroup": "0::/init\n",
+    "/sys/fs/cgroup/cpu.max": "max 100000\n",
+    "/sys/fs/cgroup/cpu.stat": "usage_usec 106656675\nuser_usec 52478991\nsystem_usec 54177684\nnice_usec 621000\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n",
+    "/sys/fs/cgroup/cpuset.cpus.effective": "0-15\n",
+    "/sys/fs/cgroup/memory.max": "max\n",
+    "/sys/fs/cgroup/memory.current": "2968936448\n",
+    "/sys/fs/cgroup/memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0\n",
+    "/sys/fs/cgroup/pids.max": "max\n",
+    "/proc/sys/kernel/perf_event_paranoid": "2\n"
+  }
+}

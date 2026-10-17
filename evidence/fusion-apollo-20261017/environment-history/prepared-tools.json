@@ -1,0 +1,13 @@
+{
+  "dotnet-trace": {
+    "path": "/workspaces/platform-1/perf/fusion-apollo-20261017-43a8dca2/environment-history/tools/dotnet-trace",
+    "version_output": "10.0.750501+ad724c4b85e7ae775e42f393c6e95a7557a57954\n",
+    "sha256": "9e1e6ecd72173508ce93da10c4541efe5f018910e2b22b47daa30e11dd780a9b"
+  },
+  "dotnet-counters": {
+    "path": "/workspaces/platform-1/perf/fusion-apollo-20261017-43a8dca2/environment-history/tools/dotnet-counters",
+    "version_output": "10.0.750501+ad724c4b85e7ae775e42f393c6e95a7557a57954\n",
+    "sha256": "941d3bb7f7ef3b71ed9f6f8ad0f21e3ed9bf9179cf25abc254146fa435623ab1"
+  },
+  "time_utc": "2026-10-17T15:42:08.254633+00:00"
+}

@@ -1,0 +1,26 @@
+Fusion allocates a 13.6-million-entry reference table for each shared path-segment pool even when only the initial 4,096 slots are needed. Normal load retains about 104 MiB of slot storage.
+
+This PR sizes the slot table to the current pool level and grows or shrinks it under the existing pool lock.
+
+### Benchmarks
+
+The direct benchmarks construct and dispose the actual pool, or rent 6,145 arrays, return them, and trim twice. Pool levels match production; the microbenchmarks set the timer period to one day and invoke trim explicitly.
+
+BenchmarkDotNet 0.15.8, Release .NET 10.0.12 ARM64, server/concurrent GC: three launches, five warmup iterations and fifteen measured iterations per launch. Values are medians after BDN outlier filtering; ratios are relative to the baseline. Baseline `main` is `3a7d93b0ee`; the PR is `ceb7565bcf`.
+
+Both variants use `DOTNET_GCDynamicAdaptationMode=0` for microbenchmarks and HTTP comparisons to avoid observed allocation-counter discontinuities. This is a measurement setting, not a production change; default-GC HTTP CPU/allocation effects are not independently established.
+
+| Case | Version | Median | Ratio | Allocated | Alloc Ratio |
+|---|---|---:|---:|---:|---:|
+| Construct and dispose | `main` | 15.146 µs | 1.00 | 108,962,352 B | 1.00 |
+| Construct and dispose | PR | 2.208 µs | 0.15 | 33,040 B | 0.0003 |
+| Grow, return and trim | `main` | 82.125 µs | 1.00 | 573,720 B | 1.00 |
+| Grow, return and trim | PR | 82.058 µs | 1.00 | 778,616 B | 1.36 |
+
+Construction uses one invocation per iteration, so its short timings are sensitive to timer and scheduling overhead. The forced growth/trim cycle allocates 204,896 B more (+35.7%), with overlapping timing ranges.
+
+### Verdict
+
+Normal-load heap captures show 108,929,312 B (103.9 MiB) less retained slot metadata, reproduced with default GC as well as fixed adaptation. No stable steady-state CPU or RSS improvement was established. Interleaved small-request CPU changes ranged from -0.03% to +8.56%. HTTP rates were capped by offered load, so these runs do not establish a throughput gain.
+
+Release builds passed; 123 focused tests passed. [Full results and reproduction](https://github.com/ChilliCream/graphql-platform/blob/ceb7565bcfd060fa85d94603c07661763ec486ef/PERFORMANCE-path-pool-slots.md).

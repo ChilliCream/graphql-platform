@@ -1,0 +1,523 @@
+{
+  "time_utc": "2026-10-17T15:43:59.261010+00:00",
+  "baseline": "43a8dca2bd479ddc411d832ed97e42d9fcc8bd85",
+  "instruction": "Latest user instruction explicitly excludes these previous experiment mechanisms, regardless of prior status or possible Apollo-specific motivation. This supersedes the original prompt permission to revisit prior experiments.",
+  "coverage": "Root last100 authored PRs (June30-Oct17) plus own75 since Sep1 inspected;25 relevant detailed records. Other authors open Fusion PRs checked separately for duplication.",
+  "experiments": [
+    {
+      "pr": 10580,
+      "url": "https://github.com/ChilliCream/graphql-platform/pull/10580",
+      "state": "MERGED",
+      "author": "tobias-tengler",
+      "head_sha": "d2734f790dd3ee0f6b967c3eef969728ad62a31a",
+      "merge_sha": "43a8dca2bd479ddc411d832ed97e42d9fcc8bd85",
+      "merge_is_baseline_ancestor": true,
+      "excluded_mechanism": "Apollo retained source result disposal when final stream read cancels before merge transfer",
+      "prior_decision_and_limits": "Already merged correctness fix.",
+      "production_files": [
+        "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Nodes/ApolloOperationExecutionNode.cs"
+      ],
+      "test_files": [
+        "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloOperationExecutionNodeTests.cs"
+      ],
+      "reviewed_comments": 1
+    },
+    {
+      "pr": 10579,
+      "url": "https://github.com/ChilliCream/graphql-platform/pull/10579",
+      "state": "MERGED",
+      "author": "tobias-tengler",
+      "head_sha": "c4f768a4b254b6c696c3393c6a84244cc72cebae",
+      "merge_sha": "8dbbc241bfe397413740aa15964b01d18801ca87",
+      "merge_is_baseline_ancestor": true,
+      "excluded_mechanism": "Native operation retained-result disposal and temporary-buffer return on cancellation",
+      "prior_decision_and_limits": "Already merged correctness fix.",
+      "production_files": [
+        "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Nodes/OperationExecutionNode.cs"
+      ],
+      "test_files": [
+        "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/OperationExecutionNodeTests.cs"
+      ],
+      "reviewed_comments": 1
+    },
+    {
+      "pr": 10578,
+      "url": "https://github.com/ChilliCream/graphql-platform/pull/10578",
+      "state": "CLOSED",
+      "author": "tobias-tengler",
+      "head_sha": "4c823982034e13be3d40156971c308f6c86409e0",
+      "merge_sha": null,
+      "merge_is_baseline_ancestor": null,
+      "excluded_mechanism": "Flatten callback-null zero/one-variable source-result mapping into HTTP-owning iterator",
+      "prior_decision_and_limits": "Closed after repeated matched HTTP CPU/request increases: +5.02\u20136.60% and +2.09\u20134.78% versus surrounding controls despite 240 B scoped saving.",
+      "production_files": [
+        "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Clients/HttpSourceSchemaClient.cs"
+      ],
+      "test_files": [
+        "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Clients/BatchBufferTests.cs"
+      ],
+      "reviewed_comments": 0
+    },
+    {
+      "pr": 10577,
+      "url": "https://github.com/ChilliCream/graphql-platform/pull/10577",
+      "state": "CLOSED",
+      "author": "tobias-tengler",
+      "head_sha": "b0571c183b7a17aa9a7b39bcdad710453e08c2e0",
+      "merge_sha": null,
+      "merge_is_baseline_ancestor": null,
+      "excluded_mechanism": "Replace layered feature Except(Type/object pairs) with ExceptBy(local Type keys)",
+      "prior_decision_and_limits": "Closed for insufficient overall proof: repeated p99.9 increases (24.775/23.399 ms against 19.686/16.288/20.243 ms controls), no established CPU regression.",
+      "production_files": [
+        "src/HotChocolate/Core/src/Features/FeatureCollection.cs",
+        "src/HotChocolate/Core/src/Features/PooledFeatureCollection.cs",
+        "src/HotChocolate/Core/src/Features/ThrowHelper.cs"
+      ],
+      "test_files": [
+        "src/HotChocolate/Core/test/Features.Tests/FeatureEnumerationTests.cs"
+      ],
+      "reviewed_comments": 1
+    },
+    {
+      "pr": 10576,
+      "url": "https://github.com/ChilliCream/graphql-platform/pull/10576",
+      "state": "CLOSED",
+      "author": "tobias-tengler",
+      "head_sha": "311b1710351fa5b24cbb76160d25db2de764cc62",
+      "merge_sha": null,
+      "merge_is_baseline_ancestor": null,
+      "excluded_mechanism": "Freeze concrete feature dictionary directly when defaults absent, removing intermediate dictionary/enumerator",
+      "prior_decision_and_limits": "Closed after repeated matched HTTP CPU/request increases +3.54\u20135.10% and +4.50\u20137.26%, despite method allocation saving.",
+      "production_files": [
+        "src/HotChocolate/Core/src/Features/FeatureCollection.cs",
+        "src/HotChocolate/Core/src/Features/ReadOnlyFeatureCollection.cs"
+      ],
+      "test_files": [
+        "src/HotChocolate/Core/test/Features.Tests/FeatureSnapshotTests.cs"
+      ],
+      "reviewed_comments": 0
+    },
+    {
+      "pr": 10575,
+      "url": "https://github.com/ChilliCream/graphql-platform/pull/10575",
+      "state": "CLOSED",
+      "author": "tobias-tengler",
+      "head_sha": "fd6afe48f1f4547cfe25748f34085ee7e4b4915f",
+      "merge_sha": null,
+      "merge_is_baseline_ancestor": null,
+      "excluded_mechanism": "Lazy variable dictionary capacity hint using JSON property count on net9+, capped by declarations, <=3 definitions skipped",
+      "prior_decision_and_limits": "Closed: ordinary 8-variable workload repeated worse p95/p99/p99.9 against both adjacent controls; large-workload CPU mixed. Alternative to #10558.",
+      "production_files": [
+        "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/VariableCoercionHelper.cs"
+      ],
+      "test_files": [],
+      "reviewed_comments": 1
+    },
+    {
+      "pr": 10574,
+      "url": "https://github.com/ChilliCream/graphql-platform/pull/10574",
+      "state": "OPEN",
+      "author": "tobias-tengler",
+      "head_sha": "2ea4e445b618a6840f4bba28ef673f81945a9ef6",
+      "merge_sha": null,
+      "merge_is_baseline_ancestor": null,
+      "excluded_mechanism": "Reuse runtime deferred-branch chain links within conditional cost evaluation",
+      "prior_decision_and_limits": "Open draft. Prior HTTP proof applies to 128-condition all-false fallback, not general gateway traffic.",
+      "production_files": [
+        "src/HotChocolate/CostAnalysis/src/CostAnalysis.Core/Traversal/ExactCasesTraversal.cs"
+      ],
+      "test_files": [
+        "src/HotChocolate/CostAnalysis/test/CostAnalysis.Core.Tests/DeferredBranchReuseTests.cs"
+      ],
+      "reviewed_comments": 1
+    },
+    {
+      "pr": 10573,
+      "url": "https://github.com/ChilliCream/graphql-platform/pull/10573",
+      "state": "OPEN",
+      "author": "tobias-tengler",
+      "head_sha": "b8301aeb2942f95e281aabd5a0cc12af4bf3c774",
+      "merge_sha": null,
+      "merge_is_baseline_ancestor": null,
+      "excluded_mechanism": "Lazy single-client scope holder, allocating concurrent dictionary only on fallback",
+      "prior_decision_and_limits": "Open draft. Prior supported claim is 520 B scoped bookkeeping saved; no general CPU/throughput gain.",
+      "production_files": [
+        "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Clients/DefaultSourceSchemaClientScope.cs"
+      ],
+      "test_files": [
+        "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Clients/DefaultSourceSchemaClientScopeTests.cs"
+      ],
+      "reviewed_comments": 1
+    },
+    {
+      "pr": 10560,
+      "url": "https://github.com/ChilliCream/graphql-platform/pull/10560",
+      "state": "OPEN",
+      "author": "tobias-tengler",
+      "head_sha": "4bb15b20bf4919a548e598b5917b0ddde9eac7f1",
+      "merge_sha": null,
+      "merge_is_baseline_ancestor": null,
+      "excluded_mechanism": "Resolve concrete type and child selection set once per homogeneous object list during value completion",
+      "prior_decision_and_limits": "Open draft. Prior fixed-rate large-list HTTP CPU claim; not a new candidate.",
+      "production_files": [
+        "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Results/ValueCompletion.cs"
+      ],
+      "test_files": [
+        "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Results/FetchResultStoreTests.cs"
+      ],
+      "reviewed_comments": 1
+    },
+    {
+      "pr": 10559,
+      "url": "https://github.com/ChilliCream/graphql-platform/pull/10559",
+      "state": "OPEN",
+      "author": "tobias-tengler",
+      "head_sha": "c60ca7b2aeea89a1f54d09cdbbd91cfb8dea4708",
+      "merge_sha": null,
+      "merge_is_baseline_ancestor": null,
+      "excluded_mechanism": "Add segment table pool buckets of 1/2/4/8 entries to separate tiny data from metadata",
+      "prior_decision_and_limits": "Open draft. Prior large lookup allocation claim has explicit CPU/tail/retention limitations.",
+      "production_files": [
+        "src/HotChocolate/Utilities/src/Utilities.Buffers/MemorySegmentTablePool.cs"
+      ],
+      "test_files": [
+        "src/HotChocolate/Utilities/test/Utilities.Tests/MemoryArenaTests.cs",
+        "src/HotChocolate/Utilities/test/Utilities.Tests/MemorySegmentTablePoolTests.cs"
+      ],
+      "reviewed_comments": 0
+    },
+    {
+      "pr": 10558,
+      "url": "https://github.com/ChilliCream/graphql-platform/pull/10558",
+      "state": "OPEN",
+      "author": "tobias-tengler",
+      "head_sha": "8644259a6ad49f533f54851d565931551adb37ce",
+      "merge_sha": null,
+      "merge_is_baseline_ancestor": null,
+      "excluded_mechanism": "Pre-size variable-coercion dictionary by counting supplied properties, capped by definitions and 256",
+      "prior_decision_and_limits": "Open draft. Prior scoped/allocation claim with controlled GC; superseded alternative #10575 is closed but does not change this PR state.",
+      "production_files": [
+        "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/VariableCoercionHelper.cs"
+      ],
+      "test_files": [
+        "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/VariableCoercionHelperTests.cs"
+      ],
+      "reviewed_comments": 1
+    },
+    {
+      "pr": 10557,
+      "url": "https://github.com/ChilliCream/graphql-platform/pull/10557",
+      "state": "OPEN",
+      "author": "tobias-tengler",
+      "head_sha": "ceb7565bcfd060fa85d94603c07661763ec486ef",
+      "merge_sha": null,
+      "merge_is_baseline_ancestor": null,
+      "excluded_mechanism": "Size shared path-segment pool slot table to current level and grow/shrink under lock",
+      "prior_decision_and_limits": "Open draft. Prior normal retained metadata reduction; not stable CPU/RSS proof.",
+      "production_files": [
+        "src/HotChocolate/Fusion/src/Fusion.Execution/Text/Json/PathSegmentPool.cs"
+      ],
+      "test_files": [
+        "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Text/Json/PathSegmentPoolTests.cs"
+      ],
+      "reviewed_comments": 1
+    },
+    {
+      "pr": 10554,
+      "url": "https://github.com/ChilliCream/graphql-platform/pull/10554",
+      "state": "CLOSED",
+      "author": "tobias-tengler",
+      "head_sha": "cd16f0324f5f570caf5524b6ba17689685f138f6",
+      "merge_sha": null,
+      "merge_is_baseline_ancestor": null,
+      "excluded_mechanism": "Weak-cache encoded operation requirement keys and reuse within multi-entity native lookup variable batches",
+      "prior_decision_and_limits": "Closed. Prior HTTP observations +6.5%/+10.7% CPU and -4.9%/-6.8% throughput; time-separated controls limit causality but do not establish a success.",
+      "production_files": [
+        "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Results/FetchResultStore.cs"
+      ],
+      "test_files": [
+        "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Results/FetchResultStoreTests.cs"
+      ],
+      "reviewed_comments": 1
+    },
+    {
+      "pr": 10552,
+      "url": "https://github.com/ChilliCream/graphql-platform/pull/10552",
+      "state": "MERGED",
+      "author": "tobias-tengler",
+      "head_sha": "1e76488ac9600088ee5db6d69050cf317440d549",
+      "merge_sha": "78fd3d810634b2abe05bf8b6c88926cebd61a1eb",
+      "merge_is_baseline_ancestor": true,
+      "excluded_mechanism": "Buffer response formatter JSON writes in cached chunked pipe writer before Kestrel writes",
+      "prior_decision_and_limits": "Merged in pinned baseline.",
+      "production_files": [
+        "src/HotChocolate/AspNetCore/src/Transport.Formatters/ChunkedPipeBufferWriter.cs",
+        "src/HotChocolate/AspNetCore/src/Transport.Formatters/EventStreamResultFormatter.cs",
+        "src/HotChocolate/AspNetCore/src/Transport.Formatters/HotChocolate.Transport.Formatters.csproj",
+        "src/HotChocolate/AspNetCore/src/Transport.Formatters/JsonLinesResultFormatter.cs",
+        "src/HotChocolate/AspNetCore/src/Transport.Formatters/JsonResultFormatter.cs",
+        "src/HotChocolate/AspNetCore/src/Transport.Formatters/MultiPartResultFormatter.cs",
+        "src/HotChocolate/AspNetCore/src/Transport.Formatters/ThrowHelper.cs"
+      ],
+      "test_files": [
+        "src/HotChocolate/AspNetCore/test/AspNetCore.Tests/Serialization/ChunkedPipeBufferWriterTests.cs",
+        "src/HotChocolate/AspNetCore/test/AspNetCore.Tests/Serialization/CountingPipeWriter.cs",
+        "src/HotChocolate/AspNetCore/test/AspNetCore.Tests/Serialization/EventStreamResultFormatterTests.cs",
+        "src/HotChocolate/AspNetCore/test/AspNetCore.Tests/Serialization/JsonLinesResultFormatterTests.cs",
+        "src/HotChocolate/AspNetCore/test/AspNetCore.Tests/Serialization/JsonResultFormatterTests.cs",
+        "src/HotChocolate/AspNetCore/test/AspNetCore.Tests/Serialization/MultiPartResultFormatterTests.cs",
+        "src/HotChocolate/AspNetCore/test/AspNetCore.Tests/Serialization/ResultTestHelper.cs"
+      ],
+      "reviewed_comments": 1
+    },
+    {
+      "pr": 10548,
+      "url": "https://github.com/ChilliCream/graphql-platform/pull/10548",
+      "state": "MERGED",
+      "author": "tobias-tengler",
+      "head_sha": "09ce9a3228d1b6f5a3168639e7a6baa1631bac19",
+      "merge_sha": "3a7d93b0eea45a365bc80d6445ba3d519865967b",
+      "merge_is_baseline_ancestor": true,
+      "excluded_mechanism": "Batch shared path-pool rent/return by 32 and retain capped local path pool across pooled requests",
+      "prior_decision_and_limits": "Merged in pinned baseline.",
+      "production_files": [
+        "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/FusionOptions.cs",
+        "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/OperationPlanContext.cs",
+        "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Results/FetchResultStore.Pooling.cs",
+        "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Results/FetchResultStore.cs",
+        "src/HotChocolate/Fusion/src/Fusion.Execution/Text/Json/CompositeResultDocument.cs",
+        "src/HotChocolate/Fusion/src/Fusion.Execution/Text/Json/PathSegmentLocalPool.cs",
+        "src/HotChocolate/Fusion/src/Fusion.Execution/Text/Json/PathSegmentMemory.cs",
+        "src/HotChocolate/Fusion/src/Fusion.Execution/Text/Json/PathSegmentPool.cs"
+      ],
+      "test_files": [
+        "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Results/FetchResultStoreTests.cs",
+        "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Text/Json/CompositeResultDocumentTests.cs",
+        "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Text/Json/PathSegmentLocalPoolTests.cs",
+        "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Text/Json/PathSegmentPoolTests.cs"
+      ],
+      "reviewed_comments": 1
+    },
+    {
+      "pr": 10540,
+      "url": "https://github.com/ChilliCream/graphql-platform/pull/10540",
+      "state": "MERGED",
+      "author": "tobias-tengler",
+      "head_sha": "c09fb196bb648747683e89fa9bfc965139d7d5d0",
+      "merge_sha": "ec3667a380cfb1eb3a2241a466b38c165ec46769",
+      "merge_is_baseline_ancestor": true,
+      "excluded_mechanism": "Avoid torn numeric value-node caches and add whole-array segment backing with unchanged generic memory support",
+      "prior_decision_and_limits": "Merged correctness alternative to earlier #10518; pinned baseline has this version.",
+      "production_files": [
+        "src/HotChocolate/Language/src/Language.SyntaxTree/FloatValueNode.cs",
+        "src/HotChocolate/Language/src/Language.SyntaxTree/IntValueNode.cs",
+        "src/HotChocolate/Utilities/src/Utilities.Buffers/ReadOnlyMemorySegment.cs"
+      ],
+      "test_files": [
+        "src/HotChocolate/Language/test/Language.SyntaxTree.Tests/ValueNodeConcurrencyTests.cs",
+        "src/HotChocolate/Utilities/test/Utilities.Tests/ReadOnlyMemorySegmentTests.cs"
+      ],
+      "reviewed_comments": 1
+    },
+    {
+      "pr": 10537,
+      "url": "https://github.com/ChilliCream/graphql-platform/pull/10537",
+      "state": "MERGED",
+      "author": "tobias-tengler",
+      "head_sha": "9b1b5c63d748fb9453afeaabd3d9987ab9f8c83c",
+      "merge_sha": "787471ce1e97e2d9b9a512f47101487bbe0441ff",
+      "merge_is_baseline_ancestor": true,
+      "excluded_mechanism": "Cache enum value literal on schema value and reuse through core/Fusion coercion",
+      "prior_decision_and_limits": "Merged in pinned baseline; PR body empty, mechanism verified by changed files and source.",
+      "production_files": [
+        "src/HotChocolate/Core/src/Types/Execution/Processing/VariableCoercionHelper.cs",
+        "src/HotChocolate/Core/src/Types/Types/Contracts/EnumValue.cs",
+        "src/HotChocolate/Core/src/Types/Types/EnumValueCollection.cs",
+        "src/HotChocolate/Fusion/src/Fusion.Execution.Types/Collections/FusionEnumValueCollection.cs",
+        "src/HotChocolate/Fusion/src/Fusion.Execution.Types/FusionEnumValue.cs",
+        "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/JsonVariableCoercion.cs"
+      ],
+      "test_files": [
+        "src/HotChocolate/Core/test/Execution.Tests/Processing/VariableCoercionHelperTests.cs",
+        "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Types/FusionEnumValueCollectionTests.cs",
+        "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/VariableCoercionHelperTests.cs"
+      ],
+      "reviewed_comments": 1
+    },
+    {
+      "pr": 10534,
+      "url": "https://github.com/ChilliCream/graphql-platform/pull/10534",
+      "state": "MERGED",
+      "author": "tobias-tengler",
+      "head_sha": "f4040294cbfcd08d1106d95c678d30eb0db94723",
+      "merge_sha": "36dac42560f96347d7d35a454aac19e1b20b74c0",
+      "merge_is_baseline_ancestor": true,
+      "excluded_mechanism": "Core UTF8 input/enum lookup and cached NameNode, processed-field index tracking",
+      "prior_decision_and_limits": "Merged in pinned baseline.",
+      "production_files": [
+        "src/HotChocolate/Core/src/Types/Execution/Processing/VariableCoercionHelper.cs",
+        "src/HotChocolate/Core/src/Types/Types/EnumType.cs",
+        "src/HotChocolate/Core/src/Types/Types/EnumValueCollection.cs",
+        "src/HotChocolate/Core/src/Types/Types/FieldCollection.cs",
+        "src/HotChocolate/Core/src/Types/Types/InputField.cs",
+        "src/HotChocolate/Core/src/Types/Types/InputParser.cs"
+      ],
+      "test_files": [
+        "src/HotChocolate/Core/test/Execution.Tests/Processing/VariableCoercionHelperTests.cs",
+        "src/HotChocolate/Core/test/Types.Tests/Types/EnumValueCollectionTests.cs",
+        "src/HotChocolate/Core/test/Types.Tests/Types/FieldCollectionTests.cs",
+        "src/HotChocolate/Core/test/Types.Tests/Types/InputParserTests.cs"
+      ],
+      "reviewed_comments": 1
+    },
+    {
+      "pr": 10527,
+      "url": "https://github.com/ChilliCream/graphql-platform/pull/10527",
+      "state": "MERGED",
+      "author": "tobias-tengler",
+      "head_sha": "52489ab6192d53617262b5fff9e237f3e5a4a3be",
+      "merge_sha": "e1546f94402d5b309677ce1c0629003655b2d1f8",
+      "merge_is_baseline_ancestor": true,
+      "excluded_mechanism": "Reuse request Utf8MemoryBuilder during numeric variable literal conversion and seal/return it correctly",
+      "prior_decision_and_limits": "Merged ownership fix in pinned baseline.",
+      "production_files": [
+        "src/HotChocolate/Core/src/Types/Types/Scalars/ScalarType.cs",
+        "src/HotChocolate/Language/src/Language.Utf8/HotChocolate.Language.Utf8.csproj",
+        "src/HotChocolate/Language/src/Language.Web/JsonValueParser.cs"
+      ],
+      "test_files": [
+        "src/HotChocolate/Core/test/Execution.Tests/Processing/VariableCoercionHelperTests.cs",
+        "src/HotChocolate/Core/test/Types.Tests/Types/Scalars/ScalarTypeInputValueToLiteralTests.cs",
+        "src/HotChocolate/Language/test/Language.Web.Tests/JsonValueParserTests.cs"
+      ],
+      "reviewed_comments": 1
+    },
+    {
+      "pr": 10524,
+      "url": "https://github.com/ChilliCream/graphql-platform/pull/10524",
+      "state": "MERGED",
+      "author": "tobias-tengler",
+      "head_sha": "5cb5ecfac521e4ddba73861f44300ed861952f08",
+      "merge_sha": "d51ed0f42b28019dfe0ebb6b5cce0c5a2653f948",
+      "merge_is_baseline_ancestor": true,
+      "excluded_mechanism": "Serialize forwarded variables once per native entity fetch and copy raw properties into each variable set",
+      "prior_decision_and_limits": "Merged in pinned baseline; buffer retained on pooled store with >16 KB release.",
+      "production_files": [
+        "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Results/FetchResultStore.Pooling.cs",
+        "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Results/FetchResultStore.cs",
+        "src/HotChocolate/Json/src/Json/HotChocolate.Text.Json.csproj",
+        "src/HotChocolate/Json/src/Json/JsonWriter.cs"
+      ],
+      "test_files": [
+        "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Results/FetchResultStoreTests.cs",
+        "src/HotChocolate/Json/test/Json.Tests/JsonWriterTests.cs"
+      ],
+      "reviewed_comments": 1
+    },
+    {
+      "pr": 10523,
+      "url": "https://github.com/ChilliCream/graphql-platform/pull/10523",
+      "state": "CLOSED",
+      "author": "tobias-tengler",
+      "head_sha": "0e4310e9b787add562adcb74ba164bd48cbad811",
+      "merge_sha": null,
+      "merge_is_baseline_ancestor": null,
+      "excluded_mechanism": "Compact ReadOnlyMemorySegment from 32 to16 bytes using one object source plus start/length",
+      "prior_decision_and_limits": "Closed. Description records mixed memory-owner/forwarding timings; comments contain no explicit closure reason. Baseline still has ReadOnlyMemory<byte> plus source/start/length, not this compaction.",
+      "production_files": [
+        "src/HotChocolate/Utilities/src/Utilities.Buffers/ReadOnlyMemorySegment.cs"
+      ],
+      "test_files": [
+        "src/HotChocolate/Utilities/test/Utilities.Tests/ReadOnlyMemorySegmentTests.cs"
+      ],
+      "reviewed_comments": 1
+    },
+    {
+      "pr": 10522,
+      "url": "https://github.com/ChilliCream/graphql-platform/pull/10522",
+      "state": "MERGED",
+      "author": "tobias-tengler",
+      "head_sha": "d01dc8956d170176d5fc11dc3220e6e6c7174358",
+      "merge_sha": "aa09c3ea5642b81ebbe884b95b0e416c31c33b22",
+      "merge_is_baseline_ancestor": true,
+      "excluded_mechanism": "Fusion UTF8 field/enum lookup with schema NameNode reuse and escaped-name fallback",
+      "prior_decision_and_limits": "Merged in pinned baseline.",
+      "production_files": [
+        "src/HotChocolate/Fusion/src/Fusion.Execution.Types/Collections/FusionEnumValueCollection.cs",
+        "src/HotChocolate/Fusion/src/Fusion.Execution.Types/Collections/FusionFieldDefinitionCollection.cs",
+        "src/HotChocolate/Fusion/src/Fusion.Execution.Types/FusionInputFieldDefinition.cs",
+        "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/JsonVariableCoercion.cs"
+      ],
+      "test_files": [
+        "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Types/FusionEnumValueCollectionTests.cs",
+        "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Types/FusionInputFieldDefinitionCollectionTests.cs",
+        "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/VariableCoercionHelperTests.cs"
+      ],
+      "reviewed_comments": 1
+    },
+    {
+      "pr": 10518,
+      "url": "https://github.com/ChilliCream/graphql-platform/pull/10518",
+      "state": "CLOSED",
+      "author": "tobias-tengler",
+      "head_sha": "def4ec3995b511e861ca3be05e12d6e6b5bda398",
+      "merge_sha": null,
+      "merge_is_baseline_ancestor": null,
+      "excluded_mechanism": "Rework all value-node cache publication using references/volatile flags and numeric representation changes",
+      "prior_decision_and_limits": "Closed. Description has extensive performance tradeoffs but comments provide no explicit closure reason. Related narrower fix #10540 merged; do not reopen this experiment.",
+      "production_files": [
+        "src/HotChocolate/Language/src/Language.SyntaxTree/EnumValueNode.cs",
+        "src/HotChocolate/Language/src/Language.SyntaxTree/FloatValueNode.cs",
+        "src/HotChocolate/Language/src/Language.SyntaxTree/IntValueNode.cs",
+        "src/HotChocolate/Language/src/Language.SyntaxTree/StringValueNode.cs",
+        "src/HotChocolate/Language/src/Language.SyntaxTree/Utilities/ThrowHelper.cs"
+      ],
+      "test_files": [
+        "src/HotChocolate/Language/test/Language.SyntaxTree.Tests/ConcurrentReadHelper.cs",
+        "src/HotChocolate/Language/test/Language.SyntaxTree.Tests/EnumValueNodeTests.cs",
+        "src/HotChocolate/Language/test/Language.SyntaxTree.Tests/FloatValueNodeTests.cs",
+        "src/HotChocolate/Language/test/Language.SyntaxTree.Tests/IntValueNodeTests.cs",
+        "src/HotChocolate/Language/test/Language.SyntaxTree.Tests/StringValueNodeTests.cs"
+      ],
+      "reviewed_comments": 1
+    },
+    {
+      "pr": 10517,
+      "url": "https://github.com/ChilliCream/graphql-platform/pull/10517",
+      "state": "MERGED",
+      "author": "tobias-tengler",
+      "head_sha": "b613ae0ed535935e52a08121592f1b7877e9ef69",
+      "merge_sha": "dd12d90318d07185fb29c6a9df26efb1545f6f46",
+      "merge_is_baseline_ancestor": true,
+      "excluded_mechanism": "Keep coerced forwarded string/enum literals UTF8 and write literal spans in FetchResultStore",
+      "prior_decision_and_limits": "Merged in pinned baseline.",
+      "production_files": [
+        "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/JsonVariableCoercion.cs",
+        "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Results/FetchResultStore.cs"
+      ],
+      "test_files": [
+        "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Results/FetchResultStoreTests.cs",
+        "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/VariableCoercionHelperTests.cs"
+      ],
+      "reviewed_comments": 1
+    },
+    {
+      "pr": 10516,
+      "url": "https://github.com/ChilliCream/graphql-platform/pull/10516",
+      "state": "MERGED",
+      "author": "tobias-tengler",
+      "head_sha": "dda4e98a54f66c75eb5cc21c2fe1a287c0f2269e",
+      "merge_sha": "7f8330aa27f2fd0f6b96b00f85d354e229dc0e11",
+      "merge_is_baseline_ancestor": true,
+      "excluded_mechanism": "Unescape UTF8 JSON strings in JsonValueParser",
+      "prior_decision_and_limits": "Merged correctness prerequisite in pinned baseline; empty description, source/file scope confirmed.",
+      "production_files": [
+        "src/HotChocolate/Language/src/Language.Web/JsonValueParser.cs"
+      ],
+      "test_files": [
+        "src/HotChocolate/Language/test/Language.Web.Tests/JsonValueParserTests.cs"
+      ],
+      "reviewed_comments": 1
+    }
+  ]
+}

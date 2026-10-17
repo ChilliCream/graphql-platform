@@ -1,0 +1,668 @@
+[
+  {
+    "number": 10580,
+    "state": "MERGED",
+    "files": [
+      "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Nodes/ApolloOperationExecutionNode.cs",
+      "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloOperationExecutionNodeTests.cs"
+    ],
+    "comments": [
+      {
+        "author": "github-actions",
+        "body": "## Patch coverage\n\n**100.0%** of changed lines covered (1/1)\n\n| File | Covered | Changed | Patch % |\n|:-----|--------:|--------:|--------:|\n| [\u2026/Execution/Nodes/ApolloOperationExecutionNode.cs](https://github.com/ChilliCream/graphql-platform/pull/10580/files#diff-223f90b936e9038595a6ada6e6305a43d30038cfdb522721796e7fc2b22e39f5) | 1 | 1 | 100.0%&nbsp;\ud83d\udfe2 |\n\n---\n\nProject coverage: **59.0%** (311292/527641 lines)\n\n\n<!-- Sticky Pull Request Commentpatch-coverage -->"
+      }
+    ]
+  },
+  {
+    "number": 10579,
+    "state": "MERGED",
+    "files": [
+      "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Nodes/OperationExecutionNode.cs",
+      "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/OperationExecutionNodeTests.cs"
+    ],
+    "comments": [
+      {
+        "author": "github-actions",
+        "body": "## Patch coverage\n\n**100.0%** of changed lines covered (12/12)\n\n| File | Covered | Changed | Patch % |\n|:-----|--------:|--------:|--------:|\n| [\u2026/Fusion.Execution/Execution/Nodes/OperationExecutionNode.cs](https://github.com/ChilliCream/graphql-platform/pull/10579/files#diff-58193ee70d633ba85a1a8acba252ebeee373eca992498c8661c338e6df0eb51e) | 12 | 12 | 100.0%&nbsp;\ud83d\udfe2 |\n\n---\n\nProject coverage: **59.0%** (311290/527652 lines)\n\n\n<!-- Sticky Pull Request Commentpatch-coverage -->"
+      }
+    ]
+  },
+  {
+    "number": 10578,
+    "state": "CLOSED",
+    "files": [
+      "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Clients/HttpSourceSchemaClient.cs",
+      "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Clients/BatchBufferTests.cs"
+    ],
+    "comments": []
+  },
+  {
+    "number": 10577,
+    "state": "CLOSED",
+    "files": [
+      "src/HotChocolate/Core/src/Features/FeatureCollection.cs",
+      "src/HotChocolate/Core/src/Features/PooledFeatureCollection.cs",
+      "src/HotChocolate/Core/src/Features/ThrowHelper.cs",
+      "src/HotChocolate/Core/test/Features.Tests/FeatureEnumerationTests.cs"
+    ],
+    "comments": [
+      {
+        "author": "github-actions",
+        "body": "## Patch coverage\n\n**100.0%** of changed lines covered (15/15)\n\n| File | Covered | Changed | Patch % |\n|:-----|--------:|--------:|--------:|\n| [src/HotChocolate/Core/src/Features/FeatureCollection.cs](https://github.com/ChilliCream/graphql-platform/pull/10577/files#diff-381f3ba9b05f7f2f516cf2110755d6f730422948dffd7c02adb6cf6e7b05e7b8) | 8 | 8 | 100.0%&nbsp;\ud83d\udfe2 |\n| [\u2026/HotChocolate/Core/src/Features/PooledFeatureCollection.cs](https://github.com/ChilliCream/graphql-platform/pull/10577/files#diff-8ff938ed918723b9917e270d358c09bc1a6e0a902cda892a751821280dabcb37) | 6 | 6 | 100.0%&nbsp;\ud83d\udfe2 |\n| [src/HotChocolate/Core/src/Features/ThrowHelper.cs](https://github.com/ChilliCream/graphql-platform/pull/10577/files#diff-7dfcd941d67eef44f56f8fc104dcd1077643211bdf80d9d7df55acdc84d58b2a) | 1 | 1 | 100.0%&nbsp;\ud83d\udfe2 |\n\n---\n\nProject coverage: **59.0%** (311308/527649 lines)\n\n\n<!-- Sticky Pull Request Commentpatch-coverage -->"
+      }
+    ]
+  },
+  {
+    "number": 10576,
+    "state": "CLOSED",
+    "files": [
+      "src/HotChocolate/Core/src/Features/FeatureCollection.cs",
+      "src/HotChocolate/Core/src/Features/ReadOnlyFeatureCollection.cs",
+      "src/HotChocolate/Core/test/Features.Tests/FeatureSnapshotTests.cs"
+    ],
+    "comments": []
+  },
+  {
+    "number": 10575,
+    "state": "CLOSED",
+    "files": [
+      "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/VariableCoercionHelper.cs"
+    ],
+    "comments": [
+      {
+        "author": "github-actions",
+        "body": "## Patch coverage\n\n**69.2%** of changed lines covered (9/13)\n\n| File | Covered | Changed | Patch % |\n|:-----|--------:|--------:|--------:|\n| [\u2026/src/Fusion.Execution/Execution/VariableCoercionHelper.cs](https://github.com/ChilliCream/graphql-platform/pull/10575/files#diff-f50b0823a3227741ad2eedb24d5d4bcadf56638ae28c0412a78a60e66139c1e4) | 9 | 13 | 69.2%&nbsp;\ud83d\udd34 |\n\n<details><summary>Uncovered changed lines (JSON)</summary>\n\n```json\n{\n  \"sha\": \"fa95cf780527b4e7423513f95fb1691caf7eae9f\",\n  \"files\": [\n    { \"path\": \"src/HotChocolate/Fusion/src/Fusion.Execution/Execution/VariableCoercionHelper.cs\", \"ranges\": [[55, 58]] }\n  ]\n}\n```\n\n</details>\n\n---\n\nProject coverage: **59.0%** (311299/527653 lines)\n\n\n<!-- Sticky Pull Request Commentpatch-coverage -->"
+      }
+    ]
+  },
+  {
+    "number": 10574,
+    "state": "OPEN",
+    "files": [
+      "src/HotChocolate/CostAnalysis/src/CostAnalysis.Core/Traversal/ExactCasesTraversal.cs",
+      "src/HotChocolate/CostAnalysis/test/CostAnalysis.Core.Tests/DeferredBranchReuseTests.cs"
+    ],
+    "comments": [
+      {
+        "author": "github-actions",
+        "body": "## Patch coverage\n\n**100.0%** of changed lines covered (18/18)\n\n| File | Covered | Changed | Patch % |\n|:-----|--------:|--------:|--------:|\n| [\u2026/src/CostAnalysis.Core/Traversal/ExactCasesTraversal.cs](https://github.com/ChilliCream/graphql-platform/pull/10574/files#diff-21d1ae0340aa516902654e09822082f88ae9e3a9366c536f4d7b676b81530b16) | 18 | 18 | 100.0%&nbsp;\ud83d\udfe2 |\n\n---\n\nProject coverage: **59.0%** (311311/527653 lines)\n\n\n<!-- Sticky Pull Request Commentpatch-coverage -->"
+      }
+    ]
+  },
+  {
+    "number": 10573,
+    "state": "OPEN",
+    "files": [
+      "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Clients/DefaultSourceSchemaClientScope.cs",
+      "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Clients/DefaultSourceSchemaClientScopeTests.cs"
+    ],
+    "comments": [
+      {
+        "author": "github-actions",
+        "body": "## Patch coverage\n\n**94.7%** of changed lines covered (36/38)\n\n| File | Covered | Changed | Patch % |\n|:-----|--------:|--------:|--------:|\n| [\u2026/Execution/Clients/DefaultSourceSchemaClientScope.cs](https://github.com/ChilliCream/graphql-platform/pull/10573/files#diff-c89079c4256bffe9b5d5970b60f98ba2b78f974d6eb4d94f5ec51744a77c12f5) | 36 | 38 | 94.7%&nbsp;\ud83d\udfe1 |\n\n<details><summary>Uncovered changed lines (JSON)</summary>\n\n```json\n{\n  \"sha\": \"49f3949bfe20da062cce90754c819f72f936508e\",\n  \"files\": [\n    { \"path\": \"src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Clients/DefaultSourceSchemaClientScope.cs\", \"ranges\": [[53, 54]] }\n  ]\n}\n```\n\n</details>\n\n---\n\nProject coverage: **59.0%** (311330/527674 lines)\n\n\n<!-- Sticky Pull Request Commentpatch-coverage -->"
+      }
+    ]
+  },
+  {
+    "number": 10560,
+    "state": "OPEN",
+    "files": [
+      "PERFORMANCE-list-completion.md",
+      "benchmarks/fusion-performance/Directory.Build.props",
+      "benchmarks/fusion-performance/README.md",
+      "benchmarks/fusion-performance/agg_speedscope.py",
+      "benchmarks/fusion-performance/analyze.py",
+      "benchmarks/fusion-performance/analyze_profiles.py",
+      "benchmarks/fusion-performance/audit.py",
+      "benchmarks/fusion-performance/campaign.py",
+      "benchmarks/fusion-performance/gateway/Gateway.csproj",
+      "benchmarks/fusion-performance/gateway/Program.cs",
+      "benchmarks/fusion-performance/gateway/appsettings.json",
+      "benchmarks/fusion-performance/lifecycle.py",
+      "benchmarks/fusion-performance/load.js",
+      "benchmarks/fusion-performance/measure.py",
+      "benchmarks/fusion-performance/micro.py",
+      "benchmarks/fusion-performance/micro/FusionPerformance.sln",
+      "benchmarks/fusion-performance/micro/HotChocolate.Fusion.Execution.Benchmarks.csproj",
+      "benchmarks/fusion-performance/micro/ListCompletionBenchmark.cs",
+      "benchmarks/fusion-performance/micro/Program.cs",
+      "benchmarks/fusion-performance/prepare.py",
+      "benchmarks/fusion-performance/reduce_stacks.py",
+      "benchmarks/fusion-performance/results/summary.json",
+      "benchmarks/fusion-performance/subgraphs/eShop.Accounts/BenchmarkHttpRequestInterceptor.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Accounts/Program.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Accounts/User.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Accounts/UserNode.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Accounts/UserQueries.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Accounts/appsettings.json",
+      "benchmarks/fusion-performance/subgraphs/eShop.Accounts/eShop.Accounts.csproj",
+      "benchmarks/fusion-performance/subgraphs/eShop.Accounts/schema-settings.json",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/BenchmarkHttpRequestInterceptor.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/Product.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/ProductNode.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/ProductQueries.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/Program.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/ShapeQueries.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/appsettings.json",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/eShop.Inventory.csproj",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/schema-settings.json",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/BenchmarkHttpRequestInterceptor.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/Product.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/ProductNode.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/ProductQueries.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/Program.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/ShapeQueries.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/appsettings.json",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/eShop.Products.csproj",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/schema-settings.json",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/BenchmarkHttpRequestInterceptor.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/Product.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/ProductQueries.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/Program.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/Review.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/ReviewNode.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/ReviewQueries.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/ReviewRepository.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/User.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/UserNode.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/UserQueries.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/appsettings.json",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/eShop.Reviews.csproj",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/schema-settings.json",
+      "benchmarks/fusion-performance/trace-analyzer/Program.cs",
+      "benchmarks/fusion-performance/trace-analyzer/TraceAnalyzer.csproj",
+      "benchmarks/fusion-performance/validate.py",
+      "benchmarks/fusion-performance/workloads.py",
+      "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Results/ValueCompletion.cs",
+      "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Results/FetchResultStoreTests.cs"
+    ],
+    "comments": [
+      {
+        "author": "github-actions",
+        "body": "## Patch coverage\n\n**100.0%** of changed lines covered (16/16)\n\n| File | Covered | Changed | Patch % |\n|:-----|--------:|--------:|--------:|\n| [\u2026/src/Fusion.Execution/Execution/Results/ValueCompletion.cs](https://github.com/ChilliCream/graphql-platform/pull/10560/files#diff-6c12711a91428d6501f41fb589dec842ad780878dc3c27e919459c065d0f483a) | 16 | 16 | 100.0%&nbsp;\ud83d\udfe2 |\n\n---\n\nProject coverage: **59.0%** (311316/527650 lines)\n\n\n<!-- Sticky Pull Request Commentpatch-coverage -->"
+      }
+    ]
+  },
+  {
+    "number": 10559,
+    "state": "OPEN",
+    "files": [
+      "PERFORMANCE-batch-metadata.md",
+      "benchmarks/fusion-performance/Directory.Build.props",
+      "benchmarks/fusion-performance/README.md",
+      "benchmarks/fusion-performance/agg_speedscope.py",
+      "benchmarks/fusion-performance/analyze.py",
+      "benchmarks/fusion-performance/analyze_profiles.py",
+      "benchmarks/fusion-performance/audit.py",
+      "benchmarks/fusion-performance/campaign.py",
+      "benchmarks/fusion-performance/gateway/Gateway.csproj",
+      "benchmarks/fusion-performance/gateway/Program.cs",
+      "benchmarks/fusion-performance/gateway/appsettings.json",
+      "benchmarks/fusion-performance/lifecycle.py",
+      "benchmarks/fusion-performance/load.js",
+      "benchmarks/fusion-performance/measure.py",
+      "benchmarks/fusion-performance/micro.py",
+      "benchmarks/fusion-performance/micro/FusionPerformance.sln",
+      "benchmarks/fusion-performance/micro/HotChocolate.Fusion.Execution.Benchmarks.csproj",
+      "benchmarks/fusion-performance/micro/Program.cs",
+      "benchmarks/fusion-performance/micro/SegmentTablesBenchmark.cs",
+      "benchmarks/fusion-performance/prepare.py",
+      "benchmarks/fusion-performance/reduce_stacks.py",
+      "benchmarks/fusion-performance/results/summary.json",
+      "benchmarks/fusion-performance/subgraphs/eShop.Accounts/BenchmarkHttpRequestInterceptor.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Accounts/Program.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Accounts/User.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Accounts/UserNode.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Accounts/UserQueries.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Accounts/appsettings.json",
+      "benchmarks/fusion-performance/subgraphs/eShop.Accounts/eShop.Accounts.csproj",
+      "benchmarks/fusion-performance/subgraphs/eShop.Accounts/schema-settings.json",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/BenchmarkHttpRequestInterceptor.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/Product.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/ProductNode.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/ProductQueries.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/Program.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/ShapeQueries.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/appsettings.json",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/eShop.Inventory.csproj",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/schema-settings.json",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/BenchmarkHttpRequestInterceptor.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/Product.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/ProductNode.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/ProductQueries.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/Program.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/ShapeQueries.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/appsettings.json",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/eShop.Products.csproj",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/schema-settings.json",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/BenchmarkHttpRequestInterceptor.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/Product.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/ProductQueries.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/Program.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/Review.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/ReviewNode.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/ReviewQueries.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/ReviewRepository.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/User.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/UserNode.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/UserQueries.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/appsettings.json",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/eShop.Reviews.csproj",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/schema-settings.json",
+      "benchmarks/fusion-performance/trace-analyzer/Program.cs",
+      "benchmarks/fusion-performance/trace-analyzer/TraceAnalyzer.csproj",
+      "benchmarks/fusion-performance/validate.py",
+      "benchmarks/fusion-performance/workloads.py",
+      "src/HotChocolate/Utilities/src/Utilities.Buffers/MemorySegmentTablePool.cs",
+      "src/HotChocolate/Utilities/test/Utilities.Tests/MemoryArenaTests.cs",
+      "src/HotChocolate/Utilities/test/Utilities.Tests/MemorySegmentTablePoolTests.cs"
+    ],
+    "comments": []
+  },
+  {
+    "number": 10558,
+    "state": "OPEN",
+    "files": [
+      "PERFORMANCE-variable-coercion.md",
+      "benchmarks/fusion-performance/Directory.Build.props",
+      "benchmarks/fusion-performance/README.md",
+      "benchmarks/fusion-performance/agg_speedscope.py",
+      "benchmarks/fusion-performance/analyze.py",
+      "benchmarks/fusion-performance/analyze_profiles.py",
+      "benchmarks/fusion-performance/audit.py",
+      "benchmarks/fusion-performance/campaign.py",
+      "benchmarks/fusion-performance/gateway/Gateway.csproj",
+      "benchmarks/fusion-performance/gateway/Program.cs",
+      "benchmarks/fusion-performance/gateway/appsettings.json",
+      "benchmarks/fusion-performance/lifecycle.py",
+      "benchmarks/fusion-performance/load.js",
+      "benchmarks/fusion-performance/measure.py",
+      "benchmarks/fusion-performance/micro.py",
+      "benchmarks/fusion-performance/micro/FusionPerformance.sln",
+      "benchmarks/fusion-performance/micro/HotChocolate.Fusion.Execution.Benchmarks.csproj",
+      "benchmarks/fusion-performance/micro/Program.cs",
+      "benchmarks/fusion-performance/micro/VariableCoercionBenchmark.cs",
+      "benchmarks/fusion-performance/prepare.py",
+      "benchmarks/fusion-performance/reduce_stacks.py",
+      "benchmarks/fusion-performance/results/summary.json",
+      "benchmarks/fusion-performance/subgraphs/eShop.Accounts/BenchmarkHttpRequestInterceptor.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Accounts/Program.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Accounts/User.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Accounts/UserNode.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Accounts/UserQueries.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Accounts/appsettings.json",
+      "benchmarks/fusion-performance/subgraphs/eShop.Accounts/eShop.Accounts.csproj",
+      "benchmarks/fusion-performance/subgraphs/eShop.Accounts/schema-settings.json",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/BenchmarkHttpRequestInterceptor.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/Product.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/ProductNode.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/ProductQueries.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/Program.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/ShapeQueries.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/appsettings.json",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/eShop.Inventory.csproj",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/schema-settings.json",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/BenchmarkHttpRequestInterceptor.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/Product.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/ProductNode.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/ProductQueries.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/Program.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/ShapeQueries.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/appsettings.json",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/eShop.Products.csproj",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/schema-settings.json",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/BenchmarkHttpRequestInterceptor.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/Product.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/ProductQueries.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/Program.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/Review.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/ReviewNode.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/ReviewQueries.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/ReviewRepository.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/User.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/UserNode.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/UserQueries.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/appsettings.json",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/eShop.Reviews.csproj",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/schema-settings.json",
+      "benchmarks/fusion-performance/trace-analyzer/Program.cs",
+      "benchmarks/fusion-performance/trace-analyzer/TraceAnalyzer.csproj",
+      "benchmarks/fusion-performance/validate.py",
+      "benchmarks/fusion-performance/workloads.py",
+      "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/VariableCoercionHelper.cs",
+      "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/VariableCoercionHelperTests.cs"
+    ],
+    "comments": [
+      {
+        "author": "github-actions",
+        "body": "## Patch coverage\n\n**100.0%** of changed lines covered (11/11)\n\n| File | Covered | Changed | Patch % |\n|:-----|--------:|--------:|--------:|\n| [\u2026/src/Fusion.Execution/Execution/VariableCoercionHelper.cs](https://github.com/ChilliCream/graphql-platform/pull/10558/files#diff-f50b0823a3227741ad2eedb24d5d4bcadf56638ae28c0412a78a60e66139c1e4) | 11 | 11 | 100.0%&nbsp;\ud83d\udfe2 |\n\n---\n\nProject coverage: **59.0%** (311293/527650 lines)\n\n\n<!-- Sticky Pull Request Commentpatch-coverage -->"
+      }
+    ]
+  },
+  {
+    "number": 10557,
+    "state": "OPEN",
+    "files": [
+      "PERFORMANCE-path-pool-slots.md",
+      "benchmarks/fusion-performance/Directory.Build.props",
+      "benchmarks/fusion-performance/README.md",
+      "benchmarks/fusion-performance/agg_speedscope.py",
+      "benchmarks/fusion-performance/analyze.py",
+      "benchmarks/fusion-performance/analyze_profiles.py",
+      "benchmarks/fusion-performance/audit.py",
+      "benchmarks/fusion-performance/campaign.py",
+      "benchmarks/fusion-performance/gateway/Gateway.csproj",
+      "benchmarks/fusion-performance/gateway/Program.cs",
+      "benchmarks/fusion-performance/gateway/appsettings.json",
+      "benchmarks/fusion-performance/lifecycle.py",
+      "benchmarks/fusion-performance/load.js",
+      "benchmarks/fusion-performance/measure.py",
+      "benchmarks/fusion-performance/micro.py",
+      "benchmarks/fusion-performance/micro/FusionPerformance.sln",
+      "benchmarks/fusion-performance/micro/HotChocolate.Fusion.Execution.Benchmarks.csproj",
+      "benchmarks/fusion-performance/micro/PathPoolBenchmarks.cs",
+      "benchmarks/fusion-performance/micro/Program.cs",
+      "benchmarks/fusion-performance/prepare.py",
+      "benchmarks/fusion-performance/reduce_stacks.py",
+      "benchmarks/fusion-performance/results/path-pool-slots.json",
+      "benchmarks/fusion-performance/subgraphs/eShop.Accounts/BenchmarkHttpRequestInterceptor.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Accounts/Program.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Accounts/User.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Accounts/UserNode.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Accounts/UserQueries.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Accounts/appsettings.json",
+      "benchmarks/fusion-performance/subgraphs/eShop.Accounts/eShop.Accounts.csproj",
+      "benchmarks/fusion-performance/subgraphs/eShop.Accounts/schema-settings.json",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/BenchmarkHttpRequestInterceptor.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/Product.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/ProductNode.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/ProductQueries.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/Program.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/ShapeQueries.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/appsettings.json",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/eShop.Inventory.csproj",
+      "benchmarks/fusion-performance/subgraphs/eShop.Inventory/schema-settings.json",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/BenchmarkHttpRequestInterceptor.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/Product.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/ProductNode.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/ProductQueries.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/Program.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/ShapeQueries.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/appsettings.json",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/eShop.Products.csproj",
+      "benchmarks/fusion-performance/subgraphs/eShop.Products/schema-settings.json",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/BenchmarkHttpRequestInterceptor.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/Product.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/ProductQueries.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/Program.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/Review.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/ReviewNode.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/ReviewQueries.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/ReviewRepository.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/User.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/UserNode.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/UserQueries.cs",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/appsettings.json",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/eShop.Reviews.csproj",
+      "benchmarks/fusion-performance/subgraphs/eShop.Reviews/schema-settings.json",
+      "benchmarks/fusion-performance/trace-analyzer/Program.cs",
+      "benchmarks/fusion-performance/trace-analyzer/TraceAnalyzer.csproj",
+      "benchmarks/fusion-performance/validate.py",
+      "benchmarks/fusion-performance/workloads.py",
+      "src/HotChocolate/Fusion/src/Fusion.Execution/Text/Json/PathSegmentPool.cs",
+      "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Text/Json/PathSegmentPoolTests.cs"
+    ],
+    "comments": [
+      {
+        "author": "github-actions",
+        "body": "## Patch coverage\n\n**95.2%** of changed lines covered (20/21)\n\n| File | Covered | Changed | Patch % |\n|:-----|--------:|--------:|--------:|\n| [\u2026/Fusion/src/Fusion.Execution/Text/Json/PathSegmentPool.cs](https://github.com/ChilliCream/graphql-platform/pull/10557/files#diff-af58e5e15459913a2c93bf7d23ecff6522a0977ac0be7921b463849fbabcbc3f) | 20 | 21 | 95.2%&nbsp;\ud83d\udfe1 |\n\n<details><summary>Uncovered changed lines (JSON)</summary>\n\n```json\n{\n  \"sha\": \"ce1a8a5cca9ca056aa6355f0826a6ad8bd4da904\",\n  \"files\": [\n    { \"path\": \"src/HotChocolate/Fusion/src/Fusion.Execution/Text/Json/PathSegmentPool.cs\", \"ranges\": [[349, 349]] }\n  ]\n}\n```\n\n</details>\n\n---\n\nProject coverage: **59.0%** (311332/527641 lines)\n\n\n<!-- Sticky Pull Request Commentpatch-coverage -->"
+      }
+    ]
+  },
+  {
+    "number": 10554,
+    "state": "CLOSED",
+    "files": [
+      "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Results/FetchResultStore.cs",
+      "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Results/FetchResultStoreTests.cs"
+    ],
+    "comments": [
+      {
+        "author": "github-actions",
+        "body": "## Patch coverage\n\n**100.0%** of changed lines covered (33/33)\n\n| File | Covered | Changed | Patch % |\n|:-----|--------:|--------:|--------:|\n| [\u2026/src/Fusion.Execution/Execution/Results/FetchResultStore.cs](https://github.com/ChilliCream/graphql-platform/pull/10554/files#diff-83d18bafdc1bbfa3c9877c3e6c7044c52672b0bfb897c325e51f9a494054ed12) | 33 | 33 | 100.0%&nbsp;\ud83d\udfe2 |\n\n---\n\nProject coverage: **58.9%** (310886/527445 lines)\n\n\n<!-- Sticky Pull Request Commentpatch-coverage -->"
+      }
+    ]
+  },
+  {
+    "number": 10552,
+    "state": "MERGED",
+    "files": [
+      "src/HotChocolate/AspNetCore/src/Transport.Formatters/ChunkedPipeBufferWriter.cs",
+      "src/HotChocolate/AspNetCore/src/Transport.Formatters/EventStreamResultFormatter.cs",
+      "src/HotChocolate/AspNetCore/src/Transport.Formatters/HotChocolate.Transport.Formatters.csproj",
+      "src/HotChocolate/AspNetCore/src/Transport.Formatters/JsonLinesResultFormatter.cs",
+      "src/HotChocolate/AspNetCore/src/Transport.Formatters/JsonResultFormatter.cs",
+      "src/HotChocolate/AspNetCore/src/Transport.Formatters/MultiPartResultFormatter.cs",
+      "src/HotChocolate/AspNetCore/src/Transport.Formatters/ThrowHelper.cs",
+      "src/HotChocolate/AspNetCore/test/AspNetCore.Tests/Serialization/ChunkedPipeBufferWriterTests.cs",
+      "src/HotChocolate/AspNetCore/test/AspNetCore.Tests/Serialization/CountingPipeWriter.cs",
+      "src/HotChocolate/AspNetCore/test/AspNetCore.Tests/Serialization/EventStreamResultFormatterTests.cs",
+      "src/HotChocolate/AspNetCore/test/AspNetCore.Tests/Serialization/JsonLinesResultFormatterTests.cs",
+      "src/HotChocolate/AspNetCore/test/AspNetCore.Tests/Serialization/JsonResultFormatterTests.cs",
+      "src/HotChocolate/AspNetCore/test/AspNetCore.Tests/Serialization/MultiPartResultFormatterTests.cs",
+      "src/HotChocolate/AspNetCore/test/AspNetCore.Tests/Serialization/ResultTestHelper.cs"
+    ],
+    "comments": [
+      {
+        "author": "github-actions",
+        "body": "## Patch coverage\n\n**83.2%** of changed lines covered (124/149)\n\n| File | Covered | Changed | Patch % |\n|:-----|--------:|--------:|--------:|\n| [\u2026/AspNetCore/src/Transport.Formatters/JsonResultFormatter.cs](https://github.com/ChilliCream/graphql-platform/pull/10552/files#diff-42f1c795dbc0784ab375876fa806aad93fb2409a19abf0976f527e9c09ae4153) | 15 | 19 | 78.9%&nbsp;\ud83d\udd34 |\n| [\u2026/src/Transport.Formatters/ChunkedPipeBufferWriter.cs](https://github.com/ChilliCream/graphql-platform/pull/10552/files#diff-d31e97642e59004cfc87b88293b8e8e56a4885c4d895febadcc1687bdcd87977) | 85 | 105 | 81.0%&nbsp;\ud83d\udfe1 |\n| [\u2026/src/Transport.Formatters/JsonLinesResultFormatter.cs](https://github.com/ChilliCream/graphql-platform/pull/10552/files#diff-4832af11fcfddf70763e7d553a6c4754a8c350628d0039271479789ec29f2be9) | 7 | 8 | 87.5%&nbsp;\ud83d\udfe1 |\n| [\u2026/src/Transport.Formatters/EventStreamResultFormatter.cs](https://github.com/ChilliCream/graphql-platform/pull/10552/files#diff-16b07418741656d7948d90e85d02308ac28d925852a6ee3aa5c7e416f95985a9) | 8 | 8 | 100.0%&nbsp;\ud83d\udfe2 |\n| [\u2026/src/Transport.Formatters/MultiPartResultFormatter.cs](https://github.com/ChilliCream/graphql-platform/pull/10552/files#diff-833659780bf8a9a7b7e2f27fe741273352620006321e07ab894d6a9ac3658216) | 7 | 7 | 100.0%&nbsp;\ud83d\udfe2 |\n| [\u2026/AspNetCore/src/Transport.Formatters/ThrowHelper.cs](https://github.com/ChilliCream/graphql-platform/pull/10552/files#diff-ecd6bd949b44a2ff312e593248d94ca4f4d49db33f91a82e4650b371c3999732) | 2 | 2 | 100.0%&nbsp;\ud83d\udfe2 |\n\n<details><summary>Uncovered changed lines (JSON)</summary>\n\n```json\n{\n  \"sha\": \"c12b5734a56974c0f53e0aa99c7695a39c5d7c6a\",\n  \"files\": [\n    { \"path\": \"src/HotChocolate/AspNetCore/src/Transport.Formatters/JsonResultFormatter.cs\", \"ranges\": [[245, 248]] },\n    { \"path\": \"src/HotChocolate/AspNetCore/src/Transport.Formatters/ChunkedPipeBufferWriter.cs\", \"ranges\": [[70, 73], [76, 77], [99, 99], [102, 106], [108, 110], [157, 159], [190, 191]] },\n    { \"path\": \"src/HotChocolate/AspNetCore/src/Transport.Formatters/JsonLinesResultFormatter.cs\", \"ranges\": [[50, 50]] }\n  ]\n}\n```\n\n</details>\n\n---\n\nProject coverage: **59.0%** (311132/527557 lines)\n\n\n<!-- Sticky Pull Request Commentpatch-coverage -->"
+      }
+    ]
+  },
+  {
+    "number": 10548,
+    "state": "MERGED",
+    "files": [
+      "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/FusionOptions.cs",
+      "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/OperationPlanContext.cs",
+      "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Results/FetchResultStore.Pooling.cs",
+      "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Results/FetchResultStore.cs",
+      "src/HotChocolate/Fusion/src/Fusion.Execution/Text/Json/CompositeResultDocument.cs",
+      "src/HotChocolate/Fusion/src/Fusion.Execution/Text/Json/PathSegmentLocalPool.cs",
+      "src/HotChocolate/Fusion/src/Fusion.Execution/Text/Json/PathSegmentMemory.cs",
+      "src/HotChocolate/Fusion/src/Fusion.Execution/Text/Json/PathSegmentPool.cs",
+      "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Results/FetchResultStoreTests.cs",
+      "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Text/Json/CompositeResultDocumentTests.cs",
+      "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Text/Json/PathSegmentLocalPoolTests.cs",
+      "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Text/Json/PathSegmentPoolTests.cs"
+    ],
+    "comments": [
+      {
+        "author": "github-actions",
+        "body": "## Patch coverage\n\n**98.3%** of changed lines covered (174/177)\n\n| File | Covered | Changed | Patch % |\n|:-----|--------:|--------:|--------:|\n| [\u2026/Fusion/src/Fusion.Execution/Text/Json/PathSegmentPool.cs](https://github.com/ChilliCream/graphql-platform/pull/10548/files#diff-af58e5e15459913a2c93bf7d23ecff6522a0977ac0be7921b463849fbabcbc3f) | 76 | 79 | 96.2%&nbsp;\ud83d\udfe1 |\n| [\u2026/src/Fusion.Execution/Execution/OperationPlanContext.cs](https://github.com/ChilliCream/graphql-platform/pull/10548/files#diff-deebd8f4bf1395ef7740fe2abec463f311b61ba8c16a5a9bfbbebf1205817907) | 2 | 2 | 100.0%&nbsp;\ud83d\udfe2 |\n| [\u2026/Execution/Results/FetchResultStore.Pooling.cs](https://github.com/ChilliCream/graphql-platform/pull/10548/files#diff-c084dee187ae2f7c21cefd4d18054614d6a92c5a1e2d5a564a2fd3e0de296097) | 13 | 13 | 100.0%&nbsp;\ud83d\udfe2 |\n| [\u2026/src/Fusion.Execution/Execution/Results/FetchResultStore.cs](https://github.com/ChilliCream/graphql-platform/pull/10548/files#diff-83d18bafdc1bbfa3c9877c3e6c7044c52672b0bfb897c325e51f9a494054ed12) | 1 | 1 | 100.0%&nbsp;\ud83d\udfe2 |\n| [\u2026/src/Fusion.Execution/Text/Json/CompositeResultDocument.cs](https://github.com/ChilliCream/graphql-platform/pull/10548/files#diff-0c134796885e8173407fe3d73b9947136c0f68c62ef29e31a8b758b77dfae3e5) | 2 | 2 | 100.0%&nbsp;\ud83d\udfe2 |\n| [\u2026/src/Fusion.Execution/Text/Json/PathSegmentLocalPool.cs](https://github.com/ChilliCream/graphql-platform/pull/10548/files#diff-c93c7a9131d165dbf2af95a1a7c07cb3c249fe0a490ac45e89b9e7d5995afb7f) | 79 | 79 | 100.0%&nbsp;\ud83d\udfe2 |\n| [\u2026/Fusion/src/Fusion.Execution/Text/Json/PathSegmentMemory.cs](https://github.com/ChilliCream/graphql-platform/pull/10548/files#diff-7f2fa62fcc8ab5413de0620a36f2f7baa7027e31be119ef09305820ebc113bf7) | 1 | 1 | 100.0%&nbsp;\ud83d\udfe2 |\n\n<details><summary>Uncovered changed lines (JSON)</summary>\n\n```json\n{\n  \"sha\": \"f63946282819db97eee5a86f68c594e7f818a02f\",\n  \"files\": [\n    { \"path\": \"src/HotChocolate/Fusion/src/Fusion.Execution/Text/Json/PathSegmentPool.cs\", \"ranges\": [[124, 126]] }\n  ]\n}\n```\n\n</details>\n\n---\n\nProject coverage: **59.0%** (310997/527501 lines)\n\n\n<!-- Sticky Pull Request Commentpatch-coverage -->"
+      }
+    ]
+  },
+  {
+    "number": 10540,
+    "state": "MERGED",
+    "files": [
+      "src/HotChocolate/Language/src/Language.SyntaxTree/FloatValueNode.cs",
+      "src/HotChocolate/Language/src/Language.SyntaxTree/IntValueNode.cs",
+      "src/HotChocolate/Language/test/Language.SyntaxTree.Tests/ValueNodeConcurrencyTests.cs",
+      "src/HotChocolate/Utilities/src/Utilities.Buffers/ReadOnlyMemorySegment.cs",
+      "src/HotChocolate/Utilities/test/Utilities.Tests/ReadOnlyMemorySegmentTests.cs"
+    ],
+    "comments": [
+      {
+        "author": "github-actions",
+        "body": "## Patch coverage\n\n**67.9%** of changed lines covered (91/134)\n\n| File | Covered | Changed | Patch % |\n|:-----|--------:|--------:|--------:|\n| [\u2026/Language/src/Language.SyntaxTree/IntValueNode.cs](https://github.com/ChilliCream/graphql-platform/pull/10540/files#diff-af6900e5fe4c7245430bee71479e1afd5375b908f7999143c28f147d847b0177) | 48 | 88 | 54.5%&nbsp;\ud83d\udd34 |\n| [\u2026/Language/src/Language.SyntaxTree/FloatValueNode.cs](https://github.com/ChilliCream/graphql-platform/pull/10540/files#diff-91360e8b7c5d272957a26a336500b0c5802c94c6089f41bcd915b67793c321a1) | 15 | 18 | 83.3%&nbsp;\ud83d\udfe1 |\n| [\u2026/Utilities/src/Utilities.Buffers/ReadOnlyMemorySegment.cs](https://github.com/ChilliCream/graphql-platform/pull/10540/files#diff-1def8f4d0987a5323ead57b42f79479a3ae6d888d71eccf5b459a6513373df0d) | 28 | 28 | 100.0%&nbsp;\ud83d\udfe2 |\n\n<details><summary>Uncovered changed lines (JSON)</summary>\n\n```json\n{\n  \"sha\": \"38bb06e1ccd7c175b04b52967b2122f57b879530\",\n  \"files\": [\n    { \"path\": \"src/HotChocolate/Language/src/Language.SyntaxTree/IntValueNode.cs\", \"ranges\": [[425, 427], [429, 429], [431, 431], [479, 480], [482, 482], [484, 484], [486, 486], [534, 534], [541, 541], [589, 594], [596, 596], [644, 644], [646, 647], [649, 649], [651, 651], [699, 701], [704, 704], [706, 706], [754, 757], [761, 761], [809, 814]] },\n    { \"path\": \"src/HotChocolate/Language/src/Language.SyntaxTree/FloatValueNode.cs\", \"ranges\": [[250, 250], [288, 288], [328, 328]] }\n  ]\n}\n```\n\n</details>\n\n---\n\nProject coverage: **58.7%** (315851/538324 lines)\n\n\n<!-- Sticky Pull Request Commentpatch-coverage -->"
+      }
+    ]
+  },
+  {
+    "number": 10537,
+    "state": "MERGED",
+    "files": [
+      "src/HotChocolate/Core/src/Types/Execution/Processing/VariableCoercionHelper.cs",
+      "src/HotChocolate/Core/src/Types/Types/Contracts/EnumValue.cs",
+      "src/HotChocolate/Core/src/Types/Types/EnumValueCollection.cs",
+      "src/HotChocolate/Core/test/Execution.Tests/Processing/VariableCoercionHelperTests.cs",
+      "src/HotChocolate/Fusion/src/Fusion.Execution.Types/Collections/FusionEnumValueCollection.cs",
+      "src/HotChocolate/Fusion/src/Fusion.Execution.Types/FusionEnumValue.cs",
+      "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/JsonVariableCoercion.cs",
+      "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Types/FusionEnumValueCollectionTests.cs",
+      "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/VariableCoercionHelperTests.cs"
+    ],
+    "comments": [
+      {
+        "author": "github-actions",
+        "body": "## Patch coverage\n\n**100.0%** of changed lines covered (23/23)\n\n| File | Covered | Changed | Patch % |\n|:-----|--------:|--------:|--------:|\n| [\u2026/src/Types/Execution/Processing/VariableCoercionHelper.cs](https://github.com/ChilliCream/graphql-platform/pull/10537/files#diff-9d5385c4f9dfd241cb5c7bc53563cefcedfdcedcf12e7ca37e09faf7bfb98159) | 1 | 1 | 100.0%&nbsp;\ud83d\udfe2 |\n| [src/HotChocolate/Core/src/Types/Types/Contracts/EnumValue.cs](https://github.com/ChilliCream/graphql-platform/pull/10537/files#diff-59f75f0f15e4f71ffd662c7a661bd37c2f3c148db755379b616853e454e6a78e) | 2 | 2 | 100.0%&nbsp;\ud83d\udfe2 |\n| [src/HotChocolate/Core/src/Types/Types/EnumValueCollection.cs](https://github.com/ChilliCream/graphql-platform/pull/10537/files#diff-45347806e98781c7bdbc820d5b76d7d012a0e944aa60acde054c3405fda96c09) | 2 | 2 | 100.0%&nbsp;\ud83d\udfe2 |\n| [\u2026/Collections/FusionEnumValueCollection.cs](https://github.com/ChilliCream/graphql-platform/pull/10537/files#diff-33f78a5763e443099fe17802984415dab5691201593d59ce42bf6f1a9e3dc5bf) | 12 | 12 | 100.0%&nbsp;\ud83d\udfe2 |\n| [\u2026/Fusion/src/Fusion.Execution.Types/FusionEnumValue.cs](https://github.com/ChilliCream/graphql-platform/pull/10537/files#diff-6988f1b4803e653f2c734522f215be5a28e39af7c8dc2c2c9b1b8007d1c0dbad) | 2 | 2 | 100.0%&nbsp;\ud83d\udfe2 |\n| [\u2026/src/Fusion.Execution/Execution/JsonVariableCoercion.cs](https://github.com/ChilliCream/graphql-platform/pull/10537/files#diff-c526b47ed82641eff3894c44c65b0d02092388b5e3bc2b9156c7da056d281aa1) | 4 | 4 | 100.0%&nbsp;\ud83d\udfe2 |\n\n---\n\nProject coverage: **58.7%** (315922/538339 lines)\n\n\n<!-- Sticky Pull Request Commentpatch-coverage -->"
+      }
+    ]
+  },
+  {
+    "number": 10534,
+    "state": "MERGED",
+    "files": [
+      "src/HotChocolate/Core/src/Types/Execution/Processing/VariableCoercionHelper.cs",
+      "src/HotChocolate/Core/src/Types/Types/EnumType.cs",
+      "src/HotChocolate/Core/src/Types/Types/EnumValueCollection.cs",
+      "src/HotChocolate/Core/src/Types/Types/FieldCollection.cs",
+      "src/HotChocolate/Core/src/Types/Types/InputField.cs",
+      "src/HotChocolate/Core/src/Types/Types/InputParser.cs",
+      "src/HotChocolate/Core/test/Execution.Tests/Processing/VariableCoercionHelperTests.cs",
+      "src/HotChocolate/Core/test/Types.Tests/Types/EnumValueCollectionTests.cs",
+      "src/HotChocolate/Core/test/Types.Tests/Types/FieldCollectionTests.cs",
+      "src/HotChocolate/Core/test/Types.Tests/Types/InputParserTests.cs"
+    ],
+    "comments": [
+      {
+        "author": "github-actions",
+        "body": "## Patch coverage\n\n**100.0%** of changed lines covered (95/95)\n\n| File | Covered | Changed | Patch % |\n|:-----|--------:|--------:|--------:|\n| [\u2026/src/Types/Execution/Processing/VariableCoercionHelper.cs](https://github.com/ChilliCream/graphql-platform/pull/10534/files#diff-9d5385c4f9dfd241cb5c7bc53563cefcedfdcedcf12e7ca37e09faf7bfb98159) | 15 | 15 | 100.0%&nbsp;\ud83d\udfe2 |\n| [src/HotChocolate/Core/src/Types/Types/EnumType.cs](https://github.com/ChilliCream/graphql-platform/pull/10534/files#diff-b1ed773f5f8034797b362bb71446c41b71613f9bdb1159ec39a83fff17eb5daa) | 9 | 9 | 100.0%&nbsp;\ud83d\udfe2 |\n| [src/HotChocolate/Core/src/Types/Types/EnumValueCollection.cs](https://github.com/ChilliCream/graphql-platform/pull/10534/files#diff-45347806e98781c7bdbc820d5b76d7d012a0e944aa60acde054c3405fda96c09) | 25 | 25 | 100.0%&nbsp;\ud83d\udfe2 |\n| [src/HotChocolate/Core/src/Types/Types/FieldCollection.cs](https://github.com/ChilliCream/graphql-platform/pull/10534/files#diff-7852f65d0554b90b640f9012ce77c26d23902e37aa66b910996dd955735c4a43) | 21 | 21 | 100.0%&nbsp;\ud83d\udfe2 |\n| [src/HotChocolate/Core/src/Types/Types/InputField.cs](https://github.com/ChilliCream/graphql-platform/pull/10534/files#diff-7cee67d5ab884872d9d1aea0e3fa77d06f0728d4c8737ab428779b0e9784a281) | 2 | 2 | 100.0%&nbsp;\ud83d\udfe2 |\n| [src/HotChocolate/Core/src/Types/Types/InputParser.cs](https://github.com/ChilliCream/graphql-platform/pull/10534/files#diff-4530b40d484f0a74ba09072008f23d21971845ea1827878e0cff5310c54b4a09) | 23 | 23 | 100.0%&nbsp;\ud83d\udfe2 |\n\n---\n\nProject coverage: **58.7%** (315762/538284 lines)\n\n\n<!-- Sticky Pull Request Commentpatch-coverage -->"
+      }
+    ]
+  },
+  {
+    "number": 10527,
+    "state": "MERGED",
+    "files": [
+      "src/HotChocolate/Core/src/Types/Types/Scalars/ScalarType.cs",
+      "src/HotChocolate/Core/test/Execution.Tests/Processing/VariableCoercionHelperTests.cs",
+      "src/HotChocolate/Core/test/Types.Tests/Types/Scalars/ScalarTypeInputValueToLiteralTests.cs",
+      "src/HotChocolate/Language/src/Language.Utf8/HotChocolate.Language.Utf8.csproj",
+      "src/HotChocolate/Language/src/Language.Web/JsonValueParser.cs",
+      "src/HotChocolate/Language/test/Language.Web.Tests/JsonValueParserTests.cs"
+    ],
+    "comments": [
+      {
+        "author": "github-actions",
+        "body": "## Patch coverage\n\n**64.3%** of changed lines covered (9/14)\n\n| File | Covered | Changed | Patch % |\n|:-----|--------:|--------:|--------:|\n| [\u2026/HotChocolate/Language/src/Language.Web/JsonValueParser.cs](https://github.com/ChilliCream/graphql-platform/pull/10527/files#diff-815dc9bddebd8d369bc3f21021bc41240703436f6fa4dfc4e092d675a348a336) | 7 | 12 | 58.3%&nbsp;\ud83d\udd34 |\n| [src/HotChocolate/Core/src/Types/Types/Scalars/ScalarType.cs](https://github.com/ChilliCream/graphql-platform/pull/10527/files#diff-b4e78c3e5174b4433e8f8c6e1d755cc89a82a6662e7e30dfd0765fc654c13a03) | 2 | 2 | 100.0%&nbsp;\ud83d\udfe2 |\n\n<details><summary>Uncovered changed lines (JSON)</summary>\n\n```json\n{\n  \"sha\": \"a63945e71b82f090a00170e21b942e2f79fc380a\",\n  \"files\": [\n    { \"path\": \"src/HotChocolate/Language/src/Language.Web/JsonValueParser.cs\", \"ranges\": [[224, 228]] }\n  ]\n}\n```\n\n</details>\n\n---\n\nProject coverage: **58.6%** (314296/536476 lines)\n\n\n<!-- Sticky Pull Request Commentpatch-coverage -->"
+      }
+    ]
+  },
+  {
+    "number": 10524,
+    "state": "MERGED",
+    "files": [
+      "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Results/FetchResultStore.Pooling.cs",
+      "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Results/FetchResultStore.cs",
+      "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Results/FetchResultStoreTests.cs",
+      "src/HotChocolate/Json/src/Json/HotChocolate.Text.Json.csproj",
+      "src/HotChocolate/Json/src/Json/JsonWriter.cs",
+      "src/HotChocolate/Json/test/Json.Tests/JsonWriterTests.cs"
+    ],
+    "comments": [
+      {
+        "author": "github-actions",
+        "body": "## Patch coverage\n\n**100.0%** of changed lines covered (59/59)\n\n| File | Covered | Changed | Patch % |\n|:-----|--------:|--------:|--------:|\n| [\u2026/Execution/Results/FetchResultStore.Pooling.cs](https://github.com/ChilliCream/graphql-platform/pull/10524/files#diff-c084dee187ae2f7c21cefd4d18054614d6a92c5a1e2d5a564a2fd3e0de296097) | 5 | 5 | 100.0%&nbsp;\ud83d\udfe2 |\n| [\u2026/src/Fusion.Execution/Execution/Results/FetchResultStore.cs](https://github.com/ChilliCream/graphql-platform/pull/10524/files#diff-83d18bafdc1bbfa3c9877c3e6c7044c52672b0bfb897c325e51f9a494054ed12) | 35 | 35 | 100.0%&nbsp;\ud83d\udfe2 |\n| [src/HotChocolate/Json/src/Json/JsonWriter.cs](https://github.com/ChilliCream/graphql-platform/pull/10524/files#diff-92a109ec77a638d8edd626739fbaeb213132bc48c43e0d9a59f458772d282b31) | 19 | 19 | 100.0%&nbsp;\ud83d\udfe2 |\n\n---\n\nProject coverage: **58.7%** (315567/537978 lines)\n\n\n<!-- Sticky Pull Request Commentpatch-coverage -->"
+      }
+    ]
+  },
+  {
+    "number": 10523,
+    "state": "CLOSED",
+    "files": [
+      "src/HotChocolate/Utilities/src/Utilities.Buffers/ReadOnlyMemorySegment.cs",
+      "src/HotChocolate/Utilities/test/Utilities.Tests/ReadOnlyMemorySegmentTests.cs"
+    ],
+    "comments": [
+      {
+        "author": "github-actions",
+        "body": "## Patch coverage\n\n**100.0%** of changed lines covered (36/36)\n\n| File | Covered | Changed | Patch % |\n|:-----|--------:|--------:|--------:|\n| [\u2026/Utilities/src/Utilities.Buffers/ReadOnlyMemorySegment.cs](https://github.com/ChilliCream/graphql-platform/pull/10523/files#diff-1def8f4d0987a5323ead57b42f79479a3ae6d888d71eccf5b459a6513373df0d) | 36 | 36 | 100.0%&nbsp;\ud83d\udfe2 |\n\n---\n\nProject coverage: **58.6%** (314242/536483 lines)\n\n\n<!-- Sticky Pull Request Commentpatch-coverage -->"
+      }
+    ]
+  },
+  {
+    "number": 10522,
+    "state": "MERGED",
+    "files": [
+      "src/HotChocolate/Fusion/benchmarks/Fusion.Execution.Benchmarks/VariableCoercionBenchmark.cs",
+      "src/HotChocolate/Fusion/src/Fusion.Execution.Types/Collections/FusionEnumValueCollection.cs",
+      "src/HotChocolate/Fusion/src/Fusion.Execution.Types/Collections/FusionFieldDefinitionCollection.cs",
+      "src/HotChocolate/Fusion/src/Fusion.Execution.Types/FusionInputFieldDefinition.cs",
+      "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/JsonVariableCoercion.cs",
+      "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Types/FusionEnumValueCollectionTests.cs",
+      "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Types/FusionInputFieldDefinitionCollectionTests.cs",
+      "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/VariableCoercionHelperTests.cs"
+    ],
+    "comments": [
+      {
+        "author": "github-actions",
+        "body": "## Patch coverage\n\n**100.0%** of changed lines covered (47/47)\n\n| File | Covered | Changed | Patch % |\n|:-----|--------:|--------:|--------:|\n| [\u2026/Collections/FusionEnumValueCollection.cs](https://github.com/ChilliCream/graphql-platform/pull/10522/files#diff-33f78a5763e443099fe17802984415dab5691201593d59ce42bf6f1a9e3dc5bf) | 8 | 8 | 100.0%&nbsp;\ud83d\udfe2 |\n| [\u2026/Collections/FusionFieldDefinitionCollection.cs](https://github.com/ChilliCream/graphql-platform/pull/10522/files#diff-d9c3c611f372c313cc0f6ec4b080f0fc61f6d2907db904157940ea3aa4eab80e) | 23 | 23 | 100.0%&nbsp;\ud83d\udfe2 |\n| [\u2026/src/Fusion.Execution.Types/FusionInputFieldDefinition.cs](https://github.com/ChilliCream/graphql-platform/pull/10522/files#diff-3f9911f81075d0e0181728992fd662b9a1fa998657708c15fbd5ff5b7ceef3bd) | 2 | 2 | 100.0%&nbsp;\ud83d\udfe2 |\n| [\u2026/src/Fusion.Execution/Execution/JsonVariableCoercion.cs](https://github.com/ChilliCream/graphql-platform/pull/10522/files#diff-c526b47ed82641eff3894c44c65b0d02092388b5e3bc2b9156c7da056d281aa1) | 14 | 14 | 100.0%&nbsp;\ud83d\udfe2 |\n\n---\n\nProject coverage: **58.7%** (315520/537948 lines)\n\n\n<!-- Sticky Pull Request Commentpatch-coverage -->"
+      }
+    ]
+  },
+  {
+    "number": 10518,
+    "state": "CLOSED",
+    "files": [
+      "src/HotChocolate/Language/src/Language.SyntaxTree/EnumValueNode.cs",
+      "src/HotChocolate/Language/src/Language.SyntaxTree/FloatValueNode.cs",
+      "src/HotChocolate/Language/src/Language.SyntaxTree/IntValueNode.cs",
+      "src/HotChocolate/Language/src/Language.SyntaxTree/StringValueNode.cs",
+      "src/HotChocolate/Language/src/Language.SyntaxTree/Utilities/ThrowHelper.cs",
+      "src/HotChocolate/Language/test/Language.SyntaxTree.Tests/ConcurrentReadHelper.cs",
+      "src/HotChocolate/Language/test/Language.SyntaxTree.Tests/EnumValueNodeTests.cs",
+      "src/HotChocolate/Language/test/Language.SyntaxTree.Tests/FloatValueNodeTests.cs",
+      "src/HotChocolate/Language/test/Language.SyntaxTree.Tests/IntValueNodeTests.cs",
+      "src/HotChocolate/Language/test/Language.SyntaxTree.Tests/StringValueNodeTests.cs"
+    ],
+    "comments": [
+      {
+        "author": "github-actions",
+        "body": "## Patch coverage\n\n**83.2%** of changed lines covered (114/137)\n\n| File | Covered | Changed | Patch % |\n|:-----|--------:|--------:|--------:|\n| [\u2026/Language/src/Language.SyntaxTree/IntValueNode.cs](https://github.com/ChilliCream/graphql-platform/pull/10518/files#diff-af6900e5fe4c7245430bee71479e1afd5375b908f7999143c28f147d847b0177) | 41 | 59 | 69.5%&nbsp;\ud83d\udd34 |\n| [\u2026/Language/src/Language.SyntaxTree/FloatValueNode.cs](https://github.com/ChilliCream/graphql-platform/pull/10518/files#diff-91360e8b7c5d272957a26a336500b0c5802c94c6089f41bcd915b67793c321a1) | 42 | 47 | 89.4%&nbsp;\ud83d\udfe1 |\n| [\u2026/Language/src/Language.SyntaxTree/EnumValueNode.cs](https://github.com/ChilliCream/graphql-platform/pull/10518/files#diff-c5e41736e292f501883c3555b342b1d39d61b523b42487ba650622bf342de9f4) | 24 | 24 | 100.0%&nbsp;\ud83d\udfe2 |\n| [\u2026/Language/src/Language.SyntaxTree/StringValueNode.cs](https://github.com/ChilliCream/graphql-platform/pull/10518/files#diff-43bf7d58dfa1088d8db610b0f254b6d11e1b8b269f1b6b461aef10e35799eca6) | 6 | 6 | 100.0%&nbsp;\ud83d\udfe2 |\n| [\u2026/Language/src/Language.SyntaxTree/Utilities/ThrowHelper.cs](https://github.com/ChilliCream/graphql-platform/pull/10518/files#diff-9fc9e8503ed26f6f91bdd93be2015ece513525267fdafee267643ffede12b534) | 1 | 1 | 100.0%&nbsp;\ud83d\udfe2 |\n\n<details><summary>Uncovered changed lines (JSON)</summary>\n\n```json\n{\n  \"sha\": \"9e86fabffc18844b568d59945ac66a9fa6993ceb\",\n  \"files\": [\n    { \"path\": \"src/HotChocolate/Language/src/Language.SyntaxTree/IntValueNode.cs\", \"ranges\": [[326, 326], [339, 339], [365, 365], [378, 378], [391, 391], [404, 404], [417, 417], [428, 428], [430, 430], [432, 432], [435, 435], [437, 437], [440, 440], [455, 455], [457, 457], [460, 460], [477, 477], [501, 501]] },\n    { \"path\": \"src/HotChocolate/Language/src/Language.SyntaxTree/FloatValueNode.cs\", \"ranges\": [[202, 202], [207, 207], [231, 231], [249, 249], [254, 254]] }\n  ]\n}\n```\n\n</details>\n\n---\n\nProject coverage: **58.6%** (314039/536107 lines)\n\n\n<!-- Sticky Pull Request Commentpatch-coverage -->"
+      }
+    ]
+  },
+  {
+    "number": 10517,
+    "state": "MERGED",
+    "files": [
+      "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/JsonVariableCoercion.cs",
+      "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Results/FetchResultStore.cs",
+      "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Results/FetchResultStoreTests.cs",
+      "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/VariableCoercionHelperTests.cs"
+    ],
+    "comments": [
+      {
+        "author": "github-actions",
+        "body": "## Patch coverage\n\n**77.8%** of changed lines covered (35/45)\n\n| File | Covered | Changed | Patch % |\n|:-----|--------:|--------:|--------:|\n| [\u2026/src/Fusion.Execution/Execution/JsonVariableCoercion.cs](https://github.com/ChilliCream/graphql-platform/pull/10517/files#diff-c526b47ed82641eff3894c44c65b0d02092388b5e3bc2b9156c7da056d281aa1) | 31 | 41 | 75.6%&nbsp;\ud83d\udd34 |\n| [\u2026/src/Fusion.Execution/Execution/Results/FetchResultStore.cs](https://github.com/ChilliCream/graphql-platform/pull/10517/files#diff-83d18bafdc1bbfa3c9877c3e6c7044c52672b0bfb897c325e51f9a494054ed12) | 4 | 4 | 100.0%&nbsp;\ud83d\udfe2 |\n\n<details><summary>Uncovered changed lines (JSON)</summary>\n\n```json\n{\n  \"sha\": \"7e7e55ef636f9b001713427c67693958eb5815bc\",\n  \"files\": [\n    { \"path\": \"src/HotChocolate/Fusion/src/Fusion.Execution/Execution/JsonVariableCoercion.cs\", \"ranges\": [[477, 477], [479, 487]] }\n  ]\n}\n```\n\n</details>\n\n---\n\nProject coverage: **58.6%** (314214/536401 lines)\n\n\n<!-- Sticky Pull Request Commentpatch-coverage -->"
+      }
+    ]
+  },
+  {
+    "number": 10516,
+    "state": "MERGED",
+    "files": [
+      "src/HotChocolate/Language/src/Language.Web/JsonValueParser.cs",
+      "src/HotChocolate/Language/test/Language.Web.Tests/JsonValueParserTests.cs"
+    ],
+    "comments": [
+      {
+        "author": "github-actions",
+        "body": "## Patch coverage\n\n**100.0%** of changed lines covered (15/15)\n\n| File | Covered | Changed | Patch % |\n|:-----|--------:|--------:|--------:|\n| [\u2026/HotChocolate/Language/src/Language.Web/JsonValueParser.cs](https://github.com/ChilliCream/graphql-platform/pull/10516/files#diff-815dc9bddebd8d369bc3f21021bc41240703436f6fa4dfc4e092d675a348a336) | 15 | 15 | 100.0%&nbsp;\ud83d\udfe2 |\n\n---\n\nProject coverage: **58.6%** (314143/536377 lines)\n\n\n<!-- Sticky Pull Request Commentpatch-coverage -->"
+      }
+    ]
+  }
+]

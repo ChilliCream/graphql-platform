@@ -1,0 +1,26 @@
+Fusion starts variable coercion with an empty dictionary, repeatedly allocating larger bucket and entry arrays as supplied variables are inserted.
+
+This PR pre-sizes the dictionary from an allocation-free count of supplied properties, bounded by the variable-definition count and 256.
+
+### Benchmarks
+
+The direct benchmark calls the real variable coercion helper with 200 nullable definitions and either one or all 200 values supplied. Definition and input-JSON parsing are outside the timed region.
+
+BenchmarkDotNet 0.15.8, Release .NET 10.0.12 ARM64, server/concurrent GC: three launches, five warmup iterations and fifteen measured iterations per launch. Values are medians after BDN outlier filtering; ratios are relative to the baseline. Baseline `main` is `9a563e814f`; the PR is `8644259a6a`.
+
+Both variants use `DOTNET_GCDynamicAdaptationMode=0` for microbenchmarks and HTTP comparisons to avoid observed allocation-counter discontinuities. This is a measurement setting, not a production change; default-GC HTTP CPU/allocation effects are not independently established.
+
+| Case | Version | Median | Ratio | Allocated | Alloc Ratio |
+|---|---|---:|---:|---:|---:|
+| 1 of 200 supplied | `main` | 5.324 µs | 1.00 | 400 B | 1.00 |
+| 1 of 200 supplied | PR | 5.428 µs | 1.02 | 400 B | 1.00 |
+| 200 of 200 supplied | `main` | 72.749 µs | 1.00 | 50,760 B | 1.00 |
+| 200 of 200 supplied | PR | 70.135 µs | 0.96 | 26,600 B | 0.52 |
+
+The sparse case is 1.94% slower at the median (103 ns), with overlapping timing ranges and unchanged allocation. The fully supplied case saves 24,160 B/op (47.6%); timing ranges also overlap.
+
+### Verdict
+
+At 100 requests/s, gateway allocation/request fell 10.35%, 17.13% and 22.06% for 50, 100 and 200 supplied variables. A fresh 200-variable pair reproduced a 22.10% reduction. This is a transient-allocation improvement; a stable gateway CPU improvement was not established, and the fixed offered rates do not establish higher throughput capacity.
+
+Release builds passed; 30 focused tests passed. [Full results and reproduction](https://github.com/ChilliCream/graphql-platform/blob/8644259a6ad49f533f54851d565931551adb37ce/PERFORMANCE-variable-coercion.md).
