@@ -1,0 +1,3 @@
+[tte/build-compact-paths-upward 26a82c7876] [Fusion] Build compact result paths upward
+ 3 files changed, 143 insertions(+), 34 deletions(-)
+ create mode 100644 src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Text/Json/CompactPathConstructionTests.cs

@@ -1,0 +1,85 @@
+[
+  {
+    "candidate": "C7",
+    "branch": "tte/reduce-source-response-stream-copies",
+    "worktree": "/workspaces/platform-1/.worktrees/fusion-apollo-pr-response-streams-20261017b",
+    "base": "43a8dca2bd479ddc411d832ed97e42d9fcc8bd85",
+    "measuredSource": "952cb180c25ad027a1b605ae625ac9d1c2a316f2",
+    "cleanCommit": "f7e8b80968a62640ee3ad111d41633e79d232893",
+    "started": "2026-10-17T18:12:42.418853+00:00",
+    "finished": "2026-10-17T18:12:47.319690+00:00",
+    "files": {
+      "src/HotChocolate/AspNetCore/src/Transport.Http/GraphQLHttpResponse.cs": {
+        "sha256": "680370ad1a55b5bc169cf5de20c6873af3af213ca452fccd3edaf966e805fab2",
+        "sourceBlob": "6aada6491104a65d51cb68fb7948060258e1efa5"
+      },
+      "src/HotChocolate/Fusion/src/Fusion.Execution/Text/Json/ThrowHelper.cs": {
+        "sha256": "91ea81f0f00d0bd01b6f618a2205df7c32e0ae41a5705f237a99ad8a4098be5a",
+        "sourceBlob": "d9f489e123a853dc0e98f79746aed9a79014885c"
+      },
+      "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Transport/Http/GraphQLHttpResponseArenaReadTests.cs": {
+        "sha256": "f9cb304a70595ef59bd71c2404a19168473fd0a9bc4b7f4920143c9d9ee12151",
+        "sourceBlob": "e03de5a7c2d0e60d4570c165f108cc0013fb1bb8"
+      }
+    },
+    "clean": true,
+    "productPush": false,
+    "pullRequestCreated": false,
+    "newBenchmark": false,
+    "newBuildOrTests": false
+  },
+  {
+    "candidate": "C9",
+    "branch": "tte/build-compact-paths-upward",
+    "worktree": "/workspaces/platform-1/.worktrees/fusion-apollo-pr-compact-paths-20261017b",
+    "base": "43a8dca2bd479ddc411d832ed97e42d9fcc8bd85",
+    "measuredSource": "d848b383a01bf7b01184ea8c7f3c42a73230017a",
+    "cleanCommit": "26a82c7876bd529e3962f2ef935f18280e7be85d",
+    "started": "2026-10-17T18:12:47.320433+00:00",
+    "finished": "2026-10-17T18:12:52.957754+00:00",
+    "files": {
+      "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/ThrowHelper.cs": {
+        "sha256": "57875f837467ce8f93afe03d254d9938f27567764ba3b6d89c4ead50db92656b",
+        "sourceBlob": "153014764a5be47382b8800087069b16278f1610"
+      },
+      "src/HotChocolate/Fusion/src/Fusion.Execution/Text/Json/CompositeResultDocument.cs": {
+        "sha256": "88081da0439c73d08468acdee670e23d02226c44a002df3b05ff936b7d25feca",
+        "sourceBlob": "812a9db85fa1126dd94edde7b32bcb5c94c38722"
+      },
+      "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Text/Json/CompactPathConstructionTests.cs": {
+        "sha256": "a70f437c4cd5714d0c2662fbb232a164d78bb4a0ddb6b3da542c7d31b3a336d6",
+        "sourceBlob": "55ef2efeded29119209a985aa2edc9281aaa2c88"
+      }
+    },
+    "clean": true,
+    "productPush": false,
+    "pullRequestCreated": false,
+    "newBenchmark": false,
+    "newBuildOrTests": false
+  },
+  {
+    "candidate": "C10",
+    "branch": "tte/reuse-contiguous-response-segments",
+    "worktree": "/workspaces/platform-1/.worktrees/fusion-apollo-pr-response-segments-20261017b",
+    "base": "43a8dca2bd479ddc411d832ed97e42d9fcc8bd85",
+    "measuredSource": "bee3ccac0532fd3a43fc58879641a7642b22c614",
+    "cleanCommit": "757250eed742f5aa9d3b38fa9e2a2f07fa830fef",
+    "started": "2026-10-17T18:12:52.958421+00:00",
+    "finished": "2026-10-17T18:12:59.328742+00:00",
+    "files": {
+      "src/HotChocolate/Fusion/src/Fusion.Execution/Text/Json/SourceResultDocument.Parse.cs": {
+        "sha256": "4e9d5a698a2922dacb5223fd53ce4ec3cee6b66ee25c1be9868b0393cf996235",
+        "sourceBlob": "676dbd562c6e8d8f337fdd42e90f7d1cdb74e9f7"
+      },
+      "src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Text/Json/SourceResultDocumentSequenceTests.cs": {
+        "sha256": "cef887365bd75655a3857c7dbaf567bc0765c2cfb03510f921327af72645db0c",
+        "sourceBlob": "67a750de80eb0acd2b6168e8796a1b2284a42185"
+      }
+    },
+    "clean": true,
+    "productPush": false,
+    "pullRequestCreated": false,
+    "newBenchmark": false,
+    "newBuildOrTests": false
+  }
+]

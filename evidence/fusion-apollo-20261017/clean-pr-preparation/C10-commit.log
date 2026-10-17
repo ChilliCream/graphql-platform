@@ -1,0 +1,3 @@
+[tte/reuse-contiguous-response-segments 757250eed7] [Fusion] Reuse contiguous source response segments
+ 2 files changed, 123 insertions(+)
+ create mode 100644 src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Text/Json/SourceResultDocumentSequenceTests.cs
