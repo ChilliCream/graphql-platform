@@ -1,0 +1,21 @@
+{
+  "reason": "Continue only never-run native BenchmarkDotNet/MemoryDiagnoser stage after controlled process-allocation calibration discrepancy. No allocation retry.",
+  "schedule": [
+    "B",
+    "C6",
+    "C8",
+    "B",
+    "C8",
+    "C6",
+    "B"
+  ],
+  "runnerSha256": "2d0d16d6406fa682880bf0ea0858bf1d2bda545d3b65402c9771ec7e75f02b61",
+  "frozenManifestSha256": "b267865ab64bb0c2bf113aac722448060e153eb43dd4254b20c4daa4af95aa70",
+  "hostAndEngineFilesUnchanged": true,
+  "childDeadlineSeconds": 60,
+  "workDeadlineSeconds": 165,
+  "cleanupMaximumSeconds": 10,
+  "hardBudgetSeconds": 180,
+  "expectedSeconds": 80,
+  "allocationEvidenceLimitation": "Baseline completed nine valid regions. C6 completed four valid regions then a before-calibration process total527896 vs expected523240 (+4656) invalidated its single9 block1. C8 was not invoked. No complete candidate allocation comparison exists."
+}

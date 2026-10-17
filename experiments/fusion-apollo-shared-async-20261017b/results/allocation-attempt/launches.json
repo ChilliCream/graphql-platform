@@ -1,0 +1,61 @@
+[
+  {
+    "label": "01-allocation-B",
+    "command": [
+      "taskset",
+      "-c",
+      "2,3,10,11",
+      "dotnet",
+      "/workspaces/platform-1/perf/fusion-apollo-shared-async-20261017b/frozen-bdn-memory/B/HotChocolate.Fusion.Execution.Benchmarks.dll",
+      "allocation",
+      "/workspaces/platform-1/perf/fusion-apollo-shared-async-20261017b/bdn-campaign/01-allocation-B"
+    ],
+    "started": "2026-10-17T17:38:53.399735+00:00",
+    "status": "completed",
+    "runtimeEnvironment": {
+      "DOTNET_LOCAL_DEV": "1",
+      "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "1",
+      "DOTNET_GCHeapCount": "4"
+    },
+    "identity": {
+      "pid": 144712,
+      "startTicks": 728637
+    },
+    "processGroup": 144712,
+    "exitCode": 0,
+    "finished": "2026-10-17T17:39:04.364691+00:00",
+    "elapsedSeconds": 10.965006475999871,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  },
+  {
+    "label": "02-allocation-C6",
+    "command": [
+      "taskset",
+      "-c",
+      "2,3,10,11",
+      "dotnet",
+      "/workspaces/platform-1/perf/fusion-apollo-shared-async-20261017b/frozen-bdn-memory/C6/HotChocolate.Fusion.Execution.Benchmarks.dll",
+      "allocation",
+      "/workspaces/platform-1/perf/fusion-apollo-shared-async-20261017b/bdn-campaign/02-allocation-C6"
+    ],
+    "started": "2026-10-17T17:39:04.364984+00:00",
+    "status": "failed",
+    "runtimeEnvironment": {
+      "DOTNET_LOCAL_DEV": "1",
+      "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "1",
+      "DOTNET_GCHeapCount": "4"
+    },
+    "identity": {
+      "pid": 144914,
+      "startTicks": 729733
+    },
+    "processGroup": 144914,
+    "exitCode": -6,
+    "exception": "RuntimeError('02-allocation-C6 failed; no retry. Inspect preserved stderr.')",
+    "finished": "2026-10-17T17:39:11.621957+00:00",
+    "elapsedSeconds": 7.257021761000033,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  }
+]

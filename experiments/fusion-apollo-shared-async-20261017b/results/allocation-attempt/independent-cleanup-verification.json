@@ -1,0 +1,23 @@
+{
+  "checkedUtc": "2026-10-17T17:40:18.077750+00:00",
+  "identities": [
+    {
+      "expected": {
+        "pid": 144712,
+        "startTicks": 728637
+      },
+      "current": null,
+      "ownedAlive": false
+    },
+    {
+      "expected": {
+        "pid": 144914,
+        "startTicks": 729733
+      },
+      "current": null,
+      "ownedAlive": false
+    }
+  ],
+  "lockFree": true,
+  "allAbsent": true
+}

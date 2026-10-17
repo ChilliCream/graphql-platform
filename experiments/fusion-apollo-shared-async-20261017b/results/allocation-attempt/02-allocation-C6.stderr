@@ -1,0 +1,15 @@
+{"shape":"ordinary","block":0,"state":"starting"}
+{"shape":"ordinary","block":0,"operations":1000,"completed":1000,"processBytes":25696000,"bytesPerOperation":25696,"elapsed":0.0117478,"beforeCalibration":{"Process":523240,"Thread":523240},"afterCalibration":{"Process":523240,"Thread":523240},"idleBefore":{"bytes":0,"seconds":0.0513539},"idleAfter":{"bytes":0,"seconds":0.0531577},"collections":[0,0,0],"mode":"NoGCRegion","error":null,"endError":null,"valid":true}
+{"shape":"ordinary","block":1,"state":"starting"}
+{"shape":"ordinary","block":1,"operations":1000,"completed":1000,"processBytes":25696000,"bytesPerOperation":25696,"elapsed":0.0142247,"beforeCalibration":{"Process":523240,"Thread":523240},"afterCalibration":{"Process":523240,"Thread":523240},"idleBefore":{"bytes":0,"seconds":0.0551023},"idleAfter":{"bytes":48,"seconds":0.0548134},"collections":[0,0,0],"mode":"NoGCRegion","error":null,"endError":null,"valid":true}
+{"shape":"ordinary","block":2,"state":"starting"}
+{"shape":"ordinary","block":2,"operations":1000,"completed":1000,"processBytes":25696000,"bytesPerOperation":25696,"elapsed":0.0121395,"beforeCalibration":{"Process":523240,"Thread":523240},"afterCalibration":{"Process":523240,"Thread":523240},"idleBefore":{"bytes":0,"seconds":0.055135},"idleAfter":{"bytes":0,"seconds":0.0509181},"collections":[0,0,0],"mode":"NoGCRegion","error":null,"endError":null,"valid":true}
+{"shape":"async-single9","block":0,"state":"starting"}
+{"shape":"async-single9","block":0,"operations":1000,"completed":1000,"processBytes":30319584,"bytesPerOperation":30319.584,"elapsed":0.0223484,"beforeCalibration":{"Process":523240,"Thread":523240},"afterCalibration":{"Process":523240,"Thread":523240},"idleBefore":{"bytes":0,"seconds":0.0551058},"idleAfter":{"bytes":0,"seconds":0.0531344},"collections":[0,0,0],"mode":"NoGCRegion","error":null,"endError":null,"valid":true}
+{"shape":"async-single9","block":1,"state":"starting"}
+{"shape":"async-single9","block":1,"operations":1000,"completed":1000,"processBytes":30319016,"bytesPerOperation":30319.016,"elapsed":0.023467,"beforeCalibration":{"Process":527896,"Thread":523240},"afterCalibration":{"Process":523240,"Thread":523240},"idleBefore":{"bytes":0,"seconds":0.0513066},"idleAfter":{"bytes":0,"seconds":0.0551047},"collections":[0,0,0],"mode":"NoGCRegion","error":null,"endError":null,"valid":false}
+Unhandled exception. System.InvalidOperationException: Invalid allocation region; no retry.
+   at ApolloExecutorBdn.AllocationValidation.RunAsync(String output) in /workspaces/platform-1/.worktrees/fusion-apollo-error-vars-20261017b/experiments/fusion-apollo-shared-async-20261017b/Bdn/AllocationValidation.cs:line 92
+   at ApolloExecutorBdn.AllocationValidation.RunAsync(String output) in /workspaces/platform-1/.worktrees/fusion-apollo-error-vars-20261017b/experiments/fusion-apollo-shared-async-20261017b/Bdn/AllocationValidation.cs:line 98
+   at ApolloExecutorBdn.Program.Main(String[] args) in /workspaces/platform-1/.worktrees/fusion-apollo-error-vars-20261017b/experiments/fusion-apollo-shared-async-20261017b/Bdn/Program.cs:line 52
+   at ApolloExecutorBdn.Program.<Main>(String[] args)

@@ -1,0 +1,15 @@
+{
+  "exclusiveStart": "2026-10-17T17:38:53.399735+00:00",
+  "exclusiveEnd": "2026-10-17T17:39:11.621957+00:00",
+  "c12CheckoutFilesystemBounds": [
+    "2026-10-17T17:37:42.719744683Z",
+    "2026-10-17T17:37:46.366270404Z"
+  ],
+  "c12LayoutHelperMtime": "2026-10-17T17:38:00.476384482Z",
+  "firstSharedBuildLogEnd": "2026-10-17T17:39:28.806891768Z",
+  "firstMSBuildElapsedSeconds": 8.91,
+  "secondSharedBuildLogEnd": "2026-10-17T17:39:34.983646709Z",
+  "secondMSBuildElapsedSeconds": 1.68,
+  "exactLockEntryTimesKnown": false,
+  "finding": "Shared-flock commands and observed bounds do not show build execution overlap with the exclusive campaign. First owner free-lock check encountered the subsequent shared build. No peer process was killed."
+}
