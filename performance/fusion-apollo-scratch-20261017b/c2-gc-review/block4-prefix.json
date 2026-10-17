@@ -1,0 +1,4255 @@
+{
+  "targetPid": 68504,
+  "complete": false,
+  "parseError": "System.FormatException: Read past end of stream.\n   at Microsoft.Diagnostics.Tracing.EventPipe.RewindableStream.ReadAtLeast(Span`1 buffer, Int32 minLength)\n   at Microsoft.Diagnostics.Tracing.EventPipe.RewindableStream.Read(Span`1 buffer)\n   at Microsoft.Diagnostics.Tracing.EventPipe.RewindableStream.Read[T]()\n   at Microsoft.Diagnostics.Tracing.FastSerializationObjectParser.ReadBlockHeader()\n   at Microsoft.Diagnostics.Tracing.BlockParser.ReadBlock()\n   at Microsoft.Diagnostics.Tracing.BlockParser.ParseRemainder()\n   at Microsoft.Diagnostics.Tracing.EventPipeEventSource.Process()\n   at Program.<Main>$(String[] args) in /workspaces/platform-1/.worktrees/fusion-apollo-scratch-20261017b/performance/fusion-apollo-scratch-20261017b/GCTraceAnalysis/Program.cs:line 47",
+  "firstEventUtc": "2026-10-17T16:35:55.5754961Z",
+  "lastEventUtc": "2026-10-17T16:35:57.738414Z",
+  "traceStartUtc": "2026-10-17T16:35:55.5740000Z",
+  "traceEndUtc": "2026-10-17T16:35:57.7384140Z",
+  "reportedEventsLost": 0,
+  "events": {
+    "Microsoft-Windows-DotNETRuntime/Runtime/Start": 1,
+    "Microsoft-Windows-DotNETRuntime/GC/CreateSegment": 746,
+    "Microsoft-Windows-DotNETRuntime/GC/FinalizersStart": 80,
+    "Microsoft-Windows-DotNETRuntime/GC/FinalizersStop": 80,
+    "Microsoft-Windows-DotNETRuntime/GC/Triggered": 174,
+    "Microsoft-Windows-DotNETRuntime/GC/SuspendEEStart": 225,
+    "Microsoft-Windows-DotNETRuntime/GC/SuspendEEStop": 225,
+    "Microsoft-Windows-DotNETRuntime/GC/Start": 170,
+    "Microsoft-Windows-DotNETRuntime/GC/MarkWithType": 1828,
+    "Microsoft-Windows-DotNETRuntime/GC/GlobalHeapHistory": 169,
+    "Microsoft-Windows-DotNETRuntime/GC/PerHeapHistory": 242,
+    "Microsoft-Windows-DotNETRuntime/GC/Stop": 169,
+    "Microsoft-Windows-DotNETRuntime/GC/HeapStats": 169,
+    "Microsoft-Windows-DotNETRuntime/GC/RestartEEStart": 224,
+    "Microsoft-Windows-DotNETRuntime/GC/RestartEEStop": 224,
+    "Microsoft-Windows-DotNETRuntime/GC/FreeSegment": 70,
+    "Microsoft-Windows-DotNETRuntime/GC/CreateConcurrentThread": 4
+  },
+  "limitation": "A truncated trace is only a readable event prefix; its final bounds and lost-event count cannot be certified. GC event chronology identifies observed triggers, not allocation performance. Payload values retain their textual representation. Correlate events with target identity and raw block timestamps.",
+  "chronology": [
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68514,
+      "EventName": "GC/Start",
+      "utc": "2026-10-17T16:35:57.6440082Z",
+      "TimeStampRelativeMSec": 2070.008253,
+      "gcStart": {
+        "Count": 171,
+        "Depth": 2,
+        "reason": "Induced",
+        "type": "NonConcurrentGC"
+      },
+      "payload": {
+        "Count": "171",
+        "Reason": "Induced",
+        "Depth": "2",
+        "Type": "NonConcurrentGC",
+        "ClrInstanceID": "0",
+        "ClientSequenceNumber": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6449170Z",
+      "TimeStampRelativeMSec": 2070.91709,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "0",
+        "ClrInstanceID": "0",
+        "Type": "0",
+        "Promoted": "5063364"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6449174Z",
+      "TimeStampRelativeMSec": 2070.917424,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "0",
+        "ClrInstanceID": "0",
+        "Type": "1",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6449211Z",
+      "TimeStampRelativeMSec": 2070.921174,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "0",
+        "ClrInstanceID": "0",
+        "Type": "2",
+        "Promoted": "508"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68514,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6524256Z",
+      "TimeStampRelativeMSec": 2078.425664,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "1",
+        "ClrInstanceID": "0",
+        "Type": "0",
+        "Promoted": "109039232"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68514,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6524260Z",
+      "TimeStampRelativeMSec": 2078.426039,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "1",
+        "ClrInstanceID": "0",
+        "Type": "1",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68514,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6524294Z",
+      "TimeStampRelativeMSec": 2078.429414,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "1",
+        "ClrInstanceID": "0",
+        "Type": "2",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6534630Z",
+      "TimeStampRelativeMSec": 2079.463043,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "0",
+        "ClrInstanceID": "0",
+        "Type": "8",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68514,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6534705Z",
+      "TimeStampRelativeMSec": 2079.470543,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "1",
+        "ClrInstanceID": "0",
+        "Type": "8",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6534755Z",
+      "TimeStampRelativeMSec": 2079.475585,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "0",
+        "ClrInstanceID": "0",
+        "Type": "6",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68514,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6534758Z",
+      "TimeStampRelativeMSec": 2079.475876,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "1",
+        "ClrInstanceID": "0",
+        "Type": "6",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68514,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6534857Z",
+      "TimeStampRelativeMSec": 2079.485793,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "1",
+        "ClrInstanceID": "0",
+        "Type": "7",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6535493Z",
+      "TimeStampRelativeMSec": 2079.549377,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "0",
+        "ClrInstanceID": "0",
+        "Type": "7",
+        "Promoted": "464"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68514,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6535502Z",
+      "TimeStampRelativeMSec": 2079.55021,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "1",
+        "ClrInstanceID": "0",
+        "Type": "6",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6535502Z",
+      "TimeStampRelativeMSec": 2079.550252,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "0",
+        "ClrInstanceID": "0",
+        "Type": "6",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68514,
+      "EventName": "GC/GlobalHeapHistory",
+      "utc": "2026-10-17T16:35:57.6666965Z",
+      "TimeStampRelativeMSec": 2092.696599,
+      "gcStart": null,
+      "payload": {
+        "FinalYoungestDesired": "2623016",
+        "NumHeaps": "2",
+        "CondemnedGeneration": "2",
+        "Gen0ReductionCount": "0",
+        "Reason": "Induced",
+        "GlobalMechanisms": "Compaction, Promotion, CardBundles",
+        "ClrInstanceID": "0",
+        "PauseMode": "Interactive",
+        "MemoryPressure": "8",
+        "CondemnReasons0": "0",
+        "CondemnReasons1": "0",
+        "Count": "8"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68514,
+      "EventName": "GC/PerHeapHistory",
+      "utc": "2026-10-17T16:35:57.6666973Z",
+      "TimeStampRelativeMSec": 2092.697349,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0",
+        "FreeListAllocated": "0",
+        "FreeListRejected": "0",
+        "EndOfSegAllocated": "0",
+        "CondemnedAllocated": "0",
+        "PinnedAllocated": "0",
+        "PinnedAllocatedAdvance": "0",
+        "RunningFreeListEfficiency": "0",
+        "CondemnReasons0": "10",
+        "CondemnReasons1": "1",
+        "CompactMechanisms": "compact_high_frag",
+        "ExpandMechanisms": "not_specified",
+        "ConcurrentCompactMechanisms": null,
+        "HeapIndex": "0",
+        "ExtraGen0Commit": "0",
+        "Count": "5",
+        "MemoryPressure": null
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68514,
+      "EventName": "GC/PerHeapHistory",
+      "utc": "2026-10-17T16:35:57.6666976Z",
+      "TimeStampRelativeMSec": 2092.697682,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0",
+        "FreeListAllocated": "0",
+        "FreeListRejected": "0",
+        "EndOfSegAllocated": "0",
+        "CondemnedAllocated": "0",
+        "PinnedAllocated": "0",
+        "PinnedAllocatedAdvance": "0",
+        "RunningFreeListEfficiency": "0",
+        "CondemnReasons0": "10",
+        "CondemnReasons1": "1",
+        "CompactMechanisms": "compact_high_frag",
+        "ExpandMechanisms": "not_specified",
+        "ConcurrentCompactMechanisms": null,
+        "HeapIndex": "1",
+        "ExtraGen0Commit": "0",
+        "Count": "5",
+        "MemoryPressure": null
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/Stop",
+      "utc": "2026-10-17T16:35:57.6667183Z",
+      "TimeStampRelativeMSec": 2092.718349,
+      "gcStart": null,
+      "payload": {
+        "Count": "171",
+        "Depth": "2",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/HeapStats",
+      "utc": "2026-10-17T16:35:57.6667188Z",
+      "TimeStampRelativeMSec": 2092.71889,
+      "gcStart": null,
+      "payload": {
+        "TotalHeapSize": "114110040",
+        "TotalPromoted": "114084184",
+        "Depth": "2",
+        "GenerationSize0": "0",
+        "TotalPromotedSize0": "728",
+        "GenerationSize1": "752",
+        "TotalPromotedSize1": "0",
+        "GenerationSize2": "1356864",
+        "TotalPromotedSize2": "1355720",
+        "GenerationSize3": "112727896",
+        "TotalPromotedSize3": "112727736",
+        "FinalizationPromotedSize": "0",
+        "FinalizationPromotedCount": "10",
+        "PinnedObjectCount": "1",
+        "SinkBlockCount": "0",
+        "GCHandleCount": "408",
+        "ClrInstanceID": "0",
+        "GenerationSize4": "24528",
+        "TotalPromotedSize4": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/RestartEEStart",
+      "utc": "2026-10-17T16:35:57.6667198Z",
+      "TimeStampRelativeMSec": 2092.719807,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/RestartEEStop",
+      "utc": "2026-10-17T16:35:57.6667290Z",
+      "TimeStampRelativeMSec": 2092.729015,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/FreeSegment",
+      "utc": "2026-10-17T16:35:57.6667306Z",
+      "TimeStampRelativeMSec": 2092.730682,
+      "gcStart": null,
+      "payload": {
+        "Address": "281197011796008",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/FreeSegment",
+      "utc": "2026-10-17T16:35:57.6667449Z",
+      "TimeStampRelativeMSec": 2092.744974,
+      "gcStart": null,
+      "payload": {
+        "Address": "281197024378920",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/FreeSegment",
+      "utc": "2026-10-17T16:35:57.6667493Z",
+      "TimeStampRelativeMSec": 2092.749349,
+      "gcStart": null,
+      "payload": {
+        "Address": "281197028573224",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/FreeSegment",
+      "utc": "2026-10-17T16:35:57.6668226Z",
+      "TimeStampRelativeMSec": 2092.822641,
+      "gcStart": null,
+      "payload": {
+        "Address": "281197032767528",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/FreeSegment",
+      "utc": "2026-10-17T16:35:57.6668786Z",
+      "TimeStampRelativeMSec": 2092.878683,
+      "gcStart": null,
+      "payload": {
+        "Address": "281197036961832",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/FreeSegment",
+      "utc": "2026-10-17T16:35:57.6669253Z",
+      "TimeStampRelativeMSec": 2092.92535,
+      "gcStart": null,
+      "payload": {
+        "Address": "281197041156136",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68517,
+      "EventName": "GC/FinalizersStart",
+      "utc": "2026-10-17T16:35:57.6670172Z",
+      "TimeStampRelativeMSec": 2093.017267,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68517,
+      "EventName": "GC/FinalizersStop",
+      "utc": "2026-10-17T16:35:57.6670483Z",
+      "TimeStampRelativeMSec": 2093.04835,
+      "gcStart": null,
+      "payload": {
+        "Count": "10",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68517,
+      "EventName": "GC/FinalizersStart",
+      "utc": "2026-10-17T16:35:57.6670549Z",
+      "TimeStampRelativeMSec": 2093.054975,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68517,
+      "EventName": "GC/FinalizersStop",
+      "utc": "2026-10-17T16:35:57.6670552Z",
+      "TimeStampRelativeMSec": 2093.055225,
+      "gcStart": null,
+      "payload": {
+        "Count": "0",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68504,
+      "EventName": "GC/Triggered",
+      "utc": "2026-10-17T16:35:57.6670631Z",
+      "TimeStampRelativeMSec": 2093.063142,
+      "gcStart": null,
+      "payload": {
+        "Reason": "Induced",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/SuspendEEStart",
+      "utc": "2026-10-17T16:35:57.6670780Z",
+      "TimeStampRelativeMSec": 2093.078017,
+      "gcStart": null,
+      "payload": {
+        "Reason": "SuspendForGC",
+        "Count": "171",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/SuspendEEStop",
+      "utc": "2026-10-17T16:35:57.6670857Z",
+      "TimeStampRelativeMSec": 2093.085725,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6670897Z",
+      "TimeStampRelativeMSec": 2093.089767,
+      "gcStart": null,
+      "payload": {
+        "Address": "281197011796008",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68514,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6671010Z",
+      "TimeStampRelativeMSec": 2093.101059,
+      "gcStart": null,
+      "payload": {
+        "Address": "281197024378920",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68514,
+      "EventName": "GC/Start",
+      "utc": "2026-10-17T16:35:57.6671156Z",
+      "TimeStampRelativeMSec": 2093.115642,
+      "gcStart": {
+        "Count": 172,
+        "Depth": 2,
+        "reason": "Induced",
+        "type": "NonConcurrentGC"
+      },
+      "payload": {
+        "Count": "172",
+        "Reason": "Induced",
+        "Depth": "2",
+        "Type": "NonConcurrentGC",
+        "ClrInstanceID": "0",
+        "ClientSequenceNumber": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6678526Z",
+      "TimeStampRelativeMSec": 2093.852604,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "0",
+        "ClrInstanceID": "0",
+        "Type": "0",
+        "Promoted": "5063364"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6678529Z",
+      "TimeStampRelativeMSec": 2093.852979,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "0",
+        "ClrInstanceID": "0",
+        "Type": "1",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6678553Z",
+      "TimeStampRelativeMSec": 2093.855312,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "0",
+        "ClrInstanceID": "0",
+        "Type": "2",
+        "Promoted": "508"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68514,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6738625Z",
+      "TimeStampRelativeMSec": 2099.862587,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "1",
+        "ClrInstanceID": "0",
+        "Type": "0",
+        "Promoted": "109039232"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68514,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6738629Z",
+      "TimeStampRelativeMSec": 2099.862962,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "1",
+        "ClrInstanceID": "0",
+        "Type": "1",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68514,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6738650Z",
+      "TimeStampRelativeMSec": 2099.865004,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "1",
+        "ClrInstanceID": "0",
+        "Type": "2",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6779746Z",
+      "TimeStampRelativeMSec": 2103.974688,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "0",
+        "ClrInstanceID": "0",
+        "Type": "8",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68514,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6779762Z",
+      "TimeStampRelativeMSec": 2103.976271,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "1",
+        "ClrInstanceID": "0",
+        "Type": "8",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68514,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6779803Z",
+      "TimeStampRelativeMSec": 2103.980396,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "1",
+        "ClrInstanceID": "0",
+        "Type": "6",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6779805Z",
+      "TimeStampRelativeMSec": 2103.980563,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "0",
+        "ClrInstanceID": "0",
+        "Type": "6",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68514,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6779885Z",
+      "TimeStampRelativeMSec": 2103.988563,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "1",
+        "ClrInstanceID": "0",
+        "Type": "7",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6779926Z",
+      "TimeStampRelativeMSec": 2103.992605,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "0",
+        "ClrInstanceID": "0",
+        "Type": "7",
+        "Promoted": "464"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6779948Z",
+      "TimeStampRelativeMSec": 2103.994813,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "0",
+        "ClrInstanceID": "0",
+        "Type": "6",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68514,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6779948Z",
+      "TimeStampRelativeMSec": 2103.994855,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "1",
+        "ClrInstanceID": "0",
+        "Type": "6",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68514,
+      "EventName": "GC/GlobalHeapHistory",
+      "utc": "2026-10-17T16:35:57.6781780Z",
+      "TimeStampRelativeMSec": 2104.178064,
+      "gcStart": null,
+      "payload": {
+        "FinalYoungestDesired": "2622752",
+        "NumHeaps": "2",
+        "CondemnedGeneration": "2",
+        "Gen0ReductionCount": "0",
+        "Reason": "Induced",
+        "GlobalMechanisms": "Promotion, CardBundles",
+        "ClrInstanceID": "0",
+        "PauseMode": "Interactive",
+        "MemoryPressure": "8",
+        "CondemnReasons0": "0",
+        "CondemnReasons1": "0",
+        "Count": "7"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68514,
+      "EventName": "GC/PerHeapHistory",
+      "utc": "2026-10-17T16:35:57.6781783Z",
+      "TimeStampRelativeMSec": 2104.178314,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0",
+        "FreeListAllocated": "0",
+        "FreeListRejected": "0",
+        "EndOfSegAllocated": "0",
+        "CondemnedAllocated": "0",
+        "PinnedAllocated": "0",
+        "PinnedAllocatedAdvance": "0",
+        "RunningFreeListEfficiency": "0",
+        "CondemnReasons0": "10",
+        "CondemnReasons1": "1",
+        "CompactMechanisms": "not_specified",
+        "ExpandMechanisms": "not_specified",
+        "ConcurrentCompactMechanisms": null,
+        "HeapIndex": "0",
+        "ExtraGen0Commit": "0",
+        "Count": "5",
+        "MemoryPressure": null
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68514,
+      "EventName": "GC/PerHeapHistory",
+      "utc": "2026-10-17T16:35:57.6781784Z",
+      "TimeStampRelativeMSec": 2104.17848,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0",
+        "FreeListAllocated": "0",
+        "FreeListRejected": "0",
+        "EndOfSegAllocated": "0",
+        "CondemnedAllocated": "0",
+        "PinnedAllocated": "0",
+        "PinnedAllocatedAdvance": "0",
+        "RunningFreeListEfficiency": "0",
+        "CondemnReasons0": "10",
+        "CondemnReasons1": "1",
+        "CompactMechanisms": "not_specified",
+        "ExpandMechanisms": "not_specified",
+        "ConcurrentCompactMechanisms": null,
+        "HeapIndex": "1",
+        "ExtraGen0Commit": "0",
+        "Count": "5",
+        "MemoryPressure": null
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/Stop",
+      "utc": "2026-10-17T16:35:57.6781931Z",
+      "TimeStampRelativeMSec": 2104.193189,
+      "gcStart": null,
+      "payload": {
+        "Count": "172",
+        "Depth": "2",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/HeapStats",
+      "utc": "2026-10-17T16:35:57.6781933Z",
+      "TimeStampRelativeMSec": 2104.193314,
+      "gcStart": null,
+      "payload": {
+        "TotalHeapSize": "114110040",
+        "TotalPromoted": "114084184",
+        "Depth": "2",
+        "GenerationSize0": "0",
+        "TotalPromotedSize0": "0",
+        "GenerationSize1": "0",
+        "TotalPromotedSize1": "728",
+        "GenerationSize2": "1357616",
+        "TotalPromotedSize2": "1355720",
+        "GenerationSize3": "112727896",
+        "TotalPromotedSize3": "112727736",
+        "FinalizationPromotedSize": "0",
+        "FinalizationPromotedCount": "10",
+        "PinnedObjectCount": "1",
+        "SinkBlockCount": "0",
+        "GCHandleCount": "408",
+        "ClrInstanceID": "0",
+        "GenerationSize4": "24528",
+        "TotalPromotedSize4": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/RestartEEStart",
+      "utc": "2026-10-17T16:35:57.6781936Z",
+      "TimeStampRelativeMSec": 2104.193689,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/RestartEEStop",
+      "utc": "2026-10-17T16:35:57.6782063Z",
+      "TimeStampRelativeMSec": 2104.206355,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/FreeSegment",
+      "utc": "2026-10-17T16:35:57.6782070Z",
+      "TimeStampRelativeMSec": 2104.207022,
+      "gcStart": null,
+      "payload": {
+        "Address": "281197011796008",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/FreeSegment",
+      "utc": "2026-10-17T16:35:57.6782115Z",
+      "TimeStampRelativeMSec": 2104.211564,
+      "gcStart": null,
+      "payload": {
+        "Address": "281197045350440",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68504,
+      "EventName": "GC/Triggered",
+      "utc": "2026-10-17T16:35:57.6782297Z",
+      "TimeStampRelativeMSec": 2104.229731,
+      "gcStart": null,
+      "payload": {
+        "Reason": "Induced",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68517,
+      "EventName": "GC/FinalizersStart",
+      "utc": "2026-10-17T16:35:57.6782326Z",
+      "TimeStampRelativeMSec": 2104.232689,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/FreeSegment",
+      "utc": "2026-10-17T16:35:57.6782761Z",
+      "TimeStampRelativeMSec": 2104.276147,
+      "gcStart": null,
+      "payload": {
+        "Address": "281197049544744",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/FreeSegment",
+      "utc": "2026-10-17T16:35:57.6782986Z",
+      "TimeStampRelativeMSec": 2104.298689,
+      "gcStart": null,
+      "payload": {
+        "Address": "281197053739048",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/FreeSegment",
+      "utc": "2026-10-17T16:35:57.6783002Z",
+      "TimeStampRelativeMSec": 2104.300231,
+      "gcStart": null,
+      "payload": {
+        "Address": "281197057933352",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/SuspendEEStart",
+      "utc": "2026-10-17T16:35:57.6783021Z",
+      "TimeStampRelativeMSec": 2104.302189,
+      "gcStart": null,
+      "payload": {
+        "Reason": "SuspendForGCPrep",
+        "Count": "172",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/SuspendEEStop",
+      "utc": "2026-10-17T16:35:57.6783085Z",
+      "TimeStampRelativeMSec": 2104.308564,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6783092Z",
+      "TimeStampRelativeMSec": 2104.309231,
+      "gcStart": null,
+      "payload": {
+        "Address": "281197011796008",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6783111Z",
+      "TimeStampRelativeMSec": 2104.311106,
+      "gcStart": null,
+      "payload": {
+        "Address": "281197028573224",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6783127Z",
+      "TimeStampRelativeMSec": 2104.312731,
+      "gcStart": null,
+      "payload": {
+        "Address": "281197032767528",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6783198Z",
+      "TimeStampRelativeMSec": 2104.319814,
+      "gcStart": null,
+      "payload": {
+        "Address": "281197036961832",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6783218Z",
+      "TimeStampRelativeMSec": 2104.321898,
+      "gcStart": null,
+      "payload": {
+        "Address": "281197041156136",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6783236Z",
+      "TimeStampRelativeMSec": 2104.323606,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200094609448",
+        "Size": "33554392",
+        "Type": "LargeObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6783257Z",
+      "TimeStampRelativeMSec": 2104.325731,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200128163880",
+        "Size": "33554392",
+        "Type": "LargeObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6783272Z",
+      "TimeStampRelativeMSec": 2104.327273,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200161718312",
+        "Size": "33554392",
+        "Type": "PinnedObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6783286Z",
+      "TimeStampRelativeMSec": 2104.328648,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200195272744",
+        "Size": "33554392",
+        "Type": "PinnedObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/RestartEEStart",
+      "utc": "2026-10-17T16:35:57.6783611Z",
+      "TimeStampRelativeMSec": 2104.361106,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/RestartEEStop",
+      "utc": "2026-10-17T16:35:57.6783699Z",
+      "TimeStampRelativeMSec": 2104.369981,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/SuspendEEStart",
+      "utc": "2026-10-17T16:35:57.6783701Z",
+      "TimeStampRelativeMSec": 2104.370148,
+      "gcStart": null,
+      "payload": {
+        "Reason": "SuspendForGC",
+        "Count": "172",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/SuspendEEStop",
+      "utc": "2026-10-17T16:35:57.6783706Z",
+      "TimeStampRelativeMSec": 2104.370689,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6783718Z",
+      "TimeStampRelativeMSec": 2104.371898,
+      "gcStart": null,
+      "payload": {
+        "Address": "281197045350440",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6783740Z",
+      "TimeStampRelativeMSec": 2104.374064,
+      "gcStart": null,
+      "payload": {
+        "Address": "281197049544744",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6783757Z",
+      "TimeStampRelativeMSec": 2104.375731,
+      "gcStart": null,
+      "payload": {
+        "Address": "281197053739048",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6783806Z",
+      "TimeStampRelativeMSec": 2104.380689,
+      "gcStart": null,
+      "payload": {
+        "Address": "281197057933352",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6783824Z",
+      "TimeStampRelativeMSec": 2104.382481,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200228827176",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6783967Z",
+      "TimeStampRelativeMSec": 2104.396773,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200233021480",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6783983Z",
+      "TimeStampRelativeMSec": 2104.398398,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200237215784",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6783999Z",
+      "TimeStampRelativeMSec": 2104.39994,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200241410088",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784021Z",
+      "TimeStampRelativeMSec": 2104.40219,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200245604392",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784037Z",
+      "TimeStampRelativeMSec": 2104.403773,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200249798696",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784053Z",
+      "TimeStampRelativeMSec": 2104.405356,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200253993000",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784068Z",
+      "TimeStampRelativeMSec": 2104.406815,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200258187304",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784082Z",
+      "TimeStampRelativeMSec": 2104.408273,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200262381608",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784097Z",
+      "TimeStampRelativeMSec": 2104.409731,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200266575912",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784149Z",
+      "TimeStampRelativeMSec": 2104.41494,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200270770216",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784167Z",
+      "TimeStampRelativeMSec": 2104.416731,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200274964520",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784191Z",
+      "TimeStampRelativeMSec": 2104.419148,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200279158824",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784214Z",
+      "TimeStampRelativeMSec": 2104.421481,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200283353128",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784229Z",
+      "TimeStampRelativeMSec": 2104.422981,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200287547432",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784270Z",
+      "TimeStampRelativeMSec": 2104.427023,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200291741736",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784285Z",
+      "TimeStampRelativeMSec": 2104.428523,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200295936040",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784299Z",
+      "TimeStampRelativeMSec": 2104.42994,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200300130344",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784315Z",
+      "TimeStampRelativeMSec": 2104.431523,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200304324648",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784328Z",
+      "TimeStampRelativeMSec": 2104.432898,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200308518952",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784385Z",
+      "TimeStampRelativeMSec": 2104.438523,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200312713256",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784400Z",
+      "TimeStampRelativeMSec": 2104.440065,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200316907560",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784415Z",
+      "TimeStampRelativeMSec": 2104.441565,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200321101864",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784430Z",
+      "TimeStampRelativeMSec": 2104.443023,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200325296168",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784444Z",
+      "TimeStampRelativeMSec": 2104.444481,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200329490472",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784469Z",
+      "TimeStampRelativeMSec": 2104.446981,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200333684776",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784508Z",
+      "TimeStampRelativeMSec": 2104.450898,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200337879080",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784523Z",
+      "TimeStampRelativeMSec": 2104.452356,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200342073384",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784546Z",
+      "TimeStampRelativeMSec": 2104.454648,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200346267688",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784560Z",
+      "TimeStampRelativeMSec": 2104.456065,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200350461992",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784575Z",
+      "TimeStampRelativeMSec": 2104.457523,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200354656296",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784621Z",
+      "TimeStampRelativeMSec": 2104.462106,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200358850600",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784636Z",
+      "TimeStampRelativeMSec": 2104.46369,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200363044904",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784651Z",
+      "TimeStampRelativeMSec": 2104.465148,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200367239208",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784667Z",
+      "TimeStampRelativeMSec": 2104.466773,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200371433512",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784681Z",
+      "TimeStampRelativeMSec": 2104.46819,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200375627816",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784760Z",
+      "TimeStampRelativeMSec": 2104.476065,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200379822120",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784774Z",
+      "TimeStampRelativeMSec": 2104.477482,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200384016424",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784789Z",
+      "TimeStampRelativeMSec": 2104.47894,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200388210728",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784804Z",
+      "TimeStampRelativeMSec": 2104.480482,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200392405032",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784819Z",
+      "TimeStampRelativeMSec": 2104.48194,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200396599336",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784833Z",
+      "TimeStampRelativeMSec": 2104.483357,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200400793640",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784883Z",
+      "TimeStampRelativeMSec": 2104.488315,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200404987944",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784897Z",
+      "TimeStampRelativeMSec": 2104.489773,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200409182248",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784920Z",
+      "TimeStampRelativeMSec": 2104.492023,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200413376552",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784934Z",
+      "TimeStampRelativeMSec": 2104.49344,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200417570856",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784948Z",
+      "TimeStampRelativeMSec": 2104.494857,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200421765160",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6784995Z",
+      "TimeStampRelativeMSec": 2104.499565,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200425959464",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785011Z",
+      "TimeStampRelativeMSec": 2104.501148,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200430153768",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785027Z",
+      "TimeStampRelativeMSec": 2104.502732,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200434348072",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785041Z",
+      "TimeStampRelativeMSec": 2104.50419,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200438542376",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785055Z",
+      "TimeStampRelativeMSec": 2104.505565,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200442736680",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785108Z",
+      "TimeStampRelativeMSec": 2104.510898,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200446930984",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785124Z",
+      "TimeStampRelativeMSec": 2104.51244,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200451125288",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785138Z",
+      "TimeStampRelativeMSec": 2104.513898,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200455319592",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785153Z",
+      "TimeStampRelativeMSec": 2104.515315,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200459513896",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785169Z",
+      "TimeStampRelativeMSec": 2104.51694,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200463708200",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785183Z",
+      "TimeStampRelativeMSec": 2104.518357,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200467902504",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785223Z",
+      "TimeStampRelativeMSec": 2104.522398,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200472096808",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785238Z",
+      "TimeStampRelativeMSec": 2104.523857,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200476291112",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785261Z",
+      "TimeStampRelativeMSec": 2104.526148,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200480485416",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785276Z",
+      "TimeStampRelativeMSec": 2104.527607,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200484679720",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785290Z",
+      "TimeStampRelativeMSec": 2104.529023,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200488874024",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785333Z",
+      "TimeStampRelativeMSec": 2104.533315,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200493068328",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785386Z",
+      "TimeStampRelativeMSec": 2104.538648,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200497262632",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785401Z",
+      "TimeStampRelativeMSec": 2104.540107,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200501456936",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785416Z",
+      "TimeStampRelativeMSec": 2104.54169,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200505651240",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785431Z",
+      "TimeStampRelativeMSec": 2104.543107,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200509845544",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785461Z",
+      "TimeStampRelativeMSec": 2104.546149,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200514039848",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785476Z",
+      "TimeStampRelativeMSec": 2104.54769,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200518234152",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785494Z",
+      "TimeStampRelativeMSec": 2104.54944,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200522428456",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785509Z",
+      "TimeStampRelativeMSec": 2104.55094,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200526622760",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785523Z",
+      "TimeStampRelativeMSec": 2104.552357,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200530817064",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785564Z",
+      "TimeStampRelativeMSec": 2104.556482,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200535011368",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785578Z",
+      "TimeStampRelativeMSec": 2104.557899,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200539205672",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785593Z",
+      "TimeStampRelativeMSec": 2104.559357,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200543399976",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785613Z",
+      "TimeStampRelativeMSec": 2104.561399,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200547594280",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785628Z",
+      "TimeStampRelativeMSec": 2104.562815,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200551788584",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785642Z",
+      "TimeStampRelativeMSec": 2104.564274,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200555982888",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785686Z",
+      "TimeStampRelativeMSec": 2104.568649,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200560177192",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785701Z",
+      "TimeStampRelativeMSec": 2104.570149,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200564371496",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785716Z",
+      "TimeStampRelativeMSec": 2104.571607,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200568565800",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785732Z",
+      "TimeStampRelativeMSec": 2104.573232,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200572760104",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785746Z",
+      "TimeStampRelativeMSec": 2104.574649,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200576954408",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785795Z",
+      "TimeStampRelativeMSec": 2104.579524,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200581148712",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785810Z",
+      "TimeStampRelativeMSec": 2104.581024,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200585343016",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785826Z",
+      "TimeStampRelativeMSec": 2104.582649,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200589537320",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785840Z",
+      "TimeStampRelativeMSec": 2104.584065,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200593731624",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785854Z",
+      "TimeStampRelativeMSec": 2104.585482,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200597925928",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785896Z",
+      "TimeStampRelativeMSec": 2104.589649,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200602120232",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785910Z",
+      "TimeStampRelativeMSec": 2104.591065,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200606314536",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785926Z",
+      "TimeStampRelativeMSec": 2104.59269,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200610508840",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785971Z",
+      "TimeStampRelativeMSec": 2104.59719,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200614703144",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6785986Z",
+      "TimeStampRelativeMSec": 2104.598607,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200618897448",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786000Z",
+      "TimeStampRelativeMSec": 2104.600024,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200623091752",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786040Z",
+      "TimeStampRelativeMSec": 2104.604065,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200627286056",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786055Z",
+      "TimeStampRelativeMSec": 2104.605565,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200631480360",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786069Z",
+      "TimeStampRelativeMSec": 2104.606982,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200635674664",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786087Z",
+      "TimeStampRelativeMSec": 2104.608774,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200639868968",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786102Z",
+      "TimeStampRelativeMSec": 2104.610274,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200644063272",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786154Z",
+      "TimeStampRelativeMSec": 2104.615482,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200648257576",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786170Z",
+      "TimeStampRelativeMSec": 2104.617065,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200652451880",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786186Z",
+      "TimeStampRelativeMSec": 2104.61869,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200656646184",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786201Z",
+      "TimeStampRelativeMSec": 2104.62019,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200660840488",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786216Z",
+      "TimeStampRelativeMSec": 2104.621649,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200665034792",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786261Z",
+      "TimeStampRelativeMSec": 2104.626107,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200669229096",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786278Z",
+      "TimeStampRelativeMSec": 2104.627899,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200673423400",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786294Z",
+      "TimeStampRelativeMSec": 2104.629441,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200677617704",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786315Z",
+      "TimeStampRelativeMSec": 2104.631524,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200681812008",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786329Z",
+      "TimeStampRelativeMSec": 2104.632982,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200686006312",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786343Z",
+      "TimeStampRelativeMSec": 2104.634399,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200690200616",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786382Z",
+      "TimeStampRelativeMSec": 2104.638232,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200694394920",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786398Z",
+      "TimeStampRelativeMSec": 2104.639816,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200698589224",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786411Z",
+      "TimeStampRelativeMSec": 2104.641191,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200702783528",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786433Z",
+      "TimeStampRelativeMSec": 2104.643399,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200706977832",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786448Z",
+      "TimeStampRelativeMSec": 2104.644857,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200711172136",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786501Z",
+      "TimeStampRelativeMSec": 2104.650149,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200715366440",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786518Z",
+      "TimeStampRelativeMSec": 2104.651816,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200719560744",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786533Z",
+      "TimeStampRelativeMSec": 2104.653399,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200723755048",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786547Z",
+      "TimeStampRelativeMSec": 2104.654774,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200727949352",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786562Z",
+      "TimeStampRelativeMSec": 2104.656274,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200732143656",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786603Z",
+      "TimeStampRelativeMSec": 2104.660357,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200736337960",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786618Z",
+      "TimeStampRelativeMSec": 2104.661899,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200740532264",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786636Z",
+      "TimeStampRelativeMSec": 2104.663691,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200744726568",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786657Z",
+      "TimeStampRelativeMSec": 2104.665774,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200748920872",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786671Z",
+      "TimeStampRelativeMSec": 2104.667191,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200753115176",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786686Z",
+      "TimeStampRelativeMSec": 2104.668607,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200757309480",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786735Z",
+      "TimeStampRelativeMSec": 2104.673566,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200761503784",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786749Z",
+      "TimeStampRelativeMSec": 2104.674982,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200765698088",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6786764Z",
+      "TimeStampRelativeMSec": 2104.676441,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200769892392",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/RestartEEStart",
+      "utc": "2026-10-17T16:35:57.6786797Z",
+      "TimeStampRelativeMSec": 2104.679732,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/RestartEEStop",
+      "utc": "2026-10-17T16:35:57.6786831Z",
+      "TimeStampRelativeMSec": 2104.683107,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68517,
+      "EventName": "GC/Triggered",
+      "utc": "2026-10-17T16:35:57.6787048Z",
+      "TimeStampRelativeMSec": 2104.704816,
+      "gcStart": null,
+      "payload": {
+        "Reason": "AllocSmall",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/SuspendEEStart",
+      "utc": "2026-10-17T16:35:57.6787207Z",
+      "TimeStampRelativeMSec": 2104.720733,
+      "gcStart": null,
+      "payload": {
+        "Reason": "SuspendForGC",
+        "Count": "172",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/SuspendEEStop",
+      "utc": "2026-10-17T16:35:57.6787296Z",
+      "TimeStampRelativeMSec": 2104.729691,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6787389Z",
+      "TimeStampRelativeMSec": 2104.738941,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200774086696",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68514,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6787514Z",
+      "TimeStampRelativeMSec": 2104.751441,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200786669608",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68516,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6787534Z",
+      "TimeStampRelativeMSec": 2104.753483,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200778281000",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68515,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.6787621Z",
+      "TimeStampRelativeMSec": 2104.762149,
+      "gcStart": null,
+      "payload": {
+        "Address": "281200782475304",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68516,
+      "EventName": "GC/Start",
+      "utc": "2026-10-17T16:35:57.6787757Z",
+      "TimeStampRelativeMSec": 2104.775733,
+      "gcStart": {
+        "Count": 174,
+        "Depth": 2,
+        "reason": "AllocSmall",
+        "type": "BackgroundGC"
+      },
+      "payload": {
+        "Count": "174",
+        "Reason": "AllocSmall",
+        "Depth": "2",
+        "Type": "BackgroundGC",
+        "ClrInstanceID": "0",
+        "ClientSequenceNumber": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateConcurrentThread",
+      "utc": "2026-10-17T16:35:57.6788826Z",
+      "TimeStampRelativeMSec": 2104.882608,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateConcurrentThread",
+      "utc": "2026-10-17T16:35:57.6789232Z",
+      "TimeStampRelativeMSec": 2104.923233,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/Start",
+      "utc": "2026-10-17T16:35:57.6789345Z",
+      "TimeStampRelativeMSec": 2104.934525,
+      "gcStart": {
+        "Count": 175,
+        "Depth": 0,
+        "reason": "AllocSmall",
+        "type": "NonConcurrentGC"
+      },
+      "payload": {
+        "Count": "175",
+        "Reason": "AllocSmall",
+        "Depth": "0",
+        "Type": "NonConcurrentGC",
+        "ClrInstanceID": "0",
+        "ClientSequenceNumber": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68516,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6789721Z",
+      "TimeStampRelativeMSec": 2104.97215,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "3",
+        "ClrInstanceID": "0",
+        "Type": "0",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68516,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6789724Z",
+      "TimeStampRelativeMSec": 2104.972484,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "3",
+        "ClrInstanceID": "0",
+        "Type": "1",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68514,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6789731Z",
+      "TimeStampRelativeMSec": 2104.973192,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "1",
+        "ClrInstanceID": "0",
+        "Type": "0",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68516,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6789733Z",
+      "TimeStampRelativeMSec": 2104.973317,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "3",
+        "ClrInstanceID": "0",
+        "Type": "2",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68514,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6789735Z",
+      "TimeStampRelativeMSec": 2104.973567,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "1",
+        "ClrInstanceID": "0",
+        "Type": "1",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68514,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6789743Z",
+      "TimeStampRelativeMSec": 2104.974359,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "1",
+        "ClrInstanceID": "0",
+        "Type": "2",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68515,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6789744Z",
+      "TimeStampRelativeMSec": 2104.9744,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "2",
+        "ClrInstanceID": "0",
+        "Type": "0",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68515,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6789747Z",
+      "TimeStampRelativeMSec": 2104.974734,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "2",
+        "ClrInstanceID": "0",
+        "Type": "1",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68515,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6789754Z",
+      "TimeStampRelativeMSec": 2104.9754,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "2",
+        "ClrInstanceID": "0",
+        "Type": "2",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68514,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6789801Z",
+      "TimeStampRelativeMSec": 2104.98015,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "1",
+        "ClrInstanceID": "0",
+        "Type": "3",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6789881Z",
+      "TimeStampRelativeMSec": 2104.988192,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "0",
+        "ClrInstanceID": "0",
+        "Type": "0",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6789884Z",
+      "TimeStampRelativeMSec": 2104.988484,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "0",
+        "ClrInstanceID": "0",
+        "Type": "1",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6789891Z",
+      "TimeStampRelativeMSec": 2104.98915,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "0",
+        "ClrInstanceID": "0",
+        "Type": "2",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6789901Z",
+      "TimeStampRelativeMSec": 2104.99015,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "0",
+        "ClrInstanceID": "0",
+        "Type": "3",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68516,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6790103Z",
+      "TimeStampRelativeMSec": 2105.010359,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "3",
+        "ClrInstanceID": "0",
+        "Type": "3",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68515,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6790953Z",
+      "TimeStampRelativeMSec": 2105.095317,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "2",
+        "ClrInstanceID": "0",
+        "Type": "3",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68515,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6791034Z",
+      "TimeStampRelativeMSec": 2105.103443,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "2",
+        "ClrInstanceID": "0",
+        "Type": "6",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68514,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6791128Z",
+      "TimeStampRelativeMSec": 2105.112859,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "1",
+        "ClrInstanceID": "0",
+        "Type": "6",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6791143Z",
+      "TimeStampRelativeMSec": 2105.114359,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "0",
+        "ClrInstanceID": "0",
+        "Type": "6",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68516,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6791157Z",
+      "TimeStampRelativeMSec": 2105.115776,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "3",
+        "ClrInstanceID": "0",
+        "Type": "6",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68515,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6791189Z",
+      "TimeStampRelativeMSec": 2105.118943,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "2",
+        "ClrInstanceID": "0",
+        "Type": "7",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68514,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6791189Z",
+      "TimeStampRelativeMSec": 2105.118984,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "1",
+        "ClrInstanceID": "0",
+        "Type": "7",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68516,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6791189Z",
+      "TimeStampRelativeMSec": 2105.118984,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "3",
+        "ClrInstanceID": "0",
+        "Type": "7",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6791191Z",
+      "TimeStampRelativeMSec": 2105.119109,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "0",
+        "ClrInstanceID": "0",
+        "Type": "7",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6791197Z",
+      "TimeStampRelativeMSec": 2105.119776,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "0",
+        "ClrInstanceID": "0",
+        "Type": "6",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68515,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6791198Z",
+      "TimeStampRelativeMSec": 2105.119859,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "2",
+        "ClrInstanceID": "0",
+        "Type": "6",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68514,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6791199Z",
+      "TimeStampRelativeMSec": 2105.119901,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "1",
+        "ClrInstanceID": "0",
+        "Type": "6",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68516,
+      "EventName": "GC/MarkWithType",
+      "utc": "2026-10-17T16:35:57.6791199Z",
+      "TimeStampRelativeMSec": 2105.119901,
+      "gcStart": null,
+      "payload": {
+        "HeapNum": "3",
+        "ClrInstanceID": "0",
+        "Type": "6",
+        "Promoted": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68516,
+      "EventName": "GC/GlobalHeapHistory",
+      "utc": "2026-10-17T16:35:57.6791622Z",
+      "TimeStampRelativeMSec": 2105.162234,
+      "gcStart": null,
+      "payload": {
+        "FinalYoungestDesired": "2621440",
+        "NumHeaps": "4",
+        "CondemnedGeneration": "0",
+        "Gen0ReductionCount": "0",
+        "Reason": "AllocSmall",
+        "GlobalMechanisms": "Promotion, CardBundles",
+        "ClrInstanceID": "0",
+        "PauseMode": "Interactive",
+        "MemoryPressure": "0",
+        "CondemnReasons0": "0",
+        "CondemnReasons1": "0",
+        "Count": "7"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68516,
+      "EventName": "GC/PerHeapHistory",
+      "utc": "2026-10-17T16:35:57.6791626Z",
+      "TimeStampRelativeMSec": 2105.162693,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0",
+        "FreeListAllocated": "0",
+        "FreeListRejected": "0",
+        "EndOfSegAllocated": "0",
+        "CondemnedAllocated": "0",
+        "PinnedAllocated": "0",
+        "PinnedAllocatedAdvance": "0",
+        "RunningFreeListEfficiency": "0",
+        "CondemnReasons0": "0",
+        "CondemnReasons1": "32768",
+        "CompactMechanisms": "not_specified",
+        "ExpandMechanisms": "not_specified",
+        "ConcurrentCompactMechanisms": null,
+        "HeapIndex": "0",
+        "ExtraGen0Commit": "0",
+        "Count": "5",
+        "MemoryPressure": null
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68516,
+      "EventName": "GC/PerHeapHistory",
+      "utc": "2026-10-17T16:35:57.6791629Z",
+      "TimeStampRelativeMSec": 2105.162901,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0",
+        "FreeListAllocated": "0",
+        "FreeListRejected": "0",
+        "EndOfSegAllocated": "0",
+        "CondemnedAllocated": "0",
+        "PinnedAllocated": "0",
+        "PinnedAllocatedAdvance": "0",
+        "RunningFreeListEfficiency": "0",
+        "CondemnReasons0": "0",
+        "CondemnReasons1": "32768",
+        "CompactMechanisms": "not_specified",
+        "ExpandMechanisms": "not_specified",
+        "ConcurrentCompactMechanisms": null,
+        "HeapIndex": "1",
+        "ExtraGen0Commit": "0",
+        "Count": "5",
+        "MemoryPressure": null
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68516,
+      "EventName": "GC/PerHeapHistory",
+      "utc": "2026-10-17T16:35:57.6791630Z",
+      "TimeStampRelativeMSec": 2105.163026,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0",
+        "FreeListAllocated": "0",
+        "FreeListRejected": "0",
+        "EndOfSegAllocated": "0",
+        "CondemnedAllocated": "0",
+        "PinnedAllocated": "0",
+        "PinnedAllocatedAdvance": "0",
+        "RunningFreeListEfficiency": "0",
+        "CondemnReasons0": "0",
+        "CondemnReasons1": "32768",
+        "CompactMechanisms": "not_specified",
+        "ExpandMechanisms": "not_specified",
+        "ConcurrentCompactMechanisms": null,
+        "HeapIndex": "2",
+        "ExtraGen0Commit": "0",
+        "Count": "5",
+        "MemoryPressure": null
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68516,
+      "EventName": "GC/PerHeapHistory",
+      "utc": "2026-10-17T16:35:57.6791631Z",
+      "TimeStampRelativeMSec": 2105.163151,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0",
+        "FreeListAllocated": "0",
+        "FreeListRejected": "0",
+        "EndOfSegAllocated": "0",
+        "CondemnedAllocated": "0",
+        "PinnedAllocated": "0",
+        "PinnedAllocatedAdvance": "0",
+        "RunningFreeListEfficiency": "0",
+        "CondemnReasons0": "0",
+        "CondemnReasons1": "32768",
+        "CompactMechanisms": "not_specified",
+        "ExpandMechanisms": "not_specified",
+        "ConcurrentCompactMechanisms": null,
+        "HeapIndex": "3",
+        "ExtraGen0Commit": "0",
+        "Count": "5",
+        "MemoryPressure": null
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/Stop",
+      "utc": "2026-10-17T16:35:57.6791919Z",
+      "TimeStampRelativeMSec": 2105.191943,
+      "gcStart": null,
+      "payload": {
+        "Count": "175",
+        "Depth": "0",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/HeapStats",
+      "utc": "2026-10-17T16:35:57.6791921Z",
+      "TimeStampRelativeMSec": 2105.192151,
+      "gcStart": null,
+      "payload": {
+        "TotalHeapSize": "114110040",
+        "TotalPromoted": "0",
+        "Depth": "0",
+        "GenerationSize0": "0",
+        "TotalPromotedSize0": "0",
+        "GenerationSize1": "0",
+        "TotalPromotedSize1": "0",
+        "GenerationSize2": "1357616",
+        "TotalPromotedSize2": "0",
+        "GenerationSize3": "112727896",
+        "TotalPromotedSize3": "0",
+        "FinalizationPromotedSize": "0",
+        "FinalizationPromotedCount": "0",
+        "PinnedObjectCount": "0",
+        "SinkBlockCount": "0",
+        "GCHandleCount": "412",
+        "ClrInstanceID": "0",
+        "GenerationSize4": "24528",
+        "TotalPromotedSize4": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/RestartEEStart",
+      "utc": "2026-10-17T16:35:57.6794101Z",
+      "TimeStampRelativeMSec": 2105.410194,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/RestartEEStop",
+      "utc": "2026-10-17T16:35:57.6794132Z",
+      "TimeStampRelativeMSec": 2105.413235,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/FreeSegment",
+      "utc": "2026-10-17T16:35:57.6794142Z",
+      "TimeStampRelativeMSec": 2105.414236,
+      "gcStart": null,
+      "payload": {
+        "Address": "281197011796008",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/FreeSegment",
+      "utc": "2026-10-17T16:35:57.6794202Z",
+      "TimeStampRelativeMSec": 2105.420277,
+      "gcStart": null,
+      "payload": {
+        "Address": "281197028573224",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/FreeSegment",
+      "utc": "2026-10-17T16:35:57.6794235Z",
+      "TimeStampRelativeMSec": 2105.423569,
+      "gcStart": null,
+      "payload": {
+        "Address": "281197045350440",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68504,
+      "EventName": "GC/SuspendEEStart",
+      "utc": "2026-10-17T16:35:57.6794245Z",
+      "TimeStampRelativeMSec": 2105.424569,
+      "gcStart": null,
+      "payload": {
+        "Reason": "SuspendOther",
+        "Count": "-1",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/FreeSegment",
+      "utc": "2026-10-17T16:35:57.6794312Z",
+      "TimeStampRelativeMSec": 2105.431277,
+      "gcStart": null,
+      "payload": {
+        "Address": "281197049544744",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68504,
+      "EventName": "GC/SuspendEEStop",
+      "utc": "2026-10-17T16:35:57.6794330Z",
+      "TimeStampRelativeMSec": 2105.433027,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68504,
+      "EventName": "GC/RestartEEStart",
+      "utc": "2026-10-17T16:35:57.6794334Z",
+      "TimeStampRelativeMSec": 2105.433402,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68504,
+      "EventName": "GC/RestartEEStop",
+      "utc": "2026-10-17T16:35:57.6794409Z",
+      "TimeStampRelativeMSec": 2105.440944,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/FreeSegment",
+      "utc": "2026-10-17T16:35:57.6794409Z",
+      "TimeStampRelativeMSec": 2105.440986,
+      "gcStart": null,
+      "payload": {
+        "Address": "281197053739048",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68517,
+      "EventName": "GC/FinalizersStop",
+      "utc": "2026-10-17T16:35:57.6794620Z",
+      "TimeStampRelativeMSec": 2105.462069,
+      "gcStart": null,
+      "payload": {
+        "Count": "10",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68504,
+      "EventName": "GC/SuspendEEStart",
+      "utc": "2026-10-17T16:35:57.7324861Z",
+      "TimeStampRelativeMSec": 2158.486167,
+      "gcStart": null,
+      "payload": {
+        "Reason": "SuspendOther",
+        "Count": "-1",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68504,
+      "EventName": "GC/SuspendEEStop",
+      "utc": "2026-10-17T16:35:57.7325123Z",
+      "TimeStampRelativeMSec": 2158.512376,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68504,
+      "EventName": "GC/RestartEEStart",
+      "utc": "2026-10-17T16:35:57.7325134Z",
+      "TimeStampRelativeMSec": 2158.513417,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68504,
+      "EventName": "GC/RestartEEStop",
+      "utc": "2026-10-17T16:35:57.7325185Z",
+      "TimeStampRelativeMSec": 2158.518501,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68504,
+      "EventName": "GC/SuspendEEStart",
+      "utc": "2026-10-17T16:35:57.7325210Z",
+      "TimeStampRelativeMSec": 2158.521084,
+      "gcStart": null,
+      "payload": {
+        "Reason": "SuspendOther",
+        "Count": "-1",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68504,
+      "EventName": "GC/SuspendEEStop",
+      "utc": "2026-10-17T16:35:57.7325219Z",
+      "TimeStampRelativeMSec": 2158.521917,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68504,
+      "EventName": "GC/RestartEEStart",
+      "utc": "2026-10-17T16:35:57.7325221Z",
+      "TimeStampRelativeMSec": 2158.522167,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68504,
+      "EventName": "GC/RestartEEStop",
+      "utc": "2026-10-17T16:35:57.7325226Z",
+      "TimeStampRelativeMSec": 2158.522626,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68504,
+      "EventName": "GC/SuspendEEStart",
+      "utc": "2026-10-17T16:35:57.7325776Z",
+      "TimeStampRelativeMSec": 2158.577626,
+      "gcStart": null,
+      "payload": {
+        "Reason": "SuspendOther",
+        "Count": "-1",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68504,
+      "EventName": "GC/SuspendEEStop",
+      "utc": "2026-10-17T16:35:57.7326067Z",
+      "TimeStampRelativeMSec": 2158.606751,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68504,
+      "EventName": "GC/RestartEEStart",
+      "utc": "2026-10-17T16:35:57.7326070Z",
+      "TimeStampRelativeMSec": 2158.607043,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68504,
+      "EventName": "GC/RestartEEStop",
+      "utc": "2026-10-17T16:35:57.7326091Z",
+      "TimeStampRelativeMSec": 2158.609168,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68504,
+      "EventName": "GC/SuspendEEStart",
+      "utc": "2026-10-17T16:35:57.7326104Z",
+      "TimeStampRelativeMSec": 2158.610418,
+      "gcStart": null,
+      "payload": {
+        "Reason": "SuspendOther",
+        "Count": "-1",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68504,
+      "EventName": "GC/SuspendEEStop",
+      "utc": "2026-10-17T16:35:57.7326110Z",
+      "TimeStampRelativeMSec": 2158.611001,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68504,
+      "EventName": "GC/RestartEEStart",
+      "utc": "2026-10-17T16:35:57.7326111Z",
+      "TimeStampRelativeMSec": 2158.611168,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68504,
+      "EventName": "GC/RestartEEStop",
+      "utc": "2026-10-17T16:35:57.7326115Z",
+      "TimeStampRelativeMSec": 2158.611584,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68504,
+      "EventName": "GC/Triggered",
+      "utc": "2026-10-17T16:35:57.7377459Z",
+      "TimeStampRelativeMSec": 2163.745939,
+      "gcStart": null,
+      "payload": {
+        "Reason": "AllocSmall",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/SuspendEEStart",
+      "utc": "2026-10-17T16:35:57.7382334Z",
+      "TimeStampRelativeMSec": 2164.233441,
+      "gcStart": null,
+      "payload": {
+        "Reason": "SuspendForGC",
+        "Count": "174",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/SuspendEEStop",
+      "utc": "2026-10-17T16:35:57.7383510Z",
+      "TimeStampRelativeMSec": 2164.351025,
+      "gcStart": null,
+      "payload": {
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68513,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.7383634Z",
+      "TimeStampRelativeMSec": 2164.3634,
+      "gcStart": null,
+      "payload": {
+        "Address": "281197011796008",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68514,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.7383849Z",
+      "TimeStampRelativeMSec": 2164.384942,
+      "gcStart": null,
+      "payload": {
+        "Address": "281197028573224",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68516,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.7384023Z",
+      "TimeStampRelativeMSec": 2164.402359,
+      "gcStart": null,
+      "payload": {
+        "Address": "281197045350440",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    },
+    {
+      "ProcessID": 68504,
+      "ThreadID": 68515,
+      "EventName": "GC/CreateSegment",
+      "utc": "2026-10-17T16:35:57.7384140Z",
+      "TimeStampRelativeMSec": 2164.414067,
+      "gcStart": null,
+      "payload": {
+        "Address": "281197049544744",
+        "Size": "4194264",
+        "Type": "SmallObjectHeap",
+        "ClrInstanceID": "0"
+      }
+    }
+  ],
+  "inputs": {
+    "gc-reason.nettrace": {
+      "bytes": 337691,
+      "sha256": "ff9b19994d517c016646dc3c0f24f5d1aca14054fa6273efffe27eec06088e9d"
+    },
+    "output-timestamps.jsonl": {
+      "bytes": 5106,
+      "sha256": "8a526231c6dffcd91a9035c884a03adc6b20fc0fdc795e562eb8e7406d55a9e4"
+    },
+    "gc-chronology-prefix.json": {
+      "bytes": 1883888,
+      "sha256": "8904f9bd2c30fb4ca53466c8d790c8ce704efc1445b8faee9d93958317106e13"
+    }
+  }
+}

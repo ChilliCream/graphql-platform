@@ -1,0 +1,37 @@
+C2 NoGC diagnostic review, 2026-10-17
+
+Observed evidence
+The single candidate-only probe used unchanged C2 engine 244ad610bfe4ab6152885955e22776124510acb344f8c783a3f3a17260878301, runtime 10.0.12, target PID 68504/start_ticks 350853. It failed ordinary allocation block 4 while all 1000 operations and disposal completed synchronously on managed thread 1. Thus async migration is not necessary for this failure.
+
+The trace is truncated: both normal TraceLog conversion and direct EventPipe processing report FormatException, Read past end of stream. The reader preserves events decoded before the exception. Its session header begins 2026-10-17T16:35:55.5740000Z; first decoded CLR event is 55.5754961Z, last decoded event is 57.7384140Z. These are readable-prefix bounds, not certified complete collection bounds. Reported events lost is zero but completeness/loss of the missing tail cannot be certified. No replacement trace was collected.
+
+Block 4's stderr start receipt is 16:35:57.645090Z and result receipt is 57.803366Z. Receipt timestamps can lag event generation, so they are correlation aids rather than exact API boundaries. The preceding two induced full nonconcurrent GCs, #171 and #172, complete at 57.6667183Z and 57.6781931Z. Their heap histories both report 2 heaps. The next induced trigger at 57.6782297Z belongs to NoGC startup; this uses special collection-count bookkeeping without a normal GCStart event. Its SuspendForGCPrep is at 57.6783021Z. The first subsequent allocation-triggered collection is #174 at 57.6787757Z, reason AllocSmall, depth 2, BackgroundGC. It is followed by #175 at 57.6789345Z, reason AllocSmall, depth 0, NonConcurrentGC. #175 history at 57.6791622Z reports 4 heaps. Another AllocSmall trigger is visible at 57.7377459Z but the prefix ends before its GCStart event.
+
+The result records TryStartNoGCRegion=true, exact before/after thread and process calibrations of 523240 bytes, 25,680,000 target process bytes, two gen0 collections, mode Interactive and EndNoGC failure. The background gen2 collection has not completed in the prefix; a gen2 start is not equivalent to a completed gen2 collection counter. No performance conclusion is taken from this profiled probe.
+
+Installed-runtime source interpretation
+The .version file identifies dotnet/dotnet 95017c711e6afc1085133d440e42b4bd78155701. Its gc.cpp is byte-identical to dotnet/runtime v10.0.12 commit 4271d88e0aebf3d04f188f1334c2220d80555ef6. Hashes and immutable source URLs are in runtime-source-provenance.json.
+
+At gc.cpp:23676-23695, NoGC preparation assigns SOH/LOH budgets only to the current active heaps. At 7197-7244, the server GC thread can change heap count before it processes the NoGC request. check_heap_count uses SuspendForGCPrep (26304-26306). Increasing heap count calls recommission_heap for newly active heaps (26602-26612), which initializes their NoGC budgets to zero (25789-25790). set_allocations_for_no_gc then uses per-heap values (23832-23863). A subsequent GC restores the previous pause mode and clears NoGC state (22629-22640).
+
+The observed 2-to-4 heap transition plus this source ordering supports a specific dynamic-heap-growth/NoGC interaction. The exact internal zero-budget state was not captured and remains an inference, not a proved runtime defect diagnosis. The evidence does not support a candidate-induced allocation regression, global 512 MiB exhaustion, or async migration as the necessary cause.
+
+Allocation-only method correction
+Use DOTNET_GCHeapCount=4 and, if explicit redundancy is preferred, DOTNET_GCDynamicAdaptationMode=0 for both baseline and candidate allocation processes. Preserve runtime, engine, request path, 512 MiB NoGC budget, complete asynchronous execution/disposal, dual known calibrations, raw idle observations and all failure guards. This is a separate controlled allocation policy requiring its own matched B/C2/B; the completed default-policy baseline remains contextual evidence and cannot be silently reused as its control. Default timing and HTTP retain normal runtime GC policy.
+
+Exact supported settings: gcconfig.h:85 declares GCHeapCount / System.GC.HeapCount; :144 declares GCDynamicAdaptationMode / System.GC.DynamicAdaptationMode. gc.cpp:14506-14510 explicitly forces mode zero for any nonzero configured heap count, so the second environment variable is redundant. Heap count is clamped to available CPUs (49422-49435), and the realized initial count is written back (49548). Dynamic mode is written back at 49869.
+
+GC.GetConfigurationVariables keys are HeapCount and GCDynamicAdaptationMode, values boxed Int64. gcconfig.cpp:47-50 emits macro #name; GC.CoreCLR.cs:873-894 uses nameAsString and boxed long data. Assert allocation HeapCount=4 and GCDynamicAdaptationMode=0, and record the full runtime configuration. Default timing should have mode1 and no GC overrides; its reported HeapCount can still be4 because the runtime writes back its initial maximum count.
+
+Immutable primary references
+https://github.com/dotnet/dotnet/blob/95017c711e6afc1085133d440e42b4bd78155701/src/runtime/src/coreclr/gc/gc.cpp#L7197
+https://github.com/dotnet/dotnet/blob/95017c711e6afc1085133d440e42b4bd78155701/src/runtime/src/coreclr/gc/gc.cpp#L14506
+https://github.com/dotnet/dotnet/blob/95017c711e6afc1085133d440e42b4bd78155701/src/runtime/src/coreclr/gc/gc.cpp#L23676
+https://github.com/dotnet/dotnet/blob/95017c711e6afc1085133d440e42b4bd78155701/src/runtime/src/coreclr/gc/gc.cpp#L25789
+https://github.com/dotnet/dotnet/blob/95017c711e6afc1085133d440e42b4bd78155701/src/runtime/src/coreclr/gc/gcconfig.h#L85
+https://github.com/dotnet/dotnet/blob/95017c711e6afc1085133d440e42b4bd78155701/src/runtime/src/coreclr/gc/gcconfig.cpp#L47
+https://github.com/dotnet/dotnet/blob/95017c711e6afc1085133d440e42b4bd78155701/src/runtime/src/coreclr/System.Private.CoreLib/src/System/GC.CoreCLR.cs#L873
+https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#heap-count
+
+Reproduction of offline interpretation
+GCTraceAnalysis builds against TraceEvent 3.1.21 and reads an existing trace only. Run its Release net10.0 DLL with <gc-reason.nettrace> 68504. No profile or benchmark is launched. block4-prefix.json retains the decisive chronology, parser error, input hashes and explicit limits. The C2 owner retains the original trace, full extracted chronology and timestamped stdout/stderr in gc-reason-diagnostic.

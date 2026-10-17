@@ -1,0 +1,20 @@
+{
+  "runtimeVersion": "10.0.12",
+  "installedVersionFile": "/usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/.version",
+  "dotnetRepositoryCommit": "95017c711e6afc1085133d440e42b4bd78155701",
+  "runtimeTagEquivalentCommit": "4271d88e0aebf3d04f188f1334c2220d80555ef6",
+  "sources": {
+    "gc-exact.cpp": {
+      "sha256": "5b1394edf34d08b18550b582940ab0a28079c44d4e8ae3a7cb7ace30636f37b6",
+      "url": "https://github.com/dotnet/dotnet/blob/95017c711e6afc1085133d440e42b4bd78155701/src/runtime/src/coreclr/gc/gc.cpp"
+    },
+    "gcconfig.h": {
+      "sha256": "4e9fa100b7458187135b26ba09eda3a2e57fbc6a72cb5ed2afc31a22d828b117",
+      "url": "https://github.com/dotnet/dotnet/blob/95017c711e6afc1085133d440e42b4bd78155701/src/runtime/src/coreclr/gc/gcconfig.h"
+    },
+    "gcconfig.cpp": {
+      "sha256": "b996529ac451fecaa5b98d36a8519f3c7a615cd5979e7c4e9c70bc32b8f6adea",
+      "url": "https://github.com/dotnet/dotnet/blob/95017c711e6afc1085133d440e42b4bd78155701/src/runtime/src/coreclr/gc/gcconfig.cpp"
+    }
+  }
+}
