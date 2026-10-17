@@ -110,12 +110,13 @@
         {
           "variant": "apollo-router",
           "gateway": "apollo-router",
-          "versions": [
+          "results": [
             {
               "version": "2.16.0",
               "run": {
                 "number": 397,
-                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982397"
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982397",
+                "completedAt": "2026-10-12T12:00:00Z"
               },
               "platform": {
                 "language": {
@@ -149,13 +150,24 @@
               "cpu": {
                 "avgUtilizationPercent": 100,
                 "maxUtilizationPercent": 100
+              },
+              "subgraphs": {
+                "framework": {
+                  "name": "Hot Chocolate"
+                },
+                "platform": {
+                  "language": {
+                    "name": "C#"
+                  }
+                }
               }
             },
             {
               "version": "2.17.0",
               "run": {
                 "number": 398,
-                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982398"
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982398",
+                "completedAt": "2026-10-13T12:00:00Z"
               },
               "platform": {
                 "language": {
@@ -189,13 +201,24 @@
               "cpu": {
                 "avgUtilizationPercent": 100,
                 "maxUtilizationPercent": 100
+              },
+              "subgraphs": {
+                "framework": {
+                  "name": "Hot Chocolate"
+                },
+                "platform": {
+                  "language": {
+                    "name": "C#"
+                  }
+                }
               }
             },
             {
               "version": "2.18.0",
               "run": {
                 "number": 400,
-                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982400"
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982400",
+                "completedAt": "2026-10-15T12:00:00Z"
               },
               "platform": {
                 "language": {
@@ -229,6 +252,16 @@
               "cpu": {
                 "avgUtilizationPercent": 100,
                 "maxUtilizationPercent": 100
+              },
+              "subgraphs": {
+                "framework": {
+                  "name": "Hot Chocolate"
+                },
+                "platform": {
+                  "language": {
+                    "name": "C#"
+                  }
+                }
               }
             }
           ]
@@ -236,12 +269,13 @@
         {
           "variant": "apollo-router-v3",
           "gateway": "apollo-router",
-          "versions": [
+          "results": [
             {
               "version": "3.0.0-preview.0",
               "run": {
                 "number": 400,
-                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982400"
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982400",
+                "completedAt": "2026-10-15T12:00:00Z"
               },
               "platform": {
                 "language": {
@@ -275,6 +309,16 @@
               "cpu": {
                 "avgUtilizationPercent": 100,
                 "maxUtilizationPercent": 100
+              },
+              "subgraphs": {
+                "framework": {
+                  "name": "Hot Chocolate"
+                },
+                "platform": {
+                  "language": {
+                    "name": "C#"
+                  }
+                }
               }
             }
           ]
@@ -282,12 +326,13 @@
         {
           "variant": "hive-router",
           "gateway": "hive-router",
-          "versions": [
+          "results": [
             {
               "version": "0.3.3",
               "run": {
                 "number": 397,
-                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982397"
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982397",
+                "completedAt": "2026-10-12T12:00:00Z"
               },
               "platform": {
                 "language": {
@@ -323,13 +368,24 @@
               "cpu": {
                 "avgUtilizationPercent": 95.3,
                 "maxUtilizationPercent": 97
+              },
+              "subgraphs": {
+                "framework": {
+                  "name": "Hot Chocolate"
+                },
+                "platform": {
+                  "language": {
+                    "name": "C#"
+                  }
+                }
               }
             },
             {
               "version": "0.3.4",
               "run": {
                 "number": 399,
-                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982399"
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982399",
+                "completedAt": "2026-10-14T12:00:00Z"
               },
               "platform": {
                 "language": {
@@ -365,13 +421,24 @@
               "cpu": {
                 "avgUtilizationPercent": 95.3,
                 "maxUtilizationPercent": 97
+              },
+              "subgraphs": {
+                "framework": {
+                  "name": "Hot Chocolate"
+                },
+                "platform": {
+                  "language": {
+                    "name": "C#"
+                  }
+                }
               }
             },
             {
               "version": "0.3.5",
               "run": {
                 "number": 400,
-                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982400"
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982400",
+                "completedAt": "2026-10-15T12:00:00Z"
               },
               "platform": {
                 "language": {
@@ -407,6 +474,16 @@
               "cpu": {
                 "avgUtilizationPercent": 95.3,
                 "maxUtilizationPercent": 97
+              },
+              "subgraphs": {
+                "framework": {
+                  "name": "Hot Chocolate"
+                },
+                "platform": {
+                  "language": {
+                    "name": "C#"
+                  }
+                }
               }
             }
           ]
@@ -414,12 +491,13 @@
         {
           "variant": "fusion",
           "gateway": "fusion",
-          "versions": [
+          "results": [
             {
               "version": "16.6.6",
               "run": {
                 "number": 397,
-                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982397"
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982397",
+                "completedAt": "2026-10-12T12:00:00Z"
               },
               "platform": {
                 "language": {
@@ -459,13 +537,24 @@
               "cpu": {
                 "avgUtilizationPercent": 98,
                 "maxUtilizationPercent": 99
+              },
+              "subgraphs": {
+                "framework": {
+                  "name": "Hot Chocolate"
+                },
+                "platform": {
+                  "language": {
+                    "name": "C#"
+                  }
+                }
               }
             },
             {
               "version": "16.6.7",
               "run": {
                 "number": 399,
-                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982399"
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982399",
+                "completedAt": "2026-10-14T12:00:00Z"
               },
               "platform": {
                 "language": {
@@ -505,13 +594,24 @@
               "cpu": {
                 "avgUtilizationPercent": 98,
                 "maxUtilizationPercent": 99
+              },
+              "subgraphs": {
+                "framework": {
+                  "name": "Hot Chocolate"
+                },
+                "platform": {
+                  "language": {
+                    "name": "C#"
+                  }
+                }
               }
             },
             {
               "version": "16.6.8",
               "run": {
                 "number": 400,
-                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982400"
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982400",
+                "completedAt": "2026-10-15T12:00:00Z"
               },
               "platform": {
                 "language": {
@@ -551,6 +651,16 @@
               "cpu": {
                 "avgUtilizationPercent": 98,
                 "maxUtilizationPercent": 99
+              },
+              "subgraphs": {
+                "framework": {
+                  "name": "Hot Chocolate"
+                },
+                "platform": {
+                  "language": {
+                    "name": "C#"
+                  }
+                }
               }
             }
           ]
@@ -593,12 +703,13 @@
         {
           "variant": "apollo-router",
           "gateway": "apollo-router",
-          "versions": [
+          "results": [
             {
               "version": "2.16.0",
               "run": {
                 "number": 397,
-                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982397"
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982397",
+                "completedAt": "2026-10-12T12:00:00Z"
               },
               "platform": {
                 "language": {
@@ -632,13 +743,24 @@
               "cpu": {
                 "avgUtilizationPercent": 100,
                 "maxUtilizationPercent": 100
+              },
+              "subgraphs": {
+                "framework": {
+                  "name": "Hot Chocolate"
+                },
+                "platform": {
+                  "language": {
+                    "name": "C#"
+                  }
+                }
               }
             },
             {
               "version": "2.17.0",
               "run": {
                 "number": 398,
-                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982398"
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982398",
+                "completedAt": "2026-10-13T12:00:00Z"
               },
               "platform": {
                 "language": {
@@ -672,13 +794,24 @@
               "cpu": {
                 "avgUtilizationPercent": 100,
                 "maxUtilizationPercent": 100
+              },
+              "subgraphs": {
+                "framework": {
+                  "name": "Hot Chocolate"
+                },
+                "platform": {
+                  "language": {
+                    "name": "C#"
+                  }
+                }
               }
             },
             {
               "version": "2.18.0",
               "run": {
                 "number": 400,
-                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982400"
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982400",
+                "completedAt": "2026-10-15T12:00:00Z"
               },
               "platform": {
                 "language": {
@@ -712,6 +845,16 @@
               "cpu": {
                 "avgUtilizationPercent": 100,
                 "maxUtilizationPercent": 100
+              },
+              "subgraphs": {
+                "framework": {
+                  "name": "Hot Chocolate"
+                },
+                "platform": {
+                  "language": {
+                    "name": "C#"
+                  }
+                }
               }
             }
           ]
@@ -719,12 +862,13 @@
         {
           "variant": "apollo-router-v3",
           "gateway": "apollo-router",
-          "versions": [
+          "results": [
             {
               "version": "3.0.0-preview.0",
               "run": {
                 "number": 400,
-                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982400"
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982400",
+                "completedAt": "2026-10-15T12:00:00Z"
               },
               "platform": {
                 "language": {
@@ -758,6 +902,16 @@
               "cpu": {
                 "avgUtilizationPercent": 99.8,
                 "maxUtilizationPercent": 100
+              },
+              "subgraphs": {
+                "framework": {
+                  "name": "Hot Chocolate"
+                },
+                "platform": {
+                  "language": {
+                    "name": "C#"
+                  }
+                }
               }
             }
           ]
@@ -765,12 +919,13 @@
         {
           "variant": "hive-router",
           "gateway": "hive-router",
-          "versions": [
+          "results": [
             {
               "version": "0.3.3",
               "run": {
                 "number": 397,
-                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982397"
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982397",
+                "completedAt": "2026-10-12T12:00:00Z"
               },
               "platform": {
                 "language": {
@@ -806,13 +961,24 @@
               "cpu": {
                 "avgUtilizationPercent": 98.8,
                 "maxUtilizationPercent": 100
+              },
+              "subgraphs": {
+                "framework": {
+                  "name": "Hot Chocolate"
+                },
+                "platform": {
+                  "language": {
+                    "name": "C#"
+                  }
+                }
               }
             },
             {
               "version": "0.3.4",
               "run": {
                 "number": 399,
-                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982399"
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982399",
+                "completedAt": "2026-10-14T12:00:00Z"
               },
               "platform": {
                 "language": {
@@ -848,13 +1014,24 @@
               "cpu": {
                 "avgUtilizationPercent": 98.8,
                 "maxUtilizationPercent": 100
+              },
+              "subgraphs": {
+                "framework": {
+                  "name": "Hot Chocolate"
+                },
+                "platform": {
+                  "language": {
+                    "name": "C#"
+                  }
+                }
               }
             },
             {
               "version": "0.3.5",
               "run": {
                 "number": 400,
-                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982400"
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982400",
+                "completedAt": "2026-10-15T12:00:00Z"
               },
               "platform": {
                 "language": {
@@ -890,6 +1067,16 @@
               "cpu": {
                 "avgUtilizationPercent": 98.8,
                 "maxUtilizationPercent": 100
+              },
+              "subgraphs": {
+                "framework": {
+                  "name": "Hot Chocolate"
+                },
+                "platform": {
+                  "language": {
+                    "name": "C#"
+                  }
+                }
               }
             }
           ]
@@ -897,12 +1084,13 @@
         {
           "variant": "fusion",
           "gateway": "fusion",
-          "versions": [
+          "results": [
             {
               "version": "16.6.6",
               "run": {
                 "number": 397,
-                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982397"
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982397",
+                "completedAt": "2026-10-12T12:00:00Z"
               },
               "platform": {
                 "language": {
@@ -942,13 +1130,24 @@
               "cpu": {
                 "avgUtilizationPercent": 98.3,
                 "maxUtilizationPercent": 99.5
+              },
+              "subgraphs": {
+                "framework": {
+                  "name": "Hot Chocolate"
+                },
+                "platform": {
+                  "language": {
+                    "name": "C#"
+                  }
+                }
               }
             },
             {
               "version": "16.6.7",
               "run": {
                 "number": 399,
-                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982399"
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982399",
+                "completedAt": "2026-10-14T12:00:00Z"
               },
               "platform": {
                 "language": {
@@ -988,13 +1187,24 @@
               "cpu": {
                 "avgUtilizationPercent": 98.3,
                 "maxUtilizationPercent": 99.5
+              },
+              "subgraphs": {
+                "framework": {
+                  "name": "Hot Chocolate"
+                },
+                "platform": {
+                  "language": {
+                    "name": "C#"
+                  }
+                }
               }
             },
             {
               "version": "16.6.8",
               "run": {
                 "number": 400,
-                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982400"
+                "url": "https://github.com/ChilliCream/graphql-federation-benchmarks/actions/runs/38806982400",
+                "completedAt": "2026-10-15T12:00:00Z"
               },
               "platform": {
                 "language": {
@@ -1034,6 +1244,16 @@
               "cpu": {
                 "avgUtilizationPercent": 98.3,
                 "maxUtilizationPercent": 99.5
+              },
+              "subgraphs": {
+                "framework": {
+                  "name": "Hot Chocolate"
+                },
+                "platform": {
+                  "language": {
+                    "name": "C#"
+                  }
+                }
               }
             }
           ]

@@ -179,7 +179,11 @@ export type BenchmarkHistoryVersion = Omit<
   "variant" | "status"
 > & {
   readonly version: string;
-  readonly run: BenchmarkHistoryRun;
+  readonly run: BenchmarkHistoryRun & {
+    readonly startedAt?: string | null;
+    readonly completedAt?: string | null;
+  };
+  readonly subgraphs: BenchmarkReport["subgraphs"];
   readonly platform: BenchmarkPlatform;
 };
 
@@ -190,7 +194,7 @@ export interface BenchmarkHistoryScenario {
   readonly variants: readonly {
     readonly variant: string;
     readonly gateway: string;
-    readonly versions: readonly BenchmarkHistoryVersion[];
+    readonly results: readonly BenchmarkHistoryVersion[];
   }[];
 }
 
@@ -586,10 +590,10 @@ function historyRun(value: unknown): void {
   optional(run.url, uri);
 }
 
-/** Parses a benchmark history of at most 256 KiB and validates known fields while allowing unknown fields. */
+/** Parses a benchmark history of at most 32 MiB and validates known fields while allowing unknown fields. */
 export function parseBenchmarkHistory(json: string): BenchmarkHistory {
-  if (new TextEncoder().encode(json).byteLength > 262_144) {
-    throw new Error("Benchmark history exceeds 256 KiB.");
+  if (new TextEncoder().encode(json).byteLength > 33_554_432) {
+    throw new Error("Benchmark history exceeds 32 MiB.");
   }
   const history = record(JSON.parse(json), [
     "latestRun",
@@ -609,7 +613,7 @@ export function parseBenchmarkHistory(json: string): BenchmarkHistory {
 
     const variants = new Set<unknown>();
     for (const item of list(scenario.variants)) {
-      const variant = record(item, ["variant", "gateway", "versions"]);
+      const variant = record(item, ["variant", "gateway", "results"]);
       text(variant.gateway);
       if (!gatewayIds.has(variant.gateway)) {
         throw new Error("Benchmark history references an unknown gateway.");
@@ -618,7 +622,7 @@ export function parseBenchmarkHistory(json: string): BenchmarkHistory {
         throw new Error("Benchmark history variant is not in its gateway.");
       }
       unique(variants, variant.variant);
-      for (const entry of list(variant.versions, 1)) {
+      for (const entry of list(variant.results)) {
         const version = record(entry, [
           "version",
           "run",
@@ -628,6 +632,28 @@ export function parseBenchmarkHistory(json: string): BenchmarkHistory {
         ]);
         text(version.version);
         historyRun(version.run);
+        const run = record(version.run, ["number"]);
+        const startedAt =
+          run.startedAt == null ? undefined : dateTime(run.startedAt);
+        const completedAt =
+          run.completedAt == null ? undefined : dateTime(run.completedAt);
+        if (startedAt === undefined && completedAt === undefined) {
+          throw new Error("Benchmark history result requires a timestamp.");
+        }
+        if (
+          startedAt !== undefined &&
+          completedAt !== undefined &&
+          completedAt < startedAt
+        ) {
+          throw new Error("Benchmark history run completed before it started.");
+        }
+        const subgraphs = record(version.subgraphs, ["framework", "platform"]);
+        const framework = record(subgraphs.framework, ["name"]);
+        text(framework.name);
+        optional(framework.version, text);
+        platform(subgraphs.platform);
+        const throughput = record(version.throughput, ["runsRps"]);
+        list(throughput.runsRps, 1);
         platform(version.platform);
         measurement(version, measuredRuns);
       }

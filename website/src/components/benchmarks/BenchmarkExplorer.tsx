@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { BenchmarkHistorySourceMenu } from "./BenchmarkHistorySourceMenu";
 import { BenchmarkHistoryChart } from "@/src/components/benchmarks/BenchmarkHistoryChart";
 import { BenchmarkLoadShape } from "@/src/components/benchmarks/BenchmarkLoadShape";
 import { BenchmarkNoscript } from "@/src/components/benchmarks/BenchmarkNoscript";
@@ -27,11 +29,13 @@ const VERSION_OPTIONS = [
 
 /** The version filter, the results summary, the scenario tiles with their load shapes, and the selected scenario's tables and history chart. */
 export function BenchmarkExplorer({ report, history }: BenchmarkExplorerProps) {
-  const controls = useBenchmarkControls(report, history);
+  const [showcaseHistory, setShowcaseHistory] = useState<BenchmarkHistory>();
+  const controls = useBenchmarkControls(report, showcaseHistory ?? history);
   const { scenarios, variants, historyVariants, stableOnly } = controls;
 
   return (
     <>
+      <BenchmarkHistorySourceMenu onChange={setShowcaseHistory} />
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-16">
         <fieldset
           className="lg:col-start-2 lg:row-start-1"
@@ -122,6 +126,12 @@ export function BenchmarkExplorer({ report, history }: BenchmarkExplorerProps) {
             {scenarioHistory && historyVariants ? (
               <div className="mt-16">
                 <BenchmarkHistoryChart
+                  key={
+                    showcaseHistory
+                      ? showcaseHistory.scenarios[0]?.variants[0]?.results
+                          .length
+                      : "actual"
+                  }
                   id={`benchmark-${scenario.id}`}
                   scenario={scenarioHistory}
                   variants={historyVariants}

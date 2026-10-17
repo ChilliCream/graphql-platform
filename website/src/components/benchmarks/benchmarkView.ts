@@ -92,13 +92,10 @@ export const SERIES_COLORS = [
   "#cbd5e1",
 ] as const;
 
-/** The number of newest versions the history chart shows per variant. */
-export const HISTORY_SLOTS = 3;
-
-/** One version of a variant in the history chart. */
+/** One benchmark run in the history chart. */
 export interface HistoryPoint {
-  /** The chart column, 0 to `HISTORY_SLOTS - 1`, newest last and right-aligned. */
-  readonly slot: number;
+  readonly timestamp: number;
+  readonly runNumber: number;
   readonly version: string;
   readonly rps: number;
 }
@@ -112,11 +109,11 @@ export interface HistorySeries {
   readonly color: string;
   /** Whether the line is dashed because the palette ran out of colors. */
   readonly dashed: boolean;
-  /** Up to `HISTORY_SLOTS` versions, oldest first. */
+  /** Sampled runs, oldest first, including the first and latest result. */
   readonly points: readonly HistoryPoint[];
 }
 
-/** Returns one series per variant with its newest versions, skipping previews when `stableOnly` is set. Series that share a name and runtime are told apart by their newest major version. */
+/** Returns one series per variant with its dated runs, skipping previews when `stableOnly` is set. Series that share a name and runtime are told apart by their newest major version. */
 export function historySeries(
   scenario: BenchmarkHistoryScenario,
   variants: ReadonlyMap<string, BenchmarkCatalogEntry>,
@@ -126,16 +123,29 @@ export function historySeries(
   const catalogOrder = [...variants.keys()];
   const series = scenario.variants.flatMap((history) => {
     const entry = variants.get(history.variant)!;
-    const versions = history.versions
+    const versions = history.results
       .filter(
         (version) =>
           !stableOnly ||
           !isPreview(version.version, version.platform, entry.variant.preview),
       )
-      .slice(-HISTORY_SLOTS);
+      .toSorted(
+        (a, b) =>
+          Date.parse(a.run.completedAt ?? a.run.startedAt!) -
+          Date.parse(b.run.completedAt ?? b.run.startedAt!),
+      );
     if (versions.length === 0) {
       return [];
     }
+    const stride = Math.max(1, Math.ceil((versions.length - 1) / 20));
+    const count = Math.ceil((versions.length - 1) / stride) + 1;
+    const sampled = Array.from(
+      { length: count },
+      (_, index) =>
+        versions[
+          Math.round((index * (versions.length - 1)) / (count - 1 || 1))
+        ],
+    );
     const colorIndex = catalogOrder.indexOf(history.variant);
     return {
       id: history.variant,
@@ -144,8 +154,11 @@ export function historySeries(
       composition: entry.variant.composition,
       color: colors[colorIndex % colors.length],
       dashed: colorIndex >= colors.length,
-      points: versions.map((version, index) => ({
-        slot: HISTORY_SLOTS - versions.length + index,
+      points: sampled.map((version) => ({
+        timestamp: Date.parse(
+          version.run.completedAt ?? version.run.startedAt!,
+        ),
+        runNumber: version.run.number,
         version: version.version,
         rps: version.throughput.medianRps,
       })),
@@ -166,6 +179,36 @@ export function historySeries(
       : item,
   );
 }
+
+const DAY = 86_400_000;
+
+/** Returns UTC date ticks and positions spanning the available runs. A single date is centered. */
+export function historyTimeScale(values: readonly number[]) {
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const span = max - min;
+  const step =
+    (span > 90 * DAY ? 10 : span > 30 * DAY ? 5 : span > 7 * DAY ? 2 : 1) * DAY;
+  const ticks: number[] = [];
+  for (let tick = Math.ceil(min / step) * step; tick <= max; tick += step) {
+    ticks.push(tick);
+  }
+  if (ticks.length === 0) {
+    ticks.push(min);
+  }
+  return {
+    ticks,
+    x: (value: number) => (span === 0 ? 50 : ((value - min) / span) * 100),
+  };
+}
+
+export const formatHistoryDate = (timestamp: number, includeYear = false) =>
+  new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: includeYear ? "numeric" : undefined,
+    timeZone: "UTC",
+  }).format(timestamp);
 
 const niceStep = (range: number) => {
   const magnitude = 10 ** Math.floor(Math.log10(range));
