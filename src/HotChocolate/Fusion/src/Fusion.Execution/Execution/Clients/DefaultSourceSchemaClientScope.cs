@@ -13,6 +13,7 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
     private readonly object _sync = new();
 #endif
     private readonly ConcurrentDictionary<(string Name, OperationType Type), ISourceSchemaClient> _clients = [];
+    private ClientEntry? _firstClient;
     private readonly ISourceSchemaClientFactory[] _clientFactories;
     private readonly FusionSchemaDefinition _schemaDefinition;
     private readonly SourceSchemaClientConfigurations _configurations;
@@ -35,11 +36,24 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
         ArgumentException.ThrowIfNullOrEmpty(name);
 
         var key = (name, operationType);
+        var firstClient = Volatile.Read(ref _firstClient);
+
+        if (firstClient is not null && firstClient.Key == key)
+        {
+            return firstClient.Client;
+        }
 
         if (!_clients.TryGetValue(key, out var sourceSchemaClient))
         {
             lock (_sync)
             {
+                firstClient = Volatile.Read(ref _firstClient);
+
+                if (firstClient is not null && firstClient.Key == key)
+                {
+                    return firstClient.Client;
+                }
+
                 if (!_clients.TryGetValue(key, out sourceSchemaClient))
                 {
                     if (!_configurations.TryGet(name, operationType, out var config))
@@ -49,7 +63,17 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
                     }
 
                     sourceSchemaClient = CreateClient(config);
-                    _clients.TryAdd(key, sourceSchemaClient);
+
+                    firstClient = Volatile.Read(ref _firstClient);
+
+                    if (firstClient is null)
+                    {
+                        Volatile.Write(ref _firstClient, new ClientEntry(key, sourceSchemaClient));
+                    }
+                    else if (firstClient.Key != key)
+                    {
+                        _clients.TryAdd(key, sourceSchemaClient);
+                    }
                 }
             }
         }
@@ -103,17 +127,34 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
     /// </summary>
     internal async ValueTask ResetAsync()
     {
-        if (_disposed || _clients.IsEmpty)
+        if (_disposed)
         {
             return;
         }
 
-        foreach (var client in _clients.Values)
+        var firstClient = Volatile.Read(ref _firstClient);
+        var clients = _clients.IsEmpty ? null : _clients.Values;
+
+        if (firstClient is null && clients is null)
         {
-            await client.DisposeAsync().ConfigureAwait(false);
+            return;
+        }
+
+        if (firstClient is not null)
+        {
+            await firstClient.Client.DisposeAsync().ConfigureAwait(false);
+        }
+
+        if (clients is not null)
+        {
+            foreach (var client in clients)
+            {
+                await client.DisposeAsync().ConfigureAwait(false);
+            }
         }
 
         _clients.Clear();
+        Volatile.Write(ref _firstClient, null);
     }
 
     public async ValueTask DisposeAsync()
@@ -125,5 +166,14 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
 
         await ResetAsync().ConfigureAwait(false);
         _disposed = true;
+    }
+
+    private sealed class ClientEntry(
+        (string Name, OperationType Type) key,
+        ISourceSchemaClient client)
+    {
+        public (string Name, OperationType Type) Key { get; } = key;
+
+        public ISourceSchemaClient Client { get; } = client;
     }
 }
