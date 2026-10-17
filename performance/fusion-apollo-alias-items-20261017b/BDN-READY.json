@@ -1,0 +1,26 @@
+{
+  "preparedAt": "2026-10-17T17:54:48.195652+00:00",
+  "command": "flock -x /workspaces/platform-1/perf/fusion-common-path.lock taskset -c 0,8 python3 /workspaces/platform-1/.worktrees/fusion-apollo-alias-items-20261017b/performance/fusion-apollo-alias-items-20261017b/run_bdn.py",
+  "runnerSha256": "cde4ed5027ee7290dce3309b72bdcd9d89850e0bcc2bd8119e33f71584e5eebb",
+  "manifestSha256": "c98a0bbd10271e65016818918a54b4aac30e7eb484b9fc299f54f694ba4af3b7",
+  "sourceHelperCommit": "d943238c00635b08036c279fe6ae710444bb1735",
+  "nativeSchedule": [
+    "B",
+    "C4",
+    "B",
+    "C4",
+    "B"
+  ],
+  "allocationSchedule": [
+    "B",
+    "C4",
+    "B"
+  ],
+  "expectedSeconds": "85\u2013100",
+  "workDeadlineSeconds": 225,
+  "cleanupMaximumSeconds": 10,
+  "hardBoundSeconds": 240,
+  "childDeadlineSeconds": 60,
+  "noRetries": true,
+  "gates": "Native MemoryDiagnoser and calibrated allocation must show worthwhile net saving with no unresolved meaningful elapsed cost or unaffected-path anomaly; no process CPU claim. All means/adjacent controls/raw observations retained. Source removed-array bounds152/736B are not exact net expected savings."
+}

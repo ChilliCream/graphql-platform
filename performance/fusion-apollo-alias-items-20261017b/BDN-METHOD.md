@@ -1,0 +1,15 @@
+# C4 bounded native benchmark gate
+
+The existing actual HttpSourceSchemaClient fixture uses the sealed default GraphQL HTTP client, a controlled HttpMessageHandler, real request serialization and response parsing/splitting, complete enumeration/disposal and sealed arena ownership. Outgoing content is copied to Stream.Null inside the measured handler. This is an in-memory transport benchmark, not network throughput or process CPU.
+
+Three cases cover ordinary native transport, a two-item alias batch, and four alias batches of sizes 2, 3, 2, 3. Source and oracles are from d943238c00635b08036c279fe6ae710444bb1735. The exact established baseline engine and candidate d6ff7da5e203adeebb888c02c5b37965b3bac749ba8b359523f9d78d85cb1180 are overlaid onto one identical helper/dependency tree; only Execution.dll and PDB may differ.
+
+The predeclared order is native BenchmarkDotNet B/C4/B/C4/B, then separate controlled allocation B/C4/B. Each child is bounded to 60 seconds, the work deadline is 225 seconds, and verified process-group cleanup is bounded to ten seconds (hard bound below 240 seconds). A failure is retained and stops remaining launches, with no retry. Completed native results remain valid evidence if later allocation corroboration fails.
+
+Native timing uses default server GC with adaptation enabled, three seconds of prewarm per case, three fixed warmup iterations and twelve retained measured iterations of 1,000 complete operations, no outlier removal. Native MemoryDiagnoser is enabled, its exact five JSON fields are required, and TotalOperations must equal 1,000. Its allocation value is process-wide and diagnostic, not a scoped exact array count; zero or inconsistent values remain visible and require corroboration. Elapsed time is not CPU time.
+
+Controlled allocation alone sets DOTNET_GCHeapCount=4 and DOTNET_GCDynamicAdaptationMode=0, asserts realized policy, uses a 512 MiB NoGC region, before/after exact 523,240-byte process and thread calibration, zero collection counts, completed-operation counts and successful EndNoGCRegion. Three 1,000-operation regions per case retain raw process bytes and idle-background observations without subtraction. No NoGC region surrounds BenchmarkDotNet's native diagnostic iteration.
+
+Removed arrays predict upper bounds of 152 B for alias2 and 736 B for the sequence, not guaranteed net savings: the changed async iterator can have different state-machine overhead. Actual native and calibrated evidence must establish worthwhile net savings, and meaningful elapsed cost or unexplained unaffected-path behavior prevents promotion. Ordinary is the unaffected control. No HTTP/VU or implementation PR is authorized by this micro gate alone.
+
+Before execution, freeze hashes and both-arm default/fixed check-only oracles must pass. Check-only performs one oracle operation per case with no warmup or measurement loops. All other workers must explicitly be quiet, the exclusive common lock must be free, and exact PID/start identities and cleanup must be recorded. Native source/output, all observations, invalid attempts and both adjacent controls will be published.
