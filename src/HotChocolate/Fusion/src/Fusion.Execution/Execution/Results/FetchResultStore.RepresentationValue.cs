@@ -18,12 +18,16 @@ namespace HotChocolate.Fusion.Execution.Results;
 
 internal sealed partial class FetchResultStore
 {
+    private const int MaxPooledRepresentationPathLength = 1024;
+    private const int MaxRetainedRepresentationPathBuffers = 16;
     private const string RepresentationsVariableName = "representations";
     private const string TypeNameFieldName = "__typename";
     private static ReadOnlySpan<byte> TypeNameFieldNameUtf8 => "__typename"u8;
 
     private static readonly ArrayPool<EntityResultPath> s_entityResultPathPool =
         ArrayPool<EntityResultPath>.Shared;
+
+    private List<CompactPath[]>? _representationPathBuffers;
 
     public bool AddRepresentationResult(
         SelectionPath sourcePath,
@@ -389,7 +393,7 @@ internal sealed partial class FetchResultStore
         WriteRequestVariableProperties(requestVariables);
         _jsonWriter.WriteEndObject();
 
-        additionalPaths.ApplyTo(resultPaths, count);
+        additionalPaths.ApplyTo(this, resultPaths, count);
         additionalPaths.Dispose();
 
         var length = _variableWriter.Position - startPosition;
@@ -1824,6 +1828,49 @@ internal sealed partial class FetchResultStore
         _seenPaths.Clear();
     }
 
+    private CompactPath[] RentRepresentationPaths(int length)
+    {
+        if (length > MaxPooledRepresentationPathLength)
+        {
+            return new CompactPath[length];
+        }
+
+        var buffers = _representationPathBuffers ??= [];
+        var buffer = ArrayPool<CompactPath>.Shared.Rent(length);
+
+        try
+        {
+            buffers.Add(buffer);
+        }
+        catch
+        {
+            ArrayPool<CompactPath>.Shared.Return(buffer, clearArray: true);
+            throw;
+        }
+
+        return buffer;
+    }
+
+    private void ReleaseRepresentationPaths()
+    {
+        if (_representationPathBuffers is not { } buffers)
+        {
+            return;
+        }
+
+        foreach (var buffer in buffers)
+        {
+            ArrayPool<CompactPath>.Shared.Return(buffer, clearArray: true);
+        }
+
+        buffers.Clear();
+
+        if (buffers.Capacity > MaxRetainedRepresentationPathBuffers)
+        {
+            _representationPathBuffers = null;
+        }
+    }
+
     private enum RepresentationWriteResult
     {
         Skipped,
@@ -1872,7 +1919,7 @@ internal sealed partial class FetchResultStore
             }
         }
 
-        public void ApplyTo(EntityResultPath[] resultPaths, int slotCount)
+        public void ApplyTo(FetchResultStore owner, EntityResultPath[] resultPaths, int slotCount)
         {
             if (_count == 0)
             {
@@ -1903,7 +1950,7 @@ internal sealed partial class FetchResultStore
                 : new int[slotCount];
             offsets.CopyTo(writePos);
 
-            var shared = new CompactPath[_count];
+            var shared = owner.RentRepresentationPaths(_count);
 
             for (var i = 0; i < _count; i++)
             {

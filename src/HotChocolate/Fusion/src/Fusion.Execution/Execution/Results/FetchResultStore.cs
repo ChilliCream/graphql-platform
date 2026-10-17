@@ -2533,6 +2533,8 @@ AddErrors_Next:
         }
 
         _memory.Clear();
+        ReleaseRepresentationPaths();
+        _representationPathBuffers = null;
 
         _variableDedupTable.Dispose();
         _variableWriter.Dispose();

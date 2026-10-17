@@ -15,14 +15,19 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 
 public sealed class ApolloOperationExecutionNodeTests : FusionTestBase
 {
-    [Fact]
-    public async Task ExecuteAsync_Should_DisposeUnmergedResult_When_SourceStreamIsCanceled()
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task ExecuteAsync_Should_DisposeUnmergedResult_When_SourceStreamFails(
+        bool duplicateEntities,
+        bool throwException)
     {
         // arrange
         using var arena = new MemoryArena();
         using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(
             TestContext.Current.CancellationToken);
-        var client = new YieldThenCancelClient(arena, cancellation);
+        var client = new YieldThenFailClient(arena, cancellation, duplicateEntities, throwException);
         var services = new ServiceCollection();
         services.AddHttpClient();
         var builder = services.AddGraphQLGateway().AddInMemoryConfiguration(ComposeApolloSchema());
@@ -35,7 +40,9 @@ public sealed class ApolloOperationExecutionNodeTests : FusionTestBase
                 setup.ClientConfigurationModifiers.Add(_ => new TestClientConfiguration("b"));
             });
         var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
-        var request = OperationRequestBuilder.New().SetDocument("{ product { name } }").Build();
+        var request = OperationRequestBuilder.New()
+            .SetDocument(duplicateEntities ? "{ products { name } }" : "{ product { name } }")
+            .Build();
 
         // act
         await using var result = await executor.ExecuteAsync(request, cancellation.Token);
@@ -46,9 +53,19 @@ public sealed class ApolloOperationExecutionNodeTests : FusionTestBase
             nameof(ObjectDisposedException),
             Record.Exception(() => client.Document!.Root.GetProperty("data"))?.GetType().Name);
         Assert.True(client.EnumeratorDisposed);
-        Assert.Equal(
-            ErrorCodes.Execution.Canceled,
-            result.ExpectOperationResult().Errors!.Single().Extensions!["code"]);
+        if (throwException)
+        {
+            Assert.Equal(
+                [Path.Root.Append("products").Append(0).Append("name"),
+                    Path.Root.Append("products").Append(1).Append("name")],
+                result.ExpectOperationResult().Errors!.Select(error => error.Path));
+        }
+        else
+        {
+            Assert.Equal(
+                ErrorCodes.Execution.Canceled,
+                result.ExpectOperationResult().Errors!.Single().Extensions!["code"]);
+        }
     }
 
     private static DocumentNode ComposeApolloSchema()
@@ -58,9 +75,11 @@ public sealed class ApolloOperationExecutionNodeTests : FusionTestBase
             schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"]) {
               query: Query
             }
+            directive @listSize(assumedSize: Int, slicingArguments: [String!], sizedFields: [String!], requireOneSlicingArgument: Boolean = true) on FIELD_DEFINITION
             type Product @key(fields: "id") { id: ID! }
             type Query {
               product: Product
+              products: [Product] @listSize(assumedSize: 2, requireOneSlicingArgument: false)
               _service: _Service!
               _entities(representations: [_Any!]!): [_Entity]!
             }
@@ -107,12 +126,16 @@ public sealed class ApolloOperationExecutionNodeTests : FusionTestBase
         return result.Value.ToSyntaxNode();
     }
 
-    private sealed class YieldThenCancelClient(
+    private sealed class YieldThenFailClient(
         MemoryArena arena,
-        CancellationTokenSource cancellation) : ISourceSchemaClient
+        CancellationTokenSource cancellation,
+        bool duplicateEntities,
+        bool throwException) : ISourceSchemaClient
     {
         private static readonly byte[] s_root =
             """{"data":{"product":{"__typename":"Product","id":"1"}}}"""u8.ToArray();
+        private static readonly byte[] s_duplicates =
+            """{"data":{"products":[{"__typename":"Product","id":"1"},{"__typename":"Product","id":"1"}]}}"""u8.ToArray();
         private static readonly byte[] s_entity =
             """{"data":{"_entities":[{"name":"value"}]}}"""u8.ToArray();
 
@@ -131,7 +154,8 @@ public sealed class ApolloOperationExecutionNodeTests : FusionTestBase
         {
             if (request.Node is not ApolloOperationExecutionNode)
             {
-                var root = SourceResultDocument.Parse(context.Memory, s_root, s_root.Length);
+                var payload = duplicateEntities ? s_duplicates : s_root;
+                var root = SourceResultDocument.Parse(context.Memory, payload, payload.Length);
                 yield return new SourceSchemaResult(CompactPath.Root, root);
                 yield break;
             }
@@ -143,6 +167,11 @@ public sealed class ApolloOperationExecutionNodeTests : FusionTestBase
                 Document = SourceResultDocument.Parse(arena, s_entity, s_entity.Length);
                 yield return new SourceSchemaResult(CompactPath.Root, Document);
                 await Task.Yield();
+                if (throwException)
+                {
+                    throw new InvalidOperationException("Transport failed.");
+                }
+
                 cancellation.Cancel();
                 cancellationToken.ThrowIfCancellationRequested();
             }

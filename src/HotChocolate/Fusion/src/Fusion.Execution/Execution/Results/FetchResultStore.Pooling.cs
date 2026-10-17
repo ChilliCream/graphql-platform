@@ -77,6 +77,7 @@ internal sealed partial class FetchResultStore
             pending.Dispose();
         }
 
+        ReleaseRepresentationPaths();
         _arena = arena;
 
         _result = new CompositeResultDocument(
@@ -133,6 +134,8 @@ internal sealed partial class FetchResultStore
         {
             memory.Dispose();
         }
+
+        ReleaseRepresentationPaths();
 
         // free this request's path segment arrays for the next request
         _pathPool?.Reset();

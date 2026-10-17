@@ -250,6 +250,133 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             """);
     }
 
+    [Theory]
+    [InlineData(2)]
+    [InlineData(97)]
+    [InlineData(1026)]
+    public void CreateRepresentationVariableValueFromSnapshot_Should_PreserveEveryDuplicatePath_When_MultipleRepresentationsRemainPending(int count)
+    {
+        // arrange
+        using var arena = new MemoryArena();
+        using var source = new FetchResultStore();
+        using var target = CreateSnapshotStore(arena);
+        var firstEntries = CreateDuplicateEntries(source, count, 1);
+        var secondEntries = CreateDuplicateEntries(source, count, 2);
+
+        // act
+        var first = CreateDuplicateRepresentation(target, firstEntries);
+        var second = CreateDuplicateRepresentation(target, secondEntries);
+
+        // assert
+        Assert.Equal(firstEntries[0].Path, first.ResultPaths[0].Path);
+        Assert.Equal(
+            firstEntries.Skip(1).Select(t => t.Path),
+            first.ResultPaths[0].AdditionalPaths.AsSpan().ToArray());
+        Assert.Equal(secondEntries[0].Path, second.ResultPaths[0].Path);
+        Assert.Equal(
+            secondEntries.Skip(1).Select(t => t.Path),
+            second.ResultPaths[0].AdditionalPaths.AsSpan().ToArray());
+    }
+
+    [Fact]
+    public async Task CreateRepresentationVariableValueFromSnapshot_Should_IsolatePendingPaths_When_FetchesRunConcurrently()
+    {
+        // arrange
+        using var arena = new MemoryArena();
+        using var source = new FetchResultStore();
+        using var target = CreateSnapshotStore(arena);
+        var inputs = Enumerable.Range(1, 8)
+            .Select(group => CreateDuplicateEntries(source, 97, group))
+            .ToArray();
+
+        // act
+        var outputs = await Task.WhenAll(inputs.Select(entries =>
+            Task.Run(() => CreateDuplicateRepresentation(target, entries))));
+
+        // assert
+        for (var i = 0; i < inputs.Length; i++)
+        {
+            Assert.Equal(inputs[i][0].Path, outputs[i].ResultPaths[0].Path);
+            Assert.Equal(
+                inputs[i].Skip(1).Select(t => t.Path),
+                outputs[i].ResultPaths[0].AdditionalPaths.AsSpan().ToArray());
+        }
+    }
+
+    [Theory]
+    [InlineData("clean")]
+    [InlineData("reset")]
+    [InlineData("dispose")]
+    public void CreateRepresentationVariableValueFromSnapshot_Should_PreserveDetachedPaths_When_StoreLifetimeEnds(string completion)
+    {
+        // arrange
+        using var arena = new MemoryArena();
+        using var nextArena = new MemoryArena();
+        using var source = new FetchResultStore();
+        using var target = CreateSnapshotStore(arena);
+        var entries = CreateDuplicateEntries(source, 97, 1);
+        var representation = CreateDuplicateRepresentation(target, entries);
+        var detached = representation.ResultPaths[0].AdditionalPaths.Detach();
+
+        // act
+        switch (completion)
+        {
+            case "clean":
+                target.Clean(64, 64);
+                target.Initialize(
+                    nextArena,
+                    s_schema,
+                    DefaultErrorHandler.Default,
+                    s_operation,
+                    ErrorHandlingMode.Propagate,
+                    includeFlags: default,
+                    deferFlags: default,
+                    pathSegmentLocalPoolCapacity: 16);
+                CreateDuplicateRepresentation(target, CreateDuplicateEntries(source, 97, 2));
+                break;
+
+            case "reset":
+                target.Reset(nextArena);
+                CreateDuplicateRepresentation(target, CreateDuplicateEntries(source, 97, 2));
+                break;
+
+            case "dispose":
+                target.Dispose();
+                using (var other = CreateSnapshotStore(nextArena))
+                {
+                    CreateDuplicateRepresentation(other, CreateDuplicateEntries(source, 97, 2));
+                }
+                break;
+        }
+
+        // assert
+        Assert.Equal(entries.Skip(1).Select(t => t.Path), detached.AsSpan().ToArray());
+    }
+
+    private static ImmutableArray<VariableValues> CreateDuplicateEntries(
+        FetchResultStore source,
+        int count,
+        int group)
+        => Enumerable.Range(0, count)
+            .Select(i => CreateEntry(
+                source,
+                Path(group, ~i),
+                Field("__fusion_1_id", new IntValueNode(group))))
+            .ToImmutableArray();
+
+    private static RepresentationValue CreateDuplicateRepresentation(
+        FetchResultStore target,
+        ImmutableArray<VariableValues> entries)
+        => CreateRepresentationFromSnapshot(
+            target,
+            s_schema,
+            entries,
+            ImportedKeys("__fusion_1_id"),
+            [],
+            [Requirement("__fusion_1_id", "id")],
+            "Foo",
+            ParseLookupField("{ fooById(id: $__fusion_1_id) { id } }"));
+
     [Fact]
     public void CreateRepresentationVariableValueFromSnapshot_Should_ReturnEmpty_When_AllEntriesAreEmpty()
     {

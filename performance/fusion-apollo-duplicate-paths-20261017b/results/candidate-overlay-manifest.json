@@ -1,0 +1,24 @@
+{
+  "utc": "2026-10-17T16:13:02.642352+00:00",
+  "baseline": "43a8dca2bd479ddc411d832ed97e42d9fcc8bd85",
+  "worktree": "/workspaces/platform-1/.worktrees/fusion-apollo-duplicate-paths-20261017b",
+  "build_configuration": "Release net10.0; SDK 11.0.100-rc.1.26425.128; default local dev flags; no build servers",
+  "source_at_build": "baseline plus recorded production.patch (uncommitted at build)",
+  "production_patch_sha256": "e0f8611e979c8734bb2ab5d28442d7fce08bf91f134f9416957a4230e3cbc290",
+  "source_files": {
+    "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Results/FetchResultStore.RepresentationValue.cs": "6a450b993c64b64e4ebc2f69fa528c461e53a1d269d2b6fdb7c9028b45093ae7",
+    "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Results/FetchResultStore.Pooling.cs": "22be3ef0698a0368156a5af8a35722f871d32a58ec43b72640a7e5bbf8cba52f",
+    "src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Results/FetchResultStore.cs": "0ff33c2ce9e1b33c5e2bd7fe7f1c17ea54d2c551db2320060a03f9576b2cbf2b"
+  },
+  "files": {
+    "HotChocolate.Fusion.Execution.dll": {
+      "sha256": "359a421c3387637ab022c658266252616e0ab58e262c72ad57a47c6ca6ae50cf",
+      "size": 1247232
+    },
+    "HotChocolate.Fusion.Execution.pdb": {
+      "sha256": "bf75447d5c73a2d293240a96b51b82dec989276d74a9765963763f699c470bee",
+      "size": 456880
+    }
+  },
+  "focused_tests": "70 passed; 0 failed; .NET10.0.12"
+}

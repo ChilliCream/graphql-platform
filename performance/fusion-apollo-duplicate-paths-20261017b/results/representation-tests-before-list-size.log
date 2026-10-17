@@ -1,0 +1,24 @@
+xUnit.net v3 In-Process Runner v4.0.1+8ed8aa354c (64-bit .NET 10.0.12)
+  Discovering: HotChocolate.Fusion.Execution.Tests
+  Discovered:  HotChocolate.Fusion.Execution.Tests
+  Starting:    HotChocolate.Fusion.Execution.Tests
+    HotChocolate.Fusion.Execution.Nodes.ApolloOperationExecutionNodeTests.ExecuteAsync_Should_DisposeUnmergedResult_When_SourceStreamIsCanceled(duplicateEntities: True) [FAIL]
+      {
+        "errors": [
+          {
+            "message": "The maximum allowed type cost was exceeded.",
+            "extensions": {
+              "code": "HC0047",
+              "typeCost": "Infinity",
+              "maxTypeCost": 10000
+            }
+          }
+        ]
+      }
+      Stack Trace:
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloOperationExecutionNodeTests.cs(48,0): at HotChocolate.Fusion.Execution.Nodes.ApolloOperationExecutionNodeTests.ExecuteAsync_Should_DisposeUnmergedResult_When_SourceStreamIsCanceled(Boolean duplicateEntities)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloOperationExecutionNodeTests.cs(53,0): at HotChocolate.Fusion.Execution.Nodes.ApolloOperationExecutionNodeTests.ExecuteAsync_Should_DisposeUnmergedResult_When_SourceStreamIsCanceled(Boolean duplicateEntities)
+        --- End of stack trace from previous location ---
+  Finished:    HotChocolate.Fusion.Execution.Tests (ID = '538ede004762431b55dcc3946c5b069a3f16c5bb9ca7272ad152fa4faaf05079')
+=== TEST EXECUTION SUMMARY ===
+   HotChocolate.Fusion.Execution.Tests  Total: 69, Errors: 0, Failed: 1, Skipped: 0, Not Run: 0, Time: 0.534s
