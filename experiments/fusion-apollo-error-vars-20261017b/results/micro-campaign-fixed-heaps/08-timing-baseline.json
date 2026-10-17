@@ -1,0 +1,1706 @@
+{
+  "mode": "timing",
+  "processId": 73852,
+  "runtime": ".NET 10.0.12",
+  "IsServerGC": true,
+  "LatencyMode": 1,
+  "gcConfiguration": {
+    "ServerGC": true,
+    "ConcurrentGC": true,
+    "RetainVM": false,
+    "NoAffinitize": false,
+    "GCCpuGroup": false,
+    "GCLargePages": false,
+    "LOHThreshold": 85000,
+    "HeapCount": 4,
+    "MaxHeapCount": 0,
+    "GCHeapAffinitizeMask": 0,
+    "GCHeapAffinitizeRanges": "",
+    "GCHighMemPercent": 90,
+    "GCGen0MaxBudget": 209715200,
+    "GCHeapHardLimit": 0,
+    "GCHeapHardLimitPercent": 0,
+    "GCRegionRange": 274877906944,
+    "GCRegionSize": 0,
+    "UOHWaitBGCSizeIncPercent": 200,
+    "GCHeapHardLimitSOH": 0,
+    "GCHeapHardLimitLOH": 0,
+    "GCHeapHardLimitPOH": 0,
+    "GCHeapHardLimitSOHPercent": 0,
+    "GCHeapHardLimitLOHPercent": 0,
+    "GCHeapHardLimitPOHPercent": 0,
+    "GCConserveMem": 0,
+    "GCName": "",
+    "GCPath": "",
+    "GCDynamicAdaptationMode": 1,
+    "GCDTargetTCP": 2,
+    "GCDGen0GrowthPercent": 100,
+    "GCDGen0GrowthMinFactor": 100,
+    "GCDGen0GrowthMaxFactor": 10000
+  },
+  "stopwatchFrequency": 1000000000,
+  "variableValuesSize": 40,
+  "executionDllSha256": "9c436477e63d9c7f5c8668dcd75fec9771f500a5e71b14a1f02dd0bcf8fe6c5b",
+  "rows": [
+    {
+      "shape": {
+        "Name": "ordinary",
+        "Count": 1,
+        "Unique": 1,
+        "Batch": false,
+        "Response": "success",
+        "Ordinary": true
+      },
+      "warmIterations": 185454,
+      "warmupMilliseconds": 3000,
+      "consumed": 245454,
+      "completedOperations": 245454,
+      "sync": true,
+      "OtherThreadObserved": false,
+      "SingleCalls": 0,
+      "BatchCalls": 0,
+      "BatchRequests": 0,
+      "oracle": "{\u0022data\u0022:{\u0022products\u0022:[{\u0022id\u0022:\u00221\u0022}]}}",
+      "blocks": [
+        {
+          "block": 0,
+          "started": "2026-10-17T16:45:24.2978154Z",
+          "iterations": 5000,
+          "ticks": 58826223,
+          "nanosecondsPerOperation": 11765.2446,
+          "gc": [
+            26,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 1,
+          "started": "2026-10-17T16:45:24.3568264Z",
+          "iterations": 5000,
+          "ticks": 59424060,
+          "nanosecondsPerOperation": 11884.812,
+          "gc": [
+            25,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 2,
+          "started": "2026-10-17T16:45:24.4162515Z",
+          "iterations": 5000,
+          "ticks": 59211850,
+          "nanosecondsPerOperation": 11842.37,
+          "gc": [
+            25,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 3,
+          "started": "2026-10-17T16:45:24.475464Z",
+          "iterations": 5000,
+          "ticks": 59462644,
+          "nanosecondsPerOperation": 11892.5288,
+          "gc": [
+            25,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 4,
+          "started": "2026-10-17T16:45:24.5349277Z",
+          "iterations": 5000,
+          "ticks": 59502395,
+          "nanosecondsPerOperation": 11900.479,
+          "gc": [
+            25,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 5,
+          "started": "2026-10-17T16:45:24.5944314Z",
+          "iterations": 5000,
+          "ticks": 59684645,
+          "nanosecondsPerOperation": 11936.929,
+          "gc": [
+            25,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 6,
+          "started": "2026-10-17T16:45:24.6541173Z",
+          "iterations": 5000,
+          "ticks": 60010314,
+          "nanosecondsPerOperation": 12002.0628,
+          "gc": [
+            25,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 7,
+          "started": "2026-10-17T16:45:24.7141285Z",
+          "iterations": 5000,
+          "ticks": 59205351,
+          "nanosecondsPerOperation": 11841.0702,
+          "gc": [
+            25,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 8,
+          "started": "2026-10-17T16:45:24.7733343Z",
+          "iterations": 5000,
+          "ticks": 59578395,
+          "nanosecondsPerOperation": 11915.679,
+          "gc": [
+            26,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 9,
+          "started": "2026-10-17T16:45:24.8329254Z",
+          "iterations": 5000,
+          "ticks": 58996641,
+          "nanosecondsPerOperation": 11799.3282,
+          "gc": [
+            25,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 10,
+          "started": "2026-10-17T16:45:24.891923Z",
+          "iterations": 5000,
+          "ticks": 65686018,
+          "nanosecondsPerOperation": 13137.2036,
+          "gc": [
+            25,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 11,
+          "started": "2026-10-17T16:45:24.9576112Z",
+          "iterations": 5000,
+          "ticks": 60655443,
+          "nanosecondsPerOperation": 12131.0886,
+          "gc": [
+            25,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "shape": {
+        "Name": "unique1",
+        "Count": 1,
+        "Unique": 1,
+        "Batch": false,
+        "Response": "success",
+        "Ordinary": false
+      },
+      "warmIterations": 131081,
+      "warmupMilliseconds": 3000,
+      "consumed": 191081,
+      "completedOperations": 191081,
+      "sync": false,
+      "OtherThreadObserved": true,
+      "SingleCalls": 191082,
+      "BatchCalls": 0,
+      "BatchRequests": 0,
+      "oracle": "{\u0022data\u0022:{\u0022products\u0022:[{\u0022name\u0022:\u0022Name1\u0022}]}}",
+      "blocks": [
+        {
+          "block": 0,
+          "started": "2026-10-17T16:45:28.0525162Z",
+          "iterations": 5000,
+          "ticks": 111818241,
+          "nanosecondsPerOperation": 22363.6482,
+          "gc": [
+            26,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 1,
+          "started": "2026-10-17T16:45:28.1643412Z",
+          "iterations": 5000,
+          "ticks": 106341163,
+          "nanosecondsPerOperation": 21268.2326,
+          "gc": [
+            27,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 2,
+          "started": "2026-10-17T16:45:28.2706853Z",
+          "iterations": 5000,
+          "ticks": 113183625,
+          "nanosecondsPerOperation": 22636.725,
+          "gc": [
+            28,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 3,
+          "started": "2026-10-17T16:45:28.3838698Z",
+          "iterations": 5000,
+          "ticks": 108210008,
+          "nanosecondsPerOperation": 21642.0016,
+          "gc": [
+            27,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 4,
+          "started": "2026-10-17T16:45:28.4920809Z",
+          "iterations": 5000,
+          "ticks": 112442870,
+          "nanosecondsPerOperation": 22488.574,
+          "gc": [
+            27,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 5,
+          "started": "2026-10-17T16:45:28.6045252Z",
+          "iterations": 5000,
+          "ticks": 97818524,
+          "nanosecondsPerOperation": 19563.7048,
+          "gc": [
+            27,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 6,
+          "started": "2026-10-17T16:45:28.702345Z",
+          "iterations": 5000,
+          "ticks": 108936681,
+          "nanosecondsPerOperation": 21787.3362,
+          "gc": [
+            27,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 7,
+          "started": "2026-10-17T16:45:28.811283Z",
+          "iterations": 5000,
+          "ticks": 109357475,
+          "nanosecondsPerOperation": 21871.495,
+          "gc": [
+            27,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 8,
+          "started": "2026-10-17T16:45:28.9206419Z",
+          "iterations": 5000,
+          "ticks": 116623522,
+          "nanosecondsPerOperation": 23324.7044,
+          "gc": [
+            27,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 9,
+          "started": "2026-10-17T16:45:29.0372674Z",
+          "iterations": 5000,
+          "ticks": 112418079,
+          "nanosecondsPerOperation": 22483.6158,
+          "gc": [
+            27,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 10,
+          "started": "2026-10-17T16:45:29.1496865Z",
+          "iterations": 5000,
+          "ticks": 110806401,
+          "nanosecondsPerOperation": 22161.2802,
+          "gc": [
+            27,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 11,
+          "started": "2026-10-17T16:45:29.260496Z",
+          "iterations": 5000,
+          "ticks": 111182112,
+          "nanosecondsPerOperation": 22236.4224,
+          "gc": [
+            28,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "shape": {
+        "Name": "unique5",
+        "Count": 5,
+        "Unique": 5,
+        "Batch": false,
+        "Response": "success",
+        "Ordinary": false
+      },
+      "warmIterations": 131421,
+      "warmupMilliseconds": 3000,
+      "consumed": 191421,
+      "completedOperations": 191421,
+      "sync": false,
+      "OtherThreadObserved": true,
+      "SingleCalls": 191422,
+      "BatchCalls": 0,
+      "BatchRequests": 0,
+      "oracle": "{\u0022data\u0022:{\u0022products\u0022:[{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022}]}}",
+      "blocks": [
+        {
+          "block": 0,
+          "started": "2026-10-17T16:45:32.3780459Z",
+          "iterations": 5000,
+          "ticks": 120309464,
+          "nanosecondsPerOperation": 24061.8928,
+          "gc": [
+            28,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 1,
+          "started": "2026-10-17T16:45:32.498361Z",
+          "iterations": 5000,
+          "ticks": 116871982,
+          "nanosecondsPerOperation": 23374.3964,
+          "gc": [
+            28,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 2,
+          "started": "2026-10-17T16:45:32.6152337Z",
+          "iterations": 5000,
+          "ticks": 120708133,
+          "nanosecondsPerOperation": 24141.6266,
+          "gc": [
+            27,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 3,
+          "started": "2026-10-17T16:45:32.7359476Z",
+          "iterations": 5000,
+          "ticks": 121775224,
+          "nanosecondsPerOperation": 24355.0448,
+          "gc": [
+            28,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 4,
+          "started": "2026-10-17T16:45:32.8577249Z",
+          "iterations": 5000,
+          "ticks": 121578181,
+          "nanosecondsPerOperation": 24315.6362,
+          "gc": [
+            28,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 5,
+          "started": "2026-10-17T16:45:32.9793128Z",
+          "iterations": 5000,
+          "ticks": 108109341,
+          "nanosecondsPerOperation": 21621.8682,
+          "gc": [
+            27,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 6,
+          "started": "2026-10-17T16:45:33.0874243Z",
+          "iterations": 5000,
+          "ticks": 118154866,
+          "nanosecondsPerOperation": 23630.9732,
+          "gc": [
+            27,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 7,
+          "started": "2026-10-17T16:45:33.2055808Z",
+          "iterations": 5000,
+          "ticks": 120725800,
+          "nanosecondsPerOperation": 24145.16,
+          "gc": [
+            28,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 8,
+          "started": "2026-10-17T16:45:33.3263073Z",
+          "iterations": 5000,
+          "ticks": 116073394,
+          "nanosecondsPerOperation": 23214.6788,
+          "gc": [
+            27,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 9,
+          "started": "2026-10-17T16:45:33.4423912Z",
+          "iterations": 5000,
+          "ticks": 123554944,
+          "nanosecondsPerOperation": 24710.9888,
+          "gc": [
+            25,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 10,
+          "started": "2026-10-17T16:45:33.5659477Z",
+          "iterations": 5000,
+          "ticks": 120293839,
+          "nanosecondsPerOperation": 24058.7678,
+          "gc": [
+            28,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 11,
+          "started": "2026-10-17T16:45:33.6862424Z",
+          "iterations": 5000,
+          "ticks": 111094361,
+          "nanosecondsPerOperation": 22218.8722,
+          "gc": [
+            27,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "shape": {
+        "Name": "unique6",
+        "Count": 6,
+        "Unique": 6,
+        "Batch": false,
+        "Response": "success",
+        "Ordinary": false
+      },
+      "warmIterations": 124774,
+      "warmupMilliseconds": 3000,
+      "consumed": 184774,
+      "completedOperations": 184774,
+      "sync": false,
+      "OtherThreadObserved": true,
+      "SingleCalls": 184775,
+      "BatchCalls": 0,
+      "BatchRequests": 0,
+      "oracle": "{\u0022data\u0022:{\u0022products\u0022:[{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022}]}}",
+      "blocks": [
+        {
+          "block": 0,
+          "started": "2026-10-17T16:45:36.8069467Z",
+          "iterations": 5000,
+          "ticks": 125791708,
+          "nanosecondsPerOperation": 25158.3416,
+          "gc": [
+            28,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 1,
+          "started": "2026-10-17T16:45:36.9327407Z",
+          "iterations": 5000,
+          "ticks": 126516463,
+          "nanosecondsPerOperation": 25303.2926,
+          "gc": [
+            28,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 2,
+          "started": "2026-10-17T16:45:37.0592583Z",
+          "iterations": 5000,
+          "ticks": 125817542,
+          "nanosecondsPerOperation": 25163.5084,
+          "gc": [
+            29,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 3,
+          "started": "2026-10-17T16:45:37.185077Z",
+          "iterations": 5000,
+          "ticks": 125157830,
+          "nanosecondsPerOperation": 25031.566,
+          "gc": [
+            29,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 4,
+          "started": "2026-10-17T16:45:37.3102357Z",
+          "iterations": 5000,
+          "ticks": 117494862,
+          "nanosecondsPerOperation": 23498.9724,
+          "gc": [
+            28,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 5,
+          "started": "2026-10-17T16:45:37.4277315Z",
+          "iterations": 5000,
+          "ticks": 120104504,
+          "nanosecondsPerOperation": 24020.9008,
+          "gc": [
+            28,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 6,
+          "started": "2026-10-17T16:45:37.5478369Z",
+          "iterations": 5000,
+          "ticks": 109919895,
+          "nanosecondsPerOperation": 21983.979,
+          "gc": [
+            27,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 7,
+          "started": "2026-10-17T16:45:37.6577575Z",
+          "iterations": 5000,
+          "ticks": 125556082,
+          "nanosecondsPerOperation": 25111.2164,
+          "gc": [
+            28,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 8,
+          "started": "2026-10-17T16:45:37.7833182Z",
+          "iterations": 5000,
+          "ticks": 106243079,
+          "nanosecondsPerOperation": 21248.6158,
+          "gc": [
+            27,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 9,
+          "started": "2026-10-17T16:45:37.8895628Z",
+          "iterations": 5000,
+          "ticks": 111848533,
+          "nanosecondsPerOperation": 22369.7066,
+          "gc": [
+            28,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 10,
+          "started": "2026-10-17T16:45:38.001412Z",
+          "iterations": 5000,
+          "ticks": 119298082,
+          "nanosecondsPerOperation": 23859.6164,
+          "gc": [
+            27,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 11,
+          "started": "2026-10-17T16:45:38.120712Z",
+          "iterations": 5000,
+          "ticks": 125789375,
+          "nanosecondsPerOperation": 25157.875,
+          "gc": [
+            28,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "shape": {
+        "Name": "unique9",
+        "Count": 9,
+        "Unique": 9,
+        "Batch": false,
+        "Response": "success",
+        "Ordinary": false
+      },
+      "warmIterations": 114134,
+      "warmupMilliseconds": 3000,
+      "consumed": 174134,
+      "completedOperations": 174134,
+      "sync": false,
+      "OtherThreadObserved": true,
+      "SingleCalls": 174135,
+      "BatchCalls": 0,
+      "BatchRequests": 0,
+      "oracle": "{\u0022data\u0022:{\u0022products\u0022:[{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name7\u0022},{\u0022name\u0022:\u0022Name8\u0022},{\u0022name\u0022:\u0022Name9\u0022}]}}",
+      "blocks": [
+        {
+          "block": 0,
+          "started": "2026-10-17T16:45:41.2509407Z",
+          "iterations": 5000,
+          "ticks": 117752906,
+          "nanosecondsPerOperation": 23550.5812,
+          "gc": [
+            28,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 1,
+          "started": "2026-10-17T16:45:41.3686952Z",
+          "iterations": 5000,
+          "ticks": 131137453,
+          "nanosecondsPerOperation": 26227.4906,
+          "gc": [
+            27,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 2,
+          "started": "2026-10-17T16:45:41.4998336Z",
+          "iterations": 5000,
+          "ticks": 132395960,
+          "nanosecondsPerOperation": 26479.192,
+          "gc": [
+            29,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 3,
+          "started": "2026-10-17T16:45:41.6322306Z",
+          "iterations": 5000,
+          "ticks": 133275591,
+          "nanosecondsPerOperation": 26655.1182,
+          "gc": [
+            29,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 4,
+          "started": "2026-10-17T16:45:41.7655076Z",
+          "iterations": 5000,
+          "ticks": 134713810,
+          "nanosecondsPerOperation": 26942.762,
+          "gc": [
+            28,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 5,
+          "started": "2026-10-17T16:45:41.9002228Z",
+          "iterations": 5000,
+          "ticks": 133802678,
+          "nanosecondsPerOperation": 26760.5356,
+          "gc": [
+            27,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 6,
+          "started": "2026-10-17T16:45:42.0340262Z",
+          "iterations": 5000,
+          "ticks": 134970269,
+          "nanosecondsPerOperation": 26994.0538,
+          "gc": [
+            30,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 7,
+          "started": "2026-10-17T16:45:42.1689972Z",
+          "iterations": 5000,
+          "ticks": 134670559,
+          "nanosecondsPerOperation": 26934.1118,
+          "gc": [
+            29,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 8,
+          "started": "2026-10-17T16:45:42.3036683Z",
+          "iterations": 5000,
+          "ticks": 120307006,
+          "nanosecondsPerOperation": 24061.4012,
+          "gc": [
+            28,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 9,
+          "started": "2026-10-17T16:45:42.4239765Z",
+          "iterations": 5000,
+          "ticks": 128670352,
+          "nanosecondsPerOperation": 25734.0704,
+          "gc": [
+            28,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 10,
+          "started": "2026-10-17T16:45:42.5526481Z",
+          "iterations": 5000,
+          "ticks": 136904490,
+          "nanosecondsPerOperation": 27380.898,
+          "gc": [
+            28,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 11,
+          "started": "2026-10-17T16:45:42.6895591Z",
+          "iterations": 5000,
+          "ticks": 116620397,
+          "nanosecondsPerOperation": 23324.0794,
+          "gc": [
+            27,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "shape": {
+        "Name": "duplicate96-to1",
+        "Count": 96,
+        "Unique": 1,
+        "Batch": false,
+        "Response": "success",
+        "Ordinary": false
+      },
+      "warmIterations": 53131,
+      "warmupMilliseconds": 3000,
+      "consumed": 113131,
+      "completedOperations": 113131,
+      "sync": false,
+      "OtherThreadObserved": true,
+      "SingleCalls": 113132,
+      "BatchCalls": 0,
+      "BatchRequests": 0,
+      "oracle": "{\u0022data\u0022:{\u0022products\u0022:[{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022}]}}",
+      "blocks": [
+        {
+          "block": 0,
+          "started": "2026-10-17T16:45:45.8138733Z",
+          "iterations": 5000,
+          "ticks": 282796225,
+          "nanosecondsPerOperation": 56559.245,
+          "gc": [
+            29,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 1,
+          "started": "2026-10-17T16:45:46.0966719Z",
+          "iterations": 5000,
+          "ticks": 289468839,
+          "nanosecondsPerOperation": 57893.7678,
+          "gc": [
+            29,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 2,
+          "started": "2026-10-17T16:45:46.3861424Z",
+          "iterations": 5000,
+          "ticks": 281985887,
+          "nanosecondsPerOperation": 56397.1774,
+          "gc": [
+            29,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 3,
+          "started": "2026-10-17T16:45:46.6681367Z",
+          "iterations": 5000,
+          "ticks": 281000800,
+          "nanosecondsPerOperation": 56200.16,
+          "gc": [
+            28,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 4,
+          "started": "2026-10-17T16:45:46.9491394Z",
+          "iterations": 5000,
+          "ticks": 281285967,
+          "nanosecondsPerOperation": 56257.1934,
+          "gc": [
+            29,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 5,
+          "started": "2026-10-17T16:45:47.2304271Z",
+          "iterations": 5000,
+          "ticks": 277997743,
+          "nanosecondsPerOperation": 55599.5486,
+          "gc": [
+            29,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 6,
+          "started": "2026-10-17T16:45:47.5084255Z",
+          "iterations": 5000,
+          "ticks": 282534557,
+          "nanosecondsPerOperation": 56506.9114,
+          "gc": [
+            29,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 7,
+          "started": "2026-10-17T16:45:47.790961Z",
+          "iterations": 5000,
+          "ticks": 275654566,
+          "nanosecondsPerOperation": 55130.9132,
+          "gc": [
+            29,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 8,
+          "started": "2026-10-17T16:45:48.0666163Z",
+          "iterations": 5000,
+          "ticks": 276572737,
+          "nanosecondsPerOperation": 55314.5474,
+          "gc": [
+            28,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 9,
+          "started": "2026-10-17T16:45:48.34319Z",
+          "iterations": 5000,
+          "ticks": 281939387,
+          "nanosecondsPerOperation": 56387.8774,
+          "gc": [
+            29,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 10,
+          "started": "2026-10-17T16:45:48.6251301Z",
+          "iterations": 5000,
+          "ticks": 276494778,
+          "nanosecondsPerOperation": 55298.9556,
+          "gc": [
+            29,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 11,
+          "started": "2026-10-17T16:45:48.9016256Z",
+          "iterations": 5000,
+          "ticks": 273960682,
+          "nanosecondsPerOperation": 54792.1364,
+          "gc": [
+            29,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "shape": {
+        "Name": "mixed96-to6",
+        "Count": 96,
+        "Unique": 6,
+        "Batch": false,
+        "Response": "success",
+        "Ordinary": false
+      },
+      "warmIterations": 52267,
+      "warmupMilliseconds": 3000,
+      "consumed": 112267,
+      "completedOperations": 112267,
+      "sync": false,
+      "OtherThreadObserved": true,
+      "SingleCalls": 112268,
+      "BatchCalls": 0,
+      "BatchRequests": 0,
+      "oracle": "{\u0022data\u0022:{\u0022products\u0022:[{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022}]}}",
+      "blocks": [
+        {
+          "block": 0,
+          "started": "2026-10-17T16:45:52.1792918Z",
+          "iterations": 5000,
+          "ticks": 290450387,
+          "nanosecondsPerOperation": 58090.0774,
+          "gc": [
+            29,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 1,
+          "started": "2026-10-17T16:45:52.4697445Z",
+          "iterations": 5000,
+          "ticks": 284198023,
+          "nanosecondsPerOperation": 56839.6046,
+          "gc": [
+            29,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 2,
+          "started": "2026-10-17T16:45:52.753944Z",
+          "iterations": 5000,
+          "ticks": 285482988,
+          "nanosecondsPerOperation": 57096.5976,
+          "gc": [
+            29,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 3,
+          "started": "2026-10-17T16:45:53.0394284Z",
+          "iterations": 5000,
+          "ticks": 285040152,
+          "nanosecondsPerOperation": 57008.0304,
+          "gc": [
+            29,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 4,
+          "started": "2026-10-17T16:45:53.3244693Z",
+          "iterations": 5000,
+          "ticks": 283338977,
+          "nanosecondsPerOperation": 56667.7954,
+          "gc": [
+            29,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 5,
+          "started": "2026-10-17T16:45:53.6078127Z",
+          "iterations": 5000,
+          "ticks": 282313640,
+          "nanosecondsPerOperation": 56462.728,
+          "gc": [
+            29,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 6,
+          "started": "2026-10-17T16:45:53.8901275Z",
+          "iterations": 5000,
+          "ticks": 280433671,
+          "nanosecondsPerOperation": 56086.7342,
+          "gc": [
+            29,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 7,
+          "started": "2026-10-17T16:45:54.1705621Z",
+          "iterations": 5000,
+          "ticks": 273124595,
+          "nanosecondsPerOperation": 54624.919,
+          "gc": [
+            29,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 8,
+          "started": "2026-10-17T16:45:54.4436878Z",
+          "iterations": 5000,
+          "ticks": 279312499,
+          "nanosecondsPerOperation": 55862.4998,
+          "gc": [
+            29,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 9,
+          "started": "2026-10-17T16:45:54.7230016Z",
+          "iterations": 5000,
+          "ticks": 294944616,
+          "nanosecondsPerOperation": 58988.9232,
+          "gc": [
+            29,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 10,
+          "started": "2026-10-17T16:45:55.0179476Z",
+          "iterations": 5000,
+          "ticks": 289334339,
+          "nanosecondsPerOperation": 57866.8678,
+          "gc": [
+            30,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 11,
+          "started": "2026-10-17T16:45:55.3072836Z",
+          "iterations": 5000,
+          "ticks": 285716613,
+          "nanosecondsPerOperation": 57143.3226,
+          "gc": [
+            29,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "shape": {
+        "Name": "batch9",
+        "Count": 9,
+        "Unique": 9,
+        "Batch": true,
+        "Response": "success",
+        "Ordinary": false
+      },
+      "warmIterations": 83330,
+      "warmupMilliseconds": 3000,
+      "consumed": 143330,
+      "completedOperations": 143330,
+      "sync": false,
+      "OtherThreadObserved": true,
+      "SingleCalls": 0,
+      "BatchCalls": 143331,
+      "BatchRequests": 286662,
+      "oracle": "{\u0022data\u0022:{\u0022products\u0022:[{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name7\u0022},{\u0022name\u0022:\u0022Name8\u0022},{\u0022name\u0022:\u0022Name9\u0022}],\u0022categories\u0022:[{\u0022title\u0022:\u0022Name1\u0022},{\u0022title\u0022:\u0022Name2\u0022},{\u0022title\u0022:\u0022Name3\u0022},{\u0022title\u0022:\u0022Name4\u0022},{\u0022title\u0022:\u0022Name5\u0022},{\u0022title\u0022:\u0022Name6\u0022},{\u0022title\u0022:\u0022Name7\u0022},{\u0022title\u0022:\u0022Name8\u0022},{\u0022title\u0022:\u0022Name9\u0022}]}}",
+      "blocks": [
+        {
+          "block": 0,
+          "started": "2026-10-17T16:45:58.6042241Z",
+          "iterations": 5000,
+          "ticks": 183544585,
+          "nanosecondsPerOperation": 36708.917,
+          "gc": [
+            33,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 1,
+          "started": "2026-10-17T16:45:58.7877702Z",
+          "iterations": 5000,
+          "ticks": 181605617,
+          "nanosecondsPerOperation": 36321.1234,
+          "gc": [
+            33,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 2,
+          "started": "2026-10-17T16:45:58.9693766Z",
+          "iterations": 5000,
+          "ticks": 182149870,
+          "nanosecondsPerOperation": 36429.974,
+          "gc": [
+            33,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 3,
+          "started": "2026-10-17T16:45:59.1515277Z",
+          "iterations": 5000,
+          "ticks": 186436806,
+          "nanosecondsPerOperation": 37287.3612,
+          "gc": [
+            33,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 4,
+          "started": "2026-10-17T16:45:59.3379654Z",
+          "iterations": 5000,
+          "ticks": 178229642,
+          "nanosecondsPerOperation": 35645.9284,
+          "gc": [
+            32,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 5,
+          "started": "2026-10-17T16:45:59.516196Z",
+          "iterations": 5000,
+          "ticks": 173443619,
+          "nanosecondsPerOperation": 34688.7238,
+          "gc": [
+            32,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 6,
+          "started": "2026-10-17T16:45:59.6896404Z",
+          "iterations": 5000,
+          "ticks": 184582714,
+          "nanosecondsPerOperation": 36916.5428,
+          "gc": [
+            33,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 7,
+          "started": "2026-10-17T16:45:59.874224Z",
+          "iterations": 5000,
+          "ticks": 183342208,
+          "nanosecondsPerOperation": 36668.4416,
+          "gc": [
+            32,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 8,
+          "started": "2026-10-17T16:46:00.0575669Z",
+          "iterations": 5000,
+          "ticks": 175244128,
+          "nanosecondsPerOperation": 35048.8256,
+          "gc": [
+            32,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 9,
+          "started": "2026-10-17T16:46:00.2328127Z",
+          "iterations": 5000,
+          "ticks": 182933248,
+          "nanosecondsPerOperation": 36586.6496,
+          "gc": [
+            33,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 10,
+          "started": "2026-10-17T16:46:00.4157467Z",
+          "iterations": 5000,
+          "ticks": 175177586,
+          "nanosecondsPerOperation": 35035.5172,
+          "gc": [
+            32,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 11,
+          "started": "2026-10-17T16:46:00.5909252Z",
+          "iterations": 5000,
+          "ticks": 166697421,
+          "nanosecondsPerOperation": 33339.4842,
+          "gc": [
+            32,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "shape": {
+        "Name": "transport9",
+        "Count": 9,
+        "Unique": 9,
+        "Batch": false,
+        "Response": "transport",
+        "Ordinary": false
+      },
+      "warmIterations": 87207,
+      "warmupMilliseconds": 3000,
+      "consumed": 932070,
+      "completedOperations": 93207,
+      "sync": false,
+      "OtherThreadObserved": true,
+      "SingleCalls": 93208,
+      "BatchCalls": 0,
+      "BatchRequests": 0,
+      "oracle": "{\u0022errors\u0022:[{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,0,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,1,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,2,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,3,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,4,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,5,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,6,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,7,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,8,\u0022name\u0022]}],\u0022data\u0022:{\u0022products\u0022:[{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null}]}}",
+      "blocks": [
+        {
+          "block": 0,
+          "started": "2026-10-17T16:46:03.7675076Z",
+          "iterations": 500,
+          "ticks": 17759876,
+          "nanosecondsPerOperation": 35519.752,
+          "gc": [
+            3,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 1,
+          "started": "2026-10-17T16:46:03.7852687Z",
+          "iterations": 500,
+          "ticks": 17652043,
+          "nanosecondsPerOperation": 35304.086,
+          "gc": [
+            3,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 2,
+          "started": "2026-10-17T16:46:03.8029214Z",
+          "iterations": 500,
+          "ticks": 17624792,
+          "nanosecondsPerOperation": 35249.584,
+          "gc": [
+            4,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 3,
+          "started": "2026-10-17T16:46:03.8205467Z",
+          "iterations": 500,
+          "ticks": 17094123,
+          "nanosecondsPerOperation": 34188.246,
+          "gc": [
+            3,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 4,
+          "started": "2026-10-17T16:46:03.8376415Z",
+          "iterations": 500,
+          "ticks": 17404292,
+          "nanosecondsPerOperation": 34808.584,
+          "gc": [
+            3,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 5,
+          "started": "2026-10-17T16:46:03.8550468Z",
+          "iterations": 500,
+          "ticks": 16724246,
+          "nanosecondsPerOperation": 33448.492,
+          "gc": [
+            3,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 6,
+          "started": "2026-10-17T16:46:03.8717717Z",
+          "iterations": 500,
+          "ticks": 17431667,
+          "nanosecondsPerOperation": 34863.334,
+          "gc": [
+            4,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 7,
+          "started": "2026-10-17T16:46:03.889204Z",
+          "iterations": 500,
+          "ticks": 17183707,
+          "nanosecondsPerOperation": 34367.414,
+          "gc": [
+            3,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 8,
+          "started": "2026-10-17T16:46:03.9063883Z",
+          "iterations": 500,
+          "ticks": 17255374,
+          "nanosecondsPerOperation": 34510.748,
+          "gc": [
+            3,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 9,
+          "started": "2026-10-17T16:46:03.9236441Z",
+          "iterations": 500,
+          "ticks": 17171040,
+          "nanosecondsPerOperation": 34342.08,
+          "gc": [
+            3,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 10,
+          "started": "2026-10-17T16:46:03.9408159Z",
+          "iterations": 500,
+          "ticks": 17518625,
+          "nanosecondsPerOperation": 35037.25,
+          "gc": [
+            4,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 11,
+          "started": "2026-10-17T16:46:03.9583349Z",
+          "iterations": 500,
+          "ticks": 17259374,
+          "nanosecondsPerOperation": 34518.748,
+          "gc": [
+            3,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "shape": {
+        "Name": "batch-fallback9",
+        "Count": 9,
+        "Unique": 9,
+        "Batch": true,
+        "Response": "fallback",
+        "Ordinary": false
+      },
+      "warmIterations": 82595,
+      "warmupMilliseconds": 3000,
+      "consumed": 885950,
+      "completedOperations": 88595,
+      "sync": false,
+      "OtherThreadObserved": true,
+      "SingleCalls": 0,
+      "BatchCalls": 88596,
+      "BatchRequests": 177192,
+      "oracle": "{\u0022errors\u0022:[{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,0,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,1,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,2,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,3,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,4,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,5,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,6,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,7,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,8,\u0022name\u0022]}],\u0022data\u0022:{\u0022products\u0022:[{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null}],\u0022categories\u0022:[{\u0022title\u0022:\u0022Name1\u0022},{\u0022title\u0022:\u0022Name2\u0022},{\u0022title\u0022:\u0022Name3\u0022},{\u0022title\u0022:\u0022Name4\u0022},{\u0022title\u0022:\u0022Name5\u0022},{\u0022title\u0022:\u0022Name6\u0022},{\u0022title\u0022:\u0022Name7\u0022},{\u0022title\u0022:\u0022Name8\u0022},{\u0022title\u0022:\u0022Name9\u0022}]}}",
+      "blocks": [
+        {
+          "block": 0,
+          "started": "2026-10-17T16:46:06.9791685Z",
+          "iterations": 500,
+          "ticks": 18808215,
+          "nanosecondsPerOperation": 37616.43,
+          "gc": [
+            3,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 1,
+          "started": "2026-10-17T16:46:06.9979783Z",
+          "iterations": 500,
+          "ticks": 19286508,
+          "nanosecondsPerOperation": 38573.016,
+          "gc": [
+            3,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 2,
+          "started": "2026-10-17T16:46:07.0172657Z",
+          "iterations": 500,
+          "ticks": 19018257,
+          "nanosecondsPerOperation": 38036.514,
+          "gc": [
+            4,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 3,
+          "started": "2026-10-17T16:46:07.0362849Z",
+          "iterations": 500,
+          "ticks": 17405833,
+          "nanosecondsPerOperation": 34811.666,
+          "gc": [
+            3,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 4,
+          "started": "2026-10-17T16:46:07.053692Z",
+          "iterations": 500,
+          "ticks": 19385009,
+          "nanosecondsPerOperation": 38770.018,
+          "gc": [
+            4,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 5,
+          "started": "2026-10-17T16:46:07.0730786Z",
+          "iterations": 500,
+          "ticks": 19299342,
+          "nanosecondsPerOperation": 38598.684,
+          "gc": [
+            3,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 6,
+          "started": "2026-10-17T16:46:07.0923794Z",
+          "iterations": 500,
+          "ticks": 17211457,
+          "nanosecondsPerOperation": 34422.914,
+          "gc": [
+            3,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 7,
+          "started": "2026-10-17T16:46:07.1095918Z",
+          "iterations": 500,
+          "ticks": 14228193,
+          "nanosecondsPerOperation": 28456.386,
+          "gc": [
+            4,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 8,
+          "started": "2026-10-17T16:46:07.1238209Z",
+          "iterations": 500,
+          "ticks": 16691246,
+          "nanosecondsPerOperation": 33382.492,
+          "gc": [
+            3,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 9,
+          "started": "2026-10-17T16:46:07.1405132Z",
+          "iterations": 500,
+          "ticks": 18843424,
+          "nanosecondsPerOperation": 37686.848,
+          "gc": [
+            3,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 10,
+          "started": "2026-10-17T16:46:07.159358Z",
+          "iterations": 500,
+          "ticks": 19599594,
+          "nanosecondsPerOperation": 39199.188,
+          "gc": [
+            4,
+            0,
+            0
+          ]
+        },
+        {
+          "block": 11,
+          "started": "2026-10-17T16:46:07.1789586Z",
+          "iterations": 500,
+          "ticks": 14738695,
+          "nanosecondsPerOperation": 29477.39,
+          "gc": [
+            3,
+            0,
+            0
+          ]
+        }
+      ]
+    }
+  ]
+}

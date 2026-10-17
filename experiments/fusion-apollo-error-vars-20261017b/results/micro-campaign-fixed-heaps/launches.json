@@ -1,0 +1,221 @@
+[
+  {
+    "label": "01-allocation-baseline",
+    "command": [
+      "taskset",
+      "-c",
+      "2,3,10,11",
+      "dotnet",
+      "/workspaces/platform-1/perf/fusion-apollo-error-vars-20261017b-43a8dca2/frozen-fixed-heaps/baseline/HotChocolate.Fusion.Execution.Benchmarks.dll",
+      "allocation"
+    ],
+    "started": "2026-10-17T16:40:18.269537+00:00",
+    "status": "completed",
+    "runtimeEnvironment": {
+      "DOTNET_LOCAL_DEV": "1",
+      "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "1",
+      "DOTNET_GCHeapCount": "4"
+    },
+    "identity": {
+      "pid": 72186,
+      "startTicks": 377124
+    },
+    "processGroup": 72186,
+    "exitCode": 0,
+    "finished": "2026-10-17T16:40:57.653646+00:00",
+    "elapsedSeconds": 39.384150453000075,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  },
+  {
+    "label": "02-allocation-candidate",
+    "command": [
+      "taskset",
+      "-c",
+      "2,3,10,11",
+      "dotnet",
+      "/workspaces/platform-1/perf/fusion-apollo-error-vars-20261017b-43a8dca2/frozen-fixed-heaps/candidate/HotChocolate.Fusion.Execution.Benchmarks.dll",
+      "allocation"
+    ],
+    "started": "2026-10-17T16:40:57.654050+00:00",
+    "status": "completed",
+    "runtimeEnvironment": {
+      "DOTNET_LOCAL_DEV": "1",
+      "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "1",
+      "DOTNET_GCHeapCount": "4"
+    },
+    "identity": {
+      "pid": 72670,
+      "startTicks": 381062
+    },
+    "processGroup": 72670,
+    "exitCode": 0,
+    "finished": "2026-10-17T16:41:36.974168+00:00",
+    "elapsedSeconds": 39.320163673000025,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  },
+  {
+    "label": "03-allocation-baseline",
+    "command": [
+      "taskset",
+      "-c",
+      "2,3,10,11",
+      "dotnet",
+      "/workspaces/platform-1/perf/fusion-apollo-error-vars-20261017b-43a8dca2/frozen-fixed-heaps/baseline/HotChocolate.Fusion.Execution.Benchmarks.dll",
+      "allocation"
+    ],
+    "started": "2026-10-17T16:41:36.974488+00:00",
+    "status": "completed",
+    "runtimeEnvironment": {
+      "DOTNET_LOCAL_DEV": "1",
+      "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "1",
+      "DOTNET_GCHeapCount": "4"
+    },
+    "identity": {
+      "pid": 73006,
+      "startTicks": 384994
+    },
+    "processGroup": 73006,
+    "exitCode": 0,
+    "finished": "2026-10-17T16:42:16.510336+00:00",
+    "elapsedSeconds": 39.535903744999814,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  },
+  {
+    "label": "04-timing-baseline",
+    "command": [
+      "taskset",
+      "-c",
+      "2,3,10,11",
+      "dotnet",
+      "/workspaces/platform-1/perf/fusion-apollo-error-vars-20261017b-43a8dca2/frozen-fixed-heaps/baseline/HotChocolate.Fusion.Execution.Benchmarks.dll",
+      "timing"
+    ],
+    "started": "2026-10-17T16:42:16.510754+00:00",
+    "status": "completed",
+    "runtimeEnvironment": {
+      "DOTNET_LOCAL_DEV": "1",
+      "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "1"
+    },
+    "identity": {
+      "pid": 73174,
+      "startTicks": 388948
+    },
+    "processGroup": 73174,
+    "exitCode": 0,
+    "finished": "2026-10-17T16:43:02.689285+00:00",
+    "elapsedSeconds": 46.17857631299967,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  },
+  {
+    "label": "05-timing-candidate",
+    "command": [
+      "taskset",
+      "-c",
+      "2,3,10,11",
+      "dotnet",
+      "/workspaces/platform-1/perf/fusion-apollo-error-vars-20261017b-43a8dca2/frozen-fixed-heaps/candidate/HotChocolate.Fusion.Execution.Benchmarks.dll",
+      "timing"
+    ],
+    "started": "2026-10-17T16:43:02.689672+00:00",
+    "status": "completed",
+    "runtimeEnvironment": {
+      "DOTNET_LOCAL_DEV": "1",
+      "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "1"
+    },
+    "identity": {
+      "pid": 73364,
+      "startTicks": 393566
+    },
+    "processGroup": 73364,
+    "exitCode": 0,
+    "finished": "2026-10-17T16:43:48.597665+00:00",
+    "elapsedSeconds": 45.908046143999854,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  },
+  {
+    "label": "06-timing-baseline",
+    "command": [
+      "taskset",
+      "-c",
+      "2,3,10,11",
+      "dotnet",
+      "/workspaces/platform-1/perf/fusion-apollo-error-vars-20261017b-43a8dca2/frozen-fixed-heaps/baseline/HotChocolate.Fusion.Execution.Benchmarks.dll",
+      "timing"
+    ],
+    "started": "2026-10-17T16:43:48.598037+00:00",
+    "status": "completed",
+    "runtimeEnvironment": {
+      "DOTNET_LOCAL_DEV": "1",
+      "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "1"
+    },
+    "identity": {
+      "pid": 73551,
+      "startTicks": 398157
+    },
+    "processGroup": 73551,
+    "exitCode": 0,
+    "finished": "2026-10-17T16:44:34.792145+00:00",
+    "elapsedSeconds": 46.194152034000126,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  },
+  {
+    "label": "07-timing-candidate",
+    "command": [
+      "taskset",
+      "-c",
+      "2,3,10,11",
+      "dotnet",
+      "/workspaces/platform-1/perf/fusion-apollo-error-vars-20261017b-43a8dca2/frozen-fixed-heaps/candidate/HotChocolate.Fusion.Execution.Benchmarks.dll",
+      "timing"
+    ],
+    "started": "2026-10-17T16:44:34.792578+00:00",
+    "status": "completed",
+    "runtimeEnvironment": {
+      "DOTNET_LOCAL_DEV": "1",
+      "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "1"
+    },
+    "identity": {
+      "pid": 73701,
+      "startTicks": 402776
+    },
+    "processGroup": 73701,
+    "exitCode": 0,
+    "finished": "2026-10-17T16:45:20.949949+00:00",
+    "elapsedSeconds": 46.157420040000034,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  },
+  {
+    "label": "08-timing-baseline",
+    "command": [
+      "taskset",
+      "-c",
+      "2,3,10,11",
+      "dotnet",
+      "/workspaces/platform-1/perf/fusion-apollo-error-vars-20261017b-43a8dca2/frozen-fixed-heaps/baseline/HotChocolate.Fusion.Execution.Benchmarks.dll",
+      "timing"
+    ],
+    "started": "2026-10-17T16:45:20.950320+00:00",
+    "status": "completed",
+    "runtimeEnvironment": {
+      "DOTNET_LOCAL_DEV": "1",
+      "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "1"
+    },
+    "identity": {
+      "pid": 73852,
+      "startTicks": 407392
+    },
+    "processGroup": 73852,
+    "exitCode": 0,
+    "finished": "2026-10-17T16:46:07.224370+00:00",
+    "elapsedSeconds": 46.27409380900008,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  }
+]

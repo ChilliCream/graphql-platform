@@ -1,0 +1,182 @@
+{
+  "mode": "verify",
+  "processId": 66128,
+  "runtime": ".NET 10.0.12",
+  "IsServerGC": true,
+  "LatencyMode": 1,
+  "stopwatchFrequency": 1000000000,
+  "variableValuesSize": 40,
+  "executionDllSha256": "9c436477e63d9c7f5c8668dcd75fec9771f500a5e71b14a1f02dd0bcf8fe6c5b",
+  "rows": [
+    {
+      "shape": {
+        "Name": "ordinary",
+        "Count": 1,
+        "Unique": 1,
+        "Batch": false,
+        "Response": "success",
+        "Ordinary": true
+      },
+      "oracle": "{\u0022data\u0022:{\u0022products\u0022:[{\u0022id\u0022:\u00221\u0022}]}}",
+      "SingleCalls": 0,
+      "BatchCalls": 0,
+      "BatchRequests": 0,
+      "CapturedVariables": []
+    },
+    {
+      "shape": {
+        "Name": "unique1",
+        "Count": 1,
+        "Unique": 1,
+        "Batch": false,
+        "Response": "success",
+        "Ordinary": false
+      },
+      "oracle": "{\u0022data\u0022:{\u0022products\u0022:[{\u0022name\u0022:\u0022Name1\u0022}]}}",
+      "SingleCalls": 1,
+      "BatchCalls": 0,
+      "BatchRequests": 0,
+      "CapturedVariables": [
+        "{\u0022representations\u0022:[{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00221\u0022}]}"
+      ]
+    },
+    {
+      "shape": {
+        "Name": "unique5",
+        "Count": 5,
+        "Unique": 5,
+        "Batch": false,
+        "Response": "success",
+        "Ordinary": false
+      },
+      "oracle": "{\u0022data\u0022:{\u0022products\u0022:[{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022}]}}",
+      "SingleCalls": 1,
+      "BatchCalls": 0,
+      "BatchRequests": 0,
+      "CapturedVariables": [
+        "{\u0022representations\u0022:[{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00221\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00222\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00223\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00224\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00225\u0022}]}"
+      ]
+    },
+    {
+      "shape": {
+        "Name": "unique6",
+        "Count": 6,
+        "Unique": 6,
+        "Batch": false,
+        "Response": "success",
+        "Ordinary": false
+      },
+      "oracle": "{\u0022data\u0022:{\u0022products\u0022:[{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022}]}}",
+      "SingleCalls": 1,
+      "BatchCalls": 0,
+      "BatchRequests": 0,
+      "CapturedVariables": [
+        "{\u0022representations\u0022:[{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00221\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00222\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00223\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00224\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00225\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00226\u0022}]}"
+      ]
+    },
+    {
+      "shape": {
+        "Name": "unique9",
+        "Count": 9,
+        "Unique": 9,
+        "Batch": false,
+        "Response": "success",
+        "Ordinary": false
+      },
+      "oracle": "{\u0022data\u0022:{\u0022products\u0022:[{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name7\u0022},{\u0022name\u0022:\u0022Name8\u0022},{\u0022name\u0022:\u0022Name9\u0022}]}}",
+      "SingleCalls": 1,
+      "BatchCalls": 0,
+      "BatchRequests": 0,
+      "CapturedVariables": [
+        "{\u0022representations\u0022:[{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00221\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00222\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00223\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00224\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00225\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00226\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00227\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00228\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00229\u0022}]}"
+      ]
+    },
+    {
+      "shape": {
+        "Name": "duplicate96-to1",
+        "Count": 96,
+        "Unique": 1,
+        "Batch": false,
+        "Response": "success",
+        "Ordinary": false
+      },
+      "oracle": "{\u0022data\u0022:{\u0022products\u0022:[{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022}]}}",
+      "SingleCalls": 1,
+      "BatchCalls": 0,
+      "BatchRequests": 0,
+      "CapturedVariables": [
+        "{\u0022representations\u0022:[{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00221\u0022}]}"
+      ]
+    },
+    {
+      "shape": {
+        "Name": "mixed96-to6",
+        "Count": 96,
+        "Unique": 6,
+        "Batch": false,
+        "Response": "success",
+        "Ordinary": false
+      },
+      "oracle": "{\u0022data\u0022:{\u0022products\u0022:[{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022}]}}",
+      "SingleCalls": 1,
+      "BatchCalls": 0,
+      "BatchRequests": 0,
+      "CapturedVariables": [
+        "{\u0022representations\u0022:[{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00221\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00222\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00223\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00224\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00225\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00226\u0022}]}"
+      ]
+    },
+    {
+      "shape": {
+        "Name": "batch9",
+        "Count": 9,
+        "Unique": 9,
+        "Batch": true,
+        "Response": "success",
+        "Ordinary": false
+      },
+      "oracle": "{\u0022data\u0022:{\u0022products\u0022:[{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name7\u0022},{\u0022name\u0022:\u0022Name8\u0022},{\u0022name\u0022:\u0022Name9\u0022}],\u0022categories\u0022:[{\u0022title\u0022:\u0022Name1\u0022},{\u0022title\u0022:\u0022Name2\u0022},{\u0022title\u0022:\u0022Name3\u0022},{\u0022title\u0022:\u0022Name4\u0022},{\u0022title\u0022:\u0022Name5\u0022},{\u0022title\u0022:\u0022Name6\u0022},{\u0022title\u0022:\u0022Name7\u0022},{\u0022title\u0022:\u0022Name8\u0022},{\u0022title\u0022:\u0022Name9\u0022}]}}",
+      "SingleCalls": 0,
+      "BatchCalls": 1,
+      "BatchRequests": 2,
+      "CapturedVariables": [
+        "{\u0022representations\u0022:[{\u0022__typename\u0022:\u0022Category\u0022,\u0022id\u0022:\u00221\u0022},{\u0022__typename\u0022:\u0022Category\u0022,\u0022id\u0022:\u00222\u0022},{\u0022__typename\u0022:\u0022Category\u0022,\u0022id\u0022:\u00223\u0022},{\u0022__typename\u0022:\u0022Category\u0022,\u0022id\u0022:\u00224\u0022},{\u0022__typename\u0022:\u0022Category\u0022,\u0022id\u0022:\u00225\u0022},{\u0022__typename\u0022:\u0022Category\u0022,\u0022id\u0022:\u00226\u0022},{\u0022__typename\u0022:\u0022Category\u0022,\u0022id\u0022:\u00227\u0022},{\u0022__typename\u0022:\u0022Category\u0022,\u0022id\u0022:\u00228\u0022},{\u0022__typename\u0022:\u0022Category\u0022,\u0022id\u0022:\u00229\u0022}]}",
+        "{\u0022representations\u0022:[{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00221\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00222\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00223\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00224\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00225\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00226\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00227\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00228\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00229\u0022}]}"
+      ]
+    },
+    {
+      "shape": {
+        "Name": "transport9",
+        "Count": 9,
+        "Unique": 9,
+        "Batch": false,
+        "Response": "transport",
+        "Ordinary": false
+      },
+      "oracle": "{\u0022errors\u0022:[{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,0,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,1,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,2,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,3,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,4,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,5,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,6,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,7,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,8,\u0022name\u0022]}],\u0022data\u0022:{\u0022products\u0022:[{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null}]}}",
+      "SingleCalls": 1,
+      "BatchCalls": 0,
+      "BatchRequests": 0,
+      "CapturedVariables": [
+        "{\u0022representations\u0022:[{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00221\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00222\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00223\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00224\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00225\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00226\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00227\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00228\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00229\u0022}]}"
+      ]
+    },
+    {
+      "shape": {
+        "Name": "batch-fallback9",
+        "Count": 9,
+        "Unique": 9,
+        "Batch": true,
+        "Response": "fallback",
+        "Ordinary": false
+      },
+      "oracle": "{\u0022errors\u0022:[{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,0,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,1,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,2,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,3,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,4,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,5,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,6,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,7,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,8,\u0022name\u0022]}],\u0022data\u0022:{\u0022products\u0022:[{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null}],\u0022categories\u0022:[{\u0022title\u0022:\u0022Name1\u0022},{\u0022title\u0022:\u0022Name2\u0022},{\u0022title\u0022:\u0022Name3\u0022},{\u0022title\u0022:\u0022Name4\u0022},{\u0022title\u0022:\u0022Name5\u0022},{\u0022title\u0022:\u0022Name6\u0022},{\u0022title\u0022:\u0022Name7\u0022},{\u0022title\u0022:\u0022Name8\u0022},{\u0022title\u0022:\u0022Name9\u0022}]}}",
+      "SingleCalls": 0,
+      "BatchCalls": 1,
+      "BatchRequests": 2,
+      "CapturedVariables": [
+        "{\u0022representations\u0022:[{\u0022__typename\u0022:\u0022Category\u0022,\u0022id\u0022:\u00221\u0022},{\u0022__typename\u0022:\u0022Category\u0022,\u0022id\u0022:\u00222\u0022},{\u0022__typename\u0022:\u0022Category\u0022,\u0022id\u0022:\u00223\u0022},{\u0022__typename\u0022:\u0022Category\u0022,\u0022id\u0022:\u00224\u0022},{\u0022__typename\u0022:\u0022Category\u0022,\u0022id\u0022:\u00225\u0022},{\u0022__typename\u0022:\u0022Category\u0022,\u0022id\u0022:\u00226\u0022},{\u0022__typename\u0022:\u0022Category\u0022,\u0022id\u0022:\u00227\u0022},{\u0022__typename\u0022:\u0022Category\u0022,\u0022id\u0022:\u00228\u0022},{\u0022__typename\u0022:\u0022Category\u0022,\u0022id\u0022:\u00229\u0022}]}",
+        "{\u0022representations\u0022:[{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00221\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00222\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00223\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00224\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00225\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00226\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00227\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00228\u0022},{\u0022__typename\u0022:\u0022Product\u0022,\u0022id\u0022:\u00229\u0022}]}"
+      ]
+    }
+  ]
+}

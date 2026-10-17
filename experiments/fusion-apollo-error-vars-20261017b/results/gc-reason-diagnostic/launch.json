@@ -1,0 +1,50 @@
+{
+  "started": "2026-10-17T16:35:55.513449+00:00",
+  "command": [
+    "taskset",
+    "-c",
+    "0,8",
+    "/workspaces/platform-1/perf/fusion-apollo-20261017-43a8dca2/environment-history/tools/dotnet-trace",
+    "collect",
+    "--providers",
+    "Microsoft-Windows-DotNETRuntime:0x1:4",
+    "--buffersize",
+    "64",
+    "--duration",
+    "00:00:00:30",
+    "--show-child-io",
+    "--output",
+    "/workspaces/platform-1/perf/fusion-apollo-error-vars-20261017b-43a8dca2/gc-reason-diagnostic/gc-reason.nettrace",
+    "--",
+    "taskset",
+    "-c",
+    "2,3,10,11",
+    "dotnet",
+    "/workspaces/platform-1/perf/fusion-apollo-error-vars-20261017b-43a8dca2/frozen-process-scoped/candidate/HotChocolate.Fusion.Execution.Benchmarks.dll",
+    "allocation"
+  ],
+  "status": "captured",
+  "interpretation": "Diagnostic only. No profiled allocation or timing result is accepted.",
+  "outputTimestampMeaning": "UTC receipt time of each complete merged tool/child output line.",
+  "manifestSha256": "b8efc76debb2e750dd5d63e1b6f50dea0bbbb9179163df63a0998a9ee6b288cd",
+  "environment": {
+    "DOTNET_LOCAL_DEV": "1",
+    "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "1"
+  },
+  "toolIdentity": {
+    "pid": 68495,
+    "startTicks": 350848,
+    "processGroup": 68495
+  },
+  "targetIdentity": {
+    "pid": 68504,
+    "startTicks": 350853,
+    "processGroup": 68495
+  },
+  "targetObservedUtc": "2026-10-17T16:35:55.565856+00:00",
+  "exitCode": 134,
+  "finished": "2026-10-17T16:35:57.868275+00:00",
+  "elapsedSeconds": 2.354704159999983,
+  "cleanupActions": [],
+  "ownedProcessAlive": false
+}

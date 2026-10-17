@@ -1,0 +1,26 @@
+[
+  {
+    "label": "01-allocation-baseline",
+    "command": [
+      "taskset",
+      "-c",
+      "2,3,10,11",
+      "dotnet",
+      "/workspaces/platform-1/perf/fusion-apollo-error-vars-20261017b-43a8dca2/frozen/baseline/HotChocolate.Fusion.Execution.Benchmarks.dll",
+      "allocation"
+    ],
+    "started": "2026-10-17T16:27:29.112079+00:00",
+    "status": "failed",
+    "identity": {
+      "pid": 64297,
+      "startTicks": 300208
+    },
+    "processGroup": 64297,
+    "exitCode": -6,
+    "exception": "RuntimeError('01-allocation-baseline failed; no retry. Inspect preserved stderr.')",
+    "finished": "2026-10-17T16:27:31.834804+00:00",
+    "elapsedSeconds": 2.7227396160001263,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  }
+]

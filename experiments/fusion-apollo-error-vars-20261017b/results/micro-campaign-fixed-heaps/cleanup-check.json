@@ -1,0 +1,98 @@
+[
+  {
+    "label": "01-allocation-baseline",
+    "identity": {
+      "pid": 72186,
+      "startTicks": 377124
+    },
+    "started": "2026-10-17T16:40:18.269537+00:00",
+    "finished": "2026-10-17T16:40:57.653646+00:00",
+    "exitCode": 0,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  },
+  {
+    "label": "02-allocation-candidate",
+    "identity": {
+      "pid": 72670,
+      "startTicks": 381062
+    },
+    "started": "2026-10-17T16:40:57.654050+00:00",
+    "finished": "2026-10-17T16:41:36.974168+00:00",
+    "exitCode": 0,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  },
+  {
+    "label": "03-allocation-baseline",
+    "identity": {
+      "pid": 73006,
+      "startTicks": 384994
+    },
+    "started": "2026-10-17T16:41:36.974488+00:00",
+    "finished": "2026-10-17T16:42:16.510336+00:00",
+    "exitCode": 0,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  },
+  {
+    "label": "04-timing-baseline",
+    "identity": {
+      "pid": 73174,
+      "startTicks": 388948
+    },
+    "started": "2026-10-17T16:42:16.510754+00:00",
+    "finished": "2026-10-17T16:43:02.689285+00:00",
+    "exitCode": 0,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  },
+  {
+    "label": "05-timing-candidate",
+    "identity": {
+      "pid": 73364,
+      "startTicks": 393566
+    },
+    "started": "2026-10-17T16:43:02.689672+00:00",
+    "finished": "2026-10-17T16:43:48.597665+00:00",
+    "exitCode": 0,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  },
+  {
+    "label": "06-timing-baseline",
+    "identity": {
+      "pid": 73551,
+      "startTicks": 398157
+    },
+    "started": "2026-10-17T16:43:48.598037+00:00",
+    "finished": "2026-10-17T16:44:34.792145+00:00",
+    "exitCode": 0,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  },
+  {
+    "label": "07-timing-candidate",
+    "identity": {
+      "pid": 73701,
+      "startTicks": 402776
+    },
+    "started": "2026-10-17T16:44:34.792578+00:00",
+    "finished": "2026-10-17T16:45:20.949949+00:00",
+    "exitCode": 0,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  },
+  {
+    "label": "08-timing-baseline",
+    "identity": {
+      "pid": 73852,
+      "startTicks": 407392
+    },
+    "started": "2026-10-17T16:45:20.950320+00:00",
+    "finished": "2026-10-17T16:46:07.224370+00:00",
+    "exitCode": 0,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  }
+]

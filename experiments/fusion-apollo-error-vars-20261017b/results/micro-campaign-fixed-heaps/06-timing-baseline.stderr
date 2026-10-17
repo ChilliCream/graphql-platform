@@ -1,0 +1,11 @@
+{"mode":"timing","gcConfiguration":{"ServerGC":true,"ConcurrentGC":true,"RetainVM":false,"NoAffinitize":false,"GCCpuGroup":false,"GCLargePages":false,"LOHThreshold":85000,"HeapCount":4,"MaxHeapCount":0,"GCHeapAffinitizeMask":0,"GCHeapAffinitizeRanges":"","GCHighMemPercent":90,"GCGen0MaxBudget":209715200,"GCHeapHardLimit":0,"GCHeapHardLimitPercent":0,"GCRegionRange":274877906944,"GCRegionSize":0,"UOHWaitBGCSizeIncPercent":200,"GCHeapHardLimitSOH":0,"GCHeapHardLimitLOH":0,"GCHeapHardLimitPOH":0,"GCHeapHardLimitSOHPercent":0,"GCHeapHardLimitLOHPercent":0,"GCHeapHardLimitPOHPercent":0,"GCConserveMem":0,"GCName":"","GCPath":"","GCDynamicAdaptationMode":1,"GCDTargetTCP":2,"GCDGen0GrowthPercent":100,"GCDGen0GrowthMinFactor":100,"GCDGen0GrowthMaxFactor":10000}}
+Completed timing: ordinary
+Completed timing: unique1
+Completed timing: unique5
+Completed timing: unique6
+Completed timing: unique9
+Completed timing: duplicate96-to1
+Completed timing: mixed96-to6
+Completed timing: batch9
+Completed timing: transport9
+Completed timing: batch-fallback9

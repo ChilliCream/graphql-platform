@@ -1,0 +1,2322 @@
+{
+  "mode": "allocation",
+  "processId": 66418,
+  "runtime": ".NET 10.0.12",
+  "IsServerGC": true,
+  "LatencyMode": 1,
+  "stopwatchFrequency": 1000000000,
+  "variableValuesSize": 40,
+  "executionDllSha256": "9c436477e63d9c7f5c8668dcd75fec9771f500a5e71b14a1f02dd0bcf8fe6c5b",
+  "rows": [
+    {
+      "shape": {
+        "Name": "ordinary",
+        "Count": 1,
+        "Unique": 1,
+        "Batch": false,
+        "Response": "success",
+        "Ordinary": true
+      },
+      "warmIterations": 25222,
+      "consumed": 30222,
+      "completedOperations": 30222,
+      "sync": true,
+      "OtherThreadObserved": false,
+      "SingleCalls": 0,
+      "BatchCalls": 0,
+      "BatchRequests": 0,
+      "oracle": "{\u0022data\u0022:{\u0022products\u0022:[{\u0022id\u0022:\u00221\u0022}]}}",
+      "blocks": [
+        {
+          "Name": "ordinary",
+          "block": 0,
+          "iterations": 1000,
+          "totalBytes": 25680000,
+          "targetElapsedMilliseconds": 18.8757,
+          "completed": 1000,
+          "startThread": 1,
+          "endThread": 1,
+          "threadBefore": 769282992,
+          "threadAfter": 794962992,
+          "diagnosticThreadDifference": 25680000,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 54.4583
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.1255
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": true,
+          "OtherThreadObserved": false,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "ordinary",
+          "block": 1,
+          "iterations": 1000,
+          "totalBytes": 25680000,
+          "targetElapsedMilliseconds": 19.259,
+          "completed": 1000,
+          "startThread": 1,
+          "endThread": 1,
+          "threadBefore": 796205456,
+          "threadAfter": 821885456,
+          "diagnosticThreadDifference": 25680000,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 55.1401
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.0716
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": true,
+          "OtherThreadObserved": false,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "ordinary",
+          "block": 2,
+          "iterations": 1000,
+          "totalBytes": 25680000,
+          "targetElapsedMilliseconds": 17.0691,
+          "completed": 1000,
+          "startThread": 1,
+          "endThread": 1,
+          "threadBefore": 822933992,
+          "threadAfter": 848613992,
+          "diagnosticThreadDifference": 25680000,
+          "idleBefore": {
+            "Bytes": 48,
+            "Milliseconds": 52.7004
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 52.6551
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": true,
+          "OtherThreadObserved": false,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "ordinary",
+          "block": 3,
+          "iterations": 1000,
+          "totalBytes": 25680000,
+          "targetElapsedMilliseconds": 19.1055,
+          "completed": 1000,
+          "startThread": 1,
+          "endThread": 1,
+          "threadBefore": 849662536,
+          "threadAfter": 875342536,
+          "diagnosticThreadDifference": 25680000,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 55.0821
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.0987
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": true,
+          "OtherThreadObserved": false,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "ordinary",
+          "block": 4,
+          "iterations": 1000,
+          "totalBytes": 25680000,
+          "targetElapsedMilliseconds": 20.783,
+          "completed": 1000,
+          "startThread": 1,
+          "endThread": 1,
+          "threadBefore": 876391080,
+          "threadAfter": 902071080,
+          "diagnosticThreadDifference": 25680000,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 55.1133
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.0818
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": true,
+          "OtherThreadObserved": false,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        }
+      ]
+    },
+    {
+      "shape": {
+        "Name": "unique1",
+        "Count": 1,
+        "Unique": 1,
+        "Batch": false,
+        "Response": "success",
+        "Ordinary": false
+      },
+      "warmIterations": 42170,
+      "consumed": 47170,
+      "completedOperations": 47170,
+      "sync": false,
+      "OtherThreadObserved": true,
+      "SingleCalls": 47171,
+      "BatchCalls": 0,
+      "BatchRequests": 0,
+      "oracle": "{\u0022data\u0022:{\u0022products\u0022:[{\u0022name\u0022:\u0022Name1\u0022}]}}",
+      "blocks": [
+        {
+          "Name": "unique1",
+          "block": 0,
+          "iterations": 1000,
+          "totalBytes": 28560000,
+          "targetElapsedMilliseconds": 17.8335,
+          "completed": 1000,
+          "startThread": 11,
+          "endThread": 11,
+          "threadBefore": 245609032,
+          "threadAfter": 259889032,
+          "diagnosticThreadDifference": 14280000,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 51.736
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.0977
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "unique1",
+          "block": 1,
+          "iterations": 1000,
+          "totalBytes": 28560000,
+          "targetElapsedMilliseconds": 19.5019,
+          "completed": 1000,
+          "startThread": 11,
+          "endThread": 5,
+          "threadBefore": 260954784,
+          "threadAfter": 247916224,
+          "diagnosticThreadDifference": -13038560,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 53.9314
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.1056
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "unique1",
+          "block": 2,
+          "iterations": 1000,
+          "totalBytes": 28560000,
+          "targetElapsedMilliseconds": 20.6922,
+          "completed": 1000,
+          "startThread": 5,
+          "endThread": 10,
+          "threadBefore": 248982944,
+          "threadAfter": 251540480,
+          "diagnosticThreadDifference": 2557536,
+          "idleBefore": {
+            "Bytes": 4656,
+            "Milliseconds": 51.6254
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 54.421
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "unique1",
+          "block": 3,
+          "iterations": 1000,
+          "totalBytes": 28560000,
+          "targetElapsedMilliseconds": 19.2167,
+          "completed": 1000,
+          "startThread": 10,
+          "endThread": 11,
+          "threadBefore": 252607200,
+          "threadAfter": 270549056,
+          "diagnosticThreadDifference": 17941856,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 50.9284
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.0956
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "unique1",
+          "block": 4,
+          "iterations": 1000,
+          "totalBytes": 28560000,
+          "targetElapsedMilliseconds": 21.7588,
+          "completed": 1000,
+          "startThread": 11,
+          "endThread": 10,
+          "threadBefore": 271597592,
+          "threadAfter": 271864800,
+          "diagnosticThreadDifference": 267208,
+          "idleBefore": {
+            "Bytes": 4368,
+            "Milliseconds": 55.1306
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 52.8853
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        }
+      ]
+    },
+    {
+      "shape": {
+        "Name": "unique5",
+        "Count": 5,
+        "Unique": 5,
+        "Batch": false,
+        "Response": "success",
+        "Ordinary": false
+      },
+      "warmIterations": 42646,
+      "consumed": 47646,
+      "completedOperations": 47646,
+      "sync": false,
+      "OtherThreadObserved": true,
+      "SingleCalls": 47647,
+      "BatchCalls": 0,
+      "BatchRequests": 0,
+      "oracle": "{\u0022data\u0022:{\u0022products\u0022:[{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022}]}}",
+      "blocks": [
+        {
+          "Name": "unique5",
+          "block": 0,
+          "iterations": 1000,
+          "totalBytes": 28816000,
+          "targetElapsedMilliseconds": 25.3973,
+          "completed": 1000,
+          "startThread": 11,
+          "endThread": 11,
+          "threadBefore": 716990520,
+          "threadAfter": 731398520,
+          "diagnosticThreadDifference": 14408000,
+          "idleBefore": {
+            "Bytes": 4656,
+            "Milliseconds": 52.9425
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.1002
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "unique5",
+          "block": 1,
+          "iterations": 1000,
+          "totalBytes": 28816000,
+          "targetElapsedMilliseconds": 27.8336,
+          "completed": 1000,
+          "startThread": 11,
+          "endThread": 5,
+          "threadBefore": 732447120,
+          "threadAfter": 420263840,
+          "diagnosticThreadDifference": -312183280,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 55.0996
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.1001
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "unique5",
+          "block": 2,
+          "iterations": 1000,
+          "totalBytes": 28816000,
+          "targetElapsedMilliseconds": 24.0533,
+          "completed": 1000,
+          "startThread": 5,
+          "endThread": 10,
+          "threadBefore": 421312376,
+          "threadAfter": 520466208,
+          "diagnosticThreadDifference": 99153832,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 51.0689
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 51.5862
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "unique5",
+          "block": 3,
+          "iterations": 1000,
+          "totalBytes": 28816000,
+          "targetElapsedMilliseconds": 30.1841,
+          "completed": 1000,
+          "startThread": 10,
+          "endThread": 5,
+          "threadBefore": 521514744,
+          "threadAfter": 437388872,
+          "diagnosticThreadDifference": -84125872,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 55.114
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 54.13
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "unique5",
+          "block": 4,
+          "iterations": 1000,
+          "totalBytes": 28816000,
+          "targetElapsedMilliseconds": 26.6339,
+          "completed": 1000,
+          "startThread": 5,
+          "endThread": 5,
+          "threadBefore": 438437400,
+          "threadAfter": 450058520,
+          "diagnosticThreadDifference": 11621120,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 55.1099
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.0958
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        }
+      ]
+    },
+    {
+      "shape": {
+        "Name": "unique6",
+        "Count": 6,
+        "Unique": 6,
+        "Batch": false,
+        "Response": "success",
+        "Ordinary": false
+      },
+      "warmIterations": 39706,
+      "consumed": 44706,
+      "completedOperations": 44706,
+      "sync": false,
+      "OtherThreadObserved": true,
+      "SingleCalls": 44707,
+      "BatchCalls": 0,
+      "BatchRequests": 0,
+      "oracle": "{\u0022data\u0022:{\u0022products\u0022:[{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022}]}}",
+      "blocks": [
+        {
+          "Name": "unique6",
+          "block": 0,
+          "iterations": 1000,
+          "totalBytes": 28880000,
+          "targetElapsedMilliseconds": 22.0937,
+          "completed": 1000,
+          "startThread": 11,
+          "endThread": 5,
+          "threadBefore": 1048117472,
+          "threadAfter": 784351680,
+          "diagnosticThreadDifference": -263765792,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 53.3926
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.1003
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "unique6",
+          "block": 1,
+          "iterations": 1000,
+          "totalBytes": 28880000,
+          "targetElapsedMilliseconds": 24.7285,
+          "completed": 1000,
+          "startThread": 5,
+          "endThread": 11,
+          "threadBefore": 785400272,
+          "threadAfter": 1065501400,
+          "diagnosticThreadDifference": 280101128,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 55.094
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.1213
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "unique6",
+          "block": 2,
+          "iterations": 1000,
+          "totalBytes": 28880000,
+          "targetElapsedMilliseconds": 21.8124,
+          "completed": 1000,
+          "startThread": 11,
+          "endThread": 10,
+          "threadBefore": 1066549936,
+          "threadAfter": 737492320,
+          "diagnosticThreadDifference": -329057616,
+          "idleBefore": {
+            "Bytes": 1728,
+            "Milliseconds": 55.1444
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.0944
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "unique6",
+          "block": 3,
+          "iterations": 1000,
+          "totalBytes": 28880000,
+          "targetElapsedMilliseconds": 22.626,
+          "completed": 1000,
+          "startThread": 10,
+          "endThread": 10,
+          "threadBefore": 738540864,
+          "threadAfter": 767420864,
+          "diagnosticThreadDifference": 28880000,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 51.5525
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.0989
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "unique6",
+          "block": 4,
+          "iterations": 1000,
+          "totalBytes": 28880000,
+          "targetElapsedMilliseconds": 23.1801,
+          "completed": 1000,
+          "startThread": 10,
+          "endThread": 5,
+          "threadBefore": 768469400,
+          "threadAfter": 806969968,
+          "diagnosticThreadDifference": 38500568,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 55.0937
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.1016
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        }
+      ]
+    },
+    {
+      "shape": {
+        "Name": "unique9",
+        "Count": 9,
+        "Unique": 9,
+        "Batch": false,
+        "Response": "success",
+        "Ordinary": false
+      },
+      "warmIterations": 37134,
+      "consumed": 42134,
+      "completedOperations": 42134,
+      "sync": false,
+      "OtherThreadObserved": true,
+      "SingleCalls": 42135,
+      "BatchCalls": 0,
+      "BatchRequests": 0,
+      "oracle": "{\u0022data\u0022:{\u0022products\u0022:[{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name7\u0022},{\u0022name\u0022:\u0022Name8\u0022},{\u0022name\u0022:\u0022Name9\u0022}]}}",
+      "blocks": [
+        {
+          "Name": "unique9",
+          "block": 0,
+          "iterations": 1000,
+          "totalBytes": 29072000,
+          "targetElapsedMilliseconds": 23.5376,
+          "completed": 1000,
+          "startThread": 4,
+          "endThread": 4,
+          "threadBefore": 1033857152,
+          "threadAfter": 1046648832,
+          "diagnosticThreadDifference": 12791680,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 55.0719
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.0944
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "unique9",
+          "block": 1,
+          "iterations": 1000,
+          "totalBytes": 29072000,
+          "targetElapsedMilliseconds": 26.9797,
+          "completed": 1000,
+          "startThread": 4,
+          "endThread": 11,
+          "threadBefore": 1047714120,
+          "threadAfter": 1255336888,
+          "diagnosticThreadDifference": 207622768,
+          "idleBefore": {
+            "Bytes": 384,
+            "Milliseconds": 55.0954
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 53.3966
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "unique9",
+          "block": 2,
+          "iterations": 1000,
+          "totalBytes": 29072000,
+          "targetElapsedMilliseconds": 22.9675,
+          "completed": 1000,
+          "startThread": 11,
+          "endThread": 11,
+          "threadBefore": 1256385456,
+          "threadAfter": 1263390032,
+          "diagnosticThreadDifference": 7004576,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 55.0996
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 51.9304
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "unique9",
+          "block": 3,
+          "iterations": 1000,
+          "totalBytes": 29072000,
+          "targetElapsedMilliseconds": 26.0296,
+          "completed": 1000,
+          "startThread": 11,
+          "endThread": 11,
+          "threadBefore": 1264438592,
+          "threadAfter": 1273625344,
+          "diagnosticThreadDifference": 9186752,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 53.762
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.1009
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "unique9",
+          "block": 4,
+          "iterations": 1000,
+          "totalBytes": 29072000,
+          "targetElapsedMilliseconds": 25.6346,
+          "completed": 1000,
+          "startThread": 11,
+          "endThread": 4,
+          "threadBefore": 1274673904,
+          "threadAfter": 1064199720,
+          "diagnosticThreadDifference": -210474184,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 55.1006
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.0942
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        }
+      ]
+    },
+    {
+      "shape": {
+        "Name": "duplicate96-to1",
+        "Count": 96,
+        "Unique": 1,
+        "Batch": false,
+        "Response": "success",
+        "Ordinary": false
+      },
+      "warmIterations": 16601,
+      "consumed": 21601,
+      "completedOperations": 21601,
+      "sync": false,
+      "OtherThreadObserved": true,
+      "SingleCalls": 21602,
+      "BatchCalls": 0,
+      "BatchRequests": 0,
+      "oracle": "{\u0022data\u0022:{\u0022products\u0022:[{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name1\u0022}]}}",
+      "blocks": [
+        {
+          "Name": "duplicate96-to1",
+          "block": 0,
+          "iterations": 1000,
+          "totalBytes": 29344000,
+          "targetElapsedMilliseconds": 56.1052,
+          "completed": 1000,
+          "startThread": 4,
+          "endThread": 10,
+          "threadBefore": 1358394984,
+          "threadAfter": 1074859976,
+          "diagnosticThreadDifference": -283535008,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 55.1024
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.1001
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "duplicate96-to1",
+          "block": 1,
+          "iterations": 1000,
+          "totalBytes": 29344000,
+          "targetElapsedMilliseconds": 58.9458,
+          "completed": 1000,
+          "startThread": 10,
+          "endThread": 11,
+          "threadBefore": 1075908632,
+          "threadAfter": 1514140056,
+          "diagnosticThreadDifference": 438231424,
+          "idleBefore": {
+            "Bytes": 4992,
+            "Milliseconds": 53.8505
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.1001
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "duplicate96-to1",
+          "block": 2,
+          "iterations": 1000,
+          "totalBytes": 29344000,
+          "targetElapsedMilliseconds": 59.0608,
+          "completed": 1000,
+          "startThread": 11,
+          "endThread": 11,
+          "threadBefore": 1515188656,
+          "threadAfter": 1532707024,
+          "diagnosticThreadDifference": 17518368,
+          "idleBefore": {
+            "Bytes": 672,
+            "Milliseconds": 55.1093
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.0959
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "duplicate96-to1",
+          "block": 3,
+          "iterations": 1000,
+          "totalBytes": 29344000,
+          "targetElapsedMilliseconds": 59.9701,
+          "completed": 1000,
+          "startThread": 11,
+          "endThread": 11,
+          "threadBefore": 1533755624,
+          "threadAfter": 1546813704,
+          "diagnosticThreadDifference": 13058080,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 55.0963
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.0985
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "duplicate96-to1",
+          "block": 4,
+          "iterations": 1000,
+          "totalBytes": 29344000,
+          "targetElapsedMilliseconds": 67.5759,
+          "completed": 1000,
+          "startThread": 11,
+          "endThread": 4,
+          "threadBefore": 1547862296,
+          "threadAfter": 1391201576,
+          "diagnosticThreadDifference": -156660720,
+          "idleBefore": {
+            "Bytes": 1680,
+            "Milliseconds": 55.0888
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.069
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        }
+      ]
+    },
+    {
+      "shape": {
+        "Name": "mixed96-to6",
+        "Count": 96,
+        "Unique": 6,
+        "Batch": false,
+        "Response": "success",
+        "Ordinary": false
+      },
+      "warmIterations": 16380,
+      "consumed": 21380,
+      "completedOperations": 21380,
+      "sync": false,
+      "OtherThreadObserved": true,
+      "SingleCalls": 21381,
+      "BatchCalls": 0,
+      "BatchRequests": 0,
+      "oracle": "{\u0022data\u0022:{\u0022products\u0022:[{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022}]}}",
+      "blocks": [
+        {
+          "Name": "mixed96-to6",
+          "block": 0,
+          "iterations": 1000,
+          "totalBytes": 29624000,
+          "targetElapsedMilliseconds": 56.1894,
+          "completed": 1000,
+          "startThread": 4,
+          "endThread": 10,
+          "threadBefore": 1589731832,
+          "threadAfter": 1343669440,
+          "diagnosticThreadDifference": -246062392,
+          "idleBefore": {
+            "Bytes": 4992,
+            "Milliseconds": 55.1046
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.1044
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "mixed96-to6",
+          "block": 1,
+          "iterations": 1000,
+          "totalBytes": 29624000,
+          "targetElapsedMilliseconds": 55.0049,
+          "completed": 1000,
+          "startThread": 10,
+          "endThread": 4,
+          "threadBefore": 1344718080,
+          "threadAfter": 1610942616,
+          "diagnosticThreadDifference": 266224536,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 52.4099
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 50.3699
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "mixed96-to6",
+          "block": 2,
+          "iterations": 1000,
+          "totalBytes": 29624000,
+          "targetElapsedMilliseconds": 59.5014,
+          "completed": 1000,
+          "startThread": 4,
+          "endThread": 10,
+          "threadBefore": 1611991192,
+          "threadAfter": 1378578312,
+          "diagnosticThreadDifference": -233412880,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 55.0989
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 50.3316
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "mixed96-to6",
+          "block": 3,
+          "iterations": 1000,
+          "totalBytes": 29624000,
+          "targetElapsedMilliseconds": 59.718,
+          "completed": 1000,
+          "startThread": 10,
+          "endThread": 10,
+          "threadBefore": 1379626896,
+          "threadAfter": 1396482952,
+          "diagnosticThreadDifference": 16856056,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 55.1028
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.1196
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "mixed96-to6",
+          "block": 4,
+          "iterations": 1000,
+          "totalBytes": 29637256,
+          "targetElapsedMilliseconds": 60.4975,
+          "completed": 1000,
+          "startThread": 10,
+          "endThread": 5,
+          "threadBefore": 1397531528,
+          "threadAfter": 1395491112,
+          "diagnosticThreadDifference": -2040416,
+          "idleBefore": {
+            "Bytes": 2304,
+            "Milliseconds": 55.1222
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 51.662
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        }
+      ]
+    },
+    {
+      "shape": {
+        "Name": "batch9",
+        "Count": 9,
+        "Unique": 9,
+        "Batch": true,
+        "Response": "success",
+        "Ordinary": false
+      },
+      "warmIterations": 27125,
+      "consumed": 32125,
+      "completedOperations": 32125,
+      "sync": false,
+      "OtherThreadObserved": true,
+      "SingleCalls": 0,
+      "BatchCalls": 32126,
+      "BatchRequests": 64252,
+      "oracle": "{\u0022data\u0022:{\u0022products\u0022:[{\u0022name\u0022:\u0022Name1\u0022},{\u0022name\u0022:\u0022Name2\u0022},{\u0022name\u0022:\u0022Name3\u0022},{\u0022name\u0022:\u0022Name4\u0022},{\u0022name\u0022:\u0022Name5\u0022},{\u0022name\u0022:\u0022Name6\u0022},{\u0022name\u0022:\u0022Name7\u0022},{\u0022name\u0022:\u0022Name8\u0022},{\u0022name\u0022:\u0022Name9\u0022}],\u0022categories\u0022:[{\u0022title\u0022:\u0022Name1\u0022},{\u0022title\u0022:\u0022Name2\u0022},{\u0022title\u0022:\u0022Name3\u0022},{\u0022title\u0022:\u0022Name4\u0022},{\u0022title\u0022:\u0022Name5\u0022},{\u0022title\u0022:\u0022Name6\u0022},{\u0022title\u0022:\u0022Name7\u0022},{\u0022title\u0022:\u0022Name8\u0022},{\u0022title\u0022:\u0022Name9\u0022}]}}",
+      "blocks": [
+        {
+          "Name": "batch9",
+          "block": 0,
+          "iterations": 1000,
+          "totalBytes": 33520000,
+          "targetElapsedMilliseconds": 36.7544,
+          "completed": 1000,
+          "startThread": 4,
+          "endThread": 11,
+          "threadBefore": 1840856528,
+          "threadAfter": 1923032648,
+          "diagnosticThreadDifference": 82176120,
+          "idleBefore": {
+            "Bytes": 6000,
+            "Milliseconds": 50.1102
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.1022
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "batch9",
+          "block": 1,
+          "iterations": 1000,
+          "totalBytes": 33520000,
+          "targetElapsedMilliseconds": 31.4845,
+          "completed": 1000,
+          "startThread": 11,
+          "endThread": 4,
+          "threadBefore": 1924081272,
+          "threadAfter": 1883091728,
+          "diagnosticThreadDifference": -40989544,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 53.4455
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.0954
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "batch9",
+          "block": 2,
+          "iterations": 1000,
+          "totalBytes": 33520000,
+          "targetElapsedMilliseconds": 34.1701,
+          "completed": 1000,
+          "startThread": 4,
+          "endThread": 10,
+          "threadBefore": 1884140288,
+          "threadAfter": 1652084248,
+          "diagnosticThreadDifference": -232056040,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 55.0786
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.0807
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "batch9",
+          "block": 3,
+          "iterations": 1000,
+          "totalBytes": 33520000,
+          "targetElapsedMilliseconds": 31.8356,
+          "completed": 1000,
+          "startThread": 10,
+          "endThread": 10,
+          "threadBefore": 1653132808,
+          "threadAfter": 1686652808,
+          "diagnosticThreadDifference": 33520000,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 53.145
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 51.4535
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "batch9",
+          "block": 4,
+          "iterations": 1000,
+          "totalBytes": 33520000,
+          "targetElapsedMilliseconds": 34.6486,
+          "completed": 1000,
+          "startThread": 10,
+          "endThread": 4,
+          "threadBefore": 1687701368,
+          "threadAfter": 1890508144,
+          "diagnosticThreadDifference": 202806776,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 55.1049
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.0679
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        }
+      ]
+    },
+    {
+      "shape": {
+        "Name": "transport9",
+        "Count": 9,
+        "Unique": 9,
+        "Batch": false,
+        "Response": "transport",
+        "Ordinary": false
+      },
+      "warmIterations": 28038,
+      "consumed": 330380,
+      "completedOperations": 33038,
+      "sync": false,
+      "OtherThreadObserved": true,
+      "SingleCalls": 33039,
+      "BatchCalls": 0,
+      "BatchRequests": 0,
+      "oracle": "{\u0022errors\u0022:[{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,0,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,1,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,2,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,3,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,4,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,5,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,6,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,7,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,8,\u0022name\u0022]}],\u0022data\u0022:{\u0022products\u0022:[{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null}]}}",
+      "blocks": [
+        {
+          "Name": "transport9",
+          "block": 0,
+          "iterations": 1000,
+          "totalBytes": 32656000,
+          "targetElapsedMilliseconds": 35.9174,
+          "completed": 1000,
+          "startThread": 10,
+          "endThread": 11,
+          "threadBefore": 1994508232,
+          "threadAfter": 2212357520,
+          "diagnosticThreadDifference": 217849288,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 50.6894
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.12
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "transport9",
+          "block": 1,
+          "iterations": 1000,
+          "totalBytes": 32656000,
+          "targetElapsedMilliseconds": 28.8627,
+          "completed": 1000,
+          "startThread": 11,
+          "endThread": 5,
+          "threadBefore": 2213406128,
+          "threadAfter": 1662352312,
+          "diagnosticThreadDifference": -551053816,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 52.2398
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.0887
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "transport9",
+          "block": 2,
+          "iterations": 1000,
+          "totalBytes": 32656000,
+          "targetElapsedMilliseconds": 38.3473,
+          "completed": 1000,
+          "startThread": 5,
+          "endThread": 10,
+          "threadBefore": 1663400864,
+          "threadAfter": 2034250584,
+          "diagnosticThreadDifference": 370849720,
+          "idleBefore": {
+            "Bytes": 4032,
+            "Milliseconds": 55.1143
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.0806
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "transport9",
+          "block": 3,
+          "iterations": 1000,
+          "totalBytes": 32656000,
+          "targetElapsedMilliseconds": 37.3299,
+          "completed": 1000,
+          "startThread": 10,
+          "endThread": 5,
+          "threadBefore": 2035299144,
+          "threadAfter": 1678749184,
+          "diagnosticThreadDifference": -356549960,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 55.0843
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.0987
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "transport9",
+          "block": 4,
+          "iterations": 1000,
+          "totalBytes": 32656000,
+          "targetElapsedMilliseconds": 30.7557,
+          "completed": 1000,
+          "startThread": 5,
+          "endThread": 10,
+          "threadBefore": 1679797736,
+          "threadAfter": 2057252376,
+          "diagnosticThreadDifference": 377454640,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 55.0745
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.0972
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        }
+      ]
+    },
+    {
+      "shape": {
+        "Name": "batch-fallback9",
+        "Count": 9,
+        "Unique": 9,
+        "Batch": true,
+        "Response": "fallback",
+        "Ordinary": false
+      },
+      "warmIterations": 27497,
+      "consumed": 324970,
+      "completedOperations": 32497,
+      "sync": false,
+      "OtherThreadObserved": true,
+      "SingleCalls": 0,
+      "BatchCalls": 32498,
+      "BatchRequests": 64996,
+      "oracle": "{\u0022errors\u0022:[{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,0,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,1,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,2,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,3,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,4,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,5,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,6,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,7,\u0022name\u0022]},{\u0022message\u0022:\u0022Unexpected Execution Error\u0022,\u0022path\u0022:[\u0022products\u0022,8,\u0022name\u0022]}],\u0022data\u0022:{\u0022products\u0022:[{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null},{\u0022name\u0022:null}],\u0022categories\u0022:[{\u0022title\u0022:\u0022Name1\u0022},{\u0022title\u0022:\u0022Name2\u0022},{\u0022title\u0022:\u0022Name3\u0022},{\u0022title\u0022:\u0022Name4\u0022},{\u0022title\u0022:\u0022Name5\u0022},{\u0022title\u0022:\u0022Name6\u0022},{\u0022title\u0022:\u0022Name7\u0022},{\u0022title\u0022:\u0022Name8\u0022},{\u0022title\u0022:\u0022Name9\u0022}]}}",
+      "blocks": [
+        {
+          "Name": "batch-fallback9",
+          "block": 0,
+          "iterations": 1000,
+          "totalBytes": 36200000,
+          "targetElapsedMilliseconds": 29.3232,
+          "completed": 1000,
+          "startThread": 10,
+          "endThread": 5,
+          "threadBefore": 2204172776,
+          "threadAfter": 1972020832,
+          "diagnosticThreadDifference": -232151944,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 55.0956
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.0986
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "batch-fallback9",
+          "block": 1,
+          "iterations": 1000,
+          "totalBytes": 36200000,
+          "targetElapsedMilliseconds": 37.1304,
+          "completed": 1000,
+          "startThread": 5,
+          "endThread": 11,
+          "threadBefore": 1973069464,
+          "threadAfter": 2528950360,
+          "diagnosticThreadDifference": 555880896,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 55.0987
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.0749
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "batch-fallback9",
+          "block": 2,
+          "iterations": 1000,
+          "totalBytes": 36200000,
+          "targetElapsedMilliseconds": 27.6703,
+          "completed": 1000,
+          "startThread": 11,
+          "endThread": 10,
+          "threadBefore": 2529998928,
+          "threadAfter": 2243920376,
+          "diagnosticThreadDifference": -286078552,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 55.0976
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 52.6166
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "batch-fallback9",
+          "block": 3,
+          "iterations": 1000,
+          "totalBytes": 36200000,
+          "targetElapsedMilliseconds": 29.0376,
+          "completed": 1000,
+          "startThread": 10,
+          "endThread": 5,
+          "threadBefore": 2244968952,
+          "threadAfter": 2005613264,
+          "diagnosticThreadDifference": -239355688,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 53.013
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.0944
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        },
+        {
+          "Name": "batch-fallback9",
+          "block": 4,
+          "iterations": 1000,
+          "totalBytes": 36200000,
+          "targetElapsedMilliseconds": 33.8902,
+          "completed": 1000,
+          "startThread": 5,
+          "endThread": 11,
+          "threadBefore": 2006661832,
+          "threadAfter": 2534089528,
+          "diagnosticThreadDifference": 527427696,
+          "idleBefore": {
+            "Bytes": 0,
+            "Milliseconds": 51.309
+          },
+          "idleAfter": {
+            "Bytes": 0,
+            "Milliseconds": 55.1265
+          },
+          "noCollections": true,
+          "noGc": true,
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "sync": false,
+          "OtherThreadObserved": true,
+          "calibrationBefore": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationAfter": {
+            "ThreadBytes": 523240,
+            "TotalBytes": 523240
+          },
+          "calibrationExpected": 523240,
+          "regionMode": 4,
+          "endMode": 1,
+          "endError": null
+        }
+      ]
+    }
+  ]
+}

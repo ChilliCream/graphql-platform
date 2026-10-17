@@ -1,0 +1,8 @@
+{
+  "sameOraclesAndDispatches": true,
+  "cases": 10,
+  "runtime": ".NET 10.0.12",
+  "serverGC": true,
+  "candidateExecutionSha": "244ad610bfe4ab6152885955e22776124510acb344f8c783a3f3a17260878301",
+  "baselineExecutionSha": "3607c024e15299544688653b26aa01edc195ef38278278b842eaa2ed4a2deade"
+}

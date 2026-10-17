@@ -1,0 +1,5 @@
+2026-10-17T16:27:29.112079+00:00 starting 01-allocation-baseline
+Traceback (most recent call last):
+  File "/workspaces/platform-1/.worktrees/fusion-apollo-error-vars-20261017b/experiments/fusion-apollo-error-vars-20261017b/run_micro.py", line 83, in <module>
+    raise RuntimeError(f'{label} failed; no retry. Inspect preserved stderr.')
+RuntimeError: 01-allocation-baseline failed; no retry. Inspect preserved stderr.

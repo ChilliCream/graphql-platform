@@ -11,7 +11,8 @@ DESTINATION.mkdir(exist_ok=True)
 selected = [path for path in SOURCE.iterdir()
             if path.is_file() and path.suffix in {'.log', '.json', '.stderr', '.txt'}]
 for directory in ['rejected-preexecution-snapshots', 'micro-campaign',
-                  'micro-campaign-process-scoped', 'gc-reason-diagnostic']:
+                  'micro-campaign-process-scoped', 'micro-campaign-fixed-heaps',
+                  'gc-reason-diagnostic']:
     selected.extend(path for path in (SOURCE / directory).rglob('*')
                     if path.is_file() and path.suffix in {'.json', '.jsonl', '.log', '.stderr', '.md', '.nettrace'})
 for directory in SOURCE.glob('frozen*'):
