@@ -68,7 +68,7 @@ public class PathSegmentPoolTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public void Trim_Should_KeepFreeArrays_When_PoolShrinks(bool preAllocate)
+    public void Trim_Should_ReleaseFreeArrays_When_PoolReturnsToLowerLevel(bool preAllocate)
     {
         // arrange
         using var pool = new PathSegmentPool(64, [4, 8, 16], TimeSpan.FromMinutes(1), preAllocate);
@@ -82,7 +82,7 @@ public class PathSegmentPoolTests
         pool.Rent(next);
 
         // assert
-        Assert.Equal(8, pool.Capacity);
+        Assert.Equal(16, pool.Capacity);
         Assert.Equal(8, pool.InUse);
         Assert.Equal(
             new HashSet<int[]?>(arrays.Skip(8), ReferenceEqualityComparer.Instance),
@@ -90,44 +90,118 @@ public class PathSegmentPoolTests
     }
 
     [Fact]
-    public void Trim_Should_RespectOutstandingRentals_When_PoolWasExhausted()
+    public void Trim_Should_KeepAllSlots_When_OutstandingRentalsExceedLowerLevel()
     {
         // arrange
         using var pool = new PathSegmentPool(64, [4, 8, 16], TimeSpan.FromMinutes(1), false);
-        var arrays = new int[]?[20];
-        pool.Rent(arrays);
+        var first = new int[]?[20];
+        pool.Rent(first);
+        var second = new int[]?[16];
 
         // act
         pool.Trim();
-        var occupiedCapacity = pool.Capacity;
-        pool.Return(arrays.AsSpan(0, 12));
-        pool.Trim();
-        var partialCapacity = pool.Capacity;
-        pool.Return(arrays.AsSpan(12));
-        pool.Trim();
-        pool.Trim();
+        pool.Return(first);
+        pool.Rent(second);
 
         // assert
-        Assert.Equal(16, occupiedCapacity);
-        Assert.Equal(8, partialCapacity);
-        Assert.Equal(4, pool.Capacity);
-        Assert.Equal(0, pool.InUse);
+        Assert.Equal(16, pool.InUse);
+        Assert.Equal(
+            new HashSet<int[]?>(first.Take(16), ReferenceEqualityComparer.Instance),
+            new HashSet<int[]?>(second, ReferenceEqualityComparer.Instance));
     }
 
     [Fact]
-    public void Rent_Should_PreserveExclusiveOwnership_When_TrimmingConcurrentBatches()
+    public void Trim_Should_KeepReservedCapacity_When_ReturningToInitialLevel()
     {
         // arrange
-        using var pool = new PathSegmentPool(64, [4, 16, 64], TimeSpan.FromMinutes(1), false);
+        using var pool = new PathSegmentPool(64, [4, 8, 16], TimeSpan.FromMinutes(1), false);
+        var first = new int[]?[16];
+        pool.Rent(first);
+        pool.Return(first.AsSpan(0, 8));
+        pool.Trim();
+        pool.Return(first.AsSpan(8));
+        var second = new int[]?[4];
+
+        // act
+        pool.Trim();
+        pool.Trim();
+        pool.Rent(second);
+
+        // assert
+        Assert.Equal(16, pool.Capacity);
+        Assert.Equal(4, pool.InUse);
+        Assert.Equal(
+            new HashSet<int[]?>(first.Skip(12), ReferenceEqualityComparer.Instance),
+            new HashSet<int[]?>(second, ReferenceEqualityComparer.Instance));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Rent_Should_ReuseReservedCapacity_When_RegrowingAfterTrim(bool preAllocate)
+    {
+        // arrange
+        using var pool = new PathSegmentPool(64, [4, 8, 16], TimeSpan.FromMinutes(1), preAllocate);
+        var first = new int[]?[16];
+        pool.Rent(first);
+        pool.Return(first);
+        pool.Trim();
+        pool.Trim();
+        var second = new int[]?[16];
+
+        // act
+        pool.Rent(second);
+        pool.Return(second);
+        var third = new int[]?[16];
+        pool.Rent(third);
+
+        // assert
+        Assert.Equal(16, pool.Capacity);
+        Assert.Equal(16, pool.InUse);
+        Assert.Equal(4, second.Intersect(first, ReferenceEqualityComparer.Instance).Count());
+        Assert.Equal(
+            new HashSet<int[]?>(second, ReferenceEqualityComparer.Instance),
+            new HashSet<int[]?>(third, ReferenceEqualityComparer.Instance));
+    }
+
+    [Fact]
+    public void Rent_Should_CrossEveryLevel_When_BatchSpansIrregularLimits()
+    {
+        // arrange
+        using var pool = new PathSegmentPool(64, [3, 7, 13, 31, 63, 127], TimeSpan.FromMinutes(1), true);
+        var first = new int[]?[97];
+        var second = new int[]?[97];
+
+        // act
+        pool.Rent(first);
+        pool.Return(first);
+        pool.Rent(second);
+
+        // assert
+        Assert.Equal(127, pool.Capacity);
+        Assert.Equal(97, pool.InUse);
+        Assert.Equal(97, new HashSet<int[]?>(second, ReferenceEqualityComparer.Instance).Count);
+        Assert.Equal(
+            new HashSet<int[]?>(first, ReferenceEqualityComparer.Instance),
+            new HashSet<int[]?>(second, ReferenceEqualityComparer.Instance));
+    }
+
+    [Theory]
+    [InlineData(53, 1000)]
+    [InlineData(4129, 40)]
+    public void Rent_Should_PreserveExclusiveOwnership_When_TrimmingConcurrentBatches(int count, int iterations)
+    {
+        // arrange
+        using var pool = new PathSegmentPool(64, [4, 16, 64, 4096, 8192, 16384], TimeSpan.FromMinutes(1), false);
         var active = new ConcurrentDictionary<int[], byte>(ReferenceEqualityComparer.Instance);
         var failures = new ConcurrentQueue<string>();
 
         // act
         Parallel.For(0, 8, worker =>
         {
-            var arrays = new int[]?[53];
+            var arrays = new int[]?[count];
 
-            for (var iteration = 0; iteration < 1000; iteration++)
+            for (var iteration = 0; iteration < iterations; iteration++)
             {
                 pool.Rent(arrays);
 
@@ -156,6 +230,125 @@ public class PathSegmentPoolTests
         Assert.Empty(failures);
         Assert.Empty(active);
         Assert.Equal(0, pool.InUse);
+    }
+
+    [Theory]
+    [InlineData(4096, 4096)]
+    [InlineData(4097, 8192)]
+    [InlineData(8192, 8192)]
+    [InlineData(8193, 12288)]
+    [InlineData(16385, 16384)]
+    public void Rent_Should_ReserveOnlyTouchedPages_When_LevelSpansManyPages(int count, int capacity)
+    {
+        // arrange
+        using var pool = new PathSegmentPool(64, [4096, 16384], TimeSpan.FromMinutes(1), false);
+        var arrays = new int[]?[count];
+
+        // act
+        pool.Rent(arrays);
+
+        // assert
+        Assert.Equal(capacity, pool.Capacity);
+        Assert.Equal(count, pool.InUse);
+        Assert.Equal(count, new HashSet<int[]?>(arrays, ReferenceEqualityComparer.Instance).Count);
+    }
+
+    [Theory]
+    [InlineData(4093)]
+    [InlineData(4096)]
+    [InlineData(4097)]
+    [InlineData(8191)]
+    [InlineData(8192)]
+    [InlineData(8194)]
+    public void Rent_Should_ReuseReturnedArrays_When_LevelEndsInsidePage(int count)
+    {
+        // arrange
+        using var pool = new PathSegmentPool(64, [4093, 4097, 4103, 8195], TimeSpan.FromMinutes(1), true);
+        var first = new int[]?[count];
+        pool.Rent(first);
+        pool.Return(first);
+        pool.Trim();
+        pool.Trim();
+        pool.Trim();
+        var second = new int[]?[count];
+
+        // act
+        pool.Rent(second);
+
+        // assert
+        Assert.Equal(count, pool.InUse);
+        Assert.Equal(count, new HashSet<int[]?>(second, ReferenceEqualityComparer.Instance).Count);
+        Assert.Equal(4093, second.Intersect(first, ReferenceEqualityComparer.Instance).Count());
+    }
+
+    [Fact]
+    public void Trim_Should_KeepInitialArrays_When_HigherLevelPagesWereNeverNeeded()
+    {
+        // arrange
+        using var pool = new PathSegmentPool(64, [4, 16384], TimeSpan.FromMinutes(1), false);
+        var first = new int[]?[5];
+        pool.Rent(first);
+        pool.Return(first);
+        var second = new int[]?[4];
+
+        // act
+        pool.Trim();
+        pool.Rent(second);
+
+        // assert
+        Assert.Equal(4096, pool.Capacity);
+        Assert.Equal(4, pool.InUse);
+        Assert.Equal(
+            new HashSet<int[]?>(first.Skip(1), ReferenceEqualityComparer.Instance),
+            new HashSet<int[]?>(second, ReferenceEqualityComparer.Instance));
+    }
+
+    [Fact]
+    public void Rent_Should_KeepEveryReturnedArray_When_BatchCrossesPageBoundary()
+    {
+        // arrange
+        using var pool = new PathSegmentPool(64, [4096, 8192], TimeSpan.FromMinutes(1), false);
+        var held = new int[]?[19];
+        pool.Rent(held);
+        var first = new int[]?[4101];
+        pool.Rent(first);
+        pool.Return(first);
+        var second = new int[]?[4101];
+
+        // act
+        pool.Rent(second);
+
+        // assert
+        Assert.Equal(4120, pool.InUse);
+        Assert.Equal(
+            new HashSet<int[]?>(first, ReferenceEqualityComparer.Instance),
+            new HashSet<int[]?>(second, ReferenceEqualityComparer.Instance));
+    }
+
+    [Fact]
+    public void Return_Should_IgnoreInvalidEntries_When_BatchCrossesPageBoundary()
+    {
+        // arrange
+        using var pool = new PathSegmentPool(64, [4096, 8192], TimeSpan.FromMinutes(1), false);
+        var first = new int[]?[4127];
+        pool.Rent(first);
+        var returned = new int[]?[4129];
+        first.AsSpan(0, 4095).CopyTo(returned);
+        returned[4096] = new int[128];
+        first.AsSpan(4095).CopyTo(returned.AsSpan(4097));
+        var second = new int[]?[4127];
+
+        // act
+        pool.Return(returned);
+        var inUseAfterReturn = pool.InUse;
+        pool.Rent(second);
+
+        // assert
+        Assert.Equal(0, inUseAfterReturn);
+        Assert.Equal(4127, pool.InUse);
+        Assert.Equal(
+            new HashSet<int[]?>(first, ReferenceEqualityComparer.Instance),
+            new HashSet<int[]?>(second, ReferenceEqualityComparer.Instance));
     }
 
     [Fact]
