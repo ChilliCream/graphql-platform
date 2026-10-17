@@ -1,0 +1,11 @@
+Independent C9 microbenchmark review, 2026-10-17
+
+Recommendation: PASS_FOR_VU, limited to one focused HTTP validation. This is not an end-to-end CPU result or final success.
+
+All five B/C9/B/C9/B launches, 180 actual observations and 15 native MemoryDiagnoser records are retained. Duplicate96 arithmetic means improve against both adjacent controls on both candidate launches: -2.21%/-2.37%, then -1.01%/-6.77%. The stable early pair supports approximately 1.24-1.33 microseconds (2.2-2.4%) improvement; the second candidate is approximately 0.568 microseconds (1.01%) below its preceding control. The final baseline has a wide distribution and a 72.410 microsecond observation, so 6.77% must not be presented as representative.
+
+Ordinary means also move favorably by 0.28-4.25%, which leaves temporal confounding possible. Batch first-launch comparisons are mixed (-2.83%/+0.84%), then favorable (-2.63%/-3.62%), with no repeated adverse unaffected-path pattern. Native allocation is effectively neutral, as predicted. No arbitrary speedup or allocation-saving quota is required.
+
+The warm profile attributes 1,220.632 ms (1.706% filtered exclusive sampled thread time) to the changed CreateCompactPath walk. Repeated direction on the targeted duplicate-heavy shape plus this actual hot-path attribution warrants the bounded HTTP CPU/ordinary control gate. It does not establish process CPU improvement.
+
+The 18 CPU ticks accrued by an idle VBCSCompiler during the 57-second campaign remain a caveat; they do not establish causation or automatically invalidate the run. No outlier was removed and no equivalent microbenchmark rerun is requested.
