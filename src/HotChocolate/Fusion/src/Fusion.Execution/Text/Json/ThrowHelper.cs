@@ -12,6 +12,9 @@ namespace HotChocolate.Text.Json;
 
 internal static class ThrowHelper
 {
+    public static InvalidOperationException SourceResultDocumentTooLarge()
+        => new("The source result document has exceeded its maximum data capacity.");
+
     public static FormatException FormatException()
     {
         return new FormatException { Source = Rethrowable };

@@ -421,12 +421,19 @@ public sealed class GraphQLHttpResponse : IDisposable
         }
 
 #if FUSION
+        var contentLength = _message.Content.Headers.ContentLength;
+
+        if (contentLength is null
+            || contentLength <= 0
+            || contentLength > MaxSingleSpanResponseLength)
+        {
+            return await ReadIntoArenaAsync(stream, arena, ct).ConfigureAwait(false);
+        }
+
         var reader = PipeReader.Create(stream, s_options);
 
         try
         {
-            var contentLength = _message.Content.Headers.ContentLength;
-
             // A response whose Content-Length fits within MaxSingleSpanResponseLength is filled once
             // into a single exact-length arena chunk and parsed in place as one span. The payload length
             // is only trusted after the body completes with exactly the claimed length.
@@ -606,6 +613,63 @@ public sealed class GraphQLHttpResponse : IDisposable
     }
 
 #if FUSION
+    private static async ValueTask<SourceResultDocument> ReadIntoArenaAsync(
+        Stream stream,
+        IMemoryArena arena,
+        CancellationToken cancellationToken)
+    {
+        var chunks = arena.RentSegmentTable(64);
+        var chunkIndex = 0;
+        var chunkSize = SourceResultDocument.GetDataChunkSize(chunkIndex);
+        var current = chunks[chunkIndex] = arena.Rent(chunkSize);
+        var position = 0;
+
+        while (true)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var bytesRead = await stream
+                .ReadAsync(current.Memory[position..], cancellationToken)
+                .ConfigureAwait(false);
+
+            if (bytesRead == 0)
+            {
+                break;
+            }
+
+            position += bytesRead;
+
+            if (position == chunkSize)
+            {
+                if (chunkIndex + 1 >= SourceResultDocument.DataMaxChunks)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var probe = arena.Rent(1);
+
+                    if (await stream.ReadAsync(probe.Memory, cancellationToken).ConfigureAwait(false) != 0)
+                    {
+                        throw Text.Json.ThrowHelper.SourceResultDocumentTooLarge();
+                    }
+
+                    break;
+                }
+
+                if (chunkIndex + 1 >= chunks.Length)
+                {
+                    arena.GrowSegmentTable(ref chunks);
+                }
+
+                chunkIndex++;
+                chunkSize = SourceResultDocument.GetDataChunkSize(chunkIndex);
+                current = chunks[chunkIndex] = arena.Rent(chunkSize);
+                position = 0;
+            }
+        }
+
+        return SourceResultDocument.ParseFilled(arena, chunks, chunkIndex + 1, position);
+    }
+
     /// <summary>
     /// Reads the GraphQL response as a <see cref="IAsyncEnumerable{T}"/> of <see cref="SourceResultDocument"/>.
     /// </summary>
