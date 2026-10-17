@@ -1,0 +1,12 @@
+{
+  "family": "combined",
+  "delay_ms": 0,
+  "index": 0,
+  "arm": "B",
+  "name": "delay0-00-B",
+  "cases": [
+    "TestQuery",
+    "entities9",
+    "ordinary-fixed"
+  ]
+}

@@ -1,0 +1,124 @@
+{
+  "responses": [
+    {
+      "index": 0,
+      "url": "http://localhost:5223/graphql",
+      "accept_policy": "default",
+      "protocol_version": 11,
+      "status": 200,
+      "headers": {
+        "Content-Length": null,
+        "Content-Type": "application/graphql-response+json; charset=utf-8",
+        "Transfer-Encoding": "chunked",
+        "Content-Encoding": null
+      },
+      "body_shape_observation": "single-json-object",
+      "body_bytes": 285,
+      "body_sha256": "0a5c6ddc565b6204bacee0aea39c7e3a99f5f2d3a67b78b08d2ca73826822261",
+      "request_body_sha256": "e1f9e187678aa5dac179efe425de55e7fb4300f6e54f730879265ffdf2358854"
+    },
+    {
+      "index": 1,
+      "url": "http://localhost:5221/graphql",
+      "accept_policy": "default",
+      "protocol_version": 11,
+      "status": 200,
+      "headers": {
+        "Content-Length": null,
+        "Content-Type": "application/graphql-response+json; charset=utf-8",
+        "Transfer-Encoding": "chunked",
+        "Content-Encoding": null
+      },
+      "body_shape_observation": "single-json-object",
+      "body_bytes": 355,
+      "body_sha256": "39a8b4380334dc729e3a9cdc15557854fac3a0caab74169f7f18dfd322b396f1",
+      "request_body_sha256": "89411ddbe84da8bf7bff0f5d5c25577b833b8b5d129fe5673a95ee34a4d41a31"
+    },
+    {
+      "index": 2,
+      "url": "http://localhost:5222/graphql",
+      "accept_policy": "default",
+      "protocol_version": 11,
+      "status": 200,
+      "headers": {
+        "Content-Length": null,
+        "Content-Type": "application/graphql-response+json; charset=utf-8",
+        "Transfer-Encoding": "chunked",
+        "Content-Encoding": null
+      },
+      "body_shape_observation": "single-json-object",
+      "body_bytes": 220,
+      "body_sha256": "eee42c9ed6b6f4266b514a0f181e377609dff3635a4ce0ecf4ef653cf995606d",
+      "request_body_sha256": "f449efb6bc2439739c4f1c9bd51238260f95de2de2e699fcdf6f47019212db67"
+    },
+    {
+      "index": 3,
+      "url": "http://localhost:5224/graphql",
+      "accept_policy": "batching",
+      "protocol_version": 11,
+      "status": 200,
+      "headers": {
+        "Content-Length": null,
+        "Content-Type": "application/graphql-response+json; charset=utf-8",
+        "Transfer-Encoding": "chunked",
+        "Content-Encoding": null
+      },
+      "body_shape_observation": "single-json-object",
+      "body_bytes": 74030,
+      "body_sha256": "e53110c303832e23421ed9ab12ca76ff0031cff89ee45875cfab6361d5215986",
+      "request_body_sha256": "3110d7dfd224fa4fd96b41da85761d7fa3abfe0064995ca72735a737fc2d8e32"
+    },
+    {
+      "index": 4,
+      "url": "http://localhost:5223/graphql",
+      "accept_policy": "batching",
+      "protocol_version": 11,
+      "status": 200,
+      "headers": {
+        "Content-Length": null,
+        "Content-Type": "application/graphql-response+json; charset=utf-8",
+        "Transfer-Encoding": "chunked",
+        "Content-Encoding": null
+      },
+      "body_shape_observation": "single-json-object",
+      "body_bytes": 187,
+      "body_sha256": "080b68d3cb3e951728d306b29da94a9f34f8a580609216bed4222f0e4ba59afb",
+      "request_body_sha256": "6d2de65b3512dc18f0dd3bce886f432b41726ee4b110c6ca8efba19fa41ed5dc"
+    },
+    {
+      "index": 5,
+      "url": "http://localhost:5221/graphql",
+      "accept_policy": "batching",
+      "protocol_version": 11,
+      "status": 200,
+      "headers": {
+        "Content-Length": null,
+        "Content-Type": "application/graphql-response+json; charset=utf-8",
+        "Transfer-Encoding": "chunked",
+        "Content-Encoding": null
+      },
+      "body_shape_observation": "single-json-object",
+      "body_bytes": 134,
+      "body_sha256": "fc0c6202277b1696f1c4fdd65586b9e4f4db86168c4acc08cd666cc42d7e421b",
+      "request_body_sha256": "ec13c7112dc43a65e5c1d1af7f236d0aa0b8112f2a18cbcce44c1eddb5bf4c25"
+    },
+    {
+      "index": 6,
+      "url": "http://localhost:5222/graphql",
+      "accept_policy": "batching",
+      "protocol_version": 11,
+      "status": 200,
+      "headers": {
+        "Content-Length": null,
+        "Content-Type": "application/graphql-response+json; charset=utf-8",
+        "Transfer-Encoding": "chunked",
+        "Content-Encoding": null
+      },
+      "body_shape_observation": "single-json-object",
+      "body_bytes": 178,
+      "body_sha256": "b960a208e86bba4dd2d1406493d27aa45dad130e882e4894f1a7182c52f6f2a8",
+      "request_body_sha256": "c67ee386fb22f5d833791daa38fa5ba14096f71e761ffdfa8813b81f6011b544"
+    }
+  ],
+  "scope": "Seven direct fixture response captures during first baseline preflight, followed by30s conditioning. urllib HTTP transport differs from the gateway client; headers and sizes are observed for this capture, not instrumented gateway responses. Physical arena chunk adjacency is unobserved. Advertised JSONL/SSE bodies are retained without requiring a single JSON object; independent gateway preflight oracles establish workload correctness. No sensitive request/response header values retained."
+}

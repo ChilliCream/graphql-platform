@@ -1,0 +1,21 @@
+{
+  "start": "2026-10-17T18:19:32.490838+00:00",
+  "parent": {
+    "pid": 192176,
+    "start_ticks": 972504,
+    "cpu_seconds": 0.41,
+    "rss_bytes": 21897216,
+    "threads": 1
+  },
+  "parent_affinity": [
+    0,
+    8
+  ],
+  "session_bound": {
+    "work_seconds": 1500,
+    "cleanup_reserve_seconds": 120,
+    "total_seconds": 1620
+  },
+  "plan_sha256": "8a96f23fb7b5051e370357b120bbdc9d9f5378b480e7225c583184783c6119e8",
+  "root_grant": "Root grants reviewed stage-one C9 C7 C10 HTTP plan 8a96f23fb7b5051e370357b120bbdc9d9f5378b480e7225c583184783c6119e8"
+}

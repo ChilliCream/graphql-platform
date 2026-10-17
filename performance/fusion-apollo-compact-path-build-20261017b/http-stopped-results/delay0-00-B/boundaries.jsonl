@@ -1,0 +1,13 @@
+{"name": "ready", "utc": "2026-10-17T18:19:33.036416+00:00", "epoch": 1792261173.0364196, "monotonic": 9726.008208277}
+{"name": "preflight-start", "utc": "2026-10-17T18:19:33.036775+00:00", "epoch": 1792261173.0367785, "monotonic": 9726.008567155}
+{"name": "preflight-end", "utc": "2026-10-17T18:19:33.395707+00:00", "epoch": 1792261173.3957179, "monotonic": 9726.367506777}
+{"name": "source-response-shape-capture-start", "utc": "2026-10-17T18:19:33.395977+00:00", "epoch": 1792261173.3959806, "monotonic": 9726.367769195}
+{"name": "source-response-shape-capture-end", "utc": "2026-10-17T18:19:33.408466+00:00", "epoch": 1792261173.4084756, "monotonic": 9726.380264572}
+{"name": "warmup-before-setup", "utc": "2026-10-17T18:19:33.408962+00:00", "epoch": 1792261173.408965, "monotonic": 9726.380753575}
+{"name": "warmup-generator-complete", "utc": "2026-10-17T18:20:04.341886+00:00", "epoch": 1792261204.3418941, "monotonic": 9757.313683178}
+{"name": "TestQuery-before-setup", "utc": "2026-10-17T18:20:04.342867+00:00", "epoch": 1792261204.3428726, "monotonic": 9757.314661517}
+{"name": "TestQuery-generator-complete", "utc": "2026-10-17T18:20:34.712587+00:00", "epoch": 1792261234.7125926, "monotonic": 9787.684381292}
+{"name": "entities9-before-setup", "utc": "2026-10-17T18:20:34.713562+00:00", "epoch": 1792261234.7135644, "monotonic": 9787.685353089}
+{"name": "entities9-generator-complete", "utc": "2026-10-17T18:20:55.003821+00:00", "epoch": 1792261255.0038261, "monotonic": 9807.975614967}
+{"name": "ordinary-fixed-before-setup", "utc": "2026-10-17T18:20:55.004437+00:00", "epoch": 1792261255.0044403, "monotonic": 9807.976228887}
+{"name": "ordinary-fixed-generator-complete", "utc": "2026-10-17T18:21:15.229847+00:00", "epoch": 1792261275.2298517, "monotonic": 9828.201640539}

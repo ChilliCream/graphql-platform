@@ -1,0 +1,109 @@
+{
+  "verifiedAt": "2026-10-17T18:21:35.860884+00:00",
+  "identities": [
+    {
+      "pid": 192178,
+      "startTicks": 972546,
+      "name": "Accounts",
+      "source": "delay0-00-B/process-identities.jsonl",
+      "currentStartTicks": null,
+      "exactIdentityAlive": false
+    },
+    {
+      "pid": 192179,
+      "startTicks": 972546,
+      "name": "Inventory",
+      "source": "delay0-00-B/process-identities.jsonl",
+      "currentStartTicks": null,
+      "exactIdentityAlive": false
+    },
+    {
+      "pid": 192180,
+      "startTicks": 972546,
+      "name": "Products",
+      "source": "delay0-00-B/process-identities.jsonl",
+      "currentStartTicks": null,
+      "exactIdentityAlive": false
+    },
+    {
+      "pid": 192181,
+      "startTicks": 972546,
+      "name": "Reviews",
+      "source": "delay0-00-B/process-identities.jsonl",
+      "currentStartTicks": null,
+      "exactIdentityAlive": false
+    },
+    {
+      "pid": 192182,
+      "startTicks": 972546,
+      "name": "gateway",
+      "source": "delay0-00-B/process-identities.jsonl",
+      "currentStartTicks": null,
+      "exactIdentityAlive": false
+    },
+    {
+      "pid": 192299,
+      "startTicks": 972600,
+      "name": "counters",
+      "source": "delay0-00-B/process-identities.jsonl",
+      "currentStartTicks": null,
+      "exactIdentityAlive": false
+    },
+    {
+      "pid": 192326,
+      "startTicks": 972638,
+      "name": "warmup",
+      "source": "delay0-00-B/process-identities.jsonl",
+      "currentStartTicks": null,
+      "exactIdentityAlive": false
+    },
+    {
+      "pid": 192664,
+      "startTicks": 975731,
+      "name": "TestQuery",
+      "source": "delay0-00-B/process-identities.jsonl",
+      "currentStartTicks": null,
+      "exactIdentityAlive": false
+    },
+    {
+      "pid": 192830,
+      "startTicks": 978768,
+      "name": "entities9",
+      "source": "delay0-00-B/process-identities.jsonl",
+      "currentStartTicks": null,
+      "exactIdentityAlive": false
+    },
+    {
+      "pid": 192925,
+      "startTicks": 980797,
+      "name": "ordinary-fixed",
+      "source": "delay0-00-B/process-identities.jsonl",
+      "currentStartTicks": null,
+      "exactIdentityAlive": false
+    },
+    {
+      "pid": 192176,
+      "startTicks": 972504,
+      "name": "python3",
+      "source": "owner-parent-identity.json",
+      "currentStartTicks": null,
+      "exactIdentityAlive": false
+    },
+    {
+      "pid": 192175,
+      "startTicks": 972503,
+      "name": "flock",
+      "source": "owner-parent-identity.json",
+      "currentStartTicks": null,
+      "exactIdentityAlive": false
+    }
+  ],
+  "allExactIdentitiesAbsent": true,
+  "exclusiveLockFree": true,
+  "failurePreserved": {
+    "end": "2026-10-17T18:21:15.437929+00:00",
+    "type": "ValueError",
+    "message": "ordinary-fixed dropped 102 iterations"
+  },
+  "scope": "Independent reconstruction from all native process identity logs and parent identity file; no process was terminated."
+}

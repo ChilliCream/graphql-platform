@@ -1,0 +1,85 @@
+{
+  "checkedAt": "2026-10-17T18:21:39.039216+00:00",
+  "identities": [
+    {
+      "pid": 192176,
+      "startTicks": 972504,
+      "currentStartTicks": null,
+      "sameIdentityAlive": false
+    },
+    {
+      "pid": 192175,
+      "startTicks": 972503,
+      "currentStartTicks": null,
+      "sameIdentityAlive": false
+    },
+    {
+      "pid": 192178,
+      "startTicks": 972546,
+      "currentStartTicks": null,
+      "sameIdentityAlive": false
+    },
+    {
+      "pid": 192179,
+      "startTicks": 972546,
+      "currentStartTicks": null,
+      "sameIdentityAlive": false
+    },
+    {
+      "pid": 192180,
+      "startTicks": 972546,
+      "currentStartTicks": null,
+      "sameIdentityAlive": false
+    },
+    {
+      "pid": 192181,
+      "startTicks": 972546,
+      "currentStartTicks": null,
+      "sameIdentityAlive": false
+    },
+    {
+      "pid": 192182,
+      "startTicks": 972546,
+      "currentStartTicks": null,
+      "sameIdentityAlive": false
+    },
+    {
+      "pid": 192299,
+      "startTicks": 972600,
+      "currentStartTicks": null,
+      "sameIdentityAlive": false
+    },
+    {
+      "pid": 192326,
+      "startTicks": 972638,
+      "currentStartTicks": null,
+      "sameIdentityAlive": false
+    },
+    {
+      "pid": 192664,
+      "startTicks": 975731,
+      "currentStartTicks": null,
+      "sameIdentityAlive": false
+    },
+    {
+      "pid": 192830,
+      "startTicks": 978768,
+      "currentStartTicks": null,
+      "sameIdentityAlive": false
+    },
+    {
+      "pid": 192925,
+      "startTicks": 980797,
+      "currentStartTicks": null,
+      "sameIdentityAlive": false
+    }
+  ],
+  "lockFree": true,
+  "failure": {
+    "end": "2026-10-17T18:21:15.437929+00:00",
+    "type": "ValueError",
+    "message": "ordinary-fixed dropped 102 iterations"
+  },
+  "noRetries": true,
+  "noExtraProcessesTerminated": true
+}
