@@ -737,6 +737,9 @@ internal static partial class OperationPlanExecutor
     }
 
     private static Dictionary<int, DeliveryPath> CreateDeliveryPaths(OperationPlan operationPlan)
+        => DeliveryPathCache.Entries.GetValue(operationPlan, static plan => BuildDeliveryPaths(plan));
+
+    private static Dictionary<int, DeliveryPath> BuildDeliveryPaths(OperationPlan operationPlan)
     {
         var deliveryPaths = new Dictionary<int, DeliveryPath>();
 
