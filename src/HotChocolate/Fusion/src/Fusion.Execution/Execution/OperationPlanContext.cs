@@ -394,8 +394,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
                 return [_resultStore.CreateVariableValueSets(ToResultPath(selectionSet), [])];
             }
 
-            var variableValues = GetPathThroughVariables(forwardedVariables);
-            return [_resultStore.CreateVariableValueSets(CompactPath.Root, variableValues)];
+            return [_resultStore.CreateVariableValueSets(CompactPath.Root, Variables, forwardedVariables)];
         }
         else
         {
@@ -442,8 +441,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
                 return [];
             }
 
-            var variableValues = GetPathThroughVariables(forwardedVariables);
-            return [_resultStore.CreateVariableValueSets(CompactPath.Root, variableValues)];
+            return [_resultStore.CreateVariableValueSets(CompactPath.Root, Variables, forwardedVariables)];
         }
         else
         {
