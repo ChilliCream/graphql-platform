@@ -1,0 +1,1 @@
+{"errors":[{"message":"\u003Cfailure\u003E","locations":[{"line":1,"column":2},{"line":3,"column":8}],"path":["products",1,"name"],"extensions":{"code":"FAILED","details":{"retry":false}}}]}

@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.Text.Json;
@@ -218,12 +219,19 @@ public static class JsonValueFormatter
 
             writer.WriteStartArray();
 
-            // We sort errors by path to ensure a stable output:
-            // - Errors without paths (null) come first
-            // - Then errors sorted by path
-            foreach (var error in errors.OrderBy(e => e.Path, PathComparer.Instance))
+            if (errors is ImmutableList<IError> { Count: 1 } singleErrorList
+                && singleErrorList[0] is Error singleError
+                && singleError.GetType() == typeof(Error))
             {
-                WriteError(writer, error, options);
+                WriteError(writer, singleError, options);
+            }
+            else
+            {
+                // Errors without paths come first, followed by errors sorted by path.
+                foreach (var error in errors.OrderBy(e => e.Path, PathComparer.Instance))
+                {
+                    WriteError(writer, error, options);
+                }
             }
 
             writer.WriteEndArray();
