@@ -30,6 +30,13 @@ internal static class VariableCoercionHelper
 
         Utf8MemoryBuilder? memory = null;
         var hasVariables = variableValues.ValueKind is JsonValueKind.Object;
+#if NET9_0_OR_GREATER
+        var capacity = hasVariables && variableDefinitions.Count > 3
+            ? Math.Min(variableDefinitions.Count, variableValues.GetPropertyCount())
+            : 0;
+#else
+        var capacity = 0;
+#endif
         coercedVariableValues = [];
         error = null;
 
@@ -44,6 +51,12 @@ internal static class VariableCoercionHelper
 
             if (!hasValue && variableDefinition.DefaultValue is { } defaultValue)
             {
+                if (capacity > 0)
+                {
+                    coercedVariableValues.EnsureCapacity(capacity);
+                    capacity = 0;
+                }
+
                 coercedVariableValues[variableName] = new VariableValue(variableName, variableType, defaultValue);
                 continue;
             }
@@ -70,6 +83,12 @@ internal static class VariableCoercionHelper
                 out var variableValue,
                 out error))
             {
+                if (capacity > 0)
+                {
+                    coercedVariableValues.EnsureCapacity(capacity);
+                    capacity = 0;
+                }
+
                 coercedVariableValues[variableName] = variableValue.Value;
             }
             else
