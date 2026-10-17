@@ -1001,6 +1001,10 @@ internal sealed class ValueCompletion
             return !_propagateNullValues;
         }
 
+        var listObjectType = elementTypeKind is TypeKind.Object
+            ? (IComplexTypeDefinition)selection.NamedType
+            : null;
+        SelectionSet? listObjectSelectionSet = null;
         var i = 0;
         using var targetEnumerator = target.EnumerateArray().GetEnumerator();
         foreach (var element in source.EnumerateArray())
@@ -1082,13 +1086,16 @@ internal sealed class ValueCompletion
                     break;
 
                 default:
+                    listObjectSelectionSet ??= selection.GetSelectionSet(listObjectType!);
                     completed = TryCompleteObjectValue(
-                        selection,
                         elementSnapshot,
-                        errorTrieForIndex,
-                        depth,
                         targetElement,
-                        resultSelectionSet);
+                        errorTrieForIndex,
+                        selection,
+                        listObjectType!,
+                        depth,
+                        resultSelectionSet,
+                        listObjectSelectionSet);
                     break;
             }
 
@@ -1270,7 +1277,8 @@ TryCompleteList_MoveNext:
             parentSelection,
             objectType,
             depth,
-            resultSelectionSet);
+            resultSelectionSet,
+            preparedSelectionSet: null);
     }
 
     private bool TryCompleteObjectValue(
@@ -1280,7 +1288,8 @@ TryCompleteList_MoveNext:
         Selection parentSelection,
         IComplexTypeDefinition objectType,
         int depth,
-        ResultSelectionSet? resultSelectionSet)
+        ResultSelectionSet? resultSelectionSet,
+        SelectionSet? preparedSelectionSet)
     {
         AssertDepthAllowed(ref depth);
 
@@ -1288,7 +1297,8 @@ TryCompleteList_MoveNext:
         // with the current selection set.
         if (!target.TryGetObjectContext(out var objectContext))
         {
-            var objectSelectionSet = parentSelection.GetSelectionSet(objectType)
+            var objectSelectionSet = preparedSelectionSet
+                ?? parentSelection.GetSelectionSet(objectType)
                 ?? throw new InvalidOperationException(
                     "Cannot initialize a result object without a selection set.");
             target.SetObjectValue(objectSelectionSet, out objectContext);
@@ -1439,7 +1449,8 @@ TryCompleteList_MoveNext:
             selection,
             objectType,
             depth,
-            resultSelectionSet);
+            resultSelectionSet,
+            preparedSelectionSet: null);
     }
 
     /// <summary>

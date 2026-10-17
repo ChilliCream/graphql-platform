@@ -669,6 +669,43 @@ public sealed class FetchResultStoreTests : FusionTestBase
         Assert.Null(store.Errors);
     }
 
+    [Fact]
+    public void AddPartialResults_Should_PreserveNullableObjectLists_When_ListsAreEmptyOrContainNulls()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              empty: [Item]
+              allNull: [Item]
+              mixed: [Item]
+            }
+            type Item {
+              name: String
+            }
+            """);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+
+        // act
+        using var store = CreateLiveStore(
+            schema,
+            "{ empty { name } allNull { name } mixed { label: name } }",
+            """
+            {"data":{"empty":[],"allNull":[null,null],"mixed":[{"label":"first","ignored":42},null,{"label":"last"}]}}
+            """,
+            resultArena,
+            sourceArena);
+
+        // assert
+        RenderData(store).MatchInlineSnapshot(
+            """
+            {"empty":[],"allNull":[null,null],"mixed":[{"label":"first"},null,{"label":"last"}]}
+            """);
+        Assert.Null(store.Errors);
+    }
+
     [Theory]
     [InlineData(
         "[[Int]]",

@@ -1,0 +1,4407 @@
+{
+  "groups": [
+    {
+      "variant": "list-completion-baseline-9a563e814f",
+      "case": "list-1000-plain",
+      "metrics": {
+        "count": {
+          "median": 6001,
+          "min": 6001,
+          "max": 6001,
+          "total": 18003
+        },
+        "elapsed": {
+          "median": 60.015731129,
+          "min": 60.013855746,
+          "max": 60.016800713,
+          "total": 180.04638758800002
+        },
+        "requestsPerSecond": {
+          "median": 99.9904506220416,
+          "min": 99.98866865124563,
+          "max": 99.99357524033064,
+          "total": 299.97269451361785
+        },
+        "cpuSeconds": {
+          "median": 12.54518,
+          "min": 12.475479,
+          "max": 12.609044,
+          "total": 37.629703
+        },
+        "cpuMsPerRequest": {
+          "median": 2.09051491418097,
+          "min": 2.0789000166638893,
+          "max": 2.1011571404765874,
+          "total": 6.270572071321446
+        },
+        "allocationBytesPerRequest": {
+          "median": 15924.609898350274,
+          "min": 15917.927012164639,
+          "max": 15966.397600399934,
+          "total": 47808.93451091485
+        },
+        "allocationBytesPerSecond": {
+          "median": 1592280.5425264922,
+          "min": 1591690.4323609762,
+          "max": 1596487.290874673,
+          "total": 4780458.265762141
+        },
+        "gatewayCores": {
+          "median": 0.20903152830105381,
+          "min": 0.20786644492527467,
+          "max": 0.2101022146180036,
+          "total": 0.6270001878443321
+        },
+        "subgraphCores": {
+          "median": 0.2719217318520906,
+          "min": 0.2715596934755616,
+          "max": 0.2741594974792612,
+          "total": 0.8176409228069135
+        },
+        "procCpuSeconds": {
+          "median": 12.530427717937764,
+          "min": 12.453821846955776,
+          "max": 12.57077004318975,
+          "total": 37.55501960808329
+        },
+        "loadGeneratorCores": {
+          "median": 0.07837771997368546,
+          "min": 0.07773445248833602,
+          "max": 0.0811762040522568,
+          "total": 0.2372883765142783
+        },
+        "gen0": {
+          "median": 1,
+          "min": 0,
+          "max": 1,
+          "total": 2
+        },
+        "gen1": {
+          "median": 0,
+          "min": 0,
+          "max": 1,
+          "total": 1
+        },
+        "gen2": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "gcPauseMs": {
+          "median": 2.9349999999999987,
+          "min": 0.0,
+          "max": 7.033000000000001,
+          "total": 9.968
+        },
+        "gcPausePercent": {
+          "median": 0.004890297325302546,
+          "min": 0.0,
+          "max": 0.01171859422137675,
+          "total": 0.016608891546679296
+        },
+        "heapEnd": {
+          "median": 127216664,
+          "min": 127090320,
+          "max": 127216664,
+          "total": 381523648
+        },
+        "fragmentationEnd": {
+          "median": 901608,
+          "min": 877248,
+          "max": 901608,
+          "total": 2680464
+        },
+        "committedEnd": {
+          "median": 290000896,
+          "min": 290000896,
+          "max": 294871040,
+          "total": 874872832
+        },
+        "workingSetEnd": {
+          "median": 300142592,
+          "min": 270172160,
+          "max": 308228096,
+          "total": 878542848
+        },
+        "observedPeakRss": {
+          "median": 308228096,
+          "min": 304750592,
+          "max": 308260864,
+          "total": 921239552
+        },
+        "failures": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "droppedStarts": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "responseBytesMin": {
+          "median": 55707,
+          "min": 55707,
+          "max": 55707,
+          "total": 167121
+        },
+        "responseBytesMax": {
+          "median": 55707,
+          "min": 55707,
+          "max": 55707,
+          "total": 167121
+        },
+        "p50Ms": {
+          "median": 10.160471,
+          "min": 10.155096,
+          "max": 10.177186,
+          "total": 30.492753
+        },
+        "httpP50Ms": {
+          "median": 9.800385,
+          "min": 9.788969,
+          "max": 9.8191,
+          "total": 29.408454
+        },
+        "p95Ms": {
+          "median": 12.790235,
+          "min": 12.663526,
+          "max": 12.792201,
+          "total": 38.245962
+        },
+        "httpP95Ms": {
+          "median": 12.305364,
+          "min": 12.199232,
+          "max": 12.311399,
+          "total": 36.815995
+        },
+        "p99Ms": {
+          "median": 14.910296,
+          "min": 14.511119,
+          "max": 15.109665,
+          "total": 44.53108
+        },
+        "httpP99Ms": {
+          "median": 14.474044,
+          "min": 13.996242,
+          "max": 14.678579,
+          "total": 43.148865
+        }
+      }
+    },
+    {
+      "variant": "list-completion-baseline-9a563e814f",
+      "case": "list-20000-plain",
+      "metrics": {
+        "count": {
+          "median": 1201,
+          "min": 1201,
+          "max": 1201,
+          "total": 3603
+        },
+        "elapsed": {
+          "median": 60.033037187,
+          "min": 60.028740964,
+          "max": 60.033385234,
+          "total": 180.095163385
+        },
+        "requestsPerSecond": {
+          "median": 20.005651159359857,
+          "min": 20.005535175447875,
+          "max": 20.007082952485295,
+          "total": 60.01826928729302
+        },
+        "cpuSeconds": {
+          "median": 10.014606,
+          "min": 9.913691999999996,
+          "max": 10.044376000000003,
+          "total": 29.972673999999998
+        },
+        "cpuMsPerRequest": {
+          "median": 8.33855620316403,
+          "min": 8.254531223980013,
+          "max": 8.36334388009992,
+          "total": 24.956431307243967
+        },
+        "allocationBytesPerRequest": {
+          "median": 35048.85928393006,
+          "min": 35020.40299750208,
+          "max": 35057.57202331391,
+          "total": 105126.83430474605
+        },
+        "allocationBytesPerSecond": {
+          "median": 701175.2523677959,
+          "min": 700656.1078004887,
+          "max": 701345.4902782036,
+          "total": 2103176.8504464882
+        },
+        "gatewayCores": {
+          "median": 0.16683018566066357,
+          "min": 0.16513631475816495,
+          "max": 0.16731414019104612,
+          "total": 0.49928064060987465
+        },
+        "subgraphCores": {
+          "median": 0.2744971904323659,
+          "min": 0.27430637838498184,
+          "max": 0.2754078480028177,
+          "total": 0.8242114168201655
+        },
+        "procCpuSeconds": {
+          "median": 9.985861001330377,
+          "min": 9.89630772807601,
+          "max": 10.026279391191508,
+          "total": 29.908448120597896
+        },
+        "loadGeneratorCores": {
+          "median": 0.03492135494444012,
+          "min": 0.03444818232287127,
+          "max": 0.03623739170715818,
+          "total": 0.10560692897446958
+        },
+        "gen0": {
+          "median": 0,
+          "min": 0,
+          "max": 1,
+          "total": 1
+        },
+        "gen1": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "gen2": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "gcPauseMs": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 1.8069999999999986,
+          "total": 1.8069999999999986
+        },
+        "gcPausePercent": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0030102247206611906,
+          "total": 0.0030102247206611906
+        },
+        "heapEnd": {
+          "median": 137507624,
+          "min": 137507624,
+          "max": 141538192,
+          "total": 416553440
+        },
+        "fragmentationEnd": {
+          "median": 906512,
+          "min": 906512,
+          "max": 921992,
+          "total": 2735016
+        },
+        "committedEnd": {
+          "median": 306941952,
+          "min": 306941952,
+          "max": 311013376,
+          "total": 924897280
+        },
+        "workingSetEnd": {
+          "median": 268808192,
+          "min": 268644352,
+          "max": 273035264,
+          "total": 810487808
+        },
+        "observedPeakRss": {
+          "median": 270036992,
+          "min": 269111296,
+          "max": 273035264,
+          "total": 812183552
+        },
+        "failures": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "droppedStarts": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "responseBytesMin": {
+          "median": 1206710,
+          "min": 1206710,
+          "max": 1206710,
+          "total": 3620130
+        },
+        "responseBytesMax": {
+          "median": 1206710,
+          "min": 1206710,
+          "max": 1206710,
+          "total": 3620130
+        },
+        "p50Ms": {
+          "median": 27.306315,
+          "min": 27.218314,
+          "max": 27.370482,
+          "total": 81.895111
+        },
+        "httpP50Ms": {
+          "median": 26.144223,
+          "min": 26.102224,
+          "max": 26.215684,
+          "total": 78.462131
+        },
+        "p95Ms": {
+          "median": 29.522743,
+          "min": 29.3612,
+          "max": 29.85316,
+          "total": 88.737103
+        },
+        "httpP95Ms": {
+          "median": 28.128194,
+          "min": 28.032818,
+          "max": 28.491528,
+          "total": 84.65254
+        },
+        "p99Ms": {
+          "median": 31.976881,
+          "min": 31.534007,
+          "max": 32.069173,
+          "total": 95.580061
+        },
+        "httpP99Ms": {
+          "median": 30.445957,
+          "min": 30.201708,
+          "max": 30.666582,
+          "total": 91.314247
+        }
+      }
+    },
+    {
+      "variant": "list-completion-baseline-9a563e814f",
+      "case": "list-5000-plain",
+      "metrics": {
+        "count": {
+          "median": 3001,
+          "min": 3000,
+          "max": 3001,
+          "total": 9002
+        },
+        "elapsed": {
+          "median": 60.015151983,
+          "min": 60.004520095,
+          "max": 60.015505907,
+          "total": 180.035177985
+        },
+        "requestsPerSecond": {
+          "median": 50.003744109903,
+          "min": 49.99623353791278,
+          "max": 50.00403899418714,
+          "total": 150.00401664200294
+        },
+        "cpuSeconds": {
+          "median": 9.211688999999998,
+          "min": 8.769959999999992,
+          "max": 9.271423999999993,
+          "total": 27.25307299999998
+        },
+        "cpuMsPerRequest": {
+          "median": 3.0695398200599797,
+          "min": 2.9233199999999973,
+          "max": 3.0894448517160917,
+          "total": 9.082304671776068
+        },
+        "allocationBytesPerRequest": {
+          "median": 20105.855381539488,
+          "min": 20063.608130623124,
+          "max": 20142.704,
+          "total": 60312.16751216262
+        },
+        "allocationBytesPerSecond": {
+          "median": 1005368.0476092167,
+          "min": 1003261.4433277689,
+          "max": 1007059.3332690499,
+          "total": 3015688.8242060356
+        },
+        "gatewayCores": {
+          "median": 0.15348938885648938,
+          "min": 0.14615498942605104,
+          "max": 0.1544838098068687,
+          "total": 0.45412818808940913
+        },
+        "subgraphCores": {
+          "median": 0.23942722037270864,
+          "min": 0.23090504877553378,
+          "max": 0.24391586434784165,
+          "total": 0.7142481334960841
+        },
+        "procCpuSeconds": {
+          "median": 9.19253667637362,
+          "min": 8.743117423602712,
+          "max": 9.2507118458334,
+          "total": 27.186365945809733
+        },
+        "loadGeneratorCores": {
+          "median": 0.04021905611760355,
+          "min": 0.038590709438786994,
+          "max": 0.04126657882498625,
+          "total": 0.12007634438137679
+        },
+        "gen0": {
+          "median": 0,
+          "min": 0,
+          "max": 1,
+          "total": 1
+        },
+        "gen1": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "gen2": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "gcPauseMs": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 1.8920000000000012,
+          "total": 1.8920000000000012
+        },
+        "gcPausePercent": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0031525186223237767,
+          "total": 0.0031525186223237767
+        },
+        "heapEnd": {
+          "median": 129436808,
+          "min": 129436808,
+          "max": 129436808,
+          "total": 388310424
+        },
+        "fragmentationEnd": {
+          "median": 889752,
+          "min": 889752,
+          "max": 889752,
+          "total": 2669256
+        },
+        "committedEnd": {
+          "median": 295985152,
+          "min": 295985152,
+          "max": 295985152,
+          "total": 887955456
+        },
+        "workingSetEnd": {
+          "median": 259858432,
+          "min": 259698688,
+          "max": 260501504,
+          "total": 780058624
+        },
+        "observedPeakRss": {
+          "median": 260501504,
+          "min": 260165632,
+          "max": 272826368,
+          "total": 793493504
+        },
+        "failures": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "droppedStarts": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "responseBytesMin": {
+          "median": 291707,
+          "min": 291707,
+          "max": 291707,
+          "total": 875121
+        },
+        "responseBytesMax": {
+          "median": 291707,
+          "min": 291707,
+          "max": 291707,
+          "total": 875121
+        },
+        "p50Ms": {
+          "median": 12.726364,
+          "min": 12.207670499999999,
+          "max": 12.895823,
+          "total": 37.8298575
+        },
+        "httpP50Ms": {
+          "median": 12.279403,
+          "min": 11.7880645,
+          "max": 12.459066,
+          "total": 36.5265335
+        },
+        "p95Ms": {
+          "median": 14.544291,
+          "min": 14.467207,
+          "max": 14.643650499999998,
+          "total": 43.655148499999996
+        },
+        "httpP95Ms": {
+          "median": 14.05683,
+          "min": 13.964204,
+          "max": 14.135146599999999,
+          "total": 42.1561806
+        },
+        "p99Ms": {
+          "median": 16.098545,
+          "min": 16.050216,
+          "max": 16.70819848,
+          "total": 48.85695948
+        },
+        "httpP99Ms": {
+          "median": 15.628173,
+          "min": 15.542838,
+          "max": 16.269358970000003,
+          "total": 47.440369970000006
+        }
+      }
+    },
+    {
+      "variant": "list-completion-candidate1-9a563e814f",
+      "case": "list-1000-plain",
+      "metrics": {
+        "count": {
+          "median": 6001,
+          "min": 6001,
+          "max": 6001,
+          "total": 18003
+        },
+        "elapsed": {
+          "median": 60.013569128,
+          "min": 60.012946984,
+          "max": 60.014862997,
+          "total": 180.041379109
+        },
+        "requestsPerSecond": {
+          "median": 99.99405279830569,
+          "min": 99.9918970122447,
+          "max": 99.99508941962009,
+          "total": 299.9810392301705
+        },
+        "cpuSeconds": {
+          "median": 10.438596999999998,
+          "min": 10.323011,
+          "max": 11.051406000000002,
+          "total": 31.813013999999995
+        },
+        "cpuMsPerRequest": {
+          "median": 1.7394762539576734,
+          "min": 1.7202151308115312,
+          "max": 1.8415940676553912,
+          "total": 5.301285452424596
+        },
+        "allocationBytesPerRequest": {
+          "median": 15917.788368605232,
+          "min": 15905.603732711215,
+          "max": 15986.908848525245,
+          "total": 47810.300949841694
+        },
+        "allocationBytesPerSecond": {
+          "median": 1591684.1705625677,
+          "min": 1590431.4903588349,
+          "max": 1598612.3798515976,
+          "total": 4780728.040773001
+        },
+        "gatewayCores": {
+          "median": 0.17393728037964257,
+          "min": 0.17201306582648254,
+          "max": 0.1841444843513587,
+          "total": 0.5300948305574837
+        },
+        "subgraphCores": {
+          "median": 0.23956859477037584,
+          "min": 0.23012677210424898,
+          "max": 0.2521928516422967,
+          "total": 0.7218882185169215
+        },
+        "procCpuSeconds": {
+          "median": 10.417532233101081,
+          "min": 10.296911128552244,
+          "max": 11.0231099160168,
+          "total": 31.737553277670123
+        },
+        "loadGeneratorCores": {
+          "median": 0.07044436885570196,
+          "min": 0.06958633444735485,
+          "max": 0.07413010340825721,
+          "total": 0.21416080671131402
+        },
+        "gen0": {
+          "median": 1,
+          "min": 0,
+          "max": 1,
+          "total": 2
+        },
+        "gen1": {
+          "median": 0,
+          "min": 0,
+          "max": 1,
+          "total": 1
+        },
+        "gen2": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "gcPauseMs": {
+          "median": 4.415999999999999,
+          "min": 0.0,
+          "max": 6.3260000000000005,
+          "total": 10.741999999999999
+        },
+        "gcPausePercent": {
+          "median": 0.007358177257225004,
+          "min": 0.0,
+          "max": 0.010541058751350054,
+          "total": 0.017899236008575056
+        },
+        "heapEnd": {
+          "median": 128684536,
+          "min": 126992848,
+          "max": 128684536,
+          "total": 384361920
+        },
+        "fragmentationEnd": {
+          "median": 2500832,
+          "min": 867488,
+          "max": 2500832,
+          "total": 5869152
+        },
+        "committedEnd": {
+          "median": 289472512,
+          "min": 289472512,
+          "max": 296566784,
+          "total": 875511808
+        },
+        "workingSetEnd": {
+          "median": 268316672,
+          "min": 261541888,
+          "max": 271593472,
+          "total": 801452032
+        },
+        "observedPeakRss": {
+          "median": 273588224,
+          "min": 272441344,
+          "max": 301469696,
+          "total": 847499264
+        },
+        "failures": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "droppedStarts": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "responseBytesMin": {
+          "median": 55707,
+          "min": 55707,
+          "max": 55707,
+          "total": 167121
+        },
+        "responseBytesMax": {
+          "median": 55707,
+          "min": 55707,
+          "max": 55707,
+          "total": 167121
+        },
+        "p50Ms": {
+          "median": 9.492051,
+          "min": 9.426175,
+          "max": 9.773094,
+          "total": 28.69132
+        },
+        "httpP50Ms": {
+          "median": 9.145424,
+          "min": 9.106507,
+          "max": 9.421883,
+          "total": 27.673814
+        },
+        "p95Ms": {
+          "median": 12.312899,
+          "min": 12.190857,
+          "max": 12.425233,
+          "total": 36.928989
+        },
+        "httpP95Ms": {
+          "median": 11.914772,
+          "min": 11.786438,
+          "max": 12.008481,
+          "total": 35.709691
+        },
+        "p99Ms": {
+          "median": 14.309077,
+          "min": 14.102075,
+          "max": 14.37391,
+          "total": 42.785062
+        },
+        "httpP99Ms": {
+          "median": 13.775407,
+          "min": 13.73049,
+          "max": 13.992408,
+          "total": 41.498305
+        }
+      }
+    },
+    {
+      "variant": "list-completion-candidate1-9a563e814f",
+      "case": "list-20000-plain",
+      "metrics": {
+        "count": {
+          "median": 1201,
+          "min": 1200,
+          "max": 1201,
+          "total": 3602
+        },
+        "elapsed": {
+          "median": 60.028362802,
+          "min": 60.001723916,
+          "max": 60.028620678,
+          "total": 180.05870739600002
+        },
+        "requestsPerSecond": {
+          "median": 20.007123042894715,
+          "min": 19.999425377843338,
+          "max": 20.00720899154667,
+          "total": 60.013757412284725
+        },
+        "cpuSeconds": {
+          "median": 8.879970000000002,
+          "min": 8.84870300000001,
+          "max": 9.095503000000011,
+          "total": 26.824176000000023
+        },
+        "cpuMsPerRequest": {
+          "median": 7.393813488759368,
+          "min": 7.367779350541223,
+          "max": 7.579585833333343,
+          "total": 22.341178672633934
+        },
+        "allocationBytesPerRequest": {
+          "median": 35286.81432139884,
+          "min": 35162.0582847627,
+          "max": 35297.63333333333,
+          "total": 105746.50593949486
+        },
+        "allocationBytesPerSecond": {
+          "median": 705932.3838644756,
+          "min": 703491.6265446828,
+          "max": 705990.6687741285,
+          "total": 2115414.679183287
+        },
+        "gatewayCores": {
+          "median": 0.1479295717141255,
+          "min": 0.14740806801917716,
+          "max": 0.1515873612687087,
+          "total": 0.4469250010020114
+        },
+        "subgraphCores": {
+          "median": 0.2663961142552693,
+          "min": 0.2657311095350201,
+          "max": 0.26901464986032647,
+          "total": 0.801141873650616
+        },
+        "procCpuSeconds": {
+          "median": 8.872010577769814,
+          "min": 8.832525136500578,
+          "max": 9.081817145291197,
+          "total": 26.78635285956159
+        },
+        "loadGeneratorCores": {
+          "median": 0.032545608710213184,
+          "min": 0.032116201575562005,
+          "max": 0.03352187018519397,
+          "total": 0.09818368047096915
+        },
+        "gen0": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "gen1": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "gen2": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "gcPauseMs": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "total": 0.0
+        },
+        "gcPausePercent": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "total": 0.0
+        },
+        "heapEnd": {
+          "median": 134445368,
+          "min": 134445368,
+          "max": 134445368,
+          "total": 403336104
+        },
+        "fragmentationEnd": {
+          "median": 884336,
+          "min": 884336,
+          "max": 884336,
+          "total": 2653008
+        },
+        "committedEnd": {
+          "median": 301887488,
+          "min": 301887488,
+          "max": 301887488,
+          "total": 905662464
+        },
+        "workingSetEnd": {
+          "median": 263929856,
+          "min": 262881280,
+          "max": 265256960,
+          "total": 792068096
+        },
+        "observedPeakRss": {
+          "median": 264425472,
+          "min": 263974912,
+          "max": 265256960,
+          "total": 793657344
+        },
+        "failures": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "droppedStarts": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "responseBytesMin": {
+          "median": 1206710,
+          "min": 1206710,
+          "max": 1206710,
+          "total": 3620130
+        },
+        "responseBytesMax": {
+          "median": 1206710,
+          "min": 1206710,
+          "max": 1206710,
+          "total": 3620130
+        },
+        "p50Ms": {
+          "median": 25.943472,
+          "min": 25.932473,
+          "max": 26.148348,
+          "total": 78.024293
+        },
+        "httpP50Ms": {
+          "median": 24.862091,
+          "min": 24.861884,
+          "max": 25.053447,
+          "total": 74.777422
+        },
+        "p95Ms": {
+          "median": 27.913524,
+          "min": 27.847733,
+          "max": 28.910857099999998,
+          "total": 84.6721141
+        },
+        "httpP95Ms": {
+          "median": 26.661476,
+          "min": 26.635726,
+          "max": 27.557461949999997,
+          "total": 80.85466395
+        },
+        "p99Ms": {
+          "median": 30.126745,
+          "min": 29.859743,
+          "max": 31.28096751,
+          "total": 91.26745550999999
+        },
+        "httpP99Ms": {
+          "median": 28.818279,
+          "min": 28.514653,
+          "max": 29.458236439999993,
+          "total": 86.79116843999999
+        }
+      }
+    },
+    {
+      "variant": "list-completion-candidate1-9a563e814f",
+      "case": "list-5000-plain",
+      "metrics": {
+        "count": {
+          "median": 3001,
+          "min": 3001,
+          "max": 3001,
+          "total": 9003
+        },
+        "elapsed": {
+          "median": 60.01436696,
+          "min": 60.013709725,
+          "max": 60.016269217,
+          "total": 180.044345902
+        },
+        "requestsPerSecond": {
+          "median": 50.00469307624603,
+          "min": 50.003108143049104,
+          "max": 50.00524069835778,
+          "total": 150.0130419176529
+        },
+        "cpuSeconds": {
+          "median": 8.467261000000006,
+          "min": 8.447559999999998,
+          "max": 8.573818,
+          "total": 25.488639
+        },
+        "cpuMsPerRequest": {
+          "median": 2.8214798400533176,
+          "min": 2.8149150283238913,
+          "max": 2.8569870043318892,
+          "total": 8.493381872709099
+        },
+        "allocationBytesPerRequest": {
+          "median": 20106.55381539487,
+          "min": 20072.330556481174,
+          "max": 20147.334888370544,
+          "total": 60326.21926024659
+        },
+        "allocationBytesPerSecond": {
+          "median": 1005433.0631533044,
+          "min": 1003710.7288017956,
+          "max": 1007429.3652174184,
+          "total": 3016573.1571725183
+        },
+        "gatewayCores": {
+          "median": 0.1410827615656189,
+          "min": 0.14075896202704857,
+          "max": 0.14286432282369627,
+          "total": 0.4247060464163637
+        },
+        "subgraphCores": {
+          "median": 0.2413662151201306,
+          "min": 0.2403781888259653,
+          "max": 0.24188407641629628,
+          "total": 0.7236284803623921
+        },
+        "procCpuSeconds": {
+          "median": 8.453546833395428,
+          "min": 8.425928314660496,
+          "max": 8.555174642647586,
+          "total": 25.43464979070351
+        },
+        "loadGeneratorCores": {
+          "median": 0.03829326403678857,
+          "min": 0.03706161727510301,
+          "max": 0.0386533678826001,
+          "total": 0.11400824919449168
+        },
+        "gen0": {
+          "median": 0,
+          "min": 0,
+          "max": 1,
+          "total": 1
+        },
+        "gen1": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "gen2": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "gcPauseMs": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 1.955,
+          "total": 1.955
+        },
+        "gcPausePercent": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.003257588989179922,
+          "total": 0.003257588989179922
+        },
+        "heapEnd": {
+          "median": 129345984,
+          "min": 129345984,
+          "max": 129345984,
+          "total": 388037952
+        },
+        "fragmentationEnd": {
+          "median": 879968,
+          "min": 879968,
+          "max": 879968,
+          "total": 2639904
+        },
+        "committedEnd": {
+          "median": 297418752,
+          "min": 297418752,
+          "max": 297418752,
+          "total": 892256256
+        },
+        "workingSetEnd": {
+          "median": 256126976,
+          "min": 254533632,
+          "max": 257454080,
+          "total": 768114688
+        },
+        "observedPeakRss": {
+          "median": 257454080,
+          "min": 257036288,
+          "max": 259280896,
+          "total": 773771264
+        },
+        "failures": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "droppedStarts": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "responseBytesMin": {
+          "median": 291707,
+          "min": 291707,
+          "max": 291707,
+          "total": 875121
+        },
+        "responseBytesMax": {
+          "median": 291707,
+          "min": 291707,
+          "max": 291707,
+          "total": 875121
+        },
+        "p50Ms": {
+          "median": 12.581192,
+          "min": 12.546192,
+          "max": 12.595651,
+          "total": 37.723035
+        },
+        "httpP50Ms": {
+          "median": 12.165773,
+          "min": 12.126023,
+          "max": 12.183024,
+          "total": 36.47482
+        },
+        "p95Ms": {
+          "median": 14.134909,
+          "min": 13.989825,
+          "max": 14.260952,
+          "total": 42.385686
+        },
+        "httpP95Ms": {
+          "median": 13.636823,
+          "min": 13.540989,
+          "max": 13.779532,
+          "total": 40.957344
+        },
+        "p99Ms": {
+          "median": 15.530625,
+          "min": 15.435207,
+          "max": 15.660458,
+          "total": 46.62629
+        },
+        "httpP99Ms": {
+          "median": 15.01433,
+          "min": 14.95383,
+          "max": 15.113331,
+          "total": 45.081491
+        }
+      }
+    }
+  ],
+  "runs": [
+    {
+      "variant": "list-completion-baseline-9a563e814f",
+      "case": "list-1000-plain",
+      "repetition": "rep-1",
+      "artifact": "perf/list-completion-baseline-9a563e814f/matrix/list-1000-plain/rep-1",
+      "count": 6001,
+      "elapsed": 60.015731129,
+      "requestsPerSecond": 99.9904506220416,
+      "cpuSeconds": 12.54518,
+      "cpuMsPerRequest": 2.09051491418097,
+      "allocationBytesPerRequest": 15966.397600399934,
+      "allocationBytesPerSecond": 1596487.290874673,
+      "gatewayCores": 0.20903152830105381,
+      "processCores": {
+        "Accounts": 0.000999737883239877,
+        "Inventory": 0.0008331149026998975,
+        "Products": 0.27133503754041,
+        "Reviews": 0.0009916071529114641,
+        "Gateway": 0.20878572138035617
+      },
+      "subgraphCores": 0.2741594974792612,
+      "procCpuSeconds": 12.530427717937764,
+      "loadGeneratorCores": 0.07773445248833602,
+      "gen0": 1,
+      "gen1": 0,
+      "gen2": 0,
+      "gcPauseMs": 7.033000000000001,
+      "gcPausePercent": 0.01171859422137675,
+      "heapEnd": 127216664,
+      "fragmentationEnd": 901608,
+      "committedEnd": 290000896,
+      "workingSetEnd": 308228096,
+      "observedPeakRss": 308228096,
+      "failures": 0,
+      "droppedStarts": 0,
+      "responseBytesMin": 55707,
+      "responseBytesMax": 55707,
+      "start": "2026-10-16T17:19:27.1750129+00:00",
+      "end": "2026-10-16T17:20:27.190744+00:00",
+      "p50Ms": 10.160471,
+      "httpP50Ms": 9.800385,
+      "p95Ms": 12.790235,
+      "httpP95Ms": 12.311399,
+      "p99Ms": 15.109665,
+      "httpP99Ms": 14.678579
+    },
+    {
+      "variant": "list-completion-baseline-9a563e814f",
+      "case": "list-1000-plain",
+      "repetition": "rep-2",
+      "artifact": "perf/list-completion-baseline-9a563e814f/matrix/list-1000-plain/rep-2",
+      "count": 6001,
+      "elapsed": 60.013855746,
+      "requestsPerSecond": 99.99357524033064,
+      "cpuSeconds": 12.609044,
+      "cpuMsPerRequest": 2.1011571404765874,
+      "allocationBytesPerRequest": 15917.927012164639,
+      "allocationBytesPerSecond": 1591690.4323609762,
+      "gatewayCores": 0.2101022146180036,
+      "processCores": {
+        "Accounts": 0.00016662818736932298,
+        "Inventory": 0.0003332563747386441,
+        "Products": 0.27092196272787467,
+        "Reviews": 0.0004998845621079671,
+        "Gateway": 0.20946446261332924
+      },
+      "subgraphCores": 0.2719217318520906,
+      "procCpuSeconds": 12.57077004318975,
+      "loadGeneratorCores": 0.0811762040522568,
+      "gen0": 0,
+      "gen1": 0,
+      "gen2": 0,
+      "gcPauseMs": 0.0,
+      "gcPausePercent": 0.0,
+      "heapEnd": 127216664,
+      "fragmentationEnd": 901608,
+      "committedEnd": 290000896,
+      "workingSetEnd": 300142592,
+      "observedPeakRss": 308260864,
+      "failures": 0,
+      "droppedStarts": 0,
+      "responseBytesMin": 55707,
+      "responseBytesMax": 55707,
+      "start": "2026-10-16T17:20:27.4391152+00:00",
+      "end": "2026-10-16T17:21:27.452971+00:00",
+      "p50Ms": 10.155096,
+      "httpP50Ms": 9.788969,
+      "p95Ms": 12.663526,
+      "httpP95Ms": 12.199232,
+      "p99Ms": 14.511119,
+      "httpP99Ms": 13.996242
+    },
+    {
+      "variant": "list-completion-baseline-9a563e814f",
+      "case": "list-1000-plain",
+      "repetition": "rep-3",
+      "artifact": "perf/list-completion-baseline-9a563e814f/matrix/list-1000-plain/rep-3",
+      "count": 6001,
+      "elapsed": 60.016800713,
+      "requestsPerSecond": 99.98866865124563,
+      "cpuSeconds": 12.475479,
+      "cpuMsPerRequest": 2.0789000166638893,
+      "allocationBytesPerRequest": 15924.609898350274,
+      "allocationBytesPerSecond": 1592280.5425264922,
+      "gatewayCores": 0.20786644492527467,
+      "processCores": {
+        "Accounts": 0.0003332400221671246,
+        "Inventory": 0.0001666200110835623,
+        "Products": 0.2708932134312273,
+        "Reviews": 0.0001666200110835623,
+        "Gateway": 0.20750559341724797
+      },
+      "subgraphCores": 0.2715596934755616,
+      "procCpuSeconds": 12.453821846955776,
+      "loadGeneratorCores": 0.07837771997368546,
+      "gen0": 1,
+      "gen1": 1,
+      "gen2": 0,
+      "gcPauseMs": 2.9349999999999987,
+      "gcPausePercent": 0.004890297325302546,
+      "heapEnd": 127090320,
+      "fragmentationEnd": 877248,
+      "committedEnd": 294871040,
+      "workingSetEnd": 270172160,
+      "observedPeakRss": 304750592,
+      "failures": 0,
+      "droppedStarts": 0,
+      "responseBytesMin": 55707,
+      "responseBytesMax": 55707,
+      "start": "2026-10-16T17:21:27.6523349+00:00",
+      "end": "2026-10-16T17:22:27.6691355+00:00",
+      "p50Ms": 10.177186,
+      "httpP50Ms": 9.8191,
+      "p95Ms": 12.792201,
+      "httpP95Ms": 12.305364,
+      "p99Ms": 14.910296,
+      "httpP99Ms": 14.474044
+    },
+    {
+      "variant": "list-completion-baseline-9a563e814f",
+      "case": "list-20000-plain",
+      "repetition": "rep-1",
+      "artifact": "perf/list-completion-baseline-9a563e814f/matrix/list-20000-plain/rep-1",
+      "count": 1201,
+      "elapsed": 60.033037187,
+      "requestsPerSecond": 20.005651159359857,
+      "cpuSeconds": 10.044376000000003,
+      "cpuMsPerRequest": 8.36334388009992,
+      "allocationBytesPerRequest": 35048.85928393006,
+      "allocationBytesPerSecond": 701175.2523677959,
+      "gatewayCores": 0.16731414019104612,
+      "processCores": {
+        "Accounts": 0.0,
+        "Inventory": 0.0,
+        "Products": 0.27430637838498184,
+        "Reviews": 0.0,
+        "Gateway": 0.16701269602535906
+      },
+      "subgraphCores": 0.27430637838498184,
+      "procCpuSeconds": 10.026279391191508,
+      "loadGeneratorCores": 0.03492135494444012,
+      "gen0": 0,
+      "gen1": 0,
+      "gen2": 0,
+      "gcPauseMs": 0.0,
+      "gcPausePercent": 0.0,
+      "heapEnd": 137507624,
+      "fragmentationEnd": 906512,
+      "committedEnd": 306941952,
+      "workingSetEnd": 268644352,
+      "observedPeakRss": 269111296,
+      "failures": 0,
+      "droppedStarts": 0,
+      "responseBytesMin": 1206710,
+      "responseBytesMax": 1206710,
+      "start": "2026-10-16T17:27:29.6083273+00:00",
+      "end": "2026-10-16T17:28:29.6413645+00:00",
+      "p50Ms": 27.370482,
+      "httpP50Ms": 26.215684,
+      "p95Ms": 29.522743,
+      "httpP95Ms": 28.128194,
+      "p99Ms": 31.534007,
+      "httpP99Ms": 30.201708
+    },
+    {
+      "variant": "list-completion-baseline-9a563e814f",
+      "case": "list-20000-plain",
+      "repetition": "rep-2",
+      "artifact": "perf/list-completion-baseline-9a563e814f/matrix/list-20000-plain/rep-2",
+      "count": 1201,
+      "elapsed": 60.033385234,
+      "requestsPerSecond": 20.005535175447875,
+      "cpuSeconds": 9.913691999999996,
+      "cpuMsPerRequest": 8.254531223980013,
+      "allocationBytesPerRequest": 35057.57202331391,
+      "allocationBytesPerSecond": 701345.4902782036,
+      "gatewayCores": 0.16513631475816495,
+      "processCores": {
+        "Accounts": 0.00016657398147750118,
+        "Inventory": 0.00016657398147750118,
+        "Products": 0.2741640424694109,
+        "Reviews": 0.0,
+        "Gateway": 0.16484673801921837
+      },
+      "subgraphCores": 0.2744971904323659,
+      "procCpuSeconds": 9.89630772807601,
+      "loadGeneratorCores": 0.03444818232287127,
+      "gen0": 0,
+      "gen1": 0,
+      "gen2": 0,
+      "gcPauseMs": 0.0,
+      "gcPausePercent": 0.0,
+      "heapEnd": 137507624,
+      "fragmentationEnd": 906512,
+      "committedEnd": 306941952,
+      "workingSetEnd": 268808192,
+      "observedPeakRss": 270036992,
+      "failures": 0,
+      "droppedStarts": 0,
+      "responseBytesMin": 1206710,
+      "responseBytesMax": 1206710,
+      "start": "2026-10-16T17:28:29.8461135+00:00",
+      "end": "2026-10-16T17:29:29.8794988+00:00",
+      "p50Ms": 27.218314,
+      "httpP50Ms": 26.102224,
+      "p95Ms": 29.3612,
+      "httpP95Ms": 28.032818,
+      "p99Ms": 31.976881,
+      "httpP99Ms": 30.666582
+    },
+    {
+      "variant": "list-completion-baseline-9a563e814f",
+      "case": "list-20000-plain",
+      "repetition": "rep-3",
+      "artifact": "perf/list-completion-baseline-9a563e814f/matrix/list-20000-plain/rep-3",
+      "count": 1201,
+      "elapsed": 60.028740964,
+      "requestsPerSecond": 20.007082952485295,
+      "cpuSeconds": 10.014606,
+      "cpuMsPerRequest": 8.33855620316403,
+      "allocationBytesPerRequest": 35020.40299750208,
+      "allocationBytesPerSecond": 700656.1078004887,
+      "gatewayCores": 0.16683018566066357,
+      "processCores": {
+        "Accounts": 0.0001665868688799776,
+        "Inventory": 0.0001665868688799776,
+        "Products": 0.2749080873961778,
+        "Reviews": 0.0001665868688799776,
+        "Gateway": 0.1663513317282304
+      },
+      "subgraphCores": 0.2754078480028177,
+      "procCpuSeconds": 9.985861001330377,
+      "loadGeneratorCores": 0.03623739170715818,
+      "gen0": 1,
+      "gen1": 0,
+      "gen2": 0,
+      "gcPauseMs": 1.8069999999999986,
+      "gcPausePercent": 0.0030102247206611906,
+      "heapEnd": 141538192,
+      "fragmentationEnd": 921992,
+      "committedEnd": 311013376,
+      "workingSetEnd": 273035264,
+      "observedPeakRss": 273035264,
+      "failures": 0,
+      "droppedStarts": 0,
+      "responseBytesMin": 1206710,
+      "responseBytesMax": 1206710,
+      "start": "2026-10-16T17:29:30.1243096+00:00",
+      "end": "2026-10-16T17:30:30.1530505+00:00",
+      "p50Ms": 27.306315,
+      "httpP50Ms": 26.144223,
+      "p95Ms": 29.85316,
+      "httpP95Ms": 28.491528,
+      "p99Ms": 32.069173,
+      "httpP99Ms": 30.445957
+    },
+    {
+      "variant": "list-completion-baseline-9a563e814f",
+      "case": "list-5000-plain",
+      "repetition": "rep-1",
+      "artifact": "perf/list-completion-baseline-9a563e814f/matrix/list-5000-plain/rep-1",
+      "count": 3001,
+      "elapsed": 60.015505907,
+      "requestsPerSecond": 50.003744109903,
+      "cpuSeconds": 9.271423999999993,
+      "cpuMsPerRequest": 3.0894448517160917,
+      "allocationBytesPerRequest": 20105.855381539488,
+      "allocationBytesPerSecond": 1005368.0476092167,
+      "gatewayCores": 0.1544838098068687,
+      "processCores": {
+        "Accounts": 0.0,
+        "Inventory": 0.0,
+        "Products": 0.2435826171361795,
+        "Reviews": 0.0003332472116621329,
+        "Gateway": 0.15413869642569206
+      },
+      "subgraphCores": 0.24391586434784165,
+      "procCpuSeconds": 9.2507118458334,
+      "loadGeneratorCores": 0.04021905611760355,
+      "gen0": 1,
+      "gen1": 0,
+      "gen2": 0,
+      "gcPauseMs": 1.8920000000000012,
+      "gcPausePercent": 0.0031525186223237767,
+      "heapEnd": 129436808,
+      "fragmentationEnd": 889752,
+      "committedEnd": 295985152,
+      "workingSetEnd": 259698688,
+      "observedPeakRss": 272826368,
+      "failures": 0,
+      "droppedStarts": 0,
+      "responseBytesMin": 291707,
+      "responseBytesMax": 291707,
+      "start": "2026-10-16T17:23:28.3830025+00:00",
+      "end": "2026-10-16T17:24:28.3985084+00:00",
+      "p50Ms": 12.895823,
+      "httpP50Ms": 12.459066,
+      "p95Ms": 14.544291,
+      "httpP95Ms": 14.05683,
+      "p99Ms": 16.098545,
+      "httpP99Ms": 15.628173
+    },
+    {
+      "variant": "list-completion-baseline-9a563e814f",
+      "case": "list-5000-plain",
+      "repetition": "rep-2",
+      "artifact": "perf/list-completion-baseline-9a563e814f/matrix/list-5000-plain/rep-2",
+      "count": 3001,
+      "elapsed": 60.015151983,
+      "requestsPerSecond": 50.00403899418714,
+      "cpuSeconds": 9.211688999999998,
+      "cpuMsPerRequest": 3.0695398200599797,
+      "allocationBytesPerRequest": 20063.608130623124,
+      "allocationBytesPerSecond": 1003261.4433277689,
+      "gatewayCores": 0.15348938885648938,
+      "processCores": {
+        "Accounts": 0.00016662458845114026,
+        "Inventory": 0.00016662458845114026,
+        "Products": 0.2389273466073552,
+        "Reviews": 0.00016662458845114026,
+        "Gateway": 0.15317026405227657
+      },
+      "subgraphCores": 0.23942722037270864,
+      "procCpuSeconds": 9.19253667637362,
+      "loadGeneratorCores": 0.04126657882498625,
+      "gen0": 0,
+      "gen1": 0,
+      "gen2": 0,
+      "gcPauseMs": 0.0,
+      "gcPausePercent": 0.0,
+      "heapEnd": 129436808,
+      "fragmentationEnd": 889752,
+      "committedEnd": 295985152,
+      "workingSetEnd": 259858432,
+      "observedPeakRss": 260165632,
+      "failures": 0,
+      "droppedStarts": 0,
+      "responseBytesMin": 291707,
+      "responseBytesMax": 291707,
+      "start": "2026-10-16T17:24:28.6159285+00:00",
+      "end": "2026-10-16T17:25:28.6310805+00:00",
+      "p50Ms": 12.726364,
+      "httpP50Ms": 12.279403,
+      "p95Ms": 14.467207,
+      "httpP95Ms": 13.964204,
+      "p99Ms": 16.050216,
+      "httpP99Ms": 15.542838
+    },
+    {
+      "variant": "list-completion-baseline-9a563e814f",
+      "case": "list-5000-plain",
+      "repetition": "rep-3",
+      "artifact": "perf/list-completion-baseline-9a563e814f/matrix/list-5000-plain/rep-3",
+      "count": 3000,
+      "elapsed": 60.004520095,
+      "requestsPerSecond": 49.99623353791278,
+      "cpuSeconds": 8.769959999999992,
+      "cpuMsPerRequest": 2.9233199999999973,
+      "allocationBytesPerRequest": 20142.704,
+      "allocationBytesPerSecond": 1007059.3332690499,
+      "gatewayCores": 0.14615498942605104,
+      "processCores": {
+        "Accounts": 0.0,
+        "Inventory": 0.0,
+        "Products": 0.23090504877553378,
+        "Reviews": 0.0,
+        "Gateway": 0.14570764685327847
+      },
+      "subgraphCores": 0.23090504877553378,
+      "procCpuSeconds": 8.743117423602712,
+      "loadGeneratorCores": 0.038590709438786994,
+      "gen0": 0,
+      "gen1": 0,
+      "gen2": 0,
+      "gcPauseMs": 0.0,
+      "gcPausePercent": 0.0,
+      "heapEnd": 129436808,
+      "fragmentationEnd": 889752,
+      "committedEnd": 295985152,
+      "workingSetEnd": 260501504,
+      "observedPeakRss": 260501504,
+      "failures": 0,
+      "droppedStarts": 0,
+      "responseBytesMin": 291707,
+      "responseBytesMax": 291707,
+      "start": "2026-10-16T17:25:28.8515637+00:00",
+      "end": "2026-10-16T17:26:28.8560839+00:00",
+      "p50Ms": 12.207670499999999,
+      "httpP50Ms": 11.7880645,
+      "p95Ms": 14.643650499999998,
+      "httpP95Ms": 14.135146599999999,
+      "p99Ms": 16.70819848,
+      "httpP99Ms": 16.269358970000003
+    },
+    {
+      "variant": "list-completion-candidate1-9a563e814f",
+      "case": "list-1000-plain",
+      "repetition": "rep-1",
+      "artifact": "perf/list-completion-candidate1-9a563e814f/matrix/list-1000-plain/rep-1",
+      "count": 6001,
+      "elapsed": 60.012946984,
+      "requestsPerSecond": 99.99508941962009,
+      "cpuSeconds": 10.323011,
+      "cpuMsPerRequest": 1.7202151308115312,
+      "allocationBytesPerRequest": 15986.908848525245,
+      "allocationBytesPerSecond": 1598612.3798515976,
+      "gatewayCores": 0.17201306582648254,
+      "processCores": {
+        "Accounts": 0.0006665228423237472,
+        "Inventory": 0.0006665228423237472,
+        "Products": 0.22812720357727775,
+        "Reviews": 0.0006665228423237472,
+        "Gateway": 0.17157816181394148
+      },
+      "subgraphCores": 0.23012677210424898,
+      "procCpuSeconds": 10.296911128552244,
+      "loadGeneratorCores": 0.06958633444735485,
+      "gen0": 1,
+      "gen1": 0,
+      "gen2": 0,
+      "gcPauseMs": 6.3260000000000005,
+      "gcPausePercent": 0.010541058751350054,
+      "heapEnd": 128684536,
+      "fragmentationEnd": 2500832,
+      "committedEnd": 289472512,
+      "workingSetEnd": 271593472,
+      "observedPeakRss": 301469696,
+      "failures": 0,
+      "droppedStarts": 0,
+      "responseBytesMin": 55707,
+      "responseBytesMax": 55707,
+      "start": "2026-10-16T17:38:24.1171042+00:00",
+      "end": "2026-10-16T17:39:24.1300512+00:00",
+      "p50Ms": 9.426175,
+      "httpP50Ms": 9.106507,
+      "p95Ms": 12.190857,
+      "httpP95Ms": 11.786438,
+      "p99Ms": 14.37391,
+      "httpP99Ms": 13.992408
+    },
+    {
+      "variant": "list-completion-candidate1-9a563e814f",
+      "case": "list-1000-plain",
+      "repetition": "rep-2",
+      "artifact": "perf/list-completion-candidate1-9a563e814f/matrix/list-1000-plain/rep-2",
+      "count": 6001,
+      "elapsed": 60.013569128,
+      "requestsPerSecond": 99.99405279830569,
+      "cpuSeconds": 10.438596999999998,
+      "cpuMsPerRequest": 1.7394762539576734,
+      "allocationBytesPerRequest": 15917.788368605232,
+      "allocationBytesPerSecond": 1591684.1705625677,
+      "gatewayCores": 0.17393728037964257,
+      "processCores": {
+        "Accounts": 0.000333257966333297,
+        "Inventory": 0.0004998869494999437,
+        "Products": 0.23856882087137596,
+        "Reviews": 0.00016662898316664666,
+        "Gateway": 0.1735862803107417
+      },
+      "subgraphCores": 0.23956859477037584,
+      "procCpuSeconds": 10.417532233101081,
+      "loadGeneratorCores": 0.07044436885570196,
+      "gen0": 0,
+      "gen1": 0,
+      "gen2": 0,
+      "gcPauseMs": 0.0,
+      "gcPausePercent": 0.0,
+      "heapEnd": 128684536,
+      "fragmentationEnd": 2500832,
+      "committedEnd": 289472512,
+      "workingSetEnd": 268316672,
+      "observedPeakRss": 272441344,
+      "failures": 0,
+      "droppedStarts": 0,
+      "responseBytesMin": 55707,
+      "responseBytesMax": 55707,
+      "start": "2026-10-16T17:39:24.3598739+00:00",
+      "end": "2026-10-16T17:40:24.373443+00:00",
+      "p50Ms": 9.492051,
+      "httpP50Ms": 9.145424,
+      "p95Ms": 12.312899,
+      "httpP95Ms": 11.914772,
+      "p99Ms": 14.102075,
+      "httpP99Ms": 13.73049
+    },
+    {
+      "variant": "list-completion-candidate1-9a563e814f",
+      "case": "list-1000-plain",
+      "repetition": "rep-3",
+      "artifact": "perf/list-completion-candidate1-9a563e814f/matrix/list-1000-plain/rep-3",
+      "count": 6001,
+      "elapsed": 60.014862997,
+      "requestsPerSecond": 99.9918970122447,
+      "cpuSeconds": 11.051406000000002,
+      "cpuMsPerRequest": 1.8415940676553912,
+      "allocationBytesPerRequest": 15905.603732711215,
+      "allocationBytesPerSecond": 1590431.4903588349,
+      "gatewayCores": 0.1841444843513587,
+      "processCores": {
+        "Accounts": 0.00016662539078860988,
+        "Inventory": 0.00016662539078860988,
+        "Products": 0.2515263500791423,
+        "Reviews": 0.00033325078157721977,
+        "Gateway": 0.18367299974620985
+      },
+      "subgraphCores": 0.2521928516422967,
+      "procCpuSeconds": 11.0231099160168,
+      "loadGeneratorCores": 0.07413010340825721,
+      "gen0": 1,
+      "gen1": 1,
+      "gen2": 0,
+      "gcPauseMs": 4.415999999999999,
+      "gcPausePercent": 0.007358177257225004,
+      "heapEnd": 126992848,
+      "fragmentationEnd": 867488,
+      "committedEnd": 296566784,
+      "workingSetEnd": 261541888,
+      "observedPeakRss": 273588224,
+      "failures": 0,
+      "droppedStarts": 0,
+      "responseBytesMin": 55707,
+      "responseBytesMax": 55707,
+      "start": "2026-10-16T17:40:24.587495+00:00",
+      "end": "2026-10-16T17:41:24.602358+00:00",
+      "p50Ms": 9.773094,
+      "httpP50Ms": 9.421883,
+      "p95Ms": 12.425233,
+      "httpP95Ms": 12.008481,
+      "p99Ms": 14.309077,
+      "httpP99Ms": 13.775407
+    },
+    {
+      "variant": "list-completion-candidate1-9a563e814f",
+      "case": "list-20000-plain",
+      "repetition": "rep-1",
+      "artifact": "perf/list-completion-candidate1-9a563e814f/matrix/list-20000-plain/rep-1",
+      "count": 1200,
+      "elapsed": 60.001723916,
+      "requestsPerSecond": 19.999425377843338,
+      "cpuSeconds": 9.095503000000011,
+      "cpuMsPerRequest": 7.579585833333343,
+      "allocationBytesPerRequest": 35297.63333333333,
+      "allocationBytesPerSecond": 705932.3838644756,
+      "gatewayCores": 0.1515873612687087,
+      "processCores": {
+        "Accounts": 0.0,
+        "Inventory": 0.00016666187814869463,
+        "Products": 0.2688479879821778,
+        "Reviews": 0.0,
+        "Gateway": 0.1513592702437246
+      },
+      "subgraphCores": 0.26901464986032647,
+      "procCpuSeconds": 9.081817145291197,
+      "loadGeneratorCores": 0.03352187018519397,
+      "gen0": 0,
+      "gen1": 0,
+      "gen2": 0,
+      "gcPauseMs": 0.0,
+      "gcPausePercent": 0.0,
+      "heapEnd": 134445368,
+      "fragmentationEnd": 884336,
+      "committedEnd": 301887488,
+      "workingSetEnd": 263929856,
+      "observedPeakRss": 263974912,
+      "failures": 0,
+      "droppedStarts": 0,
+      "responseBytesMin": 1206710,
+      "responseBytesMax": 1206710,
+      "start": "2026-10-16T17:46:26.4602057+00:00",
+      "end": "2026-10-16T17:47:26.4619297+00:00",
+      "p50Ms": 26.148348,
+      "httpP50Ms": 25.053447,
+      "p95Ms": 28.910857099999998,
+      "httpP95Ms": 27.557461949999997,
+      "p99Ms": 31.28096751,
+      "httpP99Ms": 29.458236439999993
+    },
+    {
+      "variant": "list-completion-candidate1-9a563e814f",
+      "case": "list-20000-plain",
+      "repetition": "rep-2",
+      "artifact": "perf/list-completion-candidate1-9a563e814f/matrix/list-20000-plain/rep-2",
+      "count": 1201,
+      "elapsed": 60.028620678,
+      "requestsPerSecond": 20.007123042894715,
+      "cpuSeconds": 8.84870300000001,
+      "cpuMsPerRequest": 7.367779350541223,
+      "allocationBytesPerRequest": 35162.0582847627,
+      "allocationBytesPerSecond": 703491.6265446828,
+      "gatewayCores": 0.14740806801917716,
+      "processCores": {
+        "Accounts": 0.000166587202688549,
+        "Inventory": 0.0,
+        "Products": 0.26539793512964305,
+        "Reviews": 0.000166587202688549,
+        "Gateway": 0.14713856551659243
+      },
+      "subgraphCores": 0.2657311095350201,
+      "procCpuSeconds": 8.832525136500578,
+      "loadGeneratorCores": 0.032545608710213184,
+      "gen0": 0,
+      "gen1": 0,
+      "gen2": 0,
+      "gcPauseMs": 0.0,
+      "gcPausePercent": 0.0,
+      "heapEnd": 134445368,
+      "fragmentationEnd": 884336,
+      "committedEnd": 301887488,
+      "workingSetEnd": 262881280,
+      "observedPeakRss": 264425472,
+      "failures": 0,
+      "droppedStarts": 0,
+      "responseBytesMin": 1206710,
+      "responseBytesMax": 1206710,
+      "start": "2026-10-16T17:47:26.6837272+00:00",
+      "end": "2026-10-16T17:48:26.7123479+00:00",
+      "p50Ms": 25.943472,
+      "httpP50Ms": 24.862091,
+      "p95Ms": 27.847733,
+      "httpP95Ms": 26.661476,
+      "p99Ms": 30.126745,
+      "httpP99Ms": 28.818279
+    },
+    {
+      "variant": "list-completion-candidate1-9a563e814f",
+      "case": "list-20000-plain",
+      "repetition": "rep-3",
+      "artifact": "perf/list-completion-candidate1-9a563e814f/matrix/list-20000-plain/rep-3",
+      "count": 1201,
+      "elapsed": 60.028362802,
+      "requestsPerSecond": 20.00720899154667,
+      "cpuSeconds": 8.879970000000002,
+      "cpuMsPerRequest": 7.393813488759368,
+      "allocationBytesPerRequest": 35286.81432139884,
+      "allocationBytesPerSecond": 705990.6687741285,
+      "gatewayCores": 0.1479295717141255,
+      "processCores": {
+        "Accounts": 0.0,
+        "Inventory": 0.0001582394291470159,
+        "Products": 0.2662378748261223,
+        "Reviews": 0.0,
+        "Gateway": 0.14779697735608108
+      },
+      "subgraphCores": 0.2663961142552693,
+      "procCpuSeconds": 8.872010577769814,
+      "loadGeneratorCores": 0.032116201575562005,
+      "gen0": 0,
+      "gen1": 0,
+      "gen2": 0,
+      "gcPauseMs": 0.0,
+      "gcPausePercent": 0.0,
+      "heapEnd": 134445368,
+      "fragmentationEnd": 884336,
+      "committedEnd": 301887488,
+      "workingSetEnd": 265256960,
+      "observedPeakRss": 265256960,
+      "failures": 0,
+      "droppedStarts": 0,
+      "responseBytesMin": 1206710,
+      "responseBytesMax": 1206710,
+      "start": "2026-10-16T17:48:26.9286858+00:00",
+      "end": "2026-10-16T17:49:26.9570485+00:00",
+      "p50Ms": 25.932473,
+      "httpP50Ms": 24.861884,
+      "p95Ms": 27.913524,
+      "httpP95Ms": 26.635726,
+      "p99Ms": 29.859743,
+      "httpP99Ms": 28.514653
+    },
+    {
+      "variant": "list-completion-candidate1-9a563e814f",
+      "case": "list-5000-plain",
+      "repetition": "rep-1",
+      "artifact": "perf/list-completion-candidate1-9a563e814f/matrix/list-5000-plain/rep-1",
+      "count": 3001,
+      "elapsed": 60.013709725,
+      "requestsPerSecond": 50.00524069835778,
+      "cpuSeconds": 8.573818,
+      "cpuMsPerRequest": 2.8569870043318892,
+      "allocationBytesPerRequest": 20106.55381539487,
+      "allocationBytesPerSecond": 1005433.0631533044,
+      "gatewayCores": 0.14286432282369627,
+      "processCores": {
+        "Accounts": 0.0,
+        "Inventory": 0.0001666285927969271,
+        "Products": 0.24021156023316836,
+        "Reviews": 0.0,
+        "Gateway": 0.14255367118363196
+      },
+      "subgraphCores": 0.2403781888259653,
+      "procCpuSeconds": 8.555174642647586,
+      "loadGeneratorCores": 0.0386533678826001,
+      "gen0": 1,
+      "gen1": 0,
+      "gen2": 0,
+      "gcPauseMs": 1.955,
+      "gcPausePercent": 0.003257588989179922,
+      "heapEnd": 129345984,
+      "fragmentationEnd": 879968,
+      "committedEnd": 297418752,
+      "workingSetEnd": 257454080,
+      "observedPeakRss": 257454080,
+      "failures": 0,
+      "droppedStarts": 0,
+      "responseBytesMin": 291707,
+      "responseBytesMax": 291707,
+      "start": "2026-10-16T17:42:25.2956076+00:00",
+      "end": "2026-10-16T17:43:25.3093173+00:00",
+      "p50Ms": 12.546192,
+      "httpP50Ms": 12.126023,
+      "p95Ms": 14.134909,
+      "httpP95Ms": 13.636823,
+      "p99Ms": 15.660458,
+      "httpP99Ms": 15.113331
+    },
+    {
+      "variant": "list-completion-candidate1-9a563e814f",
+      "case": "list-5000-plain",
+      "repetition": "rep-2",
+      "artifact": "perf/list-completion-candidate1-9a563e814f/matrix/list-5000-plain/rep-2",
+      "count": 3001,
+      "elapsed": 60.016269217,
+      "requestsPerSecond": 50.003108143049104,
+      "cpuSeconds": 8.467261000000006,
+      "cpuMsPerRequest": 2.8214798400533176,
+      "allocationBytesPerRequest": 20147.334888370544,
+      "allocationBytesPerSecond": 1007429.3652174184,
+      "gatewayCores": 0.1410827615656189,
+      "processCores": {
+        "Accounts": 0.00033324297329589384,
+        "Inventory": 0.0,
+        "Products": 0.24086635066018675,
+        "Reviews": 0.00016662148664794784,
+        "Gateway": 0.1408542540828397
+      },
+      "subgraphCores": 0.2413662151201306,
+      "procCpuSeconds": 8.453546833395428,
+      "loadGeneratorCores": 0.03706161727510301,
+      "gen0": 0,
+      "gen1": 0,
+      "gen2": 0,
+      "gcPauseMs": 0.0,
+      "gcPausePercent": 0.0,
+      "heapEnd": 129345984,
+      "fragmentationEnd": 879968,
+      "committedEnd": 297418752,
+      "workingSetEnd": 254533632,
+      "observedPeakRss": 259280896,
+      "failures": 0,
+      "droppedStarts": 0,
+      "responseBytesMin": 291707,
+      "responseBytesMax": 291707,
+      "start": "2026-10-16T17:43:25.5201378+00:00",
+      "end": "2026-10-16T17:44:25.5364069+00:00",
+      "p50Ms": 12.595651,
+      "httpP50Ms": 12.183024,
+      "p95Ms": 13.989825,
+      "httpP95Ms": 13.540989,
+      "p99Ms": 15.435207,
+      "httpP99Ms": 14.95383
+    },
+    {
+      "variant": "list-completion-candidate1-9a563e814f",
+      "case": "list-5000-plain",
+      "repetition": "rep-3",
+      "artifact": "perf/list-completion-candidate1-9a563e814f/matrix/list-5000-plain/rep-3",
+      "count": 3001,
+      "elapsed": 60.01436696,
+      "requestsPerSecond": 50.00469307624603,
+      "cpuSeconds": 8.447559999999998,
+      "cpuMsPerRequest": 2.8149150283238913,
+      "allocationBytesPerRequest": 20072.330556481174,
+      "allocationBytesPerSecond": 1003710.7288017956,
+      "gatewayCores": 0.14075896202704857,
+      "processCores": {
+        "Accounts": 0.00016662676799815418,
+        "Inventory": 0.00033325353599630836,
+        "Products": 0.24124516946743466,
+        "Reviews": 0.00013902664486716313,
+        "Gateway": 0.14039852024560115
+      },
+      "subgraphCores": 0.24188407641629628,
+      "procCpuSeconds": 8.425928314660496,
+      "loadGeneratorCores": 0.03829326403678857,
+      "gen0": 0,
+      "gen1": 0,
+      "gen2": 0,
+      "gcPauseMs": 0.0,
+      "gcPausePercent": 0.0,
+      "heapEnd": 129345984,
+      "fragmentationEnd": 879968,
+      "committedEnd": 297418752,
+      "workingSetEnd": 256126976,
+      "observedPeakRss": 257036288,
+      "failures": 0,
+      "droppedStarts": 0,
+      "responseBytesMin": 291707,
+      "responseBytesMax": 291707,
+      "start": "2026-10-16T17:44:25.7424338+00:00",
+      "end": "2026-10-16T17:45:25.7568008+00:00",
+      "p50Ms": 12.581192,
+      "httpP50Ms": 12.165773,
+      "p95Ms": 14.260952,
+      "httpP95Ms": 13.779532,
+      "p99Ms": 15.530625,
+      "httpP99Ms": 15.01433
+    }
+  ],
+  "confirmationGroups": [
+    {
+      "variant": "list-completion-baseline-9a563e814f",
+      "case": "list-20000-plain",
+      "metrics": {
+        "count": {
+          "median": 1201,
+          "min": 1201,
+          "max": 1201,
+          "total": 3603
+        },
+        "elapsed": {
+          "median": 60.02926518,
+          "min": 60.02836657,
+          "max": 60.033541316,
+          "total": 180.091173066
+        },
+        "requestsPerSecond": {
+          "median": 20.00690823715327,
+          "min": 20.005483162791737,
+          "max": 20.007207735687683,
+          "total": 60.01959913563269
+        },
+        "cpuSeconds": {
+          "median": 9.775394,
+          "min": 9.491287999999999,
+          "max": 9.857761000000002,
+          "total": 29.124443
+        },
+        "cpuMsPerRequest": {
+          "median": 8.139378850957536,
+          "min": 7.90282098251457,
+          "max": 8.207960865945047,
+          "total": 24.25016069941715
+        },
+        "allocationBytesPerRequest": {
+          "median": 35258.10491257285,
+          "min": 35065.225645295584,
+          "max": 35506.424646128224,
+          "total": 105829.75520399667
+        },
+        "allocationBytesPerSecond": {
+          "median": 705416.2293525155,
+          "min": 701496.7812464539,
+          "max": 710373.7797244847,
+          "total": 2117286.790323454
+        },
+        "gatewayCores": {
+          "median": 0.16283220655841413,
+          "min": 0.15811101421181845,
+          "max": 0.16421837813135753,
+          "total": 0.4851615989015901
+        },
+        "subgraphCores": {
+          "median": 0.2706506296485688,
+          "min": 0.2685110651188037,
+          "max": 0.27067871705879487,
+          "total": 0.8098404118261674
+        },
+        "procCpuSeconds": {
+          "median": 9.749030854685076,
+          "min": 9.46983926222389,
+          "max": 9.838857166392819,
+          "total": 29.05772728330178
+        },
+        "loadGeneratorCores": {
+          "median": 0.034684152159497945,
+          "min": 0.03355949792087726,
+          "max": 0.035868665296046785,
+          "total": 0.10411231537642199
+        },
+        "gen0": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "gen1": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "gen2": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "gcPauseMs": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "total": 0.0
+        },
+        "gcPausePercent": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "total": 0.0
+        },
+        "heapEnd": {
+          "median": 127538472,
+          "min": 127531624,
+          "max": 127653408,
+          "total": 382723504
+        },
+        "fragmentationEnd": {
+          "median": 2478560,
+          "min": 2476840,
+          "max": 2495736,
+          "total": 7451136
+        },
+        "committedEnd": {
+          "median": 127901696,
+          "min": 127844352,
+          "max": 127905792,
+          "total": 383651840
+        },
+        "workingSetEnd": {
+          "median": 234344448,
+          "min": 220475392,
+          "max": 243802112,
+          "total": 698621952
+        },
+        "observedPeakRss": {
+          "median": 237023232,
+          "min": 220938240,
+          "max": 243867648,
+          "total": 701829120
+        },
+        "failures": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "droppedStarts": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "responseBytesMin": {
+          "median": 1206710,
+          "min": 1206710,
+          "max": 1206710,
+          "total": 3620130
+        },
+        "responseBytesMax": {
+          "median": 1206710,
+          "min": 1206710,
+          "max": 1206710,
+          "total": 3620130
+        },
+        "p50Ms": {
+          "median": 26.802397,
+          "min": 26.510461,
+          "max": 26.893658,
+          "total": 80.206516
+        },
+        "httpP50Ms": {
+          "median": 25.670308,
+          "min": 25.426201,
+          "max": 25.756901,
+          "total": 76.85341
+        },
+        "p95Ms": {
+          "median": 29.538245,
+          "min": 28.609273,
+          "max": 29.886468,
+          "total": 88.033986
+        },
+        "httpP95Ms": {
+          "median": 28.266499,
+          "min": 27.445844,
+          "max": 28.520917,
+          "total": 84.23326
+        },
+        "p99Ms": {
+          "median": 31.230767,
+          "min": 30.75646,
+          "max": 32.756525,
+          "total": 94.743752
+        },
+        "httpP99Ms": {
+          "median": 29.837205,
+          "min": 29.344696,
+          "max": 31.593061,
+          "total": 90.774962
+        }
+      }
+    },
+    {
+      "variant": "list-completion-candidate1-9a563e814f",
+      "case": "list-20000-plain",
+      "metrics": {
+        "count": {
+          "median": 1201,
+          "min": 1200,
+          "max": 1201,
+          "total": 3602
+        },
+        "elapsed": {
+          "median": 60.028646917,
+          "min": 60.001911412,
+          "max": 60.034119036,
+          "total": 180.064677365
+        },
+        "requestsPerSecond": {
+          "median": 20.005290646137567,
+          "min": 19.99936288296322,
+          "max": 20.007114297621776,
+          "total": 60.01176782672256
+        },
+        "cpuSeconds": {
+          "median": 9.141767999999999,
+          "min": 8.934165,
+          "max": 9.372986000000001,
+          "total": 27.448919
+        },
+        "cpuMsPerRequest": {
+          "median": 7.618139999999999,
+          "min": 7.438938384679434,
+          "max": 7.804318068276437,
+          "total": 22.861396452955873
+        },
+        "allocationBytesPerRequest": {
+          "median": 35419.426666666666,
+          "min": 35276.59616985845,
+          "max": 35507.27726894255,
+          "total": 106203.30010546767
+        },
+        "allocationBytesPerSecond": {
+          "median": 708365.9670131711,
+          "min": 705782.8916014045,
+          "max": 710333.4018181894,
+          "total": 2124482.260432765
+        },
+        "gatewayCores": {
+          "median": 0.1523579463532174,
+          "min": 0.14883169051524733,
+          "max": 0.15612765125077302,
+          "total": 0.4573172881192378
+        },
+        "subgraphCores": {
+          "median": 0.27232657859494436,
+          "min": 0.2671072394687106,
+          "max": 0.2732733782496038,
+          "total": 0.8127071963132588
+        },
+        "procCpuSeconds": {
+          "median": 9.129355887588517,
+          "min": 8.917630859072622,
+          "max": 9.340449441089177,
+          "total": 27.387436187750318
+        },
+        "loadGeneratorCores": {
+          "median": 0.0356673304172772,
+          "min": 0.03374377241587225,
+          "max": 0.03731046671405011,
+          "total": 0.10672156954719958
+        },
+        "gen0": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "gen1": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "gen2": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "gcPauseMs": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "total": 0.0
+        },
+        "gcPausePercent": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "total": 0.0
+        },
+        "heapEnd": {
+          "median": 127566024,
+          "min": 127476904,
+          "max": 127654680,
+          "total": 382697608
+        },
+        "fragmentationEnd": {
+          "median": 2461840,
+          "min": 2433272,
+          "max": 2489552,
+          "total": 7384664
+        },
+        "committedEnd": {
+          "median": 127836160,
+          "min": 127741952,
+          "max": 127909888,
+          "total": 383488000
+        },
+        "workingSetEnd": {
+          "median": 244211712,
+          "min": 239579136,
+          "max": 245862400,
+          "total": 729653248
+        },
+        "observedPeakRss": {
+          "median": 244211712,
+          "min": 243437568,
+          "max": 245862400,
+          "total": 733511680
+        },
+        "failures": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "droppedStarts": {
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "total": 0
+        },
+        "responseBytesMin": {
+          "median": 1206710,
+          "min": 1206710,
+          "max": 1206710,
+          "total": 3620130
+        },
+        "responseBytesMax": {
+          "median": 1206710,
+          "min": 1206710,
+          "max": 1206710,
+          "total": 3620130
+        },
+        "p50Ms": {
+          "median": 26.414563,
+          "min": 25.97751,
+          "max": 26.770423,
+          "total": 79.162496
+        },
+        "httpP50Ms": {
+          "median": 25.268984,
+          "min": 24.875669,
+          "max": 25.57033,
+          "total": 75.714983
+        },
+        "p95Ms": {
+          "median": 29.049275,
+          "min": 28.115108,
+          "max": 29.371836950000002,
+          "total": 86.53621995
+        },
+        "httpP95Ms": {
+          "median": 27.78639,
+          "min": 26.894808,
+          "max": 27.999250299999996,
+          "total": 82.6804483
+        },
+        "p99Ms": {
+          "median": 30.570162,
+          "min": 30.047621,
+          "max": 31.83296953,
+          "total": 92.45075253
+        },
+        "httpP99Ms": {
+          "median": 29.1424,
+          "min": 28.89453,
+          "max": 30.393322639999997,
+          "total": 88.43025263999999
+        }
+      }
+    }
+  ],
+  "confirmationRuns": [
+    {
+      "variant": "list-completion-baseline-9a563e814f",
+      "case": "list-20000-plain",
+      "repetition": "rep-1",
+      "artifact": "perf/list-completion-baseline-9a563e814f/confirm-fixed-1/list-20000-plain/rep-1",
+      "count": 1201,
+      "elapsed": 60.02926518,
+      "requestsPerSecond": 20.00690823715327,
+      "cpuSeconds": 9.491287999999999,
+      "cpuMsPerRequest": 7.90282098251457,
+      "allocationBytesPerRequest": 35506.424646128224,
+      "allocationBytesPerSecond": 710373.7797244847,
+      "gatewayCores": 0.15811101421181845,
+      "processCores": {
+        "Accounts": 0.0003331708282623353,
+        "Inventory": 0.0003331708282623362,
+        "Products": 0.26751155263401666,
+        "Reviews": 0.0003331708282623362,
+        "Gateway": 0.15775370952531603
+      },
+      "subgraphCores": 0.2685110651188037,
+      "procCpuSeconds": 9.46983926222389,
+      "loadGeneratorCores": 0.03355949792087726,
+      "gen0": 0,
+      "gen1": 0,
+      "gen2": 0,
+      "gcPauseMs": 0.0,
+      "gcPausePercent": 0.0,
+      "heapEnd": 127653408,
+      "fragmentationEnd": 2495736,
+      "committedEnd": 127905792,
+      "workingSetEnd": 234344448,
+      "observedPeakRss": 237023232,
+      "failures": 0,
+      "droppedStarts": 0,
+      "responseBytesMin": 1206710,
+      "responseBytesMax": 1206710,
+      "start": "2026-10-16T17:53:38.6503421+00:00",
+      "end": "2026-10-16T17:54:38.6796073+00:00",
+      "p50Ms": 26.510461,
+      "httpP50Ms": 25.426201,
+      "p95Ms": 28.609273,
+      "httpP95Ms": 27.445844,
+      "p99Ms": 30.75646,
+      "httpP99Ms": 29.344696
+    },
+    {
+      "variant": "list-completion-baseline-9a563e814f",
+      "case": "list-20000-plain",
+      "repetition": "rep-1",
+      "artifact": "perf/list-completion-baseline-9a563e814f/confirm-fixed-2/list-20000-plain/rep-1",
+      "count": 1201,
+      "elapsed": 60.02836657,
+      "requestsPerSecond": 20.007207735687683,
+      "cpuSeconds": 9.857761000000002,
+      "cpuMsPerRequest": 8.207960865945047,
+      "allocationBytesPerRequest": 35258.10491257285,
+      "allocationBytesPerSecond": 705416.2293525155,
+      "gatewayCores": 0.16421837813135753,
+      "processCores": {
+        "Accounts": 0.0003331758157483381,
+        "Inventory": 0.00016658790787416904,
+        "Products": 0.26984577751942407,
+        "Reviews": 0.0003331758157483381,
+        "Gateway": 0.16390346312221532
+      },
+      "subgraphCores": 0.27067871705879487,
+      "procCpuSeconds": 9.838857166392819,
+      "loadGeneratorCores": 0.034684152159497945,
+      "gen0": 0,
+      "gen1": 0,
+      "gen2": 0,
+      "gcPauseMs": 0.0,
+      "gcPausePercent": 0.0,
+      "heapEnd": 127531624,
+      "fragmentationEnd": 2478560,
+      "committedEnd": 127901696,
+      "workingSetEnd": 220475392,
+      "observedPeakRss": 220938240,
+      "failures": 0,
+      "droppedStarts": 0,
+      "responseBytesMin": 1206710,
+      "responseBytesMax": 1206710,
+      "start": "2026-10-16T17:59:52.114623+00:00",
+      "end": "2026-10-16T18:00:52.1429895+00:00",
+      "p50Ms": 26.893658,
+      "httpP50Ms": 25.756901,
+      "p95Ms": 29.886468,
+      "httpP95Ms": 28.520917,
+      "p99Ms": 32.756525,
+      "httpP99Ms": 31.593061
+    },
+    {
+      "variant": "list-completion-baseline-9a563e814f",
+      "case": "list-20000-plain",
+      "repetition": "rep-1",
+      "artifact": "perf/list-completion-baseline-9a563e814f/confirm-fixed-3/list-20000-plain/rep-1",
+      "count": 1201,
+      "elapsed": 60.033541316,
+      "requestsPerSecond": 20.005483162791737,
+      "cpuSeconds": 9.775394,
+      "cpuMsPerRequest": 8.139378850957536,
+      "allocationBytesPerRequest": 35065.225645295584,
+      "allocationBytesPerSecond": 701496.7812464539,
+      "gatewayCores": 0.16283220655841413,
+      "processCores": {
+        "Accounts": 0.0001665735483995983,
+        "Inventory": 0.00033314709679919567,
+        "Products": 0.26982913228468386,
+        "Reviews": 0.0003217767186860931,
+        "Gateway": 0.162393066292206
+      },
+      "subgraphCores": 0.2706506296485688,
+      "procCpuSeconds": 9.749030854685076,
+      "loadGeneratorCores": 0.035868665296046785,
+      "gen0": 0,
+      "gen1": 0,
+      "gen2": 0,
+      "gcPauseMs": 0.0,
+      "gcPausePercent": 0.0,
+      "heapEnd": 127538472,
+      "fragmentationEnd": 2476840,
+      "committedEnd": 127844352,
+      "workingSetEnd": 243802112,
+      "observedPeakRss": 243867648,
+      "failures": 0,
+      "droppedStarts": 0,
+      "responseBytesMin": 1206710,
+      "responseBytesMax": 1206710,
+      "start": "2026-10-16T18:01:56.586829+00:00",
+      "end": "2026-10-16T18:02:56.6203703+00:00",
+      "p50Ms": 26.802397,
+      "httpP50Ms": 25.670308,
+      "p95Ms": 29.538245,
+      "httpP95Ms": 28.266499,
+      "p99Ms": 31.230767,
+      "httpP99Ms": 29.837205
+    },
+    {
+      "variant": "list-completion-candidate1-9a563e814f",
+      "case": "list-20000-plain",
+      "repetition": "rep-1",
+      "artifact": "perf/list-completion-candidate1-9a563e814f/confirm-fixed-1/list-20000-plain/rep-1",
+      "count": 1201,
+      "elapsed": 60.034119036,
+      "requestsPerSecond": 20.005290646137567,
+      "cpuSeconds": 9.372986000000001,
+      "cpuMsPerRequest": 7.804318068276437,
+      "allocationBytesPerRequest": 35507.27726894255,
+      "allocationBytesPerSecond": 710333.4018181894,
+      "gatewayCores": 0.15612765125077302,
+      "processCores": {
+        "Accounts": 0.0003331438908599089,
+        "Inventory": 0.0003331438908599089,
+        "Products": 0.2713271469223646,
+        "Reviews": 0.0003331438908599098,
+        "Gateway": 0.1555856834592358
+      },
+      "subgraphCores": 0.27232657859494436,
+      "procCpuSeconds": 9.340449441089177,
+      "loadGeneratorCores": 0.03731046671405011,
+      "gen0": 0,
+      "gen1": 0,
+      "gen2": 0,
+      "gcPauseMs": 0.0,
+      "gcPausePercent": 0.0,
+      "heapEnd": 127476904,
+      "fragmentationEnd": 2433272,
+      "committedEnd": 127741952,
+      "workingSetEnd": 239579136,
+      "observedPeakRss": 243437568,
+      "failures": 0,
+      "droppedStarts": 0,
+      "responseBytesMin": 1206710,
+      "responseBytesMax": 1206710,
+      "start": "2026-10-16T17:55:43.1366915+00:00",
+      "end": "2026-10-16T17:56:43.1708105+00:00",
+      "p50Ms": 26.770423,
+      "httpP50Ms": 25.57033,
+      "p95Ms": 29.049275,
+      "httpP95Ms": 27.78639,
+      "p99Ms": 30.570162,
+      "httpP99Ms": 29.1424
+    },
+    {
+      "variant": "list-completion-candidate1-9a563e814f",
+      "case": "list-20000-plain",
+      "repetition": "rep-1",
+      "artifact": "perf/list-completion-candidate1-9a563e814f/confirm-fixed-2/list-20000-plain/rep-1",
+      "count": 1201,
+      "elapsed": 60.028646917,
+      "requestsPerSecond": 20.007114297621776,
+      "cpuSeconds": 8.934165,
+      "cpuMsPerRequest": 7.438938384679434,
+      "allocationBytesPerRequest": 35276.59616985845,
+      "allocationBytesPerSecond": 705782.8916014045,
+      "gatewayCores": 0.14883169051524733,
+      "processCores": {
+        "Accounts": 0.00033317425974390997,
+        "Inventory": 0.000333174259743909,
+        "Products": 0.2661077166894789,
+        "Reviews": 0.000333174259743909,
+        "Gateway": 0.14855625300704828
+      },
+      "subgraphCores": 0.2671072394687106,
+      "procCpuSeconds": 8.917630859072622,
+      "loadGeneratorCores": 0.03374377241587225,
+      "gen0": 0,
+      "gen1": 0,
+      "gen2": 0,
+      "gcPauseMs": 0.0,
+      "gcPausePercent": 0.0,
+      "heapEnd": 127654680,
+      "fragmentationEnd": 2461840,
+      "committedEnd": 127909888,
+      "workingSetEnd": 245862400,
+      "observedPeakRss": 245862400,
+      "failures": 0,
+      "droppedStarts": 0,
+      "responseBytesMin": 1206710,
+      "responseBytesMax": 1206710,
+      "start": "2026-10-16T17:57:47.6174887+00:00",
+      "end": "2026-10-16T17:58:47.6461357+00:00",
+      "p50Ms": 25.97751,
+      "httpP50Ms": 24.875669,
+      "p95Ms": 28.115108,
+      "httpP95Ms": 26.894808,
+      "p99Ms": 30.047621,
+      "httpP99Ms": 28.89453
+    },
+    {
+      "variant": "list-completion-candidate1-9a563e814f",
+      "case": "list-20000-plain",
+      "repetition": "rep-1",
+      "artifact": "perf/list-completion-candidate1-9a563e814f/confirm-fixed-3/list-20000-plain/rep-1",
+      "count": 1200,
+      "elapsed": 60.001911412,
+      "requestsPerSecond": 19.99936288296322,
+      "cpuSeconds": 9.141767999999999,
+      "cpuMsPerRequest": 7.618139999999999,
+      "allocationBytesPerRequest": 35419.426666666666,
+      "allocationBytesPerSecond": 708365.9670131711,
+      "gatewayCores": 0.1523579463532174,
+      "processCores": {
+        "Accounts": 0.0004894483423306015,
+        "Inventory": 0.00049998407207408,
+        "Products": 0.27195062312048307,
+        "Reviews": 0.00033332271471605304,
+        "Gateway": 0.1521510844029996
+      },
+      "subgraphCores": 0.2732733782496038,
+      "procCpuSeconds": 9.129355887588517,
+      "loadGeneratorCores": 0.0356673304172772,
+      "gen0": 0,
+      "gen1": 0,
+      "gen2": 0,
+      "gcPauseMs": 0.0,
+      "gcPausePercent": 0.0,
+      "heapEnd": 127566024,
+      "fragmentationEnd": 2489552,
+      "committedEnd": 127836160,
+      "workingSetEnd": 244211712,
+      "observedPeakRss": 244211712,
+      "failures": 0,
+      "droppedStarts": 0,
+      "responseBytesMin": 1206710,
+      "responseBytesMax": 1206710,
+      "start": "2026-10-16T18:04:01.0989346+00:00",
+      "end": "2026-10-16T18:05:01.100846+00:00",
+      "p50Ms": 26.414563,
+      "httpP50Ms": 25.268984,
+      "p95Ms": 29.371836950000002,
+      "httpP95Ms": 27.999250299999996,
+      "p99Ms": 31.83296953,
+      "httpP99Ms": 30.393322639999997
+    }
+  ],
+  "confirmationOrder": [
+    [
+      "baseline",
+      1
+    ],
+    [
+      "candidate1",
+      1
+    ],
+    [
+      "candidate1",
+      2
+    ],
+    [
+      "baseline",
+      2
+    ],
+    [
+      "baseline",
+      3
+    ],
+    [
+      "candidate1",
+      3
+    ]
+  ],
+  "audit": {
+    "binaryHashes": {
+      "list-completion-baseline-9a563e814f": {
+        "Gateway.dll": "300d48bd57d8edabf4aaae66770ab2e2f88149f6844e6d5cf25c914e19a4f953",
+        "ChilliCream.Nitro.App.dll": "ba0765d94d54d959538dba16e7b756250fff23d9292cc49c8f64a6821c3662c4",
+        "HotChocolate.Language.Utf8.SyntaxTree.dll": "9c9999a752eadc29155556319f1101882310d692760178625e862efdce695570",
+        "HotChocolate.Language.Visitors.dll": "79bafa9e23342ef51ca201cdaab2c230d54ec97197a71533194005ea42b29fd4",
+        "HotChocolate.Transport.Sockets.dll": "abcda82cb630aa6be48f5018d2d28e72fc33d132c0772fc99f4819efdaa25946",
+        "HotChocolate.Fusion.Execution.Types.dll": "092ea6997b6677c73b6cdfdadf1d17b2e12a2b886e998e70e293a15c5f97cb48",
+        "HotChocolate.Features.dll": "473ae1c8fea76b08f2671682686402260cac44ecde4afd7183357537dd8b5e49",
+        "HotChocolate.Fusion.AspNetCore.dll": "341b18aa22ed490e9f6619db44d88c70f29d5c974b3f4c7cc05280135d2e3173",
+        "HotChocolate.Fusion.Packaging.dll": "2260ce59974127afdfbc3385489684c2ce92d48bf5d8e689ef6bb54bd83d550c",
+        "HotChocolate.Fusion.Utilities.dll": "cfdbb2691b0fb345c8c4c8f11b04679c952c2ea21d878adb493c0ce06a05e88e",
+        "HotChocolate.Types.Abstractions.dll": "045c5e919bc9bcdf2502dd14a39b7c18f0c6a05a19b775a58e2fc2045cfe7aca",
+        "System.Security.Cryptography.Pkcs.dll": "eff9ed505c194f0f5c9faef1a175459cd0560eeb4ad08890c7c0c0e1ff4d34c3",
+        "HotChocolate.Primitives.dll": "e715052f723b63441c75dcd54599c8fdd17c612cdb1999a753caa3e68dd550b2",
+        "HotChocolate.CostAnalysis.Core.dll": "24e4d0f30fd0314fa629b3aecf001058990ab1742cafbc63118eb4524759b390",
+        "HotChocolate.Execution.Operation.Abstractions.dll": "0b4e734074e8c1dc58668e0a8be408cc7bb1ea7b959adc4351708b5d6071076c",
+        "HotChocolate.Language.Web.dll": "da4c8b4ca7c2de2f8119cc65b44955ea17a91f0f69d0c86835ff33152184e0f0",
+        "HotChocolate.PersistedOperations.Abstractions.dll": "7cc3531228db3ed05d46e9243233425e7a9549161118ade97363458731f12c3c",
+        "System.IO.Hashing.dll": "f2c17e3603b4852391d3dd1c77e4decfd48a969322cf67b995930488d7148ee6",
+        "HotChocolate.Caching.Memory.dll": "9fd86bcd3fec5b0176b61dee1937f3f28b0266c2ead644b7bcdce45164d0c136",
+        "HotChocolate.Language.Utf8.dll": "4061cfc660c7c41e72ec99afc7581903e7aca25d2b632b98978bdec1b729ed32",
+        "HotChocolate.Buffers.Text.dll": "99d4c1feef9fa09f1108fafbb80f7220c0c9755358de8d8e4d4b8db570aa0986",
+        "HotChocolate.Text.Json.dll": "4fa590591a313a13ab2913c698645adb45eb29dc2f70aa7288d9dd8125399ce8",
+        "HotChocolate.PersistedOperations.Pipeline.dll": "f600a9691e19d39323143fd4f7533bbcdf221e0555516595b904202e8a183a45",
+        "Yarp.ReverseProxy.dll": "9605717516fe01c60d2a32d5a891f8d253ac83b50fb2434f0db36151c7662ada",
+        "HotChocolate.Fusion.Execution.dll": "392eeb9b89bfe36309c50e7b387b5f5120d19337d2c680df642af22126e15bd5",
+        "HotChocolate.AspNetCore.Pipeline.dll": "f718273e5ab916bdd57bc1dac25916d9553a0337d74c85b4741f60d20c113b5a",
+        "HotChocolate.Language.dll": "f0d6857fb469993a86fc15f3cae963b5a193addb4b694ad97b36bd157956e298",
+        "HotChocolate.Transport.Formatters.dll": "4ea38256eb0f04f4ee8742bfd36ed47e970f3c04e2cecd8a7e30ab578c82c0fb",
+        "HotChocolate.Language.SyntaxTree.dll": "df5acf5dcf0c22c0004365069bb7a1a0f3bfeb412f9e3a79454c95f018b598e9",
+        "HotChocolate.Fusion.Language.dll": "5111b5641845c6cd6c5af63a133a2f8e4efd4b6ab8e2505a50b0f659e1b1a8d4",
+        "HotChocolate.Execution.Abstractions.dll": "1d0b14a06b7f79e488d96e93a23675c5b99ae475e878104e8acf1a46fd394ff1",
+        "HotChocolate.Execution.Pipeline.dll": "d88a6bfe5a6eb06c36e6cb4cc24cad9057d9730088818f1abd0fb4d205b58e59",
+        "HotChocolate.Validation.dll": "c1961329a647adc67a652f5b6ea4fb00fff0c08bf5724b4223d271a78d314251",
+        "HotChocolate.Utilities.Tasks.dll": "5631495f64c4f569171ba548cd6837d10754c05b436efa4a56e38ae98c673e7a",
+        "HotChocolate.Buffers.dll": "4c1622a0c2a0e705523b848bed49702769ce9567f6a1ce778b2cdfcf3c742285",
+        "System.Reactive.dll": "c1cae1a8b97d5e0ed64f7a9947f6ae44498398b6e9ee71473c2bef24646e91f8"
+      },
+      "list-completion-candidate1-9a563e814f": {
+        "Gateway.dll": "9d9bf6827be0aa9be7e5f1f5a554ef909bd39c30cc4bd3208aa5e27d3bd92377",
+        "ChilliCream.Nitro.App.dll": "ba0765d94d54d959538dba16e7b756250fff23d9292cc49c8f64a6821c3662c4",
+        "HotChocolate.Language.Utf8.SyntaxTree.dll": "9c9999a752eadc29155556319f1101882310d692760178625e862efdce695570",
+        "HotChocolate.Language.Visitors.dll": "79bafa9e23342ef51ca201cdaab2c230d54ec97197a71533194005ea42b29fd4",
+        "HotChocolate.Transport.Sockets.dll": "abcda82cb630aa6be48f5018d2d28e72fc33d132c0772fc99f4819efdaa25946",
+        "HotChocolate.Fusion.Execution.Types.dll": "092ea6997b6677c73b6cdfdadf1d17b2e12a2b886e998e70e293a15c5f97cb48",
+        "HotChocolate.Features.dll": "473ae1c8fea76b08f2671682686402260cac44ecde4afd7183357537dd8b5e49",
+        "HotChocolate.Fusion.AspNetCore.dll": "341b18aa22ed490e9f6619db44d88c70f29d5c974b3f4c7cc05280135d2e3173",
+        "HotChocolate.Fusion.Packaging.dll": "2260ce59974127afdfbc3385489684c2ce92d48bf5d8e689ef6bb54bd83d550c",
+        "HotChocolate.Fusion.Utilities.dll": "cfdbb2691b0fb345c8c4c8f11b04679c952c2ea21d878adb493c0ce06a05e88e",
+        "HotChocolate.Types.Abstractions.dll": "045c5e919bc9bcdf2502dd14a39b7c18f0c6a05a19b775a58e2fc2045cfe7aca",
+        "System.Security.Cryptography.Pkcs.dll": "eff9ed505c194f0f5c9faef1a175459cd0560eeb4ad08890c7c0c0e1ff4d34c3",
+        "HotChocolate.Primitives.dll": "e715052f723b63441c75dcd54599c8fdd17c612cdb1999a753caa3e68dd550b2",
+        "HotChocolate.CostAnalysis.Core.dll": "24e4d0f30fd0314fa629b3aecf001058990ab1742cafbc63118eb4524759b390",
+        "HotChocolate.Execution.Operation.Abstractions.dll": "0b4e734074e8c1dc58668e0a8be408cc7bb1ea7b959adc4351708b5d6071076c",
+        "HotChocolate.Language.Web.dll": "da4c8b4ca7c2de2f8119cc65b44955ea17a91f0f69d0c86835ff33152184e0f0",
+        "HotChocolate.PersistedOperations.Abstractions.dll": "7cc3531228db3ed05d46e9243233425e7a9549161118ade97363458731f12c3c",
+        "System.IO.Hashing.dll": "f2c17e3603b4852391d3dd1c77e4decfd48a969322cf67b995930488d7148ee6",
+        "HotChocolate.Caching.Memory.dll": "9fd86bcd3fec5b0176b61dee1937f3f28b0266c2ead644b7bcdce45164d0c136",
+        "HotChocolate.Language.Utf8.dll": "4061cfc660c7c41e72ec99afc7581903e7aca25d2b632b98978bdec1b729ed32",
+        "HotChocolate.Buffers.Text.dll": "99d4c1feef9fa09f1108fafbb80f7220c0c9755358de8d8e4d4b8db570aa0986",
+        "HotChocolate.Text.Json.dll": "4fa590591a313a13ab2913c698645adb45eb29dc2f70aa7288d9dd8125399ce8",
+        "HotChocolate.PersistedOperations.Pipeline.dll": "f600a9691e19d39323143fd4f7533bbcdf221e0555516595b904202e8a183a45",
+        "Yarp.ReverseProxy.dll": "9605717516fe01c60d2a32d5a891f8d253ac83b50fb2434f0db36151c7662ada",
+        "HotChocolate.Fusion.Execution.dll": "b39fee73cf82bb179e8edbe2655229ae25884951b1eba4dc03e6b5677ea4e15c",
+        "HotChocolate.AspNetCore.Pipeline.dll": "f718273e5ab916bdd57bc1dac25916d9553a0337d74c85b4741f60d20c113b5a",
+        "HotChocolate.Language.dll": "f0d6857fb469993a86fc15f3cae963b5a193addb4b694ad97b36bd157956e298",
+        "HotChocolate.Transport.Formatters.dll": "4ea38256eb0f04f4ee8742bfd36ed47e970f3c04e2cecd8a7e30ab578c82c0fb",
+        "HotChocolate.Language.SyntaxTree.dll": "df5acf5dcf0c22c0004365069bb7a1a0f3bfeb412f9e3a79454c95f018b598e9",
+        "HotChocolate.Fusion.Language.dll": "5111b5641845c6cd6c5af63a133a2f8e4efd4b6ab8e2505a50b0f659e1b1a8d4",
+        "HotChocolate.Execution.Abstractions.dll": "1d0b14a06b7f79e488d96e93a23675c5b99ae475e878104e8acf1a46fd394ff1",
+        "HotChocolate.Execution.Pipeline.dll": "d88a6bfe5a6eb06c36e6cb4cc24cad9057d9730088818f1abd0fb4d205b58e59",
+        "HotChocolate.Validation.dll": "c1961329a647adc67a652f5b6ea4fb00fff0c08bf5724b4223d271a78d314251",
+        "HotChocolate.Utilities.Tasks.dll": "5631495f64c4f569171ba548cd6837d10754c05b436efa4a56e38ae98c673e7a",
+        "HotChocolate.Buffers.dll": "4c1622a0c2a0e705523b848bed49702769ce9567f6a1ce778b2cdfcf3c742285",
+        "System.Reactive.dll": "c1cae1a8b97d5e0ed64f7a9947f6ae44498398b6e9ee71473c2bef24646e91f8"
+      }
+    },
+    "requests": {
+      "defer-5": "7d07fa3103be110434feb9bae807823ab279c0249bab3868070608d03d1ea557",
+      "list-1000-plain": "f824865725b7de370e135c561f7f9bb3c00ed20b4fda36e5c7e8492d032046f2",
+      "list-20000-plain": "37055be571fd1389138f4f71c1539c73a515b609373eceba6cfc7b96a34b4b3b",
+      "list-5000-plain": "7273d883f21d2a7c7f0ceaa0acf26b7e5423bb8c0316fb5bea7817bdcdf70a4b",
+      "nested": "c318612b7955d6abad5791e55971b266277ca2c87f7dd1605c0556fd63f9ec03"
+    },
+    "schemas": {
+      "Accounts": "59ce69a0510c505923dd91c42fdf5f9f68bc87871368d2ca93e27e4deab4b02d",
+      "Inventory": "e1e6328be65c35f9b199bef68908d7e66486620bde4b4769e456f5b8542138f1",
+      "Products": "dcb22b450a9e002cc425ff4b3bad41ca61acdb4754ad1b7463e19d3ca0b3d204",
+      "Reviews": "38b99d9d91d171420094dc36dfdcb1679cfa8e2be4a9b1646d05420d9d252db2"
+    },
+    "counters": [
+      {
+        "variant": "list-completion-baseline-9a563e814f",
+        "start": 1792171899.810675,
+        "end": 1792171918.776962,
+        "runtimeCpuIncrementSum": 3.2209570000000007,
+        "procCpuSeconds": 3.2194551277586925,
+        "endpointCpuSeconds": 3.2228547632122537,
+        "runtimeAllocationIncrementSum": 15101520,
+        "endpointAllocationDelta": 15369205.169577211
+      },
+      {
+        "variant": "list-completion-candidate1-9a563e814f",
+        "start": 1792173036.632927,
+        "end": 1792173055.609172,
+        "runtimeCpuIncrementSum": 3.225395999999998,
+        "procCpuSeconds": 3.2380647700976457,
+        "endpointCpuSeconds": 3.234130592392952,
+        "runtimeAllocationIncrementSum": 15032528,
+        "endpointAllocationDelta": 15312066.512485862
+      }
+    ],
+    "processes": [
+      {
+        "session": "confirm-fixed-1-pids.json",
+        "name": "Accounts",
+        "pid": 224170,
+        "ownedAlive": false
+      },
+      {
+        "session": "confirm-fixed-1-pids.json",
+        "name": "Inventory",
+        "pid": 224171,
+        "ownedAlive": false
+      },
+      {
+        "session": "confirm-fixed-1-pids.json",
+        "name": "Products",
+        "pid": 224172,
+        "ownedAlive": false
+      },
+      {
+        "session": "confirm-fixed-1-pids.json",
+        "name": "Reviews",
+        "pid": 224173,
+        "ownedAlive": false
+      },
+      {
+        "session": "confirm-fixed-1-pids.json",
+        "name": "Gateway",
+        "pid": 224174,
+        "ownedAlive": false
+      },
+      {
+        "session": "pilot-pids.json",
+        "name": "Accounts",
+        "pid": 210604,
+        "ownedAlive": false
+      },
+      {
+        "session": "pilot-pids.json",
+        "name": "Inventory",
+        "pid": 210605,
+        "ownedAlive": false
+      },
+      {
+        "session": "pilot-pids.json",
+        "name": "Products",
+        "pid": 210606,
+        "ownedAlive": false
+      },
+      {
+        "session": "pilot-pids.json",
+        "name": "Reviews",
+        "pid": 210607,
+        "ownedAlive": false
+      },
+      {
+        "session": "pilot-pids.json",
+        "name": "Gateway",
+        "pid": 210608,
+        "ownedAlive": false
+      },
+      {
+        "session": "matrix-pids.json",
+        "name": "Accounts",
+        "pid": 210935,
+        "ownedAlive": false
+      },
+      {
+        "session": "matrix-pids.json",
+        "name": "Inventory",
+        "pid": 210936,
+        "ownedAlive": false
+      },
+      {
+        "session": "matrix-pids.json",
+        "name": "Products",
+        "pid": 210937,
+        "ownedAlive": false
+      },
+      {
+        "session": "matrix-pids.json",
+        "name": "Reviews",
+        "pid": 210938,
+        "ownedAlive": false
+      },
+      {
+        "session": "matrix-pids.json",
+        "name": "Gateway",
+        "pid": 210939,
+        "ownedAlive": false
+      },
+      {
+        "session": "confirm-fixed-3-pids.json",
+        "name": "Accounts",
+        "pid": 226504,
+        "ownedAlive": false
+      },
+      {
+        "session": "confirm-fixed-3-pids.json",
+        "name": "Inventory",
+        "pid": 226505,
+        "ownedAlive": false
+      },
+      {
+        "session": "confirm-fixed-3-pids.json",
+        "name": "Products",
+        "pid": 226506,
+        "ownedAlive": false
+      },
+      {
+        "session": "confirm-fixed-3-pids.json",
+        "name": "Reviews",
+        "pid": 226507,
+        "ownedAlive": false
+      },
+      {
+        "session": "confirm-fixed-3-pids.json",
+        "name": "Gateway",
+        "pid": 226508,
+        "ownedAlive": false
+      },
+      {
+        "session": "profile-pids.json",
+        "name": "Accounts",
+        "pid": 214239,
+        "ownedAlive": false
+      },
+      {
+        "session": "profile-pids.json",
+        "name": "Inventory",
+        "pid": 214240,
+        "ownedAlive": false
+      },
+      {
+        "session": "profile-pids.json",
+        "name": "Products",
+        "pid": 214241,
+        "ownedAlive": false
+      },
+      {
+        "session": "profile-pids.json",
+        "name": "Reviews",
+        "pid": 214242,
+        "ownedAlive": false
+      },
+      {
+        "session": "profile-pids.json",
+        "name": "Gateway",
+        "pid": 214243,
+        "ownedAlive": false
+      },
+      {
+        "session": "confirm-fixed-2-pids.json",
+        "name": "Accounts",
+        "pid": 225928,
+        "ownedAlive": false
+      },
+      {
+        "session": "confirm-fixed-2-pids.json",
+        "name": "Inventory",
+        "pid": 225929,
+        "ownedAlive": false
+      },
+      {
+        "session": "confirm-fixed-2-pids.json",
+        "name": "Products",
+        "pid": 225931,
+        "ownedAlive": false
+      },
+      {
+        "session": "confirm-fixed-2-pids.json",
+        "name": "Reviews",
+        "pid": 225932,
+        "ownedAlive": false
+      },
+      {
+        "session": "confirm-fixed-2-pids.json",
+        "name": "Gateway",
+        "pid": 225933,
+        "ownedAlive": false
+      },
+      {
+        "session": "confirm-fixed-1-pids.json",
+        "name": "Accounts",
+        "pid": 224760,
+        "ownedAlive": false
+      },
+      {
+        "session": "confirm-fixed-1-pids.json",
+        "name": "Inventory",
+        "pid": 224761,
+        "ownedAlive": false
+      },
+      {
+        "session": "confirm-fixed-1-pids.json",
+        "name": "Products",
+        "pid": 224762,
+        "ownedAlive": false
+      },
+      {
+        "session": "confirm-fixed-1-pids.json",
+        "name": "Reviews",
+        "pid": 224763,
+        "ownedAlive": false
+      },
+      {
+        "session": "confirm-fixed-1-pids.json",
+        "name": "Gateway",
+        "pid": 224764,
+        "ownedAlive": false
+      },
+      {
+        "session": "matrix-pids.json",
+        "name": "Accounts",
+        "pid": 219911,
+        "ownedAlive": false
+      },
+      {
+        "session": "matrix-pids.json",
+        "name": "Inventory",
+        "pid": 219912,
+        "ownedAlive": false
+      },
+      {
+        "session": "matrix-pids.json",
+        "name": "Products",
+        "pid": 219913,
+        "ownedAlive": false
+      },
+      {
+        "session": "matrix-pids.json",
+        "name": "Reviews",
+        "pid": 219914,
+        "ownedAlive": false
+      },
+      {
+        "session": "matrix-pids.json",
+        "name": "Gateway",
+        "pid": 219915,
+        "ownedAlive": false
+      },
+      {
+        "session": "confirm-fixed-3-pids.json",
+        "name": "Accounts",
+        "pid": 227093,
+        "ownedAlive": false
+      },
+      {
+        "session": "confirm-fixed-3-pids.json",
+        "name": "Inventory",
+        "pid": 227094,
+        "ownedAlive": false
+      },
+      {
+        "session": "confirm-fixed-3-pids.json",
+        "name": "Products",
+        "pid": 227095,
+        "ownedAlive": false
+      },
+      {
+        "session": "confirm-fixed-3-pids.json",
+        "name": "Reviews",
+        "pid": 227096,
+        "ownedAlive": false
+      },
+      {
+        "session": "confirm-fixed-3-pids.json",
+        "name": "Gateway",
+        "pid": 227097,
+        "ownedAlive": false
+      },
+      {
+        "session": "profile-pids.json",
+        "name": "Accounts",
+        "pid": 222704,
+        "ownedAlive": false
+      },
+      {
+        "session": "profile-pids.json",
+        "name": "Inventory",
+        "pid": 222705,
+        "ownedAlive": false
+      },
+      {
+        "session": "profile-pids.json",
+        "name": "Products",
+        "pid": 222706,
+        "ownedAlive": false
+      },
+      {
+        "session": "profile-pids.json",
+        "name": "Reviews",
+        "pid": 222707,
+        "ownedAlive": false
+      },
+      {
+        "session": "profile-pids.json",
+        "name": "Gateway",
+        "pid": 222708,
+        "ownedAlive": false
+      },
+      {
+        "session": "confirm-fixed-2-pids.json",
+        "name": "Accounts",
+        "pid": 225342,
+        "ownedAlive": false
+      },
+      {
+        "session": "confirm-fixed-2-pids.json",
+        "name": "Inventory",
+        "pid": 225343,
+        "ownedAlive": false
+      },
+      {
+        "session": "confirm-fixed-2-pids.json",
+        "name": "Products",
+        "pid": 225344,
+        "ownedAlive": false
+      },
+      {
+        "session": "confirm-fixed-2-pids.json",
+        "name": "Reviews",
+        "pid": 225345,
+        "ownedAlive": false
+      },
+      {
+        "session": "confirm-fixed-2-pids.json",
+        "name": "Gateway",
+        "pid": 225346,
+        "ownedAlive": false
+      }
+    ],
+    "ports": {
+      "5320": "closed",
+      "5321": "closed",
+      "5322": "closed",
+      "5323": "closed",
+      "5324": "closed"
+    },
+    "candidatePatchSha256": "68464d69593b2d4a063fe0f61b5e543751ae565b91003a589c0ea0a2a7581af1"
+  },
+  "identities": [
+    {
+      "baseline": "9a563e814f3b6213c80a6bc96a01fbcb4d605096",
+      "productionPatchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/workspaces/platform-1/.worktrees/fusion-list-completion-20261016",
+      "sdkEnvironment": {
+        "DOTNET_LOCAL_DEV": "1",
+        "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "1"
+      }
+    },
+    {
+      "baseline": "9a563e814f3b6213c80a6bc96a01fbcb4d605096",
+      "productionPatchSha256": "68464d69593b2d4a063fe0f61b5e543751ae565b91003a589c0ea0a2a7581af1",
+      "source": "/workspaces/platform-1/.worktrees/fusion-list-completion-20261016",
+      "sdkEnvironment": {
+        "DOTNET_LOCAL_DEV": "1",
+        "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "1"
+      }
+    }
+  ],
+  "micro": [
+    {
+      "variant": "list-completion-baseline-9a563e814f",
+      "label": "micro",
+      "cases": [
+        {
+          "parameters": "Rows=1000",
+          "statistics": {
+            "OriginalValues": [
+              112459.5404663086,
+              111748.06512451172,
+              111729.25091552734,
+              112573.22930908203,
+              113556.2767944336,
+              113272.06512451172,
+              111881.93621826172,
+              112899.63177490234,
+              113156.09771728516,
+              112518.02264404297,
+              114432.02410888672,
+              113868.82427978516,
+              113518.03814697266,
+              112240.29595947266,
+              113345.99444580078,
+              113582.67974853516,
+              113214.03057861328,
+              115983.2357788086,
+              113694.6849975586,
+              114306.60137939453,
+              114832.30499267578,
+              113348.5375366211,
+              116863.15899658203,
+              114382.69232177734,
+              113478.1870727539,
+              117258.3890991211,
+              115982.9662475586,
+              113951.91400146484,
+              117592.78228759766,
+              119245.42980957031,
+              117600.98132324219,
+              118204.61206054688,
+              117643.29431152344,
+              120563.61828613281,
+              119589.50207519531,
+              116581.61755371094,
+              118370.2216796875,
+              117849.38049316406,
+              120933.37634277344,
+              121987.39807128906,
+              119922.72546386719,
+              117096.22290039062,
+              119190.20288085938,
+              121576.84289550781
+            ],
+            "N": 44,
+            "Min": 111729.25091552734,
+            "LowerFence": 106776.5565032959,
+            "Q1": 113327.51211547852,
+            "Median": 114407.35821533203,
+            "Mean": 115636.97464127974,
+            "Q3": 117694.8158569336,
+            "UpperFence": 124245.77146911621,
+            "Max": 121987.39807128906,
+            "InterquartileRange": 4367.303741455078,
+            "LowerOutliers": [],
+            "UpperOutliers": [],
+            "AllOutliers": [],
+            "StandardError": 447.77424916792165,
+            "Variance": 8822078.241587423,
+            "StandardDeviation": 2970.1983505462094,
+            "Skewness": 0.5178509781295516,
+            "Kurtosis": 1.971958577581129,
+            "ConfidenceInterval": {
+              "N": 44,
+              "Mean": 115636.97464127974,
+              "StandardError": 447.77424916792165,
+              "Level": 12,
+              "Margin": 1581.3710333546742,
+              "Lower": 114055.60360792506,
+              "Upper": 117218.34567463442
+            },
+            "Percentiles": {
+              "P0": 111729.25091552734,
+              "P25": 113327.51211547852,
+              "P50": 114407.35821533203,
+              "P67": 117227.57752136231,
+              "P80": 118270.85590820311,
+              "P85": 119220.5776916504,
+              "P90": 119822.75844726563,
+              "P95": 120877.91263427734,
+              "P100": 121987.39807128906
+            }
+          },
+          "memory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 8192,
+            "BytesAllocatedPerOperation": 472
+          }
+        },
+        {
+          "parameters": "Rows=20000",
+          "statistics": {
+            "OriginalValues": [
+              2240892.205078125,
+              2165585.646484375,
+              2178824.650390625,
+              2206821.380859375,
+              2196716.998046875,
+              2185700.333984375,
+              2209114.201171875,
+              2248726.716796875,
+              2200227.923828125,
+              2188420.244140625,
+              2130560.232421875,
+              2218957.189453125,
+              2138666.068359375,
+              2174712.322265625,
+              2163156.107421875,
+              2182825.484375,
+              2184416.80078125,
+              2178206.48046875,
+              2200444.23046875,
+              2201713.9296875,
+              2240707.62890625,
+              2255231.14453125,
+              2271532.5,
+              2259512.09375,
+              2203108.30859375,
+              2224672.38671875,
+              2203804.11328125,
+              2227655.3125,
+              2189829.91796875,
+              2186788.234375,
+              2328788.1015625,
+              2241637.56640625,
+              2242761.921875,
+              2268670.9140625,
+              2277409.89453125,
+              2239827.3359375,
+              2227734.8203125,
+              2234120.59765625,
+              2248774.8125,
+              2247998.6015625,
+              2239630.55859375,
+              2278601.30859375,
+              2234008.78515625
+            ],
+            "N": 43,
+            "Min": 2130560.232421875,
+            "LowerFence": 2105710.9819335938,
+            "Q1": 2187604.2392578125,
+            "Median": 2218957.189453125,
+            "Mean": 2217848.744322311,
+            "Q3": 2242199.744140625,
+            "UpperFence": 2324093.0014648438,
+            "Max": 2328788.1015625,
+            "InterquartileRange": 54595.5048828125,
+            "LowerOutliers": [],
+            "UpperOutliers": [
+              2328788.1015625
+            ],
+            "AllOutliers": [
+              2328788.1015625
+            ],
+            "StandardError": 6109.993037000197,
+            "Variance": 1605276641.2242076,
+            "StandardDeviation": 40065.903724042066,
+            "Skewness": 0.17697431331926258,
+            "Kurtosis": 2.985907936638183,
+            "ConfidenceInterval": {
+              "N": 43,
+              "Mean": 2217848.744322311,
+              "StandardError": 6109.993037000197,
+              "Level": 12,
+              "Margin": 21615.600000955892,
+              "Lower": 2196233.144321355,
+              "Upper": 2239464.344323267
+            },
+            "Percentiles": {
+              "P0": 2130560.232421875,
+              "P25": 2187604.2392578125,
+              "P50": 2218957.189453125,
+              "P67": 2239950.576953125,
+              "P80": 2248435.470703125,
+              "P85": 2253294.244921875,
+              "P90": 2266839.15,
+              "P95": 2276822.1550781247,
+              "P100": 2328788.1015625
+            }
+          },
+          "memory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 256,
+            "BytesAllocatedPerOperation": 1656
+          }
+        }
+      ]
+    },
+    {
+      "variant": "list-completion-candidate1-9a563e814f",
+      "label": "micro",
+      "cases": [
+        {
+          "parameters": "Rows=1000",
+          "statistics": {
+            "OriginalValues": [
+              85814.54260253906,
+              86164.12829589844,
+              85845.81811523438,
+              86344.564453125,
+              85489.73706054688,
+              86635.03247070312,
+              85674.8525390625,
+              85655.73840332031,
+              85546.54077148438,
+              85821.44970703125,
+              85762.00622558594,
+              86369.80261230469,
+              86314.96228027344,
+              89716.34008789062,
+              88972.30737304688,
+              89372.48657226562,
+              89197.49267578125,
+              89753.90234375,
+              89101.62121582031,
+              92009.73315429688,
+              89693.62976074219,
+              90738.2978515625,
+              90244.52075195312,
+              90020.35791015625,
+              90745.24072265625,
+              89841.18310546875,
+              86006.03112792969,
+              86527.01989746094,
+              85358.32263183594,
+              88537.86437988281,
+              85930.30126953125,
+              87240.763671875,
+              86788.28735351562,
+              87172.74975585938,
+              87045.46032714844,
+              86079.91455078125,
+              88368.36376953125,
+              85367.78308105469,
+              85666.93835449219,
+              85842.78161621094,
+              86108.10278320312
+            ],
+            "N": 41,
+            "Min": 85358.32263183594,
+            "LowerFence": 80810.71502685547,
+            "Q1": 85842.78161621094,
+            "Median": 86527.01989746094,
+            "Mean": 87436.2676495808,
+            "Q3": 89197.49267578125,
+            "UpperFence": 94229.55926513672,
+            "Max": 92009.73315429688,
+            "InterquartileRange": 3354.7110595703125,
+            "LowerOutliers": [],
+            "UpperOutliers": [],
+            "AllOutliers": [],
+            "StandardError": 298.97082726393234,
+            "Variance": 3664725.7777500823,
+            "StandardDeviation": 1914.3473503390346,
+            "Skewness": 0.6657834190716715,
+            "Kurtosis": 1.9786325635048874,
+            "ConfidenceInterval": {
+              "N": 41,
+              "Mean": 87436.2676495808,
+              "StandardError": 298.97082726393234,
+              "Level": 12,
+              "Margin": 1061.6351695476717,
+              "Lower": 86374.63248003312,
+              "Upper": 88497.90281912847
+            },
+            "Percentiles": {
+              "P0": 85358.32263183594,
+              "P25": 85842.78161621094,
+              "P50": 86527.01989746094,
+              "P67": 88503.96425781249,
+              "P80": 89693.62976074219,
+              "P85": 89753.90234375,
+              "P90": 90020.35791015625,
+              "P95": 90738.2978515625,
+              "P100": 92009.73315429688
+            }
+          },
+          "memory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 8192,
+            "BytesAllocatedPerOperation": 472
+          }
+        },
+        {
+          "parameters": "Rows=20000",
+          "statistics": {
+            "OriginalValues": [
+              1649092.0234375,
+              1653647.548828125,
+              1655894.0625,
+              1666983.6328125,
+              1652121.400390625,
+              1647755.654296875,
+              1656666.181640625,
+              1647661.822265625,
+              1649170.2109375,
+              1656747.15625,
+              1658125.744140625,
+              1656406.0078125,
+              1666478.890625,
+              1691459.123046875,
+              1683042.25,
+              1688505.658203125,
+              1684271.26171875,
+              1693258.20703125,
+              1683182.6328125,
+              1695745.19921875,
+              1683877.703125,
+              1699443.134765625,
+              1684217.142578125,
+              1694631.26171875,
+              1682671.642578125,
+              1679265.619140625,
+              1770726.0283203125,
+              1805108.2119140625,
+              1802854.8623046875,
+              1823886.9580078125,
+              1768362.4892578125,
+              1772445.9267578125,
+              1775796.4482421875,
+              1837487.6162109375,
+              1766536.3896484375,
+              1756989.7080078125,
+              1762963.1298828125,
+              1778279.0478515625,
+              1798662.0498046875,
+              1772530.4814453125,
+              1764373.8623046875
+            ],
+            "N": 41,
+            "Min": 1647661.822265625,
+            "LowerFence": 1492770.6264648438,
+            "Q1": 1658125.744140625,
+            "Median": 1688505.658203125,
+            "Mean": 1712617.6678496571,
+            "Q3": 1768362.4892578125,
+            "UpperFence": 1933717.6069335938,
+            "Max": 1837487.6162109375,
+            "InterquartileRange": 110236.7451171875,
+            "LowerOutliers": [],
+            "UpperOutliers": [],
+            "AllOutliers": [],
+            "StandardError": 9103.953218437973,
+            "Variance": 3398160532.343793,
+            "StandardDeviation": 58293.74350943498,
+            "Skewness": 0.5606699224164549,
+            "Kurtosis": 1.8067270395816712,
+            "ConfidenceInterval": {
+              "N": 41,
+              "Mean": 1712617.6678496571,
+              "StandardError": 9103.953218437973,
+              "Level": 12,
+              "Margin": 32327.82611956353,
+              "Lower": 1680289.8417300936,
+              "Upper": 1744945.4939692207
+            },
+            "Percentiles": {
+              "P0": 1647661.822265625,
+              "P25": 1658125.744140625,
+              "P50": 1688505.658203125,
+              "P67": 1761768.4455078123,
+              "P80": 1772445.9267578125,
+              "P85": 1775796.4482421875,
+              "P90": 1798662.0498046875,
+              "P95": 1805108.2119140625,
+              "P100": 1837487.6162109375
+            }
+          },
+          "memory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 512,
+            "BytesAllocatedPerOperation": 1656
+          }
+        }
+      ]
+    },
+    {
+      "variant": "list-completion-baseline-9a563e814f",
+      "label": "micro-confirm",
+      "cases": [
+        {
+          "parameters": "Rows=1000",
+          "statistics": {
+            "OriginalValues": [
+              112833.55187988281,
+              114229.52526855469,
+              113219.021484375,
+              112728.44360351562,
+              115760.34143066406,
+              112924.77453613281,
+              115289.72204589844,
+              112768.0302734375,
+              113265.59680175781,
+              113064.5966796875,
+              112845.91149902344,
+              112994.68054199219,
+              115177.76257324219,
+              113249.2392578125,
+              116090.16198730469,
+              119139.73962402344,
+              116014.12707519531,
+              119024.19946289062,
+              115476.57202148438,
+              116611.796875,
+              120151.98803710938,
+              116368.72814941406,
+              115985.95935058594,
+              115495.98681640625,
+              117543.02075195312,
+              117002.96850585938,
+              117821.078125,
+              116582.48474121094,
+              114885.52490234375,
+              113471.04760742188,
+              115421.85400390625,
+              113818.36999511719,
+              115608.89221191406,
+              117918.37890625,
+              116059.70043945312,
+              113072.74011230469,
+              114080.68542480469,
+              114926.51525878906,
+              117837.89343261719,
+              116130.21166992188,
+              114482.62963867188,
+              115410.18603515625,
+              114265.8466796875,
+              115307.18359375
+            ],
+            "N": 44,
+            "Min": 112728.44360351562,
+            "LowerFence": 109264.45108032227,
+            "Q1": 113419.68490600586,
+            "Median": 115358.68481445312,
+            "Mean": 115280.85612071645,
+            "Q3": 116189.84078979492,
+            "UpperFence": 120345.07461547852,
+            "Max": 120151.98803710938,
+            "InterquartileRange": 2770.1558837890625,
+            "LowerOutliers": [],
+            "UpperOutliers": [],
+            "AllOutliers": [],
+            "StandardError": 287.569386807004,
+            "Variance": 3638630.6980564753,
+            "StandardDeviation": 1907.5195144628208,
+            "Skewness": 0.5069065447290678,
+            "Kurtosis": 2.556517603111797,
+            "ConfidenceInterval": {
+              "N": 44,
+              "Mean": 115280.85612071645,
+              "StandardError": 287.569386807004,
+              "Level": 12,
+              "Margin": 1015.5874287572593,
+              "Lower": 114265.26869195918,
+              "Upper": 116296.44354947371
+            },
+            "Percentiles": {
+              "P0": 112728.44360351562,
+              "P25": 113419.68490600586,
+              "P50": 115358.68481445312,
+              "P67": 116008.77520751953,
+              "P80": 116594.20959472656,
+              "P85": 117299.99724121093,
+              "P90": 117832.84884033204,
+              "P95": 118858.32637939454,
+              "P100": 120151.98803710938
+            }
+          },
+          "memory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 8192,
+            "BytesAllocatedPerOperation": 472
+          }
+        },
+        {
+          "parameters": "Rows=20000",
+          "statistics": {
+            "OriginalValues": [
+              2353585.30859375,
+              2347130.68359375,
+              2316685.36328125,
+              2353327.984375,
+              2354041.203125,
+              2345916.6484375,
+              2302771.546875,
+              2303613.0234375,
+              2292462.2421875,
+              2325833.52734375,
+              2326442.4140625,
+              2349520.18359375,
+              2325188.33984375,
+              2387849.66015625,
+              2300728.2421875,
+              2274018.462890625,
+              2240666.712890625,
+              2247731.529296875,
+              2246890.869140625,
+              2227088.181640625,
+              2230541.978515625,
+              2245435.779296875,
+              2242598.689453125,
+              2243212.138671875,
+              2257902.322265625,
+              2244787.505859375,
+              2254388.634765625,
+              2259327.134765625,
+              2313073.205078125,
+              2328006.720703125,
+              2323632.345703125,
+              2352010.595703125,
+              2310113.064453125,
+              2327553.427734375,
+              2333495.033203125,
+              2318073.720703125,
+              2338080.181640625,
+              2340267.205078125,
+              2346414.865234375,
+              2310306.263671875,
+              2310593.373046875,
+              2314113.248046875
+            ],
+            "N": 42,
+            "Min": 2227088.181640625,
+            "LowerFence": 2140245.4716796875,
+            "Q1": 2258258.525390625,
+            "Median": 2313593.2265625,
+            "Mean": 2303938.5609654016,
+            "Q3": 2336933.89453125,
+            "UpperFence": 2454946.9482421875,
+            "Max": 2387849.66015625,
+            "InterquartileRange": 78675.369140625,
+            "LowerOutliers": [],
+            "UpperOutliers": [],
+            "AllOutliers": [],
+            "StandardError": 6597.544879009387,
+            "Variance": 1828159134.0828056,
+            "StandardDeviation": 42756.977606968496,
+            "Skewness": -0.32907069636131947,
+            "Kurtosis": 1.8547464696819003,
+            "ConfidenceInterval": {
+              "N": 42,
+              "Mean": 2303938.5609654016,
+              "StandardError": 6597.544879009387,
+              "Level": 12,
+              "Margin": 23382.91060694177,
+              "Lower": 2280555.65035846,
+              "Upper": 2327321.4715723433
+            },
+            "Percentiles": {
+              "P0": 2227088.181640625,
+              "P25": 2258258.525390625,
+              "P50": 2313593.2265625,
+              "P67": 2326964.590488281,
+              "P80": 2344786.759765625,
+              "P85": 2347023.310839844,
+              "P90": 2351761.5544921877,
+              "P95": 2353572.4423828125,
+              "P100": 2387849.66015625
+            }
+          },
+          "memory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 256,
+            "BytesAllocatedPerOperation": 1656
+          }
+        }
+      ]
+    }
+  ],
+  "profiles": [
+    {
+      "variant": "list-completion-baseline-9a563e814f",
+      "allocationTypes": [
+        {
+          "name": "System.IO.Pipelines.BufferSegment",
+          "bytes": 1596096,
+          "ticks": 15,
+          "percent": 16.88240147236149
+        },
+        {
+          "name": "System.String",
+          "bytes": 849728,
+          "ticks": 8,
+          "percent": 8.987836094011127
+        },
+        {
+          "name": "IOVector[]",
+          "bytes": 849728,
+          "ticks": 8,
+          "percent": 8.987836094011127
+        },
+        {
+          "name": "System.Runtime.InteropServices.GCHandle[]",
+          "bytes": 424608,
+          "ticks": 4,
+          "percent": 4.491210255759345
+        },
+        {
+          "name": "System.Byte[]",
+          "bytes": 318776,
+          "ticks": 3,
+          "percent": 3.371792430877282
+        },
+        {
+          "name": "System.Byte[][]",
+          "bytes": 318264,
+          "ticks": 3,
+          "percent": 3.366376848384845
+        },
+        {
+          "name": "HotChocolate.Fusion.Text.Json.SequenceSegment",
+          "bytes": 212688,
+          "ticks": 2,
+          "percent": 2.2496668147490007
+        },
+        {
+          "name": "<<ExecuteAsync>g__CreateStreamAsync|33_0>d",
+          "bytes": 212432,
+          "ticks": 2,
+          "percent": 2.246959023502782
+        },
+        {
+          "name": "System.Text.Json.JsonDocument",
+          "bytes": 212432,
+          "ticks": 2,
+          "percent": 2.246959023502782
+        },
+        {
+          "name": "System.Net.Http.Headers.HttpContentHeaders",
+          "bytes": 212432,
+          "ticks": 2,
+          "percent": 2.246959023502782
+        },
+        {
+          "name": "AsyncStateMachineBox`1[System.Net.Http.HttpResponseMessage,System.Net.Http.DiagnosticsHandler+<SendAsyncCore>d__10]",
+          "bytes": 212432,
+          "ticks": 2,
+          "percent": 2.246959023502782
+        },
+        {
+          "name": "System.Security.Claims.ClaimsIdentity",
+          "bytes": 212432,
+          "ticks": 2,
+          "percent": 2.246959023502782
+        },
+        {
+          "name": "TwoElementAsyncLocalValueMap",
+          "bytes": 212432,
+          "ticks": 2,
+          "percent": 2.246959023502782
+        },
+        {
+          "name": "SegmentAsValueType[]",
+          "bytes": 212432,
+          "ticks": 2,
+          "percent": 2.246959023502782
+        },
+        {
+          "name": "System.Net.Http.Headers.HeaderEntry[]",
+          "bytes": 212176,
+          "ticks": 2,
+          "percent": 2.244251232256563
+        },
+        {
+          "name": "AsyncStateMachineBox`1[System.Threading.Tasks.VoidTaskResult,HotChocolate.Transport.Formatters.JsonResultFormatter+<FormatSingleResultAsync>d__20]",
+          "bytes": 212176,
+          "ticks": 2,
+          "percent": 2.244251232256563
+        },
+        {
+          "name": "AsyncStateMachineBox`1[System.Threading.Tasks.VoidTaskResult,HotChocolate.AspNetCore.Formatters.DefaultHttpResponseFormatter+<FormatInternalAsync>d__35]",
+          "bytes": 212088,
+          "ticks": 2,
+          "percent": 2.2433204290156756
+        },
+        {
+          "name": "System.Threading.Tasks.Task`1[System.IO.Pipelines.FlushResult]",
+          "bytes": 106344,
+          "ticks": 1,
+          "percent": 1.1248334073745003
+        },
+        {
+          "name": "HostingLogScope",
+          "bytes": 106344,
+          "ticks": 1,
+          "percent": 1.1248334073745003
+        },
+        {
+          "name": "System.Diagnostics.ThreadInfo",
+          "bytes": 106344,
+          "ticks": 1,
+          "percent": 1.1248334073745003
+        },
+        {
+          "name": "HotChocolate.Execution.OperationRequest",
+          "bytes": 106344,
+          "ticks": 1,
+          "percent": 1.1248334073745003
+        },
+        {
+          "name": "System.Collections.Generic.Dictionary`2[System.Type,System.Object]",
+          "bytes": 106344,
+          "ticks": 1,
+          "percent": 1.1248334073745003
+        },
+        {
+          "name": "AsyncStateMachineBox`1[System.Threading.Tasks.VoidTaskResult,HotChocolate.Fusion.Execution.Pipeline.TimeoutMiddleware+<InvokeAsync>d__4]",
+          "bytes": 106344,
+          "ticks": 1,
+          "percent": 1.1248334073745003
+        },
+        {
+          "name": "Registrations",
+          "bytes": 106344,
+          "ticks": 1,
+          "percent": 1.1248334073745003
+        },
+        {
+          "name": "ContentLengthWriteStream",
+          "bytes": 106344,
+          "ticks": 1,
+          "percent": 1.1248334073745003
+        },
+        {
+          "name": "System.Threading.ExecutionContext",
+          "bytes": 106344,
+          "ticks": 1,
+          "percent": 1.1248334073745003
+        },
+        {
+          "name": "OneElementAsyncLocalValueMap",
+          "bytes": 106344,
+          "ticks": 1,
+          "percent": 1.1248334073745003
+        },
+        {
+          "name": "System.IO.Strategies.UnixFileStreamStrategy",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1221256161282815
+        },
+        {
+          "name": "System.Security.Claims.ClaimsIdentity[]",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1221256161282815
+        },
+        {
+          "name": "<ReadAsResultStreamAsync>d__54",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1221256161282815
+        },
+        {
+          "name": "AsyncStateMachineBox`1[System.Threading.Tasks.VoidTaskResult,HotChocolate.AspNetCore.Formatters.DefaultHttpResponseFormatter+<FormatAsync>d__33]",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1221256161282815
+        },
+        {
+          "name": "CallbackNode",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1221256161282815
+        },
+        {
+          "name": "AsyncStateMachineBox`1[System.Threading.Tasks.VoidTaskResult,HotChocolate.Execution.Pipeline.DocumentParserMiddleware+<InvokeAsync>d__6]",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1221256161282815
+        },
+        {
+          "name": "AsyncStateMachineBox`1[System.Threading.Tasks.VoidTaskResult,HotChocolate.Fusion.Execution.Nodes.ExecutionNode+<ExecuteAsync>d__28]",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1221256161282815
+        },
+        {
+          "name": "AsyncStateMachineBox`1[System.Threading.Tasks.VoidTaskResult,HotChocolate.Execution.Pipeline.InstrumentationMiddleware+<InvokeAsync>d__3]",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1221256161282815
+        },
+        {
+          "name": "System.Threading.Lock",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1221256161282815
+        },
+        {
+          "name": "System.Net.Http.HttpClient",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1221256161282815
+        },
+        {
+          "name": "System.Diagnostics.Process",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1221256161282815
+        },
+        {
+          "name": "HotChocolate.Fusion.Transport.OperationRequest",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1221256161282815
+        },
+        {
+          "name": "AsyncStateMachineBox`1[System.Threading.Tasks.VoidTaskResult,HotChocolate.AspNetCore.MiddlewareFactory+<>c__DisplayClass0_0+<<CreateCancellationMiddleware>b__1>d]",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1221256161282815
+        },
+        {
+          "name": "AsyncStateMachineBox`1[System.IO.Pipelines.FlushResult,Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure.PipeWriterHelpers.TimingPipeFlusher+<TimeFlushAsyncAwaited>d__9]",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1221256161282815
+        },
+        {
+          "name": "Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpRequestHeaders",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1221256161282815
+        },
+        {
+          "name": "System.Diagnostics.Activity",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1221256161282815
+        }
+      ],
+      "sampledBytes": 9454200,
+      "cpu": {
+        "busy": 5391.2770194790755,
+        "idle": 453636.93975631363,
+        "gc_suspension": 893.8242954461161,
+        "threadpool_wakeup": 321.999979596692,
+        "groups": [
+          {
+            "frame": "result_mapping",
+            "time": 2811.1544539410042,
+            "busy_percent": 52.14264530989781
+          },
+          {
+            "frame": "value_completion",
+            "time": 1851.5782413855463,
+            "busy_percent": 34.343964049624226
+          },
+          {
+            "frame": "source_json_parsing",
+            "time": 1351.662663922174,
+            "busy_percent": 25.071289400238914
+          },
+          {
+            "frame": "excluded_response_pipe",
+            "time": 124.17445192655123,
+            "busy_percent": 2.3032474769502644
+          },
+          {
+            "frame": "request_json_parsing",
+            "time": 11.257296721265448,
+            "busy_percent": 0.2088057556788868
+          }
+        ]
+      },
+      "topSelf": [
+        {
+          "frame": "HotChocolate.Fusion.Execution!HotChocolate.Fusion.Text.Json.SourceResultDocument.ParseJson(value class System.Text.Json.Utf8JsonReader&,value class MetaDb&,bool,bool) <- HotChocolate.Fusion.Execution!HotChocolate.Fusion.Text.Json.SourceResultDocument.ParseFilled(class HotChocolate.Buffers.IMemoryArena,value class HotChocolate.Buffers.MemorySegment[],int32,int32) <- HotChocolate.Fusion.Execution!HotChocolate.Fusion.Transport.Http.GraphQLHttpResponse+<ReadAsResultInternalAsync>d__37.MoveNext() <- HotChocolate.Fusion.Execution!HotChocolate.Fusion.Execution.Clients.HttpSourceSchemaClient+<ReadAsResultStreamAsync>d__54.MoveNext() <- HotChocolate.Fusion.Execution!HotChocolate.Fusion.Execution.Clients.HttpSourceSchemaClient+<<ExecuteAsync>g__CreateStreamAsync|33_0>d.MoveNext() <- System.Private.CoreLib!System.Threading.ExecutionContext.RunInternal(class System.Threading.ExecutionContext,class System.Threading.ContextCallback,class System.Object) <- System.Private.CoreLib!System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1+AsyncStateMachineBox`1[System.Threading.Tasks.VoidTaskResult,System.__Canon].MoveNext() <- System.Private.CoreLib!System.Threading.Tasks.AwaitTaskContinuation.RunOrScheduleAction(class System.Runtime.CompilerServices.IAsyncStateMachineBox,bool)",
+          "time": 553.7999016910258,
+          "busy_percent": 10.27214701990097
+        },
+        {
+          "frame": "HotChocolate.Fusion.Execution!HotChocolate.Fusion.Execution.Results.ValueCompletion.TryCompleteObjectValue(class HotChocolate.Fusion.Execution.Nodes.Selection,value class HotChocolate.Fusion.Text.Json.SourceResultElementSnapshot,class HotChocolate.Fusion.Execution.Clients.ErrorTrie,int32,value class HotChocolate.Fusion.Text.Json.CompositeResultElement,class HotChocolate.Fusion.Execution.Nodes.ResultSelectionSet) <- HotChocolate.Fusion.Execution!HotChocolate.Fusion.Execution.Results.ValueCompletion.TryCompleteList(value class HotChocolate.Fusion.Text.Json.SourceResultElementSnapshot,value class HotChocolate.Fusion.Text.Json.CompositeResultElement,class HotChocolate.Fusion.Execution.Clients.ErrorTrie,class HotChocolate.Fusion.Execution.Nodes.Selection,class HotChocolate.Types.IType,value class HotChocolate.Types.TypeKind,bool,int32,class HotChocolate.Fusion.Execution.Nodes.ResultSelectionSet) <- HotChocolate.Fusion.Execution!HotChocolate.Fusion.Execution.Results.ValueCompletion.TryCompleteValue(value class HotChocolate.Fusion.Text.Json.SourceResultElementSnapshot,value class HotChocolate.Fusion.Text.Json.CompositeResultElement,class HotChocolate.Fusion.Execution.Clients.ErrorTrie,class HotChocolate.Fusion.Execution.Nodes.Selection,int32,class HotChocolate.Fusion.Execution.Nodes.ResultSelectionSet) <- HotChocolate.Fusion.Execution!HotChocolate.Fusion.Execution.Results.ValueCompletion.BuildResult(value class HotChocolate.Fusion.Text.Json.SourceResultElement,value class HotChocolate.Fusion.Text.Json.CompositeResultElement,class HotChocolate.Fusion.Execution.Clients.ErrorTrie,class HotChocolate.Fusion.Execution.Nodes.ResultSelectionSet) <- HotChocolate.Fusion.Execution!HotChocolate.Fusion.Execution.Results.FetchResultStore.SaveSafeResult(value class HotChocolate.Fusion.Text.Json.CompositeResultElement,value class HotChocolate.Fusion.Text.Json.CompactPath,value class System.ReadOnlySpan`1<value class HotChocolate.Fusion.Text.Json.CompactPath>,value class HotChocolate.Fusion.Text.Json.SourceResultElement,class HotChocolate.Fusion.Execution.Clients.ErrorTrie,class HotChocolate.Fusion.Execution.Nodes.ResultSelectionSet) <- HotChocolate.Fusion.Execution!HotChocolate.Fusion.Execution.ExecutionState.ApplyMerge(class HotChocolate.Fusion.Execution.OperationPlanContext,value class HotChocolate.Fusion.Execution.PendingMerge) <- HotChocolate.Fusion.Execution!HotChocolate.Fusion.Execution.OperationPlanExecutor+<ExecuteQueryAsync>d__21.MoveNext() <- System.Private.CoreLib!System.Threading.ExecutionContext.RunInternal(class System.Threading.ExecutionContext,class System.Threading.ContextCallback,class System.Object)",
+          "time": 443.9523913492252,
+          "busy_percent": 8.234642548420217
+        },
+        {
+          "frame": "HotChocolate.Fusion.Execution!HotChocolate.Fusion.Execution.Results.ValueCompletion.TryCompleteList(value class HotChocolate.Fusion.Text.Json.SourceResultElementSnapshot,value class HotChocolate.Fusion.Text.Json.CompositeResultElement,class HotChocolate.Fusion.Execution.Clients.ErrorTrie,class HotChocolate.Fusion.Execution.Nodes.Selection,class HotChocolate.Types.IType,value class HotChocolate.Types.TypeKind,bool,int32,class HotChocolate.Fusion.Execution.Nodes.ResultSelectionSet) <- HotChocolate.Fusion.Execution!HotChocolate.Fusion.Execution.Results.ValueCompletion.TryCompleteValue(value class HotChocolate.Fusion.Text.Json.SourceResultElementSnapshot,value class HotChocolate.Fusion.Text.Json.CompositeResultElement,class HotChocolate.Fusion.Execution.Clients.ErrorTrie,class HotChocolate.Fusion.Execution.Nodes.Selection,int32,class HotChocolate.Fusion.Execution.Nodes.ResultSelectionSet) <- HotChocolate.Fusion.Execution!HotChocolate.Fusion.Execution.Results.ValueCompletion.BuildResult(value class HotChocolate.Fusion.Text.Json.SourceResultElement,value class HotChocolate.Fusion.Text.Json.CompositeResultElement,class HotChocolate.Fusion.Execution.Clients.ErrorTrie,class HotChocolate.Fusion.Execution.Nodes.ResultSelectionSet) <- HotChocolate.Fusion.Execution!HotChocolate.Fusion.Execution.Results.FetchResultStore.SaveSafeResult(value class HotChocolate.Fusion.Text.Json.CompositeResultElement,value class HotChocolate.Fusion.Text.Json.CompactPath,value class System.ReadOnlySpan`1<value class HotChocolate.Fusion.Text.Json.CompactPath>,value class HotChocolate.Fusion.Text.Json.SourceResultElement,class HotChocolate.Fusion.Execution.Clients.ErrorTrie,class HotChocolate.Fusion.Execution.Nodes.ResultSelectionSet) <- HotChocolate.Fusion.Execution!HotChocolate.Fusion.Execution.ExecutionState.ApplyMerge(class HotChocolate.Fusion.Execution.OperationPlanContext,value class HotChocolate.Fusion.Execution.PendingMerge) <- HotChocolate.Fusion.Execution!HotChocolate.Fusion.Execution.OperationPlanExecutor+<ExecuteQueryAsync>d__21.MoveNext() <- System.Private.CoreLib!System.Threading.ExecutionContext.RunInternal(class System.Threading.ExecutionContext,class System.Threading.ContextCallback,class System.Object) <- System.Private.CoreLib!System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1+AsyncStateMachineBox`1[System.Threading.Tasks.VoidTaskResult,HotChocolate.Fusion.Execution.OperationPlanExecutor+<ExecuteQueryAsync>d__21].MoveNext(class System.Threading.Thread)",
+          "time": 437.90783885200403,
+          "busy_percent": 8.122525280556188
+        }
+      ]
+    },
+    {
+      "variant": "list-completion-candidate1-9a563e814f",
+      "allocationTypes": [
+        {
+          "name": "IOVector[]",
+          "bytes": 1274848,
+          "ticks": 12,
+          "percent": 13.340186646754107
+        },
+        {
+          "name": "System.IO.Pipelines.BufferSegment",
+          "bytes": 1062160,
+          "ticks": 10,
+          "percent": 11.114589855979963
+        },
+        {
+          "name": "System.Runtime.InteropServices.GCHandle[]",
+          "bytes": 848960,
+          "ticks": 8,
+          "percent": 8.883635426049512
+        },
+        {
+          "name": "System.String",
+          "bytes": 637552,
+          "ticks": 6,
+          "percent": 6.671432733166131
+        },
+        {
+          "name": "System.Byte[][]",
+          "bytes": 636784,
+          "ticks": 6,
+          "percent": 6.663396274431672
+        },
+        {
+          "name": "HotChocolate.Fusion.Text.Json.SequenceSegment",
+          "bytes": 424608,
+          "ticks": 4,
+          "percent": 4.443157122813832
+        },
+        {
+          "name": "TwoElementAsyncLocalValueMap",
+          "bytes": 212688,
+          "ticks": 2,
+          "percent": 2.225596790774145
+        },
+        {
+          "name": "AsyncStateMachineBox`1[HotChocolate.Fusion.Execution.Nodes.ExecutionStatus,HotChocolate.Fusion.Execution.Nodes.OperationExecutionNode+<OnExecuteAsync>d__41]",
+          "bytes": 212432,
+          "ticks": 2,
+          "percent": 2.2229179711959923
+        },
+        {
+          "name": "AsyncStateMachineBox`1[System.Net.Http.HttpResponseMessage,System.Net.Http.HttpConnectionPool+<SendWithVersionDetectionAndRetryAsync>d__52]",
+          "bytes": 212432,
+          "ticks": 2,
+          "percent": 2.2229179711959923
+        },
+        {
+          "name": "System.Byte[]",
+          "bytes": 212432,
+          "ticks": 2,
+          "percent": 2.2229179711959923
+        },
+        {
+          "name": "System.Diagnostics.Activity",
+          "bytes": 212176,
+          "ticks": 2,
+          "percent": 2.2202391516178395
+        },
+        {
+          "name": "HotChocolate.Features.FeatureCollection",
+          "bytes": 106344,
+          "ticks": 1,
+          "percent": 1.1127983953870726
+        },
+        {
+          "name": "AsyncStateMachineBox`1[System.Threading.Tasks.VoidTaskResult,HotChocolate.AspNetCore.MiddlewareFactory+<>c__DisplayClass0_0+<<CreateCancellationMiddleware>b__1>d]",
+          "bytes": 106344,
+          "ticks": 1,
+          "percent": 1.1127983953870726
+        },
+        {
+          "name": "OneElementAsyncLocalValueMap",
+          "bytes": 106344,
+          "ticks": 1,
+          "percent": 1.1127983953870726
+        },
+        {
+          "name": "HotChocolate.Execution.OperationResult",
+          "bytes": 106344,
+          "ticks": 1,
+          "percent": 1.1127983953870726
+        },
+        {
+          "name": "Registrations",
+          "bytes": 106344,
+          "ticks": 1,
+          "percent": 1.1127983953870726
+        },
+        {
+          "name": "AsyncStateMachineBox`1[System.Threading.Tasks.VoidTaskResult,HotChocolate.AspNetCore.Formatters.DefaultHttpResponseFormatter+<FormatAsync>d__33]",
+          "bytes": 106344,
+          "ticks": 1,
+          "percent": 1.1127983953870726
+        },
+        {
+          "name": "AsyncStateMachineBox`1[System.Threading.Tasks.VoidTaskResult,HotChocolate.AspNetCore.HttpPostMiddlewareBase+<InvokeAsync>d__2]",
+          "bytes": 106344,
+          "ticks": 1,
+          "percent": 1.1127983953870726
+        },
+        {
+          "name": "HotChocolate.Language.GraphQLRequest[]",
+          "bytes": 106344,
+          "ticks": 1,
+          "percent": 1.1127983953870726
+        },
+        {
+          "name": "AsyncStateMachineBox`1[HotChocolate.Execution.IExecutionResult,HotChocolate.AspNetCore.ExecutorSession+<ExecuteSingleAsync>d__30]",
+          "bytes": 106344,
+          "ticks": 1,
+          "percent": 1.1127983953870726
+        },
+        {
+          "name": "System.Security.Claims.ClaimsIdentity",
+          "bytes": 106256,
+          "ticks": 1,
+          "percent": 1.1118775511570826
+        },
+        {
+          "name": "AsyncStateMachineBox`1[System.Net.Http.HttpResponseMessage,System.Net.Http.HttpClient+<<SendAsync>g__Core|83_0>d]",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1101195758089197
+        },
+        {
+          "name": "HotChocolate.Fusion.Transport.Http.GraphQLHttpRequest",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1101195758089197
+        },
+        {
+          "name": "HotChocolate.Fusion.Transport.OperationRequest",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1101195758089197
+        },
+        {
+          "name": "System.Net.Http.ByteArrayContent",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1101195758089197
+        },
+        {
+          "name": "CallbackNode",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1101195758089197
+        },
+        {
+          "name": "System.Net.Http.Headers.HeaderEntry[]",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1101195758089197
+        },
+        {
+          "name": "HotChocolate.Language.GraphQLRequest",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1101195758089197
+        },
+        {
+          "name": "Tables[System.ValueTuple`2[System.String,HotChocolate.Language.OperationType],HotChocolate.Fusion.Execution.Clients.ISourceSchemaClient]",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1101195758089197
+        },
+        {
+          "name": "AsyncStateMachineBox`1[System.Threading.Tasks.VoidTaskResult,HotChocolate.Fusion.Execution.Pipeline.OperationPlanCacheMiddleware+<InvokeAsync>d__4]",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1101195758089197
+        },
+        {
+          "name": "System.Collections.Generic.KeyValuePair`2[System.Type,System.Object][]",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1101195758089197
+        },
+        {
+          "name": "AsyncStateMachineBox`1[System.Threading.Tasks.VoidTaskResult,HotChocolate.Execution.Pipeline.DocumentCacheMiddleware+<InvokeAsync>d__5]",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1101195758089197
+        },
+        {
+          "name": "System.Object",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1101195758089197
+        },
+        {
+          "name": "AsyncStateMachineBox`1[System.Threading.Tasks.VoidTaskResult,HotChocolate.Fusion.Execution.Pipeline.OperationExecutionMiddleware+<InvokeAsync>d__2]",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1101195758089197
+        },
+        {
+          "name": "System.Net.Http.Headers.HttpContentHeaders",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1101195758089197
+        },
+        {
+          "name": "System.Net.Http.HttpClient",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1101195758089197
+        },
+        {
+          "name": "AsyncStateMachineBox`1[System.Threading.Tasks.VoidTaskResult,HotChocolate.Fusion.Execution.OperationPlanExecutor+<ExecuteQueryAsync>d__21]",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1101195758089197
+        },
+        {
+          "name": "AsyncStateMachineBox`1[System.Threading.Tasks.VoidTaskResult,HotChocolate.AspNetCore.Formatters.DefaultHttpResponseFormatter+<FormatInternalAsync>d__35]",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1101195758089197
+        },
+        {
+          "name": "HotChocolate.Buffers.JsonDocumentOwner",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1101195758089197
+        },
+        {
+          "name": "AsyncStateMachineBox`1[System.Threading.Tasks.VoidTaskResult,HotChocolate.Execution.Pipeline.ConcurrencyGateMiddleware+<InvokeAsync>d__3]",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1101195758089197
+        },
+        {
+          "name": "<<ExecuteAsync>g__CreateStreamAsync|33_0>d",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1101195758089197
+        },
+        {
+          "name": "<ReadAsResultStreamAsync>d__54",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1101195758089197
+        },
+        {
+          "name": "HotChocolate.Fusion.Text.Json.SourceResultDocument",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1101195758089197
+        },
+        {
+          "name": "System.Collections.Generic.Dictionary`2[System.Type,System.Object]",
+          "bytes": 106088,
+          "ticks": 1,
+          "percent": 1.1101195758089197
+        },
+        {
+          "name": "AsyncStateMachineBox`1[HotChocolate.Execution.IExecutionResult,HotChocolate.Fusion.Execution.FusionRequestExecutor+<ExecuteAsync>d__17]",
+          "bytes": 106000,
+          "ticks": 1,
+          "percent": 1.1091987315789298
+        }
+      ],
+      "sampledBytes": 9556448,
+      "cpu": {
+        "busy": 4669.505540028402,
+        "idle": 458299.6593407511,
+        "gc_suspension": 872.2957337531585,
+        "threadpool_wakeup": 255.8493165246292,
+        "groups": [
+          {
+            "frame": "result_mapping",
+            "time": 2405.5341486436973,
+            "busy_percent": 51.5158217079461
+          },
+          {
+            "frame": "value_completion",
+            "time": 1435.9234294187313,
+            "busy_percent": 30.751080967986116
+          },
+          {
+            "frame": "source_json_parsing",
+            "time": 1257.0310316785458,
+            "busy_percent": 26.920003004662888
+          },
+          {
+            "frame": "excluded_response_pipe",
+            "time": 104.27909410869694,
+            "busy_percent": 2.233193498000704
+          },
+          {
+            "frame": "request_json_parsing",
+            "time": 9.773342418649918,
+            "busy_percent": 0.2093014417665831
+          }
+        ]
+      },
+      "topSelf": [
+        {
+          "frame": "HotChocolate.Fusion.Execution!HotChocolate.Fusion.Execution.Results.ValueCompletion.TryCompleteObjectValue(value class HotChocolate.Fusion.Text.Json.SourceResultElementSnapshot,value class HotChocolate.Fusion.Text.Json.CompositeResultElement,class HotChocolate.Fusion.Execution.Clients.ErrorTrie,class HotChocolate.Fusion.Execution.Nodes.Selection,class HotChocolate.Types.IComplexTypeDefinition,int32,class HotChocolate.Fusion.Execution.Nodes.ResultSelectionSet,class HotChocolate.Fusion.Execution.Nodes.SelectionSet) <- HotChocolate.Fusion.Execution!HotChocolate.Fusion.Execution.Results.ValueCompletion.TryCompleteList(value class HotChocolate.Fusion.Text.Json.SourceResultElementSnapshot,value class HotChocolate.Fusion.Text.Json.CompositeResultElement,class HotChocolate.Fusion.Execution.Clients.ErrorTrie,class HotChocolate.Fusion.Execution.Nodes.Selection,class HotChocolate.Types.IType,value class HotChocolate.Types.TypeKind,bool,int32,class HotChocolate.Fusion.Execution.Nodes.ResultSelectionSet) <- HotChocolate.Fusion.Execution!HotChocolate.Fusion.Execution.Results.ValueCompletion.TryCompleteValue(value class HotChocolate.Fusion.Text.Json.SourceResultElementSnapshot,value class HotChocolate.Fusion.Text.Json.CompositeResultElement,class HotChocolate.Fusion.Execution.Clients.ErrorTrie,class HotChocolate.Fusion.Execution.Nodes.Selection,int32,class HotChocolate.Fusion.Execution.Nodes.ResultSelectionSet) <- HotChocolate.Fusion.Execution!HotChocolate.Fusion.Execution.Results.ValueCompletion.BuildResult(value class HotChocolate.Fusion.Text.Json.SourceResultElement,value class HotChocolate.Fusion.Text.Json.CompositeResultElement,class HotChocolate.Fusion.Execution.Clients.ErrorTrie,class HotChocolate.Fusion.Execution.Nodes.ResultSelectionSet) <- HotChocolate.Fusion.Execution!HotChocolate.Fusion.Execution.Results.FetchResultStore.SaveSafeResult(value class HotChocolate.Fusion.Text.Json.CompositeResultElement,value class HotChocolate.Fusion.Text.Json.CompactPath,value class System.ReadOnlySpan`1<value class HotChocolate.Fusion.Text.Json.CompactPath>,value class HotChocolate.Fusion.Text.Json.SourceResultElement,class HotChocolate.Fusion.Execution.Clients.ErrorTrie,class HotChocolate.Fusion.Execution.Nodes.ResultSelectionSet) <- HotChocolate.Fusion.Execution!HotChocolate.Fusion.Execution.ExecutionState.ApplyMerge(class HotChocolate.Fusion.Execution.OperationPlanContext,value class HotChocolate.Fusion.Execution.PendingMerge) <- HotChocolate.Fusion.Execution!HotChocolate.Fusion.Execution.OperationPlanExecutor+<ExecuteQueryAsync>d__21.MoveNext() <- System.Private.CoreLib!System.Threading.ExecutionContext.RunInternal(class System.Threading.ExecutionContext,class System.Threading.ContextCallback,class System.Object)",
+          "time": 842.2053327693934,
+          "busy_percent": 18.036285117337517
+        },
+        {
+          "frame": "HotChocolate.Fusion.Execution!HotChocolate.Fusion.Text.Json.SourceResultDocument.ParseJson(value class System.Text.Json.Utf8JsonReader&,value class MetaDb&,bool,bool) <- HotChocolate.Fusion.Execution!HotChocolate.Fusion.Text.Json.SourceResultDocument.ParseFilled(class HotChocolate.Buffers.IMemoryArena,value class HotChocolate.Buffers.MemorySegment[],int32,int32) <- HotChocolate.Fusion.Execution!HotChocolate.Fusion.Transport.Http.GraphQLHttpResponse+<ReadAsResultInternalAsync>d__37.MoveNext() <- HotChocolate.Fusion.Execution!HotChocolate.Fusion.Execution.Clients.HttpSourceSchemaClient+<ReadAsResultStreamAsync>d__54.MoveNext() <- HotChocolate.Fusion.Execution!HotChocolate.Fusion.Execution.Clients.HttpSourceSchemaClient+<<ExecuteAsync>g__CreateStreamAsync|33_0>d.MoveNext() <- System.Private.CoreLib!System.Threading.ExecutionContext.RunInternal(class System.Threading.ExecutionContext,class System.Threading.ContextCallback,class System.Object) <- System.Private.CoreLib!System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1+AsyncStateMachineBox`1[System.Threading.Tasks.VoidTaskResult,System.__Canon].MoveNext() <- System.Private.CoreLib!System.Threading.Tasks.AwaitTaskContinuation.RunOrScheduleAction(class System.Runtime.CompilerServices.IAsyncStateMachineBox,bool)",
+          "time": 578.8075658226061,
+          "busy_percent": 12.395478725978458
+        },
+        {
+          "frame": "HotChocolate.Fusion.Execution!HotChocolate.Fusion.Text.Json.CompositeResultDocument+RawJsonFormatter.WriteObject(value class Cursor,value class DbRow) <- HotChocolate.Fusion.Execution!HotChocolate.Fusion.Text.Json.CompositeResultDocument+RawJsonFormatter.WriteArray(value class Cursor,value class DbRow) <- HotChocolate.Fusion.Execution!HotChocolate.Fusion.Text.Json.CompositeResultDocument+RawJsonFormatter.WriteObject(value class Cursor,value class DbRow) <- HotChocolate.Transport.Formatters!HotChocolate.Transport.Formatters.JsonResultFormatter.FormatInternalAsync(class HotChocolate.Execution.OperationResult,class System.IO.Pipelines.PipeWriter,bool,class HotChocolate.Transport.Formatters.OperationResultFormatterContext&,value class System.Threading.CancellationToken) <- HotChocolate.Transport.Formatters!HotChocolate.Transport.Formatters.JsonResultFormatter+<FormatSingleResultAsync>d__20.MoveNext() <- System.Private.CoreLib!System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start(!!0&) <- HotChocolate.AspNetCore.Pipeline!HotChocolate.AspNetCore.Formatters.DefaultHttpResponseFormatter+<FormatInternalAsync>d__35.MoveNext() <- HotChocolate.AspNetCore.Pipeline!HotChocolate.AspNetCore.Formatters.DefaultHttpResponseFormatter+<FormatAsync>d__33.MoveNext()",
+          "time": 449.9444999318513,
+          "busy_percent": 9.635806105695606
+        }
+      ]
+    }
+  ],
+  "pairs": [
+    {
+      "pair": 1,
+      "baselineCpu": 7.90282098251457,
+      "candidateCpu": 7.804318068276437,
+      "cpuDifference": -0.09850291423813307,
+      "cpuPercent": -1.2464272499159046
+    },
+    {
+      "pair": 2,
+      "baselineCpu": 8.207960865945047,
+      "candidateCpu": 7.438938384679434,
+      "cpuDifference": -0.7690224812656128,
+      "cpuPercent": -9.369226947173914
+    },
+    {
+      "pair": 3,
+      "baselineCpu": 8.139378850957536,
+      "candidateCpu": 7.618139999999999,
+      "cpuDifference": -0.5212388509575376,
+      "cpuPercent": -6.403914358848373
+    }
+  ]
+}

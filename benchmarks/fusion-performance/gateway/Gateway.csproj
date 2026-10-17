@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(FusionSourceRoot)/src/HotChocolate/AspNetCore/src/AspNetCore.Pipeline/HotChocolate.AspNetCore.Pipeline.csproj" />
+    <ProjectReference Include="$(FusionSourceRoot)/src/HotChocolate/Fusion/src/Fusion.AspNetCore/HotChocolate.Fusion.AspNetCore.csproj" />
+    <ProjectReference Include="$(FusionSourceRoot)/src/HotChocolate/Fusion/src/Fusion.Execution/HotChocolate.Fusion.Execution.csproj" />
+  </ItemGroup>
+</Project>
