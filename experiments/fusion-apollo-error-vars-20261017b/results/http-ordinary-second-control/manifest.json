@@ -1,0 +1,15 @@
+{
+  "createdUtc": "2026-10-17T18:23:34.672337+00:00",
+  "rawOwner": "history_environment",
+  "sourcePathsAndSha256": {
+    "/workspaces/platform-1/perf/fusion-apollo-survivor-http-20261017b/stage1-campaign/delay0-00-B/ordinary-fixed/samples.json.gz": "7fdf204b63c15826914c3d164655c6bdc16dfd4fb814d284768fedea23960262",
+    "/workspaces/platform-1/perf/fusion-apollo-survivor-http-20261017b/stage1-campaign/delay0-00-B/ordinary-fixed/k6_summary.json": "aea1cfd61eee8abcecfbc0bb1cae50ba104a9361b659ed60b01c89e806715382",
+    "/workspaces/platform-1/perf/fusion-apollo-survivor-http-20261017b/stage1-campaign/delay0-00-B/process-samples.jsonl": "1e0ae7da88a5db8bcbfcd97c90b1091571c24745df037321013bc90d4ad6a0a6",
+    "/workspaces/platform-1/perf/fusion-apollo-survivor-http-20261017b/stage1-campaign/delay0-00-B/process-identities.jsonl": "62e95119ee23f013cde9f47c405e311eb2330c057edd1ab16c3c6dbc026ad039",
+    "/workspaces/platform-1/perf/fusion-apollo-survivor-http-20261017b/stage1-campaign/delay0-00-B/counters.json": "488ac412c35cf42d7bd4fc0c00f9d3263015d325caa7887c9f970838f0d69d4d",
+    "/workspaces/platform-1/perf/fusion-apollo-survivor-http-20261017b/stage1-campaign/delay0-00-B/boundaries.jsonl": "718ac74826b241205abb5a22610fc0820d7b9fd99070d39d330128f67b1af88f",
+    "/workspaces/platform-1/perf/fusion-apollo-survivor-http-20261017b/stage1-campaign/plan.json": "8a96f23fb7b5051e370357b120bbdc9d9f5378b480e7225c583184783c6119e8"
+  },
+  "parser": "analyze_http_drops_stage1.py, copied from earlier diagnosis with only cluster minimum initialized from configured vus_max instead of50; no measurement or raw mutation",
+  "rawPublication": "Owner publishes complete raw stage1 stopped campaign separately; immutable link to follow."
+}
