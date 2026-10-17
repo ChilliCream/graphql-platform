@@ -1,0 +1,11 @@
+C14 independent prior-experiment exclusion audit, 2026-10-17 18:02 UTC
+Decision: distinct from the25 explicitly excluded authored mechanisms. This permits isolated prototype preparation; it does not establish performance benefit or authorize measurement.
+
+Proposed C14 changes the eager empty List<Utf8VariableDefinitionNode> created in HttpSourceSchemaClient.ExecuteAliasBatchAsync. It would allocate that list only when batchable requests carry forwarded variable definitions and use a private never-mutated empty instance for serialization readers otherwise. It does not pre-size a dictionary, change capacity selection, share forwarded serialization across requests, reuse a pool or change the client scope holder.
+
+Exact prior production diffs reviewed:
+- PR10575, base706ec84ff28535b706c0b59bef6c399ff100aafd to headfd6afe48f1f4547cfe25748f34085ee7e4b4915f: VariableCoercionHelper adds JSON property-count capacity computation and lazy Dictionary.EnsureCapacity at first default/coerced insertion. The dictionary object remains created. No alias definition List is involved. https://github.com/ChilliCream/graphql-platform/pull/10575
+- PR10558, base9a563e814f3b6213c80a6bc96a01fbcb4d605096 to head8644259a6ad49f533f54851d565931551adb37ce: VariableCoercionHelper pre-sizes a Dictionary by bounded supplied JSON property enumeration. No alias list lifetime change. https://github.com/ChilliCream/graphql-platform/pull/10558
+- PR10574, base706ec84ff28535b706c0b59bef6c399ff100aafd to head2ea4e445b618a6840f4bba28ef673f81945a9ef6: ExactCasesTraversal reuses deferred conditional-cost branch links. Different caller, type and ownership. https://github.com/ChilliCream/graphql-platform/pull/10574
+
+The full25-mechanism register was checked. PR10524 serializes forwarded variable JSON once per native entity fetch and copies raw properties; C14 only avoids an unused alias variable-definition list object, so it does not repeat that mechanism. The general pattern of lazy allocation is not itself the excluded experiment; actual production object/caller/capacity/serialization behavior is the comparison boundary. Existing baseline source has two eager list allocations at the two alias iterator entries. Static128B per original request remains an unmeasured upper bound, not a result.
