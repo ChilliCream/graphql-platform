@@ -1,0 +1,359 @@
+[
+  {
+    "label": "01-benchmark-B",
+    "command": [
+      "taskset",
+      "-c",
+      "2,3,10,11",
+      "dotnet",
+      "/workspaces/platform-1/perf/fusion-apollo-shared-async-20261017b/frozen-bdn-memory/B/HotChocolate.Fusion.Execution.Benchmarks.dll",
+      "benchmark",
+      "/workspaces/platform-1/perf/fusion-apollo-shared-async-20261017b/bdn-native-continuation/01-benchmark-B"
+    ],
+    "started": "2026-10-17T17:44:30.490105+00:00",
+    "status": "completed",
+    "runtimeEnvironment": {
+      "DOTNET_LOCAL_DEV": "1",
+      "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "1"
+    },
+    "identity": {
+      "pid": 148678,
+      "startTicks": 762346
+    },
+    "processGroup": 148678,
+    "exitCode": 0,
+    "nativeMemory": {
+      "Shape=async-batch9": {
+        "Gen0Collections": 6,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 34870
+      },
+      "Shape=async-single9": {
+        "Gen0Collections": 3,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 30423
+      },
+      "Shape=ordinary": {
+        "Gen0Collections": 3,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 25703
+      }
+    },
+    "finished": "2026-10-17T17:44:41.296297+00:00",
+    "elapsedSeconds": 10.806231305000438,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  },
+  {
+    "label": "02-benchmark-C6",
+    "command": [
+      "taskset",
+      "-c",
+      "2,3,10,11",
+      "dotnet",
+      "/workspaces/platform-1/perf/fusion-apollo-shared-async-20261017b/frozen-bdn-memory/C6/HotChocolate.Fusion.Execution.Benchmarks.dll",
+      "benchmark",
+      "/workspaces/platform-1/perf/fusion-apollo-shared-async-20261017b/bdn-native-continuation/02-benchmark-C6"
+    ],
+    "started": "2026-10-17T17:44:41.296546+00:00",
+    "status": "completed",
+    "runtimeEnvironment": {
+      "DOTNET_LOCAL_DEV": "1",
+      "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "1"
+    },
+    "identity": {
+      "pid": 148915,
+      "startTicks": 763426
+    },
+    "processGroup": 148915,
+    "exitCode": 0,
+    "nativeMemory": {
+      "Shape=async-batch9": {
+        "Gen0Collections": 6,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 34805
+      },
+      "Shape=async-single9": {
+        "Gen0Collections": 3,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 30352
+      },
+      "Shape=ordinary": {
+        "Gen0Collections": 3,
+        "Gen1Collections": 1,
+        "Gen2Collections": 1,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 477980
+      }
+    },
+    "finished": "2026-10-17T17:44:52.162050+00:00",
+    "elapsedSeconds": 10.865542063000248,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  },
+  {
+    "label": "03-benchmark-C8",
+    "command": [
+      "taskset",
+      "-c",
+      "2,3,10,11",
+      "dotnet",
+      "/workspaces/platform-1/perf/fusion-apollo-shared-async-20261017b/frozen-bdn-memory/C8/HotChocolate.Fusion.Execution.Benchmarks.dll",
+      "benchmark",
+      "/workspaces/platform-1/perf/fusion-apollo-shared-async-20261017b/bdn-native-continuation/03-benchmark-C8"
+    ],
+    "started": "2026-10-17T17:44:52.162381+00:00",
+    "status": "completed",
+    "runtimeEnvironment": {
+      "DOTNET_LOCAL_DEV": "1",
+      "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "1"
+    },
+    "identity": {
+      "pid": 149106,
+      "startTicks": 764513
+    },
+    "processGroup": 149106,
+    "exitCode": 0,
+    "nativeMemory": {
+      "Shape=async-batch9": {
+        "Gen0Collections": 6,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 34680
+      },
+      "Shape=async-single9": {
+        "Gen0Collections": 3,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 30236
+      },
+      "Shape=ordinary": {
+        "Gen0Collections": 4,
+        "Gen1Collections": 1,
+        "Gen2Collections": 1,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 25703
+      }
+    },
+    "finished": "2026-10-17T17:45:03.032630+00:00",
+    "elapsedSeconds": 10.870290000999375,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  },
+  {
+    "label": "04-benchmark-B",
+    "command": [
+      "taskset",
+      "-c",
+      "2,3,10,11",
+      "dotnet",
+      "/workspaces/platform-1/perf/fusion-apollo-shared-async-20261017b/frozen-bdn-memory/B/HotChocolate.Fusion.Execution.Benchmarks.dll",
+      "benchmark",
+      "/workspaces/platform-1/perf/fusion-apollo-shared-async-20261017b/bdn-native-continuation/04-benchmark-B"
+    ],
+    "started": "2026-10-17T17:45:03.032980+00:00",
+    "status": "completed",
+    "runtimeEnvironment": {
+      "DOTNET_LOCAL_DEV": "1",
+      "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "1"
+    },
+    "identity": {
+      "pid": 149247,
+      "startTicks": 765600
+    },
+    "processGroup": 149247,
+    "exitCode": 0,
+    "nativeMemory": {
+      "Shape=async-batch9": {
+        "Gen0Collections": 6,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 34870
+      },
+      "Shape=async-single9": {
+        "Gen0Collections": 4,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 30416
+      },
+      "Shape=ordinary": {
+        "Gen0Collections": 3,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 25703
+      }
+    },
+    "finished": "2026-10-17T17:45:13.945840+00:00",
+    "elapsedSeconds": 10.912904419999904,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  },
+  {
+    "label": "05-benchmark-C8",
+    "command": [
+      "taskset",
+      "-c",
+      "2,3,10,11",
+      "dotnet",
+      "/workspaces/platform-1/perf/fusion-apollo-shared-async-20261017b/frozen-bdn-memory/C8/HotChocolate.Fusion.Execution.Benchmarks.dll",
+      "benchmark",
+      "/workspaces/platform-1/perf/fusion-apollo-shared-async-20261017b/bdn-native-continuation/05-benchmark-C8"
+    ],
+    "started": "2026-10-17T17:45:13.946197+00:00",
+    "status": "completed",
+    "runtimeEnvironment": {
+      "DOTNET_LOCAL_DEV": "1",
+      "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "1"
+    },
+    "identity": {
+      "pid": 149484,
+      "startTicks": 766691
+    },
+    "processGroup": 149484,
+    "exitCode": 0,
+    "nativeMemory": {
+      "Shape=async-batch9": {
+        "Gen0Collections": 6,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 34672
+      },
+      "Shape=async-single9": {
+        "Gen0Collections": 4,
+        "Gen1Collections": 1,
+        "Gen2Collections": 1,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 149688
+      },
+      "Shape=ordinary": {
+        "Gen0Collections": 4,
+        "Gen1Collections": 1,
+        "Gen2Collections": 1,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 479137
+      }
+    },
+    "finished": "2026-10-17T17:45:24.794239+00:00",
+    "elapsedSeconds": 10.848083459000009,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  },
+  {
+    "label": "06-benchmark-C6",
+    "command": [
+      "taskset",
+      "-c",
+      "2,3,10,11",
+      "dotnet",
+      "/workspaces/platform-1/perf/fusion-apollo-shared-async-20261017b/frozen-bdn-memory/C6/HotChocolate.Fusion.Execution.Benchmarks.dll",
+      "benchmark",
+      "/workspaces/platform-1/perf/fusion-apollo-shared-async-20261017b/bdn-native-continuation/06-benchmark-C6"
+    ],
+    "started": "2026-10-17T17:45:24.794794+00:00",
+    "status": "completed",
+    "runtimeEnvironment": {
+      "DOTNET_LOCAL_DEV": "1",
+      "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "1"
+    },
+    "identity": {
+      "pid": 149625,
+      "startTicks": 767776
+    },
+    "processGroup": 149625,
+    "exitCode": 0,
+    "nativeMemory": {
+      "Shape=async-batch9": {
+        "Gen0Collections": 6,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 34770
+      },
+      "Shape=async-single9": {
+        "Gen0Collections": 4,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 30327
+      },
+      "Shape=ordinary": {
+        "Gen0Collections": 4,
+        "Gen1Collections": 1,
+        "Gen2Collections": 1,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 145202
+      }
+    },
+    "finished": "2026-10-17T17:45:35.630351+00:00",
+    "elapsedSeconds": 10.835599510000065,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  },
+  {
+    "label": "07-benchmark-B",
+    "command": [
+      "taskset",
+      "-c",
+      "2,3,10,11",
+      "dotnet",
+      "/workspaces/platform-1/perf/fusion-apollo-shared-async-20261017b/frozen-bdn-memory/B/HotChocolate.Fusion.Execution.Benchmarks.dll",
+      "benchmark",
+      "/workspaces/platform-1/perf/fusion-apollo-shared-async-20261017b/bdn-native-continuation/07-benchmark-B"
+    ],
+    "started": "2026-10-17T17:45:35.630883+00:00",
+    "status": "completed",
+    "runtimeEnvironment": {
+      "DOTNET_LOCAL_DEV": "1",
+      "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "1"
+    },
+    "identity": {
+      "pid": 149800,
+      "startTicks": 768860
+    },
+    "processGroup": 149800,
+    "exitCode": 0,
+    "nativeMemory": {
+      "Shape=async-batch9": {
+        "Gen0Collections": 6,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 34864
+      },
+      "Shape=async-single9": {
+        "Gen0Collections": 4,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 30416
+      },
+      "Shape=ordinary": {
+        "Gen0Collections": 3,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 25703
+      }
+    },
+    "finished": "2026-10-17T17:45:46.429923+00:00",
+    "elapsedSeconds": 10.799077702999966,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  }
+]

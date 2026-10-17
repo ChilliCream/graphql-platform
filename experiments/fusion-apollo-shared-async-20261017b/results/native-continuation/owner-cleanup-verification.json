@@ -1,0 +1,64 @@
+{
+  "utc": "2026-10-17T17:45:59.565577+00:00",
+  "identities": [
+    {
+      "label": "01-benchmark-B",
+      "identity": {
+        "pid": 148678,
+        "startTicks": 762346
+      },
+      "alive": false
+    },
+    {
+      "label": "02-benchmark-C6",
+      "identity": {
+        "pid": 148915,
+        "startTicks": 763426
+      },
+      "alive": false
+    },
+    {
+      "label": "03-benchmark-C8",
+      "identity": {
+        "pid": 149106,
+        "startTicks": 764513
+      },
+      "alive": false
+    },
+    {
+      "label": "04-benchmark-B",
+      "identity": {
+        "pid": 149247,
+        "startTicks": 765600
+      },
+      "alive": false
+    },
+    {
+      "label": "05-benchmark-C8",
+      "identity": {
+        "pid": 149484,
+        "startTicks": 766691
+      },
+      "alive": false
+    },
+    {
+      "label": "06-benchmark-C6",
+      "identity": {
+        "pid": 149625,
+        "startTicks": 767776
+      },
+      "alive": false
+    },
+    {
+      "label": "07-benchmark-B",
+      "identity": {
+        "pid": 149800,
+        "startTicks": 768860
+      },
+      "alive": false
+    }
+  ],
+  "lockFree": true,
+  "allCompleted": true,
+  "serial": true
+}
