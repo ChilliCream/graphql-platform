@@ -182,7 +182,7 @@ internal sealed class ConnectionType
                 edgesType,
                 pureResolver: GetEdges)
             {
-                Flags = CoreFieldFlags.ConnectionEdgesField
+                Flags = CoreFieldFlags.ParallelExecutable | CoreFieldFlags.ConnectionEdgesField
             });
 
         if (includeNodesField)
@@ -193,7 +193,7 @@ internal sealed class ConnectionType
                     ConnectionType_Nodes_Description,
                     pureResolver: GetNodes)
                 {
-                    Flags = CoreFieldFlags.ConnectionNodesField
+                    Flags = CoreFieldFlags.ParallelExecutable | CoreFieldFlags.ConnectionNodesField
                 });
         }
 
@@ -206,7 +206,7 @@ internal sealed class ConnectionType
                     type: TypeReference.Parse($"{ScalarNames.Int}!"),
                     pureResolver: GetTotalCount)
                 {
-                    Flags = CoreFieldFlags.TotalCount
+                    Flags = CoreFieldFlags.ParallelExecutable | CoreFieldFlags.TotalCount
                 });
         }
 
