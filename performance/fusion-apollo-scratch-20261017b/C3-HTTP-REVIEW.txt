@@ -1,0 +1,85 @@
+Independent C3 HTTP ownership and retained-memory gate review
+============================================================
+
+Scope: review only, no new candidate or measurement. C3 remains independent of
+abandoned C1. Review uses frozen source 359a421c... and its 70 focused tests,
+corrected shared micro, baseline HTTP runner and normal ownership contracts.
+
+Ownership
+---------
+ApplyTo rents only the duplicate CompactPath[] backing and retains the original
+exact immutable EntityResultPath[] output. A lazy store-owned list holds rented
+arrays until Clean, subscription Reset or Dispose. Cleanup returns each array
+with clearArray:true, breaking references to inner int[] path segments. The
+store's existing lock serializes representation construction; cleanup depends
+on the existing context/node-completion lifetime, the same prerequisite as the
+request's inner path pool. Returning arrays earlier at merge completion would
+be unsafe for pending error attribution, so request/event cleanup is appropriate.
+
+Public source-client dispatch receives the combined payload rather than these
+internal per-entity error paths. Telemetry detaches paths into owned copies.
+Concurrent pending representations, duplicate error expansion, cancellation,
+detached paths after Clean/Reset/Dispose and oversized fallback are covered by
+the C3 tests and shared normal/snapshot correctness oracles. No additional
+public retain-after-clean escape was identified. This review does not create
+a new public lifetime guarantee for internal representations.
+
+Static memory estimate
+----------------------
+Original duplicate counts: 11,95,21,47,10,11,95,21, total 311 CompactPaths.
+Expected .NET shared-pool bucket capacities: 16,128,32,64,16,16,128,32, total 432.
+With observed 8-byte CompactPath and 24-byte array header, active pooled backing
+is approximately 3648 B/request versus 2680 B for the exact arrays. A warmed list
+with capacity 8 adds approximately 120 B/store (object and 8-reference backing).
+
+At 500 simultaneous original requests, all eight buffers retained until request
+cleanup imply approximately 1,884,000 B (1.80MiB) of candidate outer buffers and
+list bookkeeping. Relative to all baseline exact arrays coexisting, the rounded
+storage/list increment is approximately 544,000 B (0.52MiB). Baseline paths may
+have shorter lifetimes, so this difference is not an unconditional live-memory
+bound. The total candidate estimate is specific to the original operation;
+more fetches or duplicates change it.
+
+The 1024-entry per-buffer cap does not cap the number of buffers held by an
+active request. Lists with capacity greater than 16 are dropped at cleanup;
+smaller cleared list backing remains with pooled stores. Returned arrays may
+remain in the runtime's global ArrayPool, governed by its own caches and trim
+policy. Neither scoped allocation savings nor this per-request estimate proves
+zero global retention or reduced RSS.
+
+Minimal matched HTTP gate
+-------------------------
+Keep the original TestQuery and fixed source delay 4 ms. Use the native burst
+with 500 maximum VUs and unchanged 10s/40s/10s stages. Preserve matched independent
+candidate/control launch order and source/generator resource observation.
+After the burst's actual final completion, retain the existing observers for
+an explicit 20s idle window before process cleanup, identical for every arm.
+Record UTC boundaries for preburst, burst, final completion and idle window.
+This is an observation extension, not extra load or a new timing campaign.
+
+Existing 100ms /proc CPU/RSS/thread samples and 1s System.Runtime counters are
+sufficient initially. Compare preburst, peak and final-idle RSS distributions
+against both adjacent controls, alongside committed-memory and last-collection
+heap-size/fragmentation gauges, collection counts and pause time. Do not infer
+live objects from RSS. If no collection occurs during idle, identify heap
+size gauges as stale last-collection values rather than current retained heap.
+Do not force GC, change pool policy or add a heap dump preemptively.
+
+Check whether resources settle, whether candidate growth repeatedly exceeds
+both control envelopes, and whether any residual difference fits the bounded
+original-operation ownership estimate. A persistent material excess or ongoing
+growth unexplained by these observations justifies a targeted retention capture
+with a stated ownership question. It does not justify an equivalent timing
+rerun. A heap capture should answer which objects keep memory live, not seek a
+more favorable process RSS number.
+
+Performance interpretation
+--------------------------
+C3 has a validated scoped 2680 B saving for the original 11-build sequence; this
+is not default total process allocation. Default micro timing does not establish
+a robust general CPU improvement. The HTTP gate must carry small repeated
+unique5 slowing and the late snapshot96 adverse observation forward without
+trimming or pooling away them. Report CPU per successful completion, valid
+throughput, native latency samples/tail ranks, errors, GC and source/generator
+headroom. A repeated adverse HTTP pattern or inconclusive overall result stops
+acceptance even if scoped allocation remains lower.
