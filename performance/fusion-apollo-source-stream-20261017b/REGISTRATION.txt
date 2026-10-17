@@ -1,0 +1,72 @@
+C7: Direct source response reads into arena chunks
+
+Pinned baseline: 43a8dca2bd479ddc411d832ed97e42d9fcc8bd85.
+Owner: response_hotpaths. Independent branch: perf/fusion-apollo-source-stream-20261017b.
+Production ownership: FUSION conditional branch of Transport.Http/GraphQLHttpResponse.cs,
+Fusion.Execution/Text/Json/ThrowHelper.cs. Focused correctness: GraphQLHttpResponseArenaReadTests.cs.
+
+Warm caller evidence
+The fresh original-TestQuery allocation capture targets PID18692, 2026-10-17 15:59:43.280
+through 15:59:58.400750 UTC, with zero reported events lost. Caller chains passing through
+GraphQLHttpResponse.ReadAsResultInternalAsync contain 446 StreamPipeReader allocation ticks,
+374 BufferSegment ticks, 235 SegmentAsValueType[] ticks and 194 CancellationTokenSource ticks.
+These are sampled event counts, not exact object counts or bytes per request. Immutable source:
+https://github.com/ChilliCream/graphql-platform/blob/2c47637e385c25a3cea65d8df1d9be8b4a37871e/performance/fusion-apollo-discovery-20261017b/results/alloc-summary.json
+
+The source reader creates a StreamPipeReader for each response, reads into its intermediate
+pooled memory, then copies payload bytes into the request's arena chunks. The unchanged
+original TestQuery makes seven downstream HTTP requests. The proposed branch therefore
+removes reader/buffer plumbing at most seven times per original request, and one full byte
+copy per affected body. Actual savings depend on response Content-Length and stream behavior.
+No exact absolute byte or CPU saving is claimed before measurement.
+
+Hypothesis and scope
+For unknown or greater-than-16KB declared Content-Length, read the body directly into the
+existing geometric arena chunks. Preserve the <=16KB Content-Length path, lying-header
+fallback, media type policy, transcoding, JSON parsing, underlying content stream disposal,
+arena ownership, source bytes, and client API. No iterator, final-response PipeWriter,
+path pool, segment-table bucket or previous authored experiment mechanism is repeated.
+
+Risks
+Geometric chunks begin at 1KB/2KB whereas the pipe requests 4KB; extra stream reads can cost
+CPU. BDN records read counts and must reject a meaningful timing regression. A body ending
+at a chunk boundary can reserve one empty next chunk before EOF. The original source body
+is fully consumed before parsing; this remains true. Arena cleanup remains the caller's
+responsibility; streaming events and JSON arrays continue through their existing readers.
+
+Correctness
+Focused new tests cover short fragments, asynchronously completed fragments, 1024/3072-byte
+boundaries, large bodies, known and lying Content-Length, UTF16 transcoding, empty/malformed
+JSON, cancellation after a partial read and stream disposal. Run the existing default HTTP
+client tests too. Tests seal request arenas before disposing them.
+
+Benchmark gate
+BenchmarkDotNet 0.15.8 calls the actual GraphQLHttpResponse.ReadAsResultAsync and consumes the
+parsed id. Cases: known128 unchanged control; unknown4096; unknown32768. Response/message,
+stream and arena construction/disposal are included identically in both arms. Payload bytes
+are prepared outside timing. A deterministic memory-backed non-seekable stream bounds the
+mechanism; actual network scheduling remains an HTTP validation requirement.
+Use three seconds of case warmup, three BDN warmup iterations, twelve actual observations
+of 1000 operations, no outlier removal, default runtime/GC. Allocation is separately scoped
+to wholly synchronous reads with current-thread bytes, completion/thread guards and exact
+127*byte[4096] (523240-byte) calibrations before/after each 1000-operation block. Allocation
+processes alone set DOTNET_GCHeapCount=4, which disables dynamic heap adaptation. Each block
+uses a 512MiB no-GC region, verifies zero collections and requires successful region exit.
+Timing and check-only processes retain the default adaptive server GC policy.
+Only the Execution DLL/PDB differ between frozen arms. Every observation is retained.
+
+Stopping rule
+Promote only if worthwhile repeated allocation savings or CPU improvement is demonstrated,
+with no repeated meaningful CPU cost, no ordinary-case regression and no ownership defect.
+Suggested bounded order is allocation B/C7/B, timing B/C7/B/C7/B with adjacent controls.
+No performance run without root's exclusive grant. VU testing follows a positive BDN gate.
+An inconclusive or adverse valid campaign ends this idea without a favorable-result repeat.
+
+Preparation
+Initial build wrongly passed global TargetFrameworks/TargetFramework overrides, making the
+analyzer restore omit netstandard2.0. No code ran. The corrected standard local-dev Release
+build passes with 0 errors; both logs are retained. 54 focused tests pass, including 17 new
+cases. Independent review identified exact-capacity EOF handling, corrected before any
+measurement with a one-byte probe only at the final capacity boundary. A bounded synthetic
+stream/arena test observes that terminal read without allocating a half-gigabyte payload.
+Existing SDK/ASP.NET deprecation warnings are preserved in the build log.

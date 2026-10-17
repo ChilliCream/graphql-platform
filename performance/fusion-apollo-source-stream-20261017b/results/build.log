@@ -1,0 +1,77 @@
+  Determining projects to restore...
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/GreenDonut/src/GreenDonut.Data.Abstractions/GreenDonut.Data.Abstractions.csproj (in 69 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Core/src/Execution.Operation.Abstractions/HotChocolate.Execution.Operation.Abstractions.csproj (in 134 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Primitives/src/Primitives/HotChocolate.Primitives.csproj (in 130 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Language/src/Language.SyntaxTree/HotChocolate.Language.SyntaxTree.csproj (in 134 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Json/src/Json/HotChocolate.Text.Json.csproj (in 131 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/CookieCrumble/src/CookieCrumble.Resources/CookieCrumble.Resources.csproj (in 137 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Fusion/src/Fusion.Utilities/HotChocolate.Fusion.Utilities.csproj (in 139 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/AspNetCore/src/Transport.Http/HotChocolate.Transport.Http.csproj (in 133 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Fusion/src/Fusion.Packaging/HotChocolate.Fusion.Packaging.csproj (in 2 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Fusion/src/Fusion.Language/HotChocolate.Fusion.Language.csproj (in 2 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/CostAnalysis/src/CostAnalysis.Core/HotChocolate.CostAnalysis.Core.csproj (in 133 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/AspNetCore/src/AspNetCore.Pipeline/HotChocolate.AspNetCore.Pipeline.csproj (in 136 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Language/src/Language/HotChocolate.Language.csproj (in 134 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Fusion/src/Fusion.Execution/HotChocolate.Fusion.Execution.csproj (in 142 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Core/src/Authorization/HotChocolate.Authorization.csproj (in 140 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Core/src/Subscriptions.InMemory/HotChocolate.Subscriptions.InMemory.csproj (in 133 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/AspNetCore/src/Transport.Sockets/HotChocolate.Transport.Sockets.csproj (in 1 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Core/src/Types.Scalars.Upload/HotChocolate.Types.Scalars.Upload.csproj (in 131 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Caching/src/Caching.Memory/HotChocolate.Caching.Memory.csproj (in 20 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Core/src/Types.Validation/HotChocolate.Types.Validation.csproj (in 5 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Core/src/Types.CursorPagination/HotChocolate.Types.CursorPagination.csproj (in 137 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Core/src/Abstractions/HotChocolate.Abstractions.csproj (in 22 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Core/src/Execution.Abstractions/HotChocolate.Execution.Abstractions.csproj (in 24 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/GreenDonut/src/GreenDonut/GreenDonut.csproj (in 2 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Core/src/Subscriptions/HotChocolate.Subscriptions.csproj (in 25 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Core/src/Types.Abstractions/HotChocolate.Types.Abstractions.csproj (in 31 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/GreenDonut/src/GreenDonut.Data.Primitives/GreenDonut.Data.Primitives.csproj (in 1 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/GreenDonut/src/GreenDonut.Data/GreenDonut.Data.csproj (in 4 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Core/src/Validation/HotChocolate.Validation.csproj (in 11 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Core/src/Execution.Configuration.Abstractions/HotChocolate.Execution.Configuration.Abstractions.csproj (in 32 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/CookieCrumble/src/CookieCrumble.HotChocolate.Language/CookieCrumble.HotChocolate.Language.csproj (in 3 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/CookieCrumble/src/CookieCrumble.Analyzers/CookieCrumble.Analyzers.csproj (in 6 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Fusion/src/Fusion.Subscriptions.NATS/HotChocolate.Fusion.Subscriptions.NATS.csproj (in 45 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Core/src/Features/HotChocolate.Features.csproj (in 1 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Core/src/Core/HotChocolate.Core.csproj (in 30 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Fusion/src/Fusion.Execution.Types/HotChocolate.Fusion.Execution.Types.csproj (in 9 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Fusion/src/Fusion.Composition/HotChocolate.Fusion.Composition.csproj (in 19 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Core/src/Types/HotChocolate.Types.csproj (in 30 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Core/src/Types.CursorPagination.Extensions/HotChocolate.Types.CursorPagination.Extensions.csproj (in 40 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/AspNetCore/src/Transport.Abstractions/HotChocolate.Transport.Abstractions.csproj (in 5 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/CookieCrumble/src/CookieCrumble/CookieCrumble.csproj (in 2 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/GreenDonut/src/GreenDonut.Abstractions/GreenDonut.Abstractions.csproj (in 1 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/HotChocolate.Fusion.Execution.Tests.csproj (in 95 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Utilities/src/Utilities/HotChocolate.Utilities.csproj (in 2 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/CostAnalysis/src/CostAnalysis/HotChocolate.CostAnalysis.csproj (in 24 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Utilities/src/Utilities.Tasks/HotChocolate.Utilities.Tasks.csproj (in 1 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/CookieCrumble/src/CookieCrumble.Resources.Nats/CookieCrumble.Resources.Nats.csproj (in 5 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Utilities/src/Utilities.DependencyInjection/HotChocolate.Utilities.DependencyInjection.csproj (in 2 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Utilities/src/Utilities.Buffers/HotChocolate.Utilities.Buffers.csproj (in 11 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/CookieCrumble/src/CookieCrumble.Xunit3/CookieCrumble.Xunit3.csproj (in 4 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Core/src/Execution.Pipeline/HotChocolate.Execution.Pipeline.csproj (in 12 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Utilities/src/Utilities.Base36/HotChocolate.Utilities.Base36.csproj (in 14 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Core/src/Types.Queries/HotChocolate.Types.Queries.csproj (in 34 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/CookieCrumble/src/CookieCrumble.HotChocolate/CookieCrumble.HotChocolate.csproj (in 34 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Language/src/Language.Visitors/HotChocolate.Language.Visitors.csproj (in 3 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/AspNetCore/src/Transport.Formatters/HotChocolate.Transport.Formatters.csproj (in 7 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Language/src/Language.Utf8.SyntaxTree/HotChocolate.Language.Utf8.SyntaxTree.csproj (in 2 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Language/src/Language.Web/HotChocolate.Language.Web.csproj (in 4 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Core/src/Execution.Projections/HotChocolate.Execution.Projections.csproj (in 22 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Language/src/Language.Utf8/HotChocolate.Language.Utf8.csproj (in 3 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/PersistedOperations/src/PersistedOperations.Pipeline/HotChocolate.PersistedOperations.Pipeline.csproj (in 7 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Core/src/Types.Errors/HotChocolate.Types.Errors.csproj (in 38 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Mutable/src/Types.Mutable/HotChocolate.Types.Mutable.csproj (in 8 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Core/src/Types.Mutations/HotChocolate.Types.Mutations.csproj (in 26 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/PersistedOperations/src/PersistedOperations.Abstractions/HotChocolate.PersistedOperations.Abstractions.csproj (in 13 ms).
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/AspNetCore/src/AspNetCore/HotChocolate.AspNetCore.csproj (in 38 ms).
+/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.RuntimeIdentifierInference.targets(385,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [/workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/HotChocolate.Fusion.Execution.Tests.csproj::TargetFramework=net10.0]
+/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/Sdks/Microsoft.NET.Sdk/targets/Microsoft.PackageDependencyResolution.targets(266,5): error NETSDK1005: Assets file '/workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/CookieCrumble/src/CookieCrumble.Analyzers/obj/project.assets.json' doesn't have a target for 'netstandard2.0'. Ensure that restore has run and that you have included 'netstandard2.0' in the TargetFrameworks for your project. [/workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/CookieCrumble/src/CookieCrumble.Analyzers/CookieCrumble.Analyzers.csproj::TargetFramework=netstandard2.0]
+
+Build FAILED.
+
+/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/Sdks/Microsoft.NET.Sdk/targets/Microsoft.PackageDependencyResolution.targets(266,5): error NETSDK1005: Assets file '/workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/CookieCrumble/src/CookieCrumble.Analyzers/obj/project.assets.json' doesn't have a target for 'netstandard2.0'. Ensure that restore has run and that you have included 'netstandard2.0' in the TargetFrameworks for your project. [/workspaces/platform-1/.worktrees/fusion-apollo-source-stream-20261017b/src/CookieCrumble/src/CookieCrumble.Analyzers/CookieCrumble.Analyzers.csproj::TargetFramework=netstandard2.0]
+    0 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:00.75

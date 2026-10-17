@@ -1,0 +1,14 @@
+  Discovering: HotChocolate.Fusion.Execution.Tests
+  Discovered:  HotChocolate.Fusion.Execution.Tests
+  Starting:    HotChocolate.Fusion.Execution.Tests
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/1.1 POST http://localhost:5000/graphql - application/json;+charset=utf-8 21
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'Hot Chocolate GraphQL Pipeline'
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'Hot Chocolate GraphQL Pipeline'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/1.1 POST http://localhost:5000/graphql - 200 - application/graphql-response+json;+charset=utf-8 296.5324ms
+  Finished:    HotChocolate.Fusion.Execution.Tests (ID = '194fd4f9dea77b83e8f38838502abc488bb0b18037a39862a93794a96c4bb8f2')
+=== TEST EXECUTION SUMMARY ===
+   HotChocolate.Fusion.Execution.Tests  Total: 53, Errors: 0, Failed: 0, Skipped: 0, Not Run: 0, Time: 0.696s
