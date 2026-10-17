@@ -1,0 +1,535 @@
+{
+  "checkedAt": "2026-10-17T18:12:09.419826+00:00",
+  "launches": [
+    {
+      "arm": "B",
+      "mode": "verify",
+      "command": [
+        "taskset",
+        "-c",
+        "2,3,10,11",
+        "dotnet",
+        "/workspaces/platform-1/perf/fusion-apollo-shared-variable-slots-20261017b/frozen-bdn/B/HotChocolate.Fusion.Execution.Benchmarks.dll",
+        "verify",
+        "/workspaces/platform-1/.worktrees/fusion-apollo-shared-variables-20261017b/performance/fusion-apollo-shared-variables-20261017b/results/joint-preflight/B-verify"
+      ],
+      "exitCode": 0,
+      "oracle": [
+        {
+          "Shape": "ordinary",
+          "requests": [
+            "{\"query\":\"query($__fusion_1_id: ID!){fieldById(id: $__fusion_1_id){field}}\",\"variables\":{\"__fusion_1_id\":\"1\"}}"
+          ],
+          "expectedResults": 1,
+          "genuinelySuspended": false
+        },
+        {
+          "Shape": "async-ordinary",
+          "requests": [
+            "{\"query\":\"query($__fusion_1_id: ID!){fieldById(id: $__fusion_1_id){field}}\",\"variables\":{\"__fusion_1_id\":\"1\"}}"
+          ],
+          "expectedResults": 1,
+          "genuinelySuspended": true
+        },
+        {
+          "Shape": "async-alias2",
+          "requests": [
+            "{\"query\":\"query Op_alias_benchmark_Batch_60bf52c63719e74a($_0___fusion_1_id:ID!,$_1___fusion_1_id:ID!){_0_fieldById:fieldById(id:$_0___fusion_1_id){..._fusion_body_1} _1_fieldById:fieldById(id:$_1___fusion_1_id){..._fusion_body_1}} fragment _fusion_body_1 on Foo{field}\",\"variables\":{\"_0___fusion_1_id\":\"1\",\"_1___fusion_1_id\":\"1\"}}"
+          ],
+          "expectedResults": 2,
+          "genuinelySuspended": true
+        },
+        {
+          "Shape": "async-custom",
+          "requests": [
+            "{\"query\":\"query($__fusion_1_id: ID!){fieldById(id: $__fusion_1_id){field}}\",\"variables\":{\"__fusion_1_id\":\"1\"}}"
+          ],
+          "expectedResults": 1,
+          "genuinelySuspended": true
+        }
+      ],
+      "identity": {
+        "runtime": ".NET 10.0.12",
+        "IsServerGC": true,
+        "gcConfiguration": {
+          "ServerGC": true,
+          "ConcurrentGC": true,
+          "RetainVM": false,
+          "NoAffinitize": false,
+          "GCCpuGroup": false,
+          "GCLargePages": false,
+          "LOHThreshold": 85000,
+          "HeapCount": 4,
+          "MaxHeapCount": 0,
+          "GCHeapAffinitizeMask": 0,
+          "GCHeapAffinitizeRanges": "",
+          "GCHighMemPercent": 90,
+          "GCGen0MaxBudget": 209715200,
+          "GCHeapHardLimit": 0,
+          "GCHeapHardLimitPercent": 0,
+          "GCRegionRange": 274877906944,
+          "GCRegionSize": 0,
+          "UOHWaitBGCSizeIncPercent": 200,
+          "GCHeapHardLimitSOH": 0,
+          "GCHeapHardLimitLOH": 0,
+          "GCHeapHardLimitPOH": 0,
+          "GCHeapHardLimitSOHPercent": 0,
+          "GCHeapHardLimitLOHPercent": 0,
+          "GCHeapHardLimitPOHPercent": 0,
+          "GCConserveMem": 0,
+          "GCName": "",
+          "GCPath": "",
+          "GCDynamicAdaptationMode": 1,
+          "GCDTargetTCP": 2,
+          "GCDGen0GrowthPercent": 100,
+          "GCDGen0GrowthMinFactor": 100,
+          "GCDGen0GrowthMaxFactor": 10000
+        },
+        "executionPath": "/workspaces/platform-1/perf/fusion-apollo-shared-variable-slots-20261017b/frozen-bdn/B/HotChocolate.Fusion.Execution.dll",
+        "executionDllSha256": "9c436477e63d9c7f5c8668dcd75fec9771f500a5e71b14a1f02dd0bcf8fe6c5b"
+      }
+    },
+    {
+      "arm": "B",
+      "mode": "verify-fixed",
+      "command": [
+        "taskset",
+        "-c",
+        "2,3,10,11",
+        "dotnet",
+        "/workspaces/platform-1/perf/fusion-apollo-shared-variable-slots-20261017b/frozen-bdn/B/HotChocolate.Fusion.Execution.Benchmarks.dll",
+        "verify-fixed",
+        "/workspaces/platform-1/.worktrees/fusion-apollo-shared-variables-20261017b/performance/fusion-apollo-shared-variables-20261017b/results/joint-preflight/B-verify-fixed"
+      ],
+      "exitCode": 0,
+      "oracle": [
+        {
+          "Shape": "ordinary",
+          "requests": [
+            "{\"query\":\"query($__fusion_1_id: ID!){fieldById(id: $__fusion_1_id){field}}\",\"variables\":{\"__fusion_1_id\":\"1\"}}"
+          ],
+          "expectedResults": 1,
+          "genuinelySuspended": false
+        },
+        {
+          "Shape": "async-ordinary",
+          "requests": [
+            "{\"query\":\"query($__fusion_1_id: ID!){fieldById(id: $__fusion_1_id){field}}\",\"variables\":{\"__fusion_1_id\":\"1\"}}"
+          ],
+          "expectedResults": 1,
+          "genuinelySuspended": true
+        },
+        {
+          "Shape": "async-alias2",
+          "requests": [
+            "{\"query\":\"query Op_alias_benchmark_Batch_60bf52c63719e74a($_0___fusion_1_id:ID!,$_1___fusion_1_id:ID!){_0_fieldById:fieldById(id:$_0___fusion_1_id){..._fusion_body_1} _1_fieldById:fieldById(id:$_1___fusion_1_id){..._fusion_body_1}} fragment _fusion_body_1 on Foo{field}\",\"variables\":{\"_0___fusion_1_id\":\"1\",\"_1___fusion_1_id\":\"1\"}}"
+          ],
+          "expectedResults": 2,
+          "genuinelySuspended": true
+        },
+        {
+          "Shape": "async-custom",
+          "requests": [
+            "{\"query\":\"query($__fusion_1_id: ID!){fieldById(id: $__fusion_1_id){field}}\",\"variables\":{\"__fusion_1_id\":\"1\"}}"
+          ],
+          "expectedResults": 1,
+          "genuinelySuspended": true
+        }
+      ],
+      "identity": {
+        "runtime": ".NET 10.0.12",
+        "IsServerGC": true,
+        "gcConfiguration": {
+          "ServerGC": true,
+          "ConcurrentGC": true,
+          "RetainVM": false,
+          "NoAffinitize": false,
+          "GCCpuGroup": false,
+          "GCLargePages": false,
+          "LOHThreshold": 85000,
+          "HeapCount": 4,
+          "MaxHeapCount": 0,
+          "GCHeapAffinitizeMask": 0,
+          "GCHeapAffinitizeRanges": "",
+          "GCHighMemPercent": 90,
+          "GCGen0MaxBudget": 209715200,
+          "GCHeapHardLimit": 0,
+          "GCHeapHardLimitPercent": 0,
+          "GCRegionRange": 274877906944,
+          "GCRegionSize": 0,
+          "UOHWaitBGCSizeIncPercent": 200,
+          "GCHeapHardLimitSOH": 0,
+          "GCHeapHardLimitLOH": 0,
+          "GCHeapHardLimitPOH": 0,
+          "GCHeapHardLimitSOHPercent": 0,
+          "GCHeapHardLimitLOHPercent": 0,
+          "GCHeapHardLimitPOHPercent": 0,
+          "GCConserveMem": 0,
+          "GCName": "",
+          "GCPath": "",
+          "GCDynamicAdaptationMode": 0,
+          "GCDTargetTCP": 0,
+          "GCDGen0GrowthPercent": 0,
+          "GCDGen0GrowthMinFactor": 0,
+          "GCDGen0GrowthMaxFactor": 0
+        },
+        "executionPath": "/workspaces/platform-1/perf/fusion-apollo-shared-variable-slots-20261017b/frozen-bdn/B/HotChocolate.Fusion.Execution.dll",
+        "executionDllSha256": "9c436477e63d9c7f5c8668dcd75fec9771f500a5e71b14a1f02dd0bcf8fe6c5b"
+      }
+    },
+    {
+      "arm": "C14",
+      "mode": "verify",
+      "command": [
+        "taskset",
+        "-c",
+        "2,3,10,11",
+        "dotnet",
+        "/workspaces/platform-1/perf/fusion-apollo-shared-variable-slots-20261017b/frozen-bdn/C14/HotChocolate.Fusion.Execution.Benchmarks.dll",
+        "verify",
+        "/workspaces/platform-1/.worktrees/fusion-apollo-shared-variables-20261017b/performance/fusion-apollo-shared-variables-20261017b/results/joint-preflight/C14-verify"
+      ],
+      "exitCode": 0,
+      "oracle": [
+        {
+          "Shape": "ordinary",
+          "requests": [
+            "{\"query\":\"query($__fusion_1_id: ID!){fieldById(id: $__fusion_1_id){field}}\",\"variables\":{\"__fusion_1_id\":\"1\"}}"
+          ],
+          "expectedResults": 1,
+          "genuinelySuspended": false
+        },
+        {
+          "Shape": "async-ordinary",
+          "requests": [
+            "{\"query\":\"query($__fusion_1_id: ID!){fieldById(id: $__fusion_1_id){field}}\",\"variables\":{\"__fusion_1_id\":\"1\"}}"
+          ],
+          "expectedResults": 1,
+          "genuinelySuspended": true
+        },
+        {
+          "Shape": "async-alias2",
+          "requests": [
+            "{\"query\":\"query Op_alias_benchmark_Batch_60bf52c63719e74a($_0___fusion_1_id:ID!,$_1___fusion_1_id:ID!){_0_fieldById:fieldById(id:$_0___fusion_1_id){..._fusion_body_1} _1_fieldById:fieldById(id:$_1___fusion_1_id){..._fusion_body_1}} fragment _fusion_body_1 on Foo{field}\",\"variables\":{\"_0___fusion_1_id\":\"1\",\"_1___fusion_1_id\":\"1\"}}"
+          ],
+          "expectedResults": 2,
+          "genuinelySuspended": true
+        },
+        {
+          "Shape": "async-custom",
+          "requests": [
+            "{\"query\":\"query($__fusion_1_id: ID!){fieldById(id: $__fusion_1_id){field}}\",\"variables\":{\"__fusion_1_id\":\"1\"}}"
+          ],
+          "expectedResults": 1,
+          "genuinelySuspended": true
+        }
+      ],
+      "identity": {
+        "runtime": ".NET 10.0.12",
+        "IsServerGC": true,
+        "gcConfiguration": {
+          "ServerGC": true,
+          "ConcurrentGC": true,
+          "RetainVM": false,
+          "NoAffinitize": false,
+          "GCCpuGroup": false,
+          "GCLargePages": false,
+          "LOHThreshold": 85000,
+          "HeapCount": 4,
+          "MaxHeapCount": 0,
+          "GCHeapAffinitizeMask": 0,
+          "GCHeapAffinitizeRanges": "",
+          "GCHighMemPercent": 90,
+          "GCGen0MaxBudget": 209715200,
+          "GCHeapHardLimit": 0,
+          "GCHeapHardLimitPercent": 0,
+          "GCRegionRange": 274877906944,
+          "GCRegionSize": 0,
+          "UOHWaitBGCSizeIncPercent": 200,
+          "GCHeapHardLimitSOH": 0,
+          "GCHeapHardLimitLOH": 0,
+          "GCHeapHardLimitPOH": 0,
+          "GCHeapHardLimitSOHPercent": 0,
+          "GCHeapHardLimitLOHPercent": 0,
+          "GCHeapHardLimitPOHPercent": 0,
+          "GCConserveMem": 0,
+          "GCName": "",
+          "GCPath": "",
+          "GCDynamicAdaptationMode": 1,
+          "GCDTargetTCP": 2,
+          "GCDGen0GrowthPercent": 100,
+          "GCDGen0GrowthMinFactor": 100,
+          "GCDGen0GrowthMaxFactor": 10000
+        },
+        "executionPath": "/workspaces/platform-1/perf/fusion-apollo-shared-variable-slots-20261017b/frozen-bdn/C14/HotChocolate.Fusion.Execution.dll",
+        "executionDllSha256": "ead833aee16aeb90571c48857d0d2f32de804a8ed6aa47fb28242d96f1aa97d3"
+      }
+    },
+    {
+      "arm": "C14",
+      "mode": "verify-fixed",
+      "command": [
+        "taskset",
+        "-c",
+        "2,3,10,11",
+        "dotnet",
+        "/workspaces/platform-1/perf/fusion-apollo-shared-variable-slots-20261017b/frozen-bdn/C14/HotChocolate.Fusion.Execution.Benchmarks.dll",
+        "verify-fixed",
+        "/workspaces/platform-1/.worktrees/fusion-apollo-shared-variables-20261017b/performance/fusion-apollo-shared-variables-20261017b/results/joint-preflight/C14-verify-fixed"
+      ],
+      "exitCode": 0,
+      "oracle": [
+        {
+          "Shape": "ordinary",
+          "requests": [
+            "{\"query\":\"query($__fusion_1_id: ID!){fieldById(id: $__fusion_1_id){field}}\",\"variables\":{\"__fusion_1_id\":\"1\"}}"
+          ],
+          "expectedResults": 1,
+          "genuinelySuspended": false
+        },
+        {
+          "Shape": "async-ordinary",
+          "requests": [
+            "{\"query\":\"query($__fusion_1_id: ID!){fieldById(id: $__fusion_1_id){field}}\",\"variables\":{\"__fusion_1_id\":\"1\"}}"
+          ],
+          "expectedResults": 1,
+          "genuinelySuspended": true
+        },
+        {
+          "Shape": "async-alias2",
+          "requests": [
+            "{\"query\":\"query Op_alias_benchmark_Batch_60bf52c63719e74a($_0___fusion_1_id:ID!,$_1___fusion_1_id:ID!){_0_fieldById:fieldById(id:$_0___fusion_1_id){..._fusion_body_1} _1_fieldById:fieldById(id:$_1___fusion_1_id){..._fusion_body_1}} fragment _fusion_body_1 on Foo{field}\",\"variables\":{\"_0___fusion_1_id\":\"1\",\"_1___fusion_1_id\":\"1\"}}"
+          ],
+          "expectedResults": 2,
+          "genuinelySuspended": true
+        },
+        {
+          "Shape": "async-custom",
+          "requests": [
+            "{\"query\":\"query($__fusion_1_id: ID!){fieldById(id: $__fusion_1_id){field}}\",\"variables\":{\"__fusion_1_id\":\"1\"}}"
+          ],
+          "expectedResults": 1,
+          "genuinelySuspended": true
+        }
+      ],
+      "identity": {
+        "runtime": ".NET 10.0.12",
+        "IsServerGC": true,
+        "gcConfiguration": {
+          "ServerGC": true,
+          "ConcurrentGC": true,
+          "RetainVM": false,
+          "NoAffinitize": false,
+          "GCCpuGroup": false,
+          "GCLargePages": false,
+          "LOHThreshold": 85000,
+          "HeapCount": 4,
+          "MaxHeapCount": 0,
+          "GCHeapAffinitizeMask": 0,
+          "GCHeapAffinitizeRanges": "",
+          "GCHighMemPercent": 90,
+          "GCGen0MaxBudget": 209715200,
+          "GCHeapHardLimit": 0,
+          "GCHeapHardLimitPercent": 0,
+          "GCRegionRange": 274877906944,
+          "GCRegionSize": 0,
+          "UOHWaitBGCSizeIncPercent": 200,
+          "GCHeapHardLimitSOH": 0,
+          "GCHeapHardLimitLOH": 0,
+          "GCHeapHardLimitPOH": 0,
+          "GCHeapHardLimitSOHPercent": 0,
+          "GCHeapHardLimitLOHPercent": 0,
+          "GCHeapHardLimitPOHPercent": 0,
+          "GCConserveMem": 0,
+          "GCName": "",
+          "GCPath": "",
+          "GCDynamicAdaptationMode": 0,
+          "GCDTargetTCP": 0,
+          "GCDGen0GrowthPercent": 0,
+          "GCDGen0GrowthMinFactor": 0,
+          "GCDGen0GrowthMaxFactor": 0
+        },
+        "executionPath": "/workspaces/platform-1/perf/fusion-apollo-shared-variable-slots-20261017b/frozen-bdn/C14/HotChocolate.Fusion.Execution.dll",
+        "executionDllSha256": "ead833aee16aeb90571c48857d0d2f32de804a8ed6aa47fb28242d96f1aa97d3"
+      }
+    },
+    {
+      "arm": "C15",
+      "mode": "verify",
+      "command": [
+        "taskset",
+        "-c",
+        "2,3,10,11",
+        "dotnet",
+        "/workspaces/platform-1/perf/fusion-apollo-shared-variable-slots-20261017b/frozen-bdn/C15/HotChocolate.Fusion.Execution.Benchmarks.dll",
+        "verify",
+        "/workspaces/platform-1/.worktrees/fusion-apollo-shared-variables-20261017b/performance/fusion-apollo-shared-variables-20261017b/results/joint-preflight/C15-verify"
+      ],
+      "exitCode": 0,
+      "oracle": [
+        {
+          "Shape": "ordinary",
+          "requests": [
+            "{\"query\":\"query($__fusion_1_id: ID!){fieldById(id: $__fusion_1_id){field}}\",\"variables\":{\"__fusion_1_id\":\"1\"}}"
+          ],
+          "expectedResults": 1,
+          "genuinelySuspended": false
+        },
+        {
+          "Shape": "async-ordinary",
+          "requests": [
+            "{\"query\":\"query($__fusion_1_id: ID!){fieldById(id: $__fusion_1_id){field}}\",\"variables\":{\"__fusion_1_id\":\"1\"}}"
+          ],
+          "expectedResults": 1,
+          "genuinelySuspended": true
+        },
+        {
+          "Shape": "async-alias2",
+          "requests": [
+            "{\"query\":\"query Op_alias_benchmark_Batch_60bf52c63719e74a($_0___fusion_1_id:ID!,$_1___fusion_1_id:ID!){_0_fieldById:fieldById(id:$_0___fusion_1_id){..._fusion_body_1} _1_fieldById:fieldById(id:$_1___fusion_1_id){..._fusion_body_1}} fragment _fusion_body_1 on Foo{field}\",\"variables\":{\"_0___fusion_1_id\":\"1\",\"_1___fusion_1_id\":\"1\"}}"
+          ],
+          "expectedResults": 2,
+          "genuinelySuspended": true
+        },
+        {
+          "Shape": "async-custom",
+          "requests": [
+            "{\"query\":\"query($__fusion_1_id: ID!){fieldById(id: $__fusion_1_id){field}}\",\"variables\":{\"__fusion_1_id\":\"1\"}}"
+          ],
+          "expectedResults": 1,
+          "genuinelySuspended": true
+        }
+      ],
+      "identity": {
+        "runtime": ".NET 10.0.12",
+        "IsServerGC": true,
+        "gcConfiguration": {
+          "ServerGC": true,
+          "ConcurrentGC": true,
+          "RetainVM": false,
+          "NoAffinitize": false,
+          "GCCpuGroup": false,
+          "GCLargePages": false,
+          "LOHThreshold": 85000,
+          "HeapCount": 4,
+          "MaxHeapCount": 0,
+          "GCHeapAffinitizeMask": 0,
+          "GCHeapAffinitizeRanges": "",
+          "GCHighMemPercent": 90,
+          "GCGen0MaxBudget": 209715200,
+          "GCHeapHardLimit": 0,
+          "GCHeapHardLimitPercent": 0,
+          "GCRegionRange": 274877906944,
+          "GCRegionSize": 0,
+          "UOHWaitBGCSizeIncPercent": 200,
+          "GCHeapHardLimitSOH": 0,
+          "GCHeapHardLimitLOH": 0,
+          "GCHeapHardLimitPOH": 0,
+          "GCHeapHardLimitSOHPercent": 0,
+          "GCHeapHardLimitLOHPercent": 0,
+          "GCHeapHardLimitPOHPercent": 0,
+          "GCConserveMem": 0,
+          "GCName": "",
+          "GCPath": "",
+          "GCDynamicAdaptationMode": 1,
+          "GCDTargetTCP": 2,
+          "GCDGen0GrowthPercent": 100,
+          "GCDGen0GrowthMinFactor": 100,
+          "GCDGen0GrowthMaxFactor": 10000
+        },
+        "executionPath": "/workspaces/platform-1/perf/fusion-apollo-shared-variable-slots-20261017b/frozen-bdn/C15/HotChocolate.Fusion.Execution.dll",
+        "executionDllSha256": "6a81410c3e046d87951316f28aa38ef4f43ed1268e06e052665b2b7c1e548f0b"
+      }
+    },
+    {
+      "arm": "C15",
+      "mode": "verify-fixed",
+      "command": [
+        "taskset",
+        "-c",
+        "2,3,10,11",
+        "dotnet",
+        "/workspaces/platform-1/perf/fusion-apollo-shared-variable-slots-20261017b/frozen-bdn/C15/HotChocolate.Fusion.Execution.Benchmarks.dll",
+        "verify-fixed",
+        "/workspaces/platform-1/.worktrees/fusion-apollo-shared-variables-20261017b/performance/fusion-apollo-shared-variables-20261017b/results/joint-preflight/C15-verify-fixed"
+      ],
+      "exitCode": 0,
+      "oracle": [
+        {
+          "Shape": "ordinary",
+          "requests": [
+            "{\"query\":\"query($__fusion_1_id: ID!){fieldById(id: $__fusion_1_id){field}}\",\"variables\":{\"__fusion_1_id\":\"1\"}}"
+          ],
+          "expectedResults": 1,
+          "genuinelySuspended": false
+        },
+        {
+          "Shape": "async-ordinary",
+          "requests": [
+            "{\"query\":\"query($__fusion_1_id: ID!){fieldById(id: $__fusion_1_id){field}}\",\"variables\":{\"__fusion_1_id\":\"1\"}}"
+          ],
+          "expectedResults": 1,
+          "genuinelySuspended": true
+        },
+        {
+          "Shape": "async-alias2",
+          "requests": [
+            "{\"query\":\"query Op_alias_benchmark_Batch_60bf52c63719e74a($_0___fusion_1_id:ID!,$_1___fusion_1_id:ID!){_0_fieldById:fieldById(id:$_0___fusion_1_id){..._fusion_body_1} _1_fieldById:fieldById(id:$_1___fusion_1_id){..._fusion_body_1}} fragment _fusion_body_1 on Foo{field}\",\"variables\":{\"_0___fusion_1_id\":\"1\",\"_1___fusion_1_id\":\"1\"}}"
+          ],
+          "expectedResults": 2,
+          "genuinelySuspended": true
+        },
+        {
+          "Shape": "async-custom",
+          "requests": [
+            "{\"query\":\"query($__fusion_1_id: ID!){fieldById(id: $__fusion_1_id){field}}\",\"variables\":{\"__fusion_1_id\":\"1\"}}"
+          ],
+          "expectedResults": 1,
+          "genuinelySuspended": true
+        }
+      ],
+      "identity": {
+        "runtime": ".NET 10.0.12",
+        "IsServerGC": true,
+        "gcConfiguration": {
+          "ServerGC": true,
+          "ConcurrentGC": true,
+          "RetainVM": false,
+          "NoAffinitize": false,
+          "GCCpuGroup": false,
+          "GCLargePages": false,
+          "LOHThreshold": 85000,
+          "HeapCount": 4,
+          "MaxHeapCount": 0,
+          "GCHeapAffinitizeMask": 0,
+          "GCHeapAffinitizeRanges": "",
+          "GCHighMemPercent": 90,
+          "GCGen0MaxBudget": 209715200,
+          "GCHeapHardLimit": 0,
+          "GCHeapHardLimitPercent": 0,
+          "GCRegionRange": 274877906944,
+          "GCRegionSize": 0,
+          "UOHWaitBGCSizeIncPercent": 200,
+          "GCHeapHardLimitSOH": 0,
+          "GCHeapHardLimitLOH": 0,
+          "GCHeapHardLimitPOH": 0,
+          "GCHeapHardLimitSOHPercent": 0,
+          "GCHeapHardLimitLOHPercent": 0,
+          "GCHeapHardLimitPOHPercent": 0,
+          "GCConserveMem": 0,
+          "GCName": "",
+          "GCPath": "",
+          "GCDynamicAdaptationMode": 0,
+          "GCDTargetTCP": 0,
+          "GCDGen0GrowthPercent": 0,
+          "GCDGen0GrowthMinFactor": 0,
+          "GCDGen0GrowthMaxFactor": 0
+        },
+        "executionPath": "/workspaces/platform-1/perf/fusion-apollo-shared-variable-slots-20261017b/frozen-bdn/C15/HotChocolate.Fusion.Execution.dll",
+        "executionDllSha256": "6a81410c3e046d87951316f28aa38ef4f43ed1268e06e052665b2b7c1e548f0b"
+      }
+    }
+  ],
+  "operations": 24,
+  "warmupOrMeasurement": false
+}

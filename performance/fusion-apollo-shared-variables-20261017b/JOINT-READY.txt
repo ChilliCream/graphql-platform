@@ -1,0 +1,30 @@
+C14/C15 independent-engine, common asynchronous production-client first gate
+
+Ready for reviewed exclusive scheduling. No measurement executed by this preparation.
+
+Exact existing C12 helper source, binary and runtime dependencies are reused without rebuilding. All helper source files match. Each of three arms has 126 files; only HotChocolate.Fusion.Execution.dll and .pdb differ. Each candidate independently starts at 43a8dca2.
+
+Frozen: /workspaces/platform-1/perf/fusion-apollo-shared-variable-slots-20261017b/frozen-bdn
+Manifest SHA256: c9e158451b35de4914978ab3676188c5f4f109e5a2b9fab11ef2e34138c5bb03
+Runner SHA256: b0c42956b127dd9a913e8dbf66c02c7c1f1aebece88c0eeed606150bbdc216da
+Baseline engine: 9c436477e63d9c7f5c8668dcd75fec9771f500a5e71b14a1f02dd0bcf8fe6c5b
+C14 engine: ead833aee16aeb90571c48857d0d2f32de804a8ed6aa47fb28242d96f1aa97d3
+C15 engine: 6a81410c3e046d87951316f28aa38ef4f43ed1268e06e052665b2b7c1e548f0b
+C14 source: 55a4b0de46450a964808ba01bfcb6682c2ddcef6
+C15 source: 5cff406be131b16e20c013ab79b89d988e9eb2cd
+
+Strict preflight passed: three arms, default and fixed-policy checks, 24 correctness operations total, no warmup/measurement loops or allocation output. All four complete request/result oracles agree. Setup explicitly proves HTTP suspension with a controlled gate; measured asynchronous cases use Task.Yield, natural awaits and full result disposal. It does not guarantee every higher-level await suspends. C14 has 41 passing focused tests, C15 has 31; independent ownership reviews pass.
+
+Exactly 11 processes, no retries:
+  native BDN default policy: B,C14,C15,B,C15,C14,B
+  calibrated fixed policy: B,C14,C15,B
+Four unchanged cases: ordinary, async-ordinary, async-alias2, async-custom. Each gets three-second preparation warmup, then native BDN three warmup and twelve actual iterations of 1000 complete operations, no outlier removal, native MemoryDiagnoser. Allocation has three 1000-operation blocks per case, four heaps/mode0, exact before/after process/thread known calibration, zero-GC, successful NoGC-end, completed-operation and positive-total guards. Any failure stops subsequent launches and preserves completed native results.
+
+Estimated elapsed 150–200 seconds. Deadline285 seconds plus at most10 seconds owned cleanup, total under300 seconds; each child at most60 seconds. Observer CPUs0,8 and target CPUs2,3,10,11. Runtime .NET10.0.12/serverGC is asserted. No VU, profiler or process-CPU claim.
+
+Only after explicit exclusive grant and quiet acknowledgements:
+flock -x -o /workspaces/platform-1/perf/fusion-common-path.lock taskset -c 0,8 env DOTNET_LOCAL_DEV=1 DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK=1 python3 /workspaces/platform-1/.worktrees/fusion-apollo-shared-variables-20261017b/performance/fusion-apollo-shared-variables-20261017b/run_bdn.py
+
+C14 targets one32-byte empty list per async-alias2 operation. C15 targets one40-byte two-result array there, net of cache lease and async-state costs; native memory must establish actual savings. The other three cases are unaffected controls. Bigger result-cache fallback is correctness-tested, outside this timing scope. Native memory/GC remain raw and may include background allocation; zero, clamped or inconsistent outputs cannot prove savings. Fixed-policy allocation is separate corroboration only.
+
+Acceptance requires consistent worthwhile allocation savings without unresolved meaningful elapsed cost against both adjacent controls and full distributions. Repeated greater-than5% adverse comparisons are a rejection screen, not permission to ignore another unresolved adverse pattern. No trimming or favorable control selection. Inconclusive net benefit stops the candidate without equivalent reruns or VU promotion.
