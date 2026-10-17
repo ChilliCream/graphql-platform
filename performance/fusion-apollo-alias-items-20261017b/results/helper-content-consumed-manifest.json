@@ -1,0 +1,7 @@
+{
+  "helperSha256": "29c6e58a6f5204b6b41249f8b97ea89cac62589c289085991c0a9e99ab2b1582",
+  "engineSha256": "d6ff7da5e203adeebb888c02c5b37965b3bac749ba8b359523f9d78d85cb1180",
+  "operationsPerCheck": 3,
+  "measurementLoopsExecuted": false,
+  "contentConsumedInMeasuredHandler": true
+}

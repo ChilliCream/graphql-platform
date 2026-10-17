@@ -250,6 +250,10 @@ public class AliasBenchmarks
             {
                 Bodies.Add(await request.Content!.ReadAsStringAsync(cancellationToken));
             }
+            else
+            {
+                await request.Content!.CopyToAsync(Stream.Null, cancellationToken);
+            }
             var content = new ByteArrayContent(_response);
             content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
             return new HttpResponseMessage(HttpStatusCode.OK) { Content = content };
