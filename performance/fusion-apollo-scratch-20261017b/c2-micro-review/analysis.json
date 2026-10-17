@@ -1,0 +1,4111 @@
+{
+  "inputs": {
+    "01-allocation-baseline.json": "a3300eae85e15949113e602e0796b487d4f1636ac9ed97e8250a5e072af725ad",
+    "02-allocation-candidate.json": "0184e4c0b640e995795ada07219c2d242d194377a71bafa499338cd433c97b9f",
+    "03-allocation-baseline.json": "5c0f1f6cd145bffa2566320d4fb4a6f98996d332f6312e35917d4027f0a0aa72",
+    "04-timing-baseline.json": "fce036ede5b37422ac7da407535d5f6af300bbe3c5cad96b7daf9134e5620bc6",
+    "05-timing-candidate.json": "8190c138c96c6478968d6e0c4ac3b92a198b0e5741df721d7786bc23f1786411",
+    "06-timing-baseline.json": "c9c8dbe5e9233a432e34d37435148b507e868b0754ce5135349838fab61eedfd",
+    "07-timing-candidate.json": "da3a107682d24755c5c909265eeebd6f85abab5081c02890dfd5f088a22085ea",
+    "08-timing-baseline.json": "bbfdae7d66418370a0090fee9ec5baf1238cb052a5e10c9d7cb945236e71f4e8"
+  },
+  "validAllocationBlocks": 150,
+  "timingBlocks": 600,
+  "allocationPolicy": "Four fixed server GC heaps, NoGC, complete process-scoped request/disposal, calibration and raw idle observations.",
+  "timingPolicy": "Default dynamic server GC, natural async request/disposal, no allocation instrumentation, all twelve blocks retained.",
+  "allocation": {
+    "ordinary": [
+      {
+        "label": "01-allocation-baseline",
+        "bytesPerOperation": [
+          25680.0,
+          25680.0,
+          25680.0,
+          25680.0,
+          25680.0
+        ],
+        "median": 25680.0,
+        "mean": 25680.0,
+        "min": 25680.0,
+        "max": 25680.0,
+        "targetMilliseconds": [
+          13.6048,
+          15.5865,
+          12.1934,
+          14.0078,
+          16.5432
+        ],
+        "idleObservations": [
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.1056
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0932
+            }
+          },
+          {
+            "before": {
+              "Bytes": 3312,
+              "Milliseconds": 52.6873
+            },
+            "after": {
+              "Bytes": 48,
+              "Milliseconds": 54.7248
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 50.9227
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 51.2293
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.1008
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 52.2937
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0703
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 52.7355
+            }
+          }
+        ]
+      },
+      {
+        "label": "02-allocation-candidate",
+        "bytesPerOperation": [
+          25680.0,
+          25680.0,
+          25680.0,
+          25680.0,
+          25680.0
+        ],
+        "median": 25680.0,
+        "mean": 25680.0,
+        "min": 25680.0,
+        "max": 25680.0,
+        "targetMilliseconds": [
+          12.974,
+          14.7364,
+          14.2426,
+          14.3887,
+          16.8706
+        ],
+        "idleObservations": [
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.1172
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 53.6237
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.098
+            },
+            "after": {
+              "Bytes": 48,
+              "Milliseconds": 55.0798
+            }
+          },
+          {
+            "before": {
+              "Bytes": 1632,
+              "Milliseconds": 55.0952
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0825
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0483
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 53.8685
+            }
+          },
+          {
+            "before": {
+              "Bytes": 3024,
+              "Milliseconds": 55.1098
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 51.9335
+            }
+          }
+        ]
+      },
+      {
+        "label": "03-allocation-baseline",
+        "bytesPerOperation": [
+          25680.0,
+          25680.0,
+          25680.048,
+          25680.0,
+          25680.0
+        ],
+        "median": 25680.0,
+        "mean": 25680.0096,
+        "min": 25680.0,
+        "max": 25680.048,
+        "targetMilliseconds": [
+          14.4244,
+          13.8482,
+          14.3611,
+          13.3732,
+          13.2513
+        ],
+        "idleObservations": [
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 50.6932
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 51.9903
+            }
+          },
+          {
+            "before": {
+              "Bytes": 2736,
+              "Milliseconds": 55.1275
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 50.2717
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 50.1839
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 51.7515
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 52.5564
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 53.6369
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.1249
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 51.5625
+            }
+          }
+        ]
+      }
+    ],
+    "unique1": [
+      {
+        "label": "01-allocation-baseline",
+        "bytesPerOperation": [
+          28560.0,
+          28565.768,
+          28560.0,
+          28560.0,
+          28560.0
+        ],
+        "median": 28560.0,
+        "mean": 28561.1536,
+        "min": 28560.0,
+        "max": 28565.768,
+        "targetMilliseconds": [
+          22.8293,
+          19.6913,
+          21.7089,
+          21.1428,
+          21.324
+        ],
+        "idleObservations": [
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 52.859
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1158
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.096
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 53.832
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0993
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 51.3574
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 51.0211
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 52.3258
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.1125
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 52.3088
+            }
+          }
+        ]
+      },
+      {
+        "label": "02-allocation-candidate",
+        "bytesPerOperation": [
+          28495.512,
+          28496.0,
+          28494.504,
+          28496.0,
+          28496.0
+        ],
+        "median": 28496.0,
+        "mean": 28495.6032,
+        "min": 28494.504,
+        "max": 28496.0,
+        "targetMilliseconds": [
+          17.9685,
+          18.1162,
+          21.2295,
+          21.076,
+          20.5045
+        ],
+        "idleObservations": [
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.1068
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 51.1238
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 50.8922
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0998
+            }
+          },
+          {
+            "before": {
+              "Bytes": 4656,
+              "Milliseconds": 55.0715
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 50.9212
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.1016
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 51.9641
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 50.5317
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0961
+            }
+          }
+        ]
+      },
+      {
+        "label": "03-allocation-baseline",
+        "bytesPerOperation": [
+          28560.0,
+          28560.0,
+          28566.76,
+          28560.28,
+          28560.0
+        ],
+        "median": 28560.0,
+        "mean": 28561.408,
+        "min": 28560.0,
+        "max": 28566.76,
+        "targetMilliseconds": [
+          19.1595,
+          23.9288,
+          26.9556,
+          23.7382,
+          27.1204
+        ],
+        "idleObservations": [
+          {
+            "before": {
+              "Bytes": 4776,
+              "Milliseconds": 51.9674
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 50.189
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 52.3806
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1402
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0954
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 51.8236
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0975
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0949
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0848
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.072
+            }
+          }
+        ]
+      }
+    ],
+    "unique5": [
+      {
+        "label": "01-allocation-baseline",
+        "bytesPerOperation": [
+          28816.0,
+          28815.512,
+          28816.0,
+          28816.0,
+          28816.0
+        ],
+        "median": 28816.0,
+        "mean": 28815.9024,
+        "min": 28815.512,
+        "max": 28816.0,
+        "targetMilliseconds": [
+          25.1277,
+          22.4554,
+          24.357,
+          17.751,
+          19.8097
+        ],
+        "idleObservations": [
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 52.8236
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1143
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0978
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 53.8288
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.1018
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1109
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 52.1178
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 50.7629
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 50.1244
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1445
+            }
+          }
+        ]
+      },
+      {
+        "label": "02-allocation-candidate",
+        "bytesPerOperation": [
+          28592.0,
+          28592.0,
+          28592.0,
+          28592.0,
+          28592.0
+        ],
+        "median": 28592.0,
+        "mean": 28592.0,
+        "min": 28592.0,
+        "max": 28592.0,
+        "targetMilliseconds": [
+          25.0124,
+          20.7194,
+          19.2064,
+          20.9161,
+          20.3857
+        ],
+        "idleObservations": [
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 51.5556
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 51.1384
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0763
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1045
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.1078
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0735
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0958
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0926
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 50.3749
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 51.4985
+            }
+          }
+        ]
+      },
+      {
+        "label": "03-allocation-baseline",
+        "bytesPerOperation": [
+          28816.0,
+          28816.0,
+          28814.368,
+          28816.0,
+          28816.0
+        ],
+        "median": 28816.0,
+        "mean": 28815.6736,
+        "min": 28814.368,
+        "max": 28816.0,
+        "targetMilliseconds": [
+          23.2757,
+          23.4698,
+          23.8596,
+          24.5616,
+          24.4728
+        ],
+        "idleObservations": [
+          {
+            "before": {
+              "Bytes": 4656,
+              "Milliseconds": 51.5028
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1105
+            }
+          },
+          {
+            "before": {
+              "Bytes": 4656,
+              "Milliseconds": 54.6155
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 54.6465
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.1121
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 54.7916
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.1258
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 53.6184
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0963
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 54.6029
+            }
+          }
+        ]
+      }
+    ],
+    "unique6": [
+      {
+        "label": "01-allocation-baseline",
+        "bytesPerOperation": [
+          28880.0,
+          28880.0,
+          28880.0,
+          28880.0,
+          28880.0
+        ],
+        "median": 28880.0,
+        "mean": 28880.0,
+        "min": 28880.0,
+        "max": 28880.0,
+        "targetMilliseconds": [
+          24.5165,
+          22.8668,
+          21.415,
+          26.8436,
+          21.0891
+        ],
+        "idleObservations": [
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 50.6855
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1062
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 51.245
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1043
+            }
+          },
+          {
+            "before": {
+              "Bytes": 4656,
+              "Milliseconds": 50.5635
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 52.6723
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.1011
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1211
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 53.148
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 52.1754
+            }
+          }
+        ]
+      },
+      {
+        "label": "02-allocation-candidate",
+        "bytesPerOperation": [
+          28616.0,
+          28614.712,
+          28616.0,
+          28616.0,
+          28616.0
+        ],
+        "median": 28616.0,
+        "mean": 28615.7424,
+        "min": 28614.712,
+        "max": 28616.0,
+        "targetMilliseconds": [
+          23.8052,
+          22.6942,
+          21.4502,
+          19.8039,
+          24.1419
+        ],
+        "idleObservations": [
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 50.3634
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0911
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.1126
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0766
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 50.9894
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.098
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0988
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1008
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0954
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0881
+            }
+          }
+        ]
+      },
+      {
+        "label": "03-allocation-baseline",
+        "bytesPerOperation": [
+          28880.0,
+          28880.0,
+          28880.0,
+          28880.0,
+          28879.76
+        ],
+        "median": 28880.0,
+        "mean": 28879.952,
+        "min": 28879.76,
+        "max": 28880.0,
+        "targetMilliseconds": [
+          25.2944,
+          25.2798,
+          22.1849,
+          27.7519,
+          27.7668
+        ],
+        "idleObservations": [
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 51.2355
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.099
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0982
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0999
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0938
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1397
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 53.6997
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0982
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 54.389
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1166
+            }
+          }
+        ]
+      }
+    ],
+    "unique9": [
+      {
+        "label": "01-allocation-baseline",
+        "bytesPerOperation": [
+          29072.0,
+          29072.0,
+          29072.0,
+          29072.0,
+          29072.0
+        ],
+        "median": 29072.0,
+        "mean": 29072.0,
+        "min": 29072.0,
+        "max": 29072.0,
+        "targetMilliseconds": [
+          25.8175,
+          23.1592,
+          25.4866,
+          22.3024,
+          22.4902
+        ],
+        "idleObservations": [
+          {
+            "before": {
+              "Bytes": 3648,
+              "Milliseconds": 53.5662
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 52.9869
+            }
+          },
+          {
+            "before": {
+              "Bytes": 3984,
+              "Milliseconds": 53.2615
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 52.4422
+            }
+          },
+          {
+            "before": {
+              "Bytes": 1728,
+              "Milliseconds": 55.1382
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0972
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 52.2756
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 50.4241
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 51.1773
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 54.9993
+            }
+          }
+        ]
+      },
+      {
+        "label": "02-allocation-candidate",
+        "bytesPerOperation": [
+          28687.872,
+          28688.0,
+          28688.0,
+          28688.0,
+          28686.368
+        ],
+        "median": 28688.0,
+        "mean": 28687.648,
+        "min": 28686.368,
+        "max": 28688.0,
+        "targetMilliseconds": [
+          20.2553,
+          20.746,
+          22.1496,
+          20.8762,
+          21.4597
+        ],
+        "idleObservations": [
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 51.2105
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1021
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 50.7624
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1235
+            }
+          },
+          {
+            "before": {
+              "Bytes": 3024,
+              "Milliseconds": 55.1383
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1303
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.1391
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 54.9984
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 53.2443
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0927
+            }
+          }
+        ]
+      },
+      {
+        "label": "03-allocation-baseline",
+        "bytesPerOperation": [
+          29072.0,
+          29072.0,
+          29072.0,
+          29072.0,
+          29072.0
+        ],
+        "median": 29072.0,
+        "mean": 29072.0,
+        "min": 29072.0,
+        "max": 29072.0,
+        "targetMilliseconds": [
+          22.5403,
+          22.4646,
+          27.2099,
+          23.3072,
+          26.9462
+        ],
+        "idleObservations": [
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 50.4453
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 50.2928
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.1083
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 54.5265
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.1609
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1252
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.1007
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 54.4303
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 50.0954
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 54.6615
+            }
+          }
+        ]
+      }
+    ],
+    "duplicate96-to1": [
+      {
+        "label": "01-allocation-baseline",
+        "bytesPerOperation": [
+          29344.0,
+          29344.0,
+          29344.0,
+          29344.0,
+          29344.0
+        ],
+        "median": 29344.0,
+        "mean": 29344.0,
+        "min": 29344.0,
+        "max": 29344.0,
+        "targetMilliseconds": [
+          58.069,
+          58.4586,
+          58.889,
+          58.3327,
+          55.5779
+        ],
+        "idleObservations": [
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 52.4753
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1008
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0976
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1073
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0967
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.134
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0985
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1113
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 52.5602
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1083
+            }
+          }
+        ]
+      },
+      {
+        "label": "02-allocation-candidate",
+        "bytesPerOperation": [
+          29280.0,
+          29280.0,
+          29293.256,
+          29280.0,
+          29280.0
+        ],
+        "median": 29280.0,
+        "mean": 29282.6512,
+        "min": 29280.0,
+        "max": 29293.256,
+        "targetMilliseconds": [
+          54.9168,
+          58.0545,
+          55.4416,
+          56.8623,
+          57.3833
+        ],
+        "idleObservations": [
+          {
+            "before": {
+              "Bytes": 2736,
+              "Milliseconds": 50.0916
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0943
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0956
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 54.1788
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 50.126
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 52.7763
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.1075
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0957
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.108
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0973
+            }
+          }
+        ]
+      },
+      {
+        "label": "03-allocation-baseline",
+        "bytesPerOperation": [
+          29344.0,
+          29344.0,
+          29344.0,
+          29344.0,
+          29344.0
+        ],
+        "median": 29344.0,
+        "mean": 29344.0,
+        "min": 29344.0,
+        "max": 29344.0,
+        "targetMilliseconds": [
+          57.7869,
+          60.0788,
+          61.545,
+          60.1537,
+          54.9406
+        ],
+        "idleObservations": [
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0707
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1124
+            }
+          },
+          {
+            "before": {
+              "Bytes": 1632,
+              "Milliseconds": 52.2727
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0591
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 54.8833
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1021
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.1043
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1061
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.1162
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 50.2591
+            }
+          }
+        ]
+      }
+    ],
+    "mixed96-to6": [
+      {
+        "label": "01-allocation-baseline",
+        "bytesPerOperation": [
+          29624.0,
+          29624.0,
+          29624.0,
+          29624.0,
+          29624.0
+        ],
+        "median": 29624.0,
+        "mean": 29624.0,
+        "min": 29624.0,
+        "max": 29624.0,
+        "targetMilliseconds": [
+          59.2666,
+          50.5241,
+          63.2669,
+          59.6866,
+          54.5804
+        ],
+        "idleObservations": [
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0926
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1152
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 51.8603
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0968
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 50.1976
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0792
+            }
+          },
+          {
+            "before": {
+              "Bytes": 4992,
+              "Milliseconds": 52.1616
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0727
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 53.8478
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.097
+            }
+          }
+        ]
+      },
+      {
+        "label": "02-allocation-candidate",
+        "bytesPerOperation": [
+          29360.0,
+          29360.0,
+          29360.0,
+          29360.0,
+          29360.0
+        ],
+        "median": 29360.0,
+        "mean": 29360.0,
+        "min": 29360.0,
+        "max": 29360.0,
+        "targetMilliseconds": [
+          56.5097,
+          57.5482,
+          58.9754,
+          58.7809,
+          58.056
+        ],
+        "idleObservations": [
+          {
+            "before": {
+              "Bytes": 4992,
+              "Milliseconds": 54.0483
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.102
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0955
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 53.1189
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0925
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 51.793
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0952
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0676
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.099
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0965
+            }
+          }
+        ]
+      },
+      {
+        "label": "03-allocation-baseline",
+        "bytesPerOperation": [
+          29624.0,
+          29624.0,
+          29624.0,
+          29624.0,
+          29624.0
+        ],
+        "median": 29624.0,
+        "mean": 29624.0,
+        "min": 29624.0,
+        "max": 29624.0,
+        "targetMilliseconds": [
+          63.4429,
+          61.6164,
+          60.9531,
+          64.5128,
+          67.359
+        ],
+        "idleObservations": [
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.118
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 53.1659
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 52.8629
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1252
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 54.6406
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1961
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 52.1166
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1027
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 52.1382
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 51.0152
+            }
+          }
+        ]
+      }
+    ],
+    "batch9": [
+      {
+        "label": "01-allocation-baseline",
+        "bytesPerOperation": [
+          33520.0,
+          33520.0,
+          33520.0,
+          33520.0,
+          33520.0
+        ],
+        "median": 33520.0,
+        "mean": 33520.0,
+        "min": 33520.0,
+        "max": 33520.0,
+        "targetMilliseconds": [
+          27.3184,
+          33.3765,
+          32.2651,
+          28.4708,
+          29.2585
+        ],
+        "idleObservations": [
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 51.4391
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 53.4037
+            }
+          },
+          {
+            "before": {
+              "Bytes": 6000,
+              "Milliseconds": 55.0995
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 50.8478
+            }
+          },
+          {
+            "before": {
+              "Bytes": 672,
+              "Milliseconds": 55.1028
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0947
+            }
+          },
+          {
+            "before": {
+              "Bytes": 6000,
+              "Milliseconds": 55.0994
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 51.0508
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.1028
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 52.951
+            }
+          }
+        ]
+      },
+      {
+        "label": "02-allocation-candidate",
+        "bytesPerOperation": [
+          32752.0,
+          32752.0,
+          32752.0,
+          32752.0,
+          32752.0
+        ],
+        "median": 32752.0,
+        "mean": 32752.0,
+        "min": 32752.0,
+        "max": 32752.0,
+        "targetMilliseconds": [
+          34.6104,
+          31.1021,
+          37.89,
+          40.6124,
+          30.0744
+        ],
+        "idleObservations": [
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0976
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 53.3376
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0954
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0977
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.1225
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 52.2778
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.1032
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0684
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 54.8773
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1163
+            }
+          }
+        ]
+      },
+      {
+        "label": "03-allocation-baseline",
+        "bytesPerOperation": [
+          33520.0,
+          33520.0,
+          33520.0,
+          33520.0,
+          33520.0
+        ],
+        "median": 33520.0,
+        "mean": 33520.0,
+        "min": 33520.0,
+        "max": 33520.0,
+        "targetMilliseconds": [
+          36.9996,
+          36.0633,
+          36.9909,
+          33.3275,
+          38.075
+        ],
+        "idleObservations": [
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 50.5402
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 50.2333
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.1015
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0939
+            }
+          },
+          {
+            "before": {
+              "Bytes": 6000,
+              "Milliseconds": 55.1124
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0988
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.1014
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0676
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.1012
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.095
+            }
+          }
+        ]
+      }
+    ],
+    "transport9": [
+      {
+        "label": "01-allocation-baseline",
+        "bytesPerOperation": [
+          32656.0,
+          32656.0,
+          32656.0,
+          32656.0,
+          32656.0
+        ],
+        "median": 32656.0,
+        "mean": 32656.0,
+        "min": 32656.0,
+        "max": 32656.0,
+        "targetMilliseconds": [
+          33.9372,
+          34.9856,
+          27.4577,
+          26.823,
+          26.8112
+        ],
+        "idleObservations": [
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.1072
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 54.5955
+            }
+          },
+          {
+            "before": {
+              "Bytes": 6000,
+              "Milliseconds": 55.0989
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 51.7434
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 51.0094
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0966
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0668
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 53.8377
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 51.7496
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0964
+            }
+          }
+        ]
+      },
+      {
+        "label": "02-allocation-candidate",
+        "bytesPerOperation": [
+          32656.0,
+          32656.0,
+          32656.0,
+          32656.0,
+          32656.0
+        ],
+        "median": 32656.0,
+        "mean": 32656.0,
+        "min": 32656.0,
+        "max": 32656.0,
+        "targetMilliseconds": [
+          34.1646,
+          33.6434,
+          26.7802,
+          27.3728,
+          33.1057
+        ],
+        "idleObservations": [
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 51.3808
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 50.5624
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.1011
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0967
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 54.9492
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 51.9694
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0747
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1001
+            }
+          },
+          {
+            "before": {
+              "Bytes": 5328,
+              "Milliseconds": 55.1102
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 54.6266
+            }
+          }
+        ]
+      },
+      {
+        "label": "03-allocation-baseline",
+        "bytesPerOperation": [
+          32656.0,
+          32654.832,
+          32656.0,
+          32656.0,
+          32656.0
+        ],
+        "median": 32656.0,
+        "mean": 32655.7664,
+        "min": 32654.832,
+        "max": 32656.0,
+        "targetMilliseconds": [
+          35.5097,
+          35.497,
+          33.1122,
+          27.9769,
+          35.6064
+        ],
+        "idleObservations": [
+          {
+            "before": {
+              "Bytes": 6000,
+              "Milliseconds": 53.8532
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1548
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.097
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.094
+            }
+          },
+          {
+            "before": {
+              "Bytes": 2976,
+              "Milliseconds": 55.1038
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0976
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.094
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 53.3799
+            }
+          },
+          {
+            "before": {
+              "Bytes": 4992,
+              "Milliseconds": 55.1092
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0994
+            }
+          }
+        ]
+      }
+    ],
+    "batch-fallback9": [
+      {
+        "label": "01-allocation-baseline",
+        "bytesPerOperation": [
+          36199.76,
+          36200.0,
+          36200.0,
+          36200.0,
+          36200.0
+        ],
+        "median": 36200.0,
+        "mean": 36199.952,
+        "min": 36199.76,
+        "max": 36200.0,
+        "targetMilliseconds": [
+          37.2469,
+          28.9504,
+          27.3939,
+          29.7278,
+          28.2798
+        ],
+        "idleObservations": [
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 50.3828
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1199
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 52.9056
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1108
+            }
+          },
+          {
+            "before": {
+              "Bytes": 6336,
+              "Milliseconds": 55.098
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 50.5142
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0983
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 52.9101
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0991
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 52.3539
+            }
+          }
+        ]
+      },
+      {
+        "label": "02-allocation-candidate",
+        "bytesPerOperation": [
+          35816.0,
+          35816.0,
+          35816.0,
+          35816.0,
+          35816.0
+        ],
+        "median": 35816.0,
+        "mean": 35816.0,
+        "min": 35816.0,
+        "max": 35816.0,
+        "targetMilliseconds": [
+          35.2506,
+          28.048,
+          29.2106,
+          29.3983,
+          30.8203
+        ],
+        "idleObservations": [
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 54.4002
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 54.0052
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 54.5402
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.0967
+            }
+          },
+          {
+            "before": {
+              "Bytes": 6000,
+              "Milliseconds": 52.9963
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1192
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.1051
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1063
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.1011
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 52.9235
+            }
+          }
+        ]
+      },
+      {
+        "label": "03-allocation-baseline",
+        "bytesPerOperation": [
+          36200.0,
+          36200.0,
+          36200.0,
+          36200.0,
+          36200.0
+        ],
+        "median": 36200.0,
+        "mean": 36200.0,
+        "min": 36200.0,
+        "max": 36200.0,
+        "targetMilliseconds": [
+          33.5256,
+          32.8863,
+          35.6195,
+          28.0653,
+          37.5197
+        ],
+        "idleObservations": [
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0722
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1003
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0942
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 55.1007
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0937
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 52.3661
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.0965
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 50.9377
+            }
+          },
+          {
+            "before": {
+              "Bytes": 0,
+              "Milliseconds": 55.095
+            },
+            "after": {
+              "Bytes": 0,
+              "Milliseconds": 54.717
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "allocationComparisons": {
+    "ordinary": {
+      "expectedArraySaving": 0,
+      "medianSavingVersusBefore": 0.0,
+      "medianSavingVersusAfter": 0.0,
+      "allBlockPairSavingRange": [
+        0.0,
+        0.04799999999886495
+      ]
+    },
+    "unique1": {
+      "expectedArraySaving": 64,
+      "medianSavingVersusBefore": 64.0,
+      "medianSavingVersusAfter": 64.0,
+      "allBlockPairSavingRange": [
+        64.0,
+        72.25599999999758
+      ]
+    },
+    "unique5": {
+      "expectedArraySaving": 224,
+      "medianSavingVersusBefore": 224.0,
+      "medianSavingVersusAfter": 224.0,
+      "allBlockPairSavingRange": [
+        222.36799999999857,
+        224.0
+      ]
+    },
+    "unique6": {
+      "expectedArraySaving": 264,
+      "medianSavingVersusBefore": 264.0,
+      "medianSavingVersusAfter": 264.0,
+      "allBlockPairSavingRange": [
+        263.7599999999984,
+        265.28800000000047
+      ]
+    },
+    "unique9": {
+      "expectedArraySaving": 384,
+      "medianSavingVersusBefore": 384.0,
+      "medianSavingVersusAfter": 384.0,
+      "allBlockPairSavingRange": [
+        384.0,
+        385.6320000000014
+      ]
+    },
+    "duplicate96-to1": {
+      "expectedArraySaving": 64,
+      "medianSavingVersusBefore": 64.0,
+      "medianSavingVersusAfter": 64.0,
+      "allBlockPairSavingRange": [
+        50.74399999999878,
+        64.0
+      ]
+    },
+    "mixed96-to6": {
+      "expectedArraySaving": 264,
+      "medianSavingVersusBefore": 264.0,
+      "medianSavingVersusAfter": 264.0,
+      "allBlockPairSavingRange": [
+        264.0,
+        264.0
+      ]
+    },
+    "batch9": {
+      "expectedArraySaving": 768,
+      "medianSavingVersusBefore": 768.0,
+      "medianSavingVersusAfter": 768.0,
+      "allBlockPairSavingRange": [
+        768.0,
+        768.0
+      ]
+    },
+    "transport9": {
+      "expectedArraySaving": 0,
+      "medianSavingVersusBefore": 0.0,
+      "medianSavingVersusAfter": 0.0,
+      "allBlockPairSavingRange": [
+        -1.1680000000014843,
+        0.0
+      ]
+    },
+    "batch-fallback9": {
+      "expectedArraySaving": 384,
+      "medianSavingVersusBefore": 384.0,
+      "medianSavingVersusAfter": 384.0,
+      "allBlockPairSavingRange": [
+        383.76000000000204,
+        384.0
+      ]
+    }
+  },
+  "timing": {
+    "ordinary": [
+      {
+        "label": "04-timing-baseline",
+        "nanosecondsPerOperation": [
+          11564.5488,
+          11555.0238,
+          11884.0272,
+          11749.2092,
+          11683.875,
+          11552.8656,
+          11653.9498,
+          11767.9094,
+          11598.1494,
+          11759.2926,
+          11554.382,
+          11561.8738
+        ],
+        "mean": 11657.092216666666,
+        "median": 11626.0496,
+        "min": 11552.8656,
+        "max": 11884.0272,
+        "stdev": 111.34435055583894,
+        "firstThreeMean": 11667.866600000001,
+        "lastThreeMean": 11625.1828,
+        "lastThreeOverFirstThree": 0.9963417648261422,
+        "gcCounts": [
+          302,
+          0,
+          0
+        ],
+        "warmIterations": 194591
+      },
+      {
+        "label": "05-timing-candidate",
+        "nanosecondsPerOperation": [
+          11874.6772,
+          11872.3772,
+          11867.802,
+          11799.018,
+          11775.5262,
+          11828.8266,
+          11888.144,
+          11793.868,
+          11754.4592,
+          11844.052,
+          11862.402,
+          11794.8846
+        ],
+        "mean": 11829.669750000001,
+        "median": 11836.4393,
+        "min": 11754.4592,
+        "max": 11888.144,
+        "stdev": 44.743019801701685,
+        "firstThreeMean": 11871.6188,
+        "lastThreeMean": 11833.779533333332,
+        "lastThreeOverFirstThree": 0.9968126278897477,
+        "gcCounts": [
+          302,
+          0,
+          0
+        ],
+        "warmIterations": 188067
+      },
+      {
+        "label": "06-timing-baseline",
+        "nanosecondsPerOperation": [
+          11745.6194,
+          11793.2282,
+          11815.0366,
+          12160.1722,
+          11946.6376,
+          11886.0206,
+          12054.5132,
+          11974.996,
+          12002.4962,
+          11917.3706,
+          11870.362,
+          11872.2204
+        ],
+        "mean": 11919.889416666667,
+        "median": 11901.6956,
+        "min": 11745.6194,
+        "max": 12160.1722,
+        "stdev": 116.66635314092656,
+        "firstThreeMean": 11784.628066666666,
+        "lastThreeMean": 11886.651,
+        "lastThreeOverFirstThree": 1.0086572892038834,
+        "gcCounts": [
+          299,
+          0,
+          0
+        ],
+        "warmIterations": 194818
+      },
+      {
+        "label": "07-timing-candidate",
+        "nanosecondsPerOperation": [
+          11854.2284,
+          11885.0706,
+          11849.9702,
+          11846.1868,
+          12077.0634,
+          12020.963,
+          11949.1958,
+          11851.0868,
+          11866.9618,
+          11861.3036,
+          11921.704,
+          11830.995
+        ],
+        "mean": 11901.22745,
+        "median": 11864.132699999998,
+        "min": 11830.995,
+        "max": 12077.0634,
+        "stdev": 77.64522971052946,
+        "firstThreeMean": 11863.089733333332,
+        "lastThreeMean": 11871.3342,
+        "lastThreeOverFirstThree": 1.000694967909035,
+        "gcCounts": [
+          300,
+          0,
+          0
+        ],
+        "warmIterations": 190481
+      },
+      {
+        "label": "08-timing-baseline",
+        "nanosecondsPerOperation": [
+          11765.2446,
+          11884.812,
+          11842.37,
+          11892.5288,
+          11900.479,
+          11936.929,
+          12002.0628,
+          11841.0702,
+          11915.679,
+          11799.3282,
+          13137.2036,
+          12131.0886
+        ],
+        "mean": 12004.066316666667,
+        "median": 11896.5039,
+        "min": 11765.2446,
+        "max": 13137.2036,
+        "stdev": 369.4612783180936,
+        "firstThreeMean": 11830.808866666666,
+        "lastThreeMean": 12355.873466666666,
+        "lastThreeOverFirstThree": 1.044381124394577,
+        "gcCounts": [
+          302,
+          0,
+          0
+        ],
+        "warmIterations": 185454
+      }
+    ],
+    "unique1": [
+      {
+        "label": "04-timing-baseline",
+        "nanosecondsPerOperation": [
+          22435.8986,
+          16919.8062,
+          19990.4976,
+          21614.9898,
+          21430.8964,
+          16211.232,
+          16236.7574,
+          16169.1564,
+          16223.2738,
+          20092.832,
+          18370.9468,
+          17134.7836
+        ],
+        "mean": 18569.25588333333,
+        "median": 17752.8652,
+        "min": 16169.1564,
+        "max": 22435.8986,
+        "stdev": 2409.078971364125,
+        "firstThreeMean": 19782.067466666667,
+        "lastThreeMean": 18532.854133333334,
+        "lastThreeOverFirstThree": 0.9368512247044809,
+        "gcCounts": [
+          225,
+          0,
+          0
+        ],
+        "warmIterations": 136489
+      },
+      {
+        "label": "05-timing-candidate",
+        "nanosecondsPerOperation": [
+          20363.0096,
+          21336.4286,
+          17128.6668,
+          22814.311,
+          18227.1702,
+          22514.5244,
+          21151.4516,
+          17989.601,
+          19162.0304,
+          21747.708,
+          21862.2176,
+          17792.4322
+        ],
+        "mean": 20174.129283333332,
+        "median": 20757.230600000003,
+        "min": 17128.6668,
+        "max": 22814.311,
+        "stdev": 2014.7198249701423,
+        "firstThreeMean": 19609.368333333332,
+        "lastThreeMean": 20467.4526,
+        "lastThreeOverFirstThree": 1.0437588938144446,
+        "gcCounts": [
+          224,
+          0,
+          0
+        ],
+        "warmIterations": 130492
+      },
+      {
+        "label": "06-timing-baseline",
+        "nanosecondsPerOperation": [
+          21420.967,
+          20578.4196,
+          20950.947,
+          21225.449,
+          20090.4998,
+          22188.0888,
+          22912.2852,
+          22689.3586,
+          22550.8744,
+          22015.8042,
+          22414.6568,
+          22752.9508
+        ],
+        "mean": 21815.858433333335,
+        "median": 22101.9465,
+        "min": 20090.4998,
+        "max": 22912.2852,
+        "stdev": 938.1485451582549,
+        "firstThreeMean": 20983.444533333335,
+        "lastThreeMean": 22394.4706,
+        "lastThreeOverFirstThree": 1.0672447302169659,
+        "gcCounts": [
+          323,
+          0,
+          0
+        ],
+        "warmIterations": 128240
+      },
+      {
+        "label": "07-timing-candidate",
+        "nanosecondsPerOperation": [
+          21114.0732,
+          22683.6254,
+          22709.3006,
+          22381.6566,
+          20687.9954,
+          22196.2138,
+          18929.0588,
+          22738.1674,
+          22304.5562,
+          22052.9378,
+          21832.428,
+          22619.75
+        ],
+        "mean": 21854.146933333333,
+        "median": 22250.385000000002,
+        "min": 18929.0588,
+        "max": 22738.1674,
+        "stdev": 1123.6651028348563,
+        "firstThreeMean": 22168.999733333334,
+        "lastThreeMean": 22168.371933333332,
+        "lastThreeOverFirstThree": 0.9999716811760768,
+        "gcCounts": [
+          325,
+          0,
+          0
+        ],
+        "warmIterations": 134652
+      },
+      {
+        "label": "08-timing-baseline",
+        "nanosecondsPerOperation": [
+          22363.6482,
+          21268.2326,
+          22636.725,
+          21642.0016,
+          22488.574,
+          19563.7048,
+          21787.3362,
+          21871.495,
+          23324.7044,
+          22483.6158,
+          22161.2802,
+          22236.4224
+        ],
+        "mean": 21985.645016666665,
+        "median": 22198.851300000002,
+        "min": 19563.7048,
+        "max": 23324.7044,
+        "stdev": 929.5865874840588,
+        "firstThreeMean": 22089.535266666666,
+        "lastThreeMean": 22293.7728,
+        "lastThreeOverFirstThree": 1.009245895437263,
+        "gcCounts": [
+          325,
+          0,
+          0
+        ],
+        "warmIterations": 131081
+      }
+    ],
+    "unique5": [
+      {
+        "label": "04-timing-baseline",
+        "nanosecondsPerOperation": [
+          20025.1396,
+          20611.8458,
+          18455.906,
+          24717.1396,
+          22333.6474,
+          22396.0898,
+          32539.6568,
+          30231.0488,
+          22771.4856,
+          22096.795,
+          23954.74,
+          19410.7578
+        ],
+        "mean": 23295.35435,
+        "median": 22364.8686,
+        "min": 18455.906,
+        "max": 32539.6568,
+        "stdev": 4219.733525971372,
+        "firstThreeMean": 19697.630466666666,
+        "lastThreeMean": 21820.764266666665,
+        "lastThreeOverFirstThree": 1.1077862539655658,
+        "gcCounts": [
+          228,
+          0,
+          0
+        ],
+        "warmIterations": 135284
+      },
+      {
+        "label": "05-timing-candidate",
+        "nanosecondsPerOperation": [
+          22288.8554,
+          21383.304,
+          23411.2506,
+          21333.1202,
+          20428.3104,
+          24294.7852,
+          20732.6304,
+          24292.3936,
+          19505.2006,
+          23651.07,
+          24838.416,
+          23035.8384
+        ],
+        "mean": 22432.931233333333,
+        "median": 22662.3469,
+        "min": 19505.2006,
+        "max": 24838.416,
+        "stdev": 1740.6404018205628,
+        "firstThreeMean": 22361.136666666665,
+        "lastThreeMean": 23841.7748,
+        "lastThreeOverFirstThree": 1.0662147973694243,
+        "gcCounts": [
+          226,
+          0,
+          0
+        ],
+        "warmIterations": 126620
+      },
+      {
+        "label": "06-timing-baseline",
+        "nanosecondsPerOperation": [
+          23405.9468,
+          22293.0228,
+          23129.0448,
+          23379.6466,
+          24853.2648,
+          22181.0804,
+          19404.2536,
+          18312.363,
+          21900.1452,
+          18563.1982,
+          22478.6238,
+          24203.8688
+        ],
+        "mean": 22008.7049,
+        "median": 22385.8233,
+        "min": 18312.363,
+        "max": 24853.2648,
+        "stdev": 2145.9894631151105,
+        "firstThreeMean": 22942.671466666667,
+        "lastThreeMean": 21748.5636,
+        "lastThreeOverFirstThree": 0.947952536024343,
+        "gcCounts": [
+          227,
+          0,
+          0
+        ],
+        "warmIterations": 130048
+      },
+      {
+        "label": "07-timing-candidate",
+        "nanosecondsPerOperation": [
+          19892.0986,
+          22508.9492,
+          21326.5914,
+          24114.5932,
+          23406.5718,
+          24244.769,
+          24089.918,
+          24121.5432,
+          23454.3222,
+          23979.1006,
+          23917.8668,
+          21628.46
+        ],
+        "mean": 23057.065333333332,
+        "median": 23686.0945,
+        "min": 19892.0986,
+        "max": 24244.769,
+        "stdev": 1412.698831885055,
+        "firstThreeMean": 21242.5464,
+        "lastThreeMean": 23175.142466666668,
+        "lastThreeOverFirstThree": 1.0909776083467408,
+        "gcCounts": [
+          225,
+          0,
+          0
+        ],
+        "warmIterations": 130698
+      },
+      {
+        "label": "08-timing-baseline",
+        "nanosecondsPerOperation": [
+          24061.8928,
+          23374.3964,
+          24141.6266,
+          24355.0448,
+          24315.6362,
+          21621.8682,
+          23630.9732,
+          24145.16,
+          23214.6788,
+          24710.9888,
+          24058.7678,
+          22218.8722
+        ],
+        "mean": 23654.158816666666,
+        "median": 24060.3303,
+        "min": 21621.8682,
+        "max": 24710.9888,
+        "stdev": 920.3035875865324,
+        "firstThreeMean": 23859.305266666666,
+        "lastThreeMean": 23662.876266666666,
+        "lastThreeOverFirstThree": 0.9917671953225551,
+        "gcCounts": [
+          328,
+          0,
+          0
+        ],
+        "warmIterations": 131421
+      }
+    ],
+    "unique6": [
+      {
+        "label": "04-timing-baseline",
+        "nanosecondsPerOperation": [
+          22814.6528,
+          21836.7672,
+          23539.9356,
+          22588.167,
+          24155.9672,
+          24362.0944,
+          25215.5952,
+          24833.141,
+          21904.2428,
+          23539.8606,
+          23241.449,
+          25071.9018
+        ],
+        "mean": 23591.981216666667,
+        "median": 23539.8981,
+        "min": 21836.7672,
+        "max": 25215.5952,
+        "stdev": 1165.6967174693095,
+        "firstThreeMean": 22730.451866666666,
+        "lastThreeMean": 23951.070466666668,
+        "lastThreeOverFirstThree": 1.0536997067704577,
+        "gcCounts": [
+          323,
+          1,
+          1
+        ],
+        "warmIterations": 132562
+      },
+      {
+        "label": "05-timing-candidate",
+        "nanosecondsPerOperation": [
+          22458.2238,
+          22259.98,
+          22678.5764,
+          22178.5126,
+          20799.1562,
+          23390.6756,
+          21628.1068,
+          22866.3116,
+          23834.4054,
+          24559.363,
+          22651.2176,
+          24425.1284
+        ],
+        "mean": 22810.804783333333,
+        "median": 22664.897,
+        "min": 20799.1562,
+        "max": 24559.363,
+        "stdev": 1102.3346144127133,
+        "firstThreeMean": 22465.5934,
+        "lastThreeMean": 23878.569666666666,
+        "lastThreeOverFirstThree": 1.062895123289584,
+        "gcCounts": [
+          225,
+          0,
+          0
+        ],
+        "warmIterations": 130478
+      },
+      {
+        "label": "06-timing-baseline",
+        "nanosecondsPerOperation": [
+          24277.4026,
+          24385.5032,
+          21739.0524,
+          24177.5768,
+          24382.8366,
+          24320.6778,
+          20549.4446,
+          19906.0736,
+          20436.4686,
+          20043.2996,
+          18764.6492,
+          22545.0578
+        ],
+        "mean": 22127.3369,
+        "median": 22142.055099999998,
+        "min": 18764.6492,
+        "max": 24385.5032,
+        "stdev": 2133.7659922320827,
+        "firstThreeMean": 23467.3194,
+        "lastThreeMean": 20451.0022,
+        "lastThreeOverFirstThree": 0.8714673308618281,
+        "gcCounts": [
+          228,
+          0,
+          0
+        ],
+        "warmIterations": 130410
+      },
+      {
+        "label": "07-timing-candidate",
+        "nanosecondsPerOperation": [
+          19837.6816,
+          19415.7454,
+          19774.2642,
+          24081.218,
+          24192.2436,
+          24576.6962,
+          24326.6528,
+          22681.2168,
+          23425.1386,
+          23711.4654,
+          22686.442,
+          24402.87
+        ],
+        "mean": 22759.302883333334,
+        "median": 23568.302,
+        "min": 19415.7454,
+        "max": 24576.6962,
+        "stdev": 1959.792569773235,
+        "firstThreeMean": 19675.89706666667,
+        "lastThreeMean": 23600.259133333333,
+        "lastThreeOverFirstThree": 1.1994502234571558,
+        "gcCounts": [
+          226,
+          0,
+          0
+        ],
+        "warmIterations": 130283
+      },
+      {
+        "label": "08-timing-baseline",
+        "nanosecondsPerOperation": [
+          25158.3416,
+          25303.2926,
+          25163.5084,
+          25031.566,
+          23498.9724,
+          24020.9008,
+          21983.979,
+          25111.2164,
+          21248.6158,
+          22369.7066,
+          23859.6164,
+          25157.875
+        ],
+        "mean": 23992.29925,
+        "median": 24526.233399999997,
+        "min": 21248.6158,
+        "max": 25303.2926,
+        "stdev": 1433.2562154524744,
+        "firstThreeMean": 25208.380866666666,
+        "lastThreeMean": 23795.732666666667,
+        "lastThreeOverFirstThree": 0.9439611688084275,
+        "gcCounts": [
+          335,
+          0,
+          0
+        ],
+        "warmIterations": 124774
+      }
+    ],
+    "unique9": [
+      {
+        "label": "04-timing-baseline",
+        "nanosecondsPerOperation": [
+          26299.465,
+          26890.813,
+          26950.6554,
+          26918.9966,
+          26929.5968,
+          26744.978,
+          26974.7556,
+          26531.7842,
+          25199.9616,
+          24226.4262,
+          27018.9394,
+          27075.7234
+        ],
+        "mean": 26480.1746,
+        "median": 26904.904799999997,
+        "min": 24226.4262,
+        "max": 27075.7234,
+        "stdev": 878.9376291652508,
+        "firstThreeMean": 26713.644466666665,
+        "lastThreeMean": 26107.029666666665,
+        "lastThreeOverFirstThree": 0.9772919490353728,
+        "gcCounts": [
+          344,
+          0,
+          0
+        ],
+        "warmIterations": 116747
+      },
+      {
+        "label": "05-timing-candidate",
+        "nanosecondsPerOperation": [
+          22514.358,
+          25033.1598,
+          23845.9138,
+          26765.2616,
+          23411.4342,
+          25517.8066,
+          21326.7118,
+          23884.5558,
+          26350.6074,
+          24255.5682,
+          22843.0864,
+          25064.81
+        ],
+        "mean": 24234.439466666667,
+        "median": 24070.061999999998,
+        "min": 21326.7118,
+        "max": 26765.2616,
+        "stdev": 1599.951892539576,
+        "firstThreeMean": 23797.810533333333,
+        "lastThreeMean": 24054.4882,
+        "lastThreeOverFirstThree": 1.0107857681406085,
+        "gcCounts": [
+          226,
+          0,
+          0
+        ],
+        "warmIterations": 118975
+      },
+      {
+        "label": "06-timing-baseline",
+        "nanosecondsPerOperation": [
+          25757.1956,
+          24926.1234,
+          26889.2782,
+          26241.1156,
+          27006.9122,
+          27022.0124,
+          27114.3464,
+          27276.7142,
+          27314.3478,
+          27337.2144,
+          27217.497,
+          27096.938
+        ],
+        "mean": 26766.641266666666,
+        "median": 27059.4752,
+        "min": 24926.1234,
+        "max": 27337.2144,
+        "stdev": 747.0928128353545,
+        "firstThreeMean": 25857.5324,
+        "lastThreeMean": 27217.216466666665,
+        "lastThreeOverFirstThree": 1.0525836744834425,
+        "gcCounts": [
+          346,
+          0,
+          0
+        ],
+        "warmIterations": 116009
+      },
+      {
+        "label": "07-timing-candidate",
+        "nanosecondsPerOperation": [
+          26968.2704,
+          26889.645,
+          25048.6576,
+          26322.141,
+          25953.1386,
+          26755.119,
+          26944.9118,
+          26837.9028,
+          26847.5694,
+          26961.3038,
+          26490.6006,
+          24944.732
+        ],
+        "mean": 26413.666,
+        "median": 26796.5109,
+        "min": 24944.732,
+        "max": 26968.2704,
+        "stdev": 729.1655726701415,
+        "firstThreeMean": 26302.191,
+        "lastThreeMean": 26132.212133333334,
+        "lastThreeOverFirstThree": 0.9935374636026837,
+        "gcCounts": [
+          335,
+          0,
+          0
+        ],
+        "warmIterations": 116627
+      },
+      {
+        "label": "08-timing-baseline",
+        "nanosecondsPerOperation": [
+          23550.5812,
+          26227.4906,
+          26479.192,
+          26655.1182,
+          26942.762,
+          26760.5356,
+          26994.0538,
+          26934.1118,
+          24061.4012,
+          25734.0704,
+          27380.898,
+          23324.0794
+        ],
+        "mean": 25920.35785,
+        "median": 26567.1551,
+        "min": 23324.0794,
+        "max": 27380.898,
+        "stdev": 1441.5374178654656,
+        "firstThreeMean": 25419.087933333332,
+        "lastThreeMean": 25479.6826,
+        "lastThreeOverFirstThree": 1.0023838253687776,
+        "gcCounts": [
+          338,
+          0,
+          0
+        ],
+        "warmIterations": 114134
+      }
+    ],
+    "duplicate96-to1": [
+      {
+        "label": "04-timing-baseline",
+        "nanosecondsPerOperation": [
+          57301.6222,
+          57584.0584,
+          56711.791,
+          57948.679,
+          57517.5078,
+          57540.1748,
+          57112.4868,
+          57266.7384,
+          56460.0716,
+          60585.4908,
+          56793.475,
+          55594.1372
+        ],
+        "mean": 57368.01941666666,
+        "median": 57284.1803,
+        "min": 55594.1372,
+        "max": 60585.4908,
+        "stdev": 1190.861891092713,
+        "firstThreeMean": 57199.1572,
+        "lastThreeMean": 57657.701,
+        "lastThreeOverFirstThree": 1.0080166181189816,
+        "gcCounts": [
+          346,
+          0,
+          0
+        ],
+        "warmIterations": 53405
+      },
+      {
+        "label": "05-timing-candidate",
+        "nanosecondsPerOperation": [
+          57167.754,
+          56948.2768,
+          60754.759,
+          56803.6584,
+          56647.7568,
+          54803.1286,
+          56729.3494,
+          56080.2424,
+          54660.2772,
+          56234.3774,
+          56541.5724,
+          54926.9634
+        ],
+        "mean": 56524.842983333336,
+        "median": 56594.664600000004,
+        "min": 54660.2772,
+        "max": 60754.759,
+        "stdev": 1592.480453598589,
+        "firstThreeMean": 58290.26326666667,
+        "lastThreeMean": 55900.971066666665,
+        "lastThreeOverFirstThree": 0.9590104407477206,
+        "gcCounts": [
+          345,
+          0,
+          0
+        ],
+        "warmIterations": 53256
+      },
+      {
+        "label": "06-timing-baseline",
+        "nanosecondsPerOperation": [
+          55719.2442,
+          56049.0214,
+          55022.7064,
+          55720.9776,
+          55930.3956,
+          56605.0918,
+          55924.6622,
+          54938.8224,
+          55815.9948,
+          57743.5828,
+          57963.6092,
+          55617.8852
+        ],
+        "mean": 56087.66613333333,
+        "median": 55870.3285,
+        "min": 54938.8224,
+        "max": 57963.6092,
+        "stdev": 934.2194229581407,
+        "firstThreeMean": 55596.990666666665,
+        "lastThreeMean": 57108.359066666664,
+        "lastThreeOverFirstThree": 1.027184356237219,
+        "gcCounts": [
+          345,
+          0,
+          0
+        ],
+        "warmIterations": 53181
+      },
+      {
+        "label": "07-timing-candidate",
+        "nanosecondsPerOperation": [
+          56225.2142,
+          56120.047,
+          56587.5332,
+          59670.0538,
+          56181.9556,
+          56458.9824,
+          55756.0694,
+          56062.2382,
+          56136.7136,
+          56211.5642,
+          54642.5288,
+          56473.6992
+        ],
+        "mean": 56377.21663333334,
+        "median": 56196.759900000005,
+        "min": 54642.5288,
+        "max": 59670.0538,
+        "stdev": 1152.4610676768973,
+        "firstThreeMean": 56310.93146666667,
+        "lastThreeMean": 55775.930733333335,
+        "lastThreeOverFirstThree": 0.990499167401448,
+        "gcCounts": [
+          344,
+          0,
+          0
+        ],
+        "warmIterations": 54053
+      },
+      {
+        "label": "08-timing-baseline",
+        "nanosecondsPerOperation": [
+          56559.245,
+          57893.7678,
+          56397.1774,
+          56200.16,
+          56257.1934,
+          55599.5486,
+          56506.9114,
+          55130.9132,
+          55314.5474,
+          56387.8774,
+          55298.9556,
+          54792.1364
+        ],
+        "mean": 56028.2028,
+        "median": 56228.676699999996,
+        "min": 54792.1364,
+        "max": 57893.7678,
+        "stdev": 847.2872895456666,
+        "firstThreeMean": 56950.0634,
+        "lastThreeMean": 55492.9898,
+        "lastThreeOverFirstThree": 0.9744148906425977,
+        "gcCounts": [
+          346,
+          0,
+          0
+        ],
+        "warmIterations": 53131
+      }
+    ],
+    "mixed96-to6": [
+      {
+        "label": "04-timing-baseline",
+        "nanosecondsPerOperation": [
+          56057.2422,
+          57635.0506,
+          57779.1106,
+          57610.1338,
+          58302.191,
+          58156.573,
+          61358.7072,
+          58180.665,
+          57367.7146,
+          57638.2674,
+          56914.9012,
+          57711.3932
+        ],
+        "mean": 57892.66248333333,
+        "median": 57674.8303,
+        "min": 56057.2422,
+        "max": 61358.7072,
+        "stdev": 1250.1194342664155,
+        "firstThreeMean": 57157.13446666667,
+        "lastThreeMean": 57421.520599999996,
+        "lastThreeOverFirstThree": 1.0046256016121227,
+        "gcCounts": [
+          348,
+          0,
+          0
+        ],
+        "warmIterations": 53019
+      },
+      {
+        "label": "05-timing-candidate",
+        "nanosecondsPerOperation": [
+          57193.8792,
+          58626.6864,
+          57097.8366,
+          56330.4784,
+          56099.726,
+          56186.4686,
+          57004.4524,
+          55940.9074,
+          56079.5924,
+          56343.9452,
+          56097.6426,
+          56729.416
+        ],
+        "mean": 56644.2526,
+        "median": 56337.211800000005,
+        "min": 55940.9074,
+        "max": 58626.6864,
+        "stdev": 761.6907396919186,
+        "firstThreeMean": 57639.4674,
+        "lastThreeMean": 56390.3346,
+        "lastThreeOverFirstThree": 0.9783285159224078,
+        "gcCounts": [
+          346,
+          0,
+          0
+        ],
+        "warmIterations": 52543
+      },
+      {
+        "label": "06-timing-baseline",
+        "nanosecondsPerOperation": [
+          57728.5742,
+          57322.5966,
+          56951.9358,
+          60444.4756,
+          59329.5848,
+          57924.7338,
+          57698.949,
+          58245.6194,
+          57123.4868,
+          59416.5438,
+          58218.8192,
+          56558.7498
+        ],
+        "mean": 58080.33906666667,
+        "median": 57826.654,
+        "min": 56558.7498,
+        "max": 60444.4756,
+        "stdev": 1142.3011668578133,
+        "firstThreeMean": 57334.368866666664,
+        "lastThreeMean": 58064.70426666667,
+        "lastThreeOverFirstThree": 1.0127381780673024,
+        "gcCounts": [
+          350,
+          0,
+          0
+        ],
+        "warmIterations": 51536
+      },
+      {
+        "label": "07-timing-candidate",
+        "nanosecondsPerOperation": [
+          59399.9354,
+          55775.2112,
+          55696.2774,
+          56354.965,
+          55046.1398,
+          55771.4278,
+          56161.0388,
+          56072.505,
+          56123.2052,
+          54773.5546,
+          54952.8476,
+          56406.1736
+        ],
+        "mean": 56044.440116666665,
+        "median": 55923.8581,
+        "min": 54773.5546,
+        "max": 59399.9354,
+        "stdev": 1190.06406224281,
+        "firstThreeMean": 56957.14133333333,
+        "lastThreeMean": 55377.52526666667,
+        "lastThreeOverFirstThree": 0.9722665844933791,
+        "gcCounts": [
+          346,
+          0,
+          0
+        ],
+        "warmIterations": 53533
+      },
+      {
+        "label": "08-timing-baseline",
+        "nanosecondsPerOperation": [
+          58090.0774,
+          56839.6046,
+          57096.5976,
+          57008.0304,
+          56667.7954,
+          56462.728,
+          56086.7342,
+          54624.919,
+          55862.4998,
+          58988.9232,
+          57866.8678,
+          57143.3226
+        ],
+        "mean": 56894.84166666667,
+        "median": 56923.817500000005,
+        "min": 54624.919,
+        "max": 58988.9232,
+        "stdev": 1127.608101338653,
+        "firstThreeMean": 57342.0932,
+        "lastThreeMean": 57999.70453333333,
+        "lastThreeOverFirstThree": 1.011468212906698,
+        "gcCounts": [
+          349,
+          0,
+          0
+        ],
+        "warmIterations": 52267
+      }
+    ],
+    "batch9": [
+      {
+        "label": "04-timing-baseline",
+        "nanosecondsPerOperation": [
+          36996.1128,
+          36746.427,
+          36811.3526,
+          36356.4644,
+          36867.1532,
+          32667.3084,
+          35067.7258,
+          32092.052,
+          37160.1232,
+          35317.1366,
+          37072.0554,
+          33438.3582
+        ],
+        "mean": 35549.3558,
+        "median": 36551.4457,
+        "min": 32092.052,
+        "max": 37160.1232,
+        "stdev": 1844.4331977062002,
+        "firstThreeMean": 36851.29746666667,
+        "lastThreeMean": 35275.850066666666,
+        "lastThreeOverFirstThree": 0.9572485228932562,
+        "gcCounts": [
+          394,
+          0,
+          0
+        ],
+        "warmIterations": 85370
+      },
+      {
+        "label": "05-timing-candidate",
+        "nanosecondsPerOperation": [
+          34766.5888,
+          33317.4624,
+          34544.5122,
+          36938.6114,
+          36797.6022,
+          36602.651,
+          35312.6924,
+          34482.5118,
+          36503.7502,
+          36324.0658,
+          36464.4916,
+          36440.6664
+        ],
+        "mean": 35707.967183333334,
+        "median": 36382.3661,
+        "min": 33317.4624,
+        "max": 36938.6114,
+        "stdev": 1176.921684597225,
+        "firstThreeMean": 34209.52113333333,
+        "lastThreeMean": 36409.741266666664,
+        "lastThreeOverFirstThree": 1.0643160167240537,
+        "gcCounts": [
+          380,
+          0,
+          0
+        ],
+        "warmIterations": 84882
+      },
+      {
+        "label": "06-timing-baseline",
+        "nanosecondsPerOperation": [
+          35275.7504,
+          36084.7726,
+          36244.2152,
+          34112.2678,
+          35036.8738,
+          36660.4428,
+          35378.0928,
+          36839.1942,
+          35902.0462,
+          35706.245,
+          37020.987,
+          34418.2114
+        ],
+        "mean": 35723.258266666664,
+        "median": 35804.1456,
+        "min": 34112.2678,
+        "max": 37020.987,
+        "stdev": 921.0189402929035,
+        "firstThreeMean": 35868.24606666667,
+        "lastThreeMean": 35715.1478,
+        "lastThreeOverFirstThree": 0.9957316489247311,
+        "gcCounts": [
+          391,
+          0,
+          0
+        ],
+        "warmIterations": 84672
+      },
+      {
+        "label": "07-timing-candidate",
+        "nanosecondsPerOperation": [
+          36117.8976,
+          36214.39,
+          36848.4358,
+          37014.0202,
+          33150.2614,
+          35823.254,
+          37117.646,
+          36870.7776,
+          37069.6956,
+          36565.4256,
+          35720.8784,
+          35105.816
+        ],
+        "mean": 36134.87485,
+        "median": 36389.9078,
+        "min": 33150.2614,
+        "max": 37117.646,
+        "stdev": 1131.8011635934417,
+        "firstThreeMean": 36393.574466666665,
+        "lastThreeMean": 35797.37333333334,
+        "lastThreeOverFirstThree": 0.9836179561345535,
+        "gcCounts": [
+          384,
+          0,
+          0
+        ],
+        "warmIterations": 83237
+      },
+      {
+        "label": "08-timing-baseline",
+        "nanosecondsPerOperation": [
+          36708.917,
+          36321.1234,
+          36429.974,
+          37287.3612,
+          35645.9284,
+          34688.7238,
+          36916.5428,
+          36668.4416,
+          35048.8256,
+          36586.6496,
+          35035.5172,
+          33339.4842
+        ],
+        "mean": 35889.790733333335,
+        "median": 36375.5487,
+        "min": 33339.4842,
+        "max": 37287.3612,
+        "stdev": 1155.667685592263,
+        "firstThreeMean": 36486.67146666667,
+        "lastThreeMean": 34987.217,
+        "lastThreeOverFirstThree": 0.9589040488925789,
+        "gcCounts": [
+          390,
+          0,
+          0
+        ],
+        "warmIterations": 83330
+      }
+    ],
+    "transport9": [
+      {
+        "label": "04-timing-baseline",
+        "nanosecondsPerOperation": [
+          34277.118,
+          34149.532,
+          34062.114,
+          34259.2,
+          34934.874,
+          34829.374,
+          34901.208,
+          34730.122,
+          33057.854,
+          33517.692,
+          33352.856,
+          33986.032
+        ],
+        "mean": 34171.498,
+        "median": 34204.365999999995,
+        "min": 33057.854,
+        "max": 34934.874,
+        "stdev": 622.5762751178663,
+        "firstThreeMean": 34162.92133333333,
+        "lastThreeMean": 33618.86,
+        "lastThreeOverFirstThree": 0.9840745079138628,
+        "gcCounts": [
+          38,
+          0,
+          0
+        ],
+        "warmIterations": 88913
+      },
+      {
+        "label": "05-timing-candidate",
+        "nanosecondsPerOperation": [
+          33136.718,
+          33771.474,
+          33593.722,
+          33569.39,
+          33442.222,
+          33214.886,
+          33463.39,
+          33353.054,
+          33626.558,
+          31046.706,
+          23877.826,
+          31930.462
+        ],
+        "mean": 32335.534,
+        "median": 33397.638,
+        "min": 23877.826,
+        "max": 33771.474,
+        "stdev": 2782.075909926516,
+        "firstThreeMean": 33500.638,
+        "lastThreeMean": 28951.664666666667,
+        "lastThreeOverFirstThree": 0.8642123372894173,
+        "gcCounts": [
+          38,
+          0,
+          0
+        ],
+        "warmIterations": 89186
+      },
+      {
+        "label": "06-timing-baseline",
+        "nanosecondsPerOperation": [
+          36514.574,
+          35813.154,
+          29603.696,
+          24968.584,
+          29083.608,
+          36466.658,
+          35329.568,
+          38710.258,
+          34316.31,
+          33872.224,
+          30806.37,
+          32933.886
+        ],
+        "mean": 33201.574166666665,
+        "median": 34094.267,
+        "min": 24968.584,
+        "max": 38710.258,
+        "stdev": 3914.0378099934755,
+        "firstThreeMean": 33977.14133333333,
+        "lastThreeMean": 32537.493333333332,
+        "lastThreeOverFirstThree": 0.9576289251094932,
+        "gcCounts": [
+          38,
+          0,
+          0
+        ],
+        "warmIterations": 87715
+      },
+      {
+        "label": "07-timing-candidate",
+        "nanosecondsPerOperation": [
+          35118.398,
+          34467.978,
+          34910.732,
+          35253.4,
+          34444.146,
+          34441.48,
+          25127,
+          25122.25,
+          35864.822,
+          35101.15,
+          35878.904,
+          34796.648
+        ],
+        "mean": 33377.242333333335,
+        "median": 34853.69,
+        "min": 25122.25,
+        "max": 35878.904,
+        "stdev": 3884.79672461679,
+        "firstThreeMean": 34832.369333333336,
+        "lastThreeMean": 35258.90066666667,
+        "lastThreeOverFirstThree": 1.0122452575433953,
+        "gcCounts": [
+          38,
+          0,
+          0
+        ],
+        "warmIterations": 87338
+      },
+      {
+        "label": "08-timing-baseline",
+        "nanosecondsPerOperation": [
+          35519.752,
+          35304.086,
+          35249.584,
+          34188.246,
+          34808.584,
+          33448.492,
+          34863.334,
+          34367.414,
+          34510.748,
+          34342.08,
+          35037.25,
+          34518.748
+        ],
+        "mean": 34679.859833333336,
+        "median": 34663.666,
+        "min": 33448.492,
+        "max": 35519.752,
+        "stdev": 573.8108295099354,
+        "firstThreeMean": 35357.80733333334,
+        "lastThreeMean": 34632.69266666667,
+        "lastThreeOverFirstThree": 0.97949209180788,
+        "gcCounts": [
+          39,
+          0,
+          0
+        ],
+        "warmIterations": 87207
+      }
+    ],
+    "batch-fallback9": [
+      {
+        "label": "04-timing-baseline",
+        "nanosecondsPerOperation": [
+          35933.884,
+          36454.474,
+          25866.36,
+          31104.084,
+          36234.304,
+          35031.46,
+          35504.714,
+          36472.392,
+          36008.552,
+          36673.144,
+          36119.886,
+          36547.642
+        ],
+        "mean": 34829.24133333333,
+        "median": 36064.219,
+        "min": 25866.36,
+        "max": 36673.144,
+        "stdev": 3200.1757298050006,
+        "firstThreeMean": 32751.572666666667,
+        "lastThreeMean": 36446.890666666666,
+        "lastThreeOverFirstThree": 1.1128287193292845,
+        "gcCounts": [
+          42,
+          0,
+          0
+        ],
+        "warmIterations": 85352
+      },
+      {
+        "label": "05-timing-candidate",
+        "nanosecondsPerOperation": [
+          37418.166,
+          36712.994,
+          36253.74,
+          36168.074,
+          37092.244,
+          35944.988,
+          36788.16,
+          32540.298,
+          25470.752,
+          33061.72,
+          36270.908,
+          37176.33
+        ],
+        "mean": 35074.8645,
+        "median": 36262.324,
+        "min": 25470.752,
+        "max": 37418.166,
+        "stdev": 3398.9855892028754,
+        "firstThreeMean": 36794.96666666667,
+        "lastThreeMean": 35502.986000000004,
+        "lastThreeOverFirstThree": 0.9648870271205574,
+        "gcCounts": [
+          42,
+          0,
+          0
+        ],
+        "warmIterations": 85976
+      },
+      {
+        "label": "06-timing-baseline",
+        "nanosecondsPerOperation": [
+          36946.91,
+          36804.578,
+          36998.83,
+          37464.998,
+          36654.158,
+          37205.496,
+          36878.328,
+          36485.408,
+          37513.164,
+          37253.664,
+          36576.574,
+          37089.662
+        ],
+        "mean": 36989.31416666666,
+        "median": 36972.87,
+        "min": 36485.408,
+        "max": 37513.164,
+        "stdev": 331.9800699411794,
+        "firstThreeMean": 36916.77266666667,
+        "lastThreeMean": 36973.299999999996,
+        "lastThreeOverFirstThree": 1.0015312100503402,
+        "gcCounts": [
+          43,
+          0,
+          0
+        ],
+        "warmIterations": 83320
+      },
+      {
+        "label": "07-timing-candidate",
+        "nanosecondsPerOperation": [
+          27887.934,
+          36677.41,
+          36830.328,
+          36773.576,
+          36616.076,
+          36354.658,
+          36212.824,
+          36424.158,
+          37011.412,
+          37026.744,
+          36472.574,
+          37523.166
+        ],
+        "mean": 35984.238333333335,
+        "median": 36646.743,
+        "min": 27887.934,
+        "max": 37523.166,
+        "stdev": 2574.356701165178,
+        "firstThreeMean": 33798.55733333334,
+        "lastThreeMean": 37007.494666666666,
+        "lastThreeOverFirstThree": 1.0949430267595641,
+        "gcCounts": [
+          42,
+          0,
+          0
+        ],
+        "warmIterations": 86720
+      },
+      {
+        "label": "08-timing-baseline",
+        "nanosecondsPerOperation": [
+          37616.43,
+          38573.016,
+          38036.514,
+          34811.666,
+          38770.018,
+          38598.684,
+          34422.914,
+          28456.386,
+          33382.492,
+          37686.848,
+          39199.188,
+          29477.39
+        ],
+        "mean": 35752.628833333336,
+        "median": 37651.638999999996,
+        "min": 28456.386,
+        "max": 39199.188,
+        "stdev": 3697.099531216277,
+        "firstThreeMean": 38075.32,
+        "lastThreeMean": 35454.475333333336,
+        "lastThreeOverFirstThree": 0.9311668380812909,
+        "gcCounts": [
+          40,
+          0,
+          0
+        ],
+        "warmIterations": 82595
+      }
+    ]
+  },
+  "timingComparisons": {
+    "ordinary": {
+      "pairs": [
+        {
+          "candidateLabel": "05-timing-candidate",
+          "ratiosToBothAdjacentControls": [
+            1.0148045095745741,
+            0.9924311658008741
+          ],
+          "overFivePercentSlowerThanBoth": false
+        },
+        {
+          "candidateLabel": "07-timing-candidate",
+          "ratiosToBothAdjacentControls": [
+            0.9984343842451615,
+            0.9914329974565466
+          ],
+          "overFivePercentSlowerThanBoth": false
+        }
+      ],
+      "repeatedFivePercentRegressionGateFailed": false
+    },
+    "unique1": {
+      "pairs": [
+        {
+          "candidateLabel": "05-timing-candidate",
+          "ratiosToBothAdjacentControls": [
+            1.086426371098717,
+            0.9247460669486405
+          ],
+          "overFivePercentSlowerThanBoth": false
+        },
+        {
+          "candidateLabel": "07-timing-candidate",
+          "ratiosToBothAdjacentControls": [
+            1.0017550764787462,
+            0.9940189117383799
+          ],
+          "overFivePercentSlowerThanBoth": false
+        }
+      ],
+      "repeatedFivePercentRegressionGateFailed": false
+    },
+    "unique5": {
+      "pairs": [
+        {
+          "candidateLabel": "05-timing-candidate",
+          "ratiosToBothAdjacentControls": [
+            0.9629787508827198,
+            1.0192753883184344
+          ],
+          "overFivePercentSlowerThanBoth": false
+        },
+        {
+          "candidateLabel": "07-timing-candidate",
+          "ratiosToBothAdjacentControls": [
+            1.0476338993183252,
+            0.9747573571327921
+          ],
+          "overFivePercentSlowerThanBoth": false
+        }
+      ],
+      "repeatedFivePercentRegressionGateFailed": false
+    },
+    "unique6": {
+      "pairs": [
+        {
+          "candidateLabel": "05-timing-candidate",
+          "ratiosToBothAdjacentControls": [
+            0.9668880529295493,
+            1.0308879413018444
+          ],
+          "overFivePercentSlowerThanBoth": false
+        },
+        {
+          "candidateLabel": "07-timing-candidate",
+          "ratiosToBothAdjacentControls": [
+            1.028560417649416,
+            0.9486086617285475
+          ],
+          "overFivePercentSlowerThanBoth": false
+        }
+      ],
+      "repeatedFivePercentRegressionGateFailed": false
+    },
+    "unique9": {
+      "pairs": [
+        {
+          "candidateLabel": "05-timing-candidate",
+          "ratiosToBothAdjacentControls": [
+            0.9151918305956589,
+            0.9053971032535401
+          ],
+          "overFivePercentSlowerThanBoth": false
+        },
+        {
+          "candidateLabel": "07-timing-candidate",
+          "ratiosToBothAdjacentControls": [
+            0.9868128666891712,
+            1.0190316874811203
+          ],
+          "overFivePercentSlowerThanBoth": false
+        }
+      ],
+      "repeatedFivePercentRegressionGateFailed": false
+    },
+    "duplicate96-to1": {
+      "pairs": [
+        {
+          "candidateLabel": "05-timing-candidate",
+          "ratiosToBothAdjacentControls": [
+            0.9853023262454069,
+            1.007794527391472
+          ],
+          "overFivePercentSlowerThanBoth": false
+        },
+        {
+          "candidateLabel": "07-timing-candidate",
+          "ratiosToBothAdjacentControls": [
+            1.0051624629791456,
+            1.0062292526958108
+          ],
+          "overFivePercentSlowerThanBoth": false
+        }
+      ],
+      "repeatedFivePercentRegressionGateFailed": false
+    },
+    "mixed96-to6": {
+      "pairs": [
+        {
+          "candidateLabel": "05-timing-candidate",
+          "ratiosToBothAdjacentControls": [
+            0.9784357839183379,
+            0.9752741376902384
+          ],
+          "overFivePercentSlowerThanBoth": false
+        },
+        {
+          "candidateLabel": "07-timing-candidate",
+          "ratiosToBothAdjacentControls": [
+            0.9649468480605266,
+            0.9850530992777464
+          ],
+          "overFivePercentSlowerThanBoth": false
+        }
+      ],
+      "repeatedFivePercentRegressionGateFailed": false
+    },
+    "batch9": {
+      "pairs": [
+        {
+          "candidateLabel": "05-timing-candidate",
+          "ratiosToBothAdjacentControls": [
+            1.004461723138548,
+            0.9995719572044861
+          ],
+          "overFivePercentSlowerThanBoth": false
+        },
+        {
+          "candidateLabel": "07-timing-candidate",
+          "ratiosToBothAdjacentControls": [
+            1.0115223695515314,
+            1.006828797595608
+          ],
+          "overFivePercentSlowerThanBoth": false
+        }
+      ],
+      "repeatedFivePercentRegressionGateFailed": false
+    },
+    "transport9": {
+      "pairs": [
+        {
+          "candidateLabel": "05-timing-candidate",
+          "ratiosToBothAdjacentControls": [
+            0.9462720656846826,
+            0.9739156895899188
+          ],
+          "overFivePercentSlowerThanBoth": false
+        },
+        {
+          "candidateLabel": "07-timing-candidate",
+          "ratiosToBothAdjacentControls": [
+            1.005290958970344,
+            0.962438789941476
+          ],
+          "overFivePercentSlowerThanBoth": false
+        }
+      ],
+      "repeatedFivePercentRegressionGateFailed": false
+    },
+    "batch-fallback9": {
+      "pairs": [
+        {
+          "candidateLabel": "05-timing-candidate",
+          "ratiosToBothAdjacentControls": [
+            1.007052211224354,
+            0.9482431694180508
+          ],
+          "overFivePercentSlowerThanBoth": false
+        },
+        {
+          "candidateLabel": "07-timing-candidate",
+          "ratiosToBothAdjacentControls": [
+            0.9728279408262437,
+            1.0064781110524679
+          ],
+          "overFivePercentSlowerThanBoth": false
+        }
+      ],
+      "repeatedFivePercentRegressionGateFailed": false
+    }
+  },
+  "limitations": [
+    "Process allocation totals include concurrent/background work and operation-state variation. Exact known calibration does not prove request-only attribution.",
+    "Idle observations are empirical context, not a bound on all target-window interference; none were subtracted.",
+    "All block-pair saving ranges are observed extrema, not statistical confidence intervals.",
+    "Three-second warmup does not establish stationarity; all first/last means and GC counts are retained.",
+    "No general CPU speedup is claimed. The allocation proof supports HTTP evaluation only."
+  ]
+}

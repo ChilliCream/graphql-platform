@@ -1,0 +1,52 @@
+C2 independent micro review, 2026-10-17
+
+Disposition: promote to the planned HTTP gate. This proves the intended scoped allocation mechanism under the controlled allocation policy. It does not establish a general CPU improvement or authorize shipping. No repeat micro campaign is recommended.
+
+Validity and isolation
+Independently verified all 198 frozen file hashes; baseline/candidate differ only in Fusion.Execution DLL/PDB, established engine hashes 9c436477... and 244ad610... remain unchanged. Runner c88c1a0b2e6be2af596b7daf3aa26d7056855d32cb41862f1be35a8e689a36e9, manifest 028c47e1b60ec83387cc5879eccf37c6b1e941186aa79776c93dfe5608c6c9e9. Eight launches ran allocation B/C2/B then timing B/C2/B/C2/B. At 16:46:23.238192 UTC, independent nonblocking exclusive-lock acquisition succeeded and all eight recorded PID/start identities were absent. All exited zero.
+
+All 150 allocation blocks used four fixed server GC heaps and dynamic adaptation disabled. Each completed 1000 full asynchronous request executions and disposal, returned exact thread/process calibration 523240 bytes before and after, recorded zero collections, remained in NoGC mode, and ended NoGC successfully. Full payload oracles agree across all eight launches. No old default-policy allocation baseline is mixed into this matched comparison.
+
+All 600 timing blocks used default dynamic GC mode 1, with no NoGC/allocation counter instrumentation. Every one of the twelve blocks per case and launch is retained. Warmup was predeclared at three seconds per case, and does not establish stationarity.
+
+Allocation observations
+Medians in bytes per complete operation match the static array removal prediction against both controls. VariableValues is 40 bytes in these binaries; one array contributes 24 + 40 * distinct_count bytes. The ordinary control never enters Apollo representation processing. Transport failure still needs the full error-attribution array. Batch fallback saves only its successfully completed sibling array.
+
+Case | expected/median saving B/op | range over every observed control/candidate block pair
+ordinary | 0 | 0.000 to 0.048
+unique1 | 64 | 64.000 to 72.256
+unique5 | 224 | 222.368 to 224.000
+unique6 | 264 | 263.760 to 265.288
+unique9 | 384 | 384.000 to 385.632
+duplicate96-to1 | 64 | 50.744 to 64.000
+mixed96-to6 | 264 | 264.000 to 264.000
+batch9 | 768 | 768.000 to 768.000
+transport9 | 0 | -1.168 to 0.000
+batch-fallback9 | 384 | 383.760 to 384.000
+
+All mixed96-to6 and batch9 observations, including both controls and candidate, are identical within each arm. Other complete-process totals have small deviations from their modal values, from -1.632 B/op to +13.256 B/op across the campaign. These are retained, including values below the static per-request formula. They are not silently rounded, subtracted, or declared to be exact request-only totals.
+
+Raw idle observations are zero in 270 of 300 windows. The other 30 contain allocations; maximum is 6336 bytes during 55.098 ms. Target scopes span 12.1934 to 67.3590 ms. These idle measurements describe background activity but do not mathematically bound all target-window contamination. No idle bytes are subtracted. Exact calibration confirms the counters observed the known allocation, not that every target byte belongs only to the request. The expected saving is larger than the full observed block variation for every affected shape, and unaffected shapes remain near zero. This combination supports the mechanism despite process-scope noise.
+
+Default timing observations
+Case | launch means in chronological B,C2,B,C2,B order (ns/op) | C2 ratios against both adjacent controls
+ordinary | 11657.09, 11829.67, 11919.89, 11901.23, 12004.07 | 1.014805/0.992431; 0.998434/0.991433
+unique1 | 18569.26, 20174.13, 21815.86, 21854.15, 21985.65 | 1.086426/0.924746; 1.001755/0.994019
+unique5 | 23295.35, 22432.93, 22008.70, 23057.07, 23654.16 | 0.962979/1.019275; 1.047634/0.974757
+unique6 | 23591.98, 22810.80, 22127.34, 22759.30, 23992.30 | 0.966888/1.030888; 1.028560/0.948609
+unique9 | 26480.17, 24234.44, 26766.64, 26413.67, 25920.36 | 0.915192/0.905397; 0.986813/1.019032
+duplicate96-to1 | 57368.02, 56524.84, 56087.67, 56377.22, 56028.20 | 0.985302/1.007795; 1.005162/1.006229
+mixed96-to6 | 57892.66, 56644.25, 58080.34, 56044.44, 56894.84 | 0.978436/0.975274; 0.964947/0.985053
+batch9 | 35549.36, 35707.97, 35723.26, 36134.87, 35889.79 | 1.004462/0.999572; 1.011522/1.006829
+transport9 | 34171.50, 32335.53, 33201.57, 33377.24, 34679.86 | 0.946272/0.973916; 1.005291/0.962439
+batch-fallback9 | 34829.24, 35074.86, 36989.31, 35984.24, 35752.63 | 1.007052/0.948243; 0.972828/1.006478
+
+No candidate mean is more than five percent slower than both its adjacent controls in any case. Thus the repeated five-percent regression gate is not triggered. The unchanged ordinary control is +1.48%/-0.76% for candidate one and -0.16%/-0.86% for candidate two. Smaller positive differences in duplicate and batch cases are retained, not converted into speed claims.
+
+The unique1 first candidate is +8.64% versus its earlier control and -7.53% versus its later control; the baseline itself moves substantially. Candidate-two unique6 last-three/first-three mean is 1.19945. Several small-case GC counts differ across launches. The three-second warmup therefore has not removed all runtime/time trends. These observations prevent a generic timing win claim. mixed96-to6 is faster in both candidate launches against both controls, but remains one specific fixture result. analysis.json retains every block, median, standard deviation, first/last-three means, full GC counts and both adjacent ratios.
+
+Scope and next gate
+The original HTTP TestQuery static plan bound remains 1224 bytes for eleven representation builds and 24 distinct entities. This full-operation micro validates the same production single/batch nodes and error paths, but does not itself measure that exact original HTTP operation. Proceed only to the already-declared HTTP schedule with adjacent controls, original and ordinary workloads, CPU per success, throughput, latency/error and memory checks. A valid inconclusive HTTP result must terminate the candidate without equivalent reruns.
+
+Reproduction
+Run analyze.py <micro-campaign-fixed-heaps> <output.json> under the shared investigation lock. It reads existing artifacts only and launches no benchmark. It validates all calibration, GC, completion, runtime and payload guards, and emits untrimmed comparisons with input hashes. Original raw evidence and all failed preceding method attempts belong to the C2 owner; this independent review does not replace them.

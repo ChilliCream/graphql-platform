@@ -1,0 +1,79 @@
+{
+  "verifiedUtc": "2026-10-17T16:46:23.238192+00:00",
+  "exclusiveLockAcquired": true,
+  "launches": [
+    {
+      "label": "01-allocation-baseline",
+      "status": "completed",
+      "exitCode": 0,
+      "pid": 72186,
+      "startTicks": 377124,
+      "actualStartTicks": null,
+      "sameOwnedProcessAlive": false
+    },
+    {
+      "label": "02-allocation-candidate",
+      "status": "completed",
+      "exitCode": 0,
+      "pid": 72670,
+      "startTicks": 381062,
+      "actualStartTicks": null,
+      "sameOwnedProcessAlive": false
+    },
+    {
+      "label": "03-allocation-baseline",
+      "status": "completed",
+      "exitCode": 0,
+      "pid": 73006,
+      "startTicks": 384994,
+      "actualStartTicks": null,
+      "sameOwnedProcessAlive": false
+    },
+    {
+      "label": "04-timing-baseline",
+      "status": "completed",
+      "exitCode": 0,
+      "pid": 73174,
+      "startTicks": 388948,
+      "actualStartTicks": null,
+      "sameOwnedProcessAlive": false
+    },
+    {
+      "label": "05-timing-candidate",
+      "status": "completed",
+      "exitCode": 0,
+      "pid": 73364,
+      "startTicks": 393566,
+      "actualStartTicks": null,
+      "sameOwnedProcessAlive": false
+    },
+    {
+      "label": "06-timing-baseline",
+      "status": "completed",
+      "exitCode": 0,
+      "pid": 73551,
+      "startTicks": 398157,
+      "actualStartTicks": null,
+      "sameOwnedProcessAlive": false
+    },
+    {
+      "label": "07-timing-candidate",
+      "status": "completed",
+      "exitCode": 0,
+      "pid": 73701,
+      "startTicks": 402776,
+      "actualStartTicks": null,
+      "sameOwnedProcessAlive": false
+    },
+    {
+      "label": "08-timing-baseline",
+      "status": "completed",
+      "exitCode": 0,
+      "pid": 73852,
+      "startTicks": 407392,
+      "actualStartTicks": null,
+      "sameOwnedProcessAlive": false
+    }
+  ],
+  "passed": true
+}
