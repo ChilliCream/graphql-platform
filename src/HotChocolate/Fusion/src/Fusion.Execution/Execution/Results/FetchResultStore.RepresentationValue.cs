@@ -894,8 +894,20 @@ internal sealed partial class FetchResultStore
         runtimeType = null!;
 
         if (!element.TryGetProperty(TypeNameFieldNameUtf8, out var typeNameElement)
-            || typeNameElement.ValueKind is not JsonValueKind.String
-            || typeNameElement.GetString() is not { } typeName)
+            || typeNameElement.ValueKind is not JsonValueKind.String)
+        {
+            return false;
+        }
+
+        if (element.SelectionSet?.Type is IObjectTypeDefinition objectType
+            && typeNameElement.ValueEquals(objectType.Name))
+        {
+            runtimeTypeName = objectType.Name;
+            runtimeType = objectType;
+            return true;
+        }
+
+        if (typeNameElement.GetString() is not { } typeName)
         {
             return false;
         }
