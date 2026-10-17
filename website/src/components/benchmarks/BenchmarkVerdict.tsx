@@ -201,7 +201,7 @@ export function BenchmarkVerdictSummary({
         {lines.map((line) => (
           <li key={line.id}>
             <span className="text-cc-heading font-semibold">{line.name}:</span>{" "}
-            {linkFusion(line.text)}
+            {line.text}
           </li>
         ))}
       </ul>

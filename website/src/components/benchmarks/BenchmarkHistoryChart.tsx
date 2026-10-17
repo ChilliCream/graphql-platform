@@ -107,7 +107,7 @@ export function BenchmarkHistoryChart({
                 title="Requests per second"
                 className="absolute bottom-full left-1/2 mb-3 -translate-x-1/2 no-underline"
               >
-                RPS
+                requests/s
               </abbr>
               {ticks.map((tick) => (
                 <span
@@ -389,7 +389,7 @@ function LegendButton({
             <span className="text-cc-heading font-semibold">
               {formatNumber(newest.rps)}
             </span>
-            <span className="text-cc-ink-dim">req/s</span>
+            <span className="text-cc-ink-dim">requests/s</span>
             {change !== undefined && (
               <span
                 className={change >= 0 ? "text-cc-success" : "text-cc-danger"}

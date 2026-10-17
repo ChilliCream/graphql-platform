@@ -67,20 +67,18 @@ export function BenchmarkExplorer({ report, history }: BenchmarkExplorerProps) {
         {scenarios.map((scenario) => {
           const info = SCENARIO_INFO[scenario.id];
           return (
-            <label
+            <button
               key={scenario.id}
-              className="border-cc-card-border flex cursor-pointer border-b last:border-b-0 md:border-r md:border-b-0 md:last:border-r-0"
+              type="button"
+              aria-label={info.name}
+              aria-pressed={controls.selected === scenario.id}
+              aria-controls={`benchmark-panel-${scenario.id}`}
+              onClick={() => controls.setSelected(scenario.id)}
+              className="border-cc-card-border hover:bg-cc-white/2 focus-visible:bg-cc-white/5 focus-visible:outline-cc-accent flex cursor-pointer border-b text-left last:border-b-0 focus-visible:outline-2 focus-visible:-outline-offset-2 md:border-r md:border-b-0 md:last:border-r-0"
             >
-              <input
-                className="peer sr-only"
-                type="radio"
-                name={`benchmark-scenario`}
-                value={scenario.id}
-                checked={controls.selected === scenario.id}
-                onChange={() => controls.setSelected(scenario.id)}
-                aria-controls={`benchmark-panel-${scenario.id}`}
-              />
-              <span className="peer-checked:bg-cc-white/5 hover:bg-cc-white/2 peer-focus-visible:outline-cc-accent text-cc-ink-dim peer-checked:text-cc-heading flex w-full flex-col px-5 py-5 shadow-[inset_0_-4px_0_0_transparent] transition-colors peer-checked:shadow-[inset_0_-4px_0_0_var(--color-cc-heading)] peer-focus-visible:outline-2 peer-focus-visible:-outline-offset-2 sm:py-6">
+              <span
+                className={`text-cc-ink-dim flex w-full flex-col px-5 py-5 transition-colors sm:py-6 ${controls.selected === scenario.id ? "bg-cc-white/5 text-cc-heading shadow-[inset_4px_0_0_0_var(--color-cc-heading)] md:shadow-[inset_0_-4px_0_0_var(--color-cc-heading)]" : ""}`}
+              >
                 <span className="font-heading text-h5 sm:text-h4 text-cc-heading font-semibold">
                   {info.name}
                 </span>
@@ -89,7 +87,7 @@ export function BenchmarkExplorer({ report, history }: BenchmarkExplorerProps) {
                   {SCENARIO_LOAD[scenario.id]}
                 </span>
               </span>
-            </label>
+            </button>
           );
         })}
       </fieldset>

@@ -1,7 +1,8 @@
 "use client";
 
 import { useId, useRef, useState, type ReactNode } from "react";
-import { QuestionCircleIcon } from "@/src/icons/QuestionCircle";
+import { faCircleQuestion } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 interface BenchmarkColumnHintProps {
   readonly label: string;
@@ -38,7 +39,7 @@ export function BenchmarkColumnHint({
       <button
         ref={button}
         type="button"
-        className="text-cc-ink-dim hover:text-cc-heading focus-visible:text-cc-heading focus-visible:outline-cc-accent ml-1 inline-flex size-4 translate-y-0.5 items-center justify-center rounded-full align-baseline focus-visible:outline-2"
+        className="text-cc-ink-dim hover:text-cc-prose focus-visible:text-cc-prose focus-visible:outline-cc-accent ml-1 inline-flex size-4 translate-y-0.5 items-center justify-center rounded-full align-baseline focus-visible:outline-2"
         aria-label={`About ${label}`}
         aria-describedby={id}
         onMouseEnter={open}
@@ -51,7 +52,11 @@ export function BenchmarkColumnHint({
           }
         }}
       >
-        <QuestionCircleIcon className="size-3.5" />
+        <FontAwesomeIcon
+          icon={faCircleQuestion}
+          className="size-3.5"
+          aria-hidden="true"
+        />
       </button>
       <span
         id={id}

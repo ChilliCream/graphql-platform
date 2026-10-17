@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ChevronDownIcon } from "@/src/icons/ChevronDown";
 import { WarningIcon } from "@/src/icons/Warning";
 import { BenchmarkColumnHint } from "@/src/components/benchmarks/BenchmarkColumnHint";
 import {
@@ -129,8 +130,15 @@ export function BenchmarkResultsTable({
           title
         )}
       </h3>
+      <BenchmarkMobileResults
+        group={group}
+        variants={variants}
+        measuredRuns={measuredRuns}
+        hints={hints}
+        headingId={headingId}
+      />
       <div
-        className={theme.scroller}
+        className={`hidden md:block ${theme.scroller}`}
         role="region"
         aria-labelledby={headingId}
         tabIndex={0}
@@ -165,8 +173,6 @@ export function BenchmarkResultsTable({
           <tbody>
             {group.rows.map((row) => {
               const entry = variants.get(row.variant)!;
-              const name = variantName(entry);
-              const link = gatewayLink(entry.gateway);
               const runs = measuredRuns ?? row.throughput?.runsRps?.length;
               const winner = isWinner(row, group);
               const value = `${theme.cell} ${theme.value} text-right whitespace-nowrap tabular-nums`;
@@ -179,42 +185,14 @@ export function BenchmarkResultsTable({
                     scope="row"
                     className={`${theme.cell} ${pad(0)} font-normal`}
                   >
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                      {link ? (
-                        <Link href={link} className={theme.nameLink}>
-                          {name}
-                        </Link>
-                      ) : (
-                        <span className={theme.name}>{name}</span>
-                      )}
-                      {entry.variant.version !== null && (
-                        <span className={theme.tag}>
-                          {entry.variant.version}
-                        </span>
-                      )}
-                      <span className={theme.tag}>
-                        {formatRuntimeTag(entry.variant.platform)}
-                      </span>
-                      {isPreview(
-                        entry.variant.version,
-                        entry.variant.platform,
-                        entry.variant.preview,
-                      ) && <span className={theme.previewTag}>Preview</span>}
-                    </div>
+                    <RouterIdentity entry={entry} />
                   </th>
                   {row.status === "failed" ? (
                     <td
                       colSpan={COLUMNS.length - 1}
                       className="px-4 py-4 text-center text-sm"
                     >
-                      <span className="text-cc-danger inline-flex items-center gap-1 leading-5 [&_button]:ml-0 [&_button]:translate-y-0">
-                        <WarningIcon className="relative top-px size-4 shrink-0" />
-                        <span>The benchmark failed to run for this router</span>
-                        <BenchmarkColumnHint label="benchmark failure">
-                          This could be due to benchmark misconfiguration and
-                          does not mean that the router is faulty.
-                        </BenchmarkColumnHint>
-                      </span>
+                      <BenchmarkFailure />
                     </td>
                   ) : (
                     <>
@@ -308,6 +286,178 @@ export function BenchmarkResultsTable({
           </tbody>
         </table>
       </div>
+    </div>
+  );
+}
+
+interface RouterIdentityProps {
+  readonly entry: BenchmarkCatalogEntry;
+}
+
+function RouterIdentity({ entry }: RouterIdentityProps) {
+  const name = variantName(entry);
+  const link = gatewayLink(entry.gateway);
+  return (
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+      {link ? (
+        <Link href={link} className={theme.nameLink}>
+          {name}
+        </Link>
+      ) : (
+        <span className={theme.name}>{name}</span>
+      )}
+      {entry.variant.version !== null && (
+        <span className={theme.tag}>{entry.variant.version}</span>
+      )}
+      <span className={theme.tag}>
+        {formatRuntimeTag(entry.variant.platform)}
+      </span>
+      {isPreview(
+        entry.variant.version,
+        entry.variant.platform,
+        entry.variant.preview,
+      ) && <span className={theme.previewTag}>Preview</span>}
+    </div>
+  );
+}
+
+function BenchmarkFailure() {
+  return (
+    <span className="text-cc-danger inline-flex items-center gap-1 leading-5 [&_button]:ml-0 [&_button]:translate-y-0">
+      <WarningIcon className="relative top-px size-4 shrink-0" />
+      <span>The benchmark failed to run for this router</span>
+      <BenchmarkColumnHint label="benchmark failure">
+        This could be due to benchmark misconfiguration and does not mean that
+        the router is faulty.
+      </BenchmarkColumnHint>
+    </span>
+  );
+}
+
+interface BenchmarkMobileResultsProps {
+  readonly group: ResultsGroup;
+  readonly variants: ReadonlyMap<string, BenchmarkCatalogEntry>;
+  readonly measuredRuns: number | undefined;
+  readonly hints: readonly (string | undefined)[];
+  readonly headingId: string;
+}
+
+function BenchmarkMobileResults({
+  group,
+  variants,
+  measuredRuns,
+  hints,
+  headingId,
+}: BenchmarkMobileResultsProps) {
+  return (
+    <div className="md:hidden">
+      <div className="border-cc-heading/60 text-cc-ink-dim flex items-center justify-between gap-3 border-b px-3 py-2.5 text-xs">
+        <span>Router</span>
+        <span className="whitespace-nowrap">
+          Median requests/s
+          <BenchmarkColumnHint label="Median requests/s">
+            {hints[1]}
+          </BenchmarkColumnHint>
+        </span>
+      </div>
+      <ul aria-labelledby={headingId}>
+        {group.rows.map((row) => {
+          const entry = variants.get(row.variant)!;
+          const winner = isWinner(row, group);
+          const runs = measuredRuns ?? row.throughput?.runsRps?.length;
+          const metrics =
+            row.status === "complete"
+              ? [
+                  row.latencyMs
+                    ? `${formatLatency(row.latencyMs.p95)} ms`
+                    : "—",
+                  row.latencyMs
+                    ? `${formatLatency(row.latencyMs.p99_9)} ms`
+                    : "—",
+                  row.memory
+                    ? `${formatMemory(row.memory.peakRssKiB)} MiB`
+                    : "—",
+                  row.cpu
+                    ? `${row.cpu.avgUtilizationPercent.toFixed(2)}%`
+                    : "—",
+                  formatReliability(
+                    row.requests.successful,
+                    row.requests.total,
+                  ),
+                  runs === 1 ? "—" : `±${row.throughput.cvPercent.toFixed(1)}%`,
+                ]
+              : [];
+          return (
+            <li
+              key={row.variant}
+              className={`border-cc-card-border border-b px-3 py-4 ${winner ? "bg-cc-accent/10 shadow-[inset_3px_0_0_0_var(--color-cc-accent)]" : ""}`}
+            >
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 text-sm">
+                <RouterIdentity entry={entry} />
+                {row.status === "complete" && (
+                  <div className="min-w-20 text-right">
+                    <p className={winner ? theme.winnerRps : theme.rps}>
+                      {formatNumber(row.throughput.medianRps)}
+                      {winner && (
+                        <span className="sr-only">, highest reported</span>
+                      )}
+                    </p>
+                    <div
+                      className={`${theme.barTrack} mt-2`}
+                      aria-hidden="true"
+                    >
+                      <div
+                        className={`h-full ${winner ? theme.winnerBar : theme.bar}`}
+                        style={{
+                          width: `${group.maxRps === 0 ? 0 : (row.throughput.medianRps / group.maxRps) * 100}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+              {row.status === "failed" ? (
+                <div className="mt-3 text-left text-sm">
+                  <BenchmarkFailure />
+                </div>
+              ) : (
+                <details className="group mt-3">
+                  <summary className="text-cc-ink-dim hover:text-cc-prose focus-visible:outline-cc-accent flex w-fit cursor-pointer list-none items-center gap-1.5 rounded text-xs focus-visible:outline-2 [&::-webkit-details-marker]:hidden">
+                    <ChevronDownIcon
+                      aria-hidden="true"
+                      className="size-2.5 fill-current group-open:rotate-180"
+                    />
+                    All metrics
+                    <span className="sr-only"> for {variantName(entry)}</span>
+                  </summary>
+                  <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 text-xs">
+                    {metrics.map((metric, index) => (
+                      <div key={COLUMNS[index + 2].label}>
+                        <dt className="text-cc-ink-dim">
+                          {COLUMNS[index + 2].label}
+                          <BenchmarkColumnHint label={COLUMNS[index + 2].label}>
+                            {hints[index + 2]}
+                          </BenchmarkColumnHint>
+                        </dt>
+                        <dd
+                          className={`mt-1 font-mono ${index === 4 && !isReliable(row) ? theme.danger : "text-cc-heading"}`}
+                          title={
+                            index === 5 && runs === 1
+                              ? "Variation cannot be estimated from one measured run"
+                              : undefined
+                          }
+                        >
+                          {metric}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                </details>
+              )}
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }

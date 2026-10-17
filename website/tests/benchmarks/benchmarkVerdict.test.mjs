@@ -19,11 +19,11 @@ hooks.deregister();
 
 const variants = new Map(
   [
-    ["fusion", "fusion", "Fusion", "16.6.8"],
-    ["fusion-nightly", "fusion", "Fusion", "16.7.0-p.28"],
-    ["fusion-nightly-net11", "fusion", "Fusion", "16.7.0-p.28"],
-    ["hive-router", "hive-router", "The Guild", "0.3.5"],
-    ["hive-gateway", "hive-gateway", "The Guild", "2.15.2"],
+    ["router-a", "router-a", "Vendor A", "16.6.8"],
+    ["router-a-preview", "router-a", "Vendor A", "16.7.0-p.28"],
+    ["router-a-preview-runtime", "router-a", "Vendor A", "16.7.0-p.28"],
+    ["router-b", "router-b", "Vendor B", "0.3.5"],
+    ["router-c", "router-c", "Vendor B", "2.15.2"],
   ].map(([id, gateway, vendor, version]) => [
     id,
     {
@@ -54,20 +54,20 @@ const summary = (value) =>
     tied: value.tied,
   };
 
-test("compares the fastest Fusion variant with a different gateway", () => {
+test("compares the fastest variant of each gateway", () => {
   assert.deepEqual(
     summary(
       verdict([
-        result("fusion-nightly-net11", 1200),
-        result("fusion-nightly", 1199),
-        result("fusion", 1100),
-        result("hive-router", 1000),
-        result("hive-gateway", 900),
+        result("router-a-preview-runtime", 1200),
+        result("router-a-preview", 1199),
+        result("router-a", 1100),
+        result("router-b", 1000),
+        result("router-c", 900),
       ]),
     ),
     {
-      leader: "fusion-nightly-net11",
-      runnerUp: "hive-router",
+      leader: "router-a-preview-runtime",
+      runnerUp: "router-b",
       leadPercent: 20,
       tied: false,
     },
@@ -76,55 +76,64 @@ test("compares the fastest Fusion variant with a different gateway", () => {
 
 test("respects the stable release filter before selecting a gateway's variant", () => {
   const rows = [
-    result("fusion-nightly", 1200),
-    result("fusion", 900),
-    result("hive-router", 1000),
+    result("router-a-preview", 1200),
+    result("router-a", 900),
+    result("router-b", 1000),
   ];
-  assert.equal(verdict(rows, true).leader.variant, "hive-router");
-  assert.equal(verdict(rows, true).runnerUp.variant, "fusion");
+  assert.equal(verdict(rows, true).leader.variant, "router-b");
+  assert.equal(verdict(rows, true).runnerUp.variant, "router-a");
 });
 
 test("retains ties within variance between different gateways", () => {
   const value = verdict([
-    result("fusion-nightly", 1005),
-    result("fusion", 1004),
-    result("hive-router", 1000),
+    result("router-a-preview", 1005),
+    result("router-a", 1004),
+    result("router-b", 1000),
   ]);
-  assert.equal(value.runnerUp.variant, "hive-router");
+  assert.equal(value.runnerUp.variant, "router-b");
   assert.equal(value.tied, true);
 });
 
 test("keeps different gateways from the same vendor separate", () => {
   const value = verdict([
-    result("hive-router", 1200),
-    result("hive-gateway", 1000),
-    result("fusion", 900),
+    result("router-b", 1200),
+    result("router-c", 1000),
+    result("router-a", 900),
   ]);
-  assert.equal(value.runnerUp.variant, "hive-gateway");
+  assert.equal(value.runnerUp.variant, "router-c");
 });
 
 test("excludes failed variants and results with failed requests", () => {
   const value = verdict([
-    { variant: "fusion-nightly", status: "failed" },
+    { variant: "router-a-preview", status: "failed" },
     {
-      ...result("hive-router", 1200),
+      ...result("router-b", 1200),
       requests: { total: 100, successful: 99, failed: 1 },
     },
-    result("fusion", 900),
+    result("router-a", 900),
   ]);
-  assert.equal(value.leader.variant, "fusion");
+  assert.equal(value.leader.variant, "router-a");
   assert.equal(value.runnerUp, undefined);
 });
 
 test("does not treat another version as a competing gateway", () => {
   const value = verdict([
-    result("fusion-nightly", 1200),
-    result("fusion", 1000),
+    result("router-a-preview", 1200),
+    result("router-a", 1000),
   ]);
   assert.equal(value.runnerUp, undefined);
   assert.equal(value.tied, false);
 });
 
 test("returns no verdict when no gateway completed successfully", () => {
-  assert.equal(verdict([{ variant: "fusion", status: "failed" }]), undefined);
+  assert.equal(verdict([{ variant: "router-a", status: "failed" }]), undefined);
 });
+
+for (const id of ["router-a", "router-b", "router-c"]) {
+  test(`selects ${id} when it has the highest successful throughput`, () => {
+    const rows = ["router-a", "router-b", "router-c"].map((variant) =>
+      result(variant, variant === id ? 1200 : 1000),
+    );
+    assert.equal(verdict(rows).leader.variant, id);
+  });
+}
