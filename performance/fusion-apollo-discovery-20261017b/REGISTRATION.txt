@@ -201,5 +201,10 @@ against its allocation JSON. analyze_cpu.py consumes cpu.speedscope.json. All
 substantial offline work takes shared flock -s -o on the investigation lock.
 results/ contains losslessly compressed allocation event/caller observations and
 summaries, plus CPU metadata and evented-stack summary. inputs.sha256 records
-original raw trace/export hashes. The baseline owner publishes the raw profiles,
-native traffic/process samples, plan, wire and immutable provenance separately.
+original raw trace/export hashes. The raw profiles, native traffic/process samples,
+plan, wire and immutable provenance are published at commit
+ef9fc1159a5a7a980754ebd42b511030320482cd on perf/fusion-apollo-baseline-20261017b:
+https://github.com/ChilliCream/graphql-platform/tree/ef9fc1159a5a7a980754ebd42b511030320482cd/experiments/fusion-apollo-baseline-20261017b
+Raw trace/export files are losslessly compressed in results/profiles/, with hashes
+in results/SHA256SUMS.json. Exact-window traffic/CPU analyses are in
+results/profiles/{cpu-load,alloc-load,entities9-alloc-load}/analysis.json.
