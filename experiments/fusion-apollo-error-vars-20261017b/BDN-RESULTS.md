@@ -2,7 +2,7 @@
 
 C2 is abandoned because its ordinary execution-cost increase remains unresolved. The separately validated allocation savings are real, but this bounded BenchmarkDotNet campaign does not establish a worthwhile tradeoff without added execution cost. This is not a claim of a universal process-CPU regression. No further VU tests or BDN repeats are planned for C2.
 
-C3 remains unpromoted pending independent interpretation of its unaffected-workload cost. Its duplicate-path allocation case shows no adverse elapsed pattern, while batch9 is consistently slower despite having no allocation benefit from C3. The unstable final ordinary control does not excuse that pattern.
+C3 is also abandoned for insufficient net-benefit proof. Independent review found repeated unaffected batch9 increases of 3.18–5.72% against adjacent controls and the ordinary-cost concern. Its duplicate-path allocation case shows no adverse elapsed pattern, but that benefit does not establish an acceptable overall tradeoff. The unstable final ordinary control does not excuse the adverse batch pattern. No further VU tests, repeats, or production PR are planned for either candidate.
 
 The seven fresh B/C2/C3/B/C3/C2/B launches ran from 17:19:03.911376 UTC to a complete final BDN report written at 17:20:23.025422 UTC on 2026-10-17. All 252 WorkloadActual and 252 WorkloadResult observations are retained. Every case contains twelve observations of 1,000 fully awaited real executor operations, including response disposal. Runtime, engine identity, real Apollo dispatch, and complete data oracles passed. The job uses default server GC and no outlier removal.
 
