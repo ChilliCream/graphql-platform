@@ -248,16 +248,22 @@ class Session(baseline.Session):
                     raise ValueError('Source shape capture failed status or bounded response size')
                 headers = {key: response.headers.get(key) for key in
                            ['Content-Length', 'Content-Type', 'Transfer-Encoding', 'Content-Encoding']}
-                decoded = json.loads(body)
-                if decoded.get('errors') or 'data' not in decoded:
-                    raise ValueError('Source shape capture response has GraphQL errors or no data')
-                (directory / f'{index:02}-response.json').write_bytes(body)
+                media_type = (headers['Content-Type'] or '').split(';', 1)[0].strip().lower()
+                shape = 'streaming-or-other-media-type, retained without single-object parsing'
+                if media_type in ['application/json', 'application/graphql-response+json']:
+                    try:
+                        decoded = json.loads(body)
+                        shape = 'single-json-object' if isinstance(decoded, dict) else 'other-json-shape'
+                    except json.JSONDecodeError:
+                        shape = 'unparsed-json-media-type, retained for review'
+                (directory / f'{index:02}-response.body').write_bytes(body)
                 captured.append({'index': index, 'url': original['url'], 'accept_policy': original['accept_policy'],
                     'protocol_version': response.version, 'status': response.status, 'headers': headers,
+                    'body_shape_observation': shape,
                     'body_bytes': len(body), 'body_sha256': hashlib.sha256(body).hexdigest(),
                     'request_body_sha256': hashlib.sha256(original['body'].encode()).hexdigest()})
         dump(directory / 'summary.json', {'responses': captured,
-             'scope': 'Seven direct fixture response captures during first baseline preflight, followed by30s conditioning. urllib HTTP transport differs from the gateway client; headers and sizes are observed for this capture, not instrumented gateway responses. Physical arena chunk adjacency is unobserved. No sensitive request/response header values retained.'})
+             'scope': 'Seven direct fixture response captures during first baseline preflight, followed by30s conditioning. urllib HTTP transport differs from the gateway client; headers and sizes are observed for this capture, not instrumented gateway responses. Physical arena chunk adjacency is unobserved. Advertised JSONL/SSE bodies are retained without requiring a single JSON object; independent gateway preflight oracles establish workload correctness. No sensitive request/response header values retained.'})
         self.marker('source-response-shape-capture-end')
 
     def k6(self, name, workload='TestQuery', duration=30, mode='constant', vus=50, raw=True):
