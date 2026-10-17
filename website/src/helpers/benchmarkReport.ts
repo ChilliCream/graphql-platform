@@ -72,6 +72,7 @@ export interface BenchmarkVariant {
   readonly id: string;
   readonly version: string | null;
   readonly label?: string;
+  readonly preview?: boolean;
   readonly composition: Composition;
   readonly platform: BenchmarkPlatform;
   readonly features?: readonly BenchmarkFeature[];
@@ -444,8 +445,13 @@ function catalog(value: unknown): {
       const variant = record(
         entry,
         ["id", "version", "composition", "platform"],
-        ["label", "features", "notes"],
+        ["label", "preview", "features", "notes"],
       );
+      optional(variant.preview, (value) => {
+        if (typeof value !== "boolean") {
+          throw new Error("Invalid benchmark preview flag.");
+        }
+      });
       text(variant.id);
       if (parents.has(variant.id)) {
         throw new Error("Duplicate benchmark report identity.");
@@ -671,12 +677,12 @@ export function benchmarkVariants(
   );
 }
 
-/** Returns the display name of a variant: the site name for known variants, otherwise its label or gateway name. */
+/** Returns the display name of a variant: its explicit label, otherwise the site name or gateway name. */
 export function variantName({
   gateway,
   variant,
 }: BenchmarkCatalogEntry): string {
-  return VARIANT_NAMES[variant.id] ?? variant.label ?? gateway.name;
+  return variant.label ?? VARIANT_NAMES[variant.id] ?? gateway.name;
 }
 
 /** Returns the link for a gateway: the site link for known gateways, otherwise its HTTPS repository URL, or undefined. */
@@ -691,15 +697,17 @@ export function gatewayLink(gateway: BenchmarkGateway): string | undefined {
 
 const PRERELEASE = /^\d+(\.\d+)*-/;
 
-/** Returns whether a gateway version or its runtime version is a prerelease, such as `16.7.0-p.27` or a `-rc` runtime. */
+/** Returns the explicit preview flag, or infers preview status from the gateway and runtime versions when absent. */
 export function isPreview(
   version: string | null,
   platform: BenchmarkPlatform,
+  preview: boolean | undefined,
 ): boolean {
   return (
-    (version !== null && PRERELEASE.test(version)) ||
-    (platform.runtime?.version !== undefined &&
-      PRERELEASE.test(platform.runtime.version))
+    preview ??
+    ((version !== null && PRERELEASE.test(version)) ||
+      (platform.runtime?.version !== undefined &&
+        PRERELEASE.test(platform.runtime.version)))
   );
 }
 

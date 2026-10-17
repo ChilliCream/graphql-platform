@@ -18,7 +18,7 @@ interface BenchmarkScenarioResultsProps {
   readonly stableOnly: boolean;
 }
 
-/** The Composite Schema and Apollo Federation tables of one scenario, with its status and single-run notices. */
+/** The GraphQL Federation specification and Apollo Federation tables of one scenario, with its status and single-run notices. */
 export function BenchmarkScenarioResults({
   report,
   scenario,

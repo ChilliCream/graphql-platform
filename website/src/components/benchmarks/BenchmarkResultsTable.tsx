@@ -117,7 +117,16 @@ export function BenchmarkResultsTable({
   return (
     <div>
       <h3 id={headingId} className={theme.heading}>
-        {title}
+        {group.id === "composite-schema" ? (
+          <Link
+            href="https://graphql.github.io/graphql-federation-spec/"
+            className="hover:text-cc-accent underline-offset-4 hover:underline"
+          >
+            {title}
+          </Link>
+        ) : (
+          title
+        )}
       </h3>
       <div
         className={theme.scroller}
@@ -188,6 +197,7 @@ export function BenchmarkResultsTable({
                       {isPreview(
                         entry.variant.version,
                         entry.variant.platform,
+                        entry.variant.preview,
                       ) && <span className={theme.previewTag}>Preview</span>}
                     </div>
                   </th>

@@ -10,6 +10,7 @@ import {
   gatewayLink,
   parseBenchmarkReport,
   variantName,
+  isPreview,
 } from "../../src/helpers/benchmarkReport.ts";
 
 const historyFixture = readFileSync(
@@ -677,3 +678,34 @@ for (const [name, mutate] of [
     assert.throws(() => parse(mutate));
   });
 }
+
+test("uses explicit variant labels and preview metadata", () => {
+  const entries = benchmarkVariants(parseBenchmarkReport(fixture));
+  assert.deepEqual(
+    ["fusion", "fusion-nightly", "fusion-nightly-net11", "feddi"].map((id) => {
+      const entry = entries.get(id);
+      return {
+        id,
+        name: variantName(entry),
+        preview: isPreview(
+          entry.variant.version,
+          entry.variant.platform,
+          entry.variant.preview,
+        ),
+      };
+    }),
+    [
+      { id: "fusion", name: "Fusion", preview: false },
+      { id: "fusion-nightly", name: "Fusion Nightly", preview: true },
+      { id: "fusion-nightly-net11", name: "Fusion Nightly", preview: true },
+      { id: "feddi", name: "feddi", preview: true },
+    ],
+  );
+});
+test("rejects preview metadata that is not boolean", () => {
+  assert.throws(() =>
+    parse((report) => {
+      report.gateways[0].variants[0].preview = "true";
+    }),
+  );
+});

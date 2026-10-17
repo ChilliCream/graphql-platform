@@ -44,8 +44,8 @@ export const throughputNote = (scenario: BenchmarkScenario) =>
 
 /** The composition families, in table order. */
 export const COMPOSITION_GROUPS = [
-  { id: "composite-schema", name: "Composite Schema" },
-  { id: "apollo-federation", name: "Apollo Federation" },
+  { id: "composite-schema", name: "GraphQL Federation specification" },
+  { id: "apollo-federation", name: "Apollo Federation v2" },
 ] as const satisfies readonly { id: Composition; name: string }[];
 
 /** Labels and empty-state messages for each scenario status. */
@@ -86,14 +86,26 @@ export function defaultScenarioId(
 
 /** The default line colors of the history chart, in catalog order. */
 export const SERIES_COLORS = [
-  "#3987e5",
-  "#d95926",
-  "#199e70",
-  "#c98500",
-  "#d55181",
-  "#008300",
-  "#9085e9",
-  "#e66767",
+  "#60a5fa",
+  "#fb923c",
+  "#2dd4bf",
+  "#c084fc",
+  "#facc15",
+  "#fb7185",
+  "#a3e635",
+  "#38bdf8",
+  "#e879f9",
+  "#34d399",
+  "#fda4af",
+  "#818cf8",
+  "#fdba74",
+  "#67e8f9",
+  "#d8b4fe",
+  "#86efac",
+  "#f472b6",
+  "#fde68a",
+  "#93c5fd",
+  "#cbd5e1",
 ] as const;
 
 /** The number of newest versions the history chart shows per variant. */
@@ -133,7 +145,8 @@ export function historySeries(
     const versions = history.versions
       .filter(
         (version) =>
-          !stableOnly || !isPreview(version.version, version.platform),
+          !stableOnly ||
+          !isPreview(version.version, version.platform, entry.variant.preview),
       )
       .slice(-HISTORY_SLOTS);
     if (versions.length === 0) {
@@ -235,7 +248,10 @@ export function scenarioGroups(
     .flatMap((result) => result.variants)
     .filter((row) => {
       const { variant } = variants.get(row.variant)!;
-      return !stableOnly || !isPreview(variant.version, variant.platform);
+      return (
+        !stableOnly ||
+        !isPreview(variant.version, variant.platform, variant.preview)
+      );
     })
     .toSorted(
       (a, b) =>
