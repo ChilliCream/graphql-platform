@@ -2534,6 +2534,7 @@ AddErrors_Next:
 
         _memory.Clear();
 
+        ClearRepresentationScratch();
         _variableDedupTable.Dispose();
         _variableWriter.Dispose();
         _forwardedVariableWriter?.Dispose();
