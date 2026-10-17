@@ -1,5 +1,3 @@
-import { type ReactNode } from "react";
-import { CrownIcon } from "@/src/icons/CrownIcon";
 import {
   COMPOSITION_GROUPS,
   formatNumber,
@@ -12,14 +10,15 @@ import { Link } from "@/src/design-system/Link";
 import {
   BENCHMARK_FUSION_DOCS_URL,
   benchmarkVariants,
-  gatewayLink,
   formatRuntimeTag,
+  gatewayLink,
   variantName,
   type BenchmarkCatalogEntry,
+  type BenchmarkCompletedVariantResult,
   type BenchmarkReport,
   type BenchmarkVariantResult,
-  type BenchmarkCompletedVariantResult,
 } from "@/src/helpers/benchmarkReport";
+import { CrownIcon } from "@/src/icons/CrownIcon";
 
 /** A scenario verdict with its routers already named. */
 interface NamedVerdict {
@@ -181,7 +180,6 @@ function linkFusion(text: string) {
 
 interface BenchmarkVerdictSummaryProps {
   readonly id: string;
-  readonly controls: ReactNode;
   readonly report: BenchmarkReport;
   readonly stableOnly: boolean;
 }
@@ -189,7 +187,6 @@ interface BenchmarkVerdictSummaryProps {
 /** A written summary of every scenario: one overall sentence and one sentence per scenario. */
 export function BenchmarkVerdictSummary({
   id,
-  controls,
   report,
   stableOnly,
 }: BenchmarkVerdictSummaryProps) {
@@ -249,7 +246,7 @@ export function BenchmarkVerdictSummary({
     <>
       <p className="text-cc-heading text-body mt-2">
         {commonWinner && (
-          <CrownIcon className="text-cc-accent mr-2 inline size-4 align-[-2px]" />
+          <CrownIcon className="text-cc-accent mr-1.5 inline size-4 align-[-2px]" />
         )}
         {linkFusion(summary)}
       </p>
@@ -314,18 +311,5 @@ export function BenchmarkVerdictSummary({
       </dl>
     </>
   );
-  return (
-    <section aria-labelledby={`${id}-heading`}>
-      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
-        <h2
-          id={`${id}-heading`}
-          className="text-h6 text-cc-heading font-semibold"
-        >
-          Results at a glance
-        </h2>
-        {controls}
-      </div>
-      {body}
-    </section>
-  );
+  return <section aria-labelledby={`${id}-heading`}>{body}</section>;
 }

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ChevronDownIcon } from "@/src/icons/ChevronDown";
 import { WarningIcon } from "@/src/icons/Warning";
 import { BenchmarkColumnHint } from "@/src/components/benchmarks/BenchmarkColumnHint";
+import { BenchmarkPreviewBadge } from "@/src/components/benchmarks/BenchmarkPreviewBadge";
 import {
   formatLatency,
   formatMemory,
@@ -36,8 +37,6 @@ const theme = {
   nameLink:
     "text-cc-heading hover:text-cc-accent font-semibold underline-offset-4 hover:underline",
   tag: "border-cc-card-border text-cc-ink-dim rounded border px-1.5 font-mono text-[11px] leading-5 whitespace-nowrap",
-  previewTag:
-    "border-cc-accent/50 bg-cc-accent/10 text-cc-accent rounded border px-1.5 font-mono text-[11px] leading-5 font-semibold tracking-wide whitespace-nowrap uppercase",
   rps: "text-cc-heading font-mono font-semibold",
   winnerRps: "text-cc-accent font-mono font-semibold",
   barTrack: "bg-cc-white/5 h-1 rounded-full",
@@ -117,7 +116,7 @@ export function BenchmarkResultsTable({
   );
 
   return (
-    <div>
+    <div data-benchmark-scroll-anchor={`table-${id}`}>
       <h3 id={headingId} className={theme.heading}>
         {group.id === "composite-schema" ? (
           <Link
@@ -179,6 +178,7 @@ export function BenchmarkResultsTable({
               return (
                 <tr
                   key={row.variant}
+                  data-benchmark-scroll-anchor={`row-${id}-${row.variant}`}
                   className={winner ? theme.winnerRow : theme.row}
                 >
                   <th
@@ -299,24 +299,26 @@ function RouterIdentity({ entry }: RouterIdentityProps) {
   const link = gatewayLink(entry.gateway);
   return (
     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-      {link ? (
-        <Link href={link} className={theme.nameLink}>
-          {name}
-        </Link>
-      ) : (
-        <span className={theme.name}>{name}</span>
-      )}
+      <span className="inline-flex items-center gap-1.5">
+        {isPreview(
+          entry.variant.version,
+          entry.variant.platform,
+          entry.variant.preview,
+        ) && <BenchmarkPreviewBadge />}
+        {link ? (
+          <Link href={link} className={theme.nameLink}>
+            {name}
+          </Link>
+        ) : (
+          <span className={theme.name}>{name}</span>
+        )}
+      </span>
       {entry.variant.version !== null && (
         <span className={theme.tag}>{entry.variant.version}</span>
       )}
       <span className={theme.tag}>
         {formatRuntimeTag(entry.variant.platform)}
       </span>
-      {isPreview(
-        entry.variant.version,
-        entry.variant.platform,
-        entry.variant.preview,
-      ) && <span className={theme.previewTag}>Preview</span>}
     </div>
   );
 }
@@ -390,6 +392,7 @@ function BenchmarkMobileResults({
           return (
             <li
               key={row.variant}
+              data-benchmark-scroll-anchor={`mobile-row-${headingId}-${row.variant}`}
               className={`border-cc-card-border border-b px-3 py-4 ${winner ? "bg-cc-accent/10 shadow-[inset_3px_0_0_0_var(--color-cc-accent)]" : ""}`}
             >
               <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 text-sm">

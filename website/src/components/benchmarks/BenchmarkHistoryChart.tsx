@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   COMPOSITION_GROUPS,
   formatChange,
   formatNumber,
   historyTimeScale,
+  historyDateTicks,
   formatHistoryDate,
   type HistoryPoint,
   historyScale,
@@ -37,8 +38,28 @@ export function BenchmarkHistoryChart({
   variants,
   stableOnly,
 }: BenchmarkHistoryChartProps) {
-  const { active, pinned, setHovered, setFocused, togglePinned } =
-    useSeriesHighlight();
+  const plotRef = useRef<HTMLDivElement>(null);
+  const [plotWidth, setPlotWidth] = useState(0);
+  useEffect(() => {
+    const plot = plotRef.current;
+    if (!plot) {
+      return;
+    }
+    const observer = new ResizeObserver(([entry]) => {
+      setPlotWidth(entry.contentRect.width);
+    });
+    observer.observe(plot);
+    return () => observer.disconnect();
+  }, [scenario, stableOnly]);
+  const {
+    active,
+    pinned,
+    setHovered,
+    setFocused,
+    togglePinned,
+    clearPointerHighlight,
+    clearHoverSoon,
+  } = useSeriesHighlight();
   const [selected, setSelected] = useState<{
     readonly seriesId: string;
     readonly point: HistoryPoint;
@@ -53,14 +74,10 @@ export function BenchmarkHistoryChart({
   const { x } = historyTimeScale(
     series.flatMap((item) => item.points.map((point) => point.timestamp)),
   );
-  const dates = series
-    .reduce((longest, item) =>
-      item.points.length > longest.points.length ? item : longest,
-    )
-    .points.map((point) => point.timestamp);
   const timestamps = series.flatMap((item) =>
     item.points.map((point) => point.timestamp),
   );
+  const dates = historyDateTicks(timestamps, plotWidth);
   const includeYear =
     new Date(Math.min(...timestamps)).getUTCFullYear() !==
     new Date(Math.max(...timestamps)).getUTCFullYear();
@@ -83,6 +100,11 @@ export function BenchmarkHistoryChart({
   const compositionName = COMPOSITION_GROUPS.find(
     (group) => group.id === selectedSeries?.composition,
   )?.name;
+  const showComposition = series.some(
+    (item) =>
+      item.name === selectedSeries?.name &&
+      item.composition !== selectedSeries?.composition,
+  );
   const align = (position: number) =>
     position > 85 ? "-100%" : position < 15 ? "0" : "-50%";
   const ordered = series.toSorted(
@@ -90,10 +112,11 @@ export function BenchmarkHistoryChart({
   );
   return (
     <figure
+      data-benchmark-scroll-anchor={`chart-${id}`}
       className="border-cc-card-border relative rounded-lg border"
       aria-labelledby={`${id}-history`}
       onMouseLeave={() => {
-        setHovered(undefined);
+        clearPointerHighlight();
         setSelected(undefined);
       }}
     >
@@ -126,9 +149,10 @@ export function BenchmarkHistoryChart({
             ))}
           </div>
           <div
+            ref={plotRef}
             className="relative h-60 sm:h-72"
             onMouseLeave={() => {
-              setHovered(undefined);
+              clearPointerHighlight();
               setSelected(undefined);
             }}
           >
@@ -187,12 +211,21 @@ export function BenchmarkHistoryChart({
                     top: `${y(point.rps)}%`,
                   }}
                   onMouseEnter={() => {
+                    if (pinned && pinned !== item.id) {
+                      return;
+                    }
                     setHovered(item.id);
                     setSelected({ seriesId: item.id, point });
                   }}
-                  onMouseLeave={() => setSelected(undefined)}
+                  onMouseLeave={() => {
+                    setHovered(undefined);
+                    setSelected(undefined);
+                  }}
                   onFocus={(event) => {
-                    if (event.currentTarget.matches(":focus-visible")) {
+                    if (
+                      (!pinned || pinned === item.id) &&
+                      event.currentTarget.matches(":focus-visible")
+                    ) {
                       setFocused(item.id);
                       setSelected({ seriesId: item.id, point });
                     }
@@ -206,9 +239,11 @@ export function BenchmarkHistoryChart({
                     setSelected({ seriesId: item.id, point });
                   }}
                 >
-                  <span className="bg-cc-bg ring-cc-bg flex shrink-0 rounded-full ring-2">
+                  <span
+                    className={`flex shrink-0 rounded-full ${active && item.id !== active ? "opacity-20" : "bg-cc-bg ring-cc-bg ring-2"}`}
+                  >
                     <span
-                      className={`block ${maxPoints > 60 ? "size-0.75" : "size-1.25"} rounded-full border ${active && item.id !== active ? "opacity-20" : ""}`}
+                      className={`block ${maxPoints > 60 ? "size-0.75" : "size-1.25"} rounded-full border`}
                       style={{
                         borderColor: item.color,
                         backgroundColor: item.dashed
@@ -235,7 +270,9 @@ export function BenchmarkHistoryChart({
                     {selectedSeries?.name}
                     {showRuntime ? ` (${point.runtime})` : ""}
                   </div>
-                  <div className="text-cc-ink-dim">{compositionName}</div>
+                  {showComposition && (
+                    <div className="text-cc-ink-dim">{compositionName}</div>
+                  )}
                   <div>Version {point.version}</div>
                   <div>{formatNumber(point.rps)} requests/s</div>
                 </div>
@@ -243,10 +280,10 @@ export function BenchmarkHistoryChart({
             )}
           </div>
           <div className="relative col-start-2 mt-3 h-9 text-[10px] sm:text-[11px]">
-            {dates.map((date, index) => (
+            {dates.map((date) => (
               <span
                 key={date}
-                className={`text-cc-ink-dim absolute whitespace-nowrap ${index % Math.ceil(dates.length / (includeYear ? 3 : 5)) !== 0 ? "hidden lg:block" : ""}`}
+                className="text-cc-ink-dim absolute whitespace-nowrap"
                 style={{
                   left: `${x(date)}%`,
                   transform: `translateX(${x(date) === 0 ? "0" : x(date) === 100 ? "-100%" : "-50%"})`,
@@ -258,7 +295,10 @@ export function BenchmarkHistoryChart({
           </div>
         </div>
       </div>
-      <div className="border-cc-card-border space-y-4 border-t px-5 py-4">
+      <div
+        className="border-cc-card-border space-y-4 border-t px-5 py-4"
+        onMouseLeave={() => setHovered(undefined)}
+      >
         {COMPOSITION_GROUPS.map((group) => {
           const members = series
             .filter((item) => item.composition === group.id)
@@ -285,8 +325,12 @@ export function BenchmarkHistoryChart({
                     active={active}
                     pinned={pinned === item.id}
                     onHighlight={setHovered}
+                    onHoverEnd={clearHoverSoon}
                     onFocusChange={setFocused}
-                    onToggle={togglePinned}
+                    onToggle={(seriesId) => {
+                      setSelected(undefined);
+                      togglePinned(seriesId);
+                    }}
                   />
                 ))}
               </ul>
@@ -331,6 +375,7 @@ interface LegendButtonProps {
   readonly active: string | undefined;
   readonly pinned: boolean;
   readonly onHighlight: (id: string | undefined) => void;
+  readonly onHoverEnd: () => void;
   readonly onFocusChange: (id: string | undefined) => void;
   readonly onToggle: (id: string) => void;
 }
@@ -340,6 +385,7 @@ function LegendButton({
   active,
   pinned,
   onHighlight,
+  onHoverEnd,
   onFocusChange,
   onToggle,
 }: LegendButtonProps) {
@@ -348,12 +394,12 @@ function LegendButton({
   const change = seriesChange(series);
 
   return (
-    <li>
+    <li className="w-60 max-w-full">
       <button
         type="button"
         aria-pressed={pinned}
         onMouseEnter={() => onHighlight(series.id)}
-        onMouseLeave={() => onHighlight(undefined)}
+        onMouseLeave={onHoverEnd}
         onFocus={(event) => {
           if (event.currentTarget.matches(":focus-visible")) {
             onFocusChange(series.id);
@@ -361,8 +407,12 @@ function LegendButton({
         }}
         onBlur={() => onFocusChange(undefined)}
         onClick={() => onToggle(series.id)}
-        className={`focus-visible:outline-cc-accent flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors focus-visible:outline-2 ${
-          isActive ? "bg-cc-hover" : "hover:bg-cc-hover"
+        className={`focus-visible:outline-cc-accent flex w-full cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors focus-visible:outline-2 ${
+          pinned
+            ? "bg-cc-accent/10 ring-cc-accent ring-1 ring-inset"
+            : isActive
+              ? "bg-cc-hover"
+              : "hover:bg-cc-hover"
         } ${active && !isActive ? "opacity-60" : ""}`}
       >
         <svg
@@ -390,9 +440,11 @@ function LegendButton({
           />
         </svg>
         <span className="min-w-0">
-          <span className="block truncate">
-            <span className="text-cc-heading">{series.name}</span>
-            <span className="border-cc-card-border text-cc-ink-dim ml-1 rounded border px-1.5 align-[1px] font-mono text-[11px] leading-5 whitespace-nowrap">
+          <span className="flex items-center gap-1">
+            <span className="text-cc-heading truncate" title={series.name}>
+              {series.name}
+            </span>
+            <span className="border-cc-card-border text-cc-ink-dim shrink-0 rounded border px-1.5 font-mono text-[11px] leading-5 whitespace-nowrap">
               {series.runtime}
             </span>
           </span>

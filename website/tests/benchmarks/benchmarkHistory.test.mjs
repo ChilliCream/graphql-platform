@@ -17,7 +17,7 @@ const hooks = registerHooks({
     );
   },
 });
-const { historySeries, historyTimeScale } =
+const { historySeries, historyTimeScale, historyDateTicks } =
   await import("../../src/components/benchmarks/benchmarkView.ts");
 hooks.deregister();
 const fixture = readFileSync(
@@ -26,12 +26,45 @@ const fixture = readFileSync(
 );
 const day = 86_400_000;
 
-test("spans the full width with proportional spacing for a short history", () => {
+test("fits more run-date labels on wider charts at a consistent run interval", () => {
+  const start = Date.parse("2026-07-22T12:00:00Z");
+  const dates = [
+    0, 1, 5, 8, 10, 14, 20, 29, 33, 36, 38, 40, 42, 49, 53, 57, 59, 61, 87,
+  ].map((offset) => start + offset * day);
+  const wide = historyDateTicks(dates, 1200);
+  const narrow = historyDateTicks(dates, 260);
+  assert.ok(wide.length >= 9);
+  assert.ok(narrow.length < wide.length);
+  for (const [ticks, width] of [
+    [wide, 1200],
+    [narrow, 260],
+  ]) {
+    assert.equal(ticks[0], dates[0]);
+    assert.ok(ticks.every((tick) => dates.includes(tick)));
+    const gaps = ticks
+      .slice(1)
+      .map((tick, index) => dates.indexOf(tick) - dates.indexOf(ticks[index]));
+    assert.ok(Math.max(...gaps) === Math.min(...gaps));
+    const bounds = ticks.map((tick, index) => {
+      const x = (historyTimeScale(dates).x(tick) / 100) * width;
+      return index === 0
+        ? [0, 52]
+        : tick === dates.at(-1)
+          ? [width - 52, width]
+          : [x - 26, x + 26];
+    });
+    assert.ok(
+      bounds.slice(1).every(([left], index) => left - bounds[index][1] >= 16),
+    );
+  }
+});
+
+test("spaces recorded runs equally despite missing dates", () => {
   const start = Date.parse("2026-10-01T12:00:00Z");
   const scale = historyTimeScale([start, start + day, start + 4 * day]);
   assert.deepEqual(
     [scale.x(start), scale.x(start + day), scale.x(start + 4 * day)],
-    [0, 25, 100],
+    [0, 50, 100],
   );
 });
 test("centers a single run without invalid coordinates", () => {
@@ -42,15 +75,12 @@ test("centers a single run without invalid coordinates", () => {
     { ticks: [date], position: 50 },
   );
 });
-test("uses ten-day ticks over six months", () => {
-  const start = Date.parse("2026-04-17T12:00:00Z");
-  const scale = historyTimeScale([start, start + 183 * day]);
-  assert.ok(scale.ticks.length >= 18);
-  assert.ok(
-    scale.ticks
-      .slice(1)
-      .every((tick, index) => tick - scale.ticks[index] === 10 * day),
-  );
+test("sorts and deduplicates dates across series without adding missing dates", () => {
+  const start = Date.parse("2026-07-22T12:00:00Z");
+  const end = Date.parse("2026-10-17T12:00:00Z");
+  const scale = historyTimeScale([end, start, start + day, end, start]);
+  assert.deepEqual(scale.ticks, [start, start + day, end]);
+  assert.deepEqual(scale.ticks.map(scale.x), [0, 50, 100]);
 });
 test("retains repeated versions and all runs sorted by completion time", () => {
   const history = parseBenchmarkHistory(fixture);

@@ -30,7 +30,7 @@ const SCENARIO_ORDER = Object.keys(SCENARIO_INFO);
 /** The fixed load profile of each scenario that the report does not record. */
 export const SCENARIO_LOAD: Readonly<Record<ScenarioId, string>> = {
   "constant-latency":
-    "50 virtual users run the GraphQL operation for 120 seconds. Every subgraph request waits 4 ms to simulate downstream I/O.",
+    "50 virtual users run the GraphQL operation for 120 seconds. Subgraph requests have 4 ms of simulated downstream I/O.",
   constant:
     "50 virtual users run the GraphQL operation for 120 seconds. Subgraph requests have no simulated I/O, so the result leans on router overhead.",
   burst:
@@ -182,25 +182,16 @@ export function historySeries(
   );
 }
 
-const DAY = 86_400_000;
-
-/** Returns UTC date ticks and positions spanning the available runs. A single date is centered. */
+/** Returns equally spaced positions for recorded runs. A single run is centered. */
 export function historyTimeScale(values: readonly number[]) {
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const span = max - min;
-  const step =
-    (span > 90 * DAY ? 10 : span > 30 * DAY ? 5 : span > 7 * DAY ? 2 : 1) * DAY;
-  const ticks: number[] = [];
-  for (let tick = Math.ceil(min / step) * step; tick <= max; tick += step) {
-    ticks.push(tick);
-  }
-  if (ticks.length === 0) {
-    ticks.push(min);
-  }
+  const dates = [...new Set(values)].toSorted((a, b) => a - b);
+  const positions = new Map(dates.map((date, index) => [date, index]));
   return {
-    ticks,
-    x: (value: number) => (span === 0 ? 50 : ((value - min) / span) * 100),
+    ticks: dates,
+    x: (value: number) =>
+      dates.length < 2
+        ? 50
+        : (positions.get(value)! / (dates.length - 1)) * 100,
   };
 }
 
@@ -211,6 +202,26 @@ export const formatHistoryDate = (timestamp: number, includeYear = false) =>
     year: includeYear ? "numeric" : undefined,
     timeZone: "UTC",
   }).format(timestamp);
+
+/** Returns run dates at a consistent run interval whose labels fit the available width. */
+export function historyDateTicks(values: readonly number[], width: number) {
+  const dates = [...new Set(values)].toSorted((a, b) => a - b);
+  if (dates.length < 2) {
+    return dates;
+  }
+  const first = dates[0];
+  const last = dates.at(-1)!;
+  const includeYear =
+    new Date(first).getUTCFullYear() !== new Date(last).getUTCFullYear();
+  const labelWidth = includeYear ? 90 : 52;
+  const stride = Math.max(
+    1,
+    Math.ceil(
+      ((labelWidth * 1.5 + 16) * (dates.length - 1)) / Math.max(width, 1),
+    ),
+  );
+  return dates.filter((_, index) => index % stride === 0);
+}
 
 const niceStep = (range: number) => {
   const magnitude = 10 ** Math.floor(Math.log10(range));

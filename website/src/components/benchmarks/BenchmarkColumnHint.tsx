@@ -1,8 +1,7 @@
 "use client";
 
 import { useId, useRef, useState, type ReactNode } from "react";
-import { faCircleQuestion } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { CircleQuestionIcon } from "@/src/icons/CircleQuestionIcon";
 
 interface BenchmarkColumnHintProps {
   readonly label: string;
@@ -52,11 +51,7 @@ export function BenchmarkColumnHint({
           }
         }}
       >
-        <FontAwesomeIcon
-          icon={faCircleQuestion}
-          className="size-3.5"
-          aria-hidden="true"
-        />
+        <CircleQuestionIcon className="size-3.5 shrink-0" />
       </button>
       <span
         id={id}
