@@ -1,0 +1,64 @@
+diff --git a/src/HotChocolate/AspNetCore/src/Transport.Http/DefaultGraphQLHttpClient.cs b/src/HotChocolate/AspNetCore/src/Transport.Http/DefaultGraphQLHttpClient.cs
+index 8179b6278c..5a6967f636 100644
+--- a/src/HotChocolate/AspNetCore/src/Transport.Http/DefaultGraphQLHttpClient.cs
++++ b/src/HotChocolate/AspNetCore/src/Transport.Http/DefaultGraphQLHttpClient.cs
+@@ -7,6 +7,8 @@ using HotChocolate.Language;
+ using static System.Net.Http.HttpCompletionOption;
+ 
+ #if FUSION
++using System.Buffers;
++using HotChocolate.Fusion.Execution.Clients.AliasBatching;
+ using HotChocolate.Fusion.Transport.Serialization;
+ using HotChocolate.Text.Json;
+ using HotChocolate.Transport.Http;
+@@ -28,6 +30,10 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
+ {
+ #if FUSION
+     private const string JsonUtf8ContentType = $"{ContentType.Json}; charset=utf-8";
++    private static readonly ArrayBufferWriter<byte> s_emptyWriter = new();
++
++    [ThreadStatic]
++    private static JsonWriter? t_jsonWriter;
+ #endif
+ 
+     private readonly HttpClient _http;
+@@ -248,8 +254,37 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
+         GraphQLHttpRequest request)
+     {
+ #if FUSION
+-        var jsonWriter = new JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
+-        request.Body.WriteTo(jsonWriter);
++        if (request.Body is AliasBatchedRequestBody or OperationRequest
++            or VariableBatchRequest)
++        {
++            var jsonWriter = t_jsonWriter;
++            t_jsonWriter = null;
++
++            if (jsonWriter is null)
++            {
++                jsonWriter = new JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
++            }
++            else
++            {
++                jsonWriter.Reset(arrayWriter);
++            }
++
++            try
++            {
++                request.Body.WriteTo(jsonWriter);
++            }
++            finally
++            {
++                jsonWriter.NullIgnoreCondition = JsonNullIgnoreCondition.None;
++                jsonWriter.Reset(s_emptyWriter);
++                t_jsonWriter = jsonWriter;
++            }
++        }
++        else
++        {
++            var jsonWriter = new JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
++            request.Body.WriteTo(jsonWriter);
++        }
+ #else
+         using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
+         request.Body.WriteTo(jsonWriter);

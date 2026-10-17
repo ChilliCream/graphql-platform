@@ -1,0 +1,7 @@
+xUnit.net v3 In-Process Runner v4.0.1+8ed8aa354c (64-bit .NET 10.0.12)
+  Discovering: HotChocolate.Fusion.Execution.Tests
+  Discovered:  HotChocolate.Fusion.Execution.Tests
+  Starting:    HotChocolate.Fusion.Execution.Tests
+  Finished:    HotChocolate.Fusion.Execution.Tests (ID = 'e631ba7b9c7b6db712755a92b25641ebd25e70f7a6cb5eeef36208ec3edc12c8')
+=== TEST EXECUTION SUMMARY ===
+   HotChocolate.Fusion.Execution.Tests  Total: 43, Errors: 0, Failed: 0, Skipped: 0, Not Run: 0, Time: 0.767s

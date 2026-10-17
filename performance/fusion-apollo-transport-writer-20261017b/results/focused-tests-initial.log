@@ -1,0 +1,14 @@
+xUnit.net v3 In-Process Runner v4.0.1+8ed8aa354c (64-bit .NET 10.0.12)
+  Discovering: HotChocolate.Fusion.Execution.Tests
+  Discovered:  HotChocolate.Fusion.Execution.Tests
+  Starting:    HotChocolate.Fusion.Execution.Tests
+    HotChocolate.Fusion.Transport.Http.DefaultGraphQLHttpClientWriterReuseTests.SendAsync_Should_ResetWriter_When_QueryContainsInvalidUtf8 [FAIL]
+      Assert.IsType() Failure: Value is null
+      Expected: typeof(System.ArgumentException)
+      Actual:   null
+      Stack Trace:
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Transport/Http/DefaultGraphQLHttpClientWriterReuseTests.cs(70,0): at HotChocolate.Fusion.Transport.Http.DefaultGraphQLHttpClientWriterReuseTests.SendAsync_Should_ResetWriter_When_QueryContainsInvalidUtf8()
+        --- End of stack trace from previous location ---
+  Finished:    HotChocolate.Fusion.Execution.Tests (ID = 'e631ba7b9c7b6db712755a92b25641ebd25e70f7a6cb5eeef36208ec3edc12c8')
+=== TEST EXECUTION SUMMARY ===
+   HotChocolate.Fusion.Execution.Tests  Total: 43, Errors: 0, Failed: 1, Skipped: 0, Not Run: 0, Time: 0.422s

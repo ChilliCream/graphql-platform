@@ -1,0 +1,17 @@
+{
+  "base": "43a8dca2bd479ddc411d832ed97e42d9fcc8bd85",
+  "files": {
+    "HotChocolate.Fusion.Execution.dll": "2d68df9b88a4abc3bedd2a9d671653aa758e8475b2ce342f4b8807331c755084",
+    "HotChocolate.Fusion.Execution.pdb": "ce1432b305085a71ad39d6c4b8bef262ed1891494eb8d7a3a63778ae8c247548"
+  },
+  "productionPatchSha256": "940afb134a7d54e8d5b1303e30788869b9f9bbebd0e811c7fd0b209ba2059f88",
+  "focusedTests": {
+    "total": 43,
+    "passed": 43,
+    "failed": 0,
+    "skipped": 0
+  },
+  "productionFiles": [
+    "src/HotChocolate/AspNetCore/src/Transport.Http/DefaultGraphQLHttpClient.cs"
+  ]
+}
