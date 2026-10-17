@@ -1,0 +1,11 @@
+C15 independent source and test review, 2026-10-17
+
+PASS, subject to the owner's actual focused build/test execution. Reviewed HttpSourceSchemaClient.AliasBatching.cs and AliasBatchRequestSelectionTests.cs in the isolated result-slots worktree.
+
+Rent detaches the thread-local array before use, so overlapping enumerations cannot lease the same storage. TrySplit explicitly accepts a result buffer at least as long as items. Logical itemCount controls every result yield/disposal; extra slots cannot create results. Return clears the entire retained capacity, so no cached source document/result references remain. Arrays above16 entries are not retained. The152-byte cache bound applies per cache-bearing thread, not globally.
+
+The successful lease remains held across awaited HTTP work and yields. Existing increment-before-yield preserves caller ownership, and existing pending-result disposal executes before scratch return on early disposal or callback failure. Clearing array slots never disposes an already yielded SourceSchemaResult. The added held-result/next-request, overlapping enumeration, changing counts16/2/3/17/2, callback failures, invalid response and disposal-failure tests cover meaningful observable ownership behavior.
+
+Preserved baseline limitation: if transport disposal throws after a successful split, baseline never entered the pending-result disposal block, and this patch still does not enter it. The new outer finally clears/returns only scratch. The disposal-failure test proves subsequent request usability, not disposal of those pending results. Do not claim this performance change fixes that existing ownership issue. Owner acknowledged and documented this distinction.
+
+No new semantic blocker found. This review is not benchmark authorization or a measured performance claim.

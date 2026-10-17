@@ -1,0 +1,10 @@
+{
+  "baseline": "43a8dca2bd479ddc411d832ed97e42d9fcc8bd85",
+  "engine_directory": "/workspaces/platform-1/.worktrees/fusion-apollo-result-slots-20261017b/src/HotChocolate/Fusion/src/Fusion.Execution/bin/Release/net10.0",
+  "files": {
+    "HotChocolate.Fusion.Execution.dll": "6a81410c3e046d87951316f28aa38ef4f43ed1268e06e052665b2b7c1e548f0b",
+    "HotChocolate.Fusion.Execution.pdb": "94e2efafcd75e9f9926631fbb3fefe698859710099010729b2f34a67d877c02f"
+  },
+  "test_count": 31,
+  "new_test_cases": 6
+}

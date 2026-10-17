@@ -14,6 +14,9 @@ public sealed partial class HttpSourceSchemaClient
 {
     private static ReadOnlySpan<byte> ErrorsProperty => "errors"u8;
 
+    [ThreadStatic]
+    private static SourceSchemaResult[]? s_aliasResults;
+
     /// <summary>
     /// Sends the variable sets of one request as a single batched request and streams the result
     /// of every set back in request order.
@@ -115,58 +118,69 @@ public sealed partial class HttpSourceSchemaClient
 
         SourceSchemaCallbackHelper.ConfigureCallbacks(httpRequest, context, node, _configuration);
 
-        GraphQLHttpResponse? httpResponse = null;
-        SourceSchemaResult[] results;
+        SourceSchemaResult[]? results = null;
 
         try
         {
-            httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
-            context.TrackTransport(node, httpRequest.Uri, httpResponse.RawContentType);
-
-            var document = await httpResponse
-                .ReadAsResultAsync(context.Memory, cancellationToken)
-                .ConfigureAwait(false);
+            GraphQLHttpResponse? httpResponse = null;
 
             try
             {
-                results = SplitResponse(document, items.AsSpan(0, itemCount), request.SchemaName);
+                httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
+                context.TrackTransport(node, httpRequest.Uri, httpResponse.RawContentType);
+
+                var document = await httpResponse
+                    .ReadAsResultAsync(context.Memory, cancellationToken)
+                    .ConfigureAwait(false);
+
+                try
+                {
+                    results = SplitResponse(document, items.AsSpan(0, itemCount), request.SchemaName);
+                }
+                catch
+                {
+                    document.Dispose();
+                    throw;
+                }
             }
-            catch
+            finally
             {
-                document.Dispose();
-                throw;
+                httpResponse?.Dispose();
+            }
+
+            var onSourceSchemaResult = _configuration.OnSourceSchemaResult;
+            var pending = 0;
+
+            try
+            {
+                while (pending < itemCount)
+                {
+                    var result = results[pending];
+                    onSourceSchemaResult?.Invoke(context, node, result);
+                    var requestIndex = items[pending].RequestIndex;
+
+                    // The caller frees the result it receives, so the result leaves the pending range
+                    // before it is handed out.
+                    pending++;
+
+                    yield return new SourceSchemaBatchResult(requestIndex, result);
+                }
+            }
+            finally
+            {
+                // A caller that stops before the last item leaves the results it did not receive
+                // behind, so their hold on the shared response document is released here.
+                for (var i = pending; i < itemCount; i++)
+                {
+                    results[i].Dispose();
+                }
             }
         }
         finally
         {
-            httpResponse?.Dispose();
-        }
-
-        var onSourceSchemaResult = _configuration.OnSourceSchemaResult;
-        var pending = 0;
-
-        try
-        {
-            while (pending < itemCount)
+            if (results is not null)
             {
-                var result = results[pending];
-                onSourceSchemaResult?.Invoke(context, node, result);
-                var requestIndex = items[pending].RequestIndex;
-
-                // The caller frees the result it receives, so the result leaves the pending range
-                // before it is handed out.
-                pending++;
-
-                yield return new SourceSchemaBatchResult(requestIndex, result);
-            }
-        }
-        finally
-        {
-            // A caller that stops before the last item leaves the results it did not receive
-            // behind, so their hold on the shared response document is released here.
-            for (var i = pending; i < itemCount; i++)
-            {
-                results[i].Dispose();
+                ReturnAliasResults(results);
             }
         }
     }
@@ -215,36 +229,69 @@ public sealed partial class HttpSourceSchemaClient
         ReadOnlySpan<AliasBatchItem> items,
         string schemaName)
     {
-        var results = new SourceSchemaResult[items.Length];
+        var results = RentAliasResults(items.Length);
 
-        switch (AliasBatchResponseSplitter.TrySplit(document, items, results))
+        try
         {
-            case AliasBatchSplitStatus.Split:
+            switch (AliasBatchResponseSplitter.TrySplit(document, items, results))
+            {
+                case AliasBatchSplitStatus.Split:
+                    return results;
+
+                case AliasBatchSplitStatus.Broadcast:
+                    var documentOwner = new SourceResultDocumentOwner(document, items.Length);
+
+                    // The outcome applies to the whole request, so every item reports the errors of
+                    // the response.
+                    document.Root.TryGetProperty(ErrorsProperty, out var errorsElement);
+                    var errors = SourceSchemaErrors.From(errorsElement);
+
+                    for (var i = 0; i < items.Length; i++)
+                    {
+                        var variables = items[i].Variables;
+                        results[i] = new SourceSchemaResult(
+                            variables.Path,
+                            document,
+                            documentOwner: documentOwner,
+                            errors: errors,
+                            additionalPaths: variables.AdditionalPaths);
+                    }
+
+                    return results;
+
+                default:
+                    throw ThrowHelper.InvalidAliasBatchResponse(schemaName);
+            }
+        }
+        catch
+        {
+            ReturnAliasResults(results);
+            throw;
+        }
+    }
+
+    private static SourceSchemaResult[] RentAliasResults(int count)
+    {
+        if (count <= 16)
+        {
+            var results = s_aliasResults;
+            s_aliasResults = null;
+
+            if (results is not null && results.Length >= count)
+            {
                 return results;
+            }
+        }
 
-            case AliasBatchSplitStatus.Broadcast:
-                var documentOwner = new SourceResultDocumentOwner(document, items.Length);
+        return new SourceSchemaResult[count];
+    }
 
-                // The outcome applies to the whole request, so every item reports the errors of
-                // the response.
-                document.Root.TryGetProperty(ErrorsProperty, out var errorsElement);
-                var errors = SourceSchemaErrors.From(errorsElement);
-
-                for (var i = 0; i < items.Length; i++)
-                {
-                    var variables = items[i].Variables;
-                    results[i] = new SourceSchemaResult(
-                        variables.Path,
-                        document,
-                        documentOwner: documentOwner,
-                        errors: errors,
-                        additionalPaths: variables.AdditionalPaths);
-                }
-
-                return results;
-
-            default:
-                throw ThrowHelper.InvalidAliasBatchResponse(schemaName);
+    private static void ReturnAliasResults(SourceSchemaResult[] results)
+    {
+        if (results.Length <= 16)
+        {
+            Array.Clear(results);
+            s_aliasResults = results;
         }
     }
 

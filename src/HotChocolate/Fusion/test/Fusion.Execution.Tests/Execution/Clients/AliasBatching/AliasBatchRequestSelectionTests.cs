@@ -214,6 +214,7 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
         // enumeration while the item it received keeps the response document alive.
         var first = await fixture.ReadFirstAsync(fixture.CreateLookupRequest());
         var root = first.LookupData!.Value;
+        await fixture.ReadValuesAsync(fixture.CreateLookupRequest());
         var readWhileHeld = root.GetProperty("field").GetString();
         first.Dispose();
 
@@ -221,6 +222,135 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
         Assert.Equal("A", readWhileHeld);
         Assert.Throws<ObjectDisposedException>(() => root.GetProperty("field").GetString());
     }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_KeepTheLogicalResultCount_When_BatchSizesChange()
+    {
+        // arrange
+        await using var fixture = await Fixture.CreateAsync(SourceSchemaClientCapabilities.AliasBatching);
+
+        // act
+        var actual = new List<string?>();
+        var expected = new List<string?>();
+
+        foreach (var count in new[] { 16, 2, 3, 17, 2 })
+        {
+            var prefix = $"batch-{count}-";
+            fixture.ResponseBody = CreateResponse(count, prefix);
+            var request = fixture.CreateLookupRequest() with
+            {
+                Variables = Enumerable.Range(0, count)
+                    .Select(i => fixture.CreateVariableValues(i.ToString()))
+                    .ToImmutableArray()
+            };
+            actual.AddRange(await fixture.ReadValuesAsync(request));
+            expected.AddRange(Enumerable.Range(0, count).Select(i => $"{prefix}{i}"));
+        }
+
+        // assert
+        Assert.Equal(expected, actual);
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    public async Task ExecuteAsync_Should_ReleasePendingResults_When_TheResultCallbackThrows(int failAt)
+    {
+        // arrange
+        await using var fixture = await Fixture.CreateAsync(SourceSchemaClientCapabilities.AliasBatching);
+        var observed = 0;
+        SourceResultElement failed = default;
+        fixture.OnResult = result =>
+        {
+            if (++observed == failAt)
+            {
+                failed = result.LookupData!.Value;
+                throw new InvalidOperationException("result callback");
+            }
+        };
+
+        // act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => fixture.ReadValuesAsync(fixture.CreateLookupRequest()));
+        fixture.OnResult = null;
+        var next = await fixture.ReadValuesAsync(fixture.CreateLookupRequest());
+
+        // assert
+        Assert.Equal("result callback", exception.Message);
+        Assert.Throws<ObjectDisposedException>(() => failed.GetProperty("field").GetString());
+        Assert.Equal(["A", "B"], next);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_ReadTheNextResponse_When_TransportDisposalThrows()
+    {
+        // arrange
+        await using var fixture = await Fixture.CreateAsync(SourceSchemaClientCapabilities.AliasBatching);
+        fixture.ThrowOnContentDispose = true;
+
+        // act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => fixture.ReadValuesAsync(fixture.CreateLookupRequest()));
+        fixture.ThrowOnContentDispose = false;
+        var next = await fixture.ReadValuesAsync(fixture.CreateLookupRequest());
+
+        // assert
+        Assert.Equal("response dispose", exception.Message);
+        Assert.Equal(["A", "B"], next);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_ReadTheNextResponse_When_AnAliasIsInvalid()
+    {
+        // arrange
+        await using var fixture = await Fixture.CreateAsync(SourceSchemaClientCapabilities.AliasBatching);
+        fixture.ResponseBody = """{"data":{"invalid":{"field":"A"}}}""";
+
+        // act
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => fixture.ReadValuesAsync(fixture.CreateLookupRequest()));
+        fixture.ResponseBody = CreateResponse(2, "next-");
+        var next = await fixture.ReadValuesAsync(fixture.CreateLookupRequest());
+
+        // assert
+        Assert.Equal(["next-0", "next-1"], next);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_KeepEachPendingResponse_When_EnumerationsOverlap()
+    {
+        // arrange
+        await using var fixture = await Fixture.CreateAsync(SourceSchemaClientCapabilities.AliasBatching);
+        fixture.ResponseBody = CreateResponse(2, "first-");
+        await using var first = fixture.ReadResults(fixture.CreateLookupRequest())
+            .GetAsyncEnumerator(TestContext.Current.CancellationToken);
+
+        // act
+        Assert.True(await first.MoveNextAsync());
+        var held = first.Current;
+        fixture.ResponseBody = CreateResponse(2, "second-");
+        var second = await fixture.ReadValuesAsync(fixture.CreateLookupRequest());
+        var firstValues = new List<string?> { held.LookupData!.Value.GetProperty("field").GetString() };
+
+        while (await first.MoveNextAsync())
+        {
+            firstValues.Add(first.Current.LookupData!.Value.GetProperty("field").GetString());
+            first.Current.Dispose();
+        }
+
+        held.Dispose();
+
+        // assert
+        Assert.Equal(["first-0", "first-1"], firstValues);
+        Assert.Equal(["second-0", "second-1"], second);
+    }
+
+    private static string CreateResponse(int count, string prefix)
+        => JsonSerializer.Serialize(new
+        {
+            data = Enumerable.Range(0, count)
+                .ToDictionary(i => $"_{i}_fieldById", i => new { field = $"{prefix}{i}" })
+        });
 
     private static OperationSourceText CreateSourceText(string sourceText)
     {
@@ -279,7 +409,8 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
                     "A",
                     new Uri("http://localhost:5000/graphql"),
                     capabilities: capabilities,
-                    onError: onError));
+                    onError: onError,
+                    onSourceSchemaResult: (_, _, result) => OnResult?.Invoke(result)));
         }
 
         public static async Task<Fixture> CreateAsync(
@@ -346,6 +477,41 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
         /// Gets the body of the last request the client sent.
         /// </summary>
         public string Body => _handler.Body!;
+
+        public Action<SourceSchemaResult>? OnResult { get; set; }
+
+        public string ResponseBody
+        {
+            get => _handler.ResponseBody;
+            set => _handler.ResponseBody = value;
+        }
+
+        public bool ThrowOnContentDispose
+        {
+            get => _handler.ThrowOnContentDispose;
+            set => _handler.ThrowOnContentDispose = value;
+        }
+
+        public IAsyncEnumerable<SourceSchemaResult> ReadResults(SourceSchemaClientRequest request)
+            => _client.ExecuteAsync(
+                CreateContext(VariableValueCollection.Empty),
+                request,
+                TestContext.Current.CancellationToken);
+
+        public async Task<List<string?>> ReadValuesAsync(SourceSchemaClientRequest request)
+        {
+            var values = new List<string?>();
+
+            await foreach (var result in ReadResults(request))
+            {
+                using (result)
+                {
+                    values.Add(result.LookupData!.Value.GetProperty("field").GetString());
+                }
+            }
+
+            return values;
+        }
 
         public Task<string> SendAsync(SourceSchemaClientRequest request)
             => SendAsync(request, VariableValueCollection.Empty);
@@ -473,6 +639,11 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
 
         public string? Body => _bodies.Count == 0 ? null : _bodies[^1];
 
+        public string ResponseBody { get; set; } =
+            """{"data":{"_0_fieldById":{"field":"A"},"_1_fieldById":{"field":"B"}}}""";
+
+        public bool ThrowOnContentDispose { get; set; }
+
         protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
             CancellationToken cancellationToken)
@@ -481,11 +652,24 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
 
             return new HttpResponseMessage(HttpStatusCode.OK)
             {
-                Content = new StringContent(
-                    """{"data":{"_0_fieldById":{"field":"A"},"_1_fieldById":{"field":"B"}}}""",
-                    Encoding.UTF8,
-                    "application/json")
+                Content = ThrowOnContentDispose
+                    ? new ThrowingContent(ResponseBody)
+                    : new StringContent(ResponseBody, Encoding.UTF8, "application/json")
             };
+        }
+    }
+
+    private sealed class ThrowingContent(string body)
+        : StringContent(body, Encoding.UTF8, "application/json")
+    {
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            if (disposing)
+            {
+                throw new InvalidOperationException("response dispose");
+            }
         }
     }
 }
