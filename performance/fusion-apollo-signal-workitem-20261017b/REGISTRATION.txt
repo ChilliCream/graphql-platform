@@ -1,0 +1,22 @@
+C6: Reuse executor signal dispatch work item
+Status: PROTOTYPING, benchmark not run.
+Owner: execution_hotpaths.
+Baseline: 43a8dca2bd479ddc411d832ed97e42d9fcc8bd85.
+Worktree: .worktrees/fusion-apollo-signal-workitem-20261017b.
+Branch: perf/fusion-apollo-signal-workitem-20261017b.
+
+Warm profile evidence: immutable discovery commit 2c47637e385c25a3cea65d8df1d9be8b4a37871e, results/alloc-summary.json. All 227 allocation ticks for QueueUserWorkItemCallback<Action> originate in the executor signal: 144 Set caller ticks, 83 inlined OnCompleted/AwaitOnCompleted caller ticks. Weighted sampled allocation amounts locate allocations and are not exact per-type bytes or invocation counts. The original trace completed 61,630 requests. Exact wakeups/request are unknown because signals coalesce.
+
+Mechanism: the already pooled AsyncAutoResetEvent currently asks ThreadPool.QueueUserWorkItem to allocate a callback wrapper for each dispatched continuation. A wrapper has 40 bytes on 64-bit runtimes from object header plus three reference fields; validate this source estimate before allocation claims. The prototype implements IThreadPoolWorkItem on the event, retains continuation and captured ExecutionContext, clears both before invocation and uses UnsafeQueueUserWorkItem with preferLocal unchanged. Public ExecutionContext.Run restores captured scheduling context. IsCompleted stays false and dispatch stays asynchronous.
+
+Bound: original 13-node plan can signal once per merge and once per completion, with extra per-batch-result merge signals possible. Consequently the earlier 26-wakeup/1,040-byte estimate was illustrative, not a verified upper bound; actual batch definitions/merge counts must be enumerated before claiming a strict per-request bound. A fixed 40-byte per-dispatch opportunity is sufficient to test the recurring mechanism. No total request saving is established.
+
+Correctness risks: only one waiter may be pending; fields must be cleared before calling a continuation that can immediately await again or finish and release its pooled context. CapturedExecutionContext behavior, suppressed flow, multiple/coalesced signals, pending-signal reset, cancellation and concurrent producer/consumer behavior must remain identical. No locks or schedulingpolicy are added. Two references are added per pooled event, cleared before usercontinuation invocation.
+
+Checks: Release net10 build passed with 0 errors and 2 existing ASP.NET obsolescencewarnings. Eight new signal cases and12 existingApollo/native execution cases passed 20/20 on .NET10.0.12. Initial build failed xUnit1051 missing test cancellation tokens, corrected without production change. Initial runner option --filter-class unsupported, corrected to -class. All logs preserved. Independent concurrency review pending.
+
+Benchmark gate: BenchmarkDotNet on actual event dispatch plus actual gateway executor with synchronous ordinary control and true asynchronous sourcecompletion on ordinary/entity9/batch9. BdnFixture adds opt-in Task.Yield before source responses; check-only SourceSuspended/ResumeSource gate allows verification that OperationPlanContext.ExecutionState.Signal has a registered waiter before releasing the source. Reflection of the private continuation is confined to this preflight, not measured. Use identical fixture/GC/runtime/common dependencies and vary only Execution DLL/PDB. Validate expected 40 B perdispatch on a fixed producer thread with warmed preallocated callback/acknowledgment and calibrated current thread allocation counter; keep this scoped claim separate from default process allocation.
+
+Acceptance: repeatable useful allocation savings with no meaningful CPU increase. BDN elapsed time is not CPU; CPU or ordinary regression evidence disqualifies. One bounded interleaved campaign; preserve all observations/outliers and adjacent controls. No VU until BenchmarkDotNet gate passes. Reject inconclusive or adverse evidence without favorable-result retries. HTTP original query/ordinary and retention/concurrency gates required before PR.
+
+Exclusions: none of the 25 authoredPR mechanisms touch executor signal work item reuse. C1 dedup reuse, C2 error variables, C3 duplicate paths, C4 alias items andC5 path traversal stay independent.

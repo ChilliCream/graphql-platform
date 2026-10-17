@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Fusion.Execution;
 
-internal sealed class AsyncAutoResetEvent : INotifyCompletion
+internal sealed class AsyncAutoResetEvent : INotifyCompletion, IThreadPoolWorkItem
 {
 #if NET9_0_OR_GREATER
     private readonly Lock _sync = new();
@@ -11,6 +11,8 @@ internal sealed class AsyncAutoResetEvent : INotifyCompletion
     private readonly object _sync = new();
 #endif
     private Action? _continuation;
+    private Action? _scheduledContinuation;
+    private ExecutionContext? _scheduledContext;
     private bool _isSignaled;
 
     public bool IsSignaled => Volatile.Read(ref _isSignaled);
@@ -41,7 +43,7 @@ internal sealed class AsyncAutoResetEvent : INotifyCompletion
 
         if (wasSignaled)
         {
-            ThreadPool.QueueUserWorkItem(static c => c(), continuation, preferLocal: true);
+            ScheduleContinuation(continuation);
         }
     }
 
@@ -67,7 +69,32 @@ internal sealed class AsyncAutoResetEvent : INotifyCompletion
 
         if (continuation is not null)
         {
-            ThreadPool.QueueUserWorkItem(static c => c(), continuation, preferLocal: true);
+            ScheduleContinuation(continuation);
+        }
+    }
+
+    private void ScheduleContinuation(Action continuation)
+    {
+        Debug.Assert(_scheduledContinuation is null, "There should only be one scheduled awaiter.");
+        _scheduledContinuation = continuation;
+        _scheduledContext = ExecutionContext.Capture();
+        ThreadPool.UnsafeQueueUserWorkItem(this, preferLocal: true);
+    }
+
+    void IThreadPoolWorkItem.Execute()
+    {
+        var continuation = _scheduledContinuation!;
+        var context = _scheduledContext;
+        _scheduledContinuation = null;
+        _scheduledContext = null;
+
+        if (context is null)
+        {
+            continuation();
+        }
+        else
+        {
+            ExecutionContext.Run(context, static state => ((Action)state!).Invoke(), continuation);
         }
     }
 

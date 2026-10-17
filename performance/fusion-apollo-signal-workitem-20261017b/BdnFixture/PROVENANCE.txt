@@ -1,0 +1,1 @@
+FixtureClient.cs derives from immutable a59c7ac49408e02bd60e53704ae1f7d37a5af6db experiments/fusion-apollo-error-vars-20261017b/Bdn/FixtureClient.cs. Changes add opt-in source suspension and a check-only gate. Source shapes, generated data, result parsing and captures remain identical. This is benchmark infrastructure only, not implementation-PR code.

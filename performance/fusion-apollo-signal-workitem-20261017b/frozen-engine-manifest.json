@@ -1,0 +1,11 @@
+{
+  "candidate": "C6",
+  "base": "43a8dca2bd479ddc411d832ed97e42d9fcc8bd85",
+  "utc": "2026-10-17T17:25:47.747749+00:00",
+  "files": {
+    "/workspaces/platform-1/.worktrees/fusion-apollo-signal-workitem-20261017b/src/HotChocolate/Fusion/src/Fusion.Execution/Execution/AsyncAutoResetEvent.cs": "8dab7e46a617a51859e0de5749c1d2576ae06972b3d94c47c3afaf1d97b5faa4",
+    "/workspaces/platform-1/.worktrees/fusion-apollo-signal-workitem-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/AsyncAutoResetEventTests.cs": "e8569f47ee3c6ba104af9db626059c2cc67c78f3f95eff116aaee3b95c20f112",
+    "/workspaces/platform-1/.worktrees/fusion-apollo-signal-workitem-20261017b/perf/fusion-apollo-signal-workitem-20261017b-43a8dca2/frozen-engine/HotChocolate.Fusion.Execution.dll": "47ee1835e551e45ccabf940c15ba915230c23f03c6efe1de9981d55d528453c6",
+    "/workspaces/platform-1/.worktrees/fusion-apollo-signal-workitem-20261017b/perf/fusion-apollo-signal-workitem-20261017b-43a8dca2/frozen-engine/HotChocolate.Fusion.Execution.pdb": "ef43b123ab7322af4ad26960a71ed991b08c312fbf435861533111aaa6c88f22"
+  }
+}
