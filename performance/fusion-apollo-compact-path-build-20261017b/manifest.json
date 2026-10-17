@@ -1,0 +1,11 @@
+{
+  "baseline": "43a8dca2bd479ddc411d832ed97e42d9fcc8bd85",
+  "files": {
+    "/workspaces/platform-1/perf/fusion-apollo-compact-path-build-20261017b/frozen/HotChocolate.Fusion.Execution.dll": "91622b981639bd0304a050866de32f55371087b25b119398421d591b244e145a",
+    "/workspaces/platform-1/perf/fusion-apollo-compact-path-build-20261017b/frozen/HotChocolate.Fusion.Execution.pdb": "3fff4ea0420288b5da35f01461aa224a6e4f46b64667cab6ddda79c2d8dfa5fd"
+  },
+  "configuration": "Release",
+  "runtime": "10.0.12",
+  "tests": "151/151; four new oracles also4/4 under exact pinned baseline engine with actual loaded path/hash verification",
+  "measurements": "None"
+}

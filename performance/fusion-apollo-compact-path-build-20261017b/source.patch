@@ -1,0 +1,221 @@
+diff --git a/src/HotChocolate/Fusion/src/Fusion.Execution/Execution/ThrowHelper.cs b/src/HotChocolate/Fusion/src/Fusion.Execution/Execution/ThrowHelper.cs
+index 9c3bf678f9..153014764a 100644
+--- a/src/HotChocolate/Fusion/src/Fusion.Execution/Execution/ThrowHelper.cs
++++ b/src/HotChocolate/Fusion/src/Fusion.Execution/Execution/ThrowHelper.cs
+@@ -8,6 +8,9 @@ namespace HotChocolate.Fusion.Execution;
+ 
+ internal static class ThrowHelper
+ {
++    public static InvalidOperationException CompactPathTooDeep()
++        => new("The path is to deep.");
++
+     public static InvalidOperationException MissingBooleanVariable(string variableName)
+         => new(string.Format(
+             FusionExecutionResources.ExecutionNode_MissingBooleanVariable,
+diff --git a/src/HotChocolate/Fusion/src/Fusion.Execution/Text/Json/CompositeResultDocument.cs b/src/HotChocolate/Fusion/src/Fusion.Execution/Text/Json/CompositeResultDocument.cs
+index cf692a380c..812a9db85f 100644
+--- a/src/HotChocolate/Fusion/src/Fusion.Execution/Text/Json/CompositeResultDocument.cs
++++ b/src/HotChocolate/Fusion/src/Fusion.Execution/Text/Json/CompositeResultDocument.cs
+@@ -171,56 +171,57 @@ public sealed partial class CompositeResultDocument : IDisposable
+             return CompactPath.Root;
+         }
+ 
+-        Span<Cursor> chain = stackalloc Cursor[64];
+-        Span<DbRow> rows = stackalloc DbRow[64];
+-        chain[0] = current;
+-        rows[0] = firstRow;
+-        var written = 1;
++        Span<int> reverseSegments = stackalloc int[64];
++        var segmentCount = 0;
++        var row = firstRow;
++        var child = default(Cursor);
++        var hasChild = false;
++        var visitedRows = 1;
+ 
+-        var parentCursor = new Cursor(firstRow.Parent);
+-        while (!parentCursor.IsZero)
++        while (true)
+         {
+-            var row = _metaDb.Get(parentCursor);
+-            chain[written] = parentCursor;
+-            rows[written] = row;
+-            written++;
++            if (row.TokenType is ElementTokenType.PropertyName)
++            {
++                Debug.Assert(row.OperationReferenceType is OperationReferenceType.Selection);
++                reverseSegments[segmentCount++] = row.OperationReferenceId;
++            }
++            else if (hasChild && row.TokenType is ElementTokenType.StartArray)
++            {
++                reverseSegments[segmentCount++] = ~(child.Index - (current.Index + 1));
++            }
++
++            var parent = new Cursor(row.Parent);
++            if (parent.IsZero)
++            {
++                break;
++            }
+ 
+-            parentCursor = new Cursor(row.Parent);
++            child = current;
++            hasChild = true;
++            current = parent;
++            row = _metaDb.Get(current);
++            visitedRows++;
+ 
+-            if (written >= 64)
++            if (visitedRows >= 64)
+             {
+-                throw new InvalidOperationException("The path is to deep.");
++                throw Execution.ThrowHelper.CompactPathTooDeep();
+             }
+         }
+ 
+         Span<int> pathBuffer = stackalloc int[32];
+         var path = new CompactPathBuilder(pathBuffer, Volatile.Read(ref _pathPool));
+-        var parentTokenType = ElementTokenType.StartObject;
+ 
+-        for (var i = written - 1; i >= 0; i--)
++        for (var i = segmentCount - 1; i >= 0; i--)
+         {
+-            var cursor = chain[i];
+-            var tokenType = rows[i].TokenType;
+-
+-            if (tokenType == ElementTokenType.PropertyName)
++            var segment = reverseSegments[i];
++            if (segment >= 0)
+             {
+-                Debug.Assert(rows[i].OperationReferenceType is OperationReferenceType.Selection);
+-                path.AppendField(rows[i].OperationReferenceId);
+-                i--; // skip over the actual value
++                path.AppendField(segment);
+             }
+-            else if (written - 1 > i)
++            else
+             {
+-                var arrayParentCursor = chain[i + 1];
+-
+-                if (parentTokenType is ElementTokenType.StartArray)
+-                {
+-                    // arrayIndex = abs(child) - (abs(parent) + 1)
+-                    var arrayIndex = cursor.Index - (arrayParentCursor.Index + 1);
+-                    path.AppendIndex(arrayIndex);
+-                }
++                path.AppendIndex(~segment);
+             }
+-
+-            parentTokenType = tokenType;
+         }
+ 
+         return path.ToPath();
+diff --git a/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Text/Json/CompactPathConstructionTests.cs b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Text/Json/CompactPathConstructionTests.cs
+new file mode 100644
+index 0000000000..55ef2efede
+--- /dev/null
++++ b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Text/Json/CompactPathConstructionTests.cs
+@@ -0,0 +1,105 @@
++namespace HotChocolate.Fusion.Text.Json;
++
++public class CompactPathConstructionTests : FusionTestBase
++{
++    [Fact]
++    public void CompactPath_Should_PreserveNestedIndices_When_ArraysCrossMetadataChunks()
++    {
++        // arrange
++        var schema = ComposeSchema("type Query { matrix: [[String]] }");
++        var plan = PlanOperation(schema, "{ grid: matrix }");
++        var document = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
++        var matrix = document.Data.GetProperty("grid");
++        var selectionId = matrix.AssertSelection().Id;
++        matrix.SetArrayValue(150);
++        foreach (var item in matrix.EnumerateArray())
++        {
++            item.SetArrayValue(2);
++        }
++
++        // act
++        var first = matrix[0][0].CompactPath;
++        var last = matrix[149][1].CompactPath;
++
++        // assert
++        Assert.Equal([selectionId, ~0, ~0], first.Segments.ToArray());
++        Assert.Equal([selectionId, ~149, ~1], last.Segments.ToArray());
++        Assert.Equal("grid[149][1]", last.ToPath(plan.Operation).ToString());
++        Assert.True(document.Data.CompactPath.IsRoot);
++    }
++
++    [Fact]
++    public void CompactPath_Should_PreserveLogicalAlias_When_ReferencesShareAnObject()
++    {
++        // arrange
++        var schema = CreateCompositeSchema();
++        var plan = PlanOperation(schema,
++            "{ first: productBySlug(slug: \"1\") { name } second: productBySlug(slug: \"1\") { name } }");
++        var document = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
++        var first = document.Data.GetProperty("first");
++        var second = document.Data.GetProperty("second");
++        var shared = document.CreateObject(first.Cursor, plan.Operation.GetSelectionSet(first.AssertSelection()));
++        document.AssignCompositeValue(first, shared);
++        document.AssignCompositeValue(second, shared);
++        first.SetNullMarker();
++
++        // act
++        var firstPath = first.CompactPath.ToPath(plan.Operation).ToString();
++        var secondPath = second.CompactPath.ToPath(plan.Operation).ToString();
++        var childPath = shared.GetProperty("name").CompactPath.ToPath(plan.Operation).ToString();
++
++        // assert
++        Assert.Equal("first", firstPath);
++        Assert.Equal("second", secondPath);
++        Assert.Equal("first.name", childPath);
++    }
++
++    [Fact]
++    public void CompactPath_Should_PreserveDeepSegments_When_ParentChainIsBelowLimit()
++    {
++        // arrange
++        var (document, leaf) = CreateDeepDocument(20);
++
++        // act
++        var path = leaf.CompactPath;
++
++        // assert
++        Assert.Equal(21, path.Length);
++        Assert.Equal("root." + string.Concat(Enumerable.Repeat("child.", 19)) + "name",
++            path.ToPath(document.Data.Operation).ToString());
++    }
++
++    [Fact]
++    public void CompactPath_Should_PreserveDepthError_When_ParentChainExceedsLimit()
++    {
++        // arrange
++        var (_, leaf) = CreateDeepDocument(21);
++
++        // act
++        var error = Record.Exception(() => leaf.CompactPath);
++
++        // assert
++        Assert.IsType<InvalidOperationException>(error);
++        Assert.Equal("The path is to deep.", error.Message);
++    }
++
++    private static (CompositeResultDocument Document, CompositeResultElement Leaf) CreateDeepDocument(int depth)
++    {
++        var schema = ComposeSchema("type Query { root: Item } type Item { child: Item name: String }");
++        var query = "{ root { " + string.Concat(Enumerable.Repeat("child { ", depth - 1))
++            + "name " + new string('}', depth + 1);
++        var plan = PlanOperation(schema, query);
++        var document = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
++        var current = document.Data.GetProperty("root");
++        for (var i = 0; i < depth; i++)
++        {
++            current.SetObjectValue(plan.Operation.GetSelectionSet(current.AssertSelection()));
++            if (i + 1 < depth)
++            {
++                current = current.GetProperty("child");
++            }
++        }
++
++        return (document, current.GetProperty("name"));
++    }
++}

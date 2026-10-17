@@ -171,56 +171,57 @@ public sealed partial class CompositeResultDocument : IDisposable
             return CompactPath.Root;
         }
 
-        Span<Cursor> chain = stackalloc Cursor[64];
-        Span<DbRow> rows = stackalloc DbRow[64];
-        chain[0] = current;
-        rows[0] = firstRow;
-        var written = 1;
+        Span<int> reverseSegments = stackalloc int[64];
+        var segmentCount = 0;
+        var row = firstRow;
+        var child = default(Cursor);
+        var hasChild = false;
+        var visitedRows = 1;
 
-        var parentCursor = new Cursor(firstRow.Parent);
-        while (!parentCursor.IsZero)
+        while (true)
         {
-            var row = _metaDb.Get(parentCursor);
-            chain[written] = parentCursor;
-            rows[written] = row;
-            written++;
-
-            parentCursor = new Cursor(row.Parent);
-
-            if (written >= 64)
+            if (row.TokenType is ElementTokenType.PropertyName)
             {
-                throw new InvalidOperationException("The path is to deep.");
+                Debug.Assert(row.OperationReferenceType is OperationReferenceType.Selection);
+                reverseSegments[segmentCount++] = row.OperationReferenceId;
+            }
+            else if (hasChild && row.TokenType is ElementTokenType.StartArray)
+            {
+                reverseSegments[segmentCount++] = ~(child.Index - (current.Index + 1));
+            }
+
+            var parent = new Cursor(row.Parent);
+            if (parent.IsZero)
+            {
+                break;
+            }
+
+            child = current;
+            hasChild = true;
+            current = parent;
+            row = _metaDb.Get(current);
+            visitedRows++;
+
+            if (visitedRows >= 64)
+            {
+                throw Execution.ThrowHelper.CompactPathTooDeep();
             }
         }
 
         Span<int> pathBuffer = stackalloc int[32];
         var path = new CompactPathBuilder(pathBuffer, Volatile.Read(ref _pathPool));
-        var parentTokenType = ElementTokenType.StartObject;
 
-        for (var i = written - 1; i >= 0; i--)
+        for (var i = segmentCount - 1; i >= 0; i--)
         {
-            var cursor = chain[i];
-            var tokenType = rows[i].TokenType;
-
-            if (tokenType == ElementTokenType.PropertyName)
+            var segment = reverseSegments[i];
+            if (segment >= 0)
             {
-                Debug.Assert(rows[i].OperationReferenceType is OperationReferenceType.Selection);
-                path.AppendField(rows[i].OperationReferenceId);
-                i--; // skip over the actual value
+                path.AppendField(segment);
             }
-            else if (written - 1 > i)
+            else
             {
-                var arrayParentCursor = chain[i + 1];
-
-                if (parentTokenType is ElementTokenType.StartArray)
-                {
-                    // arrayIndex = abs(child) - (abs(parent) + 1)
-                    var arrayIndex = cursor.Index - (arrayParentCursor.Index + 1);
-                    path.AppendIndex(arrayIndex);
-                }
+                path.AppendIndex(~segment);
             }
-
-            parentTokenType = tokenType;
         }
 
         return path.ToPath();
