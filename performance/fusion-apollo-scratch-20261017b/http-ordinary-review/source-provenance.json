@@ -1,0 +1,6 @@
+{
+  "tag": "v2.3.0",
+  "commit": "e0887846143ab176d4b5483c9d52cf3b3e009f1a",
+  "source": "https://raw.githubusercontent.com/grafana/k6/e0887846143ab176d4b5483c9d52cf3b3e009f1a/lib/executor/constant_arrival_rate.go",
+  "sha256": "470fc72e2e1fe47295282487d3c0d1558a2ee27951a4e602cb7d639268c167ce"
+}

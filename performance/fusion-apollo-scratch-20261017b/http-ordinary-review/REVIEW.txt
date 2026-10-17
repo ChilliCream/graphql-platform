@@ -1,0 +1,20 @@
+Interrupted first HTTP baseline ordinary-control review, 2026-10-17
+
+The campaign correctly stopped at the first baseline ordinary-control phase because it recorded 522 dropped iterations. No candidate HTTP phase ran. Completed original TestQuery and entities9 measurements remain valid observations and are retained. Independent cleanup at 16:53:46.621701 UTC acquired the exclusive lock nonblocking and found all ten owned child PID/start identities plus campaign parent 76765/start443827 absent.
+
+The ordinary summary records 99481 completed iterations, 99481 successful response checks, 99581 HTTP requests including exactly100setup requests, zero HTTP failures, and 522 drops. Completed plus dropped is100003, already contradicting the unsupported assumption that a20s timed5000/s arrival-rate executor must schedule exactly100000iterations. Mean iteration duration was0.658243ms, p99.9 13.276847ms and maximum22.607786ms. These averages do not establish the instantaneous availability of any of the50configured VUs.
+
+Pinned k6v2.3.0 source (commit e0887846143ab176d4b5483c9d52cf3b3e009f1a) schedules each nominal arrival against elapsed time and selects between the timer and the duration context. It has no fixed total-iteration guard. A late scheduler wake can therefore create immediate catch-up attempts, and the final timer can race cancellation. Its dropped_iterations event means the active-VU pool could not start that arrival. It does not by itself prove sustained gateway saturation. The sparse VU gauge cannot measure the exact maximum occupancy between samples. These conclusions are supported by constant_arrival_rate.go:301-337, not inferred from response throughput alone.
+
+The baseline owner separately reconstructed37drop clusters from existing native data. Two55drop clusters follow19.258/19.374ms gaps in inferred iteration starts;5000/s times such a gap is about96-97scheduled arrival slots. That analysis supports the bounded preparation correction from50to200preallocated/maxVUs while retaining5000/s,20s,100setup requests, affinity and all response/drop gates. Inferred HTTP/iteration overlap does not directly measure scheduler reservations. No additional traffic or calibration run was performed for this review.
+
+Corrected accounting should require exact equality among native measured HTTP completions, completed iterations, success observations and summary counts; total HTTP must add exactly100setup requests, and native plus summary drops must both be zero. Configured rate/duration remain immutable inputs. Actual scheduled count, native duration and achieved rate must be reported. No arbitrary +/-N iteration tolerance or subtraction is justified. Material temporal/rate departures remain headroom or inconclusive evidence; this ordinary workload is not a capacity test.
+
+A fresh replacement first-baseline ordinary phase alone would have different prior heap/workload conditioning from ordinary phases following original/entities measurements. The accepted correction instead uses seven fresh ordinary-only launches, B,C3,C2,B,C2,C3,B, each with30soriginal warmup then20scorrected ordinary. The remaining six zero-delay original/entities launches reuse the completed first-baseline measurements, and all seven original4ms/burst/idle launches remain. This retains valid results without repeating those valid measured phases, and gives the corrected ordinary comparison matching preparation. The interruption gap and full control-time trend still require explicit interpretation.
+
+Primary sources
+https://github.com/grafana/k6/blob/e0887846143ab176d4b5483c9d52cf3b3e009f1a/lib/executor/constant_arrival_rate.go#L301
+https://grafana.com/docs/k6/latest/using-k6/scenarios/concepts/dropped-iterations/
+https://grafana.com/docs/k6/latest/using-k6/scenarios/concepts/arrival-rate-vu-allocation/
+
+The companion source-provenance.json records the exact source hash. The HTTP owner retains complete native samples, all failed/completed phases and the corrected runner/plan. No candidate performance conclusion follows from this interrupted baseline.
