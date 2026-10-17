@@ -1,0 +1,59 @@
+Independent C2/C3 BenchmarkDotNet tradeoff review, 2026-10-17
+
+Decision: both C2 and C3 are abandoned for an unresolved allocation/cost tradeoff.
+Their calibrated scoped allocation savings remain established. No universal CPU
+regression or timing speedup is asserted. No equivalent rerun, VU run or PR follows.
+Root accepted both terminal decisions after this independent review.
+
+Method: genuine BenchmarkDotNet0.15.8, actual awaited production executor and
+response disposal, default server GC on runtime10.0.12, exact baseline/C2/C3
+engine overlays. Seven isolated launches B,C2,C3,B,C3,C2,B; three cases each,
+12 fixed workload observations of1000 requests per case. All252 observations
+were independently read and retained. BDN measures elapsed time, not CPU.
+Allocation proof is the earlier calibrated micro evidence, not a MemoryDiagnoser
+column; no MemoryDiagnoser was used because its forced collection invalidates
+the earlier NoGC setup. All378 frozen file hashes matched; only engineDLL/PDB vary.
+
+C3 affected duplicate96-to1 means:56.3326 and55.6924 microseconds. Baseline
+means:55.7623,57.3379,57.3882. There is no adverse affected-case pattern. Earlier
+production-path micro validates784 fewer scoped bytes for duplicate96 and2680
+for the original-shaped eleven-build sequence. These are scoped byte savings.
+
+C3 unaffected batch9 means:36.0991 and36.9863 microseconds, against baseline
+34.3335,34.9859,35.6805. Each candidate is slower than both adjacent controls:
++5.143/+3.182% and+5.718/+3.660%. C3 ordinary means11.8348 and12.7163 against
+11.9779,11.9049,15.9618. The second candidate is+6.815% versus the middle
+control. The final control spans12.8503–24.0319 microseconds and late/early
+three-block ratio0.7343; its high mean cannot establish that C3 has no added cost.
+No raw stall or trend was removed to create a favorable comparison.
+
+C2 ordinary means13.0388 and12.7283 microseconds. The first exceeds both
+adjacent controls by8.86/9.52%; the second exceeds the stable middle control
+by6.92%. Its apparent advantage over the unstable final control is inconclusive.
+The predicted allocation savings do not resolve this ordinary-cost concern.
+
+Existing zero-delay HTTP C3 gateway CPU/request is compatible with a small or
+absent effect, but does not overturn the BDN concern: original first comparison
++1.778/−1.099%, second+4.219/+0.580%; entities comparisons range−2.357 to+0.975%.
+The retained first baseline has an interruption gap. Ordinary HTTP completed
+only B/C3/C2, with C3+0.540% versus one baseline and no following control. Delay4,
+burst and retention validation never ran after the user-directed stop. These
+limits prevent an unconditional no-additional-cost or retention claim.
+
+Operational limit: the interrupted outer tool left final-launch metadata at
+running. The final child retained three complete BDN reports and benchmark-end
+output; no exit code or exact completion time is invented. Independent cleanup
+at17:22:49.239061UTC found all seven exactPID/start identities absent and the
+exclusive lock free. The decision already has adverse/inconclusive evidence
+against earlier complete controls and does not require a favorable interpretation
+of the final control.
+
+Evidence: C2 calibrated micro bb0e0e794c2c00322a5b42d8a68f4fdafeb536fb,
+experiments/fusion-apollo-error-vars-20261017b/REPORT.md; C3 calibrated micro
+c5920041f2c8466f7f4f0d6f1ab260e8732e1333,
+performance/fusion-apollo-duplicate-paths-20261017b/REPORT.md.
+Completed HTTP evidence b0b775cffe53367f9b7ee6637308a50f148fe3ed,
+performance/fusion-apollo-duplicate-paths-20261017b/results/http-user-stopped/.
+Full BDN publication is owned by benchmark_baseline; raw local root is
+perf/fusion-apollo-error-vars-20261017b-43a8dca2/bdn-campaign/.
+This review keeps all per-launch raw workload values in raw-observation-review.json.
