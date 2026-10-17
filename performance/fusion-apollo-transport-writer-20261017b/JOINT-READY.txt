@@ -1,0 +1,28 @@
+C11/C13 independent-engine, common production-client gate
+
+Ready for reviewed exclusive scheduling, no measurement executed by this preparation.
+
+Exact existing C4 helper source/binary/runtime dependencies are reused. All five helper source files match the frozen C4 source hashes. Every arm has 126 files; only HotChocolate.Fusion.Execution.dll and .pdb differ. Candidates each start independently from 43a8dca2.
+
+Frozen directory: /workspaces/platform-1/perf/fusion-apollo-shared-client-20261017b/frozen-bdn
+Manifest SHA256: fe669ee1398fa7dd1ce86952708f9114eae1832deaf7176fc7d6bd0af273fcfd
+Runner SHA256: 7841a13408185781aa81d6b83cf49d1da5bd4605eda51b10c3f433d92f6a49d0
+Baseline engine: 9c436477e63d9c7f5c8668dcd75fec9771f500a5e71b14a1f02dd0bcf8fe6c5b
+C11 engine: 2d68df9b88a4abc3bedd2a9d671653aa758e8475b2ce342f4b8807331c755084
+C13 engine: f06a867f5fbfa552edd2904691c74ea818b23635c537272aeec5cb2f4f254b14
+
+Strict preflight passed: default/fixed-policy verification in all three arms, exactly 18 correctness operations total, no warmup/measurement loops and no allocation output files. The three complete request/result oracles agree. Python syntax and all frozen hashes were checked. C11 has 43 passing focused tests; C13 has 19 passing tests, including 256/257/1024 items, null/missing, duplicates, invalid-after-valid, routing and shared ownership.
+
+Run exactly 11 processes, no retries:
+  default-policy native BDN: B,C11,C13,B,C13,C11,B
+  fixed-policy calibrated allocation: B,C11,C13,B
+Each process handles ordinary, alias2 and alias-sequence10. Each case has three-second preparation warmup; native BDN has three warmup and twelve actual iterations of 1000 fully consumed operations, no outlier removal, and MemoryDiagnoser. Corroborating allocation has three blocks of 1000, fixed four heaps/mode0, exact before/after known allocation calibration, zero-GC/NoGC-end/completion and positive-total guards. A failure stops subsequent launches and preserves completed native results.
+
+Estimated elapsed 110–140 seconds. Work deadline 285 seconds, bounded owned cleanup at most 10 more seconds; child deadline 60 seconds. Observer CPUs0,8; each benchmark CPUs2,3,10,11. Runtime .NET10.0.12/serverGC is asserted. No VU, profiler or CPU claim.
+
+Command, only after explicit exclusive grant and quiet acknowledgements:
+flock -x -o /workspaces/platform-1/perf/fusion-common-path.lock taskset -c 0,8 env DOTNET_LOCAL_DEV=1 DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK=1 python3 /workspaces/platform-1/.worktrees/fusion-apollo-transport-writer-20261017b/performance/fusion-apollo-transport-writer-20261017b/run_bdn.py
+
+C11 should remove one formatter allocation in ordinary/alias2 and four in sequence10, net of reset/lease costs. C13 removes a 56-byte root array for alias2 and 256 bytes across the four sequence splits; ordinary is unaffected. These are production-structure expectations, not measured results. Native MemoryDiagnoser values and GC counts remain raw; inconsistent/clamped/background-affected totals cannot establish savings. Controlled allocation corroborates only its fixed policy.
+
+Acceptance requires a consistent worthwhile allocation benefit with no unresolved meaningful added elapsed cost against both adjacent controls and full within-launch distributions. The repeated >5% adverse-cost screen remains a rejection condition, not permission to ignore a single unresolved adverse pattern. No favorable baseline selection or trimming. Inconclusive net benefit stops the candidate without equivalent reruns or VU promotion. C13 timing covers small two/three-item splits only; larger cursor-array fallback has correctness coverage, with no unmeasured throughput claim.

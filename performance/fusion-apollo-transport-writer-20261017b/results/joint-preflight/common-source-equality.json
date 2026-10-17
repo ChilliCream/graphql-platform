@@ -1,0 +1,27 @@
+[
+  {
+    "path": "Bdn/AllocationValidation.cs",
+    "sha256": "119d750cf670e11cb5b0a6b86088d8ce43b612bdb28801bb807e31bd1b34bc44",
+    "matchesFrozenC4Source": true
+  },
+  {
+    "path": "Bdn/Bdn.csproj",
+    "sha256": "1f9fd1f1bd7c2b492879a98dc689629a85f22925d157b948e06bbfd08c6d9eef",
+    "matchesFrozenC4Source": true
+  },
+  {
+    "path": "Bdn/Fixture.cs",
+    "sha256": "3ab5e117473790438ae6218fd46ec88264d61808a402f55908577bf96d3c14c7",
+    "matchesFrozenC4Source": true
+  },
+  {
+    "path": "Bdn/Program.cs",
+    "sha256": "4764008f1310e775fa2b6d33bea001ab4284f220f3dbb5d49394aae2e0aa5d85",
+    "matchesFrozenC4Source": true
+  },
+  {
+    "path": "Bdn/SchemaFixture.cs",
+    "sha256": "5f18f5c9de8d66f5c2b8d97d2fb2f6978bd270cbbb26d8f40244434d2fa27f9a",
+    "matchesFrozenC4Source": true
+  }
+]
