@@ -1,0 +1,21 @@
+{
+  "k6": {
+    "version": "k6 v2.3.0 (commit/e088784614, go1.26.8, linux/arm64)",
+    "download_url": "https://github.com/grafana/k6/releases/download/v2.3.0/k6-v2.3.0-linux-arm64.tar.gz",
+    "binary_sha256": "c458464bcc5e9f6e4ae9b6985286ff337cfb139a64dfe2c731a1f5d551cd601f",
+    "archive_sha256": "5ca3433e8201da72a284aaa241a1bb5fb47f4abb4e384d39410ddd8062f49b90"
+  },
+  "dotnet_tools": {
+    "dotnet-trace": {
+      "path": "/workspaces/platform-1/perf/fusion-apollo-20261017-43a8dca2/environment-history/tools/dotnet-trace",
+      "version_output": "10.0.750501+ad724c4b85e7ae775e42f393c6e95a7557a57954\n",
+      "sha256": "9e1e6ecd72173508ce93da10c4541efe5f018910e2b22b47daa30e11dd780a9b"
+    },
+    "dotnet-counters": {
+      "path": "/workspaces/platform-1/perf/fusion-apollo-20261017-43a8dca2/environment-history/tools/dotnet-counters",
+      "version_output": "10.0.750501+ad724c4b85e7ae775e42f393c6e95a7557a57954\n",
+      "sha256": "941d3bb7f7ef3b71ed9f6f8ad0f21e3ed9bf9179cf25abc254146fa435623ab1"
+    },
+    "time_utc": "2026-10-17T15:42:08.254633+00:00"
+  }
+}

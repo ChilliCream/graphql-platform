@@ -1,0 +1,42 @@
+{
+  "data": {
+    "me": {
+      "id": "1",
+      "name": "Uri Goldshtein"
+    }
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "version": "1.1.0",
+        "id": "f74d641e03ef5844221d1b1f313075b71a8736a81463276bde99c8c58b05931b",
+        "operation": {
+          "name": "Ordinary",
+          "kind": "Query",
+          "document": "query Ordinary {\n  me {\n    id\n    name\n  }\n}",
+          "id": "39931bac40240f5f7c3afaa0d634e8f2",
+          "hash": "39931bac40240f5f7c3afaa0d634e8f2",
+          "shortHash": "39931bac"
+        },
+        "searchSpace": 1,
+        "expandedNodes": 1,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "accounts",
+            "operation": {
+              "name": "Ordinary_39931bac_1",
+              "kind": "Query",
+              "document": "query Ordinary_39931bac_1 {\n  me {\n    id\n    name\n  }\n}",
+              "hash": "8a4b58e6c5b52ecca44d686f9e3db3601467492eb3d876c8fe3517ef72fd699b",
+              "shortHash": "8a4b58e6",
+              "xxHash": 13656787863306566572
+            },
+            "resultSelectionSet": "{ me }"
+          }
+        ]
+      }
+    }
+  }
+}

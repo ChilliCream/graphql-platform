@@ -1,0 +1,702 @@
+{
+  "trace_window": {
+    "start": "2026-10-17T16:00:33.9710000Z",
+    "end": "2026-10-17T16:00:49.0509961Z",
+    "recorded_duration_seconds": 15.079996109008789,
+    "events_lost_reported": 0,
+    "native_sums_in_trace_window": {
+      "http_reqs": 138914,
+      "http_req_duration": 138914,
+      "http_req_failed": 0,
+      "success_rate": 138913,
+      "iterations": 138913
+    },
+    "gateway_cpu_seconds": 30.031472331966143,
+    "traffic_contains_trace": true,
+    "metadata_origin": "TraceAnalysis targetPID18692 metadata, independently parsed by execution-discovery worker"
+  },
+  "case": "/workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/profiles/entities9-alloc-load",
+  "scenario": {
+    "argv": [
+      "/workspaces/platform-1/perf/fusion-apollo-baseline-20261017b-tools/k6-v2.3.0-linux-arm64/k6",
+      "run",
+      "--quiet",
+      "--address",
+      "127.0.0.1:0",
+      "--out",
+      "json=/workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/profiles/entities9-alloc-load/samples.json.gz",
+      "-e",
+      "MODE=constant",
+      "-e",
+      "BENCH_OVER_TIME=35s",
+      "-e",
+      "BENCH_VUS=50",
+      "-e",
+      "GATEWAY_ENDPOINT=http://127.0.0.1:5220/graphql",
+      "-e",
+      "SUMMARY_PATH=/workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/profiles/entities9-alloc-load",
+      "-e",
+      "WORKLOAD_PATH=/workspaces/platform-1/.worktrees/fusion-apollo-baseline-20261017b/experiments/fusion-apollo-baseline-20261017b/workloads/entities9.json",
+      "-e",
+      "ORACLE_PATH=/workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/fidelity/entities9-oracle.json",
+      "/workspaces/platform-1/.worktrees/fusion-apollo-baseline-20261017b/experiments/fusion-apollo-baseline-20261017b/focused.js"
+    ],
+    "start": "2026-10-17T16:00:23.915834+00:00",
+    "workload": "entities9",
+    "duration": 35,
+    "mode": "constant",
+    "vus": 50
+  },
+  "window_start_epoch": 1792252824.021857,
+  "window_end_epoch": 1792252859.029604,
+  "window_seconds": 35.00774693489075,
+  "window_rule": "Earliest non-setup HTTP completion minus http_req_duration to last non-setup HTTP completion. Duration excludes blocked/connect/TLS;100ms process samples interpolated,10ms CPU ticks.",
+  "counts": {
+    "http_reqs": 322271,
+    "http_req_duration": 322271,
+    "http_req_failed": 322271,
+    "success_rate": 322271,
+    "iterations": 322271
+  },
+  "metric_sums": {
+    "http_reqs": 322271,
+    "http_req_duration": 1738212.13506197,
+    "http_req_failed": 0,
+    "success_rate": 322271,
+    "iterations": 322271
+  },
+  "setup_requests_excluded": 100,
+  "status_counts": {
+    "200": 322271
+  },
+  "successes": 322271,
+  "throughput_success_per_second": 9205.705257164267,
+  "latency_ms": {
+    "mean": 5.393634968898846,
+    "median": 4.955096,
+    "p95": 9.940294999999999,
+    "p99": 15.139121,
+    "p999": 23.761756089999874,
+    "max": 40.780519
+  },
+  "tails": {
+    "0.99": {
+      "fractional_zero_based_rank": 319047.3,
+      "neighboring_samples": [
+        [
+          15.132288,
+          "2026-10-17T16:00:57.659908454Z"
+        ],
+        [
+          15.133788,
+          "2026-10-17T16:00:26.542831213Z"
+        ],
+        [
+          15.134871,
+          "2026-10-17T16:00:24.199154242Z"
+        ],
+        [
+          15.139121,
+          "2026-10-17T16:00:30.973746349Z"
+        ],
+        [
+          15.139121,
+          "2026-10-17T16:00:34.809220958Z"
+        ],
+        [
+          15.139829,
+          "2026-10-17T16:00:48.604458412Z"
+        ],
+        [
+          15.140871,
+          "2026-10-17T16:00:35.7580152Z"
+        ],
+        [
+          15.141704,
+          "2026-10-17T16:00:35.947505881Z"
+        ]
+      ],
+      "largest_1s_clusters": [
+        [
+          "2026-10-17T16:00:25",
+          254
+        ],
+        [
+          "2026-10-17T16:00:24",
+          172
+        ],
+        [
+          "2026-10-17T16:00:30",
+          146
+        ],
+        [
+          "2026-10-17T16:00:26",
+          140
+        ],
+        [
+          "2026-10-17T16:00:58",
+          135
+        ],
+        [
+          "2026-10-17T16:00:42",
+          131
+        ],
+        [
+          "2026-10-17T16:00:34",
+          122
+        ],
+        [
+          "2026-10-17T16:00:33",
+          120
+        ],
+        [
+          "2026-10-17T16:00:28",
+          115
+        ],
+        [
+          "2026-10-17T16:00:27",
+          100
+        ]
+      ],
+      "at_or_above_threshold": 3224
+    },
+    "0.999": {
+      "fractional_zero_based_rank": 321947.73,
+      "neighboring_samples": [
+        [
+          23.749934,
+          "2026-10-17T16:00:55.442575636Z"
+        ],
+        [
+          23.752018,
+          "2026-10-17T16:00:30.979953948Z"
+        ],
+        [
+          23.756767,
+          "2026-10-17T16:00:58.364047333Z"
+        ],
+        [
+          23.756768,
+          "2026-10-17T16:00:38.852388419Z"
+        ],
+        [
+          23.763601,
+          "2026-10-17T16:00:34.148083309Z"
+        ],
+        [
+          23.768393,
+          "2026-10-17T16:00:45.194855949Z"
+        ],
+        [
+          23.779517,
+          "2026-10-17T16:00:44.420294766Z"
+        ],
+        [
+          23.805101,
+          "2026-10-17T16:00:28.219988355Z"
+        ]
+      ],
+      "largest_1s_clusters": [
+        [
+          "2026-10-17T16:00:25",
+          64
+        ],
+        [
+          "2026-10-17T16:00:24",
+          34
+        ],
+        [
+          "2026-10-17T16:00:30",
+          26
+        ],
+        [
+          "2026-10-17T16:00:57",
+          26
+        ],
+        [
+          "2026-10-17T16:00:56",
+          21
+        ],
+        [
+          "2026-10-17T16:00:51",
+          19
+        ],
+        [
+          "2026-10-17T16:00:38",
+          17
+        ],
+        [
+          "2026-10-17T16:00:34",
+          15
+        ],
+        [
+          "2026-10-17T16:00:53",
+          15
+        ],
+        [
+          "2026-10-17T16:00:48",
+          10
+        ]
+      ],
+      "at_or_above_threshold": 323
+    }
+  },
+  "processes": {
+    "gateway": {
+      "cpu_seconds": 68.79948069884097,
+      "core_equivalents": 1.965264454944726,
+      "fraction_assigned_cpu": 0.4913161137361815,
+      "max_rss_bytes": 215711744,
+      "min_rss_bytes": 162070528,
+      "max_threads": 68,
+      "start_ticks_unique": [
+        124428
+      ],
+      "cpu_core_equivalents_1s_max": 2.1071646510972073,
+      "cpu_core_equivalents_1s_p95": 2.0635767803698513
+    },
+    "Accounts": {
+      "cpu_seconds": 17.339374791611974,
+      "core_equivalents": 0.4953010778974339,
+      "fraction_assigned_cpu": 0.061912634737179235,
+      "max_rss_bytes": 126722048,
+      "min_rss_bytes": 93564928,
+      "max_threads": 57,
+      "start_ticks_unique": [
+        124427
+      ],
+      "cpu_core_equivalents_1s_max": 0.5190325293417999,
+      "cpu_core_equivalents_1s_p95": 0.5127989571196565
+    },
+    "Inventory": {
+      "cpu_seconds": 32.65926448202036,
+      "core_equivalents": 0.9329153499298822,
+      "fraction_assigned_cpu": 0.11661441874123528,
+      "max_rss_bytes": 137150464,
+      "min_rss_bytes": 102248448,
+      "max_threads": 78,
+      "start_ticks_unique": [
+        124428
+      ],
+      "cpu_core_equivalents_1s_max": 0.9723287694770164,
+      "cpu_core_equivalents_1s_p95": 0.9657814782264637
+    },
+    "Products": {
+      "cpu_seconds": 29.383586320017827,
+      "core_equivalents": 0.8393452561990628,
+      "fraction_assigned_cpu": 0.10491815702488284,
+      "max_rss_bytes": 128356352,
+      "min_rss_bytes": 95461376,
+      "max_threads": 66,
+      "start_ticks_unique": [
+        124428
+      ],
+      "cpu_core_equivalents_1s_max": 0.8782520587370612,
+      "cpu_core_equivalents_1s_p95": 0.8689471581619514
+    },
+    "Reviews": {
+      "cpu_seconds": 30.186004688414755,
+      "core_equivalents": 0.8622664219024514,
+      "fraction_assigned_cpu": 0.10778330273780642,
+      "max_rss_bytes": 146145280,
+      "min_rss_bytes": 113057792,
+      "max_threads": 58,
+      "start_ticks_unique": [
+        124428
+      ],
+      "cpu_core_equivalents_1s_max": 0.9138540248687548,
+      "cpu_core_equivalents_1s_p95": 0.8983477569384462
+    },
+    "entities9-alloc-load": {
+      "cpu_seconds": 35.09948069884099,
+      "core_equivalents": 1.0026203846857342,
+      "fraction_assigned_cpu": 0.5013101923428671,
+      "max_rss_bytes": 153518080,
+      "min_rss_bytes": 57241600,
+      "max_threads": 8,
+      "start_ticks_unique": [
+        137688
+      ],
+      "cpu_core_equivalents_1s_max": 1.0733264550319688,
+      "cpu_core_equivalents_1s_p95": 1.0687920193502267
+    },
+    "counters": {
+      "cpu_seconds": 0.030000000000000027,
+      "core_equivalents": 0.000856953178272101,
+      "fraction_assigned_cpu": 0.0004284765891360505,
+      "max_rss_bytes": 65593344,
+      "min_rss_bytes": 60264448,
+      "max_threads": 13,
+      "start_ticks_unique": [
+        124461
+      ],
+      "cpu_core_equivalents_1s_max": 0.010000000000000009,
+      "cpu_core_equivalents_1s_p95": 0.010000000000000009
+    }
+  },
+  "sources_combined_cores": 3.12982810592883,
+  "gateway_cpu_ms_per_success": 0.21348331279836216,
+  "iteration_window_sensitivity": {
+    "start_epoch": 1792252824.0210142,
+    "end_epoch": 1792252859.02962,
+    "gateway_cpu_seconds": 68.80008677561034,
+    "difference_from_http_window_seconds": 0.0006060767693725211
+  },
+  "counter_json_container_complete": false,
+  "counter_rollup": [
+    {
+      "name": "dotnet.assembly.count ({assembly})",
+      "tags": "",
+      "type": "Metric",
+      "observations": 35,
+      "first_timestamp": "2026-10-17T16:00:24.8076752+00:00",
+      "last_timestamp": "2026-10-17T16:00:58.8071124+00:00",
+      "min": 124,
+      "max": 124,
+      "sum_interval_values_excluding_first": null
+    },
+    {
+      "name": "dotnet.exceptions ({exception} / 1 sec)",
+      "tags": "error.type=IOException",
+      "type": "Rate",
+      "observations": 34,
+      "first_timestamp": "2026-10-17T16:00:24.8076923+00:00",
+      "last_timestamp": "2026-10-17T16:00:57.8076360+00:00",
+      "min": 0,
+      "max": 0,
+      "sum_interval_values_excluding_first": 0
+    },
+    {
+      "name": "dotnet.gc.collections ({collection} / 1 sec)",
+      "tags": "gc.heap.generation=gen0",
+      "type": "Rate",
+      "observations": 35,
+      "first_timestamp": "2026-10-17T16:00:24.8076535+00:00",
+      "last_timestamp": "2026-10-17T16:00:58.8070831+00:00",
+      "min": 7,
+      "max": 16,
+      "sum_interval_values_excluding_first": 350
+    },
+    {
+      "name": "dotnet.gc.collections ({collection} / 1 sec)",
+      "tags": "gc.heap.generation=gen1",
+      "type": "Rate",
+      "observations": 35,
+      "first_timestamp": "2026-10-17T16:00:24.8076548+00:00",
+      "last_timestamp": "2026-10-17T16:00:58.8070844+00:00",
+      "min": 4,
+      "max": 13,
+      "sum_interval_values_excluding_first": 360
+    },
+    {
+      "name": "dotnet.gc.collections ({collection} / 1 sec)",
+      "tags": "gc.heap.generation=gen2",
+      "type": "Rate",
+      "observations": 35,
+      "first_timestamp": "2026-10-17T16:00:24.8076558+00:00",
+      "last_timestamp": "2026-10-17T16:00:58.8070852+00:00",
+      "min": 0,
+      "max": 0,
+      "sum_interval_values_excluding_first": 0
+    },
+    {
+      "name": "dotnet.gc.heap.total_allocated (By / 1 sec)",
+      "tags": "",
+      "type": "Rate",
+      "observations": 34,
+      "first_timestamp": "2026-10-17T16:00:24.8076815+00:00",
+      "last_timestamp": "2026-10-17T16:00:57.8076340+00:00",
+      "min": 255743632,
+      "max": 430744312,
+      "sum_interval_values_excluding_first": 12815061912
+    },
+    {
+      "name": "dotnet.gc.last_collection.heap.fragmentation.size (By)",
+      "tags": "gc.heap.generation=gen0",
+      "type": "Metric",
+      "observations": 35,
+      "first_timestamp": "2026-10-17T16:00:24.8076604+00:00",
+      "last_timestamp": "2026-10-17T16:00:58.8070892+00:00",
+      "min": 0,
+      "max": 8976,
+      "sum_interval_values_excluding_first": null
+    },
+    {
+      "name": "dotnet.gc.last_collection.heap.fragmentation.size (By)",
+      "tags": "gc.heap.generation=gen1",
+      "type": "Metric",
+      "observations": 35,
+      "first_timestamp": "2026-10-17T16:00:24.8076613+00:00",
+      "last_timestamp": "2026-10-17T16:00:58.8070944+00:00",
+      "min": 24,
+      "max": 19824,
+      "sum_interval_values_excluding_first": null
+    },
+    {
+      "name": "dotnet.gc.last_collection.heap.fragmentation.size (By)",
+      "tags": "gc.heap.generation=gen2",
+      "type": "Metric",
+      "observations": 35,
+      "first_timestamp": "2026-10-17T16:00:24.8076637+00:00",
+      "last_timestamp": "2026-10-17T16:00:58.8070960+00:00",
+      "min": 4440568,
+      "max": 6408200,
+      "sum_interval_values_excluding_first": null
+    },
+    {
+      "name": "dotnet.gc.last_collection.heap.fragmentation.size (By)",
+      "tags": "gc.heap.generation=loh",
+      "type": "Metric",
+      "observations": 35,
+      "first_timestamp": "2026-10-17T16:00:24.8076622+00:00",
+      "last_timestamp": "2026-10-17T16:00:58.8070952+00:00",
+      "min": 3284440,
+      "max": 3284440,
+      "sum_interval_values_excluding_first": null
+    },
+    {
+      "name": "dotnet.gc.last_collection.heap.fragmentation.size (By)",
+      "tags": "gc.heap.generation=poh",
+      "type": "Metric",
+      "observations": 35,
+      "first_timestamp": "2026-10-17T16:00:24.8076592+00:00",
+      "last_timestamp": "2026-10-17T16:00:58.8070880+00:00",
+      "min": 115360,
+      "max": 115360,
+      "sum_interval_values_excluding_first": null
+    },
+    {
+      "name": "dotnet.gc.last_collection.heap.size (By)",
+      "tags": "gc.heap.generation=gen0",
+      "type": "Metric",
+      "observations": 35,
+      "first_timestamp": "2026-10-17T16:00:24.8076665+00:00",
+      "last_timestamp": "2026-10-17T16:00:58.8070992+00:00",
+      "min": 0,
+      "max": 579832,
+      "sum_interval_values_excluding_first": null
+    },
+    {
+      "name": "dotnet.gc.last_collection.heap.size (By)",
+      "tags": "gc.heap.generation=gen1",
+      "type": "Metric",
+      "observations": 35,
+      "first_timestamp": "2026-10-17T16:00:24.8076672+00:00",
+      "last_timestamp": "2026-10-17T16:00:58.8070999+00:00",
+      "min": 760,
+      "max": 1276232,
+      "sum_interval_values_excluding_first": null
+    },
+    {
+      "name": "dotnet.gc.last_collection.heap.size (By)",
+      "tags": "gc.heap.generation=gen2",
+      "type": "Metric",
+      "observations": 35,
+      "first_timestamp": "2026-10-17T16:00:24.8076689+00:00",
+      "last_timestamp": "2026-10-17T16:00:58.8071014+00:00",
+      "min": 24845336,
+      "max": 24845336,
+      "sum_interval_values_excluding_first": null
+    },
+    {
+      "name": "dotnet.gc.last_collection.heap.size (By)",
+      "tags": "gc.heap.generation=loh",
+      "type": "Metric",
+      "observations": 35,
+      "first_timestamp": "2026-10-17T16:00:24.8076681+00:00",
+      "last_timestamp": "2026-10-17T16:00:58.8071007+00:00",
+      "min": 140920416,
+      "max": 140920416,
+      "sum_interval_values_excluding_first": null
+    },
+    {
+      "name": "dotnet.gc.last_collection.heap.size (By)",
+      "tags": "gc.heap.generation=poh",
+      "type": "Metric",
+      "observations": 35,
+      "first_timestamp": "2026-10-17T16:00:24.8076657+00:00",
+      "last_timestamp": "2026-10-17T16:00:58.8070984+00:00",
+      "min": 4836392,
+      "max": 4836392,
+      "sum_interval_values_excluding_first": null
+    },
+    {
+      "name": "dotnet.gc.last_collection.memory.committed_size (By)",
+      "tags": "",
+      "type": "Metric",
+      "observations": 35,
+      "first_timestamp": "2026-10-17T16:00:24.8076712+00:00",
+      "last_timestamp": "2026-10-17T16:00:58.8071095+00:00",
+      "min": 185962496,
+      "max": 203112448,
+      "sum_interval_values_excluding_first": null
+    },
+    {
+      "name": "dotnet.gc.pause.time (s / 1 sec)",
+      "tags": "",
+      "type": "Rate",
+      "observations": 35,
+      "first_timestamp": "2026-10-17T16:00:24.8076700+00:00",
+      "last_timestamp": "2026-10-17T16:00:58.8071080+00:00",
+      "min": 0.016396999999999995,
+      "max": 0.027350999999999903,
+      "sum_interval_values_excluding_first": 0.8081970000000003
+    },
+    {
+      "name": "dotnet.jit.compilation.time (s / 1 sec)",
+      "tags": "",
+      "type": "Rate",
+      "observations": 34,
+      "first_timestamp": "2026-10-17T16:00:24.8076913+00:00",
+      "last_timestamp": "2026-10-17T16:00:57.8076351+00:00",
+      "min": 0,
+      "max": 0.0021776000000000018,
+      "sum_interval_values_excluding_first": 0.0064803000000002164
+    },
+    {
+      "name": "dotnet.jit.compiled_il.size (By / 1 sec)",
+      "tags": "",
+      "type": "Rate",
+      "observations": 35,
+      "first_timestamp": "2026-10-17T16:00:24.8076742+00:00",
+      "last_timestamp": "2026-10-17T16:00:58.8071115+00:00",
+      "min": 0,
+      "max": 621,
+      "sum_interval_values_excluding_first": 1326
+    },
+    {
+      "name": "dotnet.jit.compiled_methods ({method} / 1 sec)",
+      "tags": "",
+      "type": "Rate",
+      "observations": 34,
+      "first_timestamp": "2026-10-17T16:00:24.8076807+00:00",
+      "last_timestamp": "2026-10-17T16:00:57.8076332+00:00",
+      "min": 0,
+      "max": 5,
+      "sum_interval_values_excluding_first": 27
+    },
+    {
+      "name": "dotnet.monitor.lock_contentions ({contention} / 1 sec)",
+      "tags": "",
+      "type": "Rate",
+      "observations": 35,
+      "first_timestamp": "2026-10-17T16:00:24.8076570+00:00",
+      "last_timestamp": "2026-10-17T16:00:58.8070864+00:00",
+      "min": 0,
+      "max": 5,
+      "sum_interval_values_excluding_first": 24
+    },
+    {
+      "name": "dotnet.process.cpu.count ({cpu})",
+      "tags": "",
+      "type": "Metric",
+      "observations": 34,
+      "first_timestamp": "2026-10-17T16:00:24.8076790+00:00",
+      "last_timestamp": "2026-10-17T16:00:57.8076301+00:00",
+      "min": 4,
+      "max": 4,
+      "sum_interval_values_excluding_first": null
+    },
+    {
+      "name": "dotnet.process.cpu.time (s / 1 sec)",
+      "tags": "cpu.mode=system",
+      "type": "Rate",
+      "observations": 35,
+      "first_timestamp": "2026-10-17T16:00:24.8076782+00:00",
+      "last_timestamp": "2026-10-17T16:00:58.8071150+00:00",
+      "min": 0.30775899999999723,
+      "max": 0.5185239999999993,
+      "sum_interval_values_excluding_first": 15.237929999999999
+    },
+    {
+      "name": "dotnet.process.cpu.time (s / 1 sec)",
+      "tags": "cpu.mode=user",
+      "type": "Rate",
+      "observations": 35,
+      "first_timestamp": "2026-10-17T16:00:24.8076769+00:00",
+      "last_timestamp": "2026-10-17T16:00:58.8071137+00:00",
+      "min": 0.9995400000000245,
+      "max": 1.6591740000000073,
+      "sum_interval_values_excluding_first": 51.10350199999999
+    },
+    {
+      "name": "dotnet.process.memory.working_set (By)",
+      "tags": "",
+      "type": "Metric",
+      "observations": 35,
+      "first_timestamp": "2026-10-17T16:00:24.8076734+00:00",
+      "last_timestamp": "2026-10-17T16:00:58.8071106+00:00",
+      "min": 169725952,
+      "max": 214433792,
+      "sum_interval_values_excluding_first": null
+    },
+    {
+      "name": "dotnet.thread_pool.queue.length ({work_item} / 1 sec)",
+      "tags": "",
+      "type": "Rate",
+      "observations": 35,
+      "first_timestamp": "2026-10-17T16:00:24.8076409+00:00",
+      "last_timestamp": "2026-10-17T16:00:58.8070817+00:00",
+      "min": -37,
+      "max": 32,
+      "sum_interval_values_excluding_first": 24
+    },
+    {
+      "name": "dotnet.thread_pool.thread.count ({thread} / 1 sec)",
+      "tags": "",
+      "type": "Rate",
+      "observations": 34,
+      "first_timestamp": "2026-10-17T16:00:24.8076799+00:00",
+      "last_timestamp": "2026-10-17T16:00:57.8076310+00:00",
+      "min": -7,
+      "max": 0,
+      "sum_interval_values_excluding_first": -7
+    },
+    {
+      "name": "dotnet.thread_pool.work_item.count ({work_item} / 1 sec)",
+      "tags": "",
+      "type": "Rate",
+      "observations": 35,
+      "first_timestamp": "2026-10-17T16:00:24.8076647+00:00",
+      "last_timestamp": "2026-10-17T16:00:58.8070972+00:00",
+      "min": 74314,
+      "max": 122934,
+      "sum_interval_values_excluding_first": 3778468
+    },
+    {
+      "name": "dotnet.timer.count ({timer})",
+      "tags": "",
+      "type": "Metric",
+      "observations": 35,
+      "first_timestamp": "2026-10-17T16:00:24.8076118+00:00",
+      "last_timestamp": "2026-10-17T16:00:58.8070708+00:00",
+      "min": 5,
+      "max": 148,
+      "sum_interval_values_excluding_first": null
+    }
+  ],
+  "runtime_cpu_checks": [
+    {
+      "tags": "cpu.mode=user",
+      "start_epoch": 1792252824.807676,
+      "end_epoch": 1792252858.807113,
+      "intervals": 34,
+      "runtime_cpu_seconds": 51.10350199999999,
+      "os_total_cpu_seconds_matching_callback_window": 66.92994551804526
+    },
+    {
+      "tags": "cpu.mode=system",
+      "start_epoch": 1792252824.807678,
+      "end_epoch": 1792252858.807115,
+      "intervals": 34,
+      "runtime_cpu_seconds": 15.237929999999999,
+      "os_total_cpu_seconds_matching_callback_window": 66.92994643158715
+    }
+  ],
+  "runtime_vs_os_matching_callback_relative_difference": -0.008792984459268016,
+  "notes": [
+    "Counter rate intervals use callback boundaries, which differ slightly from internal interval endpoints. This check is not a phase uncertainty bound.",
+    "Exact allocation-byte totals are not inferred from unvalidated process allocation counters.",
+    "Original TestQuery oracle checks response structure once per VU; focused controls compare complete captured data once per VU. Every iteration checks HTTP status and absence of GraphQL errors."
+  ]
+}

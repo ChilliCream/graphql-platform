@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/workspaces/platform-1/.worktrees/fusion-apollo-baseline-20261017b/experiments/fusion-apollo-baseline-20261017b/campaign.py", line 179, in <module>
+    if args.phase in ['baseline','all']:baseline()
+                                        ^^^^^^^^^^
+  File "/workspaces/platform-1/.worktrees/fusion-apollo-baseline-20261017b/experiments/fusion-apollo-baseline-20261017b/campaign.py", line 152, in baseline
+    s.k6('ordinary',workload='ordinary',duration=20)
+  File "/workspaces/platform-1/.worktrees/fusion-apollo-baseline-20261017b/experiments/fusion-apollo-baseline-20261017b/campaign.py", line 116, in k6
+    assert rc==0,f'k6 {name} failed {rc}'
+           ^^^^^
+AssertionError: k6 ordinary failed 107

@@ -1,0 +1,15 @@
+{
+  "preprocessor": {
+    "excludeByTag": []
+  },
+  "merger": {
+    "addFusionDefinitions": null,
+    "cacheControlMergeBehavior": null,
+    "enableGlobalObjectIdentification": null,
+    "removeUnreferencedDefinitions": null,
+    "tagMergeBehavior": null
+  },
+  "satisfiability": {
+    "includeSatisfiabilityPaths": null
+  }
+}

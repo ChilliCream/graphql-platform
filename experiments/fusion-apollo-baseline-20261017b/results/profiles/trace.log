@@ -1,0 +1,11 @@
+
+Provider Name                           Keywords            Level               Enabled By
+Microsoft-Windows-DotNETRuntime         0x0000000000008003  Verbose(5)          --profile
+
+Process        : /usr/share/dotnet/dotnet
+Output File    : /workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/profiles/entities9-alloc.nettrace
+Trace Duration : 00:00:00:15
+
+Stopping the trace. This may take several minutes depending on the application being traced.
+
+Trace completed.

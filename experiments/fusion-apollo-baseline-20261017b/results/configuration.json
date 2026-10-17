@@ -1,0 +1,20 @@
+{
+  "platform": "43a8dca2bd479ddc411d832ed97e42d9fcc8bd85",
+  "benchmark": "941599e4e27719084189e12d737e147069fdf794",
+  "runtime": "10.0.12",
+  "platform_sdk": "11.0.100-rc.1.26425.128",
+  "subgraph_sdk": "10.0.401",
+  "subgraph_packages": "16.6.8",
+  "security": "AddGraphQLGateway(disableDefaultSecurity: true), benchmark generated FUSION_16_7_OR_GREATER",
+  "logging": "None, source client RemoveAllLoggers",
+  "min_threads": [
+    256,
+    256
+  ],
+  "max_connections_per_server": 256,
+  "gc": "framework Web SDK default server GC, no overrides",
+  "gateway_affinity": "2-3,10-11",
+  "subgraph_affinity": "4-7,12-15",
+  "generator_affinity": "1,9",
+  "observer_affinity": "0,8"
+}

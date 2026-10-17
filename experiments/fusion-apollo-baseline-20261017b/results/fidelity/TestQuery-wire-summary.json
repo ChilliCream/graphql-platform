@@ -1,0 +1,65 @@
+{
+  "fetches": [
+    {
+      "url": "http://localhost:5223/graphql",
+      "entity_selections": 0,
+      "representation_counts": {},
+      "representation_total": 0
+    },
+    {
+      "url": "http://localhost:5221/graphql",
+      "entity_selections": 0,
+      "representation_counts": {},
+      "representation_total": 0
+    },
+    {
+      "url": "http://localhost:5222/graphql",
+      "entity_selections": 1,
+      "representation_counts": {
+        "representations": 5
+      },
+      "representation_total": 5
+    },
+    {
+      "url": "http://localhost:5224/graphql",
+      "entity_selections": 2,
+      "representation_counts": {
+        "_0_representations": 6,
+        "_1_representations": 5
+      },
+      "representation_total": 11
+    },
+    {
+      "url": "http://localhost:5223/graphql",
+      "entity_selections": 3,
+      "representation_counts": {
+        "_0_representations": 1,
+        "_1_representations": 1,
+        "_2_representations": 1
+      },
+      "representation_total": 3
+    },
+    {
+      "url": "http://localhost:5221/graphql",
+      "entity_selections": 2,
+      "representation_counts": {
+        "_0_representations": 1,
+        "_1_representations": 1
+      },
+      "representation_total": 2
+    },
+    {
+      "url": "http://localhost:5222/graphql",
+      "entity_selections": 3,
+      "representation_counts": {
+        "_0_representations": 1,
+        "_1_representations": 1,
+        "_2_representations": 1
+      },
+      "representation_total": 3
+    }
+  ],
+  "total_fetches": 7,
+  "entity_selections": 11,
+  "representations": 24
+}

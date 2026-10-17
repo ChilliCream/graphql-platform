@@ -1,0 +1,5 @@
+{
+  "error": "focused.js setup referenced undefined __ITER; failed before timing",
+  "retained_valid": "baseline-r1-delay0/TestQuery",
+  "recovery": "Guard __ITER exactly like original script; smoke focused workloads then run only remaining planned cases"
+}

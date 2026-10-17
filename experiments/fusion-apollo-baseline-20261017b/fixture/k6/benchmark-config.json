@@ -1,0 +1,185 @@
+{
+  "subgraphs": {
+    "framework": {
+      "name": "Hot Chocolate"
+    },
+    "language": "C#",
+    "runtime": ".NET"
+  },
+  "gateways": [
+    {
+      "id": "apollo-gateway",
+      "name": "Apollo Gateway",
+      "vendor": "Apollo",
+      "repositoryUrl": "https://github.com/apollographql/federation",
+      "variants": [
+        {
+          "id": "apollo-gateway",
+          "path": "apollo-federation/gateways/apollo-gateway",
+          "language": "TypeScript",
+          "runtime": "Node.js"
+        }
+      ]
+    },
+    {
+      "id": "apollo-router",
+      "name": "Apollo Router",
+      "vendor": "Apollo",
+      "repositoryUrl": "https://github.com/apollographql/router",
+      "variants": [
+        {
+          "id": "apollo-router",
+          "path": "apollo-federation/gateways/apollo-router",
+          "language": "Rust"
+        },
+        {
+          "id": "apollo-router-v3",
+          "path": "apollo-federation/gateways/apollo-router-v3",
+          "language": "Rust",
+          "channel": "preview"
+        }
+      ]
+    },
+    {
+      "id": "caliban",
+      "name": "Caliban",
+      "vendor": "ghostdogpr",
+      "repositoryUrl": "https://github.com/ghostdogpr/caliban",
+      "variants": [
+        {
+          "id": "caliban",
+          "path": "apollo-federation/gateways/caliban",
+          "language": "Scala",
+          "runtime": "JVM"
+        }
+      ]
+    },
+    {
+      "id": "cosmo",
+      "name": "Cosmo Router",
+      "vendor": "WunderGraph",
+      "repositoryUrl": "https://github.com/wundergraph/cosmo",
+      "variants": [
+        {
+          "id": "cosmo",
+          "path": "apollo-federation/gateways/cosmo",
+          "language": "Go",
+          "runtime": "Go"
+        }
+      ]
+    },
+    {
+      "id": "grafbase",
+      "name": "Grafbase Gateway",
+      "vendor": "Grafbase",
+      "repositoryUrl": "https://github.com/grafbase/grafbase",
+      "variants": [
+        {
+          "id": "grafbase",
+          "path": "apollo-federation/gateways/grafbase",
+          "language": "Rust"
+        }
+      ]
+    },
+    {
+      "id": "hive-gateway",
+      "name": "Hive Gateway",
+      "vendor": "The Guild",
+      "repositoryUrl": "https://github.com/graphql-hive/gateway",
+      "variants": [
+        {
+          "id": "hive-gateway",
+          "path": "apollo-federation/gateways/hive-gateway",
+          "language": "TypeScript",
+          "runtime": "Node.js"
+        },
+        {
+          "id": "hive-gateway-router-runtime",
+          "path": "apollo-federation/gateways/hive-gateway-router-runtime",
+          "language": "TypeScript",
+          "runtime": "Node.js",
+          "gatewayFeatures": [
+            {
+              "id": "router-runtime",
+              "description": "Rust query planner/executor (@graphql-hive/router-runtime) instead of the JS one."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hive-router",
+      "name": "Hive Router",
+      "vendor": "The Guild",
+      "repositoryUrl": "https://github.com/graphql-hive/router",
+      "variants": [
+        {
+          "id": "hive-router",
+          "path": "apollo-federation/gateways/hive-router",
+          "language": "Rust"
+        }
+      ]
+    },
+    {
+      "id": "fusion",
+      "name": "Fusion",
+      "vendor": "ChilliCream",
+      "repositoryUrl": "https://github.com/ChilliCream/graphql-platform",
+      "variants": [
+        {
+          "id": "fusion",
+          "path": "composite-schema/gateways/fusion",
+          "language": "C#",
+          "runtime": ".NET",
+          "channel": "stable"
+        },
+        {
+          "id": "fusion-nightly",
+          "label": "Fusion Nightly",
+          "path": "composite-schema/gateways/fusion",
+          "language": "C#",
+          "runtime": ".NET",
+          "channel": "preview"
+        },
+        {
+          "id": "fusion-nightly-net11",
+          "label": "Fusion Nightly",
+          "path": "composite-schema/gateways/fusion",
+          "language": "C#",
+          "runtime": ".NET",
+          "channel": "preview",
+          "dotnet": "11",
+          "platformFeatures": [
+            {
+              "id": "runtime-async",
+              "description": "C# async methods compiled to runtime-async (.NET 11 opt-in)."
+            }
+          ]
+        },
+        {
+          "id": "fusion-nightly-fed",
+          "label": "Fusion Nightly",
+          "path": "apollo-federation/gateways/fusion-nightly-fed",
+          "language": "C#",
+          "runtime": ".NET",
+          "channel": "preview"
+        }
+      ]
+    },
+    {
+      "id": "feddi",
+      "name": "feddi",
+      "vendor": "feddi",
+      "repositoryUrl": "https://github.com/feddi-dev/feddi-gateway",
+      "variants": [
+        {
+          "id": "feddi",
+          "preview": true,
+          "path": "composite-schema/gateways/feddi",
+          "language": "Java",
+          "runtime": "JVM"
+        }
+      ]
+    }
+  ]
+}

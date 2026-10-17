@@ -1,0 +1,18 @@
+{
+  "end": "2026-10-17T16:00:59.461934+00:00",
+  "remaining_owned_pids": [],
+  "returncodes": {
+    "Accounts": 0,
+    "Inventory": 0,
+    "Products": 0,
+    "Reviews": 0,
+    "gateway": 0,
+    "counters": -2,
+    "warmup": 0,
+    "cpu-load": 0,
+    "trace": 0,
+    "alloc-load": 0,
+    "entities9-alloc-warmup": 0,
+    "entities9-alloc-load": 0
+  }
+}

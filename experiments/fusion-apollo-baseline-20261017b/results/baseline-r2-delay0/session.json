@@ -1,0 +1,12 @@
+{
+  "start": "2026-10-17T15:53:25.447683+00:00",
+  "source_delay_ms": 0,
+  "capture": false,
+  "gateway": {
+    "pid": 16554,
+    "start_ticks": 95809,
+    "cpu_seconds": 0.34,
+    "rss_bytes": 95342592,
+    "threads": 23
+  }
+}

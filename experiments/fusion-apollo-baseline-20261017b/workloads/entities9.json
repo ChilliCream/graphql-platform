@@ -1,0 +1,6 @@
+{
+  "query": "query Entities($first: Int!) { topProducts(first: $first) { upc name price weight inStock shippingEstimate reviews { id body author { id name username reviews { id product { upc name price weight inStock shippingEstimate } } } } } }",
+  "variables": {
+    "first": 9
+  }
+}

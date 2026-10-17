@@ -1,0 +1,4 @@
+fixture/** -text
+host/appsettings*.json -text
+host/Properties/launchSettings.json -text
+host/gateway.far -text

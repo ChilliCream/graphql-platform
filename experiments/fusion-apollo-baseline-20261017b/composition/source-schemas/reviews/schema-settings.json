@@ -1,0 +1,8 @@
+{
+  "name": "reviews",
+  "transports": {
+    "http": {
+      "url": "http://localhost:5224/graphql"
+    }
+  }
+}

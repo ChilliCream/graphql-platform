@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);FUSION_16_7_OR_GREATER</DefineConstants>
+    <RuntimeFrameworkVersion>10.0.12</RuntimeFrameworkVersion>
+    <RollForward>Disable</RollForward>
+  </PropertyGroup>
+</Project>

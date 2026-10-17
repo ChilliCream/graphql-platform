@@ -1,0 +1,32 @@
+{
+  "sourceSchemas": {
+    "accounts": {
+      "transports": {
+        "http": {
+          "url": "http://localhost:5221/graphql"
+        }
+      }
+    },
+    "inventory": {
+      "transports": {
+        "http": {
+          "url": "http://localhost:5222/graphql"
+        }
+      }
+    },
+    "products": {
+      "transports": {
+        "http": {
+          "url": "http://localhost:5223/graphql"
+        }
+      }
+    },
+    "reviews": {
+      "transports": {
+        "http": {
+          "url": "http://localhost:5224/graphql"
+        }
+      }
+    }
+  }
+}

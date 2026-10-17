@@ -1,0 +1,31 @@
+{
+  "files": 320,
+  "bytes": 393101705,
+  "largest": [
+    {
+      "path": "baseline-r2-delay0/ordinary/samples.json.gz",
+      "bytes": 61082040,
+      "sha256": "520564cd11590c3ee06dc30dcdd190271d2672efd4b555e777a99be8f2923877"
+    },
+    {
+      "path": "baseline-r1-delay0-continuation/ordinary/samples.json.gz",
+      "bytes": 59866941,
+      "sha256": "302e18ca9b3fcace35b3d9643997f9b8ad72ac30d440ef6dfabaf4d2705f08c2"
+    },
+    {
+      "path": "profiles/entities9-alloc-load/samples.json.gz",
+      "bytes": 44002186,
+      "sha256": "c3d7fe9104c5d7395c52a07328b3914363ae007546ca9d814651d1004a1c5203"
+    },
+    {
+      "path": "profiles/cpu-load/samples.json.gz",
+      "bytes": 27494348,
+      "sha256": "560e35af1513b297dd450a73ad81b125080d8a1146ba4ae2334cc68b6201ced7"
+    },
+    {
+      "path": "baseline-r2-delay0/entities9/samples.json.gz",
+      "bytes": 26844891,
+      "sha256": "d8fa44086c80817ad50432ab325c710ea65bebfd56aa6e48a924e7411b563141"
+    }
+  ]
+}

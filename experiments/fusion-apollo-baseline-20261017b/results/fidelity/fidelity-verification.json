@@ -1,0 +1,96 @@
+{
+  "source_schemas": [
+    {
+      "name": "Accounts",
+      "actual_sha256": "a2f4abc450252f3c4b93ca6e4364d83fe6596d3bfcf033f992d398afc3e58c39",
+      "archived_sha256": "a927ce514a0a14a5e380849bdceacd909239b163f6e17ee5769033c533850749",
+      "equal_except_terminal_newline": true
+    },
+    {
+      "name": "Inventory",
+      "actual_sha256": "d6aaa6cbee5a2905b0f8510ac500c799e5dceeb10b7465ad45a5734e995b58d6",
+      "archived_sha256": "8780a7d0729f836dc2ac809509c785e3a29dcabbd77f652193965ea3ee98bd79",
+      "equal_except_terminal_newline": true
+    },
+    {
+      "name": "Products",
+      "actual_sha256": "3c5b9c44cde0f9352615191de98e903c930f6c42edb300d685088f67668eee16",
+      "archived_sha256": "b20e184c0406a50cb29a48785a190f9ec8574fde302f604505c0a32ca82d8dbf",
+      "equal_except_terminal_newline": true
+    },
+    {
+      "name": "Reviews",
+      "actual_sha256": "3c9f74c97da53ca6431d1854962f9a74f83e15e960e123470622707bea927845",
+      "archived_sha256": "473fe000479de7f305c7a4c94541b2a357a858eb548b59cfba4063e34a40b746",
+      "equal_except_terminal_newline": true
+    }
+  ],
+  "plan_node_types": {
+    "Operation": 2,
+    "ApolloOperation": 1,
+    "ApolloOperationBatch": 10
+  },
+  "fetches": [
+    {
+      "url": "http://localhost:5223/graphql",
+      "entity_selections": 0,
+      "representation_counts": {},
+      "representation_total": 0
+    },
+    {
+      "url": "http://localhost:5221/graphql",
+      "entity_selections": 0,
+      "representation_counts": {},
+      "representation_total": 0
+    },
+    {
+      "url": "http://localhost:5222/graphql",
+      "entity_selections": 1,
+      "representation_counts": {
+        "representations": 5
+      },
+      "representation_total": 5
+    },
+    {
+      "url": "http://localhost:5224/graphql",
+      "entity_selections": 2,
+      "representation_counts": {
+        "_0_representations": 6,
+        "_1_representations": 5
+      },
+      "representation_total": 11
+    },
+    {
+      "url": "http://localhost:5223/graphql",
+      "entity_selections": 3,
+      "representation_counts": {
+        "_0_representations": 1,
+        "_1_representations": 1,
+        "_2_representations": 1
+      },
+      "representation_total": 3
+    },
+    {
+      "url": "http://localhost:5221/graphql",
+      "entity_selections": 2,
+      "representation_counts": {
+        "_0_representations": 1,
+        "_1_representations": 1
+      },
+      "representation_total": 2
+    },
+    {
+      "url": "http://localhost:5222/graphql",
+      "entity_selections": 3,
+      "representation_counts": {
+        "_0_representations": 1,
+        "_1_representations": 1,
+        "_2_representations": 1
+      },
+      "representation_total": 3
+    }
+  ],
+  "total_fetches": 7,
+  "entity_selections": 11,
+  "representations": 24
+}

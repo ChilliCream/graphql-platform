@@ -1,0 +1,1364 @@
+aaaacd380000-aaaacd384000 r--p 00000000 00:35 210438398                  /usr/share/dotnet/dotnet
+aaaacd393000-aaaacd398000 r-xp 00003000 00:35 210438398                  /usr/share/dotnet/dotnet
+aaaacd3a7000-aaaacd3a8000 r--p 00007000 00:35 210438398                  /usr/share/dotnet/dotnet
+aaaacd3b7000-aaaacd3b8000 rw-p 00007000 00:35 210438398                  /usr/share/dotnet/dotnet
+aaaae9b3c000-aaaae9df0000 rw-p 00000000 00:00 0                          [heap]
+ffbe48000000-ffbe48021000 rw-p 00000000 00:00 0 
+ffbe48021000-ffbe4c000000 ---p 00000000 00:00 0 
+ffbe4c000000-ffbe4c021000 rw-p 00000000 00:00 0 
+ffbe4c021000-ffbe50000000 ---p 00000000 00:00 0 
+ffbe50000000-ffbe50021000 rw-p 00000000 00:00 0 
+ffbe50021000-ffbe54000000 ---p 00000000 00:00 0 
+ffbe54000000-ffbe54021000 rw-p 00000000 00:00 0 
+ffbe54021000-ffbe58000000 ---p 00000000 00:00 0 
+ffbe5a7d0000-ffbe5a7e0000 ---p 00000000 00:00 0 
+ffbe5a7e0000-ffbe5afe0000 rw-p 00000000 00:00 0 
+ffbe5afe0000-ffbe5aff0000 ---p 00000000 00:00 0 
+ffbe5aff0000-ffbe5b7f0000 rw-p 00000000 00:00 0 
+ffbe5b7f0000-ffbe5b800000 ---p 00000000 00:00 0 
+ffbe5b800000-ffbe5c000000 rw-p 00000000 00:00 0 
+ffbe5c000000-ffbe5c0c7000 rw-p 00000000 00:00 0 
+ffbe5c0c7000-ffbe60000000 ---p 00000000 00:00 0 
+ffbe60000000-ffbe6033d000 rw-p 00000000 00:00 0 
+ffbe6033d000-ffbe64000000 ---p 00000000 00:00 0 
+ffbe64000000-ffbe64021000 rw-p 00000000 00:00 0 
+ffbe64021000-ffbe68000000 ---p 00000000 00:00 0 
+ffbe68000000-ffbe68021000 rw-p 00000000 00:00 0 
+ffbe68021000-ffbe6c000000 ---p 00000000 00:00 0 
+ffbe6c000000-ffbe6c021000 rw-p 00000000 00:00 0 
+ffbe6c021000-ffbe70000000 ---p 00000000 00:00 0 
+ffbe70000000-ffbe70022000 rw-p 00000000 00:00 0 
+ffbe70022000-ffbe74000000 ---p 00000000 00:00 0 
+ffbe74000000-ffbe74021000 rw-p 00000000 00:00 0 
+ffbe74021000-ffbe78000000 ---p 00000000 00:00 0 
+ffbe78000000-ffbe78021000 rw-p 00000000 00:00 0 
+ffbe78021000-ffbe7c000000 ---p 00000000 00:00 0 
+ffbe7c330000-ffbe7c71c000 r-xp 00000000 00:35 7432                       /usr/lib/aarch64-linux-gnu/libcrypto.so.3
+ffbe7c71c000-ffbe7c725000 ---p 003ec000 00:35 7432                       /usr/lib/aarch64-linux-gnu/libcrypto.so.3
+ffbe7c725000-ffbe7c780000 r--p 003f5000 00:35 7432                       /usr/lib/aarch64-linux-gnu/libcrypto.so.3
+ffbe7c780000-ffbe7c783000 rw-p 00450000 00:35 7432                       /usr/lib/aarch64-linux-gnu/libcrypto.so.3
+ffbe7c783000-ffbe7c786000 rw-p 00000000 00:00 0 
+ffbe7c790000-ffbe7c7a0000 ---p 00000000 00:00 0 
+ffbe7c7a0000-ffbe7cfa0000 rw-p 00000000 00:00 0 
+ffbe7cfa0000-ffbe7cfb0000 ---p 00000000 00:00 0 
+ffbe7cfb0000-ffbe7d7b0000 rw-p 00000000 00:00 0 
+ffbe7d7b0000-ffbe7d7c0000 ---p 00000000 00:00 0 
+ffbe7d7c0000-ffbe7dfc0000 rw-p 00000000 00:00 0 
+ffbe7dfc0000-ffbe7dfd0000 ---p 00000000 00:00 0 
+ffbe7dfd0000-ffbe7e7d0000 rw-p 00000000 00:00 0 
+ffbe7e7d0000-ffbe7e7e0000 ---p 00000000 00:00 0 
+ffbe7e7e0000-ffbe7efe0000 rw-p 00000000 00:00 0 
+ffbe7efe0000-ffbe7eff0000 ---p 00000000 00:00 0 
+ffbe7eff0000-ffbe7f7f0000 rw-p 00000000 00:00 0 
+ffbe7f7f0000-ffbe7f800000 ---p 00000000 00:00 0 
+ffbe7f800000-ffbe80000000 rw-p 00000000 00:00 0 
+ffbe80000000-ffbe80021000 rw-p 00000000 00:00 0 
+ffbe80021000-ffbe84000000 ---p 00000000 00:00 0 
+ffbe8437c000-ffbe843c0000 r--s 00000000 00:35 210481607                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.WebUtilities.dll
+ffbe843c0000-ffbe8445b000 r-xp 00000000 00:35 7476                       /usr/lib/aarch64-linux-gnu/libssl.so.3
+ffbe8445b000-ffbe84466000 ---p 0009b000 00:35 7476                       /usr/lib/aarch64-linux-gnu/libssl.so.3
+ffbe84466000-ffbe84470000 r--p 000a6000 00:35 7476                       /usr/lib/aarch64-linux-gnu/libssl.so.3
+ffbe84470000-ffbe84474000 rw-p 000b0000 00:35 7476                       /usr/lib/aarch64-linux-gnu/libssl.so.3
+ffbe84480000-ffbe84499000 r--p 00000000 00:35 210483960                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libSystem.Security.Cryptography.Native.OpenSsl.so
+ffbe84499000-ffbe844a8000 ---p 00019000 00:35 210483960                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libSystem.Security.Cryptography.Native.OpenSsl.so
+ffbe844a8000-ffbe844c4000 r-xp 00018000 00:35 210483960                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libSystem.Security.Cryptography.Native.OpenSsl.so
+ffbe844c4000-ffbe844d3000 ---p 00044000 00:35 210483960                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libSystem.Security.Cryptography.Native.OpenSsl.so
+ffbe844d3000-ffbe844d5000 r--p 00033000 00:35 210483960                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libSystem.Security.Cryptography.Native.OpenSsl.so
+ffbe844d5000-ffbe844e4000 ---p 00055000 00:35 210483960                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libSystem.Security.Cryptography.Native.OpenSsl.so
+ffbe844e4000-ffbe844e5000 rw-p 00034000 00:35 210483960                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libSystem.Security.Cryptography.Native.OpenSsl.so
+ffbe844e5000-ffbe844e6000 rw-p 00000000 00:00 0 
+ffbe844e9000-ffbe84507000 r--s 00000000 00:35 210483899                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Text.Encodings.Web.dll
+ffbe84507000-ffbe84800000 r--s 00000000 00:35 210483864                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Security.Cryptography.dll
+ffbe84800000-ffbe85976000 r--s 00000000 00:24 204433                     /workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/frozen/gateway/ChilliCream.Nitro.App.dll
+ffbe8597f000-ffbe85991000 r--s 00000000 00:24 204509                     /workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/frozen/gateway/HotChocolate.Transport.Formatters.dll
+ffbe85991000-ffbe859a6000 r--s 00000000 00:35 210481687                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Validation.dll
+ffbe859a6000-ffbe859e6000 r--s 00000000 00:35 210483658                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Net.WebSockets.dll
+ffbe859e6000-ffbe85a00000 r--s 00000000 00:35 210483855                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Security.Claims.dll
+ffbe85a00000-ffbe85a10000 ---p 00000000 00:00 0 
+ffbe85a10000-ffbe86210000 rw-p 00000000 00:00 0 
+ffbe86210000-ffbe87fdf000 r-xp 00000000 00:35 12350                      /usr/lib/aarch64-linux-gnu/libicudata.so.72.1
+ffbe87fdf000-ffbe87fef000 ---p 01dcf000 00:35 12350                      /usr/lib/aarch64-linux-gnu/libicudata.so.72.1
+ffbe87fef000-ffbe87ff0000 r--p 01dcf000 00:35 12350                      /usr/lib/aarch64-linux-gnu/libicudata.so.72.1
+ffbe87ff0000-ffbe87ff1000 rw-p 01dd0000 00:35 12350                      /usr/lib/aarch64-linux-gnu/libicudata.so.72.1
+ffbe87ff3000-ffbe87ff4000 ---p 00000000 00:00 0 
+ffbe87ff4000-ffbe87ff9000 rw-p 00000000 00:00 0 
+ffbe87ff9000-ffbe88000000 r--s 00000000 00:24 204493                     /workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/frozen/gateway/HotChocolate.Text.Json.dll
+ffbe88000000-ffbe88021000 rw-p 00000000 00:00 0 
+ffbe88021000-ffbe8c000000 ---p 00000000 00:00 0 
+ffbe8c000000-ffbe8c07c000 rw-p 00000000 00:00 0 
+ffbe8c07c000-ffbe90000000 ---p 00000000 00:00 0 
+ffbe90000000-ffbe90021000 rw-p 00000000 00:00 0 
+ffbe90021000-ffbe94000000 ---p 00000000 00:00 0 
+ffbe94000000-ffbe94021000 rw-p 00000000 00:00 0 
+ffbe94021000-ffbe98000000 ---p 00000000 00:00 0 
+ffbe98000000-ffbe98021000 rw-p 00000000 00:00 0 
+ffbe98021000-ffbe9c000000 ---p 00000000 00:00 0 
+ffbe9c000000-ffbe9c001000 ---p 00000000 00:00 0 
+ffbe9c001000-ffbe9c006000 rw-p 00000000 00:00 0 
+ffbe9c006000-ffbe9c00a000 r--s 00000000 00:35 210481322                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Metadata.dll
+ffbe9c00a000-ffbe9c01b000 r--s 00000000 00:35 210481313                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Http.Features.dll
+ffbe9c01b000-ffbe9c01c000 ---p 00000000 00:00 0 
+ffbe9c01c000-ffbe9c021000 rw-p 00000000 00:00 0 
+ffbe9c021000-ffbe9c025000 r--s 00000000 00:35 210483481                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/Microsoft.Win32.Primitives.dll
+ffbe9c025000-ffbe9c03f000 r--s 00000000 00:35 210483492                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Collections.NonGeneric.dll
+ffbe9c03f000-ffbe9c040000 ---p 00000000 00:00 0 
+ffbe9c040000-ffbe9c045000 rw-p 00000000 00:00 0 
+ffbe9c045000-ffbe9c080000 r--s 00000000 00:35 210481690                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Net.Http.Headers.dll
+ffbe9c080000-ffbe9c09e000 r--s 00000000 00:35 210481258                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Authorization.dll
+ffbe9c09e000-ffbe9c0ae000 r--s 00000000 00:35 210481251                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Authentication.Abstractions.dll
+ffbe9c0ae000-ffbe9c0ef000 r--s 00000000 00:35 210483744                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Private.Uri.dll
+ffbe9c0ef000-ffbe9c0fe000 r--s 00000000 00:24 204517                     /workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/frozen/gateway/HotChocolate.Fusion.Language.dll
+ffbe9c0fe000-ffbe9c102000 r--s 00000000 00:35 210483820                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Reflection.Primitives.dll
+ffbe9c102000-ffbe9c106000 r--s 00000000 00:35 210483807                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Reflection.Emit.ILGeneration.dll
+ffbe9c106000-ffbe9c10a000 r--s 00000000 00:35 210483808                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Reflection.Emit.Lightweight.dll
+ffbe9c10a000-ffbe9c10e000 r--s 00000000 00:24 204485                     /workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/frozen/gateway/HotChocolate.Caching.Memory.dll
+ffbe9c10e000-ffbe9c10f000 ---p 00000000 00:00 0 
+ffbe9c10f000-ffbe9c114000 rw-p 00000000 00:00 0 
+ffbe9c114000-ffbe9c12a000 r--s 00000000 00:24 204489                     /workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/frozen/gateway/HotChocolate.Language.Utf8.dll
+ffbe9c12a000-ffbe9c12b000 ---p 00000000 00:00 0 
+ffbe9c12b000-ffbe9c130000 rw-p 00000000 00:00 0 
+ffbe9c130000-ffbe9c1a9000 r--p 00000000 00:35 210483952                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libSystem.IO.Compression.Native.so
+ffbe9c1a9000-ffbe9c1b8000 ---p 00079000 00:35 210483952                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libSystem.IO.Compression.Native.so
+ffbe9c1b8000-ffbe9c21e000 r-xp 00078000 00:35 210483952                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libSystem.IO.Compression.Native.so
+ffbe9c21e000-ffbe9c22d000 ---p 000ee000 00:35 210483952                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libSystem.IO.Compression.Native.so
+ffbe9c22d000-ffbe9c22e000 r--p 000dd000 00:35 210483952                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libSystem.IO.Compression.Native.so
+ffbe9c22e000-ffbe9c23d000 ---p 000fe000 00:35 210483952                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libSystem.IO.Compression.Native.so
+ffbe9c23d000-ffbe9c23e000 rw-p 000dd000 00:35 210483952                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libSystem.IO.Compression.Native.so
+ffbe9c23e000-ffbe9c243000 r--s 00000000 00:35 210483833                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Runtime.Intrinsics.dll
+ffbe9c243000-ffbe9c2b5000 r--s 00000000 00:35 210483552                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.IO.Compression.dll
+ffbe9c2b5000-ffbe9c2b6000 ---p 00000000 00:00 0 
+ffbe9c2b6000-ffbe9c2bb000 rw-p 00000000 00:00 0 
+ffbe9c2bb000-ffbe9c2cb000 ---p 00000000 00:00 0 
+ffbe9c2cb000-ffbe9c30b000 rw-p 00000000 00:00 0 
+ffbe9c30b000-ffbe9c30c000 ---p 00000000 00:00 0 
+ffbe9c30c000-ffbe9c311000 rw-p 00000000 00:00 0 
+ffbe9c311000-ffbe9c312000 ---p 00000000 00:00 0 
+ffbe9c312000-ffbe9c317000 rw-p 00000000 00:00 0 
+ffbe9c317000-ffbe9c325000 r--s 00000000 00:24 204483                     /workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/frozen/gateway/System.IO.Hashing.dll
+ffbe9c325000-ffbe9c330000 r--s 00000000 00:24 204538                     /workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/frozen/gateway/HotChocolate.Buffers.dll
+ffbe9c330000-ffbe9c345000 r--s 00000000 00:24 204448                     /workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/frozen/gateway/HotChocolate.Fusion.Packaging.dll
+ffbe9c345000-ffbe9c346000 ---p 00000000 00:00 0 
+ffbe9c346000-ffbe9c34b000 rw-p 00000000 00:00 0 
+ffbe9c34b000-ffbe9c495000 r--s 00000000 00:24 204539                     /workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/frozen/gateway/System.Reactive.dll
+ffbe9c495000-ffbe9c4a5000 r--s 00000000 00:24 204455                     /workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/frozen/gateway/HotChocolate.Fusion.Utilities.dll
+ffbe9c4a5000-ffbe9c4d6000 r--s 00000000 00:24 204441                     /workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/frozen/gateway/HotChocolate.Fusion.Execution.Types.dll
+ffbe9c4d6000-ffbe9c5a1000 r--s 00000000 00:35 210481312                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Http.Extensions.dll
+ffbe9c5a1000-ffbe9c5ca000 r--s 00000000 00:35 210483919                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Threading.Channels.dll
+ffbe9c5ca000-ffbe9c5ef000 rw-p 00000000 00:00 0 
+ffbe9c5ef000-ffbe9c5f0000 ---p 00000000 00:00 0 
+ffbe9c5f0000-ffbe9c5f5000 rw-p 00000000 00:00 0 
+ffbe9c5f5000-ffbe9c62d000 r--s 00000000 00:35 210483509                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Console.dll
+ffbe9c62d000-ffbe9c634000 r--s 00000000 00:24 204523                     /workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/frozen/gateway/HotChocolate.Execution.Pipeline.dll
+ffbe9c634000-ffbe9c73d000 r--s 00000000 00:35 210483487                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Collections.Immutable.dll
+ffbe9c73d000-ffbe9c753000 r--s 00000000 00:24 204456                     /workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/frozen/gateway/HotChocolate.Types.Abstractions.dll
+ffbe9c753000-ffbe9c75c000 r--s 00000000 00:24 204464                     /workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/frozen/gateway/HotChocolate.Primitives.dll
+ffbe9c75c000-ffbe9c778000 r--s 00000000 00:24 204473                     /workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/frozen/gateway/HotChocolate.CostAnalysis.Core.dll
+ffbe9c778000-ffbe9c78b000 r--s 00000000 00:35 210483664                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.ObjectModel.dll
+ffbe9c78b000-ffbe9c793000 r--s 00000000 00:35 210481682                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.ObjectPool.dll
+ffbe9c793000-ffbe9c7a0000 r--s 00000000 00:35 210481381                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Routing.Abstractions.dll
+ffbe9c7a0000-ffbe9c7b4000 r--s 00000000 00:35 210481317                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.HttpOverrides.dll
+ffbe9c7b4000-ffbe9c7c0000 r--s 00000000 00:35 210481294                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.HostFiltering.dll
+ffbe9c7c0000-ffbe9c7c5000 r--s 00000000 00:35 210481296                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Hosting.Server.Abstractions.dll
+ffbe9c7c5000-ffbe9c7d6000 r--s 00000000 00:35 210481265                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Connections.Abstractions.dll
+ffbe9c7d6000-ffbe9c828000 r--s 00000000 00:35 210481315                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Http.dll
+ffbe9c828000-ffbe9c834000 r--s 00000000 00:35 210481399                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Server.IISIntegration.dll
+ffbe9c834000-ffbe9c8ee000 r--s 00000000 00:35 210481391                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Server.IIS.dll
+ffbe9c8ee000-ffbe9c92a000 r--s 00000000 00:35 210483617                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Net.Primitives.dll
+ffbe9c92a000-ffbe9c9d6000 r--s 00000000 00:35 210483639                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Net.Sockets.dll
+ffbe9c9d6000-ffbe9ca38000 r--s 00000000 00:35 210483619                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Net.Quic.dll
+ffbe9ca38000-ffbe9ca5a000 r--s 00000000 00:35 210481465                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.dll
+ffbe9ca5a000-ffbe9ca9b000 r--s 00000000 00:35 210481459                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Server.Kestrel.Transport.Quic.dll
+ffbe9ca9b000-ffbe9caa2000 r--s 00000000 00:35 210481466                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Server.Kestrel.dll
+ffbe9caa2000-ffbe9cd23000 r--s 00000000 00:35 210481400                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Server.Kestrel.Core.dll
+ffbe9cd23000-ffbe9cd5e000 r--s 00000000 00:35 210481653                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.DependencyInjection.dll
+ffbe9cd5e000-ffbe9cd6d000 r--s 00000000 00:35 210481679                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Logging.EventSource.dll
+ffbe9cd6d000-ffbe9cd73000 r--s 00000000 00:35 210481677                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Logging.Debug.dll
+ffbe9cd73000-ffbe9cd9d000 r--s 00000000 00:35 210481676                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Logging.Console.dll
+ffbe9cd9d000-ffbe9cda5000 r--s 00000000 00:35 210481683                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Options.ConfigurationExtensions.dll
+ffbe9cda5000-ffbe9cdd6000 r--s 00000000 00:35 210483570                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.IO.Pipelines.dll
+ffbe9cdd6000-ffbe9cfd8000 r--s 00000000 00:35 210483902                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Text.Json.dll
+ffbe9cfd8000-ffbe9cfe8000 ---p 00000000 00:00 0 
+ffbe9cfe8000-ffbe9d7e8000 rw-p 00000000 00:00 0 
+ffbe9d7e8000-ffbe9d804000 r--s 00000000 00:35 210483832                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Runtime.InteropServices.dll
+ffbe9d804000-ffbe9d83a000 r--s 00000000 00:35 210483485                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Collections.Concurrent.dll
+ffbe9d83a000-ffbe9d84e000 r--s 00000000 00:35 210483500                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.ComponentModel.Primitives.dll
+ffbe9d84e000-ffbe9d86a000 r--s 00000000 00:35 210483564                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.IO.FileSystem.Watcher.dll
+ffbe9d86a000-ffbe9d92d000 r--s 00000000 00:35 210483586                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Linq.dll
+ffbe9d92d000-ffbe9d956000 r--s 00000000 00:35 210483590                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Memory.dll
+ffbe9d956000-ffbe9d96b000 r--s 00000000 00:35 210481631                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Configuration.Binder.dll
+ffbe9d96b000-ffbe9d9f4000 r--s 00000000 00:35 210483524                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Diagnostics.DiagnosticSource.dll
+ffbe9d9f4000-ffbe9da04000 r--s 00000000 00:35 210481657                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Diagnostics.dll
+ffbe9da04000-ffbe9da1d000 r--s 00000000 00:35 210481681                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Logging.dll
+ffbe9da1d000-ffbe9da40000 r--s 00000000 00:35 210481685                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Options.dll
+ffbe9da40000-ffbe9dd4c000 r-xp 00000000 00:35 12352                      /usr/lib/aarch64-linux-gnu/libicui18n.so.72.1
+ffbe9dd4c000-ffbe9dd5e000 ---p 0030c000 00:35 12352                      /usr/lib/aarch64-linux-gnu/libicui18n.so.72.1
+ffbe9dd5e000-ffbe9dd70000 r--p 0030e000 00:35 12352                      /usr/lib/aarch64-linux-gnu/libicui18n.so.72.1
+ffbe9dd70000-ffbe9dd71000 rw-p 00320000 00:35 12352                      /usr/lib/aarch64-linux-gnu/libicui18n.so.72.1
+ffbe9dd71000-ffbe9dd72000 rw-p 00000000 00:00 0 
+ffbe9dd72000-ffbe9dd76000 r--s 00000000 00:35 210483662                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Numerics.Vectors.dll
+ffbe9dd76000-ffbe9dd80000 r--s 00000000 00:35 210481675                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Logging.Configuration.dll
+ffbe9dd80000-ffbe9df66000 r-xp 00000000 00:35 12360                      /usr/lib/aarch64-linux-gnu/libicuuc.so.72.1
+ffbe9df66000-ffbe9df7d000 ---p 001e6000 00:35 12360                      /usr/lib/aarch64-linux-gnu/libicuuc.so.72.1
+ffbe9df7d000-ffbe9df90000 r--p 001ed000 00:35 12360                      /usr/lib/aarch64-linux-gnu/libicuuc.so.72.1
+ffbe9df90000-ffbe9df91000 rw-p 00200000 00:35 12360                      /usr/lib/aarch64-linux-gnu/libicuuc.so.72.1
+ffbe9df91000-ffbe9df93000 rw-p 00000000 00:00 0 
+ffbe9df95000-ffbe9dfa0000 r--s 00000000 00:35 210481647                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Configuration.Json.dll
+ffbe9dfa0000-ffbe9dfb6000 r--s 00000000 00:35 210481662                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.FileProviders.Physical.dll
+ffbe9dfb6000-ffbe9dfca000 r--s 00000000 00:35 210483928                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Threading.dll
+ffbe9dfca000-ffbe9e01b000 r--s 00000000 00:35 210483494                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Collections.dll
+ffbe9e01b000-ffbe9e09d000 r--s 00000000 00:35 210481297                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Hosting.dll
+ffbe9e09d000-ffbe9e0c4000 r--s 00000000 00:35 210481665                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Hosting.dll
+ffbe9e0c4000-ffbe9e0d8000 r--s 00000000 00:35 210481686                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Primitives.dll
+ffbe9e0d8000-ffbe9e209000 r--s 00000000 00:24 204504                     /workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/frozen/gateway/HotChocolate.Fusion.Execution.dll
+ffbe9e209000-ffbe9e3e0000 r--s 00000000 00:35 210483592                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Net.Http.dll
+ffbe9e3e0000-ffbe9e461000 r--p 00000000 00:35 210483975                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libclrjit.so
+ffbe9e461000-ffbe9e470000 ---p 00081000 00:35 210483975                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libclrjit.so
+ffbe9e470000-ffbe9e778000 r-xp 00080000 00:35 210483975                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libclrjit.so
+ffbe9e778000-ffbe9e787000 ---p 00398000 00:35 210483975                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libclrjit.so
+ffbe9e787000-ffbe9e79c000 r--p 00387000 00:35 210483975                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libclrjit.so
+ffbe9e79c000-ffbe9e7ab000 ---p 003bc000 00:35 210483975                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libclrjit.so
+ffbe9e7ab000-ffbe9e7ac000 rw-p 0039b000 00:35 210483975                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libclrjit.so
+ffbe9e7ac000-ffbe9e7e4000 rw-p 00000000 00:00 0 
+ffbe9e7e5000-ffbe9e7f0000 r--s 00000000 00:35 210481643                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Configuration.FileExtensions.dll
+ffbe9e7f0000-ffbe9e800000 ---p 00000000 00:00 0 
+ffbe9e800000-ffbe9f000000 rw-p 00000000 00:00 0 
+ffbe9f000000-ffbe9f030000 rw-p 00000000 00:00 0 
+ffbe9f030000-ffbe9f400000 ---p 00000000 00:00 0 
+ffbe9f402000-ffbe9f403000 ---p 00000000 00:00 0 
+ffbe9f403000-ffbe9f408000 rw-p 00000000 00:00 0 
+ffbe9f408000-ffbe9f40f000 r--s 00000000 00:35 210481659                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.FileProviders.Abstractions.dll
+ffbe9f40f000-ffbe9f44f000 r--s 00000000 00:24 204505                     /workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/frozen/gateway/HotChocolate.AspNetCore.Pipeline.dll
+ffbe9f44f000-ffbe9f49c000 rw-p 00000000 00:00 0 
+ffbe9f49c000-ffbea744f000 ---p 00000000 00:00 0 
+ffbea744f000-ffbea749c000 rw-p 00000000 00:00 0 
+ffbea749c000-ffbeaf44f000 ---p 00000000 00:00 0 
+ffbeaf44f000-ffbeaf450000 rw-p 00000000 00:00 0 
+ffbeaf450000-ffbeaf46f000 ---p 00000000 00:00 0 
+ffbeaf46f000-ffbeaf496000 rw-p 00000000 00:00 0 
+ffbeaf496000-ffbeb346f000 ---p 00000000 00:00 0 
+ffbeb346f000-ffbeb3470000 rw-p 00000000 00:00 0 
+ffbeb3470000-ffbeb347f000 ---p 00000000 00:00 0 
+ffbeb347f000-ffbeb3486000 rw-p 00000000 00:00 0 
+ffbeb3486000-ffbeb4000000 ---p 00000000 00:00 0 
+ffbeb4000000-ffbeb4040000 rw-p 00000000 00:00 0 
+ffbeb4040000-ffbeb4100000 ---p 00000000 00:00 0 
+ffbeb4100000-ffbeb4108000 rw-p 00000000 00:00 0 
+ffbeb4108000-ffbeb4110000 ---p 00000000 00:00 0 
+ffbeb4110000-ffbeb4118000 rw-p 00000000 00:00 0 
+ffbeb4118000-ffbeb4160000 ---p 00000000 00:00 0 
+ffbeb4160000-ffbeb41a0000 rw-p 00000000 00:00 0 
+ffbeb41a0000-ffbeb4260000 ---p 00000000 00:00 0 
+ffbeb4260000-ffbeb4368000 rw-p 00000000 00:00 0 
+ffbeb4368000-ffbf34000000 ---p 00000000 00:00 0 
+ffbf34000000-ffbf34011000 rw-p 00000000 00:00 0 
+ffbf34011000-ffbf36000000 ---p 00000000 00:00 0 
+ffbf36000000-ffbf36001000 rw-p 00000000 00:00 0 
+ffbf36001000-ffbf38000000 ---p 00000000 00:00 0 
+ffbf38000000-ffbf38001000 rw-p 00000000 00:00 0 
+ffbf38001000-ffbf3a000000 ---p 00000000 00:00 0 
+ffbf3a000000-ffbf3a001000 rw-p 00000000 00:00 0 
+ffbf3a001000-ffbf3c000000 ---p 00000000 00:00 0 
+ffbf3c000000-ffbf3c151000 rw-p 00000000 00:00 0 
+ffbf3c151000-ffbf3c800000 ---p 00000000 00:00 0 
+ffbf3c800000-ffbf3ca61000 rw-p 00000000 00:00 0 
+ffbf3ca61000-ffbf3f000000 ---p 00000000 00:00 0 
+ffbf3f000000-ffbf3f380000 rw-p 00000000 00:00 0 
+ffbf3f380000-ffbf41000000 ---p 00000000 00:00 0 
+ffbf41000000-ffbf41001000 rw-p 00000000 00:00 0 
+ffbf41001000-ffbf43000000 ---p 00000000 00:00 0 
+ffbf43000000-ffbf43001000 rw-p 00000000 00:00 0 
+ffbf43001000-ffbf45000000 ---p 00000000 00:00 0 
+ffbf45000000-ffbf45001000 rw-p 00000000 00:00 0 
+ffbf45001000-ffbf47000000 ---p 00000000 00:00 0 
+ffbf47000000-ffbf47001000 rw-p 00000000 00:00 0 
+ffbf47001000-ffbf47400000 ---p 00000000 00:00 0 
+ffbf47400000-ffbf4dbeb000 rw-p 00000000 00:00 0 
+ffbf4dbeb000-ffff34000000 ---p 00000000 00:00 0 
+ffff34000000-ffff34021000 rw-p 00000000 00:00 0 
+ffff34021000-ffff38000000 ---p 00000000 00:00 0 
+ffff38000000-ffff38021000 rw-p 00000000 00:00 0 
+ffff38021000-ffff3c000000 ---p 00000000 00:00 0 
+ffff3c000000-ffff3c021000 rw-p 00000000 00:00 0 
+ffff3c021000-ffff40000000 ---p 00000000 00:00 0 
+ffff40000000-ffff40021000 rw-p 00000000 00:00 0 
+ffff40021000-ffff44000000 ---p 00000000 00:00 0 
+ffff44000000-ffff44021000 rw-p 00000000 00:00 0 
+ffff44021000-ffff48000000 ---p 00000000 00:00 0 
+ffff48001000-ffff48009000 r--s 00000000 00:35 210481642                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Configuration.EnvironmentVariables.dll
+ffff48009000-ffff48012000 r--s 00000000 00:35 210481295                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Hosting.Abstractions.dll
+ffff48012000-ffff48029000 r--s 00000000 00:35 210481651                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Configuration.dll
+ffff48029000-ffff4802e000 r--s 00000000 00:24 204443                     /workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/frozen/gateway/HotChocolate.Features.dll
+ffff4802e000-ffff48054000 r--s 00000000 00:24 204513                     /workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/frozen/gateway/HotChocolate.Language.SyntaxTree.dll
+ffff48054000-ffff48063000 r--s 00000000 00:24 204435                     /workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/frozen/gateway/HotChocolate.Language.Visitors.dll
+ffff48063000-ffff4807e000 r--s 00000000 00:24 204532                     /workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/frozen/gateway/HotChocolate.Validation.dll
+ffff4807e000-ffff480a1000 r--s 00000000 00:24 204520                     /workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/frozen/gateway/HotChocolate.Execution.Abstractions.dll
+ffff480a1000-ffff480ab000 r--s 00000000 00:24 204475                     /workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/frozen/gateway/HotChocolate.Language.Web.dll
+ffff480ab000-ffff480b0000 r--s 00000000 00:24 204444                     /workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/frozen/gateway/HotChocolate.Fusion.AspNetCore.dll
+ffff480b0000-ffff480b7000 r--s 00000000 00:24 204497                     /workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/frozen/gateway/Microsoft.AspNetCore.HeaderPropagation.dll
+ffff480b7000-ffff480c1000 r--s 00000000 00:35 210481658                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Features.dll
+ffff480c1000-ffff481ad000 r--s 00000000 00:35 210481384                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Routing.dll
+ffff481ad000-ffff48206000 r--s 00000000 00:35 210481307                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Http.Abstractions.dll
+ffff48206000-ffff4823b000 r--s 00000000 00:35 210481666                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Http.dll
+ffff4823b000-ffff48245000 r--s 00000000 00:35 210481629                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Configuration.Abstractions.dll
+ffff48245000-ffff4826c000 r--s 00000000 00:35 210481674                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Logging.Abstractions.dll
+ffff4826c000-ffff48291000 r--s 00000000 00:35 210481652                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.DependencyInjection.Abstractions.dll
+ffff48291000-ffff482a3000 r--s 00000000 00:35 210481664                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Hosting.Abstractions.dll
+ffff482a3000-ffff482c0000 r--s 00000000 00:35 210481614                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.dll
+ffff482c0000-ffff482cb000 r--p 00000000 00:35 210483958                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libSystem.Native.so
+ffff482cb000-ffff482da000 ---p 0000b000 00:35 210483958                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libSystem.Native.so
+ffff482da000-ffff482e7000 r-xp 0000a000 00:35 210483958                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libSystem.Native.so
+ffff482e7000-ffff482f6000 ---p 00027000 00:35 210483958                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libSystem.Native.so
+ffff482f6000-ffff482f8000 r--p 00016000 00:35 210483958                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libSystem.Native.so
+ffff482f8000-ffff48307000 ---p 00038000 00:35 210483958                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libSystem.Native.so
+ffff48307000-ffff48308000 rw-p 00017000 00:35 210483958                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libSystem.Native.so
+ffff4830a000-ffff48315000 r--s 00000000 00:35 210483851                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Runtime.dll
+ffff48315000-ffff48325000 rw-p 00000000 00:00 0 
+ffff48325000-ffff4936f000 r--s 00000000 00:35 210483665                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Private.CoreLib.dll
+ffff4936f000-ffff4937f000 ---p 00000000 00:00 0 
+ffff4937f000-ffff49b7f000 rw-p 00000000 00:00 0 
+ffff49b7f000-ffff49b8f000 ---p 00000000 00:00 0 
+ffff49b8f000-ffff49c0f000 rw-p 00000000 00:00 0 
+ffff49c0f000-ffff49c34000 rw-p 00000000 00:00 0 
+ffff49c34000-ffff49c44000 ---p 00000000 00:00 0 
+ffff49c44000-ffff49cc4000 rw-p 00000000 00:00 0 
+ffff49cc4000-ffff49ce9000 rw-p 00000000 00:00 0 
+ffff49ce9000-ffff49cf9000 ---p 00000000 00:00 0 
+ffff49cf9000-ffff49d79000 rw-p 00000000 00:00 0 
+ffff49d79000-ffff49d9e000 rw-p 00000000 00:00 0 
+ffff49d9e000-ffff49dae000 ---p 00000000 00:00 0 
+ffff49dae000-ffff49e2e000 rw-p 00000000 00:00 0 
+ffff49e2e000-ffff49fc0000 rw-p 00000000 00:00 0 
+ffff49fc0000-ffff49fd0000 ---p 00000000 00:00 0 
+ffff49fd0000-ffff4a7d0000 rw-p 00000000 00:00 0 
+ffff4a7d0000-ffff4a7e0000 ---p 00000000 00:00 0 
+ffff4a7e0000-ffff4afe0000 rw-p 00000000 00:00 0 
+ffff4afe0000-ffff4aff0000 ---p 00000000 00:00 0 
+ffff4aff0000-ffff4b7f0000 rw-p 00000000 00:00 0 
+ffff4b7f0000-ffff4b800000 ---p 00000000 00:00 0 
+ffff4b800000-ffff4c000000 rw-p 00000000 00:00 0 
+ffff4c000000-ffff4c030000 ---p 00000000 00:00 0 
+ffff4c030000-ffff4c031000 r-xs 00000000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4c031000-ffff4c040000 ---p 00000000 00:00 0 
+ffff4c040000-ffff4c043000 rw-s 00001000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4c043000-ffff4c044000 ---s 00004000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4c044000-ffff4c04c000 rw-s 00005000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4c04c000-ffff4c04d000 ---s 0000d000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4c04d000-ffff4c050000 r-xs 0000e000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4c050000-ffff4c055000 rw-s 00011000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4c055000-ffff4c056000 ---s 00016000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4c056000-ffff4c059000 rw-s 00017000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4c059000-ffff4c060000 ---s 0001a000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4c060000-ffff4c061000 r--p 00000000 00:35 210483665                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Private.CoreLib.dll
+ffff4c061000-ffff4c070000 ---p 00000000 00:00 0 
+ffff4c070000-ffff4cd7b000 r-xp 00000000 00:35 210483665                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Private.CoreLib.dll
+ffff4cd7b000-ffff4cd9a000 ---p 00000000 00:00 0 
+ffff4cd9a000-ffff4d0cd000 rw-p 00d0a000 00:35 210483665                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Private.CoreLib.dll
+ffff4d0cd000-ffff4d0ec000 ---p 00000000 00:00 0 
+ffff4d0ec000-ffff4d0f8000 r--p 0103c000 00:35 210483665                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Private.CoreLib.dll
+ffff4d0f8000-ffff4d100000 ---p 00000000 00:00 0 
+ffff4d100000-ffff4d190000 rw-s 00021000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4d190000-ffff4d194000 r-xs 000b1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4d194000-ffff4d198000 rw-s 000b5000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4d198000-ffff4d19c000 r-xs 000b9000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4d19c000-ffff4d1a0000 rw-s 000bd000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4d1a0000-ffff4d1a4000 r-xs 000c1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4d1a4000-ffff4d1a8000 rw-s 000c5000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4d1a8000-ffff4d1ac000 r-xs 000c9000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4d1ac000-ffff4d1f0000 rw-s 000cd000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4d1f0000-ffff4d26f000 r-xs 00111000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4d26f000-ffff4d270000 ---s 00190000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4d270000-ffff4d2bf000 rw-s 00191000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4d2bf000-ffff4d2c0000 ---s 001e0000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4d2c0000-ffff4d2c1000 r--p 00000000 00:35 210481614                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.dll
+ffff4d2c1000-ffff4d2d0000 ---p 00000000 00:00 0 
+ffff4d2d0000-ffff4d2e6000 r-xp 00000000 00:35 210481614                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.dll
+ffff4d2e6000-ffff4d305000 ---p 00000000 00:00 0 
+ffff4d305000-ffff4d30a000 rw-p 00015000 00:35 210481614                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.dll
+ffff4d30a000-ffff4d329000 ---p 00000000 00:00 0 
+ffff4d329000-ffff4d32b000 r--p 00019000 00:35 210481614                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.dll
+ffff4d32b000-ffff4d330000 ---p 00000000 00:00 0 
+ffff4d330000-ffff4d331000 r--p 00000000 00:35 210481664                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Hosting.Abstractions.dll
+ffff4d331000-ffff4d340000 ---p 00000000 00:00 0 
+ffff4d340000-ffff4d34e000 r-xp 00000000 00:35 210481664                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Hosting.Abstractions.dll
+ffff4d34e000-ffff4d36d000 ---p 00000000 00:00 0 
+ffff4d36d000-ffff4d36f000 rw-p 0000d000 00:35 210481664                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Hosting.Abstractions.dll
+ffff4d36f000-ffff4d38e000 ---p 00000000 00:00 0 
+ffff4d38e000-ffff4d38f000 r--p 0000e000 00:35 210481664                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Hosting.Abstractions.dll
+ffff4d38f000-ffff4d390000 ---p 00000000 00:00 0 
+ffff4d390000-ffff4d391000 r--p 00000000 00:35 210481652                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.DependencyInjection.Abstractions.dll
+ffff4d391000-ffff4d3a0000 ---p 00000000 00:00 0 
+ffff4d3a0000-ffff4d3bd000 r-xp 00000000 00:35 210481652                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.DependencyInjection.Abstractions.dll
+ffff4d3bd000-ffff4d3dc000 ---p 00000000 00:00 0 
+ffff4d3dc000-ffff4d3e2000 rw-p 0001c000 00:35 210481652                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.DependencyInjection.Abstractions.dll
+ffff4d3e2000-ffff4d401000 ---p 00000000 00:00 0 
+ffff4d401000-ffff4d402000 r--p 00021000 00:35 210481652                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.DependencyInjection.Abstractions.dll
+ffff4d402000-ffff4d410000 ---p 00000000 00:00 0 
+ffff4d410000-ffff4d411000 r--p 00000000 00:35 210481674                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Logging.Abstractions.dll
+ffff4d411000-ffff4d420000 ---p 00000000 00:00 0 
+ffff4d420000-ffff4d43d000 r-xp 00000000 00:35 210481674                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Logging.Abstractions.dll
+ffff4d43d000-ffff4d45c000 ---p 00000000 00:00 0 
+ffff4d45c000-ffff4d464000 rw-p 0001c000 00:35 210481674                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Logging.Abstractions.dll
+ffff4d464000-ffff4d483000 ---p 00000000 00:00 0 
+ffff4d483000-ffff4d484000 r--p 00023000 00:35 210481674                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Logging.Abstractions.dll
+ffff4d484000-ffff4d490000 ---p 00000000 00:00 0 
+ffff4d490000-ffff4d491000 r--p 00000000 00:35 210481654                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Diagnostics.Abstractions.dll
+ffff4d491000-ffff4d4a0000 ---p 00000000 00:00 0 
+ffff4d4a0000-ffff4d4a7000 r-xp 00000000 00:35 210481654                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Diagnostics.Abstractions.dll
+ffff4d4a7000-ffff4d4c6000 ---p 00000000 00:00 0 
+ffff4d4c6000-ffff4d4c8000 rw-p 00006000 00:35 210481654                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Diagnostics.Abstractions.dll
+ffff4d4c8000-ffff4d4e7000 ---p 00000000 00:00 0 
+ffff4d4e7000-ffff4d4e8000 r--p 00007000 00:35 210481654                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Diagnostics.Abstractions.dll
+ffff4d4e8000-ffff4d4f0000 ---p 00000000 00:00 0 
+ffff4d4f0000-ffff4d4f1000 r--p 00000000 00:35 210481629                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Configuration.Abstractions.dll
+ffff4d4f1000-ffff4d500000 ---p 00000000 00:00 0 
+ffff4d500000-ffff4d507000 r-xp 00000000 00:35 210481629                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Configuration.Abstractions.dll
+ffff4d507000-ffff4d526000 ---p 00000000 00:00 0 
+ffff4d526000-ffff4d528000 rw-p 00006000 00:35 210481629                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Configuration.Abstractions.dll
+ffff4d528000-ffff4d547000 ---p 00000000 00:00 0 
+ffff4d547000-ffff4d548000 r--p 00007000 00:35 210481629                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Configuration.Abstractions.dll
+ffff4d548000-ffff4d550000 ---p 00000000 00:00 0 
+ffff4d550000-ffff4d551000 r--p 00000000 00:35 210481666                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Http.dll
+ffff4d551000-ffff4d560000 ---p 00000000 00:00 0 
+ffff4d560000-ffff4d589000 r-xp 00000000 00:35 210481666                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Http.dll
+ffff4d589000-ffff4d5a8000 ---p 00000000 00:00 0 
+ffff4d5a8000-ffff4d5b2000 rw-p 00028000 00:35 210481666                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Http.dll
+ffff4d5b2000-ffff4d5d1000 ---p 00000000 00:00 0 
+ffff4d5d1000-ffff4d5d2000 r--p 00031000 00:35 210481666                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Http.dll
+ffff4d5d2000-ffff4d5e0000 ---p 00000000 00:00 0 
+ffff4d5e0000-ffff4d5e1000 r--p 00000000 00:35 210481307                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Http.Abstractions.dll
+ffff4d5e1000-ffff4d5f0000 ---p 00000000 00:00 0 
+ffff4d5f0000-ffff4d636000 r-xp 00000000 00:35 210481307                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Http.Abstractions.dll
+ffff4d636000-ffff4d656000 ---p 00000000 00:00 0 
+ffff4d656000-ffff4d666000 rw-p 00046000 00:35 210481307                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Http.Abstractions.dll
+ffff4d666000-ffff4d685000 ---p 00000000 00:00 0 
+ffff4d685000-ffff4d686000 r--p 00055000 00:35 210481307                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Http.Abstractions.dll
+ffff4d686000-ffff4d690000 ---p 00000000 00:00 0 
+ffff4d690000-ffff4d696000 rw-s 001e1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4d696000-ffff4d6a0000 ---s 001e7000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4d6a0000-ffff4d6a1000 r--p 00000000 00:35 210481384                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Routing.dll
+ffff4d6a1000-ffff4d6b0000 ---p 00000000 00:00 0 
+ffff4d6b0000-ffff4d76d000 r-xp 00000000 00:35 210481384                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Routing.dll
+ffff4d76d000-ffff4d78c000 ---p 00000000 00:00 0 
+ffff4d78c000-ffff4d7b8000 rw-p 000bc000 00:35 210481384                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Routing.dll
+ffff4d7b8000-ffff4d7d7000 ---p 00000000 00:00 0 
+ffff4d7d7000-ffff4d7d9000 r--p 000e7000 00:35 210481384                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Routing.dll
+ffff4d7d9000-ffff4d7e0000 ---p 00000000 00:00 0 
+ffff4d7e0000-ffff4d7f0000 rw-s 001f1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4d7f0000-ffff4d7f1000 r--p 00000000 00:35 210483507                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.ComponentModel.dll
+ffff4d7f1000-ffff4d800000 ---p 00000000 00:00 0 
+ffff4d800000-ffff4d802000 r-xp 00000000 00:35 210483507                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.ComponentModel.dll
+ffff4d802000-ffff4d821000 ---p 00000000 00:00 0 
+ffff4d821000-ffff4d822000 rw-p 00001000 00:35 210483507                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.ComponentModel.dll
+ffff4d822000-ffff4d841000 ---p 00000000 00:00 0 
+ffff4d841000-ffff4d842000 r--p 00001000 00:35 210483507                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.ComponentModel.dll
+ffff4d842000-ffff4d850000 ---p 00000000 00:00 0 
+ffff4d850000-ffff4d851000 r--p 00000000 00:35 210481658                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Features.dll
+ffff4d851000-ffff4d860000 ---p 00000000 00:00 0 
+ffff4d860000-ffff4d866000 r-xp 00000000 00:35 210481658                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Features.dll
+ffff4d866000-ffff4d885000 ---p 00000000 00:00 0 
+ffff4d885000-ffff4d887000 rw-p 00005000 00:35 210481658                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Features.dll
+ffff4d887000-ffff4d8a6000 ---p 00000000 00:00 0 
+ffff4d8a6000-ffff4d8a7000 r--p 00006000 00:35 210481658                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Features.dll
+ffff4d8a7000-ffff4d8b0000 ---p 00000000 00:00 0 
+ffff4d8b0000-ffff4d8b3000 rw-s 00201000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4d8b3000-ffff4d8c0000 ---s 00204000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4d8c0000-ffff4d8c1000 r--p 00000000 00:35 210483592                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Net.Http.dll
+ffff4d8c1000-ffff4d8d0000 ---p 00000000 00:00 0 
+ffff4d8d0000-ffff4da4e000 r-xp 00000000 00:35 210483592                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Net.Http.dll
+ffff4da4e000-ffff4da6d000 ---p 00000000 00:00 0 
+ffff4da6d000-ffff4dac3000 rw-p 0017d000 00:35 210483592                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Net.Http.dll
+ffff4dac3000-ffff4dae2000 ---p 00000000 00:00 0 
+ffff4dae2000-ffff4dae4000 r--p 001d2000 00:35 210483592                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Net.Http.dll
+ffff4dae4000-ffff4daf0000 ---p 00000000 00:00 0 
+ffff4daf0000-ffff4db04000 rw-s 00211000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4db04000-ffff4db10000 ---s 00225000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4db12000-ffff4db20000 ---p 00000000 00:00 0 
+ffff4db22000-ffff4dc60000 ---p 00000000 00:00 0 
+ffff4dc60000-ffff4dc7f000 rw-s 00231000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4dc7f000-ffff4dc80000 ---s 00250000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4dc80000-ffff4dc8c000 rw-s 00251000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4dc8c000-ffff4dc90000 ---s 0025d000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4dc92000-ffff4dca0000 ---p 00000000 00:00 0 
+ffff4dca2000-ffff4dcd0000 ---p 00000000 00:00 0 
+ffff4dcd0000-ffff4dcdf000 rw-s 00261000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4dcdf000-ffff4dce0000 ---s 00270000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4dce2000-ffff4dd10000 ---p 00000000 00:00 0 
+ffff4dd10000-ffff4dd20000 rw-s 00271000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4dd22000-ffff4dd40000 ---p 00000000 00:00 0 
+ffff4dd40000-ffff4dd50000 rw-s 00281000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4dd52000-ffff4dd80000 ---p 00000000 00:00 0 
+ffff4dd82000-ffff4dd90000 ---p 00000000 00:00 0 
+ffff4dd90000-ffff4dda0000 rw-s 00291000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4dda2000-ffff4ddf0000 ---p 00000000 00:00 0 
+ffff4ddf0000-ffff4ddfe000 rw-s 002a1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4ddfe000-ffff4de00000 ---s 002af000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4de00000-ffff4de01000 r--p 00000000 00:35 210481651                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Configuration.dll
+ffff4de01000-ffff4de10000 ---p 00000000 00:00 0 
+ffff4de10000-ffff4de20000 r-xp 00000000 00:35 210481651                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Configuration.dll
+ffff4de20000-ffff4de30000 ---p 00000000 00:00 0 
+ffff4de30000-ffff4de34000 rw-p 00010000 00:35 210481651                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Configuration.dll
+ffff4de34000-ffff4de53000 ---p 00000000 00:00 0 
+ffff4de53000-ffff4de54000 r--p 00013000 00:35 210481651                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Configuration.dll
+ffff4de54000-ffff4de60000 ---p 00000000 00:00 0 
+ffff4de60000-ffff4de61000 r--p 00000000 00:35 210481686                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Primitives.dll
+ffff4de61000-ffff4de70000 ---p 00000000 00:00 0 
+ffff4de70000-ffff4de7f000 r-xp 00000000 00:35 210481686                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Primitives.dll
+ffff4de7f000-ffff4de9e000 ---p 00000000 00:00 0 
+ffff4de9e000-ffff4dea2000 rw-p 0000e000 00:35 210481686                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Primitives.dll
+ffff4dea2000-ffff4dec1000 ---p 00000000 00:00 0 
+ffff4dec1000-ffff4dec2000 r--p 00011000 00:35 210481686                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Primitives.dll
+ffff4dec2000-ffff4ded0000 ---p 00000000 00:00 0 
+ffff4ded0000-ffff4ded1000 r--p 00000000 00:35 210481665                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Hosting.dll
+ffff4ded1000-ffff4dee0000 ---p 00000000 00:00 0 
+ffff4dee0000-ffff4defd000 r-xp 00000000 00:35 210481665                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Hosting.dll
+ffff4defd000-ffff4df1c000 ---p 00000000 00:00 0 
+ffff4df1c000-ffff4df24000 rw-p 0001c000 00:35 210481665                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Hosting.dll
+ffff4df24000-ffff4df43000 ---p 00000000 00:00 0 
+ffff4df43000-ffff4df44000 r--p 00023000 00:35 210481665                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Hosting.dll
+ffff4df44000-ffff4df50000 ---p 00000000 00:00 0 
+ffff4df50000-ffff4df60000 rw-s 002b1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4df60000-ffff4df61000 r--p 00000000 00:35 210481297                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Hosting.dll
+ffff4df61000-ffff4df70000 ---p 00000000 00:00 0 
+ffff4df70000-ffff4dfd7000 r-xp 00000000 00:35 210481297                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Hosting.dll
+ffff4dfd7000-ffff4dff6000 ---p 00000000 00:00 0 
+ffff4dff6000-ffff4e00e000 rw-p 00066000 00:35 210481297                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Hosting.dll
+ffff4e00e000-ffff4e02d000 ---p 00000000 00:00 0 
+ffff4e02d000-ffff4e02f000 r--p 0007d000 00:35 210481297                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Hosting.dll
+ffff4e02f000-ffff4e030000 ---p 00000000 00:00 0 
+ffff4e030000-ffff4e031000 r--p 00000000 00:35 210481295                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Hosting.Abstractions.dll
+ffff4e031000-ffff4e040000 ---p 00000000 00:00 0 
+ffff4e040000-ffff4e046000 r-xp 00000000 00:35 210481295                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Hosting.Abstractions.dll
+ffff4e046000-ffff4e065000 ---p 00000000 00:00 0 
+ffff4e065000-ffff4e067000 rw-p 00005000 00:35 210481295                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Hosting.Abstractions.dll
+ffff4e067000-ffff4e086000 ---p 00000000 00:00 0 
+ffff4e086000-ffff4e087000 r--p 00006000 00:35 210481295                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Hosting.Abstractions.dll
+ffff4e087000-ffff4e090000 ---p 00000000 00:00 0 
+ffff4e090000-ffff4e091000 r--p 00000000 00:35 210483494                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Collections.dll
+ffff4e091000-ffff4e0a0000 ---p 00000000 00:00 0 
+ffff4e0a0000-ffff4e0dd000 r-xp 00000000 00:35 210483494                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Collections.dll
+ffff4e0dd000-ffff4e0fd000 ---p 00000000 00:00 0 
+ffff4e0fd000-ffff4e10e000 rw-p 0003d000 00:35 210483494                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Collections.dll
+ffff4e10e000-ffff4e12d000 ---p 00000000 00:00 0 
+ffff4e12d000-ffff4e12e000 r--p 0004d000 00:35 210483494                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Collections.dll
+ffff4e12e000-ffff4e130000 ---p 00000000 00:00 0 
+ffff4e130000-ffff4e140000 rw-s 002c1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4e140000-ffff4e141000 r--p 00000000 00:35 210483928                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Threading.dll
+ffff4e141000-ffff4e150000 ---p 00000000 00:00 0 
+ffff4e150000-ffff4e15f000 r-xp 00000000 00:35 210483928                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Threading.dll
+ffff4e15f000-ffff4e17e000 ---p 00000000 00:00 0 
+ffff4e17e000-ffff4e182000 rw-p 0000e000 00:35 210483928                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Threading.dll
+ffff4e182000-ffff4e1a1000 ---p 00000000 00:00 0 
+ffff4e1a1000-ffff4e1a2000 r--p 00011000 00:35 210483928                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Threading.dll
+ffff4e1a2000-ffff4e1b0000 ---p 00000000 00:00 0 
+ffff4e1b0000-ffff4e1b1000 r--p 00000000 00:35 210481642                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Configuration.EnvironmentVariables.dll
+ffff4e1b1000-ffff4e1c0000 ---p 00000000 00:00 0 
+ffff4e1c0000-ffff4e1c5000 r-xp 00000000 00:35 210481642                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Configuration.EnvironmentVariables.dll
+ffff4e1c5000-ffff4e1e4000 ---p 00000000 00:00 0 
+ffff4e1e4000-ffff4e1e6000 rw-p 00004000 00:35 210481642                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Configuration.EnvironmentVariables.dll
+ffff4e1e6000-ffff4e205000 ---p 00000000 00:00 0 
+ffff4e205000-ffff4e206000 r--p 00005000 00:35 210481642                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Configuration.EnvironmentVariables.dll
+ffff4e206000-ffff4e210000 ---p 00000000 00:00 0 
+ffff4e210000-ffff4e240000 rw-s 002d1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4e240000-ffff4e241000 r--p 00000000 00:35 210481659                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.FileProviders.Abstractions.dll
+ffff4e241000-ffff4e250000 ---p 00000000 00:00 0 
+ffff4e250000-ffff4e254000 r-xp 00000000 00:35 210481659                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.FileProviders.Abstractions.dll
+ffff4e254000-ffff4e273000 ---p 00000000 00:00 0 
+ffff4e273000-ffff4e274000 rw-p 00003000 00:35 210481659                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.FileProviders.Abstractions.dll
+ffff4e274000-ffff4e294000 ---p 00000000 00:00 0 
+ffff4e294000-ffff4e295000 r--p 00004000 00:35 210481659                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.FileProviders.Abstractions.dll
+ffff4e295000-ffff4e2a0000 ---p 00000000 00:00 0 
+ffff4e2a0000-ffff4e2a1000 r--p 00000000 00:35 210481662                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.FileProviders.Physical.dll
+ffff4e2a1000-ffff4e2b0000 ---p 00000000 00:00 0 
+ffff4e2b0000-ffff4e2c0000 r-xp 00000000 00:35 210481662                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.FileProviders.Physical.dll
+ffff4e2c0000-ffff4e2df000 ---p 00000000 00:00 0 
+ffff4e2df000-ffff4e2e4000 rw-p 0000f000 00:35 210481662                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.FileProviders.Physical.dll
+ffff4e2e4000-ffff4e303000 ---p 00000000 00:00 0 
+ffff4e303000-ffff4e304000 r--p 00013000 00:35 210481662                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.FileProviders.Physical.dll
+ffff4e304000-ffff4e310000 ---p 00000000 00:00 0 
+ffff4e310000-ffff4e320000 rw-s 00301000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4e320000-ffff4e321000 r--p 00000000 00:35 210481643                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Configuration.FileExtensions.dll
+ffff4e321000-ffff4e330000 ---p 00000000 00:00 0 
+ffff4e330000-ffff4e337000 r-xp 00000000 00:35 210481643                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Configuration.FileExtensions.dll
+ffff4e337000-ffff4e356000 ---p 00000000 00:00 0 
+ffff4e356000-ffff4e358000 rw-p 00006000 00:35 210481643                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Configuration.FileExtensions.dll
+ffff4e358000-ffff4e377000 ---p 00000000 00:00 0 
+ffff4e377000-ffff4e378000 r--p 00007000 00:35 210481643                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Configuration.FileExtensions.dll
+ffff4e378000-ffff4e380000 ---p 00000000 00:00 0 
+ffff4e380000-ffff4e390000 rw-s 00311000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4e390000-ffff4e394000 r-xs 00321000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4e394000-ffff4e398000 rw-s 00325000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4e398000-ffff4e39c000 r-xs 00329000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4e39c000-ffff4e3a0000 rw-s 0032d000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4e3a0000-ffff4e3a1000 r--p 00000000 00:35 210481685                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Options.dll
+ffff4e3a1000-ffff4e3b0000 ---p 00000000 00:00 0 
+ffff4e3b0000-ffff4e3ca000 r-xp 00000000 00:35 210481685                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Options.dll
+ffff4e3ca000-ffff4e3e9000 ---p 00000000 00:00 0 
+ffff4e3e9000-ffff4e3f1000 rw-p 00019000 00:35 210481685                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Options.dll
+ffff4e3f1000-ffff4e410000 ---p 00000000 00:00 0 
+ffff4e410000-ffff4e411000 r--p 00020000 00:35 210481685                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Options.dll
+ffff4e411000-ffff4e420000 ---p 00000000 00:00 0 
+ffff4e420000-ffff4e430000 rw-s 00331000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4e430000-ffff4e431000 r--p 00000000 00:35 210481681                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Logging.dll
+ffff4e431000-ffff4e440000 ---p 00000000 00:00 0 
+ffff4e440000-ffff4e452000 r-xp 00000000 00:35 210481681                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Logging.dll
+ffff4e452000-ffff4e471000 ---p 00000000 00:00 0 
+ffff4e471000-ffff4e476000 rw-p 00011000 00:35 210481681                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Logging.dll
+ffff4e476000-ffff4e495000 ---p 00000000 00:00 0 
+ffff4e495000-ffff4e496000 r--p 00015000 00:35 210481681                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Logging.dll
+ffff4e496000-ffff4e4a0000 ---p 00000000 00:00 0 
+ffff4e4a0000-ffff4e4a1000 r--p 00000000 00:35 210481657                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Diagnostics.dll
+ffff4e4a1000-ffff4e4b0000 ---p 00000000 00:00 0 
+ffff4e4b0000-ffff4e4bb000 r-xp 00000000 00:35 210481657                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Diagnostics.dll
+ffff4e4bb000-ffff4e4da000 ---p 00000000 00:00 0 
+ffff4e4da000-ffff4e4de000 rw-p 0000a000 00:35 210481657                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Diagnostics.dll
+ffff4e4de000-ffff4e4fd000 ---p 00000000 00:00 0 
+ffff4e4fd000-ffff4e4fe000 r--p 0000d000 00:35 210481657                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Diagnostics.dll
+ffff4e4fe000-ffff4e500000 ---p 00000000 00:00 0 
+ffff4e500000-ffff4e501000 r--p 00000000 00:35 210483524                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Diagnostics.DiagnosticSource.dll
+ffff4e501000-ffff4e510000 ---p 00000000 00:00 0 
+ffff4e510000-ffff4e57d000 r-xp 00000000 00:35 210483524                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Diagnostics.DiagnosticSource.dll
+ffff4e57d000-ffff4e59c000 ---p 00000000 00:00 0 
+ffff4e59c000-ffff4e5b6000 rw-p 0006c000 00:35 210483524                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Diagnostics.DiagnosticSource.dll
+ffff4e5b6000-ffff4e5d5000 ---p 00000000 00:00 0 
+ffff4e5d5000-ffff4e5d6000 r--p 00085000 00:35 210483524                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Diagnostics.DiagnosticSource.dll
+ffff4e5d6000-ffff4e5e0000 ---p 00000000 00:00 0 
+ffff4e5e0000-ffff4e5ea000 rw-s 00341000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4e5ea000-ffff4e5f0000 ---s 0034b000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4e5f0000-ffff4e5f1000 r--p 00000000 00:35 210481631                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Configuration.Binder.dll
+ffff4e5f1000-ffff4e600000 ---p 00000000 00:00 0 
+ffff4e600000-ffff4e60f000 r-xp 00000000 00:35 210481631                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Configuration.Binder.dll
+ffff4e60f000-ffff4e62e000 ---p 00000000 00:00 0 
+ffff4e62e000-ffff4e632000 rw-p 0000e000 00:35 210481631                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Configuration.Binder.dll
+ffff4e632000-ffff4e651000 ---p 00000000 00:00 0 
+ffff4e651000-ffff4e652000 r--p 00011000 00:35 210481631                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Configuration.Binder.dll
+ffff4e652000-ffff4e660000 ---p 00000000 00:00 0 
+ffff4e660000-ffff4e661000 r--p 00000000 00:35 210481647                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Configuration.Json.dll
+ffff4e661000-ffff4e670000 ---p 00000000 00:00 0 
+ffff4e670000-ffff4e677000 r-xp 00000000 00:35 210481647                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Configuration.Json.dll
+ffff4e677000-ffff4e696000 ---p 00000000 00:00 0 
+ffff4e696000-ffff4e698000 rw-p 00006000 00:35 210481647                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Configuration.Json.dll
+ffff4e698000-ffff4e6b7000 ---p 00000000 00:00 0 
+ffff4e6b7000-ffff4e6b8000 r--p 00007000 00:35 210481647                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Configuration.Json.dll
+ffff4e6b8000-ffff4e6c0000 ---p 00000000 00:00 0 
+ffff4e6c0000-ffff4e6d0000 rw-s 00351000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4e6d0000-ffff4e6d1000 r--p 00000000 00:35 210483590                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Memory.dll
+ffff4e6d1000-ffff4e6e0000 ---p 00000000 00:00 0 
+ffff4e6e0000-ffff4e6ff000 r-xp 00000000 00:35 210483590                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Memory.dll
+ffff4e6ff000-ffff4e71e000 ---p 00000000 00:00 0 
+ffff4e71e000-ffff4e726000 rw-p 0001e000 00:35 210483590                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Memory.dll
+ffff4e726000-ffff4e745000 ---p 00000000 00:00 0 
+ffff4e745000-ffff4e746000 r--p 00025000 00:35 210483590                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Memory.dll
+ffff4e746000-ffff4e750000 ---p 00000000 00:00 0 
+ffff4e750000-ffff4e751000 r--p 00000000 00:35 210483586                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Linq.dll
+ffff4e751000-ffff4e760000 ---p 00000000 00:00 0 
+ffff4e760000-ffff4e7f1000 r-xp 00000000 00:35 210483586                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Linq.dll
+ffff4e7f1000-ffff4e810000 ---p 00000000 00:00 0 
+ffff4e810000-ffff4e83f000 rw-p 00090000 00:35 210483586                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Linq.dll
+ffff4e83f000-ffff4e85e000 ---p 00000000 00:00 0 
+ffff4e85e000-ffff4e860000 r--p 000be000 00:35 210483586                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Linq.dll
+ffff4e860000-ffff4e890000 rw-s 00361000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4e890000-ffff4e891000 r--p 00000000 00:35 210483564                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.IO.FileSystem.Watcher.dll
+ffff4e891000-ffff4e8a0000 ---p 00000000 00:00 0 
+ffff4e8a0000-ffff4e8b5000 r-xp 00000000 00:35 210483564                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.IO.FileSystem.Watcher.dll
+ffff4e8b5000-ffff4e8d4000 ---p 00000000 00:00 0 
+ffff4e8d4000-ffff4e8da000 rw-p 00014000 00:35 210483564                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.IO.FileSystem.Watcher.dll
+ffff4e8da000-ffff4e8f9000 ---p 00000000 00:00 0 
+ffff4e8f9000-ffff4e8fa000 r--p 00019000 00:35 210483564                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.IO.FileSystem.Watcher.dll
+ffff4e8fa000-ffff4e900000 ---p 00000000 00:00 0 
+ffff4e900000-ffff4e901000 r--p 00000000 00:35 210483500                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.ComponentModel.Primitives.dll
+ffff4e901000-ffff4e910000 ---p 00000000 00:00 0 
+ffff4e910000-ffff4e91f000 r-xp 00000000 00:35 210483500                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.ComponentModel.Primitives.dll
+ffff4e91f000-ffff4e93e000 ---p 00000000 00:00 0 
+ffff4e93e000-ffff4e941000 rw-p 0000e000 00:35 210483500                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.ComponentModel.Primitives.dll
+ffff4e941000-ffff4e961000 ---p 00000000 00:00 0 
+ffff4e961000-ffff4e962000 r--p 00011000 00:35 210483500                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.ComponentModel.Primitives.dll
+ffff4e962000-ffff4e970000 ---p 00000000 00:00 0 
+ffff4e970000-ffff4e971000 r--p 00000000 00:35 210483485                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Collections.Concurrent.dll
+ffff4e971000-ffff4e980000 ---p 00000000 00:00 0 
+ffff4e980000-ffff4e9a9000 r-xp 00000000 00:35 210483485                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Collections.Concurrent.dll
+ffff4e9a9000-ffff4e9c8000 ---p 00000000 00:00 0 
+ffff4e9c8000-ffff4e9d3000 rw-p 00028000 00:35 210483485                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Collections.Concurrent.dll
+ffff4e9d3000-ffff4e9f2000 ---p 00000000 00:00 0 
+ffff4e9f2000-ffff4e9f3000 r--p 00032000 00:35 210483485                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Collections.Concurrent.dll
+ffff4e9f3000-ffff4ea00000 ---p 00000000 00:00 0 
+ffff4ea00000-ffff4ea20000 rw-s 00391000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4ea20000-ffff4ea21000 r--p 00000000 00:35 210483832                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Runtime.InteropServices.dll
+ffff4ea21000-ffff4ea30000 ---p 00000000 00:00 0 
+ffff4ea30000-ffff4ea45000 r-xp 00000000 00:35 210483832                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Runtime.InteropServices.dll
+ffff4ea45000-ffff4ea64000 ---p 00000000 00:00 0 
+ffff4ea64000-ffff4ea69000 rw-p 00014000 00:35 210483832                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Runtime.InteropServices.dll
+ffff4ea69000-ffff4ea88000 ---p 00000000 00:00 0 
+ffff4ea88000-ffff4ea89000 r--p 00018000 00:35 210483832                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Runtime.InteropServices.dll
+ffff4ea89000-ffff4ea90000 ---p 00000000 00:00 0 
+ffff4ea90000-ffff4ea97000 rw-s 003b1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4ea97000-ffff4eaa0000 ---s 003b8000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4eaa0000-ffff4eab0000 rw-s 003c1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4eab0000-ffff4eab1000 r--p 00000000 00:35 210483902                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Text.Json.dll
+ffff4eab1000-ffff4eac0000 ---p 00000000 00:00 0 
+ffff4eac0000-ffff4ec59000 r-xp 00000000 00:35 210483902                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Text.Json.dll
+ffff4ec59000-ffff4ec78000 ---p 00000000 00:00 0 
+ffff4ec78000-ffff4ecdd000 rw-p 00198000 00:35 210483902                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Text.Json.dll
+ffff4ecdd000-ffff4ecfc000 ---p 00000000 00:00 0 
+ffff4ecfc000-ffff4ecff000 r--p 001fc000 00:35 210483902                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Text.Json.dll
+ffff4ecff000-ffff4ed00000 ---p 00000000 00:00 0 
+ffff4ed00000-ffff4ed50000 rw-s 003d1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4ed50000-ffff4ed54000 r-xs 00421000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4ed54000-ffff4ed58000 rw-s 00425000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4ed58000-ffff4ed5c000 r-xs 00429000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4ed5c000-ffff4ed70000 rw-s 0042d000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4ed70000-ffff4ed71000 r--p 00000000 00:35 210483570                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.IO.Pipelines.dll
+ffff4ed71000-ffff4ed80000 ---p 00000000 00:00 0 
+ffff4ed80000-ffff4eda5000 r-xp 00000000 00:35 210483570                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.IO.Pipelines.dll
+ffff4eda5000-ffff4edc4000 ---p 00000000 00:00 0 
+ffff4edc4000-ffff4edce000 rw-p 00024000 00:35 210483570                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.IO.Pipelines.dll
+ffff4edce000-ffff4eded000 ---p 00000000 00:00 0 
+ffff4eded000-ffff4edee000 r--p 0002d000 00:35 210483570                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.IO.Pipelines.dll
+ffff4edee000-ffff4edf0000 ---p 00000000 00:00 0 
+ffff4edf0000-ffff4edf1000 r--p 00000000 00:35 210481675                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Logging.Configuration.dll
+ffff4edf1000-ffff4ee00000 ---p 00000000 00:00 0 
+ffff4ee00000-ffff4ee07000 r-xp 00000000 00:35 210481675                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Logging.Configuration.dll
+ffff4ee07000-ffff4ee26000 ---p 00000000 00:00 0 
+ffff4ee26000-ffff4ee28000 rw-p 00006000 00:35 210481675                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Logging.Configuration.dll
+ffff4ee28000-ffff4ee47000 ---p 00000000 00:00 0 
+ffff4ee47000-ffff4ee48000 r--p 00007000 00:35 210481675                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Logging.Configuration.dll
+ffff4ee48000-ffff4ee50000 ---p 00000000 00:00 0 
+ffff4ee50000-ffff4ee51000 r--p 00000000 00:35 210481683                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Options.ConfigurationExtensions.dll
+ffff4ee51000-ffff4ee60000 ---p 00000000 00:00 0 
+ffff4ee60000-ffff4ee64000 r-xp 00000000 00:35 210481683                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Options.ConfigurationExtensions.dll
+ffff4ee64000-ffff4ee84000 ---p 00000000 00:00 0 
+ffff4ee84000-ffff4ee85000 rw-p 00004000 00:35 210481683                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Options.ConfigurationExtensions.dll
+ffff4ee85000-ffff4eea4000 ---p 00000000 00:00 0 
+ffff4eea4000-ffff4eea5000 r--p 00004000 00:35 210481683                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Options.ConfigurationExtensions.dll
+ffff4eea5000-ffff4eeb0000 ---p 00000000 00:00 0 
+ffff4eeb0000-ffff4eebe000 rw-s 00441000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4eebe000-ffff4eec0000 ---s 0044f000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4eec0000-ffff4eec1000 r--p 00000000 00:35 210481676                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Logging.Console.dll
+ffff4eec1000-ffff4eed0000 ---p 00000000 00:00 0 
+ffff4eed0000-ffff4eef0000 r-xp 00000000 00:35 210481676                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Logging.Console.dll
+ffff4eef0000-ffff4ef0f000 ---p 00000000 00:00 0 
+ffff4ef0f000-ffff4ef18000 rw-p 0001f000 00:35 210481676                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Logging.Console.dll
+ffff4ef18000-ffff4ef37000 ---p 00000000 00:00 0 
+ffff4ef37000-ffff4ef38000 r--p 00027000 00:35 210481676                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Logging.Console.dll
+ffff4ef38000-ffff4ef40000 ---p 00000000 00:00 0 
+ffff4ef40000-ffff4ef50000 rw-s 00451000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4ef50000-ffff4ef51000 r--p 00000000 00:35 210481677                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Logging.Debug.dll
+ffff4ef51000-ffff4ef60000 ---p 00000000 00:00 0 
+ffff4ef60000-ffff4ef63000 r-xp 00000000 00:35 210481677                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Logging.Debug.dll
+ffff4ef63000-ffff4ef82000 ---p 00000000 00:00 0 
+ffff4ef82000-ffff4ef84000 rw-p 00002000 00:35 210481677                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Logging.Debug.dll
+ffff4ef84000-ffff4efa3000 ---p 00000000 00:00 0 
+ffff4efa3000-ffff4efa4000 r--p 00003000 00:35 210481677                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Logging.Debug.dll
+ffff4efa4000-ffff4efb0000 ---p 00000000 00:00 0 
+ffff4efb0000-ffff4efb1000 r--p 00000000 00:35 210481679                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Logging.EventSource.dll
+ffff4efb1000-ffff4efc0000 ---p 00000000 00:00 0 
+ffff4efc0000-ffff4efca000 r-xp 00000000 00:35 210481679                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Logging.EventSource.dll
+ffff4efca000-ffff4efe9000 ---p 00000000 00:00 0 
+ffff4efe9000-ffff4efec000 rw-p 00009000 00:35 210481679                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Logging.EventSource.dll
+ffff4efec000-ffff4f00b000 ---p 00000000 00:00 0 
+ffff4f00b000-ffff4f00c000 r--p 0000b000 00:35 210481679                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Logging.EventSource.dll
+ffff4f00c000-ffff4f010000 ---p 00000000 00:00 0 
+ffff4f010000-ffff4f030000 rw-s 00461000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4f030000-ffff4f031000 r-xs 00481000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4f031000-ffff4f040000 ---s 00482000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4f040000-ffff4f041000 r--p 00000000 00:35 210481653                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.DependencyInjection.dll
+ffff4f041000-ffff4f050000 ---p 00000000 00:00 0 
+ffff4f050000-ffff4f07d000 r-xp 00000000 00:35 210481653                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.DependencyInjection.dll
+ffff4f07d000-ffff4f09c000 ---p 00000000 00:00 0 
+ffff4f09c000-ffff4f0a8000 rw-p 0002c000 00:35 210481653                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.DependencyInjection.dll
+ffff4f0a8000-ffff4f0c7000 ---p 00000000 00:00 0 
+ffff4f0c7000-ffff4f0c9000 r--p 00037000 00:35 210481653                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.DependencyInjection.dll
+ffff4f0c9000-ffff4f0d0000 ---p 00000000 00:00 0 
+ffff4f0d0000-ffff4f0e0000 rw-s 00491000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4f0e0000-ffff4f0e1000 r--p 00000000 00:35 210481400                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Server.Kestrel.Core.dll
+ffff4f0e1000-ffff4f0f0000 ---p 00000000 00:00 0 
+ffff4f0f0000-ffff4f30a000 r-xp 00000000 00:35 210481400                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Server.Kestrel.Core.dll
+ffff4f30a000-ffff4f329000 ---p 00000000 00:00 0 
+ffff4f329000-ffff4f38c000 rw-p 00219000 00:35 210481400                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Server.Kestrel.Core.dll
+ffff4f38c000-ffff4f3ac000 ---p 00000000 00:00 0 
+ffff4f3ac000-ffff4f3af000 r--p 0027c000 00:35 210481400                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Server.Kestrel.Core.dll
+ffff4f3af000-ffff4f3b0000 ---p 00000000 00:00 0 
+ffff4f3b0000-ffff4f3cf000 rw-s 004a1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4f3cf000-ffff4f3d0000 ---s 004c0000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4f3d0000-ffff4f3d1000 r--p 00000000 00:35 210481466                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Server.Kestrel.dll
+ffff4f3d1000-ffff4f3e0000 ---p 00000000 00:00 0 
+ffff4f3e0000-ffff4f3e4000 r-xp 00000000 00:35 210481466                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Server.Kestrel.dll
+ffff4f3e4000-ffff4f403000 ---p 00000000 00:00 0 
+ffff4f403000-ffff4f404000 rw-p 00003000 00:35 210481466                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Server.Kestrel.dll
+ffff4f404000-ffff4f424000 ---p 00000000 00:00 0 
+ffff4f424000-ffff4f425000 r--p 00004000 00:35 210481466                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Server.Kestrel.dll
+ffff4f425000-ffff4f430000 ---p 00000000 00:00 0 
+ffff4f430000-ffff4f431000 r--p 00000000 00:35 210481459                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Server.Kestrel.Transport.Quic.dll
+ffff4f431000-ffff4f440000 ---p 00000000 00:00 0 
+ffff4f440000-ffff4f473000 r-xp 00000000 00:35 210481459                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Server.Kestrel.Transport.Quic.dll
+ffff4f473000-ffff4f492000 ---p 00000000 00:00 0 
+ffff4f492000-ffff4f49e000 rw-p 00032000 00:35 210481459                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Server.Kestrel.Transport.Quic.dll
+ffff4f49e000-ffff4f4bd000 ---p 00000000 00:00 0 
+ffff4f4bd000-ffff4f4be000 r--p 0003d000 00:35 210481459                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Server.Kestrel.Transport.Quic.dll
+ffff4f4be000-ffff4f4c0000 ---p 00000000 00:00 0 
+ffff4f4c0000-ffff4f4c1000 r--p 00000000 00:35 210481465                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.dll
+ffff4f4c1000-ffff4f4d0000 ---p 00000000 00:00 0 
+ffff4f4d0000-ffff4f4ea000 r-xp 00000000 00:35 210481465                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.dll
+ffff4f4ea000-ffff4f509000 ---p 00000000 00:00 0 
+ffff4f509000-ffff4f510000 rw-p 00019000 00:35 210481465                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.dll
+ffff4f510000-ffff4f52f000 ---p 00000000 00:00 0 
+ffff4f52f000-ffff4f530000 r--p 0001f000 00:35 210481465                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.dll
+ffff4f530000-ffff4f531000 r--p 00000000 00:35 210483619                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Net.Quic.dll
+ffff4f531000-ffff4f540000 ---p 00000000 00:00 0 
+ffff4f540000-ffff4f58f000 r-xp 00000000 00:35 210483619                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Net.Quic.dll
+ffff4f58f000-ffff4f5ae000 ---p 00000000 00:00 0 
+ffff4f5ae000-ffff4f5bf000 rw-p 0004e000 00:35 210483619                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Net.Quic.dll
+ffff4f5bf000-ffff4f5de000 ---p 00000000 00:00 0 
+ffff4f5de000-ffff4f5df000 r--p 0005e000 00:35 210483619                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Net.Quic.dll
+ffff4f5df000-ffff4f5e0000 ---p 00000000 00:00 0 
+ffff4f5e0000-ffff4f5f0000 rw-s 004c1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4f5f0000-ffff4f5f4000 r-xs 004d1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4f5f4000-ffff4f5f8000 rw-s 004d5000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4f5f8000-ffff4f5fc000 r-xs 004d9000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4f5fc000-ffff4f600000 rw-s 004dd000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4f600000-ffff4f601000 r--p 00000000 00:35 210483639                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Net.Sockets.dll
+ffff4f601000-ffff4f610000 ---p 00000000 00:00 0 
+ffff4f610000-ffff4f69b000 r-xp 00000000 00:35 210483639                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Net.Sockets.dll
+ffff4f69b000-ffff4f6ba000 ---p 00000000 00:00 0 
+ffff4f6ba000-ffff4f6d9000 rw-p 0008a000 00:35 210483639                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Net.Sockets.dll
+ffff4f6d9000-ffff4f6f8000 ---p 00000000 00:00 0 
+ffff4f6f8000-ffff4f6f9000 r--p 000a8000 00:35 210483639                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Net.Sockets.dll
+ffff4f6f9000-ffff4f700000 ---p 00000000 00:00 0 
+ffff4f700000-ffff4f701000 r--p 00000000 00:35 210483617                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Net.Primitives.dll
+ffff4f701000-ffff4f710000 ---p 00000000 00:00 0 
+ffff4f710000-ffff4f740000 r-xp 00000000 00:35 210483617                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Net.Primitives.dll
+ffff4f740000-ffff4f75f000 ---p 00000000 00:00 0 
+ffff4f75f000-ffff4f769000 rw-p 0002f000 00:35 210483617                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Net.Primitives.dll
+ffff4f769000-ffff4f789000 ---p 00000000 00:00 0 
+ffff4f789000-ffff4f78a000 r--p 00039000 00:35 210483617                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Net.Primitives.dll
+ffff4f78a000-ffff4f790000 ---p 00000000 00:00 0 
+ffff4f790000-ffff4f7b0000 rw-s 004e1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4f7b0000-ffff4f7b1000 r--p 00000000 00:35 210481391                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Server.IIS.dll
+ffff4f7b1000-ffff4f7c0000 ---p 00000000 00:00 0 
+ffff4f7c0000-ffff4f858000 r-xp 00000000 00:35 210481391                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Server.IIS.dll
+ffff4f858000-ffff4f877000 ---p 00000000 00:00 0 
+ffff4f877000-ffff4f896000 rw-p 00097000 00:35 210481391                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Server.IIS.dll
+ffff4f896000-ffff4f8b5000 ---p 00000000 00:00 0 
+ffff4f8b5000-ffff4f8b7000 r--p 000b5000 00:35 210481391                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Server.IIS.dll
+ffff4f8b7000-ffff4f8c0000 ---p 00000000 00:00 0 
+ffff4f8c0000-ffff4f8c1000 r--p 00000000 00:35 210481399                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Server.IISIntegration.dll
+ffff4f8c1000-ffff4f8d0000 ---p 00000000 00:00 0 
+ffff4f8d0000-ffff4f8d8000 r-xp 00000000 00:35 210481399                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Server.IISIntegration.dll
+ffff4f8d8000-ffff4f8f7000 ---p 00000000 00:00 0 
+ffff4f8f7000-ffff4f8f9000 rw-p 00007000 00:35 210481399                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Server.IISIntegration.dll
+ffff4f8f9000-ffff4f918000 ---p 00000000 00:00 0 
+ffff4f918000-ffff4f919000 r--p 00008000 00:35 210481399                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Server.IISIntegration.dll
+ffff4f919000-ffff4f920000 ---p 00000000 00:00 0 
+ffff4f920000-ffff4f930000 rw-s 00501000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4f930000-ffff4f931000 r--p 00000000 00:35 210481315                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Http.dll
+ffff4f931000-ffff4f940000 ---p 00000000 00:00 0 
+ffff4f940000-ffff4f97f000 r-xp 00000000 00:35 210481315                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Http.dll
+ffff4f97f000-ffff4f99e000 ---p 00000000 00:00 0 
+ffff4f99e000-ffff4f9af000 rw-p 0003e000 00:35 210481315                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Http.dll
+ffff4f9af000-ffff4f9ce000 ---p 00000000 00:00 0 
+ffff4f9ce000-ffff4f9cf000 r--p 0004e000 00:35 210481315                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Http.dll
+ffff4f9cf000-ffff4f9d0000 ---p 00000000 00:00 0 
+ffff4f9d0000-ffff4f9e0000 rw-s 00511000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4f9e0000-ffff4f9e1000 r--p 00000000 00:35 210481265                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Connections.Abstractions.dll
+ffff4f9e1000-ffff4f9f0000 ---p 00000000 00:00 0 
+ffff4f9f0000-ffff4f9fc000 r-xp 00000000 00:35 210481265                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Connections.Abstractions.dll
+ffff4f9fc000-ffff4fa1b000 ---p 00000000 00:00 0 
+ffff4fa1b000-ffff4fa1e000 rw-p 0000b000 00:35 210481265                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Connections.Abstractions.dll
+ffff4fa1e000-ffff4fa3d000 ---p 00000000 00:00 0 
+ffff4fa3d000-ffff4fa3e000 r--p 0000d000 00:35 210481265                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Connections.Abstractions.dll
+ffff4fa3e000-ffff4fa40000 ---p 00000000 00:00 0 
+ffff4fa40000-ffff4fa41000 r--p 00000000 00:35 210481296                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Hosting.Server.Abstractions.dll
+ffff4fa41000-ffff4fa50000 ---p 00000000 00:00 0 
+ffff4fa50000-ffff4fa52000 r-xp 00000000 00:35 210481296                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Hosting.Server.Abstractions.dll
+ffff4fa52000-ffff4fa71000 ---p 00000000 00:00 0 
+ffff4fa71000-ffff4fa73000 rw-p 00001000 00:35 210481296                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Hosting.Server.Abstractions.dll
+ffff4fa73000-ffff4fa92000 ---p 00000000 00:00 0 
+ffff4fa92000-ffff4fa93000 r--p 00002000 00:35 210481296                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Hosting.Server.Abstractions.dll
+ffff4fa93000-ffff4faa0000 ---p 00000000 00:00 0 
+ffff4faa0000-ffff4faa1000 r--p 00000000 00:35 210481294                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.HostFiltering.dll
+ffff4faa1000-ffff4fab0000 ---p 00000000 00:00 0 
+ffff4fab0000-ffff4fab8000 r-xp 00000000 00:35 210481294                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.HostFiltering.dll
+ffff4fab8000-ffff4fad7000 ---p 00000000 00:00 0 
+ffff4fad7000-ffff4fad9000 rw-p 00007000 00:35 210481294                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.HostFiltering.dll
+ffff4fad9000-ffff4faf8000 ---p 00000000 00:00 0 
+ffff4faf8000-ffff4faf9000 r--p 00008000 00:35 210481294                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.HostFiltering.dll
+ffff4faf9000-ffff4fb00000 ---p 00000000 00:00 0 
+ffff4fb00000-ffff4fb01000 r--p 00000000 00:35 210481317                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.HttpOverrides.dll
+ffff4fb01000-ffff4fb10000 ---p 00000000 00:00 0 
+ffff4fb10000-ffff4fb1f000 r-xp 00000000 00:35 210481317                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.HttpOverrides.dll
+ffff4fb1f000-ffff4fb3e000 ---p 00000000 00:00 0 
+ffff4fb3e000-ffff4fb42000 rw-p 0000e000 00:35 210481317                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.HttpOverrides.dll
+ffff4fb42000-ffff4fb61000 ---p 00000000 00:00 0 
+ffff4fb61000-ffff4fb62000 r--p 00011000 00:35 210481317                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.HttpOverrides.dll
+ffff4fb62000-ffff4fb70000 ---p 00000000 00:00 0 
+ffff4fb70000-ffff4fb80000 rw-s 00521000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4fb80000-ffff4fb81000 r--p 00000000 00:35 210481381                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Routing.Abstractions.dll
+ffff4fb81000-ffff4fb90000 ---p 00000000 00:00 0 
+ffff4fb90000-ffff4fb99000 r-xp 00000000 00:35 210481381                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Routing.Abstractions.dll
+ffff4fb99000-ffff4fbb8000 ---p 00000000 00:00 0 
+ffff4fbb8000-ffff4fbbb000 rw-p 00008000 00:35 210481381                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Routing.Abstractions.dll
+ffff4fbbb000-ffff4fbda000 ---p 00000000 00:00 0 
+ffff4fbda000-ffff4fbdb000 r--p 0000a000 00:35 210481381                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Routing.Abstractions.dll
+ffff4fbdb000-ffff4fbe0000 ---p 00000000 00:00 0 
+ffff4fbe0000-ffff4fbe1000 r--p 00000000 00:35 210481682                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.ObjectPool.dll
+ffff4fbe1000-ffff4fbf0000 ---p 00000000 00:00 0 
+ffff4fbf0000-ffff4fbf5000 r-xp 00000000 00:35 210481682                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.ObjectPool.dll
+ffff4fbf5000-ffff4fc14000 ---p 00000000 00:00 0 
+ffff4fc14000-ffff4fc16000 rw-p 00004000 00:35 210481682                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.ObjectPool.dll
+ffff4fc16000-ffff4fc35000 ---p 00000000 00:00 0 
+ffff4fc35000-ffff4fc36000 r--p 00005000 00:35 210481682                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.ObjectPool.dll
+ffff4fc36000-ffff4fc40000 ---p 00000000 00:00 0 
+ffff4fc40000-ffff4fc41000 r--p 00000000 00:35 210483664                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.ObjectModel.dll
+ffff4fc41000-ffff4fc50000 ---p 00000000 00:00 0 
+ffff4fc50000-ffff4fc5e000 r-xp 00000000 00:35 210483664                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.ObjectModel.dll
+ffff4fc5e000-ffff4fc7d000 ---p 00000000 00:00 0 
+ffff4fc7d000-ffff4fc81000 rw-p 0000d000 00:35 210483664                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.ObjectModel.dll
+ffff4fc81000-ffff4fca0000 ---p 00000000 00:00 0 
+ffff4fca0000-ffff4fca1000 r--p 00010000 00:35 210483664                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.ObjectModel.dll
+ffff4fca1000-ffff4fcb0000 ---p 00000000 00:00 0 
+ffff4fcb0000-ffff4fcc0000 rw-s 00531000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4fcc2000-ffff4fcf0000 ---p 00000000 00:00 0 
+ffff4fcf0000-ffff4fd00000 rw-s 00541000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4fd02000-ffff4fd10000 ---p 00000000 00:00 0 
+ffff4fd12000-ffff4fd30000 ---p 00000000 00:00 0 
+ffff4fd30000-ffff4fd40000 rw-s 00551000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4fd40000-ffff4fd41000 r--p 00000000 00:35 210483487                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Collections.Immutable.dll
+ffff4fd41000-ffff4fd50000 ---p 00000000 00:00 0 
+ffff4fd50000-ffff4fe14000 r-xp 00000000 00:35 210483487                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Collections.Immutable.dll
+ffff4fe14000-ffff4fe33000 ---p 00000000 00:00 0 
+ffff4fe33000-ffff4fe74000 rw-p 000c3000 00:35 210483487                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Collections.Immutable.dll
+ffff4fe74000-ffff4fe94000 ---p 00000000 00:00 0 
+ffff4fe94000-ffff4fe96000 r--p 00104000 00:35 210483487                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Collections.Immutable.dll
+ffff4fe96000-ffff4fea0000 ---p 00000000 00:00 0 
+ffff4fea2000-ffff4feb0000 ---p 00000000 00:00 0 
+ffff4feb0000-ffff4ff00000 rw-s 00561000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4ff00000-ffff4ff04000 r-xs 005b1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4ff04000-ffff4ff08000 rw-s 005b5000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4ff08000-ffff4ff0c000 r-xs 005b9000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4ff0c000-ffff4ff20000 rw-s 005bd000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff4ff20000-ffff4ff21000 r--p 00000000 00:35 210483509                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Console.dll
+ffff4ff21000-ffff4ff30000 ---p 00000000 00:00 0 
+ffff4ff30000-ffff4ff5d000 r-xp 00000000 00:35 210483509                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Console.dll
+ffff4ff5d000-ffff4ff7c000 ---p 00000000 00:00 0 
+ffff4ff7c000-ffff4ff85000 rw-p 0002c000 00:35 210483509                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Console.dll
+ffff4ff85000-ffff4ffa4000 ---p 00000000 00:00 0 
+ffff4ffa4000-ffff4ffa5000 r--p 00034000 00:35 210483509                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Console.dll
+ffff4ffa5000-ffff4ffb0000 ---p 00000000 00:00 0 
+ffff4ffb0000-ffff50020000 rw-s 005d1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50020000-ffff50024000 r-xs 00641000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50024000-ffff50028000 rw-s 00645000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50028000-ffff5002c000 r-xs 00649000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff5002c000-ffff5003f000 rw-s 0064d000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff5003f000-ffff50040000 ---s 00660000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50040000-ffff50050000 rw-s 00661000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50050000-ffff50051000 r--p 00000000 00:35 210483919                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Threading.Channels.dll
+ffff50051000-ffff50060000 ---p 00000000 00:00 0 
+ffff50060000-ffff5007f000 r-xp 00000000 00:35 210483919                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Threading.Channels.dll
+ffff5007f000-ffff5009e000 ---p 00000000 00:00 0 
+ffff5009e000-ffff500a6000 rw-p 0001e000 00:35 210483919                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Threading.Channels.dll
+ffff500a6000-ffff500c5000 ---p 00000000 00:00 0 
+ffff500c5000-ffff500c6000 r--p 00025000 00:35 210483919                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Threading.Channels.dll
+ffff500c6000-ffff500d0000 ---p 00000000 00:00 0 
+ffff500d2000-ffff500e0000 ---p 00000000 00:00 0 
+ffff500e0000-ffff500fd000 rw-s 00671000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff500fd000-ffff50100000 ---s 0068e000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50100000-ffff50130000 rw-s 00691000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50130000-ffff50131000 r--p 00000000 00:35 210481312                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Http.Extensions.dll
+ffff50131000-ffff50140000 ---p 00000000 00:00 0 
+ffff50140000-ffff501e3000 r-xp 00000000 00:35 210481312                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Http.Extensions.dll
+ffff501e3000-ffff50202000 ---p 00000000 00:00 0 
+ffff50202000-ffff50227000 rw-p 000a2000 00:35 210481312                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Http.Extensions.dll
+ffff50227000-ffff50246000 ---p 00000000 00:00 0 
+ffff50246000-ffff50248000 r--p 000c6000 00:35 210481312                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Http.Extensions.dll
+ffff50248000-ffff50250000 ---p 00000000 00:00 0 
+ffff50250000-ffff50270000 rw-s 006c1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50272000-ffff502b0000 ---p 00000000 00:00 0 
+ffff502b0000-ffff502bc000 rw-s 006e1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff502bc000-ffff502c0000 ---s 006ed000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff502c0000-ffff502de000 rw-s 006f1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff502de000-ffff502e0000 ---s 0070f000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff502e2000-ffff50300000 ---p 00000000 00:00 0 
+ffff50300000-ffff50370000 rw-s 00711000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50372000-ffff50390000 ---p 00000000 00:00 0 
+ffff50392000-ffff503a0000 ---p 00000000 00:00 0 
+ffff503a0000-ffff503ad000 rw-s 00781000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff503ad000-ffff503b0000 ---s 0078e000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff503b0000-ffff503c0000 rw-s 00791000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff503c0000-ffff503c4000 r-xs 007a1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff503c4000-ffff503c8000 rw-s 007a5000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff503c8000-ffff503cc000 r-xs 007a9000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff503cc000-ffff503e0000 rw-s 007ad000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff503e0000-ffff503e1000 r--p 00000000 00:35 210483552                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.IO.Compression.dll
+ffff503e1000-ffff503f0000 ---p 00000000 00:00 0 
+ffff503f0000-ffff5044a000 r-xp 00000000 00:35 210483552                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.IO.Compression.dll
+ffff5044a000-ffff50469000 ---p 00000000 00:00 0 
+ffff50469000-ffff5047f000 rw-p 00059000 00:35 210483552                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.IO.Compression.dll
+ffff5047f000-ffff5049e000 ---p 00000000 00:00 0 
+ffff5049e000-ffff5049f000 r--p 0006e000 00:35 210483552                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.IO.Compression.dll
+ffff5049f000-ffff504a0000 ---p 00000000 00:00 0 
+ffff504a0000-ffff504f0000 rw-s 007c1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff504f2000-ffff50510000 ---p 00000000 00:00 0 
+ffff50510000-ffff50520000 rw-s 00811000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50520000-ffff50524000 r-xs 00821000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50524000-ffff50528000 rw-s 00825000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50528000-ffff5052c000 r-xs 00829000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff5052c000-ffff50570000 rw-s 0082d000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50572000-ffff50580000 ---p 00000000 00:00 0 
+ffff50580000-ffff50590000 rw-s 00871000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50592000-ffff505a0000 ---p 00000000 00:00 0 
+ffff505a2000-ffff505b0000 ---p 00000000 00:00 0 
+ffff505b0000-ffff505e0000 rw-s 00881000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff505e0000-ffff505e4000 r-xs 008b1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff505e4000-ffff505e8000 rw-s 008b5000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff505e8000-ffff505ec000 r-xs 008b9000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff505ec000-ffff50610000 rw-s 008bd000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50610000-ffff5068f000 r-xs 008e1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff5068f000-ffff50690000 ---s 00960000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50690000-ffff506cf000 rw-s 00961000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff506cf000-ffff506d0000 ---s 009a0000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff506d0000-ffff50700000 rw-s 009a1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50700000-ffff50702000 r--s 00000000 00:24 204507                     /workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/frozen/gateway/HotChocolate.Language.dll
+ffff50702000-ffff50720000 ---p 00000000 00:00 0 
+ffff50720000-ffff50730000 rw-s 009d1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50730000-ffff50734000 r-xs 009e1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50734000-ffff50738000 rw-s 009e5000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50738000-ffff5073c000 r-xs 009e9000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff5073c000-ffff5076e000 rw-s 009ed000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff5076e000-ffff50770000 ---s 00a1f000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50770000-ffff507a0000 rw-s 00a21000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff507a0000-ffff507a1000 r--p 00000000 00:35 210483744                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Private.Uri.dll
+ffff507a1000-ffff507b0000 ---p 00000000 00:00 0 
+ffff507b0000-ffff507e4000 r-xp 00000000 00:35 210483744                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Private.Uri.dll
+ffff507e4000-ffff50803000 ---p 00000000 00:00 0 
+ffff50803000-ffff5080f000 rw-p 00033000 00:35 210483744                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Private.Uri.dll
+ffff5080f000-ffff5082e000 ---p 00000000 00:00 0 
+ffff5082e000-ffff5082f000 r--p 0003e000 00:35 210483744                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Private.Uri.dll
+ffff5082f000-ffff50830000 ---p 00000000 00:00 0 
+ffff50830000-ffff50860000 rw-s 00a51000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50860000-ffff50864000 r-xs 00a81000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50864000-ffff50868000 rw-s 00a85000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50868000-ffff5086c000 r-xs 00a89000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff5086c000-ffff508b0000 rw-s 00a8d000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff508b2000-ffff508c0000 ---p 00000000 00:00 0 
+ffff508c0000-ffff50900000 rw-s 00ad1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50900000-ffff50904000 r-xs 00b11000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50904000-ffff50908000 rw-s 00b15000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50908000-ffff5090c000 r-xs 00b19000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff5090c000-ffff5094f000 rw-s 00b1d000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff5094f000-ffff50950000 ---s 00b60000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50950000-ffff50980000 rw-s 00b61000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50980000-ffff509ff000 r-xs 00b91000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff509ff000-ffff50a00000 ---s 00c10000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50a00000-ffff50a10000 rw-s 00c11000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50a10000-ffff50a14000 r-xs 00c21000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50a14000-ffff50a18000 rw-s 00c25000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50a18000-ffff50a1c000 r-xs 00c29000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50a1c000-ffff50a52000 rw-s 00c2d000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50a52000-ffff50a60000 ---s 00c63000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50a60000-ffff50a61000 r--p 00000000 00:35 210483864                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Security.Cryptography.dll
+ffff50a61000-ffff50a70000 ---p 00000000 00:00 0 
+ffff50a70000-ffff50cf0000 r-xp 00000000 00:35 210483864                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Security.Cryptography.dll
+ffff50cf0000-ffff50d0f000 ---p 00000000 00:00 0 
+ffff50d0f000-ffff50d84000 rw-p 0027f000 00:35 210483864                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Security.Cryptography.dll
+ffff50d84000-ffff50da3000 ---p 00000000 00:00 0 
+ffff50da3000-ffff50da7000 r--p 002f3000 00:35 210483864                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Security.Cryptography.dll
+ffff50da7000-ffff50db0000 ---p 00000000 00:00 0 
+ffff50db0000-ffff50de0000 rw-s 00c71000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50de0000-ffff50de4000 r-xs 00ca1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50de4000-ffff50de8000 rw-s 00ca5000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50de8000-ffff50dec000 r-xs 00ca9000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50dec000-ffff50dfb000 rw-s 00cad000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50dfb000-ffff50e00000 ---s 00cbc000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50e00000-ffff50e10000 rw-s 00cc1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50e10000-ffff50e11000 r--p 00000000 00:35 210481251                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Authentication.Abstractions.dll
+ffff50e11000-ffff50e20000 ---p 00000000 00:00 0 
+ffff50e20000-ffff50e2b000 r-xp 00000000 00:35 210481251                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Authentication.Abstractions.dll
+ffff50e2b000-ffff50e4a000 ---p 00000000 00:00 0 
+ffff50e4a000-ffff50e4d000 rw-p 0000a000 00:35 210481251                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Authentication.Abstractions.dll
+ffff50e4d000-ffff50e6c000 ---p 00000000 00:00 0 
+ffff50e6c000-ffff50e6d000 r--p 0000c000 00:35 210481251                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Authentication.Abstractions.dll
+ffff50e6d000-ffff50e70000 ---p 00000000 00:00 0 
+ffff50e70000-ffff50e71000 r--p 00000000 00:35 210481258                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Authorization.dll
+ffff50e71000-ffff50e80000 ---p 00000000 00:00 0 
+ffff50e80000-ffff50e96000 r-xp 00000000 00:35 210481258                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Authorization.dll
+ffff50e96000-ffff50eb5000 ---p 00000000 00:00 0 
+ffff50eb5000-ffff50ebb000 rw-p 00015000 00:35 210481258                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Authorization.dll
+ffff50ebb000-ffff50eda000 ---p 00000000 00:00 0 
+ffff50eda000-ffff50edb000 r--p 0001a000 00:35 210481258                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Authorization.dll
+ffff50edb000-ffff50ee0000 ---p 00000000 00:00 0 
+ffff50ee0000-ffff50ee1000 r--p 00000000 00:35 210481690                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Net.Http.Headers.dll
+ffff50ee1000-ffff50ef0000 ---p 00000000 00:00 0 
+ffff50ef0000-ffff50f1f000 r-xp 00000000 00:35 210481690                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Net.Http.Headers.dll
+ffff50f1f000-ffff50f3e000 ---p 00000000 00:00 0 
+ffff50f3e000-ffff50f48000 rw-p 0002e000 00:35 210481690                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Net.Http.Headers.dll
+ffff50f48000-ffff50f67000 ---p 00000000 00:00 0 
+ffff50f67000-ffff50f68000 r--p 00037000 00:35 210481690                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Net.Http.Headers.dll
+ffff50f68000-ffff50f70000 ---p 00000000 00:00 0 
+ffff50f70000-ffff50f90000 rw-s 00cd1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff50f90000-ffff50f91000 r--p 00000000 00:35 210483492                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Collections.NonGeneric.dll
+ffff50f91000-ffff50fa0000 ---p 00000000 00:00 0 
+ffff50fa0000-ffff50fb4000 r-xp 00000000 00:35 210483492                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Collections.NonGeneric.dll
+ffff50fb4000-ffff50fd3000 ---p 00000000 00:00 0 
+ffff50fd3000-ffff50fd7000 rw-p 00013000 00:35 210483492                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Collections.NonGeneric.dll
+ffff50fd7000-ffff50ff6000 ---p 00000000 00:00 0 
+ffff50ff6000-ffff50ff7000 r--p 00016000 00:35 210483492                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Collections.NonGeneric.dll
+ffff50ff7000-ffff51000000 ---p 00000000 00:00 0 
+ffff51000000-ffff51040000 rw-s 00cf1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51040000-ffff51044000 r-xs 00d31000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51044000-ffff51048000 rw-s 00d35000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51048000-ffff5104c000 r-xs 00d39000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff5104c000-ffff51050000 rw-s 00d3d000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51050000-ffff51054000 r-xs 00d41000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51054000-ffff51058000 rw-s 00d45000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51058000-ffff5105c000 r-xs 00d49000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff5105c000-ffff51060000 rw-s 00d4d000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51060000-ffff51064000 r-xs 00d51000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51064000-ffff51068000 rw-s 00d55000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51068000-ffff5106c000 r-xs 00d59000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff5106c000-ffff51070000 rw-s 00d5d000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51070000-ffff51074000 r-xs 00d61000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51074000-ffff51078000 rw-s 00d65000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51078000-ffff5107c000 r-xs 00d69000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff5107c000-ffff51080000 rw-s 00d6d000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51080000-ffff51084000 r-xs 00d71000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51084000-ffff51088000 rw-s 00d75000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51088000-ffff5108c000 r-xs 00d79000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff5108c000-ffff51090000 rw-s 00d7d000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51090000-ffff51094000 r-xs 00d81000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51094000-ffff51098000 rw-s 00d85000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51098000-ffff5109c000 r-xs 00d89000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff5109c000-ffff510a0000 rw-s 00d8d000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff510a0000-ffff510a4000 r-xs 00d91000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff510a4000-ffff510a8000 rw-s 00d95000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff510a8000-ffff510ac000 r-xs 00d99000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff510ac000-ffff510b0000 rw-s 00d9d000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff510b0000-ffff510b4000 r-xs 00da1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff510b4000-ffff510b8000 rw-s 00da5000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff510b8000-ffff510bc000 r-xs 00da9000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff510bc000-ffff510c0000 rw-s 00dad000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff510c0000-ffff510c4000 r-xs 00db1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff510c4000-ffff510c8000 rw-s 00db5000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff510c8000-ffff510cc000 r-xs 00db9000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff510cc000-ffff510d0000 rw-s 00dbd000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff510d0000-ffff510d4000 r-xs 00dc1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff510d4000-ffff510d8000 rw-s 00dc5000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff510d8000-ffff510dc000 r-xs 00dc9000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff510dc000-ffff510f0000 rw-s 00dcd000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff510f0000-ffff510f1000 r--p 00000000 00:35 210481313                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Http.Features.dll
+ffff510f1000-ffff51100000 ---p 00000000 00:00 0 
+ffff51100000-ffff5110d000 r-xp 00000000 00:35 210481313                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Http.Features.dll
+ffff5110d000-ffff5112c000 ---p 00000000 00:00 0 
+ffff5112c000-ffff5112e000 rw-p 0000c000 00:35 210481313                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Http.Features.dll
+ffff5112e000-ffff5114d000 ---p 00000000 00:00 0 
+ffff5114d000-ffff5114e000 r--p 0000d000 00:35 210481313                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.Http.Features.dll
+ffff5114e000-ffff51150000 ---p 00000000 00:00 0 
+ffff51150000-ffff51160000 rw-s 00de1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51160000-ffff51164000 r-xs 00df1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51164000-ffff51168000 rw-s 00df5000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51168000-ffff5116c000 r-xs 00df9000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff5116c000-ffff51190000 rw-s 00dfd000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51190000-ffff51191000 r--p 00000000 00:35 210483855                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Security.Claims.dll
+ffff51191000-ffff511a0000 ---p 00000000 00:00 0 
+ffff511a0000-ffff511b4000 r-xp 00000000 00:35 210483855                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Security.Claims.dll
+ffff511b4000-ffff511d3000 ---p 00000000 00:00 0 
+ffff511d3000-ffff511d7000 rw-p 00013000 00:35 210483855                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Security.Claims.dll
+ffff511d7000-ffff511f6000 ---p 00000000 00:00 0 
+ffff511f6000-ffff511f7000 r--p 00016000 00:35 210483855                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Security.Claims.dll
+ffff511f7000-ffff51200000 ---p 00000000 00:00 0 
+ffff51200000-ffff51210000 rw-s 00e21000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51210000-ffff51211000 r--p 00000000 00:35 210483658                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Net.WebSockets.dll
+ffff51211000-ffff51220000 ---p 00000000 00:00 0 
+ffff51220000-ffff51253000 r-xp 00000000 00:35 210483658                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Net.WebSockets.dll
+ffff51253000-ffff51272000 ---p 00000000 00:00 0 
+ffff51272000-ffff5127d000 rw-p 00032000 00:35 210483658                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Net.WebSockets.dll
+ffff5127d000-ffff5129c000 ---p 00000000 00:00 0 
+ffff5129c000-ffff5129d000 r--p 0003c000 00:35 210483658                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Net.WebSockets.dll
+ffff5129d000-ffff512a0000 ---p 00000000 00:00 0 
+ffff512a0000-ffff512a1000 r--p 00000000 00:35 210481687                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Validation.dll
+ffff512a1000-ffff512b0000 ---p 00000000 00:00 0 
+ffff512b0000-ffff512bf000 r-xp 00000000 00:35 210481687                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Validation.dll
+ffff512bf000-ffff512de000 ---p 00000000 00:00 0 
+ffff512de000-ffff512e2000 rw-p 0000e000 00:35 210481687                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Validation.dll
+ffff512e2000-ffff51301000 ---p 00000000 00:00 0 
+ffff51301000-ffff51302000 r--p 00011000 00:35 210481687                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Validation.dll
+ffff51302000-ffff51310000 ---p 00000000 00:00 0 
+ffff51310000-ffff51340000 rw-s 00e31000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51342000-ffff51360000 ---p 00000000 00:00 0 
+ffff51360000-ffff51362000 rw-s 011c8000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51362000-ffff51370000 ---p 00000000 00:00 0 
+ffff51370000-ffff51390000 rw-s 00e61000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51390000-ffff51391000 r--p 00000000 00:35 210483899                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Text.Encodings.Web.dll
+ffff51391000-ffff513a0000 ---p 00000000 00:00 0 
+ffff513a0000-ffff513b8000 r-xp 00000000 00:35 210483899                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Text.Encodings.Web.dll
+ffff513b8000-ffff513d7000 ---p 00000000 00:00 0 
+ffff513d7000-ffff513dc000 rw-p 00017000 00:35 210483899                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Text.Encodings.Web.dll
+ffff513dc000-ffff513fb000 ---p 00000000 00:00 0 
+ffff513fb000-ffff513fc000 r--p 0001b000 00:35 210483899                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Text.Encodings.Web.dll
+ffff513fc000-ffff51400000 ---p 00000000 00:00 0 
+ffff51400000-ffff51410000 rw-s 00e81000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51410000-ffff51414000 r-xs 00e91000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51414000-ffff51418000 rw-s 00e95000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51418000-ffff5141c000 r-xs 00e99000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff5141c000-ffff51440000 rw-s 00e9d000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51440000-ffff51441000 r--p 00000000 00:35 210481607                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.WebUtilities.dll
+ffff51441000-ffff51450000 ---p 00000000 00:00 0 
+ffff51450000-ffff51484000 r-xp 00000000 00:35 210481607                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.WebUtilities.dll
+ffff51484000-ffff514a4000 ---p 00000000 00:00 0 
+ffff514a4000-ffff514b1000 rw-p 00034000 00:35 210481607                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.WebUtilities.dll
+ffff514b1000-ffff514d0000 ---p 00000000 00:00 0 
+ffff514d0000-ffff514d1000 r--p 00040000 00:35 210481607                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.AspNetCore.WebUtilities.dll
+ffff514d1000-ffff514e0000 ---p 00000000 00:00 0 
+ffff514e0000-ffff51540000 rw-s 00ec1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51540000-ffff51544000 r-xs 00f21000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51544000-ffff51548000 rw-s 00f25000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51548000-ffff5154c000 r-xs 00f29000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff5154c000-ffff51560000 rw-s 00f2d000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51560000-ffff515df000 r-xs 00f41000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff515df000-ffff515e0000 ---s 00fc0000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff515e0000-ffff51670000 rw-s 00fc1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51670000-ffff51674000 r-xs 01051000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51674000-ffff51678000 rw-s 01055000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51678000-ffff5167c000 r-xs 01059000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff5167c000-ffff51710000 rw-s 0105d000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51710000-ffff51714000 r-xs 010f1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51714000-ffff51718000 rw-s 010f5000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51718000-ffff5171c000 r-xs 010f9000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff5171c000-ffff517b0000 rw-s 010fd000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff517b0000-ffff517b4000 r-xs 01191000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff517b4000-ffff517b8000 rw-s 01195000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff517b8000-ffff517bc000 r-xs 01199000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff517bc000-ffff517d0000 rw-s 0119d000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff517d0000-ffff517ea000 r-xs 011b1000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff517ea000-ffff51850000 ---s 011cb000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51850000-ffff5185a000 rw-s 01231000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff5185a000-ffff51860000 ---s 0123b000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51860000-ffff51862000 rw-s 01241000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51862000-ffff51870000 ---s 01243000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff51870000-ffff8c000000 ---p 00000000 00:00 0 
+ffff8c000000-ffff8c00a000 r--s 00000000 00:35 210481654                  /usr/share/dotnet/shared/Microsoft.AspNetCore.App/10.0.12/Microsoft.Extensions.Diagnostics.Abstractions.dll
+ffff8c00a000-ffff8c072000 rw-p 00000000 00:00 0 
+ffff8c072000-ffff8c080000 ---p 00000000 00:00 0 
+ffff8c080000-ffff8c082000 rw-p 00000000 00:00 0 
+ffff8c082000-ffff8c090000 ---p 00000000 00:00 0 
+ffff8c090000-ffff8c092000 rw-p 00000000 00:00 0 
+ffff8c092000-ffff8c0a0000 ---p 00000000 00:00 0 
+ffff8c0a0000-ffff8c0a2000 rw-p 00000000 00:00 0 
+ffff8c0a2000-ffff8c0b0000 ---p 00000000 00:00 0 
+ffff8c0b0000-ffff8c0b2000 rw-p 00000000 00:00 0 
+ffff8c0b2000-ffff8c0c0000 ---p 00000000 00:00 0 
+ffff8c0c0000-ffff8c0c2000 rw-p 00000000 00:00 0 
+ffff8c0c2000-ffff8c0d0000 ---p 00000000 00:00 0 
+ffff8c0d0000-ffff8c0d2000 rw-p 00000000 00:00 0 
+ffff8c0d2000-ffff8c0e0000 ---p 00000000 00:00 0 
+ffff8c0e0000-ffff8c0e2000 rw-p 00000000 00:00 0 
+ffff8c0e2000-ffff8c0f0000 ---p 00000000 00:00 0 
+ffff8c0f0000-ffff8c0f2000 rw-p 00000000 00:00 0 
+ffff8c0f2000-ffff8c100000 ---p 00000000 00:00 0 
+ffff8c100000-ffff8c102000 rw-p 00000000 00:00 0 
+ffff8c102000-ffff8c110000 ---p 00000000 00:00 0 
+ffff8c110000-ffff8c112000 rw-p 00000000 00:00 0 
+ffff8c112000-ffff8c120000 ---p 00000000 00:00 0 
+ffff8c120000-ffff8c122000 rw-p 00000000 00:00 0 
+ffff8c122000-ffff8c130000 ---p 00000000 00:00 0 
+ffff8c130000-ffff8c132000 rw-p 00000000 00:00 0 
+ffff8c132000-ffff8c140000 ---p 00000000 00:00 0 
+ffff8c140000-ffff8c142000 rw-p 00000000 00:00 0 
+ffff8c142000-ffff8c150000 ---p 00000000 00:00 0 
+ffff8c150000-ffff8c152000 rw-p 00000000 00:00 0 
+ffff8c152000-ffff8c160000 ---p 00000000 00:00 0 
+ffff8c160000-ffff8c162000 rw-p 00000000 00:00 0 
+ffff8c162000-ffff8c170000 ---p 00000000 00:00 0 
+ffff8c170000-ffff8c171000 r-xp 00000000 00:35 1212                       /usr/lib/aarch64-linux-gnu/librt.so.1
+ffff8c171000-ffff8c18f000 ---p 00001000 00:35 1212                       /usr/lib/aarch64-linux-gnu/librt.so.1
+ffff8c18f000-ffff8c190000 r--p 0000f000 00:35 1212                       /usr/lib/aarch64-linux-gnu/librt.so.1
+ffff8c190000-ffff8c191000 rw-p 00010000 00:35 1212                       /usr/lib/aarch64-linux-gnu/librt.so.1
+ffff8c192000-ffff8c19a000 r--s 00000000 00:24 204528                     /workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/frozen/gateway/eShop.Gateway.dll
+ffff8c19a000-ffff8c19b000 ---p 00000000 00:00 0 
+ffff8c19b000-ffff8c1a0000 rw-p 00000000 00:00 0 
+ffff8c1a0000-ffff8c257000 r--p 00000000 00:35 210483980                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libcoreclr.so
+ffff8c257000-ffff8c258000 r--p 000b7000 00:35 210483980                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libcoreclr.so
+ffff8c258000-ffff8c378000 r--p 000b8000 00:35 210483980                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libcoreclr.so
+ffff8c378000-ffff8c387000 ---p 001d8000 00:35 210483980                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libcoreclr.so
+ffff8c387000-ffff8c7e8000 r-xp 001d7000 00:35 210483980                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libcoreclr.so
+ffff8c7e8000-ffff8c7f7000 ---p 00648000 00:35 210483980                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libcoreclr.so
+ffff8c7f7000-ffff8c820000 r--p 00637000 00:35 210483980                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libcoreclr.so
+ffff8c820000-ffff8c82f000 ---p 00680000 00:35 210483980                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libcoreclr.so
+ffff8c82f000-ffff8c857000 rw-p 0065f000 00:35 210483980                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libcoreclr.so
+ffff8c857000-ffff8c8a0000 rw-p 00000000 00:00 0 
+ffff8c8a1000-ffff8c8a4000 r--s 00000000 00:24 204534                     /workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/frozen/gateway/HotChocolate.Utilities.Tasks.dll
+ffff8c8a4000-ffff8c8a5000 ---p 00000000 00:00 0 
+ffff8c8a5000-ffff8c8aa000 rw-p 00000000 00:00 0 
+ffff8c8aa000-ffff8c8ab000 ---p 00000000 00:00 0 
+ffff8c8ab000-ffff8c8b0000 rw-p 00000000 00:00 0 
+ffff8c8b0000-ffff8c8c4000 r--p 00000000 00:35 210484046                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libhostpolicy.so
+ffff8c8c4000-ffff8c8d3000 ---p 00014000 00:35 210484046                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libhostpolicy.so
+ffff8c8d3000-ffff8c908000 r-xp 00013000 00:35 210484046                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libhostpolicy.so
+ffff8c908000-ffff8c917000 ---p 00058000 00:35 210484046                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libhostpolicy.so
+ffff8c917000-ffff8c919000 r--p 00047000 00:35 210484046                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libhostpolicy.so
+ffff8c919000-ffff8c928000 ---p 00069000 00:35 210484046                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libhostpolicy.so
+ffff8c928000-ffff8c929000 rw-p 00048000 00:35 210484046                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/libhostpolicy.so
+ffff8c92a000-ffff8c92b000 ---p 00000000 00:00 0 
+ffff8c92b000-ffff8c930000 rw-p 00000000 00:00 0 
+ffff8c930000-ffff8c947000 r--p 00000000 00:35 210438404                  /usr/share/dotnet/host/fxr/11.0.0-rc.1.26425.128/libhostfxr.so
+ffff8c947000-ffff8c956000 ---p 00017000 00:35 210438404                  /usr/share/dotnet/host/fxr/11.0.0-rc.1.26425.128/libhostfxr.so
+ffff8c956000-ffff8c98c000 r-xp 00016000 00:35 210438404                  /usr/share/dotnet/host/fxr/11.0.0-rc.1.26425.128/libhostfxr.so
+ffff8c98c000-ffff8c99b000 ---p 0005c000 00:35 210438404                  /usr/share/dotnet/host/fxr/11.0.0-rc.1.26425.128/libhostfxr.so
+ffff8c99b000-ffff8c99c000 r--p 0004b000 00:35 210438404                  /usr/share/dotnet/host/fxr/11.0.0-rc.1.26425.128/libhostfxr.so
+ffff8c99c000-ffff8c9ab000 ---p 0006c000 00:35 210438404                  /usr/share/dotnet/host/fxr/11.0.0-rc.1.26425.128/libhostfxr.so
+ffff8c9ab000-ffff8c9ac000 rw-p 0004b000 00:35 210438404                  /usr/share/dotnet/host/fxr/11.0.0-rc.1.26425.128/libhostfxr.so
+ffff8c9ac000-ffff8c9b0000 r--s 00000000 00:35 210483925                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Threading.Thread.dll
+ffff8c9b0000-ffff8cb3c000 r-xp 00000000 00:35 1145                       /usr/lib/aarch64-linux-gnu/libc.so.6
+ffff8cb3c000-ffff8cb4c000 ---p 0018c000 00:35 1145                       /usr/lib/aarch64-linux-gnu/libc.so.6
+ffff8cb4c000-ffff8cb50000 r--p 0018c000 00:35 1145                       /usr/lib/aarch64-linux-gnu/libc.so.6
+ffff8cb50000-ffff8cb52000 rw-p 00190000 00:35 1145                       /usr/lib/aarch64-linux-gnu/libc.so.6
+ffff8cb52000-ffff8cb5f000 rw-p 00000000 00:00 0 
+ffff8cb60000-ffff8cb74000 r-xp 00000000 00:35 1167                       /usr/lib/aarch64-linux-gnu/libgcc_s.so.1
+ffff8cb74000-ffff8cb8f000 ---p 00014000 00:35 1167                       /usr/lib/aarch64-linux-gnu/libgcc_s.so.1
+ffff8cb8f000-ffff8cb90000 r--p 0001f000 00:35 1167                       /usr/lib/aarch64-linux-gnu/libgcc_s.so.1
+ffff8cb90000-ffff8cb91000 rw-p 00020000 00:35 1167                       /usr/lib/aarch64-linux-gnu/libgcc_s.so.1
+ffff8cb92000-ffff8cb94000 rw-s 011c9000 00:01 3084                       /memfd:doublemapper (deleted)
+ffff8cb94000-ffff8cb95000 ---p 00000000 00:00 0 
+ffff8cb95000-ffff8cb9a000 rw-p 00000000 00:00 0 
+ffff8cb9a000-ffff8cb9b000 ---p 00000000 00:00 0 
+ffff8cb9b000-ffff8cba0000 rw-p 00000000 00:00 0 
+ffff8cba0000-ffff8cc22000 r-xp 00000000 00:35 1184                       /usr/lib/aarch64-linux-gnu/libm.so.6
+ffff8cc22000-ffff8cc3f000 ---p 00082000 00:35 1184                       /usr/lib/aarch64-linux-gnu/libm.so.6
+ffff8cc3f000-ffff8cc40000 r--p 0008f000 00:35 1184                       /usr/lib/aarch64-linux-gnu/libm.so.6
+ffff8cc40000-ffff8cc41000 rw-p 00090000 00:35 1184                       /usr/lib/aarch64-linux-gnu/libm.so.6
+ffff8cc42000-ffff8cc44000 r--s 00000000 00:24 204482                     /workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/frozen/gateway/HotChocolate.PersistedOperations.Abstractions.dll
+ffff8cc44000-ffff8cc45000 ---p 00000000 00:00 0 
+ffff8cc45000-ffff8cc4a000 rw-p 00000000 00:00 0 
+ffff8cc4a000-ffff8cc4b000 ---p 00000000 00:00 0 
+ffff8cc4b000-ffff8cc50000 rw-p 00000000 00:00 0 
+ffff8cc50000-ffff8ce4b000 r-xp 00000000 00:35 1223                       /usr/lib/aarch64-linux-gnu/libstdc++.so.6.0.30
+ffff8ce4b000-ffff8ce55000 ---p 001fb000 00:35 1223                       /usr/lib/aarch64-linux-gnu/libstdc++.so.6.0.30
+ffff8ce55000-ffff8ce60000 r--p 00205000 00:35 1223                       /usr/lib/aarch64-linux-gnu/libstdc++.so.6.0.30
+ffff8ce60000-ffff8ce63000 rw-p 00210000 00:35 1223                       /usr/lib/aarch64-linux-gnu/libstdc++.so.6.0.30
+ffff8ce63000-ffff8ce66000 rw-p 00000000 00:00 0 
+ffff8ce66000-ffff8ce6a000 r--s 00000000 00:35 210483897                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Text.Encoding.Extensions.dll
+ffff8ce6a000-ffff8ce6b000 ---p 00000000 00:00 0 
+ffff8ce6b000-ffff8ce70000 rw-p 00000000 00:00 0 
+ffff8ce70000-ffff8ce71000 r-xp 00000000 00:35 1210                       /usr/lib/aarch64-linux-gnu/libpthread.so.0
+ffff8ce71000-ffff8ce8f000 ---p 00001000 00:35 1210                       /usr/lib/aarch64-linux-gnu/libpthread.so.0
+ffff8ce8f000-ffff8ce90000 r--p 0000f000 00:35 1210                       /usr/lib/aarch64-linux-gnu/libpthread.so.0
+ffff8ce90000-ffff8ce91000 rw-p 00010000 00:35 1210                       /usr/lib/aarch64-linux-gnu/libpthread.so.0
+ffff8ce91000-ffff8ce95000 r--s 00000000 00:35 210483537                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Diagnostics.Tracing.dll
+ffff8ce95000-ffff8ce96000 ---p 00000000 00:00 0 
+ffff8ce96000-ffff8cea0000 rw-p 00000000 00:00 0 
+ffff8cea0000-ffff8cea1000 r-xp 00000000 00:35 1158                       /usr/lib/aarch64-linux-gnu/libdl.so.2
+ffff8cea1000-ffff8cebf000 ---p 00001000 00:35 1158                       /usr/lib/aarch64-linux-gnu/libdl.so.2
+ffff8cebf000-ffff8cec0000 r--p 0000f000 00:35 1158                       /usr/lib/aarch64-linux-gnu/libdl.so.2
+ffff8cec0000-ffff8cec1000 rw-p 00010000 00:35 1158                       /usr/lib/aarch64-linux-gnu/libdl.so.2
+ffff8cec1000-ffff8cec6000 r--s 00000000 00:35 210483507                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.ComponentModel.dll
+ffff8cec6000-ffff8cec7000 ---p 00000000 00:00 0 
+ffff8cec7000-ffff8cecc000 rw-p 00000000 00:00 0 
+ffff8cecc000-ffff8cef3000 r-xp 00000000 00:35 1127                       /usr/lib/aarch64-linux-gnu/ld-linux-aarch64.so.1
+ffff8cef3000-ffff8cef7000 r--s 00000000 00:35 210483926                  /usr/share/dotnet/shared/Microsoft.NETCore.App/10.0.12/System.Threading.ThreadPool.dll
+ffff8cef7000-ffff8cefd000 rw-p 00000000 00:00 0 
+ffff8cefe000-ffff8cf00000 r--s 00000000 00:24 204474                     /workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/frozen/gateway/HotChocolate.Execution.Operation.Abstractions.dll
+ffff8cf00000-ffff8cf01000 ---p 00000000 00:01 3085                       /memfd:dotnet_ipc_created (deleted)
+ffff8cf02000-ffff8cf04000 rw-p 00000000 00:00 0 
+ffff8cf04000-ffff8cf08000 r--p 00000000 00:00 0                          [vvar]
+ffff8cf08000-ffff8cf0a000 r-xp 00000000 00:00 0                          [vdso]
+ffff8cf0a000-ffff8cf0c000 r--p 0002e000 00:35 1127                       /usr/lib/aarch64-linux-gnu/ld-linux-aarch64.so.1
+ffff8cf0c000-ffff8cf0e000 rw-p 00030000 00:35 1127                       /usr/lib/aarch64-linux-gnu/ld-linux-aarch64.so.1
+ffffcf7a4000-ffffcf7c5000 rw-p 00000000 00:00 0                          [stack]

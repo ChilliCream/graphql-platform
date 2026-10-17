@@ -1,0 +1,350 @@
+{
+  "data": {
+    "topProducts": [
+      {
+        "upc": "1",
+        "name": "Table",
+        "price": 899,
+        "weight": 100,
+        "inStock": true,
+        "shippingEstimate": 50,
+        "reviews": [
+          {
+            "id": "1",
+            "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+            "author": {
+              "id": "1",
+              "name": "Uri Goldshtein",
+              "username": "urigo",
+              "reviews": [
+                {
+                  "id": "1",
+                  "product": {
+                    "upc": "1",
+                    "name": "Table",
+                    "price": 899,
+                    "weight": 100,
+                    "inStock": true,
+                    "shippingEstimate": 50
+                  }
+                },
+                {
+                  "id": "2",
+                  "product": {
+                    "upc": "1",
+                    "name": "Table",
+                    "price": 899,
+                    "weight": 100,
+                    "inStock": true,
+                    "shippingEstimate": 50
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "id": "2",
+            "body": "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugi",
+            "author": {
+              "id": "1",
+              "name": "Uri Goldshtein",
+              "username": "urigo",
+              "reviews": [
+                {
+                  "id": "1",
+                  "product": {
+                    "upc": "1",
+                    "name": "Table",
+                    "price": 899,
+                    "weight": 100,
+                    "inStock": true,
+                    "shippingEstimate": 50
+                  }
+                },
+                {
+                  "id": "2",
+                  "product": {
+                    "upc": "1",
+                    "name": "Table",
+                    "price": 899,
+                    "weight": 100,
+                    "inStock": true,
+                    "shippingEstimate": 50
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "id": "3",
+            "body": "sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.",
+            "author": {
+              "id": "1",
+              "name": "Uri Goldshtein",
+              "username": "urigo",
+              "reviews": [
+                {
+                  "id": "1",
+                  "product": {
+                    "upc": "1",
+                    "name": "Table",
+                    "price": 899,
+                    "weight": 100,
+                    "inStock": true,
+                    "shippingEstimate": 50
+                  }
+                },
+                {
+                  "id": "2",
+                  "product": {
+                    "upc": "1",
+                    "name": "Table",
+                    "price": 899,
+                    "weight": 100,
+                    "inStock": true,
+                    "shippingEstimate": 50
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "id": "4",
+            "body": "Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem",
+            "author": {
+              "id": "1",
+              "name": "Uri Goldshtein",
+              "username": "urigo",
+              "reviews": [
+                {
+                  "id": "1",
+                  "product": {
+                    "upc": "1",
+                    "name": "Table",
+                    "price": 899,
+                    "weight": 100,
+                    "inStock": true,
+                    "shippingEstimate": 50
+                  }
+                },
+                {
+                  "id": "2",
+                  "product": {
+                    "upc": "1",
+                    "name": "Table",
+                    "price": 899,
+                    "weight": 100,
+                    "inStock": true,
+                    "shippingEstimate": 50
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "extensions": {
+    "fusion": {
+      "operationPlan": {
+        "version": "1.1.0",
+        "id": "dbac25c5ec005ea54d3531358783caa257158f9b6e68d6b3b869394e1b02691d",
+        "operation": {
+          "name": "Entities",
+          "kind": "Query",
+          "document": "query Entities($first: Int!) {\n  topProducts(first: $first) {\n    upc\n    upc @fusion__requirement\n    name\n    price\n    price @fusion__requirement\n    weight\n    weight @fusion__requirement\n    inStock\n    shippingEstimate\n    reviews {\n      id\n      body\n      author {\n        id\n        id @fusion__requirement\n        name\n        username\n        reviews {\n          id\n          product {\n            upc\n            upc @fusion__requirement\n            name\n            price\n            price @fusion__requirement\n            weight\n            weight @fusion__requirement\n            inStock\n            shippingEstimate\n          }\n        }\n      }\n    }\n  }\n}",
+          "id": "a1aa55de80f1426875aed77fd02da1d1",
+          "hash": "a1aa55de80f1426875aed77fd02da1d1",
+          "shortHash": "a1aa55de"
+        },
+        "searchSpace": 2,
+        "expandedNodes": 8,
+        "nodes": [
+          {
+            "id": 1,
+            "type": "Operation",
+            "schema": "products",
+            "operation": {
+              "name": "Entities_a1aa55de_1",
+              "kind": "Query",
+              "document": "query Entities_a1aa55de_1($first: Int!) {\n  topProducts(first: $first) {\n    upc\n    name\n    price\n    weight\n  }\n}",
+              "hash": "a39600838e04232b576f6d16404d6878c6b62e6d49a4e66c388c3dc7d356a948",
+              "shortHash": "a3960083",
+              "xxHash": 11516308327003605198
+            },
+            "resultSelectionSet": "{ topProducts }",
+            "forwardedVariables": [
+              "first"
+            ]
+          },
+          {
+            "id": 2,
+            "type": "ApolloOperation",
+            "schema": "reviews",
+            "operation": {
+              "name": "Entities_a1aa55de_2",
+              "kind": "Query",
+              "document": "query($representations: [_Any!]!) {\n  _entities(representations: $representations) {\n    ... on Product {\n      reviews {\n        id\n        body\n        author {\n          id\n          reviews {\n            id\n            product {\n              upc\n            }\n          }\n        }\n      }\n    }\n  }\n}",
+              "hash": "03ab07a83918eaf512b03e8e06384c9dc0a3d84196d09b1d8c61d5890705fc5b",
+              "shortHash": "03ab07a8",
+              "xxHash": 8821030872226587076
+            },
+            "entityType": "Product",
+            "resultSelectionSet": "{ reviews }",
+            "source": "$._entities",
+            "target": "$.topProducts",
+            "requirements": [
+              {
+                "name": "__fusion_1_upc",
+                "type": "String!",
+                "path": "$.topProducts",
+                "selectionMap": "upc"
+              }
+            ],
+            "dependencies": [
+              1
+            ]
+          },
+          {
+            "id": 3,
+            "type": "ApolloOperation",
+            "schema": "inventory",
+            "operation": {
+              "name": "Entities_a1aa55de_3",
+              "kind": "Query",
+              "document": "query($representations: [_Any!]!) {\n  _entities(representations: $representations) {\n    ... on Product {\n      inStock\n      shippingEstimate\n    }\n  }\n}",
+              "hash": "bd32475c28de8119e254dcba70baf963ecca719a956a02da6c09d0bc75be8d68",
+              "shortHash": "bd32475c",
+              "xxHash": 9557531224013354949
+            },
+            "entityType": "Product",
+            "resultSelectionSet": "{ inStock shippingEstimate }",
+            "source": "$._entities",
+            "target": "$.topProducts",
+            "requirements": [
+              {
+                "name": "__fusion_2_upc",
+                "type": "String!",
+                "path": "$.topProducts",
+                "selectionMap": "upc"
+              },
+              {
+                "name": "__fusion_3_price",
+                "type": "Int!",
+                "path": "$.topProducts",
+                "selectionMap": "price"
+              },
+              {
+                "name": "__fusion_3_weight",
+                "type": "Int!",
+                "path": "$.topProducts",
+                "selectionMap": "weight"
+              }
+            ],
+            "dependencies": [
+              1
+            ]
+          },
+          {
+            "id": 4,
+            "type": "ApolloOperation",
+            "schema": "accounts",
+            "operation": {
+              "name": "Entities_a1aa55de_4",
+              "kind": "Query",
+              "document": "query($representations: [_Any!]!) {\n  _entities(representations: $representations) {\n    ... on User {\n      name\n      username\n    }\n  }\n}",
+              "hash": "6c102fa6b912ac2164bab8aff5ae407ad015cdf469e71ee72366bb7e01640c4a",
+              "shortHash": "6c102fa6",
+              "xxHash": 17825174664158894240
+            },
+            "entityType": "User",
+            "resultSelectionSet": "{ name username }",
+            "source": "$._entities",
+            "target": "$.topProducts.reviews.author",
+            "requirements": [
+              {
+                "name": "__fusion_4_id",
+                "type": "ID!",
+                "path": "$.topProducts.reviews.author",
+                "selectionMap": "id"
+              }
+            ],
+            "dependencies": [
+              2
+            ]
+          },
+          {
+            "id": 5,
+            "type": "ApolloOperation",
+            "schema": "products",
+            "operation": {
+              "name": "Entities_a1aa55de_5",
+              "kind": "Query",
+              "document": "query($representations: [_Any!]!) {\n  _entities(representations: $representations) {\n    ... on Product {\n      name\n      price\n      weight\n    }\n  }\n}",
+              "hash": "14495a4b937ce9a0b177470ffbc64abba88afb0fc0fc8cac8132a9d48c369fdf",
+              "shortHash": "14495a4b",
+              "xxHash": 9858323446561473323
+            },
+            "entityType": "Product",
+            "resultSelectionSet": "{ name price weight }",
+            "source": "$._entities",
+            "target": "$.topProducts.reviews.author.reviews.product",
+            "requirements": [
+              {
+                "name": "__fusion_5_upc",
+                "type": "String!",
+                "path": "$.topProducts.reviews.author.reviews.product",
+                "selectionMap": "upc"
+              }
+            ],
+            "dependencies": [
+              2
+            ]
+          },
+          {
+            "id": 6,
+            "type": "ApolloOperation",
+            "schema": "inventory",
+            "operation": {
+              "name": "Entities_a1aa55de_6",
+              "kind": "Query",
+              "document": "query($representations: [_Any!]!) {\n  _entities(representations: $representations) {\n    ... on Product {\n      inStock\n      shippingEstimate\n    }\n  }\n}",
+              "hash": "bd32475c28de8119e254dcba70baf963ecca719a956a02da6c09d0bc75be8d68",
+              "shortHash": "bd32475c",
+              "xxHash": 9557531224013354949
+            },
+            "entityType": "Product",
+            "resultSelectionSet": "{ inStock shippingEstimate }",
+            "source": "$._entities",
+            "target": "$.topProducts.reviews.author.reviews.product",
+            "requirements": [
+              {
+                "name": "__fusion_6_upc",
+                "type": "String!",
+                "path": "$.topProducts.reviews.author.reviews.product",
+                "selectionMap": "upc"
+              },
+              {
+                "name": "__fusion_7_price",
+                "type": "Int!",
+                "path": "$.topProducts.reviews.author.reviews.product",
+                "selectionMap": "price"
+              },
+              {
+                "name": "__fusion_7_weight",
+                "type": "Int!",
+                "path": "$.topProducts.reviews.author.reviews.product",
+                "selectionMap": "weight"
+              }
+            ],
+            "dependencies": [
+              2,
+              5
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,58 @@
+Name:	dotnet
+Umask:	0000
+State:	S (sleeping)
+Tgid:	17407
+Ngid:	0
+Pid:	17407
+PPid:	14787
+TracerPid:	0
+Uid:	1000	1000	1000	1000
+Gid:	1000	1000	1000	1000
+FDSize:	512
+Groups:	995 1000 
+NStgid:	17407
+NSpid:	17407
+NSpgid:	14786
+NSsid:	14785
+Kthread:	0
+VmPeak:	273689796 kB
+VmSize:	273689784 kB
+VmLck:	       0 kB
+VmPin:	       0 kB
+VmHWM:	   85160 kB
+VmRSS:	   85160 kB
+RssAnon:	   11876 kB
+RssFile:	   59180 kB
+RssShmem:	   14104 kB
+VmData:	  145904 kB
+VmStk:	     132 kB
+VmExe:	      20 kB
+VmLib:	   92436 kB
+VmPTE:	     596 kB
+VmSwap:	       0 kB
+CoreDumping:	0
+THP_enabled:	1
+untag_mask:	0xffffffffffffff
+Threads:	24
+SigQ:	1/128565
+SigPnd:	0000000000000000
+ShdPnd:	0000000000000000
+SigBlk:	0000000000000000
+SigIgn:	0000000000001000
+SigCgt:	00000003000244fe
+CapInh:	0000000000000000
+CapPrm:	0000000000000000
+CapEff:	0000000000000000
+CapBnd:	000001ffffffffff
+CapAmb:	0000000000000000
+NoNewPrivs:	0
+Seccomp:	0
+Seccomp_filters:	0
+Speculation_Store_Bypass:	vulnerable
+SpeculationIndirectBranch:	unknown
+Cpus_allowed:	f0f0
+Cpus_allowed_list:	4-7,12-15
+Mems_allowed:	1
+Mems_allowed_list:	0
+voluntary_ctxt_switches:	49
+nonvoluntary_ctxt_switches:	21

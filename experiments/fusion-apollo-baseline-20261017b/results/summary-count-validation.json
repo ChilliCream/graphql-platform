@@ -1,0 +1,93 @@
+[
+  {
+    "case": "/workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/baseline-r1-delay0/TestQuery",
+    "summary_http_requests": 122291,
+    "setup_excluded": 100,
+    "native_scenario_requests": 122191,
+    "summary_and_native_iterations": 122191
+  },
+  {
+    "case": "/workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/baseline-r1-delay0-continuation/entities9",
+    "summary_http_requests": 184552,
+    "setup_excluded": 100,
+    "native_scenario_requests": 184452,
+    "summary_and_native_iterations": 184452
+  },
+  {
+    "case": "/workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/baseline-r1-delay0-continuation/ordinary",
+    "summary_http_requests": 445736,
+    "setup_excluded": 100,
+    "native_scenario_requests": 445636,
+    "summary_and_native_iterations": 445636
+  },
+  {
+    "case": "/workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/baseline-r1-delay4/TestQuery",
+    "summary_http_requests": 47752,
+    "setup_excluded": 100,
+    "native_scenario_requests": 47652,
+    "summary_and_native_iterations": 47652
+  },
+  {
+    "case": "/workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/baseline-r1-delay4/burst",
+    "summary_http_requests": 116003,
+    "setup_excluded": 1000,
+    "native_scenario_requests": 115003,
+    "summary_and_native_iterations": 115003
+  },
+  {
+    "case": "/workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/baseline-r2-delay0/TestQuery",
+    "summary_http_requests": 88226,
+    "setup_excluded": 100,
+    "native_scenario_requests": 88126,
+    "summary_and_native_iterations": 88126
+  },
+  {
+    "case": "/workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/baseline-r2-delay0/entities9",
+    "summary_http_requests": 196699,
+    "setup_excluded": 100,
+    "native_scenario_requests": 196599,
+    "summary_and_native_iterations": 196599
+  },
+  {
+    "case": "/workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/baseline-r2-delay0/ordinary",
+    "summary_http_requests": 454911,
+    "setup_excluded": 100,
+    "native_scenario_requests": 454811,
+    "summary_and_native_iterations": 454811
+  },
+  {
+    "case": "/workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/baseline-r2-delay4/TestQuery",
+    "summary_http_requests": 48063,
+    "setup_excluded": 100,
+    "native_scenario_requests": 47963,
+    "summary_and_native_iterations": 47963
+  },
+  {
+    "case": "/workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/baseline-r2-delay4/burst",
+    "summary_http_requests": 116971,
+    "setup_excluded": 1000,
+    "native_scenario_requests": 115971,
+    "summary_and_native_iterations": 115971
+  },
+  {
+    "case": "/workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/profiles/alloc-load",
+    "summary_http_requests": 142775,
+    "setup_excluded": 100,
+    "native_scenario_requests": 142675,
+    "summary_and_native_iterations": 142675
+  },
+  {
+    "case": "/workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/profiles/cpu-load",
+    "summary_http_requests": 193969,
+    "setup_excluded": 100,
+    "native_scenario_requests": 193869,
+    "summary_and_native_iterations": 193869
+  },
+  {
+    "case": "/workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/profiles/entities9-alloc-load",
+    "summary_http_requests": 322371,
+    "setup_excluded": 100,
+    "native_scenario_requests": 322271,
+    "summary_and_native_iterations": 322271
+  }
+]
