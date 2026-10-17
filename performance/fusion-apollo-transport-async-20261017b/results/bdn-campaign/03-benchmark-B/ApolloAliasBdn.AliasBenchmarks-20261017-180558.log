@@ -1,0 +1,470 @@
+// Validating benchmarks:
+// ***** BenchmarkRunner: Start   *****
+// ***** Found 4 benchmark(s) in total *****
+// ***** Building 1 exe(s) in Parallel: Start   *****
+// ***** Done, took 00:00:00 (0.01 sec)   *****
+// Found 4 benchmarks:
+//   AliasBenchmarks.ExecuteAsync: DefaultGC-1000AwaitedOperations(OutlierMode=DontRemove, Force=False, Toolchain=InProcessEmitToolchain, InvocationCount=1, IterationCount=12, LaunchCount=1, UnrollFactor=1, WarmupCount=3) [Shape=async-alias2]
+//   AliasBenchmarks.ExecuteAsync: DefaultGC-1000AwaitedOperations(OutlierMode=DontRemove, Force=False, Toolchain=InProcessEmitToolchain, InvocationCount=1, IterationCount=12, LaunchCount=1, UnrollFactor=1, WarmupCount=3) [Shape=async-custom]
+//   AliasBenchmarks.ExecuteAsync: DefaultGC-1000AwaitedOperations(OutlierMode=DontRemove, Force=False, Toolchain=InProcessEmitToolchain, InvocationCount=1, IterationCount=12, LaunchCount=1, UnrollFactor=1, WarmupCount=3) [Shape=async-ordinary]
+//   AliasBenchmarks.ExecuteAsync: DefaultGC-1000AwaitedOperations(OutlierMode=DontRemove, Force=False, Toolchain=InProcessEmitToolchain, InvocationCount=1, IterationCount=12, LaunchCount=1, UnrollFactor=1, WarmupCount=3) [Shape=ordinary]
+
+// **************************
+// Benchmark: AliasBenchmarks.ExecuteAsync: DefaultGC-1000AwaitedOperations(OutlierMode=DontRemove, Force=False, Toolchain=InProcessEmitToolchain, InvocationCount=1, IterationCount=12, LaunchCount=1, UnrollFactor=1, WarmupCount=3) [Shape=async-alias2]
+// *** Execute ***
+// Launch: 1 / 1
+// ! Failed to set up priority High for process System.Diagnostics.Process (dotnet). Make sure you have the right permissions. Message: Permission denied
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.15.8
+// Runtime=.NET 10.0.12 (10.0.12, 10.0.1226.42308), Arm64 RyuJIT armv8.0-a
+// GC=Concurrent Server
+// HardwareIntrinsics=ArmBase+AdvSimd,AES,CRC32,DP,RDM,SHA1,SHA256 VectorSize=128
+// Job: Job-GXLDRL(OutlierMode=DontRemove, Force=False, Toolchain=InProcessEmitToolchain, InvocationCount=1, IterationCount=12, LaunchCount=1, UnrollFactor=1, WarmupCount=3)
+
+OverheadJitting  1: 1000 op, 80250.00 ns, 80.2500 ns/op
+WorkloadJitting  1: 1000 op, 8381308.00 ns, 8.3813 us/op
+
+OverheadWarmup   1: 1000 op, 1208.00 ns, 1.2080 ns/op
+OverheadWarmup   2: 1000 op, 83.00 ns, 0.0830 ns/op
+OverheadWarmup   3: 1000 op, 167.00 ns, 0.1670 ns/op
+OverheadWarmup   4: 1000 op, 42.00 ns, 0.0420 ns/op
+OverheadWarmup   5: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadWarmup   6: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadWarmup   7: 1000 op, 42.00 ns, 0.0420 ns/op
+
+OverheadActual   1: 1000 op, 83.00 ns, 0.0830 ns/op
+OverheadActual   2: 1000 op, 83.00 ns, 0.0830 ns/op
+OverheadActual   3: 1000 op, 83.00 ns, 0.0830 ns/op
+OverheadActual   4: 1000 op, 83.00 ns, 0.0830 ns/op
+OverheadActual   5: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual   6: 1000 op, 42.00 ns, 0.0420 ns/op
+OverheadActual   7: 1000 op, 41.00 ns, 0.0410 ns/op
+OverheadActual   8: 1000 op, 42.00 ns, 0.0420 ns/op
+OverheadActual   9: 1000 op, 41.00 ns, 0.0410 ns/op
+OverheadActual  10: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  11: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  12: 1000 op, 42.00 ns, 0.0420 ns/op
+OverheadActual  13: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  14: 1000 op, 41.00 ns, 0.0410 ns/op
+OverheadActual  15: 1000 op, 42.00 ns, 0.0420 ns/op
+OverheadActual  16: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  17: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  18: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  19: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  20: 1000 op, 41.00 ns, 0.0410 ns/op
+
+WorkloadWarmup   1: 1000 op, 5802248.00 ns, 5.8022 us/op
+WorkloadWarmup   2: 1000 op, 6250084.00 ns, 6.2501 us/op
+WorkloadWarmup   3: 1000 op, 5603455.00 ns, 5.6035 us/op
+
+WorkloadActual   1: 1000 op, 4307738.00 ns, 4.3077 us/op
+WorkloadActual   2: 1000 op, 3908902.00 ns, 3.9089 us/op
+WorkloadActual   3: 1000 op, 5995166.00 ns, 5.9952 us/op
+WorkloadActual   4: 1000 op, 6571795.00 ns, 6.5718 us/op
+WorkloadActual   5: 1000 op, 6464669.00 ns, 6.4647 us/op
+WorkloadActual   6: 1000 op, 5543663.00 ns, 5.5437 us/op
+WorkloadActual   7: 1000 op, 5283077.00 ns, 5.2831 us/op
+WorkloadActual   8: 1000 op, 5756915.00 ns, 5.7569 us/op
+WorkloadActual   9: 1000 op, 7741928.00 ns, 7.7419 us/op
+WorkloadActual  10: 1000 op, 5399828.00 ns, 5.3998 us/op
+WorkloadActual  11: 1000 op, 5290411.00 ns, 5.2904 us/op
+WorkloadActual  12: 1000 op, 5279827.00 ns, 5.2798 us/op
+
+WorkloadResult   1: 1000 op, 4307697.00 ns, 4.3077 us/op
+WorkloadResult   2: 1000 op, 3908861.00 ns, 3.9089 us/op
+WorkloadResult   3: 1000 op, 5995125.00 ns, 5.9951 us/op
+WorkloadResult   4: 1000 op, 6571754.00 ns, 6.5718 us/op
+WorkloadResult   5: 1000 op, 6464628.00 ns, 6.4646 us/op
+WorkloadResult   6: 1000 op, 5543622.00 ns, 5.5436 us/op
+WorkloadResult   7: 1000 op, 5283036.00 ns, 5.2830 us/op
+WorkloadResult   8: 1000 op, 5756874.00 ns, 5.7569 us/op
+WorkloadResult   9: 1000 op, 7741887.00 ns, 7.7419 us/op
+WorkloadResult  10: 1000 op, 5399787.00 ns, 5.3998 us/op
+WorkloadResult  11: 1000 op, 5290370.00 ns, 5.2904 us/op
+WorkloadResult  12: 1000 op, 5279786.00 ns, 5.2798 us/op
+// GC:  0 0 0 4540048 1000
+// Threading:  1007 0 1000
+
+
+Mean = 5.629 μs, StdErr = 0.293 μs (5.20%), N = 12, StdDev = 1.015 μs
+Min = 3.909 μs, Q1 = 5.282 μs, Median = 5.472 μs, Q3 = 6.113 μs, Max = 7.742 μs
+IQR = 0.830 μs, LowerFence = 4.037 μs, UpperFence = 7.358 μs
+ConfidenceInterval = [4.329 μs; 6.928 μs] (CI 99.9%), Margin = 1.299 μs (23.09% of Mean)
+Skewness = 0.27, Kurtosis = 2.6, MValue = 2.29
+
+// ** Remained 3 (75.0 %) benchmark(s) to run. Estimated finish 2026-10-17 18:06 (0h 0m from now) **
+// **************************
+// Benchmark: AliasBenchmarks.ExecuteAsync: DefaultGC-1000AwaitedOperations(OutlierMode=DontRemove, Force=False, Toolchain=InProcessEmitToolchain, InvocationCount=1, IterationCount=12, LaunchCount=1, UnrollFactor=1, WarmupCount=3) [Shape=async-custom]
+// *** Execute ***
+// Launch: 1 / 1
+// ! Failed to set up priority High for process System.Diagnostics.Process (dotnet). Make sure you have the right permissions. Message: Permission denied
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.15.8
+// Runtime=.NET 10.0.12 (10.0.12, 10.0.1226.42308), Arm64 RyuJIT armv8.0-a
+// GC=Concurrent Server
+// HardwareIntrinsics=ArmBase+AdvSimd,AES,CRC32,DP,RDM,SHA1,SHA256 VectorSize=128
+// Job: Job-GXLDRL(OutlierMode=DontRemove, Force=False, Toolchain=InProcessEmitToolchain, InvocationCount=1, IterationCount=12, LaunchCount=1, UnrollFactor=1, WarmupCount=3)
+
+OverheadJitting  1: 1000 op, 116626.00 ns, 116.6260 ns/op
+WorkloadJitting  1: 1000 op, 5434579.00 ns, 5.4346 us/op
+
+OverheadWarmup   1: 1000 op, 1666.00 ns, 1.6660 ns/op
+OverheadWarmup   2: 1000 op, 125.00 ns, 0.1250 ns/op
+OverheadWarmup   3: 1000 op, 83.00 ns, 0.0830 ns/op
+OverheadWarmup   4: 1000 op, 42.00 ns, 0.0420 ns/op
+OverheadWarmup   5: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadWarmup   6: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadWarmup   7: 1000 op, 42.00 ns, 0.0420 ns/op
+OverheadWarmup   8: 1000 op, 42.00 ns, 0.0420 ns/op
+OverheadWarmup   9: 1000 op, 41.00 ns, 0.0410 ns/op
+
+OverheadActual   1: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual   2: 1000 op, 41.00 ns, 0.0410 ns/op
+OverheadActual   3: 1000 op, 42.00 ns, 0.0420 ns/op
+OverheadActual   4: 1000 op, 41.00 ns, 0.0410 ns/op
+OverheadActual   5: 1000 op, 42.00 ns, 0.0420 ns/op
+OverheadActual   6: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual   7: 1000 op, 42.00 ns, 0.0420 ns/op
+OverheadActual   8: 1000 op, 42.00 ns, 0.0420 ns/op
+OverheadActual   9: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  10: 1000 op, 41.00 ns, 0.0410 ns/op
+OverheadActual  11: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  12: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  13: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  14: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  15: 1000 op, 42.00 ns, 0.0420 ns/op
+OverheadActual  16: 1000 op, 42.00 ns, 0.0420 ns/op
+OverheadActual  17: 1000 op, 42.00 ns, 0.0420 ns/op
+OverheadActual  18: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  19: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  20: 1000 op, 0.00 ns, 0.0000 ns/op
+
+WorkloadWarmup   1: 1000 op, 4847033.00 ns, 4.8470 us/op
+WorkloadWarmup   2: 1000 op, 3967652.00 ns, 3.9677 us/op
+WorkloadWarmup   3: 1000 op, 4498156.00 ns, 4.4982 us/op
+
+WorkloadActual   1: 1000 op, 4926868.00 ns, 4.9269 us/op
+WorkloadActual   2: 1000 op, 4548573.00 ns, 4.5486 us/op
+WorkloadActual   3: 1000 op, 2354433.00 ns, 2.3544 us/op
+WorkloadActual   4: 1000 op, 4142153.00 ns, 4.1422 us/op
+WorkloadActual   5: 1000 op, 4666907.00 ns, 4.6669 us/op
+WorkloadActual   6: 1000 op, 4630073.00 ns, 4.6301 us/op
+WorkloadActual   7: 1000 op, 4237404.00 ns, 4.2374 us/op
+WorkloadActual   8: 1000 op, 3864777.00 ns, 3.8648 us/op
+WorkloadActual   9: 1000 op, 4625948.00 ns, 4.6259 us/op
+WorkloadActual  10: 1000 op, 4304446.00 ns, 4.3044 us/op
+WorkloadActual  11: 1000 op, 4068986.00 ns, 4.0690 us/op
+WorkloadActual  12: 1000 op, 3972402.00 ns, 3.9724 us/op
+
+WorkloadResult   1: 1000 op, 4926847.50 ns, 4.9268 us/op
+WorkloadResult   2: 1000 op, 4548552.50 ns, 4.5486 us/op
+WorkloadResult   3: 1000 op, 2354412.50 ns, 2.3544 us/op
+WorkloadResult   4: 1000 op, 4142132.50 ns, 4.1421 us/op
+WorkloadResult   5: 1000 op, 4666886.50 ns, 4.6669 us/op
+WorkloadResult   6: 1000 op, 4630052.50 ns, 4.6301 us/op
+WorkloadResult   7: 1000 op, 4237383.50 ns, 4.2374 us/op
+WorkloadResult   8: 1000 op, 3864756.50 ns, 3.8648 us/op
+WorkloadResult   9: 1000 op, 4625927.50 ns, 4.6259 us/op
+WorkloadResult  10: 1000 op, 4304425.50 ns, 4.3044 us/op
+WorkloadResult  11: 1000 op, 4068965.50 ns, 4.0690 us/op
+WorkloadResult  12: 1000 op, 3972381.50 ns, 3.9724 us/op
+// GC:  0 0 0 4029808 1000
+// Threading:  1040 0 1000
+
+
+Mean = 4.195 μs, StdErr = 0.191 μs (4.56%), N = 12, StdDev = 0.663 μs
+Min = 2.354 μs, Q1 = 4.045 μs, Median = 4.271 μs, Q3 = 4.627 μs, Max = 4.927 μs
+IQR = 0.582 μs, LowerFence = 3.172 μs, UpperFence = 5.500 μs
+ConfidenceInterval = [3.346 μs; 5.045 μs] (CI 99.9%), Margin = 0.849 μs (20.25% of Mean)
+Skewness = -1.6, Kurtosis = 5.14, MValue = 4
+
+// ** Remained 2 (50.0 %) benchmark(s) to run. Estimated finish 2026-10-17 18:06 (0h 0m from now) **
+// **************************
+// Benchmark: AliasBenchmarks.ExecuteAsync: DefaultGC-1000AwaitedOperations(OutlierMode=DontRemove, Force=False, Toolchain=InProcessEmitToolchain, InvocationCount=1, IterationCount=12, LaunchCount=1, UnrollFactor=1, WarmupCount=3) [Shape=async-ordinary]
+// *** Execute ***
+// Launch: 1 / 1
+// ! Failed to set up priority High for process System.Diagnostics.Process (dotnet). Make sure you have the right permissions. Message: Permission denied
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.15.8
+// Runtime=.NET 10.0.12 (10.0.12, 10.0.1226.42308), Arm64 RyuJIT armv8.0-a
+// GC=Concurrent Server
+// HardwareIntrinsics=ArmBase+AdvSimd,AES,CRC32,DP,RDM,SHA1,SHA256 VectorSize=128
+// Job: Job-GXLDRL(OutlierMode=DontRemove, Force=False, Toolchain=InProcessEmitToolchain, InvocationCount=1, IterationCount=12, LaunchCount=1, UnrollFactor=1, WarmupCount=3)
+
+OverheadJitting  1: 1000 op, 108418.00 ns, 108.4180 ns/op
+WorkloadJitting  1: 1000 op, 4264238.00 ns, 4.2642 us/op
+
+OverheadWarmup   1: 1000 op, 792.00 ns, 0.7920 ns/op
+OverheadWarmup   2: 1000 op, 42.00 ns, 0.0420 ns/op
+OverheadWarmup   3: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadWarmup   4: 1000 op, 41.00 ns, 0.0410 ns/op
+OverheadWarmup   5: 1000 op, 42.00 ns, 0.0420 ns/op
+OverheadWarmup   6: 1000 op, 41.00 ns, 0.0410 ns/op
+OverheadWarmup   7: 1000 op, 42.00 ns, 0.0420 ns/op
+OverheadWarmup   8: 1000 op, 42.00 ns, 0.0420 ns/op
+
+OverheadActual   1: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual   2: 1000 op, 42.00 ns, 0.0420 ns/op
+OverheadActual   3: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual   4: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual   5: 1000 op, 42.00 ns, 0.0420 ns/op
+OverheadActual   6: 1000 op, 42.00 ns, 0.0420 ns/op
+OverheadActual   7: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual   8: 1000 op, 41.00 ns, 0.0410 ns/op
+OverheadActual   9: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  10: 1000 op, 42.00 ns, 0.0420 ns/op
+OverheadActual  11: 1000 op, 41.00 ns, 0.0410 ns/op
+OverheadActual  12: 1000 op, 42.00 ns, 0.0420 ns/op
+OverheadActual  13: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  14: 1000 op, 42.00 ns, 0.0420 ns/op
+OverheadActual  15: 1000 op, 41.00 ns, 0.0410 ns/op
+OverheadActual  16: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  17: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  18: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  19: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  20: 1000 op, 41.00 ns, 0.0410 ns/op
+
+WorkloadWarmup   1: 1000 op, 4069986.00 ns, 4.0700 us/op
+WorkloadWarmup   2: 1000 op, 3846277.00 ns, 3.8463 us/op
+WorkloadWarmup   3: 1000 op, 5079827.00 ns, 5.0798 us/op
+
+WorkloadActual   1: 1000 op, 3943194.00 ns, 3.9432 us/op
+WorkloadActual   2: 1000 op, 3719192.00 ns, 3.7192 us/op
+WorkloadActual   3: 1000 op, 3882318.00 ns, 3.8823 us/op
+WorkloadActual   4: 1000 op, 3895527.00 ns, 3.8955 us/op
+WorkloadActual   5: 1000 op, 3881360.00 ns, 3.8814 us/op
+WorkloadActual   6: 1000 op, 4927659.00 ns, 4.9277 us/op
+WorkloadActual   7: 1000 op, 3780484.00 ns, 3.7805 us/op
+WorkloadActual   8: 1000 op, 3619317.00 ns, 3.6193 us/op
+WorkloadActual   9: 1000 op, 3838235.00 ns, 3.8382 us/op
+WorkloadActual  10: 1000 op, 3857985.00 ns, 3.8580 us/op
+WorkloadActual  11: 1000 op, 3780859.00 ns, 3.7809 us/op
+WorkloadActual  12: 1000 op, 6082708.00 ns, 6.0827 us/op
+
+WorkloadResult   1: 1000 op, 3943173.50 ns, 3.9432 us/op
+WorkloadResult   2: 1000 op, 3719171.50 ns, 3.7192 us/op
+WorkloadResult   3: 1000 op, 3882297.50 ns, 3.8823 us/op
+WorkloadResult   4: 1000 op, 3895506.50 ns, 3.8955 us/op
+WorkloadResult   5: 1000 op, 3881339.50 ns, 3.8813 us/op
+WorkloadResult   6: 1000 op, 4927638.50 ns, 4.9276 us/op
+WorkloadResult   7: 1000 op, 3780463.50 ns, 3.7805 us/op
+WorkloadResult   8: 1000 op, 3619296.50 ns, 3.6193 us/op
+WorkloadResult   9: 1000 op, 3838214.50 ns, 3.8382 us/op
+WorkloadResult  10: 1000 op, 3857964.50 ns, 3.8580 us/op
+WorkloadResult  11: 1000 op, 3780838.50 ns, 3.7808 us/op
+WorkloadResult  12: 1000 op, 6082687.50 ns, 6.0827 us/op
+// GC:  0 0 0 4024184 1000
+// Threading:  1012 0 1000
+
+
+Mean = 4.101 μs, StdErr = 0.204 μs (4.97%), N = 12, StdDev = 0.706 μs
+Min = 3.619 μs, Q1 = 3.781 μs, Median = 3.870 μs, Q3 = 3.907 μs, Max = 6.083 μs
+IQR = 0.127 μs, LowerFence = 3.591 μs, UpperFence = 4.097 μs
+ConfidenceInterval = [3.196 μs; 5.005 μs] (CI 99.9%), Margin = 0.904 μs (22.06% of Mean)
+Skewness = 1.91, Kurtosis = 5.37, MValue = 2
+
+// ** Remained 1 (25.0 %) benchmark(s) to run. Estimated finish 2026-10-17 18:06 (0h 0m from now) **
+// **************************
+// Benchmark: AliasBenchmarks.ExecuteAsync: DefaultGC-1000AwaitedOperations(OutlierMode=DontRemove, Force=False, Toolchain=InProcessEmitToolchain, InvocationCount=1, IterationCount=12, LaunchCount=1, UnrollFactor=1, WarmupCount=3) [Shape=ordinary]
+// *** Execute ***
+// Launch: 1 / 1
+// ! Failed to set up priority High for process System.Diagnostics.Process (dotnet). Make sure you have the right permissions. Message: Permission denied
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.15.8
+// Runtime=.NET 10.0.12 (10.0.12, 10.0.1226.42308), Arm64 RyuJIT armv8.0-a
+// GC=Concurrent Server
+// HardwareIntrinsics=ArmBase+AdvSimd,AES,CRC32,DP,RDM,SHA1,SHA256 VectorSize=128
+// Job: Job-GXLDRL(OutlierMode=DontRemove, Force=False, Toolchain=InProcessEmitToolchain, InvocationCount=1, IterationCount=12, LaunchCount=1, UnrollFactor=1, WarmupCount=3)
+
+OverheadJitting  1: 1000 op, 131835.00 ns, 131.8350 ns/op
+WorkloadJitting  1: 1000 op, 2156557.00 ns, 2.1566 us/op
+
+OverheadWarmup   1: 1000 op, 2375.00 ns, 2.3750 ns/op
+OverheadWarmup   2: 1000 op, 84.00 ns, 0.0840 ns/op
+OverheadWarmup   3: 1000 op, 42.00 ns, 0.0420 ns/op
+OverheadWarmup   4: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadWarmup   5: 1000 op, 41.00 ns, 0.0410 ns/op
+OverheadWarmup   6: 1000 op, 42.00 ns, 0.0420 ns/op
+OverheadWarmup   7: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadWarmup   8: 1000 op, 625.00 ns, 0.6250 ns/op
+OverheadWarmup   9: 1000 op, 42.00 ns, 0.0420 ns/op
+
+OverheadActual   1: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual   2: 1000 op, 41.00 ns, 0.0410 ns/op
+OverheadActual   3: 1000 op, 42.00 ns, 0.0420 ns/op
+OverheadActual   4: 1000 op, 42.00 ns, 0.0420 ns/op
+OverheadActual   5: 1000 op, 125.00 ns, 0.1250 ns/op
+OverheadActual   6: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual   7: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual   8: 1000 op, 41.00 ns, 0.0410 ns/op
+OverheadActual   9: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  10: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  11: 1000 op, 42.00 ns, 0.0420 ns/op
+OverheadActual  12: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  13: 1000 op, 42.00 ns, 0.0420 ns/op
+OverheadActual  14: 1000 op, 125.00 ns, 0.1250 ns/op
+OverheadActual  15: 1000 op, 42.00 ns, 0.0420 ns/op
+OverheadActual  16: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  17: 1000 op, 125.00 ns, 0.1250 ns/op
+OverheadActual  18: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  19: 1000 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  20: 1000 op, 0.00 ns, 0.0000 ns/op
+
+WorkloadWarmup   1: 1000 op, 1917305.00 ns, 1.9173 us/op
+WorkloadWarmup   2: 1000 op, 2531601.00 ns, 2.5316 us/op
+WorkloadWarmup   3: 1000 op, 1633427.00 ns, 1.6334 us/op
+
+WorkloadActual   1: 1000 op, 1749262.00 ns, 1.7493 us/op
+WorkloadActual   2: 1000 op, 2280140.00 ns, 2.2801 us/op
+WorkloadActual   3: 1000 op, 1619677.00 ns, 1.6197 us/op
+WorkloadActual   4: 1000 op, 1600553.00 ns, 1.6006 us/op
+WorkloadActual   5: 1000 op, 2020555.00 ns, 2.0206 us/op
+WorkloadActual   6: 1000 op, 1688303.00 ns, 1.6883 us/op
+WorkloadActual   7: 1000 op, 1808804.00 ns, 1.8088 us/op
+WorkloadActual   8: 1000 op, 1882805.00 ns, 1.8828 us/op
+WorkloadActual   9: 1000 op, 1638053.00 ns, 1.6381 us/op
+WorkloadActual  10: 1000 op, 1566677.00 ns, 1.5667 us/op
+WorkloadActual  11: 1000 op, 1940264.00 ns, 1.9403 us/op
+WorkloadActual  12: 1000 op, 1602094.00 ns, 1.6021 us/op
+
+WorkloadResult   1: 1000 op, 1749241.50 ns, 1.7492 us/op
+WorkloadResult   2: 1000 op, 2280119.50 ns, 2.2801 us/op
+WorkloadResult   3: 1000 op, 1619656.50 ns, 1.6197 us/op
+WorkloadResult   4: 1000 op, 1600532.50 ns, 1.6005 us/op
+WorkloadResult   5: 1000 op, 2020534.50 ns, 2.0205 us/op
+WorkloadResult   6: 1000 op, 1688282.50 ns, 1.6883 us/op
+WorkloadResult   7: 1000 op, 1808783.50 ns, 1.8088 us/op
+WorkloadResult   8: 1000 op, 1882784.50 ns, 1.8828 us/op
+WorkloadResult   9: 1000 op, 1638032.50 ns, 1.6380 us/op
+WorkloadResult  10: 1000 op, 1566656.50 ns, 1.5667 us/op
+WorkloadResult  11: 1000 op, 1940243.50 ns, 1.9402 us/op
+WorkloadResult  12: 1000 op, 1602073.50 ns, 1.6021 us/op
+// GC:  0 0 0 3470000 1000
+// Threading:  0 0 1000
+
+
+Mean = 1.783 μs, StdErr = 0.062 μs (3.48%), N = 12, StdDev = 0.215 μs
+Min = 1.567 μs, Q1 = 1.615 μs, Median = 1.719 μs, Q3 = 1.897 μs, Max = 2.280 μs
+IQR = 0.282 μs, LowerFence = 1.192 μs, UpperFence = 2.320 μs
+ConfidenceInterval = [1.507 μs; 2.059 μs] (CI 99.9%), Margin = 0.276 μs (15.46% of Mean)
+Skewness = 0.92, Kurtosis = 2.74, MValue = 2
+
+// ** Remained 0 (0.0 %) benchmark(s) to run. Estimated finish 2026-10-17 18:06 (0h 0m from now) **
+// ***** BenchmarkRunner: Finish  *****
+
+// * Export *
+  perf/fusion-apollo-transport-async-20261017b/bdn-campaign/03-benchmark-B/results/ApolloAliasBdn.AliasBenchmarks-report.csv
+  perf/fusion-apollo-transport-async-20261017b/bdn-campaign/03-benchmark-B/results/ApolloAliasBdn.AliasBenchmarks-report-github.md
+  perf/fusion-apollo-transport-async-20261017b/bdn-campaign/03-benchmark-B/results/ApolloAliasBdn.AliasBenchmarks-report.html
+  perf/fusion-apollo-transport-async-20261017b/bdn-campaign/03-benchmark-B/results/ApolloAliasBdn.AliasBenchmarks-report-full.json
+
+// * Detailed results *
+AliasBenchmarks.ExecuteAsync: DefaultGC-1000AwaitedOperations(OutlierMode=DontRemove, Force=False, Toolchain=InProcessEmitToolchain, InvocationCount=1, IterationCount=12, LaunchCount=1, UnrollFactor=1, WarmupCount=3) [Shape=async-alias2]
+Runtime = ; GC = 
+Mean = 5.629 μs, StdErr = 0.293 μs (5.20%), N = 12, StdDev = 1.015 μs
+Min = 3.909 μs, Q1 = 5.282 μs, Median = 5.472 μs, Q3 = 6.113 μs, Max = 7.742 μs
+IQR = 0.830 μs, LowerFence = 4.037 μs, UpperFence = 7.358 μs
+ConfidenceInterval = [4.329 μs; 6.928 μs] (CI 99.9%), Margin = 1.299 μs (23.09% of Mean)
+Skewness = 0.27, Kurtosis = 2.6, MValue = 2.29
+-------------------- Histogram --------------------
+[3.527 μs ; 4.690 μs) | @@
+[4.690 μs ; 6.219 μs) | @@@@@@@
+[6.219 μs ; 7.100 μs) | @@
+[7.100 μs ; 8.324 μs) | @
+---------------------------------------------------
+
+AliasBenchmarks.ExecuteAsync: DefaultGC-1000AwaitedOperations(OutlierMode=DontRemove, Force=False, Toolchain=InProcessEmitToolchain, InvocationCount=1, IterationCount=12, LaunchCount=1, UnrollFactor=1, WarmupCount=3) [Shape=async-custom]
+Runtime = ; GC = 
+Mean = 4.195 μs, StdErr = 0.191 μs (4.56%), N = 12, StdDev = 0.663 μs
+Min = 2.354 μs, Q1 = 4.045 μs, Median = 4.271 μs, Q3 = 4.627 μs, Max = 4.927 μs
+IQR = 0.582 μs, LowerFence = 3.172 μs, UpperFence = 5.500 μs
+ConfidenceInterval = [3.346 μs; 5.045 μs] (CI 99.9%), Margin = 0.849 μs (20.25% of Mean)
+Skewness = -1.6, Kurtosis = 5.14, MValue = 4
+-------------------- Histogram --------------------
+[1.974 μs ; 2.735 μs) | @
+[2.735 μs ; 3.485 μs) | 
+[3.485 μs ; 3.939 μs) | @
+[3.939 μs ; 4.700 μs) | @@@@@@@@@
+[4.700 μs ; 5.307 μs) | @
+---------------------------------------------------
+
+AliasBenchmarks.ExecuteAsync: DefaultGC-1000AwaitedOperations(OutlierMode=DontRemove, Force=False, Toolchain=InProcessEmitToolchain, InvocationCount=1, IterationCount=12, LaunchCount=1, UnrollFactor=1, WarmupCount=3) [Shape=async-ordinary]
+Runtime = ; GC = 
+Mean = 4.101 μs, StdErr = 0.204 μs (4.97%), N = 12, StdDev = 0.706 μs
+Min = 3.619 μs, Q1 = 3.781 μs, Median = 3.870 μs, Q3 = 3.907 μs, Max = 6.083 μs
+IQR = 0.127 μs, LowerFence = 3.591 μs, UpperFence = 4.097 μs
+ConfidenceInterval = [3.196 μs; 5.005 μs] (CI 99.9%), Margin = 0.904 μs (22.06% of Mean)
+Skewness = 1.91, Kurtosis = 5.37, MValue = 2
+-------------------- Histogram --------------------
+[3.376 μs ; 4.186 μs) | @@@@@@@@@@
+[4.186 μs ; 4.523 μs) | 
+[4.523 μs ; 5.332 μs) | @
+[5.332 μs ; 5.678 μs) | 
+[5.678 μs ; 6.488 μs) | @
+---------------------------------------------------
+
+AliasBenchmarks.ExecuteAsync: DefaultGC-1000AwaitedOperations(OutlierMode=DontRemove, Force=False, Toolchain=InProcessEmitToolchain, InvocationCount=1, IterationCount=12, LaunchCount=1, UnrollFactor=1, WarmupCount=3) [Shape=ordinary]
+Runtime = ; GC = 
+Mean = 1.783 μs, StdErr = 0.062 μs (3.48%), N = 12, StdDev = 0.215 μs
+Min = 1.567 μs, Q1 = 1.615 μs, Median = 1.719 μs, Q3 = 1.897 μs, Max = 2.280 μs
+IQR = 0.282 μs, LowerFence = 1.192 μs, UpperFence = 2.320 μs
+ConfidenceInterval = [1.507 μs; 2.059 μs] (CI 99.9%), Margin = 0.276 μs (15.46% of Mean)
+Skewness = 0.92, Kurtosis = 2.74, MValue = 2
+-------------------- Histogram --------------------
+[1.564 μs ; 1.811 μs) | @@@@@@@@
+[1.811 μs ; 2.075 μs) | @@@
+[2.075 μs ; 2.404 μs) | @
+---------------------------------------------------
+
+// * Summary *
+
+BenchmarkDotNet v0.15.8, Linux Debian GNU/Linux 12 (bookworm)
+-
+.NET SDK 11.0.100-rc.1.26425.128
+  [Host] : .NET 10.0.12 (10.0.12, 10.0.1226.42308), Arm64 RyuJIT armv8.0-a
+
+Job=DefaultGC-1000AwaitedOperations  OutlierMode=DontRemove  Force=False  
+Toolchain=InProcessEmitToolchain  InvocationCount=1  IterationCount=12  
+LaunchCount=1  UnrollFactor=1  WarmupCount=3  
+
+| Method       | Shape          | Mean     | Error     | StdDev    | Allocated |
+|------------- |--------------- |---------:|----------:|----------:|----------:|
+| ExecuteAsync | async-alias2   | 5.629 μs | 1.2995 μs | 1.0146 μs |   4.43 KB |
+| ExecuteAsync | async-custom   | 4.195 μs | 0.8494 μs | 0.6631 μs |   3.94 KB |
+| ExecuteAsync | async-ordinary | 4.101 μs | 0.9044 μs | 0.7061 μs |   3.93 KB |
+| ExecuteAsync | ordinary       | 1.783 μs | 0.2757 μs | 0.2152 μs |   3.39 KB |
+
+// * Warnings *
+MinIterationTime
+  AliasBenchmarks.ExecuteAsync: DefaultGC-1000AwaitedOperations -> The minimum observed iteration time is 3.909ms which is very small. It's recommended to increase it to at least 100ms using more operations.
+  AliasBenchmarks.ExecuteAsync: DefaultGC-1000AwaitedOperations -> The minimum observed iteration time is 2.354ms which is very small. It's recommended to increase it to at least 100ms using more operations.
+  AliasBenchmarks.ExecuteAsync: DefaultGC-1000AwaitedOperations -> The minimum observed iteration time is 3.619ms which is very small. It's recommended to increase it to at least 100ms using more operations.
+  AliasBenchmarks.ExecuteAsync: DefaultGC-1000AwaitedOperations -> The minimum observed iteration time is 1.567ms which is very small. It's recommended to increase it to at least 100ms using more operations.
+
+// * Hints *
+Outliers
+  AliasBenchmarks.ExecuteAsync: DefaultGC-1000AwaitedOperations -> 2 outliers were detected (3.91 μs, 7.74 μs)
+  AliasBenchmarks.ExecuteAsync: DefaultGC-1000AwaitedOperations -> 1 outlier  was  detected (2.35 μs)
+  AliasBenchmarks.ExecuteAsync: DefaultGC-1000AwaitedOperations -> 2 outliers were detected (4.93 μs, 6.08 μs)
+
+// * Legends *
+  Shape     : Value of the 'Shape' parameter
+  Mean      : Arithmetic mean of all measurements
+  Error     : Half of 99.9% confidence interval
+  StdDev    : Standard deviation of all measurements
+  Allocated : Allocated memory per single operation (managed only, inclusive, 1KB = 1024B)
+  1 μs      : 1 Microsecond (0.000001 sec)
+
+// * Diagnostic Output - MemoryDiagnoser *
+
+
+// ***** BenchmarkRunner: End *****
+Run time: 00:00:12 (12.87 sec), executed benchmarks: 4
+
+Global total time: 00:00:12 (12.98 sec), executed benchmarks: 4
+// * Artifacts cleanup *
+Artifacts cleanup is finished

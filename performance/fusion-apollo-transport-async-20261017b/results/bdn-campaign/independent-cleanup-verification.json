@@ -1,0 +1,83 @@
+{
+  "utc": "2026-10-17T18:07:18.684492+00:00",
+  "reviewer": "history_environment",
+  "identities": [
+    {
+      "label": "01-benchmark-B",
+      "identity": {
+        "pid": 177243,
+        "startTicks": 888532
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "02-benchmark-C12",
+      "identity": {
+        "pid": 177378,
+        "startTicks": 889843
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "03-benchmark-B",
+      "identity": {
+        "pid": 177472,
+        "startTicks": 891150
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "04-benchmark-C12",
+      "identity": {
+        "pid": 177554,
+        "startTicks": 892461
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "05-benchmark-B",
+      "identity": {
+        "pid": 177633,
+        "startTicks": 893776
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "06-allocation-B",
+      "identity": {
+        "pid": 177751,
+        "startTicks": 895092
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "parent",
+      "identity": {
+        "pid": 177241,
+        "startTicks": 888512
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "parent",
+      "identity": {
+        "pid": 177242,
+        "startTicks": 888514
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    }
+  ],
+  "owner_identity_set_matches": true,
+  "exclusive_lock_free": true,
+  "no_process_terminated": true,
+  "native_launches_completed": 5,
+  "optional_allocation_failure_preserved": true
+}

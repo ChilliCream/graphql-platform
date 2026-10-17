@@ -1,0 +1,1369 @@
+{
+  "method": "Arithmetic mean of all12 native WorkloadResult observations, without trimming; WorkloadActual and full original reports retained. Elapsed is not measured process CPU.",
+  "nativeLaunchCount": 5,
+  "nativeMemoryRecordCount": 20,
+  "actualObservationCount": 240,
+  "launches": [
+    {
+      "label": "01-benchmark-B",
+      "report": "01-benchmark-B/results/ApolloAliasBdn.AliasBenchmarks-report-full.json",
+      "reportSha256": "387f21168a64593cb87fdf3dd03710566799a40d8663d0bea53d57a2e4807b2b",
+      "cases": {
+        "async-alias2": {
+          "nanosecondsPerOperation": {
+            "Actual": [
+              5172.536,
+              4904.492,
+              4958.408,
+              4971.743,
+              4971.034,
+              5104.66,
+              4774.491,
+              5007.868,
+              4983.451,
+              5020.993,
+              4867.492,
+              4831.367
+            ],
+            "Result": [
+              5172.4945,
+              4904.4505,
+              4958.3665,
+              4971.7015,
+              4970.9925,
+              5104.6185,
+              4774.4495,
+              5007.8265,
+              4983.4095,
+              5020.9515,
+              4867.4505,
+              4831.3255
+            ]
+          },
+          "meanNanoseconds": 4964.003083333333,
+          "standardDeviationNanoseconds": 110.91532047832979,
+          "nativeMemory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 4536
+          }
+        },
+        "async-custom": {
+          "nanosecondsPerOperation": {
+            "Actual": [
+              4254.987,
+              4936.576,
+              4445.822,
+              3326.981,
+              3762.818,
+              3882.484,
+              3679.442,
+              3867.985,
+              4259.28,
+              4837.991,
+              4334.279,
+              3922.61
+            ],
+            "Result": [
+              4254.946,
+              4936.535,
+              4445.781,
+              3326.94,
+              3762.777,
+              3882.443,
+              3679.401,
+              3867.944,
+              4259.239,
+              4837.95,
+              4334.238,
+              3922.569
+            ]
+          },
+          "meanNanoseconds": 4125.896916666667,
+          "standardDeviationNanoseconds": 474.91797350402965,
+          "nativeMemory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 4030
+          }
+        },
+        "async-ordinary": {
+          "nanosecondsPerOperation": {
+            "Actual": [
+              3789.901,
+              3854.068,
+              3773.693,
+              3959.0679999999998,
+              3909.61,
+              3649.733,
+              3760.568,
+              3752.276,
+              3958.9020000000005,
+              3754.234,
+              3830.609,
+              3794.359
+            ],
+            "Result": [
+              3789.8805,
+              3854.0475,
+              3773.6725,
+              3959.0474999999997,
+              3909.5895,
+              3649.7125,
+              3760.5475,
+              3752.2555,
+              3958.8815000000004,
+              3754.2135,
+              3830.5885,
+              3794.3385
+            ]
+          },
+          "meanNanoseconds": 3815.5645833333333,
+          "standardDeviationNanoseconds": 91.87213334497059,
+          "nativeMemory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 4024
+          }
+        },
+        "ordinary": {
+          "nanosecondsPerOperation": {
+            "Actual": [
+              1678.845,
+              1448.052,
+              1485.469,
+              1607.552,
+              1560.594,
+              1792.929,
+              1494.927,
+              2070.555,
+              1576.344,
+              1677.095,
+              1572.011,
+              1629.761
+            ],
+            "Result": [
+              1678.804,
+              1448.011,
+              1485.428,
+              1607.511,
+              1560.553,
+              1792.888,
+              1494.886,
+              2070.514,
+              1576.303,
+              1677.054,
+              1571.97,
+              1629.72
+            ]
+          },
+          "meanNanoseconds": 1632.8035,
+          "standardDeviationNanoseconds": 167.58799562807704,
+          "nativeMemory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 3470
+          }
+        }
+      }
+    },
+    {
+      "label": "02-benchmark-C12",
+      "report": "02-benchmark-C12/results/ApolloAliasBdn.AliasBenchmarks-report-full.json",
+      "reportSha256": "bbdc42d3ee6bc0cf18cd03d7d1d108d3c143df818171baa96a52c3116c102434",
+      "cases": {
+        "async-alias2": {
+          "nanosecondsPerOperation": {
+            "Actual": [
+              5497.788,
+              6337.46,
+              5321.703,
+              5493.871,
+              5663.747,
+              5930.54,
+              6342.168,
+              6777.254,
+              6453.044,
+              5949.624,
+              6022.791,
+              6775.63
+            ],
+            "Result": [
+              5497.7465,
+              6337.4185,
+              5321.6615,
+              5493.8295,
+              5663.7055,
+              5930.4985,
+              6342.1265,
+              6777.2125,
+              6453.0025,
+              5949.5825,
+              6022.7495,
+              6775.5885
+            ]
+          },
+          "meanNanoseconds": 6047.0935,
+          "standardDeviationNanoseconds": 495.86384283444715,
+          "nativeMemory": {
+            "Gen0Collections": 1,
+            "Gen1Collections": 1,
+            "Gen2Collections": 1,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 4397
+          }
+        },
+        "async-custom": {
+          "nanosecondsPerOperation": {
+            "Actual": [
+              3973.5689999999995,
+              4091.903,
+              3872.693,
+              3352.732,
+              3712.442,
+              2215.015,
+              3502.607,
+              3817.109,
+              3802.11,
+              3732.984,
+              3814.943,
+              3962.9849999999997
+            ],
+            "Result": [
+              3973.5279999999993,
+              4091.862,
+              3872.652,
+              3352.691,
+              3712.401,
+              2214.974,
+              3502.566,
+              3817.068,
+              3802.069,
+              3732.943,
+              3814.902,
+              3962.9439999999995
+            ]
+          },
+          "meanNanoseconds": 3654.2166666666667,
+          "standardDeviationNanoseconds": 495.95076096200097,
+          "nativeMemory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 4032
+          }
+        },
+        "async-ordinary": {
+          "nanosecondsPerOperation": {
+            "Actual": [
+              4038.5689999999995,
+              4184.946,
+              4570.782,
+              4174.5289999999995,
+              4020.778,
+              4015.736,
+              3802.651,
+              3928.944,
+              3937.652,
+              4066.111,
+              3975.7359999999994,
+              4099.069
+            ],
+            "Result": [
+              4038.5279999999993,
+              4184.905,
+              4570.741,
+              4174.487999999999,
+              4020.737,
+              4015.695,
+              3802.61,
+              3928.903,
+              3937.611,
+              4066.07,
+              3975.6949999999997,
+              4099.028
+            ]
+          },
+          "meanNanoseconds": 4067.9175833333334,
+          "standardDeviationNanoseconds": 190.6593586041767,
+          "nativeMemory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 3880
+          }
+        },
+        "ordinary": {
+          "nanosecondsPerOperation": {
+            "Actual": [
+              2351.391,
+              2056.9719999999998,
+              2276.348,
+              2025.2220000000002,
+              2041.639,
+              2143.598,
+              1715.929,
+              2349.766,
+              2174.223,
+              2453.266,
+              1952.138,
+              2008.3050000000003
+            ],
+            "Result": [
+              2351.3705,
+              2056.9514999999997,
+              2276.3275,
+              2025.2015000000001,
+              2041.6185,
+              2143.5775,
+              1715.9085,
+              2349.7455,
+              2174.2025,
+              2453.2455,
+              1952.1175,
+              2008.2845000000002
+            ]
+          },
+          "meanNanoseconds": 2129.0459166666665,
+          "standardDeviationNanoseconds": 206.12846290049242,
+          "nativeMemory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 3404
+          }
+        }
+      }
+    },
+    {
+      "label": "03-benchmark-B",
+      "report": "03-benchmark-B/results/ApolloAliasBdn.AliasBenchmarks-report-full.json",
+      "reportSha256": "1235d92640000c190cff5a6bb66b1c941138ef913a5225eb804fa8528bfccb34",
+      "cases": {
+        "async-alias2": {
+          "nanosecondsPerOperation": {
+            "Actual": [
+              4307.738,
+              3908.9019999999996,
+              5995.166,
+              6571.795,
+              6464.669,
+              5543.663,
+              5283.077,
+              5756.915,
+              7741.928,
+              5399.828,
+              5290.411,
+              5279.827
+            ],
+            "Result": [
+              4307.697,
+              3908.8609999999994,
+              5995.125,
+              6571.754,
+              6464.628,
+              5543.622,
+              5283.036,
+              5756.874,
+              7741.887,
+              5399.787,
+              5290.37,
+              5279.786
+            ]
+          },
+          "meanNanoseconds": 5628.618916666666,
+          "standardDeviationNanoseconds": 1014.558025127239,
+          "nativeMemory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 4540
+          }
+        },
+        "async-custom": {
+          "nanosecondsPerOperation": {
+            "Actual": [
+              4926.868,
+              4548.573,
+              2354.433,
+              4142.153,
+              4666.907,
+              4630.073,
+              4237.404,
+              3864.777,
+              4625.948,
+              4304.446,
+              4068.986,
+              3972.402
+            ],
+            "Result": [
+              4926.8475,
+              4548.5525,
+              2354.4125,
+              4142.1325,
+              4666.8865,
+              4630.0525,
+              4237.3835,
+              3864.7565,
+              4625.9275,
+              4304.4255,
+              4068.9655,
+              3972.3815
+            ]
+          },
+          "meanNanoseconds": 4195.227,
+          "standardDeviationNanoseconds": 663.1246730386649,
+          "nativeMemory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 4030
+          }
+        },
+        "async-ordinary": {
+          "nanosecondsPerOperation": {
+            "Actual": [
+              3943.1939999999995,
+              3719.192,
+              3882.318,
+              3895.527,
+              3881.36,
+              4927.659,
+              3780.484,
+              3619.317,
+              3838.235,
+              3857.985,
+              3780.859,
+              6082.708
+            ],
+            "Result": [
+              3943.1734999999994,
+              3719.1715,
+              3882.2975,
+              3895.5065,
+              3881.3395,
+              4927.6385,
+              3780.4635,
+              3619.2965,
+              3838.2145,
+              3857.9645,
+              3780.8385,
+              6082.6875
+            ]
+          },
+          "meanNanoseconds": 4100.716,
+          "standardDeviationNanoseconds": 706.1312434917335,
+          "nativeMemory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 4024
+          }
+        },
+        "ordinary": {
+          "nanosecondsPerOperation": {
+            "Actual": [
+              1749.262,
+              2280.14,
+              1619.677,
+              1600.553,
+              2020.5549999999998,
+              1688.303,
+              1808.804,
+              1882.805,
+              1638.053,
+              1566.677,
+              1940.264,
+              1602.094
+            ],
+            "Result": [
+              1749.2415,
+              2280.1195,
+              1619.6565,
+              1600.5325,
+              2020.5344999999998,
+              1688.2825,
+              1808.7835,
+              1882.7845,
+              1638.0325,
+              1566.6565,
+              1940.2435,
+              1602.0735
+            ]
+          },
+          "meanNanoseconds": 1783.0784166666667,
+          "standardDeviationNanoseconds": 215.22475121959798,
+          "nativeMemory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 3470
+          }
+        }
+      }
+    },
+    {
+      "label": "04-benchmark-C12",
+      "report": "04-benchmark-C12/results/ApolloAliasBdn.AliasBenchmarks-report-full.json",
+      "reportSha256": "ede068130a135ceaa2f25b36aa1fcfc56949401944caaca2ed31cbd4558eeb89",
+      "cases": {
+        "async-alias2": {
+          "nanosecondsPerOperation": {
+            "Actual": [
+              5285.12,
+              5103.952,
+              5326.662,
+              5311.453,
+              5391.287,
+              5384.829,
+              5340.204,
+              5308.912,
+              5040.242,
+              5358.703,
+              5352.078,
+              5335.079
+            ],
+            "Result": [
+              5285.078,
+              5103.91,
+              5326.62,
+              5311.411,
+              5391.245,
+              5384.787,
+              5340.162,
+              5308.87,
+              5040.2,
+              5358.661,
+              5352.036,
+              5335.037
+            ]
+          },
+          "meanNanoseconds": 5294.83475,
+          "standardDeviationNanoseconds": 109.24171278668328,
+          "nativeMemory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 4397
+          }
+        },
+        "async-custom": {
+          "nanosecondsPerOperation": {
+            "Actual": [
+              3862.36,
+              3822.651,
+              3884.026,
+              3833.485,
+              3920.5689999999995,
+              3696.692,
+              3842.193,
+              3866.86,
+              3825.693,
+              3838.318,
+              3763.568,
+              4014.778
+            ],
+            "Result": [
+              3862.36,
+              3822.651,
+              3884.026,
+              3833.485,
+              3920.5689999999995,
+              3696.692,
+              3842.193,
+              3866.86,
+              3825.693,
+              3838.318,
+              3763.568,
+              4014.778
+            ]
+          },
+          "meanNanoseconds": 3847.599416666667,
+          "standardDeviationNanoseconds": 77.71756116799791,
+          "nativeMemory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 4038
+          }
+        },
+        "async-ordinary": {
+          "nanosecondsPerOperation": {
+            "Actual": [
+              4171.0289999999995,
+              5230.077,
+              4406.738,
+              4128.57,
+              3916.444,
+              4728.032,
+              5063.701,
+              2688.519,
+              4151.153,
+              3178.439,
+              3948.3599999999997,
+              6171.25
+            ],
+            "Result": [
+              4170.987999999999,
+              5230.036,
+              4406.697,
+              4128.529,
+              3916.403,
+              4727.991,
+              5063.66,
+              2688.478,
+              4151.112,
+              3178.398,
+              3948.3189999999995,
+              6171.209
+            ]
+          },
+          "meanNanoseconds": 4315.151666666667,
+          "standardDeviationNanoseconds": 921.234683949193,
+          "nativeMemory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 3887
+          }
+        },
+        "ordinary": {
+          "nanosecondsPerOperation": {
+            "Actual": [
+              1574.803,
+              1752.47,
+              1581.928,
+              1727.054,
+              1580.177,
+              1715.179,
+              1565.511,
+              1719.137,
+              1540.927,
+              1564.052,
+              1729.262,
+              1551.261
+            ],
+            "Result": [
+              1574.762,
+              1752.429,
+              1581.887,
+              1727.013,
+              1580.136,
+              1715.138,
+              1565.47,
+              1719.096,
+              1540.886,
+              1564.011,
+              1729.221,
+              1551.22
+            ]
+          },
+          "meanNanoseconds": 1633.4390833333332,
+          "standardDeviationNanoseconds": 85.17821750302377,
+          "nativeMemory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 3406
+          }
+        }
+      }
+    },
+    {
+      "label": "05-benchmark-B",
+      "report": "05-benchmark-B/results/ApolloAliasBdn.AliasBenchmarks-report-full.json",
+      "reportSha256": "7ba3d9ef44afd933e78e19e532fa975cd81df3fa2697eb8d2292186b3ca9fca6",
+      "cases": {
+        "async-alias2": {
+          "nanosecondsPerOperation": {
+            "Actual": [
+              5587.955,
+              3589.691,
+              5221.202,
+              4681.365,
+              5276.452,
+              5329.203,
+              5892.707,
+              5552.579,
+              5380.537,
+              5091.368,
+              5956.416,
+              5358.245
+            ],
+            "Result": [
+              5587.913,
+              3589.649,
+              5221.16,
+              4681.323,
+              5276.41,
+              5329.161,
+              5892.665,
+              5552.537,
+              5380.495,
+              5091.326,
+              5956.374,
+              5358.203
+            ]
+          },
+          "meanNanoseconds": 5243.101333333333,
+          "standardDeviationNanoseconds": 622.2389344119031,
+          "nativeMemory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 4536
+          }
+        },
+        "async-custom": {
+          "nanosecondsPerOperation": {
+            "Actual": [
+              4200.863,
+              3956.8600000000006,
+              3619.524,
+              3940.652,
+              3825.776,
+              3806.567,
+              3527.608,
+              3704.692,
+              3988.653,
+              4476.239,
+              3859.735,
+              3557.232
+            ],
+            "Result": [
+              4200.822,
+              3956.8190000000004,
+              3619.483,
+              3940.611,
+              3825.735,
+              3806.526,
+              3527.567,
+              3704.651,
+              3988.612,
+              4476.198,
+              3859.694,
+              3557.191
+            ]
+          },
+          "meanNanoseconds": 3871.992416666667,
+          "standardDeviationNanoseconds": 272.15758710732905,
+          "nativeMemory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 4030
+          }
+        },
+        "async-ordinary": {
+          "nanosecondsPerOperation": {
+            "Actual": [
+              2341.641,
+              2319.266,
+              2652.768,
+              2493.892,
+              2655.768,
+              2384.141,
+              2348.017,
+              6267.001,
+              2549.768,
+              2654.31,
+              4865.492,
+              4528.573
+            ],
+            "Result": [
+              2341.5995,
+              2319.2245,
+              2652.7265,
+              2493.8505,
+              2655.7265,
+              2384.0995,
+              2347.9755,
+              6266.9595,
+              2549.7265,
+              2654.2685,
+              4865.4505,
+              4528.5315
+            ]
+          },
+          "meanNanoseconds": 3171.67825,
+          "standardDeviationNanoseconds": 1302.2588851319517,
+          "nativeMemory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 4024
+          }
+        },
+        "ordinary": {
+          "nanosecondsPerOperation": {
+            "Actual": [
+              1615.428,
+              1493.552,
+              1484.843,
+              1611.761,
+              1550.594,
+              1452.843,
+              1641.303,
+              1443.468,
+              1471.844,
+              1600.595,
+              1477.426,
+              1444.593
+            ],
+            "Result": [
+              1615.387,
+              1493.511,
+              1484.802,
+              1611.72,
+              1550.553,
+              1452.802,
+              1641.262,
+              1443.427,
+              1471.803,
+              1600.554,
+              1477.385,
+              1444.552
+            ]
+          },
+          "meanNanoseconds": 1523.9798333333333,
+          "standardDeviationNanoseconds": 74.8325562680179,
+          "nativeMemory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 3470
+          }
+        }
+      }
+    }
+  ],
+  "comparisonsAgainstBothAdjacentControls": [
+    {
+      "candidate": "02-benchmark-C12",
+      "shape": "async-alias2",
+      "controls": [
+        {
+          "label": "01-benchmark-B",
+          "elapsedRatio": 1.2181889089277862,
+          "elapsedPercent": 21.81889089277862,
+          "nativeByteDelta": -139
+        },
+        {
+          "label": "03-benchmark-B",
+          "elapsedRatio": 1.0743476489577588,
+          "elapsedPercent": 7.4347648957758805,
+          "nativeByteDelta": -143
+        }
+      ]
+    },
+    {
+      "candidate": "02-benchmark-C12",
+      "shape": "async-custom",
+      "controls": [
+        {
+          "label": "01-benchmark-B",
+          "elapsedRatio": 0.8856781302279668,
+          "elapsedPercent": -11.432186977203319,
+          "nativeByteDelta": 2
+        },
+        {
+          "label": "03-benchmark-B",
+          "elapsedRatio": 0.8710414637078439,
+          "elapsedPercent": -12.895853629215615,
+          "nativeByteDelta": 2
+        }
+      ]
+    },
+    {
+      "candidate": "02-benchmark-C12",
+      "shape": "async-ordinary",
+      "controls": [
+        {
+          "label": "01-benchmark-B",
+          "elapsedRatio": 1.0661377876035165,
+          "elapsedPercent": 6.613778760351652,
+          "nativeByteDelta": -144
+        },
+        {
+          "label": "03-benchmark-B",
+          "elapsedRatio": 0.9920017829406701,
+          "elapsedPercent": -0.7998217059329904,
+          "nativeByteDelta": -144
+        }
+      ]
+    },
+    {
+      "candidate": "02-benchmark-C12",
+      "shape": "ordinary",
+      "controls": [
+        {
+          "label": "01-benchmark-B",
+          "elapsedRatio": 1.303920475835988,
+          "elapsedPercent": 30.392047583598792,
+          "nativeByteDelta": -66
+        },
+        {
+          "label": "03-benchmark-B",
+          "elapsedRatio": 1.1940282024425826,
+          "elapsedPercent": 19.40282024425826,
+          "nativeByteDelta": -66
+        }
+      ]
+    },
+    {
+      "candidate": "04-benchmark-C12",
+      "shape": "async-alias2",
+      "controls": [
+        {
+          "label": "03-benchmark-B",
+          "elapsedRatio": 0.9406987448238302,
+          "elapsedPercent": -5.93012551761698,
+          "nativeByteDelta": -143
+        },
+        {
+          "label": "05-benchmark-B",
+          "elapsedRatio": 1.009866949612011,
+          "elapsedPercent": 0.9866949612010956,
+          "nativeByteDelta": -139
+        }
+      ]
+    },
+    {
+      "candidate": "04-benchmark-C12",
+      "shape": "async-custom",
+      "controls": [
+        {
+          "label": "03-benchmark-B",
+          "elapsedRatio": 0.9171373603065263,
+          "elapsedPercent": -8.286263969347374,
+          "nativeByteDelta": 8
+        },
+        {
+          "label": "05-benchmark-B",
+          "elapsedRatio": 0.9937001426203723,
+          "elapsedPercent": -0.6299857379627682,
+          "nativeByteDelta": 8
+        }
+      ]
+    },
+    {
+      "candidate": "04-benchmark-C12",
+      "shape": "async-ordinary",
+      "controls": [
+        {
+          "label": "03-benchmark-B",
+          "elapsedRatio": 1.0522922501013643,
+          "elapsedPercent": 5.229225010136429,
+          "nativeByteDelta": -137
+        },
+        {
+          "label": "05-benchmark-B",
+          "elapsedRatio": 1.3605262976049561,
+          "elapsedPercent": 36.05262976049561,
+          "nativeByteDelta": -137
+        }
+      ]
+    },
+    {
+      "candidate": "04-benchmark-C12",
+      "shape": "ordinary",
+      "controls": [
+        {
+          "label": "03-benchmark-B",
+          "elapsedRatio": 0.9160780973317634,
+          "elapsedPercent": -8.392190266823663,
+          "nativeByteDelta": -64
+        },
+        {
+          "label": "05-benchmark-B",
+          "elapsedRatio": 1.0718246052905993,
+          "elapsedPercent": 7.182460529059931,
+          "nativeByteDelta": -64
+        }
+      ]
+    }
+  ],
+  "controlledAllocation": [
+    {
+      "label": "06-allocation-B",
+      "observations": [
+        {
+          "shape": "ordinary",
+          "block": 0,
+          "operations": 1000,
+          "processBytes": 3464000,
+          "threadBytes": 3464000,
+          "bytesPerOperation": 3464,
+          "synchronous": true,
+          "sameThread": true,
+          "elapsed": 0.0016614,
+          "calibrationBefore": {
+            "Process": 523240,
+            "Thread": 523240
+          },
+          "calibrationAfter": {
+            "Process": 523240,
+            "Thread": 523240
+          },
+          "idleBefore": {
+            "bytes": 0,
+            "seconds": 0.0540576
+          },
+          "idleAfter": {
+            "bytes": 0,
+            "seconds": 0.0520326
+          },
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "mode": "NoGCRegion",
+          "endError": null,
+          "valid": true
+        },
+        {
+          "shape": "ordinary",
+          "block": 1,
+          "operations": 1000,
+          "processBytes": 3464000,
+          "threadBytes": 3464000,
+          "bytesPerOperation": 3464,
+          "synchronous": true,
+          "sameThread": true,
+          "elapsed": 0.0017952,
+          "calibrationBefore": {
+            "Process": 523240,
+            "Thread": 523240
+          },
+          "calibrationAfter": {
+            "Process": 523240,
+            "Thread": 523240
+          },
+          "idleBefore": {
+            "bytes": 0,
+            "seconds": 0.0515422
+          },
+          "idleAfter": {
+            "bytes": 0,
+            "seconds": 0.0501461
+          },
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "mode": "NoGCRegion",
+          "endError": null,
+          "valid": true
+        },
+        {
+          "shape": "ordinary",
+          "block": 2,
+          "operations": 1000,
+          "processBytes": 3464000,
+          "threadBytes": 3464000,
+          "bytesPerOperation": 3464,
+          "synchronous": true,
+          "sameThread": true,
+          "elapsed": 0.0017613,
+          "calibrationBefore": {
+            "Process": 523240,
+            "Thread": 523240
+          },
+          "calibrationAfter": {
+            "Process": 523240,
+            "Thread": 523240
+          },
+          "idleBefore": {
+            "bytes": 48,
+            "seconds": 0.0551205
+          },
+          "idleAfter": {
+            "bytes": 0,
+            "seconds": 0.0530024
+          },
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "mode": "NoGCRegion",
+          "endError": null,
+          "valid": true
+        },
+        {
+          "shape": "async-ordinary",
+          "block": 0,
+          "operations": 1000,
+          "processBytes": 4024000,
+          "threadBytes": 7509512,
+          "bytesPerOperation": 4024,
+          "synchronous": false,
+          "sameThread": false,
+          "elapsed": 0.0042934,
+          "calibrationBefore": {
+            "Process": 523240,
+            "Thread": 523240
+          },
+          "calibrationAfter": {
+            "Process": 523240,
+            "Thread": 523240
+          },
+          "idleBefore": {
+            "bytes": 0,
+            "seconds": 0.0513106
+          },
+          "idleAfter": {
+            "bytes": 0,
+            "seconds": 0.0532282
+          },
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "mode": "NoGCRegion",
+          "endError": null,
+          "valid": true
+        },
+        {
+          "shape": "async-ordinary",
+          "block": 1,
+          "operations": 1000,
+          "processBytes": 4024000,
+          "threadBytes": 45173160,
+          "bytesPerOperation": 4024,
+          "synchronous": false,
+          "sameThread": false,
+          "elapsed": 0.0035225,
+          "calibrationBefore": {
+            "Process": 523240,
+            "Thread": 523240
+          },
+          "calibrationAfter": {
+            "Process": 523240,
+            "Thread": 523240
+          },
+          "idleBefore": {
+            "bytes": 0,
+            "seconds": 0.0551142
+          },
+          "idleAfter": {
+            "bytes": 0,
+            "seconds": 0.0516714
+          },
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "mode": "NoGCRegion",
+          "endError": null,
+          "valid": true
+        },
+        {
+          "shape": "async-ordinary",
+          "block": 2,
+          "operations": 1000,
+          "processBytes": 4024000,
+          "threadBytes": 4024000,
+          "bytesPerOperation": 4024,
+          "synchronous": false,
+          "sameThread": true,
+          "elapsed": 0.0026846,
+          "calibrationBefore": {
+            "Process": 523240,
+            "Thread": 523240
+          },
+          "calibrationAfter": {
+            "Process": 523240,
+            "Thread": 523240
+          },
+          "idleBefore": {
+            "bytes": 0,
+            "seconds": 0.0526911
+          },
+          "idleAfter": {
+            "bytes": 0,
+            "seconds": 0.0521488
+          },
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "mode": "NoGCRegion",
+          "endError": null,
+          "valid": true
+        },
+        {
+          "shape": "async-alias2",
+          "block": 0,
+          "operations": 1000,
+          "processBytes": 4512000,
+          "threadBytes": -255496584,
+          "bytesPerOperation": 4512,
+          "synchronous": false,
+          "sameThread": false,
+          "elapsed": 0.0053025,
+          "calibrationBefore": {
+            "Process": 523240,
+            "Thread": 523240
+          },
+          "calibrationAfter": {
+            "Process": 523240,
+            "Thread": 523240
+          },
+          "idleBefore": {
+            "bytes": 0,
+            "seconds": 0.0506305
+          },
+          "idleAfter": {
+            "bytes": 0,
+            "seconds": 0.0550699
+          },
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "mode": "NoGCRegion",
+          "endError": null,
+          "valid": true
+        },
+        {
+          "shape": "async-alias2",
+          "block": 1,
+          "operations": 1000,
+          "processBytes": 4516656,
+          "threadBytes": 4512000,
+          "bytesPerOperation": 4516.656,
+          "synchronous": false,
+          "sameThread": true,
+          "elapsed": 0.0042868,
+          "calibrationBefore": {
+            "Process": 523240,
+            "Thread": 523240
+          },
+          "calibrationAfter": {
+            "Process": 523240,
+            "Thread": 523240
+          },
+          "idleBefore": {
+            "bytes": 0,
+            "seconds": 0.0516451
+          },
+          "idleAfter": {
+            "bytes": 0,
+            "seconds": 0.0511113
+          },
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "mode": "NoGCRegion",
+          "endError": null,
+          "valid": true
+        },
+        {
+          "shape": "async-alias2",
+          "block": 2,
+          "operations": 1000,
+          "processBytes": 4516656,
+          "threadBytes": 255944800,
+          "bytesPerOperation": 4516.656,
+          "synchronous": false,
+          "sameThread": false,
+          "elapsed": 0.0051848,
+          "calibrationBefore": {
+            "Process": 523240,
+            "Thread": 523240
+          },
+          "calibrationAfter": {
+            "Process": 523240,
+            "Thread": 523240
+          },
+          "idleBefore": {
+            "bytes": 0,
+            "seconds": 0.0551337
+          },
+          "idleAfter": {
+            "bytes": 0,
+            "seconds": 0.0537363
+          },
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "mode": "NoGCRegion",
+          "endError": null,
+          "valid": true
+        },
+        {
+          "shape": "async-custom",
+          "block": 0,
+          "operations": 1000,
+          "processBytes": 4027984,
+          "threadBytes": 310030832,
+          "bytesPerOperation": 4027.984,
+          "synchronous": false,
+          "sameThread": false,
+          "elapsed": 0.0046122,
+          "calibrationBefore": {
+            "Process": 523912,
+            "Thread": 523240
+          },
+          "calibrationAfter": {
+            "Process": 523240,
+            "Thread": 523240
+          },
+          "idleBefore": {
+            "bytes": 0,
+            "seconds": 0.0505546
+          },
+          "idleAfter": {
+            "bytes": 0,
+            "seconds": 0.0551066
+          },
+          "collections": [
+            0,
+            0,
+            0
+          ],
+          "mode": "NoGCRegion",
+          "endError": null,
+          "valid": false
+        }
+      ]
+    }
+  ],
+  "controlledAllocationComplete": false,
+  "primaryVerdict": "ABANDON",
+  "reason": "Reliable native allocation savings do not justify repeated or unresolved material elapsed costs. Optional allocation calibration failure is not the rejection basis."
+}

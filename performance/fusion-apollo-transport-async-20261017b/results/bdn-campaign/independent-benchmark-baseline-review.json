@@ -1,0 +1,638 @@
+{
+  "utc": "2026-10-17T18:07:59.364036+00:00",
+  "actualObservationCount": 240,
+  "launches": [
+    {
+      "label": "01-benchmark-B",
+      "cases": {
+        "Shape=async-alias2": {
+          "meanNs": 4964.003083333333,
+          "valuesNs": [
+            5172.4945,
+            4904.4505,
+            4958.3665,
+            4971.7015,
+            4970.9925,
+            5104.6185,
+            4774.4495,
+            5007.8265,
+            4983.4095,
+            5020.9515,
+            4867.4505,
+            4831.3255
+          ],
+          "memory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 4536
+          },
+          "last3OverFirst3": 0.9790104781001712
+        },
+        "Shape=async-custom": {
+          "meanNs": 4125.896916666667,
+          "valuesNs": [
+            4254.946,
+            4936.535,
+            4445.781,
+            3326.94,
+            3762.777,
+            3882.443,
+            3679.401,
+            3867.944,
+            4259.239,
+            4837.95,
+            4334.238,
+            3922.569
+          ],
+          "memory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 4030
+          },
+          "last3OverFirst3": 0.9602189207774992
+        },
+        "Shape=async-ordinary": {
+          "meanNs": 3815.5645833333333,
+          "valuesNs": [
+            3789.8805,
+            3854.0475,
+            3773.6725,
+            3959.0474999999997,
+            3909.5895,
+            3649.7125,
+            3760.5475,
+            3752.2555,
+            3958.8815000000004,
+            3754.2135,
+            3830.5885,
+            3794.3385
+          ],
+          "memory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 4024
+          },
+          "last3OverFirst3": 0.9966315164031181
+        },
+        "Shape=ordinary": {
+          "meanNs": 1632.8035,
+          "valuesNs": [
+            1678.804,
+            1448.011,
+            1485.428,
+            1607.511,
+            1560.553,
+            1792.888,
+            1494.886,
+            2070.514,
+            1576.303,
+            1677.054,
+            1571.97,
+            1629.72
+          ],
+          "memory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 3470
+          },
+          "last3OverFirst3": 1.0577812140427119
+        }
+      }
+    },
+    {
+      "label": "02-benchmark-C12",
+      "cases": {
+        "Shape=async-alias2": {
+          "meanNs": 6047.0935,
+          "valuesNs": [
+            5497.7465,
+            6337.4185,
+            5321.6615,
+            5493.8295,
+            5663.7055,
+            5930.4985,
+            6342.1265,
+            6777.2125,
+            6453.0025,
+            5949.5825,
+            6022.7495,
+            6775.5885
+          ],
+          "memory": {
+            "Gen0Collections": 1,
+            "Gen1Collections": 1,
+            "Gen2Collections": 1,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 4397
+          },
+          "last3OverFirst3": 1.0927382462018835
+        },
+        "Shape=async-custom": {
+          "meanNs": 3654.2166666666667,
+          "valuesNs": [
+            3973.5279999999993,
+            4091.862,
+            3872.652,
+            3352.691,
+            3712.401,
+            2214.974,
+            3502.566,
+            3817.068,
+            3802.069,
+            3732.943,
+            3814.902,
+            3962.9439999999995
+          ],
+          "memory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 4032
+          },
+          "last3OverFirst3": 0.9642107977170795
+        },
+        "Shape=async-ordinary": {
+          "meanNs": 4067.9175833333334,
+          "valuesNs": [
+            4038.5279999999993,
+            4184.905,
+            4570.741,
+            4174.487999999999,
+            4020.737,
+            4015.695,
+            3802.61,
+            3928.903,
+            3937.611,
+            4066.07,
+            3975.6949999999997,
+            4099.028
+          ],
+          "memory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 3880
+          },
+          "last3OverFirst3": 0.9489313651666768
+        },
+        "Shape=ordinary": {
+          "meanNs": 2129.0459166666665,
+          "valuesNs": [
+            2351.3705,
+            2056.9514999999997,
+            2276.3275,
+            2025.2015000000001,
+            2041.6185,
+            2143.5775,
+            1715.9085,
+            2349.7455,
+            2174.2025,
+            2453.2455,
+            1952.1175,
+            2008.2845000000002
+          ],
+          "memory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 3404
+          },
+          "last3OverFirst3": 0.9594590561554499
+        }
+      }
+    },
+    {
+      "label": "03-benchmark-B",
+      "cases": {
+        "Shape=async-alias2": {
+          "meanNs": 5628.618916666666,
+          "valuesNs": [
+            4307.697,
+            3908.8609999999994,
+            5995.125,
+            6571.754,
+            6464.628,
+            5543.622,
+            5283.036,
+            5756.874,
+            7741.887,
+            5399.787,
+            5290.37,
+            5279.786
+          ],
+          "memory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 4540
+          },
+          "last3OverFirst3": 1.1237193371115863
+        },
+        "Shape=async-custom": {
+          "meanNs": 4195.227,
+          "valuesNs": [
+            4926.8475,
+            4548.5525,
+            2354.4125,
+            4142.1325,
+            4666.8865,
+            4630.0525,
+            4237.3835,
+            3864.7565,
+            4625.9275,
+            4304.4255,
+            4068.9655,
+            3972.3815
+          ],
+          "memory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 4030
+          },
+          "last3OverFirst3": 1.0436152305879742
+        },
+        "Shape=async-ordinary": {
+          "meanNs": 4100.716,
+          "valuesNs": [
+            3943.1734999999994,
+            3719.1715,
+            3882.2975,
+            3895.5065,
+            3881.3395,
+            4927.6385,
+            3780.4635,
+            3619.2965,
+            3838.2145,
+            3857.9645,
+            3780.8385,
+            6082.6875
+          ],
+          "memory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 4024
+          },
+          "last3OverFirst3": 1.1885591520049235
+        },
+        "Shape=ordinary": {
+          "meanNs": 1783.0784166666667,
+          "valuesNs": [
+            1749.2415,
+            2280.1195,
+            1619.6565,
+            1600.5325,
+            2020.5344999999998,
+            1688.2825,
+            1808.7835,
+            1882.7845,
+            1638.0325,
+            1566.6565,
+            1940.2435,
+            1602.0735
+          ],
+          "memory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 3470
+          },
+          "last3OverFirst3": 0.9044003669664681
+        }
+      }
+    },
+    {
+      "label": "04-benchmark-C12",
+      "cases": {
+        "Shape=async-alias2": {
+          "meanNs": 5294.83475,
+          "valuesNs": [
+            5285.078,
+            5103.91,
+            5326.62,
+            5311.411,
+            5391.245,
+            5384.787,
+            5340.162,
+            5308.87,
+            5040.2,
+            5358.661,
+            5352.036,
+            5335.037
+          ],
+          "memory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 4397
+          },
+          "last3OverFirst3": 1.0210062506013131
+        },
+        "Shape=async-custom": {
+          "meanNs": 3847.599416666667,
+          "valuesNs": [
+            3862.36,
+            3822.651,
+            3884.026,
+            3833.485,
+            3920.5689999999995,
+            3696.692,
+            3842.193,
+            3866.86,
+            3825.693,
+            3838.318,
+            3763.568,
+            4014.778
+          ],
+          "memory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 4038
+          },
+          "last3OverFirst3": 1.0041167644290532
+        },
+        "Shape=async-ordinary": {
+          "meanNs": 4315.151666666667,
+          "valuesNs": [
+            4170.987999999999,
+            5230.036,
+            4406.697,
+            4128.529,
+            3916.403,
+            4727.991,
+            5063.66,
+            2688.478,
+            4151.112,
+            3178.398,
+            3948.3189999999995,
+            6171.209
+          ],
+          "memory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 3887
+          },
+          "last3OverFirst3": 0.9630789903706775
+        },
+        "Shape=ordinary": {
+          "meanNs": 1633.4390833333332,
+          "valuesNs": [
+            1574.762,
+            1752.429,
+            1581.887,
+            1727.013,
+            1580.136,
+            1715.138,
+            1565.47,
+            1719.096,
+            1540.886,
+            1564.011,
+            1729.221,
+            1551.22
+          ],
+          "memory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 3406
+          },
+          "last3OverFirst3": 0.9868354098264481
+        }
+      }
+    },
+    {
+      "label": "05-benchmark-B",
+      "cases": {
+        "Shape=async-alias2": {
+          "meanNs": 5243.101333333333,
+          "valuesNs": [
+            5587.913,
+            3589.649,
+            5221.16,
+            4681.323,
+            5276.41,
+            5329.161,
+            5892.665,
+            5552.537,
+            5380.495,
+            5091.326,
+            5956.374,
+            5358.203
+          ],
+          "memory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 4536
+          },
+          "last3OverFirst3": 1.139399941189225
+        },
+        "Shape=async-custom": {
+          "meanNs": 3871.992416666667,
+          "valuesNs": [
+            4200.822,
+            3956.8190000000004,
+            3619.483,
+            3940.611,
+            3825.735,
+            3806.526,
+            3527.567,
+            3704.651,
+            3988.612,
+            4476.198,
+            3859.694,
+            3557.191
+          ],
+          "memory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 4030
+          },
+          "last3OverFirst3": 1.0098461220243584
+        },
+        "Shape=async-ordinary": {
+          "meanNs": 3171.67825,
+          "valuesNs": [
+            2341.5995,
+            2319.2245,
+            2652.7265,
+            2493.8505,
+            2655.7265,
+            2384.0995,
+            2347.9755,
+            6266.9595,
+            2549.7265,
+            2654.2685,
+            4865.4505,
+            4528.5315
+          ],
+          "memory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 4024
+          },
+          "last3OverFirst3": 1.6473873394324687
+        },
+        "Shape=ordinary": {
+          "meanNs": 1523.9798333333333,
+          "valuesNs": [
+            1615.387,
+            1493.511,
+            1484.802,
+            1611.72,
+            1550.553,
+            1452.802,
+            1641.262,
+            1443.427,
+            1471.803,
+            1600.554,
+            1477.385,
+            1444.552
+          ],
+          "memory": {
+            "Gen0Collections": 0,
+            "Gen1Collections": 0,
+            "Gen2Collections": 0,
+            "TotalOperations": 1000,
+            "BytesAllocatedPerOperation": 3470
+          },
+          "last3OverFirst3": 0.9844985523651959
+        }
+      }
+    }
+  ],
+  "comparisons": [
+    {
+      "label": "02-benchmark-C12",
+      "shape": "Shape=async-alias2",
+      "meanNs": 6047.0935,
+      "elapsedPercent": [
+        21.81889089277862,
+        7.4347648957758805
+      ],
+      "nativeBytesSaved": [
+        139,
+        143
+      ]
+    },
+    {
+      "label": "02-benchmark-C12",
+      "shape": "Shape=async-custom",
+      "meanNs": 3654.2166666666667,
+      "elapsedPercent": [
+        -11.432186977203319,
+        -12.895853629215615
+      ],
+      "nativeBytesSaved": [
+        -2,
+        -2
+      ]
+    },
+    {
+      "label": "02-benchmark-C12",
+      "shape": "Shape=async-ordinary",
+      "meanNs": 4067.9175833333334,
+      "elapsedPercent": [
+        6.613778760351652,
+        -0.7998217059329904
+      ],
+      "nativeBytesSaved": [
+        144,
+        144
+      ]
+    },
+    {
+      "label": "02-benchmark-C12",
+      "shape": "Shape=ordinary",
+      "meanNs": 2129.0459166666665,
+      "elapsedPercent": [
+        30.392047583598792,
+        19.40282024425826
+      ],
+      "nativeBytesSaved": [
+        66,
+        66
+      ]
+    },
+    {
+      "label": "04-benchmark-C12",
+      "shape": "Shape=async-alias2",
+      "meanNs": 5294.83475,
+      "elapsedPercent": [
+        -5.93012551761698,
+        0.9866949612010956
+      ],
+      "nativeBytesSaved": [
+        143,
+        139
+      ]
+    },
+    {
+      "label": "04-benchmark-C12",
+      "shape": "Shape=async-custom",
+      "meanNs": 3847.599416666667,
+      "elapsedPercent": [
+        -8.286263969347374,
+        -0.6299857379627682
+      ],
+      "nativeBytesSaved": [
+        -8,
+        -8
+      ]
+    },
+    {
+      "label": "04-benchmark-C12",
+      "shape": "Shape=async-ordinary",
+      "meanNs": 4315.151666666667,
+      "elapsedPercent": [
+        5.229225010136429,
+        36.05262976049561
+      ],
+      "nativeBytesSaved": [
+        137,
+        137
+      ]
+    },
+    {
+      "label": "04-benchmark-C12",
+      "shape": "Shape=ordinary",
+      "meanNs": 1633.4390833333332,
+      "elapsedPercent": [
+        -8.392190266823663,
+        7.182460529059931
+      ],
+      "nativeBytesSaved": [
+        64,
+        64
+      ]
+    }
+  ],
+  "verdict": "ABANDON: repeated material elapsed costs and control drift leave allocation benefit without demonstrated acceptable execution-cost tradeoff; no CPU-regression claim. Optional allocation stop is not the decision basis."
+}

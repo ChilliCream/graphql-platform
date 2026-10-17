@@ -1,0 +1,104 @@
+{
+  "time": "2026-10-17T18:05:32.147843+00:00",
+  "freeLock": true,
+  "processes": [
+    {
+      "command": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild /nologo /nodemode:8 ",
+      "startTicks": 638464,
+      "cpuTicks": 3588,
+      "pid": 108014,
+      "deltaCpuTicks": 0
+    },
+    {
+      "command": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild /noautoresponse /nologo /nodemode:1 /nodeReuse:true /low:false ",
+      "startTicks": 638519,
+      "cpuTicks": 1244,
+      "pid": 108096,
+      "deltaCpuTicks": 0
+    },
+    {
+      "command": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild /noautoresponse /nologo /nodemode:1 /nodeReuse:true /low:false ",
+      "startTicks": 638519,
+      "cpuTicks": 1175,
+      "pid": 108099,
+      "deltaCpuTicks": 0
+    },
+    {
+      "command": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild /noautoresponse /nologo /nodemode:1 /nodeReuse:true /low:false ",
+      "startTicks": 638519,
+      "cpuTicks": 1151,
+      "pid": 108101,
+      "deltaCpuTicks": 0
+    },
+    {
+      "command": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild /noautoresponse /nologo /nodemode:1 /nodeReuse:true /low:false ",
+      "startTicks": 638519,
+      "cpuTicks": 1156,
+      "pid": 108105,
+      "deltaCpuTicks": 0
+    },
+    {
+      "command": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild /noautoresponse /nologo /nodemode:1 /nodeReuse:true /low:false ",
+      "startTicks": 638519,
+      "cpuTicks": 1171,
+      "pid": 108106,
+      "deltaCpuTicks": 0
+    },
+    {
+      "command": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild /noautoresponse /nologo /nodemode:1 /nodeReuse:true /low:false ",
+      "startTicks": 638563,
+      "cpuTicks": 1162,
+      "pid": 108304,
+      "deltaCpuTicks": 0
+    },
+    {
+      "command": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild /noautoresponse /nologo /nodemode:1 /nodeReuse:true /low:false ",
+      "startTicks": 638574,
+      "cpuTicks": 1120,
+      "pid": 108358,
+      "deltaCpuTicks": 0
+    },
+    {
+      "command": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild /noautoresponse /nologo /nodemode:1 /nodeReuse:true /low:false ",
+      "startTicks": 638582,
+      "cpuTicks": 1118,
+      "pid": 108376,
+      "deltaCpuTicks": 0
+    },
+    {
+      "command": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild /noautoresponse /nologo /nodemode:1 /nodeReuse:true /low:false ",
+      "startTicks": 673913,
+      "cpuTicks": 929,
+      "pid": 122247,
+      "deltaCpuTicks": 0
+    },
+    {
+      "command": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild /noautoresponse /nologo /nodemode:1 /nodeReuse:true /low:false ",
+      "startTicks": 673913,
+      "cpuTicks": 949,
+      "pid": 122248,
+      "deltaCpuTicks": 0
+    },
+    {
+      "command": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild /noautoresponse /nologo /nodemode:1 /nodeReuse:true /low:false ",
+      "startTicks": 731290,
+      "cpuTicks": 770,
+      "pid": 145375,
+      "deltaCpuTicks": 0
+    },
+    {
+      "command": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild /noautoresponse /nologo /nodemode:1 /nodeReuse:true /low:false ",
+      "startTicks": 779001,
+      "cpuTicks": 495,
+      "pid": 151210,
+      "deltaCpuTicks": 0
+    },
+    {
+      "command": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild /noautoresponse /nologo /nodemode:1 /nodeReuse:true /low:false ",
+      "startTicks": 823190,
+      "cpuTicks": 423,
+      "pid": 162619,
+      "deltaCpuTicks": 0
+    }
+  ]
+}

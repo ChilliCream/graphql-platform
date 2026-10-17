@@ -1,0 +1,8 @@
+Independent final C12 frozen artifact and runner review, 2026-10-17 18:00 UTC
+Reviewer: history_environment. PASS for reviewed preparation only, no measurement or benefit claim.
+
+Manifest8169abc50aa7d55e64645f390594126b77f6766343bb42b83650c02ae250288a independently hashed. All252 recorded files match. Both126-file arm sets match; only HotChocolate.Fusion.Execution.dll/.pdb differ. Baseline DLL9c436477e63d9c7f5c8668dcd75fec9771f500a5e71b14a1f02dd0bcf8fe6c5b and candidatea5593442501444e2e6964065a5ab9b51666ecd38fbc096f79e67a5a2ce7adf83 match established tested engines. All seven recorded source hashes match, including runner060b9bf2d44f2669906f80b22ea23c4bdb8e083ca69231b9fdee1731c80195a5.
+
+Runner preserves ordinary/async-ordinary/async-alias2/async-custom cases, five default-policy BDN launches B/C12/B/C12/B followed by three separate controlled-allocation launches B/C12/B. Default policy asserts .NET10.0.12/serverGC/dynamicmode1; allocation policy separately asserts four heaps/mode0. Native MemoryDiagnoser has exact1000 denominator, complete nonnegative memory/GC fields and twelve actual observations of1000operations. Controlled allocation requires all twelve valid regions. Per-child60-second and campaign285-second work bounds plus at most10-second exactPID/start process-group cleanup remain. Failures stop without retry; native valid evidence remains even if optional later corroboration fails.
+
+Prior independent source/consumer lifetime and fixture reviews already passed. Four-case default/fixed check-only oracles are owner evidence, not new workload execution by this reviewer. No final frozen identity or runner blocker found. This review does not assert net performance benefit or authorize execution.

@@ -1,0 +1,31 @@
+{
+  "time": "2026-10-17T18:05:49.150701+00:00",
+  "owned": [
+    {
+      "pid": 177241,
+      "startTicks": 888512,
+      "command": [
+        "flock",
+        "-x",
+        "-o",
+        "/workspaces/platform-1/perf/fusion-common-path.lock",
+        "taskset",
+        "-c",
+        "0,8",
+        "env",
+        "DOTNET_LOCAL_DEV=1",
+        "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK=1",
+        "python3",
+        "/workspaces/platform-1/.worktrees/fusion-apollo-transport-async-20261017b/performance/fusion-apollo-transport-async-20261017b/run_bdn.py"
+      ]
+    },
+    {
+      "pid": 177242,
+      "startTicks": 888514,
+      "command": [
+        "python3",
+        "/workspaces/platform-1/.worktrees/fusion-apollo-transport-async-20261017b/performance/fusion-apollo-transport-async-20261017b/run_bdn.py"
+      ]
+    }
+  ]
+}
