@@ -82,12 +82,23 @@ internal sealed class CostAnalysisMiddleware
             }
 
             var builder = ImmutableArray.CreateBuilder<CostEstimate>(context.VariableValues.Length);
-            var adapter = new CostVariableValuesAdapter();
+            CostVariableValuesAdapter? adapter = null;
 
             foreach (var variableValues in context.VariableValues)
             {
-                adapter.SetValues(variableValues);
-                var estimate = plan.Evaluate(adapter);
+                CostEstimate estimate;
+
+                if (variableValues is VariableValueCollection values)
+                {
+                    estimate = plan.Evaluate(values);
+                }
+                else
+                {
+                    adapter ??= new CostVariableValuesAdapter();
+                    adapter.SetValues(variableValues);
+                    estimate = plan.Evaluate(adapter);
+                }
+
                 builder.Add(estimate);
                 _diagnosticEvents.OperationCost(context, estimate.FieldCost, estimate.TypeCost);
             }
