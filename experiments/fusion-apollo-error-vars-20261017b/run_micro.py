@@ -9,10 +9,10 @@ import subprocess
 import time
 
 ROOT = Path('/workspaces/platform-1/perf/fusion-apollo-error-vars-20261017b-43a8dca2')
-FROZEN = ROOT / 'frozen-process-scoped'
-OUTPUT = ROOT / 'micro-campaign-process-scoped'
+FROZEN = ROOT / 'frozen-fixed-heaps'
+OUTPUT = ROOT / 'micro-campaign-fixed-heaps'
 OUTPUT.mkdir(exist_ok=False)
-deadline = time.monotonic() + 360
+deadline = time.monotonic() + 600
 records = []
 
 
@@ -50,17 +50,26 @@ if manifest['variantDifferences'] != ['HotChocolate.Fusion.Execution.dll', 'HotC
 sequence = [
     ('allocation', 'baseline'), ('allocation', 'candidate'), ('allocation', 'baseline'),
     ('timing', 'baseline'), ('timing', 'candidate'), ('timing', 'baseline'),
-    ('timing', 'baseline'), ('timing', 'candidate'), ('timing', 'baseline'),
+    ('timing', 'candidate'), ('timing', 'baseline'),
 ]
 environment = {key: value for key, value in os.environ.items()
                if key.startswith(('DOTNET_', 'COMPlus_', 'CORECLR_'))}
 (OUTPUT / 'environment.json').write_text(json.dumps(environment, indent=2) + '\n')
+unexpected = {key: value for key, value in environment.items()
+              if key.startswith(('COMPlus_', 'CORECLR_', 'DOTNET_GC', 'DOTNET_Tiered', 'DOTNET_ReadyToRun'))}
+if unexpected:
+    raise RuntimeError(f'Unexpected inherited runtime overrides: {sorted(unexpected)}')
 for index, (mode, variant) in enumerate(sequence):
     label = f'{index + 1:02}-{mode}-{variant}'
     dll = FROZEN / variant / 'HotChocolate.Fusion.Execution.Benchmarks.dll'
     command = ['taskset', '-c', '2,3,10,11', 'dotnet', str(dll), mode]
     start = time.monotonic()
-    record = {'label': label, 'command': command, 'started': utc(), 'status': 'starting'}
+    launch_environment = dict(os.environ)
+    if mode == 'allocation':
+        launch_environment['DOTNET_GCHeapCount'] = '4'
+    record = {'label': label, 'command': command, 'started': utc(), 'status': 'starting',
+              'runtimeEnvironment': {key: value for key, value in launch_environment.items()
+                                     if key.startswith(('DOTNET_', 'COMPlus_', 'CORECLR_'))}}
     records.append(record)
     save()
     print(f"{record['started']} starting {label}", flush=True)
@@ -71,7 +80,8 @@ for index, (mode, variant) in enumerate(sequence):
         if remaining <= 0:
             raise TimeoutError('Total campaign deadline reached.')
         with (OUTPUT / f'{label}.json').open('w') as stdout, (OUTPUT / f'{label}.stderr').open('w') as stderr:
-            process = subprocess.Popen(command, stdout=stdout, stderr=stderr, start_new_session=True)
+            process = subprocess.Popen(command, stdout=stdout, stderr=stderr,
+                                       env=launch_environment, start_new_session=True)
             owned = identity(process.pid)
             record.update({'identity': owned, 'processGroup': process.pid, 'status': 'running'})
             save()
@@ -84,6 +94,11 @@ for index, (mode, variant) in enumerate(sequence):
         report = json.loads((OUTPUT / f'{label}.json').read_text())
         if report['runtime'] != '.NET 10.0.12' or not report['IsServerGC']:
             raise RuntimeError(f'{label}: runtime or GC policy mismatch.')
+        gc = report['gcConfiguration']
+        if mode == 'allocation' and (gc['HeapCount'] != 4 or gc['GCDynamicAdaptationMode'] != 0):
+            raise RuntimeError(f'{label}: controlled GC policy mismatch.')
+        if mode == 'timing' and gc['GCDynamicAdaptationMode'] != 1:
+            raise RuntimeError(f'{label}: default GC policy mismatch.')
         if len(report['rows']) != 10:
             raise RuntimeError(f'{label}: incomplete case set.')
         if report['executionDllSha256'] != manifest['files'][f'{variant}/HotChocolate.Fusion.Execution.dll']:

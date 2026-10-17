@@ -26,6 +26,19 @@ if (mode is not ("verify" or "timing" or "allocation"))
     throw new ArgumentException("Expected verify, timing, or allocation.");
 }
 
+var gcConfiguration = GC.GetConfigurationVariables();
+Console.Error.WriteLine(JsonSerializer.Serialize(new { mode, gcConfiguration }));
+if (mode is "allocation"
+    && (gcConfiguration["HeapCount"] is not 4L
+        || gcConfiguration["GCDynamicAdaptationMode"] is not 0L))
+{
+    throw new InvalidOperationException("Controlled allocation requires four fixed GC heaps.");
+}
+if (mode is "timing" && gcConfiguration["GCDynamicAdaptationMode"] is not 1L)
+{
+    throw new InvalidOperationException("Timing requires default dynamic GC adaptation.");
+}
+
 var cases = new Case[]
 {
     new("ordinary", 1, 1, false, "success", true),
@@ -127,7 +140,7 @@ foreach (var shape in cases)
         await ExecuteOneAsync();
         warmIterations++;
     }
-    while (Stopwatch.GetElapsedTime(warmStart).TotalMilliseconds < 1000);
+    while (Stopwatch.GetElapsedTime(warmStart).TotalMilliseconds < 3000);
 
     var blocks = new List<object>();
     if (mode is "timing")
@@ -234,6 +247,7 @@ foreach (var shape in cases)
     {
         shape,
         warmIterations,
+        warmupMilliseconds = 3000,
         consumed,
         completedOperations,
         sync,
@@ -253,6 +267,7 @@ Console.WriteLine(JsonSerializer.Serialize(new
     runtime = RuntimeInformation.FrameworkDescription,
     GCSettings.IsServerGC,
     GCSettings.LatencyMode,
+    gcConfiguration,
     stopwatchFrequency = Stopwatch.Frequency,
     variableValuesSize = Unsafe.SizeOf<VariableValues>(),
     executionDllSha256 = Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(typeof(ApolloOperationExecutionNode).Assembly.Location))),
