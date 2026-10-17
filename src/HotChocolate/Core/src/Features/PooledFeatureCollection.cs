@@ -174,7 +174,10 @@ public sealed class PooledFeatureCollection : IFeatureCollection
         if (_defaults != null)
         {
             // Don't return features masked by the wrapper.
-            foreach (var pair in _defaults.Except(_features, s_featureKeyComparer))
+            foreach (var pair in _defaults.ExceptBy(
+                _features.Keys,
+                static pair => pair.Key ?? throw ThrowHelper.FeatureKeyIsNull(),
+                s_featureKeyComparer))
             {
                 yield return pair;
             }
@@ -183,12 +186,10 @@ public sealed class PooledFeatureCollection : IFeatureCollection
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    private sealed class KeyComparer : IEqualityComparer<KeyValuePair<Type, object>>
+    private sealed class KeyComparer : IEqualityComparer<Type>
     {
-        public bool Equals(KeyValuePair<Type, object> x, KeyValuePair<Type, object> y) =>
-            x.Key.Equals(y.Key);
+        public bool Equals(Type? x, Type? y) => x!.Equals(y);
 
-        public int GetHashCode(KeyValuePair<Type, object> obj) =>
-            obj.Key.GetHashCode();
+        public int GetHashCode(Type obj) => obj.GetHashCode();
     }
 }
