@@ -1,0 +1,48 @@
+C10: Parse adjacent arena chunks through a contiguous reader sequence
+
+Owner: response_hotpaths. Branch: perf/fusion-apollo-contiguous-source-20261017b.
+Pinned baseline: 43a8dca2bd479ddc411d832ed97e42d9fcc8bd85.
+Files: SourceResultDocument.Parse.cs private BuildFilledSequence;
+SourceResultDocumentSequenceTests.cs correctness tests. No C7 change is included.
+
+Evidence and bounded hypothesis
+The fresh warm original-TestQuery allocation capture includes 169 SequenceSegment ticks
+through BuildFilledSequence/ParseFilled. The warm CPU profile assigns 0.518% filtered
+inclusive sampled thread time to Utf8JsonReader.ReadMultiSegment. These are sampled costs,
+not exact bytes/call counts, and inclusive values overlap. SourceResultDocument.ParseFilled
+accounts for 1.639% filtered inclusive sampled thread time, which bounds the whole parse
+route rather than proving the candidate can remove it.
+Immutable profile source:
+https://github.com/ChilliCream/graphql-platform/tree/2c47637e385c25a3cea65d8df1d9be8b4a37871e/performance/fusion-apollo-discovery-20261017b/results
+
+Each multi-chunk parse constructs one SequenceSegment object for every used geometric chunk.
+MemoryArena rents consecutive slabs from a byte-array page when other rentals do not interleave.
+If every used chunk shares the same array and exactly adjacent offsets, the parser can receive
+one ReadOnlySequence over that byte range. Original stored segments and packed locations remain
+unchanged. The single-chunk fast path and all noncontiguous cases retain their existing behavior.
+An affected parse removes N temporary segment objects, with N the used chunk count. The shared
+4KB and32KB fixtures use three and six chunks. Their exact byte/elapsed effect requires measurement.
+
+Risks and exclusions
+The adjacency scan adds work before the original fallback. Concurrent arena rentals or page
+boundaries can make chunks noncontiguous. Strict ReferenceEquals(array) and exact offset checks
+are required; equality of contents or touching virtual addresses is insufficient. A one-segment
+reader still produces absolute byte offsets, which ParseJson maps into original geometric chunks.
+CreateFilledReader/ParseFilledElement must preserve those offsets for batched documents.
+EXCLUSION-AUDIT.txt and the exact saved PR10523 diff establish the mechanism differs from the
+forbidden ReadOnlyMemorySegment struct-layout compaction. Independent review confirmed this.
+
+Validation and gate
+Release/style build passed. 95 focused tests passed, including14 new layout tests for nonzero
+backing offsets, adjacent/gapped/separate arrays, boundary/empty final chunks, escaped names and
+values, scalar reads and multiple parsed results sharing a reader. Existing source document
+and HTTP client tests passed in that same run.
+The actual GraphQLHttpResponse BDN fixture from C7 is applicable unchanged: known128 control,
+unknown4096 and unknown32768. Only the candidate Execution DLL/PDB differs from the exact
+baseline dependency set. Native MemoryDiagnoser is enabled per explicit user instruction;
+default-policy timings/diagnoser output remain separate from calibrated fixed-four-heap,
+512MiB no-GC scoped allocations. Retain all observations and flag inconsistent allocated output.
+Shared bounded plan: allocation B/C7/C10/B; timing B/C7/C10/B/C10/C7/B. Each candidate has two
+independent timed launches bracketed by applicable controls. No measured candidate is stacked.
+Require worthwhile allocation or elapsed benefit without repeated meaningful timing cost;
+inconclusive/adverse evidence ends the candidate. HTTP CPU/latency remains a later gate.

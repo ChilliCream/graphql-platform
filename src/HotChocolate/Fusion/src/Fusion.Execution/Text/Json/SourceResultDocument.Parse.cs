@@ -256,6 +256,29 @@ public sealed partial class SourceResultDocument
             return new ReadOnlySequence<byte>(segments[0].Memory[..lastLength]);
         }
 
+        var firstMemory = segments[0];
+        var contiguousLength = firstMemory.Length;
+        var contiguous = true;
+
+        for (var i = 1; i < usedChunks; i++)
+        {
+            var segment = segments[i];
+
+            if (!ReferenceEquals(segment.Buffer, firstMemory.Buffer)
+                || segment.Offset != firstMemory.Offset + contiguousLength)
+            {
+                contiguous = false;
+                break;
+            }
+
+            contiguousLength += i == usedChunks - 1 ? lastLength : segment.Length;
+        }
+
+        if (contiguous)
+        {
+            return new ReadOnlySequence<byte>(firstMemory.Buffer, firstMemory.Offset, contiguousLength);
+        }
+
         SequenceSegment? first = null;
         SequenceSegment? previous = null;
 
