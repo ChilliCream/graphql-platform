@@ -96,6 +96,7 @@ export const SERIES_COLORS = [
 export interface HistoryPoint {
   readonly timestamp: number;
   readonly runNumber: number;
+  readonly runtime: string;
   readonly version: string;
   readonly rps: number;
 }
@@ -159,6 +160,7 @@ export function historySeries(
           version.run.completedAt ?? version.run.startedAt!,
         ),
         runNumber: version.run.number,
+        runtime: formatRuntimeTag(version.platform),
         version: version.version,
         rps: version.throughput.medianRps,
       })),

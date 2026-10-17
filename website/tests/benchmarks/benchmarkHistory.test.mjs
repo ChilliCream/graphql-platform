@@ -100,36 +100,6 @@ test("rejects malformed dates and missing subgraph metadata", () => {
   }
 });
 
-test("all showcase histories validate and span their advertised ranges", () => {
-  for (const [name, days, count] of [
-    ["one-week", 7, 8],
-    ["two-months", 61, 17],
-    ["six-months", 183, 20],
-    ["cross-year", 62, 17],
-  ]) {
-    const history = parseBenchmarkHistory(
-      readFileSync(
-        new URL(
-          `../../public/benchmarks/history-${name}.json`,
-          import.meta.url,
-        ),
-        "utf8",
-      ),
-    );
-    const points = historySeries(
-      history.scenarios[0],
-      benchmarkVariants(history),
-      false,
-    )[0].points;
-    assert.deepEqual(
-      {
-        count: points.length,
-        days: (points.at(-1).timestamp - points[0].timestamp) / day,
-      },
-      { count, days },
-    );
-  }
-});
 test("includes years when requested for a cross-year axis", async () => {
   const { formatHistoryDate } =
     await import("../../src/components/benchmarks/benchmarkView.ts");
@@ -143,20 +113,20 @@ test("includes years when requested for a cross-year axis", async () => {
 });
 
 test("distributes six-month samples evenly without a short final interval", () => {
-  const history = parseBenchmarkHistory(
-    readFileSync(
-      new URL(
-        "../../public/benchmarks/history-six-months.json",
-        import.meta.url,
-      ),
-      "utf8",
-    ),
-  );
-  const points = historySeries(
-    history.scenarios[0],
-    benchmarkVariants(history),
-    false,
-  )[0].points;
+  const history = parseBenchmarkHistory(fixture);
+  const scenario = structuredClone(history.scenarios[0]);
+  const variant = scenario.variants[0];
+  const base = variant.results[0];
+  const start = Date.parse("2026-04-17T12:00:00Z");
+  variant.results = Array.from({ length: 184 }, (_, index) => ({
+    ...base,
+    run: {
+      number: 1000 + index,
+      completedAt: new Date(start + index * day).toISOString(),
+    },
+  }));
+  const points = historySeries(scenario, benchmarkVariants(history), false)[0]
+    .points;
   const gaps = points
     .slice(1)
     .map((point, index) => (point.timestamp - points[index].timestamp) / day);

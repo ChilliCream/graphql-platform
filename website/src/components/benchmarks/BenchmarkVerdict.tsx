@@ -1,3 +1,5 @@
+import { type ReactNode } from "react";
+import { CrownIcon } from "@/src/icons/CrownIcon";
 import {
   COMPOSITION_GROUPS,
   formatNumber,
@@ -10,6 +12,7 @@ import { Link } from "@/src/design-system/Link";
 import {
   BENCHMARK_FUSION_DOCS_URL,
   benchmarkVariants,
+  gatewayLink,
   formatRuntimeTag,
   variantName,
   type BenchmarkCatalogEntry,
@@ -30,6 +33,7 @@ interface NamedVerdict {
 type Overall =
   | { readonly kind: "leads"; readonly name: string }
   | { readonly kind: "leadsOrTies"; readonly name: string }
+  | { readonly kind: "tied"; readonly name: string }
   | { readonly kind: "none" }
   | { readonly kind: "empty" };
 
@@ -58,6 +62,8 @@ function summarySentence(overall: Overall, run: number) {
       return `${overall.name} is the fastest router in every scenario of run ${run}.`;
     case "leadsOrTies":
       return `${overall.name} is the fastest router, or tied for fastest, in every scenario of run ${run}.`;
+    case "tied":
+      return `${overall.name} are tied for fastest in every scenario of run ${run}.`;
     case "none":
       return `No single router is the fastest in every scenario of run ${run}.`;
     case "empty":
@@ -129,9 +135,6 @@ function overallOf(
   if (present.length === 0) {
     return { kind: "empty" };
   }
-  if (present.length < verdicts.length) {
-    return { kind: "none" };
-  }
   const fastest = present.map((verdict) =>
     verdict.tied && verdict.runnerUp
       ? [verdict.leader, verdict.runnerUp]
@@ -142,6 +145,17 @@ function overallOf(
   const shared = [...new Set(fastest[0].map(gatewayId))].filter((id) =>
     fastest.every((rows) => rows.some((row) => gatewayId(row) === id)),
   );
+  if (shared.length > 1) {
+    const names = shared.map(
+      (id) =>
+        [...variants.values()].find((entry) => entry.gateway.id === id)!.gateway
+          .name,
+    );
+    return {
+      kind: "tied",
+      name: new Intl.ListFormat("en", { type: "conjunction" }).format(names),
+    };
+  }
   if (shared.length !== 1) {
     return { kind: "none" };
   }
@@ -166,12 +180,16 @@ function linkFusion(text: string) {
 }
 
 interface BenchmarkVerdictSummaryProps {
+  readonly id: string;
+  readonly controls: ReactNode;
   readonly report: BenchmarkReport;
   readonly stableOnly: boolean;
 }
 
 /** A written summary of every scenario: one overall sentence and one sentence per scenario. */
 export function BenchmarkVerdictSummary({
+  id,
+  controls,
   report,
   stableOnly,
 }: BenchmarkVerdictSummaryProps) {
@@ -188,33 +206,125 @@ export function BenchmarkVerdictSummary({
     variants,
   );
 
-  const summary = summarySentence(overall, report.run.number);
-  const lines = scenarios.map(({ scenario, verdict }) => ({
-    id: scenario.id,
-    name: SCENARIO_INFO[scenario.id].name,
-    text: scenarioSentence(nameVerdict(verdict, variants)),
-  }));
+  const incomplete = scenarios.some((item) => item.verdict === undefined);
+  const summary = incomplete
+    ? summarySentence(overall, report.run.number).replace(
+        "in every scenario",
+        "in every scenario with successful results",
+      )
+    : summarySentence(overall, report.run.number);
+  const lines = scenarios.map(({ scenario, verdict }) => {
+    const displayed =
+      verdict?.tied &&
+      verdict.runnerUp &&
+      variants
+        .get(verdict.leader.variant)!
+        .gateway.name.localeCompare(
+          variants.get(verdict.runnerUp.variant)!.gateway.name,
+          "en",
+          { sensitivity: "base" },
+        ) > 0
+        ? { ...verdict, leader: verdict.runnerUp, runnerUp: verdict.leader }
+        : verdict;
+    return {
+      id: scenario.id,
+      name: SCENARIO_INFO[scenario.id].name,
+      text: scenarioSentence(nameVerdict(displayed, variants)),
+      verdict: displayed,
+      gateway: displayed && variants.get(displayed.leader.variant)!.gateway,
+      rival:
+        displayed?.runnerUp &&
+        variants.get(displayed.runnerUp.variant)!.gateway,
+    };
+  });
+  const commonWinner =
+    lines.length > 0 &&
+    lines.every(
+      (line) =>
+        line.gateway === undefined ||
+        line.gateway.id === lines.find((item) => item.gateway)?.gateway?.id,
+    ) &&
+    (overall.kind === "leads" || overall.kind === "leadsOrTies");
   const body = (
     <>
-      <p className="text-cc-heading mt-1">{linkFusion(summary)}</p>
-      <ul className="text-cc-prose mt-2 space-y-1 text-sm">
+      <p className="text-cc-heading text-body mt-2">
+        {commonWinner && (
+          <CrownIcon className="text-cc-accent mr-2 inline size-4 align-[-2px]" />
+        )}
+        {linkFusion(summary)}
+      </p>
+      <dl className="mt-3 space-y-2 text-sm">
         {lines.map((line) => (
-          <li key={line.id}>
-            <span className="text-cc-heading font-semibold">{line.name}:</span>{" "}
-            {line.text}
-          </li>
+          <div
+            key={line.id}
+            title={line.text}
+            className={`grid grid-cols-[8rem_1fr] gap-x-4 gap-y-1 ${commonWinner ? "sm:grid-cols-[9rem_9rem_1fr]" : "sm:grid-cols-[9rem_10rem_9rem_1fr]"}`}
+          >
+            <dt className="text-cc-heading font-semibold">{line.name}</dt>
+            {!commonWinner && (
+              <dd className="text-cc-heading flex items-center gap-1.5 font-medium">
+                {line.gateway && (
+                  <>
+                    <CrownIcon className="text-cc-accent size-3.5 shrink-0" />
+                    <span className="sr-only">
+                      {line.verdict?.tied ? "Joint fastest: " : "Fastest: "}
+                    </span>
+                  </>
+                )}
+                {line.gateway ? (
+                  gatewayLink(line.gateway) ? (
+                    <Link href={gatewayLink(line.gateway)!}>
+                      {line.gateway.name}
+                    </Link>
+                  ) : (
+                    line.gateway.name
+                  )
+                ) : (
+                  "No successful result"
+                )}
+              </dd>
+            )}
+            {line.verdict ? (
+              <>
+                <dd className="text-cc-heading col-start-2 tabular-nums sm:col-start-auto">
+                  {formatNumber(line.verdict.leader.throughput.medianRps)}{" "}
+                  <span className="text-cc-ink-dim">requests/s</span>
+                </dd>
+                <dd className="text-cc-ink-dim col-start-2 sm:col-start-auto">
+                  {line.verdict.tied
+                    ? "Tied within run variance"
+                    : line.rival
+                      ? `${formatPercent(line.verdict.lead)} faster`
+                      : "Only successful router"}
+                  {line.rival && (
+                    <>
+                      {` ${line.verdict.tied ? "with" : "than"} `}
+                      {line.rival.name}
+                    </>
+                  )}
+                </dd>
+              </>
+            ) : commonWinner ? (
+              <dd className="text-cc-ink-dim col-start-2">
+                No successful result
+              </dd>
+            ) : null}
+          </div>
         ))}
-      </ul>
+      </dl>
     </>
   );
   return (
-    <section aria-labelledby="benchmark-results-heading">
-      <h2
-        id="benchmark-results-heading"
-        className="text-h6 text-cc-heading font-semibold"
-      >
-        Results at a glance
-      </h2>
+    <section aria-labelledby={`${id}-heading`}>
+      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+        <h2
+          id={`${id}-heading`}
+          className="text-h6 text-cc-heading font-semibold"
+        >
+          Results at a glance
+        </h2>
+        {controls}
+      </div>
       {body}
     </section>
   );

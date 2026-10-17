@@ -73,6 +73,16 @@ export function BenchmarkHistoryChart({
       point === selected?.point ||
       point.runNumber === selected?.point.runNumber,
   );
+  const showRuntime =
+    point &&
+    series.some(
+      (item) =>
+        item.name === selectedSeries?.name &&
+        item.points.some((other) => other.runtime !== point.runtime),
+    );
+  const compositionName = COMPOSITION_GROUPS.find(
+    (group) => group.id === selectedSeries?.composition,
+  )?.name;
   const align = (position: number) =>
     position > 85 ? "-100%" : position < 15 ? "0" : "-50%";
   const ordered = series.toSorted(
@@ -169,7 +179,7 @@ export function BenchmarkHistoryChart({
                 <button
                   key={`${item.id}-${point.runNumber}`}
                   type="button"
-                  aria-label={`${item.name}, ${dateLabel(point.timestamp)}, version ${point.version}, ${formatNumber(point.rps)} requests/s`}
+                  aria-label={`${item.name}, ${dateLabel(point.timestamp)}, ${point.runtime}, ${COMPOSITION_GROUPS.find((group) => group.id === item.composition)?.name}, version ${point.version}, ${formatNumber(point.rps)} requests/s`}
                   className={`focus-visible:outline-cc-accent absolute flex size-5 -translate-1/2 cursor-pointer items-center justify-center rounded-full focus-visible:outline-2 ${item.id === active ? "z-[2]" : ""}`}
                   style={{
                     width: `clamp(3px, ${100 / maxPoints}%, 20px)`,
@@ -221,7 +231,11 @@ export function BenchmarkHistoryChart({
                     transform: `translate(${align(x(point.timestamp))}, ${y(point.rps) < 25 ? "16px" : "calc(-100% - 16px)"})`,
                   }}
                 >
-                  <div className="font-semibold">{selectedSeries?.name}</div>
+                  <div className="font-semibold">
+                    {selectedSeries?.name}
+                    {showRuntime ? ` (${point.runtime})` : ""}
+                  </div>
+                  <div className="text-cc-ink-dim">{compositionName}</div>
                   <div>Version {point.version}</div>
                   <div>{formatNumber(point.rps)} requests/s</div>
                 </div>
