@@ -423,7 +423,9 @@ public sealed class GraphQLHttpResponse : IDisposable
 #if FUSION
         var contentLength = _message.Content.Headers.ContentLength;
 
-        if (contentLength is not (> 0 and <= MaxSingleSpanResponseLength))
+        if (contentLength is null
+            || contentLength <= 0
+            || contentLength > MaxSingleSpanResponseLength)
         {
             return await ReadIntoArenaAsync(stream, arena, ct).ConfigureAwait(false);
         }
