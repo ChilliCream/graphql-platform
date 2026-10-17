@@ -1,0 +1,205 @@
+Fresh Apollo Federation profile discovery and frozen candidate registration
+Source 43a8dca2bd479ddc411d832ed97e42d9fcc8bd85
+Benchmark 941599e4e27719084189e12d737e147069fdf794
+Gateway Fusion.Execution SHA256 9c436477e63d9c7f5c8668dcd75fec9771f500a5e71b14a1f02dd0bcf8fe6c5b
+Status: discovery closed; root froze C1, C2 and C3 on 2026-10-17.
+No implementation or performance win is claimed by this registration.
+
+Trace identity and validity
+
+Target PID 18692, Linux start_ticks 124428. Process identities record the frozen
+source-built gateway executable, Production environment, runtime roll-forward
+disabled, fixed gateway affinity 2-3,10-11 and zero source artificial delay.
+The CPU Speedscope process frame names this exact PID and executable. Baseline
+owner retains process samples and load-generator native observations separately.
+
+Trace                      Actual UTC start                 Actual UTC end
+cpu.nettrace               2026-10-17 15:58:52.9190000       15:59:23.0077164
+alloc.nettrace             2026-10-17 15:59:43.2800000       15:59:58.4007500
+entities9-alloc.nettrace   2026-10-17 16:00:33.9710000       16:00:49.0509961
+
+Actual durations are 30.0887164, 15.1207500 and 15.0799961 seconds. Every parsed
+trace reports zero lost events. CPU has 703,623 sample events. TestQuery and
+entities9 have 32,409 and 55,563 allocation ticks respectively. Their recorded GC
+start/stop pairs number 168 and 311. GC captures ran separately from plain timing.
+The original CPU collection log was overwritten by the runner; raw trace metadata,
+process identity and native traffic data remain the evidence for the CPU capture.
+The baseline owner matched those exact bounds to warmed native traffic: CPU has
+114,759 successful requests, zero failures and 68.595359 gateway process CPU
+seconds; TestQuery allocation has 61,630 successes, zero failures and 37.092032
+CPU seconds. The CPU window therefore measures 597.734 microseconds of process
+CPU per success. Representation dedup clearing is about 18.357 sampled thread
+microseconds per completed request in that window, not an exact removable CPU
+amount. No allocation tick/count division is used to infer calls or exact bytes.
+The entities9 trace is also contained in warmed traffic, with 138,914 HTTP200
+completion/duration points and 138,913 success/iteration callbacks inside its
+exact bounds. One callback crosses the boundary. The full 35-second phase has
+322,271 successful iterations and zero failures; exact-window gateway CPU is
+30.031472 seconds. This one-request boundary difference is retained explicitly.
+
+CPU is EventPipe sampled thread time, not hardware cycles or process CPU. The
+analysis explicitly excludes known idle/wait stacks, including ManualResetEventSlim,
+LowLevelLifoSemaphore, Monitor.Wait, finalizer waits, GC worker waits and the socket
+event-loop thread. The retained sample duration is 71,543.995 ms across threads;
+63,910.538 ms has the CPU_TIME synthetic leaf and 7,632.305 ms has the unmanaged
+leaf. Remaining native/scheduler/lock frames can still include unidentified waits.
+Do not interpret the filtered total as measured runnable CPU or infer contention
+from Monitor.Enter samples. All inclusive categories overlap.
+
+Source/wire recurrence and absolute opportunity
+
+The unchanged original TestQuery has 13 formatted plan entries, 11 Apollo entity
+lookup members, seven HTTP dispatches and four aliased request bodies. Formatting
+flattens batch members: ten ApolloOperationBatch entries form four runtime batch
+nodes, and the remaining Apollo entry is a single node. Every source is configured
+as ApolloFederation and actual request bodies contain _entities representations.
+
+Lookup members, target occurrences, distinct representations, duplicate paths:
+  inventory topProducts                                      5,  5,  0
+  reviews users                                              6,  6,  0
+  reviews topProducts                                        5,  5,  0
+  products users.reviews.product                             12,  1, 11
+  products users.reviews.product.reviews.author.reviews.product 96, 1, 95
+  products topProducts.reviews.author.reviews.product         22,  1, 21
+  accounts users.reviews.product.reviews.author               48,  1, 47
+  accounts topProducts.reviews.author                        11,  1, 10
+  inventory users.reviews.product                            12,  1, 11
+  inventory users.reviews.product.reviews.author.reviews.product 96, 1, 95
+  inventory topProducts.reviews.author.reviews.product        22,  1, 21
+Totals: 335 target occurrences, 24 distinct representations, 311 duplicate paths.
+Counts derive from recorded plan/complete result and match outgoing variables.
+They are not inferred from allocation ticks or CPU sampling.
+
+Allocation caller group             TestQuery ticks / sampled share  entities9
+Duplicate representation paths     1,600 / 4.9364%                 633 / 1.1393%
+Representation scratch objects     1,229 / 3.7917%               1,330 / 2.3939%
+Error-attribution VariableValues[]    783 / 2.4157%               1,160 / 2.0878%
+Immutable EntityResultPath[]          505 / 1.5585%                 900 / 1.6197%
+
+Sampled-byte shares locate allocation callers; they are not exact allocated-byte
+shares or call counts. Scratch counts include only JsonWriter, VariableDedupTable
+and ChunkedArrayWriter allocations whose caller is BuildRepresentationValue.
+Error-attribution counts include only RepresentationValue.ToVariableValues.
+The required one-element combined request-variable arrays are excluded.
+
+Static 64-bit CLR layout predicts 1,224 bytes/request for the error-only arrays:
+eleven 24-byte array headers plus 24 40-byte VariableValues structs. Duplicate
+CompactPath[] arrays predict 2,680 bytes/request: eight headers plus 311 eight-byte
+structs. These are source/layout predictions requiring scoped allocation validation,
+not measured total process allocation reductions. EntityResultPath[] predicts
+840 bytes/request, but its public ImmutableArray contract constrains reuse.
+
+C1: reuse Apollo representation scratch state
+
+Caller: Apollo node -> FetchResultStore.BuildRepresentationValue -> new writer,
+dedup table and JsonWriter; VariableDedupTable.Initialize sizes by all target
+occurrences. Each invocation rents/clears its default table and may resize/clear
+again. The original query implies at least 35,840 cleared entry bytes/request at
+the minimum pool bucket sizes, despite only 24 distinct representations.
+
+CPU evidence: BuildRepresentationValue includes 5,329.076 sampled thread-ms;
+2,106.589 ms specifically follows VariableDedupTable.Resize -> RentClearedTable
+-> Buffer.ZeroMemoryInternal. This is 2.9445% of filtered sampled thread time,
+including 2,102.515 ms with CPU_TIME leaves. Source and allocation caller evidence
+also locate the three fresh scratch objects on every warm entity fetch.
+
+Hypothesis: retained, bounded scratch on the request's FetchResultStore removes
+repeated object allocation and oversized table initialization without changing
+representation JSON, deduplication or paths. Reuse must stay under the store lock,
+clear only existing entries safely, reset before each lookup, and release excess
+capacity on request cleanup. A smaller capacity/growth variant is within this
+same hypothesis if lifetime reuse cannot preserve ownership or clearing behavior.
+
+Risks: writer bytes escaping to pending requests, stale dedup indexes across
+fetches, parallel fetch races, canceled cleanup, retained capacity after large lists,
+and all-unique resizing regressions. The outgoing combined variable writer remains
+independent. Native/deferred snapshot paths require regression coverage if shared.
+
+Micro: real production FetchResultStore creation with ordinary unique counts
+1/5/6/9, duplicate 96->1, mixed duplicates, unique96/1024, snapshot/null fallback,
+and a large-then-small lifecycle. Setup/schema/shape compilation stays outside
+timing; representation writes and affected lifecycle stay inside. Use three planned
+independent timing launches, separate validated thread-scoped allocation runs,
+consume results and verify JSON/path output. Abandon on meaningful ordinary or
+all-unique regression, unsafe ownership, or negligible absolute saving.
+
+C2: materialize Apollo error-attribution variables only when needed
+
+Caller: both Apollo node forms eagerly call RepresentationValue.ToVariableValues,
+but successful PendingMerge.Apply uses RepresentationValue.ResultPaths directly.
+This occurs eleven times/request for TestQuery and is present on the smaller
+entities9 operation. CPU attributable to ToVariableValues is only 70.663 sampled
+thread-ms, so the intended claim is scoped allocation reduction.
+
+Hypothesis: delay internal error-only conversion until exception/missing-result
+handling while preserving the public ToVariableValues result contract and required
+one-element outgoing variables. Predicted original saving is 1,224 bytes/request.
+No generic CPU or latency claim follows from this opportunity.
+
+Risks: transport/merge errors, missing batch results, cancellation, duplicate path
+fanout, and path validity when deferred errors are emitted. Keep exception and
+callback semantics unchanged. Micro the actual node/error-attribution path, not a
+copied array loop. Include single/batch success and failure cases and scoped
+allocation corroboration. Abandon if the necessary lifetime changes exceed this
+narrow mechanism, allocation proof is unreliable, or HTTP benefit is unproven.
+
+C3: reuse duplicate representation path-array backing
+
+Caller: RepresentationPathAccumulator.ApplyTo allocates one new exact CompactPath[]
+per duplicate-containing lookup to scatter additional paths. This is the highest
+new recurring allocation caller in TestQuery: eight arrays hold 311 paths/request.
+Its direct CPU is only 181.022 sampled thread-ms; the intended primary claim is
+allocation reduction. EntityResultPath immutable arrays are outside this change.
+
+Hypothesis: use pooled duplicate backing with explicit request-store ownership,
+retaining it until all pending merges/errors/callbacks are finished and returning
+it on Clean/Dispose. Predicted original saving is 2,680 bytes/request, offset by
+any owner/tracking allocation, retention and clearing introduced by the change.
+Test actual production accumulator behavior, duplicate/all-unique/mixed cases,
+errors at primary/additional paths, canceled/throwing flows, concurrent nodes and
+large-to-small request reuse. Prove no stale references or contract change.
+
+Independent exclusion review confirmed this layer differs from earlier int[] path
+segment pool access/retention (#10548), pool-slot arrays (#10557) and arena segment
+tables (#10559). None of those policies may change. CompactPathSegment.Detach must
+continue producing independent backing. Abandon on unresolved public lifetime
+semantics, ownership races, worse retention, negligible net savings, or adverse HTTP.
+
+Shared HTTP gate and stopping condition
+
+All candidates use independent branches from the same pinned baseline. After the
+micro gate, compare frozen candidate binaries with planned adjacent/reversed
+controls on unchanged TestQuery, the existing nested entities9 operation and
+ordinary query. Include the benchmark's constant-latency/concurrency modes needed
+for the claimed scope; use baseline runner assets and resource observations.
+Preserve selected data, schema, source/runtime/security/GC/logging configuration.
+Compare gateway CPU/success, throughput, timestamped latency distributions, errors,
+GC and retained memory. A scoped allocation gain qualifies only if its absolute
+saving is worthwhile and the relevant HTTP gate has no unresolved repeated adverse
+CPU/tail pattern. Valid inconclusive measurements terminate as abandoned; do not
+repeat a valid campaign to obtain a win. Root owns measurement scheduling.
+
+Observed mechanisms not registered
+
+* EntityResultPath[] copy: measurable allocation, but public exact-length immutable
+  array ownership cannot be replaced with a rented oversized array safely. No
+  minimal compatible lifetime change was established in this pass.
+* Shape property lookup: 671.465 ms inclusive shape work includes serialization;
+  no separate property-lookup bottleneck or bounded worthwhile change was proved.
+* Alias body/splitting: 149.637/68.628 ms inclusive sampled thread time, with no
+  specific minimal improvement established. Do not start a new composition cache.
+* CreateCompactPath and other previously authored mechanisms: excluded by the
+  user's latest instruction regardless of their appearance in the fresh profile.
+* Warm planning/representation compilation/MD5: no meaningful recurring evidence.
+* Locks/scheduling: idle/native stacks do not establish a framework contention bug.
+
+Reproduction and evidence
+
+TraceAnalysis source is reused exactly from 1e75ce82d3ec18dea4b2083272e0e946ab7c0872.
+Run it against each raw nettrace and target PID18692, then run summarize_alloc.py
+against its allocation JSON. analyze_cpu.py consumes cpu.speedscope.json. All
+substantial offline work takes shared flock -s -o on the investigation lock.
+results/ contains losslessly compressed allocation event/caller observations and
+summaries, plus CPU metadata and evented-stack summary. inputs.sha256 records
+original raw trace/export hashes. The baseline owner publishes the raw profiles,
+native traffic/process samples, plan, wire and immutable provenance separately.

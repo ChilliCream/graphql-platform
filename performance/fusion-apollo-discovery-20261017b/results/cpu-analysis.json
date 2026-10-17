@@ -1,0 +1,23 @@
+{
+  "targetPid": 18692,
+  "traceStartUtc": "2026-10-17T15:58:52.9190000Z",
+  "traceEndUtc": "2026-10-17T15:59:23.0077164Z",
+  "reportedEventsLost": 0,
+  "events": {
+    "Microsoft-DotNETCore-SampleProfiler/Thread/Sample": 703623,
+    "Microsoft-DotNETCore-EventPipe/ProcessInfo": 1,
+    "Microsoft-Windows-DotNETRuntimeRundown/Runtime/Start": 1,
+    "Microsoft-Windows-DotNETRuntimeRundown/Method/DCStopInit": 1,
+    "Microsoft-Windows-DotNETRuntimeRundown/Loader/ModuleDCStop": 124,
+    "Microsoft-Windows-DotNETRuntimeRundown/Loader/DomainModuleDCStop": 124,
+    "Microsoft-Windows-DotNETRuntimeRundown/Loader/AssemblyDCStop": 124,
+    "Microsoft-Windows-DotNETRuntimeRundown/Loader/AppDomainDCStop": 1,
+    "Microsoft-Windows-DotNETRuntimeRundown/GC/SettingsRundown": 1,
+    "Microsoft-Windows-DotNETRuntimeRundown/Method/DCStopComplete": 1
+  },
+  "sampledBytes": 0,
+  "frames": [],
+  "allocationEvents": [],
+  "httpEvents": [],
+  "limitation": "Sampled allocation amounts locate callers. They are not exact per-type allocated bytes or invocation counts. Validate HTTP event loss, destination, activity pairing and traffic containment before frequency claims."
+}
