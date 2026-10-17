@@ -1,0 +1,244 @@
+{
+  "review_time_utc": "2026-10-17T15:46:26.151848+00:00",
+  "reviewer": "history_environment",
+  "verdict": "Fidelity pass; timing/accounting not yet reviewed",
+  "source_schemas": {
+    "Accounts": {
+      "live_sdl_sha256": "a2f4abc450252f3c4b93ca6e4364d83fe6596d3bfcf033f992d398afc3e58c39",
+      "archive_sdl_sha256": "a927ce514a0a14a5e380849bdceacd909239b163f6e17ee5769033c533850749",
+      "exactly_terminal_newline_difference": true
+    },
+    "Inventory": {
+      "live_sdl_sha256": "d6aaa6cbee5a2905b0f8510ac500c799e5dceeb10b7465ad45a5734e995b58d6",
+      "archive_sdl_sha256": "8780a7d0729f836dc2ac809509c785e3a29dcabbd77f652193965ea3ee98bd79",
+      "exactly_terminal_newline_difference": true
+    },
+    "Products": {
+      "live_sdl_sha256": "3c5b9c44cde0f9352615191de98e903c930f6c42edb300d685088f67668eee16",
+      "archive_sdl_sha256": "b20e184c0406a50cb29a48785a190f9ec8574fde302f604505c0a32ca82d8dbf",
+      "exactly_terminal_newline_difference": true
+    },
+    "Reviews": {
+      "live_sdl_sha256": "3c9f74c97da53ca6431d1854962f9a74f83e15e960e123470622707bea927845",
+      "archive_sdl_sha256": "473fe000479de7f305c7a4c94541b2a357a858eb548b59cfba4063e34a40b746",
+      "exactly_terminal_newline_difference": true
+    }
+  },
+  "archives": {
+    "graphql-federation-benchmarks/apollo-federation/gateways/fusion-nightly-fed/eShop.Gateway/gateway.far": "1bad4cfa6c3b3a6fa0b8dd2746c758c4b94d2fe8640c822240e4f4ea2f13a5af",
+    ".worktrees/fusion-apollo-baseline-20261017b/experiments/fusion-apollo-baseline-20261017b/host/gateway.far": "1bad4cfa6c3b3a6fa0b8dd2746c758c4b94d2fe8640c822240e4f4ea2f13a5af",
+    "perf/fusion-apollo-baseline-20261017b/frozen/gateway/gateway.far": "1bad4cfa6c3b3a6fa0b8dd2746c758c4b94d2fe8640c822240e4f4ea2f13a5af"
+  },
+  "plan_id": "a1b4bd89430deee0a632bb581c3e4c7d74626ab69e8bc673a7d6e3ba7259d8ea",
+  "node_type_counts": {
+    "Operation": 2,
+    "ApolloOperation": 1,
+    "ApolloOperationBatch": 10
+  },
+  "actual_testquery_fetches": [
+    {
+      "url": "http://localhost:5223/graphql",
+      "authorization": "Bearer fidelity-TestQuery",
+      "body_bytes_utf8": 107,
+      "query": "query TestQuery_f3306f8c_1 {\n  topProducts {\n    name\n    price\n    upc\n    weight\n  }\n}",
+      "variables": null
+    },
+    {
+      "url": "http://localhost:5221/graphql",
+      "authorization": "Bearer fidelity-TestQuery",
+      "body_bytes_utf8": 91,
+      "query": "query TestQuery_f3306f8c_2 {\n  users {\n    id\n    username\n    name\n  }\n}",
+      "variables": null
+    },
+    {
+      "url": "http://localhost:5222/graphql",
+      "authorization": "Bearer fidelity-TestQuery",
+      "body_bytes_utf8": 509,
+      "query": "query($representations: [_Any!]!) {\n  _entities(representations: $representations) {\n    ... on Product {\n      inStock\n      shippingEstimate\n    }\n  }\n}",
+      "variables": {
+        "representations": [
+          {
+            "__typename": "Product",
+            "upc": "1",
+            "price": 899,
+            "weight": 100
+          },
+          {
+            "__typename": "Product",
+            "upc": "2",
+            "price": 1299,
+            "weight": 1000
+          },
+          {
+            "__typename": "Product",
+            "upc": "3",
+            "price": 15,
+            "weight": 20
+          },
+          {
+            "__typename": "Product",
+            "upc": "4",
+            "price": 499,
+            "weight": 100
+          },
+          {
+            "__typename": "Product",
+            "upc": "5",
+            "price": 1299,
+            "weight": 1000
+          }
+        ]
+      }
+    },
+    {
+      "url": "http://localhost:5224/graphql",
+      "authorization": "Bearer fidelity-TestQuery",
+      "body_bytes_utf8": 835,
+      "query": "query TestQuery_f3306f8c_Batch_17932bd018725c39($_0_representations:[_Any!]!,$_1_representations:[_Any!]!){_0__entities:_entities(representations:$_0_representations){...on User{reviews{id body product{upc reviews{id body author{id reviews{id body product{upc}}}}}}}} _1__entities:_entities(representations:$_1_representations){...on Product{reviews{id body author{id reviews{id body product{upc}}}}}}}",
+      "variables": {
+        "_0_representations": [
+          {
+            "__typename": "User",
+            "id": "1"
+          },
+          {
+            "__typename": "User",
+            "id": "2"
+          },
+          {
+            "__typename": "User",
+            "id": "3"
+          },
+          {
+            "__typename": "User",
+            "id": "4"
+          },
+          {
+            "__typename": "User",
+            "id": "5"
+          },
+          {
+            "__typename": "User",
+            "id": "6"
+          }
+        ],
+        "_1_representations": [
+          {
+            "__typename": "Product",
+            "upc": "1"
+          },
+          {
+            "__typename": "Product",
+            "upc": "2"
+          },
+          {
+            "__typename": "Product",
+            "upc": "3"
+          },
+          {
+            "__typename": "Product",
+            "upc": "4"
+          },
+          {
+            "__typename": "Product",
+            "upc": "5"
+          }
+        ]
+      }
+    },
+    {
+      "url": "http://localhost:5223/graphql",
+      "authorization": "Bearer fidelity-TestQuery",
+      "body_bytes_utf8": 618,
+      "query": "query TestQuery_f3306f8c_Batch_fa54049e5b0d5349($_0_representations:[_Any!]!,$_1_representations:[_Any!]!,$_2_representations:[_Any!]!){_0__entities:_entities(representations:$_0_representations){...on Product{name price weight}} _1__entities:_entities(representations:$_1_representations){...on Product{name price weight}} _2__entities:_entities(representations:$_2_representations){...on Product{name price weight}}}",
+      "variables": {
+        "_0_representations": [
+          {
+            "__typename": "Product",
+            "upc": "1"
+          }
+        ],
+        "_1_representations": [
+          {
+            "__typename": "Product",
+            "upc": "1"
+          }
+        ],
+        "_2_representations": [
+          {
+            "__typename": "Product",
+            "upc": "1"
+          }
+        ]
+      }
+    },
+    {
+      "url": "http://localhost:5221/graphql",
+      "authorization": "Bearer fidelity-TestQuery",
+      "body_bytes_utf8": 415,
+      "query": "query TestQuery_f3306f8c_Batch_8e95ac78a1675692($_0_representations:[_Any!]!,$_1_representations:[_Any!]!){_0__entities:_entities(representations:$_0_representations){...on User{username name}} _1__entities:_entities(representations:$_1_representations){...on User{username name}}}",
+      "variables": {
+        "_0_representations": [
+          {
+            "__typename": "User",
+            "id": "1"
+          }
+        ],
+        "_1_representations": [
+          {
+            "__typename": "User",
+            "id": "1"
+          }
+        ]
+      }
+    },
+    {
+      "url": "http://localhost:5222/graphql",
+      "authorization": "Bearer fidelity-TestQuery",
+      "body_bytes_utf8": 714,
+      "query": "query TestQuery_f3306f8c_Batch_730f4d9444ecf1f9($_0_representations:[_Any!]!,$_1_representations:[_Any!]!,$_2_representations:[_Any!]!){_0__entities:_entities(representations:$_0_representations){...on Product{inStock shippingEstimate}} _1__entities:_entities(representations:$_1_representations){...on Product{inStock shippingEstimate}} _2__entities:_entities(representations:$_2_representations){...on Product{inStock shippingEstimate}}}",
+      "variables": {
+        "_0_representations": [
+          {
+            "__typename": "Product",
+            "upc": "1",
+            "price": 899,
+            "weight": 100
+          }
+        ],
+        "_1_representations": [
+          {
+            "__typename": "Product",
+            "upc": "1",
+            "price": 899,
+            "weight": 100
+          }
+        ],
+        "_2_representations": [
+          {
+            "__typename": "Product",
+            "upc": "1",
+            "price": 899,
+            "weight": 100
+          }
+        ]
+      }
+    }
+  ],
+  "smoke_counts": {
+    "scenario_iterations": 400,
+    "scenario_successes": 400,
+    "all_http_requests_including_setup": 404,
+    "oracle_scope": "Original script calls full recursive expected structure check once per VU; status/error checks each iteration."
+  },
+  "source_hashes": {
+    "campaign.py": "179b1e49a2afb26a9c849d94e669897881359b9ff7564563572f8079ed617819",
+    "freeze.py": "2c316c4587c1dace49d8efc412298cdf7be85019fa572e18357647d78733da40",
+    "focused.js": "d0343c4ec4a13a8f54542e55382d6aa1259a196a898cebf613af536d45597370",
+    "host/Program.cs": "9bd172a4ac11c2c654be92e9bc4d4c94005e2bb7dee413f5f6b8b55bb3eb8c9b",
+    "host/eShop.Gateway.csproj": "0329762f2612141d936ffc8a754fce87d9ba6fe25150d162f77c8f5be262f593",
+    "host/bench.props": "d6706c32f26aba32aeb69428aea7d49e12f90787019c137ebd6696724edf8f75",
+    "host/WireCaptureHandler.cs": "393fec245eceb6e26f98d8ed6ac266843c5e3f11f2a704958e5155146d945e97",
+    "fixture/k6/k6.js": "b967285db74541fd9b29ab68522b6f5902de4caf7e43946dab183205bc88ea6e"
+  }
+}

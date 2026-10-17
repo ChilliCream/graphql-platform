@@ -1,0 +1,192 @@
+{
+  "source": "/workspaces/platform-1/perf/fusion-apollo-baseline-20261017b/baseline-r1-delay0",
+  "window_start_epoch": 1792251966.9611251,
+  "window_end_epoch": 1792251996.968816,
+  "window_seconds": 30.007690906524658,
+  "window_rule": "Minimum scenario-default completion minus http_req_duration to maximum scenario-default completion; setup excluded. Duration excludes blocked/connect/TLS; matching process CPU interpolated from100ms samples with10ms ticks.",
+  "native_counts": {
+    "http_reqs": 122191,
+    "http_req_duration": 122191,
+    "http_req_failed": 122191,
+    "success_rate": 122191,
+    "iterations": 122191
+  },
+  "setup_http_requests": 100,
+  "successes": 122191,
+  "failures": 0,
+  "non200_latency_samples": 0,
+  "throughput_success_per_second": 4071.989423665773,
+  "latency_ms": {
+    "0.5": 11.360112,
+    "0.95": 21.6749505,
+    "0.99": 28.96104770000001,
+    "0.999": 42.08415419
+  },
+  "processes": {
+    "gateway": {
+      "cpu_seconds": 71.43350227335722,
+      "core_equivalents": 2.380506467354515,
+      "fraction_assigned_cpu": 0.5951266168386288,
+      "max_rss_bytes": 207609856,
+      "min_rss_bytes": 194813952,
+      "max_threads": 73,
+      "start_ticks_unique": [
+        48826
+      ]
+    },
+    "Accounts": {
+      "cpu_seconds": 15.804371701953626,
+      "core_equivalents": 0.5266773691846192,
+      "fraction_assigned_cpu": 0.0658346711480774,
+      "max_rss_bytes": 132370432,
+      "min_rss_bytes": 131448832,
+      "max_threads": 44,
+      "start_ticks_unique": [
+        48826
+      ]
+    },
+    "Inventory": {
+      "cpu_seconds": 17.622379434724973,
+      "core_equivalents": 0.58726209522817,
+      "fraction_assigned_cpu": 0.07340776190352125,
+      "max_rss_bytes": 128520192,
+      "min_rss_bytes": 125018112,
+      "max_threads": 57,
+      "start_ticks_unique": [
+        48826
+      ]
+    },
+    "Products": {
+      "cpu_seconds": 16.20392348953566,
+      "core_equivalents": 0.5399923486286109,
+      "fraction_assigned_cpu": 0.06749904357857636,
+      "max_rss_bytes": 130781184,
+      "min_rss_bytes": 121204736,
+      "max_threads": 53,
+      "start_ticks_unique": [
+        48826
+      ]
+    },
+    "Reviews": {
+      "cpu_seconds": 41.97739876665336,
+      "core_equivalents": 1.3988880016598042,
+      "fraction_assigned_cpu": 0.17486100020747553,
+      "max_rss_bytes": 146030592,
+      "min_rss_bytes": 142884864,
+      "max_threads": 54,
+      "start_ticks_unique": [
+        48826
+      ]
+    },
+    "TestQuery": {
+      "cpu_seconds": 25.714907955532727,
+      "core_equivalents": 0.8569439093343054,
+      "fraction_assigned_cpu": 0.4284719546671527,
+      "max_rss_bytes": 128978944,
+      "min_rss_bytes": 76042240,
+      "max_threads": 9,
+      "start_ticks_unique": [
+        51976
+      ]
+    },
+    "counters": {
+      "cpu_seconds": 0.06,
+      "core_equivalents": 0.0019994874043092075,
+      "fraction_assigned_cpu": 0.0009997437021546038,
+      "max_rss_bytes": 59498496,
+      "min_rss_bytes": 46673920,
+      "max_threads": 14,
+      "start_ticks_unique": [
+        48863
+      ]
+    }
+  },
+  "source_combined_cores": 3.0528198147012042,
+  "gateway_cpu_ms_per_success": 0.5846052677640515,
+  "counter_container_complete": false,
+  "runtime_cpu_checks": [
+    {
+      "tags": "cpu.mode=system",
+      "runtime_unit_name": "dotnet.process.cpu.time (s / 1 sec)",
+      "first_boundary": {
+        "timestamp": "2026-10-17T15:46:07.8324893+00:00",
+        "provider": "System.Runtime",
+        "name": "dotnet.process.cpu.time (s / 1 sec)",
+        "tags": "cpu.mode=system",
+        "counterType": "Rate",
+        "meterTags": "",
+        "instrumentTags": "",
+        "value": 0.2722439999999997
+      },
+      "last_boundary": {
+        "timestamp": "2026-10-17T15:46:35.8275874+00:00",
+        "provider": "System.Runtime",
+        "name": "dotnet.process.cpu.time (s / 1 sec)",
+        "tags": "cpu.mode=system",
+        "counterType": "Rate",
+        "meterTags": "",
+        "instrumentTags": "",
+        "value": 0.35081699999999927
+      },
+      "included_rate_samples": 28,
+      "runtime_interval_delta_sum_seconds": 8.907481,
+      "matching_os_total_cpu_seconds": 66.69601500370847
+    },
+    {
+      "tags": "cpu.mode=user",
+      "runtime_unit_name": "dotnet.process.cpu.time (s / 1 sec)",
+      "first_boundary": {
+        "timestamp": "2026-10-17T15:46:07.8324905+00:00",
+        "provider": "System.Runtime",
+        "name": "dotnet.process.cpu.time (s / 1 sec)",
+        "tags": "cpu.mode=user",
+        "counterType": "Rate",
+        "meterTags": "",
+        "instrumentTags": "",
+        "value": 2.012202000000002
+      },
+      "last_boundary": {
+        "timestamp": "2026-10-17T15:46:35.8275887+00:00",
+        "provider": "System.Runtime",
+        "name": "dotnet.process.cpu.time (s / 1 sec)",
+        "tags": "cpu.mode=user",
+        "counterType": "Rate",
+        "meterTags": "",
+        "instrumentTags": "",
+        "value": 2.070042000000001
+      },
+      "included_rate_samples": 28,
+      "runtime_interval_delta_sum_seconds": 57.30223299999999,
+      "matching_os_total_cpu_seconds": 66.69601542724747
+    }
+  ],
+  "combined_runtime_cpu_seconds": 66.20971399999999,
+  "matching_os_cpu_seconds": 66.69601521547797,
+  "runtime_vs_os_relative_difference": -0.007291308392365914,
+  "runtime_metric_names": [
+    "dotnet.assembly.count ({assembly})",
+    "dotnet.gc.collections ({collection} / 1 sec)",
+    "dotnet.gc.heap.total_allocated (By / 1 sec)",
+    "dotnet.gc.last_collection.heap.fragmentation.size (By)",
+    "dotnet.gc.last_collection.heap.size (By)",
+    "dotnet.gc.last_collection.memory.committed_size (By)",
+    "dotnet.gc.pause.time (s / 1 sec)",
+    "dotnet.jit.compilation.time (s / 1 sec)",
+    "dotnet.jit.compiled_il.size (By / 1 sec)",
+    "dotnet.jit.compiled_methods ({method} / 1 sec)",
+    "dotnet.monitor.lock_contentions ({contention} / 1 sec)",
+    "dotnet.process.cpu.count ({cpu})",
+    "dotnet.process.cpu.time (s / 1 sec)",
+    "dotnet.process.memory.working_set (By)",
+    "dotnet.thread_pool.queue.length ({work_item} / 1 sec)",
+    "dotnet.thread_pool.thread.count ({thread} / 1 sec)",
+    "dotnet.thread_pool.work_item.count ({work_item} / 1 sec)",
+    "dotnet.timer.count ({timer})"
+  ],
+  "limitations": [
+    "This is a retained initial baseline observation, not a candidate comparison.",
+    "CPU tick/interpolation checks validate accounting only, not full-phase uncertainty.",
+    "Assigned cores share virtualized host resources; no hardware counters collected.",
+    "The four subgraphs share8CPUs, their fractions must be assessed together."
+  ]
+}

@@ -1,0 +1,159 @@
+{
+  "utc": "2026-10-17T15:44:55.385523+00:00",
+  "reason": "Completed investigation builds inherited shared flock FD; future invocations use flock --close. No preexisting .NET processes in initial snapshot.",
+  "processes": [
+    {
+      "pid": 8001,
+      "comm": "MSBuild",
+      "startTicks": 29811,
+      "lockFds": [
+        "3"
+      ],
+      "existsAfterTerm": false
+    },
+    {
+      "pid": 8029,
+      "comm": "MSBuild",
+      "startTicks": 29837,
+      "lockFds": [
+        "3"
+      ],
+      "existsAfterTerm": false
+    },
+    {
+      "pid": 8030,
+      "comm": "MSBuild",
+      "startTicks": 29837,
+      "lockFds": [
+        "3"
+      ],
+      "existsAfterTerm": false
+    },
+    {
+      "pid": 8031,
+      "comm": "MSBuild",
+      "startTicks": 29837,
+      "lockFds": [
+        "3"
+      ],
+      "existsAfterTerm": false
+    },
+    {
+      "pid": 8076,
+      "comm": "MSBuild",
+      "startTicks": 29845,
+      "lockFds": [
+        "3"
+      ],
+      "existsAfterTerm": false
+    },
+    {
+      "pid": 8079,
+      "comm": "MSBuild",
+      "startTicks": 29845,
+      "lockFds": [
+        "3"
+      ],
+      "existsAfterTerm": false
+    },
+    {
+      "pid": 8130,
+      "comm": "MSBuild",
+      "startTicks": 29851,
+      "lockFds": [
+        "3"
+      ],
+      "existsAfterTerm": false
+    },
+    {
+      "pid": 8131,
+      "comm": "MSBuild",
+      "startTicks": 29851,
+      "lockFds": [
+        "3"
+      ],
+      "existsAfterTerm": false
+    },
+    {
+      "pid": 8167,
+      "comm": "MSBuild",
+      "startTicks": 29858,
+      "lockFds": [
+        "3"
+      ],
+      "existsAfterTerm": false
+    },
+    {
+      "pid": 8168,
+      "comm": "MSBuild",
+      "startTicks": 29858,
+      "lockFds": [
+        "3"
+      ],
+      "existsAfterTerm": false
+    },
+    {
+      "pid": 8169,
+      "comm": "MSBuild",
+      "startTicks": 29858,
+      "lockFds": [
+        "3"
+      ],
+      "existsAfterTerm": false
+    },
+    {
+      "pid": 8171,
+      "comm": "MSBuild",
+      "startTicks": 29858,
+      "lockFds": [
+        "3"
+      ],
+      "existsAfterTerm": false
+    },
+    {
+      "pid": 8238,
+      "comm": "MSBuild",
+      "startTicks": 29864,
+      "lockFds": [
+        "3"
+      ],
+      "existsAfterTerm": false
+    },
+    {
+      "pid": 8239,
+      "comm": "MSBuild",
+      "startTicks": 29864,
+      "lockFds": [
+        "3"
+      ],
+      "existsAfterTerm": false
+    },
+    {
+      "pid": 8240,
+      "comm": "MSBuild",
+      "startTicks": 29864,
+      "lockFds": [
+        "3"
+      ],
+      "existsAfterTerm": false
+    },
+    {
+      "pid": 8423,
+      "comm": "VBCSCompiler",
+      "startTicks": 30035,
+      "lockFds": [
+        "3"
+      ],
+      "existsAfterTerm": false
+    },
+    {
+      "pid": 9155,
+      "comm": "VBCSCompiler",
+      "startTicks": 31157,
+      "lockFds": [
+        "3"
+      ],
+      "existsAfterTerm": false
+    }
+  ]
+}
