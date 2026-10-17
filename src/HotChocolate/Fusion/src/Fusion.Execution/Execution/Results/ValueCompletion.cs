@@ -1009,7 +1009,7 @@ internal sealed class ValueCompletion
             Debug.Assert(success, "The lists must have the same size.");
 
             ErrorTrie? errorTrieForIndex = null;
-            errorTrie?.TryGetValue(i, out errorTrieForIndex);
+            errorTrie?.TryGetIndex(i, out errorTrieForIndex);
 
             if (errorTrieForIndex?.Error is { } error)
             {

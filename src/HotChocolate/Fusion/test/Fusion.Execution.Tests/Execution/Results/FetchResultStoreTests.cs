@@ -796,6 +796,58 @@ public sealed class FetchResultStoreTests : FusionTestBase
         Assert.Equal("boom", error.Message);
     }
 
+    [Theory]
+    [InlineData("[\"values\"]", null, new[] { "values" })]
+    [InlineData("[\"values\",1]", null, new[] { "values[1]" })]
+    [InlineData("[\"values\",0]", "[\"values\",2]", new[] { "values[0]", "values[2]" })]
+    public void AddPartialResults_Should_ForwardListErrors_When_ErrorPathsContainIndexes(
+        string firstPath,
+        string? secondPath,
+        string[] expectedPaths)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              values: [Int!]!
+            }
+            """);
+        var plan = PlanOperation(schema, "{ values }");
+        var node = Assert.IsType<OperationExecutionNode>(Assert.Single(plan.RootNodes));
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = new FetchResultStore();
+        store.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            plan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: default,
+            deferFlags: default,
+            pathSegmentLocalPoolCapacity: 16);
+        var firstError = """{"message":"boom","path":""" + firstPath + "}";
+        var errors = secondPath is null
+            ? firstError
+            : firstError + """,{"message":"boom","path":""" + secondPath + "}";
+        var payload = Encoding.UTF8.GetBytes("""{"data":{"values":[1,2,3]},"errors":[""" + errors + "]}");
+        var result = new SourceSchemaResult(
+            CompactPath.Root,
+            SourceResultDocument.Parse(sourceArena, payload, payload.Length));
+
+        // act
+        var added = store.AddPartialResult(SelectionPath.Root, result, node.ResultSelectionSet, containsErrors: true);
+
+        // assert
+        Assert.True(added);
+        RenderData(store).MatchInlineSnapshot(
+            """
+            {"values":[1,2,3]}
+            """);
+        Assert.Equal(expectedPaths, store.Errors?.Select(error => error.Path?.Print()).ToArray());
+    }
+
     [Fact]
     public void AddPartialResults_Should_ResolveRuntimeTypes_When_AbstractTypeExceedsTypeNameLookupLimit()
     {
