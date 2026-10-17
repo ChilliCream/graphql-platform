@@ -1,0 +1,19 @@
+{
+  "recordedAt": "2026-10-17T18:13:32.282838+00:00",
+  "identities": [
+    {
+      "pid": 189486,
+      "startTicks": 935799,
+      "parentPid": 103093,
+      "command": "flock -x -o /workspaces/platform-1/perf/fusion-common-path.lock taskset -c 0,8 env DOTNET_LOCAL_DEV=1 DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK=1 python3 /workspaces/platform-1/.worktrees/fusion-apollo-shared-variables-20261017b/performance/fusion-apollo-shared-variables-20261017b/run_bdn.py ",
+      "comm": "flock"
+    },
+    {
+      "pid": 189487,
+      "startTicks": 935802,
+      "parentPid": 189486,
+      "command": "python3 /workspaces/platform-1/.worktrees/fusion-apollo-shared-variables-20261017b/performance/fusion-apollo-shared-variables-20261017b/run_bdn.py ",
+      "comm": "python3"
+    }
+  ]
+}

@@ -1,0 +1,138 @@
+{
+  "checkedAt": "2026-10-17T18:13:22.194010+00:00",
+  "lockFree": true,
+  "runtimeEnvironment": {
+    "DOTNET_LOCAL_DEV": "1",
+    "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "1"
+  },
+  "relatedIdleProcesses": [
+    {
+      "pid": 108014,
+      "startTicks": 638464,
+      "cpuTicks": 4034,
+      "command": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild /nologo /nodemode:8 ",
+      "cpuTicksOverHalfSecond": 0
+    },
+    {
+      "pid": 108096,
+      "startTicks": 638519,
+      "cpuTicks": 1379,
+      "command": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild /noautoresponse /nologo /nodemode:1 /nodeReuse:true /low:false ",
+      "cpuTicksOverHalfSecond": 0
+    },
+    {
+      "pid": 108099,
+      "startTicks": 638519,
+      "cpuTicks": 1318,
+      "command": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild /noautoresponse /nologo /nodemode:1 /nodeReuse:true /low:false ",
+      "cpuTicksOverHalfSecond": 0
+    },
+    {
+      "pid": 108101,
+      "startTicks": 638519,
+      "cpuTicks": 1288,
+      "command": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild /noautoresponse /nologo /nodemode:1 /nodeReuse:true /low:false ",
+      "cpuTicksOverHalfSecond": 0
+    },
+    {
+      "pid": 108105,
+      "startTicks": 638519,
+      "cpuTicks": 1295,
+      "command": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild /noautoresponse /nologo /nodemode:1 /nodeReuse:true /low:false ",
+      "cpuTicksOverHalfSecond": 0
+    },
+    {
+      "pid": 108106,
+      "startTicks": 638519,
+      "cpuTicks": 1306,
+      "command": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild /noautoresponse /nologo /nodemode:1 /nodeReuse:true /low:false ",
+      "cpuTicksOverHalfSecond": 0
+    },
+    {
+      "pid": 108304,
+      "startTicks": 638563,
+      "cpuTicks": 1295,
+      "command": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild /noautoresponse /nologo /nodemode:1 /nodeReuse:true /low:false ",
+      "cpuTicksOverHalfSecond": 0
+    },
+    {
+      "pid": 108358,
+      "startTicks": 638574,
+      "cpuTicks": 1254,
+      "command": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild /noautoresponse /nologo /nodemode:1 /nodeReuse:true /low:false ",
+      "cpuTicksOverHalfSecond": 0
+    },
+    {
+      "pid": 108376,
+      "startTicks": 638582,
+      "cpuTicks": 1268,
+      "command": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild /noautoresponse /nologo /nodemode:1 /nodeReuse:true /low:false ",
+      "cpuTicksOverHalfSecond": 0
+    },
+    {
+      "pid": 108698,
+      "startTicks": 638933,
+      "cpuTicks": 40210,
+      "command": "",
+      "cpuTicksOverHalfSecond": 0
+    },
+    {
+      "pid": 122248,
+      "startTicks": 673913,
+      "cpuTicks": 1067,
+      "command": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild /noautoresponse /nologo /nodemode:1 /nodeReuse:true /low:false ",
+      "cpuTicksOverHalfSecond": 0
+    },
+    {
+      "pid": 145375,
+      "startTicks": 731290,
+      "cpuTicks": 960,
+      "command": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild /noautoresponse /nologo /nodemode:1 /nodeReuse:true /low:false ",
+      "cpuTicksOverHalfSecond": 0
+    },
+    {
+      "pid": 151210,
+      "startTicks": 779001,
+      "cpuTicks": 770,
+      "command": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild /noautoresponse /nologo /nodemode:1 /nodeReuse:true /low:false ",
+      "cpuTicksOverHalfSecond": 0
+    },
+    {
+      "pid": 162619,
+      "startTicks": 823190,
+      "cpuTicks": 747,
+      "command": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild /noautoresponse /nologo /nodemode:1 /nodeReuse:true /low:false ",
+      "cpuTicksOverHalfSecond": 0
+    },
+    {
+      "pid": 179178,
+      "startTicks": 908791,
+      "cpuTicks": 574,
+      "command": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild /noautoresponse /nologo /nodemode:1 /nodeReuse:true /low:false ",
+      "cpuTicksOverHalfSecond": 0
+    },
+    {
+      "pid": 179179,
+      "startTicks": 908791,
+      "cpuTicks": 592,
+      "command": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild /noautoresponse /nologo /nodemode:1 /nodeReuse:true /low:false ",
+      "cpuTicksOverHalfSecond": 0
+    },
+    {
+      "pid": 179263,
+      "startTicks": 908923,
+      "cpuTicks": 20173,
+      "command": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/Roslyn/bincore/VBCSCompiler -pipename:nyHKgcLrA5AcTQHn+wzLnQGQZCJWO9_rvhcC00Pveyo ",
+      "cpuTicksOverHalfSecond": 0
+    },
+    {
+      "pid": 180733,
+      "startTicks": 912514,
+      "cpuTicks": 153,
+      "command": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild /noautoresponse /nologo /nodemode:1 /nodeReuse:true /low:false ",
+      "cpuTicksOverHalfSecond": 0
+    }
+  ],
+  "runnerSha256": "b0c42956b127dd9a913e8dbf66c02c7c1f1aebece88c0eeed606150bbdc216da",
+  "manifestSha256": "c9e158451b35de4914978ab3676188c5f4f109e5a2b9fab11ef2e34138c5bb03"
+}

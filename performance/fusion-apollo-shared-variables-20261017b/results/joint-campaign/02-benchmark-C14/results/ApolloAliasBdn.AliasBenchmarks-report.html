@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8' />
+<title>ApolloAliasBdn.AliasBenchmarks-20261017-181338</title>
+
+<style type="text/css">
+	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
+	td, th { padding: 6px 13px; border: 1px solid #ddd; text-align: right; }
+	tr { background-color: #fff; border-top: 1px solid #ccc; }
+	tr:nth-child(even) { background: #f8f8f8; }
+</style>
+</head>
+<body>
+<pre><code>
+BenchmarkDotNet v0.15.8, Linux Debian GNU/Linux 12 (bookworm)
+-
+.NET SDK 11.0.100-rc.1.26425.128
+  [Host] : .NET 10.0.12 (10.0.12, 10.0.1226.42308), Arm64 RyuJIT armv8.0-a
+</code></pre>
+<pre><code>Job=DefaultGC-1000AwaitedOperations  OutlierMode=DontRemove  Force=False  
+Toolchain=InProcessEmitToolchain  InvocationCount=1  IterationCount=12  
+LaunchCount=1  UnrollFactor=1  WarmupCount=3  
+</code></pre>
+
+<table>
+<thead><tr><th>Method</th><th>Shape   </th><th>Mean</th><th>Error</th><th>StdDev</th><th>Allocated</th>
+</tr>
+</thead><tbody><tr><td>ExecuteAsync</td><td>async-alias2</td><td>5.942 &mu;s</td><td>1.1586 &mu;s</td><td>0.9046 &mu;s</td><td>4.4 KB</td>
+</tr><tr><td>ExecuteAsync</td><td>async-custom</td><td>3.401 &mu;s</td><td>1.0160 &mu;s</td><td>0.7932 &mu;s</td><td>3.94 KB</td>
+</tr><tr><td>ExecuteAsync</td><td>async-ordinary</td><td>4.371 &mu;s</td><td>0.7791 &mu;s</td><td>0.6082 &mu;s</td><td>3.94 KB</td>
+</tr><tr><td>ExecuteAsync</td><td>ordinary</td><td>1.607 &mu;s</td><td>0.2015 &mu;s</td><td>0.1573 &mu;s</td><td>3.39 KB</td>
+</tr></tbody></table>
+</body>
+</html>

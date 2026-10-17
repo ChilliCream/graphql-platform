@@ -1,0 +1,13 @@
+Request-side warm-profile audit completed after C14/C15 handoff. No new candidate registered.
+
+Compact private single-operation POST body: OperationRequest has189 warm allocation ticks and20,143,304 weighted sampled bytes,0.5831% of sampled bytes. Source fields include query memory, nullable error mode, unused ID/name/extensions/file map and a full VariableValues containing result-path metadata. A compact query+JsonSegment+error-mode body suggests roughly64 bytes less per eligible object under the current64-bit source layout, about192 bytes over the original three non-alias HTTP bodies. This is a source estimate, not a measured object-size or net-saving result. Default transport GET/QUERY validate concrete OperationRequest; uploads read its FileMap; native batches and custom clients rely on its public contract. A second serializer/body implementation plus eligibility and compatibility guards would be required. Exact exclusion audit found no overlap with10578 iterator flattening,10524 forwarded serialization or10573 client scope, but the small bound does not justify this maintenance surface. Screened out without prototype or measurement.
+
+PooledArrayWriter wrapper reuse:107 ticks,11,407,336 sampled bytes,0.3302%. Already screened by execution_hotpaths. The small wrapper keeps its byte buffer across network send; Dispose clears and returns it, while Reset retains it. Safe reuse needs cross-thread lease/reset, clearing and retained-capacity policy for a small object saving. No duplicate prototype.
+
+Alias query caching: approximately0.21% inclusive filtered thread-time upper bound. Composition identity, collision and cache-lifetime requirements exceed the observed opportunity. No cache prototype.
+
+JsonSegment.AsSequence multi-chunk chain: source only allocates nodes after the first chunk. Existing warm type/caller evidence did not establish recurring multi-chunk nodes for the original shape. No speculative microbenchmark.
+
+OperationShortHash.ToNameSafe: normal name-safe input returns unchanged; no recurring allocation evidence supporting a new mechanism. No hash or MD5 work.
+
+Larger measured request/client allocations have already been investigated as C1/C2/C4/C11/C12/C14 or belong to the response workers C7/C10/C13/C15. The25 exact authored-PR mechanisms remain excluded. The existing warmed request-side evidence does not support another materially promising independent candidate. Root accepted this exhaustion finding; focus moves to qualified real-load validation.

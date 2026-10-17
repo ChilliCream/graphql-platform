@@ -1,0 +1,9 @@
+Independent C14 review, 2026-10-17
+
+Verdict: ABANDON, no VU or equivalent measurement retry. Independently recomputed all retained raw WorkloadResult means from the seven native full JSON reports.
+
+Affected async-alias2 candidate means are5942.329 and5480.596ns, against baseline5186.345/5136.018/5318.238ns. First candidate costs +14.576%/+15.699% versus both adjacent controls; second costs +6.709%/+3.053%. Every adjacent comparison has adverse direction. Native allocation savings are27-37B.
+
+All12 C14 controlled regions are valid. Alias2 is exactly4480B in all three C14 blocks versus leading baseline4516.656/4512/4512B, consistent with32B mechanism savings plus small process-wide variation in one baseline block. Closing baseline allocation was not run after later C15 fail-stop, so no claim of a completed controlled bracketing series is made.
+
+Unchanged async-ordinary and custom controls show temporal variation; the middle async-ordinary baseline is unusually fast. All observations remain intact. No global CPU regression or causal explanation for control drift is asserted, and elapsed is not measured process CPU. The consistent affected-path cost is not worth these allocation savings. Optional later allocation failure is not the rejection basis.
