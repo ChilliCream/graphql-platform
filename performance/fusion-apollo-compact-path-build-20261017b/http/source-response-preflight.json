@@ -1,0 +1,41 @@
+{
+  "baseline_evidence": "ef9fc1159a5a7a980754ebd42b511030320482cd",
+  "source": "fidelity/wire.jsonl, exact first TestQuery seven downstream bodies",
+  "requests": [
+    {
+      "url": "http://localhost:5223/graphql",
+      "body": "{\"query\":\"query TestQuery_f3306f8c_1 {\\n  topProducts {\\n    name\\n    price\\n    upc\\n    weight\\n  }\\n}\"}",
+      "accept_policy": "default"
+    },
+    {
+      "url": "http://localhost:5221/graphql",
+      "body": "{\"query\":\"query TestQuery_f3306f8c_2 {\\n  users {\\n    id\\n    username\\n    name\\n  }\\n}\"}",
+      "accept_policy": "default"
+    },
+    {
+      "url": "http://localhost:5222/graphql",
+      "body": "{\"query\":\"query($representations: [_Any!]!) {\\n  _entities(representations: $representations) {\\n    ... on Product {\\n      inStock\\n      shippingEstimate\\n    }\\n  }\\n}\",\"variables\":{\"representations\":[{\"__typename\":\"Product\",\"upc\":\"1\",\"price\":899,\"weight\":100},{\"__typename\":\"Product\",\"upc\":\"2\",\"price\":1299,\"weight\":1000},{\"__typename\":\"Product\",\"upc\":\"3\",\"price\":15,\"weight\":20},{\"__typename\":\"Product\",\"upc\":\"4\",\"price\":499,\"weight\":100},{\"__typename\":\"Product\",\"upc\":\"5\",\"price\":1299,\"weight\":1000}]}}",
+      "accept_policy": "default"
+    },
+    {
+      "url": "http://localhost:5224/graphql",
+      "body": "{\"query\":\"query TestQuery_f3306f8c_Batch_17932bd018725c39($_0_representations:[_Any!]!,$_1_representations:[_Any!]!){_0__entities:_entities(representations:$_0_representations){...on User{reviews{id body product{upc reviews{id body author{id reviews{id body product{upc}}}}}}}} _1__entities:_entities(representations:$_1_representations){...on Product{reviews{id body author{id reviews{id body product{upc}}}}}}}\",\"variables\":{\"_0_representations\":[{\"__typename\":\"User\",\"id\":\"1\"},{\"__typename\":\"User\",\"id\":\"2\"},{\"__typename\":\"User\",\"id\":\"3\"},{\"__typename\":\"User\",\"id\":\"4\"},{\"__typename\":\"User\",\"id\":\"5\"},{\"__typename\":\"User\",\"id\":\"6\"}],\"_1_representations\":[{\"__typename\":\"Product\",\"upc\":\"1\"},{\"__typename\":\"Product\",\"upc\":\"2\"},{\"__typename\":\"Product\",\"upc\":\"3\"},{\"__typename\":\"Product\",\"upc\":\"4\"},{\"__typename\":\"Product\",\"upc\":\"5\"}]}}",
+      "accept_policy": "batching"
+    },
+    {
+      "url": "http://localhost:5223/graphql",
+      "body": "{\"query\":\"query TestQuery_f3306f8c_Batch_fa54049e5b0d5349($_0_representations:[_Any!]!,$_1_representations:[_Any!]!,$_2_representations:[_Any!]!){_0__entities:_entities(representations:$_0_representations){...on Product{name price weight}} _1__entities:_entities(representations:$_1_representations){...on Product{name price weight}} _2__entities:_entities(representations:$_2_representations){...on Product{name price weight}}}\",\"variables\":{\"_0_representations\":[{\"__typename\":\"Product\",\"upc\":\"1\"}],\"_1_representations\":[{\"__typename\":\"Product\",\"upc\":\"1\"}],\"_2_representations\":[{\"__typename\":\"Product\",\"upc\":\"1\"}]}}",
+      "accept_policy": "batching"
+    },
+    {
+      "url": "http://localhost:5221/graphql",
+      "body": "{\"query\":\"query TestQuery_f3306f8c_Batch_8e95ac78a1675692($_0_representations:[_Any!]!,$_1_representations:[_Any!]!){_0__entities:_entities(representations:$_0_representations){...on User{username name}} _1__entities:_entities(representations:$_1_representations){...on User{username name}}}\",\"variables\":{\"_0_representations\":[{\"__typename\":\"User\",\"id\":\"1\"}],\"_1_representations\":[{\"__typename\":\"User\",\"id\":\"1\"}]}}",
+      "accept_policy": "batching"
+    },
+    {
+      "url": "http://localhost:5222/graphql",
+      "body": "{\"query\":\"query TestQuery_f3306f8c_Batch_730f4d9444ecf1f9($_0_representations:[_Any!]!,$_1_representations:[_Any!]!,$_2_representations:[_Any!]!){_0__entities:_entities(representations:$_0_representations){...on Product{inStock shippingEstimate}} _1__entities:_entities(representations:$_1_representations){...on Product{inStock shippingEstimate}} _2__entities:_entities(representations:$_2_representations){...on Product{inStock shippingEstimate}}}\",\"variables\":{\"_0_representations\":[{\"__typename\":\"Product\",\"upc\":\"1\",\"price\":899,\"weight\":100}],\"_1_representations\":[{\"__typename\":\"Product\",\"upc\":\"1\",\"price\":899,\"weight\":100}],\"_2_representations\":[{\"__typename\":\"Product\",\"upc\":\"1\",\"price\":899,\"weight\":100}]}}",
+      "accept_policy": "batching"
+    }
+  ]
+}

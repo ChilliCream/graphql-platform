@@ -1,0 +1,109 @@
+{
+  "at": "2026-10-17T17:49:11.683746+00:00",
+  "exclusiveFree": true,
+  "activeMeasurementOrBuildProcesses": [
+    {
+      "pid": 108014,
+      "comm": "MSBuild",
+      "state": "S",
+      "startTicks": 638464
+    },
+    {
+      "pid": 108096,
+      "comm": "MSBuild",
+      "state": "S",
+      "startTicks": 638519
+    },
+    {
+      "pid": 108097,
+      "comm": "MSBuild",
+      "state": "S",
+      "startTicks": 638519
+    },
+    {
+      "pid": 108099,
+      "comm": "MSBuild",
+      "state": "S",
+      "startTicks": 638519
+    },
+    {
+      "pid": 108101,
+      "comm": "MSBuild",
+      "state": "S",
+      "startTicks": 638519
+    },
+    {
+      "pid": 108105,
+      "comm": "MSBuild",
+      "state": "S",
+      "startTicks": 638519
+    },
+    {
+      "pid": 108106,
+      "comm": "MSBuild",
+      "state": "S",
+      "startTicks": 638519
+    },
+    {
+      "pid": 108304,
+      "comm": "MSBuild",
+      "state": "S",
+      "startTicks": 638563
+    },
+    {
+      "pid": 108306,
+      "comm": "MSBuild",
+      "state": "S",
+      "startTicks": 638563
+    },
+    {
+      "pid": 108358,
+      "comm": "MSBuild",
+      "state": "S",
+      "startTicks": 638574
+    },
+    {
+      "pid": 108376,
+      "comm": "MSBuild",
+      "state": "S",
+      "startTicks": 638582
+    },
+    {
+      "pid": 108698,
+      "comm": "VBCSCompiler",
+      "state": "S",
+      "startTicks": 638933
+    },
+    {
+      "pid": 122247,
+      "comm": "MSBuild",
+      "state": "S",
+      "startTicks": 673913
+    },
+    {
+      "pid": 122248,
+      "comm": "MSBuild",
+      "state": "S",
+      "startTicks": 673913
+    },
+    {
+      "pid": 145375,
+      "comm": "MSBuild",
+      "state": "S",
+      "startTicks": 731290
+    },
+    {
+      "pid": 151210,
+      "comm": "MSBuild",
+      "state": "S",
+      "startTicks": 779001
+    }
+  ],
+  "loadAverage": [
+    1.24609375,
+    1.34912109375,
+    2.89306640625
+  ],
+  "frozenRunnerSha": "ebfe5a2085383652760f272904e39265013dd52c42e43ec7aac3b6c193bd20ca",
+  "frozenManifestSha": "cfd3cd0a3f4cc1e7ebd5873576f2d6d37dba5ac31cdae00221ff91e24e15216c"
+}

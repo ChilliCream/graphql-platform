@@ -1,0 +1,184 @@
+{
+  "at": "2026-10-17T17:49:30.653927+00:00",
+  "exclusiveFree": true,
+  "intervalSeconds": 1,
+  "knownBuildServers": [
+    {
+      "pid": 108014,
+      "comm": "MSBuild",
+      "state": "S",
+      "startTicks": 638464,
+      "cwd": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128",
+      "exe": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild",
+      "beforeCpuTicks": 3249,
+      "sameIdentity": true,
+      "cpuTickDelta": 0
+    },
+    {
+      "pid": 108096,
+      "comm": "MSBuild",
+      "state": "S",
+      "startTicks": 638519,
+      "cwd": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128",
+      "exe": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild",
+      "beforeCpuTicks": 1122,
+      "sameIdentity": true,
+      "cpuTickDelta": 0
+    },
+    {
+      "pid": 108097,
+      "comm": "MSBuild",
+      "state": "S",
+      "startTicks": 638519,
+      "cwd": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128",
+      "exe": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild",
+      "beforeCpuTicks": 1086,
+      "sameIdentity": true,
+      "cpuTickDelta": 0
+    },
+    {
+      "pid": 108099,
+      "comm": "MSBuild",
+      "state": "S",
+      "startTicks": 638519,
+      "cwd": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128",
+      "exe": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild",
+      "beforeCpuTicks": 1103,
+      "sameIdentity": true,
+      "cpuTickDelta": 0
+    },
+    {
+      "pid": 108101,
+      "comm": "MSBuild",
+      "state": "S",
+      "startTicks": 638519,
+      "cwd": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128",
+      "exe": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild",
+      "beforeCpuTicks": 1078,
+      "sameIdentity": true,
+      "cpuTickDelta": 0
+    },
+    {
+      "pid": 108105,
+      "comm": "MSBuild",
+      "state": "S",
+      "startTicks": 638519,
+      "cwd": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128",
+      "exe": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild",
+      "beforeCpuTicks": 1094,
+      "sameIdentity": true,
+      "cpuTickDelta": 0
+    },
+    {
+      "pid": 108106,
+      "comm": "MSBuild",
+      "state": "S",
+      "startTicks": 638519,
+      "cwd": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128",
+      "exe": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild",
+      "beforeCpuTicks": 1103,
+      "sameIdentity": true,
+      "cpuTickDelta": 0
+    },
+    {
+      "pid": 108304,
+      "comm": "MSBuild",
+      "state": "S",
+      "startTicks": 638563,
+      "cwd": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128",
+      "exe": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild",
+      "beforeCpuTicks": 1055,
+      "sameIdentity": true,
+      "cpuTickDelta": 0
+    },
+    {
+      "pid": 108306,
+      "comm": "MSBuild",
+      "state": "S",
+      "startTicks": 638563,
+      "cwd": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128",
+      "exe": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild",
+      "beforeCpuTicks": 1072,
+      "sameIdentity": true,
+      "cpuTickDelta": 0
+    },
+    {
+      "pid": 108358,
+      "comm": "MSBuild",
+      "state": "S",
+      "startTicks": 638574,
+      "cwd": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128",
+      "exe": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild",
+      "beforeCpuTicks": 1058,
+      "sameIdentity": true,
+      "cpuTickDelta": 0
+    },
+    {
+      "pid": 108376,
+      "comm": "MSBuild",
+      "state": "S",
+      "startTicks": 638582,
+      "cwd": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128",
+      "exe": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild",
+      "beforeCpuTicks": 1046,
+      "sameIdentity": true,
+      "cpuTickDelta": 0
+    },
+    {
+      "pid": 108698,
+      "comm": "VBCSCompiler",
+      "state": "S",
+      "startTicks": 638933,
+      "cwd": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/Roslyn/bincore",
+      "exe": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/Roslyn/bincore/VBCSCompiler",
+      "beforeCpuTicks": 40115,
+      "sameIdentity": true,
+      "cpuTickDelta": 0
+    },
+    {
+      "pid": 122247,
+      "comm": "MSBuild",
+      "state": "S",
+      "startTicks": 673913,
+      "cwd": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128",
+      "exe": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild",
+      "beforeCpuTicks": 784,
+      "sameIdentity": true,
+      "cpuTickDelta": 0
+    },
+    {
+      "pid": 122248,
+      "comm": "MSBuild",
+      "state": "S",
+      "startTicks": 673913,
+      "cwd": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128",
+      "exe": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild",
+      "beforeCpuTicks": 851,
+      "sameIdentity": true,
+      "cpuTickDelta": 0
+    },
+    {
+      "pid": 145375,
+      "comm": "MSBuild",
+      "state": "S",
+      "startTicks": 731290,
+      "cwd": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128",
+      "exe": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild",
+      "beforeCpuTicks": 596,
+      "sameIdentity": true,
+      "cpuTickDelta": 0
+    },
+    {
+      "pid": 151210,
+      "comm": "MSBuild",
+      "state": "S",
+      "startTicks": 779001,
+      "cwd": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128",
+      "exe": "/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/MSBuild",
+      "beforeCpuTicks": 140,
+      "sameIdentity": true,
+      "cpuTickDelta": 0
+    }
+  ],
+  "interpretation": "Idle server existence is not active load. No processes killed. All observed CPU deltas must be zero before launch."
+}

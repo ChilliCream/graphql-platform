@@ -1,0 +1,74 @@
+[
+  {
+    "local": "vendor/analyze.py",
+    "commit": "ef9fc1159a5a7a980754ebd42b511030320482cd",
+    "repository_path": "experiments/fusion-apollo-baseline-20261017b/analyze.py",
+    "sha256": "f9882b97d81448b49c3cad31c61c2099f4cf0d82ad8bea515d4bb5de571b5b31"
+  },
+  {
+    "local": "vendor/campaign.py",
+    "commit": "ef9fc1159a5a7a980754ebd42b511030320482cd",
+    "repository_path": "experiments/fusion-apollo-baseline-20261017b/campaign.py",
+    "sha256": "e02f4b626bca2ece21a741932de1ad5aacb46ec495fdb4607ab06ed47bf7285b"
+  },
+  {
+    "local": "vendor/fixture/k6/k6.js",
+    "commit": "ef9fc1159a5a7a980754ebd42b511030320482cd",
+    "repository_path": "experiments/fusion-apollo-baseline-20261017b/fixture/k6/k6.js",
+    "sha256": "b967285db74541fd9b29ab68522b6f5902de4caf7e43946dab183205bc88ea6e"
+  },
+  {
+    "local": "vendor/focused.js",
+    "commit": "ef9fc1159a5a7a980754ebd42b511030320482cd",
+    "repository_path": "experiments/fusion-apollo-baseline-20261017b/focused.js",
+    "sha256": "be610cab5f9125acf3f862193bc7205de20bfb9cddb0a582bfad0ba000a413c3"
+  },
+  {
+    "local": "vendor/oracles/TestQuery-oracle.json",
+    "commit": "ef9fc1159a5a7a980754ebd42b511030320482cd",
+    "repository_path": "experiments/fusion-apollo-baseline-20261017b/results/fidelity/TestQuery-oracle.json",
+    "sha256": "2ec290f8115521b3849a9c471187d6241b073dfbf0080612c6eb04905bff6884"
+  },
+  {
+    "local": "vendor/oracles/entities1-oracle.json",
+    "commit": "ef9fc1159a5a7a980754ebd42b511030320482cd",
+    "repository_path": "experiments/fusion-apollo-baseline-20261017b/results/fidelity/entities1-oracle.json",
+    "sha256": "74eac1a68414e7f84ac309778d7c7a18ccb740ddb9fb6dd562ca53a86e12824b"
+  },
+  {
+    "local": "vendor/oracles/entities9-oracle.json",
+    "commit": "ef9fc1159a5a7a980754ebd42b511030320482cd",
+    "repository_path": "experiments/fusion-apollo-baseline-20261017b/results/fidelity/entities9-oracle.json",
+    "sha256": "da439c0712d13e4fb9f331c526bbc46c11dd2ccaf779d87650dbc3aff585754c"
+  },
+  {
+    "local": "vendor/oracles/ordinary-oracle.json",
+    "commit": "ef9fc1159a5a7a980754ebd42b511030320482cd",
+    "repository_path": "experiments/fusion-apollo-baseline-20261017b/results/fidelity/ordinary-oracle.json",
+    "sha256": "f3526c1455f71c08afcb5a311bc544edad68f48b66275651b5b1e3d98f42dde2"
+  },
+  {
+    "local": "vendor/workloads/TestQuery.json",
+    "commit": "ef9fc1159a5a7a980754ebd42b511030320482cd",
+    "repository_path": "experiments/fusion-apollo-baseline-20261017b/workloads/TestQuery.json",
+    "sha256": "031f64fa9e08ff8b457ca627b745609c4048c8e5743d31cf0c598bf766ae4f5c"
+  },
+  {
+    "local": "vendor/workloads/entities1.json",
+    "commit": "ef9fc1159a5a7a980754ebd42b511030320482cd",
+    "repository_path": "experiments/fusion-apollo-baseline-20261017b/workloads/entities1.json",
+    "sha256": "206c0eb661a5dae4c7ad76791ec3b5439ec9bff01f323d0212fef4fb2aadaefd"
+  },
+  {
+    "local": "vendor/workloads/entities9.json",
+    "commit": "ef9fc1159a5a7a980754ebd42b511030320482cd",
+    "repository_path": "experiments/fusion-apollo-baseline-20261017b/workloads/entities9.json",
+    "sha256": "41d2a62f0fa8113392f10fe04dfb0a487b37ea44714a165936825b21b2a0c3f8"
+  },
+  {
+    "local": "vendor/workloads/ordinary.json",
+    "commit": "ef9fc1159a5a7a980754ebd42b511030320482cd",
+    "repository_path": "experiments/fusion-apollo-baseline-20261017b/workloads/ordinary.json",
+    "sha256": "174427f5a9d3c2e6ddda69728b247c345d3456805d2be7bcbd8b452f2c35e3ae"
+  }
+]

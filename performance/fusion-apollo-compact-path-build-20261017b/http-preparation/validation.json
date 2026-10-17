@@ -1,0 +1,25 @@
+{
+  "utc": "2026-10-17T18:09:15.435815+00:00",
+  "python_source_compile": "passed",
+  "frozen_plan_verify": "passed for zero-plan-preparation2.json",
+  "http_executed": false,
+  "status": "Preparation, final survivor set and independent final source review pending",
+  "current_survivors": [
+    "C9",
+    "C7",
+    "C10"
+  ],
+  "current_schedule": [
+    "B",
+    "C9",
+    "C7",
+    "C10",
+    "B",
+    "C10",
+    "C7",
+    "C9",
+    "B"
+  ],
+  "current_work_seconds": 1500,
+  "cleanup_reserve_seconds": 120
+}
