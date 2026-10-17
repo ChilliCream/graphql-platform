@@ -1,0 +1,7 @@
+C10 does not repeat excluded PR10523.
+
+Verified exact basef73e2f94030bcddaf2a6dc2dfe7be2c7af2ad9e4 to head0e4310e9b787add562adcb74ba164bd48cbad811 diff, saved adjacent. The old change edits only ReadOnlyMemorySegment.cs and its tests: compact its fields from IMemoryOwner plus ReadOnlyMemory to one object source and start/length, shrinking a value-node backing struct from32 to16bytes and changing constructors and Memory/Span access. Its sole comment is coverage-bot output.
+
+C10 preserves all struct layouts, constructors, memory ownership and SourceResultDocument storage. It changes only the temporary reader sequence construction: when existing MemorySegment chunks have identical byte-array backing and adjacent offsets, construct a single ReadOnlySequence over that contiguous range instead of allocating linked SequenceSegment objects. Discontiguous chunks retain the original chain path, and parsing still computes original geometric packed locations. The old diff has no ReadOnlySequence, SequenceSegment, BuildFilledSequence, SourceResultDocument or adjacency logic.
+
+Root requested this mechanism comparison; independent history_environment review confirmed the exact-diff distinction before further prototype work.

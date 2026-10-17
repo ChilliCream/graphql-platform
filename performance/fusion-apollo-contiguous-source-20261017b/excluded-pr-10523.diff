@@ -1,0 +1,198 @@
+diff --git a/src/HotChocolate/Utilities/src/Utilities.Buffers/ReadOnlyMemorySegment.cs b/src/HotChocolate/Utilities/src/Utilities.Buffers/ReadOnlyMemorySegment.cs
+index bb2a4ece6e..54307a17c5 100644
+--- a/src/HotChocolate/Utilities/src/Utilities.Buffers/ReadOnlyMemorySegment.cs
++++ b/src/HotChocolate/Utilities/src/Utilities.Buffers/ReadOnlyMemorySegment.cs
+@@ -1,6 +1,6 @@
+ using System.Buffers;
+-#if NET8_0_OR_GREATER
+-#endif
++using System.Runtime.CompilerServices;
++using System.Runtime.InteropServices;
+ 
+ namespace HotChocolate.Buffers;
+ 
+@@ -10,8 +10,8 @@ namespace HotChocolate.Buffers;
+ /// </summary>
+ public readonly struct ReadOnlyMemorySegment
+ {
+-    private readonly IMemoryOwner<byte>? _owner;
+-    private readonly ReadOnlyMemory<byte> _memory;
++    // either null, a byte[] or an IMemoryOwner<byte>.
++    private readonly object? _source;
+     private readonly int _start;
+     private readonly int _length;
+ 
+@@ -53,11 +53,33 @@ public readonly struct ReadOnlyMemorySegment
+         // we have start and length here so that we can lazily slice the memory.
+         // this allows us in combination with the Utf8MemoryBuilder to create
+         // a memory segment before the memory is actually written to.
+-        _owner = owner;
++        _source = owner;
+         _start = start;
+         _length = length;
+     }
+ 
++    /// <summary>
++    /// Initializes a new instance of <see cref="ReadOnlyMemorySegment"/> that refers to
++    /// the whole <paramref name="array"/>.
++    /// </summary>
++    /// <param name="array">
++    /// The array the segment refers to.
++    /// </param>
++    public ReadOnlyMemorySegment(byte[] array)
++    {
++#if NET8_0_OR_GREATER
++        ArgumentNullException.ThrowIfNull(array);
++#else
++        if (array is null)
++        {
++            throw new ArgumentNullException(nameof(array));
++        }
++#endif
++
++        _source = array;
++        _length = array.Length;
++    }
++
+     /// <summary>
+     /// Initializes a new instance of <see cref="ReadOnlyMemorySegment"/> that refers to memory
+     /// whose lifetime the caller manages.
+@@ -67,14 +89,29 @@ public readonly struct ReadOnlyMemorySegment
+     /// </param>
+     public ReadOnlyMemorySegment(ReadOnlyMemory<byte> memory)
+     {
+-        _memory = memory;
++        if (memory.Equals(default))
++        {
++            return;
++        }
++
++        if (MemoryMarshal.TryGetArray(memory, out var segment))
++        {
++            _source = segment.Array;
++            _start = segment.Offset;
++        }
++        else if (MemoryMarshal.TryGetMemoryManager(memory, out MemoryManager<byte>? manager, out var start, out _))
++        {
++            _source = manager;
++            _start = start;
++        }
++
+         _length = memory.Length;
+     }
+ 
+     /// <summary>
+     /// Gets a value indicating whether the segment has no backing memory.
+     /// </summary>
+-    public bool IsEmpty => _owner is null && _memory.Equals(default);
++    public bool IsEmpty => _source is null;
+ 
+     /// <summary>
+     /// Gets the length of the memory segment.
+@@ -88,9 +125,19 @@ public readonly struct ReadOnlyMemorySegment
+     {
+         get
+         {
+-            return _owner is not null
+-                ? _owner.Memory.Slice(_start, _length)
+-                : _memory;
++            var source = _source;
++
++            if (source is byte[] array)
++            {
++                return new ReadOnlyMemory<byte>(array, _start, _length);
++            }
++
++            if (source is null)
++            {
++                return default;
++            }
++
++            return Unsafe.As<IMemoryOwner<byte>>(source).Memory.Slice(_start, _length);
+         }
+     }
+ 
+@@ -101,9 +148,19 @@ public readonly struct ReadOnlyMemorySegment
+     {
+         get
+         {
+-            return _owner is not null
+-                ? _owner.Memory.Span.Slice(_start, _length)
+-                : _memory.Span;
++            var source = _source;
++
++            if (source is byte[] array)
++            {
++                return new ReadOnlySpan<byte>(array, _start, _length);
++            }
++
++            if (source is null)
++            {
++                return default;
++            }
++
++            return Unsafe.As<IMemoryOwner<byte>>(source).Memory.Span.Slice(_start, _length);
+         }
+     }
+ }
+diff --git a/src/HotChocolate/Utilities/test/Utilities.Tests/ReadOnlyMemorySegmentTests.cs b/src/HotChocolate/Utilities/test/Utilities.Tests/ReadOnlyMemorySegmentTests.cs
+index 5174767b50..c4c70479c8 100644
+--- a/src/HotChocolate/Utilities/test/Utilities.Tests/ReadOnlyMemorySegmentTests.cs
++++ b/src/HotChocolate/Utilities/test/Utilities.Tests/ReadOnlyMemorySegmentTests.cs
+@@ -1,3 +1,5 @@
++using System.Buffers;
++
+ namespace HotChocolate.Buffers;
+ 
+ public class ReadOnlyMemorySegmentTests
+@@ -79,4 +81,50 @@ public class ReadOnlyMemorySegmentTests
+         Assert.Equal(0, segment.Length);
+         Assert.Empty(segment.Span.ToArray());
+     }
++
++    [Fact]
++    public void IsEmpty_Should_BeTrue_When_ConstructedFromDefaultMemory()
++    {
++        // act
++        var segment = new ReadOnlyMemorySegment(default(ReadOnlyMemory<byte>));
++
++        // assert
++        Assert.True(segment.IsEmpty);
++        Assert.Equal(0, segment.Length);
++        Assert.True(segment.Memory.IsEmpty);
++    }
++
++    [Fact]
++    public void Span_Should_ReturnCarvedBytes_When_ConstructedFromMemoryManagerMemory()
++    {
++        // arrange
++        using var manager = new TestMemoryManager([1, 2, 3, 4, 5, 6, 7, 8]);
++
++        // act
++        var segment = new ReadOnlyMemorySegment(manager.Memory.Slice(2, 3));
++
++        // assert
++        Assert.False(segment.IsEmpty);
++        Assert.Equal([3, 4, 5], segment.Span.ToArray());
++        Assert.Equal([3, 4, 5], segment.Memory.ToArray());
++    }
++
++    private sealed class TestMemoryManager(byte[] buffer) : MemoryManager<byte>
++    {
++        public override Span<byte> GetSpan() => buffer;
++
++        public override MemoryHandle Pin(int elementIndex = 0) => throw new NotSupportedException();
++
++        public override void Unpin() => throw new NotSupportedException();
++
++        protected override bool TryGetArray(out ArraySegment<byte> segment)
++        {
++            segment = default;
++            return false;
++        }
++
++        protected override void Dispose(bool disposing)
++        {
++        }
++    }
+ }
