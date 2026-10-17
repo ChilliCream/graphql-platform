@@ -1,6 +1,6 @@
 import { BenchmarkExplorer } from "@/src/components/benchmarks/BenchmarkExplorer";
-import { BenchmarkHero } from "@/src/components/benchmarks/BenchmarkHero";
-import { BenchmarkMethodology } from "@/src/components/benchmarks/BenchmarkMethodology";
+import { BenchmarkHeader } from "@/src/components/benchmarks/BenchmarkHeader";
+import { BenchmarkTestSetup } from "@/src/components/benchmarks/BenchmarkTestSetup";
 import { PageStructuredData } from "@/src/components/PageStructuredData";
 import {
   federationBenchmarkHistory as history,
@@ -28,9 +28,13 @@ export default function FederationBenchmarksPage() {
           { name: "GraphQL federation benchmarks" },
         ]}
       />
-      <BenchmarkHero report={report} />
-      <BenchmarkExplorer report={report} history={history} />
-      <BenchmarkMethodology report={report} />
+      <article>
+        <BenchmarkHeader report={report} />
+        <div className="mt-10 sm:mt-14">
+          <BenchmarkExplorer report={report} history={history} />
+        </div>
+        <BenchmarkTestSetup report={report} />
+      </article>
     </>
   );
 }
