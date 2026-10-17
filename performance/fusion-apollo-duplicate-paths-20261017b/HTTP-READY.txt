@@ -2,10 +2,10 @@ Conditional shared HTTP ready request, 2026-10-17
 Owner: history_environment. No HTTP has run. Execution requires the root's final C2 gate decision and explicit exclusive-slot grant after all peers are quiet.
 
 Frozen source and inputs
-Runner commit266c9eef50c3a8761ad5a8f8094c041be6373a63, path performance/fusion-apollo-duplicate-paths-20261017b/http/campaign.py.
-Runner SHA256 d43b1aef9213139365b7d081f7b83df1115d682336b483000cbf1ca83d13fd19.
-Final14launch plan /workspaces/platform-1/perf/fusion-apollo-duplicate-paths-20261017b/http-final-C3-C2-plan.json.
-Plan SHA25685f40b0a82b5643657fd20a2e29ba0f4b15acb6a515c16c649a052dc57ea0f86; published copy results/http-final-C3-C2-plan.json.
+Runner uses the reviewed266c9eef source plus a whole-session deadline and phase progress markers, path performance/fusion-apollo-duplicate-paths-20261017b/http/campaign.py.
+Runner SHA256 e102799fff48576f76c37b6483b07d1f2e1f71b91b44b5ad1e9d0cf75f3e7e42.
+Final14launch plan /workspaces/platform-1/perf/fusion-apollo-duplicate-paths-20261017b/http-final-C3-C2-plan-bounded.json.
+Plan SHA25602d700d087d2a7f702c7a2581128d094c2c8592baeb4961d55573b1a9bbe734f; published copy results/http-final-C3-C2-plan-bounded.json.
 Baseline source43a8dca2bd479ddc411d832ed97e42d9fcc8bd85; benchmark941599e4e27719084189e12d737e147069fdf794; applicable baseline evidenceef9fc1159a5a7a980754ebd42b511030320482cd.
 Baseline Execution DLL9c436477e63d9c7f5c8668dcd75fec9771f500a5e71b14a1f02dd0bcf8fe6c5b.
 C3 Execution DLL359a421c3387637ab022c658266252616e0ab58e262c72ad57a47c6ca6ae50cf; PDBbf75447d5c73a2d293240a96b51b82dec989276d74a9765963763f699c470bee.
@@ -13,7 +13,7 @@ C2 Execution DLL244ad610bfe4ab6152885955e22776124510acb344f8c783a3f3a17260878301
 All3gateway trees contain106identical common files except the independent candidate execution DLL/PDB. Plan records all hashes, exact frozen source trees/tools/drivers/oracles. Allocation-only fixed-heap env is absent. Runtime10.0.12,serverGC,rollForwardDisable; unchanged security/logging/minthreads256/connectionlimit256/Authorization propagation. Loaded engine/runtime path checked each launch. Existing C3-only plan is retained unexecuted.
 
 Exact command after root grant
-flock -x -o /workspaces/platform-1/perf/fusion-common-path.lock taskset -c 0,8 env PYTHONDONTWRITEBYTECODE=1 python3 /workspaces/platform-1/.worktrees/fusion-apollo-duplicate-paths-20261017b/performance/fusion-apollo-duplicate-paths-20261017b/http/campaign.py execute --plan /workspaces/platform-1/perf/fusion-apollo-duplicate-paths-20261017b/http-final-C3-C2-plan.json --output /workspaces/platform-1/perf/fusion-apollo-shared-http-20261017b --root-grant root-approved-final-C3-C2-http
+flock -x -o /workspaces/platform-1/perf/fusion-common-path.lock taskset -c 0,8 env PYTHONDONTWRITEBYTECODE=1 python3 /workspaces/platform-1/.worktrees/fusion-apollo-duplicate-paths-20261017b/performance/fusion-apollo-duplicate-paths-20261017b/http/campaign.py execute --plan /workspaces/platform-1/perf/fusion-apollo-duplicate-paths-20261017b/http-final-C3-C2-plan-bounded.json --output /workspaces/platform-1/perf/fusion-apollo-shared-http-20261017b --root-grant root-approved-final-C3-C2-http
 
 Bounded schedule
 Each delay0then4ms: B,C3,C2,B,C2,C3,B. Fresh source/gateway processes every launch. Three controls and two independent candidate launches per configuration, reversed candidate order, full data preflight each gateway, no automatic retries/resume.
@@ -25,4 +25,6 @@ Parent/monitor/counters CPUs0,8; gateway2,3,10,11; sources4–7,12–15; generat
 Accounting and decision
 Timestamped native gzip samples, summaries, all setup counts,100ms processCPU/RSS,1s System.Runtime counters, identities/maps and boundaries retained. Original driver bytes unchanged. Counter JSON prefix recovery is offline only and raw files unchanged. Complete-data preflight plus original once/VU structure checks/focused exact oracle; status/error checks every iteration.
 Analyze after release using the published baseline validated accounting, both adjacent controls and full control envelope/time trend, matched CPU/request, source/generator headroom, p95/p99/p99.9 ranks/neighbors/clusters and burst stages. Fixed-rate throughput is not capacity. Process samples can reveal aggregate headroom, not per-core saturation. Check existing RSS/runtime gauges through matched20s idle without forcedGC; stale lastGC gauges do not prove retained heap.
-C3 enters with calibrated scoped2680B savings for the recurring original representation sequence only; no timing gain claimed. C2 enters only after its separate micro gate and evidence publication. For each independently, require worthwhile scoped benefit and no unresolved repeated adverse HTTPCPU/request/latency pattern, headroom failure, conflicting controls or unexplained material retention excess. Inconclusive applicable evidence means abandonment, not another equivalent run. No draft PR before interpretation/correctness/publication complete.
+C3 enters with calibrated scoped2680B savings for the recurring original representation sequence only; no timing gain claimed. C2 micro gate accepted; complete evidence and gateway manifest published at bb0e0e794c2c00322a5b42d8a68f4fdafeb536fb, independent final review e699a4aca28684db7b84fbd6085414b7ee28a59d. For each independently, require worthwhile scoped benefit and no unresolved repeated adverse HTTPCPU/request/latency pattern, headroom failure, conflicting controls or unexplained material retention excess. Inconclusive applicable evidence means abandonment, not another equivalent run. No draft PR before interpretation/correctness/publication complete.
+
+Whole-session bound:50minutes, consisting of48minutes work and120seconds reserved cleanup. Cleanup defers the workload alarm while applying existing per-child8+3second bounds to at most7live owned children and2second monitorjoin. Final elapsed/bound status recorded. Outer finally also cleans any active session if an alarm interrupts entry to cleanup. Workload/count gates unchanged. Prior unexecuted plans remain retained.

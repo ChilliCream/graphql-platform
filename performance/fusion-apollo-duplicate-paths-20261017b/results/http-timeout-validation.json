@@ -1,0 +1,11 @@
+{
+  "http_or_dotnet_started": false,
+  "work_deadline_fired": true,
+  "outer_finally_cleaned_owned_sleep": true,
+  "child_returncode": -15,
+  "owned_pid_absent": true,
+  "active_session_cleared": true,
+  "elapsed_seconds": 0.10570652099977451,
+  "production_runner_sha256": "e102799fff48576f76c37b6483b07d1f2e1f71b91b44b5ad1e9d0cf75f3e7e42",
+  "method": "Import runner; replace execute with one owned /bin/sleep5 child and1s wait; override work deadline to0.1s; require TimeoutError, cleanup, absentPID and clearedsession. No HTTP, application build or benchmark."
+}

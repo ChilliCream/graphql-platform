@@ -27,6 +27,10 @@ ORDERS = {
     'C3,C2': ['B', 'C3', 'C2', 'B', 'C2', 'C3', 'B'],
 }
 SOURCES = ['Accounts', 'Inventory', 'Products', 'Reviews']
+WORK_SECONDS = 48 * 60
+CLEANUP_RESERVE_SECONDS = 120
+WORK_DEADLINE = None
+ACTIVE_SESSION = None
 
 
 def load_module(name, path):
@@ -111,12 +115,19 @@ def prepare(args):
                        'name': f'delay{delay}-{i:02d}-{arm}'}
                       for delay in [0, 4] for i, arm in enumerate(order)],
         'execution_authorized': False,
+        'session_bound': {'work_seconds': WORK_SECONDS,
+                          'cleanup_reserve_seconds': CLEANUP_RESERVE_SECONDS,
+                          'total_seconds': WORK_SECONDS + CLEANUP_RESERVE_SECONDS},
     }
     dump(args.plan, plan)
     print(f'Prepared {len(plan["schedules"])} launches; no HTTP executed: {args.plan}')
 
 
 def verify(plan):
+    if plan['session_bound'] != {'work_seconds': WORK_SECONDS,
+                                 'cleanup_reserve_seconds': CLEANUP_RESERVE_SECONDS,
+                                 'total_seconds': WORK_SECONDS + CLEANUP_RESERVE_SECONDS}:
+        raise ValueError('Whole-session time bound changed')
     if plan['order_per_delay'] != ORDERS[plan['survivors']] or plan['delays_ms'] != [0, 4]:
         raise ValueError('Schedule differs from the reviewed bounded orders')
     expected = [{'delay_ms': d, 'index': i, 'arm': a, 'name': f'delay{d}-{i:02d}-{a}'}
@@ -144,6 +155,24 @@ def verify(plan):
 
 
 class Session(baseline.Session):
+    def __init__(self, out, delay, capture=False):
+        global ACTIVE_SESSION
+        super().__init__(out, delay, capture)
+        ACTIVE_SESSION = self
+
+    def close(self):
+        global ACTIVE_SESSION
+        # Cleanup has at most seven live owned children, each bounded to 8+3 seconds.
+        # Defer the workload alarm while completing that cleanup, then restore it.
+        armed = signal.getitimer(signal.ITIMER_REAL)[0] > 0
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        try:
+            super().close()
+            ACTIVE_SESSION = None
+        finally:
+            if armed:
+                signal.setitimer(signal.ITIMER_REAL, max(.001, WORK_DEADLINE - time.monotonic()))
+
     def require_live(self):
         for process, identity, _ in self.owned:
             if identity['name'] in [*SOURCES, 'gateway', 'counters'] and process.poll() is not None:
@@ -154,6 +183,7 @@ class Session(baseline.Session):
                'monotonic': time.monotonic(), **extra}
         with (self.out / 'boundaries.jsonl').open('a') as stream:
             stream.write(json.dumps(row) + '\n')
+        print(row['utc'], self.out.name, name, flush=True)
 
     def start(self):
         super().start()
@@ -250,9 +280,11 @@ def execute(args):
     if args.output.exists():
         raise FileExistsError('Refusing to overwrite or resume a completed/partial campaign')
     args.output.mkdir(parents=True)
+    args.output_created = True
     dump(args.output / 'plan.json', plan)
     dump(args.output / 'start.json', {'start': baseline.stamp(), 'parent': baseline.proc(os.getpid()),
                                      'parent_affinity': parent_affinity,
+                                     'session_bound': plan['session_bound'],
                                      'plan_sha256': sha(args.plan), 'root_grant': args.root_grant})
     # Runtime/diagnostic knobs must not leak from the shell into one comparison arm.
     unexpected = {k: v for k, v in os.environ.items()
@@ -294,6 +326,34 @@ def execute(args):
         raise
 
 
+def bounded_execute(args):
+    global WORK_DEADLINE
+    started = time.monotonic()
+    WORK_DEADLINE = started + WORK_SECONDS
+    args.output_created = False
+
+    def deadline(signum, frame):
+        raise TimeoutError('48-minute campaign work deadline; 120 seconds reserved for owned cleanup')
+
+    previous = signal.signal(signal.SIGALRM, deadline)
+    signal.setitimer(signal.ITIMER_REAL, WORK_SECONDS)
+    try:
+        execute(args)
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        signal.signal(signal.SIGALRM, previous)
+        # Covers an alarm arriving while entering the context manager's cleanup.
+        if ACTIVE_SESSION is not None:
+            ACTIVE_SESSION.close()
+        elapsed = time.monotonic() - started
+        if args.output_created:
+            dump(args.output / 'session-bound.json', {
+                'end': baseline.stamp(), 'elapsed_seconds': elapsed,
+                'work_seconds': WORK_SECONDS, 'cleanup_reserve_seconds': CLEANUP_RESERVE_SECONDS,
+                'total_bound_seconds': WORK_SECONDS + CLEANUP_RESERVE_SECONDS,
+                'within_total_bound': elapsed <= WORK_SECONDS + CLEANUP_RESERVE_SECONDS})
+
+
 def main():
     parser = argparse.ArgumentParser()
     actions = parser.add_subparsers(dest='action', required=True)
@@ -312,7 +372,7 @@ def main():
         prepare(args)
     else:
         signal.signal(signal.SIGTERM, lambda signum, frame: (_ for _ in ()).throw(SystemExit(128 + signum)))
-        execute(args)
+        bounded_execute(args)
 
 
 if __name__ == '__main__':
