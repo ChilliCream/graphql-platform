@@ -707,6 +707,161 @@ public sealed class FetchResultStoreTests : FusionTestBase
         Assert.Null(store.Errors);
     }
 
+    [Theory]
+    [InlineData("Int", "[]", "[]")]
+    [InlineData("Int", "[1,null,3]", "[1,null,3]")]
+    [InlineData("Int!", "[1,2,3]", "[1,2,3]")]
+    [InlineData("Int!", "[1,null,3]", "null")]
+    [InlineData("JSON", "[{\"key\":1},[2,3],null]", "[{\"key\":1},[2,3],null]")]
+    [InlineData("JSON!", "[{\"key\":1},[2,3]]", "[{\"key\":1},[2,3]]")]
+    public void AddPartialResults_Should_CompleteScalarLists_When_ElementsHaveDifferentShapes(
+        string elementType,
+        string values,
+        string expected)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            $$"""
+            # name: test
+            scalar JSON
+
+            type Query {
+              values: [{{elementType}}]
+              sibling: String
+            }
+            """);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+
+        // act
+        using var store = CreateLiveStore(
+            schema,
+            "{ values sibling }",
+            """{"data":{"sibling":"ok","values":""" + values + "}}",
+            resultArena,
+            sourceArena);
+
+        // assert
+        Assert.Equal("""{"values":""" + expected + ""","sibling":"ok"}""", RenderData(store));
+        Assert.Null(store.Errors);
+    }
+
+    [Theory]
+    [InlineData(64)]
+    [InlineData(512)]
+    public void AddPartialResults_Should_CompleteScalarLists_When_MetadataSpansChunks(int count)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              values: [Int!]!
+            }
+            """);
+        var values = "[" + string.Join(",", Enumerable.Range(0, count)) + "]";
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+
+        // act
+        using var store = CreateLiveStore(
+            schema,
+            "{ values }",
+            """{"data":{"values":""" + values + "}}",
+            resultArena,
+            sourceArena);
+
+        // assert
+        Assert.Equal("""{"values":""" + values + "}", RenderData(store));
+        Assert.Null(store.Errors);
+    }
+
+    [Fact]
+    public void AddPartialResults_Should_MergeScalarLists_When_TargetAlreadyExists()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              values: [Int]
+            }
+            """);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateEmptyStore(schema, "{ values }", resultArena, out var selectionSet);
+        var firstPayload = """{"data":{"values":[1,null,3]}}"""u8.ToArray();
+        var secondPayload = """{"data":{"values":[4,5,null]}}"""u8.ToArray();
+        var first = new SourceSchemaResult(
+            CompactPath.Root,
+            SourceResultDocument.Parse(sourceArena, firstPayload, firstPayload.Length));
+        var second = new SourceSchemaResult(
+            CompactPath.Root,
+            SourceResultDocument.Parse(sourceArena, secondPayload, secondPayload.Length));
+
+        // act
+        var firstAdded = store.AddPartialResult(SelectionPath.Root, first, selectionSet, containsErrors: false);
+        var secondAdded = store.AddPartialResult(SelectionPath.Root, second, selectionSet, containsErrors: false);
+
+        // assert
+        Assert.True(firstAdded && secondAdded);
+        RenderData(store).MatchInlineSnapshot(
+            """
+            {"values":[4,5,null]}
+            """);
+        Assert.Null(store.Errors);
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate, false, "null")]
+    [InlineData(ErrorHandlingMode.Propagate, true, "null")]
+    [InlineData(ErrorHandlingMode.Null, false, "[1,null,3]")]
+    [InlineData(ErrorHandlingMode.Null, true, "[1,null,3]")]
+    public void AddPartialResults_Should_ApplyScalarListNullPolicy_When_SourceContainsNull(
+        ErrorHandlingMode errorHandlingMode,
+        bool containsErrors,
+        string expected)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              values: [Int!]
+              sibling: String
+            }
+            """);
+        var plan = PlanOperation(schema, "{ values sibling }");
+        var node = Assert.IsType<OperationExecutionNode>(Assert.Single(plan.RootNodes));
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = new FetchResultStore();
+        store.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            plan.Operation,
+            errorHandlingMode,
+            includeFlags: default,
+            deferFlags: default,
+            pathSegmentLocalPoolCapacity: 16);
+        var payload = Encoding.UTF8.GetBytes(
+            containsErrors
+                ? """{"data":{"sibling":"ok","values":[1,null,3]},"errors":[{"message":"boom","path":["values",1]}]}"""
+                : """{"data":{"sibling":"ok","values":[1,null,3]}}""");
+        var result = new SourceSchemaResult(
+            CompactPath.Root,
+            SourceResultDocument.Parse(sourceArena, payload, payload.Length));
+
+        // act
+        var added = store.AddPartialResult(SelectionPath.Root, result, node.ResultSelectionSet, containsErrors);
+
+        // assert
+        Assert.True(added);
+        Assert.Equal("""{"values":""" + expected + ""","sibling":"ok"}""", RenderData(store));
+        Assert.Equal(containsErrors ? 1 : 0, store.Errors?.Count ?? 0);
+    }
+
     [Fact]
     public void AddPartialResults_Should_PropagateNullToList_When_NonNullListElementIsNull()
     {

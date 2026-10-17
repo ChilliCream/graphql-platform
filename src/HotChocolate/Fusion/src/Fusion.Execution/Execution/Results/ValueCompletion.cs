@@ -977,6 +977,13 @@ internal sealed class ValueCompletion
     {
         AssertDepthAllowed(ref depth);
 
+        if (elementTypeKind is TypeKind.Scalar
+            && errorTrie is null
+            && target.ValueKind is JsonValueKind.Undefined)
+        {
+            return target.TrySetScalarArrayValue(source, isNonNull && _propagateNullValues);
+        }
+
         // A shared list slot may already be populated by a sibling subgraph
         // result. Create the array only on the first write; otherwise reuse it
         // so sibling contributions accumulate through the positional merge below.

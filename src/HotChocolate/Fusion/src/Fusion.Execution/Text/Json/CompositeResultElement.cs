@@ -1047,6 +1047,15 @@ public readonly partial struct CompositeResultElement
         _parent.AssignCompositeValue(this, arr);
     }
 
+    internal bool TrySetScalarArrayValue(SourceResultElementSnapshot source, bool rejectNullElements)
+    {
+        CheckValidInstance();
+
+        var array = _parent.CreateScalarArray(_cursor, source, rejectNullElements, out var completed);
+        _parent.AssignCompositeValue(this, array);
+        return completed;
+    }
+
     internal void SetLeafValue(SourceResultElement source)
     {
         CheckValidInstance();

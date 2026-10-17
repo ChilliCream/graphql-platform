@@ -562,6 +562,65 @@ public sealed partial class CompositeResultDocument : IDisposable
         return new CompositeResultElement(this, cursor);
     }
 
+    internal CompositeResultElement CreateScalarArray(
+        Cursor parent,
+        SourceResultElementSnapshot source,
+        bool rejectNullElements,
+        out bool completed)
+    {
+        var length = source.GetArrayLength();
+        var cursor = WriteStartArray(parent, length);
+        var sourceDocument = source._parent;
+        var sourceDocumentId = -1;
+        var index = 0;
+        completed = true;
+
+        foreach (var element in source.EnumerateArray())
+        {
+            var snapshot = element.CreateSnapshot();
+            var tokenType = snapshot.TokenType.ToElementTokenType();
+
+            if (tokenType is ElementTokenType.Null or ElementTokenType.None)
+            {
+                if (rejectNullElements)
+                {
+                    _metaDb.AppendNullRange(cursor.Value, length - index);
+                    completed = false;
+                    break;
+                }
+
+                _metaDb.Append(ElementTokenType.Null, parentRow: cursor.Value);
+            }
+            else
+            {
+                if (sourceDocumentId == -1)
+                {
+                    if (sourceDocument.Id == -1)
+                    {
+                        sourceDocument.Id = _sources.Count;
+                        _sources.Add(sourceDocument);
+                    }
+
+                    sourceDocumentId = sourceDocument.Id;
+                }
+
+                var isContainer = tokenType is ElementTokenType.StartObject or ElementTokenType.StartArray;
+                _metaDb.Append(
+                    tokenType,
+                    location: isContainer ? snapshot._cursor.Chunk : snapshot._row.Location,
+                    sizeOrLength: isContainer ? snapshot._cursor.Row : snapshot._row.SizeOrLength,
+                    sourceDocumentId: sourceDocumentId,
+                    parentRow: cursor.Value,
+                    flags: ElementFlags.SourceResult);
+            }
+
+            index++;
+        }
+
+        WriteEndArray();
+        return new CompositeResultElement(this, cursor);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void AssignCompositeValue(CompositeResultElement target, CompositeResultElement value)
     {
