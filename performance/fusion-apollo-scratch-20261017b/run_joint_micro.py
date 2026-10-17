@@ -46,9 +46,9 @@ try:
             with output.open('w') as stdout, error.open('w') as stderr:
                 process = subprocess.Popen(command, stdout=stdout, stderr=stderr, start_new_session=True)
                 row['pid'] = process.pid
-                row['processStartTicks'] = Path(f'/proc/{process.pid}/stat').read_text().split(') ', 1)[1].split()[19]
                 started = time.monotonic()
                 try:
+                    row['processStartTicks'] = Path(f'/proc/{process.pid}/stat').read_text().split(') ', 1)[1].split()[19]
                     row['exitCode'] = process.wait(timeout=90)
                 except subprocess.TimeoutExpired:
                     os.killpg(process.pid, 15)
@@ -59,6 +59,13 @@ try:
                         process.wait()
                     raise
                 finally:
+                    if process.poll() is None:
+                        os.killpg(process.pid, 15)
+                        try:
+                            process.wait(timeout=5)
+                        except subprocess.TimeoutExpired:
+                            os.killpg(process.pid, 9)
+                            process.wait()
                     row['end'] = utc()
                     row['elapsedSeconds'] = time.monotonic() - started
                     campaign['runs'].append(row)
