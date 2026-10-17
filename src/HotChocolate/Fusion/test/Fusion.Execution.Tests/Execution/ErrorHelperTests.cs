@@ -148,5 +148,4 @@ public sealed class ErrorHelperTests
         public IError RemoveExtension(string key) => error.RemoveExtension(key);
         public IError WithException(Exception? exception) => error.WithException(exception);
     }
-
 }

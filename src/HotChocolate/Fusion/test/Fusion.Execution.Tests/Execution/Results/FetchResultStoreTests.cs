@@ -876,7 +876,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
             {"aliased":null}
             """);
         var error = Assert.Single(store.Errors!);
-        Assert.Equal(("boom", "TEST", "aliased", (IReadOnlyList<Location>?)null),
+        Assert.Equal(("boom", "TEST", "aliased", null),
             (error.Message, error.Code, error.Path?.Print(), error.Locations));
         var details = Assert.IsType<RawJsonValue>(error.Extensions!["details"]);
         Assert.Equal("""{"service":"source"}""", Encoding.UTF8.GetString(details.Value.Span));
