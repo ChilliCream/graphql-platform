@@ -2,6 +2,7 @@
 import datetime
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import signal
@@ -9,7 +10,7 @@ import subprocess
 import time
 
 ROOT = Path('/workspaces/platform-1/perf/fusion-apollo-source-stream-20261017b-43a8dca2')
-FROZEN = ROOT / 'frozen-shared'
+FROZEN = ROOT / 'frozen-shared-md-checked'
 OUTPUT = ROOT / 'bdn-shared-campaign'
 if set(os.sched_getaffinity(0)) != {0, 8}:
     raise RuntimeError('Runner must be pinned to CPUs 0,8.')
@@ -137,6 +138,18 @@ def main():
                               if measurement['IterationMode'] == 'Workload' and measurement['IterationStage'] == 'Actual']
                     if len(actual) != 12 or any(item['Operations'] != 1000 or item['Nanoseconds'] <= 0 for item in actual):
                         raise RuntimeError(f'{label}: incomplete or invalid BDN observations.')
+                    memory = result.get('Memory')
+                    keys = ['Gen0Collections', 'Gen1Collections', 'Gen2Collections',
+                            'TotalOperations', 'BytesAllocatedPerOperation']
+                    if not isinstance(memory, dict) or any(key not in memory for key in keys):
+                        raise RuntimeError(f'{label}: native MemoryDiagnoser output missing.')
+                    if any(not isinstance(memory[key], (int, float)) or not math.isfinite(memory[key])
+                           or memory[key] < 0 for key in keys) or memory['TotalOperations'] != 1000:
+                        raise RuntimeError(f'{label}: invalid native MemoryDiagnoser output.')
+                    record.setdefault('nativeMemory', []).append({
+                        'parameters': result.get('Parameters'), 'memory': memory,
+                        'zeroAllocationSuspect': memory['BytesAllocatedPerOperation'] == 0,
+                        'requiresScopedCorroboration': True})
             record['status'] = 'completed'
         except BaseException as exception:
             record.update({'status': 'failed', 'exception': repr(exception)})

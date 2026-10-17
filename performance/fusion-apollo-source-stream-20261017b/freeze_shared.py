@@ -6,7 +6,7 @@ import shutil
 
 HERE = Path(__file__).resolve().parent
 ROOT = Path('/workspaces/platform-1/perf/fusion-apollo-source-stream-20261017b-43a8dca2')
-OUTPUT = ROOT / 'frozen-shared'
+OUTPUT = ROOT / 'frozen-shared-md-checked'
 ORIGINAL = ROOT / 'frozen'
 BUILD = HERE / 'Bdn/bin/Release/net10.0'
 C10 = Path('/workspaces/platform-1/.worktrees/fusion-apollo-contiguous-source-20261017b/src/HotChocolate/Fusion/src/Fusion.Execution/bin/Release/net10.0')

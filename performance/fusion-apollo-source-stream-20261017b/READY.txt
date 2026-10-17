@@ -1,8 +1,8 @@
 C7/C10 shared BenchmarkDotNet readiness
 
-Frozen manifest SHA256: 381d5c2a69ae95c27164fb463df452ec16975ec592dd92df446d46ad3e42b8e5
-Runner SHA256: 5f3cf4ee810ff7e05467aea47eb58d4c65639cef1d88f771245fbab2baa64fd5
-Frozen root: /workspaces/platform-1/perf/fusion-apollo-source-stream-20261017b-43a8dca2/frozen-shared
+Frozen manifest SHA256: 7296506f35edd27cd79bae5108f87bdfaadbbb8aa374ba3a8337338c4ba0d7dc
+Runner SHA256: 8ecc19c44b05f26009e12a768aa72123bcb00b577133a8b8f51302808cd3e0fa
+Frozen root: /workspaces/platform-1/perf/fusion-apollo-source-stream-20261017b-43a8dca2/frozen-shared-md-checked
 Output root: /workspaces/platform-1/perf/fusion-apollo-source-stream-20261017b-43a8dca2/bdn-shared-campaign
 
 Exact command (root must grant exclusive measurement first):
@@ -30,9 +30,19 @@ are preserved. Timing/MemoryDiagnoser processes use default adaptive serverGC.
 BDN order: B/C7/C10/B/C10/C7/B,3second casewarmup,3BDNwarmupiterations,12actual observations
 of1000operations, nooutlierremoval. NativeMemoryDiagnoser enabled per explicit user request;
 retain nativeallocated/GCoutputs and compare with scoped calibration, flag inconsistencies.
+The runner requires finite nonnegative Gen0/1/2Collections and BytesAllocatedPerOperation,
+plus TotalOperations equal to 1000. It preserves these native fields for every case and marks
+zero allocation as suspect until independently corroborated. Allocation block-start records
+identify operational failures before a completed block can be emitted.
 
-Expected140-180seconds. Hard75seconds perchild and420seconds wholecampaign,10seconds cleanup.
+Expected140-180seconds. Hard75seconds perchild,420seconds work plus10seconds cleanup,
+430seconds total hard bound. Exactly four allocation processes and seven BDN processes.
 Targetaffinity2,3,10,11; observer0,8. Shared lock held exclusively for startup through cleanup.
+
+The earlier frozen and frozen-shared trees remain preserved as unmeasured preparation.
+The final host adds native MemoryDiagnoser output guards and block-start failure records.
+Production engines are unchanged. Independent source review accepted C7 capacity/EOF/cancel
+ownership and C10 same-array/adjacent-offset guards; no source blocker remains.
 
 Decision: require worthwhile repeated allocation saving or elapsed improvement, with no
 repeated meaningful added elapsed cost against both adjacent controls and no ordinary-case

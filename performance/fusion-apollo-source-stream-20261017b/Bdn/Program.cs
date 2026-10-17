@@ -166,6 +166,7 @@ public class SourceResponseBenchmarks
         var blocks = new List<object>();
         for (var block = 0; block < 5; block++)
         {
+            Console.WriteLine(JsonSerializer.Serialize(new { phase = "allocation-block-start", Shape, block }));
             GC.Collect();
             GC.WaitForPendingFinalizers();
             GC.Collect();
