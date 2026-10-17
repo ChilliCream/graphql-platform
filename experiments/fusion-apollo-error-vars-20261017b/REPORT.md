@@ -1,3 +1,5 @@
+Current disposition: **C2 abandoned for unresolved ordinary execution cost after the bounded BenchmarkDotNet gate.** See [BDN-RESULTS.md](BDN-RESULTS.md). Prior calibrated allocation evidence remains valid and separately labeled.
+
 # C2: defer Apollo error-attribution variables
 
 Status: QUEUED_FOR_HTTP. The production-path microbenchmark supports a scoped allocation reduction. It does not establish a general timing improvement or HTTP performance benefit. The [independent complete-campaign review](https://github.com/ChilliCream/graphql-platform/tree/e699a4aca28684db7b84fbd6085414b7ee28a59d/performance/fusion-apollo-scratch-20261017b/c2-micro-review) agrees with promotion of the allocation hypothesis. No implementation PR exists yet.

@@ -1,0 +1,250 @@
+{
+  "auditedAt": "2026-10-17T17:23:01.410862+00:00",
+  "reason": "Interactive turn interruption removed outer tool session before launch7 final metadata persisted. Original launches.json remains unchanged.",
+  "exitCode": null,
+  "exitCodeLimitation": "Cannot recover OS child exit status after parent/session disappearance.",
+  "completedBDNReport": true,
+  "validatedActualSamples": [
+    {
+      "parameters": "Shape=batch9",
+      "actualCount": 12,
+      "resultCount": 12,
+      "statistics": {
+        "OriginalValues": [
+          36730.781,
+          31653.837000000003,
+          37805.037,
+          36339.279,
+          36211.029,
+          37522.619,
+          37391.368,
+          38121.122,
+          34559.395,
+          37322.826,
+          38371.457,
+          26137.141
+        ],
+        "N": 12,
+        "Min": 26137.141,
+        "LowerFence": 33105.466,
+        "Q1": 35798.1205,
+        "Median": 37026.8035,
+        "Mean": 35680.49091666667,
+        "Q3": 37593.22349999999,
+        "UpperFence": 40285.87799999998,
+        "Max": 38371.457,
+        "InterquartileRange": 1795.1029999999955,
+        "LowerOutliers": [
+          26137.141,
+          31653.837000000003
+        ],
+        "UpperOutliers": [],
+        "AllOutliers": [
+          26137.141,
+          31653.837000000003
+        ],
+        "StandardError": 1019.1142266140007,
+        "Variance": 12463125.68264463,
+        "StandardDeviation": 3530.315238423423,
+        "Skewness": -1.657179598983079,
+        "Kurtosis": 4.66554330982332,
+        "ConfidenceInterval": {
+          "N": 12,
+          "Mean": 35680.49091666667,
+          "StandardError": 1019.1142266140007,
+          "Level": 12,
+          "Margin": 4521.788765678699,
+          "Lower": 31158.70215098797,
+          "Upper": 40202.27968234537
+        },
+        "Percentiles": {
+          "P0": 26137.141,
+          "P25": 35798.1205,
+          "P50": 37026.8035,
+          "P67": 37439.930870000004,
+          "P80": 37748.5534,
+          "P85": 37915.66675,
+          "P90": 38089.5135,
+          "P95": 38233.772750000004,
+          "P100": 38371.457
+        }
+      }
+    },
+    {
+      "parameters": "Shape=duplicate96-to1",
+      "actualCount": 12,
+      "resultCount": 12,
+      "statistics": {
+        "OriginalValues": [
+          55921.885,
+          57889.187,
+          58725.233,
+          56931.849,
+          56145.761,
+          56893.14,
+          55277.631,
+          57124.391,
+          59138.943,
+          55652.133,
+          56893.056,
+          62064.335
+        ],
+        "N": 12,
+        "Min": 55277.631,
+        "LowerFence": 53077.182250000005,
+        "Q1": 56089.792,
+        "Median": 56912.4945,
+        "Mean": 57388.128666666664,
+        "Q3": 58098.1985,
+        "UpperFence": 61110.808249999995,
+        "Max": 62064.335,
+        "InterquartileRange": 2008.4064999999973,
+        "LowerOutliers": [],
+        "UpperOutliers": [
+          62064.335
+        ],
+        "AllOutliers": [
+          62064.335
+        ],
+        "StandardError": 542.8617536685521,
+        "Variance": 3536386.6031531487,
+        "StandardDeviation": 1880.528277679745,
+        "Skewness": 1.128766383823164,
+        "Kurtosis": 3.511053519858319,
+        "ConfidenceInterval": {
+          "N": 12,
+          "Mean": 57388.128666666664,
+          "StandardError": 542.8617536685521,
+          "Level": 12,
+          "Margin": 2408.666383954661,
+          "Lower": 54979.462282712004,
+          "Upper": 59796.795050621324
+        },
+        "Percentiles": {
+          "P0": 55277.631,
+          "P25": 56089.792,
+          "P50": 56912.4945,
+          "P67": 57407.36552000001,
+          "P80": 58558.0238,
+          "P85": 58870.0315,
+          "P90": 59097.572,
+          "P95": 60455.369399999996,
+          "P100": 62064.335
+        }
+      }
+    },
+    {
+      "parameters": "Shape=ordinary",
+      "actualCount": 12,
+      "resultCount": 12,
+      "statistics": {
+        "OriginalValues": [
+          18655.684,
+          13962.242,
+          24031.879,
+          14188.327,
+          16613.007,
+          15055.415,
+          17654.345,
+          15971.961,
+          13810.45,
+          14254.077,
+          14494.411,
+          12850.319
+        ],
+        "N": 12,
+        "Min": 12850.319,
+        "LowerFence": 10019.502124999995,
+        "Q1": 14131.80575,
+        "Median": 14774.913,
+        "Mean": 15961.843083333333,
+        "Q3": 16873.341500000002,
+        "UpperFence": 20985.645125000006,
+        "Max": 24031.879,
+        "InterquartileRange": 2741.5357500000027,
+        "LowerOutliers": [],
+        "UpperOutliers": [
+          24031.879
+        ],
+        "AllOutliers": [
+          24031.879
+        ],
+        "StandardError": 883.4171345288383,
+        "Variance": 9365110.002949722,
+        "StandardDeviation": 3060.2467225617156,
+        "Skewness": 1.418075822763423,
+        "Kurtosis": 4.2350438088181805,
+        "ConfidenceInterval": {
+          "N": 12,
+          "Mean": 15961.843083333333,
+          "StandardError": 883.4171345288383,
+          "Level": 12,
+          "Margin": 3919.7035719859223,
+          "Lower": 12042.13951134741,
+          "Upper": 19881.546655319256
+        },
+        "Percentiles": {
+          "P0": 12850.319,
+          "P25": 14131.80575,
+          "P50": 14774.913,
+          "P67": 16209.14802,
+          "P80": 17446.077400000002,
+          "P85": 18004.81365,
+          "P90": 18555.5501,
+          "P95": 21074.971749999997,
+          "P100": 24031.879
+        }
+      }
+    }
+  ],
+  "runtimeIdentity": {
+    "runtime": ".NET 10.0.12",
+    "IsServerGC": true,
+    "gcConfiguration": {
+      "ServerGC": true,
+      "ConcurrentGC": true,
+      "RetainVM": false,
+      "NoAffinitize": false,
+      "GCCpuGroup": false,
+      "GCLargePages": false,
+      "LOHThreshold": 85000,
+      "HeapCount": 4,
+      "MaxHeapCount": 0,
+      "GCHeapAffinitizeMask": 0,
+      "GCHeapAffinitizeRanges": "",
+      "GCHighMemPercent": 90,
+      "GCGen0MaxBudget": 209715200,
+      "GCHeapHardLimit": 0,
+      "GCHeapHardLimitPercent": 0,
+      "GCRegionRange": 274877906944,
+      "GCRegionSize": 0,
+      "UOHWaitBGCSizeIncPercent": 200,
+      "GCHeapHardLimitSOH": 0,
+      "GCHeapHardLimitLOH": 0,
+      "GCHeapHardLimitPOH": 0,
+      "GCHeapHardLimitSOHPercent": 0,
+      "GCHeapHardLimitLOHPercent": 0,
+      "GCHeapHardLimitPOHPercent": 0,
+      "GCConserveMem": 0,
+      "GCName": "",
+      "GCPath": "",
+      "GCDynamicAdaptationMode": 1,
+      "GCDTargetTCP": 2,
+      "GCDGen0GrowthPercent": 100,
+      "GCDGen0GrowthMinFactor": 100,
+      "GCDGen0GrowthMaxFactor": 10000
+    },
+    "executionPath": "/workspaces/platform-1/perf/fusion-apollo-error-vars-20261017b-43a8dca2/frozen-bdn/B/HotChocolate.Fusion.Execution.dll",
+    "executionDllSha256": "9c436477e63d9c7f5c8668dcd75fec9771f500a5e71b14a1f02dd0bcf8fe6c5b"
+  },
+  "reportSha256": "b5f8ce4e82114daf73357dbbf4af18ee214d8ecf0bbe80a74ab7f21d97a3478e",
+  "reportMtime": "2026-10-17T17:20:23.025422+00:00",
+  "stdoutMtime": "2026-10-17T17:20:23.035736+00:00",
+  "commandStarted": "2026-10-17T17:20:11.652929+00:00",
+  "reportedBDNTotalSeconds": 11.28,
+  "c6CheckoutFilesystemBounds": [
+    "2026-10-17T17:22:16.438378Z",
+    "2026-10-17T17:22:20.176120Z"
+  ],
+  "checkoutExactCommandBoundsKnown": false
+}

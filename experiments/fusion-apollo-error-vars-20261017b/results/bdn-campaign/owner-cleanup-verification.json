@@ -1,0 +1,106 @@
+{
+  "checkedAt": "2026-10-17T17:22:28.831820+00:00",
+  "lockFree": true,
+  "ownedProcesses": [
+    {
+      "identity": {
+        "pid": 101050,
+        "startTicks": 609688
+      },
+      "alive": false
+    },
+    {
+      "identity": {
+        "pid": 101185,
+        "startTicks": 610815
+      },
+      "alive": false
+    },
+    {
+      "identity": {
+        "pid": 101483,
+        "startTicks": 611947
+      },
+      "alive": false
+    },
+    {
+      "identity": {
+        "pid": 101638,
+        "startTicks": 613075
+      },
+      "alive": false
+    },
+    {
+      "identity": {
+        "pid": 101791,
+        "startTicks": 614202
+      },
+      "alive": false
+    },
+    {
+      "identity": {
+        "pid": 101943,
+        "startTicks": 615334
+      },
+      "alive": false
+    },
+    {
+      "identity": {
+        "pid": 102290,
+        "startTicks": 616462
+      },
+      "alive": false
+    }
+  ],
+  "launches": [
+    {
+      "label": "01-benchmark-B",
+      "status": "completed",
+      "started": "2026-10-17T17:19:03.911376+00:00",
+      "finished": "2026-10-17T17:19:15.185515+00:00",
+      "exitCode": 0
+    },
+    {
+      "label": "02-benchmark-C2",
+      "status": "completed",
+      "started": "2026-10-17T17:19:15.185808+00:00",
+      "finished": "2026-10-17T17:19:26.500362+00:00",
+      "exitCode": 0
+    },
+    {
+      "label": "03-benchmark-C3",
+      "status": "completed",
+      "started": "2026-10-17T17:19:26.500952+00:00",
+      "finished": "2026-10-17T17:19:37.786849+00:00",
+      "exitCode": 0
+    },
+    {
+      "label": "04-benchmark-B",
+      "status": "completed",
+      "started": "2026-10-17T17:19:37.787577+00:00",
+      "finished": "2026-10-17T17:19:49.052149+00:00",
+      "exitCode": 0
+    },
+    {
+      "label": "05-benchmark-C3",
+      "status": "completed",
+      "started": "2026-10-17T17:19:49.052552+00:00",
+      "finished": "2026-10-17T17:20:00.371970+00:00",
+      "exitCode": 0
+    },
+    {
+      "label": "06-benchmark-C2",
+      "status": "completed",
+      "started": "2026-10-17T17:20:00.372289+00:00",
+      "finished": "2026-10-17T17:20:11.652587+00:00",
+      "exitCode": 0
+    },
+    {
+      "label": "07-benchmark-B",
+      "status": "running",
+      "started": "2026-10-17T17:20:11.652929+00:00",
+      "finished": null,
+      "exitCode": null
+    }
+  ]
+}

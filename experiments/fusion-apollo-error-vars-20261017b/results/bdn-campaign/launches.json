@@ -1,0 +1,193 @@
+[
+  {
+    "label": "01-benchmark-B",
+    "command": [
+      "taskset",
+      "-c",
+      "2,3,10,11",
+      "dotnet",
+      "/workspaces/platform-1/perf/fusion-apollo-error-vars-20261017b-43a8dca2/frozen-bdn/B/HotChocolate.Fusion.Execution.Benchmarks.dll",
+      "benchmark",
+      "/workspaces/platform-1/perf/fusion-apollo-error-vars-20261017b-43a8dca2/bdn-campaign/01-benchmark-B"
+    ],
+    "started": "2026-10-17T17:19:03.911376+00:00",
+    "status": "completed",
+    "runtimeEnvironment": {
+      "DOTNET_LOCAL_DEV": "1",
+      "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "1"
+    },
+    "identity": {
+      "pid": 101050,
+      "startTicks": 609688
+    },
+    "processGroup": 101050,
+    "exitCode": 0,
+    "finished": "2026-10-17T17:19:15.185515+00:00",
+    "elapsedSeconds": 11.27418681600011,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  },
+  {
+    "label": "02-benchmark-C2",
+    "command": [
+      "taskset",
+      "-c",
+      "2,3,10,11",
+      "dotnet",
+      "/workspaces/platform-1/perf/fusion-apollo-error-vars-20261017b-43a8dca2/frozen-bdn/C2/HotChocolate.Fusion.Execution.Benchmarks.dll",
+      "benchmark",
+      "/workspaces/platform-1/perf/fusion-apollo-error-vars-20261017b-43a8dca2/bdn-campaign/02-benchmark-C2"
+    ],
+    "started": "2026-10-17T17:19:15.185808+00:00",
+    "status": "completed",
+    "runtimeEnvironment": {
+      "DOTNET_LOCAL_DEV": "1",
+      "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "1"
+    },
+    "identity": {
+      "pid": 101185,
+      "startTicks": 610815
+    },
+    "processGroup": 101185,
+    "exitCode": 0,
+    "finished": "2026-10-17T17:19:26.500362+00:00",
+    "elapsedSeconds": 11.31459925099989,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  },
+  {
+    "label": "03-benchmark-C3",
+    "command": [
+      "taskset",
+      "-c",
+      "2,3,10,11",
+      "dotnet",
+      "/workspaces/platform-1/perf/fusion-apollo-error-vars-20261017b-43a8dca2/frozen-bdn/C3/HotChocolate.Fusion.Execution.Benchmarks.dll",
+      "benchmark",
+      "/workspaces/platform-1/perf/fusion-apollo-error-vars-20261017b-43a8dca2/bdn-campaign/03-benchmark-C3"
+    ],
+    "started": "2026-10-17T17:19:26.500952+00:00",
+    "status": "completed",
+    "runtimeEnvironment": {
+      "DOTNET_LOCAL_DEV": "1",
+      "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "1"
+    },
+    "identity": {
+      "pid": 101483,
+      "startTicks": 611947
+    },
+    "processGroup": 101483,
+    "exitCode": 0,
+    "finished": "2026-10-17T17:19:37.786849+00:00",
+    "elapsedSeconds": 11.2859367559995,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  },
+  {
+    "label": "04-benchmark-B",
+    "command": [
+      "taskset",
+      "-c",
+      "2,3,10,11",
+      "dotnet",
+      "/workspaces/platform-1/perf/fusion-apollo-error-vars-20261017b-43a8dca2/frozen-bdn/B/HotChocolate.Fusion.Execution.Benchmarks.dll",
+      "benchmark",
+      "/workspaces/platform-1/perf/fusion-apollo-error-vars-20261017b-43a8dca2/bdn-campaign/04-benchmark-B"
+    ],
+    "started": "2026-10-17T17:19:37.787577+00:00",
+    "status": "completed",
+    "runtimeEnvironment": {
+      "DOTNET_LOCAL_DEV": "1",
+      "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "1"
+    },
+    "identity": {
+      "pid": 101638,
+      "startTicks": 613075
+    },
+    "processGroup": 101638,
+    "exitCode": 0,
+    "finished": "2026-10-17T17:19:49.052149+00:00",
+    "elapsedSeconds": 11.26461567899969,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  },
+  {
+    "label": "05-benchmark-C3",
+    "command": [
+      "taskset",
+      "-c",
+      "2,3,10,11",
+      "dotnet",
+      "/workspaces/platform-1/perf/fusion-apollo-error-vars-20261017b-43a8dca2/frozen-bdn/C3/HotChocolate.Fusion.Execution.Benchmarks.dll",
+      "benchmark",
+      "/workspaces/platform-1/perf/fusion-apollo-error-vars-20261017b-43a8dca2/bdn-campaign/05-benchmark-C3"
+    ],
+    "started": "2026-10-17T17:19:49.052552+00:00",
+    "status": "completed",
+    "runtimeEnvironment": {
+      "DOTNET_LOCAL_DEV": "1",
+      "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "1"
+    },
+    "identity": {
+      "pid": 101791,
+      "startTicks": 614202
+    },
+    "processGroup": 101791,
+    "exitCode": 0,
+    "finished": "2026-10-17T17:20:00.371970+00:00",
+    "elapsedSeconds": 11.319457935000173,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  },
+  {
+    "label": "06-benchmark-C2",
+    "command": [
+      "taskset",
+      "-c",
+      "2,3,10,11",
+      "dotnet",
+      "/workspaces/platform-1/perf/fusion-apollo-error-vars-20261017b-43a8dca2/frozen-bdn/C2/HotChocolate.Fusion.Execution.Benchmarks.dll",
+      "benchmark",
+      "/workspaces/platform-1/perf/fusion-apollo-error-vars-20261017b-43a8dca2/bdn-campaign/06-benchmark-C2"
+    ],
+    "started": "2026-10-17T17:20:00.372289+00:00",
+    "status": "completed",
+    "runtimeEnvironment": {
+      "DOTNET_LOCAL_DEV": "1",
+      "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "1"
+    },
+    "identity": {
+      "pid": 101943,
+      "startTicks": 615334
+    },
+    "processGroup": 101943,
+    "exitCode": 0,
+    "finished": "2026-10-17T17:20:11.652587+00:00",
+    "elapsedSeconds": 11.280343273000653,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  },
+  {
+    "label": "07-benchmark-B",
+    "command": [
+      "taskset",
+      "-c",
+      "2,3,10,11",
+      "dotnet",
+      "/workspaces/platform-1/perf/fusion-apollo-error-vars-20261017b-43a8dca2/frozen-bdn/B/HotChocolate.Fusion.Execution.Benchmarks.dll",
+      "benchmark",
+      "/workspaces/platform-1/perf/fusion-apollo-error-vars-20261017b-43a8dca2/bdn-campaign/07-benchmark-B"
+    ],
+    "started": "2026-10-17T17:20:11.652929+00:00",
+    "status": "running",
+    "runtimeEnvironment": {
+      "DOTNET_LOCAL_DEV": "1",
+      "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "1"
+    },
+    "identity": {
+      "pid": 102290,
+      "startTicks": 616462
+    },
+    "processGroup": 102290
+  }
+]

@@ -1,0 +1,64 @@
+{
+  "verified_at": "2026-10-17T17:22:49.239061+00:00",
+  "identities": [
+    {
+      "label": "01-benchmark-B",
+      "pid": 101050,
+      "expected_start_ticks": 609688,
+      "current_start_ticks": null,
+      "owned_alive": false,
+      "recorded_status": "completed"
+    },
+    {
+      "label": "02-benchmark-C2",
+      "pid": 101185,
+      "expected_start_ticks": 610815,
+      "current_start_ticks": null,
+      "owned_alive": false,
+      "recorded_status": "completed"
+    },
+    {
+      "label": "03-benchmark-C3",
+      "pid": 101483,
+      "expected_start_ticks": 611947,
+      "current_start_ticks": null,
+      "owned_alive": false,
+      "recorded_status": "completed"
+    },
+    {
+      "label": "04-benchmark-B",
+      "pid": 101638,
+      "expected_start_ticks": 613075,
+      "current_start_ticks": null,
+      "owned_alive": false,
+      "recorded_status": "completed"
+    },
+    {
+      "label": "05-benchmark-C3",
+      "pid": 101791,
+      "expected_start_ticks": 614202,
+      "current_start_ticks": null,
+      "owned_alive": false,
+      "recorded_status": "completed"
+    },
+    {
+      "label": "06-benchmark-C2",
+      "pid": 101943,
+      "expected_start_ticks": 615334,
+      "current_start_ticks": null,
+      "owned_alive": false,
+      "recorded_status": "completed"
+    },
+    {
+      "label": "07-benchmark-B",
+      "pid": 102290,
+      "expected_start_ticks": 616462,
+      "current_start_ticks": null,
+      "owned_alive": false,
+      "recorded_status": "running"
+    }
+  ],
+  "all_owned_absent": true,
+  "exclusive_lock_free": true,
+  "limitation": "Launch7 original metadata remains running after tool interruption; process absence does not establish exit code or exact completion time."
+}

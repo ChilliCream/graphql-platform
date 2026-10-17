@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-10-17T17:19:03.616554+00:00",
+  "lockFree": true,
+  "activeProcesses": [
+    {
+      "pid": 3673,
+      "cpuTicks": 4,
+      "command": "/home/vscode/.vscode-server/extensions/openai.chatgpt-26.1007.21434-linux-arm64/bin/linux-aarch64/codex -c features.code_mode_host=true app-server --analytics-default-enabled "
+    }
+  ],
+  "clockTicks": 100
+}
