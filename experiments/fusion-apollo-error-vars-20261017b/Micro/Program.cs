@@ -102,11 +102,12 @@ foreach (var shape in cases)
     client.OwnerThread = Environment.CurrentManagedThreadId;
     var sync = true;
     long consumed = 0;
-    void ExecuteOne()
+    long completedOperations = 0;
+    async ValueTask ExecuteOneAsync()
     {
         var task = executor.ExecuteAsync(request);
         sync &= task.IsCompletedSuccessfully;
-        var result = task.GetAwaiter().GetResult();
+        var result = await task.ConfigureAwait(false);
         var errors = result.ExpectOperationResult().Errors.Count;
         if ((errors != 0) != (shape.Response is not "success"))
         {
@@ -115,15 +116,15 @@ foreach (var shape in cases)
         consumed += errors + 1;
         var dispose = result.DisposeAsync();
         sync &= dispose.IsCompletedSuccessfully;
-        dispose.GetAwaiter().GetResult();
-        sync &= Environment.CurrentManagedThreadId == client.OwnerThread;
+        await dispose.ConfigureAwait(false);
+        completedOperations++;
     }
 
     var warmStart = Stopwatch.GetTimestamp();
     var warmIterations = 0;
     do
     {
-        ExecuteOne();
+        await ExecuteOneAsync();
         warmIterations++;
     }
     while (Stopwatch.GetElapsedTime(warmStart).TotalMilliseconds < 1000);
@@ -141,7 +142,7 @@ foreach (var shape in cases)
             var start = Stopwatch.GetTimestamp();
             for (var i = 0; i < iterations; i++)
             {
-                ExecuteOne();
+                await ExecuteOneAsync();
             }
             var ticks = Stopwatch.GetTimestamp() - start;
             blocks.Add(new
@@ -161,6 +162,7 @@ foreach (var shape in cases)
         for (var block = 0; block < 5; block++)
         {
             const int iterations = 1000;
+            Console.Error.WriteLine($"Starting process allocation: {shape.Name}, block {block}");
             GC.Collect();
             GC.WaitForPendingFinalizers();
             GC.Collect();
@@ -174,16 +176,23 @@ foreach (var shape in cases)
             var gen0 = GC.CollectionCount(0);
             var gen1 = GC.CollectionCount(1);
             var gen2 = GC.CollectionCount(2);
+            var idleBefore = Calibration.ObserveIdle();
             var calibrationBefore = Calibration.Allocate();
+            var startThread = Environment.CurrentManagedThreadId;
+            var completedBefore = completedOperations;
+            var targetStarted = Stopwatch.GetTimestamp();
             var totalBefore = GC.GetTotalAllocatedBytes(precise: true);
             var threadBefore = GC.GetAllocatedBytesForCurrentThread();
             for (var i = 0; i < iterations; i++)
             {
-                ExecuteOne();
+                await ExecuteOneAsync();
             }
-            var threadBytes = GC.GetAllocatedBytesForCurrentThread() - threadBefore;
+            var threadAfter = GC.GetAllocatedBytesForCurrentThread();
+            var endThread = Environment.CurrentManagedThreadId;
             var totalBytes = GC.GetTotalAllocatedBytes(precise: true) - totalBefore;
+            var targetElapsedMilliseconds = Stopwatch.GetElapsedTime(targetStarted).TotalMilliseconds;
             var calibrationAfter = Calibration.Allocate();
+            var idleAfter = Calibration.ObserveIdle();
             var collections = new[]
             { GC.CollectionCount(0) - gen0, GC.CollectionCount(1) - gen1, GC.CollectionCount(2) - gen2 };
             var noCollections = gen0 == GC.CollectionCount(0)
@@ -201,15 +210,19 @@ foreach (var shape in cases)
             }
             var observation = new
             {
-                shape.Name, block, iterations, threadBytes, totalBytes,
-                otherThreadOrCounterDifference = totalBytes - threadBytes,
+                shape.Name, block, iterations, totalBytes, targetElapsedMilliseconds,
+                completed = completedOperations - completedBefore,
+                startThread, endThread, threadBefore, threadAfter,
+                diagnosticThreadDifference = threadAfter - threadBefore,
+                idleBefore, idleAfter,
                 noCollections, noGc, collections, sync, client.OtherThreadObserved,
                 calibrationBefore, calibrationAfter, calibrationExpected = 523240,
                 regionMode, endMode = GCSettings.LatencyMode, endError
             };
             Console.Error.WriteLine(JsonSerializer.Serialize(observation));
-            if (!noCollections || !sync || client.OtherThreadObserved
-                || calibrationBefore != 523240 || calibrationAfter != 523240
+            if (!noCollections || completedOperations - completedBefore != iterations
+                || calibrationBefore.ThreadBytes != 523240 || calibrationAfter.ThreadBytes != 523240
+                || calibrationBefore.TotalBytes != 523240 || calibrationAfter.TotalBytes != 523240
                 || regionMode != GCLatencyMode.NoGCRegion || endError is not null)
             {
                 throw new InvalidOperationException("Scoped allocation validation failed.");
@@ -222,6 +235,7 @@ foreach (var shape in cases)
         shape,
         warmIterations,
         consumed,
+        completedOperations,
         sync,
         client.OtherThreadObserved,
         client.SingleCalls,
@@ -391,13 +405,28 @@ internal sealed class ClientConfiguration(string name) : ISourceSchemaClientConf
 internal static class Calibration
 {
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static long Allocate()
+    public static CalibrationResult Allocate()
     {
-        var before = GC.GetAllocatedBytesForCurrentThread();
+        var totalBefore = GC.GetTotalAllocatedBytes(precise: true);
+        var threadBefore = GC.GetAllocatedBytesForCurrentThread();
         for (var i = 0; i < 127; i++)
         {
             GC.KeepAlive(new byte[4096]);
         }
-        return GC.GetAllocatedBytesForCurrentThread() - before;
+        var threadBytes = GC.GetAllocatedBytesForCurrentThread() - threadBefore;
+        var totalBytes = GC.GetTotalAllocatedBytes(precise: true) - totalBefore;
+        return new CalibrationResult(threadBytes, totalBytes);
+    }
+
+    public static IdleObservation ObserveIdle()
+    {
+        var start = Stopwatch.GetTimestamp();
+        var before = GC.GetTotalAllocatedBytes(precise: true);
+        Thread.Sleep(50);
+        var bytes = GC.GetTotalAllocatedBytes(precise: true) - before;
+        return new IdleObservation(bytes, Stopwatch.GetElapsedTime(start).TotalMilliseconds);
     }
 }
+
+internal readonly record struct CalibrationResult(long ThreadBytes, long TotalBytes);
+internal readonly record struct IdleObservation(long Bytes, double Milliseconds);

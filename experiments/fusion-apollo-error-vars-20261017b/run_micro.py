@@ -9,8 +9,8 @@ import subprocess
 import time
 
 ROOT = Path('/workspaces/platform-1/perf/fusion-apollo-error-vars-20261017b-43a8dca2')
-FROZEN = ROOT / 'frozen'
-OUTPUT = ROOT / 'micro-campaign'
+FROZEN = ROOT / 'frozen-process-scoped'
+OUTPUT = ROOT / 'micro-campaign-process-scoped'
 OUTPUT.mkdir(exist_ok=False)
 deadline = time.monotonic() + 360
 records = []
@@ -89,11 +89,11 @@ for index, (mode, variant) in enumerate(sequence):
         if report['executionDllSha256'] != manifest['files'][f'{variant}/HotChocolate.Fusion.Execution.dll']:
             raise RuntimeError(f'{label}: execution assembly identity mismatch.')
         for row in report['rows']:
-            if not row['sync'] or row['OtherThreadObserved']:
-                raise RuntimeError(f'{label}: asynchronous or off-thread execution.')
             if mode == 'allocation' and any(
                     not b['noCollections'] or not b['noGc']
-                    or b['calibrationBefore'] != 523240 or b['calibrationAfter'] != 523240
+                    or b['calibrationBefore']['ThreadBytes'] != 523240 or b['calibrationAfter']['ThreadBytes'] != 523240
+                    or b['calibrationBefore']['TotalBytes'] != 523240 or b['calibrationAfter']['TotalBytes'] != 523240
+                    or b['completed'] != b['iterations']
                     or b['endError'] is not None for b in row['blocks']):
                 raise RuntimeError(f'{label}: invalid scoped allocation observation.')
         record['status'] = 'completed'
