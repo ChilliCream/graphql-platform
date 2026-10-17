@@ -30,3 +30,29 @@ for case in rows[0]['cases']:
     summary['cases'][case] = {'means': group, 'meanRatios': {arm: statistics.mean(group[arm]) / statistics.mean(group['B']) for arm in ['C1', 'C3']}, 'adjacentRatios': adjacent}
 (root / 'timing-summary.json').write_text(json.dumps(summary, indent=2) + '\n')
 print(json.dumps(summary['cases']['testquery_sequence'], indent=2))
+
+allocation = {}
+validation = []
+for path in sorted((root / 'results').glob('allocation-*.json')):
+    if path.stat().st_size == 0:
+        continue
+    data = json.loads(path.read_text())
+    arm = path.stem.split('-')[-1]
+    for case in data['results']:
+        allocation.setdefault(case['case'], {}).setdefault(arm, []).append(case['arithmeticMean'])
+for path in sorted((root / 'results').glob('allocation-*.stderr')):
+    for line in path.read_text().splitlines():
+        if not line.startswith('{'):
+            continue
+        row = json.loads(line)
+        if row['phase'] != 'after-region':
+            continue
+        assert row['gcRegionStart'] == row['gcRegionEnd'], (path, row)
+        assert row['modeBeforeEnd'] == 'NoGCRegion' and row['regionEnded'], (path, row)
+        assert row['calibrationBefore'] == 523240 and row['calibrationAfter'] == 523240, (path, row)
+        assert row['completedObservations'] == 4, (path, row)
+        validation.append({'file': path.name, 'case': row['case'], 'bytesPerRequest': row['values']})
+if allocation:
+    (root / 'allocation-summary.json').write_text(json.dumps(allocation, indent=2) + '\n')
+if validation:
+    (root / 'allocation-validation.json').write_text(json.dumps({'validatedRegions': len(validation), 'expectedCalibrationBytes': 523240, 'cases': validation}, indent=2) + '\n')
