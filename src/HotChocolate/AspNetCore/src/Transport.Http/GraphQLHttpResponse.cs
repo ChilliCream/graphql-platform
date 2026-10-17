@@ -626,6 +626,8 @@ public sealed class GraphQLHttpResponse : IDisposable
 
         while (true)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var bytesRead = await stream
                 .ReadAsync(current.Memory[position..], cancellationToken)
                 .ConfigureAwait(false);
@@ -641,6 +643,8 @@ public sealed class GraphQLHttpResponse : IDisposable
             {
                 if (chunkIndex + 1 >= SourceResultDocument.DataMaxChunks)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     var probe = arena.Rent(1);
 
                     if (await stream.ReadAsync(probe.Memory, cancellationToken).ConfigureAwait(false) != 0)

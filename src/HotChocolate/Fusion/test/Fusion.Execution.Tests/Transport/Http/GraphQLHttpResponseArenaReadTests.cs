@@ -132,6 +132,66 @@ public class GraphQLHttpResponseArenaReadTests
     }
 
     [Fact]
+    public async Task ReadAsResult_Should_ObserveCancellation_When_StreamIgnoresToken()
+    {
+        // arrange
+        using var cancellation = new CancellationTokenSource();
+        var stream = new FragmentedStream(Encoding.UTF8.GetBytes(CreatePayload(3073)), 137, asynchronous: false)
+        {
+            IgnoreCancellation = true,
+            AfterRead = _ => cancellation.Cancel()
+        };
+        using var response = CreateResponse(stream, contentLength: null, "utf-8");
+        using var arena = new MemoryArena();
+
+        // act
+        var exception = await Record.ExceptionAsync(async () =>
+        {
+            using var document = await response.ReadAsResultAsync(arena, cancellation.Token);
+        });
+        arena.Seal();
+
+        // assert
+        var canceled = Assert.IsType<OperationCanceledException>(exception);
+        Assert.Equal(cancellation.Token, canceled.CancellationToken);
+        Assert.Equal(137, stream.BytesRead);
+        Assert.True(stream.IsDisposed);
+    }
+
+    [Fact]
+    public async Task ReadAsResult_Should_ObserveCancellation_When_FullCapacityRequiresEofProbe()
+    {
+        // arrange
+        using var cancellation = new CancellationTokenSource();
+        var capacity = 0L;
+        for (var i = 0; i < SourceResultDocument.DataMaxChunks; i++)
+        {
+            capacity += SourceResultDocument.GetDataChunkSize(i);
+        }
+        var stream = new CapacityReadStream(capacity, new IOException("The EOF probe must not be read."))
+        {
+            AfterRead = position =>
+            {
+                if (position == capacity)
+                {
+                    cancellation.Cancel();
+                }
+            }
+        };
+        using var response = CreateResponse(stream, contentLength: null, "utf-8");
+        var arena = new UnparsedMemoryArena();
+
+        // act
+        var exception = await Record.ExceptionAsync(async () =>
+            await response.ReadAsResultAsync(arena, cancellation.Token));
+
+        // assert
+        var canceled = Assert.IsType<OperationCanceledException>(exception);
+        Assert.Equal(cancellation.Token, canceled.CancellationToken);
+        Assert.Equal(capacity, stream.BytesRead);
+    }
+
+    [Fact]
     public async Task ReadAsResult_Should_ObserveReadFailure_When_FullCapacityRequiresEofProbe()
     {
         // arrange
@@ -183,6 +243,10 @@ public class GraphQLHttpResponseArenaReadTests
 
         public Action<int>? BeforeRead { get; init; }
 
+        public Action<int>? AfterRead { get; init; }
+
+        public bool IgnoreCancellation { get; init; }
+
         public override bool CanRead => !IsDisposed;
 
         public override bool CanSeek => false;
@@ -207,10 +271,14 @@ public class GraphQLHttpResponseArenaReadTests
             }
 
             BeforeRead?.Invoke(BytesRead);
-            cancellationToken.ThrowIfCancellationRequested();
+            if (!IgnoreCancellation)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+            }
             var length = Math.Min(Math.Min(buffer.Length, fragmentLength), payload.Length - BytesRead);
             payload.AsMemory(BytesRead, length).CopyTo(buffer);
             BytesRead += length;
+            AfterRead?.Invoke(BytesRead);
             return length;
         }
 
@@ -245,6 +313,7 @@ public class GraphQLHttpResponseArenaReadTests
     private sealed class CapacityReadStream(long capacity, IOException exception) : Stream
     {
         public long BytesRead { get; private set; }
+        public Action<long>? AfterRead { get; init; }
         public override bool CanRead => true;
         public override bool CanSeek => false;
         public override bool CanWrite => false;
@@ -264,6 +333,7 @@ public class GraphQLHttpResponseArenaReadTests
 
             var count = (int)Math.Min(buffer.Length, capacity - BytesRead);
             BytesRead += count;
+            AfterRead?.Invoke(BytesRead);
             return ValueTask.FromResult(count);
         }
 
