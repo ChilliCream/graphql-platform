@@ -1,6 +1,6 @@
 # Planned shared HTTP regression gate
 
-Status: preparation only. The root accepted this bounded design, but no HTTP measurement is authorized until C2 reaches its micro decision and the root grants the final survivor schedule. C2 owns the common runner; C3 owns its frozen gateway and interpretation. No source, selected data, schema, delay implementation, security, logging or GC policy changes are part of the comparison.
+Status: preparation only. The root accepted this bounded design, but no HTTP measurement is authorized until C2 reaches its micro decision and the root grants the final survivor schedule. C3 owns the common runner under `http/`; the baseline/C2 owner reviews it independently. C3 also owns its frozen gateway and interpretation. No source, selected data, schema, delay implementation, security, logging or GC policy changes are part of the comparison.
 
 ## Launch order and cases
 

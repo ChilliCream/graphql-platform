@@ -1,0 +1,13 @@
+{
+  "utc": "2026-10-17T16:38:08.010579+00:00",
+  "http_executed": false,
+  "baseline_assets": "12 exact published ef9fc115 blobs, source paths/hashes in http/vendor-provenance.json",
+  "python_syntax": "pass",
+  "k6_inspect": "constant-arrival-rate5000/s20s50preallocated/maxVUs5sgracefulStop; no execution",
+  "prepare_verify": "C3-only10launch schedule;106gateway files each; only engineDLL/PDB candidate differences; runtime10.0.12serverGCrollForwardDisable",
+  "independent_reviewer": "benchmark_baseline",
+  "review_correction": "Parent/monitor observerCPUaffinity0,8 now asserted and recorded before execution",
+  "runner_sha256": "d43b1aef9213139365b7d081f7b83df1115d682336b483000cbf1ca83d13fd19",
+  "analyzer_sha256": "be0cd52ac37d8f960db53c415e0f9caee6b3bc92d92102f08504ad4c16e5f99d",
+  "ordinary_driver_sha256": "9c4a2b8f8da66b8875ceaf127bfc5cbfc82deb2637eaf6f8bc429a0e155d807c"
+}
