@@ -12784,7 +12784,8 @@
       ]
     }
   },
-  "provisionalVerdict": "Both candidates pass the bounded micro gate, pending independent review. No CPU or HTTP claim.",
+  "reviewedVerdict": "Both candidates passed independent review and root accepted PASS_FOR_VU. No CPU or HTTP acceptance claim.",
+  "independentReview": "results/independent-review/REVIEW.txt",
   "limitations": [
     "Synchronous non-seekable memory-backed response streams; no network/async scheduling CPU measurement.",
     "Native MemoryDiagnoser uses default adaptive server GC and process-wide precise allocation accounting.",

@@ -59,7 +59,8 @@ summary = {
     'timing': timing,
     'scopedAllocation': allocation,
     'adjacentControlComparisons': comparisons,
-    'provisionalVerdict': 'Both candidates pass the bounded micro gate, pending independent review. No CPU or HTTP claim.',
+    'reviewedVerdict': 'Both candidates passed independent review and root accepted PASS_FOR_VU. No CPU or HTTP acceptance claim.',
+    'independentReview': 'results/independent-review/REVIEW.txt',
     'limitations': [
         'Synchronous non-seekable memory-backed response streams; no network/async scheduling CPU measurement.',
         'Native MemoryDiagnoser uses default adaptive server GC and process-wide precise allocation accounting.',
@@ -74,7 +75,7 @@ summary = {
 lines = [
     'C7/C10 shared response-reader micro results',
     '',
-    'Provisional decision: both pass the bounded micro gate, pending independent review. No HTTP or process CPU result is claimed.',
+    'Decision: both candidates passed independent review and root accepted PASS_FOR_VU. No HTTP or process CPU result is claimed. The independent review and extraction are retained in results/independent-review.',
     '',
     'One serialized campaign completed all 11 processes in 102.5 seconds. Four separately calibrated allocation processes preceded seven native BenchmarkDotNet processes with MemoryDiagnoser. All runtime, binary, operation-count, no-GC, exact calibration, native output and cleanup guards passed. No retries or removed observations.',
     '',

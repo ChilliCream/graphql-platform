@@ -1,0 +1,2 @@
+Independent review source:05f0cb64106af156a87f0b4f356ea13ee4607f0d
+https://github.com/ChilliCream/graphql-platform/blob/05f0cb64106af156a87f0b4f356ea13ee4607f0d/evidence/fusion-apollo-20261017/c7-c10-review/REVIEW.txt
