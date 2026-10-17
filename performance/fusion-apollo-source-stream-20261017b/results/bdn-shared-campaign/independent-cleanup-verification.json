@@ -1,0 +1,116 @@
+{
+  "utc": "2026-10-17T17:53:37.623121+00:00",
+  "reviewer": "execution_discovery",
+  "identities": [
+    {
+      "label": "01-allocate-B",
+      "identity": {
+        "pid": 155954,
+        "startTicks": 805163
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "02-allocate-C7",
+      "identity": {
+        "pid": 156062,
+        "startTicks": 806083
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "03-allocate-C10",
+      "identity": {
+        "pid": 156183,
+        "startTicks": 807001
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "04-allocate-B",
+      "identity": {
+        "pid": 156298,
+        "startTicks": 807921
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "05-benchmark-B",
+      "identity": {
+        "pid": 156414,
+        "startTicks": 808837
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "06-benchmark-C7",
+      "identity": {
+        "pid": 156568,
+        "startTicks": 809777
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "07-benchmark-C10",
+      "identity": {
+        "pid": 156736,
+        "startTicks": 810714
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "08-benchmark-B",
+      "identity": {
+        "pid": 156874,
+        "startTicks": 811651
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "09-benchmark-C10",
+      "identity": {
+        "pid": 157079,
+        "startTicks": 812588
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "10-benchmark-C7",
+      "identity": {
+        "pid": 157253,
+        "startTicks": 813526
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "11-benchmark-B",
+      "identity": {
+        "pid": 157388,
+        "startTicks": 814462
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "runner",
+      "identity": {
+        "pid": 155952,
+        "startTicks": 805150
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    }
+  ],
+  "lockFree": true,
+  "allCompleted": true
+}

@@ -1,0 +1,114 @@
+{
+  "C7": {
+    "known128": [
+      {
+        "candidateArm": "06-benchmark-C7",
+        "beforeControl": "05-benchmark-B",
+        "afterControl": "08-benchmark-B",
+        "meanNanoseconds": 728.6245833333332,
+        "percentVsBefore": -3.255426069720535,
+        "percentVsAfter": -3.1111709498457207
+      },
+      {
+        "candidateArm": "10-benchmark-C7",
+        "beforeControl": "08-benchmark-B",
+        "afterControl": "11-benchmark-B",
+        "meanNanoseconds": 756.1664999999999,
+        "percentVsBefore": 0.5512144769845406,
+        "percentVsAfter": 0.8277791371122278
+      }
+    ],
+    "unknown4096": [
+      {
+        "candidateArm": "06-benchmark-C7",
+        "beforeControl": "05-benchmark-B",
+        "afterControl": "08-benchmark-B",
+        "meanNanoseconds": 841.5809166666668,
+        "percentVsBefore": -30.408873676203996,
+        "percentVsAfter": -15.78068791172116
+      },
+      {
+        "candidateArm": "10-benchmark-C7",
+        "beforeControl": "08-benchmark-B",
+        "afterControl": "11-benchmark-B",
+        "meanNanoseconds": 845.4178333333333,
+        "percentVsBefore": -15.396717130293979,
+        "percentVsAfter": -14.467637870052364
+      }
+    ],
+    "unknown32768": [
+      {
+        "candidateArm": "06-benchmark-C7",
+        "beforeControl": "05-benchmark-B",
+        "afterControl": "08-benchmark-B",
+        "meanNanoseconds": 2367.4945000000002,
+        "percentVsBefore": -28.207944844166132,
+        "percentVsAfter": -27.342002118416488
+      },
+      {
+        "candidateArm": "10-benchmark-C7",
+        "beforeControl": "08-benchmark-B",
+        "afterControl": "11-benchmark-B",
+        "meanNanoseconds": 2312.3624999999997,
+        "percentVsBefore": -29.033993689762273,
+        "percentVsAfter": -30.490893978582857
+      }
+    ]
+  },
+  "C10": {
+    "known128": [
+      {
+        "candidateArm": "07-benchmark-C10",
+        "beforeControl": "05-benchmark-B",
+        "afterControl": "08-benchmark-B",
+        "meanNanoseconds": 744.8855833333333,
+        "percentVsBefore": -1.0963395488083116,
+        "percentVsAfter": -0.9488650309637636
+      },
+      {
+        "candidateArm": "09-benchmark-C10",
+        "beforeControl": "08-benchmark-B",
+        "afterControl": "11-benchmark-B",
+        "meanNanoseconds": 783.1525833333334,
+        "percentVsBefore": 4.139687985324025,
+        "percentVsAfter": 4.426122689899947
+      }
+    ],
+    "unknown4096": [
+      {
+        "candidateArm": "07-benchmark-C10",
+        "beforeControl": "05-benchmark-B",
+        "afterControl": "08-benchmark-B",
+        "meanNanoseconds": 935.6128333333332,
+        "percentVsBefore": -22.633285064787678,
+        "percentVsAfter": -6.370655935977487
+      },
+      {
+        "candidateArm": "09-benchmark-C10",
+        "beforeControl": "08-benchmark-B",
+        "afterControl": "11-benchmark-B",
+        "meanNanoseconds": 928.2788333333333,
+        "percentVsBefore": -7.1045894444770274,
+        "percentVsAfter": -6.084449369632838
+      }
+    ],
+    "unknown32768": [
+      {
+        "candidateArm": "07-benchmark-C10",
+        "beforeControl": "05-benchmark-B",
+        "afterControl": "08-benchmark-B",
+        "meanNanoseconds": 3021.973583333334,
+        "percentVsBefore": -8.36147911889993,
+        "percentVsAfter": -7.256151929377374
+      },
+      {
+        "candidateArm": "09-benchmark-C10",
+        "beforeControl": "08-benchmark-B",
+        "afterControl": "11-benchmark-B",
+        "meanNanoseconds": 3023.719833333333,
+        "percentVsBefore": -7.202559818054343,
+        "percentVsAfter": -9.107649655177996
+      }
+    ]
+  }
+}

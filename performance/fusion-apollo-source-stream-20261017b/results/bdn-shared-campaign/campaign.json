@@ -1,0 +1,57 @@
+{
+  "started": "2026-10-17T17:51:38.543915+00:00",
+  "runner": {
+    "pid": 155952,
+    "startTicks": 805150
+  },
+  "status": "completed",
+  "runnerSha256": "8ecc19c44b05f26009e12a768aa72123bcb00b577133a8b8f51302808cd3e0fa",
+  "manifestSha256": "7296506f35edd27cd79bae5108f87bdfaadbbb8aa374ba3a8337338c4ba0d7dc",
+  "schedule": [
+    [
+      "allocate",
+      "B"
+    ],
+    [
+      "allocate",
+      "C7"
+    ],
+    [
+      "allocate",
+      "C10"
+    ],
+    [
+      "allocate",
+      "B"
+    ],
+    [
+      "benchmark",
+      "B"
+    ],
+    [
+      "benchmark",
+      "C7"
+    ],
+    [
+      "benchmark",
+      "C10"
+    ],
+    [
+      "benchmark",
+      "B"
+    ],
+    [
+      "benchmark",
+      "C10"
+    ],
+    [
+      "benchmark",
+      "C7"
+    ],
+    [
+      "benchmark",
+      "B"
+    ]
+  ],
+  "finished": "2026-10-17T17:53:21.049169+00:00"
+}

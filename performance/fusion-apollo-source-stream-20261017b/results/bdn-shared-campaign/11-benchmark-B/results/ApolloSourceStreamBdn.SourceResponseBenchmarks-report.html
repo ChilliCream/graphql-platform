@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8' />
+<title>ApolloSourceStreamBdn.SourceResponseBenchmarks-20261017-175311</title>
+
+<style type="text/css">
+	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
+	td, th { padding: 6px 13px; border: 1px solid #ddd; text-align: right; }
+	tr { background-color: #fff; border-top: 1px solid #ccc; }
+	tr:nth-child(even) { background: #f8f8f8; }
+</style>
+</head>
+<body>
+<pre><code>
+BenchmarkDotNet v0.15.8, Linux Debian GNU/Linux 12 (bookworm)
+-
+.NET SDK 11.0.100-rc.1.26425.128
+  [Host] : .NET 10.0.12 (10.0.12, 10.0.1226.42308), Arm64 RyuJIT armv8.0-a
+</code></pre>
+<pre><code>Job=DefaultGC-1000SourceResponses  OutlierMode=DontRemove  Force=False  
+Toolchain=InProcessEmitToolchain  InvocationCount=1  IterationCount=12  
+LaunchCount=1  UnrollFactor=1  WarmupCount=3  
+</code></pre>
+
+<table>
+<thead><tr><th>Method</th><th>Shape </th><th>Mean</th><th>Error</th><th>StdDev</th><th>Allocated</th>
+</tr>
+</thead><tbody><tr><td>ReadAsync</td><td>known128</td><td>750.0 ns</td><td>354.91 ns</td><td>277.09 ns</td><td>1.16 KB</td>
+</tr><tr><td>ReadAsync</td><td>unknown32768</td><td>3,326.7 ns</td><td>129.66 ns</td><td>101.23 ns</td><td>1.39 KB</td>
+</tr><tr><td>ReadAsync</td><td>unknown4096</td><td>988.4 ns</td><td>76.69 ns</td><td>59.88 ns</td><td>1.25 KB</td>
+</tr></tbody></table>
+</body>
+</html>
