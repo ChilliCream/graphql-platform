@@ -1,0 +1,26 @@
+Independent C6/C8 native BenchmarkDotNet review, execution_hotpaths, 2026-10-17.
+
+Inputs: frozen manifest b267865ab64bb0c2bf113aac722448060e153eb43dd4254b20c4daa4af95aa70, native continuation runner 2d0d16d6406fa682880bf0ea0858bf1d2bda545d3b65402c9771ec7e75f02b61. Independently extracted all seven native full JSON reports directly. All 21 cases contain twelve retained WorkloadResult observations and MemoryDiagnoser TotalOperations=1000. The native timing statistic is arithmetic mean elapsed microseconds per operation, not process CPU. No observations were removed.
+
+Chronological control values are B1/B4/B7; candidate pairs are C6 launches 2/6 and C8 launches 3/5.
+
+Ordinary synchronous control:
+B elapsed 11.9458 / 14.1263 / 12.2977 us; native bytes 25703 / 25703 / 25703.
+C6 elapsed 12.1638 / 12.0359 us; native bytes 477980 / 145202.
+C8 elapsed 11.7998 / 12.1971 us; native bytes 25703 / 479137.
+
+Asynchronous single with nine entities:
+B elapsed 23.3229 / 23.5303 / 22.2884 us; native bytes 30423 / 30416 / 30416.
+C6 elapsed 25.0849 / 23.7413 us; native bytes 30352 / 30327.
+C8 elapsed 23.3831 / 22.3481 us; native bytes 30236 / 149688.
+
+Asynchronous batch with nine entities:
+B elapsed 28.6398 / 29.8309 / 29.0042 us; native bytes 34870 / 34870 / 34864.
+C6 elapsed 29.7672 / 29.4484 us; native bytes 34805 / 34770.
+C8 elapsed 30.3538 / 29.1574 us; native bytes 34680 / 34672.
+
+C6 verdict: ABANDON. Stable-case native allocation reductions are roughly 65-100 B/op (the earlier partial calibrated evidence was approximately 95.5 B/op). Async-single elapsed is +7.55%/+6.61% against the first two chronological controls, then +0.90%/+6.52% against the second pair. The small memory saving does not establish a worthwhile tradeoff against this elapsed cost. CPU has not been measured directly. The anomalous native ordinary allocations remain part of the result.
+
+C8 verdict: ABANDON because reliable worthwhile net benefit remains unproven. Allocation-only improvements remain acceptable under the user's gate. Batch native diagnostics show 190-198 B/op savings, with mixed elapsed comparisons (+5.98%/+1.75%, then -2.26%/+0.53%). However, the second C8 native ordinary/single totals are 479137/149688 B/op versus 25703/about30416 controls, and there is no valid C8 supplementary controlled-allocation corroboration. These whole-process diagnostic totals cannot support a clean attribution or overall memory/CPU tradeoff. Co-occurring Gen1/Gen2 collections do not establish the cause of anomalous totals. This is a failure to prove the required benefit, not a claim that every case regressed, and not a requirement for speedup when reliable allocation-only benefit is shown.
+
+Preserve the failed controlled-allocation attempt and every native raw value. Do not trim anomalies, retry diagnostics, repeat terminal candidates or advance either candidate to VU. No cause for allocation anomalies or process-CPU improvement is asserted. C12 is a separate guarded transport hypothesis and has not been benchmarked.
