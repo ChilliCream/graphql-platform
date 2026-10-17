@@ -1,0 +1,2 @@
+Unhandled exception. System.InvalidOperationException: Collection occurred inside the controlled allocation region.
+   at Program.<Main>$(String[] args) in /workspaces/platform-1/.worktrees/fusion-apollo-scratch-20261017b/performance/fusion-apollo-scratch-20261017b/Micro/Program.cs:line 125

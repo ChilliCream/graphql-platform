@@ -1,6 +1,6 @@
 # C3: duplicate representation path backing
 
-Status: QUEUED_FOR_MICRO. Candidate list frozen by the orchestrator. This branch contains only C3, independently based on `43a8dca2bd479ddc411d832ed97e42d9fcc8bd85`.
+Status: QUEUED_FOR_HTTP. Corrected micro results and limitations are in REPORT.md. Candidate list frozen by the orchestrator. This branch contains only C3, independently based on `43a8dca2bd479ddc411d832ed97e42d9fcc8bd85`.
 
 The warm original TestQuery produces 335 representation targets and 24 unique representations across eleven representation builds, eight of which contain duplicate paths. The 311 duplicate paths require eight exact outer `CompactPath[]` allocations, statically estimated at 2,680 bytes/request. Allocation-stack evidence identifies this recurring path. That estimate still requires actual production-path scoped allocation validation.
 

@@ -1,0 +1,813 @@
+{
+  "scope": "current-thread Execute plus Clean only; controlled no-GC region; excludes Prepare and arena disposal",
+  "summary": {
+    "unique1": {
+      "baseline_bytes": 256,
+      "candidate_bytes": 256,
+      "saved_bytes": 0,
+      "relative_percent": 0.0
+    },
+    "unique5": {
+      "baseline_bytes": 352,
+      "candidate_bytes": 352,
+      "saved_bytes": 0,
+      "relative_percent": 0.0
+    },
+    "unique6": {
+      "baseline_bytes": 376,
+      "candidate_bytes": 376,
+      "saved_bytes": 0,
+      "relative_percent": 0.0
+    },
+    "unique9": {
+      "baseline_bytes": 448,
+      "candidate_bytes": 448,
+      "saved_bytes": 0,
+      "relative_percent": 0.0
+    },
+    "duplicate96": {
+      "baseline_bytes": 1040,
+      "candidate_bytes": 256,
+      "saved_bytes": 784,
+      "relative_percent": -75.38461538461539
+    },
+    "duplicate1026": {
+      "baseline_bytes": 8480,
+      "candidate_bytes": 8480,
+      "saved_bytes": 0,
+      "relative_percent": 0.0
+    },
+    "unique96": {
+      "baseline_bytes": 2536,
+      "candidate_bytes": 2536,
+      "saved_bytes": 0,
+      "relative_percent": 0.0
+    },
+    "unique1024": {
+      "baseline_bytes": 24808,
+      "candidate_bytes": 24808,
+      "saved_bytes": 0,
+      "relative_percent": 0.0
+    },
+    "mixed96": {
+      "baseline_bytes": 1152,
+      "candidate_bytes": 424,
+      "saved_bytes": 728,
+      "relative_percent": -63.19444444444444
+    },
+    "testquery_sequence": {
+      "baseline_bytes": 5808,
+      "candidate_bytes": 3128,
+      "saved_bytes": 2680,
+      "relative_percent": -46.14325068870524
+    },
+    "large_then_small": {
+      "baseline_bytes": 26456,
+      "candidate_bytes": 25672,
+      "saved_bytes": 784,
+      "relative_percent": -2.963410946477174
+    },
+    "snapshot96": {
+      "baseline_bytes": 1152,
+      "candidate_bytes": 424,
+      "saved_bytes": 728,
+      "relative_percent": -63.19444444444444
+    },
+    "null96": {
+      "baseline_bytes": 208,
+      "candidate_bytes": 208,
+      "saved_bytes": 0,
+      "relative_percent": 0.0
+    }
+  },
+  "validated_rows": [
+    {
+      "file": "allocation-00-B.json",
+      "case": "unique1",
+      "bytes": 256,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-00-B.json",
+      "case": "unique5",
+      "bytes": 352,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-00-B.json",
+      "case": "unique6",
+      "bytes": 376,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-00-B.json",
+      "case": "unique9",
+      "bytes": 448,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-00-B.json",
+      "case": "duplicate96",
+      "bytes": 1040,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-00-B.json",
+      "case": "duplicate1026",
+      "bytes": 8480,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-00-B.json",
+      "case": "unique96",
+      "bytes": 2536,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-00-B.json",
+      "case": "unique1024",
+      "bytes": 24808,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-00-B.json",
+      "case": "mixed96",
+      "bytes": 1152,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-00-B.json",
+      "case": "testquery_sequence",
+      "bytes": 5808,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-00-B.json",
+      "case": "large_then_small",
+      "bytes": 26456,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-00-B.json",
+      "case": "snapshot96",
+      "bytes": 1152,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-00-B.json",
+      "case": "null96",
+      "bytes": 208,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-02-C3.json",
+      "case": "unique1",
+      "bytes": 256,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-02-C3.json",
+      "case": "unique5",
+      "bytes": 352,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-02-C3.json",
+      "case": "unique6",
+      "bytes": 376,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-02-C3.json",
+      "case": "unique9",
+      "bytes": 448,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-02-C3.json",
+      "case": "duplicate96",
+      "bytes": 256,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-02-C3.json",
+      "case": "duplicate1026",
+      "bytes": 8480,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-02-C3.json",
+      "case": "unique96",
+      "bytes": 2536,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-02-C3.json",
+      "case": "unique1024",
+      "bytes": 24808,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-02-C3.json",
+      "case": "mixed96",
+      "bytes": 424,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-02-C3.json",
+      "case": "testquery_sequence",
+      "bytes": 3128,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-02-C3.json",
+      "case": "large_then_small",
+      "bytes": 25672,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-02-C3.json",
+      "case": "snapshot96",
+      "bytes": 424,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-02-C3.json",
+      "case": "null96",
+      "bytes": 208,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-03-B.json",
+      "case": "unique1",
+      "bytes": 256,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-03-B.json",
+      "case": "unique5",
+      "bytes": 352,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-03-B.json",
+      "case": "unique6",
+      "bytes": 376,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-03-B.json",
+      "case": "unique9",
+      "bytes": 448,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-03-B.json",
+      "case": "duplicate96",
+      "bytes": 1040,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-03-B.json",
+      "case": "duplicate1026",
+      "bytes": 8480,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-03-B.json",
+      "case": "unique96",
+      "bytes": 2536,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-03-B.json",
+      "case": "unique1024",
+      "bytes": 24808,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-03-B.json",
+      "case": "mixed96",
+      "bytes": 1152,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-03-B.json",
+      "case": "testquery_sequence",
+      "bytes": 5808,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-03-B.json",
+      "case": "large_then_small",
+      "bytes": 26456,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-03-B.json",
+      "case": "snapshot96",
+      "bytes": 1152,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-03-B.json",
+      "case": "null96",
+      "bytes": 208,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-04-C3.json",
+      "case": "unique1",
+      "bytes": 256,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-04-C3.json",
+      "case": "unique5",
+      "bytes": 352,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-04-C3.json",
+      "case": "unique6",
+      "bytes": 376,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-04-C3.json",
+      "case": "unique9",
+      "bytes": 448,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-04-C3.json",
+      "case": "duplicate96",
+      "bytes": 256,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-04-C3.json",
+      "case": "duplicate1026",
+      "bytes": 8480,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-04-C3.json",
+      "case": "unique96",
+      "bytes": 2536,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-04-C3.json",
+      "case": "unique1024",
+      "bytes": 24808,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-04-C3.json",
+      "case": "mixed96",
+      "bytes": 424,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-04-C3.json",
+      "case": "testquery_sequence",
+      "bytes": 3128,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-04-C3.json",
+      "case": "large_then_small",
+      "bytes": 25672,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-04-C3.json",
+      "case": "snapshot96",
+      "bytes": 424,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-04-C3.json",
+      "case": "null96",
+      "bytes": 208,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-06-B.json",
+      "case": "unique1",
+      "bytes": 256,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-06-B.json",
+      "case": "unique5",
+      "bytes": 352,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-06-B.json",
+      "case": "unique6",
+      "bytes": 376,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-06-B.json",
+      "case": "unique9",
+      "bytes": 448,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-06-B.json",
+      "case": "duplicate96",
+      "bytes": 1040,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-06-B.json",
+      "case": "duplicate1026",
+      "bytes": 8480,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-06-B.json",
+      "case": "unique96",
+      "bytes": 2536,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-06-B.json",
+      "case": "unique1024",
+      "bytes": 24808,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-06-B.json",
+      "case": "mixed96",
+      "bytes": 1152,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-06-B.json",
+      "case": "testquery_sequence",
+      "bytes": 5808,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-06-B.json",
+      "case": "large_then_small",
+      "bytes": 26456,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-06-B.json",
+      "case": "snapshot96",
+      "bytes": 1152,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-06-B.json",
+      "case": "null96",
+      "bytes": 208,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-08-C3.json",
+      "case": "unique1",
+      "bytes": 256,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-08-C3.json",
+      "case": "unique5",
+      "bytes": 352,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-08-C3.json",
+      "case": "unique6",
+      "bytes": 376,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-08-C3.json",
+      "case": "unique9",
+      "bytes": 448,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-08-C3.json",
+      "case": "duplicate96",
+      "bytes": 256,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-08-C3.json",
+      "case": "duplicate1026",
+      "bytes": 8480,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-08-C3.json",
+      "case": "unique96",
+      "bytes": 2536,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-08-C3.json",
+      "case": "unique1024",
+      "bytes": 24808,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-08-C3.json",
+      "case": "mixed96",
+      "bytes": 424,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-08-C3.json",
+      "case": "testquery_sequence",
+      "bytes": 3128,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-08-C3.json",
+      "case": "large_then_small",
+      "bytes": 25672,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-08-C3.json",
+      "case": "snapshot96",
+      "bytes": 424,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-08-C3.json",
+      "case": "null96",
+      "bytes": 208,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-09-B.json",
+      "case": "unique1",
+      "bytes": 256,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-09-B.json",
+      "case": "unique5",
+      "bytes": 352,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-09-B.json",
+      "case": "unique6",
+      "bytes": 376,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-09-B.json",
+      "case": "unique9",
+      "bytes": 448,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-09-B.json",
+      "case": "duplicate96",
+      "bytes": 1040,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-09-B.json",
+      "case": "duplicate1026",
+      "bytes": 8480,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-09-B.json",
+      "case": "unique96",
+      "bytes": 2536,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-09-B.json",
+      "case": "unique1024",
+      "bytes": 24808,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-09-B.json",
+      "case": "mixed96",
+      "bytes": 1152,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-09-B.json",
+      "case": "testquery_sequence",
+      "bytes": 5808,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-09-B.json",
+      "case": "large_then_small",
+      "bytes": 26456,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-09-B.json",
+      "case": "snapshot96",
+      "bytes": 1152,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    },
+    {
+      "file": "allocation-09-B.json",
+      "case": "null96",
+      "bytes": 208,
+      "observations": 4,
+      "requests_per_observation": 16,
+      "validated": true
+    }
+  ]
+}
