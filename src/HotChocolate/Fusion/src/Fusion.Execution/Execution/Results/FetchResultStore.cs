@@ -2326,6 +2326,11 @@ AddErrors_Next:
 
     private CompositeResultElement GetStartResult(CompactPath path)
     {
+        if (_result.TryResolvePath(path, out var resolved))
+        {
+            return resolved;
+        }
+
         var element = _result.Data;
 
         for (var i = 0; i < path.Length; i++)

@@ -1,0 +1,145 @@
+using System.Text;
+using System.Text.Json;
+using HotChocolate.Buffers;
+
+namespace HotChocolate.Fusion.Text.Json;
+
+public class CompositeResultDocumentPathTests : FusionTestBase
+{
+    [Fact]
+    public void TryResolvePath_Should_ReturnLogicalTargets_When_PathContainsOnlyFields()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var plan = PlanOperation(schema, "{ productBySlug(slug: \"1\") { id name } }");
+        var document = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+        var product = document.Data.GetProperty("productBySlug");
+        product.SetObjectValue(plan.Operation.GetSelectionSet(product.AssertSelection()));
+        var name = product.GetProperty("name");
+
+        // act
+        var rootFound = document.TryResolvePath(CompactPath.Root, out var root);
+        var productFound = document.TryResolvePath(product.CompactPath, out var resolvedProduct);
+        var nameFound = document.TryResolvePath(name.CompactPath, out var resolvedName);
+
+        // assert
+        Assert.True(rootFound && productFound && nameFound);
+        Assert.Equal(document.Data.Cursor, root.Cursor);
+        Assert.Equal(product.Cursor, resolvedProduct.Cursor);
+        Assert.Equal(name.Cursor, resolvedName.Cursor);
+    }
+
+    [Fact]
+    public void TryResolvePath_Should_ReturnEveryListTarget_When_MetadataCrossesChunks()
+    {
+        // arrange
+        var schema = ComposeShoppingSchema();
+        var plan = PlanOperation(schema, "{ users { nodes { name } } }");
+        var document = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+        var users = document.Data.GetProperty("users");
+        users.SetObjectValue(plan.Operation.GetSelectionSet(users.AssertSelection()));
+        var nodes = users.GetProperty("nodes");
+        var selectionSet = plan.Operation.GetSelectionSet(nodes.AssertSelection());
+        nodes.SetArrayValue(150);
+        var expected = new List<CompositeResultDocument.Cursor>();
+        var paths = new List<CompactPath>();
+        foreach (var node in nodes.EnumerateArray())
+        {
+            node.SetObjectValue(selectionSet);
+            var name = node.GetProperty("name");
+            expected.Add(name.Cursor);
+            paths.Add(name.CompactPath);
+        }
+
+        // act
+        var actual = new List<CompositeResultDocument.Cursor>();
+        foreach (var path in paths)
+        {
+            Assert.True(document.TryResolvePath(path, out var target));
+            actual.Add(target.Cursor);
+        }
+
+        // assert
+        Assert.Equal(expected, actual);
+        Assert.True(expected[^1].Chunk > expected[0].Chunk);
+    }
+
+    [Fact]
+    public void TryResolvePath_Should_ReturnNullAncestor_When_DescendantPathWasBuiltEarlier()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var plan = PlanOperation(schema, "{ productBySlug(slug: \"1\") { name } }");
+        var document = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+        var product = document.Data.GetProperty("productBySlug");
+        product.SetObjectValue(plan.Operation.GetSelectionSet(product.AssertSelection()));
+        var path = product.GetProperty("name").CompactPath;
+        product.SetNullValue();
+
+        // act
+        var found = document.TryResolvePath(path, out var target);
+
+        // assert
+        Assert.True(found);
+        Assert.Equal(product.Cursor, target.Cursor);
+        Assert.Equal(JsonValueKind.Null, target.ValueKind);
+    }
+
+    [Fact]
+    public void TryResolvePath_Should_PreserveLogicalReferences_When_OneReferenceHasNullMarker()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var plan = PlanOperation(schema,
+            "{ first: productBySlug(slug: \"1\") { name } second: productBySlug(slug: \"1\") { name } }");
+        var document = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+        var first = document.Data.GetProperty("first");
+        var second = document.Data.GetProperty("second");
+        var firstPath = first.CompactPath;
+        var secondPath = second.CompactPath;
+        var secondId = second.AssertSelection().Id;
+        var shared = document.CreateObject(first.Cursor, plan.Operation.GetSelectionSet(first.AssertSelection()));
+        document.AssignCompositeValue(first, shared);
+        document.AssignCompositeValue(second, shared);
+        first.SetNullMarker();
+        var name = shared.GetProperty("name");
+        var childPath = new CompactPath([2, secondId, name.AssertSelection().Id]);
+
+        // act
+        var firstFound = document.TryResolvePath(firstPath, out var resolvedFirst);
+        var secondFound = document.TryResolvePath(secondPath, out var resolvedSecond);
+        var childFound = document.TryResolvePath(childPath, out var child);
+
+        // assert
+        Assert.True(firstFound && secondFound && childFound);
+        Assert.Equal(first.Cursor, resolvedFirst.Cursor);
+        Assert.Equal(second.Cursor, resolvedSecond.Cursor);
+        Assert.Equal(name.Cursor, child.Cursor);
+        using var firstBuffer = new PooledArrayWriter();
+        using var secondBuffer = new PooledArrayWriter();
+        resolvedFirst.WriteTo(firstBuffer);
+        resolvedSecond.WriteTo(secondBuffer);
+        Encoding.UTF8.GetString(firstBuffer.WrittenSpan).MatchInlineSnapshot("null");
+        Encoding.UTF8.GetString(secondBuffer.WrittenSpan).MatchInlineSnapshot("{\"name\":null}");
+    }
+
+    [Fact]
+    public void TryResolvePath_Should_DeclineInvalidTraversal_When_ArraySegmentTargetsObject()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var plan = PlanOperation(schema, "{ productBySlug(slug: \"1\") { name } }");
+        var document = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+        var product = document.Data.GetProperty("productBySlug");
+        var selection = product.AssertSelection();
+        product.SetObjectValue(plan.Operation.GetSelectionSet(selection));
+        var path = new CompactPath([2, selection.Id, ~0]);
+
+        // act
+        var found = document.TryResolvePath(path, out var target);
+
+        // assert
+        Assert.False(found);
+        Assert.Equal(JsonValueKind.Undefined, target.ValueKind);
+    }
+}

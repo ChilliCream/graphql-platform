@@ -1,0 +1,11 @@
+{
+  "baseline": "43a8dca2bd479ddc411d832ed97e42d9fcc8bd85",
+  "files": {
+    "/workspaces/platform-1/perf/fusion-apollo-path-lookup-20261017b/frozen/HotChocolate.Fusion.Execution.dll": "eb3a59ad4d4d0ba5098b646dcdf973ba0a6d743b11f640738e2299babfb01214",
+    "/workspaces/platform-1/perf/fusion-apollo-path-lookup-20261017b/frozen/HotChocolate.Fusion.Execution.pdb": "db50b7f3940faa58f6552f16b6a52f2b23d5f99d8480ace94244d31fc31b854e"
+  },
+  "tests": "93 passed,0failed; first run92passed/1incorrecttestoracle, preserved",
+  "runtime": "10.0.12",
+  "configuration": "Release",
+  "measurement": "None; queued for genuine BenchmarkDotNet gate"
+}
