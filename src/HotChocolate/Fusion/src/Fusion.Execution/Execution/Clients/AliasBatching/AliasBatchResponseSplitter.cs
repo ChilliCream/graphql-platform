@@ -50,7 +50,10 @@ internal static class AliasBatchResponseSplitter
             return AliasBatchSplitStatus.Invalid;
         }
 
-        var roots = new SourceResultElement[items.Length];
+        Span<SourceResultDocument.Cursor> roots = items.Length <= 256
+            ? stackalloc SourceResultDocument.Cursor[items.Length]
+            : new SourceResultDocument.Cursor[items.Length];
+        roots.Clear();
 
         foreach (var property in data.EnumerateObject())
         {
@@ -59,7 +62,7 @@ internal static class AliasBatchResponseSplitter
                 return AliasBatchSplitStatus.Invalid;
             }
 
-            roots[index] = property.Value;
+            roots[index] = property.Value._cursor;
         }
 
         var documentOwner = new SourceResultDocumentOwner(document, items.Length);
@@ -75,7 +78,9 @@ internal static class AliasBatchResponseSplitter
                 document,
                 documentOwner: documentOwner,
                 // An item whose field the response does not carry has no lookup data.
-                lookupData: root.ValueKind is JsonValueKind.Undefined ? null : root,
+                lookupData: root == SourceResultDocument.Cursor.Zero
+                    ? null
+                    : new SourceResultElement(document, root),
                 errors: itemErrors is null
                     ? null
                     : SourceSchemaErrors.Create(CollectionsMarshal.AsSpan(itemErrors)),

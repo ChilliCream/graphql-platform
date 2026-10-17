@@ -1,0 +1,21 @@
+{
+  "baseline": "43a8dca2bd479ddc411d832ed97e42d9fcc8bd85",
+  "engineDirectory": "/workspaces/platform-1/.worktrees/fusion-apollo-alias-cursors-20261017b/src/HotChocolate/Fusion/src/Fusion.Execution/bin/Release/net10.0",
+  "engineFiles": {
+    "HotChocolate.Fusion.Execution.dll": "f06a867f5fbfa552edd2904691c74ea818b23635c537272aeec5cb2f4f254b14",
+    "HotChocolate.Fusion.Execution.pdb": "365a537a221a5a8451618107ccf958baf68750d668ec50c09043bdc653077d20"
+  },
+  "focusedTests": {
+    "executed": 19,
+    "failed": 0,
+    "new": 10,
+    "runtime": ".NET 10.0.12",
+    "wrapperAttempt": "exit5, zero tests; not counted",
+    "successfulRun": "direct xUnit executable"
+  },
+  "independentSourceReview": [
+    "execution_discovery PASS",
+    "execution_hotpaths PASS, including test-log verification"
+  ],
+  "scope": "exact common C4 host; ordinary unchanged, splits of2/3 items; no large-batch CPU claim"
+}

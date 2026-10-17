@@ -1,0 +1,20 @@
+/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.Sdk.FrameworkReferenceResolution.targets(121,5): warning NETSDK1210: IsAotCompatible and EnableAotAnalyzer are not supported for the target framework. Consider multi-targeting to a supported framework to enable ahead-of-time compilation analysis, and set IsAotCompatible only for the supported frameworks. For example: [/workspaces/platform-1/.worktrees/fusion-apollo-alias-cursors-20261017b/src/HotChocolate/Utilities/src/Utilities.Buffers/HotChocolate.Utilities.Buffers.csproj::TargetFramework=netstandard2.0]
+/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.Sdk.FrameworkReferenceResolution.targets(121,5): warning NETSDK1210: <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</IsAotCompatible> [/workspaces/platform-1/.worktrees/fusion-apollo-alias-cursors-20261017b/src/HotChocolate/Utilities/src/Utilities.Buffers/HotChocolate.Utilities.Buffers.csproj::TargetFramework=netstandard2.0]
+/workspaces/platform-1/.worktrees/fusion-apollo-alias-cursors-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/TestServerSession.cs(18,27): warning ASPDEPR004: 'WebHostBuilder' is obsolete: 'WebHostBuilder is deprecated in favor of HostBuilder and WebApplicationBuilder. For more information, visit https://aka.ms/aspnet/deprecate/004.' (https://aka.ms/aspnet/deprecate/004) [/workspaces/platform-1/.worktrees/fusion-apollo-alias-cursors-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/HotChocolate.Fusion.Execution.Tests.csproj::TargetFramework=net10.0]
+/workspaces/platform-1/.worktrees/fusion-apollo-alias-cursors-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/TestServerSession.cs(22,22): warning ASPDEPR008: 'TestServer.TestServer(IWebHostBuilder)' is obsolete: 'IWebHost, which this method uses, is obsolete. Use one of the ctors that takes an IServiceProvider instead. For more information, visit https://aka.ms/aspnet/deprecate/008.' (https://aka.ms/aspnet/deprecate/008) [/workspaces/platform-1/.worktrees/fusion-apollo-alias-cursors-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/HotChocolate.Fusion.Execution.Tests.csproj::TargetFramework=net10.0]
+/workspaces/platform-1/.worktrees/fusion-apollo-alias-cursors-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/bin/Release/net10.0/HotChocolate.Fusion.Execution.Tests.dll (net10.0) Zero tests ran
+Exit code: 5
+
+Test run summary: Failed!
+  error: 1
+
+  total: 0
+  failed: 0
+  succeeded: 0
+  skipped: 0
+  duration: 88ms
+Test run completed with non-success exit code: 5 (see: https://aka.ms/testingplatform/exitcodes)
+
+Handshake failures:
+  /workspaces/platform-1/.worktrees/fusion-apollo-alias-cursors-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/bin/Release/net10.0/HotChocolate.Fusion.Execution.Tests.dll (net10.0)
+Exit code: 5

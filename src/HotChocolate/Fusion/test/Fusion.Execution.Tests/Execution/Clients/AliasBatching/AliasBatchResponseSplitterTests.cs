@@ -188,6 +188,94 @@ public sealed class AliasBatchResponseSplitterTests : FusionTestBase
         Assert.Throws<ObjectDisposedException>(() => item.GetProperty("name").GetString());
     }
 
+    [Theory]
+    [InlineData(2)]
+    [InlineData(256)]
+    [InlineData(257)]
+    [InlineData(1024)]
+    public void TrySplit_Should_PreserveEveryValue_When_ResponseCrossesScratchAndMetadataBoundaries(
+        int itemCount)
+    {
+        // arrange
+        var fields = Enumerable.Range(0, itemCount)
+            .Reverse()
+            .Select(i => $$"""
+                "_{{i}}_productById":{"name":"{{i}}"}
+                """);
+        using var fixture = new Fixture(
+            Lookup,
+            "{\"data\":{" + string.Join(',', fields) + "}}",
+            itemCount);
+
+        // act
+        var status = AliasBatchResponseSplitter.TrySplit(fixture.Document, fixture.Items, fixture.Results);
+
+        // assert
+        Assert.Equal(AliasBatchSplitStatus.Split, status);
+        Assert.Equal(
+            Enumerable.Range(0, itemCount).Select(i => i.ToString()),
+            fixture.Results.Select(ReadName));
+    }
+
+    [Theory]
+    [InlineData(2)]
+    [InlineData(257)]
+    public void TrySplit_Should_DistinguishNullFromMissing_When_OnlyOneFieldIsPresent(int itemCount)
+    {
+        // arrange
+        using var fixture = new Fixture(
+            Lookup,
+            """{"data":{"_0_productById":null}}""",
+            itemCount);
+
+        // act
+        var status = AliasBatchResponseSplitter.TrySplit(fixture.Document, fixture.Items, fixture.Results);
+
+        // assert
+        Assert.Equal(AliasBatchSplitStatus.Split, status);
+        Assert.Equal(JsonValueKind.Null, fixture.Results[0].LookupData?.ValueKind);
+        Assert.All(fixture.Results.Skip(1), result => Assert.Null(result.LookupData));
+    }
+
+    [Theory]
+    [InlineData(2)]
+    [InlineData(257)]
+    public void TrySplit_Should_UseLastValue_When_AliasIsRepeated(int itemCount)
+    {
+        // arrange
+        using var fixture = new Fixture(
+            Lookup,
+            """{"data":{"_0_productById":{"name":"first"},"_0_productById":{"name":"last"}}}""",
+            itemCount);
+
+        // act
+        var status = AliasBatchResponseSplitter.TrySplit(fixture.Document, fixture.Items, fixture.Results);
+
+        // assert
+        Assert.Equal(AliasBatchSplitStatus.Split, status);
+        Assert.Equal("last", ReadName(fixture.Results[0]));
+        Assert.All(fixture.Results.Skip(1), result => Assert.Null(result.LookupData));
+    }
+
+    [Theory]
+    [InlineData(2)]
+    [InlineData(257)]
+    public void TrySplit_Should_LeaveOutputsUnassigned_When_InvalidFieldFollowsValidField(int itemCount)
+    {
+        // arrange
+        using var fixture = new Fixture(
+            Lookup,
+            """{"data":{"_0_productById":{"name":"first"},"_9999_productById":null}}""",
+            itemCount);
+
+        // act
+        var status = AliasBatchResponseSplitter.TrySplit(fixture.Document, fixture.Items, fixture.Results);
+
+        // assert
+        Assert.Equal(AliasBatchSplitStatus.Invalid, status);
+        Assert.All(fixture.Results, Assert.Null);
+    }
+
     private static SourceResultElement ReadItem(SourceSchemaResult result)
         => result.LookupData ?? default;
 

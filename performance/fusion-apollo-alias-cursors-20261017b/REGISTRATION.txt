@@ -1,0 +1,55 @@
+C13: incoming alias response cursor scratch
+
+Baseline: 43a8dca2bd479ddc411d832ed97e42d9fcc8bd85.
+Independent worktree: .worktrees/fusion-apollo-alias-cursors-20261017b.
+Production change: AliasBatchResponseSplitter.TrySplit stores only SourceResultDocument.Cursor
+in temporary root slots. Up to 256 four-byte cursors use cleared stack storage; larger batches
+use a managed cursor array. Output SourceResultElement values retain the original document.
+
+Fresh warm allocation evidence: 153 SourceResultElement[] ticks across three exact TrySplit
+caller groups (139 + 13 + 1), all 153 ticks for that array type. An earlier skim reported 140 and
+missed the 13-tick async caller group; the exact traversal corrected the record before any
+C13 measurement. Sampling is not an allocation count or an exact byte total.
+Fresh CPU evidence: 52.040364 sampled thread ms, 0.072738968% filtered exclusive/inclusive
+for TrySplit. This is primarily an allocation candidate, with no large CPU-share claim.
+Sources: performance/fusion-apollo-discovery-20261017b/results/{cpu-summary,alloc-summary}.json
+at discovery commit 2c47637e385c25a3cea65d8df1d9be8b4a37871e.
+
+Static removable small-batch scratch bound: 24 + 16N bytes per split on the 64-bit target, based
+on the existing parent-reference/cursor element layout. The original workload has four
+splits of 2, 3, 2, 3 items, giving a 256 B/request forecast. The actual micro gate must verify it.
+Above 256, new cursor storage is 24 + 4N bytes versus 24 + 16N; the redundant 4N clear remains less
+write traffic than the former 16N zeroing plus 16N slot writes. The same property/result loops
+remain, with fewer reference writes and no metadata ValueKind read for sentinel detection.
+
+SourceResultDocument always assigns Root Cursor.Zero. Values of data-object properties
+occupy later metadata rows, so cleared zero marks a missing field without conflating JSON
+null. Duplicate aliases still overwrite the same slot. Invalid aliases return before owner
+or result creation. Error routing and shared-document disposal order are unchanged.
+
+The 25 authored-PR exclusion register was reviewed. This changes incoming split scratch,
+not C4 outbound AliasBatchItem[] ownership, excluded #10523 ReadOnlyMemorySegment layout,
+excluded #10578 iterator flattening or any other registered prior mechanism. Root accepted
+C13 separately. Execution_discovery and execution_hotpaths independently reviewed the
+sentinel, missing/null, duplicates, invalid output ownership and stack lifetime contracts.
+
+Release build and style checks passed. The first dotnet test wrapper exited 5 during its
+Microsoft.Testing.Platform handshake and executed zero tests; that log is preserved.
+The direct built xUnit executable then ran 19 focused tests successfully on .NET 10.0.12:
+flock -s -o /workspaces/platform-1/perf/fusion-common-path.lock dotnet src/HotChocolate/Fusion/test/Fusion.Execution.Tests/bin/Release/net10.0/HotChocolate.Fusion.Execution.Tests.dll -class '*AliasBatchResponseSplitterTests'
+Ten new cases cover reverse order at 2/256/257/1024 items, missing versus null, duplicate
+last-wins and invalid-after-valid at 2/257 items. Existing error routing and final-owner
+disposal tests remain included. Independent test-log review confirmed 19 executed, no failures.
+
+Root approved exact C4 actual-production helper reuse, with independent C11 and C13 engines
+and fresh shared controls. Source helper commit d943238c00635b08036c279fe6ae710444bb1735,
+performance/fusion-apollo-alias-items-20261017b/Bdn. Ordinary bypasses TrySplit; alias2 is one
+two-item split; alias-sequence10 is four splits of 2/3/2/3. Existing response/path/index/count
+and full-disposal oracles apply. No new harness or large-case parameter is needed.
+Performance claims are limited to these observed small splits. Larger fallback correctness
+is tested and its cost reasoning recorded above; no large-batch CPU claim is made.
+
+Gate: native BenchmarkDotNet MemoryDiagnoser and elapsed distributions with explicit unchanged
+ordinary control, plus separately validated allocation corroboration. Allocation-only savings
+qualify if no repeated meaningful elapsed penalty is introduced. Elapsed is not process CPU.
+No C13 measurement has run yet. Real HTTP CPU/tail acceptance requires a positive micro gate.
