@@ -1,0 +1,12 @@
+Result-domain discovery ledger, pinned43a8dca2 warm evidence
+
+Registered C3: duplicate outer path arrays, allocation saving demonstrated but later net-cost tradeoff unresolved, terminal abandoned; do not revisit.
+Registered C5: downward merge-target cursor traversal, no repeatable worthwhile elapsed benefit and ordinary cost concerns, terminal abandoned; do not revisit.
+Registered C9: upward compact-path segment construction,1220.632ms exclusive/71543.995ms filtered=1.706%; independent prototype151tests plus4baseline oracles, queued genuine BDN/MemoryDiagnoser.
+Screened response-field name escaping: only137.676ms/71543.995ms=0.192% final-response attributable ASCII scanning, custom encoder semantics complicate bypass; not a worthwhile concrete next prototype.
+Screened final RawJsonFormatter.WriteObject:752.273ms exclusive=1.051%; already uses sequential metadata reader and direct compiled selection IDs. No distinct demonstrable redundant operation identified beyond speculative instruction reshuffling.
+Screened ValueCompletion scalar/object merging: BuildResult601.742ms exclusive=0.841%, object completion472.654ms=0.661%; cached object context and no-error scalar fast paths already present. Hoisting homogeneous list metadata repeats excluded#10560, so it is not pursued.
+Screened entity-path ImmutableArray copy: public exact-length and ownership contract prevents merely pooling the exported backing; no safe minimal separate proposal found.
+Coordination: representation serialization/request writer reuse belongs to execution_discovery (C11), incoming stream/sequence/root scratch to response_hotpaths (C7/C10/C13), execution scheduling/state machines to execution_hotpaths (C6/C8/C12). No duplicate registrations.
+
+Sampled thread time is neither elapsed wall time nor call count. These screened leads are evidence notes, not additional registered ideas or a quota. The25 exact authored-PR exclusions remain binding.

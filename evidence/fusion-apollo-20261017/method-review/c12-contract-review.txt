@@ -1,0 +1,11 @@
+C12 independent contract and hot-path applicability review
+
+Reviewed candidate worktree fusion-apollo-transport-async-20261017b against pinned baseline43a8dca2. Source review only, no tests or measurements run by this reviewer.
+
+Actual production selection: HttpSourceSchemaClientFactory calls GraphQLHttpClient.Create, which returns sealed DefaultGraphQLHttpClient. HttpSourceSchemaClientConfiguration rejects null BaseAddress. Single/variable/native batch request construction assigns this address; alias requests pass it into the GraphQLHttpRequest constructor. Therefore the default-client and non-null request URI guard applies to the real configured Fusion transport. Configuration callbacks receive HttpRequestMessage, not the original GraphQL request, after dispatch has already selected the internal route.
+
+Public API and fallback: original public Task SendAsync and private Task ExecuteInternalAsync are unchanged. The new private Fusion helper wraps the original public task for custom clients or null request URI. Its four callers await exactly once, all with ConfigureAwait(false). Synchronous fallback validation remains evaluated in the same caller try/await expression.
+
+Internal pooled ValueTask method preserves PooledArrayWriter and HttpRequestMessage using scopes through the await, ResponseHeadersRead, default HTTP version/version policy and callback order. Request state is reread after send exactly as before. Cancellation and callback exceptions flow through the same enclosing caller error/disposal paths. A received-response callback throw has the same pre-existing response ownership behavior; this candidate should not silently change it. Runtime pooled-builder state clearing after GetResult is a prerequisite already separately audited by the C8 owner.
+
+One source documentation correction requested: the helper was initially inserted between the CreateHttpRequest XML summary and its method. Restore that summary to CreateHttpRequest. No behavioral blocker identified; focused suspended send/cancellation/callback/context and unchanged public Task/custom/null URI tests remain required before queuing.
