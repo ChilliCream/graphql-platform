@@ -145,6 +145,21 @@ internal static class ErrorHelper
         return result;
     }
 
+    public static IError WithPath(IError error, Path path)
+    {
+        ArgumentNullException.ThrowIfNull(error);
+
+        if (error is Error concreteError
+            && concreteError.GetType() == typeof(Error)
+            && concreteError.Locations is null
+            && concreteError.Extensions is null or ImmutableOrderedDictionary<string, object?>)
+        {
+            return concreteError.WithPath(path);
+        }
+
+        return ErrorBuilder.FromError(error).SetPath(path).Build();
+    }
+
     public static IError InvalidNodeIdFormat(string originalValue)
         => ErrorBuilder.New()
             .SetMessage(FusionExecutionResources.NodeFieldExecutionNode_InvalidNodeIdFormat)

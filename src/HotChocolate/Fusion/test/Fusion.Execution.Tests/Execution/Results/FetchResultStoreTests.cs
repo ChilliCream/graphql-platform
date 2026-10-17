@@ -797,6 +797,54 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void AddPartialResults_Should_PreserveErrorMetadata_When_PathIsRemapped()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              value: String
+            }
+            """);
+        var plan = PlanOperation(schema, "{ aliased: value }");
+        var node = (OperationExecutionNode)plan.RootNodes.Single();
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = new FetchResultStore();
+        store.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            plan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: default,
+            deferFlags: default,
+            pathSegmentLocalPoolCapacity: 16);
+        var payload = """
+            {"data":{"aliased":null},"errors":[{"message":"boom","path":["aliased"],"locations":[{"line":1,"column":3}],"extensions":{"code":"TEST","details":{"service":"source"}}}]}
+            """u8.ToArray();
+        var result = new SourceSchemaResult(
+            CompactPath.Root,
+            SourceResultDocument.Parse(sourceArena, payload, payload.Length));
+
+        // act
+        var added = store.AddPartialResult(SelectionPath.Root, result, node.ResultSelectionSet, containsErrors: true);
+
+        // assert
+        Assert.True(added);
+        RenderData(store).MatchInlineSnapshot(
+            """
+            {"aliased":null}
+            """);
+        var error = Assert.Single(store.Errors!);
+        Assert.Equal(("boom", "TEST", "aliased", (IReadOnlyList<Location>?)null),
+            (error.Message, error.Code, error.Path?.Print(), error.Locations));
+        var details = Assert.IsType<RawJsonValue>(error.Extensions!["details"]);
+        Assert.Equal("""{"service":"source"}""", Encoding.UTF8.GetString(details.Value.Span));
+    }
+
+    [Fact]
     public void AddPartialResults_Should_ResolveRuntimeTypes_When_AbstractTypeExceedsTypeNameLookupLimit()
     {
         // arrange

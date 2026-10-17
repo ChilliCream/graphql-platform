@@ -342,9 +342,7 @@ internal sealed class ValueCompletion
             reachablePath = reachablePath.Parent;
         }
 
-        var errorWithPath = ErrorBuilder.FromError(error)
-            .SetPath(path)
-            .Build();
+        var errorWithPath = ErrorHelper.WithPath(error, path);
         _store.AddError(_errorHandler.Handle(errorWithPath));
         return true;
     }
@@ -412,10 +410,9 @@ internal sealed class ValueCompletion
 
             if (parentResult.ValueKind is JsonValueKind.Undefined)
             {
-                var promotedError = ErrorBuilder.FromError(error)
-                    .SetPath(parentPath);
+                var promotedError = ErrorHelper.WithPath(error, parentPath);
 
-                _store.AddError(_errorHandler.Handle(promotedError.Build()));
+                _store.AddError(_errorHandler.Handle(promotedError));
                 parentResult.SetNullValue();
                 _store.RemovePocketedErrorsInSubtree(parentPath);
                 continue;
@@ -672,18 +669,14 @@ internal sealed class ValueCompletion
         foreach (var responseName in resultSelectionSet.ResponseNames)
         {
             hasResponseNames = true;
-            var errorWithPath = ErrorBuilder.FromError(error)
-                .SetPath(errorPath.Append(responseName))
-                .Build();
+            var errorWithPath = ErrorHelper.WithPath(error, errorPath.Append(responseName));
 
             _store.AddError(_errorHandler.Handle(errorWithPath));
         }
 
         if (!hasResponseNames)
         {
-            var errorWithPath = ErrorBuilder.FromError(error)
-                .SetPath(errorPath)
-                .Build();
+            var errorWithPath = ErrorHelper.WithPath(error, errorPath);
 
             _store.AddError(_errorHandler.Handle(errorWithPath));
         }
@@ -746,9 +739,7 @@ internal sealed class ValueCompletion
         IError error,
         Path path)
     {
-        var errorWithPath = ErrorBuilder.FromError(error)
-            .SetPath(path)
-            .Build();
+        var errorWithPath = ErrorHelper.WithPath(error, path);
         errorWithPath = _errorHandler.Handle(errorWithPath);
 
         _store.AddError(errorWithPath);
@@ -814,9 +805,7 @@ internal sealed class ValueCompletion
             if (errorTrie?.FindFirstError() is { } errorFromPath)
             {
                 var path = target.CompactPath.ToPath(target.Operation);
-                error = ErrorBuilder.FromError(errorFromPath)
-                    .SetPath(path)
-                    .Build();
+                error = ErrorHelper.WithPath(errorFromPath, path);
             }
             else
             {
@@ -856,9 +845,7 @@ internal sealed class ValueCompletion
             // or with a path below it.
             if (errorTrie?.FindFirstError() is { } errorFromPath)
             {
-                var errorWithPath = ErrorBuilder.FromError(errorFromPath)
-                    .SetPath(target.Path)
-                    .Build();
+                var errorWithPath = ErrorHelper.WithPath(errorFromPath, target.Path);
                 errorWithPath = _errorHandler.Handle(errorWithPath);
 
                 _store.AddError(errorWithPath);
@@ -874,9 +861,7 @@ internal sealed class ValueCompletion
         // An error on a field that still has a value is forwarded without nulling the value.
         if (errorTrie?.Error is { } fieldError)
         {
-            var errorWithPath = ErrorBuilder.FromError(fieldError)
-                .SetPath(target.Path)
-                .Build();
+            var errorWithPath = ErrorHelper.WithPath(fieldError, target.Path);
             errorWithPath = _errorHandler.Handle(errorWithPath);
 
             _store.AddError(errorWithPath);
@@ -1013,9 +998,7 @@ internal sealed class ValueCompletion
 
             if (errorTrieForIndex?.Error is { } error)
             {
-                var errorWithPath = ErrorBuilder.FromError(error)
-                    .SetPath(target.CompactPath.ToPath(target.Operation, i))
-                    .Build();
+                var errorWithPath = ErrorHelper.WithPath(error, target.CompactPath.ToPath(target.Operation, i));
                 errorWithPath = _errorHandler.Handle(errorWithPath);
 
                 _store.AddError(errorWithPath);
@@ -1168,9 +1151,7 @@ TryCompleteList_MoveNext:
     {
         if (errorTrie.Error is { } error)
         {
-            var errorWithPath = ErrorBuilder.FromError(error)
-                .SetPath(path)
-                .Build();
+            var errorWithPath = ErrorHelper.WithPath(error, path);
             errorWithPath = _errorHandler.Handle(errorWithPath);
 
             _store.AddError(errorWithPath);
