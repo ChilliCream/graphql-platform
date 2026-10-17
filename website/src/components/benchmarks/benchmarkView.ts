@@ -269,7 +269,7 @@ export const tableCaption = (
   group: ResultsGroup,
   report: BenchmarkReport,
 ) =>
-  `${SCENARIO_INFO[scenario.id].name} benchmark, ${group.name} composition, run ${report.run.number}. Median requests per second across measured runs, with 95th and 99.9th percentile latency, peak router memory in MiB, average router CPU cores, the share of requests that succeeded, and run-to-run throughput variation.`;
+  `${SCENARIO_INFO[scenario.id].name} benchmark, ${group.name} composition, run ${report.run.number}. Median requests per second across measured runs, with 95th and 99.9th percentile latency, peak router memory in MiB, average router CPU utilization, the share of requests that succeeded, and run-to-run throughput variation.`;
 
 /** Formats a request rate as a whole number. */
 export const formatNumber = (value: number) =>
@@ -321,7 +321,7 @@ export interface BenchmarkFacts {
   readonly sourceCommit: string;
   readonly hardware: readonly (readonly [label: string, value: string])[];
   readonly cpu: string;
-  readonly logicalCpus: number;
+  readonly cpuTopology: string;
   readonly memoryGb: number;
   readonly os: string;
   readonly subgraphs: string;
@@ -347,6 +347,10 @@ export function benchmarkFacts(report: BenchmarkReport): BenchmarkFacts {
   const source = `${BENCHMARK_REPOSITORY}/blob/${report.run.sourceCommit}`;
   const configs = report.scenarios.map((scenario) => scenario.config);
   const subgraphs = `${[report.subgraphs.framework.name, report.subgraphs.framework.version].filter(Boolean).join(" ")} (${formatPlatform(report.subgraphs.platform)})`;
+  const cpuTopology =
+    report.hardware.physicalCores === undefined
+      ? `${report.hardware.hardwareThreads} hardware threads.`
+      : `${report.hardware.physicalCores} physical cores (${report.hardware.hardwareThreads} hardware threads${(report.hardware.threadsPerCore ?? 1) > 1 ? ", SMT" : ""}).`;
   return {
     runNumber: report.run.number,
     timestamp,
@@ -355,19 +359,19 @@ export function benchmarkFacts(report: BenchmarkReport): BenchmarkFacts {
     runUrl: runId && `${BENCHMARK_REPOSITORY}/actions/runs/${runId}`,
     sourceCommit: report.run.sourceCommit,
     hardware: [
-      ["Processor", report.hardware.cpu],
-      ["Threads", String(report.hardware.logicalCpus)],
+      ["Processor", report.hardware.cpuModel],
+      ["CPU topology", cpuTopology],
       ["Memory", `${report.hardware.memoryGb} GB`],
       ["Operating system", report.hardware.os],
       ["Subgraphs", subgraphs],
     ],
-    cpu: report.hardware.cpu,
-    logicalCpus: report.hardware.logicalCpus,
+    cpu: report.hardware.cpuModel,
+    cpuTopology,
     memoryGb: report.hardware.memoryGb,
     os: report.hardware.os,
     subgraphs,
     gatewayCores: configs.find((config) => config.cpuAllocation?.gateway)
-      ?.cpuAllocation?.gateway?.cores,
+      ?.cpuAllocation?.gateway?.physicalCores,
     warmupRuns: configs[0]?.warmupRuns,
     measuredRuns: configs[0]?.measuredRuns,
     links: {
@@ -383,42 +387,40 @@ export function benchmarkFacts(report: BenchmarkReport): BenchmarkFacts {
 
 /** The process groups that logical CPUs are pinned to. */
 export const CPU_GROUPS = [
+  { id: "system", name: "OS & monitoring", color: "#9085e9" },
+  { id: "k6", name: "Load generator", color: "#d95926" },
   { id: "gateway", name: "Router", color: "#3987e5" },
   { id: "subgraphs", name: "Subgraphs", color: "#199e70" },
-  { id: "k6", name: "Load generator", color: "#d95926" },
 ] as const;
-
 export type CpuGroupId = (typeof CPU_GROUPS)[number]["id"];
 
-const parseCpuset = (cpuset: string): readonly number[] =>
-  cpuset.split(",").flatMap((part) => {
-    const [start, end = start] = part.trim().split("-").map(Number);
-    return Number.isInteger(start) && Number.isInteger(end) && end >= start
-      ? Array.from({ length: end - start + 1 }, (_, index) => start + index)
-      : [];
-  });
-
-/** Returns the process group of each logical CPU, undefined for CPUs no group is pinned to, or undefined when the report records no CPU allocation. */
-export function cpuMap(
-  report: BenchmarkReport,
-): readonly (CpuGroupId | undefined)[] | undefined {
+/** Returns hardware threads positioned by physical core, or undefined when topology or allocation is unavailable. */
+export function cpuMap(report: BenchmarkReport) {
+  const { physicalCores, coreThreads, threadsPerCore } = report.hardware;
   const allocation = report.scenarios.find(
     (scenario) => scenario.config.cpuAllocation,
   )?.config.cpuAllocation;
-  if (!allocation) {
+  if (
+    !physicalCores ||
+    !coreThreads ||
+    !threadsPerCore ||
+    !allocation ||
+    coreThreads.length !== physicalCores ||
+    coreThreads.some((core) => core.length !== threadsPerCore)
+  ) {
     return undefined;
   }
-  const groups: (CpuGroupId | undefined)[] = Array.from({
-    length: report.hardware.logicalCpus,
-  });
-  for (const { id } of CPU_GROUPS) {
-    for (const cpu of parseCpuset(allocation[id]?.cpuset ?? "")) {
-      if (cpu < groups.length) {
-        groups[cpu] = id;
-      }
-    }
-  }
-  return groups;
+  const cells = coreThreads.flatMap((threads, core) =>
+    threads.map((thread, row) => ({
+      thread,
+      core,
+      row,
+      group: CPU_GROUPS.find(({ id }) =>
+        allocation[id]?.threadIds.includes(thread),
+      )?.id,
+    })),
+  );
+  return cells.every((cell) => cell.group !== undefined) ? cells : undefined;
 }
 
 /** The fastest result without failed requests in a scenario, across both compositions. */

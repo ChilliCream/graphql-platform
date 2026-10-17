@@ -57,7 +57,7 @@ export function BenchmarkScenarioResults({
           group={group}
           variants={variants}
           measuredRuns={config.measuredRuns}
-          gatewayCores={config.cpuAllocation?.gateway?.cores}
+          gatewayThreads={config.cpuAllocation?.gateway?.hardwareThreads}
           throughputNote={throughputNote(scenario)}
         />
       ))}

@@ -53,7 +53,7 @@ interface BenchmarkResultsTableProps {
   readonly group: ResultsGroup;
   readonly variants: ReadonlyMap<string, BenchmarkCatalogEntry>;
   readonly measuredRuns: number | undefined;
-  readonly gatewayCores: number | undefined;
+  readonly gatewayThreads: number | undefined;
   /** A sentence appended to the requests per second explanation, or undefined for none. */
   readonly throughputNote?: string;
 }
@@ -70,7 +70,7 @@ const COLUMNS = [
 ] as const;
 
 const columnHints = (
-  gatewayCores: number | undefined,
+  gatewayThreads: number | undefined,
   throughputNote: string | undefined,
 ) => [
   undefined,
@@ -78,7 +78,7 @@ const columnHints = (
   "95% of requests completed within this time.",
   "99.9% of requests completed within this time.",
   "The highest sampled resident memory (RSS) of the router process and its child processes.",
-  `The average number of CPU cores the router used, out of the ${gatewayCores ?? "allocated"} it is pinned to.`,
+  `Average utilization of the router’s ${gatewayThreads ?? "allocated"} hardware threads. 100% means both of its cores are fully busy on both threads.`,
   "The share of requests that passed the checks for HTTP status, GraphQL errors and response structure.",
   "How much throughput varied across the measured runs, as the coefficient of variation.",
 ];
@@ -91,10 +91,10 @@ export function BenchmarkResultsTable({
   group,
   variants,
   measuredRuns,
-  gatewayCores,
+  gatewayThreads,
   throughputNote,
 }: BenchmarkResultsTableProps) {
-  const hints = columnHints(gatewayCores, throughputNote);
+  const hints = columnHints(gatewayThreads, throughputNote);
   const headingId = `group-${id}`;
   const notReported = (
     <span className={`${theme.unit} font-sans`} title="Not reported">
@@ -247,14 +247,8 @@ export function BenchmarkResultsTable({
                   <td className={`${value} ${pad(5)}`}>
                     {row.cpu ? (
                       <>
-                        {row.cpu.avgCores.toFixed(2)}
-                        {gatewayCores !== undefined && (
-                          <>
-                            <span className={theme.unit}>/</span>
-                            {gatewayCores}
-                          </>
-                        )}
-                        {unit("cores")}
+                        {row.cpu.avgUtilizationPercent.toFixed(2)}
+                        {unit("%")}
                       </>
                     ) : (
                       notReported

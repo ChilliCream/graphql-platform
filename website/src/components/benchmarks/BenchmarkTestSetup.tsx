@@ -17,14 +17,13 @@ type SpecRow = readonly [label: string, value: string];
 /** The "Test conditions" section: the procedure and the test machine in one panel, with the publisher note below. */
 export function BenchmarkTestSetup({ report }: BenchmarkTestSetupProps) {
   const facts = benchmarkFacts(report);
-  const cores = facts.gatewayCores;
   const warmups = facts.warmupRuns ?? 1;
   const runs = facts.measuredRuns;
 
   const steps: readonly ProcedureStep[] = [
     {
       title: "Start",
-      text: `The router starts${cores === undefined ? "" : ` pinned to ${cores} CPU cores`}, next to the Accounts, Inventory, Products and Reviews subgraphs. The load generator runs on separate cores.`,
+      text: "The router runs on 2 dedicated physical cores (4 hardware threads). CPU boost is disabled to reduce clock-speed variation.",
     },
     {
       title: "Warm up",
@@ -46,7 +45,7 @@ export function BenchmarkTestSetup({ report }: BenchmarkTestSetupProps) {
 
   const hardware: readonly SpecRow[] = [
     ["Processor", facts.cpu],
-    ["Threads", String(facts.logicalCpus)],
+    ["CPU topology", facts.cpuTopology],
     ["Memory", `${facts.memoryGb} GB`],
   ];
   const software: readonly SpecRow[] = [

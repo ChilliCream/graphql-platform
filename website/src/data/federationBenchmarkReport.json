@@ -8,8 +8,20 @@
   },
   "hardware": {
     "host": "bench-001",
-    "cpu": "AMD Ryzen 7 5700G with Radeon Graphics",
-    "logicalCpus": 16,
+    "cpuModel": "AMD Ryzen 7 5700G with Radeon Graphics",
+    "physicalCores": 8,
+    "hardwareThreads": 16,
+    "threadsPerCore": 2,
+    "coreThreads": [
+      [0, 8],
+      [1, 9],
+      [2, 10],
+      [3, 11],
+      [4, 12],
+      [5, 13],
+      [6, 14],
+      [7, 15]
+    ],
     "memoryGb": 122,
     "os": "Linux 6.8.0-147-generic"
   },
@@ -308,17 +320,25 @@
         "warmupRuns": 1,
         "measuredRuns": 9,
         "cpuAllocation": {
-          "gateway": {
-            "cpuset": "2-3,10-11",
-            "cores": 4
-          },
-          "subgraphs": {
-            "cpuset": "4-7,12-15",
-            "cores": 8
+          "system": {
+            "threadIds": [0, 8],
+            "physicalCores": 1,
+            "hardwareThreads": 2
           },
           "k6": {
-            "cpuset": "1,9",
-            "cores": 2
+            "threadIds": [1, 9],
+            "physicalCores": 1,
+            "hardwareThreads": 2
+          },
+          "gateway": {
+            "threadIds": [2, 3, 10, 11],
+            "physicalCores": 2,
+            "hardwareThreads": 4
+          },
+          "subgraphs": {
+            "threadIds": [4, 5, 6, 7, 12, 13, 14, 15],
+            "physicalCores": 4,
+            "hardwareThreads": 8
           }
         }
       },
@@ -353,8 +373,8 @@
                 "peakRssKiB": 2217984
               },
               "cpu": {
-                "avgCores": 3.99,
-                "maxCores": 4.0
+                "avgUtilizationPercent": 99.8,
+                "maxUtilizationPercent": 100
               }
             }
           ]
@@ -389,8 +409,8 @@
                 "peakRssKiB": 184760
               },
               "cpu": {
-                "avgCores": 4.0,
-                "maxCores": 4.0
+                "avgUtilizationPercent": 100,
+                "maxUtilizationPercent": 100
               }
             },
             {
@@ -420,8 +440,8 @@
                 "peakRssKiB": 205540
               },
               "cpu": {
-                "avgCores": 4.0,
-                "maxCores": 4.0
+                "avgUtilizationPercent": 100,
+                "maxUtilizationPercent": 100
               }
             }
           ]
@@ -458,8 +478,8 @@
                 "peakRssKiB": 5345840
               },
               "cpu": {
-                "avgCores": 3.99,
-                "maxCores": 4.0
+                "avgUtilizationPercent": 99.8,
+                "maxUtilizationPercent": 100
               }
             }
           ]
@@ -496,8 +516,8 @@
                 "peakRssKiB": 166784
               },
               "cpu": {
-                "avgCores": 3.97,
-                "maxCores": 4.0
+                "avgUtilizationPercent": 99.3,
+                "maxUtilizationPercent": 100
               }
             }
           ]
@@ -534,8 +554,8 @@
                 "peakRssKiB": 123604
               },
               "cpu": {
-                "avgCores": 3.64,
-                "maxCores": 3.76
+                "avgUtilizationPercent": 91,
+                "maxUtilizationPercent": 94
               }
             }
           ]
@@ -570,8 +590,8 @@
                 "peakRssKiB": 2832388
               },
               "cpu": {
-                "avgCores": 3.99,
-                "maxCores": 4.0
+                "avgUtilizationPercent": 99.8,
+                "maxUtilizationPercent": 100
               }
             },
             {
@@ -601,8 +621,8 @@
                 "peakRssKiB": 3670188
               },
               "cpu": {
-                "avgCores": 3.99,
-                "maxCores": 4.0
+                "avgUtilizationPercent": 99.8,
+                "maxUtilizationPercent": 100
               }
             }
           ]
@@ -639,8 +659,8 @@
                 "peakRssKiB": 134556
               },
               "cpu": {
-                "avgCores": 3.81,
-                "maxCores": 3.88
+                "avgUtilizationPercent": 95.3,
+                "maxUtilizationPercent": 97
               }
             }
           ]
@@ -677,8 +697,8 @@
                 "peakRssKiB": 411256
               },
               "cpu": {
-                "avgCores": 3.87,
-                "maxCores": 3.94
+                "avgUtilizationPercent": 96.8,
+                "maxUtilizationPercent": 98.5
               }
             },
             {
@@ -710,8 +730,8 @@
                 "peakRssKiB": 388520
               },
               "cpu": {
-                "avgCores": 3.93,
-                "maxCores": 3.96
+                "avgUtilizationPercent": 98.3,
+                "maxUtilizationPercent": 99
               }
             },
             {
@@ -743,8 +763,8 @@
                 "peakRssKiB": 385164
               },
               "cpu": {
-                "avgCores": 3.92,
-                "maxCores": 3.96
+                "avgUtilizationPercent": 98,
+                "maxUtilizationPercent": 99
               }
             },
             {
@@ -776,8 +796,8 @@
                 "peakRssKiB": 385504
               },
               "cpu": {
-                "avgCores": 3.92,
-                "maxCores": 3.96
+                "avgUtilizationPercent": 98,
+                "maxUtilizationPercent": 99
               }
             }
           ]
@@ -812,8 +832,8 @@
                 "peakRssKiB": 1165984
               },
               "cpu": {
-                "avgCores": 3.07,
-                "maxCores": 3.32
+                "avgUtilizationPercent": 76.8,
+                "maxUtilizationPercent": 83
               }
             }
           ]
@@ -832,17 +852,25 @@
         "warmupRuns": 1,
         "measuredRuns": 9,
         "cpuAllocation": {
-          "gateway": {
-            "cpuset": "2-3,10-11",
-            "cores": 4
-          },
-          "subgraphs": {
-            "cpuset": "4-7,12-15",
-            "cores": 8
+          "system": {
+            "threadIds": [0, 8],
+            "physicalCores": 1,
+            "hardwareThreads": 2
           },
           "k6": {
-            "cpuset": "1,9",
-            "cores": 2
+            "threadIds": [1, 9],
+            "physicalCores": 1,
+            "hardwareThreads": 2
+          },
+          "gateway": {
+            "threadIds": [2, 3, 10, 11],
+            "physicalCores": 2,
+            "hardwareThreads": 4
+          },
+          "subgraphs": {
+            "threadIds": [4, 5, 6, 7, 12, 13, 14, 15],
+            "physicalCores": 4,
+            "hardwareThreads": 8
           }
         }
       },
@@ -877,8 +905,8 @@
                 "peakRssKiB": 2218964
               },
               "cpu": {
-                "avgCores": 3.99,
-                "maxCores": 4.0
+                "avgUtilizationPercent": 99.8,
+                "maxUtilizationPercent": 100
               }
             }
           ]
@@ -913,8 +941,8 @@
                 "peakRssKiB": 188556
               },
               "cpu": {
-                "avgCores": 4.0,
-                "maxCores": 4.0
+                "avgUtilizationPercent": 100,
+                "maxUtilizationPercent": 100
               }
             },
             {
@@ -944,8 +972,8 @@
                 "peakRssKiB": 210852
               },
               "cpu": {
-                "avgCores": 4.0,
-                "maxCores": 4.0
+                "avgUtilizationPercent": 100,
+                "maxUtilizationPercent": 100
               }
             }
           ]
@@ -982,8 +1010,8 @@
                 "peakRssKiB": 5044092
               },
               "cpu": {
-                "avgCores": 3.99,
-                "maxCores": 4.0
+                "avgUtilizationPercent": 99.8,
+                "maxUtilizationPercent": 100
               }
             }
           ]
@@ -1020,8 +1048,8 @@
                 "peakRssKiB": 151824
               },
               "cpu": {
-                "avgCores": 3.93,
-                "maxCores": 4.0
+                "avgUtilizationPercent": 98.3,
+                "maxUtilizationPercent": 100
               }
             }
           ]
@@ -1058,8 +1086,8 @@
                 "peakRssKiB": 104208
               },
               "cpu": {
-                "avgCores": 2.98,
-                "maxCores": 3.14
+                "avgUtilizationPercent": 74.5,
+                "maxUtilizationPercent": 78.5
               }
             }
           ]
@@ -1094,8 +1122,8 @@
                 "peakRssKiB": 2817816
               },
               "cpu": {
-                "avgCores": 3.99,
-                "maxCores": 4.0
+                "avgUtilizationPercent": 99.8,
+                "maxUtilizationPercent": 100
               }
             },
             {
@@ -1125,8 +1153,8 @@
                 "peakRssKiB": 3591484
               },
               "cpu": {
-                "avgCores": 3.98,
-                "maxCores": 4.0
+                "avgUtilizationPercent": 99.5,
+                "maxUtilizationPercent": 100
               }
             }
           ]
@@ -1163,8 +1191,8 @@
                 "peakRssKiB": 134236
               },
               "cpu": {
-                "avgCores": 2.78,
-                "maxCores": 2.88
+                "avgUtilizationPercent": 69.5,
+                "maxUtilizationPercent": 72
               }
             }
           ]
@@ -1201,8 +1229,8 @@
                 "peakRssKiB": 421072
               },
               "cpu": {
-                "avgCores": 3.09,
-                "maxCores": 3.23
+                "avgUtilizationPercent": 77.3,
+                "maxUtilizationPercent": 80.8
               }
             },
             {
@@ -1234,8 +1262,8 @@
                 "peakRssKiB": 381300
               },
               "cpu": {
-                "avgCores": 3.42,
-                "maxCores": 3.57
+                "avgUtilizationPercent": 85.5,
+                "maxUtilizationPercent": 89.3
               }
             },
             {
@@ -1267,8 +1295,8 @@
                 "peakRssKiB": 381180
               },
               "cpu": {
-                "avgCores": 3.43,
-                "maxCores": 3.57
+                "avgUtilizationPercent": 85.8,
+                "maxUtilizationPercent": 89.3
               }
             },
             {
@@ -1300,8 +1328,8 @@
                 "peakRssKiB": 383444
               },
               "cpu": {
-                "avgCores": 3.47,
-                "maxCores": 3.55
+                "avgUtilizationPercent": 86.8,
+                "maxUtilizationPercent": 88.8
               }
             }
           ]
@@ -1338,8 +1366,8 @@
                 "peakRssKiB": 1217512
               },
               "cpu": {
-                "avgCores": 3.61,
-                "maxCores": 3.81
+                "avgUtilizationPercent": 90.3,
+                "maxUtilizationPercent": 95.3
               }
             }
           ]
@@ -1358,17 +1386,25 @@
         "warmupRuns": 1,
         "measuredRuns": 9,
         "cpuAllocation": {
-          "gateway": {
-            "cpuset": "2-3,10-11",
-            "cores": 4
-          },
-          "subgraphs": {
-            "cpuset": "4-7,12-15",
-            "cores": 8
+          "system": {
+            "threadIds": [0, 8],
+            "physicalCores": 1,
+            "hardwareThreads": 2
           },
           "k6": {
-            "cpuset": "1,9",
-            "cores": 2
+            "threadIds": [1, 9],
+            "physicalCores": 1,
+            "hardwareThreads": 2
+          },
+          "gateway": {
+            "threadIds": [2, 3, 10, 11],
+            "physicalCores": 2,
+            "hardwareThreads": 4
+          },
+          "subgraphs": {
+            "threadIds": [4, 5, 6, 7, 12, 13, 14, 15],
+            "physicalCores": 4,
+            "hardwareThreads": 8
           }
         }
       },
@@ -1403,8 +1439,8 @@
                 "peakRssKiB": 2556876
               },
               "cpu": {
-                "avgCores": 3.96,
-                "maxCores": 4.0
+                "avgUtilizationPercent": 99,
+                "maxUtilizationPercent": 100
               }
             }
           ]
@@ -1439,8 +1475,8 @@
                 "peakRssKiB": 445304
               },
               "cpu": {
-                "avgCores": 4.0,
-                "maxCores": 4.0
+                "avgUtilizationPercent": 100,
+                "maxUtilizationPercent": 100
               }
             },
             {
@@ -1470,8 +1506,8 @@
                 "peakRssKiB": 492060
               },
               "cpu": {
-                "avgCores": 3.99,
-                "maxCores": 4.0
+                "avgUtilizationPercent": 99.8,
+                "maxUtilizationPercent": 100
               }
             }
           ]
@@ -1508,8 +1544,8 @@
                 "peakRssKiB": 11222288
               },
               "cpu": {
-                "avgCores": 3.99,
-                "maxCores": 4.0
+                "avgUtilizationPercent": 99.8,
+                "maxUtilizationPercent": 100
               }
             }
           ]
@@ -1546,8 +1582,8 @@
                 "peakRssKiB": 660360
               },
               "cpu": {
-                "avgCores": 3.97,
-                "maxCores": 4.0
+                "avgUtilizationPercent": 99.3,
+                "maxUtilizationPercent": 100
               }
             }
           ]
@@ -1584,8 +1620,8 @@
                 "peakRssKiB": 182120
               },
               "cpu": {
-                "avgCores": 3.88,
-                "maxCores": 4.0
+                "avgUtilizationPercent": 97,
+                "maxUtilizationPercent": 100
               }
             }
           ]
@@ -1620,8 +1656,8 @@
                 "peakRssKiB": 3244672
               },
               "cpu": {
-                "avgCores": 3.98,
-                "maxCores": 4.0
+                "avgUtilizationPercent": 99.5,
+                "maxUtilizationPercent": 100
               }
             },
             {
@@ -1651,8 +1687,8 @@
                 "peakRssKiB": 3850748
               },
               "cpu": {
-                "avgCores": 3.97,
-                "maxCores": 4.0
+                "avgUtilizationPercent": 99.3,
+                "maxUtilizationPercent": 100
               }
             }
           ]
@@ -1689,8 +1725,8 @@
                 "peakRssKiB": 200600
               },
               "cpu": {
-                "avgCores": 3.95,
-                "maxCores": 4.0
+                "avgUtilizationPercent": 98.8,
+                "maxUtilizationPercent": 100
               }
             }
           ]
@@ -1727,8 +1763,8 @@
                 "peakRssKiB": 536944
               },
               "cpu": {
-                "avgCores": 3.93,
-                "maxCores": 3.99
+                "avgUtilizationPercent": 98.3,
+                "maxUtilizationPercent": 99.8
               }
             },
             {
@@ -1760,8 +1796,8 @@
                 "peakRssKiB": 642072
               },
               "cpu": {
-                "avgCores": 3.93,
-                "maxCores": 3.98
+                "avgUtilizationPercent": 98.3,
+                "maxUtilizationPercent": 99.5
               }
             },
             {
@@ -1793,8 +1829,8 @@
                 "peakRssKiB": 612236
               },
               "cpu": {
-                "avgCores": 3.92,
-                "maxCores": 3.98
+                "avgUtilizationPercent": 98,
+                "maxUtilizationPercent": 99.5
               }
             },
             {
@@ -1826,8 +1862,8 @@
                 "peakRssKiB": 603392
               },
               "cpu": {
-                "avgCores": 3.91,
-                "maxCores": 3.97
+                "avgUtilizationPercent": 97.8,
+                "maxUtilizationPercent": 99.3
               }
             }
           ]

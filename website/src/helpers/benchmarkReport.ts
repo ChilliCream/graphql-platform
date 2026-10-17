@@ -63,8 +63,9 @@ export interface BenchmarkPlatform {
 }
 
 export interface BenchmarkCpuSet {
-  readonly cores: number;
-  readonly cpuset: string;
+  readonly physicalCores?: number;
+  readonly hardwareThreads: number;
+  readonly threadIds: readonly number[];
 }
 
 export interface BenchmarkVariant {
@@ -110,7 +111,10 @@ export interface BenchmarkVariantResult {
     readonly max: number;
   };
   readonly memory?: { readonly peakRssKiB: number };
-  readonly cpu?: { readonly avgCores: number; readonly maxCores: number };
+  readonly cpu?: {
+    readonly avgUtilizationPercent: number;
+    readonly maxUtilizationPercent: number;
+  };
 }
 
 export interface BenchmarkScenario {
@@ -125,6 +129,7 @@ export interface BenchmarkScenario {
     readonly warmupRuns: number;
     readonly measuredRuns?: number;
     readonly cpuAllocation?: {
+      readonly system?: BenchmarkCpuSet;
       readonly gateway?: BenchmarkCpuSet;
       readonly subgraphs?: BenchmarkCpuSet;
       readonly k6?: BenchmarkCpuSet;
@@ -147,8 +152,11 @@ export interface BenchmarkReport {
   };
   readonly hardware: {
     readonly host: string;
-    readonly cpu: string;
-    readonly logicalCpus: number;
+    readonly cpuModel: string;
+    readonly physicalCores?: number;
+    readonly hardwareThreads: number;
+    readonly threadsPerCore?: number;
+    readonly coreThreads?: readonly (readonly number[])[];
     readonly memoryGb: number;
     readonly os: string;
   };
@@ -336,9 +344,18 @@ function platform(value: unknown): void {
 }
 
 function cpuSet(value: unknown): void {
-  const set = record(value, ["cpuset", "cores"]);
-  text(set.cpuset);
-  integer(set.cores, 1);
+  const set = record(
+    value,
+    ["threadIds", "hardwareThreads"],
+    ["physicalCores"],
+  );
+  const seen = new Set<unknown>();
+  for (const id of list(set.threadIds, 1)) {
+    integer(id, 0);
+    unique(seen, id);
+  }
+  integer(set.hardwareThreads, 1);
+  optional(set.physicalCores, (value) => integer(value, 1));
 }
 
 function measurement(
@@ -397,9 +414,12 @@ function measurement(
   });
 
   optional(value.cpu, (value) => {
-    const cpu = record(value, ["avgCores", "maxCores"]);
-    number(cpu.maxCores, 0);
-    number(cpu.avgCores, 0, cpu.maxCores);
+    const cpu = record(value, [
+      "avgUtilizationPercent",
+      "maxUtilizationPercent",
+    ]);
+    number(cpu.maxUtilizationPercent, 0, 100);
+    number(cpu.avgUtilizationPercent, 0, cpu.maxUtilizationPercent);
   });
 }
 
@@ -456,7 +476,12 @@ function scenarioConfig(value: unknown): number | undefined {
   integer(config.warmupRuns, 0);
   optional(config.measuredRuns, (value) => integer(value, 1));
   optional(config.cpuAllocation, (value) => {
-    const allocation = record(value, [], ["gateway", "subgraphs", "k6"]);
+    const allocation = record(
+      value,
+      [],
+      ["system", "gateway", "subgraphs", "k6"],
+    );
+    optional(allocation.system, cpuSet);
     optional(allocation.gateway, cpuSet);
     optional(allocation.subgraphs, cpuSet);
     optional(allocation.k6, cpuSet);
@@ -498,18 +523,33 @@ export function parseBenchmarkReport(json: string): BenchmarkReport {
   text(run.sourceCommit, /^[0-9a-f]{40}$/);
   optional(run.inputs, object);
 
-  const hardware = record(report.hardware, [
-    "host",
-    "cpu",
-    "logicalCpus",
-    "memoryGb",
-    "os",
-  ]);
+  const hardware = record(
+    report.hardware,
+    ["host", "cpuModel", "hardwareThreads", "memoryGb", "os"],
+    ["physicalCores", "threadsPerCore", "coreThreads"],
+  );
   text(hardware.host);
-  text(hardware.cpu);
+  text(hardware.cpuModel);
   text(hardware.os);
-  integer(hardware.logicalCpus, 1);
+  integer(hardware.hardwareThreads, 1);
   number(hardware.memoryGb, 0);
+  if (
+    [
+      hardware.physicalCores,
+      hardware.threadsPerCore,
+      hardware.coreThreads,
+    ].some((value) => value !== undefined)
+  ) {
+    integer(hardware.physicalCores, 1);
+    integer(hardware.threadsPerCore, 1);
+    for (const core of list(hardware.coreThreads, 1)) {
+      const seen = new Set<unknown>();
+      for (const id of list(core, 1)) {
+        integer(id, 0);
+        unique(seen, id);
+      }
+    }
+  }
 
   const subgraphs = record(report.subgraphs, ["framework", "platform"]);
   const framework = record(subgraphs.framework, ["name"], ["version"]);

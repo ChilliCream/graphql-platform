@@ -49,9 +49,18 @@ test("accepts the report and preserves its source measurements", () => {
     ],
   );
   assert.deepEqual(report.scenarios[1].config.cpuAllocation, {
-    gateway: { cores: 4, cpuset: "2-3,10-11" },
-    k6: { cores: 2, cpuset: "1,9" },
-    subgraphs: { cores: 8, cpuset: "4-7,12-15" },
+    system: { threadIds: [0, 8], physicalCores: 1, hardwareThreads: 2 },
+    gateway: {
+      physicalCores: 2,
+      hardwareThreads: 4,
+      threadIds: [2, 3, 10, 11],
+    },
+    k6: { physicalCores: 1, hardwareThreads: 2, threadIds: [1, 9] },
+    subgraphs: {
+      physicalCores: 4,
+      hardwareThreads: 8,
+      threadIds: [4, 5, 6, 7, 12, 13, 14, 15],
+    },
   });
   const fusion = variant(report, "constant-latency", "fusion");
   assert.deepEqual(
@@ -65,7 +74,7 @@ test("accepts the report and preserves its source measurements", () => {
       throughput: 1886,
       p95: 32.076,
       memory: { peakRssKiB: 381300 },
-      cpu: { avgCores: 3.42, maxCores: 3.57 },
+      cpu: { avgUtilizationPercent: 85.5, maxUtilizationPercent: 89.3 },
     },
   );
   assert.deepEqual(
@@ -136,7 +145,7 @@ const invalidReports = [
   [
     "numeric strings",
     (report) => {
-      report.hardware.logicalCpus = "16";
+      report.hardware.hardwareThreads = "16";
     },
   ],
   [
@@ -206,9 +215,9 @@ const invalidReports = [
     },
   ],
   [
-    "CPU sets without cores",
+    "CPU allocations without hardware threads",
     (report) => {
-      report.scenarios[0].config.cpuAllocation.k6.cores = 0;
+      report.scenarios[0].config.cpuAllocation.k6.hardwareThreads = 0;
     },
   ],
   [
@@ -312,7 +321,7 @@ const invalidReports = [
   [
     "average CPU above its maximum",
     (report) => {
-      firstResult(report).cpu.avgCores = 99;
+      firstResult(report).cpu.avgUtilizationPercent = 101;
     },
   ],
   [
@@ -437,7 +446,7 @@ test("accepts every optional field the schema allows", () => {
     });
     Object.assign(firstResult(report).latencyMs, { p99: 250 });
     report.scenarios[0].config.cpuAllocation = {
-      gateway: { cpuset: "any value", cores: 4 },
+      gateway: { threadIds: [2, 3, 10, 11], hardwareThreads: 4 },
     };
     report.scenarios[0].status = "in-progress";
     report.scenarios[1].status = "failed";
@@ -620,5 +629,51 @@ for (const [name, mutate] of invalidHistories) {
     const history = JSON.parse(historyFixture);
     mutate(history);
     assert.throws(() => parseBenchmarkHistory(JSON.stringify(history)));
+  });
+}
+
+test("accepts older hardware without topology", () => {
+  const report = parse((report) => {
+    delete report.hardware.physicalCores;
+    delete report.hardware.threadsPerCore;
+    delete report.hardware.coreThreads;
+    for (const role of Object.values(
+      report.scenarios[0].config.cpuAllocation,
+    )) {
+      delete role.physicalCores;
+    }
+  });
+  assert.equal(report.hardware.hardwareThreads, 16);
+  assert.equal(report.hardware.coreThreads, undefined);
+});
+
+for (const [name, mutate] of [
+  [
+    "partial topology",
+    (report) => {
+      delete report.hardware.coreThreads;
+    },
+  ],
+  [
+    "duplicate sibling threads",
+    (report) => {
+      report.hardware.coreThreads[0] = [0, 0];
+    },
+  ],
+  [
+    "duplicate role threads",
+    (report) => {
+      report.scenarios[0].config.cpuAllocation.system.threadIds = [0, 0];
+    },
+  ],
+  [
+    "CPU utilization above 100 percent",
+    (report) => {
+      firstResult(report).cpu.maxUtilizationPercent = 101;
+    },
+  ],
+]) {
+  test(`rejects ${name}`, () => {
+    assert.throws(() => parse(mutate));
   });
 }
