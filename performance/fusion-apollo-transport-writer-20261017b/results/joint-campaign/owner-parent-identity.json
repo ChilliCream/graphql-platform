@@ -1,0 +1,16 @@
+{
+  "utc": "2026-10-17T18:02:13.092510+00:00",
+  "runner": {
+    "pid": 175378,
+    "startTicks": 867696,
+    "parentPid": 175377,
+    "command": [
+      "python3",
+      "/workspaces/platform-1/.worktrees/fusion-apollo-transport-writer-20261017b/performance/fusion-apollo-transport-writer-20261017b/run_bdn.py"
+    ],
+    "lockOwner": {
+      "pid": 175377,
+      "startTicks": 867693
+    }
+  }
+}

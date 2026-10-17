@@ -1,0 +1,11 @@
+Independent C11/C13 full native review, 2026-10-17
+
+Recommendation: ABANDON both, no VU or equivalent measurement retry. This follows the measured allocation/elapsed tradeoff, not the optional controlled-allocation fail-stop. Native evidence is complete and consistent enough to assess these costs. Elapsed is not process CPU.
+
+Independently recomputed every retained WorkloadResult observation from seven full native JSON reports, 12 observations per case, with no trimming. Controls B1/B4/B7 bracket both launches of each candidate.
+
+C11 sequence10 elapsed costs +6.105%/+3.698% in the first launch and +5.793%/+5.971% in the second. Native savings are380-388B, matching roughly four96B formatters. Alias2 costs +4.944%/+4.851%, then +4.400%/-0.250%, for90-96B saved. Ordinary is near neutral against early/final stable controls, with96B saving; the middle ordinary baseline is slower and must not be selected to inflate a benefit. The repeated sequence cost is not worth these allocation savings.
+
+C13 alias2 costs +3.626%/+3.535%, then +8.338%/+3.512%, for56-62B native savings. Sequence10 is +1.038%/-1.253% first, then +14.981%/+15.174% second, for252-256B saving. The common two-item route has adverse elapsed direction in all four comparisons and the second sequence has substantial cost versus both controls. Ordinary remains effectively neutral aside from the slow shared middle baseline. This does not justify a VU gate.
+
+All raw memory values are retained. Controlled allocation completed baseline and valid C11 ordinary blocks (96B saving) plus two valid alias2 blocks (96B saving), then failed a calibration and stopped. Missing later C11/C13/closingB controlled observations are not fabricated and are not the basis for abandoning otherwise complete native evidence. No unsupported cause is assigned to timing variation.

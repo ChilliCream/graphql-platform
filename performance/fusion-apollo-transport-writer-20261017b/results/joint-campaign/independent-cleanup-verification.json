@@ -1,0 +1,110 @@
+{
+  "utc": "2026-10-17T18:03:58.798969+00:00",
+  "reviewer": "history_environment",
+  "identities": [
+    {
+      "label": "01-benchmark-B",
+      "identity": {
+        "pid": 175379,
+        "startTicks": 867710
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "02-benchmark-C11",
+      "identity": {
+        "pid": 175540,
+        "startTicks": 868705
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "03-benchmark-C13",
+      "identity": {
+        "pid": 175675,
+        "startTicks": 869702
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "04-benchmark-B",
+      "identity": {
+        "pid": 175810,
+        "startTicks": 870700
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "05-benchmark-C13",
+      "identity": {
+        "pid": 175952,
+        "startTicks": 871693
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "06-benchmark-C11",
+      "identity": {
+        "pid": 176222,
+        "startTicks": 872691
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "07-benchmark-B",
+      "identity": {
+        "pid": 176389,
+        "startTicks": 873689
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "08-allocation-B",
+      "identity": {
+        "pid": 176524,
+        "startTicks": 874688
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "09-allocation-C11",
+      "identity": {
+        "pid": 176656,
+        "startTicks": 875768
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "runner",
+      "identity": {
+        "pid": 175378,
+        "startTicks": 867696
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "lock-owner",
+      "identity": {
+        "pid": 175377,
+        "startTicks": 867693
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    }
+  ],
+  "owner_identity_set_matches": true,
+  "exclusive_lock_free": true,
+  "no_process_terminated": true,
+  "native_launches_completed": 7,
+  "allocation_failure_preserved": true
+}

@@ -1,0 +1,137 @@
+{
+  "utc": "2026-10-17T18:03:38.240808+00:00",
+  "identities": [
+    {
+      "label": "01-benchmark-B",
+      "identity": {
+        "pid": 175379,
+        "startTicks": 867710
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "02-benchmark-C11",
+      "identity": {
+        "pid": 175540,
+        "startTicks": 868705
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "03-benchmark-C13",
+      "identity": {
+        "pid": 175675,
+        "startTicks": 869702
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "04-benchmark-B",
+      "identity": {
+        "pid": 175810,
+        "startTicks": 870700
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "05-benchmark-C13",
+      "identity": {
+        "pid": 175952,
+        "startTicks": 871693
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "06-benchmark-C11",
+      "identity": {
+        "pid": 176222,
+        "startTicks": 872691
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "07-benchmark-B",
+      "identity": {
+        "pid": 176389,
+        "startTicks": 873689
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "08-allocation-B",
+      "identity": {
+        "pid": 176524,
+        "startTicks": 874688
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "09-allocation-C11",
+      "identity": {
+        "pid": 176656,
+        "startTicks": 875768
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "runner",
+      "identity": {
+        "pid": 175378,
+        "startTicks": 867696
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    },
+    {
+      "label": "lockOwner",
+      "identity": {
+        "pid": 175377,
+        "startTicks": 867693
+      },
+      "actualStartTicks": null,
+      "ownedAlive": false
+    }
+  ],
+  "lockFree": true,
+  "terminal": {
+    "label": "09-allocation-C11",
+    "command": [
+      "taskset",
+      "-c",
+      "2,3,10,11",
+      "dotnet",
+      "/workspaces/platform-1/perf/fusion-apollo-shared-client-20261017b/frozen-bdn/C11/HotChocolate.Fusion.Execution.Benchmarks.dll",
+      "allocation",
+      "/workspaces/platform-1/perf/fusion-apollo-shared-client-20261017b/bdn-campaign/09-allocation-C11"
+    ],
+    "started": "2026-10-17T18:03:24.708497+00:00",
+    "status": "failed",
+    "runtimeEnvironment": {
+      "DOTNET_LOCAL_DEV": "1",
+      "DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK": "1",
+      "DOTNET_GCHeapCount": "4",
+      "DOTNET_GCDynamicAdaptationMode": "0"
+    },
+    "identity": {
+      "pid": 176656,
+      "startTicks": 875768
+    },
+    "processGroup": 176656,
+    "exitCode": -6,
+    "exception": "RuntimeError('09-allocation-C11 failed; no retry. Inspect preserved stderr.')",
+    "finished": "2026-10-17T18:03:32.059888+00:00",
+    "elapsedSeconds": 7.351440032998653,
+    "cleanupActions": [],
+    "ownedChildAlive": false
+  },
+  "serial": true
+}

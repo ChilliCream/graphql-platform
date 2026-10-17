@@ -1,6 +1,6 @@
 # C11: Reuse the synchronous transport JSON formatter
 
-Status: 43 focused correctness tests passed; independent engine overlay ready for benchmark preparation. No performance measurement or benefit claim. This isolated worktree starts at `43a8dca2bd479ddc411d832ed97e42d9fcc8bd85`.
+Status: **ABANDONED** after the bounded joint C11/C13 BenchmarkDotNet gate. Allocation savings were observed, but the measured affected-path elapsed cost did not establish a worthwhile net tradeoff. No HTTP run, retry or implementation PR follows. This isolated worktree starts at `43a8dca2bd479ddc411d832ed97e42d9fcc8bd85`.
 
 The warm TestQuery allocation profile attributes 386 ticks and 41,141,568 weighted sampled bytes, approximately 1.1909% of sampled bytes, to `JsonWriter` construction in `DefaultGraphQLHttpClient.CreateJsonContent`. The actual operation makes seven HTTP source requests. These observations establish recurrence, not exact allocated bytes or calls from the sample count.
 
@@ -19,3 +19,25 @@ Baseline evidence: https://github.com/ChilliCream/graphql-platform/blob/ef9fc115
 Actual-client fixture: https://github.com/ChilliCream/graphql-platform/blob/d943238c00635b08036c279fe6ae710444bb1735/performance/fusion-apollo-alias-items-20261017b/REPORT.md
 
 Remaining-lead screening: the other transport worker already declined `PooledArrayWriter` object reuse. Its 107 warm ticks and 11,407,336 weighted sampled bytes (0.3302%) identify a small wrapper whose backing buffer lives across HTTP send. Reuse would need cross-thread lease/reset, clearing and retention rules; no prototype or measurement was undertaken. Alias query caching has only the previously measured approximately 0.21% inclusive thread-time upper bound and requires composition-key/collision and cache-lifetime policy. It is not registered. Empty shared-variable-list allocation and outgoing multi-chunk sequence construction await a bounded check of the existing profile before any registration.
+
+
+The joint gate used independently overlaid C11 and C13 engines with the unchanged actual-client fixture. Seven native launches ran in the predeclared order B, C11, C13, B, C13, C11, B. Every launch retained three cases and twelve measured observations per case, with native MemoryDiagnoser. All 252 WorkloadActual observations and their overhead-adjusted WorkloadResult counterparts are in `results/joint-campaign`; `analyze_bdn.py` reproduces `analysis.json`. None was removed. These are elapsed-time measurements with an in-memory HTTP handler, not process CPU or network-throughput measurements.
+
+| Arm and case | First launch, ns/op | Second launch, ns/op | First versus both controls | Second versus both controls | Native allocated bytes/op |
+|---|---:|---:|---|---|---|
+| C11 ordinary | 1513.709 | 1498.177 | +1.48%, -15.68% | -16.55%, +0.31% | 3374 versus 3470 controls |
+| C11 alias2 | 2758.308 | 2746.454 | +4.94%, +4.85% | +4.40%, -0.25% | 3806 versus 3896/3902/3902 controls |
+| C11 alias-sequence10 | 10967.822 | 11189.376 | +6.10%, +3.70% | +5.79%, +5.97% | 14240/14244 versus 14628/14624/14624 controls |
+| C13 ordinary | 1466.830 | 1514.757 | -1.67%, -18.29% | -15.62%, +1.42% | 3470, unchanged |
+| C13 alias2 | 2723.675 | 2850.040 | +3.63%, +3.53% | +8.34%, +3.51% | 3840/3846 versus 3896/3902/3902 controls |
+| C13 alias-sequence10 | 10444.131 | 12161.166 | +1.04%, -1.25% | +14.98%, +15.17% | 14372 versus 14628/14624/14624 controls |
+
+The table uses native BDN Statistics.Mean, which matches the arithmetic mean of all twelve WorkloadResult samples. The raw WorkloadActual means and overhead samples are preserved separately. C11 saves 96 native bytes per ordinary operation and approximately 380–388 bytes per four-batch sequence, but both sequence launches are slower than both surrounding controls. C13 saves approximately 50–62 native bytes for alias2 and 252–256 bytes for the sequence. Both alias2 launches are slower than both controls, and its second sequence launch rises substantially. Both candidates are abandoned for unresolved net cost, without claiming a universal CPU regression. C13's large fallback was correctness-tested but is outside this small-split timing scope.
+
+The middle ordinary control trends down from a first-three-sample mean of approximately 2113.5 ns to a last-three mean of 1525.6 ns. C13's second sequence trends up from approximately 10717.3 to 12639.1 ns. The inflated ordinary control cannot establish a candidate speedup; all trends and distributions remain in the analysis. Native memory has small 4–6-byte variations and includes process background allocation. Sequence MemoryDiagnoser GC counts vary across arms; those extra diagnostic-phase collections do not establish the cause of timing changes. The fixed short invocations retain BDN's minimum-iteration-time warnings.
+
+The optional, separate fixed-four-heap allocation schedule was B, C11, C13, B. The baseline completed all nine validated regions. C11 completed its three ordinary regions and first two alias2 regions, then alias2 block 2 failed the exact before-calibration guard: process allocation 527608 bytes versus the known 523240, while the thread calibration remained exact. Its target completed 1000 operations, had zero collections, and ended NoGC successfully. The entire failed region is invalid; C11 sequence, C13 allocation and the final control never ran. This supplemental failure is preserved and is not the reason either candidate was rejected. No retry was performed.
+
+The campaign began at 18:02:04.129725 UTC and stopped at 18:03:32.059888 UTC. Owner cleanup at 18:03:38.240808 and independent cleanup at 18:03:58.798969 confirmed all nine child identities plus runner and lock-holder identities absent and the exclusive lock free. Parent/start ticks, every child, exact invocation, engine/helper hashes, native output, failure metadata and both cleanup records are retained. Preparation was published at `c5fdf3ff0805e3119c4265f4f96aa8519a1437c6` before execution.
+
+Independent C11 review is retained at `results/joint-campaign/independent-c11-review.txt`. C13's independent result review is published at https://github.com/ChilliCream/graphql-platform/blob/e7481388e93fae0adf4c013552e5712303813925/performance/fusion-apollo-alias-cursors-20261017b/results/independent-native-review.json . The experimental production patch and correctness evidence remain in this branch; there is no clean implementation branch or PR.

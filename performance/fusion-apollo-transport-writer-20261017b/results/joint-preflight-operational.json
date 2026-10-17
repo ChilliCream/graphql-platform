@@ -1,0 +1,17 @@
+{
+  "utc": "2026-10-17T18:02:03.942834+00:00",
+  "lockFree": true,
+  "runnerSha256": "7841a13408185781aa81d6b83cf49d1da5bd4605eda51b10c3f433d92f6a49d0",
+  "manifestSha256": "fe669ee1398fa7dd1ce86952708f9114eae1832deaf7176fc7d6bd0af273fcfd",
+  "relatedProcesses": [
+    {
+      "pid": 108698,
+      "comm": "VBCSCompiler",
+      "startTicks": 638933,
+      "cpuTicks": 40210,
+      "state": "Z",
+      "cpuTickDelta": 0
+    }
+  ],
+  "observationSeconds": 0.5
+}

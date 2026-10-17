@@ -1,0 +1,222 @@
+{
+  "actualObservationCount": 252,
+  "repeatedBothControlFailures": [],
+  "comparisons": [
+    {
+      "label": "02-benchmark-C11",
+      "arm": "C11",
+      "shape": "alias-sequence10",
+      "controls": [
+        "01-benchmark-B",
+        "04-benchmark-B"
+      ],
+      "meanRatios": [
+        1.0610450113592012,
+        1.036983280783936
+      ],
+      "nativeBytesSavedAgainstControls": [
+        388,
+        384
+      ],
+      "overFivePercentAgainstBoth": false
+    },
+    {
+      "label": "02-benchmark-C11",
+      "arm": "C11",
+      "shape": "alias2",
+      "controls": [
+        "01-benchmark-B",
+        "04-benchmark-B"
+      ],
+      "meanRatios": [
+        1.049441118294794,
+        1.0485104662427034
+      ],
+      "nativeBytesSavedAgainstControls": [
+        90,
+        96
+      ],
+      "overFivePercentAgainstBoth": false
+    },
+    {
+      "label": "02-benchmark-C11",
+      "arm": "C11",
+      "shape": "ordinary",
+      "controls": [
+        "01-benchmark-B",
+        "04-benchmark-B"
+      ],
+      "meanRatios": [
+        1.0147648497649413,
+        0.8431945816474596
+      ],
+      "nativeBytesSavedAgainstControls": [
+        96,
+        96
+      ],
+      "overFivePercentAgainstBoth": false
+    },
+    {
+      "label": "03-benchmark-C13",
+      "arm": "C13",
+      "shape": "alias-sequence10",
+      "controls": [
+        "01-benchmark-B",
+        "04-benchmark-B"
+      ],
+      "meanRatios": [
+        1.0103822557848332,
+        0.987469424230609
+      ],
+      "nativeBytesSavedAgainstControls": [
+        256,
+        252
+      ],
+      "overFivePercentAgainstBoth": false
+    },
+    {
+      "label": "03-benchmark-C13",
+      "arm": "C13",
+      "shape": "alias2",
+      "controls": [
+        "01-benchmark-B",
+        "04-benchmark-B"
+      ],
+      "meanRatios": [
+        1.0362644230528393,
+        1.0353454561903728
+      ],
+      "nativeBytesSavedAgainstControls": [
+        56,
+        62
+      ],
+      "overFivePercentAgainstBoth": false
+    },
+    {
+      "label": "03-benchmark-C13",
+      "arm": "C13",
+      "shape": "ordinary",
+      "controls": [
+        "01-benchmark-B",
+        "04-benchmark-B"
+      ],
+      "meanRatios": [
+        0.9833380781550345,
+        0.817081257416448
+      ],
+      "nativeBytesSavedAgainstControls": [
+        0,
+        0
+      ],
+      "overFivePercentAgainstBoth": false
+    },
+    {
+      "label": "05-benchmark-C13",
+      "arm": "C13",
+      "shape": "alias-sequence10",
+      "controls": [
+        "04-benchmark-B",
+        "07-benchmark-B"
+      ],
+      "meanRatios": [
+        1.1498113464372257,
+        1.1517399490512856
+      ],
+      "nativeBytesSavedAgainstControls": [
+        252,
+        252
+      ],
+      "overFivePercentAgainstBoth": true
+    },
+    {
+      "label": "05-benchmark-C13",
+      "arm": "C13",
+      "shape": "alias2",
+      "controls": [
+        "04-benchmark-B",
+        "07-benchmark-B"
+      ],
+      "meanRatios": [
+        1.083380413789136,
+        1.0351239890165804
+      ],
+      "nativeBytesSavedAgainstControls": [
+        56,
+        56
+      ],
+      "overFivePercentAgainstBoth": false
+    },
+    {
+      "label": "05-benchmark-C13",
+      "arm": "C13",
+      "shape": "ordinary",
+      "controls": [
+        "04-benchmark-B",
+        "07-benchmark-B"
+      ],
+      "meanRatios": [
+        0.8437782653620016,
+        1.0142215217626984
+      ],
+      "nativeBytesSavedAgainstControls": [
+        0,
+        0
+      ],
+      "overFivePercentAgainstBoth": false
+    },
+    {
+      "label": "06-benchmark-C11",
+      "arm": "C11",
+      "shape": "alias-sequence10",
+      "controls": [
+        "04-benchmark-B",
+        "07-benchmark-B"
+      ],
+      "meanRatios": [
+        1.057930736907184,
+        1.0597052262536455
+      ],
+      "nativeBytesSavedAgainstControls": [
+        380,
+        380
+      ],
+      "overFivePercentAgainstBoth": true
+    },
+    {
+      "label": "06-benchmark-C11",
+      "arm": "C11",
+      "shape": "alias2",
+      "controls": [
+        "04-benchmark-B",
+        "07-benchmark-B"
+      ],
+      "meanRatios": [
+        1.0440043320671581,
+        0.9975018146952437
+      ],
+      "nativeBytesSavedAgainstControls": [
+        96,
+        96
+      ],
+      "overFivePercentAgainstBoth": false
+    },
+    {
+      "label": "06-benchmark-C11",
+      "arm": "C11",
+      "shape": "ordinary",
+      "controls": [
+        "04-benchmark-B",
+        "07-benchmark-B"
+      ],
+      "meanRatios": [
+        0.8345426566076,
+        1.003120319527683
+      ],
+      "nativeBytesSavedAgainstControls": [
+        96,
+        96
+      ],
+      "overFivePercentAgainstBoth": false
+    }
+  ]
+}
