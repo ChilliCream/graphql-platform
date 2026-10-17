@@ -1,0 +1,23 @@
+Stage-one HTTP ready request, 2026-10-17 UTC
+
+No HTTP traffic has run from this preparation. Three independently micro-qualified engines remain after twelve terminal abandonments.
+
+Exact plan SHA256: 8a96f23fb7b5051e370357b120bbdc9d9f5378b480e7225c583184783c6119e8
+Exact runner SHA256: f4685e4f49addae6b96b79708c789100f2c0bd9e16e655304568b755d742bce0
+Source publication: 9a1fe4df41947b55241f2728031b72b1569737d0
+Independent frozen review: independent-stage1-frozen-review.json, PASS18:18:09.307116 UTC.
+
+Execute only on explicit root grant with all peers quiet:
+flock -x -o /workspaces/platform-1/perf/fusion-common-path.lock taskset -c 0,8 python3 /workspaces/platform-1/.worktrees/fusion-apollo-compact-path-build-20261017b/performance/fusion-apollo-compact-path-build-20261017b/http/campaign.py execute --plan /workspaces/platform-1/perf/fusion-apollo-survivor-http-20261017b/stage1-final-plan.json --output /workspaces/platform-1/perf/fusion-apollo-survivor-http-20261017b/stage1-campaign --root-grant 'Root grants reviewed stage-one C9 C7 C10 HTTP plan 8a96f23fb7b5051e370357b120bbdc9d9f5378b480e7225c583184783c6119e8'
+
+Nine fresh processes in order B,C9,C7,C10,B,C10,C7,C9,B. Each repeats the same complete preflight, original-query warmup30s, original constant50VU TestQuery30s, focused entities9 20s, and corrected ordinary5000/s20s with200preallocated/maxVUs. Exact original query, Authorization policy, host security/logging/thread/connection settings, affinity and source-built .NET10.0.12 ServerGC configuration are preserved. Only candidate Execution.dll/PDB differs from the106-file baseline host.
+
+Original required zero-delay constant scenario is included. The original constant-latency4ms scenario and unchanged50→500→50VU burst10/40/10s are separately conditional stage two after stage-one interpretation; neither starts automatically. Investigation-only warmup/entities/ordinary/idle controls are separately identified in README. Required original default120s duration is predeclared30s here, preserving driver semantics.
+
+One bounded first-baseline source-response capture replays seven established request bodies outside measured windows and before30s conditioning. Whitelisted response framing/type headers, protocol/length/hash only; protocol differences and unknown physical adjacency stay explicit. No production instrumentation.
+
+Expected17–20min,1500s work deadline+120s exact-owned cleanup=1620s (27min) hard bound. Every per-step timeout remains; any failure stops with no retry/resume. Preflight checks lock free and unexpected active load, preserving idle unrelated servers. Exact owned PID/start identities and module maps are retained; cleanup targets only matching identities and is independently verified. Live boundaries/status sent at most60s apart, candidate RUNNING only while its actual process is active. No analysis/build/compression/publication during the exclusive slot.
+
+Validity gates: complete preflight oracles, original/focused checks, native/summary measured requests=iterations=successes and exact100setup, zero errors/drops, frozen source/runtime/engine identities and required process liveness. Actual scheduled/completed counts, start/end/rate are reported, no exact100000 assertion. Primary gatewayCPU/request uses native request windows with matching process counters; source/generator/observer headroom, all latency tails, sparse-p99.9 clustering, runtimecounterboundary limits and fullcontroltrends remain visible. Compare every candidate against both adjacent controls and fullcontrolenvelope. C9 needs worthwhile repeated processCPU benefit; C7/C10 may qualify on corroborated allocation benefit with no meaningful extraCPU/tail/unaffected-path cost. Any inconclusive/adverse net tradeoff is not promoted by micro speedup alone. No automatic delayed-stage execution or implementation PR.
+
+Micro limits retained: C9 ordinary time trend/noisy finalB; C10 known128 secondarm+4.1–4.4%; C7/C10 actual per-response predicate coverage unknown until qualified setup observations, C10 physical chunk adjacency remains unobserved. MemoryDiagnoser measures process-wide allocations in its separate1000-operation diagnostic, including background allocations; it is not HTTP allocation/request or CPU.

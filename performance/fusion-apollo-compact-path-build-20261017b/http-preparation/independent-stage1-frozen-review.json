@@ -1,0 +1,148 @@
+{
+  "verifiedUtc": "2026-10-17T18:18:09.307116+00:00",
+  "planSha256": "8a96f23fb7b5051e370357b120bbdc9d9f5378b480e7225c583184783c6119e8",
+  "runnerSha256": "f4685e4f49addae6b96b79708c789100f2c0bd9e16e655304568b755d742bce0",
+  "armFileCounts": {
+    "B": 106,
+    "C9": 106,
+    "C7": 106,
+    "C10": 106
+  },
+  "sourceFileCounts": {
+    "Accounts": 59,
+    "Inventory": 59,
+    "Products": 59,
+    "Reviews": 59
+  },
+  "runnerSourceCount": 18,
+  "differences": {
+    "C9": [
+      "HotChocolate.Fusion.Execution.dll",
+      "HotChocolate.Fusion.Execution.pdb"
+    ],
+    "C7": [
+      "HotChocolate.Fusion.Execution.dll",
+      "HotChocolate.Fusion.Execution.pdb"
+    ],
+    "C10": [
+      "HotChocolate.Fusion.Execution.dll",
+      "HotChocolate.Fusion.Execution.pdb"
+    ]
+  },
+  "schedules": [
+    {
+      "family": "combined",
+      "delay_ms": 0,
+      "index": 0,
+      "arm": "B",
+      "name": "delay0-00-B",
+      "cases": [
+        "TestQuery",
+        "entities9",
+        "ordinary-fixed"
+      ]
+    },
+    {
+      "family": "combined",
+      "delay_ms": 0,
+      "index": 1,
+      "arm": "C9",
+      "name": "delay0-01-C9",
+      "cases": [
+        "TestQuery",
+        "entities9",
+        "ordinary-fixed"
+      ]
+    },
+    {
+      "family": "combined",
+      "delay_ms": 0,
+      "index": 2,
+      "arm": "C7",
+      "name": "delay0-02-C7",
+      "cases": [
+        "TestQuery",
+        "entities9",
+        "ordinary-fixed"
+      ]
+    },
+    {
+      "family": "combined",
+      "delay_ms": 0,
+      "index": 3,
+      "arm": "C10",
+      "name": "delay0-03-C10",
+      "cases": [
+        "TestQuery",
+        "entities9",
+        "ordinary-fixed"
+      ]
+    },
+    {
+      "family": "combined",
+      "delay_ms": 0,
+      "index": 4,
+      "arm": "B",
+      "name": "delay0-04-B",
+      "cases": [
+        "TestQuery",
+        "entities9",
+        "ordinary-fixed"
+      ]
+    },
+    {
+      "family": "combined",
+      "delay_ms": 0,
+      "index": 5,
+      "arm": "C10",
+      "name": "delay0-05-C10",
+      "cases": [
+        "TestQuery",
+        "entities9",
+        "ordinary-fixed"
+      ]
+    },
+    {
+      "family": "combined",
+      "delay_ms": 0,
+      "index": 6,
+      "arm": "C7",
+      "name": "delay0-06-C7",
+      "cases": [
+        "TestQuery",
+        "entities9",
+        "ordinary-fixed"
+      ]
+    },
+    {
+      "family": "combined",
+      "delay_ms": 0,
+      "index": 7,
+      "arm": "C9",
+      "name": "delay0-07-C9",
+      "cases": [
+        "TestQuery",
+        "entities9",
+        "ordinary-fixed"
+      ]
+    },
+    {
+      "family": "combined",
+      "delay_ms": 0,
+      "index": 8,
+      "arm": "B",
+      "name": "delay0-08-B",
+      "cases": [
+        "TestQuery",
+        "entities9",
+        "ordinary-fixed"
+      ]
+    }
+  ],
+  "sessionBound": {
+    "work_seconds": 1500,
+    "cleanup_reserve_seconds": 120,
+    "total_seconds": 1620
+  },
+  "verification": "All frozen arm/source/tool/runner hashes match; no process or network traffic started."
+}
