@@ -48,7 +48,8 @@ export function BenchmarkHistoryChart({
   variants,
   stableOnly,
 }: BenchmarkHistoryChartProps) {
-  const { active, pinned, setHovered, togglePinned } = useSeriesHighlight();
+  const { active, pinned, setHovered, setFocused, togglePinned } =
+    useSeriesHighlight();
 
   const series = historySeries(scenario, variants, stableOnly);
   if (series.length === 0) {
@@ -168,7 +169,9 @@ export function BenchmarkHistoryChart({
                       strokeWidth={24}
                       vectorEffect="non-scaling-stroke"
                       pointerEvents="stroke"
+                      className="cursor-pointer"
                       onMouseEnter={highlight(item.id)}
+                      onClick={() => togglePinned(item.id)}
                     />
                   </g>
                 );
@@ -181,12 +184,13 @@ export function BenchmarkHistoryChart({
                 return (
                   <span
                     key={`${item.id}-${point.slot}`}
-                    className="absolute flex size-7 -translate-1/2 items-center justify-center"
+                    className="absolute flex size-7 -translate-1/2 cursor-pointer items-center justify-center"
                     style={{
                       left: `${SLOT_X[point.slot]}%`,
                       top: `${y(point.rps)}%`,
                     }}
                     onMouseEnter={highlight(item.id)}
+                    onClick={() => togglePinned(item.id)}
                   >
                     <span
                       className={`ring-cc-bg block rounded-full border-2 ring-2 motion-safe:transition-[opacity,width,height] ${
@@ -269,6 +273,7 @@ export function BenchmarkHistoryChart({
                     active={active}
                     pinned={pinned === item.id}
                     onHighlight={setHovered}
+                    onFocusChange={setFocused}
                     onToggle={togglePinned}
                   />
                 ))}
@@ -315,6 +320,7 @@ interface LegendButtonProps {
   readonly active: string | undefined;
   readonly pinned: boolean;
   readonly onHighlight: (id: string | undefined) => void;
+  readonly onFocusChange: (id: string | undefined) => void;
   readonly onToggle: (id: string) => void;
 }
 
@@ -323,6 +329,7 @@ function LegendButton({
   active,
   pinned,
   onHighlight,
+  onFocusChange,
   onToggle,
 }: LegendButtonProps) {
   const isActive = series.id === active;
@@ -336,10 +343,14 @@ function LegendButton({
         aria-pressed={pinned}
         onMouseEnter={() => onHighlight(series.id)}
         onMouseLeave={() => onHighlight(undefined)}
-        onFocus={() => onHighlight(series.id)}
-        onBlur={() => onHighlight(undefined)}
+        onFocus={(event) => {
+          if (event.currentTarget.matches(":focus-visible")) {
+            onFocusChange(series.id);
+          }
+        }}
+        onBlur={() => onFocusChange(undefined)}
         onClick={() => onToggle(series.id)}
-        className={`focus-visible:outline-cc-accent flex items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors focus-visible:outline-2 ${
+        className={`focus-visible:outline-cc-accent flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors focus-visible:outline-2 ${
           isActive ? "bg-cc-hover" : "hover:bg-cc-hover"
         } ${active && !isActive ? "opacity-60" : ""}`}
       >

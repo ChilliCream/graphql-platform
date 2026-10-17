@@ -18,9 +18,10 @@ export function BenchmarkHeader({ report }: BenchmarkHeaderProps) {
           An open benchmark of GraphQL federation routers/gateways. Each router
           is evaluated under the same conditions, on the same machine with the
           same subgraphs and the same GraphQL operation, so you can compare
-          throughput, latency, memory and CPU on equal terms. New results are
-          published every day from a public workflow that anyone can inspect or
-          rerun on their own hardware.
+          throughput, latency, memory and CPU on equal terms.
+          <br />
+          New results are published every day from a public workflow that anyone
+          can inspect or rerun on their own hardware.
         </p>
       </div>
       <RunPanel report={report} />

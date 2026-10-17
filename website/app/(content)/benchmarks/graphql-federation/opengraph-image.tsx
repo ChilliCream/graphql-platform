@@ -6,8 +6,7 @@ import {
 } from "@/src/og/pageShareCardImage";
 
 export const dynamic = "force-static";
-export const alt =
-  "GraphQL federation router and gateway performance benchmarks";
+export const alt = "GraphQL Federation Benchmarks";
 export const size = shareCardSize;
 export const contentType = shareCardContentType;
 

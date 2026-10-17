@@ -9,7 +9,7 @@ import {
 import { pageMetadata } from "@/src/helpers/pageMetadata";
 
 const PAGE = {
-  title: "GraphQL Federation Router & Gateway Performance Benchmarks",
+  title: "GraphQL Federation Performance Benchmarks",
   description:
     "Compare GraphQL federation router and gateway performance for Fusion, Apollo, Hive, Cosmo, Grafbase, Caliban, and feddi. See throughput, latency, memory and CPU usage, and hardware.",
   path: "/benchmarks/graphql-federation",
@@ -23,14 +23,17 @@ export default function FederationBenchmarksPage() {
     <>
       <PageStructuredData
         {...PAGE}
+        dateModified={
+          report.run.completedAt ?? report.run.startedAt ?? undefined
+        }
         breadcrumbs={[
           { name: "Home", path: "/" },
-          { name: "GraphQL federation benchmarks" },
+          { name: "GraphQL Federation Benchmarks" },
         ]}
       />
       <article>
         <BenchmarkHeader report={report} />
-        <div className="mt-10 sm:mt-14">
+        <div className="mt-10">
           <BenchmarkExplorer report={report} history={history} />
         </div>
         <BenchmarkTestSetup report={report} />

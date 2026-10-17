@@ -10,7 +10,7 @@ import {
   type ScenarioId,
 } from "@/src/helpers/benchmarkReport";
 
-/** The scenario selection shared by the benchmark designs. Results show stable versions only. */
+/** The scenario selection and the preview toggle of the benchmark page. Previews start hidden. */
 export function useBenchmarkControls(
   report: BenchmarkReport,
   history: BenchmarkHistory | undefined,
@@ -19,6 +19,7 @@ export function useBenchmarkControls(
   const [selected, setSelected] = useState<ScenarioId | undefined>(() =>
     defaultScenarioId(scenarios),
   );
+  const [showPreviews, setShowPreviews] = useState(false);
   return {
     scenarios,
     variants: benchmarkVariants(report),
@@ -27,6 +28,8 @@ export function useBenchmarkControls(
       history?.scenarios.find((scenario) => scenario.id === id),
     selected,
     setSelected,
-    stableOnly: true,
+    showPreviews,
+    setShowPreviews,
+    stableOnly: !showPreviews,
   };
 }

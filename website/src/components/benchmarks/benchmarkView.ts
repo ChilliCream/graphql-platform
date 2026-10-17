@@ -420,3 +420,43 @@ export function cpuMap(
   }
   return groups;
 }
+
+/** The fastest result without failed requests in a scenario, across both compositions. */
+export interface ScenarioVerdict {
+  readonly leader: BenchmarkVariantResult;
+  /** The second fastest result without failed requests, or undefined when the leader is the only one. */
+  readonly runnerUp: BenchmarkVariantResult | undefined;
+  /** The leader's throughput advantage over the runner-up as a fraction, or 0 without a runner-up. */
+  readonly lead: number;
+  /** Whether the lead is smaller than the run variance of either result. */
+  readonly tied: boolean;
+}
+
+/** Returns the verdict of a scenario, skipping previews when `stableOnly` is set, or undefined when no result is free of failed requests. */
+export function scenarioVerdict(
+  scenario: BenchmarkScenario,
+  variants: ReadonlyMap<string, BenchmarkCatalogEntry>,
+  stableOnly: boolean,
+): ScenarioVerdict | undefined {
+  const [leader, runnerUp] = scenarioGroups(scenario, variants, stableOnly)
+    .flatMap((group) => group.rows)
+    .filter(isReliable)
+    .toSorted((a, b) => b.throughput.medianRps - a.throughput.medianRps);
+  if (!leader) {
+    return undefined;
+  }
+  const lead =
+    runnerUp && runnerUp.throughput.medianRps > 0
+      ? leader.throughput.medianRps / runnerUp.throughput.medianRps - 1
+      : 0;
+  const variance = Math.max(
+    leader.throughput.cvPercent,
+    runnerUp?.throughput.cvPercent ?? 0,
+  );
+  return {
+    leader,
+    runnerUp,
+    lead,
+    tied: runnerUp !== undefined && lead * 100 < variance,
+  };
+}
