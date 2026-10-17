@@ -37,6 +37,120 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
 
     private static readonly Operation s_operation = PlanOperation(s_schema, "{ noop }").Operation;
 
+    [Theory]
+    [InlineData(3)]
+    [InlineData(100)]
+    public void CreateRepresentationVariableValue_Should_PreserveLookupResults_When_TargetSizesChange(int count)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              first: [Foo]
+              second: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+            }
+            """);
+        var payload = JsonSerializer.Serialize(new
+        {
+            data = new
+            {
+                first = Enumerable.Range(1, count).Select(i => new { id = i.ToString() }),
+                second = new[] { new { id = "2" }, new { id = "1" }, new { id = "2" } }
+            }
+        });
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ first { id } second { id } }",
+            payload,
+            resultArena,
+            sourceArena);
+        var requirements = new[] { Requirement("__fusion_1_id", "id") };
+        var lookupField = ParseLookupField("{ fooById(id: $__fusion_1_id) { id } }");
+
+        // act
+        var first = CreateRepresentation(
+            store, schema, SelectionPath.Root.AppendField("first"), [], requirements, "Foo", lookupField);
+        var firstJson = Normalize(first.Value);
+        var second = CreateRepresentation(
+            store, schema, SelectionPath.Root.AppendField("second"), [], requirements, "Foo", lookupField);
+        var repeated = CreateRepresentation(
+            store, schema, SelectionPath.Root.AppendField("first"), [], requirements, "Foo", lookupField);
+
+        // assert
+        Assert.Equal(count, first.ResultPaths.Length);
+        Assert.Equal(firstJson, Normalize(first.Value));
+        Assert.Equal(firstJson, Normalize(repeated.Value));
+        Normalize(second.Value).MatchInlineSnapshot(
+            """
+            {"representations":[{"__typename":"Foo","id":"2"},{"__typename":"Foo","id":"1"}]}
+            """);
+        second.ResultPaths.Select(path => path.AdditionalPaths.Length).MatchInlineSnapshot(
+            """
+            [
+              1,
+              0
+            ]
+            """);
+    }
+
+    [Fact]
+    public async Task CreateRepresentationVariableValue_Should_IsolateLookups_When_OneStoreBuildsConcurrently()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+            }
+            """);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id } }",
+            """{"data":{"foos":[{"id":"1"},{"id":"2"},{"id":"1"}]}}""",
+            resultArena,
+            sourceArena);
+        var requirements = new[] { Requirement("__fusion_1_id", "id") };
+        var lookupField = ParseLookupField("{ fooById(id: $__fusion_1_id) { id } }");
+        var shape = RepresentationShapeBuilder.Build(lookupField, requirements, schema, "Foo");
+
+        // act
+        var tasks = Enumerable.Range(0, 32).Select(_ => Task.Run(() =>
+            store.CreateRepresentationVariableValue(
+                SelectionPath.Root.AppendField("foos"), [], requirements, shape, "Foo")));
+        var results = await Task.WhenAll(tasks);
+
+        // assert
+        Assert.Equal(32, results.Length);
+        Assert.All(results, result =>
+        {
+            Normalize(result.Value).MatchInlineSnapshot(
+                """
+                {"representations":[{"__typename":"Foo","id":"1"},{"__typename":"Foo","id":"2"}]}
+                """);
+            result.ResultPaths.Select(path => path.AdditionalPaths.Length).MatchInlineSnapshot(
+                """
+                [
+                  1,
+                  0
+                ]
+                """);
+        });
+    }
+
     [Fact]
     public void CreateRepresentationVariableValueFromSnapshot_Should_NestRequireUnderStructuralField_When_RequireArgIsOnNestedField()
     {

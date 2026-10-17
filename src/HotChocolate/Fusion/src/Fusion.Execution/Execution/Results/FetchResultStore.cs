@@ -74,7 +74,7 @@ internal sealed partial class FetchResultStore : IDisposable
     internal FetchResultStore()
     {
         _jsonWriter = new JsonWriter(_variableWriter, new JsonWriterOptions { Indented = false });
-        _variableDedupTable = new VariableDedupTable(_variableWriter);
+        _variableDedupTable = new VariableDedupTable();
     }
 
     public CompositeResultDocument Result => _result;
@@ -1687,7 +1687,7 @@ AddErrors_Next:
         // on the existing index.
         //
         // this allows us to fetch once and then insert the data at different locations.
-        if (_variableDedupTable.TryGet(hash, startPosition, length, out var existingIndex))
+        if (_variableDedupTable.TryGet(_variableWriter, hash, startPosition, length, out var existingIndex))
         {
             dedupIndex = existingIndex;
             additionalPaths.Add(existingIndex, path);
@@ -2534,7 +2534,7 @@ AddErrors_Next:
 
         _memory.Clear();
 
-        ClearRepresentationScratch();
+        ClearRepresentationDedupTable();
         _variableDedupTable.Dispose();
         _variableWriter.Dispose();
         _forwardedVariableWriter?.Dispose();
@@ -2604,13 +2604,12 @@ AddErrors_Next:
         return ImmutableCollectionsMarshal.AsImmutableArray(result);
     }
 
-    private sealed class VariableDedupTable(ChunkedArrayWriter writer) : IDisposable
+    private sealed class VariableDedupTable : IDisposable
     {
         private const int DefaultBucketSize = 4;
         private const int DefaultBucketCount = 16;
         private const int TrackedSlotCapacity = 16;
 
-        private readonly ChunkedArrayWriter _writer = writer;
         private Entry[] _table = RentClearedTable(DefaultBucketCount * DefaultBucketSize);
         private int[] _writtenSlots = [];
         private int _bucketCount = DefaultBucketCount;
@@ -2634,6 +2633,7 @@ AddErrors_Next:
         }
 
         public bool TryGet(
+            ChunkedArrayWriter writer,
             int hash,
             int location,
             int length,
@@ -2655,7 +2655,7 @@ AddErrors_Next:
 
                 if (entry.Hash == hash
                     && entry.Length == length
-                    && _writer.SequenceEqual(entry.Location, location, length))
+                    && writer.SequenceEqual(entry.Location, location, length))
                 {
                     existingIndex = entry.Index - 1;
                     return true;

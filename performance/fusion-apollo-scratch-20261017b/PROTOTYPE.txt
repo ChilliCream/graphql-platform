@@ -1,0 +1,88 @@
+C1: reuse request-local representation deduplication table
+======================================================
+
+Status: QUEUED_FOR_MICRO. No timing or allocation measurements yet.
+Base: 43a8dca2bd479ddc411d832ed97e42d9fcc8bd85.
+Source: perf/fusion-apollo-scratch-20261017b, independent of C2/C3.
+Discovery and frozen registration:
+https://github.com/ChilliCream/graphql-platform/tree/2c47637e38/performance/fusion-apollo-discovery-20261017b
+Fresh source-built baseline and raw traces:
+https://github.com/ChilliCream/graphql-platform/tree/ef9fc1159a5a7a980754ebd42b511030320482cd/experiments/fusion-apollo-baseline-20261017b
+
+The original warm operation builds representations 11 times: 335 target
+occurrences become 24 distinct representations. Eight of these builds carry
+duplicates. Its allocation and CPU profiles show per-build scratch objects and
+VariableDedupTable.Resize/RentClearedTable clearing. The latter contains
+2106.589 sampled thread-ms, 2.9445% of the deliberately filtered sample total,
+inside a 30.0887164s trace with 114759 successful requests. Sampling is not a
+call count or a promise of CPU savings. See discovery for denominator limits.
+
+The prototype retains one table on FetchResultStore for the current request.
+Normal and snapshot representation builders initialize it before each build,
+using existing written-slot tracking to clear only touched entries for small
+distinct sets. Temporary ChunkedArrayWriter and JsonWriter lifetimes remain
+per build. TryGet receives the active writer instead of retaining it; the
+native caller is updated without changing native table ownership. The store's
+existing synchronization serializes construction. Payload bytes are copied to
+the independent request writer before temporary buffers are returned.
+
+Clean, subscription Reset and Dispose release the table. Idle stores retain
+zero representation tables. Active capacity is still driven by the maximum
+lookup occurrence count and collision growth within the request, not capped
+at a fixed number; the original operation normally reaches 8KiB of table
+storage. A 1024-unique lookup reaches at least 64KiB. Relative to immediate
+per-fetch release, this increases live table memory during downstream waits;
+matched HTTP burst/postburst memory and GC observations are required. Full
+mixed-size request lifetimes, not only repeated identical lookups, are tested.
+
+Rejected prototype cfbb8fcdf1 retained the writer, JsonWriter and table for the
+request. Its first byte chunk keeps 128KiB live during downstream waits,
+potentially about64MiB at500 simultaneous requests. It was rejected before
+measurement, is preserved in experimental history, and is not the frozen
+candidate. This narrowing remains inside the registered C1 scratch lifecycle
+hypothesis.
+
+Correctness: Release/style builds pass. Direct xUnit execution passed122/122
+focused FetchResultStoreRepresentationTests and FetchResultStoreTests,
+including native paths, existing entity semantics, newly added changing-size
+builds and32concurrent builds on one store. The initial new inline snapshots
+failed formatting only (119pass/3fail); the failed TRX is retained. The SDK11
+MTP dotnet-test handshake initially found zero tests; direct executable test
+runner was used instead. No full suite was run.
+
+Shared micro fixture calls real FetchResultStore normal or snapshot APIs with
+real composed/planned schema and source result documents. Preparation is out
+of scope; all representation builds plus Clean are measured. It consumes
+payload length, primary paths and every additional path. It checks complete
+representation payloads plus distinct and total path counts before measuring.
+Baseline and candidate check oracles match for all13cases. The original-like
+sequence is the normal target-collection entry point; snapshot96 is a separate
+fallback case, not claimed as the original HTTP path.
+
+Cases: unique1/5/6/9;96duplicate;1026duplicate(unpooled C3 fallback);
+96unique;1024unique;96targets/8unique; exact11-build335->24sequence;
+1024unique then1unique then96duplicate then5unique; snapshot96/8; null96.
+
+Shared planned timing order: B,C1,C3,B,C3,C1,B,C1,C3,B. Repeat this order in a
+separate allocation mode. Timing each case:512warmup requests,
+20observations of128requests. Allocation each case:64warmup,4x16requests,
+512MiB no-GC region and before/after 127x4096-byte allocation calibration.
+The region includes preparation allocation although reported counters scope
+only Execute+Clean. Any collection or calibration failure invalidates that
+allocation run. Allocation results do not establish default process totals.
+
+Run script records command, UTC bounds, PID/start ticks, loaded assembly SHA,
+raw observations and errors. Runtime10.0.12/ServerGC, affinity2,3,10,11; all
+arm files identical except the intended Fusion.Execution DLL/PDB. Baseline
+engine is the exact frozen initial HTTP baseline, no baseline rebuild. One
+common harness compiled from unchanged API against candidate is used in all
+arms. See frozen manifest and per-process reported assembly identity.
+
+Micro gate: require matching correctness/calibration and reproducible useful
+saving in the eleven-build recurring workload; inspect all independent
+launches, adjacent baseline groups and the full envelope. Repeated supported
+ordinary/unique/fallback regressions above5% stop promotion. Inconclusive valid
+results stop, no rerun seeking a win. A qualifying micro is insufficient for
+acceptance without matched HTTP CPU/request, tails, GC, memory and burst
+checks against adjacent controls. Existing baseline drift (3.4%CPU/request,
+28%throughput) must not be pooled away. No PR exists.

@@ -63,7 +63,7 @@ internal sealed partial class FetchResultStore
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(arena);
 
-        ClearRepresentationScratch();
+        ClearRepresentationDedupTable();
 
         // arenas can only be reset in a subscription context,
         // and only once complete is called on the context.
@@ -130,7 +130,7 @@ internal sealed partial class FetchResultStore
     /// </summary>
     internal void Clean(int maxCollectTargetRetainLength, int maxDictionaryRetainCapacity)
     {
-        ClearRepresentationScratch();
+        ClearRepresentationDedupTable();
 
         // drain and dispose per-request memory
         while (_memory.TryPop(out var memory))

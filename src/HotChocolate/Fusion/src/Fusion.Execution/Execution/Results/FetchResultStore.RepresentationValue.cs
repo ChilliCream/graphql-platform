@@ -25,9 +25,7 @@ internal sealed partial class FetchResultStore
     private static readonly ArrayPool<EntityResultPath> s_entityResultPathPool =
         ArrayPool<EntityResultPath>.Shared;
 
-    private ChunkedArrayWriter? _representationWriter;
     private VariableDedupTable? _representationDedupTable;
-    private JsonWriter? _representationJsonWriter;
 
     public bool AddRepresentationResult(
         SelectionPath sourcePath,
@@ -203,10 +201,11 @@ internal sealed partial class FetchResultStore
         Span<(long Start, long Length)> requirementSlices = requiredData.Length <= 32
             ? stackalloc (long, long)[requiredData.Length]
             : new (long, long)[requiredData.Length];
-        GetRepresentationScratch(
-            out var representationWriter,
-            out var dedupTable,
-            out var representationJsonWriter);
+        using var representationWriter = new ChunkedArrayWriter();
+        var dedupTable = _representationDedupTable ??= new VariableDedupTable();
+        var representationJsonWriter = new JsonWriter(
+            representationWriter,
+            new JsonWriterOptions { Indented = false });
         var resultPaths = s_entityResultPathPool.Rent(importedEntries.Length);
         var additionalPaths = new RepresentationPathAccumulator(importedEntries.Length);
         var completed = false;
@@ -285,10 +284,11 @@ internal sealed partial class FetchResultStore
         ImmutableArray<RepresentationShapeNode> requiredShape,
         string entityTypeName)
     {
-        GetRepresentationScratch(
-            out var representationWriter,
-            out var dedupTable,
-            out var representationJsonWriter);
+        using var representationWriter = new ChunkedArrayWriter();
+        var dedupTable = _representationDedupTable ??= new VariableDedupTable();
+        var representationJsonWriter = new JsonWriter(
+            representationWriter,
+            new JsonWriterOptions { Indented = false });
         var resultPaths = s_entityResultPathPool.Rent(elements.Length);
         var additionalPaths = new RepresentationPathAccumulator(elements.Length);
         var completed = false;
@@ -352,26 +352,10 @@ internal sealed partial class FetchResultStore
         }
     }
 
-    private void GetRepresentationScratch(
-        out ChunkedArrayWriter writer,
-        out VariableDedupTable dedupTable,
-        out JsonWriter jsonWriter)
-    {
-        writer = _representationWriter ??= new ChunkedArrayWriter();
-        dedupTable = _representationDedupTable ??= new VariableDedupTable(writer);
-        jsonWriter = _representationJsonWriter ??= new JsonWriter(
-            writer,
-            new JsonWriterOptions { Indented = false });
-        writer.Clean();
-    }
-
-    private void ClearRepresentationScratch()
+    private void ClearRepresentationDedupTable()
     {
         _representationDedupTable?.Dispose();
-        _representationWriter?.Dispose();
         _representationDedupTable = null;
-        _representationWriter = null;
-        _representationJsonWriter = null;
     }
 
     private void WriteRequestVariableProperties(IReadOnlyList<ObjectFieldNode> requestVariables)
@@ -589,7 +573,7 @@ internal sealed partial class FetchResultStore
         var length = representationWriter.Position - startPosition;
         var hash = representationWriter.GetHashCode(startPosition, length);
 
-        if (dedupTable.TryGet(hash, startPosition, length, out var existingIndex))
+        if (dedupTable.TryGet(representationWriter, hash, startPosition, length, out var existingIndex))
         {
             representationWriter.ResetTo(startPosition);
             index = existingIndex;
