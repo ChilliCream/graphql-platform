@@ -122,25 +122,36 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
                 httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
                 context.TrackTransport(request.Node, httpRequest.Uri, httpResponse.RawContentType);
 
-                var results = ReadAsResultStreamAsync(
-                    context,
-                    request.Variables,
-                    httpResponse,
-                    cancellationToken);
-
-                if (_configuration.OnSourceSchemaResult is not null)
+                if (_configuration.OnSourceSchemaResult is null && request.Variables.Length <= 1)
                 {
-                    results = WithResultCallback(
-                        results,
-                        context,
-                        request.Node,
-                        _configuration.OnSourceSchemaResult,
-                        cancellationToken);
+                    var document = await httpResponse.ReadAsResultAsync(context.Memory, cancellationToken)
+                        .ConfigureAwait(false);
+                    var variable = request.Variables.IsEmpty ? VariableValues.Empty : request.Variables[0];
+                    yield return new SourceSchemaResult(
+                        variable.Path, document, additionalPaths: variable.AdditionalPaths);
                 }
-
-                await foreach (var result in results.WithCancellation(cancellationToken).ConfigureAwait(false))
+                else
                 {
-                    yield return result;
+                    var results = ReadAsResultStreamAsync(
+                        context,
+                        request.Variables,
+                        httpResponse,
+                        cancellationToken);
+
+                    if (_configuration.OnSourceSchemaResult is not null)
+                    {
+                        results = WithResultCallback(
+                            results,
+                            context,
+                            request.Node,
+                            _configuration.OnSourceSchemaResult,
+                            cancellationToken);
+                    }
+
+                    await foreach (var result in results.WithCancellation(cancellationToken).ConfigureAwait(false))
+                    {
+                        yield return result;
+                    }
                 }
             }
             finally

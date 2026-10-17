@@ -1,6 +1,8 @@
 using System.Buffers;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Text;
+using CookieCrumble;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -16,6 +18,279 @@ namespace HotChocolate.Fusion.Execution.Clients;
 
 public sealed class BatchBufferTests : FusionTestBase
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ExecuteAsync_Should_PreserveCleanupContext_When_ResultCallbackChangesAmbientState(
+        bool callbackThrows)
+    {
+        // arrange
+        await using var fixture = await BatchBufferTestFixture.CreateAsync();
+        var events = new List<string>();
+        var ambient = new AsyncLocal<string?> { Value = "caller" };
+        using var callerActivity = new Activity("caller").Start();
+        using var callbackActivity = new Activity("callback");
+        var content = new AmbientTrackingContent(() =>
+            events.Add($"dispose:{ambient.Value}:{Activity.Current?.OperationName}"));
+        using var graphQLClient = new DefaultGraphQLHttpClient(
+            new HttpClient(new ResponseHandler(content)), disposeInnerClient: true);
+        var failure = new InvalidOperationException("callback failed");
+        await using var client = new HttpSourceSchemaClient(graphQLClient,
+            new HttpSourceSchemaClientConfiguration("A", new Uri("http://localhost/graphql"),
+                onSourceSchemaResult: (_, _, _) =>
+                {
+                    ambient.Value = "callback";
+                    callbackActivity.Start();
+                    events.Add($"callback:{ambient.Value}:{Activity.Current?.OperationName}");
+                    if (callbackThrows)
+                    {
+                        throw failure;
+                    }
+                }));
+
+        // act
+        await using (var enumerator = client.ExecuteAsync(
+            fixture.CreateContext(), CreateRequest(fixture.RootNode), TestContext.Current.CancellationToken)
+            .GetAsyncEnumerator(TestContext.Current.CancellationToken))
+        {
+            if (callbackThrows)
+            {
+                var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                    () => enumerator.MoveNextAsync().AsTask());
+                Assert.Same(failure, exception);
+            }
+            else
+            {
+                Assert.True(await enumerator.MoveNextAsync());
+                events.Add($"consume:{ambient.Value}:{Activity.Current?.OperationName}");
+                enumerator.Current.Dispose();
+            }
+        }
+
+        // assert
+        Assert.Equal(
+            callbackThrows
+                ? ["callback:callback:callback", "dispose:caller:caller"]
+                : ["callback:callback:callback", "consume:caller:caller", "dispose:caller:caller"],
+            events);
+    }
+
+    [Theory]
+    [InlineData(0, false, false)]
+    [InlineData(0, false, true)]
+    [InlineData(0, true, false)]
+    [InlineData(0, true, true)]
+    [InlineData(1, false, false)]
+    [InlineData(1, false, true)]
+    [InlineData(1, true, false)]
+    [InlineData(1, true, true)]
+    public async Task ExecuteAsync_Should_PreserveResultAndCallbacks_When_SingleResultIsRead(
+        int variableSets,
+        bool nullData,
+        bool callbackEnabled)
+    {
+        // arrange
+        await using var fixture = await BatchBufferTestFixture.CreateAsync();
+        var events = new List<string>();
+        var content = new TrackingContent(
+            nullData
+                ? """{"data":null,"errors":[{"message":"failure"}],"extensions":{"code":7}}"""
+                : """{"data":{"field":"value"},"errors":[{"message":"failure"}],"extensions":{"code":7}}""",
+            events);
+        using var graphQLClient = new DefaultGraphQLHttpClient(
+            new HttpClient(new ResponseHandler(content)), disposeInnerClient: true);
+        await using var client = new HttpSourceSchemaClient(graphQLClient,
+            new HttpSourceSchemaClientConfiguration("A", new Uri("http://localhost/graphql"),
+                onBeforeSend: (_, _, _) => events.Add("before"),
+                onAfterReceive: (_, _, _) => events.Add("after"),
+                onSourceSchemaResult: callbackEnabled ? (context, node, result) =>
+                {
+                    var transport = context.GetTransportDetails(node);
+                    events.Add($"result:{transport.Uri}:{transport.ContentType}:{result.HasErrors}");
+                } : null));
+        var context = fixture.CreateContext();
+        var path = new CompactPath([1, 2]);
+        var additionalPaths = new CompactPathSegment([new CompactPath([1, 3])], 0, 1);
+        var request = CreateRequest(fixture.RootNode) with
+        {
+            Variables = variableSets == 0
+                ? []
+                : [new VariableValues(path, JsonSegment.Empty) { AdditionalPaths = additionalPaths }]
+        };
+
+        // act
+        await foreach (var result in client.ExecuteAsync(
+            context, request, TestContext.Current.CancellationToken))
+        {
+            events.Add($"consume:{result.Data.ValueKind}:{result.Errors!.RootErrors[0].Message}:"
+                + result.Extensions.GetProperty("code").GetInt32());
+            Assert.Equal(variableSets == 0 ? CompactPath.Root : path, result.Path);
+            Assert.Equal(variableSets == 0 ? [] : additionalPaths.AsSpan().ToArray(),
+                result.AdditionalPaths.AsSpan().ToArray());
+            result.Dispose();
+            break;
+        }
+
+        // assert
+        Assert.Equal(
+            callbackEnabled
+                ? ["before", "after", "result:http://localhost/graphql:application/json; charset=utf-8:True",
+                    $"consume:{(nullData ? "Null" : "Object")}:failure:7", "disposed"]
+                : ["before", "after", $"consume:{(nullData ? "Null" : "Object")}:failure:7", "disposed"],
+            events);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    public async Task ExecuteAsync_Should_DisposeResponse_When_ResultCallbackThrows(int variableSets)
+    {
+        // arrange
+        await using var fixture = await BatchBufferTestFixture.CreateAsync();
+        var events = new List<string>();
+        using var graphQLClient = new DefaultGraphQLHttpClient(
+            new HttpClient(new ResponseHandler(new TrackingContent("""{"data":null}""", events))),
+            disposeInnerClient: true);
+        var failure = new InvalidOperationException("callback failed");
+        await using var client = new HttpSourceSchemaClient(graphQLClient,
+            new HttpSourceSchemaClientConfiguration("A", new Uri("http://localhost/graphql"),
+                onSourceSchemaResult: (_, _, _) => throw failure));
+        var request = CreateRequest(fixture.RootNode) with
+        {
+            Variables = variableSets == 0 ? [] : [VariableValues.Empty]
+        };
+        await using var enumerator = client.ExecuteAsync(
+            fixture.CreateContext(), request, TestContext.Current.CancellationToken)
+            .GetAsyncEnumerator(TestContext.Current.CancellationToken);
+
+        // act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            async () => await enumerator.MoveNextAsync());
+
+        // assert
+        Assert.Same(failure, exception);
+        Assert.Equal(["disposed"], events);
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task ExecuteAsync_Should_PreserveResultOrder_When_MultipleVariableSetsAreRead(
+        bool variableBatching,
+        bool stopEarly)
+    {
+        // arrange
+        await using var fixture = await BatchBufferTestFixture.CreateAsync();
+        var events = new List<string>();
+        var payload = variableBatching
+            ? """[{"data":{"field":"a"},"variableIndex":1},{"data":{"field":"b"},"variableIndex":0}]"""
+            : """[{"data":{"field":"a"}},{"data":{"field":"b"}}]""";
+        using var graphQLClient = new DefaultGraphQLHttpClient(
+            new HttpClient(new ResponseHandler(new TrackingContent(payload, events))),
+            disposeInnerClient: true);
+        await using var client = new HttpSourceSchemaClient(graphQLClient,
+            new HttpSourceSchemaClientConfiguration("A", new Uri("http://localhost/graphql"),
+                capabilities: variableBatching
+                    ? SourceSchemaClientCapabilities.VariableBatching
+                    : SourceSchemaClientCapabilities.RequestBatching,
+                onSourceSchemaResult: (_, _, result) =>
+                    events.Add($"callback:{result.Data.GetProperty("field").GetString()}")));
+        var firstPath = new CompactPath([1, 2]);
+        var secondPath = new CompactPath([1, 3]);
+        var request = CreateRequest(fixture.RootNode) with
+        {
+            Variables = [
+                new VariableValues(firstPath, JsonSegment.Empty),
+                new VariableValues(secondPath, JsonSegment.Empty)]
+        };
+
+        // act
+        var resultCount = 0;
+        await foreach (var result in client.ExecuteAsync(
+            fixture.CreateContext(), request, TestContext.Current.CancellationToken))
+        {
+            var expectedPath = (variableBatching, resultCount) switch
+            {
+                (true, 0) or (false, 1) => secondPath,
+                _ => firstPath
+            };
+            events.Add($"consume:{result.Data.GetProperty("field").GetString()}:"
+                + (result.Path == expectedPath));
+            result.Dispose();
+            resultCount++;
+            if (stopEarly)
+            {
+                break;
+            }
+        }
+
+        // assert
+        if (stopEarly)
+        {
+            events.MatchInlineSnapshot(
+                """
+                [
+                  "callback:a",
+                  "consume:a:True",
+                  "disposed"
+                ]
+                """);
+        }
+        else
+        {
+            events.MatchInlineSnapshot(
+                """
+                [
+                  "callback:a",
+                  "consume:a:True",
+                  "callback:b",
+                  "consume:b:True",
+                  "disposed"
+                ]
+                """);
+        }
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task ExecuteAsync_Should_ObserveCancellation_When_EitherEnumerationTokenIsCanceled(
+        bool cancelExecuteToken,
+        bool callbackEnabled)
+    {
+        // arrange
+        await using var fixture = await BatchBufferTestFixture.CreateAsync();
+        using var executeCancellation = new CancellationTokenSource();
+        using var enumerationCancellation = new CancellationTokenSource();
+        var events = new List<string>();
+        using var graphQLClient = new DefaultGraphQLHttpClient(
+            new HttpClient(new ResponseHandler(new TrackingContent("""{"data":null}""", events))),
+            disposeInnerClient: true);
+        await using var client = new HttpSourceSchemaClient(graphQLClient,
+            new HttpSourceSchemaClientConfiguration("A", new Uri("http://localhost/graphql"),
+                onSourceSchemaResult: callbackEnabled ? (_, _, _) => events.Add("callback") : null));
+        await using var enumerator = client.ExecuteAsync(
+            fixture.CreateContext(), CreateRequest(fixture.RootNode), executeCancellation.Token)
+            .GetAsyncEnumerator(enumerationCancellation.Token);
+        (cancelExecuteToken ? executeCancellation : enumerationCancellation).Cancel();
+
+        // act
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => enumerator.MoveNextAsync().AsTask());
+
+        // assert
+        events.MatchInlineSnapshot(
+            """
+            [
+              "disposed"
+            ]
+            """);
+    }
+
     [Fact]
     public async Task ExecuteBatchStreamAsync_Should_DisposeRequestBuffer_When_StreamIsConsumed()
     {
@@ -186,6 +461,7 @@ public sealed class BatchBufferTests : FusionTestBase
                           field: String!
                         }
                         """))
+                .ModifyRequestOptions(options => options.CollectOperationPlanTelemetry = true)
                 .Services
                 .BuildServiceProvider();
 
@@ -277,6 +553,42 @@ public sealed class BatchBufferTests : FusionTestBase
             };
 
             return Task.FromResult(response);
+        }
+    }
+
+    private sealed class AmbientTrackingContent(Action onDispose)
+        : StringContent("""{"data":null}""", Encoding.UTF8, "application/json")
+    {
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                onDispose();
+            }
+
+            base.Dispose(disposing);
+        }
+    }
+
+    private sealed class ResponseHandler(HttpContent content) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+            => Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK) { Content = content });
+    }
+
+    private sealed class TrackingContent(string content, List<string> events)
+        : StringContent(content, Encoding.UTF8, "application/json")
+    {
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                events.Add("disposed");
+            }
+
+            base.Dispose(disposing);
         }
     }
 
