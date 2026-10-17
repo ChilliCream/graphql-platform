@@ -1,0 +1,11 @@
+{"name": "ready", "utc": "2026-10-17T16:51:26.084085+00:00", "epoch": 1792255886.0840888, "monotonic": 4439.055877474}
+{"name": "preflight-start", "utc": "2026-10-17T16:51:26.084524+00:00", "epoch": 1792255886.0845265, "monotonic": 4439.056315143}
+{"name": "preflight-end", "utc": "2026-10-17T16:51:26.440275+00:00", "epoch": 1792255886.4402857, "monotonic": 4439.412074868}
+{"name": "warmup-before-setup", "utc": "2026-10-17T16:51:26.440727+00:00", "epoch": 1792255886.4407303, "monotonic": 4439.412518953}
+{"name": "warmup-generator-complete", "utc": "2026-10-17T16:51:57.265846+00:00", "epoch": 1792255917.265852, "monotonic": 4470.237640642}
+{"name": "TestQuery-before-setup", "utc": "2026-10-17T16:51:57.266443+00:00", "epoch": 1792255917.2664464, "monotonic": 4470.238235104}
+{"name": "TestQuery-generator-complete", "utc": "2026-10-17T16:52:27.630652+00:00", "epoch": 1792255947.6306558, "monotonic": 4500.602444514}
+{"name": "entities9-before-setup", "utc": "2026-10-17T16:52:27.631184+00:00", "epoch": 1792255947.6311877, "monotonic": 4500.602976433}
+{"name": "entities9-generator-complete", "utc": "2026-10-17T16:52:47.938535+00:00", "epoch": 1792255967.9385393, "monotonic": 4520.910327907}
+{"name": "ordinary-fixed-before-setup", "utc": "2026-10-17T16:52:47.939158+00:00", "epoch": 1792255967.9391603, "monotonic": 4520.910948952}
+{"name": "ordinary-fixed-generator-complete", "utc": "2026-10-17T16:53:08.132747+00:00", "epoch": 1792255988.1327503, "monotonic": 4541.104538863}

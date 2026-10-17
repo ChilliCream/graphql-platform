@@ -1,0 +1,38 @@
+{
+  "ordinary-fixed.log": {
+    "sha256": "4abb8868ff05485fc936007d4a6e9ac3e4880afe13fef002abd84fca9092e14f",
+    "bytes": 164
+  },
+  "drop-diagnosis.json": {
+    "sha256": "e40f0f24c5d69df461a762a0ab68128d56f6093ba708113baa1edf134e2823de",
+    "bytes": 155238
+  },
+  "command.json": {
+    "sha256": "492590f6df87fe8550325ac5cbabbad346d87cc4d55efc06c8cf1b75b3e3040c",
+    "bytes": 1322
+  },
+  "arm.json": {
+    "sha256": "e82c99f3926590c8ca0f79b1bdf16304015cd7d6a54446e2619482fc9d23fb74",
+    "bytes": 73
+  },
+  "k6_summary.json": {
+    "sha256": "e9f05f483dbcbef7ed3a4dec38b28be6006fe46eff8a546d0e5e27a98eaa4d44",
+    "bytes": 3380
+  },
+  "boundaries.jsonl": {
+    "sha256": "46aa1e20e13329f4c55ccdcd697edb1b78f433d70e44fcbc0ee2e2db8eb5c9f2",
+    "bytes": 1490
+  },
+  "owner-partial-analysis.json": {
+    "sha256": "8c41980d8f304ab885572e3923e570ea93215f7a825a14c52b36be7023a9d59a",
+    "bytes": 66574
+  },
+  "completion.json": {
+    "sha256": "20974f9fe2b3a71bc4e31b788670d05ec917da991ca00a58bdd9c638d4b0038f",
+    "bytes": 67
+  },
+  "native_samples_source": {
+    "path": "/workspaces/platform-1/perf/fusion-apollo-shared-http-20261017b/delay0-00-B/ordinary-fixed/samples.json.gz",
+    "sha256": "0983196d7ddbd62b815c350b17eeaebab38dbccc3edf57cf8178b1256b89a308"
+  }
+}

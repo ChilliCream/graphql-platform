@@ -2,6 +2,8 @@
 
 Status: QUEUED_FOR_HTTP. The production-path microbenchmark supports a scoped allocation reduction. It does not establish a general timing improvement or HTTP performance benefit. The [independent complete-campaign review](https://github.com/ChilliCream/graphql-platform/tree/e699a4aca28684db7b84fbd6085414b7ee28a59d/performance/fusion-apollo-scratch-20261017b/c2-micro-review) agrees with promotion of the allocation hypothesis. No implementation PR exists yet.
 
+The first shared HTTP baseline retained valid original/entity phases, then stopped on ordinary fixed-rate drops before any candidate ran. [Recorded-event diagnosis](HTTP-ORDINARY-DIAGNOSIS.md) supports correcting the supplemental generator's VU reserve and timer-based count accounting. All failed and valid observations remain published; the corrected continuation has not run in this revision.
+
 ## Source and recurring work
 
 Platform base: `43a8dca2bd479ddc411d832ed97e42d9fcc8bd85`. Benchmark revision: `941599e4e27719084189e12d737e147069fdf794`. Fresh Apollo fidelity, original workload, seven real source HTTP fetches, thirteen-node execution plan, raw timing samples and warm profiles are preserved in [baseline evidence](https://github.com/ChilliCream/graphql-platform/tree/ef9fc1159a5a7a980754ebd42b511030320482cd/experiments/fusion-apollo-baseline-20261017b).

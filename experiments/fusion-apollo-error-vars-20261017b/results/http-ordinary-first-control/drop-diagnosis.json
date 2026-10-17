@@ -1,0 +1,5774 @@
+{
+  "case": "/workspaces/platform-1/perf/fusion-apollo-shared-http-20261017b/delay0-00-B/ordinary-fixed",
+  "iteration_count": 99481,
+  "drop_count": 522,
+  "setup_requests": 100,
+  "scheduled_slots_completed_plus_dropped": 100003,
+  "first_inferred_iteration_start": "2026-10-17T16:52:47.976489+00:00",
+  "last_inferred_iteration_start": "2026-10-17T16:53:07.976577+00:00",
+  "inferred_start_span_seconds": 20.00008749961853,
+  "last_iteration_completion": "2026-10-17T16:53:07.976824+00:00",
+  "execution_span_seconds": 20.000334978103638,
+  "last_setup_completion": "2026-10-17T16:52:47.976138+00:00",
+  "gap_setup_to_first_iteration_ms": 0.3509521484375,
+  "inferred_max_inflight": 50,
+  "drop_inflight_histogram": {
+    "3": 15,
+    "7": 3,
+    "23": 4,
+    "34": 37,
+    "47": 10,
+    "50": 47,
+    "12": 2,
+    "14": 2,
+    "20": 1,
+    "27": 5,
+    "31": 5,
+    "32": 5,
+    "40": 3,
+    "0": 67,
+    "1": 72,
+    "9": 27,
+    "18": 3,
+    "28": 5,
+    "38": 13,
+    "16": 3,
+    "39": 19,
+    "2": 52,
+    "5": 2,
+    "11": 1,
+    "13": 2,
+    "15": 2,
+    "19": 3,
+    "22": 2,
+    "25": 4,
+    "29": 1,
+    "33": 4,
+    "41": 8,
+    "36": 6,
+    "43": 9,
+    "24": 16,
+    "26": 3,
+    "35": 2,
+    "48": 21,
+    "30": 2,
+    "42": 6,
+    "49": 4,
+    "46": 7,
+    "8": 3,
+    "37": 4,
+    "17": 3,
+    "10": 1,
+    "21": 1,
+    "45": 3,
+    "44": 2
+  },
+  "dropped_observations": [
+    {
+      "utc": "2026-10-17T16:52:48.606594+00:00",
+      "relative_seconds": 0.6301050186157227,
+      "count": 1,
+      "inferred_inflight_iterations": 3
+    },
+    {
+      "utc": "2026-10-17T16:52:48.606659+00:00",
+      "relative_seconds": 0.6301698684692383,
+      "count": 1,
+      "inferred_inflight_iterations": 3
+    },
+    {
+      "utc": "2026-10-17T16:52:48.606660+00:00",
+      "relative_seconds": 0.6301708221435547,
+      "count": 1,
+      "inferred_inflight_iterations": 3
+    },
+    {
+      "utc": "2026-10-17T16:52:48.606660+00:00",
+      "relative_seconds": 0.6301708221435547,
+      "count": 1,
+      "inferred_inflight_iterations": 3
+    },
+    {
+      "utc": "2026-10-17T16:52:48.606660+00:00",
+      "relative_seconds": 0.6301708221435547,
+      "count": 1,
+      "inferred_inflight_iterations": 3
+    },
+    {
+      "utc": "2026-10-17T16:52:48.606660+00:00",
+      "relative_seconds": 0.6301708221435547,
+      "count": 1,
+      "inferred_inflight_iterations": 3
+    },
+    {
+      "utc": "2026-10-17T16:52:48.606661+00:00",
+      "relative_seconds": 0.6301720142364502,
+      "count": 1,
+      "inferred_inflight_iterations": 3
+    },
+    {
+      "utc": "2026-10-17T16:52:48.606661+00:00",
+      "relative_seconds": 0.6301720142364502,
+      "count": 1,
+      "inferred_inflight_iterations": 3
+    },
+    {
+      "utc": "2026-10-17T16:52:48.606661+00:00",
+      "relative_seconds": 0.6301720142364502,
+      "count": 1,
+      "inferred_inflight_iterations": 3
+    },
+    {
+      "utc": "2026-10-17T16:52:48.606662+00:00",
+      "relative_seconds": 0.6301729679107666,
+      "count": 1,
+      "inferred_inflight_iterations": 3
+    },
+    {
+      "utc": "2026-10-17T16:52:48.606662+00:00",
+      "relative_seconds": 0.6301729679107666,
+      "count": 1,
+      "inferred_inflight_iterations": 3
+    },
+    {
+      "utc": "2026-10-17T16:52:48.606662+00:00",
+      "relative_seconds": 0.6301729679107666,
+      "count": 1,
+      "inferred_inflight_iterations": 3
+    },
+    {
+      "utc": "2026-10-17T16:52:48.606662+00:00",
+      "relative_seconds": 0.6301729679107666,
+      "count": 1,
+      "inferred_inflight_iterations": 3
+    },
+    {
+      "utc": "2026-10-17T16:52:48.606663+00:00",
+      "relative_seconds": 0.630173921585083,
+      "count": 1,
+      "inferred_inflight_iterations": 3
+    },
+    {
+      "utc": "2026-10-17T16:52:48.606663+00:00",
+      "relative_seconds": 0.630173921585083,
+      "count": 1,
+      "inferred_inflight_iterations": 3
+    },
+    {
+      "utc": "2026-10-17T16:52:48.606782+00:00",
+      "relative_seconds": 0.6302928924560547,
+      "count": 1,
+      "inferred_inflight_iterations": 7
+    },
+    {
+      "utc": "2026-10-17T16:52:48.607175+00:00",
+      "relative_seconds": 0.6306860446929932,
+      "count": 1,
+      "inferred_inflight_iterations": 23
+    },
+    {
+      "utc": "2026-10-17T16:52:48.607372+00:00",
+      "relative_seconds": 0.630882978439331,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:48.607574+00:00",
+      "relative_seconds": 0.6310849189758301,
+      "count": 1,
+      "inferred_inflight_iterations": 47
+    },
+    {
+      "utc": "2026-10-17T16:52:48.607969+00:00",
+      "relative_seconds": 0.6314799785614014,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:48.608168+00:00",
+      "relative_seconds": 0.6316788196563721,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:48.757689+00:00",
+      "relative_seconds": 0.7811999320983887,
+      "count": 1,
+      "inferred_inflight_iterations": 12
+    },
+    {
+      "utc": "2026-10-17T16:52:48.757787+00:00",
+      "relative_seconds": 0.7812979221343994,
+      "count": 1,
+      "inferred_inflight_iterations": 14
+    },
+    {
+      "utc": "2026-10-17T16:52:48.757974+00:00",
+      "relative_seconds": 0.781484842300415,
+      "count": 1,
+      "inferred_inflight_iterations": 20
+    },
+    {
+      "utc": "2026-10-17T16:52:48.758180+00:00",
+      "relative_seconds": 0.7816908359527588,
+      "count": 1,
+      "inferred_inflight_iterations": 27
+    },
+    {
+      "utc": "2026-10-17T16:52:48.759148+00:00",
+      "relative_seconds": 0.7826588153839111,
+      "count": 1,
+      "inferred_inflight_iterations": 31
+    },
+    {
+      "utc": "2026-10-17T16:52:48.759148+00:00",
+      "relative_seconds": 0.7826588153839111,
+      "count": 1,
+      "inferred_inflight_iterations": 31
+    },
+    {
+      "utc": "2026-10-17T16:52:48.759174+00:00",
+      "relative_seconds": 0.7826850414276123,
+      "count": 1,
+      "inferred_inflight_iterations": 32
+    },
+    {
+      "utc": "2026-10-17T16:52:48.763585+00:00",
+      "relative_seconds": 0.7870960235595703,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:48.763586+00:00",
+      "relative_seconds": 0.7870969772338867,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:48.763586+00:00",
+      "relative_seconds": 0.7870969772338867,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:48.763586+00:00",
+      "relative_seconds": 0.7870969772338867,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:48.763587+00:00",
+      "relative_seconds": 0.7870979309082031,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:48.763587+00:00",
+      "relative_seconds": 0.7870979309082031,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:48.763587+00:00",
+      "relative_seconds": 0.7870979309082031,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:48.763588+00:00",
+      "relative_seconds": 0.7870988845825195,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:48.763588+00:00",
+      "relative_seconds": 0.7870988845825195,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:48.763588+00:00",
+      "relative_seconds": 0.7870988845825195,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:48.763589+00:00",
+      "relative_seconds": 0.7870998382568359,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:48.763589+00:00",
+      "relative_seconds": 0.7870998382568359,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:48.763589+00:00",
+      "relative_seconds": 0.7870998382568359,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:48.763590+00:00",
+      "relative_seconds": 0.7871010303497314,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:48.763590+00:00",
+      "relative_seconds": 0.7871010303497314,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:48.763590+00:00",
+      "relative_seconds": 0.7871010303497314,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:48.763591+00:00",
+      "relative_seconds": 0.7871019840240479,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:48.763591+00:00",
+      "relative_seconds": 0.7871019840240479,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:48.763591+00:00",
+      "relative_seconds": 0.7871019840240479,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:48.763592+00:00",
+      "relative_seconds": 0.7871029376983643,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:48.763592+00:00",
+      "relative_seconds": 0.7871029376983643,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:48.763592+00:00",
+      "relative_seconds": 0.7871029376983643,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:48.763792+00:00",
+      "relative_seconds": 0.7873029708862305,
+      "count": 1,
+      "inferred_inflight_iterations": 40
+    },
+    {
+      "utc": "2026-10-17T16:52:48.764173+00:00",
+      "relative_seconds": 0.7876839637756348,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:48.959581+00:00",
+      "relative_seconds": 0.9830918312072754,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:49.200350+00:00",
+      "relative_seconds": 1.2238609790802002,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:49.200351+00:00",
+      "relative_seconds": 1.2238619327545166,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:49.200351+00:00",
+      "relative_seconds": 1.2238619327545166,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:49.200351+00:00",
+      "relative_seconds": 1.2238619327545166,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:49.200352+00:00",
+      "relative_seconds": 1.223862886428833,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:49.200352+00:00",
+      "relative_seconds": 1.223862886428833,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:49.200352+00:00",
+      "relative_seconds": 1.223862886428833,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:49.200352+00:00",
+      "relative_seconds": 1.223862886428833,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:49.200352+00:00",
+      "relative_seconds": 1.223862886428833,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:49.200353+00:00",
+      "relative_seconds": 1.2238638401031494,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:49.200353+00:00",
+      "relative_seconds": 1.2238638401031494,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:49.200353+00:00",
+      "relative_seconds": 1.2238638401031494,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:49.200353+00:00",
+      "relative_seconds": 1.2238638401031494,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:49.200353+00:00",
+      "relative_seconds": 1.2238638401031494,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:49.200354+00:00",
+      "relative_seconds": 1.223865032196045,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:49.200354+00:00",
+      "relative_seconds": 1.223865032196045,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:49.200354+00:00",
+      "relative_seconds": 1.223865032196045,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:49.200354+00:00",
+      "relative_seconds": 1.223865032196045,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:49.200354+00:00",
+      "relative_seconds": 1.223865032196045,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:49.200355+00:00",
+      "relative_seconds": 1.2238659858703613,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:49.200355+00:00",
+      "relative_seconds": 1.2238659858703613,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:49.200355+00:00",
+      "relative_seconds": 1.2238659858703613,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:49.200355+00:00",
+      "relative_seconds": 1.2238659858703613,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:49.200355+00:00",
+      "relative_seconds": 1.2238659858703613,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:49.200356+00:00",
+      "relative_seconds": 1.2238669395446777,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:49.200356+00:00",
+      "relative_seconds": 1.2238669395446777,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:49.200356+00:00",
+      "relative_seconds": 1.2238669395446777,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:49.200400+00:00",
+      "relative_seconds": 1.2239110469818115,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:52:49.200575+00:00",
+      "relative_seconds": 1.224086046218872,
+      "count": 1,
+      "inferred_inflight_iterations": 9
+    },
+    {
+      "utc": "2026-10-17T16:52:49.200769+00:00",
+      "relative_seconds": 1.2242798805236816,
+      "count": 1,
+      "inferred_inflight_iterations": 18
+    },
+    {
+      "utc": "2026-10-17T16:52:49.200980+00:00",
+      "relative_seconds": 1.2244908809661865,
+      "count": 1,
+      "inferred_inflight_iterations": 28
+    },
+    {
+      "utc": "2026-10-17T16:52:49.201173+00:00",
+      "relative_seconds": 1.2246840000152588,
+      "count": 1,
+      "inferred_inflight_iterations": 38
+    },
+    {
+      "utc": "2026-10-17T16:52:49.201371+00:00",
+      "relative_seconds": 1.224881887435913,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:49.394226+00:00",
+      "relative_seconds": 1.4177370071411133,
+      "count": 1,
+      "inferred_inflight_iterations": 9
+    },
+    {
+      "utc": "2026-10-17T16:52:49.394227+00:00",
+      "relative_seconds": 1.4177379608154297,
+      "count": 1,
+      "inferred_inflight_iterations": 9
+    },
+    {
+      "utc": "2026-10-17T16:52:49.394227+00:00",
+      "relative_seconds": 1.4177379608154297,
+      "count": 1,
+      "inferred_inflight_iterations": 9
+    },
+    {
+      "utc": "2026-10-17T16:52:49.394227+00:00",
+      "relative_seconds": 1.4177379608154297,
+      "count": 1,
+      "inferred_inflight_iterations": 9
+    },
+    {
+      "utc": "2026-10-17T16:52:49.394228+00:00",
+      "relative_seconds": 1.417738914489746,
+      "count": 1,
+      "inferred_inflight_iterations": 9
+    },
+    {
+      "utc": "2026-10-17T16:52:49.394228+00:00",
+      "relative_seconds": 1.417738914489746,
+      "count": 1,
+      "inferred_inflight_iterations": 9
+    },
+    {
+      "utc": "2026-10-17T16:52:49.394228+00:00",
+      "relative_seconds": 1.417738914489746,
+      "count": 1,
+      "inferred_inflight_iterations": 9
+    },
+    {
+      "utc": "2026-10-17T16:52:49.394228+00:00",
+      "relative_seconds": 1.417738914489746,
+      "count": 1,
+      "inferred_inflight_iterations": 9
+    },
+    {
+      "utc": "2026-10-17T16:52:49.394228+00:00",
+      "relative_seconds": 1.417738914489746,
+      "count": 1,
+      "inferred_inflight_iterations": 9
+    },
+    {
+      "utc": "2026-10-17T16:52:49.394229+00:00",
+      "relative_seconds": 1.4177398681640625,
+      "count": 1,
+      "inferred_inflight_iterations": 9
+    },
+    {
+      "utc": "2026-10-17T16:52:49.394229+00:00",
+      "relative_seconds": 1.4177398681640625,
+      "count": 1,
+      "inferred_inflight_iterations": 9
+    },
+    {
+      "utc": "2026-10-17T16:52:49.394229+00:00",
+      "relative_seconds": 1.4177398681640625,
+      "count": 1,
+      "inferred_inflight_iterations": 9
+    },
+    {
+      "utc": "2026-10-17T16:52:49.394229+00:00",
+      "relative_seconds": 1.4177398681640625,
+      "count": 1,
+      "inferred_inflight_iterations": 9
+    },
+    {
+      "utc": "2026-10-17T16:52:49.394229+00:00",
+      "relative_seconds": 1.4177398681640625,
+      "count": 1,
+      "inferred_inflight_iterations": 9
+    },
+    {
+      "utc": "2026-10-17T16:52:49.394230+00:00",
+      "relative_seconds": 1.417740821838379,
+      "count": 1,
+      "inferred_inflight_iterations": 9
+    },
+    {
+      "utc": "2026-10-17T16:52:49.394230+00:00",
+      "relative_seconds": 1.417740821838379,
+      "count": 1,
+      "inferred_inflight_iterations": 9
+    },
+    {
+      "utc": "2026-10-17T16:52:49.394230+00:00",
+      "relative_seconds": 1.417740821838379,
+      "count": 1,
+      "inferred_inflight_iterations": 9
+    },
+    {
+      "utc": "2026-10-17T16:52:49.394230+00:00",
+      "relative_seconds": 1.417740821838379,
+      "count": 1,
+      "inferred_inflight_iterations": 9
+    },
+    {
+      "utc": "2026-10-17T16:52:49.394230+00:00",
+      "relative_seconds": 1.417740821838379,
+      "count": 1,
+      "inferred_inflight_iterations": 9
+    },
+    {
+      "utc": "2026-10-17T16:52:49.394231+00:00",
+      "relative_seconds": 1.4177420139312744,
+      "count": 1,
+      "inferred_inflight_iterations": 9
+    },
+    {
+      "utc": "2026-10-17T16:52:49.394231+00:00",
+      "relative_seconds": 1.4177420139312744,
+      "count": 1,
+      "inferred_inflight_iterations": 9
+    },
+    {
+      "utc": "2026-10-17T16:52:49.394231+00:00",
+      "relative_seconds": 1.4177420139312744,
+      "count": 1,
+      "inferred_inflight_iterations": 9
+    },
+    {
+      "utc": "2026-10-17T16:52:49.394231+00:00",
+      "relative_seconds": 1.4177420139312744,
+      "count": 1,
+      "inferred_inflight_iterations": 9
+    },
+    {
+      "utc": "2026-10-17T16:52:49.394231+00:00",
+      "relative_seconds": 1.4177420139312744,
+      "count": 1,
+      "inferred_inflight_iterations": 9
+    },
+    {
+      "utc": "2026-10-17T16:52:49.394371+00:00",
+      "relative_seconds": 1.417881965637207,
+      "count": 1,
+      "inferred_inflight_iterations": 16
+    },
+    {
+      "utc": "2026-10-17T16:52:49.394576+00:00",
+      "relative_seconds": 1.4180870056152344,
+      "count": 1,
+      "inferred_inflight_iterations": 27
+    },
+    {
+      "utc": "2026-10-17T16:52:49.394776+00:00",
+      "relative_seconds": 1.4182870388031006,
+      "count": 1,
+      "inferred_inflight_iterations": 39
+    },
+    {
+      "utc": "2026-10-17T16:52:50.164660+00:00",
+      "relative_seconds": 2.188170909881592,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:50.164660+00:00",
+      "relative_seconds": 2.188170909881592,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:50.164795+00:00",
+      "relative_seconds": 2.1883058547973633,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:52:50.164975+00:00",
+      "relative_seconds": 2.188485860824585,
+      "count": 1,
+      "inferred_inflight_iterations": 5
+    },
+    {
+      "utc": "2026-10-17T16:52:50.165192+00:00",
+      "relative_seconds": 2.1887028217315674,
+      "count": 1,
+      "inferred_inflight_iterations": 7
+    },
+    {
+      "utc": "2026-10-17T16:52:50.165413+00:00",
+      "relative_seconds": 2.1889238357543945,
+      "count": 1,
+      "inferred_inflight_iterations": 9
+    },
+    {
+      "utc": "2026-10-17T16:52:50.165607+00:00",
+      "relative_seconds": 2.189117908477783,
+      "count": 1,
+      "inferred_inflight_iterations": 11
+    },
+    {
+      "utc": "2026-10-17T16:52:50.165824+00:00",
+      "relative_seconds": 2.1893348693847656,
+      "count": 1,
+      "inferred_inflight_iterations": 13
+    },
+    {
+      "utc": "2026-10-17T16:52:50.166040+00:00",
+      "relative_seconds": 2.1895508766174316,
+      "count": 1,
+      "inferred_inflight_iterations": 15
+    },
+    {
+      "utc": "2026-10-17T16:52:50.166168+00:00",
+      "relative_seconds": 2.189678907394409,
+      "count": 1,
+      "inferred_inflight_iterations": 16
+    },
+    {
+      "utc": "2026-10-17T16:52:50.166545+00:00",
+      "relative_seconds": 2.1900558471679688,
+      "count": 1,
+      "inferred_inflight_iterations": 18
+    },
+    {
+      "utc": "2026-10-17T16:52:50.166592+00:00",
+      "relative_seconds": 2.1901028156280518,
+      "count": 1,
+      "inferred_inflight_iterations": 19
+    },
+    {
+      "utc": "2026-10-17T16:52:50.166795+00:00",
+      "relative_seconds": 2.1903059482574463,
+      "count": 1,
+      "inferred_inflight_iterations": 22
+    },
+    {
+      "utc": "2026-10-17T16:52:50.167080+00:00",
+      "relative_seconds": 2.1905908584594727,
+      "count": 1,
+      "inferred_inflight_iterations": 23
+    },
+    {
+      "utc": "2026-10-17T16:52:50.167174+00:00",
+      "relative_seconds": 2.1906850337982178,
+      "count": 1,
+      "inferred_inflight_iterations": 25
+    },
+    {
+      "utc": "2026-10-17T16:52:50.167388+00:00",
+      "relative_seconds": 2.190898895263672,
+      "count": 1,
+      "inferred_inflight_iterations": 29
+    },
+    {
+      "utc": "2026-10-17T16:52:50.167958+00:00",
+      "relative_seconds": 2.1914689540863037,
+      "count": 1,
+      "inferred_inflight_iterations": 32
+    },
+    {
+      "utc": "2026-10-17T16:52:50.167960+00:00",
+      "relative_seconds": 2.1914708614349365,
+      "count": 1,
+      "inferred_inflight_iterations": 32
+    },
+    {
+      "utc": "2026-10-17T16:52:50.167996+00:00",
+      "relative_seconds": 2.191506862640381,
+      "count": 1,
+      "inferred_inflight_iterations": 33
+    },
+    {
+      "utc": "2026-10-17T16:52:50.168181+00:00",
+      "relative_seconds": 2.1916918754577637,
+      "count": 1,
+      "inferred_inflight_iterations": 40
+    },
+    {
+      "utc": "2026-10-17T16:52:50.168377+00:00",
+      "relative_seconds": 2.191887855529785,
+      "count": 1,
+      "inferred_inflight_iterations": 47
+    },
+    {
+      "utc": "2026-10-17T16:52:50.168572+00:00",
+      "relative_seconds": 2.1920828819274902,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:50.199573+00:00",
+      "relative_seconds": 2.223083972930908,
+      "count": 1,
+      "inferred_inflight_iterations": 33
+    },
+    {
+      "utc": "2026-10-17T16:52:50.199768+00:00",
+      "relative_seconds": 2.2232789993286133,
+      "count": 1,
+      "inferred_inflight_iterations": 41
+    },
+    {
+      "utc": "2026-10-17T16:52:50.199971+00:00",
+      "relative_seconds": 2.2234818935394287,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:50.573617+00:00",
+      "relative_seconds": 2.597127914428711,
+      "count": 1,
+      "inferred_inflight_iterations": 39
+    },
+    {
+      "utc": "2026-10-17T16:52:50.573618+00:00",
+      "relative_seconds": 2.5971288681030273,
+      "count": 1,
+      "inferred_inflight_iterations": 39
+    },
+    {
+      "utc": "2026-10-17T16:52:50.573618+00:00",
+      "relative_seconds": 2.5971288681030273,
+      "count": 1,
+      "inferred_inflight_iterations": 39
+    },
+    {
+      "utc": "2026-10-17T16:52:50.573618+00:00",
+      "relative_seconds": 2.5971288681030273,
+      "count": 1,
+      "inferred_inflight_iterations": 39
+    },
+    {
+      "utc": "2026-10-17T16:52:50.573618+00:00",
+      "relative_seconds": 2.5971288681030273,
+      "count": 1,
+      "inferred_inflight_iterations": 39
+    },
+    {
+      "utc": "2026-10-17T16:52:50.573619+00:00",
+      "relative_seconds": 2.5971298217773438,
+      "count": 1,
+      "inferred_inflight_iterations": 39
+    },
+    {
+      "utc": "2026-10-17T16:52:50.573619+00:00",
+      "relative_seconds": 2.5971298217773438,
+      "count": 1,
+      "inferred_inflight_iterations": 39
+    },
+    {
+      "utc": "2026-10-17T16:52:50.573619+00:00",
+      "relative_seconds": 2.5971298217773438,
+      "count": 1,
+      "inferred_inflight_iterations": 39
+    },
+    {
+      "utc": "2026-10-17T16:52:50.573778+00:00",
+      "relative_seconds": 2.5972888469696045,
+      "count": 1,
+      "inferred_inflight_iterations": 47
+    },
+    {
+      "utc": "2026-10-17T16:52:51.168210+00:00",
+      "relative_seconds": 3.191720962524414,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:51.168422+00:00",
+      "relative_seconds": 3.1919329166412354,
+      "count": 1,
+      "inferred_inflight_iterations": 36
+    },
+    {
+      "utc": "2026-10-17T16:52:51.168608+00:00",
+      "relative_seconds": 3.1921188831329346,
+      "count": 1,
+      "inferred_inflight_iterations": 38
+    },
+    {
+      "utc": "2026-10-17T16:52:51.168774+00:00",
+      "relative_seconds": 3.1922848224639893,
+      "count": 1,
+      "inferred_inflight_iterations": 40
+    },
+    {
+      "utc": "2026-10-17T16:52:51.169291+00:00",
+      "relative_seconds": 3.1928019523620605,
+      "count": 1,
+      "inferred_inflight_iterations": 41
+    },
+    {
+      "utc": "2026-10-17T16:52:51.169292+00:00",
+      "relative_seconds": 3.192802906036377,
+      "count": 1,
+      "inferred_inflight_iterations": 41
+    },
+    {
+      "utc": "2026-10-17T16:52:51.169378+00:00",
+      "relative_seconds": 3.1928889751434326,
+      "count": 1,
+      "inferred_inflight_iterations": 43
+    },
+    {
+      "utc": "2026-10-17T16:52:51.169579+00:00",
+      "relative_seconds": 3.1930899620056152,
+      "count": 1,
+      "inferred_inflight_iterations": 47
+    },
+    {
+      "utc": "2026-10-17T16:52:51.770369+00:00",
+      "relative_seconds": 3.793879985809326,
+      "count": 1,
+      "inferred_inflight_iterations": 19
+    },
+    {
+      "utc": "2026-10-17T16:52:51.773284+00:00",
+      "relative_seconds": 3.796794891357422,
+      "count": 1,
+      "inferred_inflight_iterations": 24
+    },
+    {
+      "utc": "2026-10-17T16:52:51.773285+00:00",
+      "relative_seconds": 3.7967958450317383,
+      "count": 1,
+      "inferred_inflight_iterations": 24
+    },
+    {
+      "utc": "2026-10-17T16:52:51.773285+00:00",
+      "relative_seconds": 3.7967958450317383,
+      "count": 1,
+      "inferred_inflight_iterations": 24
+    },
+    {
+      "utc": "2026-10-17T16:52:51.773285+00:00",
+      "relative_seconds": 3.7967958450317383,
+      "count": 1,
+      "inferred_inflight_iterations": 24
+    },
+    {
+      "utc": "2026-10-17T16:52:51.773286+00:00",
+      "relative_seconds": 3.796797037124634,
+      "count": 1,
+      "inferred_inflight_iterations": 24
+    },
+    {
+      "utc": "2026-10-17T16:52:51.773286+00:00",
+      "relative_seconds": 3.796797037124634,
+      "count": 1,
+      "inferred_inflight_iterations": 24
+    },
+    {
+      "utc": "2026-10-17T16:52:51.773286+00:00",
+      "relative_seconds": 3.796797037124634,
+      "count": 1,
+      "inferred_inflight_iterations": 24
+    },
+    {
+      "utc": "2026-10-17T16:52:51.773286+00:00",
+      "relative_seconds": 3.796797037124634,
+      "count": 1,
+      "inferred_inflight_iterations": 24
+    },
+    {
+      "utc": "2026-10-17T16:52:51.773287+00:00",
+      "relative_seconds": 3.79679799079895,
+      "count": 1,
+      "inferred_inflight_iterations": 24
+    },
+    {
+      "utc": "2026-10-17T16:52:51.773287+00:00",
+      "relative_seconds": 3.79679799079895,
+      "count": 1,
+      "inferred_inflight_iterations": 24
+    },
+    {
+      "utc": "2026-10-17T16:52:51.773287+00:00",
+      "relative_seconds": 3.79679799079895,
+      "count": 1,
+      "inferred_inflight_iterations": 24
+    },
+    {
+      "utc": "2026-10-17T16:52:51.773287+00:00",
+      "relative_seconds": 3.79679799079895,
+      "count": 1,
+      "inferred_inflight_iterations": 24
+    },
+    {
+      "utc": "2026-10-17T16:52:51.773287+00:00",
+      "relative_seconds": 3.79679799079895,
+      "count": 1,
+      "inferred_inflight_iterations": 24
+    },
+    {
+      "utc": "2026-10-17T16:52:51.773288+00:00",
+      "relative_seconds": 3.7967989444732666,
+      "count": 1,
+      "inferred_inflight_iterations": 24
+    },
+    {
+      "utc": "2026-10-17T16:52:51.773372+00:00",
+      "relative_seconds": 3.7968828678131104,
+      "count": 1,
+      "inferred_inflight_iterations": 26
+    },
+    {
+      "utc": "2026-10-17T16:52:51.773574+00:00",
+      "relative_seconds": 3.7970850467681885,
+      "count": 1,
+      "inferred_inflight_iterations": 35
+    },
+    {
+      "utc": "2026-10-17T16:52:51.773776+00:00",
+      "relative_seconds": 3.7972869873046875,
+      "count": 1,
+      "inferred_inflight_iterations": 48
+    },
+    {
+      "utc": "2026-10-17T16:52:51.800779+00:00",
+      "relative_seconds": 3.8242900371551514,
+      "count": 1,
+      "inferred_inflight_iterations": 24
+    },
+    {
+      "utc": "2026-10-17T16:52:51.801035+00:00",
+      "relative_seconds": 3.8245458602905273,
+      "count": 1,
+      "inferred_inflight_iterations": 28
+    },
+    {
+      "utc": "2026-10-17T16:52:51.801228+00:00",
+      "relative_seconds": 3.8247389793395996,
+      "count": 1,
+      "inferred_inflight_iterations": 30
+    },
+    {
+      "utc": "2026-10-17T16:52:51.801423+00:00",
+      "relative_seconds": 3.8249340057373047,
+      "count": 1,
+      "inferred_inflight_iterations": 32
+    },
+    {
+      "utc": "2026-10-17T16:52:51.801598+00:00",
+      "relative_seconds": 3.8251090049743652,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:51.801800+00:00",
+      "relative_seconds": 3.8253109455108643,
+      "count": 1,
+      "inferred_inflight_iterations": 36
+    },
+    {
+      "utc": "2026-10-17T16:52:51.802005+00:00",
+      "relative_seconds": 3.8255159854888916,
+      "count": 1,
+      "inferred_inflight_iterations": 39
+    },
+    {
+      "utc": "2026-10-17T16:52:51.802174+00:00",
+      "relative_seconds": 3.8256850242614746,
+      "count": 1,
+      "inferred_inflight_iterations": 42
+    },
+    {
+      "utc": "2026-10-17T16:52:51.802785+00:00",
+      "relative_seconds": 3.826295852661133,
+      "count": 1,
+      "inferred_inflight_iterations": 49
+    },
+    {
+      "utc": "2026-10-17T16:52:51.803571+00:00",
+      "relative_seconds": 3.8270819187164307,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:51.803572+00:00",
+      "relative_seconds": 3.827082872390747,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:51.803572+00:00",
+      "relative_seconds": 3.827082872390747,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:51.803573+00:00",
+      "relative_seconds": 3.8270838260650635,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:51.803780+00:00",
+      "relative_seconds": 3.8272910118103027,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:51.974235+00:00",
+      "relative_seconds": 3.997745990753174,
+      "count": 1,
+      "inferred_inflight_iterations": 38
+    },
+    {
+      "utc": "2026-10-17T16:52:51.974268+00:00",
+      "relative_seconds": 3.99777889251709,
+      "count": 1,
+      "inferred_inflight_iterations": 38
+    },
+    {
+      "utc": "2026-10-17T16:52:51.974268+00:00",
+      "relative_seconds": 3.99777889251709,
+      "count": 1,
+      "inferred_inflight_iterations": 38
+    },
+    {
+      "utc": "2026-10-17T16:52:51.974269+00:00",
+      "relative_seconds": 3.9977798461914062,
+      "count": 1,
+      "inferred_inflight_iterations": 38
+    },
+    {
+      "utc": "2026-10-17T16:52:51.974269+00:00",
+      "relative_seconds": 3.9977798461914062,
+      "count": 1,
+      "inferred_inflight_iterations": 38
+    },
+    {
+      "utc": "2026-10-17T16:52:51.974269+00:00",
+      "relative_seconds": 3.9977798461914062,
+      "count": 1,
+      "inferred_inflight_iterations": 38
+    },
+    {
+      "utc": "2026-10-17T16:52:51.974270+00:00",
+      "relative_seconds": 3.9977810382843018,
+      "count": 1,
+      "inferred_inflight_iterations": 38
+    },
+    {
+      "utc": "2026-10-17T16:52:51.974270+00:00",
+      "relative_seconds": 3.9977810382843018,
+      "count": 1,
+      "inferred_inflight_iterations": 38
+    },
+    {
+      "utc": "2026-10-17T16:52:51.974270+00:00",
+      "relative_seconds": 3.9977810382843018,
+      "count": 1,
+      "inferred_inflight_iterations": 38
+    },
+    {
+      "utc": "2026-10-17T16:52:51.974271+00:00",
+      "relative_seconds": 3.997781991958618,
+      "count": 1,
+      "inferred_inflight_iterations": 38
+    },
+    {
+      "utc": "2026-10-17T16:52:51.974271+00:00",
+      "relative_seconds": 3.997781991958618,
+      "count": 1,
+      "inferred_inflight_iterations": 38
+    },
+    {
+      "utc": "2026-10-17T16:52:51.974393+00:00",
+      "relative_seconds": 3.997903823852539,
+      "count": 1,
+      "inferred_inflight_iterations": 39
+    },
+    {
+      "utc": "2026-10-17T16:52:51.974592+00:00",
+      "relative_seconds": 3.998102903366089,
+      "count": 1,
+      "inferred_inflight_iterations": 41
+    },
+    {
+      "utc": "2026-10-17T16:52:51.977010+00:00",
+      "relative_seconds": 4.000520944595337,
+      "count": 1,
+      "inferred_inflight_iterations": 39
+    },
+    {
+      "utc": "2026-10-17T16:52:51.977011+00:00",
+      "relative_seconds": 4.000521898269653,
+      "count": 1,
+      "inferred_inflight_iterations": 39
+    },
+    {
+      "utc": "2026-10-17T16:52:51.977011+00:00",
+      "relative_seconds": 4.000521898269653,
+      "count": 1,
+      "inferred_inflight_iterations": 39
+    },
+    {
+      "utc": "2026-10-17T16:52:51.977011+00:00",
+      "relative_seconds": 4.000521898269653,
+      "count": 1,
+      "inferred_inflight_iterations": 39
+    },
+    {
+      "utc": "2026-10-17T16:52:51.977175+00:00",
+      "relative_seconds": 4.000685930252075,
+      "count": 1,
+      "inferred_inflight_iterations": 46
+    },
+    {
+      "utc": "2026-10-17T16:52:52.008385+00:00",
+      "relative_seconds": 4.031895875930786,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:52.011370+00:00",
+      "relative_seconds": 4.034880876541138,
+      "count": 1,
+      "inferred_inflight_iterations": 48
+    },
+    {
+      "utc": "2026-10-17T16:52:52.011371+00:00",
+      "relative_seconds": 4.034881830215454,
+      "count": 1,
+      "inferred_inflight_iterations": 48
+    },
+    {
+      "utc": "2026-10-17T16:52:52.011371+00:00",
+      "relative_seconds": 4.034881830215454,
+      "count": 1,
+      "inferred_inflight_iterations": 48
+    },
+    {
+      "utc": "2026-10-17T16:52:52.011371+00:00",
+      "relative_seconds": 4.034881830215454,
+      "count": 1,
+      "inferred_inflight_iterations": 48
+    },
+    {
+      "utc": "2026-10-17T16:52:52.011371+00:00",
+      "relative_seconds": 4.034881830215454,
+      "count": 1,
+      "inferred_inflight_iterations": 48
+    },
+    {
+      "utc": "2026-10-17T16:52:52.011371+00:00",
+      "relative_seconds": 4.034881830215454,
+      "count": 1,
+      "inferred_inflight_iterations": 48
+    },
+    {
+      "utc": "2026-10-17T16:52:52.011372+00:00",
+      "relative_seconds": 4.03488302230835,
+      "count": 1,
+      "inferred_inflight_iterations": 48
+    },
+    {
+      "utc": "2026-10-17T16:52:52.011372+00:00",
+      "relative_seconds": 4.03488302230835,
+      "count": 1,
+      "inferred_inflight_iterations": 48
+    },
+    {
+      "utc": "2026-10-17T16:52:52.011372+00:00",
+      "relative_seconds": 4.03488302230835,
+      "count": 1,
+      "inferred_inflight_iterations": 48
+    },
+    {
+      "utc": "2026-10-17T16:52:52.011372+00:00",
+      "relative_seconds": 4.03488302230835,
+      "count": 1,
+      "inferred_inflight_iterations": 48
+    },
+    {
+      "utc": "2026-10-17T16:52:52.011372+00:00",
+      "relative_seconds": 4.03488302230835,
+      "count": 1,
+      "inferred_inflight_iterations": 48
+    },
+    {
+      "utc": "2026-10-17T16:52:52.011373+00:00",
+      "relative_seconds": 4.034883975982666,
+      "count": 1,
+      "inferred_inflight_iterations": 48
+    },
+    {
+      "utc": "2026-10-17T16:52:52.011373+00:00",
+      "relative_seconds": 4.034883975982666,
+      "count": 1,
+      "inferred_inflight_iterations": 48
+    },
+    {
+      "utc": "2026-10-17T16:52:52.993361+00:00",
+      "relative_seconds": 5.016871929168701,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:52:52.993362+00:00",
+      "relative_seconds": 5.016872882843018,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:52:52.993363+00:00",
+      "relative_seconds": 5.016873836517334,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:52:52.993363+00:00",
+      "relative_seconds": 5.016873836517334,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:52:52.993363+00:00",
+      "relative_seconds": 5.016873836517334,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:52:52.993364+00:00",
+      "relative_seconds": 5.0168750286102295,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:52:52.993364+00:00",
+      "relative_seconds": 5.0168750286102295,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:52:52.993416+00:00",
+      "relative_seconds": 5.016927003860474,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:52:52.993581+00:00",
+      "relative_seconds": 5.017091989517212,
+      "count": 1,
+      "inferred_inflight_iterations": 8
+    },
+    {
+      "utc": "2026-10-17T16:52:52.993772+00:00",
+      "relative_seconds": 5.017282962799072,
+      "count": 1,
+      "inferred_inflight_iterations": 15
+    },
+    {
+      "utc": "2026-10-17T16:52:52.993978+00:00",
+      "relative_seconds": 5.017488956451416,
+      "count": 1,
+      "inferred_inflight_iterations": 23
+    },
+    {
+      "utc": "2026-10-17T16:52:52.994174+00:00",
+      "relative_seconds": 5.0176849365234375,
+      "count": 1,
+      "inferred_inflight_iterations": 31
+    },
+    {
+      "utc": "2026-10-17T16:52:52.994371+00:00",
+      "relative_seconds": 5.017881870269775,
+      "count": 1,
+      "inferred_inflight_iterations": 39
+    },
+    {
+      "utc": "2026-10-17T16:52:52.994769+00:00",
+      "relative_seconds": 5.018280029296875,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:53.558371+00:00",
+      "relative_seconds": 5.581881999969482,
+      "count": 1,
+      "inferred_inflight_iterations": 28
+    },
+    {
+      "utc": "2026-10-17T16:52:53.558576+00:00",
+      "relative_seconds": 5.58208703994751,
+      "count": 1,
+      "inferred_inflight_iterations": 31
+    },
+    {
+      "utc": "2026-10-17T16:52:53.558806+00:00",
+      "relative_seconds": 5.582316875457764,
+      "count": 1,
+      "inferred_inflight_iterations": 33
+    },
+    {
+      "utc": "2026-10-17T16:52:53.559009+00:00",
+      "relative_seconds": 5.582520008087158,
+      "count": 1,
+      "inferred_inflight_iterations": 35
+    },
+    {
+      "utc": "2026-10-17T16:52:53.559224+00:00",
+      "relative_seconds": 5.582734823226929,
+      "count": 1,
+      "inferred_inflight_iterations": 37
+    },
+    {
+      "utc": "2026-10-17T16:52:53.559397+00:00",
+      "relative_seconds": 5.5829079151153564,
+      "count": 1,
+      "inferred_inflight_iterations": 39
+    },
+    {
+      "utc": "2026-10-17T16:52:53.559888+00:00",
+      "relative_seconds": 5.583398818969727,
+      "count": 1,
+      "inferred_inflight_iterations": 41
+    },
+    {
+      "utc": "2026-10-17T16:52:53.559888+00:00",
+      "relative_seconds": 5.583398818969727,
+      "count": 1,
+      "inferred_inflight_iterations": 41
+    },
+    {
+      "utc": "2026-10-17T16:52:53.559971+00:00",
+      "relative_seconds": 5.583482027053833,
+      "count": 1,
+      "inferred_inflight_iterations": 43
+    },
+    {
+      "utc": "2026-10-17T16:52:53.560177+00:00",
+      "relative_seconds": 5.583688020706177,
+      "count": 1,
+      "inferred_inflight_iterations": 48
+    },
+    {
+      "utc": "2026-10-17T16:52:55.777035+00:00",
+      "relative_seconds": 7.800545930862427,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:55.777036+00:00",
+      "relative_seconds": 7.800546884536743,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:55.777036+00:00",
+      "relative_seconds": 7.800546884536743,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:55.777037+00:00",
+      "relative_seconds": 7.80054783821106,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:55.777037+00:00",
+      "relative_seconds": 7.80054783821106,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:55.777037+00:00",
+      "relative_seconds": 7.80054783821106,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:55.777038+00:00",
+      "relative_seconds": 7.800549030303955,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:55.777038+00:00",
+      "relative_seconds": 7.800549030303955,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:55.777038+00:00",
+      "relative_seconds": 7.800549030303955,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:55.777039+00:00",
+      "relative_seconds": 7.8005499839782715,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:55.777168+00:00",
+      "relative_seconds": 7.800678968429565,
+      "count": 1,
+      "inferred_inflight_iterations": 37
+    },
+    {
+      "utc": "2026-10-17T16:52:55.777372+00:00",
+      "relative_seconds": 7.800882816314697,
+      "count": 1,
+      "inferred_inflight_iterations": 43
+    },
+    {
+      "utc": "2026-10-17T16:52:55.777581+00:00",
+      "relative_seconds": 7.801091909408569,
+      "count": 1,
+      "inferred_inflight_iterations": 49
+    },
+    {
+      "utc": "2026-10-17T16:52:55.778528+00:00",
+      "relative_seconds": 7.802038908004761,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:55.778528+00:00",
+      "relative_seconds": 7.802038908004761,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:55.778529+00:00",
+      "relative_seconds": 7.802039861679077,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:55.778529+00:00",
+      "relative_seconds": 7.802039861679077,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:55.778572+00:00",
+      "relative_seconds": 7.8020830154418945,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:56.773270+00:00",
+      "relative_seconds": 8.796780824661255,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:56.773320+00:00",
+      "relative_seconds": 8.796830892562866,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:56.773321+00:00",
+      "relative_seconds": 8.796831846237183,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:56.773321+00:00",
+      "relative_seconds": 8.796831846237183,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:56.773321+00:00",
+      "relative_seconds": 8.796831846237183,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:56.773402+00:00",
+      "relative_seconds": 8.796912908554077,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:56.773591+00:00",
+      "relative_seconds": 8.797101974487305,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:56.773841+00:00",
+      "relative_seconds": 8.797351837158203,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:56.773994+00:00",
+      "relative_seconds": 8.797504901885986,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:58.594170+00:00",
+      "relative_seconds": 10.61768102645874,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:58.970797+00:00",
+      "relative_seconds": 10.99430799484253,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188912+00:00",
+      "relative_seconds": 11.212422847747803,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188913+00:00",
+      "relative_seconds": 11.212424039840698,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188913+00:00",
+      "relative_seconds": 11.212424039840698,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188913+00:00",
+      "relative_seconds": 11.212424039840698,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188914+00:00",
+      "relative_seconds": 11.212424993515015,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188914+00:00",
+      "relative_seconds": 11.212424993515015,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188914+00:00",
+      "relative_seconds": 11.212424993515015,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188914+00:00",
+      "relative_seconds": 11.212424993515015,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188914+00:00",
+      "relative_seconds": 11.212424993515015,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188915+00:00",
+      "relative_seconds": 11.212425947189331,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188915+00:00",
+      "relative_seconds": 11.212425947189331,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188915+00:00",
+      "relative_seconds": 11.212425947189331,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188915+00:00",
+      "relative_seconds": 11.212425947189331,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188915+00:00",
+      "relative_seconds": 11.212425947189331,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188916+00:00",
+      "relative_seconds": 11.212426900863647,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188916+00:00",
+      "relative_seconds": 11.212426900863647,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188916+00:00",
+      "relative_seconds": 11.212426900863647,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188916+00:00",
+      "relative_seconds": 11.212426900863647,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188916+00:00",
+      "relative_seconds": 11.212426900863647,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188917+00:00",
+      "relative_seconds": 11.212427854537964,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188917+00:00",
+      "relative_seconds": 11.212427854537964,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188917+00:00",
+      "relative_seconds": 11.212427854537964,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188917+00:00",
+      "relative_seconds": 11.212427854537964,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188918+00:00",
+      "relative_seconds": 11.21242904663086,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188918+00:00",
+      "relative_seconds": 11.21242904663086,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188919+00:00",
+      "relative_seconds": 11.212430000305176,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188919+00:00",
+      "relative_seconds": 11.212430000305176,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188919+00:00",
+      "relative_seconds": 11.212430000305176,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188919+00:00",
+      "relative_seconds": 11.212430000305176,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188919+00:00",
+      "relative_seconds": 11.212430000305176,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188920+00:00",
+      "relative_seconds": 11.212430953979492,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188920+00:00",
+      "relative_seconds": 11.212430953979492,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188920+00:00",
+      "relative_seconds": 11.212430953979492,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188920+00:00",
+      "relative_seconds": 11.212430953979492,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188920+00:00",
+      "relative_seconds": 11.212430953979492,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188921+00:00",
+      "relative_seconds": 11.212431907653809,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188921+00:00",
+      "relative_seconds": 11.212431907653809,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188921+00:00",
+      "relative_seconds": 11.212431907653809,
+      "count": 1,
+      "inferred_inflight_iterations": 0
+    },
+    {
+      "utc": "2026-10-17T16:52:59.188982+00:00",
+      "relative_seconds": 11.212492942810059,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:52:59.189170+00:00",
+      "relative_seconds": 11.21268081665039,
+      "count": 1,
+      "inferred_inflight_iterations": 8
+    },
+    {
+      "utc": "2026-10-17T16:52:59.189380+00:00",
+      "relative_seconds": 11.212890863418579,
+      "count": 1,
+      "inferred_inflight_iterations": 17
+    },
+    {
+      "utc": "2026-10-17T16:52:59.189581+00:00",
+      "relative_seconds": 11.213091850280762,
+      "count": 1,
+      "inferred_inflight_iterations": 26
+    },
+    {
+      "utc": "2026-10-17T16:52:59.189773+00:00",
+      "relative_seconds": 11.213284015655518,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:52:59.189977+00:00",
+      "relative_seconds": 11.21348786354065,
+      "count": 1,
+      "inferred_inflight_iterations": 42
+    },
+    {
+      "utc": "2026-10-17T16:52:59.190173+00:00",
+      "relative_seconds": 11.213683843612671,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:59.190369+00:00",
+      "relative_seconds": 11.213879823684692,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:59.190568+00:00",
+      "relative_seconds": 11.214078903198242,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:59.190768+00:00",
+      "relative_seconds": 11.214278936386108,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:52:59.962573+00:00",
+      "relative_seconds": 11.986083984375,
+      "count": 1,
+      "inferred_inflight_iterations": 8
+    },
+    {
+      "utc": "2026-10-17T16:52:59.962807+00:00",
+      "relative_seconds": 11.986317873001099,
+      "count": 1,
+      "inferred_inflight_iterations": 10
+    },
+    {
+      "utc": "2026-10-17T16:52:59.962985+00:00",
+      "relative_seconds": 11.986495971679688,
+      "count": 1,
+      "inferred_inflight_iterations": 12
+    },
+    {
+      "utc": "2026-10-17T16:52:59.963189+00:00",
+      "relative_seconds": 11.98669981956482,
+      "count": 1,
+      "inferred_inflight_iterations": 14
+    },
+    {
+      "utc": "2026-10-17T16:52:59.963422+00:00",
+      "relative_seconds": 11.98693299293518,
+      "count": 1,
+      "inferred_inflight_iterations": 17
+    },
+    {
+      "utc": "2026-10-17T16:52:59.963588+00:00",
+      "relative_seconds": 11.987098932266235,
+      "count": 1,
+      "inferred_inflight_iterations": 19
+    },
+    {
+      "utc": "2026-10-17T16:52:59.963812+00:00",
+      "relative_seconds": 11.98732304573059,
+      "count": 1,
+      "inferred_inflight_iterations": 21
+    },
+    {
+      "utc": "2026-10-17T16:52:59.963980+00:00",
+      "relative_seconds": 11.987490892410278,
+      "count": 1,
+      "inferred_inflight_iterations": 23
+    },
+    {
+      "utc": "2026-10-17T16:52:59.964329+00:00",
+      "relative_seconds": 11.987839937210083,
+      "count": 1,
+      "inferred_inflight_iterations": 25
+    },
+    {
+      "utc": "2026-10-17T16:52:59.964373+00:00",
+      "relative_seconds": 11.987884044647217,
+      "count": 1,
+      "inferred_inflight_iterations": 26
+    },
+    {
+      "utc": "2026-10-17T16:52:59.964570+00:00",
+      "relative_seconds": 11.988080978393555,
+      "count": 1,
+      "inferred_inflight_iterations": 36
+    },
+    {
+      "utc": "2026-10-17T16:52:59.964769+00:00",
+      "relative_seconds": 11.988279819488525,
+      "count": 1,
+      "inferred_inflight_iterations": 47
+    },
+    {
+      "utc": "2026-10-17T16:53:01.161397+00:00",
+      "relative_seconds": 13.184907913208008,
+      "count": 1,
+      "inferred_inflight_iterations": 16
+    },
+    {
+      "utc": "2026-10-17T16:53:01.162368+00:00",
+      "relative_seconds": 13.185878992080688,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:53:01.162569+00:00",
+      "relative_seconds": 13.186079978942871,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:53:01.162769+00:00",
+      "relative_seconds": 13.186280012130737,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:53:01.162968+00:00",
+      "relative_seconds": 13.186478853225708,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:53:01.757459+00:00",
+      "relative_seconds": 13.780969858169556,
+      "count": 1,
+      "inferred_inflight_iterations": 33
+    },
+    {
+      "utc": "2026-10-17T16:53:01.757631+00:00",
+      "relative_seconds": 13.781141996383667,
+      "count": 1,
+      "inferred_inflight_iterations": 36
+    },
+    {
+      "utc": "2026-10-17T16:53:01.757784+00:00",
+      "relative_seconds": 13.781294822692871,
+      "count": 1,
+      "inferred_inflight_iterations": 37
+    },
+    {
+      "utc": "2026-10-17T16:53:01.758000+00:00",
+      "relative_seconds": 13.781510829925537,
+      "count": 1,
+      "inferred_inflight_iterations": 39
+    },
+    {
+      "utc": "2026-10-17T16:53:01.758209+00:00",
+      "relative_seconds": 13.78171992301941,
+      "count": 1,
+      "inferred_inflight_iterations": 41
+    },
+    {
+      "utc": "2026-10-17T16:53:01.758611+00:00",
+      "relative_seconds": 13.782121896743774,
+      "count": 1,
+      "inferred_inflight_iterations": 42
+    },
+    {
+      "utc": "2026-10-17T16:53:01.758612+00:00",
+      "relative_seconds": 13.78212285041809,
+      "count": 1,
+      "inferred_inflight_iterations": 42
+    },
+    {
+      "utc": "2026-10-17T16:53:01.758805+00:00",
+      "relative_seconds": 13.782315969467163,
+      "count": 1,
+      "inferred_inflight_iterations": 45
+    },
+    {
+      "utc": "2026-10-17T16:53:01.759006+00:00",
+      "relative_seconds": 13.782516956329346,
+      "count": 1,
+      "inferred_inflight_iterations": 46
+    },
+    {
+      "utc": "2026-10-17T16:53:01.759204+00:00",
+      "relative_seconds": 13.78271484375,
+      "count": 1,
+      "inferred_inflight_iterations": 47
+    },
+    {
+      "utc": "2026-10-17T16:53:01.759390+00:00",
+      "relative_seconds": 13.782901048660278,
+      "count": 1,
+      "inferred_inflight_iterations": 47
+    },
+    {
+      "utc": "2026-10-17T16:53:01.759992+00:00",
+      "relative_seconds": 13.78350281715393,
+      "count": 1,
+      "inferred_inflight_iterations": 48
+    },
+    {
+      "utc": "2026-10-17T16:53:01.759993+00:00",
+      "relative_seconds": 13.783504009246826,
+      "count": 1,
+      "inferred_inflight_iterations": 48
+    },
+    {
+      "utc": "2026-10-17T16:53:01.759994+00:00",
+      "relative_seconds": 13.783504962921143,
+      "count": 1,
+      "inferred_inflight_iterations": 48
+    },
+    {
+      "utc": "2026-10-17T16:53:01.760195+00:00",
+      "relative_seconds": 13.783705949783325,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582528+00:00",
+      "relative_seconds": 14.606039047241211,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582529+00:00",
+      "relative_seconds": 14.606040000915527,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582529+00:00",
+      "relative_seconds": 14.606040000915527,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582529+00:00",
+      "relative_seconds": 14.606040000915527,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582529+00:00",
+      "relative_seconds": 14.606040000915527,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582530+00:00",
+      "relative_seconds": 14.606040954589844,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582530+00:00",
+      "relative_seconds": 14.606040954589844,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582530+00:00",
+      "relative_seconds": 14.606040954589844,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582530+00:00",
+      "relative_seconds": 14.606040954589844,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582531+00:00",
+      "relative_seconds": 14.60604190826416,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582531+00:00",
+      "relative_seconds": 14.60604190826416,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582531+00:00",
+      "relative_seconds": 14.60604190826416,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582531+00:00",
+      "relative_seconds": 14.60604190826416,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582532+00:00",
+      "relative_seconds": 14.606042861938477,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582532+00:00",
+      "relative_seconds": 14.606042861938477,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582532+00:00",
+      "relative_seconds": 14.606042861938477,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582532+00:00",
+      "relative_seconds": 14.606042861938477,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582533+00:00",
+      "relative_seconds": 14.606043815612793,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582533+00:00",
+      "relative_seconds": 14.606043815612793,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582533+00:00",
+      "relative_seconds": 14.606043815612793,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582533+00:00",
+      "relative_seconds": 14.606043815612793,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582534+00:00",
+      "relative_seconds": 14.606045007705688,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582534+00:00",
+      "relative_seconds": 14.606045007705688,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582534+00:00",
+      "relative_seconds": 14.606045007705688,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582534+00:00",
+      "relative_seconds": 14.606045007705688,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582535+00:00",
+      "relative_seconds": 14.606045961380005,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582535+00:00",
+      "relative_seconds": 14.606045961380005,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582535+00:00",
+      "relative_seconds": 14.606045961380005,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582535+00:00",
+      "relative_seconds": 14.606045961380005,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582536+00:00",
+      "relative_seconds": 14.606046915054321,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582536+00:00",
+      "relative_seconds": 14.606046915054321,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582536+00:00",
+      "relative_seconds": 14.606046915054321,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582536+00:00",
+      "relative_seconds": 14.606046915054321,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582537+00:00",
+      "relative_seconds": 14.606047868728638,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582537+00:00",
+      "relative_seconds": 14.606047868728638,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582538+00:00",
+      "relative_seconds": 14.606048822402954,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582538+00:00",
+      "relative_seconds": 14.606048822402954,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582538+00:00",
+      "relative_seconds": 14.606048822402954,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582538+00:00",
+      "relative_seconds": 14.606048822402954,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582539+00:00",
+      "relative_seconds": 14.60605001449585,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582539+00:00",
+      "relative_seconds": 14.60605001449585,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582539+00:00",
+      "relative_seconds": 14.60605001449585,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582539+00:00",
+      "relative_seconds": 14.60605001449585,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582540+00:00",
+      "relative_seconds": 14.606050968170166,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582540+00:00",
+      "relative_seconds": 14.606050968170166,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582540+00:00",
+      "relative_seconds": 14.606050968170166,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582540+00:00",
+      "relative_seconds": 14.606050968170166,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582571+00:00",
+      "relative_seconds": 14.60608196258545,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582768+00:00",
+      "relative_seconds": 14.606278896331787,
+      "count": 1,
+      "inferred_inflight_iterations": 9
+    },
+    {
+      "utc": "2026-10-17T16:53:02.582985+00:00",
+      "relative_seconds": 14.60649585723877,
+      "count": 1,
+      "inferred_inflight_iterations": 18
+    },
+    {
+      "utc": "2026-10-17T16:53:02.583172+00:00",
+      "relative_seconds": 14.606683015823364,
+      "count": 1,
+      "inferred_inflight_iterations": 25
+    },
+    {
+      "utc": "2026-10-17T16:53:02.583380+00:00",
+      "relative_seconds": 14.60689091682434,
+      "count": 1,
+      "inferred_inflight_iterations": 36
+    },
+    {
+      "utc": "2026-10-17T16:53:02.583573+00:00",
+      "relative_seconds": 14.607084035873413,
+      "count": 1,
+      "inferred_inflight_iterations": 47
+    },
+    {
+      "utc": "2026-10-17T16:53:02.583769+00:00",
+      "relative_seconds": 14.607280015945435,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:53:02.583969+00:00",
+      "relative_seconds": 14.6074800491333,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:53:02.764773+00:00",
+      "relative_seconds": 14.788283824920654,
+      "count": 1,
+      "inferred_inflight_iterations": 46
+    },
+    {
+      "utc": "2026-10-17T16:53:02.764971+00:00",
+      "relative_seconds": 14.788481950759888,
+      "count": 1,
+      "inferred_inflight_iterations": 47
+    },
+    {
+      "utc": "2026-10-17T16:53:02.765188+00:00",
+      "relative_seconds": 14.78869891166687,
+      "count": 1,
+      "inferred_inflight_iterations": 49
+    },
+    {
+      "utc": "2026-10-17T16:53:03.761440+00:00",
+      "relative_seconds": 15.784950971603394,
+      "count": 1,
+      "inferred_inflight_iterations": 45
+    },
+    {
+      "utc": "2026-10-17T16:53:03.761570+00:00",
+      "relative_seconds": 15.785080909729004,
+      "count": 1,
+      "inferred_inflight_iterations": 45
+    },
+    {
+      "utc": "2026-10-17T16:53:03.762098+00:00",
+      "relative_seconds": 15.785609006881714,
+      "count": 1,
+      "inferred_inflight_iterations": 46
+    },
+    {
+      "utc": "2026-10-17T16:53:03.762099+00:00",
+      "relative_seconds": 15.78560996055603,
+      "count": 1,
+      "inferred_inflight_iterations": 46
+    },
+    {
+      "utc": "2026-10-17T16:53:03.762171+00:00",
+      "relative_seconds": 15.785681962966919,
+      "count": 1,
+      "inferred_inflight_iterations": 47
+    },
+    {
+      "utc": "2026-10-17T16:53:03.762388+00:00",
+      "relative_seconds": 15.785898923873901,
+      "count": 1,
+      "inferred_inflight_iterations": 48
+    },
+    {
+      "utc": "2026-10-17T16:53:04.782217+00:00",
+      "relative_seconds": 16.8057279586792,
+      "count": 1,
+      "inferred_inflight_iterations": 44
+    },
+    {
+      "utc": "2026-10-17T16:53:04.782426+00:00",
+      "relative_seconds": 16.80593705177307,
+      "count": 1,
+      "inferred_inflight_iterations": 46
+    },
+    {
+      "utc": "2026-10-17T16:53:04.782630+00:00",
+      "relative_seconds": 16.806140899658203,
+      "count": 1,
+      "inferred_inflight_iterations": 48
+    },
+    {
+      "utc": "2026-10-17T16:53:04.782793+00:00",
+      "relative_seconds": 16.80630397796631,
+      "count": 1,
+      "inferred_inflight_iterations": 48
+    },
+    {
+      "utc": "2026-10-17T16:53:04.783008+00:00",
+      "relative_seconds": 16.806519031524658,
+      "count": 1,
+      "inferred_inflight_iterations": 49
+    },
+    {
+      "utc": "2026-10-17T16:53:05.383521+00:00",
+      "relative_seconds": 17.407032012939453,
+      "count": 1,
+      "inferred_inflight_iterations": 27
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580627+00:00",
+      "relative_seconds": 17.604137897491455,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580627+00:00",
+      "relative_seconds": 17.604137897491455,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580628+00:00",
+      "relative_seconds": 17.60413885116577,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580628+00:00",
+      "relative_seconds": 17.60413885116577,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580628+00:00",
+      "relative_seconds": 17.60413885116577,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580628+00:00",
+      "relative_seconds": 17.60413885116577,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580629+00:00",
+      "relative_seconds": 17.604140043258667,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580629+00:00",
+      "relative_seconds": 17.604140043258667,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580629+00:00",
+      "relative_seconds": 17.604140043258667,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580629+00:00",
+      "relative_seconds": 17.604140043258667,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580630+00:00",
+      "relative_seconds": 17.604140996932983,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580630+00:00",
+      "relative_seconds": 17.604140996932983,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580630+00:00",
+      "relative_seconds": 17.604140996932983,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580630+00:00",
+      "relative_seconds": 17.604140996932983,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580631+00:00",
+      "relative_seconds": 17.6041419506073,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580631+00:00",
+      "relative_seconds": 17.6041419506073,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580631+00:00",
+      "relative_seconds": 17.6041419506073,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580631+00:00",
+      "relative_seconds": 17.6041419506073,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580632+00:00",
+      "relative_seconds": 17.604142904281616,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580632+00:00",
+      "relative_seconds": 17.604142904281616,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580632+00:00",
+      "relative_seconds": 17.604142904281616,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580632+00:00",
+      "relative_seconds": 17.604142904281616,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580633+00:00",
+      "relative_seconds": 17.604143857955933,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580634+00:00",
+      "relative_seconds": 17.604145050048828,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580634+00:00",
+      "relative_seconds": 17.604145050048828,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580634+00:00",
+      "relative_seconds": 17.604145050048828,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580634+00:00",
+      "relative_seconds": 17.604145050048828,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580635+00:00",
+      "relative_seconds": 17.604146003723145,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580635+00:00",
+      "relative_seconds": 17.604146003723145,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580635+00:00",
+      "relative_seconds": 17.604146003723145,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580635+00:00",
+      "relative_seconds": 17.604146003723145,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580636+00:00",
+      "relative_seconds": 17.60414695739746,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580636+00:00",
+      "relative_seconds": 17.60414695739746,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580636+00:00",
+      "relative_seconds": 17.60414695739746,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580636+00:00",
+      "relative_seconds": 17.60414695739746,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580637+00:00",
+      "relative_seconds": 17.604147911071777,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580637+00:00",
+      "relative_seconds": 17.604147911071777,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580637+00:00",
+      "relative_seconds": 17.604147911071777,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580637+00:00",
+      "relative_seconds": 17.604147911071777,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580638+00:00",
+      "relative_seconds": 17.604148864746094,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580638+00:00",
+      "relative_seconds": 17.604148864746094,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580638+00:00",
+      "relative_seconds": 17.604148864746094,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580638+00:00",
+      "relative_seconds": 17.604148864746094,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580639+00:00",
+      "relative_seconds": 17.60414981842041,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580639+00:00",
+      "relative_seconds": 17.60414981842041,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580639+00:00",
+      "relative_seconds": 17.60414981842041,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580639+00:00",
+      "relative_seconds": 17.60414981842041,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580640+00:00",
+      "relative_seconds": 17.604151010513306,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580640+00:00",
+      "relative_seconds": 17.604151010513306,
+      "count": 1,
+      "inferred_inflight_iterations": 2
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580771+00:00",
+      "relative_seconds": 17.604281902313232,
+      "count": 1,
+      "inferred_inflight_iterations": 7
+    },
+    {
+      "utc": "2026-10-17T16:53:05.580981+00:00",
+      "relative_seconds": 17.60449194908142,
+      "count": 1,
+      "inferred_inflight_iterations": 17
+    },
+    {
+      "utc": "2026-10-17T16:53:05.581169+00:00",
+      "relative_seconds": 17.604679822921753,
+      "count": 1,
+      "inferred_inflight_iterations": 28
+    },
+    {
+      "utc": "2026-10-17T16:53:05.581378+00:00",
+      "relative_seconds": 17.604888916015625,
+      "count": 1,
+      "inferred_inflight_iterations": 42
+    },
+    {
+      "utc": "2026-10-17T16:53:05.581571+00:00",
+      "relative_seconds": 17.605082035064697,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:53:05.581769+00:00",
+      "relative_seconds": 17.60527992248535,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:53:06.199189+00:00",
+      "relative_seconds": 18.222699880599976,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:06.199190+00:00",
+      "relative_seconds": 18.222700834274292,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:06.199190+00:00",
+      "relative_seconds": 18.222700834274292,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:06.199191+00:00",
+      "relative_seconds": 18.222702026367188,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:06.199191+00:00",
+      "relative_seconds": 18.222702026367188,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:06.199191+00:00",
+      "relative_seconds": 18.222702026367188,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:06.199192+00:00",
+      "relative_seconds": 18.222702980041504,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:06.199192+00:00",
+      "relative_seconds": 18.222702980041504,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:06.199193+00:00",
+      "relative_seconds": 18.22270393371582,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:06.199193+00:00",
+      "relative_seconds": 18.22270393371582,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:06.199193+00:00",
+      "relative_seconds": 18.22270393371582,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:06.199194+00:00",
+      "relative_seconds": 18.222704887390137,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:06.199194+00:00",
+      "relative_seconds": 18.222704887390137,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:06.199195+00:00",
+      "relative_seconds": 18.222705841064453,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:06.199195+00:00",
+      "relative_seconds": 18.222705841064453,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:06.199196+00:00",
+      "relative_seconds": 18.22270703315735,
+      "count": 1,
+      "inferred_inflight_iterations": 1
+    },
+    {
+      "utc": "2026-10-17T16:53:06.199373+00:00",
+      "relative_seconds": 18.222883939743042,
+      "count": 1,
+      "inferred_inflight_iterations": 5
+    },
+    {
+      "utc": "2026-10-17T16:53:06.199582+00:00",
+      "relative_seconds": 18.223093032836914,
+      "count": 1,
+      "inferred_inflight_iterations": 13
+    },
+    {
+      "utc": "2026-10-17T16:53:06.199779+00:00",
+      "relative_seconds": 18.223289966583252,
+      "count": 1,
+      "inferred_inflight_iterations": 22
+    },
+    {
+      "utc": "2026-10-17T16:53:06.199968+00:00",
+      "relative_seconds": 18.22347903251648,
+      "count": 1,
+      "inferred_inflight_iterations": 31
+    },
+    {
+      "utc": "2026-10-17T16:53:06.200174+00:00",
+      "relative_seconds": 18.223685026168823,
+      "count": 1,
+      "inferred_inflight_iterations": 43
+    },
+    {
+      "utc": "2026-10-17T16:53:07.160000+00:00",
+      "relative_seconds": 19.18351101875305,
+      "count": 1,
+      "inferred_inflight_iterations": 24
+    },
+    {
+      "utc": "2026-10-17T16:53:07.160183+00:00",
+      "relative_seconds": 19.183693885803223,
+      "count": 1,
+      "inferred_inflight_iterations": 25
+    },
+    {
+      "utc": "2026-10-17T16:53:07.160414+00:00",
+      "relative_seconds": 19.183924913406372,
+      "count": 1,
+      "inferred_inflight_iterations": 27
+    },
+    {
+      "utc": "2026-10-17T16:53:07.160577+00:00",
+      "relative_seconds": 19.184087991714478,
+      "count": 1,
+      "inferred_inflight_iterations": 28
+    },
+    {
+      "utc": "2026-10-17T16:53:07.160814+00:00",
+      "relative_seconds": 19.184324979782104,
+      "count": 1,
+      "inferred_inflight_iterations": 30
+    },
+    {
+      "utc": "2026-10-17T16:53:07.161015+00:00",
+      "relative_seconds": 19.184525966644287,
+      "count": 1,
+      "inferred_inflight_iterations": 32
+    },
+    {
+      "utc": "2026-10-17T16:53:07.161237+00:00",
+      "relative_seconds": 19.18474793434143,
+      "count": 1,
+      "inferred_inflight_iterations": 34
+    },
+    {
+      "utc": "2026-10-17T16:53:07.161430+00:00",
+      "relative_seconds": 19.184940814971924,
+      "count": 1,
+      "inferred_inflight_iterations": 36
+    },
+    {
+      "utc": "2026-10-17T16:53:07.161572+00:00",
+      "relative_seconds": 19.18508291244507,
+      "count": 1,
+      "inferred_inflight_iterations": 37
+    },
+    {
+      "utc": "2026-10-17T16:53:07.161804+00:00",
+      "relative_seconds": 19.185314893722534,
+      "count": 1,
+      "inferred_inflight_iterations": 39
+    },
+    {
+      "utc": "2026-10-17T16:53:07.162040+00:00",
+      "relative_seconds": 19.185550928115845,
+      "count": 1,
+      "inferred_inflight_iterations": 41
+    },
+    {
+      "utc": "2026-10-17T16:53:07.162173+00:00",
+      "relative_seconds": 19.185683965682983,
+      "count": 1,
+      "inferred_inflight_iterations": 42
+    },
+    {
+      "utc": "2026-10-17T16:53:07.163307+00:00",
+      "relative_seconds": 19.18681788444519,
+      "count": 1,
+      "inferred_inflight_iterations": 43
+    },
+    {
+      "utc": "2026-10-17T16:53:07.163310+00:00",
+      "relative_seconds": 19.18682098388672,
+      "count": 1,
+      "inferred_inflight_iterations": 43
+    },
+    {
+      "utc": "2026-10-17T16:53:07.163310+00:00",
+      "relative_seconds": 19.18682098388672,
+      "count": 1,
+      "inferred_inflight_iterations": 43
+    },
+    {
+      "utc": "2026-10-17T16:53:07.163311+00:00",
+      "relative_seconds": 19.186821937561035,
+      "count": 1,
+      "inferred_inflight_iterations": 43
+    },
+    {
+      "utc": "2026-10-17T16:53:07.163311+00:00",
+      "relative_seconds": 19.186821937561035,
+      "count": 1,
+      "inferred_inflight_iterations": 43
+    },
+    {
+      "utc": "2026-10-17T16:53:07.163448+00:00",
+      "relative_seconds": 19.18695902824402,
+      "count": 1,
+      "inferred_inflight_iterations": 44
+    },
+    {
+      "utc": "2026-10-17T16:53:07.163601+00:00",
+      "relative_seconds": 19.187111854553223,
+      "count": 1,
+      "inferred_inflight_iterations": 46
+    },
+    {
+      "utc": "2026-10-17T16:53:07.163784+00:00",
+      "relative_seconds": 19.187294960021973,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:53:07.164310+00:00",
+      "relative_seconds": 19.18782091140747,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:53:07.164311+00:00",
+      "relative_seconds": 19.187821865081787,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:53:07.164369+00:00",
+      "relative_seconds": 19.187880039215088,
+      "count": 1,
+      "inferred_inflight_iterations": 50
+    },
+    {
+      "utc": "2026-10-17T16:53:07.776170+00:00",
+      "relative_seconds": 19.799680948257446,
+      "count": 1,
+      "inferred_inflight_iterations": 27
+    }
+  ],
+  "vus_samples": [
+    {
+      "metric": "vus",
+      "time": "2026-10-17T16:52:48.951868794Z",
+      "value": 3
+    },
+    {
+      "metric": "vus_max",
+      "time": "2026-10-17T16:52:48.951868794Z",
+      "value": 50
+    },
+    {
+      "metric": "vus",
+      "time": "2026-10-17T16:52:49.952224944Z",
+      "value": 1
+    },
+    {
+      "metric": "vus_max",
+      "time": "2026-10-17T16:52:49.952224944Z",
+      "value": 50
+    },
+    {
+      "metric": "vus",
+      "time": "2026-10-17T16:52:50.961442099Z",
+      "value": 33
+    },
+    {
+      "metric": "vus_max",
+      "time": "2026-10-17T16:52:50.961442099Z",
+      "value": 50
+    },
+    {
+      "metric": "vus",
+      "time": "2026-10-17T16:52:51.952627618Z",
+      "value": 0
+    },
+    {
+      "metric": "vus_max",
+      "time": "2026-10-17T16:52:51.952627618Z",
+      "value": 50
+    },
+    {
+      "metric": "vus",
+      "time": "2026-10-17T16:52:52.951850553Z",
+      "value": 1
+    },
+    {
+      "metric": "vus_max",
+      "time": "2026-10-17T16:52:52.951850553Z",
+      "value": 50
+    },
+    {
+      "metric": "vus",
+      "time": "2026-10-17T16:52:53.952218329Z",
+      "value": 2
+    },
+    {
+      "metric": "vus_max",
+      "time": "2026-10-17T16:52:53.952218329Z",
+      "value": 50
+    },
+    {
+      "metric": "vus",
+      "time": "2026-10-17T16:52:54.95256577Z",
+      "value": 0
+    },
+    {
+      "metric": "vus_max",
+      "time": "2026-10-17T16:52:54.95256577Z",
+      "value": 50
+    },
+    {
+      "metric": "vus",
+      "time": "2026-10-17T16:52:55.954806889Z",
+      "value": 0
+    },
+    {
+      "metric": "vus_max",
+      "time": "2026-10-17T16:52:55.954806889Z",
+      "value": 50
+    },
+    {
+      "metric": "vus",
+      "time": "2026-10-17T16:52:56.95602846Z",
+      "value": 26
+    },
+    {
+      "metric": "vus_max",
+      "time": "2026-10-17T16:52:56.95602846Z",
+      "value": 50
+    },
+    {
+      "metric": "vus",
+      "time": "2026-10-17T16:52:57.956109317Z",
+      "value": 1
+    },
+    {
+      "metric": "vus_max",
+      "time": "2026-10-17T16:52:57.956109317Z",
+      "value": 50
+    },
+    {
+      "metric": "vus",
+      "time": "2026-10-17T16:52:58.952485863Z",
+      "value": 0
+    },
+    {
+      "metric": "vus_max",
+      "time": "2026-10-17T16:52:58.952485863Z",
+      "value": 50
+    },
+    {
+      "metric": "vus",
+      "time": "2026-10-17T16:52:59.953170181Z",
+      "value": 8
+    },
+    {
+      "metric": "vus_max",
+      "time": "2026-10-17T16:52:59.953170181Z",
+      "value": 50
+    },
+    {
+      "metric": "vus",
+      "time": "2026-10-17T16:53:00.952744202Z",
+      "value": 0
+    },
+    {
+      "metric": "vus_max",
+      "time": "2026-10-17T16:53:00.952744202Z",
+      "value": 50
+    },
+    {
+      "metric": "vus",
+      "time": "2026-10-17T16:53:01.953226978Z",
+      "value": 9
+    },
+    {
+      "metric": "vus_max",
+      "time": "2026-10-17T16:53:01.953226978Z",
+      "value": 50
+    },
+    {
+      "metric": "vus",
+      "time": "2026-10-17T16:53:02.955084636Z",
+      "value": 12
+    },
+    {
+      "metric": "vus_max",
+      "time": "2026-10-17T16:53:02.955084636Z",
+      "value": 50
+    },
+    {
+      "metric": "vus",
+      "time": "2026-10-17T16:53:03.95425903Z",
+      "value": 1
+    },
+    {
+      "metric": "vus_max",
+      "time": "2026-10-17T16:53:03.95425903Z",
+      "value": 50
+    },
+    {
+      "metric": "vus",
+      "time": "2026-10-17T16:53:04.951711748Z",
+      "value": 8
+    },
+    {
+      "metric": "vus_max",
+      "time": "2026-10-17T16:53:04.951711748Z",
+      "value": 50
+    },
+    {
+      "metric": "vus",
+      "time": "2026-10-17T16:53:05.953101904Z",
+      "value": 1
+    },
+    {
+      "metric": "vus_max",
+      "time": "2026-10-17T16:53:05.953101904Z",
+      "value": 50
+    },
+    {
+      "metric": "vus",
+      "time": "2026-10-17T16:53:06.952914051Z",
+      "value": 36
+    },
+    {
+      "metric": "vus_max",
+      "time": "2026-10-17T16:53:06.952914051Z",
+      "value": 50
+    },
+    {
+      "metric": "vus",
+      "time": "2026-10-17T16:53:07.951756568Z",
+      "value": 2
+    },
+    {
+      "metric": "vus_max",
+      "time": "2026-10-17T16:53:07.951756568Z",
+      "value": 50
+    }
+  ],
+  "hundred_ms_bins": [
+    {
+      "relative_start_seconds": 0.0,
+      "starts": 498,
+      "completions": 498,
+      "drops": 0,
+      "mean_iteration_ms": 0.4951606927710843,
+      "max_iteration_ms": 3.099225
+    },
+    {
+      "relative_start_seconds": 0.1,
+      "starts": 494,
+      "completions": 494,
+      "drops": 0,
+      "mean_iteration_ms": 0.615161495951417,
+      "max_iteration_ms": 4.701233
+    },
+    {
+      "relative_start_seconds": 0.2,
+      "starts": 498,
+      "completions": 498,
+      "drops": 0,
+      "mean_iteration_ms": 0.4921774076305221,
+      "max_iteration_ms": 3.931896
+    },
+    {
+      "relative_start_seconds": 0.3,
+      "starts": 510,
+      "completions": 500,
+      "drops": 0,
+      "mean_iteration_ms": 0.686916804,
+      "max_iteration_ms": 5.840531
+    },
+    {
+      "relative_start_seconds": 0.4,
+      "starts": 502,
+      "completions": 511,
+      "drops": 0,
+      "mean_iteration_ms": 0.4534724892367906,
+      "max_iteration_ms": 3.024016
+    },
+    {
+      "relative_start_seconds": 0.5,
+      "starts": 497,
+      "completions": 498,
+      "drops": 0,
+      "mean_iteration_ms": 0.6409995763052209,
+      "max_iteration_ms": 5.41007
+    },
+    {
+      "relative_start_seconds": 0.6,
+      "starts": 477,
+      "completions": 477,
+      "drops": 21,
+      "mean_iteration_ms": 0.852875607966457,
+      "max_iteration_ms": 14.563536
+    },
+    {
+      "relative_start_seconds": 0.7,
+      "starts": 469,
+      "completions": 469,
+      "drops": 31,
+      "mean_iteration_ms": 1.3050960234541578,
+      "max_iteration_ms": 15.288331
+    },
+    {
+      "relative_start_seconds": 0.8,
+      "starts": 505,
+      "completions": 504,
+      "drops": 0,
+      "mean_iteration_ms": 0.37491275396825396,
+      "max_iteration_ms": 1.602091
+    },
+    {
+      "relative_start_seconds": 0.9,
+      "starts": 493,
+      "completions": 485,
+      "drops": 1,
+      "mean_iteration_ms": 0.8212781773195876,
+      "max_iteration_ms": 9.04609
+    },
+    {
+      "relative_start_seconds": 1.0,
+      "starts": 487,
+      "completions": 496,
+      "drops": 0,
+      "mean_iteration_ms": 0.6832009778225806,
+      "max_iteration_ms": 6.921787
+    },
+    {
+      "relative_start_seconds": 1.1,
+      "starts": 511,
+      "completions": 511,
+      "drops": 0,
+      "mean_iteration_ms": 0.7321461722113503,
+      "max_iteration_ms": 4.753192
+    },
+    {
+      "relative_start_seconds": 1.2,
+      "starts": 464,
+      "completions": 464,
+      "drops": 33,
+      "mean_iteration_ms": 0.42518931896551726,
+      "max_iteration_ms": 2.094803
+    },
+    {
+      "relative_start_seconds": 1.3,
+      "starts": 501,
+      "completions": 500,
+      "drops": 0,
+      "mean_iteration_ms": 0.599045814,
+      "max_iteration_ms": 5.572237
+    },
+    {
+      "relative_start_seconds": 1.4,
+      "starts": 483,
+      "completions": 483,
+      "drops": 27,
+      "mean_iteration_ms": 0.4594380186335404,
+      "max_iteration_ms": 5.411404
+    },
+    {
+      "relative_start_seconds": 1.5,
+      "starts": 498,
+      "completions": 499,
+      "drops": 0,
+      "mean_iteration_ms": 0.5043931382765531,
+      "max_iteration_ms": 3.44606
+    },
+    {
+      "relative_start_seconds": 1.6,
+      "starts": 490,
+      "completions": 490,
+      "drops": 0,
+      "mean_iteration_ms": 0.343435012244898,
+      "max_iteration_ms": 0.903921
+    },
+    {
+      "relative_start_seconds": 1.7,
+      "starts": 512,
+      "completions": 505,
+      "drops": 0,
+      "mean_iteration_ms": 0.5129391663366336,
+      "max_iteration_ms": 5.839698
+    },
+    {
+      "relative_start_seconds": 1.8,
+      "starts": 495,
+      "completions": 502,
+      "drops": 0,
+      "mean_iteration_ms": 0.5080242729083665,
+      "max_iteration_ms": 5.918282
+    },
+    {
+      "relative_start_seconds": 1.9,
+      "starts": 497,
+      "completions": 497,
+      "drops": 0,
+      "mean_iteration_ms": 0.5133852676056339,
+      "max_iteration_ms": 5.106694
+    },
+    {
+      "relative_start_seconds": 2.0,
+      "starts": 499,
+      "completions": 499,
+      "drops": 0,
+      "mean_iteration_ms": 0.5484183967935872,
+      "max_iteration_ms": 5.238569
+    },
+    {
+      "relative_start_seconds": 2.1,
+      "starts": 482,
+      "completions": 482,
+      "drops": 22,
+      "mean_iteration_ms": 1.0868878651452283,
+      "max_iteration_ms": 11.129434
+    },
+    {
+      "relative_start_seconds": 2.2,
+      "starts": 487,
+      "completions": 487,
+      "drops": 3,
+      "mean_iteration_ms": 1.2073923757700205,
+      "max_iteration_ms": 13.207653
+    },
+    {
+      "relative_start_seconds": 2.3,
+      "starts": 505,
+      "completions": 500,
+      "drops": 0,
+      "mean_iteration_ms": 0.563499306,
+      "max_iteration_ms": 9.254882
+    },
+    {
+      "relative_start_seconds": 2.4,
+      "starts": 504,
+      "completions": 509,
+      "drops": 0,
+      "mean_iteration_ms": 0.4332322377210216,
+      "max_iteration_ms": 3.995438
+    },
+    {
+      "relative_start_seconds": 2.5,
+      "starts": 494,
+      "completions": 494,
+      "drops": 9,
+      "mean_iteration_ms": 1.271395024291498,
+      "max_iteration_ms": 14.900163
+    },
+    {
+      "relative_start_seconds": 2.6,
+      "starts": 498,
+      "completions": 498,
+      "drops": 0,
+      "mean_iteration_ms": 0.6523173192771085,
+      "max_iteration_ms": 5.626071
+    },
+    {
+      "relative_start_seconds": 2.7,
+      "starts": 502,
+      "completions": 487,
+      "drops": 0,
+      "mean_iteration_ms": 0.5868275564681725,
+      "max_iteration_ms": 7.875292
+    },
+    {
+      "relative_start_seconds": 2.8,
+      "starts": 491,
+      "completions": 506,
+      "drops": 0,
+      "mean_iteration_ms": 0.9737466916996047,
+      "max_iteration_ms": 9.718135
+    },
+    {
+      "relative_start_seconds": 2.9,
+      "starts": 512,
+      "completions": 511,
+      "drops": 0,
+      "mean_iteration_ms": 1.1387196927592955,
+      "max_iteration_ms": 12.725943
+    },
+    {
+      "relative_start_seconds": 3.0,
+      "starts": 495,
+      "completions": 496,
+      "drops": 0,
+      "mean_iteration_ms": 0.7633947237903226,
+      "max_iteration_ms": 7.380664
+    },
+    {
+      "relative_start_seconds": 3.1,
+      "starts": 495,
+      "completions": 484,
+      "drops": 8,
+      "mean_iteration_ms": 1.045239270661157,
+      "max_iteration_ms": 12.063439
+    },
+    {
+      "relative_start_seconds": 3.2,
+      "starts": 496,
+      "completions": 507,
+      "drops": 0,
+      "mean_iteration_ms": 0.4586368836291913,
+      "max_iteration_ms": 3.905312
+    },
+    {
+      "relative_start_seconds": 3.3,
+      "starts": 506,
+      "completions": 493,
+      "drops": 0,
+      "mean_iteration_ms": 0.7098056430020284,
+      "max_iteration_ms": 5.452987
+    },
+    {
+      "relative_start_seconds": 3.4,
+      "starts": 488,
+      "completions": 501,
+      "drops": 0,
+      "mean_iteration_ms": 0.5257731836327345,
+      "max_iteration_ms": 4.548732
+    },
+    {
+      "relative_start_seconds": 3.5,
+      "starts": 510,
+      "completions": 502,
+      "drops": 0,
+      "mean_iteration_ms": 1.6315503386454182,
+      "max_iteration_ms": 8.540087
+    },
+    {
+      "relative_start_seconds": 3.6,
+      "starts": 490,
+      "completions": 498,
+      "drops": 0,
+      "mean_iteration_ms": 0.9587805240963856,
+      "max_iteration_ms": 5.685072
+    },
+    {
+      "relative_start_seconds": 3.7,
+      "starts": 481,
+      "completions": 431,
+      "drops": 18,
+      "mean_iteration_ms": 0.9266515916473318,
+      "max_iteration_ms": 10.542223
+    },
+    {
+      "relative_start_seconds": 3.8,
+      "starts": 494,
+      "completions": 544,
+      "drops": 14,
+      "mean_iteration_ms": 1.5390249356617647,
+      "max_iteration_ms": 13.563489
+    },
+    {
+      "relative_start_seconds": 3.9,
+      "starts": 476,
+      "completions": 435,
+      "drops": 13,
+      "mean_iteration_ms": 0.8792994022988506,
+      "max_iteration_ms": 7.202038
+    },
+    {
+      "relative_start_seconds": 4.0,
+      "starts": 488,
+      "completions": 529,
+      "drops": 19,
+      "mean_iteration_ms": 1.8178977391304347,
+      "max_iteration_ms": 17.766677
+    },
+    {
+      "relative_start_seconds": 4.1,
+      "starts": 489,
+      "completions": 489,
+      "drops": 0,
+      "mean_iteration_ms": 0.48259353987730064,
+      "max_iteration_ms": 3.377268
+    },
+    {
+      "relative_start_seconds": 4.2,
+      "starts": 510,
+      "completions": 510,
+      "drops": 0,
+      "mean_iteration_ms": 0.5150044529411765,
+      "max_iteration_ms": 3.392268
+    },
+    {
+      "relative_start_seconds": 4.3,
+      "starts": 509,
+      "completions": 508,
+      "drops": 0,
+      "mean_iteration_ms": 0.7476430767716535,
+      "max_iteration_ms": 7.120204
+    },
+    {
+      "relative_start_seconds": 4.4,
+      "starts": 498,
+      "completions": 499,
+      "drops": 0,
+      "mean_iteration_ms": 0.403425,
+      "max_iteration_ms": 1.639759
+    },
+    {
+      "relative_start_seconds": 4.5,
+      "starts": 503,
+      "completions": 480,
+      "drops": 0,
+      "mean_iteration_ms": 0.8969076145833333,
+      "max_iteration_ms": 10.837224
+    },
+    {
+      "relative_start_seconds": 4.6,
+      "starts": 494,
+      "completions": 517,
+      "drops": 0,
+      "mean_iteration_ms": 0.6328085473887815,
+      "max_iteration_ms": 6.141825
+    },
+    {
+      "relative_start_seconds": 4.7,
+      "starts": 497,
+      "completions": 497,
+      "drops": 0,
+      "mean_iteration_ms": 0.9719952736418511,
+      "max_iteration_ms": 7.565832
+    },
+    {
+      "relative_start_seconds": 4.8,
+      "starts": 502,
+      "completions": 502,
+      "drops": 0,
+      "mean_iteration_ms": 0.42730134860557767,
+      "max_iteration_ms": 1.942802
+    },
+    {
+      "relative_start_seconds": 4.9,
+      "starts": 499,
+      "completions": 499,
+      "drops": 0,
+      "mean_iteration_ms": 0.443919501002004,
+      "max_iteration_ms": 2.047303
+    },
+    {
+      "relative_start_seconds": 5.0,
+      "starts": 492,
+      "completions": 492,
+      "drops": 14,
+      "mean_iteration_ms": 0.6988837764227642,
+      "max_iteration_ms": 12.503942
+    },
+    {
+      "relative_start_seconds": 5.1,
+      "starts": 496,
+      "completions": 496,
+      "drops": 0,
+      "mean_iteration_ms": 0.5795717298387096,
+      "max_iteration_ms": 4.122772
+    },
+    {
+      "relative_start_seconds": 5.2,
+      "starts": 506,
+      "completions": 497,
+      "drops": 0,
+      "mean_iteration_ms": 0.5632385935613682,
+      "max_iteration_ms": 5.551321
+    },
+    {
+      "relative_start_seconds": 5.3,
+      "starts": 497,
+      "completions": 497,
+      "drops": 0,
+      "mean_iteration_ms": 0.670994601609658,
+      "max_iteration_ms": 8.142627
+    },
+    {
+      "relative_start_seconds": 5.4,
+      "starts": 503,
+      "completions": 511,
+      "drops": 0,
+      "mean_iteration_ms": 0.5765869804305284,
+      "max_iteration_ms": 6.571285
+    },
+    {
+      "relative_start_seconds": 5.5,
+      "starts": 474,
+      "completions": 474,
+      "drops": 10,
+      "mean_iteration_ms": 0.9034426392405064,
+      "max_iteration_ms": 11.590562
+    },
+    {
+      "relative_start_seconds": 5.6,
+      "starts": 515,
+      "completions": 516,
+      "drops": 0,
+      "mean_iteration_ms": 0.5039183624031007,
+      "max_iteration_ms": 8.094418
+    },
+    {
+      "relative_start_seconds": 5.7,
+      "starts": 488,
+      "completions": 488,
+      "drops": 0,
+      "mean_iteration_ms": 0.6207920409836065,
+      "max_iteration_ms": 6.247408
+    },
+    {
+      "relative_start_seconds": 5.8,
+      "starts": 491,
+      "completions": 491,
+      "drops": 0,
+      "mean_iteration_ms": 0.650525615071283,
+      "max_iteration_ms": 6.474868
+    },
+    {
+      "relative_start_seconds": 5.9,
+      "starts": 519,
+      "completions": 516,
+      "drops": 0,
+      "mean_iteration_ms": 0.5863218294573643,
+      "max_iteration_ms": 4.469483
+    },
+    {
+      "relative_start_seconds": 6.0,
+      "starts": 497,
+      "completions": 500,
+      "drops": 0,
+      "mean_iteration_ms": 0.448199554,
+      "max_iteration_ms": 6.712286
+    },
+    {
+      "relative_start_seconds": 6.1,
+      "starts": 500,
+      "completions": 480,
+      "drops": 0,
+      "mean_iteration_ms": 1.2731005333333334,
+      "max_iteration_ms": 13.642864
+    },
+    {
+      "relative_start_seconds": 6.2,
+      "starts": 501,
+      "completions": 521,
+      "drops": 0,
+      "mean_iteration_ms": 0.7955419827255278,
+      "max_iteration_ms": 11.347185
+    },
+    {
+      "relative_start_seconds": 6.3,
+      "starts": 490,
+      "completions": 490,
+      "drops": 0,
+      "mean_iteration_ms": 0.7112901551020409,
+      "max_iteration_ms": 4.75265
+    },
+    {
+      "relative_start_seconds": 6.4,
+      "starts": 510,
+      "completions": 510,
+      "drops": 0,
+      "mean_iteration_ms": 0.4251535960784314,
+      "max_iteration_ms": 4.500149
+    },
+    {
+      "relative_start_seconds": 6.5,
+      "starts": 499,
+      "completions": 499,
+      "drops": 0,
+      "mean_iteration_ms": 0.612795751503006,
+      "max_iteration_ms": 5.372446
+    },
+    {
+      "relative_start_seconds": 6.6,
+      "starts": 498,
+      "completions": 498,
+      "drops": 0,
+      "mean_iteration_ms": 0.49456133333333335,
+      "max_iteration_ms": 4.640525
+    },
+    {
+      "relative_start_seconds": 6.7,
+      "starts": 508,
+      "completions": 486,
+      "drops": 0,
+      "mean_iteration_ms": 0.6840902613168724,
+      "max_iteration_ms": 4.599066
+    },
+    {
+      "relative_start_seconds": 6.8,
+      "starts": 500,
+      "completions": 521,
+      "drops": 0,
+      "mean_iteration_ms": 0.49702997888675626,
+      "max_iteration_ms": 3.786645
+    },
+    {
+      "relative_start_seconds": 6.9,
+      "starts": 488,
+      "completions": 489,
+      "drops": 0,
+      "mean_iteration_ms": 0.8382024969325154,
+      "max_iteration_ms": 8.815421
+    },
+    {
+      "relative_start_seconds": 7.0,
+      "starts": 511,
+      "completions": 500,
+      "drops": 0,
+      "mean_iteration_ms": 0.46667117,
+      "max_iteration_ms": 3.498811
+    },
+    {
+      "relative_start_seconds": 7.1,
+      "starts": 501,
+      "completions": 510,
+      "drops": 0,
+      "mean_iteration_ms": 0.7740030705882353,
+      "max_iteration_ms": 4.900609
+    },
+    {
+      "relative_start_seconds": 7.2,
+      "starts": 498,
+      "completions": 489,
+      "drops": 0,
+      "mean_iteration_ms": 0.5971189529652352,
+      "max_iteration_ms": 4.686192
+    },
+    {
+      "relative_start_seconds": 7.3,
+      "starts": 498,
+      "completions": 506,
+      "drops": 0,
+      "mean_iteration_ms": 0.7460241976284585,
+      "max_iteration_ms": 8.619921
+    },
+    {
+      "relative_start_seconds": 7.4,
+      "starts": 496,
+      "completions": 499,
+      "drops": 0,
+      "mean_iteration_ms": 0.5362241943887776,
+      "max_iteration_ms": 5.652113
+    },
+    {
+      "relative_start_seconds": 7.5,
+      "starts": 506,
+      "completions": 506,
+      "drops": 0,
+      "mean_iteration_ms": 0.8323478656126482,
+      "max_iteration_ms": 6.547118
+    },
+    {
+      "relative_start_seconds": 7.6,
+      "starts": 497,
+      "completions": 497,
+      "drops": 0,
+      "mean_iteration_ms": 0.42868152716297786,
+      "max_iteration_ms": 2.736514
+    },
+    {
+      "relative_start_seconds": 7.7,
+      "starts": 482,
+      "completions": 448,
+      "drops": 0,
+      "mean_iteration_ms": 0.5425812053571428,
+      "max_iteration_ms": 7.766333
+    },
+    {
+      "relative_start_seconds": 7.8,
+      "starts": 493,
+      "completions": 527,
+      "drops": 18,
+      "mean_iteration_ms": 1.369304404174573,
+      "max_iteration_ms": 16.217253
+    },
+    {
+      "relative_start_seconds": 7.9,
+      "starts": 508,
+      "completions": 508,
+      "drops": 0,
+      "mean_iteration_ms": 0.5790653267716536,
+      "max_iteration_ms": 4.375232
+    },
+    {
+      "relative_start_seconds": 8.0,
+      "starts": 495,
+      "completions": 495,
+      "drops": 0,
+      "mean_iteration_ms": 0.4409769898989899,
+      "max_iteration_ms": 2.126053
+    },
+    {
+      "relative_start_seconds": 8.1,
+      "starts": 500,
+      "completions": 500,
+      "drops": 0,
+      "mean_iteration_ms": 0.606501894,
+      "max_iteration_ms": 3.46756
+    },
+    {
+      "relative_start_seconds": 8.2,
+      "starts": 509,
+      "completions": 507,
+      "drops": 0,
+      "mean_iteration_ms": 0.4394757613412229,
+      "max_iteration_ms": 2.343304
+    },
+    {
+      "relative_start_seconds": 8.3,
+      "starts": 500,
+      "completions": 501,
+      "drops": 0,
+      "mean_iteration_ms": 0.831752375249501,
+      "max_iteration_ms": 6.638869
+    },
+    {
+      "relative_start_seconds": 8.4,
+      "starts": 491,
+      "completions": 492,
+      "drops": 0,
+      "mean_iteration_ms": 0.5925371239837398,
+      "max_iteration_ms": 3.361726
+    },
+    {
+      "relative_start_seconds": 8.5,
+      "starts": 507,
+      "completions": 507,
+      "drops": 0,
+      "mean_iteration_ms": 0.583592822485207,
+      "max_iteration_ms": 5.927948
+    },
+    {
+      "relative_start_seconds": 8.6,
+      "starts": 489,
+      "completions": 489,
+      "drops": 0,
+      "mean_iteration_ms": 0.47422890593047035,
+      "max_iteration_ms": 4.352606
+    },
+    {
+      "relative_start_seconds": 8.7,
+      "starts": 504,
+      "completions": 495,
+      "drops": 9,
+      "mean_iteration_ms": 1.0903316626262627,
+      "max_iteration_ms": 12.264065
+    },
+    {
+      "relative_start_seconds": 8.8,
+      "starts": 494,
+      "completions": 503,
+      "drops": 0,
+      "mean_iteration_ms": 0.6605703677932405,
+      "max_iteration_ms": 6.350284
+    },
+    {
+      "relative_start_seconds": 8.9,
+      "starts": 498,
+      "completions": 498,
+      "drops": 0,
+      "mean_iteration_ms": 0.699258483935743,
+      "max_iteration_ms": 4.240439
+    },
+    {
+      "relative_start_seconds": 9.0,
+      "starts": 499,
+      "completions": 499,
+      "drops": 0,
+      "mean_iteration_ms": 0.4964124729458918,
+      "max_iteration_ms": 3.281768
+    },
+    {
+      "relative_start_seconds": 9.1,
+      "starts": 496,
+      "completions": 496,
+      "drops": 0,
+      "mean_iteration_ms": 0.952105370967742,
+      "max_iteration_ms": 8.738421
+    },
+    {
+      "relative_start_seconds": 9.2,
+      "starts": 512,
+      "completions": 512,
+      "drops": 0,
+      "mean_iteration_ms": 0.4387718203125,
+      "max_iteration_ms": 3.607602
+    },
+    {
+      "relative_start_seconds": 9.3,
+      "starts": 498,
+      "completions": 498,
+      "drops": 0,
+      "mean_iteration_ms": 0.7619445983935743,
+      "max_iteration_ms": 6.263534
+    },
+    {
+      "relative_start_seconds": 9.4,
+      "starts": 502,
+      "completions": 502,
+      "drops": 0,
+      "mean_iteration_ms": 0.38488811354581676,
+      "max_iteration_ms": 1.656509
+    },
+    {
+      "relative_start_seconds": 9.5,
+      "starts": 501,
+      "completions": 498,
+      "drops": 0,
+      "mean_iteration_ms": 0.6092807429718875,
+      "max_iteration_ms": 4.448649
+    },
+    {
+      "relative_start_seconds": 9.6,
+      "starts": 493,
+      "completions": 496,
+      "drops": 0,
+      "mean_iteration_ms": 0.5248502661290323,
+      "max_iteration_ms": 3.292934
+    },
+    {
+      "relative_start_seconds": 9.7,
+      "starts": 503,
+      "completions": 500,
+      "drops": 0,
+      "mean_iteration_ms": 0.63897276,
+      "max_iteration_ms": 5.624614
+    },
+    {
+      "relative_start_seconds": 9.8,
+      "starts": 504,
+      "completions": 506,
+      "drops": 0,
+      "mean_iteration_ms": 0.7022514110671937,
+      "max_iteration_ms": 6.722411
+    },
+    {
+      "relative_start_seconds": 9.9,
+      "starts": 486,
+      "completions": 487,
+      "drops": 0,
+      "mean_iteration_ms": 0.5954899835728953,
+      "max_iteration_ms": 3.945813
+    },
+    {
+      "relative_start_seconds": 10.0,
+      "starts": 507,
+      "completions": 507,
+      "drops": 0,
+      "mean_iteration_ms": 0.3753991814595661,
+      "max_iteration_ms": 1.518217
+    },
+    {
+      "relative_start_seconds": 10.1,
+      "starts": 490,
+      "completions": 490,
+      "drops": 0,
+      "mean_iteration_ms": 0.7249208714285714,
+      "max_iteration_ms": 5.075944
+    },
+    {
+      "relative_start_seconds": 10.2,
+      "starts": 515,
+      "completions": 515,
+      "drops": 0,
+      "mean_iteration_ms": 0.39140418252427184,
+      "max_iteration_ms": 1.640301
+    },
+    {
+      "relative_start_seconds": 10.3,
+      "starts": 501,
+      "completions": 496,
+      "drops": 0,
+      "mean_iteration_ms": 0.5304221955645161,
+      "max_iteration_ms": 5.848698
+    },
+    {
+      "relative_start_seconds": 10.4,
+      "starts": 501,
+      "completions": 505,
+      "drops": 0,
+      "mean_iteration_ms": 0.47555884554455446,
+      "max_iteration_ms": 4.696816
+    },
+    {
+      "relative_start_seconds": 10.5,
+      "starts": 494,
+      "completions": 488,
+      "drops": 0,
+      "mean_iteration_ms": 0.6218609569672131,
+      "max_iteration_ms": 5.132111
+    },
+    {
+      "relative_start_seconds": 10.6,
+      "starts": 501,
+      "completions": 508,
+      "drops": 1,
+      "mean_iteration_ms": 1.0816821043307085,
+      "max_iteration_ms": 11.629979
+    },
+    {
+      "relative_start_seconds": 10.7,
+      "starts": 503,
+      "completions": 501,
+      "drops": 0,
+      "mean_iteration_ms": 0.8050259061876247,
+      "max_iteration_ms": 9.820886
+    },
+    {
+      "relative_start_seconds": 10.8,
+      "starts": 495,
+      "completions": 497,
+      "drops": 0,
+      "mean_iteration_ms": 0.37940239839034207,
+      "max_iteration_ms": 2.130345
+    },
+    {
+      "relative_start_seconds": 10.9,
+      "starts": 487,
+      "completions": 487,
+      "drops": 1,
+      "mean_iteration_ms": 1.1759815051334703,
+      "max_iteration_ms": 8.558671
+    },
+    {
+      "relative_start_seconds": 11.0,
+      "starts": 506,
+      "completions": 506,
+      "drops": 0,
+      "mean_iteration_ms": 0.4130586936758893,
+      "max_iteration_ms": 1.139507
+    },
+    {
+      "relative_start_seconds": 11.1,
+      "starts": 486,
+      "completions": 486,
+      "drops": 0,
+      "mean_iteration_ms": 0.5471968271604938,
+      "max_iteration_ms": 4.629441
+    },
+    {
+      "relative_start_seconds": 11.2,
+      "starts": 468,
+      "completions": 468,
+      "drops": 48,
+      "mean_iteration_ms": 0.5553563226495727,
+      "max_iteration_ms": 4.202189
+    },
+    {
+      "relative_start_seconds": 11.3,
+      "starts": 510,
+      "completions": 492,
+      "drops": 0,
+      "mean_iteration_ms": 0.6358689837398374,
+      "max_iteration_ms": 6.105532
+    },
+    {
+      "relative_start_seconds": 11.4,
+      "starts": 500,
+      "completions": 517,
+      "drops": 0,
+      "mean_iteration_ms": 0.38597979497098645,
+      "max_iteration_ms": 1.878885
+    },
+    {
+      "relative_start_seconds": 11.5,
+      "starts": 488,
+      "completions": 489,
+      "drops": 0,
+      "mean_iteration_ms": 0.7608861963190184,
+      "max_iteration_ms": 8.777505
+    },
+    {
+      "relative_start_seconds": 11.6,
+      "starts": 503,
+      "completions": 503,
+      "drops": 0,
+      "mean_iteration_ms": 0.4907494771371769,
+      "max_iteration_ms": 3.639811
+    },
+    {
+      "relative_start_seconds": 11.7,
+      "starts": 505,
+      "completions": 503,
+      "drops": 0,
+      "mean_iteration_ms": 0.6030695487077535,
+      "max_iteration_ms": 7.057413
+    },
+    {
+      "relative_start_seconds": 11.8,
+      "starts": 503,
+      "completions": 496,
+      "drops": 0,
+      "mean_iteration_ms": 0.3923194052419355,
+      "max_iteration_ms": 1.553217
+    },
+    {
+      "relative_start_seconds": 11.9,
+      "starts": 483,
+      "completions": 488,
+      "drops": 12,
+      "mean_iteration_ms": 0.6871097172131148,
+      "max_iteration_ms": 12.212815
+    },
+    {
+      "relative_start_seconds": 12.0,
+      "starts": 504,
+      "completions": 508,
+      "drops": 0,
+      "mean_iteration_ms": 0.45928357874015746,
+      "max_iteration_ms": 5.395779
+    },
+    {
+      "relative_start_seconds": 12.1,
+      "starts": 489,
+      "completions": 489,
+      "drops": 0,
+      "mean_iteration_ms": 1.0125600961145194,
+      "max_iteration_ms": 9.207841
+    },
+    {
+      "relative_start_seconds": 12.2,
+      "starts": 513,
+      "completions": 511,
+      "drops": 0,
+      "mean_iteration_ms": 0.4075996927592955,
+      "max_iteration_ms": 2.102095
+    },
+    {
+      "relative_start_seconds": 12.3,
+      "starts": 487,
+      "completions": 489,
+      "drops": 0,
+      "mean_iteration_ms": 0.5453783149284254,
+      "max_iteration_ms": 4.990651
+    },
+    {
+      "relative_start_seconds": 12.4,
+      "starts": 510,
+      "completions": 510,
+      "drops": 0,
+      "mean_iteration_ms": 0.45499065294117647,
+      "max_iteration_ms": 1.528884
+    },
+    {
+      "relative_start_seconds": 12.5,
+      "starts": 490,
+      "completions": 490,
+      "drops": 0,
+      "mean_iteration_ms": 0.5203332183673469,
+      "max_iteration_ms": 5.151236
+    },
+    {
+      "relative_start_seconds": 12.6,
+      "starts": 502,
+      "completions": 502,
+      "drops": 0,
+      "mean_iteration_ms": 0.5643641812749004,
+      "max_iteration_ms": 6.523535
+    },
+    {
+      "relative_start_seconds": 12.7,
+      "starts": 510,
+      "completions": 508,
+      "drops": 0,
+      "mean_iteration_ms": 0.44481452362204726,
+      "max_iteration_ms": 4.240189
+    },
+    {
+      "relative_start_seconds": 12.8,
+      "starts": 499,
+      "completions": 501,
+      "drops": 0,
+      "mean_iteration_ms": 0.3802858982035928,
+      "max_iteration_ms": 1.357507
+    },
+    {
+      "relative_start_seconds": 12.9,
+      "starts": 490,
+      "completions": 465,
+      "drops": 0,
+      "mean_iteration_ms": 0.6866035655913979,
+      "max_iteration_ms": 8.024126
+    },
+    {
+      "relative_start_seconds": 13.0,
+      "starts": 503,
+      "completions": 528,
+      "drops": 0,
+      "mean_iteration_ms": 0.6770030681818182,
+      "max_iteration_ms": 8.83488
+    },
+    {
+      "relative_start_seconds": 13.1,
+      "starts": 495,
+      "completions": 486,
+      "drops": 5,
+      "mean_iteration_ms": 1.029678316872428,
+      "max_iteration_ms": 9.592593
+    },
+    {
+      "relative_start_seconds": 13.2,
+      "starts": 509,
+      "completions": 516,
+      "drops": 0,
+      "mean_iteration_ms": 0.6016723682170543,
+      "max_iteration_ms": 3.232642
+    },
+    {
+      "relative_start_seconds": 13.3,
+      "starts": 500,
+      "completions": 488,
+      "drops": 0,
+      "mean_iteration_ms": 0.7506146946721312,
+      "max_iteration_ms": 7.040954
+    },
+    {
+      "relative_start_seconds": 13.4,
+      "starts": 495,
+      "completions": 509,
+      "drops": 0,
+      "mean_iteration_ms": 0.3798482966601179,
+      "max_iteration_ms": 1.458924
+    },
+    {
+      "relative_start_seconds": 13.5,
+      "starts": 505,
+      "completions": 496,
+      "drops": 0,
+      "mean_iteration_ms": 0.7657803568548387,
+      "max_iteration_ms": 6.052616
+    },
+    {
+      "relative_start_seconds": 13.6,
+      "starts": 487,
+      "completions": 496,
+      "drops": 0,
+      "mean_iteration_ms": 0.43848552016129033,
+      "max_iteration_ms": 2.349763
+    },
+    {
+      "relative_start_seconds": 13.7,
+      "starts": 498,
+      "completions": 492,
+      "drops": 15,
+      "mean_iteration_ms": 0.9494621097560976,
+      "max_iteration_ms": 8.30667
+    },
+    {
+      "relative_start_seconds": 13.8,
+      "starts": 498,
+      "completions": 504,
+      "drops": 0,
+      "mean_iteration_ms": 0.44347260515873016,
+      "max_iteration_ms": 2.899515
+    },
+    {
+      "relative_start_seconds": 13.9,
+      "starts": 495,
+      "completions": 495,
+      "drops": 0,
+      "mean_iteration_ms": 0.668393604040404,
+      "max_iteration_ms": 3.772561
+    },
+    {
+      "relative_start_seconds": 14.0,
+      "starts": 507,
+      "completions": 495,
+      "drops": 0,
+      "mean_iteration_ms": 0.5776301838383838,
+      "max_iteration_ms": 4.843734
+    },
+    {
+      "relative_start_seconds": 14.1,
+      "starts": 496,
+      "completions": 495,
+      "drops": 0,
+      "mean_iteration_ms": 0.5770504404040404,
+      "max_iteration_ms": 4.724525
+    },
+    {
+      "relative_start_seconds": 14.2,
+      "starts": 491,
+      "completions": 504,
+      "drops": 0,
+      "mean_iteration_ms": 0.5200088511904762,
+      "max_iteration_ms": 4.39369
+    },
+    {
+      "relative_start_seconds": 14.3,
+      "starts": 512,
+      "completions": 507,
+      "drops": 0,
+      "mean_iteration_ms": 0.5364741203155818,
+      "max_iteration_ms": 3.162225
+    },
+    {
+      "relative_start_seconds": 14.4,
+      "starts": 492,
+      "completions": 497,
+      "drops": 0,
+      "mean_iteration_ms": 0.45734097987927563,
+      "max_iteration_ms": 3.123266
+    },
+    {
+      "relative_start_seconds": 14.5,
+      "starts": 442,
+      "completions": 428,
+      "drops": 0,
+      "mean_iteration_ms": 0.5601245887850468,
+      "max_iteration_ms": 11.740854
+    },
+    {
+      "relative_start_seconds": 14.6,
+      "starts": 506,
+      "completions": 520,
+      "drops": 55,
+      "mean_iteration_ms": 1.2235629153846155,
+      "max_iteration_ms": 22.303702
+    },
+    {
+      "relative_start_seconds": 14.7,
+      "starts": 495,
+      "completions": 495,
+      "drops": 3,
+      "mean_iteration_ms": 1.2844601818181818,
+      "max_iteration_ms": 14.66512
+    },
+    {
+      "relative_start_seconds": 14.8,
+      "starts": 504,
+      "completions": 504,
+      "drops": 0,
+      "mean_iteration_ms": 0.4223319484126984,
+      "max_iteration_ms": 2.345763
+    },
+    {
+      "relative_start_seconds": 14.9,
+      "starts": 501,
+      "completions": 501,
+      "drops": 0,
+      "mean_iteration_ms": 0.487672996007984,
+      "max_iteration_ms": 2.321304
+    },
+    {
+      "relative_start_seconds": 15.0,
+      "starts": 494,
+      "completions": 494,
+      "drops": 0,
+      "mean_iteration_ms": 0.4202025809716599,
+      "max_iteration_ms": 3.223101
+    },
+    {
+      "relative_start_seconds": 15.1,
+      "starts": 507,
+      "completions": 501,
+      "drops": 0,
+      "mean_iteration_ms": 0.5958302435129741,
+      "max_iteration_ms": 4.025771
+    },
+    {
+      "relative_start_seconds": 15.2,
+      "starts": 502,
+      "completions": 504,
+      "drops": 0,
+      "mean_iteration_ms": 0.48521486507936507,
+      "max_iteration_ms": 3.714936
+    },
+    {
+      "relative_start_seconds": 15.3,
+      "starts": 497,
+      "completions": 501,
+      "drops": 0,
+      "mean_iteration_ms": 0.5733507924151696,
+      "max_iteration_ms": 5.446487
+    },
+    {
+      "relative_start_seconds": 15.4,
+      "starts": 493,
+      "completions": 493,
+      "drops": 0,
+      "mean_iteration_ms": 0.4081530081135903,
+      "max_iteration_ms": 1.5648
+    },
+    {
+      "relative_start_seconds": 15.5,
+      "starts": 510,
+      "completions": 506,
+      "drops": 0,
+      "mean_iteration_ms": 0.563715790513834,
+      "max_iteration_ms": 4.129272
+    },
+    {
+      "relative_start_seconds": 15.6,
+      "starts": 500,
+      "completions": 504,
+      "drops": 0,
+      "mean_iteration_ms": 0.350449623015873,
+      "max_iteration_ms": 1.247382
+    },
+    {
+      "relative_start_seconds": 15.7,
+      "starts": 493,
+      "completions": 492,
+      "drops": 6,
+      "mean_iteration_ms": 0.8189547357723578,
+      "max_iteration_ms": 7.34533
+    },
+    {
+      "relative_start_seconds": 15.8,
+      "starts": 494,
+      "completions": 495,
+      "drops": 0,
+      "mean_iteration_ms": 0.46791646666666664,
+      "max_iteration_ms": 2.941808
+    },
+    {
+      "relative_start_seconds": 15.9,
+      "starts": 500,
+      "completions": 491,
+      "drops": 0,
+      "mean_iteration_ms": 0.5263412138492871,
+      "max_iteration_ms": 2.832848
+    },
+    {
+      "relative_start_seconds": 16.0,
+      "starts": 500,
+      "completions": 509,
+      "drops": 0,
+      "mean_iteration_ms": 0.5589190628683693,
+      "max_iteration_ms": 5.222069
+    },
+    {
+      "relative_start_seconds": 16.1,
+      "starts": 506,
+      "completions": 505,
+      "drops": 0,
+      "mean_iteration_ms": 0.712984106930693,
+      "max_iteration_ms": 6.354034
+    },
+    {
+      "relative_start_seconds": 16.2,
+      "starts": 500,
+      "completions": 499,
+      "drops": 0,
+      "mean_iteration_ms": 0.4109049799599198,
+      "max_iteration_ms": 3.186559
+    },
+    {
+      "relative_start_seconds": 16.3,
+      "starts": 498,
+      "completions": 496,
+      "drops": 0,
+      "mean_iteration_ms": 0.45261237903225804,
+      "max_iteration_ms": 3.060474
+    },
+    {
+      "relative_start_seconds": 16.4,
+      "starts": 498,
+      "completions": 502,
+      "drops": 0,
+      "mean_iteration_ms": 0.3754876015936255,
+      "max_iteration_ms": 3.127558
+    },
+    {
+      "relative_start_seconds": 16.5,
+      "starts": 499,
+      "completions": 499,
+      "drops": 0,
+      "mean_iteration_ms": 0.4947073066132264,
+      "max_iteration_ms": 2.841806
+    },
+    {
+      "relative_start_seconds": 16.6,
+      "starts": 505,
+      "completions": 505,
+      "drops": 0,
+      "mean_iteration_ms": 0.39774352475247526,
+      "max_iteration_ms": 2.628681
+    },
+    {
+      "relative_start_seconds": 16.7,
+      "starts": 480,
+      "completions": 475,
+      "drops": 0,
+      "mean_iteration_ms": 0.4675965410526316,
+      "max_iteration_ms": 3.721144
+    },
+    {
+      "relative_start_seconds": 16.8,
+      "starts": 510,
+      "completions": 507,
+      "drops": 5,
+      "mean_iteration_ms": 0.6956491558185405,
+      "max_iteration_ms": 8.597838
+    },
+    {
+      "relative_start_seconds": 16.9,
+      "starts": 495,
+      "completions": 503,
+      "drops": 0,
+      "mean_iteration_ms": 0.8296299025844931,
+      "max_iteration_ms": 5.497571
+    },
+    {
+      "relative_start_seconds": 17.0,
+      "starts": 511,
+      "completions": 510,
+      "drops": 0,
+      "mean_iteration_ms": 0.4498036274509804,
+      "max_iteration_ms": 2.382221
+    },
+    {
+      "relative_start_seconds": 17.1,
+      "starts": 499,
+      "completions": 498,
+      "drops": 0,
+      "mean_iteration_ms": 0.691828718875502,
+      "max_iteration_ms": 5.956698
+    },
+    {
+      "relative_start_seconds": 17.2,
+      "starts": 491,
+      "completions": 493,
+      "drops": 0,
+      "mean_iteration_ms": 0.5317338154158215,
+      "max_iteration_ms": 4.460607
+    },
+    {
+      "relative_start_seconds": 17.3,
+      "starts": 497,
+      "completions": 472,
+      "drops": 0,
+      "mean_iteration_ms": 0.5394348029661017,
+      "max_iteration_ms": 4.161481
+    },
+    {
+      "relative_start_seconds": 17.4,
+      "starts": 512,
+      "completions": 525,
+      "drops": 1,
+      "mean_iteration_ms": 1.1948291390476191,
+      "max_iteration_ms": 15.900668
+    },
+    {
+      "relative_start_seconds": 17.5,
+      "starts": 423,
+      "completions": 412,
+      "drops": 0,
+      "mean_iteration_ms": 0.4326538665048544,
+      "max_iteration_ms": 10.932891
+    },
+    {
+      "relative_start_seconds": 17.6,
+      "starts": 522,
+      "completions": 543,
+      "drops": 55,
+      "mean_iteration_ms": 1.375549812154696,
+      "max_iteration_ms": 22.607786
+    },
+    {
+      "relative_start_seconds": 17.7,
+      "starts": 499,
+      "completions": 488,
+      "drops": 0,
+      "mean_iteration_ms": 0.5967515573770492,
+      "max_iteration_ms": 3.670353
+    },
+    {
+      "relative_start_seconds": 17.8,
+      "starts": 500,
+      "completions": 513,
+      "drops": 0,
+      "mean_iteration_ms": 0.5614161812865497,
+      "max_iteration_ms": 3.980146
+    },
+    {
+      "relative_start_seconds": 17.9,
+      "starts": 499,
+      "completions": 499,
+      "drops": 0,
+      "mean_iteration_ms": 0.4772335090180361,
+      "max_iteration_ms": 4.479774
+    },
+    {
+      "relative_start_seconds": 18.0,
+      "starts": 500,
+      "completions": 500,
+      "drops": 0,
+      "mean_iteration_ms": 0.380464886,
+      "max_iteration_ms": 1.703842
+    },
+    {
+      "relative_start_seconds": 18.1,
+      "starts": 498,
+      "completions": 489,
+      "drops": 0,
+      "mean_iteration_ms": 0.6129044846625767,
+      "max_iteration_ms": 5.723822
+    },
+    {
+      "relative_start_seconds": 18.2,
+      "starts": 476,
+      "completions": 485,
+      "drops": 21,
+      "mean_iteration_ms": 1.0908692515463918,
+      "max_iteration_ms": 14.275451
+    },
+    {
+      "relative_start_seconds": 18.3,
+      "starts": 492,
+      "completions": 492,
+      "drops": 0,
+      "mean_iteration_ms": 0.6524939044715448,
+      "max_iteration_ms": 7.495706
+    },
+    {
+      "relative_start_seconds": 18.4,
+      "starts": 514,
+      "completions": 509,
+      "drops": 0,
+      "mean_iteration_ms": 0.427665416502947,
+      "max_iteration_ms": 3.413477
+    },
+    {
+      "relative_start_seconds": 18.5,
+      "starts": 500,
+      "completions": 494,
+      "drops": 0,
+      "mean_iteration_ms": 0.6777593967611336,
+      "max_iteration_ms": 5.449779
+    },
+    {
+      "relative_start_seconds": 18.6,
+      "starts": 501,
+      "completions": 512,
+      "drops": 0,
+      "mean_iteration_ms": 0.504180970703125,
+      "max_iteration_ms": 3.755478
+    },
+    {
+      "relative_start_seconds": 18.7,
+      "starts": 494,
+      "completions": 494,
+      "drops": 0,
+      "mean_iteration_ms": 0.6332677773279353,
+      "max_iteration_ms": 5.400862
+    },
+    {
+      "relative_start_seconds": 18.8,
+      "starts": 497,
+      "completions": 497,
+      "drops": 0,
+      "mean_iteration_ms": 0.38234392756539237,
+      "max_iteration_ms": 4.832734
+    },
+    {
+      "relative_start_seconds": 18.9,
+      "starts": 508,
+      "completions": 508,
+      "drops": 0,
+      "mean_iteration_ms": 1.031213970472441,
+      "max_iteration_ms": 10.855433
+    },
+    {
+      "relative_start_seconds": 19.0,
+      "starts": 499,
+      "completions": 499,
+      "drops": 0,
+      "mean_iteration_ms": 0.4455384609218437,
+      "max_iteration_ms": 4.130188
+    },
+    {
+      "relative_start_seconds": 19.1,
+      "starts": 479,
+      "completions": 472,
+      "drops": 23,
+      "mean_iteration_ms": 1.135270309322034,
+      "max_iteration_ms": 15.635791
+    },
+    {
+      "relative_start_seconds": 19.2,
+      "starts": 500,
+      "completions": 506,
+      "drops": 0,
+      "mean_iteration_ms": 1.0351573774703557,
+      "max_iteration_ms": 10.753808
+    },
+    {
+      "relative_start_seconds": 19.3,
+      "starts": 493,
+      "completions": 489,
+      "drops": 0,
+      "mean_iteration_ms": 0.4707298957055215,
+      "max_iteration_ms": 2.637847
+    },
+    {
+      "relative_start_seconds": 19.4,
+      "starts": 504,
+      "completions": 509,
+      "drops": 0,
+      "mean_iteration_ms": 0.47981662475442044,
+      "max_iteration_ms": 6.063324
+    },
+    {
+      "relative_start_seconds": 19.5,
+      "starts": 503,
+      "completions": 494,
+      "drops": 0,
+      "mean_iteration_ms": 0.6606260060728745,
+      "max_iteration_ms": 4.349773
+    },
+    {
+      "relative_start_seconds": 19.6,
+      "starts": 495,
+      "completions": 504,
+      "drops": 0,
+      "mean_iteration_ms": 0.8464300694444444,
+      "max_iteration_ms": 9.351883
+    },
+    {
+      "relative_start_seconds": 19.7,
+      "starts": 493,
+      "completions": 453,
+      "drops": 1,
+      "mean_iteration_ms": 0.599838353200883,
+      "max_iteration_ms": 9.476259
+    },
+    {
+      "relative_start_seconds": 19.8,
+      "starts": 501,
+      "completions": 541,
+      "drops": 0,
+      "mean_iteration_ms": 0.8159438114602587,
+      "max_iteration_ms": 15.917834
+    },
+    {
+      "relative_start_seconds": 19.9,
+      "starts": 510,
+      "completions": 495,
+      "drops": 0,
+      "mean_iteration_ms": 0.5769508666666666,
+      "max_iteration_ms": 8.363461
+    },
+    {
+      "relative_start_seconds": 20.0,
+      "starts": 1,
+      "completions": 16,
+      "drops": 0,
+      "mean_iteration_ms": 0.4221325,
+      "max_iteration_ms": 0.608962
+    }
+  ],
+  "largest_start_gaps": [
+    {
+      "gap_ms": 19.373655319213867,
+      "from_utc": "2026-10-17T16:53:05.561182+00:00",
+      "to_utc": "2026-10-17T16:53:05.580556+00:00",
+      "relative_start_seconds": 17.584693431854248,
+      "inflight_at_gap_start": 26
+    },
+    {
+      "gap_ms": 19.257545471191406,
+      "from_utc": "2026-10-17T16:53:02.563178+00:00",
+      "to_utc": "2026-10-17T16:53:02.582436+00:00",
+      "relative_start_seconds": 14.586688995361328,
+      "inflight_at_gap_start": 20
+    },
+    {
+      "gap_ms": 18.511533737182617,
+      "from_utc": "2026-10-17T16:52:49.374436+00:00",
+      "to_utc": "2026-10-17T16:52:49.392947+00:00",
+      "relative_start_seconds": 1.3979465961456299,
+      "inflight_at_gap_start": 7
+    },
+    {
+      "gap_ms": 17.70472526550293,
+      "from_utc": "2026-10-17T16:52:59.171223+00:00",
+      "to_utc": "2026-10-17T16:52:59.188928+00:00",
+      "relative_start_seconds": 11.194734334945679,
+      "inflight_at_gap_start": 7
+    },
+    {
+      "gap_ms": 15.574216842651367,
+      "from_utc": "2026-10-17T16:52:49.184788+00:00",
+      "to_utc": "2026-10-17T16:52:49.200362+00:00",
+      "relative_start_seconds": 1.208298921585083,
+      "inflight_at_gap_start": 3
+    },
+    {
+      "gap_ms": 11.399030685424805,
+      "from_utc": "2026-10-17T16:52:52.981972+00:00",
+      "to_utc": "2026-10-17T16:52:52.993371+00:00",
+      "relative_start_seconds": 5.005483150482178,
+      "inflight_at_gap_start": 7
+    },
+    {
+      "gap_ms": 10.492801666259766,
+      "from_utc": "2026-10-17T16:52:50.154177+00:00",
+      "to_utc": "2026-10-17T16:52:50.164670+00:00",
+      "relative_start_seconds": 2.177687644958496,
+      "inflight_at_gap_start": 31
+    },
+    {
+      "gap_ms": 9.996175765991211,
+      "from_utc": "2026-10-17T16:53:06.189236+00:00",
+      "to_utc": "2026-10-17T16:53:06.199232+00:00",
+      "relative_start_seconds": 18.21274709701538,
+      "inflight_at_gap_start": 9
+    },
+    {
+      "gap_ms": 9.612560272216797,
+      "from_utc": "2026-10-17T16:52:51.760289+00:00",
+      "to_utc": "2026-10-17T16:52:51.769902+00:00",
+      "relative_start_seconds": 3.783799886703491,
+      "inflight_at_gap_start": 20
+    },
+    {
+      "gap_ms": 9.421348571777344,
+      "from_utc": "2026-10-17T16:52:48.597250+00:00",
+      "to_utc": "2026-10-17T16:52:48.606671+00:00",
+      "relative_start_seconds": 0.6207609176635742,
+      "inflight_at_gap_start": 10
+    },
+    {
+      "gap_ms": 7.550477981567383,
+      "from_utc": "2026-10-17T16:52:50.345771+00:00",
+      "to_utc": "2026-10-17T16:52:50.353322+00:00",
+      "relative_start_seconds": 2.3692822456359863,
+      "inflight_at_gap_start": 8
+    },
+    {
+      "gap_ms": 7.046699523925781,
+      "from_utc": "2026-10-17T16:52:56.146194+00:00",
+      "to_utc": "2026-10-17T16:52:56.153240+00:00",
+      "relative_start_seconds": 8.16970443725586,
+      "inflight_at_gap_start": 2
+    },
+    {
+      "gap_ms": 6.815910339355469,
+      "from_utc": "2026-10-17T16:53:07.152465+00:00",
+      "to_utc": "2026-10-17T16:53:07.159281+00:00",
+      "relative_start_seconds": 19.175975799560547,
+      "inflight_at_gap_start": 12
+    },
+    {
+      "gap_ms": 6.726980209350586,
+      "from_utc": "2026-10-17T16:53:01.747184+00:00",
+      "to_utc": "2026-10-17T16:53:01.753911+00:00",
+      "relative_start_seconds": 13.770694732666016,
+      "inflight_at_gap_start": 2
+    },
+    {
+      "gap_ms": 6.655693054199219,
+      "from_utc": "2026-10-17T16:52:57.948171+00:00",
+      "to_utc": "2026-10-17T16:52:57.954826+00:00",
+      "relative_start_seconds": 9.971681594848633,
+      "inflight_at_gap_start": 2
+    },
+    {
+      "gap_ms": 6.630897521972656,
+      "from_utc": "2026-10-17T16:52:51.745793+00:00",
+      "to_utc": "2026-10-17T16:52:51.752424+00:00",
+      "relative_start_seconds": 3.769303560256958,
+      "inflight_at_gap_start": 2
+    },
+    {
+      "gap_ms": 6.618022918701172,
+      "from_utc": "2026-10-17T16:53:06.547392+00:00",
+      "to_utc": "2026-10-17T16:53:06.554010+00:00",
+      "relative_start_seconds": 18.570903062820435,
+      "inflight_at_gap_start": 2
+    },
+    {
+      "gap_ms": 6.615400314331055,
+      "from_utc": "2026-10-17T16:53:06.953424+00:00",
+      "to_utc": "2026-10-17T16:53:06.960039+00:00",
+      "relative_start_seconds": 18.976934671401978,
+      "inflight_at_gap_start": 39
+    },
+    {
+      "gap_ms": 6.572246551513672,
+      "from_utc": "2026-10-17T16:53:05.748374+00:00",
+      "to_utc": "2026-10-17T16:53:05.754946+00:00",
+      "relative_start_seconds": 17.77188467979431,
+      "inflight_at_gap_start": 3
+    },
+    {
+      "gap_ms": 6.447792053222656,
+      "from_utc": "2026-10-17T16:53:02.146783+00:00",
+      "to_utc": "2026-10-17T16:53:02.153231+00:00",
+      "relative_start_seconds": 14.170294046401978,
+      "inflight_at_gap_start": 2
+    },
+    {
+      "gap_ms": 6.371259689331055,
+      "from_utc": "2026-10-17T16:53:07.746991+00:00",
+      "to_utc": "2026-10-17T16:53:07.753362+00:00",
+      "relative_start_seconds": 19.770501852035522,
+      "inflight_at_gap_start": 1
+    },
+    {
+      "gap_ms": 6.32023811340332,
+      "from_utc": "2026-10-17T16:52:58.586398+00:00",
+      "to_utc": "2026-10-17T16:52:58.592719+00:00",
+      "relative_start_seconds": 10.609909296035767,
+      "inflight_at_gap_start": 27
+    },
+    {
+      "gap_ms": 6.319999694824219,
+      "from_utc": "2026-10-17T16:53:00.227580+00:00",
+      "to_utc": "2026-10-17T16:53:00.233900+00:00",
+      "relative_start_seconds": 12.25109076499939,
+      "inflight_at_gap_start": 2
+    },
+    {
+      "gap_ms": 6.255149841308594,
+      "from_utc": "2026-10-17T16:53:04.147977+00:00",
+      "to_utc": "2026-10-17T16:53:04.154232+00:00",
+      "relative_start_seconds": 16.171488046646118,
+      "inflight_at_gap_start": 2
+    },
+    {
+      "gap_ms": 6.250143051147461,
+      "from_utc": "2026-10-17T16:52:51.977976+00:00",
+      "to_utc": "2026-10-17T16:52:51.984226+00:00",
+      "relative_start_seconds": 4.001486539840698,
+      "inflight_at_gap_start": 16
+    },
+    {
+      "gap_ms": 6.115198135375977,
+      "from_utc": "2026-10-17T16:52:51.794199+00:00",
+      "to_utc": "2026-10-17T16:52:51.800314+00:00",
+      "relative_start_seconds": 3.817709445953369,
+      "inflight_at_gap_start": 13
+    },
+    {
+      "gap_ms": 5.994081497192383,
+      "from_utc": "2026-10-17T16:53:02.948029+00:00",
+      "to_utc": "2026-10-17T16:53:02.954023+00:00",
+      "relative_start_seconds": 14.971539735794067,
+      "inflight_at_gap_start": 4
+    },
+    {
+      "gap_ms": 5.768299102783203,
+      "from_utc": "2026-10-17T16:52:50.147591+00:00",
+      "to_utc": "2026-10-17T16:52:50.153359+00:00",
+      "relative_start_seconds": 2.1711018085479736,
+      "inflight_at_gap_start": 1
+    },
+    {
+      "gap_ms": 5.672216415405273,
+      "from_utc": "2026-10-17T16:53:06.945623+00:00",
+      "to_utc": "2026-10-17T16:53:06.951296+00:00",
+      "relative_start_seconds": 18.96913433074951,
+      "inflight_at_gap_start": 4
+    },
+    {
+      "gap_ms": 5.65791130065918,
+      "from_utc": "2026-10-17T16:52:59.148576+00:00",
+      "to_utc": "2026-10-17T16:52:59.154234+00:00",
+      "relative_start_seconds": 11.1720871925354,
+      "inflight_at_gap_start": 2
+    }
+  ],
+  "limitations": [
+    "Inferred starts subtract reported iteration_duration from metric callback timestamps.",
+    "Callback timestamps are not exact scheduler/VU acquisition callbacks; inferred concurrency can differ at boundaries.",
+    "VU gauges are sparse snapshots and can miss short peaks.",
+    "No observation is trimmed and no new workload is executed."
+  ],
+  "drop_clusters_with_max_1ms_gap": [
+    {
+      "start": 0.6301050186157227,
+      "end": 0.6316788196563721,
+      "count": 21,
+      "inflightMin": 3,
+      "inflightMax": 50,
+      "duration_ms": 1.573801040649414,
+      "preceding_large_start_gaps": [
+        {
+          "gap_ms": 9.421348571777344,
+          "from_utc": "2026-10-17T16:52:48.597250+00:00",
+          "to_utc": "2026-10-17T16:52:48.606671+00:00",
+          "relative_start_seconds": 0.6207609176635742,
+          "inflight_at_gap_start": 10
+        }
+      ]
+    },
+    {
+      "start": 0.7811999320983887,
+      "end": 0.7826850414276123,
+      "count": 7,
+      "inflightMin": 12,
+      "inflightMax": 32,
+      "duration_ms": 1.4851093292236328,
+      "preceding_large_start_gaps": []
+    },
+    {
+      "start": 0.7870960235595703,
+      "end": 0.7876839637756348,
+      "count": 24,
+      "inflightMin": 34,
+      "inflightMax": 50,
+      "duration_ms": 0.5879402160644531,
+      "preceding_large_start_gaps": []
+    },
+    {
+      "start": 0.9830918312072754,
+      "end": 0.9830918312072754,
+      "count": 1,
+      "inflightMin": 50,
+      "inflightMax": 50,
+      "duration_ms": 0.0,
+      "preceding_large_start_gaps": []
+    },
+    {
+      "start": 1.2238609790802002,
+      "end": 1.224881887435913,
+      "count": 33,
+      "inflightMin": 0,
+      "inflightMax": 50,
+      "duration_ms": 1.0209083557128906,
+      "preceding_large_start_gaps": [
+        {
+          "gap_ms": 15.574216842651367,
+          "from_utc": "2026-10-17T16:52:49.184788+00:00",
+          "to_utc": "2026-10-17T16:52:49.200362+00:00",
+          "relative_start_seconds": 1.208298921585083,
+          "inflight_at_gap_start": 3
+        }
+      ]
+    },
+    {
+      "start": 1.4177370071411133,
+      "end": 1.4182870388031006,
+      "count": 27,
+      "inflightMin": 9,
+      "inflightMax": 39,
+      "duration_ms": 0.5500316619873047,
+      "preceding_large_start_gaps": [
+        {
+          "gap_ms": 18.511533737182617,
+          "from_utc": "2026-10-17T16:52:49.374436+00:00",
+          "to_utc": "2026-10-17T16:52:49.392947+00:00",
+          "relative_start_seconds": 1.3979465961456299,
+          "inflight_at_gap_start": 7
+        }
+      ]
+    },
+    {
+      "start": 2.188170909881592,
+      "end": 2.1920828819274902,
+      "count": 22,
+      "inflightMin": 0,
+      "inflightMax": 50,
+      "duration_ms": 3.9119720458984375,
+      "preceding_large_start_gaps": [
+        {
+          "gap_ms": 10.492801666259766,
+          "from_utc": "2026-10-17T16:52:50.154177+00:00",
+          "to_utc": "2026-10-17T16:52:50.164670+00:00",
+          "relative_start_seconds": 2.177687644958496,
+          "inflight_at_gap_start": 31
+        },
+        {
+          "gap_ms": 5.768299102783203,
+          "from_utc": "2026-10-17T16:52:50.147591+00:00",
+          "to_utc": "2026-10-17T16:52:50.153359+00:00",
+          "relative_start_seconds": 2.1711018085479736,
+          "inflight_at_gap_start": 1
+        }
+      ]
+    },
+    {
+      "start": 2.223083972930908,
+      "end": 2.2234818935394287,
+      "count": 3,
+      "inflightMin": 33,
+      "inflightMax": 50,
+      "duration_ms": 0.3979206085205078,
+      "preceding_large_start_gaps": [
+        {
+          "gap_ms": 10.492801666259766,
+          "from_utc": "2026-10-17T16:52:50.154177+00:00",
+          "to_utc": "2026-10-17T16:52:50.164670+00:00",
+          "relative_start_seconds": 2.177687644958496,
+          "inflight_at_gap_start": 31
+        },
+        {
+          "gap_ms": 5.768299102783203,
+          "from_utc": "2026-10-17T16:52:50.147591+00:00",
+          "to_utc": "2026-10-17T16:52:50.153359+00:00",
+          "relative_start_seconds": 2.1711018085479736,
+          "inflight_at_gap_start": 1
+        }
+      ]
+    },
+    {
+      "start": 2.597127914428711,
+      "end": 2.5972888469696045,
+      "count": 9,
+      "inflightMin": 39,
+      "inflightMax": 47,
+      "duration_ms": 0.1609325408935547,
+      "preceding_large_start_gaps": []
+    },
+    {
+      "start": 3.191720962524414,
+      "end": 3.1930899620056152,
+      "count": 8,
+      "inflightMin": 34,
+      "inflightMax": 47,
+      "duration_ms": 1.3689994812011719,
+      "preceding_large_start_gaps": []
+    },
+    {
+      "start": 3.793879985809326,
+      "end": 3.793879985809326,
+      "count": 1,
+      "inflightMin": 19,
+      "inflightMax": 19,
+      "duration_ms": 0.0,
+      "preceding_large_start_gaps": [
+        {
+          "gap_ms": 9.612560272216797,
+          "from_utc": "2026-10-17T16:52:51.760289+00:00",
+          "to_utc": "2026-10-17T16:52:51.769902+00:00",
+          "relative_start_seconds": 3.783799886703491,
+          "inflight_at_gap_start": 20
+        },
+        {
+          "gap_ms": 6.630897521972656,
+          "from_utc": "2026-10-17T16:52:51.745793+00:00",
+          "to_utc": "2026-10-17T16:52:51.752424+00:00",
+          "relative_start_seconds": 3.769303560256958,
+          "inflight_at_gap_start": 2
+        }
+      ]
+    },
+    {
+      "start": 3.796794891357422,
+      "end": 3.7972869873046875,
+      "count": 17,
+      "inflightMin": 24,
+      "inflightMax": 48,
+      "duration_ms": 0.492095947265625,
+      "preceding_large_start_gaps": [
+        {
+          "gap_ms": 9.612560272216797,
+          "from_utc": "2026-10-17T16:52:51.760289+00:00",
+          "to_utc": "2026-10-17T16:52:51.769902+00:00",
+          "relative_start_seconds": 3.783799886703491,
+          "inflight_at_gap_start": 20
+        },
+        {
+          "gap_ms": 6.630897521972656,
+          "from_utc": "2026-10-17T16:52:51.745793+00:00",
+          "to_utc": "2026-10-17T16:52:51.752424+00:00",
+          "relative_start_seconds": 3.769303560256958,
+          "inflight_at_gap_start": 2
+        }
+      ]
+    },
+    {
+      "start": 3.8242900371551514,
+      "end": 3.8272910118103027,
+      "count": 14,
+      "inflightMin": 24,
+      "inflightMax": 50,
+      "duration_ms": 3.000974655151367,
+      "preceding_large_start_gaps": [
+        {
+          "gap_ms": 9.612560272216797,
+          "from_utc": "2026-10-17T16:52:51.760289+00:00",
+          "to_utc": "2026-10-17T16:52:51.769902+00:00",
+          "relative_start_seconds": 3.783799886703491,
+          "inflight_at_gap_start": 20
+        },
+        {
+          "gap_ms": 6.630897521972656,
+          "from_utc": "2026-10-17T16:52:51.745793+00:00",
+          "to_utc": "2026-10-17T16:52:51.752424+00:00",
+          "relative_start_seconds": 3.769303560256958,
+          "inflight_at_gap_start": 2
+        },
+        {
+          "gap_ms": 6.115198135375977,
+          "from_utc": "2026-10-17T16:52:51.794199+00:00",
+          "to_utc": "2026-10-17T16:52:51.800314+00:00",
+          "relative_start_seconds": 3.817709445953369,
+          "inflight_at_gap_start": 13
+        }
+      ]
+    },
+    {
+      "start": 3.997745990753174,
+      "end": 3.998102903366089,
+      "count": 13,
+      "inflightMin": 38,
+      "inflightMax": 41,
+      "duration_ms": 0.35691261291503906,
+      "preceding_large_start_gaps": []
+    },
+    {
+      "start": 4.000520944595337,
+      "end": 4.000685930252075,
+      "count": 5,
+      "inflightMin": 39,
+      "inflightMax": 46,
+      "duration_ms": 0.16498565673828125,
+      "preceding_large_start_gaps": []
+    },
+    {
+      "start": 4.031895875930786,
+      "end": 4.031895875930786,
+      "count": 1,
+      "inflightMin": 50,
+      "inflightMax": 50,
+      "duration_ms": 0.0,
+      "preceding_large_start_gaps": [
+        {
+          "gap_ms": 6.250143051147461,
+          "from_utc": "2026-10-17T16:52:51.977976+00:00",
+          "to_utc": "2026-10-17T16:52:51.984226+00:00",
+          "relative_start_seconds": 4.001486539840698,
+          "inflight_at_gap_start": 16
+        }
+      ]
+    },
+    {
+      "start": 4.034880876541138,
+      "end": 4.034883975982666,
+      "count": 13,
+      "inflightMin": 48,
+      "inflightMax": 48,
+      "duration_ms": 0.0030994415283203125,
+      "preceding_large_start_gaps": [
+        {
+          "gap_ms": 6.250143051147461,
+          "from_utc": "2026-10-17T16:52:51.977976+00:00",
+          "to_utc": "2026-10-17T16:52:51.984226+00:00",
+          "relative_start_seconds": 4.001486539840698,
+          "inflight_at_gap_start": 16
+        }
+      ]
+    },
+    {
+      "start": 5.016871929168701,
+      "end": 5.018280029296875,
+      "count": 14,
+      "inflightMin": 1,
+      "inflightMax": 50,
+      "duration_ms": 1.4081001281738281,
+      "preceding_large_start_gaps": [
+        {
+          "gap_ms": 11.399030685424805,
+          "from_utc": "2026-10-17T16:52:52.981972+00:00",
+          "to_utc": "2026-10-17T16:52:52.993371+00:00",
+          "relative_start_seconds": 5.005483150482178,
+          "inflight_at_gap_start": 7
+        }
+      ]
+    },
+    {
+      "start": 5.581881999969482,
+      "end": 5.583688020706177,
+      "count": 10,
+      "inflightMin": 28,
+      "inflightMax": 48,
+      "duration_ms": 1.806020736694336,
+      "preceding_large_start_gaps": []
+    },
+    {
+      "start": 7.800545930862427,
+      "end": 7.8020830154418945,
+      "count": 18,
+      "inflightMin": 34,
+      "inflightMax": 50,
+      "duration_ms": 1.5370845794677734,
+      "preceding_large_start_gaps": []
+    },
+    {
+      "start": 8.796780824661255,
+      "end": 8.797504901885986,
+      "count": 9,
+      "inflightMin": 50,
+      "inflightMax": 50,
+      "duration_ms": 0.7240772247314453,
+      "preceding_large_start_gaps": []
+    },
+    {
+      "start": 10.61768102645874,
+      "end": 10.61768102645874,
+      "count": 1,
+      "inflightMin": 50,
+      "inflightMax": 50,
+      "duration_ms": 0.0,
+      "preceding_large_start_gaps": [
+        {
+          "gap_ms": 6.32023811340332,
+          "from_utc": "2026-10-17T16:52:58.586398+00:00",
+          "to_utc": "2026-10-17T16:52:58.592719+00:00",
+          "relative_start_seconds": 10.609909296035767,
+          "inflight_at_gap_start": 27
+        }
+      ]
+    },
+    {
+      "start": 10.99430799484253,
+      "end": 10.99430799484253,
+      "count": 1,
+      "inflightMin": 50,
+      "inflightMax": 50,
+      "duration_ms": 0.0,
+      "preceding_large_start_gaps": []
+    },
+    {
+      "start": 11.212422847747803,
+      "end": 11.214278936386108,
+      "count": 48,
+      "inflightMin": 0,
+      "inflightMax": 50,
+      "duration_ms": 1.856088638305664,
+      "preceding_large_start_gaps": [
+        {
+          "gap_ms": 17.70472526550293,
+          "from_utc": "2026-10-17T16:52:59.171223+00:00",
+          "to_utc": "2026-10-17T16:52:59.188928+00:00",
+          "relative_start_seconds": 11.194734334945679,
+          "inflight_at_gap_start": 7
+        },
+        {
+          "gap_ms": 5.65791130065918,
+          "from_utc": "2026-10-17T16:52:59.148576+00:00",
+          "to_utc": "2026-10-17T16:52:59.154234+00:00",
+          "relative_start_seconds": 11.1720871925354,
+          "inflight_at_gap_start": 2
+        }
+      ]
+    },
+    {
+      "start": 11.986083984375,
+      "end": 11.988279819488525,
+      "count": 12,
+      "inflightMin": 8,
+      "inflightMax": 47,
+      "duration_ms": 2.1958351135253906,
+      "preceding_large_start_gaps": []
+    },
+    {
+      "start": 13.184907913208008,
+      "end": 13.186478853225708,
+      "count": 5,
+      "inflightMin": 16,
+      "inflightMax": 50,
+      "duration_ms": 1.5709400177001953,
+      "preceding_large_start_gaps": []
+    },
+    {
+      "start": 13.780969858169556,
+      "end": 13.783705949783325,
+      "count": 15,
+      "inflightMin": 33,
+      "inflightMax": 50,
+      "duration_ms": 2.7360916137695312,
+      "preceding_large_start_gaps": [
+        {
+          "gap_ms": 6.726980209350586,
+          "from_utc": "2026-10-17T16:53:01.747184+00:00",
+          "to_utc": "2026-10-17T16:53:01.753911+00:00",
+          "relative_start_seconds": 13.770694732666016,
+          "inflight_at_gap_start": 2
+        }
+      ]
+    },
+    {
+      "start": 14.606039047241211,
+      "end": 14.6074800491333,
+      "count": 55,
+      "inflightMin": 1,
+      "inflightMax": 50,
+      "duration_ms": 1.4410018920898438,
+      "preceding_large_start_gaps": [
+        {
+          "gap_ms": 19.257545471191406,
+          "from_utc": "2026-10-17T16:53:02.563178+00:00",
+          "to_utc": "2026-10-17T16:53:02.582436+00:00",
+          "relative_start_seconds": 14.586688995361328,
+          "inflight_at_gap_start": 20
+        }
+      ]
+    },
+    {
+      "start": 14.788283824920654,
+      "end": 14.78869891166687,
+      "count": 3,
+      "inflightMin": 46,
+      "inflightMax": 49,
+      "duration_ms": 0.4150867462158203,
+      "preceding_large_start_gaps": []
+    },
+    {
+      "start": 15.784950971603394,
+      "end": 15.785898923873901,
+      "count": 6,
+      "inflightMin": 45,
+      "inflightMax": 48,
+      "duration_ms": 0.9479522705078125,
+      "preceding_large_start_gaps": []
+    },
+    {
+      "start": 16.8057279586792,
+      "end": 16.806519031524658,
+      "count": 5,
+      "inflightMin": 44,
+      "inflightMax": 49,
+      "duration_ms": 0.7910728454589844,
+      "preceding_large_start_gaps": []
+    },
+    {
+      "start": 17.407032012939453,
+      "end": 17.407032012939453,
+      "count": 1,
+      "inflightMin": 27,
+      "inflightMax": 27,
+      "duration_ms": 0.0,
+      "preceding_large_start_gaps": []
+    },
+    {
+      "start": 17.604137897491455,
+      "end": 17.60527992248535,
+      "count": 55,
+      "inflightMin": 2,
+      "inflightMax": 50,
+      "duration_ms": 1.1420249938964844,
+      "preceding_large_start_gaps": [
+        {
+          "gap_ms": 19.373655319213867,
+          "from_utc": "2026-10-17T16:53:05.561182+00:00",
+          "to_utc": "2026-10-17T16:53:05.580556+00:00",
+          "relative_start_seconds": 17.584693431854248,
+          "inflight_at_gap_start": 26
+        }
+      ]
+    },
+    {
+      "start": 18.222699880599976,
+      "end": 18.223685026168823,
+      "count": 21,
+      "inflightMin": 1,
+      "inflightMax": 43,
+      "duration_ms": 0.9851455688476562,
+      "preceding_large_start_gaps": [
+        {
+          "gap_ms": 9.996175765991211,
+          "from_utc": "2026-10-17T16:53:06.189236+00:00",
+          "to_utc": "2026-10-17T16:53:06.199232+00:00",
+          "relative_start_seconds": 18.21274709701538,
+          "inflight_at_gap_start": 9
+        }
+      ]
+    },
+    {
+      "start": 19.18351101875305,
+      "end": 19.185683965682983,
+      "count": 12,
+      "inflightMin": 24,
+      "inflightMax": 42,
+      "duration_ms": 2.1729469299316406,
+      "preceding_large_start_gaps": [
+        {
+          "gap_ms": 6.815910339355469,
+          "from_utc": "2026-10-17T16:53:07.152465+00:00",
+          "to_utc": "2026-10-17T16:53:07.159281+00:00",
+          "relative_start_seconds": 19.175975799560547,
+          "inflight_at_gap_start": 12
+        }
+      ]
+    },
+    {
+      "start": 19.18681788444519,
+      "end": 19.187880039215088,
+      "count": 11,
+      "inflightMin": 43,
+      "inflightMax": 50,
+      "duration_ms": 1.062154769897461,
+      "preceding_large_start_gaps": [
+        {
+          "gap_ms": 6.815910339355469,
+          "from_utc": "2026-10-17T16:53:07.152465+00:00",
+          "to_utc": "2026-10-17T16:53:07.159281+00:00",
+          "relative_start_seconds": 19.175975799560547,
+          "inflight_at_gap_start": 12
+        }
+      ]
+    },
+    {
+      "start": 19.799680948257446,
+      "end": 19.799680948257446,
+      "count": 1,
+      "inflightMin": 27,
+      "inflightMax": 27,
+      "duration_ms": 0.0,
+      "preceding_large_start_gaps": [
+        {
+          "gap_ms": 6.371259689331055,
+          "from_utc": "2026-10-17T16:53:07.746991+00:00",
+          "to_utc": "2026-10-17T16:53:07.753362+00:00",
+          "relative_start_seconds": 19.770501852035522,
+          "inflight_at_gap_start": 1
+        }
+      ]
+    }
+  ]
+}
