@@ -33,3 +33,5 @@ C15's six ordinary and async-ordinary regions were valid. Its first affected reg
 The campaign began 18:13:25.158998 UTC and stopped 18:15:36.176579 UTC. Owner cleanup 18:15:58.537801 and independent cleanup 18:17:13.897048 verified all ten child identities plus runner/flock identities absent, serial launches and the free exclusive lock. Operational preflight retained 18 related idle processes at zero CPU ticks over 0.5 seconds and only the two local-dev environment flags. Exact runtime, source, frozen helper/engine identities, invocations, native outputs, partial failure and cleanup records are published with this report.
 
 Independent C14 raw recomputation is retained in `results/joint-campaign/independent-c14-execution-hotpaths-review.txt`. C15's mechanism owner independently reviewed all 240 baseline/C15 Result samples and reached the same abandonment decision. The bounded exhaustion audit is in `REMAINING-LEADS.txt`.
+
+Independent C15 native review: https://github.com/ChilliCream/graphql-platform/blob/0ad1527b3f91d668e3e2dea6b3e8c74e9b9980ec/performance/fusion-apollo-result-slots-20261017b/results/independent-native-review.json
