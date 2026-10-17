@@ -1,3 +1,7 @@
+**Terminal decision: ABANDONED (2026-10-17).** The validated scoped allocation savings remain real within their measured scope. Genuine BenchmarkDotNet found the unaffected batch case consistently 3.18–5.72% slower than adjacent controls across both candidate launches, with an additional ordinary-case concern and noisy final control. Existing zero-delay HTTP CPU observations do not resolve that cost, and delayed/burst retention remains unmeasured. Net benefit is unproven; no further C3 BDN/VU runs or implementation PR will be created. This is a bounded decision, not a universal regression claim.
+
+See [complete BDN evidence](https://github.com/ChilliCream/graphql-platform/tree/4125af97231cff75e8b62a53b6f9d29d677f48b7/experiments/fusion-apollo-error-vars-20261017b) and [retained stopped HTTP evidence](https://github.com/ChilliCream/graphql-platform/blob/b0b775cffe53367f9b7ee6637308a50f148fe3ed/performance/fusion-apollo-duplicate-paths-20261017b/HTTP-STOPPED-REVIEW.md). Earlier gate states below describe the historical investigation before this terminal decision.
+
 # C3 duplicate representation path backing
 
 Status: QUEUED_FOR_HTTP. The corrected micro gate validates a scoped allocation saving. It does not establish a gateway improvement or qualify this prototype for a PR.
