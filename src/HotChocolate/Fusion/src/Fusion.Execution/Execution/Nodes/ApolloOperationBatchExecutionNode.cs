@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.ApolloFederation;
 using HotChocolate.Fusion.Execution.Clients;
@@ -135,6 +136,7 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
     protected override IDisposable CreateScope(OperationPlanContext context)
         => context.DiagnosticEvents.ExecuteApolloOperationBatchExecutionNode(context, this, _schemaName);
 
+    [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder<>))]
     protected override async ValueTask<ExecutionStatus> OnExecuteAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default)

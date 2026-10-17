@@ -1,0 +1,1073 @@
+<assemblies schema-version="3" id="ee18f7a8-a60a-473e-8d9a-4f647b2663af" computer="0e6603bad940" user="vscode" start-rtf="2026-10-17T17:31:27.4823751+00:00" finish-rtf="2026-10-17T17:31:28.0357033+00:00" timestamp="10/17/2026 17:31:28"><assembly environment="64-bit (ARM) .NET 10.0.12 [collection-per-class, parallel (collections, 16 threads)]" id="b61fb4f5-6d34-43d3-816d-60ffe9511c22" name="/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/bin/Release/net10.0/HotChocolate.Fusion.Execution.Tests.dll" run-date="2026-10-17" run-time="17:31:27" start-rtf="2026-10-17T17:31:27.4823751+00:00" test-framework="xUnit.net v3 4.0.1+8ed8aa354c" target-framework=".NETCoreApp,Version=v10.0" errors="0" failed="17" finish-rtf="2026-10-17T17:31:28.0357033+00:00" not-run="0" passed="14" skipped="0" time="0.553" time-rtf="00:00:00.5530000" total="31"><collection name="Test collection for HotChocolate.Fusion.Execution.OperationExecutionNodeTests (id: ab358538c2e4db2461fe49731d0a7ff3abec723685a6a58aac1aadd0acee55ff)" id="eadc3837-7138-4657-8ba7-7a2d7b645e92" failed="0" not-run="0" passed="5" skipped="0" time="0.307" time-rtf="00:00:00.3070000" total="5"><test id="03968258-982c-4c88-9b8e-eee3c325171c" name="HotChocolate.Fusion.Execution.OperationExecutionNodeTests.ExecuteAsync_Should_DisposeUnmergedResults_When_SourceStreamIsCanceled(resultCount: 1)" result="Pass" time="0.246" time-rtf="00:00:00.2460000" start-rtf="2026-10-17T17:31:27.5313108+00:00" finish-rtf="2026-10-17T17:31:27.7813603+00:00" type="HotChocolate.Fusion.Execution.OperationExecutionNodeTests" method="ExecuteAsync_Should_DisposeUnmergedResults_When_SourceStreamIsCanceled" source-file="/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/OperationExecutionNodeTests.cs" source-line="38" /><test id="1699dc7a-12d9-4460-b26c-d0fdc033c602" name="HotChocolate.Fusion.Execution.OperationExecutionNodeTests.ExecuteAsync_Should_DisposeUnmergedResults_When_SourceStreamIsCanceled(resultCount: 2)" result="Pass" time="0.006" time-rtf="00:00:00.0060000" start-rtf="2026-10-17T17:31:27.7813758+00:00" finish-rtf="2026-10-17T17:31:27.7928229+00:00" type="HotChocolate.Fusion.Execution.OperationExecutionNodeTests" method="ExecuteAsync_Should_DisposeUnmergedResults_When_SourceStreamIsCanceled" source-file="/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/OperationExecutionNodeTests.cs" source-line="38" /><test id="71f4d3d9-e653-4211-bc3c-b46e0cf4b0e2" name="HotChocolate.Fusion.Execution.OperationExecutionNodeTests.MoveNextAsync_Should_DisposeEventArena_When_EventFailsAfterArenaMinted" result="Pass" time="0.045" time-rtf="00:00:00.0450000" start-rtf="2026-10-17T17:31:27.7944430+00:00" finish-rtf="2026-10-17T17:31:27.8400210+00:00" type="HotChocolate.Fusion.Execution.OperationExecutionNodeTests" method="MoveNextAsync_Should_DisposeEventArena_When_EventFailsAfterArenaMinted" source-file="/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/OperationExecutionNodeTests.cs" source-line="67" /><test id="93af8865-05a4-4568-b405-c89d77a94b78" name="HotChocolate.Fusion.Execution.OperationExecutionNodeTests.MoveNextAsync_Should_NotDisposePriorEventArena_When_NextEventFailsBeforeArenaMinted" result="Pass" time="0.007" time-rtf="00:00:00.0070000" start-rtf="2026-10-17T17:31:27.8403186+00:00" finish-rtf="2026-10-17T17:31:27.8474750+00:00" type="HotChocolate.Fusion.Execution.OperationExecutionNodeTests" method="MoveNextAsync_Should_NotDisposePriorEventArena_When_NextEventFailsBeforeArenaMinted" source-file="/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/OperationExecutionNodeTests.cs" source-line="116" /><test id="6036c813-b6e1-4578-88d5-009f15b80467" name="HotChocolate.Fusion.Execution.OperationExecutionNodeTests.ExecuteAsync_Should_Succeed_When_SourceSchemaReturnsNoResults" result="Pass" time="0.003" time-rtf="00:00:00.0030000" start-rtf="2026-10-17T17:31:27.8476073+00:00" finish-rtf="2026-10-17T17:31:27.8514870+00:00" type="HotChocolate.Fusion.Execution.OperationExecutionNodeTests" method="ExecuteAsync_Should_Succeed_When_SourceSchemaReturnsNoResults" source-file="/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/OperationExecutionNodeTests.cs" source-line="15" /></collection><collection name="Test collection for HotChocolate.Fusion.Execution.Nodes.ApolloOperationBatchExecutionNodeTests (id: 219cd454d8656245153d50bc356ab82115cb41dd9718294b37db4d4974b9c31c)" id="c17ab3ac-23cb-49ff-9b73-7e65a0f601e3" failed="0" not-run="0" passed="6" skipped="0" time="0.237" time-rtf="00:00:00.2370000" total="6"><test id="622082cc-0566-4914-bc7c-71a8937837ca" name="HotChocolate.Fusion.Execution.Nodes.ApolloOperationBatchExecutionNodeTests.CreateFromParser_Should_MaterializeEmptyRepresentationShapes_When_BatchHasNoRequirements" result="Pass" time="0.208" time-rtf="00:00:00.2080000" start-rtf="2026-10-17T17:31:27.5313360+00:00" finish-rtf="2026-10-17T17:31:27.7446046+00:00" type="HotChocolate.Fusion.Execution.Nodes.ApolloOperationBatchExecutionNodeTests" method="CreateFromParser_Should_MaterializeEmptyRepresentationShapes_When_BatchHasNoRequirements" source-file="/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloOperationBatchExecutionNodeTests.cs" source-line="120" /><test id="b1b9c850-03f5-46d6-a0d1-dcd7147d9aff" name="HotChocolate.Fusion.Execution.Nodes.ApolloOperationBatchExecutionNodeTests.CreateFromLookup_Should_BuildPerLookupDocuments_When_TwoLookupDefinitions" result="Pass" time="0.012" time-rtf="00:00:00.0120000" start-rtf="2026-10-17T17:31:27.7469550+00:00" finish-rtf="2026-10-17T17:31:27.7592019+00:00" type="HotChocolate.Fusion.Execution.Nodes.ApolloOperationBatchExecutionNodeTests" method="CreateFromLookup_Should_BuildPerLookupDocuments_When_TwoLookupDefinitions" source-file="/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloOperationBatchExecutionNodeTests.cs" source-line="43" /><test id="45ef5ba5-d091-488c-99e7-139c09b7f5ca" name="HotChocolate.Fusion.Execution.Nodes.ApolloOperationBatchExecutionNodeTests.CreateFromLookup_Should_Throw_When_SchemaNamesDiffer" result="Pass" time="0.008" time-rtf="00:00:00.0080000" start-rtf="2026-10-17T17:31:27.7594207+00:00" finish-rtf="2026-10-17T17:31:27.7678880+00:00" type="HotChocolate.Fusion.Execution.Nodes.ApolloOperationBatchExecutionNodeTests" method="CreateFromLookup_Should_Throw_When_SchemaNamesDiffer" source-file="/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloOperationBatchExecutionNodeTests.cs" source-line="199" /><test id="c5165811-2a7e-4cf8-b666-0eebb057d2bc" name="HotChocolate.Fusion.Execution.Nodes.ApolloOperationBatchExecutionNodeTests.CreateFromParser_Should_Throw_When_LookupCountDiffers" result="Pass" time="0.002" time-rtf="00:00:00.0020000" start-rtf="2026-10-17T17:31:27.7680263+00:00" finish-rtf="2026-10-17T17:31:27.7701913+00:00" type="HotChocolate.Fusion.Execution.Nodes.ApolloOperationBatchExecutionNodeTests" method="CreateFromParser_Should_Throw_When_LookupCountDiffers" source-file="/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloOperationBatchExecutionNodeTests.cs" source-line="177" /><test id="e600061d-6fb4-478b-8796-029d2e924266" name="HotChocolate.Fusion.Execution.Nodes.ApolloOperationBatchExecutionNodeTests.CreateFromParser_Should_MaterializeEmptyRepresentationShape_When_NoRequirements" result="Pass" time="0.006" time-rtf="00:00:00.0060000" start-rtf="2026-10-17T17:31:27.7703178+00:00" finish-rtf="2026-10-17T17:31:27.7770446+00:00" type="HotChocolate.Fusion.Execution.Nodes.ApolloOperationBatchExecutionNodeTests" method="CreateFromParser_Should_MaterializeEmptyRepresentationShape_When_NoRequirements" source-file="/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloOperationBatchExecutionNodeTests.cs" source-line="89" /><test id="0b9da171-3222-44bb-bb3c-3b5a40d8db96" name="HotChocolate.Fusion.Execution.Nodes.ApolloOperationBatchExecutionNodeTests.CreateFromLookup_Should_Throw_When_SingleDefinition" result="Pass" time="0.001" time-rtf="00:00:00.0010000" start-rtf="2026-10-17T17:31:27.7771771+00:00" finish-rtf="2026-10-17T17:31:27.7791584+00:00" type="HotChocolate.Fusion.Execution.Nodes.ApolloOperationBatchExecutionNodeTests" method="CreateFromLookup_Should_Throw_When_SingleDefinition" source-file="/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloOperationBatchExecutionNodeTests.cs" source-line="159" /></collection><collection name="Test collection for HotChocolate.Fusion.Execution.Nodes.ApolloOperationExecutionNodeTests (id: 415ae847a956660a87f131916f1b8ff60f983be8de0e1dd9fb2b5d8e20ce6840)" id="79e1ae0d-e88f-4fe0-a320-e765f0f53a3b" failed="0" not-run="0" passed="1" skipped="0" time="0.251" time-rtf="00:00:00.2510000" total="1"><test id="e7f044ca-3183-49a3-9fba-1f2539cfabe6" name="HotChocolate.Fusion.Execution.Nodes.ApolloOperationExecutionNodeTests.ExecuteAsync_Should_DisposeUnmergedResult_When_SourceStreamIsCanceled" result="Pass" time="0.251" time-rtf="00:00:00.2510000" start-rtf="2026-10-17T17:31:27.5312989+00:00" finish-rtf="2026-10-17T17:31:27.7862326+00:00" type="HotChocolate.Fusion.Execution.Nodes.ApolloOperationExecutionNodeTests" method="ExecuteAsync_Should_DisposeUnmergedResult_When_SourceStreamIsCanceled" source-file="/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloOperationExecutionNodeTests.cs" source-line="18" /></collection><collection name="Test collection for HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests (id: 4162b0b49a2ae41649ed1adc0742e5989c1c7a47c4c31c7117abaffb54d433db)" id="8c0ffbe0-4912-4190-9960-aaf14f8fed52" failed="17" not-run="0" passed="2" skipped="0" time="0.463" time-rtf="00:00:00.4630000" total="19"><test id="7ff1c045-73f3-4e99-be2f-335ed97522b4" name="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreservePerRequestContext_When_SuspendedRequestsOverlap(batch: False)" result="Pass" time="0.275" time-rtf="00:00:00.2750000" start-rtf="2026-10-17T17:31:27.5313250+00:00" finish-rtf="2026-10-17T17:31:27.8107669+00:00" type="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests" method="ExecuteAsync_Should_PreservePerRequestContext_When_SuspendedRequestsOverlap" source-file="/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs" source-line="90" /><test id="802ba0a9-959f-43be-a6b2-871b822dd1cd" name="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreservePerRequestContext_When_SuspendedRequestsOverlap(batch: True)" result="Pass" time="0.031" time-rtf="00:00:00.0310000" start-rtf="2026-10-17T17:31:27.8107991+00:00" finish-rtf="2026-10-17T17:31:27.8423721+00:00" type="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests" method="ExecuteAsync_Should_PreservePerRequestContext_When_SuspendedRequestsOverlap" source-file="/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs" source-line="90" /><test id="9d82ff77-7c59-494f-a209-a746103ce6fd" name="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: False, response: \&quot;success\&quot;)" result="Fail" time="0.013" time-rtf="00:00:00.0130000" start-rtf="2026-10-17T17:31:27.8455240+00:00" finish-rtf="2026-10-17T17:31:27.8657611+00:00" type="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests" method="ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends" source-file="/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs" source-line="20"><failure exception-type="Xunit.Sdk.XunitException"><message>The snapshot does not match:
+- # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
++ # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+  
+  ## Result
+  
+  ```json
+  {
+    \"data\": {
+      \"products\": [
+        {
+          \"name\": \"One\"
+        },
+        {
+          \"name\": \"One\"
+        },
+        {
+          \"name\": \"Two\"
+        }
+      ]
+    }
+  }
+  ```
+  
+  ## Apollo Dispatches
+  
+  ```json
+  [
+    \"ApolloOperationExecutionNode\"
+  ]
+  ```
+  
+</message><stack-trace>   at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs:line 20
+   at CookieCrumble.Snapshot.MatchMarkdown() in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Snapshot.cs:line 363
+   at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs:line 70
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+--- End of stack trace from previous location ---</stack-trace></failure></test><test id="8048d532-4e56-42d2-8b2b-f7986e288a49" name="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: True, response: \&quot;source-error\&quot;)" result="Fail" time="0.011" time-rtf="00:00:00.0110000" start-rtf="2026-10-17T17:31:27.8678073+00:00" finish-rtf="2026-10-17T17:31:27.8796602+00:00" type="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests" method="ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends" source-file="/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs" source-line="20"><failure exception-type="Xunit.Sdk.XunitException"><message>The snapshot does not match:
+- # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
++ # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+  
+  ## Result
+  
+  ```json
+  {
+    \"errors\": [
+      {
+        \"message\": \"Entity failed.\",
+        \"path\": [
+          \"categories\",
+          0,
+          \"title\"
+        ]
+      },
+      {
+        \"message\": \"Entity failed.\",
+        \"path\": [
+          \"categories\",
+          1,
+          \"title\"
+        ]
+      },
+      {
+        \"message\": \"Entity failed.\",
+        \"path\": [
+          \"products\",
+          0,
+          \"name\"
+        ]
+      },
+      {
+        \"message\": \"Entity failed.\",
+        \"path\": [
+          \"products\",
+          1,
+          \"name\"
+        ]
+      }
+    ],
+    \"data\": {
+      \"products\": [
+        {
+          \"name\": null
+        },
+        {
+          \"name\": null
+        },
+        {
+          \"name\": \"Two\"
+        }
+      ],
+      \"categories\": [
+        {
+          \"title\": null
+        },
+        {
+          \"title\": null
+        },
+        {
+          \"title\": \"Two\"
+        }
+      ]
+    }
+  }
+  ```
+  
+  ## Apollo Dispatches
+  
+  ```json
+  [
+    \"ApolloOperationBatchExecutionNode: 2\"
+  ]
+  ```
+  
+</message><stack-trace>   at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs:line 20
+   at CookieCrumble.Snapshot.MatchMarkdown() in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Snapshot.cs:line 363
+   at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs:line 70
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+--- End of stack trace from previous location ---</stack-trace></failure></test><test id="13e6ec5b-f6e8-4697-b369-0cc098a904da" name="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: True, response: \&quot;protocol\&quot;)" result="Fail" time="0.008" time-rtf="00:00:00.0080000" start-rtf="2026-10-17T17:31:27.8803847+00:00" finish-rtf="2026-10-17T17:31:27.8893690+00:00" type="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests" method="ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends" source-file="/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs" source-line="20"><failure exception-type="Xunit.Sdk.XunitException"><message>The snapshot does not match:
+- # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
++ # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+  
+  ## Result
+  
+  ```json
+  {
+    \"errors\": [
+      {
+        \"message\": \"The representation result at '$._entities' must be an array but was 'Object'.\",
+        \"path\": [
+          \"categories\",
+          0,
+          \"title\"
+        ]
+      },
+      {
+        \"message\": \"The representation result at '$._entities' must be an array but was 'Object'.\",
+        \"path\": [
+          \"categories\",
+          1,
+          \"title\"
+        ]
+      },
+      {
+        \"message\": \"The representation result at '$._entities' must be an array but was 'Object'.\",
+        \"path\": [
+          \"categories\",
+          2,
+          \"title\"
+        ]
+      },
+      {
+        \"message\": \"The representation result at '$._entities' must be an array but was 'Object'.\",
+        \"path\": [
+          \"products\",
+          0,
+          \"name\"
+        ]
+      },
+      {
+        \"message\": \"The representation result at '$._entities' must be an array but was 'Object'.\",
+        \"path\": [
+          \"products\",
+          1,
+          \"name\"
+        ]
+      },
+      {
+        \"message\": \"The representation result at '$._entities' must be an array but was 'Object'.\",
+        \"path\": [
+          \"products\",
+          2,
+          \"name\"
+        ]
+      }
+    ],
+    \"data\": {
+      \"products\": [
+        {
+          \"name\": null
+        },
+        {
+          \"name\": null
+        },
+        {
+          \"name\": null
+        }
+      ],
+      \"categories\": [
+        {
+          \"title\": null
+        },
+        {
+          \"title\": null
+        },
+        {
+          \"title\": null
+        }
+      ]
+    }
+  }
+  ```
+  
+  ## Apollo Dispatches
+  
+  ```json
+  [
+    \"ApolloOperationBatchExecutionNode: 2\"
+  ]
+  ```
+  
+</message><stack-trace>   at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs:line 20
+   at CookieCrumble.Snapshot.MatchMarkdown() in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Snapshot.cs:line 363
+   at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs:line 70
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+--- End of stack trace from previous location ---</stack-trace></failure></test><test id="76ec02c8-7f50-4c44-b92e-7bfb3e105341" name="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: True, response: \&quot;null\&quot;)" result="Fail" time="0.007" time-rtf="00:00:00.0070000" start-rtf="2026-10-17T17:31:27.8893914+00:00" finish-rtf="2026-10-17T17:31:27.9019594+00:00" type="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests" method="ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends" source-file="/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs" source-line="20"><failure exception-type="Xunit.Sdk.XunitException"><message>The snapshot does not match:
+- # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
++ # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+  
+  ## Result
+  
+  ```json
+  {
+    \"data\": {
+      \"products\": [
+        {
+          \"name\": null
+        },
+        {
+          \"name\": null
+        },
+        {
+          \"name\": null
+        }
+      ],
+      \"categories\": [
+        {
+          \"title\": null
+        },
+        {
+          \"title\": null
+        },
+        {
+          \"title\": null
+        }
+      ]
+    }
+  }
+  ```
+  
+  ## Apollo Dispatches
+  
+  ```json
+  [
+    \"ApolloOperationBatchExecutionNode: 2\"
+  ]
+  ```
+  
+</message><stack-trace>   at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs:line 20
+   at CookieCrumble.Snapshot.MatchMarkdown() in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Snapshot.cs:line 363
+   at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs:line 70
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+--- End of stack trace from previous location ---</stack-trace></failure></test><test id="fc9fdb5b-a8ed-4fd8-bc82-bdcd35f09b57" name="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: True, response: \&quot;fallback\&quot;)" result="Fail" time="0.009" time-rtf="00:00:00.0090000" start-rtf="2026-10-17T17:31:27.9019864+00:00" finish-rtf="2026-10-17T17:31:27.9119678+00:00" type="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests" method="ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends" source-file="/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs" source-line="20"><failure exception-type="Xunit.Sdk.XunitException"><message>The snapshot does not match:
+- # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
++ # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+  
+  ## Result
+  
+  ```json
+  {
+    \"errors\": [
+      {
+        \"message\": \"Unexpected Execution Error\",
+        \"path\": [
+          \"categories\",
+          0,
+          \"title\"
+        ]
+      },
+      {
+        \"message\": \"Unexpected Execution Error\",
+        \"path\": [
+          \"categories\",
+          1,
+          \"title\"
+        ]
+      },
+      {
+        \"message\": \"Unexpected Execution Error\",
+        \"path\": [
+          \"categories\",
+          2,
+          \"title\"
+        ]
+      }
+    ],
+    \"data\": {
+      \"products\": [
+        {
+          \"name\": \"One\"
+        },
+        {
+          \"name\": \"One\"
+        },
+        {
+          \"name\": \"Two\"
+        }
+      ],
+      \"categories\": [
+        {
+          \"title\": null
+        },
+        {
+          \"title\": null
+        },
+        {
+          \"title\": null
+        }
+      ]
+    }
+  }
+  ```
+  
+  ## Apollo Dispatches
+  
+  ```json
+  [
+    \"ApolloOperationBatchExecutionNode: 2\"
+  ]
+  ```
+  
+</message><stack-trace>   at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs:line 20
+   at CookieCrumble.Snapshot.MatchMarkdown() in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Snapshot.cs:line 363
+   at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs:line 70
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+--- End of stack trace from previous location ---</stack-trace></failure></test><test id="2032f91e-b5ff-444c-86b1-09cc956da84d" name="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: True, response: \&quot;missing\&quot;)" result="Fail" time="0.008" time-rtf="00:00:00.0080000" start-rtf="2026-10-17T17:31:27.9119887+00:00" finish-rtf="2026-10-17T17:31:27.9207563+00:00" type="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests" method="ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends" source-file="/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs" source-line="20"><failure exception-type="Xunit.Sdk.XunitException"><message>The snapshot does not match:
+- # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
++ # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+  
+  ## Result
+  
+  ```json
+  {
+    \"errors\": [
+      {
+        \"message\": \"Unexpected Execution Error\",
+        \"path\": [
+          \"categories\",
+          0,
+          \"title\"
+        ]
+      },
+      {
+        \"message\": \"Unexpected Execution Error\",
+        \"path\": [
+          \"categories\",
+          1,
+          \"title\"
+        ]
+      },
+      {
+        \"message\": \"Unexpected Execution Error\",
+        \"path\": [
+          \"categories\",
+          2,
+          \"title\"
+        ]
+      }
+    ],
+    \"data\": {
+      \"products\": [
+        {
+          \"name\": \"One\"
+        },
+        {
+          \"name\": \"One\"
+        },
+        {
+          \"name\": \"Two\"
+        }
+      ],
+      \"categories\": [
+        {
+          \"title\": null
+        },
+        {
+          \"title\": null
+        },
+        {
+          \"title\": null
+        }
+      ]
+    }
+  }
+  ```
+  
+  ## Apollo Dispatches
+  
+  ```json
+  [
+    \"ApolloOperationBatchExecutionNode: 2\"
+  ]
+  ```
+  
+</message><stack-trace>   at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs:line 20
+   at CookieCrumble.Snapshot.MatchMarkdown() in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Snapshot.cs:line 363
+   at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs:line 70
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+--- End of stack trace from previous location ---</stack-trace></failure></test><test id="ea9c411c-da3b-48c2-9d11-f0be475f696a" name="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: True, response: \&quot;transport\&quot;)" result="Fail" time="0.008" time-rtf="00:00:00.0080000" start-rtf="2026-10-17T17:31:27.9207782+00:00" finish-rtf="2026-10-17T17:31:27.9294599+00:00" type="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests" method="ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends" source-file="/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs" source-line="20"><failure exception-type="Xunit.Sdk.XunitException"><message>The snapshot does not match:
+- # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
++ # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+  
+  ## Result
+  
+  ```json
+  {
+    \"errors\": [
+      {
+        \"message\": \"Unexpected Execution Error\",
+        \"path\": [
+          \"categories\",
+          0,
+          \"title\"
+        ]
+      },
+      {
+        \"message\": \"Unexpected Execution Error\",
+        \"path\": [
+          \"categories\",
+          1,
+          \"title\"
+        ]
+      },
+      {
+        \"message\": \"Unexpected Execution Error\",
+        \"path\": [
+          \"categories\",
+          2,
+          \"title\"
+        ]
+      },
+      {
+        \"message\": \"Unexpected Execution Error\",
+        \"path\": [
+          \"products\",
+          0,
+          \"name\"
+        ]
+      },
+      {
+        \"message\": \"Unexpected Execution Error\",
+        \"path\": [
+          \"products\",
+          1,
+          \"name\"
+        ]
+      },
+      {
+        \"message\": \"Unexpected Execution Error\",
+        \"path\": [
+          \"products\",
+          2,
+          \"name\"
+        ]
+      }
+    ],
+    \"data\": {
+      \"products\": [
+        {
+          \"name\": null
+        },
+        {
+          \"name\": null
+        },
+        {
+          \"name\": null
+        }
+      ],
+      \"categories\": [
+        {
+          \"title\": null
+        },
+        {
+          \"title\": null
+        },
+        {
+          \"title\": null
+        }
+      ]
+    }
+  }
+  ```
+  
+  ## Apollo Dispatches
+  
+  ```json
+  [
+    \"ApolloOperationBatchExecutionNode: 2\"
+  ]
+  ```
+  
+</message><stack-trace>   at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs:line 20
+   at CookieCrumble.Snapshot.MatchMarkdown() in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Snapshot.cs:line 363
+   at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs:line 70
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+--- End of stack trace from previous location ---</stack-trace></failure></test><test id="4caa88d6-c59c-4ac4-a0f5-ec3b66fdf2a5" name="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: True, response: \&quot;merge-error\&quot;)" result="Fail" time="0.009" time-rtf="00:00:00.0090000" start-rtf="2026-10-17T17:31:27.9294820+00:00" finish-rtf="2026-10-17T17:31:27.9388612+00:00" type="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests" method="ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends" source-file="/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs" source-line="20"><failure exception-type="Xunit.Sdk.XunitException"><message>The snapshot does not match:
+- # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
++ # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+  
+  ## Result
+  
+  ```json
+  {
+    \"errors\": [
+      {
+        \"message\": \"Unexpected Execution Error\",
+        \"path\": [
+          \"categories\",
+          0,
+          \"title\"
+        ]
+      },
+      {
+        \"message\": \"Unexpected Execution Error\",
+        \"path\": [
+          \"categories\",
+          1,
+          \"title\"
+        ]
+      },
+      {
+        \"message\": \"Unexpected Execution Error\",
+        \"path\": [
+          \"categories\",
+          2,
+          \"title\"
+        ]
+      },
+      {
+        \"message\": \"Unexpected Execution Error\",
+        \"path\": [
+          \"products\",
+          0,
+          \"name\"
+        ]
+      },
+      {
+        \"message\": \"Unexpected Execution Error\",
+        \"path\": [
+          \"products\",
+          1,
+          \"name\"
+        ]
+      },
+      {
+        \"message\": \"Unexpected Execution Error\",
+        \"path\": [
+          \"products\",
+          2,
+          \"name\"
+        ]
+      }
+    ],
+    \"data\": {
+      \"products\": [
+        {
+          \"name\": null
+        },
+        {
+          \"name\": null
+        },
+        {
+          \"name\": null
+        }
+      ],
+      \"categories\": [
+        {
+          \"title\": null
+        },
+        {
+          \"title\": null
+        },
+        {
+          \"title\": null
+        }
+      ]
+    }
+  }
+  ```
+  
+  ## Apollo Dispatches
+  
+  ```json
+  [
+    \"ApolloOperationBatchExecutionNode: 2\"
+  ]
+  ```
+  
+</message><stack-trace>   at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs:line 20
+   at CookieCrumble.Snapshot.MatchMarkdown() in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Snapshot.cs:line 363
+   at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs:line 70
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+--- End of stack trace from previous location ---</stack-trace></failure></test><test id="9568f122-bd7a-41ec-b309-578709e75745" name="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: True, response: \&quot;success\&quot;)" result="Fail" time="0.007" time-rtf="00:00:00.0070000" start-rtf="2026-10-17T17:31:27.9388880+00:00" finish-rtf="2026-10-17T17:31:27.9463090+00:00" type="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests" method="ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends" source-file="/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs" source-line="20"><failure exception-type="Xunit.Sdk.XunitException"><message>The snapshot does not match:
+- # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
++ # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+  
+  ## Result
+  
+  ```json
+  {
+    \"data\": {
+      \"products\": [
+        {
+          \"name\": \"One\"
+        },
+        {
+          \"name\": \"One\"
+        },
+        {
+          \"name\": \"Two\"
+        }
+      ],
+      \"categories\": [
+        {
+          \"title\": \"One\"
+        },
+        {
+          \"title\": \"One\"
+        },
+        {
+          \"title\": \"Two\"
+        }
+      ]
+    }
+  }
+  ```
+  
+  ## Apollo Dispatches
+  
+  ```json
+  [
+    \"ApolloOperationBatchExecutionNode: 2\"
+  ]
+  ```
+  
+</message><stack-trace>   at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs:line 20
+   at CookieCrumble.Snapshot.MatchMarkdown() in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Snapshot.cs:line 363
+   at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs:line 70
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+--- End of stack trace from previous location ---</stack-trace></failure></test><test id="92c66519-9828-4c93-b032-c9aa21462d83" name="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: False, response: \&quot;merge-error\&quot;)" result="Fail" time="0.009" time-rtf="00:00:00.0090000" start-rtf="2026-10-17T17:31:27.9468265+00:00" finish-rtf="2026-10-17T17:31:27.9560973+00:00" type="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests" method="ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends" source-file="/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs" source-line="20"><failure exception-type="Xunit.Sdk.XunitException"><message>The snapshot does not match:
+- # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
++ # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+  
+  ## Result
+  
+  ```json
+  {
+    \"errors\": [
+      {
+        \"message\": \"Unexpected Execution Error\",
+        \"path\": [
+          \"products\",
+          0,
+          \"name\"
+        ]
+      },
+      {
+        \"message\": \"Unexpected Execution Error\",
+        \"path\": [
+          \"products\",
+          1,
+          \"name\"
+        ]
+      },
+      {
+        \"message\": \"Unexpected Execution Error\",
+        \"path\": [
+          \"products\",
+          2,
+          \"name\"
+        ]
+      }
+    ],
+    \"data\": {
+      \"products\": [
+        {
+          \"name\": null
+        },
+        {
+          \"name\": null
+        },
+        {
+          \"name\": null
+        }
+      ]
+    }
+  }
+  ```
+  
+  ## Apollo Dispatches
+  
+  ```json
+  [
+    \"ApolloOperationExecutionNode\"
+  ]
+  ```
+  
+</message><stack-trace>   at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs:line 20
+   at CookieCrumble.Snapshot.MatchMarkdown() in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Snapshot.cs:line 363
+   at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs:line 70
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+--- End of stack trace from previous location ---</stack-trace></failure></test><test id="4bdcc3cd-0c76-428c-9fd1-5043a062a7e4" name="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: False, response: \&quot;source-error\&quot;)" result="Fail" time="0.009" time-rtf="00:00:00.0090000" start-rtf="2026-10-17T17:31:27.9561168+00:00" finish-rtf="2026-10-17T17:31:27.9697064+00:00" type="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests" method="ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends" source-file="/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs" source-line="20"><failure exception-type="Xunit.Sdk.XunitException"><message>The snapshot does not match:
+- # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
++ # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+  
+  ## Result
+  
+  ```json
+  {
+    \"errors\": [
+      {
+        \"message\": \"Entity failed.\",
+        \"path\": [
+          \"products\",
+          0,
+          \"name\"
+        ]
+      },
+      {
+        \"message\": \"Entity failed.\",
+        \"path\": [
+          \"products\",
+          1,
+          \"name\"
+        ]
+      }
+    ],
+    \"data\": {
+      \"products\": [
+        {
+          \"name\": null
+        },
+        {
+          \"name\": null
+        },
+        {
+          \"name\": \"Two\"
+        }
+      ]
+    }
+  }
+  ```
+  
+  ## Apollo Dispatches
+  
+  ```json
+  [
+    \"ApolloOperationExecutionNode\"
+  ]
+  ```
+  
+</message><stack-trace>   at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs:line 20
+   at CookieCrumble.Snapshot.MatchMarkdown() in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Snapshot.cs:line 363
+   at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs:line 70
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+--- End of stack trace from previous location ---</stack-trace></failure></test><test id="bb3e8f7c-29c3-4b0b-9ce1-52c86d2e5179" name="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: False, response: \&quot;protocol\&quot;)" result="Fail" time="0.008" time-rtf="00:00:00.0080000" start-rtf="2026-10-17T17:31:27.9697280+00:00" finish-rtf="2026-10-17T17:31:27.9786362+00:00" type="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests" method="ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends" source-file="/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs" source-line="20"><failure exception-type="Xunit.Sdk.XunitException"><message>The snapshot does not match:
+- # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
++ # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+  
+  ## Result
+  
+  ```json
+  {
+    \"errors\": [
+      {
+        \"message\": \"The representation result at '$._entities' must be an array but was 'Object'.\",
+        \"path\": [
+          \"products\",
+          0,
+          \"name\"
+        ]
+      },
+      {
+        \"message\": \"The representation result at '$._entities' must be an array but was 'Object'.\",
+        \"path\": [
+          \"products\",
+          1,
+          \"name\"
+        ]
+      },
+      {
+        \"message\": \"The representation result at '$._entities' must be an array but was 'Object'.\",
+        \"path\": [
+          \"products\",
+          2,
+          \"name\"
+        ]
+      }
+    ],
+    \"data\": {
+      \"products\": [
+        {
+          \"name\": null
+        },
+        {
+          \"name\": null
+        },
+        {
+          \"name\": null
+        }
+      ]
+    }
+  }
+  ```
+  
+  ## Apollo Dispatches
+  
+  ```json
+  [
+    \"ApolloOperationExecutionNode\"
+  ]
+  ```
+  
+</message><stack-trace>   at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs:line 20
+   at CookieCrumble.Snapshot.MatchMarkdown() in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Snapshot.cs:line 363
+   at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs:line 70
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+--- End of stack trace from previous location ---</stack-trace></failure></test><test id="e09249cb-71b1-4453-b814-3c76d0cbe954" name="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: False, response: \&quot;null\&quot;)" result="Fail" time="0.018" time-rtf="00:00:00.0180000" start-rtf="2026-10-17T17:31:27.9786658+00:00" finish-rtf="2026-10-17T17:31:27.9972180+00:00" type="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests" method="ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends" source-file="/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs" source-line="20"><failure exception-type="Xunit.Sdk.XunitException"><message>The snapshot does not match:
+- # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
++ # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+  
+  ## Result
+  
+  ```json
+  {
+    \"data\": {
+      \"products\": [
+        {
+          \"name\": null
+        },
+        {
+          \"name\": null
+        },
+        {
+          \"name\": null
+        }
+      ]
+    }
+  }
+  ```
+  
+  ## Apollo Dispatches
+  
+  ```json
+  [
+    \"ApolloOperationExecutionNode\"
+  ]
+  ```
+  
+</message><stack-trace>   at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs:line 20
+   at CookieCrumble.Snapshot.MatchMarkdown() in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Snapshot.cs:line 363
+   at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs:line 70
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+--- End of stack trace from previous location ---</stack-trace></failure></test><test id="79db49a9-4e0c-4c1f-83d0-c84ce1b622ef" name="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: False, response: \&quot;missing\&quot;)" result="Fail" time="0.007" time-rtf="00:00:00.0070000" start-rtf="2026-10-17T17:31:27.9972383+00:00" finish-rtf="2026-10-17T17:31:28.0053794+00:00" type="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests" method="ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends" source-file="/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs" source-line="20"><failure exception-type="Xunit.Sdk.XunitException"><message>The snapshot does not match:
+- # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
++ # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+  
+  ## Result
+  
+  ```json
+  {
+    \"data\": {
+      \"products\": [
+        {
+          \"name\": null
+        },
+        {
+          \"name\": null
+        },
+        {
+          \"name\": null
+        }
+      ]
+    }
+  }
+  ```
+  
+  ## Apollo Dispatches
+  
+  ```json
+  [
+    \"ApolloOperationExecutionNode\"
+  ]
+  ```
+  
+</message><stack-trace>   at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs:line 20
+   at CookieCrumble.Snapshot.MatchMarkdown() in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Snapshot.cs:line 363
+   at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs:line 70
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+--- End of stack trace from previous location ---</stack-trace></failure></test><test id="b45950df-ef86-4030-a385-837c67a42497" name="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: False, response: \&quot;transport\&quot;)" result="Fail" time="0.013" time-rtf="00:00:00.0130000" start-rtf="2026-10-17T17:31:28.0054064+00:00" finish-rtf="2026-10-17T17:31:28.0191830+00:00" type="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests" method="ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends" source-file="/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs" source-line="20"><failure exception-type="Xunit.Sdk.XunitException"><message>The snapshot does not match:
+- # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
++ # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+  
+  ## Result
+  
+  ```json
+  {
+    \"errors\": [
+      {
+        \"message\": \"Unexpected Execution Error\",
+        \"path\": [
+          \"products\",
+          0,
+          \"name\"
+        ]
+      },
+      {
+        \"message\": \"Unexpected Execution Error\",
+        \"path\": [
+          \"products\",
+          1,
+          \"name\"
+        ]
+      },
+      {
+        \"message\": \"Unexpected Execution Error\",
+        \"path\": [
+          \"products\",
+          2,
+          \"name\"
+        ]
+      }
+    ],
+    \"data\": {
+      \"products\": [
+        {
+          \"name\": null
+        },
+        {
+          \"name\": null
+        },
+        {
+          \"name\": null
+        }
+      ]
+    }
+  }
+  ```
+  
+  ## Apollo Dispatches
+  
+  ```json
+  [
+    \"ApolloOperationExecutionNode\"
+  ]
+  ```
+  
+</message><stack-trace>   at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs:line 20
+   at CookieCrumble.Snapshot.MatchMarkdown() in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Snapshot.cs:line 363
+   at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs:line 70
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+--- End of stack trace from previous location ---</stack-trace></failure></test><test id="20fd0e25-1f6f-4d19-b2d5-7637305d6100" name="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: False, response: \&quot;cancel\&quot;)" result="Fail" time="0.008" time-rtf="00:00:00.0080000" start-rtf="2026-10-17T17:31:28.0192086+00:00" finish-rtf="2026-10-17T17:31:28.0281801+00:00" type="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests" method="ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends" source-file="/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs" source-line="20"><failure exception-type="Xunit.Sdk.XunitException"><message>The snapshot does not match:
+- # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
++ # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+  
+  ## Result
+  
+  ```json
+  {
+    \"errors\": [
+      {
+        \"message\": \"The GraphQL request execution was canceled.\",
+        \"extensions\": {
+          \"code\": \"HC0049\"
+        }
+      }
+    ]
+  }
+  ```
+  
+  ## Apollo Dispatches
+  
+  ```json
+  [
+    \"ApolloOperationExecutionNode\"
+  ]
+  ```
+  
+  ## Canceled Result Disposal
+  
+  ```json
+  [
+    \"ObjectDisposedException\"
+  ]
+  ```
+  
+</message><stack-trace>   at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs:line 20
+   at CookieCrumble.Snapshot.MatchMarkdown() in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Snapshot.cs:line 363
+   at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs:line 70
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+--- End of stack trace from previous location ---</stack-trace></failure></test><test id="aaf56eb7-341e-4d83-87ef-11bbeebc071e" name="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: True, response: \&quot;cancel\&quot;)" result="Fail" time="0.005" time-rtf="00:00:00.0050000" start-rtf="2026-10-17T17:31:28.0281998+00:00" finish-rtf="2026-10-17T17:31:28.0342476+00:00" type="HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests" method="ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends" source-file="/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs" source-line="20"><failure exception-type="Xunit.Sdk.XunitException"><message>The snapshot does not match:
+- # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
++ # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+  
+  ## Result
+  
+  ```json
+  {
+    \"errors\": [
+      {
+        \"message\": \"The GraphQL request execution was canceled.\",
+        \"extensions\": {
+          \"code\": \"HC0049\"
+        }
+      }
+    ]
+  }
+  ```
+  
+  ## Apollo Dispatches
+  
+  ```json
+  [
+    \"ApolloOperationBatchExecutionNode: 2\"
+  ]
+  ```
+  
+  ## Canceled Result Disposal
+  
+  ```json
+  [
+    \"ObjectDisposedException\"
+  ]
+  ```
+  
+</message><stack-trace>   at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs:line 20
+   at CookieCrumble.Snapshot.MatchMarkdown() in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Snapshot.cs:line 363
+   at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs:line 70
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+   at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response) in /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs:line 87
+--- End of stack trace from previous location ---</stack-trace></failure></test></collection></assembly></assemblies>

@@ -1,0 +1,170 @@
+{
+  "enginePath": "/workspaces/platform-1/.worktrees/fusion-apollo-signal-workitem-20261017b/src/HotChocolate/Fusion/src/Fusion.Execution/bin/Release/net10.0/HotChocolate.Fusion.Execution.dll",
+  "engineSha256": "47ee1835e551e45ccabf940c15ba915230c23f03c6efe1de9981d55d528453c6",
+  "runtime": ".NET 10.0.12",
+  "rows": [
+    {
+      "typeName": "ApolloOperationExecutionNode",
+      "stateMachine": "HotChocolate.Fusion.Execution.Nodes.ApolloOperationExecutionNode\u002B\u003COnExecuteAsync\u003Ed__38",
+      "stateSize": 176,
+      "fields": [
+        {
+          "Name": "\u003C\u003E1__state",
+          "type": "System.Int32"
+        },
+        {
+          "Name": "\u003C\u003Et__builder",
+          "type": "System.Runtime.CompilerServices.AsyncValueTaskMethodBuilder\u00601[[HotChocolate.Fusion.Execution.Nodes.ExecutionStatus, HotChocolate.Fusion.Execution, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]"
+        },
+        {
+          "Name": "context",
+          "type": "HotChocolate.Fusion.Execution.OperationPlanContext"
+        },
+        {
+          "Name": "\u003C\u003E4__this",
+          "type": "HotChocolate.Fusion.Execution.Nodes.ApolloOperationExecutionNode"
+        },
+        {
+          "Name": "cancellationToken",
+          "type": "System.Threading.CancellationToken"
+        },
+        {
+          "Name": "\u003CdiagnosticEvents\u003E5__2",
+          "type": "HotChocolate.Fusion.Diagnostics.IFusionExecutionDiagnosticEvents"
+        },
+        {
+          "Name": "\u003Crepresentation\u003E5__3",
+          "type": "HotChocolate.Fusion.Execution.RepresentationValue"
+        },
+        {
+          "Name": "\u003Cvariables\u003E5__4",
+          "type": "System.Collections.Immutable.ImmutableArray\u00601[[HotChocolate.Fusion.Execution.VariableValues, HotChocolate.Fusion.Execution, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]"
+        },
+        {
+          "Name": "\u003CschemaName\u003E5__5",
+          "type": "System.String"
+        },
+        {
+          "Name": "\u003Cresult\u003E5__6",
+          "type": "HotChocolate.Fusion.Execution.Clients.SourceSchemaResult"
+        },
+        {
+          "Name": "\u003ChasSomeErrors\u003E5__7",
+          "type": "System.Boolean"
+        },
+        {
+          "Name": "\u003CclientScope\u003E5__8",
+          "type": "System.IDisposable"
+        },
+        {
+          "Name": "\u003C\u003E7__wrap8",
+          "type": "System.Runtime.CompilerServices.ConfiguredCancelableAsyncEnumerable\u00601\u002BEnumerator[[HotChocolate.Fusion.Execution.Clients.SourceSchemaResult, HotChocolate.Fusion.Execution, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]"
+        },
+        {
+          "Name": "\u003C\u003E7__wrap9",
+          "type": "System.Object"
+        },
+        {
+          "Name": "\u003C\u003E7__wrap10",
+          "type": "System.Int32"
+        },
+        {
+          "Name": "\u003C\u003Eu__1",
+          "type": "System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable\u00601\u002BConfiguredValueTaskAwaiter[[System.Boolean, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]"
+        },
+        {
+          "Name": "\u003C\u003Eu__2",
+          "type": "System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable\u002BConfiguredValueTaskAwaiter"
+        }
+      ]
+    },
+    {
+      "typeName": "ApolloOperationBatchExecutionNode",
+      "stateMachine": "HotChocolate.Fusion.Execution.Nodes.ApolloOperationBatchExecutionNode\u002B\u003COnExecuteAsync\u003Ed__21",
+      "stateSize": 176,
+      "fields": [
+        {
+          "Name": "\u003C\u003E1__state",
+          "type": "System.Int32"
+        },
+        {
+          "Name": "\u003C\u003Et__builder",
+          "type": "System.Runtime.CompilerServices.AsyncValueTaskMethodBuilder\u00601[[HotChocolate.Fusion.Execution.Nodes.ExecutionStatus, HotChocolate.Fusion.Execution, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]"
+        },
+        {
+          "Name": "context",
+          "type": "HotChocolate.Fusion.Execution.OperationPlanContext"
+        },
+        {
+          "Name": "\u003C\u003E4__this",
+          "type": "HotChocolate.Fusion.Execution.Nodes.ApolloOperationBatchExecutionNode"
+        },
+        {
+          "Name": "cancellationToken",
+          "type": "System.Threading.CancellationToken"
+        },
+        {
+          "Name": "\u003CdiagnosticEvents\u003E5__2",
+          "type": "HotChocolate.Fusion.Diagnostics.IFusionExecutionDiagnosticEvents"
+        },
+        {
+          "Name": "\u003CschemaName\u003E5__3",
+          "type": "System.String"
+        },
+        {
+          "Name": "\u003CoperationByIndex\u003E5__4",
+          "type": "HotChocolate.Fusion.Execution.Nodes.SingleOperationDefinition[]"
+        },
+        {
+          "Name": "\u003CrepresentationByIndex\u003E5__5",
+          "type": "HotChocolate.Fusion.Execution.RepresentationValue[]"
+        },
+        {
+          "Name": "\u003CvariablesByIndex\u003E5__6",
+          "type": "System.Collections.Immutable.ImmutableArray\u00601[[HotChocolate.Fusion.Execution.VariableValues, HotChocolate.Fusion.Execution, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]][]"
+        },
+        {
+          "Name": "\u003CreceivedResults\u003E5__7",
+          "type": "System.Boolean[]"
+        },
+        {
+          "Name": "\u003CoperationCount\u003E5__8",
+          "type": "System.Int32"
+        },
+        {
+          "Name": "\u003CoverallStatus\u003E5__9",
+          "type": "HotChocolate.Fusion.Execution.Nodes.ExecutionStatus"
+        },
+        {
+          "Name": "\u003CclientScope\u003E5__10",
+          "type": "System.IDisposable"
+        },
+        {
+          "Name": "\u003C\u003E7__wrap10",
+          "type": "System.Runtime.CompilerServices.ConfiguredCancelableAsyncEnumerable\u00601\u002BEnumerator[[HotChocolate.Fusion.Execution.Clients.SourceSchemaBatchResult, HotChocolate.Fusion.Execution, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]"
+        },
+        {
+          "Name": "\u003C\u003E7__wrap11",
+          "type": "System.Object"
+        },
+        {
+          "Name": "\u003C\u003E7__wrap12",
+          "type": "System.Int32"
+        },
+        {
+          "Name": "\u003C\u003E7__wrap13",
+          "type": "HotChocolate.Fusion.Execution.Nodes.ExecutionStatus"
+        },
+        {
+          "Name": "\u003C\u003Eu__1",
+          "type": "System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable\u00601\u002BConfiguredValueTaskAwaiter[[System.Boolean, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]"
+        },
+        {
+          "Name": "\u003C\u003Eu__2",
+          "type": "System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable\u002BConfiguredValueTaskAwaiter"
+        }
+      ]
+    }
+  ],
+  "limitation": "Unsafe.SizeOf reports the generated state struct layout, not boxed object allocation. This audit performs no timing or allocation measurement."
+}

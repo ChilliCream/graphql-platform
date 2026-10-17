@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.ApolloFederation;
@@ -188,6 +189,7 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
     /// </summary>
     public bool RequiresFileUpload => _requiresFileUpload;
 
+    [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder<>))]
     protected override async ValueTask<ExecutionStatus> OnExecuteAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default)

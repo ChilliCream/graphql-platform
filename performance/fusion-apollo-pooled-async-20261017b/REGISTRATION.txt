@@ -1,0 +1,32 @@
+C8: Pool suspended Apollo execution state machines
+Status: QUEUED_FOR_MICRO. No benchmark has run and no performance benefit is established.
+Owner: execution_hotpaths.
+Baseline: 43a8dca2bd479ddc411d832ed97e42d9fcc8bd85.
+Worktree: .worktrees/fusion-apollo-pooled-async-20261017b.
+Branch: perf/fusion-apollo-pooled-async-20261017b.
+
+Warm evidence and absolute scope
+The fresh original-query allocation trace contains 682 ticks for the ApolloOperationBatchExecutionNode.OnExecuteAsync state-machine box and 142 ticks for ApolloOperationExecutionNode.OnExecuteAsync. These are recurring suspended source-fetch executions. Sampling locates the allocations; it does not establish exact bytes or invocation counts. Source: immutable discovery revision 2c47637e385c25a3cea65d8df1d9be8b4a37871e, performance/fusion-apollo-discovery-20261017b/results/alloc-summary.json.
+
+The included LayoutAudit uses Unsafe.SizeOf on compiler-generated state structs from the exact frozen baseline Execution DLL 9c436477e63d9c7f5c8668dcd75fec9771f500a5e71b14a1f02dd0bcf8fe6c5b. Both structs are 176 bytes. This is a structural layout query, not an allocation benchmark; a new box also has object and builder fields. Each successful reuse can avoid a box containing this payload, but cache hits and whole-request savings are not measured. An initial audit of the C6 engine gives the same layouts and is retained separately.
+
+Prototype and consumption contract
+The patch adds AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder<>)) to the two protected OnExecuteAsync overrides, plus a required using directive. Both node classes are sealed. ExecutionNode.ExecuteAsync is their sole source caller and awaits the returned ValueTask<ExecutionStatus> exactly once with ConfigureAwait(false). The fire-and-forget outer ExecuteAsync remains unchanged and unpooled. Source-result ownership, exception handling, cancellation, result merging and plan format are unchanged.
+
+Pinned runtime contract: https://raw.githubusercontent.com/dotnet/runtime/v10.0.12/src/libraries/System.Private.CoreLib/src/System/Runtime/CompilerServices/PoolingAsyncValueTaskMethodBuilderT.cs . GetResult returns boxes in a finally block. ReturnToCache clears the generated state and captured ExecutionContext and resets the value-task source. Each generated method has one thread-local cache slot per participating thread and one slot per logical processor. There is no fixed global participating-thread bound. Retained objects do not retain prior request state after reset, but retained box count/capacity and cache miss rates still require assessment. These statements summarize the cited runtime implementation, not a measured heap snapshot.
+
+Independent review
+response_hotpaths reviewed both sealed overrides and the base caller. No storage, copying, AsTask or second await of these protected ValueTasks was found. The outer completion finally remains intact. No consumption or ownership blocker was found, subject to genuine suspension, errors, cancellation and context-isolation tests.
+
+Correctness
+Release net10.0 build passed with zero errors and two existing ASP.NET obsolescence warnings. Thirty-one focused tests passed on .NET 10.0.12: seventeen actual suspended-source result/error/cancellation cases; two overlapping execution tests with distinct AsyncLocal values, each completing three waves of sixteen requests; and twelve existing Apollo/native execution tests. Both single and real two-operation Apollo batch dispatch are asserted.
+
+The seventeen result/error/disposal oracles were reused from the published C2 correctness evidence, with source suspension introduced before entity results. All initial failures were snapshot headings still naming the prior method. Every mismatched file was checked to differ only by the renamed heading, then copied from __mismatch__. No result, ordering, error or disposal content changed. A first correction searched the wrong mismatch directory and changed no files; its repeated failed run is retained. Final tests passed after the actual heading correction. Snapshot and fixture provenance is recorded separately.
+
+Benchmark gate
+The shared async BenchmarkDotNet owner is benchmark_baseline. Use synchronous ordinary control plus genuinely asynchronous Apollo single-nine and batch-nine cases. Check-only gated source completion must verify an Apollo node remains suspended before release. Reuse one common harness and all dependencies, varying only frozen Execution DLL/PDB. Match baseline and independent C6/C8 overlays; never stack candidates. Use default runtime GC policy for timing, retain every observation and outlier, and use bounded interleaved controls. Allocation evidence must use a validated method and state its scope. BDN elapsed time is not CPU per operation.
+
+A reliable hot-path allocation saving can qualify without a speedup, but meaningful additional CPU cost or unresolved adverse control comparisons disqualify the candidate. The exact mean/ratio/allocated table must report measured arithmetic means. No VU run before a positive BDN gate. Any qualifying candidate must then pass relevant original-query, ordinary, concurrency and retention HTTP checks before a minimal draft PR. Inconclusive valid evidence ends the candidate without favorable-result retries.
+
+Exclusions
+This is independent of all twenty-five authored-PR mechanisms, C1 dedup-table reuse, C2 error variable arrays, C3 duplicate path arrays, C4 alias mapping arrays, C5 metadata lookup and C6 signal work items. No unrelated production change is included.

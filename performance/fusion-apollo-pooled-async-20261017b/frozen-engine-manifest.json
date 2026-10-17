@@ -1,0 +1,12 @@
+{
+  "candidate": "C8",
+  "base": "43a8dca2bd479ddc411d832ed97e42d9fcc8bd85",
+  "utc": "2026-10-17T17:31:51.141508+00:00",
+  "files": {
+    "/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Nodes/ApolloOperationExecutionNode.cs": "26ed2e8e35944e5663deb5848dfe49cd6e7e215f729a67cf5bf8438b86d2d1e9",
+    "/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Nodes/ApolloOperationBatchExecutionNode.cs": "6e0721d9b58a283667e0ca4a58b049400e62b098540cee8e356eab7a54147707",
+    "/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs": "54310cccdbc4354a6ea5c38a7060970aa9c470d08424e0a8d8384ee25f036029",
+    "/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/perf/fusion-apollo-pooled-async-20261017b-43a8dca2/frozen-engine/HotChocolate.Fusion.Execution.dll": "11c4eb01f6f72d1d822d33a26a46ec48ae144236e58eb72e9e0ee1704eb14951",
+    "/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/perf/fusion-apollo-pooled-async-20261017b-43a8dca2/frozen-engine/HotChocolate.Fusion.Execution.pdb": "7e075f75fa3af8a47e1d78b2bf94356c5cff966ae3d6e49da0ef3454256d8ff6"
+  }
+}

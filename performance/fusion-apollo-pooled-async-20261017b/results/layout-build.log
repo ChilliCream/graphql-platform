@@ -1,0 +1,10 @@
+  Determining projects to restore...
+  Restored /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/performance/fusion-apollo-pooled-async-20261017b/LayoutAudit/LayoutAudit.csproj (in 3 ms).
+/usr/share/dotnet/sdk/11.0.100-rc.1.26425.128/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.RuntimeIdentifierInference.targets(385,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [/workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/performance/fusion-apollo-pooled-async-20261017b/LayoutAudit/LayoutAudit.csproj]
+  LayoutAudit -> /workspaces/platform-1/.worktrees/fusion-apollo-pooled-async-20261017b/performance/fusion-apollo-pooled-async-20261017b/LayoutAudit/bin/Release/net10.0/LayoutAudit.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:00.10

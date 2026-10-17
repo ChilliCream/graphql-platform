@@ -1,0 +1,1147 @@
+xUnit.net v3 In-Process Runner v4.0.1+8ed8aa354c (64-bit .NET 10.0.12)
+  Discovering: HotChocolate.Fusion.Execution.Tests
+  Discovered:  HotChocolate.Fusion.Execution.Tests
+  Starting:    HotChocolate.Fusion.Execution.Tests
+    HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: False, response: "success") [FAIL]
+      The snapshot does not match:
+      - # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
+      + # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+        
+        ## Result
+        
+        ```json
+        {
+          "data": {
+            "products": [
+              {
+                "name": "One"
+              },
+              {
+                "name": "One"
+              },
+              {
+                "name": "Two"
+              }
+            ]
+          }
+        }
+        ```
+        
+        ## Apollo Dispatches
+        
+        ```json
+        [
+          "ApolloOperationExecutionNode"
+        ]
+        ```
+        
+      
+      Stack Trace:
+        src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs(20,0): at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message)
+        src/CookieCrumble/src/CookieCrumble/Snapshot.cs(363,0): at CookieCrumble.Snapshot.MatchMarkdown()
+        src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs(70,0): at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        --- End of stack trace from previous location ---
+    HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: True, response: "source-error") [FAIL]
+      The snapshot does not match:
+      - # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
+      + # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+        
+        ## Result
+        
+        ```json
+        {
+          "errors": [
+            {
+              "message": "Entity failed.",
+              "path": [
+                "categories",
+                0,
+                "title"
+              ]
+            },
+            {
+              "message": "Entity failed.",
+              "path": [
+                "categories",
+                1,
+                "title"
+              ]
+            },
+            {
+              "message": "Entity failed.",
+              "path": [
+                "products",
+                0,
+                "name"
+              ]
+            },
+            {
+              "message": "Entity failed.",
+              "path": [
+                "products",
+                1,
+                "name"
+              ]
+            }
+          ],
+          "data": {
+            "products": [
+              {
+                "name": null
+              },
+              {
+                "name": null
+              },
+              {
+                "name": "Two"
+              }
+            ],
+            "categories": [
+              {
+                "title": null
+              },
+              {
+                "title": null
+              },
+              {
+                "title": "Two"
+              }
+            ]
+          }
+        }
+        ```
+        
+        ## Apollo Dispatches
+        
+        ```json
+        [
+          "ApolloOperationBatchExecutionNode: 2"
+        ]
+        ```
+        
+      
+      Stack Trace:
+        src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs(20,0): at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message)
+        src/CookieCrumble/src/CookieCrumble/Snapshot.cs(363,0): at CookieCrumble.Snapshot.MatchMarkdown()
+        src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs(70,0): at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        --- End of stack trace from previous location ---
+    HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: True, response: "protocol") [FAIL]
+      The snapshot does not match:
+      - # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
+      + # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+        
+        ## Result
+        
+        ```json
+        {
+          "errors": [
+            {
+              "message": "The representation result at '$._entities' must be an array but was 'Object'.",
+              "path": [
+                "categories",
+                0,
+                "title"
+              ]
+            },
+            {
+              "message": "The representation result at '$._entities' must be an array but was 'Object'.",
+              "path": [
+                "categories",
+                1,
+                "title"
+              ]
+            },
+            {
+              "message": "The representation result at '$._entities' must be an array but was 'Object'.",
+              "path": [
+                "categories",
+                2,
+                "title"
+              ]
+            },
+            {
+              "message": "The representation result at '$._entities' must be an array but was 'Object'.",
+              "path": [
+                "products",
+                0,
+                "name"
+              ]
+            },
+            {
+              "message": "The representation result at '$._entities' must be an array but was 'Object'.",
+              "path": [
+                "products",
+                1,
+                "name"
+              ]
+            },
+            {
+              "message": "The representation result at '$._entities' must be an array but was 'Object'.",
+              "path": [
+                "products",
+                2,
+                "name"
+              ]
+            }
+          ],
+          "data": {
+            "products": [
+              {
+                "name": null
+              },
+              {
+                "name": null
+              },
+              {
+                "name": null
+              }
+            ],
+            "categories": [
+              {
+                "title": null
+              },
+              {
+                "title": null
+              },
+              {
+                "title": null
+              }
+            ]
+          }
+        }
+        ```
+        
+        ## Apollo Dispatches
+        
+        ```json
+        [
+          "ApolloOperationBatchExecutionNode: 2"
+        ]
+        ```
+        
+      
+      Stack Trace:
+        src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs(20,0): at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message)
+        src/CookieCrumble/src/CookieCrumble/Snapshot.cs(363,0): at CookieCrumble.Snapshot.MatchMarkdown()
+        src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs(70,0): at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        --- End of stack trace from previous location ---
+    HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: True, response: "null") [FAIL]
+      The snapshot does not match:
+      - # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
+      + # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+        
+        ## Result
+        
+        ```json
+        {
+          "data": {
+            "products": [
+              {
+                "name": null
+              },
+              {
+                "name": null
+              },
+              {
+                "name": null
+              }
+            ],
+            "categories": [
+              {
+                "title": null
+              },
+              {
+                "title": null
+              },
+              {
+                "title": null
+              }
+            ]
+          }
+        }
+        ```
+        
+        ## Apollo Dispatches
+        
+        ```json
+        [
+          "ApolloOperationBatchExecutionNode: 2"
+        ]
+        ```
+        
+      
+      Stack Trace:
+        src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs(20,0): at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message)
+        src/CookieCrumble/src/CookieCrumble/Snapshot.cs(363,0): at CookieCrumble.Snapshot.MatchMarkdown()
+        src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs(70,0): at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        --- End of stack trace from previous location ---
+    HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: True, response: "fallback") [FAIL]
+      The snapshot does not match:
+      - # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
+      + # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+        
+        ## Result
+        
+        ```json
+        {
+          "errors": [
+            {
+              "message": "Unexpected Execution Error",
+              "path": [
+                "categories",
+                0,
+                "title"
+              ]
+            },
+            {
+              "message": "Unexpected Execution Error",
+              "path": [
+                "categories",
+                1,
+                "title"
+              ]
+            },
+            {
+              "message": "Unexpected Execution Error",
+              "path": [
+                "categories",
+                2,
+                "title"
+              ]
+            }
+          ],
+          "data": {
+            "products": [
+              {
+                "name": "One"
+              },
+              {
+                "name": "One"
+              },
+              {
+                "name": "Two"
+              }
+            ],
+            "categories": [
+              {
+                "title": null
+              },
+              {
+                "title": null
+              },
+              {
+                "title": null
+              }
+            ]
+          }
+        }
+        ```
+        
+        ## Apollo Dispatches
+        
+        ```json
+        [
+          "ApolloOperationBatchExecutionNode: 2"
+        ]
+        ```
+        
+      
+      Stack Trace:
+        src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs(20,0): at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message)
+        src/CookieCrumble/src/CookieCrumble/Snapshot.cs(363,0): at CookieCrumble.Snapshot.MatchMarkdown()
+        src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs(70,0): at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        --- End of stack trace from previous location ---
+    HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: True, response: "missing") [FAIL]
+      The snapshot does not match:
+      - # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
+      + # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+        
+        ## Result
+        
+        ```json
+        {
+          "errors": [
+            {
+              "message": "Unexpected Execution Error",
+              "path": [
+                "categories",
+                0,
+                "title"
+              ]
+            },
+            {
+              "message": "Unexpected Execution Error",
+              "path": [
+                "categories",
+                1,
+                "title"
+              ]
+            },
+            {
+              "message": "Unexpected Execution Error",
+              "path": [
+                "categories",
+                2,
+                "title"
+              ]
+            }
+          ],
+          "data": {
+            "products": [
+              {
+                "name": "One"
+              },
+              {
+                "name": "One"
+              },
+              {
+                "name": "Two"
+              }
+            ],
+            "categories": [
+              {
+                "title": null
+              },
+              {
+                "title": null
+              },
+              {
+                "title": null
+              }
+            ]
+          }
+        }
+        ```
+        
+        ## Apollo Dispatches
+        
+        ```json
+        [
+          "ApolloOperationBatchExecutionNode: 2"
+        ]
+        ```
+        
+      
+      Stack Trace:
+        src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs(20,0): at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message)
+        src/CookieCrumble/src/CookieCrumble/Snapshot.cs(363,0): at CookieCrumble.Snapshot.MatchMarkdown()
+        src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs(70,0): at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        --- End of stack trace from previous location ---
+    HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: True, response: "transport") [FAIL]
+      The snapshot does not match:
+      - # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
+      + # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+        
+        ## Result
+        
+        ```json
+        {
+          "errors": [
+            {
+              "message": "Unexpected Execution Error",
+              "path": [
+                "categories",
+                0,
+                "title"
+              ]
+            },
+            {
+              "message": "Unexpected Execution Error",
+              "path": [
+                "categories",
+                1,
+                "title"
+              ]
+            },
+            {
+              "message": "Unexpected Execution Error",
+              "path": [
+                "categories",
+                2,
+                "title"
+              ]
+            },
+            {
+              "message": "Unexpected Execution Error",
+              "path": [
+                "products",
+                0,
+                "name"
+              ]
+            },
+            {
+              "message": "Unexpected Execution Error",
+              "path": [
+                "products",
+                1,
+                "name"
+              ]
+            },
+            {
+              "message": "Unexpected Execution Error",
+              "path": [
+                "products",
+                2,
+                "name"
+              ]
+            }
+          ],
+          "data": {
+            "products": [
+              {
+                "name": null
+              },
+              {
+                "name": null
+              },
+              {
+                "name": null
+              }
+            ],
+            "categories": [
+              {
+                "title": null
+              },
+              {
+                "title": null
+              },
+              {
+                "title": null
+              }
+            ]
+          }
+        }
+        ```
+        
+        ## Apollo Dispatches
+        
+        ```json
+        [
+          "ApolloOperationBatchExecutionNode: 2"
+        ]
+        ```
+        
+      
+      Stack Trace:
+        src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs(20,0): at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message)
+        src/CookieCrumble/src/CookieCrumble/Snapshot.cs(363,0): at CookieCrumble.Snapshot.MatchMarkdown()
+        src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs(70,0): at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        --- End of stack trace from previous location ---
+    HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: True, response: "merge-error") [FAIL]
+      The snapshot does not match:
+      - # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
+      + # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+        
+        ## Result
+        
+        ```json
+        {
+          "errors": [
+            {
+              "message": "Unexpected Execution Error",
+              "path": [
+                "categories",
+                0,
+                "title"
+              ]
+            },
+            {
+              "message": "Unexpected Execution Error",
+              "path": [
+                "categories",
+                1,
+                "title"
+              ]
+            },
+            {
+              "message": "Unexpected Execution Error",
+              "path": [
+                "categories",
+                2,
+                "title"
+              ]
+            },
+            {
+              "message": "Unexpected Execution Error",
+              "path": [
+                "products",
+                0,
+                "name"
+              ]
+            },
+            {
+              "message": "Unexpected Execution Error",
+              "path": [
+                "products",
+                1,
+                "name"
+              ]
+            },
+            {
+              "message": "Unexpected Execution Error",
+              "path": [
+                "products",
+                2,
+                "name"
+              ]
+            }
+          ],
+          "data": {
+            "products": [
+              {
+                "name": null
+              },
+              {
+                "name": null
+              },
+              {
+                "name": null
+              }
+            ],
+            "categories": [
+              {
+                "title": null
+              },
+              {
+                "title": null
+              },
+              {
+                "title": null
+              }
+            ]
+          }
+        }
+        ```
+        
+        ## Apollo Dispatches
+        
+        ```json
+        [
+          "ApolloOperationBatchExecutionNode: 2"
+        ]
+        ```
+        
+      
+      Stack Trace:
+        src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs(20,0): at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message)
+        src/CookieCrumble/src/CookieCrumble/Snapshot.cs(363,0): at CookieCrumble.Snapshot.MatchMarkdown()
+        src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs(70,0): at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        --- End of stack trace from previous location ---
+    HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: True, response: "success") [FAIL]
+      The snapshot does not match:
+      - # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
+      + # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+        
+        ## Result
+        
+        ```json
+        {
+          "data": {
+            "products": [
+              {
+                "name": "One"
+              },
+              {
+                "name": "One"
+              },
+              {
+                "name": "Two"
+              }
+            ],
+            "categories": [
+              {
+                "title": "One"
+              },
+              {
+                "title": "One"
+              },
+              {
+                "title": "Two"
+              }
+            ]
+          }
+        }
+        ```
+        
+        ## Apollo Dispatches
+        
+        ```json
+        [
+          "ApolloOperationBatchExecutionNode: 2"
+        ]
+        ```
+        
+      
+      Stack Trace:
+        src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs(20,0): at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message)
+        src/CookieCrumble/src/CookieCrumble/Snapshot.cs(363,0): at CookieCrumble.Snapshot.MatchMarkdown()
+        src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs(70,0): at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        --- End of stack trace from previous location ---
+    HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: False, response: "merge-error") [FAIL]
+      The snapshot does not match:
+      - # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
+      + # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+        
+        ## Result
+        
+        ```json
+        {
+          "errors": [
+            {
+              "message": "Unexpected Execution Error",
+              "path": [
+                "products",
+                0,
+                "name"
+              ]
+            },
+            {
+              "message": "Unexpected Execution Error",
+              "path": [
+                "products",
+                1,
+                "name"
+              ]
+            },
+            {
+              "message": "Unexpected Execution Error",
+              "path": [
+                "products",
+                2,
+                "name"
+              ]
+            }
+          ],
+          "data": {
+            "products": [
+              {
+                "name": null
+              },
+              {
+                "name": null
+              },
+              {
+                "name": null
+              }
+            ]
+          }
+        }
+        ```
+        
+        ## Apollo Dispatches
+        
+        ```json
+        [
+          "ApolloOperationExecutionNode"
+        ]
+        ```
+        
+      
+      Stack Trace:
+        src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs(20,0): at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message)
+        src/CookieCrumble/src/CookieCrumble/Snapshot.cs(363,0): at CookieCrumble.Snapshot.MatchMarkdown()
+        src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs(70,0): at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        --- End of stack trace from previous location ---
+    HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: False, response: "source-error") [FAIL]
+      The snapshot does not match:
+      - # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
+      + # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+        
+        ## Result
+        
+        ```json
+        {
+          "errors": [
+            {
+              "message": "Entity failed.",
+              "path": [
+                "products",
+                0,
+                "name"
+              ]
+            },
+            {
+              "message": "Entity failed.",
+              "path": [
+                "products",
+                1,
+                "name"
+              ]
+            }
+          ],
+          "data": {
+            "products": [
+              {
+                "name": null
+              },
+              {
+                "name": null
+              },
+              {
+                "name": "Two"
+              }
+            ]
+          }
+        }
+        ```
+        
+        ## Apollo Dispatches
+        
+        ```json
+        [
+          "ApolloOperationExecutionNode"
+        ]
+        ```
+        
+      
+      Stack Trace:
+        src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs(20,0): at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message)
+        src/CookieCrumble/src/CookieCrumble/Snapshot.cs(363,0): at CookieCrumble.Snapshot.MatchMarkdown()
+        src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs(70,0): at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        --- End of stack trace from previous location ---
+    HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: False, response: "protocol") [FAIL]
+      The snapshot does not match:
+      - # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
+      + # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+        
+        ## Result
+        
+        ```json
+        {
+          "errors": [
+            {
+              "message": "The representation result at '$._entities' must be an array but was 'Object'.",
+              "path": [
+                "products",
+                0,
+                "name"
+              ]
+            },
+            {
+              "message": "The representation result at '$._entities' must be an array but was 'Object'.",
+              "path": [
+                "products",
+                1,
+                "name"
+              ]
+            },
+            {
+              "message": "The representation result at '$._entities' must be an array but was 'Object'.",
+              "path": [
+                "products",
+                2,
+                "name"
+              ]
+            }
+          ],
+          "data": {
+            "products": [
+              {
+                "name": null
+              },
+              {
+                "name": null
+              },
+              {
+                "name": null
+              }
+            ]
+          }
+        }
+        ```
+        
+        ## Apollo Dispatches
+        
+        ```json
+        [
+          "ApolloOperationExecutionNode"
+        ]
+        ```
+        
+      
+      Stack Trace:
+        src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs(20,0): at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message)
+        src/CookieCrumble/src/CookieCrumble/Snapshot.cs(363,0): at CookieCrumble.Snapshot.MatchMarkdown()
+        src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs(70,0): at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        --- End of stack trace from previous location ---
+    HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: False, response: "null") [FAIL]
+      The snapshot does not match:
+      - # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
+      + # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+        
+        ## Result
+        
+        ```json
+        {
+          "data": {
+            "products": [
+              {
+                "name": null
+              },
+              {
+                "name": null
+              },
+              {
+                "name": null
+              }
+            ]
+          }
+        }
+        ```
+        
+        ## Apollo Dispatches
+        
+        ```json
+        [
+          "ApolloOperationExecutionNode"
+        ]
+        ```
+        
+      
+      Stack Trace:
+        src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs(20,0): at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message)
+        src/CookieCrumble/src/CookieCrumble/Snapshot.cs(363,0): at CookieCrumble.Snapshot.MatchMarkdown()
+        src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs(70,0): at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        --- End of stack trace from previous location ---
+    HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: False, response: "missing") [FAIL]
+      The snapshot does not match:
+      - # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
+      + # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+        
+        ## Result
+        
+        ```json
+        {
+          "data": {
+            "products": [
+              {
+                "name": null
+              },
+              {
+                "name": null
+              },
+              {
+                "name": null
+              }
+            ]
+          }
+        }
+        ```
+        
+        ## Apollo Dispatches
+        
+        ```json
+        [
+          "ApolloOperationExecutionNode"
+        ]
+        ```
+        
+      
+      Stack Trace:
+        src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs(20,0): at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message)
+        src/CookieCrumble/src/CookieCrumble/Snapshot.cs(363,0): at CookieCrumble.Snapshot.MatchMarkdown()
+        src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs(70,0): at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        --- End of stack trace from previous location ---
+    HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: False, response: "transport") [FAIL]
+      The snapshot does not match:
+      - # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
+      + # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+        
+        ## Result
+        
+        ```json
+        {
+          "errors": [
+            {
+              "message": "Unexpected Execution Error",
+              "path": [
+                "products",
+                0,
+                "name"
+              ]
+            },
+            {
+              "message": "Unexpected Execution Error",
+              "path": [
+                "products",
+                1,
+                "name"
+              ]
+            },
+            {
+              "message": "Unexpected Execution Error",
+              "path": [
+                "products",
+                2,
+                "name"
+              ]
+            }
+          ],
+          "data": {
+            "products": [
+              {
+                "name": null
+              },
+              {
+                "name": null
+              },
+              {
+                "name": null
+              }
+            ]
+          }
+        }
+        ```
+        
+        ## Apollo Dispatches
+        
+        ```json
+        [
+          "ApolloOperationExecutionNode"
+        ]
+        ```
+        
+      
+      Stack Trace:
+        src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs(20,0): at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message)
+        src/CookieCrumble/src/CookieCrumble/Snapshot.cs(363,0): at CookieCrumble.Snapshot.MatchMarkdown()
+        src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs(70,0): at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        --- End of stack trace from previous location ---
+    HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: False, response: "cancel") [FAIL]
+      The snapshot does not match:
+      - # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
+      + # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+        
+        ## Result
+        
+        ```json
+        {
+          "errors": [
+            {
+              "message": "The GraphQL request execution was canceled.",
+              "extensions": {
+                "code": "HC0049"
+              }
+            }
+          ]
+        }
+        ```
+        
+        ## Apollo Dispatches
+        
+        ```json
+        [
+          "ApolloOperationExecutionNode"
+        ]
+        ```
+        
+        ## Canceled Result Disposal
+        
+        ```json
+        [
+          "ObjectDisposedException"
+        ]
+        ```
+        
+      
+      Stack Trace:
+        src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs(20,0): at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message)
+        src/CookieCrumble/src/CookieCrumble/Snapshot.cs(363,0): at CookieCrumble.Snapshot.MatchMarkdown()
+        src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs(70,0): at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        --- End of stack trace from previous location ---
+    HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(batch: True, response: "cancel") [FAIL]
+      The snapshot does not match:
+      - # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_EntitiesHaveDuplicateKeys
+      + # ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends
+        
+        ## Result
+        
+        ```json
+        {
+          "errors": [
+            {
+              "message": "The GraphQL request execution was canceled.",
+              "extensions": {
+                "code": "HC0049"
+              }
+            }
+          ]
+        }
+        ```
+        
+        ## Apollo Dispatches
+        
+        ```json
+        [
+          "ApolloOperationBatchExecutionNode: 2"
+        ]
+        ```
+        
+        ## Canceled Result Disposal
+        
+        ```json
+        [
+          "ObjectDisposedException"
+        ]
+        ```
+        
+      
+      Stack Trace:
+        src/CookieCrumble/src/CookieCrumble.Xunit3/Xunit3Framework.cs(20,0): at CookieCrumble.Xunit3.Xunit3Framework.ThrowTestException(String message)
+        src/CookieCrumble/src/CookieCrumble/Snapshot.cs(363,0): at CookieCrumble.Snapshot.MatchMarkdown()
+        src/CookieCrumble/src/CookieCrumble/Extensions/SnapshotExtensions.cs(70,0): at CookieCrumble.SnapshotExtensions.MatchMarkdownSnapshot(Snapshot value)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        src/HotChocolate/Fusion/test/Fusion.Execution.Tests/Execution/Nodes/ApolloAsyncStateMachineTests.cs(87,0): at HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests.ExecuteAsync_Should_PreserveResultAndErrorPaths_When_SourceSuspends(Boolean batch, String response)
+        --- End of stack trace from previous location ---
+  Finished:    HotChocolate.Fusion.Execution.Tests (ID = 'd8dbc0e397998b40c27a383c723c5ed656b20d18247a12123130860693c88692')
+=== TEST EXECUTION SUMMARY ===
+   HotChocolate.Fusion.Execution.Tests  Total: 31, Errors: 0, Failed: 17, Skipped: 0, Not Run: 0, Time: 0.553s

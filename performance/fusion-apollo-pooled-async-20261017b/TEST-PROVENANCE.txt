@@ -1,0 +1,6 @@
+ApolloAsyncStateMachineTests derives its schema, seventeen result/error fixtures and snapshot oracles from ApolloErrorAttributionTests in the published C2 evidence, immutable revision a59c7ac49408e02bd60e53704ae1f7d37a5af6db.
+Changes rename the class/test, dispose the service provider explicitly, suspend before Apollo source responses, use concurrent queues for captured state, and add forty-eight-request context-isolation tests for both single and batch dispatch. Snapshot bodies remain byte-identical to the prior oracles after renaming the method heading.
+
+Reproduction from this worktree:
+flock -s -o /workspaces/platform-1/perf/fusion-common-path.lock dotnet build src/HotChocolate/Fusion/test/Fusion.Execution.Tests/HotChocolate.Fusion.Execution.Tests.csproj -c Release -f net10.0 --nologo
+flock -s -o /workspaces/platform-1/perf/fusion-common-path.lock dotnet src/HotChocolate/Fusion/test/Fusion.Execution.Tests/bin/Release/net10.0/HotChocolate.Fusion.Execution.Tests.dll -class 'HotChocolate.Fusion.Execution.Nodes.ApolloAsyncStateMachineTests' -class 'HotChocolate.Fusion.Execution.Nodes.ApolloOperationExecutionNodeTests' -class 'HotChocolate.Fusion.Execution.Nodes.ApolloOperationBatchExecutionNodeTests' -class 'HotChocolate.Fusion.Execution.OperationExecutionNodeTests' -noColor
