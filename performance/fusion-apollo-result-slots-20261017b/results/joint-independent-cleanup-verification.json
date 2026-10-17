@@ -1,0 +1,88 @@
+{
+  "checkedAt": "2026-10-17T18:17:13.897048+00:00",
+  "reviewer": "history_environment",
+  "sources": [
+    "launches.json",
+    "owner-parent-identity.json",
+    "owner-cleanup-verification.json"
+  ],
+  "ownerIdentitySetMatches": true,
+  "identities": [
+    {
+      "pid": 189521,
+      "startTicks": 935813,
+      "currentStartTicks": null,
+      "sameIdentityAlive": false
+    },
+    {
+      "pid": 189630,
+      "startTicks": 937122,
+      "currentStartTicks": null,
+      "sameIdentityAlive": false
+    },
+    {
+      "pid": 189758,
+      "startTicks": 938429,
+      "currentStartTicks": null,
+      "sameIdentityAlive": false
+    },
+    {
+      "pid": 189832,
+      "startTicks": 939737,
+      "currentStartTicks": null,
+      "sameIdentityAlive": false
+    },
+    {
+      "pid": 189911,
+      "startTicks": 941043,
+      "currentStartTicks": null,
+      "sameIdentityAlive": false
+    },
+    {
+      "pid": 190185,
+      "startTicks": 942397,
+      "currentStartTicks": null,
+      "sameIdentityAlive": false
+    },
+    {
+      "pid": 190330,
+      "startTicks": 943709,
+      "currentStartTicks": null,
+      "sameIdentityAlive": false
+    },
+    {
+      "pid": 190405,
+      "startTicks": 945018,
+      "currentStartTicks": null,
+      "sameIdentityAlive": false
+    },
+    {
+      "pid": 190505,
+      "startTicks": 946440,
+      "currentStartTicks": null,
+      "sameIdentityAlive": false
+    },
+    {
+      "pid": 190565,
+      "startTicks": 947868,
+      "currentStartTicks": null,
+      "sameIdentityAlive": false
+    },
+    {
+      "pid": 189486,
+      "startTicks": 935799,
+      "currentStartTicks": null,
+      "sameIdentityAlive": false
+    },
+    {
+      "pid": 189487,
+      "startTicks": 935802,
+      "currentStartTicks": null,
+      "sameIdentityAlive": false
+    }
+  ],
+  "serial": true,
+  "lockFree": true,
+  "lockProbeExitCode": 0,
+  "noProcessesTerminated": true
+}

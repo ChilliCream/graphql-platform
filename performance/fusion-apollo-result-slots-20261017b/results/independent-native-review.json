@@ -1,0 +1,1755 @@
+{
+  "verdict_recommendation": "ABANDON",
+  "distributions": 20,
+  "result_samples": 240,
+  "source_hashes": {
+    "01-benchmark-B/results/ApolloAliasBdn.AliasBenchmarks-report-full.json": "422f8ca8659531ce2993845b5ad28fdaffe18639d55104150f7ac6799e270ec1",
+    "03-benchmark-C15/results/ApolloAliasBdn.AliasBenchmarks-report-full.json": "aa0ad547f11cbc3451dbe7f7f58b943e16cc1949296c0a285851fb8a59594e04",
+    "04-benchmark-B/results/ApolloAliasBdn.AliasBenchmarks-report-full.json": "b7d6966680f1085d43c952a8addfe2e45d65a5af03ad8b15c44d8def47967239",
+    "05-benchmark-C15/results/ApolloAliasBdn.AliasBenchmarks-report-full.json": "e414881f0ea7771fb99dc9ac903e45b634fd027a6cce3df4c4aab823d8621164",
+    "07-benchmark-B/results/ApolloAliasBdn.AliasBenchmarks-report-full.json": "53f22a2887273e310c878b5656b25f0c7ab5b1ca7352c721d9ea244a0468026c"
+  },
+  "rows": [
+    {
+      "launch": "01-benchmark-B",
+      "case": "Shape=async-alias2",
+      "statistics": {
+        "OriginalValues": [
+          5853.749,
+          6981.007,
+          5820.79,
+          4625.324,
+          5681.207,
+          5211.287,
+          3640.651,
+          3981.8190000000004,
+          4656.658,
+          5168.411,
+          5274.579,
+          5340.662
+        ],
+        "N": 12,
+        "Min": 3640.651,
+        "LowerFence": 3047.9071250000015,
+        "Q1": 4648.824500000001,
+        "Median": 5242.933,
+        "Mean": 5186.345333333334,
+        "Q3": 5716.10275,
+        "UpperFence": 7317.020124999999,
+        "Max": 6981.007,
+        "InterquartileRange": 1067.2782499999994,
+        "LowerOutliers": [],
+        "UpperOutliers": [],
+        "AllOutliers": [],
+        "StandardError": 257.92818274894216,
+        "Variance": 798323.3694740605,
+        "StandardDeviation": 893.4894344501565,
+        "Skewness": 0.08093105709858421,
+        "Kurtosis": 2.4563308585811976,
+        "ConfidenceInterval": {
+          "N": 12,
+          "Mean": 5186.345333333334,
+          "StandardError": 257.92818274894216,
+          "Level": 12,
+          "Margin": 1144.4220173248893,
+          "Lower": 4041.923316008444,
+          "Upper": 6330.767350658223
+        },
+        "Percentiles": {
+          "P0": 3640.651,
+          "P25": 4648.824500000001,
+          "P50": 5242.933,
+          "P67": 5466.66365,
+          "P80": 5792.8734,
+          "P85": 5832.32565,
+          "P90": 5850.4531,
+          "P95": 6361.015099999999,
+          "P100": 6981.007
+        }
+      },
+      "memory": {
+        "Gen0Collections": 0,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 4536
+      },
+      "result_nanoseconds": [
+        5853.749,
+        6981.007,
+        5820.79,
+        4625.324,
+        5681.207,
+        5211.287,
+        3640.651,
+        3981.8190000000004,
+        4656.658,
+        5168.411,
+        5274.579,
+        5340.662
+      ]
+    },
+    {
+      "launch": "01-benchmark-B",
+      "case": "Shape=async-custom",
+      "statistics": {
+        "OriginalValues": [
+          4011.735,
+          3802.442,
+          3972.61,
+          3898.276,
+          3917.819,
+          4020.194,
+          3813.692,
+          4140.487,
+          4081.486,
+          4249.362,
+          4086.028,
+          4010.5279999999993
+        ],
+        "N": 12,
+        "Min": 3802.442,
+        "LowerFence": 3658.4008750000003,
+        "Q1": 3912.93325,
+        "Median": 4011.1314999999995,
+        "Mean": 4000.38825,
+        "Q3": 4082.6214999999997,
+        "UpperFence": 4337.153874999999,
+        "Max": 4249.362,
+        "InterquartileRange": 169.6882499999997,
+        "LowerOutliers": [],
+        "UpperOutliers": [],
+        "AllOutliers": [],
+        "StandardError": 37.75969294044166,
+        "Variance": 17109.53293147727,
+        "StandardDeviation": 130.8034133020896,
+        "Skewness": 0.12817970462660774,
+        "Kurtosis": 2.0584413123981866,
+        "ConfidenceInterval": {
+          "N": 12,
+          "Mean": 4000.38825,
+          "StandardError": 37.75969294044166,
+          "Level": 12,
+          "Margin": 167.5389773537489,
+          "Lower": 3832.849272646251,
+          "Upper": 4167.927227353749
+        },
+        "Percentiles": {
+          "P0": 3802.442,
+          "P25": 3912.93325,
+          "P50": 4011.1314999999995,
+          "P67": 4042.87204,
+          "P80": 4085.1196,
+          "P85": 4105.08865,
+          "P90": 4135.0411,
+          "P95": 4189.48075,
+          "P100": 4249.362
+        }
+      },
+      "memory": {
+        "Gen0Collections": 0,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 4030
+      },
+      "result_nanoseconds": [
+        4011.735,
+        3802.442,
+        3972.61,
+        3898.276,
+        3917.819,
+        4020.194,
+        3813.692,
+        4140.487,
+        4081.486,
+        4249.362,
+        4086.028,
+        4010.5279999999993
+      ]
+    },
+    {
+      "launch": "01-benchmark-B",
+      "case": "Shape=async-ordinary",
+      "statistics": {
+        "OriginalValues": [
+          2350.3075,
+          4802.4495,
+          5157.7025,
+          4077.9444999999996,
+          5829.0395,
+          4104.903499999999,
+          3761.4845,
+          4439.7805,
+          5381.1205,
+          4277.7375,
+          5920.8745,
+          5026.6175
+        ],
+        "N": 12,
+        "Min": 2350.3075,
+        "LowerFence": 2425.073874999998,
+        "Q1": 4098.16375,
+        "Median": 4621.115,
+        "Mean": 4594.1635,
+        "Q3": 5213.557000000001,
+        "UpperFence": 6886.646875000002,
+        "Max": 5920.8745,
+        "InterquartileRange": 1115.393250000001,
+        "LowerOutliers": [
+          2350.3075
+        ],
+        "UpperOutliers": [],
+        "AllOutliers": [
+          2350.3075
+        ],
+        "StandardError": 286.17671551886724,
+        "Variance": 982765.350062,
+        "StandardDeviation": 991.3452224437257,
+        "Skewness": -0.6150307870020255,
+        "Kurtosis": 2.7536445340653684,
+        "ConfidenceInterval": {
+          "N": 12,
+          "Mean": 4594.1635,
+          "StandardError": 286.17671551886724,
+          "Level": 12,
+          "Margin": 1269.7601735297621,
+          "Lower": 3324.4033264702375,
+          "Upper": 5863.923673529762
+        },
+        "Percentiles": {
+          "P0": 2350.3075,
+          "P25": 4098.16375,
+          "P50": 4621.115,
+          "P67": 5075.11895,
+          "P80": 5336.436900000001,
+          "P85": 5537.89215,
+          "P90": 5784.2476,
+          "P95": 5870.36525,
+          "P100": 5920.8745
+        }
+      },
+      "memory": {
+        "Gen0Collections": 0,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 4024
+      },
+      "result_nanoseconds": [
+        2350.3075,
+        4802.4495,
+        5157.7025,
+        4077.9444999999996,
+        5829.0395,
+        4104.903499999999,
+        3761.4845,
+        4439.7805,
+        5381.1205,
+        4277.7375,
+        5920.8745,
+        5026.6175
+      ]
+    },
+    {
+      "launch": "01-benchmark-B",
+      "case": "Shape=ordinary",
+      "statistics": {
+        "OriginalValues": [
+          1545.7405,
+          1699.1995,
+          1482.4905,
+          1676.2415,
+          1568.9065,
+          1732.7415,
+          1508.5735,
+          1556.0735,
+          1625.6155,
+          1490.8225,
+          1687.9075,
+          1523.3235
+        ],
+        "N": 12,
+        "Min": 1482.4905,
+        "LowerFence": 1280.3529999999996,
+        "Q1": 1519.636,
+        "Median": 1562.49,
+        "Mean": 1591.4696666666666,
+        "Q3": 1679.1580000000001,
+        "UpperFence": 1918.4410000000003,
+        "Max": 1732.7415,
+        "InterquartileRange": 159.52200000000016,
+        "LowerOutliers": [],
+        "UpperOutliers": [],
+        "AllOutliers": [],
+        "StandardError": 25.612353854481473,
+        "Variance": 7871.912039606062,
+        "StandardDeviation": 88.72379635478896,
+        "Skewness": 0.27016131627375284,
+        "Kurtosis": 1.3329048403881947,
+        "ConfidenceInterval": {
+          "N": 12,
+          "Mean": 1591.4696666666666,
+          "StandardError": 25.612353854481473,
+          "Level": 12,
+          "Margin": 113.64148482802742,
+          "Lower": 1477.8281818386392,
+          "Upper": 1705.111151494694
+        },
+        "Percentiles": {
+          "P0": 1482.4905,
+          "P25": 1519.636,
+          "P50": 1562.49,
+          "P67": 1644.34712,
+          "P80": 1685.5743,
+          "P85": 1691.8597,
+          "P90": 1698.0703,
+          "P95": 1714.2934,
+          "P100": 1732.7415
+        }
+      },
+      "memory": {
+        "Gen0Collections": 0,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 3464
+      },
+      "result_nanoseconds": [
+        1545.7405,
+        1699.1995,
+        1482.4905,
+        1676.2415,
+        1568.9065,
+        1732.7415,
+        1508.5735,
+        1556.0735,
+        1625.6155,
+        1490.8225,
+        1687.9075,
+        1523.3235
+      ]
+    },
+    {
+      "launch": "03-benchmark-C15",
+      "case": "Shape=async-alias2",
+      "statistics": {
+        "OriginalValues": [
+          5451.203,
+          5308.911,
+          5088.326,
+          5272.16,
+          5488.454,
+          5518.454,
+          5506.121,
+          5432.245,
+          5457.871,
+          5384.037,
+          5498.371,
+          5194.16
+        ],
+        "N": 12,
+        "Min": 5088.326,
+        "LowerFence": 5012.90825,
+        "Q1": 5299.72325,
+        "Median": 5441.724,
+        "Mean": 5383.359416666667,
+        "Q3": 5490.93325,
+        "UpperFence": 5777.748250000001,
+        "Max": 5518.454,
+        "InterquartileRange": 191.21000000000004,
+        "LowerOutliers": [],
+        "UpperOutliers": [],
+        "AllOutliers": [],
+        "StandardError": 39.97039519888977,
+        "Variance": 19171.589908265156,
+        "StandardDeviation": 138.46151056616839,
+        "Skewness": -0.8288017992047682,
+        "Kurtosis": 2.2574415991266266,
+        "ConfidenceInterval": {
+          "N": 12,
+          "Mean": 5383.359416666667,
+          "StandardError": 39.97039519888977,
+          "Level": 12,
+          "Margin": 177.347817595067,
+          "Lower": 5206.0115990716,
+          "Upper": 5560.707234261734
+        },
+        "Percentiles": {
+          "P0": 5088.326,
+          "P25": 5299.72325,
+          "P50": 5441.724,
+          "P67": 5469.18671,
+          "P80": 5496.3876,
+          "P85": 5501.0835,
+          "P90": 5505.346,
+          "P95": 5511.67085,
+          "P100": 5518.454
+        }
+      },
+      "memory": {
+        "Gen0Collections": 0,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 4496
+      },
+      "result_nanoseconds": [
+        5451.203,
+        5308.911,
+        5088.326,
+        5272.16,
+        5488.454,
+        5518.454,
+        5506.121,
+        5432.245,
+        5457.871,
+        5384.037,
+        5498.371,
+        5194.16
+      ]
+    },
+    {
+      "launch": "03-benchmark-C15",
+      "case": "Shape=async-custom",
+      "statistics": {
+        "OriginalValues": [
+          3874.11,
+          3846.735,
+          3645.191,
+          3856.443,
+          3835.984,
+          3866.485,
+          3675.358,
+          3917.9009999999994,
+          3841.693,
+          3846.11,
+          3814.651,
+          3676.776
+        ],
+        "N": 12,
+        "Min": 3645.191,
+        "LowerFence": 3662.025374999999,
+        "Q1": 3780.18225,
+        "Median": 3843.9015,
+        "Mean": 3808.11975,
+        "Q3": 3858.9535000000005,
+        "UpperFence": 3977.1103750000016,
+        "Max": 3917.9009999999994,
+        "InterquartileRange": 78.77125000000069,
+        "LowerOutliers": [
+          3645.191
+        ],
+        "UpperOutliers": [],
+        "AllOutliers": [
+          3645.191
+        ],
+        "StandardError": 25.886048182406945,
+        "Variance": 8041.049886022726,
+        "StandardDeviation": 89.67190131820963,
+        "Skewness": -0.790119747281911,
+        "Kurtosis": 1.9337464310108914,
+        "ConfidenceInterval": {
+          "N": 12,
+          "Mean": 3808.11975,
+          "StandardError": 25.886048182406945,
+          "Level": 12,
+          "Margin": 114.85586090572703,
+          "Lower": 3693.2638890942726,
+          "Upper": 3922.975610905727
+        },
+        "Percentiles": {
+          "P0": 3645.191,
+          "P25": 3780.18225,
+          "P50": 3843.9015,
+          "P67": 3850.3269600000003,
+          "P80": 3864.4766,
+          "P85": 3869.1537500000004,
+          "P90": 3873.3475,
+          "P95": 3893.81595,
+          "P100": 3917.9009999999994
+        }
+      },
+      "memory": {
+        "Gen0Collections": 0,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 4030
+      },
+      "result_nanoseconds": [
+        3874.11,
+        3846.735,
+        3645.191,
+        3856.443,
+        3835.984,
+        3866.485,
+        3675.358,
+        3917.9009999999994,
+        3841.693,
+        3846.11,
+        3814.651,
+        3676.776
+      ]
+    },
+    {
+      "launch": "03-benchmark-C15",
+      "case": "Shape=async-ordinary",
+      "statistics": {
+        "OriginalValues": [
+          3829.86,
+          3881.944,
+          3968.111,
+          3851.735,
+          3823.526,
+          3670.443,
+          3802.652,
+          3827.526,
+          3830.568,
+          3664.567,
+          3782.693,
+          3809.985
+        ],
+        "N": 12,
+        "Min": 3664.567,
+        "LowerFence": 3740.366,
+        "Q1": 3797.6622500000003,
+        "Median": 3825.526,
+        "Mean": 3811.9675,
+        "Q3": 3835.8597500000005,
+        "UpperFence": 3893.156000000001,
+        "Max": 3968.111,
+        "InterquartileRange": 38.19750000000022,
+        "LowerOutliers": [
+          3664.567,
+          3670.443
+        ],
+        "UpperOutliers": [
+          3968.111
+        ],
+        "AllOutliers": [
+          3664.567,
+          3670.443,
+          3968.111
+        ],
+        "StandardError": 23.7736389373978,
+        "Variance": 6782.23089990908,
+        "StandardDeviation": 82.35430104074152,
+        "Skewness": -0.27350188937545034,
+        "Kurtosis": 2.7087189346964937,
+        "ConfidenceInterval": {
+          "N": 12,
+          "Mean": 3811.9675,
+          "StandardError": 23.7736389373978,
+          "Level": 12,
+          "Margin": 105.48314473402348,
+          "Lower": 3706.484355265977,
+          "Upper": 3917.4506447340236
+        },
+        "Percentiles": {
+          "P0": 3664.567,
+          "P25": 3797.6622500000003,
+          "P50": 3825.526,
+          "P67": 3830.1219600000004,
+          "P80": 3847.5016,
+          "P85": 3862.30815,
+          "P90": 3878.9231,
+          "P95": 3920.71915,
+          "P100": 3968.111
+        }
+      },
+      "memory": {
+        "Gen0Collections": 0,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 4024
+      },
+      "result_nanoseconds": [
+        3829.86,
+        3881.944,
+        3968.111,
+        3851.735,
+        3823.526,
+        3670.443,
+        3802.652,
+        3827.526,
+        3830.568,
+        3664.567,
+        3782.693,
+        3809.985
+      ]
+    },
+    {
+      "launch": "03-benchmark-C15",
+      "case": "Shape=ordinary",
+      "statistics": {
+        "OriginalValues": [
+          1592.22,
+          1439.802,
+          1517.094,
+          2120.89,
+          1664.679,
+          1927.264,
+          1610.178,
+          1799.472,
+          1546.053,
+          1905.514,
+          1509.219,
+          1531.595
+        ],
+        "N": 12,
+        "Min": 1439.802,
+        "LowerFence": 1080.950625,
+        "Q1": 1527.96975,
+        "Median": 1601.199,
+        "Mean": 1680.3316666666667,
+        "Q3": 1825.9825,
+        "UpperFence": 2273.0016250000003,
+        "Max": 2120.89,
+        "InterquartileRange": 298.0127500000001,
+        "LowerOutliers": [],
+        "UpperOutliers": [],
+        "AllOutliers": [],
+        "StandardError": 60.729959327079136,
+        "Variance": 44257.53551842422,
+        "StandardDeviation": 210.37475019218496,
+        "Skewness": 0.7487351845215913,
+        "Kurtosis": 2.126200835344917,
+        "ConfidenceInterval": {
+          "N": 12,
+          "Mean": 1680.3316666666667,
+          "StandardError": 60.729959327079136,
+          "Level": 12,
+          "Margin": 269.4575746800179,
+          "Lower": 1410.8740919866489,
+          "Upper": 1949.7892413466845
+        },
+        "Percentiles": {
+          "P0": 1439.802,
+          "P25": 1527.96975,
+          "P50": 1601.199,
+          "P67": 1714.5524100000002,
+          "P80": 1884.3056000000001,
+          "P85": 1913.1264999999999,
+          "P90": 1925.089,
+          "P95": 2014.3956999999996,
+          "P100": 2120.89
+        }
+      },
+      "memory": {
+        "Gen0Collections": 0,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 3464
+      },
+      "result_nanoseconds": [
+        1592.22,
+        1439.802,
+        1517.094,
+        2120.89,
+        1664.679,
+        1927.264,
+        1610.178,
+        1799.472,
+        1546.053,
+        1905.514,
+        1509.219,
+        1531.595
+      ]
+    },
+    {
+      "launch": "04-benchmark-B",
+      "case": "Shape=async-alias2",
+      "statistics": {
+        "OriginalValues": [
+          4906.701,
+          5115.369,
+          5339.496,
+          5072.827,
+          5035.076,
+          5043.201,
+          4619.657,
+          5022.41,
+          5347.954,
+          5076.286,
+          5580.706,
+          5472.538
+        ],
+        "N": 12,
+        "Min": 4619.657,
+        "LowerFence": 4567.357999999998,
+        "Q1": 5031.9095,
+        "Median": 5074.556500000001,
+        "Mean": 5136.018416666667,
+        "Q3": 5341.610500000001,
+        "UpperFence": 5806.162000000002,
+        "Max": 5580.706,
+        "InterquartileRange": 309.70100000000093,
+        "LowerOutliers": [],
+        "UpperOutliers": [],
+        "AllOutliers": [],
+        "StandardError": 75.69009368125157,
+        "Variance": 68747.88337771967,
+        "StandardDeviation": 262.1981757711515,
+        "Skewness": -0.04399179399657654,
+        "Kurtosis": 2.290213680461932,
+        "ConfidenceInterval": {
+          "N": 12,
+          "Mean": 5136.018416666667,
+          "StandardError": 75.69009368125157,
+          "Level": 12,
+          "Margin": 335.8353816904215,
+          "Lower": 4800.183034976245,
+          "Upper": 5471.853798357089
+        },
+        "Percentiles": {
+          "P0": 4619.657,
+          "P25": 5031.9095,
+          "P50": 5074.556500000001,
+          "P67": 5198.2959900000005,
+          "P80": 5346.2624,
+          "P85": 5391.5584,
+          "P90": 5460.0796,
+          "P95": 5521.213599999999,
+          "P100": 5580.706
+        }
+      },
+      "memory": {
+        "Gen0Collections": 0,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 4536
+      },
+      "result_nanoseconds": [
+        4906.701,
+        5115.369,
+        5339.496,
+        5072.827,
+        5035.076,
+        5043.201,
+        4619.657,
+        5022.41,
+        5347.954,
+        5076.286,
+        5580.706,
+        5472.538
+      ]
+    },
+    {
+      "launch": "04-benchmark-B",
+      "case": "Shape=async-custom",
+      "statistics": {
+        "OriginalValues": [
+          3705.7545,
+          3658.3375,
+          3703.6295,
+          3697.2965,
+          3738.2965,
+          3457.7945,
+          3790.5475,
+          3884.0065,
+          3799.0465,
+          3741.4215,
+          3997.8405,
+          3589.8795
+        ],
+        "N": 12,
+        "Min": 3457.7945,
+        "LowerFence": 3529.883499999999,
+        "Q1": 3687.5567499999997,
+        "Median": 3722.0254999999997,
+        "Mean": 3730.320916666666,
+        "Q3": 3792.67225,
+        "UpperFence": 3950.3455000000004,
+        "Max": 3997.8405,
+        "InterquartileRange": 105.11550000000034,
+        "LowerOutliers": [
+          3457.7945
+        ],
+        "UpperOutliers": [
+          3997.8405
+        ],
+        "AllOutliers": [
+          3457.7945,
+          3997.8405
+        ],
+        "StandardError": 39.4378942361236,
+        "Variance": 18664.17002135605,
+        "StandardDeviation": 136.6168731209877,
+        "Skewness": -0.00435394330525595,
+        "Kurtosis": 2.7867509877776677,
+        "ConfidenceInterval": {
+          "N": 12,
+          "Mean": 3730.320916666666,
+          "StandardError": 39.4378942361236,
+          "Level": 12,
+          "Margin": 174.98512182626268,
+          "Lower": 3555.3357948404037,
+          "Upper": 3905.3060384929286
+        },
+        "Percentiles": {
+          "P0": 3457.7945,
+          "P25": 3687.5567499999997,
+          "P50": 3722.0254999999997,
+          "P67": 3759.5981199999997,
+          "P80": 3797.3467,
+          "P85": 3828.7825,
+          "P90": 3875.5105,
+          "P95": 3935.2317999999996,
+          "P100": 3997.8405
+        }
+      },
+      "memory": {
+        "Gen0Collections": 0,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 4024
+      },
+      "result_nanoseconds": [
+        3705.7545,
+        3658.3375,
+        3703.6295,
+        3697.2965,
+        3738.2965,
+        3457.7945,
+        3790.5475,
+        3884.0065,
+        3799.0465,
+        3741.4215,
+        3997.8405,
+        3589.8795
+      ]
+    },
+    {
+      "launch": "04-benchmark-B",
+      "case": "Shape=async-ordinary",
+      "statistics": {
+        "OriginalValues": [
+          2217.765,
+          2206.473,
+          2050.056,
+          2222.973,
+          2181.514,
+          2184.723,
+          2975.52,
+          3684.025,
+          3681.608,
+          3665.733,
+          3690.108,
+          3663.233
+        ],
+        "N": 12,
+        "Min": 2050.056,
+        "LowerFence": -1.963875000000371,
+        "Q1": 2201.0355,
+        "Median": 2599.2465,
+        "Mean": 2868.64425,
+        "Q3": 3669.70175,
+        "UpperFence": 5872.7011250000005,
+        "Max": 3690.108,
+        "InterquartileRange": 1468.6662500000002,
+        "LowerOutliers": [],
+        "UpperOutliers": [],
+        "AllOutliers": [],
+        "StandardError": 216.15951613681483,
+        "Variance": 560699.2369980228,
+        "StandardDeviation": 748.7985289769357,
+        "Skewness": 0.12205579039443026,
+        "Kurtosis": 0.9470564374374301,
+        "ConfidenceInterval": {
+          "N": 12,
+          "Mean": 2868.64425,
+          "StandardError": 216.15951613681483,
+          "Level": 12,
+          "Margin": 959.0953066267055,
+          "Lower": 1909.5489433732944,
+          "Upper": 3827.739556626705
+        },
+        "Percentiles": {
+          "P0": 2050.056,
+          "P25": 2201.0355,
+          "P50": 2599.2465,
+          "P67": 3664.1580000000004,
+          "P80": 3678.433,
+          "P85": 3682.45395,
+          "P90": 3683.7833,
+          "P95": 3686.76235,
+          "P100": 3690.108
+        }
+      },
+      "memory": {
+        "Gen0Collections": 0,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 4030
+      },
+      "result_nanoseconds": [
+        2217.765,
+        2206.473,
+        2050.056,
+        2222.973,
+        2181.514,
+        2184.723,
+        2975.52,
+        3684.025,
+        3681.608,
+        3665.733,
+        3690.108,
+        3663.233
+      ]
+    },
+    {
+      "launch": "04-benchmark-B",
+      "case": "Shape=ordinary",
+      "statistics": {
+        "OriginalValues": [
+          1604.012,
+          1795.638,
+          1587.844,
+          1559.761,
+          1763.721,
+          1546.803,
+          1574.804,
+          1655.012,
+          1558.344,
+          1559.47,
+          1696.512,
+          1550.928
+        ],
+        "N": 12,
+        "Min": 1546.803,
+        "LowerFence": 1399.89075,
+        "Q1": 1559.1885,
+        "Median": 1581.324,
+        "Mean": 1621.0707499999999,
+        "Q3": 1665.387,
+        "UpperFence": 1824.68475,
+        "Max": 1795.638,
+        "InterquartileRange": 106.19849999999997,
+        "LowerOutliers": [],
+        "UpperOutliers": [],
+        "AllOutliers": [],
+        "StandardError": 25.094627934149745,
+        "Variance": 7556.884213840903,
+        "StandardDeviation": 86.93034115796914,
+        "Skewness": 0.8987029575682633,
+        "Kurtosis": 2.1611341392815637,
+        "ConfidenceInterval": {
+          "N": 12,
+          "Mean": 1621.0707499999999,
+          "StandardError": 25.094627934149745,
+          "Level": 12,
+          "Margin": 111.34434561721021,
+          "Lower": 1509.7264043827897,
+          "Upper": 1732.41509561721
+        },
+        "Percentiles": {
+          "P0": 1546.803,
+          "P25": 1559.1885,
+          "P50": 1581.324,
+          "P67": 1622.882,
+          "P80": 1688.212,
+          "P85": 1720.0351500000002,
+          "P90": 1757.0001,
+          "P95": 1778.08365,
+          "P100": 1795.638
+        }
+      },
+      "memory": {
+        "Gen0Collections": 0,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 3470
+      },
+      "result_nanoseconds": [
+        1604.012,
+        1795.638,
+        1587.844,
+        1559.761,
+        1763.721,
+        1546.803,
+        1574.804,
+        1655.012,
+        1558.344,
+        1559.47,
+        1696.512,
+        1550.928
+      ]
+    },
+    {
+      "launch": "05-benchmark-C15",
+      "case": "Shape=async-alias2",
+      "statistics": {
+        "OriginalValues": [
+          5471.4755,
+          5931.0205,
+          6715.8165,
+          6156.7715,
+          6069.8965,
+          5028.4305,
+          6492.8995,
+          4921.8885,
+          3695.1715,
+          3887.7975,
+          4609.4695,
+          5738.8935
+        ],
+        "N": 12,
+        "Min": 3695.1715,
+        "LowerFence": 2972.0364999999993,
+        "Q1": 4843.78375,
+        "Median": 5605.184499999999,
+        "Mean": 5393.29425,
+        "Q3": 6091.61525,
+        "UpperFence": 7963.3625,
+        "Max": 6715.8165,
+        "InterquartileRange": 1247.8315000000002,
+        "LowerOutliers": [],
+        "UpperOutliers": [],
+        "AllOutliers": [],
+        "StandardError": 282.4870217878917,
+        "Variance": 957587.0097431138,
+        "StandardDeviation": 978.5637484308897,
+        "Skewness": -0.3867702924264146,
+        "Kurtosis": 1.732642544333198,
+        "ConfidenceInterval": {
+          "N": 12,
+          "Mean": 5393.29425,
+          "StandardError": 282.4870217878917,
+          "Level": 12,
+          "Margin": 1253.3890786850236,
+          "Lower": 4139.9051713149765,
+          "Upper": 6646.683328685023
+        },
+        "Percentiles": {
+          "P0": 3695.1715,
+          "P25": 4843.78375,
+          "P50": 5605.184499999999,
+          "P67": 5982.40462,
+          "P80": 6139.3965,
+          "P85": 6274.4163,
+          "P90": 6459.286700000001,
+          "P95": 6593.21215,
+          "P100": 6715.8165
+        }
+      },
+      "memory": {
+        "Gen0Collections": 0,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 4500
+      },
+      "result_nanoseconds": [
+        5471.4755,
+        5931.0205,
+        6715.8165,
+        6156.7715,
+        6069.8965,
+        5028.4305,
+        6492.8995,
+        4921.8885,
+        3695.1715,
+        3887.7975,
+        4609.4695,
+        5738.8935
+      ]
+    },
+    {
+      "launch": "05-benchmark-C15",
+      "case": "Shape=async-custom",
+      "statistics": {
+        "OriginalValues": [
+          3225.315,
+          3419.107,
+          4886.659,
+          2228.933,
+          5117.786,
+          2198.308,
+          6212.876,
+          2273.141,
+          2774.395,
+          4380.53,
+          5238.995,
+          2227.558
+        ],
+        "N": 12,
+        "Min": 2198.308,
+        "LowerFence": -1761.4386249999998,
+        "Q1": 2262.089,
+        "Median": 3322.2110000000002,
+        "Mean": 3681.9669166666667,
+        "Q3": 4944.44075,
+        "UpperFence": 8967.968375,
+        "Max": 6212.876,
+        "InterquartileRange": 2682.35175,
+        "LowerOutliers": [],
+        "UpperOutliers": [],
+        "AllOutliers": [],
+        "StandardError": 411.4336287516302,
+        "Variance": 2031331.5704128107,
+        "StandardDeviation": 1425.2478978805093,
+        "Skewness": 0.3444958147692363,
+        "Kurtosis": 1.4529943320246492,
+        "ConfidenceInterval": {
+          "N": 12,
+          "Mean": 3681.9669166666667,
+          "StandardError": 411.4336287516302,
+          "Level": 12,
+          "Margin": 1825.5225093783254,
+          "Lower": 1856.4444072883414,
+          "Upper": 5507.489426044992
+        },
+        "Percentiles": {
+          "P0": 2198.308,
+          "P25": 2262.089,
+          "P50": 3322.2110000000002,
+          "P67": 4567.79773,
+          "P80": 5071.5606,
+          "P85": 5160.20915,
+          "P90": 5226.8741,
+          "P95": 5677.2414499999995,
+          "P100": 6212.876
+        }
+      },
+      "memory": {
+        "Gen0Collections": 0,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 4024
+      },
+      "result_nanoseconds": [
+        3225.315,
+        3419.107,
+        4886.659,
+        2228.933,
+        5117.786,
+        2198.308,
+        6212.876,
+        2273.141,
+        2774.395,
+        4380.53,
+        5238.995,
+        2227.558
+      ]
+    },
+    {
+      "launch": "05-benchmark-C15",
+      "case": "Shape=async-ordinary",
+      "statistics": {
+        "OriginalValues": [
+          3606.692,
+          3862.069,
+          3538.191,
+          3831.277,
+          3682.318,
+          3880.027,
+          3814.944,
+          2307.433,
+          2329.891,
+          3495.149,
+          3607.734,
+          3331.815
+        ],
+        "N": 12,
+        "Min": 2307.433,
+        "LowerFence": 2907.247875,
+        "Q1": 3454.3155,
+        "Median": 3607.2129999999997,
+        "Mean": 3440.6283333333336,
+        "Q3": 3819.02725,
+        "UpperFence": 4366.094875,
+        "Max": 3880.027,
+        "InterquartileRange": 364.71174999999994,
+        "LowerOutliers": [
+          2307.433,
+          2329.891
+        ],
+        "UpperOutliers": [],
+        "AllOutliers": [
+          2307.433,
+          2329.891
+        ],
+        "StandardError": 158.58077400622733,
+        "Variance": 301774.3426129697,
+        "StandardDeviation": 549.3399153647673,
+        "Skewness": -1.2720998593205697,
+        "Kurtosis": 3.0087826836688807,
+        "ConfidenceInterval": {
+          "N": 12,
+          "Mean": 3440.6283333333336,
+          "StandardError": 158.58077400622733,
+          "Level": 12,
+          "Margin": 703.6196175343827,
+          "Lower": 2737.008715798951,
+          "Upper": 4144.247950867716
+        },
+        "Percentiles": {
+          "P0": 2307.433,
+          "P25": 3454.3155,
+          "P50": 3607.2129999999997,
+          "P67": 3731.3896200000004,
+          "P80": 3828.0104,
+          "P85": 3842.0542,
+          "P90": 3858.9898,
+          "P95": 3870.1501,
+          "P100": 3880.027
+        }
+      },
+      "memory": {
+        "Gen0Collections": 0,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 4030
+      },
+      "result_nanoseconds": [
+        3606.692,
+        3862.069,
+        3538.191,
+        3831.277,
+        3682.318,
+        3880.027,
+        3814.944,
+        2307.433,
+        2329.891,
+        3495.149,
+        3607.734,
+        3331.815
+      ]
+    },
+    {
+      "launch": "05-benchmark-C15",
+      "case": "Shape=ordinary",
+      "statistics": {
+        "OriginalValues": [
+          1686.6575,
+          1512.9485,
+          1728.2825,
+          1546.7815,
+          1703.6995,
+          1460.1565,
+          1671.2415,
+          1559.6155,
+          1656.8245,
+          1522.2825,
+          1509.6145,
+          1684.9495
+        ],
+        "N": 12,
+        "Min": 1460.1565,
+        "LowerFence": 1271.80775,
+        "Q1": 1519.949,
+        "Median": 1608.22,
+        "Mean": 1603.5878333333333,
+        "Q3": 1685.3765,
+        "UpperFence": 1933.51775,
+        "Max": 1728.2825,
+        "InterquartileRange": 165.4275,
+        "LowerOutliers": [],
+        "UpperOutliers": [],
+        "AllOutliers": [],
+        "StandardError": 26.952914000646807,
+        "Variance": 8717.514877515152,
+        "StandardDeviation": 93.3676329223096,
+        "Skewness": -0.08359886709574096,
+        "Kurtosis": 1.194368212588786,
+        "ConfidenceInterval": {
+          "N": 12,
+          "Mean": 1603.5878333333333,
+          "StandardError": 26.952914000646807,
+          "Level": 12,
+          "Margin": 119.58952249676554,
+          "Lower": 1483.9983108365677,
+          "Upper": 1723.1773558300988
+        },
+        "Percentiles": {
+          "P0": 1460.1565,
+          "P25": 1519.949,
+          "P50": 1608.22,
+          "P67": 1676.31346,
+          "P80": 1686.3159,
+          "P85": 1692.6221999999998,
+          "P90": 1701.9953,
+          "P95": 1714.7618499999999,
+          "P100": 1728.2825
+        }
+      },
+      "memory": {
+        "Gen0Collections": 0,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 3464
+      },
+      "result_nanoseconds": [
+        1686.6575,
+        1512.9485,
+        1728.2825,
+        1546.7815,
+        1703.6995,
+        1460.1565,
+        1671.2415,
+        1559.6155,
+        1656.8245,
+        1522.2825,
+        1509.6145,
+        1684.9495
+      ]
+    },
+    {
+      "launch": "07-benchmark-B",
+      "case": "Shape=async-alias2",
+      "statistics": {
+        "OriginalValues": [
+          5132.328,
+          5156.577,
+          5127.161,
+          6314.961,
+          5408.371,
+          5278.661,
+          5388.37,
+          5164.786,
+          5201.953,
+          5235.245,
+          5139.494,
+          5270.953
+        ],
+        "N": 12,
+        "Min": 5127.161,
+        "LowerFence": 4921.633249999999,
+        "Q1": 5152.30625,
+        "Median": 5218.599,
+        "Mean": 5318.238333333334,
+        "Q3": 5306.08825,
+        "UpperFence": 5536.76125,
+        "Max": 6314.961,
+        "InterquartileRange": 153.78200000000015,
+        "LowerOutliers": [],
+        "UpperOutliers": [
+          6314.961
+        ],
+        "AllOutliers": [
+          6314.961
+        ],
+        "StandardError": 94.68510826796985,
+        "Variance": 107583.23673260606,
+        "StandardDeviation": 327.9988364805675,
+        "Skewness": 2.2718699205118056,
+        "Kurtosis": 7.14284657589435,
+        "ConfidenceInterval": {
+          "N": 12,
+          "Mean": 5318.238333333334,
+          "StandardError": 94.68510826796985,
+          "Level": 12,
+          "Margin": 420.11586892049326,
+          "Lower": 4898.122464412841,
+          "Upper": 5738.354202253827
+        },
+        "Percentiles": {
+          "P0": 5127.161,
+          "P25": 5152.30625,
+          "P50": 5218.599,
+          "P67": 5273.80496,
+          "P80": 5366.4282,
+          "P85": 5395.37035,
+          "P90": 5406.3709,
+          "P95": 5816.336499999999,
+          "P100": 6314.961
+        }
+      },
+      "memory": {
+        "Gen0Collections": 0,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 4541
+      },
+      "result_nanoseconds": [
+        5132.328,
+        5156.577,
+        5127.161,
+        6314.961,
+        5408.371,
+        5278.661,
+        5388.37,
+        5164.786,
+        5201.953,
+        5235.245,
+        5139.494,
+        5270.953
+      ]
+    },
+    {
+      "launch": "07-benchmark-B",
+      "case": "Shape=async-custom",
+      "statistics": {
+        "OriginalValues": [
+          4004.153,
+          4599.824,
+          2089.681,
+          3118.189,
+          3838.902,
+          3839.194,
+          4194.613,
+          4326.864,
+          3980.6950000000006,
+          3924.528,
+          4665.533,
+          4157.361999999999
+        ],
+        "N": 12,
+        "Min": 2089.681,
+        "LowerFence": 3256.2888749999997,
+        "Q1": 3839.121,
+        "Median": 3992.424,
+        "Mean": 3894.9615,
+        "Q3": 4227.67575,
+        "UpperFence": 4810.507875000001,
+        "Max": 4665.533,
+        "InterquartileRange": 388.55475000000024,
+        "LowerOutliers": [
+          2089.681,
+          3118.189
+        ],
+        "UpperOutliers": [],
+        "AllOutliers": [
+          2089.681,
+          3118.189
+        ],
+        "StandardError": 200.8430992946869,
+        "Variance": 484055.4064115454,
+        "StandardDeviation": 695.7409046559973,
+        "Skewness": -1.340467582509385,
+        "Kurtosis": 4.137197145850918,
+        "ConfidenceInterval": {
+          "N": 12,
+          "Mean": 3894.9615,
+          "StandardError": 200.8430992946869,
+          "Level": 12,
+          "Margin": 891.136681579056,
+          "Lower": 3003.8248184209438,
+          "Upper": 4786.098181579056
+        },
+        "Percentiles": {
+          "P0": 2089.681,
+          "P25": 3839.121,
+          "P50": 3992.424,
+          "P67": 4171.144869999999,
+          "P80": 4300.413799999999,
+          "P85": 4422.4,
+          "P90": 4572.528,
+          "P95": 4629.39305,
+          "P100": 4665.533
+        }
+      },
+      "memory": {
+        "Gen0Collections": 0,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 4023
+      },
+      "result_nanoseconds": [
+        4004.153,
+        4599.824,
+        2089.681,
+        3118.189,
+        3838.902,
+        3839.194,
+        4194.613,
+        4326.864,
+        3980.6950000000006,
+        3924.528,
+        4665.533,
+        4157.361999999999
+      ]
+    },
+    {
+      "launch": "07-benchmark-B",
+      "case": "Shape=async-ordinary",
+      "statistics": {
+        "OriginalValues": [
+          3766.234,
+          3836.027,
+          3853.235,
+          3851.777,
+          3817.859,
+          3683.608,
+          3853.027,
+          3803.151,
+          3801.359,
+          4410.113,
+          3737.776,
+          3889.443
+        ],
+        "N": 12,
+        "Min": 3683.608,
+        "LowerFence": 3701.8258749999995,
+        "Q1": 3792.57775,
+        "Median": 3826.943,
+        "Mean": 3858.6340833333325,
+        "Q3": 3853.079,
+        "UpperFence": 3943.8308750000006,
+        "Max": 4410.113,
+        "InterquartileRange": 60.501250000000255,
+        "LowerOutliers": [
+          3683.608
+        ],
+        "UpperOutliers": [
+          4410.113
+        ],
+        "AllOutliers": [
+          3683.608,
+          4410.113
+        ],
+        "StandardError": 52.764260663832744,
+        "Variance": 33408.806440810644,
+        "StandardDeviation": 182.78076058713248,
+        "Skewness": 2.1752180022486565,
+        "Kurtosis": 6.999018300062377,
+        "ConfidenceInterval": {
+          "N": 12,
+          "Mean": 3858.6340833333325,
+          "StandardError": 52.764260663832744,
+          "Level": 12,
+          "Margin": 234.11393430525547,
+          "Lower": 3624.520149028077,
+          "Upper": 4092.748017638588
+        },
+        "Percentiles": {
+          "P0": 3683.608,
+          "P25": 3792.57775,
+          "P50": 3826.943,
+          "P67": 3852.2395,
+          "P80": 3853.1934,
+          "P85": 3865.9078,
+          "P90": 3885.8222,
+          "P95": 4123.7445,
+          "P100": 4410.113
+        }
+      },
+      "memory": {
+        "Gen0Collections": 0,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 4030
+      },
+      "result_nanoseconds": [
+        3766.234,
+        3836.027,
+        3853.235,
+        3851.777,
+        3817.859,
+        3683.608,
+        3853.027,
+        3803.151,
+        3801.359,
+        4410.113,
+        3737.776,
+        3889.443
+      ]
+    },
+    {
+      "launch": "07-benchmark-B",
+      "case": "Shape=ordinary",
+      "statistics": {
+        "OriginalValues": [
+          1462.718,
+          1612.97,
+          1460.343,
+          1591.427,
+          1468.719,
+          1574.594,
+          1474.385,
+          1571.97,
+          1489.761,
+          1455.719,
+          1597.844,
+          1454.844
+        ],
+        "N": 12,
+        "Min": 1454.844,
+        "LowerFence": 1287.1072500000002,
+        "Q1": 1462.12425,
+        "Median": 1482.0729999999999,
+        "Mean": 1517.9411666666667,
+        "Q3": 1578.80225,
+        "UpperFence": 1753.8192499999998,
+        "Max": 1612.97,
+        "InterquartileRange": 116.67799999999988,
+        "LowerOutliers": [],
+        "UpperOutliers": [],
+        "AllOutliers": [],
+        "StandardError": 18.72404234344958,
+        "Variance": 4207.077140151512,
+        "StandardDeviation": 64.86198532385139,
+        "Skewness": 0.3141831375201319,
+        "Kurtosis": 1.090147606799242,
+        "ConfidenceInterval": {
+          "N": 12,
+          "Mean": 1517.9411666666667,
+          "StandardError": 18.72404234344958,
+          "Level": 12,
+          "Margin": 83.0781889857482,
+          "Lower": 1434.8629776809184,
+          "Upper": 1601.019355652415
+        },
+        "Percentiles": {
+          "P0": 1454.844,
+          "P25": 1462.12425,
+          "P50": 1482.0729999999999,
+          "P67": 1572.94088,
+          "P80": 1588.0603999999998,
+          "P85": 1593.6729500000001,
+          "P90": 1597.2023,
+          "P95": 1604.6507000000001,
+          "P100": 1612.97
+        }
+      },
+      "memory": {
+        "Gen0Collections": 0,
+        "Gen1Collections": 0,
+        "Gen2Collections": 0,
+        "TotalOperations": 1000,
+        "BytesAllocatedPerOperation": 3470
+      },
+      "result_nanoseconds": [
+        1462.718,
+        1612.97,
+        1460.343,
+        1591.427,
+        1468.719,
+        1574.594,
+        1474.385,
+        1571.97,
+        1489.761,
+        1455.719,
+        1597.844,
+        1454.844
+      ]
+    }
+  ],
+  "adjacent_comparisons": [
+    {
+      "candidate": "03-benchmark-C15",
+      "baseline": "01-benchmark-B",
+      "case": "Shape=async-alias2",
+      "elapsed_percent": 3.7987073877841837,
+      "native_allocated_delta": -40
+    },
+    {
+      "candidate": "03-benchmark-C15",
+      "baseline": "04-benchmark-B",
+      "case": "Shape=async-alias2",
+      "elapsed_percent": 4.8158121707150725,
+      "native_allocated_delta": -40
+    },
+    {
+      "candidate": "03-benchmark-C15",
+      "baseline": "01-benchmark-B",
+      "case": "Shape=async-custom",
+      "elapsed_percent": -4.806245993748237,
+      "native_allocated_delta": 0
+    },
+    {
+      "candidate": "03-benchmark-C15",
+      "baseline": "04-benchmark-B",
+      "case": "Shape=async-custom",
+      "elapsed_percent": 2.085580170481771,
+      "native_allocated_delta": 6
+    },
+    {
+      "candidate": "03-benchmark-C15",
+      "baseline": "01-benchmark-B",
+      "case": "Shape=async-ordinary",
+      "elapsed_percent": -17.025863359020622,
+      "native_allocated_delta": 0
+    },
+    {
+      "candidate": "03-benchmark-C15",
+      "baseline": "04-benchmark-B",
+      "case": "Shape=async-ordinary",
+      "elapsed_percent": 32.883939861138245,
+      "native_allocated_delta": -6
+    },
+    {
+      "candidate": "03-benchmark-C15",
+      "baseline": "01-benchmark-B",
+      "case": "Shape=ordinary",
+      "elapsed_percent": 5.583643965148366,
+      "native_allocated_delta": 0
+    },
+    {
+      "candidate": "03-benchmark-C15",
+      "baseline": "04-benchmark-B",
+      "case": "Shape=ordinary",
+      "elapsed_percent": 3.6556650390901613,
+      "native_allocated_delta": -6
+    },
+    {
+      "candidate": "05-benchmark-C15",
+      "baseline": "04-benchmark-B",
+      "case": "Shape=async-alias2",
+      "elapsed_percent": 5.009246705550319,
+      "native_allocated_delta": -36
+    },
+    {
+      "candidate": "05-benchmark-C15",
+      "baseline": "07-benchmark-B",
+      "case": "Shape=async-alias2",
+      "elapsed_percent": 1.4112928372584488,
+      "native_allocated_delta": -41
+    },
+    {
+      "candidate": "05-benchmark-C15",
+      "baseline": "04-benchmark-B",
+      "case": "Shape=async-custom",
+      "elapsed_percent": -1.2962423630620834,
+      "native_allocated_delta": 0
+    },
+    {
+      "candidate": "05-benchmark-C15",
+      "baseline": "07-benchmark-B",
+      "case": "Shape=async-custom",
+      "elapsed_percent": -5.468464408013618,
+      "native_allocated_delta": 1
+    },
+    {
+      "candidate": "05-benchmark-C15",
+      "baseline": "04-benchmark-B",
+      "case": "Shape=async-ordinary",
+      "elapsed_percent": 19.939178004847903,
+      "native_allocated_delta": 0
+    },
+    {
+      "candidate": "05-benchmark-C15",
+      "baseline": "07-benchmark-B",
+      "case": "Shape=async-ordinary",
+      "elapsed_percent": -10.83299792031327,
+      "native_allocated_delta": 0
+    },
+    {
+      "candidate": "05-benchmark-C15",
+      "baseline": "04-benchmark-B",
+      "case": "Shape=ordinary",
+      "elapsed_percent": -1.078479558444112,
+      "native_allocated_delta": -6
+    },
+    {
+      "candidate": "05-benchmark-C15",
+      "baseline": "07-benchmark-B",
+      "case": "Shape=ordinary",
+      "elapsed_percent": 5.642291582007952,
+      "native_allocated_delta": -6
+    }
+  ]
+}
