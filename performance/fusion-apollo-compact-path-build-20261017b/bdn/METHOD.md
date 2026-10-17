@@ -15,3 +15,5 @@ After explicit root grant and free-lock/load preflight:
 ```sh
 flock -x /workspaces/platform-1/perf/fusion-common-path.lock taskset -c 0,8 python3 /workspaces/platform-1/.worktrees/fusion-apollo-compact-path-build-20261017b/performance/fusion-apollo-compact-path-build-20261017b/bdn/run.py
 ```
+
+The [exact-version MemoryDiagnoser source audit](https://github.com/ChilliCream/graphql-platform/blob/1ef3921f5754001f2a88af30be361a381acc400a/evidence/fusion-apollo-20261017/method-review/memory-diagnoser-scope.txt) confirms process-wide managed allocation, including async continuations. The separate diagnostic denominator is 1,000 operations, background allocations are included, and per-operation JSON bytes are rounded. Native timing observations remain elapsed time.
