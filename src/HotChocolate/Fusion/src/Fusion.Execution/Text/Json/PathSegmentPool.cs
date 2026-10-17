@@ -133,13 +133,20 @@ internal sealed class PathSegmentPool : IDisposable
     /// </summary>
     internal int InUse => _bucket.InUse;
 
+    /// <summary>
+    /// Gets the number of segment-array references the pool can currently retain.
+    /// </summary>
+    internal int Capacity => _bucket.Capacity;
+
+    internal void Trim() => _bucket.Trim();
+
     public void Dispose() => _bucket.Dispose();
 
     private sealed class Bucket : IDisposable
     {
         private readonly int _poolId;
         private readonly int _segmentArraySize;
-        private readonly int[]?[] _buffers;
+        private int[]?[] _buffers;
         private readonly int[] _levels;
         private readonly Timer _trimTimer;
         private int _currentLevel;
@@ -154,11 +161,9 @@ internal sealed class PathSegmentPool : IDisposable
             TimeSpan trimInterval,
             bool preAllocate)
         {
-            var numberOfBuffers = levels[levels.Length - 1];
-
             _poolId = poolId;
             _segmentArraySize = segmentArraySize;
-            _buffers = new int[numberOfBuffers][];
+            _buffers = new int[levels[0]][];
             _levels = levels;
             _currentLevel = 0;
 
@@ -180,6 +185,8 @@ internal sealed class PathSegmentPool : IDisposable
 
         internal int InUse => _inUse;
 
+        internal int Capacity => _buffers.Length;
+
         /// <summary>
         /// Takes one pool slot per destination element until the pool is exhausted and
         /// returns the number of slots taken. Empty slots are filled with new arrays.
@@ -188,7 +195,6 @@ internal sealed class PathSegmentPool : IDisposable
         {
             Interlocked.Add(ref _inUse, destination.Length);
 
-            var buffers = _buffers;
             var served = 0;
             var lockTaken = false;
 
@@ -198,18 +204,19 @@ internal sealed class PathSegmentPool : IDisposable
 
                 while (served < destination.Length)
                 {
-                    if (_index >= _levels[_currentLevel] && _currentLevel < _levels.Length - 1)
+                    if (_index >= _buffers.Length && _currentLevel < _levels.Length - 1)
                     {
+                        _buffers = new int[_levels[_currentLevel + 1]][];
                         _currentLevel++;
                     }
 
-                    if (_index >= _levels[_currentLevel])
+                    if (_index >= _buffers.Length)
                     {
                         break;
                     }
 
-                    destination[served++] = buffers[_index];
-                    buffers[_index++] = null;
+                    destination[served++] = _buffers[_index];
+                    _buffers[_index++] = null;
                 }
             }
             finally
@@ -287,33 +294,31 @@ internal sealed class PathSegmentPool : IDisposable
             return accepted;
         }
 
-        private void Trim()
+        internal void Trim()
         {
-            var currentLevel = _currentLevel;
-
-            if (currentLevel == 0)
-            {
-                return;
-            }
-
-            var previousLevel = currentLevel - 1;
-            var previousLimit = _levels[previousLevel];
-
-            if (_inUse > previousLimit)
-            {
-                return;
-            }
-
+            int previousLimit;
+            int inUse;
             var trimmed = 0;
             var lockTaken = false;
 
             try
             {
-                var currentLimit = _levels[currentLevel];
-
                 _lock.Enter(ref lockTaken);
 
-                for (var i = previousLimit; i < currentLimit; i++)
+                if (_currentLevel == 0)
+                {
+                    return;
+                }
+
+                previousLimit = _levels[_currentLevel - 1];
+                inUse = _inUse;
+
+                if (inUse > previousLimit)
+                {
+                    return;
+                }
+
+                for (var i = previousLimit; i < _buffers.Length; i++)
                 {
                     if (_buffers[i] != null)
                     {
@@ -326,6 +331,9 @@ internal sealed class PathSegmentPool : IDisposable
                 {
                     _index = previousLimit;
                 }
+
+                Array.Resize(ref _buffers, previousLimit);
+                _currentLevel--;
             }
             finally
             {
@@ -335,12 +343,10 @@ internal sealed class PathSegmentPool : IDisposable
                 }
             }
 
-            _currentLevel = previousLevel;
-
             var log = Log;
             if (log.IsEnabled())
             {
-                log.PoolTrimmed(_poolId, trimmed, previousLimit, _inUse);
+                log.PoolTrimmed(_poolId, trimmed, previousLimit, inUse);
             }
         }
 
