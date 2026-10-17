@@ -1,0 +1,120 @@
+{
+  "capture_summary_sha256": "f66a4302e60de94be6f84255f05f9f91cd5b5052ccd48389caf6d898a46276ea",
+  "capture_scope": "Seven direct fixture response captures during first baseline preflight, followed by30s conditioning. urllib HTTP transport differs from the gateway client; headers and sizes are observed for this capture, not instrumented gateway responses. Physical arena chunk adjacency is unobserved. Advertised JSONL/SSE bodies are retained without requiring a single JSON object; independent gateway preflight oracles establish workload correctness. No sensitive request/response header values retained.",
+  "rows": [
+    {
+      "index": 0,
+      "url": "http://localhost:5223/graphql",
+      "content_length": null,
+      "body_bytes": 285,
+      "body_sha256": "0a5c6ddc565b6204bacee0aea39c7e3a99f5f2d3a67b78b08d2ca73826822261",
+      "c7_captured_predicate": true,
+      "logical_chunk_sizes": [
+        1024
+      ],
+      "logical_chunks": 1,
+      "arena_bytes_reserved": 1024,
+      "c10_possible_only_if_adjacent": false,
+      "maximum_first_offset_for_same_128k_page": null
+    },
+    {
+      "index": 1,
+      "url": "http://localhost:5221/graphql",
+      "content_length": null,
+      "body_bytes": 355,
+      "body_sha256": "39a8b4380334dc729e3a9cdc15557854fac3a0caab74169f7f18dfd322b396f1",
+      "c7_captured_predicate": true,
+      "logical_chunk_sizes": [
+        1024
+      ],
+      "logical_chunks": 1,
+      "arena_bytes_reserved": 1024,
+      "c10_possible_only_if_adjacent": false,
+      "maximum_first_offset_for_same_128k_page": null
+    },
+    {
+      "index": 2,
+      "url": "http://localhost:5222/graphql",
+      "content_length": null,
+      "body_bytes": 220,
+      "body_sha256": "eee42c9ed6b6f4266b514a0f181e377609dff3635a4ce0ecf4ef653cf995606d",
+      "c7_captured_predicate": true,
+      "logical_chunk_sizes": [
+        1024
+      ],
+      "logical_chunks": 1,
+      "arena_bytes_reserved": 1024,
+      "c10_possible_only_if_adjacent": false,
+      "maximum_first_offset_for_same_128k_page": null
+    },
+    {
+      "index": 3,
+      "url": "http://localhost:5224/graphql",
+      "content_length": null,
+      "body_bytes": 74030,
+      "body_sha256": "e53110c303832e23421ed9ab12ca76ff0031cff89ee45875cfab6361d5215986",
+      "c7_captured_predicate": true,
+      "logical_chunk_sizes": [
+        1024,
+        2048,
+        4096,
+        8192,
+        16384,
+        32768,
+        65536
+      ],
+      "logical_chunks": 7,
+      "arena_bytes_reserved": 130048,
+      "c10_possible_only_if_adjacent": true,
+      "maximum_first_offset_for_same_128k_page": 1024
+    },
+    {
+      "index": 4,
+      "url": "http://localhost:5223/graphql",
+      "content_length": null,
+      "body_bytes": 187,
+      "body_sha256": "080b68d3cb3e951728d306b29da94a9f34f8a580609216bed4222f0e4ba59afb",
+      "c7_captured_predicate": true,
+      "logical_chunk_sizes": [
+        1024
+      ],
+      "logical_chunks": 1,
+      "arena_bytes_reserved": 1024,
+      "c10_possible_only_if_adjacent": false,
+      "maximum_first_offset_for_same_128k_page": null
+    },
+    {
+      "index": 5,
+      "url": "http://localhost:5221/graphql",
+      "content_length": null,
+      "body_bytes": 134,
+      "body_sha256": "fc0c6202277b1696f1c4fdd65586b9e4f4db86168c4acc08cd666cc42d7e421b",
+      "c7_captured_predicate": true,
+      "logical_chunk_sizes": [
+        1024
+      ],
+      "logical_chunks": 1,
+      "arena_bytes_reserved": 1024,
+      "c10_possible_only_if_adjacent": false,
+      "maximum_first_offset_for_same_128k_page": null
+    },
+    {
+      "index": 6,
+      "url": "http://localhost:5222/graphql",
+      "content_length": null,
+      "body_bytes": 178,
+      "body_sha256": "b960a208e86bba4dd2d1406493d27aa45dad130e882e4894f1a7182c52f6f2a8",
+      "c7_captured_predicate": true,
+      "logical_chunk_sizes": [
+        1024
+      ],
+      "logical_chunks": 1,
+      "arena_bytes_reserved": 1024,
+      "c10_possible_only_if_adjacent": false,
+      "maximum_first_offset_for_same_128k_page": null
+    }
+  ],
+  "gateway_observed": false,
+  "candidate_executed": false,
+  "physical_adjacency_observed": false
+}
