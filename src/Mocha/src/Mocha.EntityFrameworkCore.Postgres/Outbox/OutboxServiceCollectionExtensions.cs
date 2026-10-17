@@ -28,8 +28,22 @@ public static class OutboxServiceCollectionExtensions
     /// <param name="builder">The Entity Framework Core builder to configure.</param>
     /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
     public static IEntityFrameworkCoreBuilder UsePostgresOutbox(this IEntityFrameworkCoreBuilder builder)
+        => builder.UsePostgresOutbox(static _ => { });
+
+    /// <summary>
+    /// Registers the full Postgres outbox pipeline with the specified <see cref="PostgresOutboxOptions"/>.
+    /// </summary>
+    /// <param name="builder">The Entity Framework Core builder to configure.</param>
+    /// <param name="configure">A delegate that configures the <see cref="PostgresOutboxOptions"/>.</param>
+    /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
+    public static IEntityFrameworkCoreBuilder UsePostgresOutbox(
+        this IEntityFrameworkCoreBuilder builder,
+        Action<PostgresOutboxOptions> configure)
     {
+        ArgumentNullException.ThrowIfNull(configure);
+
         var contextType = builder.ContextType;
+        builder.Services.AddOptions<PostgresOutboxOptions>(builder.Name).Configure(configure);
 
         builder
             .Services.AddOptions<PostgresTableInfo>(builder.Name)

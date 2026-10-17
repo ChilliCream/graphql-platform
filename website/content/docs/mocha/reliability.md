@@ -755,6 +755,48 @@ public class OrderPlacedHandler(AppDbContext db, IMessageBus bus)
 
 After the transaction commits, the outbox processor detects the new message (via EF Core interceptors that signal on save and transaction commit) and dispatches it to the transport.
 
+## Transaction requirements
+
+By default, the outbox requires a transaction for `PublishAsync` and `SendAsync`. Without an open database transaction on the DbContext or an ambient `TransactionScope`, these calls throw an `InvalidOperationException` and no message is written. Replies and faults are written without a transaction.
+
+Direct bus publishes use the first DbContext registered with `UsePostgresOutbox()`. A transaction on another DbContext does not satisfy this requirement.
+
+Inside a transaction, the message is written to the outbox table as part of that transaction. Consumers get a transaction from `UseTransaction()`, and mediator handlers from `UseEntityFrameworkTransactions<TContext>()`. In other code, open one on the DbContext:
+
+```csharp
+await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+
+db.Orders.Add(order);
+await bus.PublishAsync(new OrderPlacedEvent { OrderId = order.Id }, cancellationToken);
+await db.SaveChangesAsync(cancellationToken);
+
+await transaction.CommitAsync(cancellationToken);
+```
+
+To publish outside a transaction, set `RequireTransaction` to `false`:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddEntityFramework<AppDbContext>(p =>
+    {
+        p.UsePostgresOutbox(o => o.RequireTransaction = false);
+    })
+    .AddRabbitMQ();
+```
+
+With `RequireTransaction` set to `false`, a message published outside a transaction is written to the outbox table immediately and dispatched right away, independent of any later `SaveChangesAsync`. Inside a transaction, it is still written as part of that transaction.
+
+`PostgresOutboxOptions` also supports named options configuration. The options name is the DbContext type's full name:
+
+```csharp
+using Mocha.Outbox;
+
+builder.Services.Configure<PostgresOutboxOptions>(
+    typeof(AppDbContext).FullName!,
+    options => options.RequireTransaction = false);
+```
+
 > [!NOTE]
 > The outbox guarantees at-least-once delivery. Your handlers may be invoked more than once for the same message if the outbox dispatches successfully but the transport acknowledgment is lost before the message is deleted from the outbox table. You can handle this in two ways: design handlers to be idempotent manually (see the [Idempotent Consumer](https://microservices.io/patterns/communication-style/idempotent-consumer.html) pattern), or enable the [inbox](#deduplicate-messages-with-the-transactional-inbox) on the receiving side to let Mocha deduplicate automatically.
 

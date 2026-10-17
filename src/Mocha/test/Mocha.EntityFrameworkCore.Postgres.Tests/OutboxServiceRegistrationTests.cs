@@ -12,6 +12,30 @@ public sealed class OutboxServiceRegistrationTests
     private const string ConnectionString = "Host=localhost;Database=test";
 
     [Fact]
+    public void UsePostgresOutbox_Should_DeferConfiguration_When_OptionsHaveNotBeenResolved()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        var configureCount = 0;
+
+        // act
+        services.AddMessageBus().AddEntityFramework<TestDbContext>(
+            ef => ef.UsePostgresOutbox(options =>
+            {
+                configureCount++;
+                options.RequireTransaction = false;
+            }));
+
+        // assert
+        Assert.Equal(0, configureCount);
+        using var provider = services.BuildServiceProvider();
+        var options = provider.GetRequiredService<IOptionsMonitor<PostgresOutboxOptions>>()
+            .Get(typeof(TestDbContext).FullName);
+        Assert.False(options.RequireTransaction);
+        Assert.Equal(1, configureCount);
+    }
+
+    [Fact]
     public async Task UsePostgresOutbox_Should_RegisterHostedService_When_Called()
     {
         // Arrange
