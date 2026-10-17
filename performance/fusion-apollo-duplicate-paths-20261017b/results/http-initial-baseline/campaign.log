@@ -1,0 +1,23 @@
+2026-10-17T16:51:26.084085+00:00 delay0-00-B ready
+2026-10-17T16:51:26.084524+00:00 delay0-00-B preflight-start
+2026-10-17T16:51:26.440275+00:00 delay0-00-B preflight-end
+2026-10-17T16:51:26.440727+00:00 delay0-00-B warmup-before-setup
+2026-10-17T16:51:57.265846+00:00 delay0-00-B warmup-generator-complete
+2026-10-17T16:51:57.266443+00:00 delay0-00-B TestQuery-before-setup
+2026-10-17T16:52:27.630652+00:00 delay0-00-B TestQuery-generator-complete
+2026-10-17T16:52:27.631184+00:00 delay0-00-B entities9-before-setup
+2026-10-17T16:52:47.938535+00:00 delay0-00-B entities9-generator-complete
+2026-10-17T16:52:47.939158+00:00 delay0-00-B ordinary-fixed-before-setup
+2026-10-17T16:53:08.132747+00:00 delay0-00-B ordinary-fixed-generator-complete
+Traceback (most recent call last):
+  File "/workspaces/platform-1/.worktrees/fusion-apollo-duplicate-paths-20261017b/performance/fusion-apollo-duplicate-paths-20261017b/http/campaign.py", line 379, in <module>
+    main()
+  File "/workspaces/platform-1/.worktrees/fusion-apollo-duplicate-paths-20261017b/performance/fusion-apollo-duplicate-paths-20261017b/http/campaign.py", line 375, in main
+    bounded_execute(args)
+  File "/workspaces/platform-1/.worktrees/fusion-apollo-duplicate-paths-20261017b/performance/fusion-apollo-duplicate-paths-20261017b/http/campaign.py", line 341, in bounded_execute
+    execute(args)
+  File "/workspaces/platform-1/.worktrees/fusion-apollo-duplicate-paths-20261017b/performance/fusion-apollo-duplicate-paths-20261017b/http/campaign.py", line 317, in execute
+    session.k6('ordinary-fixed', workload='ordinary', duration=20)
+  File "/workspaces/platform-1/.worktrees/fusion-apollo-duplicate-paths-20261017b/performance/fusion-apollo-duplicate-paths-20261017b/http/campaign.py", line 256, in k6
+    raise ValueError(f'{name} dropped {dropped} iterations')
+ValueError: ordinary-fixed dropped 522 iterations

@@ -1,0 +1,21 @@
+{
+  "start": "2026-10-17T16:51:25.533757+00:00",
+  "parent": {
+    "pid": 76765,
+    "start_ticks": 443827,
+    "cpu_seconds": 0.23,
+    "rss_bytes": 21508096,
+    "threads": 1
+  },
+  "parent_affinity": [
+    0,
+    8
+  ],
+  "session_bound": {
+    "work_seconds": 2880,
+    "cleanup_reserve_seconds": 120,
+    "total_seconds": 3000
+  },
+  "plan_sha256": "02d700d087d2a7f702c7a2581128d094c2c8592baeb4961d55573b1a9bbe734f",
+  "root_grant": "root-approved-final-C3-C2-http"
+}

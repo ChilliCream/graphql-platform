@@ -1,0 +1,84 @@
+{
+  "verified": "2026-10-17T16:53:46.621701+00:00",
+  "exclusive_lock_acquired": true,
+  "passed": true,
+  "identities": [
+    {
+      "name": "Accounts",
+      "pid": 76768,
+      "start_ticks": 443850,
+      "actual_start_ticks": null,
+      "same_identity_alive": false
+    },
+    {
+      "name": "Inventory",
+      "pid": 76769,
+      "start_ticks": 443850,
+      "actual_start_ticks": null,
+      "same_identity_alive": false
+    },
+    {
+      "name": "Products",
+      "pid": 76770,
+      "start_ticks": 443850,
+      "actual_start_ticks": null,
+      "same_identity_alive": false
+    },
+    {
+      "name": "Reviews",
+      "pid": 76771,
+      "start_ticks": 443850,
+      "actual_start_ticks": null,
+      "same_identity_alive": false
+    },
+    {
+      "name": "gateway",
+      "pid": 76772,
+      "start_ticks": 443850,
+      "actual_start_ticks": null,
+      "same_identity_alive": false
+    },
+    {
+      "name": "counters",
+      "pid": 76887,
+      "start_ticks": 443905,
+      "actual_start_ticks": null,
+      "same_identity_alive": false
+    },
+    {
+      "name": "warmup",
+      "pid": 76913,
+      "start_ticks": 443941,
+      "actual_start_ticks": null,
+      "same_identity_alive": false
+    },
+    {
+      "name": "TestQuery",
+      "pid": 77198,
+      "start_ticks": 447023,
+      "actual_start_ticks": null,
+      "same_identity_alive": false
+    },
+    {
+      "name": "entities9",
+      "pid": 77333,
+      "start_ticks": 450060,
+      "actual_start_ticks": null,
+      "same_identity_alive": false
+    },
+    {
+      "name": "ordinary-fixed",
+      "pid": 77476,
+      "start_ticks": 452091,
+      "actual_start_ticks": null,
+      "same_identity_alive": false
+    },
+    {
+      "name": "campaign-parent",
+      "pid": 76765,
+      "start_ticks": 443827,
+      "actual_start_ticks": null,
+      "same_identity_alive": false
+    }
+  ]
+}

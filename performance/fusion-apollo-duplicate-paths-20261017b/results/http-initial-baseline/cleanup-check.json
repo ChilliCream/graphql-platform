@@ -1,0 +1,95 @@
+{
+  "checked": "2026-10-17T16:53:30.026639+00:00",
+  "identities": [
+    {
+      "name": "Accounts",
+      "pid": 76768,
+      "start_ticks": 443850,
+      "same_identity_alive": false
+    },
+    {
+      "name": "Inventory",
+      "pid": 76769,
+      "start_ticks": 443850,
+      "same_identity_alive": false
+    },
+    {
+      "name": "Products",
+      "pid": 76770,
+      "start_ticks": 443850,
+      "same_identity_alive": false
+    },
+    {
+      "name": "Reviews",
+      "pid": 76771,
+      "start_ticks": 443850,
+      "same_identity_alive": false
+    },
+    {
+      "name": "gateway",
+      "pid": 76772,
+      "start_ticks": 443850,
+      "same_identity_alive": false
+    },
+    {
+      "name": "counters",
+      "pid": 76887,
+      "start_ticks": 443905,
+      "same_identity_alive": false
+    },
+    {
+      "name": "warmup",
+      "pid": 76913,
+      "start_ticks": 443941,
+      "same_identity_alive": false
+    },
+    {
+      "name": "TestQuery",
+      "pid": 77198,
+      "start_ticks": 447023,
+      "same_identity_alive": false
+    },
+    {
+      "name": "entities9",
+      "pid": 77333,
+      "start_ticks": 450060,
+      "same_identity_alive": false
+    },
+    {
+      "name": "ordinary-fixed",
+      "pid": 77476,
+      "start_ticks": 452091,
+      "same_identity_alive": false
+    }
+  ],
+  "all_owned_identities_absent": true,
+  "failure": {
+    "end": "2026-10-17T16:53:08.447627+00:00",
+    "type": "ValueError",
+    "message": "ordinary-fixed dropped 522 iterations"
+  },
+  "cleanup": {
+    "end": "2026-10-17T16:53:08.446818+00:00",
+    "remaining_owned_pids": [],
+    "returncodes": {
+      "Accounts": 0,
+      "Inventory": 0,
+      "Products": 0,
+      "Reviews": 0,
+      "gateway": 0,
+      "counters": -2,
+      "warmup": 0,
+      "TestQuery": 0,
+      "entities9": 0,
+      "ordinary-fixed": 0
+    }
+  },
+  "bound": {
+    "end": "2026-10-17T16:53:08.447880+00:00",
+    "elapsed_seconds": 103.10613246899993,
+    "work_seconds": 2880,
+    "cleanup_reserve_seconds": 120,
+    "total_bound_seconds": 3000,
+    "within_total_bound": true
+  }
+}

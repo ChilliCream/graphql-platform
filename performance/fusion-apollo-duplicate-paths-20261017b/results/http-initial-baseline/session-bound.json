@@ -1,0 +1,8 @@
+{
+  "end": "2026-10-17T16:53:08.447880+00:00",
+  "elapsed_seconds": 103.10613246899993,
+  "work_seconds": 2880,
+  "cleanup_reserve_seconds": 120,
+  "total_bound_seconds": 3000,
+  "within_total_bound": true
+}
