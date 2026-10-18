@@ -1515,14 +1515,14 @@ public class DefaultGraphQLHttpClientTests
     }
 
     [Fact]
-    public async Task ReadAsResultStream_Should_DropLastRecord_When_JsonLinesResponseHasNoTrailingNewLine()
+    public async Task ReadAsResultStream_Should_YieldLastRecord_When_JsonLinesResponseHasNoTrailingNewLine()
     {
         // act
         var (numbers, error) = await ReadJsonLinesNumbersAsync("{\"data\":{\"number\":0}}\n{\"data\":{\"number\":1}}");
 
         // assert
         Assert.Null(error);
-        Assert.Equal([0], numbers);
+        Assert.Equal([0, 1], numbers);
     }
 
     [Fact]
