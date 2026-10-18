@@ -125,7 +125,7 @@ public class OperationPlanDeliveryPathTests : FusionTestBase
             original.ExpandedNodes));
 
         // assert
-        exception.Message.MatchInlineSnapshot("Could not resolve selection path segment 'missing'.");
+        Assert.Equal("Could not resolve selection path segment 'missing'.", exception.Message);
     }
 
     [Fact]
@@ -138,7 +138,7 @@ public class OperationPlanDeliveryPathTests : FusionTestBase
         var exception = Assert.Throws<KeyNotFoundException>(() => plan.GetDeliveryPath(0));
 
         // assert
-        exception.Message.MatchInlineSnapshot("The delivery group with the ID '0' was not found.");
+        Assert.Equal("The delivery group with the ID '0' was not found.", exception.Message);
     }
 
     private static string[] Describe(OperationPlan plan)
