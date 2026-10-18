@@ -48,7 +48,11 @@ public class MemorySegmentTablePoolTests
         try
         {
             // assert
-            Assert.Equal(tables, recycled);
+            Assert.Equal(tables.Length, recycled.Length);
+            for (var i = 0; i < tables.Length; i++)
+            {
+                Assert.Same(tables[i], recycled[i]);
+            }
             Assert.All(recycled.SelectMany(table => table), segment => Assert.Equal(default, segment));
         }
         finally
