@@ -20,6 +20,7 @@ internal static class HttpResponseExtensions
         var remaining = fieldNames.AsSpan();
         var total = 0;
         var listed = 0;
+        ReadOnlySpan<char> firstMissing = default;
 
         while (TryReadFieldName(ref remaining, out var fieldName))
         {
@@ -28,6 +29,10 @@ internal static class HttpResponseExtensions
             if (ListsFieldName(vary, fieldName))
             {
                 listed++;
+            }
+            else if (firstMissing.IsEmpty)
+            {
+                firstMissing = fieldName;
             }
         }
 
@@ -39,6 +44,12 @@ internal static class HttpResponseExtensions
         if (listed == 0)
         {
             headers.Vary = StringValues.Concat(vary, fieldNames);
+            return;
+        }
+
+        if (total - listed == 1)
+        {
+            headers.Vary = StringValues.Concat(vary, firstMissing.ToString());
             return;
         }
 
@@ -85,7 +96,7 @@ internal static class HttpResponseExtensions
     }
 
     private static bool TryReadFieldName(
-        ref ReadOnlySpan<char> remaining,
+        scoped ref ReadOnlySpan<char> remaining,
         out ReadOnlySpan<char> fieldName)
     {
         while (!remaining.IsEmpty)
