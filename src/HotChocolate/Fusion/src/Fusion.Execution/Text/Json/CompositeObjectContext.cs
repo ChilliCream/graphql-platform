@@ -32,6 +32,11 @@ internal readonly struct CompositeObjectContext
     /// </summary>
     public SelectionSet? SelectionSet => _selectionSet;
 
+    /// <summary>
+    /// Gets the cursor of the StartObject row of the object.
+    /// </summary>
+    public CompositeResultDocument.Cursor ObjectStartCursor => _objectStartCursor;
+
     public bool TryGetProperty(
         ReadOnlySpan<byte> propertyName,
         out CompositeResultElement value,
