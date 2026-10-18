@@ -64,12 +64,12 @@ public class PathUtilitiesTests
         var custom = new CustomPath();
         var (path, subtree) = scenario switch
         {
-            "discarded" => ((Path)new CustomPath(Path.Root.Append("viewer")), Path.Root.Append("viewer")),
+            "discarded" => (new CustomPath(Path.Root.Append("viewer")), Path.Root.Append("viewer")),
             "pathAncestor" => (custom.Append("left"), Path.Root.Append("right")),
             "subtreeAncestor" => (Path.Root.Append("left"), custom.Append("right")),
             "bothAncestors" => (custom.Append("left"), custom.Append("right")),
-            "sameReference" => (custom.Append("same"), (Path?)null),
-            "customZeroRoot" => (Path.Root, (Path)custom),
+            "sameReference" => (custom.Append("same"), null),
+            "customZeroRoot" => (Path.Root, custom),
             _ => throw new NotSupportedException()
         };
         subtree ??= path;
