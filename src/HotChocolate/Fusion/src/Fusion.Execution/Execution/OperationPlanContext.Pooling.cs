@@ -74,6 +74,11 @@ public sealed partial class OperationPlanContext
         _clientScope ??= requestContext.CreateClientScope();
         _clientScopeCreatedAt = Stopwatch.GetTimestamp();
 
+        if (_clientScope is DefaultSourceSchemaClientScope pooledClientScope)
+        {
+            pooledClientScope.RetireExpiredClients();
+        }
+
         _resultStore.Initialize(
             Memory,
             (FusionSchemaDefinition)requestContext.Schema,
@@ -195,6 +200,18 @@ public sealed partial class OperationPlanContext
         _resultStore.Dispose();
         _executionState.Destroy();
         _engineCancellationSource.Dispose();
+
+        // Pooled scopes retain only clients of reusable factories, whose disposal completes synchronously.
+        if (_clientScope is DefaultSourceSchemaClientScope clientScope)
+        {
+            _clientScope = default!;
+            var disposeTask = clientScope.DisposeAsync();
+
+            if (!disposeTask.IsCompletedSuccessfully)
+            {
+                disposeTask.AsTask().GetAwaiter().GetResult();
+            }
+        }
     }
 
     public async ValueTask DisposeAsync()

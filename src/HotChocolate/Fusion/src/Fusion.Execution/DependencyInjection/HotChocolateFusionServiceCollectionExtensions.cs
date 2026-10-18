@@ -6,6 +6,7 @@ using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Http;
 using Microsoft.Extensions.ObjectPool;
 using Microsoft.Extensions.Options;
 
@@ -77,7 +78,8 @@ public static class HotChocolateFusionServiceCollectionExtensions
     {
         services.AddSingleton<ISourceSchemaClientFactory>(
             static sp => new HttpSourceSchemaClientFactory(
-                sp.GetRequiredService<IHttpClientFactory>()));
+                sp.GetRequiredService<IHttpClientFactory>(),
+                sp.GetService<IOptionsMonitor<HttpClientFactoryOptions>>()));
 
         services.TryAddSingleton<ISourceSchemaClientScopeFactory>(
             static sp => new DefaultSourceSchemaClientScopeFactory(
