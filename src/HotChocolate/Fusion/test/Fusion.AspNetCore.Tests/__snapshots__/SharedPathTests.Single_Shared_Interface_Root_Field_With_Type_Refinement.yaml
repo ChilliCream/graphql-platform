@@ -185,23 +185,9 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_d8c31e9a_1 {
-          interface {
-            __typename
-            ... on Review {
-              schema1
-            }
-          }
-        }
+        query Op_d8c31e9a_1 { interface { __typename ... on Review { schema1 } } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query Op_d8c31e9a_2 {
-          interface {
-            __typename
-            ... on Review {
-              schema2
-            }
-          }
-        }
+        query Op_d8c31e9a_2 { interface { __typename ... on Review { schema2 } } }

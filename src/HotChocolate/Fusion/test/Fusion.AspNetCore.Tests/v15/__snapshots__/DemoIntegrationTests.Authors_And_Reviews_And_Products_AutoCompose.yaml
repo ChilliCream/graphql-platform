@@ -254,26 +254,14 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_5e956cef_1 {
-          reviews {
-            body
-          }
-        }
+        query Op_5e956cef_1 { reviews { body } }
     - id: 2
       type: Operation
       schema: A
       operation: |
-        query Op_5e956cef_2 {
-          users {
-            id
-          }
-        }
+        query Op_5e956cef_2 { users { id } }
     - id: 3
       type: Operation
       schema: C
       operation: |
-        query Op_5e956cef_3 {
-          topProducts(first: 2) {
-            id
-          }
-        }
+        query Op_5e956cef_3 { topProducts(first: 2) { id } }

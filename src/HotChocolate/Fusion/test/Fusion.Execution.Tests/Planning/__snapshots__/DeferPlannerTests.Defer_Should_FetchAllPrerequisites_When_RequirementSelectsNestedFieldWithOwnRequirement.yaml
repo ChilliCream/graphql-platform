@@ -13,11 +13,7 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_1 {
-        product {
-          id
-        }
-      }
+      query Op_123456789101112_1 { product { id } }
 deliveryGroups:
   - id: 0
     path: $.product
@@ -30,11 +26,7 @@ incrementalPlans:
         type: Operation
         schema: c
         operation: |
-          query Op_defer_2($__fusion_2_input: OwnerInput!, $__fusion_3_id: ID!) {
-            productById(id: $__fusion_3_id) {
-              total(input: $__fusion_2_input)
-            }
-          }
+          query Op_defer_2($__fusion_2_input: OwnerInput!, $__fusion_3_id: ID!) { productById(id: $__fusion_3_id) { total(input: $__fusion_2_input) } }
         source: $.productById
         target: $.product
         requirements:
@@ -55,14 +47,7 @@ incrementalPlans:
         type: Operation
         schema: a
         operation: |
-          query Op_defer_3($__fusion_4_id: ID!) {
-            productById(id: $__fusion_4_id) {
-              owner {
-                raw
-                id
-              }
-            }
-          }
+          query Op_defer_3($__fusion_4_id: ID!) { productById(id: $__fusion_4_id) { owner { raw id } } }
         source: $.productById
         target: $.product
         requirements:
@@ -75,11 +60,7 @@ incrementalPlans:
         type: Operation
         schema: a
         operation: |
-          query Op_defer_4($__fusion_5_value: Int!, $__fusion_6_id: ID!) {
-            userById(id: $__fusion_6_id) {
-              computed(value: $__fusion_5_value)
-            }
-          }
+          query Op_defer_4($__fusion_5_value: Int!, $__fusion_6_id: ID!) { userById(id: $__fusion_6_id) { computed(value: $__fusion_5_value) } }
         source: $.userById
         target: $.product.owner
         requirements:
@@ -96,11 +77,7 @@ incrementalPlans:
         type: Operation
         schema: b
         operation: |
-          query Op_defer_5($__fusion_7_id: ID!) {
-            userById(id: $__fusion_7_id) {
-              value
-            }
-          }
+          query Op_defer_5($__fusion_7_id: ID!) { userById(id: $__fusion_7_id) { value } }
         source: $.userById
         target: $.product.owner
         requirements:
@@ -113,8 +90,4 @@ incrementalPlans:
         type: Operation
         schema: a
         operation: |
-          query Op_defer_8 {
-            product {
-              id
-            }
-          }
+          query Op_defer_8 { product { id } }

@@ -242,26 +242,12 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_40a12cd0_1 {
-          anotherUsers {
-            id
-          }
-        }
+        query testQuery_40a12cd0_1 { anotherUsers { id } }
     - id: 2
       type: Operation
       schema: A
       operation: |
-        query testQuery_40a12cd0_2($__fusion_1_id: ID!) {
-          nodeById(id: $__fusion_1_id) {
-            __typename
-            name
-            ... on User {
-              age
-              id
-              name
-            }
-          }
-        }
+        query testQuery_40a12cd0_2($__fusion_1_id: ID!) { nodeById(id: $__fusion_1_id) { __typename name ... on User { age id name } } }
       source: $.nodeById
       target: $.anotherUsers
       requirements:
@@ -274,11 +260,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_40a12cd0_3($__fusion_2_id: ID!) {
-          nodeByKey(id: $__fusion_2_id) {
-            score
-          }
-        }
+        query testQuery_40a12cd0_3($__fusion_2_id: ID!) { nodeByKey(id: $__fusion_2_id) { score } }
       source: $.nodeByKey
       target: $.anotherUsers<User>
       requirements:

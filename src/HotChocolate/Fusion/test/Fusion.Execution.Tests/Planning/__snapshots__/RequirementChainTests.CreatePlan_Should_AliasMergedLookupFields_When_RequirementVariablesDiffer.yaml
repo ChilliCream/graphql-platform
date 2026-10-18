@@ -26,21 +26,12 @@ nodes:
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_1 {
-        product {
-          id
-          hasDiscount
-        }
-      }
+      query Op_123456789101112_1 { product { id hasDiscount } }
   - id: 2
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!) {
-        productById(id: $__fusion_1_id) {
-          price
-        }
-      }
+      query Op_123456789101112_2($__fusion_1_id: ID!) { productById(id: $__fusion_1_id) { price } }
     source: $.productById
     target: $.product
     requirements:
@@ -53,24 +44,7 @@ nodes:
     type: Operation
     schema: d
     operation: |
-      query Op_123456789101112_4(
-        $__fusion_10_isExpensive: Boolean!
-        $__fusion_13_isExpensive: Boolean!
-        $__fusion_3_isExpensiveWithDiscount: Boolean!
-        $__fusion_4_id: ID!
-        $__fusion_7_isExpensiveWithDiscount: Boolean!
-      ) {
-        productById(id: $__fusion_4_id) {
-          canAffordWithDiscount2(
-            isExpensiveWithDiscount: $__fusion_3_isExpensiveWithDiscount
-          )
-          canAffordWithDiscount(
-            isExpensiveWithDiscount: $__fusion_7_isExpensiveWithDiscount
-          )
-          canAfford2(isExpensive: $__fusion_10_isExpensive)
-          canAfford(isExpensive: $__fusion_13_isExpensive)
-        }
-      }
+      query Op_123456789101112_4($__fusion_10_isExpensive: Boolean!, $__fusion_13_isExpensive: Boolean!, $__fusion_3_isExpensiveWithDiscount: Boolean!, $__fusion_4_id: ID!, $__fusion_7_isExpensiveWithDiscount: Boolean!) { productById(id: $__fusion_4_id) { canAffordWithDiscount2(isExpensiveWithDiscount: $__fusion_3_isExpensiveWithDiscount) canAffordWithDiscount(isExpensiveWithDiscount: $__fusion_7_isExpensiveWithDiscount) canAfford2(isExpensive: $__fusion_10_isExpensive) canAfford(isExpensive: $__fusion_13_isExpensive) } }
     source: $.productById
     target: $.product
     requirements:
@@ -96,22 +70,7 @@ nodes:
     type: Operation
     schema: c
     operation: |
-      query Op_123456789101112_5(
-        $__fusion_12_price: Float!
-        $__fusion_15_price: Float!
-        $__fusion_5_id: ID!
-        $__fusion_6_hasDiscount: Boolean!
-        $__fusion_9_hasDiscount: Boolean!
-      ) {
-        productById(id: $__fusion_5_id) {
-          isExpensiveWithDiscount(hasDiscount: $__fusion_6_hasDiscount)
-          fusion__requirement_isExpensiveWithDiscount_0: isExpensiveWithDiscount(
-            hasDiscount: $__fusion_9_hasDiscount
-          )
-          isExpensive(price: $__fusion_12_price)
-          fusion__requirement_isExpensive_1: isExpensive(price: $__fusion_15_price)
-        }
-      }
+      query Op_123456789101112_5($__fusion_12_price: Float!, $__fusion_15_price: Float!, $__fusion_5_id: ID!, $__fusion_6_hasDiscount: Boolean!, $__fusion_9_hasDiscount: Boolean!) { productById(id: $__fusion_5_id) { isExpensiveWithDiscount(hasDiscount: $__fusion_6_hasDiscount) fusion__requirement_isExpensiveWithDiscount_0: isExpensiveWithDiscount(hasDiscount: $__fusion_9_hasDiscount) isExpensive(price: $__fusion_12_price) fusion__requirement_isExpensive_1: isExpensive(price: $__fusion_15_price) } }
     source: $.productById
     target: $.product
     batchingGroupId: 10
@@ -138,16 +97,7 @@ nodes:
     type: Operation
     schema: c
     operation: |
-      query Op_123456789101112_9(
-        $__fusion_16_id: ID!
-        $__fusion_17_hasDiscount: Boolean!
-        $__fusion_18_price: Float!
-      ) {
-        productById(id: $__fusion_16_id) {
-          isExpensiveWithDiscount(hasDiscount: $__fusion_17_hasDiscount)
-          isExpensive(price: $__fusion_18_price)
-        }
-      }
+      query Op_123456789101112_9($__fusion_16_id: ID!, $__fusion_17_hasDiscount: Boolean!, $__fusion_18_price: Float!) { productById(id: $__fusion_16_id) { isExpensiveWithDiscount(hasDiscount: $__fusion_17_hasDiscount) isExpensive(price: $__fusion_18_price) } }
     source: $.productById
     target: $.product
     batchingGroupId: 10

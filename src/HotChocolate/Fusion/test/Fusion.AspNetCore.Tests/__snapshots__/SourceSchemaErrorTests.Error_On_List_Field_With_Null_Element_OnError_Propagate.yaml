@@ -102,10 +102,4 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_deadf20a_1 {
-          job {
-            items {
-              name
-            }
-          }
-        }
+        query Op_deadf20a_1 { job { items { name } } }

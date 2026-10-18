@@ -165,38 +165,21 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query Op_bee05c5d_2 {
-          node(id: "Qm90OjE=") {
-            __typename
-            id
-          }
-        }
+        query Op_bee05c5d_2 { node(id: "Qm90OjE=") { __typename id } }
       dependencies:
         - id: 1
     - id: 3
       type: Operation
       schema: CONTRIBUTORS
       operation: |
-        query Op_bee05c5d_3 {
-          node(id: "Qm90OjE=") {
-            __typename
-            ... on User {
-              __typename
-              id
-            }
-          }
-        }
+        query Op_bee05c5d_3 { node(id: "Qm90OjE=") { __typename ... on User { __typename id } } }
       dependencies:
         - id: 1
     - id: 4
       type: Operation
       schema: ACCOUNTS
       operation: |
-        query Op_bee05c5d_4($__fusion_1_id: ID!) {
-          userById(id: $__fusion_1_id) {
-            email
-          }
-        }
+        query Op_bee05c5d_4($__fusion_1_id: ID!) { userById(id: $__fusion_1_id) { email } }
       source: $.userById
       target: $.node<User>
       requirements:
@@ -212,26 +195,14 @@ operationPlan:
       type: Operation
       schema: CONTRIBUTORS
       operation: |
-        query Op_bee05c5d_5 {
-          node(id: "Qm90OjE=") {
-            __typename
-            ... on Bot {
-              __typename
-              id
-            }
-          }
-        }
+        query Op_bee05c5d_5 { node(id: "Qm90OjE=") { __typename ... on Bot { __typename id } } }
       dependencies:
         - id: 1
     - id: 6
       type: Operation
       schema: ACCOUNTS
       operation: |
-        query Op_bee05c5d_6($__fusion_2_id: ID!) {
-          botById(id: $__fusion_2_id) {
-            owner
-          }
-        }
+        query Op_bee05c5d_6($__fusion_2_id: ID!) { botById(id: $__fusion_2_id) { owner } }
       source: $.botById
       target: $.node<Bot>
       requirements:

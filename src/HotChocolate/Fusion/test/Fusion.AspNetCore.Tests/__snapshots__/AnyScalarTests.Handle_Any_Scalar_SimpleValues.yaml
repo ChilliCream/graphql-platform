@@ -97,6 +97,4 @@ operationPlan:
       type: Operation
       schema: a
       operation: |
-        query Op_ecea57a1_1 {
-          simpleValues
-        }
+        query Op_ecea57a1_1 { simpleValues }

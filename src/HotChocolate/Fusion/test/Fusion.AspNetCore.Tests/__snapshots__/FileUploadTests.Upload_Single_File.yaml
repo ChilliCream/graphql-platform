@@ -92,7 +92,7 @@ sourceSchemas:
             Content-Type: application/json; charset=utf-8
             Content-Disposition: form-data; name=operations
 
-            {"query":"query Op_6e1beb14_1($file: Upload!) {\n  singleUpload(file: $file) {\n    fileName\n    contentType\n    content\n  }\n}","variables":{"file":null}}
+            {"query":"query Op_6e1beb14_1($file: Upload!) { singleUpload(file: $file) { fileName contentType content } }","variables":{"file":null}}
             --f56524ab-5626-4955-b296-234a097b44f6
             Content-Type: application/json; charset=utf-8
             Content-Disposition: form-data; name=map
@@ -134,13 +134,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_6e1beb14_1($file: Upload!) {
-          singleUpload(file: $file) {
-            fileName
-            contentType
-            content
-          }
-        }
+        query Op_6e1beb14_1($file: Upload!) { singleUpload(file: $file) { fileName contentType content } }
       forwardedVariables:
         - file
       requiresFileUpload: true

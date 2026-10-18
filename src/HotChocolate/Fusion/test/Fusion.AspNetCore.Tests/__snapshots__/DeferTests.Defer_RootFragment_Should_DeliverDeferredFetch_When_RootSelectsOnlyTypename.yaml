@@ -146,9 +146,4 @@ operationPlan:
           type: Operation
           schema: A
           operation: |
-            query Op_defer_1 {
-              users {
-                id
-                name
-              }
-            }
+            query Op_defer_1 { users { id name } }

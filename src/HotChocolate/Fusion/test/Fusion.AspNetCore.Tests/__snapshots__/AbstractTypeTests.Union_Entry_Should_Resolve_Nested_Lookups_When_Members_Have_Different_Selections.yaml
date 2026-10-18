@@ -297,34 +297,12 @@ operationPlan:
       type: Operation
       schema: PRODUCTS
       operation: |
-        query SearchProduct_8e254f5e_1 {
-          searchProduct {
-            __typename
-            ... on ProductSearchResult {
-              product {
-                productId
-                reviewAudience
-              }
-            }
-            ... on ReviewSearchResult {
-              review {
-                id
-              }
-            }
-          }
-        }
+        query SearchProduct_8e254f5e_1 { searchProduct { __typename ... on ProductSearchResult { product { productId reviewAudience } } ... on ReviewSearchResult { review { id } } } }
     - id: 2
       type: Operation
       schema: REVIEWS
       operation: |
-        query SearchProduct_8e254f5e_2($__fusion_1_id: ID!) {
-          reviewById(id: $__fusion_1_id) {
-            body
-            author {
-              userId
-            }
-          }
-        }
+        query SearchProduct_8e254f5e_2($__fusion_1_id: ID!) { reviewById(id: $__fusion_1_id) { body author { userId } } }
       source: $.reviewById
       target: $.searchProduct<ReviewSearchResult>.review
       batchingGroupId: 7
@@ -338,18 +316,7 @@ operationPlan:
       type: Operation
       schema: REVIEWS
       operation: |
-        query SearchProduct_8e254f5e_5(
-          $__fusion_4_audience: String!
-          $__fusion_5_id: Int!
-        ) {
-          productById(id: $__fusion_5_id) {
-            reviews(audience: $__fusion_4_audience) {
-              author {
-                userId
-              }
-            }
-          }
-        }
+        query SearchProduct_8e254f5e_5($__fusion_4_audience: String!, $__fusion_5_id: Int!) { productById(id: $__fusion_5_id) { reviews(audience: $__fusion_4_audience) { author { userId } } } }
       source: $.productById
       target: $.searchProduct<ProductSearchResult>.product
       batchingGroupId: 7
@@ -366,11 +333,7 @@ operationPlan:
       type: OperationBatch
       schema: USERS
       operation: |
-        query SearchProduct_8e254f5e_3($__fusion_2_id: ID!) {
-          userById(id: $__fusion_2_id) {
-            name
-          }
-        }
+        query SearchProduct_8e254f5e_3($__fusion_2_id: ID!) { userById(id: $__fusion_2_id) { name } }
       source: $.userById
       targets:
         - $.searchProduct<ReviewSearchResult>.review.author

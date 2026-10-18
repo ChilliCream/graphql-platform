@@ -27,38 +27,14 @@ nodes:
     type: Operation
     schema: category
     operation: |
-      query Op_123456789101112_1 {
-        product {
-          id
-          category {
-            id
-            name
-          }
-        }
-      }
+      query Op_123456789101112_1 { product { id category { id name } } }
   - id: 2
     type: Operation
     schema: name
     operation: |
-      query Op_123456789101112_2 {
-        product {
-          name {
-            id
-            brand
-            model
-          }
-        }
-      }
+      query Op_123456789101112_2 { product { name { id brand model } } }
   - id: 3
     type: Operation
     schema: price
     operation: |
-      query Op_123456789101112_3 {
-        product {
-          price {
-            id
-            amount
-            currency
-          }
-        }
-      }
+      query Op_123456789101112_3 { product { price { id amount currency } } }

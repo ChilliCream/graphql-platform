@@ -193,28 +193,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_30e5fe2d_1 {
-          postEdges {
-            node {
-              __typename
-              ... on Photo {
-                id
-              }
-              ... on Discussion {
-                subgraph1
-              }
-            }
-          }
-        }
+        query testQuery_30e5fe2d_1 { postEdges { node { __typename ... on Photo { id } ... on Discussion { subgraph1 } } } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query testQuery_30e5fe2d_2($__fusion_1_id: ID!) {
-          photoById(id: $__fusion_1_id) {
-            subgraph2
-          }
-        }
+        query testQuery_30e5fe2d_2($__fusion_1_id: ID!) { photoById(id: $__fusion_1_id) { subgraph2 } }
       source: $.photoById
       target: $.postEdges.node<Photo>
       requirements:

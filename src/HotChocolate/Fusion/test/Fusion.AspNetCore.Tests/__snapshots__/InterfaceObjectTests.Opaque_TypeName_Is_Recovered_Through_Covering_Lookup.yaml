@@ -172,21 +172,12 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_c5671534_1 {
-          trendingMedia {
-            id
-            views
-          }
-        }
+        query testQuery_c5671534_1 { trendingMedia { id views } }
     - id: 2
       type: Operation
       schema: A
       operation: |
-        query testQuery_c5671534_2($__fusion_1_id: ID!) {
-          mediaById(id: $__fusion_1_id) {
-            __typename
-          }
-        }
+        query testQuery_c5671534_2($__fusion_1_id: ID!) { mediaById(id: $__fusion_1_id) { __typename } }
       source: $.mediaById
       target: $.trendingMedia
       requirements:

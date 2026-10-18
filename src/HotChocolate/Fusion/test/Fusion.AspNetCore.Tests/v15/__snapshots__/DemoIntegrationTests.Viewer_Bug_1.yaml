@@ -111,17 +111,9 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_65ad0daf_1 {
-          exclusiveSubgraphA {
-            __typename
-          }
-        }
+        query testQuery_65ad0daf_1 { exclusiveSubgraphA { __typename } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query testQuery_65ad0daf_2 {
-          viewer {
-            exclusiveSubgraphB
-          }
-        }
+        query testQuery_65ad0daf_2 { viewer { exclusiveSubgraphB } }

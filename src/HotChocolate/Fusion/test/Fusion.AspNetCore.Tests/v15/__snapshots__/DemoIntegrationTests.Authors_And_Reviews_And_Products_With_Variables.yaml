@@ -175,10 +175,6 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query TopProducts_42998eb3_1($first: Int!) {
-          topProducts(first: $first) {
-            id
-          }
-        }
+        query TopProducts_42998eb3_1($first: Int!) { topProducts(first: $first) { id } }
       forwardedVariables:
         - first

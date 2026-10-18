@@ -163,27 +163,9 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_854c0b21_1 {
-          node {
-            __typename
-            ... on Product {
-              shared {
-                a
-              }
-            }
-          }
-        }
+        query Op_854c0b21_1 { node { __typename ... on Product { shared { a } } } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query Op_854c0b21_2 {
-          node {
-            __typename
-            ... on Product {
-              shared {
-                b
-              }
-            }
-          }
-        }
+        query Op_854c0b21_2 { node { __typename ... on Product { shared { b } } } }

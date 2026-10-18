@@ -96,8 +96,4 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query GetUsers_628c0b99_1 {
-          users {
-            id
-          }
-        }
+        query GetUsers_628c0b99_1 { users { id } }

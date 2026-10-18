@@ -86,14 +86,7 @@ public sealed class EventStreamPlannerTests : FusionTestBase
                 type: Operation
                 schema: a
                 operation: |
-                  query Op_123456789101112_2($__fusion_1_id: ID!) {
-                    node(id: $__fusion_1_id) {
-                      __typename
-                      ... on Review {
-                        body
-                      }
-                    }
-                  }
+                  query Op_123456789101112_2($__fusion_1_id: ID!) { node(id: $__fusion_1_id) { __typename ... on Review { body } } }
                 source: $.node<Review>
                 target: $.onCreateReview.review
                 requirements:

@@ -15,20 +15,12 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_1 {
-        feed {
-          id
-        }
-      }
+      query Op_123456789101112_1 { feed { id } }
   - id: 2
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_2($__fusion_1_flag: Boolean!, $__fusion_2_id: ID!) {
-        postById(id: $__fusion_2_id) {
-          needsFlag(flag: $__fusion_1_flag)
-        }
-      }
+      query Op_123456789101112_2($__fusion_1_flag: Boolean!, $__fusion_2_id: ID!) { postById(id: $__fusion_2_id) { needsFlag(flag: $__fusion_1_flag) } }
     source: $.postById
     target: $.feed
     requirements:
@@ -45,11 +37,7 @@ nodes:
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_3($__fusion_3_id: ID!) {
-        postById(id: $__fusion_3_id) {
-          flag
-        }
-      }
+      query Op_123456789101112_3($__fusion_3_id: ID!) { postById(id: $__fusion_3_id) { flag } }
     source: $.postById
     target: $.feed
     requirements:

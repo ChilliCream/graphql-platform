@@ -169,22 +169,12 @@ operationPlan:
       type: Operation
       schema: reviews
       operation: |
-        query Op_ba13c690_1 {
-          reviews {
-            product {
-              id
-            }
-          }
-        }
+        query Op_ba13c690_1 { reviews { product { id } } }
     - id: 2
       type: Operation
       schema: products
       operation: |
-        query Op_ba13c690_2($__fusion_1_id: ID!) {
-          productById(id: $__fusion_1_id) {
-            name
-          }
-        }
+        query Op_ba13c690_2($__fusion_1_id: ID!) { productById(id: $__fusion_1_id) { name } }
       source: $.productById
       target: $.reviews.product
       requirements:

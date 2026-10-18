@@ -235,24 +235,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_13354b96_1 {
-          abstractTypes {
-            __typename
-            id
-          }
-        }
+        query Op_13354b96_1 { abstractTypes { __typename id } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query Op_13354b96_2($__fusion_1_id: ID!) {
-          discussionById(id: $__fusion_1_id) {
-            upvotes
-            ... on Discussion {
-              score
-            }
-          }
-        }
+        query Op_13354b96_2($__fusion_1_id: ID!) { discussionById(id: $__fusion_1_id) { upvotes ... on Discussion { score } } }
       source: $.discussionById
       target: $.abstractTypes<Discussion>
       requirements:
@@ -265,14 +253,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query Op_13354b96_3($__fusion_2_id: ID!) {
-          authorById(id: $__fusion_2_id) {
-            upvotes
-            ... on Author {
-              score
-            }
-          }
-        }
+        query Op_13354b96_3($__fusion_2_id: ID!) { authorById(id: $__fusion_2_id) { upvotes ... on Author { score } } }
       source: $.authorById
       target: $.abstractTypes<Author>
       requirements:

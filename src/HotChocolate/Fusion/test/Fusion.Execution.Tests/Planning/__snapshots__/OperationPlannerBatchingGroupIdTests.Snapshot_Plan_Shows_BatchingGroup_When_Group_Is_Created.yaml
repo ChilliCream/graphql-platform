@@ -22,23 +22,12 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_1 {
-        first {
-          id
-        }
-        second {
-          id
-        }
-      }
+      query Op_123456789101112_1 { first { id } second { id } }
   - id: 2
     type: OperationBatch
     schema: b
     operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!) {
-        productById(id: $__fusion_1_id) {
-          rating
-        }
-      }
+      query Op_123456789101112_2($__fusion_1_id: ID!) { productById(id: $__fusion_1_id) { rating } }
     source: $.productById
     targets:
       - $.second
@@ -54,11 +43,7 @@ nodes:
     type: OperationBatch
     schema: c
     operation: |
-      query Op_123456789101112_3($__fusion_2_id: ID!) {
-        productById(id: $__fusion_2_id) {
-          deliveryEstimate
-        }
-      }
+      query Op_123456789101112_3($__fusion_2_id: ID!) { productById(id: $__fusion_2_id) { deliveryEstimate } }
     source: $.productById
     targets:
       - $.second

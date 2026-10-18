@@ -152,21 +152,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_1bcbe788_1 {
-          votable {
-            __typename
-            id
-          }
-        }
+        query Op_1bcbe788_1 { votable { __typename id } }
     - id: 2
       type: Operation
       schema: C
       operation: |
-        query Op_1bcbe788_2($__fusion_1_id: ID!) {
-          discussionById(id: $__fusion_1_id) {
-            totalVotes
-          }
-        }
+        query Op_1bcbe788_2($__fusion_1_id: ID!) { discussionById(id: $__fusion_1_id) { totalVotes } }
       source: $.discussionById
       target: $.votable<Discussion>
       batchingGroupId: 4
@@ -180,11 +171,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query Op_1bcbe788_3($__fusion_2_id: ID!) {
-          commentById(id: $__fusion_2_id) {
-            totalVotes
-          }
-        }
+        query Op_1bcbe788_3($__fusion_2_id: ID!) { commentById(id: $__fusion_2_id) { totalVotes } }
       source: $.commentById
       target: $.votable<Comment>
       batchingGroupId: 4

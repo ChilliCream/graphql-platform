@@ -119,10 +119,4 @@ operationPlan:
       type: Operation
       schema: reviews
       operation: |
-        query Op_6ad87143_1 {
-          reviews {
-            author {
-              username
-            }
-          }
-        }
+        query Op_6ad87143_1 { reviews { author { username } } }

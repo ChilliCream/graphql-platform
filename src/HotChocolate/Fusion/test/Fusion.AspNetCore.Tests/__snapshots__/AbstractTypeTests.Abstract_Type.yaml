@@ -144,15 +144,4 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_05500418_1 {
-          abstractType {
-            __typename
-            id
-            ... on Discussion {
-              title
-            }
-            ... on Author {
-              name
-            }
-          }
-        }
+        query Op_05500418_1 { abstractType { __typename id ... on Discussion { title } ... on Author { name } } }

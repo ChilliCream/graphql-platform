@@ -29,27 +29,12 @@ nodes:
     type: Operation
     schema: products
     operation: |
-      query Op_123456789101112_1 {
-        products {
-          __typename
-          id
-        }
-      }
+      query Op_123456789101112_1 { products { __typename id } }
   - id: 2
     type: Operation
     schema: reviews
     operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!) {
-        magazineById(id: $__fusion_1_id) {
-          reviews {
-            product {
-              __typename
-              reviewsCount
-              id
-            }
-          }
-        }
-      }
+      query Op_123456789101112_2($__fusion_1_id: ID!) { magazineById(id: $__fusion_1_id) { reviews { product { __typename reviewsCount id } } } }
     source: $.magazineById
     target: $.products<Magazine>
     batchingGroupId: 10
@@ -63,17 +48,7 @@ nodes:
     type: Operation
     schema: reviews
     operation: |
-      query Op_123456789101112_6($__fusion_5_id: ID!) {
-        bookById(id: $__fusion_5_id) {
-          reviews {
-            product {
-              __typename
-              reviewsCount
-              id
-            }
-          }
-        }
-      }
+      query Op_123456789101112_6($__fusion_5_id: ID!) { bookById(id: $__fusion_5_id) { reviews { product { __typename reviewsCount id } } } }
     source: $.bookById
     target: $.products<Book>
     batchingGroupId: 10
@@ -87,14 +62,7 @@ nodes:
     type: OperationBatch
     schema: products
     operation: |
-      query Op_123456789101112_3($__fusion_2_id: ID!) {
-        magazineById(id: $__fusion_2_id) {
-          sku
-          ... on Magazine {
-            id
-          }
-        }
-      }
+      query Op_123456789101112_3($__fusion_2_id: ID!) { magazineById(id: $__fusion_2_id) { sku ... on Magazine { id } } }
     source: $.magazineById
     targets:
       - $.products<Magazine>.reviews.product<Magazine>
@@ -111,11 +79,7 @@ nodes:
     type: OperationBatch
     schema: products
     operation: |
-      query Op_123456789101112_5($__fusion_4_id: ID!) {
-        bookById(id: $__fusion_4_id) {
-          sku
-        }
-      }
+      query Op_123456789101112_5($__fusion_4_id: ID!) { bookById(id: $__fusion_4_id) { sku } }
     source: $.bookById
     targets:
       - $.products<Magazine>.reviews.product<Book>
@@ -132,11 +96,7 @@ nodes:
     type: OperationBatch
     schema: magazines
     operation: |
-      query Op_123456789101112_4($__fusion_3_id: ID!) {
-        magazineById(id: $__fusion_3_id) {
-          title
-        }
-      }
+      query Op_123456789101112_4($__fusion_3_id: ID!) { magazineById(id: $__fusion_3_id) { title } }
     source: $.magazineById
     targets:
       - $.products<Magazine>.reviews.product<Magazine><Magazine>

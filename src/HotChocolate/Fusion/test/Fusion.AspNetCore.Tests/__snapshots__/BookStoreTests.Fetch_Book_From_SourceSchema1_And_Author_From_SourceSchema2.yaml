@@ -212,23 +212,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_b15d3abc_1 {
-          bookById(id: 1) {
-            title
-            author {
-              id
-            }
-          }
-        }
+        query Op_b15d3abc_1 { bookById(id: 1) { title author { id } } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query Op_b15d3abc_2($__fusion_1_id: Int!) {
-          authorById(id: $__fusion_1_id) {
-            name
-          }
-        }
+        query Op_b15d3abc_2($__fusion_1_id: Int!) { authorById(id: $__fusion_1_id) { name } }
       source: $.authorById
       target: $.bookById.author
       requirements:

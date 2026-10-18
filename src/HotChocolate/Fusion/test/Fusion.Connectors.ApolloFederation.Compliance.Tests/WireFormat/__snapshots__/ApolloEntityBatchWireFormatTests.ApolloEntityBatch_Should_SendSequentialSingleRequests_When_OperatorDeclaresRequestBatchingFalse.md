@@ -4,7 +4,7 @@
 
 ```json
 {
-  "query": "query Op_88f73202_1 {\n  parent {\n    a: child {\n      id\n    }\n    b: child {\n      id\n    }\n  }\n}"
+  "query": "query Op_88f73202_1 { parent { a: child { id } b: child { id } } }"
 }
 ```
 

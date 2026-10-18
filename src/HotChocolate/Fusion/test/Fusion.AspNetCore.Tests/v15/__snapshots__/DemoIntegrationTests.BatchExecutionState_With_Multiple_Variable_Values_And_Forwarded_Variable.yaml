@@ -368,33 +368,12 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_b1ca18eb_1 {
-          userBySlug(slug: "me") {
-            id
-          }
-        }
+        query Op_b1ca18eb_1 { userBySlug(slug: "me") { id } }
     - id: 2
       type: Operation
       schema: C
       operation: |
-        query Op_b1ca18eb_2($__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
-            __typename
-            ... on User {
-              feedbacks {
-                edges {
-                  node {
-                    feedback {
-                      buyer {
-                        id
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+        query Op_b1ca18eb_2($__fusion_1_id: ID!) { node(id: $__fusion_1_id) { __typename ... on User { feedbacks { edges { node { feedback { buyer { id } } } } } } } }
       source: $.node<User>
       target: $.userBySlug
       requirements:
@@ -407,14 +386,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_b1ca18eb_3($arg2: String, $__fusion_2_id: ID!) {
-          node(id: $__fusion_2_id) {
-            __typename
-            ... on User {
-              displayName(arg: $arg2)
-            }
-          }
-        }
+        query Op_b1ca18eb_3($arg2: String, $__fusion_2_id: ID!) { node(id: $__fusion_2_id) { __typename ... on User { displayName(arg: $arg2) } } }
       source: $.node<User>
       target: $.userBySlug.feedbacks.edges.node.feedback.buyer
       requirements:
@@ -429,14 +401,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_b1ca18eb_4($arg1: String, $__fusion_3_id: ID!) {
-          node(id: $__fusion_3_id) {
-            __typename
-            ... on User {
-              relativeUrl(arg: $arg1)
-            }
-          }
-        }
+        query Op_b1ca18eb_4($arg1: String, $__fusion_3_id: ID!) { node(id: $__fusion_3_id) { __typename ... on User { relativeUrl(arg: $arg1) } } }
       source: $.node<User>
       target: $.userBySlug.feedbacks.edges.node.feedback.buyer
       requirements:

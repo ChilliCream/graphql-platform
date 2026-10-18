@@ -63,8 +63,4 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_1c1cf024_1 {
-          topProduct {
-            price
-          }
-        }
+        query Op_1c1cf024_1 { topProduct { price } }

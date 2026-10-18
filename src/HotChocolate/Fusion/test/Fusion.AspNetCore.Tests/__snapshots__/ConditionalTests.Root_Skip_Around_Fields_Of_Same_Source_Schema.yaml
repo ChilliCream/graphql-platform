@@ -62,14 +62,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_94aeda21_1 {
-          productBySlug(slug: "product") {
-            name
-          }
-          viewer {
-            name
-          }
-        }
+        query testQuery_94aeda21_1 { productBySlug(slug: "product") { name } viewer { name } }
       conditions:
         - variable: $skip
           passingValue: false

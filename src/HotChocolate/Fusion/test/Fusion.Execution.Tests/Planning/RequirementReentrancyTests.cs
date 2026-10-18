@@ -59,28 +59,12 @@ public class RequirementReentrancyTests : FusionTestBase
                 type: Operation
                 schema: CATALOG
                 operation: |
-                  query getProducts_123456789101112_1 {
-                    products {
-                      category
-                      id
-                    }
-                  }
+                  query getProducts_123456789101112_1 { products { category id } }
               - id: 3
                 type: Operation
                 schema: RECOMMENDATION
                 operation: |
-                  query getProducts_123456789101112_3(
-                    $__fusion_2_category: ProductCategory!
-                    $__fusion_3_id: ID!
-                  ) {
-                    productById(id: $__fusion_3_id) {
-                      recommendations(category: $__fusion_2_category) {
-                        product {
-                          id
-                        }
-                      }
-                    }
-                  }
+                  query getProducts_123456789101112_3($__fusion_2_category: ProductCategory!, $__fusion_3_id: ID!) { productById(id: $__fusion_3_id) { recommendations(category: $__fusion_2_category) { product { id } } } }
                 source: $.productById
                 target: $.products
                 requirements:
@@ -96,11 +80,7 @@ public class RequirementReentrancyTests : FusionTestBase
                 type: Operation
                 schema: CATALOG
                 operation: |
-                  query getProducts_123456789101112_4($__fusion_4_id: ID!) {
-                    productById(id: $__fusion_4_id) {
-                      category
-                    }
-                  }
+                  query getProducts_123456789101112_4($__fusion_4_id: ID!) { productById(id: $__fusion_4_id) { category } }
                 source: $.productById
                 target: $.products.recommendations.product
                 requirements:
@@ -483,39 +463,12 @@ public class RequirementReentrancyTests : FusionTestBase
                 type: Operation
                 schema: SUPPLIERS
                 operation: |
-                  query GetSupplier_123456789101112_1 {
-                    supplierBySlug(slug: "some-slug") {
-                      __typename
-                      ... on Supplier {
-                        dbId
-                        _isEligibleForHighlyRecommended
-                      }
-                    }
-                  }
+                  query GetSupplier_123456789101112_1 { supplierBySlug(slug: "some-slug") { __typename ... on Supplier { dbId _isEligibleForHighlyRecommended } } }
               - id: 3
                 type: Operation
                 schema: RATINGS
                 operation: |
-                  query GetSupplier_123456789101112_3(
-                    $__fusion_2_isEligibleForHighlyRecommended: Boolean!
-                    $__fusion_3_dbId: Int!
-                  ) {
-                    supplierByDbId(dbId: $__fusion_3_dbId) {
-                      rating(
-                        isEligibleForHighlyRecommended: $__fusion_2_isEligibleForHighlyRecommended
-                      ) {
-                        reviews(first: 20) {
-                          edges {
-                            node {
-                              booking {
-                                dbId
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
+                  query GetSupplier_123456789101112_3($__fusion_2_isEligibleForHighlyRecommended: Boolean!, $__fusion_3_dbId: Int!) { supplierByDbId(dbId: $__fusion_3_dbId) { rating(isEligibleForHighlyRecommended: $__fusion_2_isEligibleForHighlyRecommended) { reviews(first: 20) { edges { node { booking { dbId } } } } } } }
                 source: $.supplierByDbId
                 target: $.supplierBySlug<Supplier>
                 requirements:
@@ -531,13 +484,7 @@ public class RequirementReentrancyTests : FusionTestBase
                 type: Operation
                 schema: BOOKINGS
                 operation: |
-                  query GetSupplier_123456789101112_4($__fusion_4_dbId: Int!) {
-                    bookingByDbId(dbId: $__fusion_4_dbId) {
-                      customer {
-                        firstName
-                      }
-                    }
-                  }
+                  query GetSupplier_123456789101112_4($__fusion_4_dbId: Int!) { bookingByDbId(dbId: $__fusion_4_dbId) { customer { firstName } } }
                 source: $.bookingByDbId
                 target: $.supplierBySlug<Supplier>.rating.reviews.edges.node.booking
                 requirements:

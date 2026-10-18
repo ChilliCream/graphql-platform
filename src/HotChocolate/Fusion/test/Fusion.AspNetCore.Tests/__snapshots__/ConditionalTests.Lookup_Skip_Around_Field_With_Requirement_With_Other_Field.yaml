@@ -108,24 +108,14 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_c97c6b3f_1($skip: Boolean!) {
-          productBySlug(slug: "product") {
-            ... @skip(if: $skip) {
-              id
-            }
-          }
-        }
+        query testQuery_c97c6b3f_1($skip: Boolean!) { productBySlug(slug: "product") { ... @skip(if: $skip) { id } } }
       forwardedVariables:
         - skip
     - id: 2
       type: Operation
       schema: C
       operation: |
-        query testQuery_c97c6b3f_2($__fusion_1_id: ID!) {
-          productById(id: $__fusion_1_id) {
-            price
-          }
-        }
+        query testQuery_c97c6b3f_2($__fusion_1_id: ID!) { productById(id: $__fusion_1_id) { price } }
       source: $.productById
       target: $.productBySlug
       requirements:
@@ -141,11 +131,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query testQuery_c97c6b3f_3($__fusion_2_size: Int!, $__fusion_3_id: ID!) {
-          productById(id: $__fusion_3_id) {
-            dimension(size: $__fusion_2_size)
-          }
-        }
+        query testQuery_c97c6b3f_3($__fusion_2_size: Int!, $__fusion_3_id: ID!) { productById(id: $__fusion_3_id) { dimension(size: $__fusion_2_size) } }
       source: $.productById
       target: $.productBySlug
       requirements:
@@ -162,11 +148,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_c97c6b3f_4($__fusion_4_id: ID!) {
-          productById(id: $__fusion_4_id) {
-            size
-          }
-        }
+        query testQuery_c97c6b3f_4($__fusion_4_id: ID!) { productById(id: $__fusion_4_id) { size } }
       source: $.productById
       target: $.productBySlug
       requirements:

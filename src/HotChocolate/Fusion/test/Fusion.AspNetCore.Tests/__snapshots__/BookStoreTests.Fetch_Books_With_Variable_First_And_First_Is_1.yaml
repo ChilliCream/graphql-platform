@@ -240,28 +240,14 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query GetBooks_f1bed549_1($first: Int) {
-          books(first: $first) {
-            nodes {
-              id
-              title
-              author {
-                id
-              }
-            }
-          }
-        }
+        query GetBooks_f1bed549_1($first: Int) { books(first: $first) { nodes { id title author { id } } } }
       forwardedVariables:
         - first
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query GetBooks_f1bed549_2($__fusion_1_id: Int!) {
-          authorById(id: $__fusion_1_id) {
-            name
-          }
-        }
+        query GetBooks_f1bed549_2($__fusion_1_id: Int!) { authorById(id: $__fusion_1_id) { name } }
       source: $.authorById
       target: $.books.nodes.author
       requirements:

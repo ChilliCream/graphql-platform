@@ -96,28 +96,14 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query testQuery_fbcbdaf4_2 {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
-          }
-        }
+        query testQuery_fbcbdaf4_2 { node(id: "RGlzY3Vzc2lvbjox") { __typename } }
       dependencies:
         - id: 1
     - id: 3
       type: Operation
       schema: A
       operation: |
-        query testQuery_fbcbdaf4_3($skip: Boolean!) {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
-            ... on Discussion {
-              __typename
-              ... @skip(if: $skip) {
-                title
-              }
-            }
-          }
-        }
+        query testQuery_fbcbdaf4_3($skip: Boolean!) { node(id: "RGlzY3Vzc2lvbjox") { __typename ... on Discussion { __typename ... @skip(if: $skip) { title } } } }
       forwardedVariables:
         - skip
       dependencies:

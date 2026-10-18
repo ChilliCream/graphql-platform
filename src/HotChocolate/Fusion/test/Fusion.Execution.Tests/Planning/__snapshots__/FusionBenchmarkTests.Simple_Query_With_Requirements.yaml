@@ -24,29 +24,12 @@ nodes:
     type: Operation
     schema: products
     operation: |
-      query Op_123456789101112_1 {
-        productById(id: $id) {
-          name
-          id
-        }
-      }
+      query Op_123456789101112_1 { productById(id: $id) { name id } }
   - id: 2
     type: Operation
     schema: reviews
     operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!) {
-        productById(id: $__fusion_1_id) {
-          reviews {
-            nodes {
-              id
-              body
-              author {
-                id
-              }
-            }
-          }
-        }
-      }
+      query Op_123456789101112_2($__fusion_1_id: ID!) { productById(id: $__fusion_1_id) { reviews { nodes { id body author { id } } } } }
     source: $.productById
     target: $.productById
     requirements:
@@ -59,11 +42,7 @@ nodes:
     type: Operation
     schema: users
     operation: |
-      query Op_123456789101112_3($__fusion_2_id: ID!) {
-        userById(id: $__fusion_2_id) {
-          displayName
-        }
-      }
+      query Op_123456789101112_3($__fusion_2_id: ID!) { userById(id: $__fusion_2_id) { displayName } }
     source: $.userById
     target: $.productById.reviews.nodes.author
     requirements:

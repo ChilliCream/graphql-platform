@@ -59,8 +59,6 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_9dd2f586_1($input: String!) {
-          field(input: $input)
-        }
+        query testQuery_9dd2f586_1($input: String!) { field(input: $input) }
       forwardedVariables:
         - input

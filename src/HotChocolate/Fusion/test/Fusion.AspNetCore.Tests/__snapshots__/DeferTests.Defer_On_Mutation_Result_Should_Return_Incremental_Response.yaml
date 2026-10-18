@@ -149,12 +149,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        mutation Op_654979ad_1 {
-          createProduct(name: "Widget") {
-            name
-            id
-          }
-        }
+        mutation Op_654979ad_1 { createProduct(name: "Widget") { name id } }
   deliveryGroups:
     - id: 0
       path: $.createProduct
@@ -172,11 +167,7 @@ operationPlan:
           type: Operation
           schema: B
           operation: |
-            query Op_defer_2($__fusion_1_id: ID!) {
-              productById(id: $__fusion_1_id) {
-                price
-              }
-            }
+            query Op_defer_2($__fusion_1_id: ID!) { productById(id: $__fusion_1_id) { price } }
           source: $.productById
           target: $.createProduct
           requirements:

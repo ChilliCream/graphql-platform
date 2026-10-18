@@ -154,27 +154,12 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query testQuery_a40319aa_1 {
-          playlist {
-            id
-            name
-            media {
-              id
-            }
-          }
-        }
+        query testQuery_a40319aa_1 { playlist { id name media { id } } }
     - id: 2
       type: Operation
       schema: A
       operation: |
-        query testQuery_a40319aa_2($__fusion_1_id: ID!) {
-          mediaById(id: $__fusion_1_id) {
-            __typename
-            ... on Video {
-              duration
-            }
-          }
-        }
+        query testQuery_a40319aa_2($__fusion_1_id: ID!) { mediaById(id: $__fusion_1_id) { __typename ... on Video { duration } } }
       source: $.mediaById
       target: $.playlist.media
       requirements:

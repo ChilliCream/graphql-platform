@@ -26,47 +26,12 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_1 {
-        userFromA {
-          id
-          profile {
-            __typename
-            displayName
-            ... on AdminAccount {
-              accountType
-            }
-            ... on GuestAccount {
-              accountType
-            }
-            ... on AdminAccount {
-              adminLevel
-            }
-            ... on GuestAccount {
-              guestToken
-            }
-          }
-        }
-      }
+      query Op_123456789101112_1 { userFromA { id profile { __typename displayName ... on AdminAccount { accountType } ... on GuestAccount { accountType } ... on AdminAccount { adminLevel } ... on GuestAccount { guestToken } } } }
   - id: 2
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_id: ID!
-          $__fusion_2_accountType: String
-          $__fusion_2_adminLevel: String
-          $__fusion_2_displayName: String!
-          $__fusion_2_guestToken: String
-      ) {
-        userById(id: $__fusion_1_id) {
-          permissions(
-            displayName: $__fusion_2_displayName
-            accountType: $__fusion_2_accountType
-            adminLevel: $__fusion_2_adminLevel
-            guestToken: $__fusion_2_guestToken
-          )
-        }
-      }
+      query Op_123456789101112_2($__fusion_1_id: ID!, $__fusion_2_accountType: String, $__fusion_2_adminLevel: String, $__fusion_2_displayName: String!, $__fusion_2_guestToken: String) { userById(id: $__fusion_1_id) { permissions(displayName: $__fusion_2_displayName, accountType: $__fusion_2_accountType, adminLevel: $__fusion_2_adminLevel, guestToken: $__fusion_2_guestToken) } }
     source: $.userById
     target: $.userFromA
     requirements:

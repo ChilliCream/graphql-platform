@@ -110,10 +110,6 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Items_e8979882_1($n: Int!) {
-          items(n: $n) {
-            value
-          }
-        }
+        query Items_e8979882_1($n: Int!) { items(n: $n) { value } }
       forwardedVariables:
         - n

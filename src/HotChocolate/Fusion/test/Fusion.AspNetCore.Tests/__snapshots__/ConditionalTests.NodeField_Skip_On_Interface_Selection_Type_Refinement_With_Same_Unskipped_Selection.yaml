@@ -158,39 +158,21 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query testQuery_ff22954e_2 {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
-          }
-        }
+        query testQuery_ff22954e_2 { node(id: "RGlzY3Vzc2lvbjox") { __typename } }
       dependencies:
         - id: 1
     - id: 3
       type: Operation
       schema: A
       operation: |
-        query testQuery_ff22954e_3 {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
-            ... on Discussion {
-              __typename
-              author {
-                id
-              }
-            }
-          }
-        }
+        query testQuery_ff22954e_3 { node(id: "RGlzY3Vzc2lvbjox") { __typename ... on Discussion { __typename author { id } } } }
       dependencies:
         - id: 1
     - id: 4
       type: Operation
       schema: B
       operation: |
-        query testQuery_ff22954e_4($__fusion_1_id: ID!) {
-          authorById(id: $__fusion_1_id) {
-            rating
-          }
-        }
+        query testQuery_ff22954e_4($__fusion_1_id: ID!) { authorById(id: $__fusion_1_id) { rating } }
       source: $.authorById
       target: $.node<Discussion>.author
       requirements:
@@ -203,11 +185,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_ff22954e_5($__fusion_2_id: ID!) {
-          authorById(id: $__fusion_2_id) {
-            username
-          }
-        }
+        query testQuery_ff22954e_5($__fusion_2_id: ID!) { authorById(id: $__fusion_2_id) { username } }
       source: $.authorById
       target: $.node<Discussion>.author
       requirements:

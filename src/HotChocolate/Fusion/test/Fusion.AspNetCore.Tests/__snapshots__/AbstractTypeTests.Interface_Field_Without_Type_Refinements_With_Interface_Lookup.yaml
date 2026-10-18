@@ -119,22 +119,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_fb4e28df_1 {
-          votable {
-            __typename
-            id
-          }
-        }
+        query Op_fb4e28df_1 { votable { __typename id } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query Op_fb4e28df_2($__fusion_1_id: ID!) {
-          votableById(id: $__fusion_1_id) {
-            __typename
-            viewerCanVote
-          }
-        }
+        query Op_fb4e28df_2($__fusion_1_id: ID!) { votableById(id: $__fusion_1_id) { __typename viewerCanVote } }
       source: $.votableById
       target: $.votable
       requirements:

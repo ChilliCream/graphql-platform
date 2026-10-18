@@ -132,29 +132,14 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query testQuery_7ae73f43_2 {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
-          }
-        }
+        query testQuery_7ae73f43_2 { node(id: "RGlzY3Vzc2lvbjox") { __typename } }
       dependencies:
         - id: 1
     - id: 3
       type: Operation
       schema: A
       operation: |
-        query testQuery_7ae73f43_3($skip: Boolean!) {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
-            ... on Discussion {
-              __typename
-              author @skip(if: $skip) {
-                id
-              }
-              title
-            }
-          }
-        }
+        query testQuery_7ae73f43_3($skip: Boolean!) { node(id: "RGlzY3Vzc2lvbjox") { __typename ... on Discussion { __typename author @skip(if: $skip) { id } title } } }
       forwardedVariables:
         - skip
       dependencies:
@@ -163,11 +148,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_7ae73f43_4($__fusion_1_id: ID!) {
-          authorById(id: $__fusion_1_id) {
-            username
-          }
-        }
+        query testQuery_7ae73f43_4($__fusion_1_id: ID!) { authorById(id: $__fusion_1_id) { username } }
       source: $.authorById
       target: $.node<Discussion>.author
       requirements:

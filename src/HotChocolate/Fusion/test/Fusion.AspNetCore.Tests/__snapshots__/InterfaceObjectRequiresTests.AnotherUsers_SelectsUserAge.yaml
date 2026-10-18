@@ -165,23 +165,12 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_d55b3c84_1 {
-          anotherUsers {
-            id
-          }
-        }
+        query testQuery_d55b3c84_1 { anotherUsers { id } }
     - id: 2
       type: Operation
       schema: A
       operation: |
-        query testQuery_d55b3c84_2($__fusion_1_id: ID!) {
-          nodeById(id: $__fusion_1_id) {
-            __typename
-            ... on User {
-              age
-            }
-          }
-        }
+        query testQuery_d55b3c84_2($__fusion_1_id: ID!) { nodeById(id: $__fusion_1_id) { __typename ... on User { age } } }
       source: $.nodeById
       target: $.anotherUsers
       requirements:

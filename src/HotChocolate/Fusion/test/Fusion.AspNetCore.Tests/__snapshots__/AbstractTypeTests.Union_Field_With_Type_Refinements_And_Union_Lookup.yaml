@@ -138,29 +138,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_465e7f4e_1 {
-          search {
-            __typename
-            ... on User {
-              id
-            }
-            ... on Product {
-              id
-            }
-          }
-        }
+        query Op_465e7f4e_1 { search { __typename ... on User { id } ... on Product { id } } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query Op_465e7f4e_2($__fusion_1_id: ID!) {
-          searchResultById(id: $__fusion_1_id) {
-            __typename
-            ... on Product {
-              price
-            }
-          }
-        }
+        query Op_465e7f4e_2($__fusion_1_id: ID!) { searchResultById(id: $__fusion_1_id) { __typename ... on Product { price } } }
       source: $.searchResultById<Product>
       target: $.search<Product>
       batchingGroupId: 4
@@ -174,14 +157,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_465e7f4e_3($__fusion_2_id: ID!) {
-          searchResultById(id: $__fusion_2_id) {
-            __typename
-            ... on User {
-              reputation
-            }
-          }
-        }
+        query Op_465e7f4e_3($__fusion_2_id: ID!) { searchResultById(id: $__fusion_2_id) { __typename ... on User { reputation } } }
       source: $.searchResultById<User>
       target: $.search<User>
       batchingGroupId: 4

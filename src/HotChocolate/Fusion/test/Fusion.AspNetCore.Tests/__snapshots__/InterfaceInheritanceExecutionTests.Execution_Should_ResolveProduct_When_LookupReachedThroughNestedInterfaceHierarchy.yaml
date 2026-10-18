@@ -399,32 +399,12 @@ operationPlan:
       type: Operation
       schema: ordering
       operation: |
-        query Op_8aed94d2_1 {
-          orders {
-            __typename
-            ... on MultiOrderBase {
-              __typename
-              ... on PremiumOrderBase {
-                __typename
-                items {
-                  product {
-                    id
-                  }
-                }
-              }
-            }
-          }
-        }
+        query Op_8aed94d2_1 { orders { __typename ... on MultiOrderBase { __typename ... on PremiumOrderBase { __typename items { product { id } } } } } }
     - id: 2
       type: Operation
       schema: products
       operation: |
-        query Op_8aed94d2_2($__fusion_1_id: ID!) {
-          productById(id: $__fusion_1_id) {
-            name
-            description
-          }
-        }
+        query Op_8aed94d2_2($__fusion_1_id: ID!) { productById(id: $__fusion_1_id) { name description } }
       source: $.productById
       target: $.orders<MultiOrderBase><PremiumOrderBase>.items.product
       requirements:

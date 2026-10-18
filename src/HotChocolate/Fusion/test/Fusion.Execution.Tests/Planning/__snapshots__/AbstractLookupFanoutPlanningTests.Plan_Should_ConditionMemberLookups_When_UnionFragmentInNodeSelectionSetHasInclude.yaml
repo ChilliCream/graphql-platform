@@ -33,38 +33,21 @@ nodes:
   - id: 2
     type: Operation
     operation: |
-      query Op_123456789101112_2 {
-        node(id: "test-id") {
-          __typename
-          id
-        }
-      }
+      query Op_123456789101112_2 { node(id: "test-id") { __typename id } }
     dependencies:
       - id: 1
   - id: 3
     type: Operation
     schema: contributors
     operation: |
-      query Op_123456789101112_3 {
-        node(id: "test-id") {
-          __typename
-          ... on User {
-            __typename
-            id
-          }
-        }
-      }
+      query Op_123456789101112_3 { node(id: "test-id") { __typename ... on User { __typename id } } }
     dependencies:
       - id: 1
   - id: 4
     type: Operation
     schema: accounts
     operation: |
-      query Op_123456789101112_4($__fusion_1_id: ID!) {
-        userById(id: $__fusion_1_id) {
-          email
-        }
-      }
+      query Op_123456789101112_4($__fusion_1_id: ID!) { userById(id: $__fusion_1_id) { email } }
     source: $.userById
     target: $.node<User>
     requirements:
@@ -80,26 +63,14 @@ nodes:
     type: Operation
     schema: contributors
     operation: |
-      query Op_123456789101112_5 {
-        node(id: "test-id") {
-          __typename
-          ... on Bot {
-            __typename
-            id
-          }
-        }
-      }
+      query Op_123456789101112_5 { node(id: "test-id") { __typename ... on Bot { __typename id } } }
     dependencies:
       - id: 1
   - id: 6
     type: Operation
     schema: accounts
     operation: |
-      query Op_123456789101112_6($__fusion_2_id: ID!) {
-        botById(id: $__fusion_2_id) {
-          owner
-        }
-      }
+      query Op_123456789101112_6($__fusion_2_id: ID!) { botById(id: $__fusion_2_id) { owner } }
     source: $.botById
     target: $.node<Bot>
     requirements:

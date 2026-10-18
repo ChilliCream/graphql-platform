@@ -66,10 +66,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_337dd2aa_1($x: Boolean!) {
-          a @include(if: $x)
-          b
-        }
+        query testQuery_337dd2aa_1($x: Boolean!) { a @include(if: $x) b }
       conditions:
         - variable: $s
           passingValue: false

@@ -208,26 +208,12 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query GetUser_bc5cddd0_1 {
-          reviews {
-            body
-            author {
-              id
-            }
-          }
-        }
+        query GetUser_bc5cddd0_1 { reviews { body author { id } } }
     - id: 2
       type: Operation
       schema: A
       operation: |
-        query GetUser_bc5cddd0_2($__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
-            __typename
-            ... on User {
-              birthdate
-            }
-          }
-        }
+        query GetUser_bc5cddd0_2($__fusion_1_id: ID!) { node(id: $__fusion_1_id) { __typename ... on User { birthdate } } }
       source: $.node<User>
       target: $.reviews.author
       requirements:

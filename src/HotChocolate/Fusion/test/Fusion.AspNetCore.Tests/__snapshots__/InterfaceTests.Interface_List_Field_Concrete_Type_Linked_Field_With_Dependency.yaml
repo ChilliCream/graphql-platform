@@ -180,26 +180,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_e3932333_1 {
-          votables {
-            __typename
-            viewerCanVote
-            ... on Discussion {
-              author {
-                id
-              }
-            }
-          }
-        }
+        query testQuery_e3932333_1 { votables { __typename viewerCanVote ... on Discussion { author { id } } } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query testQuery_e3932333_2($__fusion_1_id: ID!) {
-          authorById(id: $__fusion_1_id) {
-            displayName
-          }
-        }
+        query testQuery_e3932333_2($__fusion_1_id: ID!) { authorById(id: $__fusion_1_id) { displayName } }
       source: $.authorById
       target: $.votables<Discussion>.author
       requirements:

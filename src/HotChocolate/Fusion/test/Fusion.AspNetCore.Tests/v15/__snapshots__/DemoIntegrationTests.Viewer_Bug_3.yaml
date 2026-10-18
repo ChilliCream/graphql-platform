@@ -146,27 +146,14 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query Op_dc7df637_1 {
-          subgraphC {
-            someField
-            anotherField
-          }
-        }
+        query Op_dc7df637_1 { subgraphC { someField anotherField } }
     - id: 2
       type: Operation
       schema: A
       operation: |
-        query Op_dc7df637_2 {
-          viewer {
-            subgraphA
-          }
-        }
+        query Op_dc7df637_2 { viewer { subgraphA } }
     - id: 3
       type: Operation
       schema: B
       operation: |
-        query Op_dc7df637_3 {
-          viewer {
-            subgraphB
-          }
-        }
+        query Op_dc7df637_3 { viewer { subgraphB } }

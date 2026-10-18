@@ -101,11 +101,7 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query testQuery_539ebaa0_2($id: ID!) {
-          node(id: $id) {
-            __typename
-          }
-        }
+        query testQuery_539ebaa0_2($id: ID!) { node(id: $id) { __typename } }
       forwardedVariables:
         - id
       dependencies:

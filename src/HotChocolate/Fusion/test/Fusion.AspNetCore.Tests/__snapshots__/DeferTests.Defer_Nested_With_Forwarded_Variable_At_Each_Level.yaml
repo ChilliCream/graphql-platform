@@ -458,11 +458,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query GetUserPostsAndComments_5ec00c7b_1 {
-          user(id: "1") {
-            id
-          }
-        }
+        query GetUserPostsAndComments_5ec00c7b_1 { user(id: "1") { id } }
   deliveryGroups:
     - id: 0
       path: $.user
@@ -484,13 +480,7 @@ operationPlan:
           type: Operation
           schema: B
           operation: |
-            query GetUserPostsAndComments_defer_1($postLimit: Int!, $__fusion_1_id: ID!) {
-              userById(id: $__fusion_1_id) {
-                posts(first: $postLimit) {
-                  id
-                }
-              }
-            }
+            query GetUserPostsAndComments_defer_1($postLimit: Int!, $__fusion_1_id: ID!) { userById(id: $__fusion_1_id) { posts(first: $postLimit) { id } } }
           source: $.userById
           target: $.user
           requirements:
@@ -505,11 +495,7 @@ operationPlan:
           type: Operation
           schema: A
           operation: |
-            query GetUserPostsAndComments_defer_3 {
-              user(id: "1") {
-                id
-              }
-            }
+            query GetUserPostsAndComments_defer_3 { user(id: "1") { id } }
     - deliveryGroupIds:
         - 1
       parentNodeId: 1
@@ -525,13 +511,7 @@ operationPlan:
           type: Operation
           schema: C
           operation: |
-            query GetUserPostsAndComments_defer_1($commentLimit: Int!, $__fusion_1_id: ID!) {
-              postById(id: $__fusion_1_id) {
-                comments(first: $commentLimit) {
-                  id
-                }
-              }
-            }
+            query GetUserPostsAndComments_defer_1($commentLimit: Int!, $__fusion_1_id: ID!) { postById(id: $__fusion_1_id) { comments(first: $commentLimit) { id } } }
           source: $.postById
           target: $.user.posts
           requirements:
@@ -546,13 +526,7 @@ operationPlan:
           type: Operation
           schema: B
           operation: |
-            query GetUserPostsAndComments_defer_2($postLimit: Int!, $__fusion_2_id: ID!) {
-              userById(id: $__fusion_2_id) {
-                posts(first: $postLimit) {
-                  id
-                }
-              }
-            }
+            query GetUserPostsAndComments_defer_2($postLimit: Int!, $__fusion_2_id: ID!) { userById(id: $__fusion_2_id) { posts(first: $postLimit) { id } } }
           source: $.userById
           target: $.user
           requirements:

@@ -105,19 +105,11 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_c549857e_1 {
-          viewer {
-            fieldA
-          }
-        }
+        query testQuery_c549857e_1 { viewer { fieldA } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query testQuery_c549857e_2($skip: Boolean!) {
-          viewer {
-            fieldB @skip(if: $skip)
-          }
-        }
+        query testQuery_c549857e_2($skip: Boolean!) { viewer { fieldB @skip(if: $skip) } }
       forwardedVariables:
         - skip

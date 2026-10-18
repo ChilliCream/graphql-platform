@@ -103,12 +103,6 @@ operationPlan:
       type: Operation
       schema: E
       operation: |
-        query AfterNull_bcc834fd_1($after: String) {
-          appointments(after: $after) {
-            nodes {
-              id
-            }
-          }
-        }
+        query AfterNull_bcc834fd_1($after: String) { appointments(after: $after) { nodes { id } } }
       forwardedVariables:
         - after

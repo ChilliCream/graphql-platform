@@ -223,32 +223,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_ec963286_1 {
-          postEdges {
-            node {
-              __typename
-              ... on Photo {
-                product {
-                  id
-                }
-              }
-              ... on Discussion {
-                product {
-                  id
-                }
-              }
-            }
-          }
-        }
+        query testQuery_ec963286_1 { postEdges { node { __typename ... on Photo { product { id } } ... on Discussion { product { id } } } } }
     - id: 2
       type: OperationBatch
       schema: B
       operation: |
-        query testQuery_ec963286_2($__fusion_1_id: ID!) {
-          productById(id: $__fusion_1_id) {
-            subgraph2
-          }
-        }
+        query testQuery_ec963286_2($__fusion_1_id: ID!) { productById(id: $__fusion_1_id) { subgraph2 } }
       source: $.productById
       targets:
         - $.postEdges.node<Discussion>.product

@@ -129,19 +129,9 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_f3bb7334_1 {
-          exclusiveSubgraphA {
-            __typename
-          }
-        }
+        query testQuery_f3bb7334_1 { exclusiveSubgraphA { __typename } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query testQuery_f3bb7334_2 {
-          viewer {
-            subType {
-              subgraphB
-            }
-          }
-        }
+        query testQuery_f3bb7334_2 { viewer { subType { subgraphB } } }

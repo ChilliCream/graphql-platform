@@ -114,13 +114,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_86d793bb_1($file: Upload) {
-          nullableUpload(file: $file) {
-            fileName
-            contentType
-            content
-          }
-        }
+        query Op_86d793bb_1($file: Upload) { nullableUpload(file: $file) { fileName contentType content } }
       forwardedVariables:
         - file
       requiresFileUpload: true

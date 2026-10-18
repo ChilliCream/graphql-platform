@@ -163,6 +163,4 @@ operationPlan:
       type: Operation
       schema: a
       operation: |
-        query Op_db37b9bf_1 {
-          formatTitle(title: "")
-        }
+        query Op_db37b9bf_1 { formatTitle(title: "") }

@@ -303,37 +303,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_8e0a9b3a_1 {
-          search {
-            __typename
-            ... on ExistingResult {
-              asset {
-                dbId
-              }
-            }
-            ... on ExistingResult2 {
-              asset {
-                dbId
-              }
-            }
-            ... on OtherResult {
-              doc {
-                id
-              }
-            }
-          }
-        }
+        query testQuery_8e0a9b3a_1 { search { __typename ... on ExistingResult { asset { dbId } } ... on ExistingResult2 { asset { dbId } } ... on OtherResult { doc { id } } } }
     - id: 2
       type: Operation
       schema: C
       operation: |
-        query testQuery_8e0a9b3a_2($__fusion_1_id: Int!) {
-          docById(id: $__fusion_1_id) {
-            meterType {
-              id
-            }
-          }
-        }
+        query testQuery_8e0a9b3a_2($__fusion_1_id: Int!) { docById(id: $__fusion_1_id) { meterType { id } } }
       source: $.docById
       target: $.search<OtherResult>.doc
       requirements:
@@ -346,14 +321,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_8e0a9b3a_4($__fusion_3_dbId: Int!) {
-          assetByDbId(dbId: $__fusion_3_dbId) {
-            meterType {
-              id
-            }
-            statusMessage
-          }
-        }
+        query testQuery_8e0a9b3a_4($__fusion_3_dbId: Int!) { assetByDbId(dbId: $__fusion_3_dbId) { meterType { id } statusMessage } }
       source: $.assetByDbId
       target: $.search<ExistingResult2>.asset
       batchingGroupId: 8
@@ -367,13 +335,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_8e0a9b3a_6($__fusion_5_dbId: Int!) {
-          assetByDbId(dbId: $__fusion_5_dbId) {
-            meterType {
-              id
-            }
-          }
-        }
+        query testQuery_8e0a9b3a_6($__fusion_5_dbId: Int!) { assetByDbId(dbId: $__fusion_5_dbId) { meterType { id } } }
       source: $.assetByDbId
       target: $.search<ExistingResult>.asset
       batchingGroupId: 8
@@ -387,11 +349,7 @@ operationPlan:
       type: OperationBatch
       schema: A
       operation: |
-        query testQuery_8e0a9b3a_3($__fusion_2_id: Int!) {
-          meterTypeById(id: $__fusion_2_id) {
-            type
-          }
-        }
+        query testQuery_8e0a9b3a_3($__fusion_2_id: Int!) { meterTypeById(id: $__fusion_2_id) { type } }
       source: $.meterTypeById
       targets:
         - $.search<OtherResult>.doc.meterType

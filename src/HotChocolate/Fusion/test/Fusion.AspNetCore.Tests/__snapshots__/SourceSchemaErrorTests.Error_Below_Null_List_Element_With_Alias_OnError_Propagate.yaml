@@ -106,10 +106,4 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_15f85f4f_1 {
-          job {
-            items {
-              title: name
-            }
-          }
-        }
+        query Op_15f85f4f_1 { job { items { title: name } } }

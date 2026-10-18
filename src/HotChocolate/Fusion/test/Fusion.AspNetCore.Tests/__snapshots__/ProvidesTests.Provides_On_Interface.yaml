@@ -131,16 +131,4 @@ operationPlan:
       type: Operation
       schema: a
       operation: |
-        query Op_8b7ea24b_1 {
-          book {
-            featured {
-              __typename
-              ... on Cat {
-                age
-              }
-              ... on Dog {
-                tricks
-              }
-            }
-          }
-        }
+        query Op_8b7ea24b_1 { book { featured { __typename ... on Cat { age } ... on Dog { tricks } } } }

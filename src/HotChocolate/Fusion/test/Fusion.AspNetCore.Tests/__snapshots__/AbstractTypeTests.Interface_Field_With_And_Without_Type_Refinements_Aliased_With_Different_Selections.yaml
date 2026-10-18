@@ -286,31 +286,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_2bff8025_1 {
-          abstractTypes {
-            __typename
-            someId: id
-            id
-          }
-          b: abstractTypes {
-            __typename
-            ... on Author {
-              id
-            }
-          }
-        }
+        query Op_2bff8025_1 { abstractTypes { __typename someId: id id } b: abstractTypes { __typename ... on Author { id } } }
     - id: 3
       type: Operation
       schema: B
       operation: |
-        query Op_2bff8025_3($__fusion_2_id: ID!) {
-          discussionById(id: $__fusion_2_id) {
-            upvotes
-            ... on Discussion {
-              score
-            }
-          }
-        }
+        query Op_2bff8025_3($__fusion_2_id: ID!) { discussionById(id: $__fusion_2_id) { upvotes ... on Discussion { score } } }
       source: $.discussionById
       target: $.abstractTypes<Discussion>
       requirements:
@@ -323,11 +304,7 @@ operationPlan:
       type: OperationBatch
       schema: C
       operation: |
-        query Op_2bff8025_2($__fusion_1_id: ID!) {
-          authorById(id: $__fusion_1_id) {
-            upvotes
-          }
-        }
+        query Op_2bff8025_2($__fusion_1_id: ID!) { authorById(id: $__fusion_1_id) { upvotes } }
       source: $.authorById
       targets:
         - $.b<Author>

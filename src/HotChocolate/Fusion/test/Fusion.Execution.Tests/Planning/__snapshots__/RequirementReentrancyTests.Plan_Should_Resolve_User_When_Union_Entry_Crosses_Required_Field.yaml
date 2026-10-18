@@ -26,33 +26,12 @@ nodes:
     type: Operation
     schema: PRODUCTS
     operation: |
-      query SearchProduct_123456789101112_1 {
-        searchProduct {
-          __typename
-          ... on ProductSearchResult {
-            product {
-              productId
-              reviewAudience
-            }
-          }
-        }
-      }
+      query SearchProduct_123456789101112_1 { searchProduct { __typename ... on ProductSearchResult { product { productId reviewAudience } } } }
   - id: 3
     type: Operation
     schema: REVIEWS
     operation: |
-      query SearchProduct_123456789101112_3(
-        $__fusion_2_audience: String!
-        $__fusion_3_id: Int!
-      ) {
-        productById(id: $__fusion_3_id) {
-          reviews(audience: $__fusion_2_audience) {
-            author {
-              userId
-            }
-          }
-        }
-      }
+      query SearchProduct_123456789101112_3($__fusion_2_audience: String!, $__fusion_3_id: Int!) { productById(id: $__fusion_3_id) { reviews(audience: $__fusion_2_audience) { author { userId } } } }
     source: $.productById
     target: $.searchProduct<ProductSearchResult>.product
     requirements:
@@ -68,11 +47,7 @@ nodes:
     type: Operation
     schema: USERS
     operation: |
-      query SearchProduct_123456789101112_4($__fusion_4_id: ID!) {
-        userById(id: $__fusion_4_id) {
-          name
-        }
-      }
+      query SearchProduct_123456789101112_4($__fusion_4_id: ID!) { userById(id: $__fusion_4_id) { name } }
     source: $.userById
     target: $.searchProduct<ProductSearchResult>.product.reviews.author
     requirements:

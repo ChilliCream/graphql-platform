@@ -103,23 +103,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_c8d03103_1 {
-          productBySlug(slug: "product") {
-            name
-            review {
-              id
-            }
-          }
-        }
+        query testQuery_c8d03103_1 { productBySlug(slug: "product") { name review { id } } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query testQuery_c8d03103_2($__fusion_1_id: ID!) {
-          reviewById(id: $__fusion_1_id) {
-            title
-          }
-        }
+        query testQuery_c8d03103_2($__fusion_1_id: ID!) { reviewById(id: $__fusion_1_id) { title } }
       source: $.reviewById
       target: $.productBySlug.review
       requirements:

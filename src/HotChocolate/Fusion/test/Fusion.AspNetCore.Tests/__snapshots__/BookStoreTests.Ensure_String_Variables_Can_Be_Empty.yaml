@@ -171,8 +171,6 @@ operationPlan:
       type: Operation
       schema: a
       operation: |
-        query Op_577373a9_1($s: String!) {
-          formatTitle(title: $s)
-        }
+        query Op_577373a9_1($s: String!) { formatTitle(title: $s) }
       forwardedVariables:
         - s

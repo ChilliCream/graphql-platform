@@ -17,26 +17,12 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_1 {
-        feed {
-          id
-          author {
-            yearsOfExperience
-          }
-        }
-      }
+      query Op_123456789101112_1 { feed { id author { yearsOfExperience } } }
   - id: 2
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_id: ID!
-          $__fusion_2_yearsOfExperience: Int!
-      ) {
-        postById(id: $__fusion_1_id) {
-          byNovice(yearsOfExperience: $__fusion_2_yearsOfExperience)
-        }
-      }
+      query Op_123456789101112_2($__fusion_1_id: ID!, $__fusion_2_yearsOfExperience: Int!) { postById(id: $__fusion_1_id) { byNovice(yearsOfExperience: $__fusion_2_yearsOfExperience) } }
     source: $.postById
     target: $.feed
     requirements:

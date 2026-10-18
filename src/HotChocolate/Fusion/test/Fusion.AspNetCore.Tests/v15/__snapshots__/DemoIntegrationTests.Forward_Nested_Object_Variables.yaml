@@ -186,16 +186,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query ProductReviews_4a9e0ed8_1($id: ID!, $first: Int!) {
-          productById(id: $id) {
-            id
-            repeatData(data: { data: { num: $first } }) {
-              data {
-                num
-              }
-            }
-          }
-        }
+        query ProductReviews_4a9e0ed8_1($id: ID!, $first: Int!) { productById(id: $id) { id repeatData(data: { data: { num: $first } }) { data { num } } } }
       forwardedVariables:
         - id
         - first

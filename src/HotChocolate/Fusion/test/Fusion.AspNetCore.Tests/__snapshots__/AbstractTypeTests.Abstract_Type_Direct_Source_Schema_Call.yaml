@@ -159,16 +159,4 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_45eb4c09_1 {
-          interfaceConnection(first: 2) {
-            edges {
-              node {
-                __typename
-                id
-              }
-            }
-            pageInfo {
-              hasNextPage
-            }
-          }
-        }
+        query Op_45eb4c09_1 { interfaceConnection(first: 2) { edges { node { __typename id } } pageInfo { hasNextPage } } }

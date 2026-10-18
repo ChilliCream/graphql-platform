@@ -217,30 +217,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_4bfbec17_1 {
-          wrappers {
-            authorable {
-              __typename
-              author {
-                id
-              }
-              ... on Discussion {
-                author {
-                  id
-                }
-              }
-            }
-          }
-        }
+        query testQuery_4bfbec17_1 { wrappers { authorable { __typename author { id } ... on Discussion { author { id } } } } }
     - id: 2
       type: OperationBatch
       schema: B
       operation: |
-        query testQuery_4bfbec17_2($__fusion_1_id: ID!) {
-          authorById(id: $__fusion_1_id) {
-            displayName
-          }
-        }
+        query testQuery_4bfbec17_2($__fusion_1_id: ID!) { authorById(id: $__fusion_1_id) { displayName } }
       source: $.authorById
       targets:
         - $.wrappers.authorable<Discussion>.author

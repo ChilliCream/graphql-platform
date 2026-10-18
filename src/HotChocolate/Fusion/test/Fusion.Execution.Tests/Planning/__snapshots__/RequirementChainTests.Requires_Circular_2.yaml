@@ -18,23 +18,12 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_1 {
-        feed {
-          id
-          author {
-            yearsOfExperience
-          }
-        }
-      }
+      query Op_123456789101112_1 { feed { id author { yearsOfExperience } } }
   - id: 2
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_2($__fusion_1_byNovice: Boolean!, $__fusion_2_id: ID!) {
-        postById(id: $__fusion_2_id) {
-          byExpert(byNovice: $__fusion_1_byNovice)
-        }
-      }
+      query Op_123456789101112_2($__fusion_1_byNovice: Boolean!, $__fusion_2_id: ID!) { postById(id: $__fusion_2_id) { byExpert(byNovice: $__fusion_1_byNovice) } }
     source: $.postById
     target: $.feed
     requirements:
@@ -51,14 +40,7 @@ nodes:
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_3(
-        $__fusion_3_id: ID!
-        $__fusion_4_yearsOfExperience: Int!
-      ) {
-        postById(id: $__fusion_3_id) {
-          byNovice(yearsOfExperience: $__fusion_4_yearsOfExperience)
-        }
-      }
+      query Op_123456789101112_3($__fusion_3_id: ID!, $__fusion_4_yearsOfExperience: Int!) { postById(id: $__fusion_3_id) { byNovice(yearsOfExperience: $__fusion_4_yearsOfExperience) } }
     source: $.postById
     target: $.feed
     requirements:

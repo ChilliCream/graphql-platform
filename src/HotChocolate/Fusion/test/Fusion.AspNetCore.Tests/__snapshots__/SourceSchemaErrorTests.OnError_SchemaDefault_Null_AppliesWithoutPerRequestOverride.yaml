@@ -77,8 +77,4 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_97fd38fc_1 {
-          productById(id: 1) {
-            name
-          }
-        }
+        query Op_97fd38fc_1 { productById(id: 1) { name } }

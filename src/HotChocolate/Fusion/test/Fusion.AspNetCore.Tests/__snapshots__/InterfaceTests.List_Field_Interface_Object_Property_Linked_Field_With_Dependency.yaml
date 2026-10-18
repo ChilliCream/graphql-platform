@@ -201,25 +201,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_bdd3c6f6_1 {
-          wrappers {
-            authorable {
-              __typename
-              author {
-                id
-              }
-            }
-          }
-        }
+        query testQuery_bdd3c6f6_1 { wrappers { authorable { __typename author { id } } } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query testQuery_bdd3c6f6_2($__fusion_1_id: ID!) {
-          authorById(id: $__fusion_1_id) {
-            displayName
-          }
-        }
+        query testQuery_bdd3c6f6_2($__fusion_1_id: ID!) { authorById(id: $__fusion_1_id) { displayName } }
       source: $.authorById
       target: $.wrappers.authorable.author
       requirements:

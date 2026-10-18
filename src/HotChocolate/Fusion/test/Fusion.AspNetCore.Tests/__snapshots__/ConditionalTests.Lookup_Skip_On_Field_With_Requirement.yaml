@@ -97,20 +97,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_1a5d8806_1 {
-          productBySlug(slug: "product") {
-            id
-          }
-        }
+        query testQuery_1a5d8806_1 { productBySlug(slug: "product") { id } }
     - id: 3
       type: Operation
       schema: C
       operation: |
-        query testQuery_1a5d8806_3($__fusion_2_size: Int!, $__fusion_3_id: ID!) {
-          productById(id: $__fusion_3_id) {
-            dimension(size: $__fusion_2_size)
-          }
-        }
+        query testQuery_1a5d8806_3($__fusion_2_size: Int!, $__fusion_3_id: ID!) { productById(id: $__fusion_3_id) { dimension(size: $__fusion_2_size) } }
       source: $.productById
       target: $.productBySlug
       requirements:
@@ -130,11 +122,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_1a5d8806_4($__fusion_4_id: ID!) {
-          productById(id: $__fusion_4_id) {
-            size
-          }
-        }
+        query testQuery_1a5d8806_4($__fusion_4_id: ID!) { productById(id: $__fusion_4_id) { size } }
       source: $.productById
       target: $.productBySlug
       requirements:

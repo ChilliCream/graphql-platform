@@ -176,24 +176,12 @@ operationPlan:
       type: Operation
       schema: a
       operation: |
-        query Op_76f18599_1 {
-          books {
-            author {
-              id
-            }
-          }
-        }
+        query Op_76f18599_1 { books { author { id } } }
     - id: 2
       type: Operation
       schema: b
       operation: |
-        query Op_76f18599_2($__fusion_1_id: ID!) {
-          lookups {
-            authorById(id: $__fusion_1_id) {
-              name
-            }
-          }
-        }
+        query Op_76f18599_2($__fusion_1_id: ID!) { lookups { authorById(id: $__fusion_1_id) { name } } }
       source: $.lookups.authorById
       target: $.books.author
       requirements:

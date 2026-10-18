@@ -157,24 +157,12 @@ operationPlan:
       type: Operation
       schema: a
       operation: |
-        query Op_694dd11e_1 {
-          reviews {
-            body
-            id
-          }
-        }
+        query Op_694dd11e_1 { reviews { body id } }
     - id: 2
       type: Operation
       schema: b
       operation: |
-        query Op_694dd11e_2($__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
-            __typename
-            ... on Review {
-              stars
-            }
-          }
-        }
+        query Op_694dd11e_2($__fusion_1_id: ID!) { node(id: $__fusion_1_id) { __typename ... on Review { stars } } }
       source: $.node<Review>
       target: $.reviews
       requirements:

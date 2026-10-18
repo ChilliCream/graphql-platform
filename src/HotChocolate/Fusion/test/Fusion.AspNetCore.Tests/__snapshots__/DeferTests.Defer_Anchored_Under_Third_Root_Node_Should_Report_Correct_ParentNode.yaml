@@ -356,31 +356,17 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query t_2e58f804_1 {
-          products {
-            id
-            name
-          }
-        }
+        query t_2e58f804_1 { products { id name } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query t_2e58f804_2 {
-          users {
-            id
-            name
-          }
-        }
+        query t_2e58f804_2 { users { id name } }
     - id: 3
       type: Operation
       schema: C
       operation: |
-        query t_2e58f804_3 {
-          orders {
-            __typename
-          }
-        }
+        query t_2e58f804_3 { orders { __typename } }
   deliveryGroups:
     - id: 0
       path: $.orders
@@ -393,9 +379,4 @@ operationPlan:
           type: Operation
           schema: C
           operation: |
-            query t_defer_1 {
-              orders {
-                id
-                total
-              }
-            }
+            query t_defer_1 { orders { id total } }

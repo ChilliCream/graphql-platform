@@ -105,11 +105,7 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query testQuery_63ca3aaf_2($id: ID!) {
-          node(id: $id) {
-            __typename
-          }
-        }
+        query testQuery_63ca3aaf_2($id: ID!) { node(id: $id) { __typename } }
       forwardedVariables:
         - id
       dependencies:
@@ -118,15 +114,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_63ca3aaf_3($id: ID!) {
-          node(id: $id) {
-            __typename
-            ... on Discussion {
-              __typename
-              viewerCanVote
-            }
-          }
-        }
+        query testQuery_63ca3aaf_3($id: ID!) { node(id: $id) { __typename ... on Discussion { __typename viewerCanVote } } }
       forwardedVariables:
         - id
       dependencies:
@@ -135,15 +123,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_63ca3aaf_4($id: ID!) {
-          node(id: $id) {
-            __typename
-            ... on Comment {
-              __typename
-              viewerCanVote
-            }
-          }
-        }
+        query testQuery_63ca3aaf_4($id: ID!) { node(id: $id) { __typename ... on Comment { __typename viewerCanVote } } }
       forwardedVariables:
         - id
       dependencies:

@@ -128,11 +128,7 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query testQuery_a938b4c5_2($id: ID!) {
-          node(id: $id) {
-            __typename
-          }
-        }
+        query testQuery_a938b4c5_2($id: ID!) { node(id: $id) { __typename } }
       forwardedVariables:
         - id
       dependencies:
@@ -141,15 +137,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_a938b4c5_3($id: ID!) {
-          node(id: $id) {
-            __typename
-            ... on Discussion {
-              __typename
-              title
-            }
-          }
-        }
+        query testQuery_a938b4c5_3($id: ID!) { node(id: $id) { __typename ... on Discussion { __typename title } } }
       forwardedVariables:
         - id
       dependencies:
@@ -158,8 +146,4 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_a938b4c5_4 {
-          viewer {
-            username
-          }
-        }
+        query testQuery_a938b4c5_4 { viewer { username } }

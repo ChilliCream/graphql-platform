@@ -186,24 +186,14 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_88b508ac_1($skip: Boolean!) {
-          viewer {
-            ... @skip(if: $skip) {
-              schema1
-            }
-          }
-        }
+        query Op_88b508ac_1($skip: Boolean!) { viewer { ... @skip(if: $skip) { schema1 } } }
       forwardedVariables:
         - skip
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query Op_88b508ac_2 {
-          viewer {
-            schema2
-          }
-        }
+        query Op_88b508ac_2 { viewer { schema2 } }
       conditions:
         - variable: $skip
           passingValue: false

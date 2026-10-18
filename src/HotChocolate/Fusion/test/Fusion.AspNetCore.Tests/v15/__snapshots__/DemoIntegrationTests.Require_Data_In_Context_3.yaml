@@ -915,33 +915,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Large_62d57bc0_1 {
-          users {
-            id
-            name
-            birthdate
-          }
-        }
+        query Large_62d57bc0_1 { users { id name birthdate } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query Large_62d57bc0_2($__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
-            __typename
-            ... on User {
-              reviews {
-                body
-                author {
-                  id
-                }
-                product {
-                  id
-                }
-              }
-            }
-          }
-        }
+        query Large_62d57bc0_2($__fusion_1_id: ID!) { node(id: $__fusion_1_id) { __typename ... on User { reviews { body author { id } product { id } } } } }
       source: $.node<User>
       target: $.users
       requirements:
@@ -954,16 +933,7 @@ operationPlan:
       type: Operation
       schema: D
       operation: |
-        query Large_62d57bc0_3($__fusion_2_id: ID!) {
-          node(id: $__fusion_2_id) {
-            __typename
-            ... on Product {
-              deliveryEstimate(zip: "abc") {
-                max
-              }
-            }
-          }
-        }
+        query Large_62d57bc0_3($__fusion_2_id: ID!) { node(id: $__fusion_2_id) { __typename ... on Product { deliveryEstimate(zip: "abc") { max } } } }
       source: $.node<Product>
       target: $.users.reviews.product
       requirements:
@@ -976,11 +946,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query Large_62d57bc0_4($__fusion_3_id: ID!) {
-          productById(id: $__fusion_3_id) {
-            name
-          }
-        }
+        query Large_62d57bc0_4($__fusion_3_id: ID!) { productById(id: $__fusion_3_id) { name } }
       source: $.productById
       target: $.users.reviews.product
       requirements:
@@ -993,15 +959,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Large_62d57bc0_5($__fusion_4_id: ID!) {
-          node(id: $__fusion_4_id) {
-            __typename
-            ... on User {
-              name
-              birthdate
-            }
-          }
-        }
+        query Large_62d57bc0_5($__fusion_4_id: ID!) { node(id: $__fusion_4_id) { __typename ... on User { name birthdate } } }
       source: $.node<User>
       target: $.users.reviews.author
       requirements:

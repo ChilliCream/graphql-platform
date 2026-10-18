@@ -74,8 +74,6 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Test_2ead4419_1($number: Int!) {
-          testWithTwoArgumentsDifferingNullability(first: $number, second: $number)
-        }
+        query Test_2ead4419_1($number: Int!) { testWithTwoArgumentsDifferingNullability(first: $number, second: $number) }
       forwardedVariables:
         - number

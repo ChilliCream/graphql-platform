@@ -112,21 +112,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_ae99f7ef_1 {
-          thing {
-            id
-          }
-        }
+        query testQuery_ae99f7ef_1 { thing { id } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query testQuery_ae99f7ef_2($f: Boolean!, $__fusion_1_id: Int!) {
-          thingById(id: $__fusion_1_id) {
-            delta @skip(if: $f)
-            epsilon @include(if: $f)
-          }
-        }
+        query testQuery_ae99f7ef_2($f: Boolean!, $__fusion_1_id: Int!) { thingById(id: $__fusion_1_id) { delta @skip(if: $f) epsilon @include(if: $f) } }
       source: $.thingById
       target: $.thing
       requirements:

@@ -67,8 +67,6 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_4b201a4f_1($input: RecursiveInput!) {
-          field(input: $input)
-        }
+        query testQuery_4b201a4f_1($input: RecursiveInput!) { field(input: $input) }
       forwardedVariables:
         - input

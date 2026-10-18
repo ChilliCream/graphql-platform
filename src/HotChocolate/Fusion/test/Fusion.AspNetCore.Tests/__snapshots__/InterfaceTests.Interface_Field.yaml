@@ -79,9 +79,4 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_79461fa4_1 {
-          votable {
-            __typename
-            viewerCanVote
-          }
-        }
+        query testQuery_79461fa4_1 { votable { __typename viewerCanVote } }

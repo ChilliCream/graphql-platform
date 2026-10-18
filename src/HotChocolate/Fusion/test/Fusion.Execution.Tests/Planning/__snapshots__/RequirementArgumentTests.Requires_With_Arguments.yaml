@@ -20,16 +20,7 @@ nodes:
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_id: ID!
-        $__fusion_2_somethingElse: [String]
-      ) {
-        postById(id: $__fusion_1_id) {
-          author(somethingElse: $__fusion_2_somethingElse) {
-            id
-          }
-        }
-      }
+      query Op_123456789101112_2($__fusion_1_id: ID!, $__fusion_2_somethingElse: [String]) { postById(id: $__fusion_1_id) { author(somethingElse: $__fusion_2_somethingElse) { id } } }
     source: $.postById
     target: $.feed
     requirements:
@@ -46,11 +37,7 @@ nodes:
     type: Operation
     schema: c
     operation: |
-      query Op_123456789101112_3($__fusion_3_id: ID!) {
-        commentById(id: $__fusion_3_id) {
-          somethingElse
-        }
-      }
+      query Op_123456789101112_3($__fusion_3_id: ID!) { commentById(id: $__fusion_3_id) { somethingElse } }
     source: $.commentById
     target: $.feed.comments
     requirements:
@@ -63,24 +50,11 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_1 {
-        feed {
-          id
-          comments {
-            __typename
-          }
-        }
-      }
+      query Op_123456789101112_1 { feed { id comments { __typename } } }
     batchingGroupId: 5
   - id: 4
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_4 {
-        feed {
-          comments {
-            id
-          }
-        }
-      }
+      query Op_123456789101112_4 { feed { comments { id } } }
     batchingGroupId: 5

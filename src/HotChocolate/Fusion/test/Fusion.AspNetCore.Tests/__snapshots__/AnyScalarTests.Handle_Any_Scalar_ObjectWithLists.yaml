@@ -109,6 +109,4 @@ operationPlan:
       type: Operation
       schema: a
       operation: |
-        query Op_224615af_1 {
-          objectWithLists
-        }
+        query Op_224615af_1 { objectWithLists }

@@ -165,35 +165,21 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query Op_a361113f_2 {
-          b: node(id: "RGlzY3Vzc2lvbjoy") {
-            __typename
-          }
-        }
+        query Op_a361113f_2 { b: node(id: "RGlzY3Vzc2lvbjoy") { __typename } }
       dependencies:
         - id: 1
     - id: 3
       type: Operation
       schema: A
       operation: |
-        query Op_a361113f_3 {
-          b: discussionById(discussionId: "RGlzY3Vzc2lvbjoy") {
-            __typename
-            title
-            id
-          }
-        }
+        query Op_a361113f_3 { b: discussionById(discussionId: "RGlzY3Vzc2lvbjoy") { __typename title id } }
       dependencies:
         - id: 1
     - id: 4
       type: Operation
       schema: B
       operation: |
-        query Op_a361113f_4($__fusion_1_id: ID!) {
-          discussion(id: $__fusion_1_id) {
-            commentCount
-          }
-        }
+        query Op_a361113f_4($__fusion_1_id: ID!) { discussion(id: $__fusion_1_id) { commentCount } }
       source: $.discussion
       target: $.b<Discussion>
       requirements:
@@ -212,22 +198,13 @@ operationPlan:
     - id: 6
       type: Operation
       operation: |
-        query Op_a361113f_6 {
-          a: node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
-          }
-        }
+        query Op_a361113f_6 { a: node(id: "RGlzY3Vzc2lvbjox") { __typename } }
       dependencies:
         - id: 5
     - id: 7
       type: Operation
       schema: A
       operation: |
-        query Op_a361113f_7 {
-          a: discussionById(discussionId: "RGlzY3Vzc2lvbjox") {
-            __typename
-            title
-          }
-        }
+        query Op_a361113f_7 { a: discussionById(discussionId: "RGlzY3Vzc2lvbjox") { __typename title } }
       dependencies:
         - id: 5

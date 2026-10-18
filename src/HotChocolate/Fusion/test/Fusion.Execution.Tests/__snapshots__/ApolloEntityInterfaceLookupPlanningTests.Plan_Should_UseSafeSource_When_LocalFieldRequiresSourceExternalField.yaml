@@ -23,26 +23,14 @@ nodes:
   - id: 2
     type: Operation
     operation: |
-      query Op_123456789101112_2 {
-        node(id: "a1") {
-          __typename
-        }
-      }
+      query Op_123456789101112_2 { node(id: "a1") { __typename } }
     dependencies:
       - id: 1
   - id: 3
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_3 {
-        node(id: "a1") {
-          __typename
-          ... on Account {
-            __typename
-            id
-          }
-        }
-      }
+      query Op_123456789101112_3 { node(id: "a1") { __typename ... on Account { __typename id } } }
     dependencies:
       - id: 1
       - id: 2

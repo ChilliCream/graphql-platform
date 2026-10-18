@@ -142,21 +142,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_1146a07f_1 {
-          productById(id: "1") {
-            id
-            sku
-          }
-        }
+        query Op_1146a07f_1 { productById(id: "1") { id sku } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query Op_1146a07f_2($__fusion_1_id: ID!, $__fusion_2_key: ProductKeyInput!) {
-          productById(id: $__fusion_1_id) {
-            fieldB(key: $__fusion_2_key)
-          }
-        }
+        query Op_1146a07f_2($__fusion_1_id: ID!, $__fusion_2_key: ProductKeyInput!) { productById(id: $__fusion_1_id) { fieldB(key: $__fusion_2_key) } }
       source: $.productById
       target: $.productById
       requirements:

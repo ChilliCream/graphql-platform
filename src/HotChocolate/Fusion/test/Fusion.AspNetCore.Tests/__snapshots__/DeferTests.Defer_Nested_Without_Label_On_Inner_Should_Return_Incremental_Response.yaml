@@ -152,12 +152,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_f58e5f87_1 {
-          user(id: "1") {
-            name
-            id
-          }
-        }
+        query Op_f58e5f87_1 { user(id: "1") { name id } }
   deliveryGroups:
     - id: 0
       path: $.user
@@ -178,12 +173,7 @@ operationPlan:
           type: Operation
           schema: B
           operation: |
-            query Op_defer_1($__fusion_1_id: ID!) {
-              userById(id: $__fusion_1_id) {
-                email
-                address
-              }
-            }
+            query Op_defer_1($__fusion_1_id: ID!) { userById(id: $__fusion_1_id) { email address } }
           source: $.userById
           target: $.user
           requirements:

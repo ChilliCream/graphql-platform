@@ -73,8 +73,4 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_a239ceba_1 {
-          post {
-            __typename
-          }
-        }
+        query testQuery_a239ceba_1 { post { __typename } }

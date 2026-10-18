@@ -14,9 +14,4 @@ nodes:
     type: Operation
     schema: PRODUCTS
     operation: |
-      query Op_123456789101112_1 {
-        productBySlug(slug: "1") {
-          id
-          name
-        }
-      }
+      query Op_123456789101112_1 { productBySlug(slug: "1") { id name } }

@@ -70,10 +70,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_4047cfa8_1($x: Boolean!, $y: Boolean!) {
-          a @include(if: $x)
-          b @include(if: $y)
-        }
+        query testQuery_4047cfa8_1($x: Boolean!, $y: Boolean!) { a @include(if: $x) b @include(if: $y) }
       conditions:
         - variable: $s
           passingValue: false

@@ -365,30 +365,12 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query TopProducts_b7ed3f85_1 {
-          __typename
-          topProducts(first: 2) {
-            __typename
-            id
-          }
-        }
+        query TopProducts_b7ed3f85_1 { __typename topProducts(first: 2) { __typename id } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query TopProducts_b7ed3f85_2($__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
-            __typename
-            ... on Product {
-              reviews {
-                __typename
-                author {
-                  __typename
-                }
-              }
-            }
-          }
-        }
+        query TopProducts_b7ed3f85_2($__fusion_1_id: ID!) { node(id: $__fusion_1_id) { __typename ... on Product { reviews { __typename author { __typename } } } } }
       source: $.node<Product>
       target: $.topProducts
       requirements:

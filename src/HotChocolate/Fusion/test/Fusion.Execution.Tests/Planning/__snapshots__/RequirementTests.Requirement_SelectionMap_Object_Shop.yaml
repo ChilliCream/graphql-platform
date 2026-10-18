@@ -29,28 +29,12 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_1 {
-        users {
-          nodes {
-            id
-          }
-        }
-      }
+      query Op_123456789101112_1 { users { nodes { id } } }
   - id: 2
     type: Operation
     schema: f
     operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!) {
-        userById(id: $__fusion_1_id) {
-          reviews {
-            nodes {
-              product {
-                id
-              }
-            }
-          }
-        }
-      }
+      query Op_123456789101112_2($__fusion_1_id: ID!) { userById(id: $__fusion_1_id) { reviews { nodes { product { id } } } } }
     source: $.userById
     target: $.users.nodes
     requirements:
@@ -63,14 +47,7 @@ nodes:
     type: Operation
     schema: g
     operation: |
-      query Op_123456789101112_4(
-        $__fusion_3_dimension: ProductDimensionInput!
-          $__fusion_4_id: ID!
-      ) {
-        productById(id: $__fusion_4_id) {
-          deliveryEstimate(zip: "123", dimension: $__fusion_3_dimension)
-        }
-      }
+      query Op_123456789101112_4($__fusion_3_dimension: ProductDimensionInput!, $__fusion_4_id: ID!) { productById(id: $__fusion_4_id) { deliveryEstimate(zip: "123", dimension: $__fusion_3_dimension) } }
     source: $.productById
     target: $.users.nodes.reviews.nodes.product
     requirements:
@@ -92,16 +69,7 @@ nodes:
     type: Operation
     schema: e
     operation: |
-      query Op_123456789101112_5($__fusion_5_id: ID!) {
-        productById(id: $__fusion_5_id) {
-          weight
-          dimension {
-            length
-            width
-            height
-          }
-        }
-      }
+      query Op_123456789101112_5($__fusion_5_id: ID!) { productById(id: $__fusion_5_id) { weight dimension { length width height } } }
     source: $.productById
     target: $.users.nodes.reviews.nodes.product
     requirements:

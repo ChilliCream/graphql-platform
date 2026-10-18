@@ -20,14 +20,7 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_1 {
-        products {
-          id
-        }
-        brands {
-          id
-        }
-      }
+      query Op_123456789101112_1 { products { id } brands { id } }
   - id: 2
     type: ApolloOperationBatch
     schema: b

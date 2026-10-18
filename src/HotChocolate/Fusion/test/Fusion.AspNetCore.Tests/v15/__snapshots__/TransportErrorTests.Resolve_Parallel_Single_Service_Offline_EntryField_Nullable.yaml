@@ -62,8 +62,4 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_7a17934e_1 {
-          viewer {
-            name
-          }
-        }
+        query Op_7a17934e_1 { viewer { name } }

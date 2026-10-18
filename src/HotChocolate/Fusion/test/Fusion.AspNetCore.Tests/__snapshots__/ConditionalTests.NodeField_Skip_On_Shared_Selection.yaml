@@ -115,12 +115,7 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query testQuery_4a9f6178_2($skip: Boolean!) {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
-            id @skip(if: $skip)
-          }
-        }
+        query testQuery_4a9f6178_2($skip: Boolean!) { node(id: "RGlzY3Vzc2lvbjox") { __typename id @skip(if: $skip) } }
       forwardedVariables:
         - skip
       dependencies:
@@ -129,16 +124,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_4a9f6178_3($skip: Boolean!) {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
-            ... on Discussion {
-              __typename
-              id @skip(if: $skip)
-              title
-            }
-          }
-        }
+        query testQuery_4a9f6178_3($skip: Boolean!) { node(id: "RGlzY3Vzc2lvbjox") { __typename ... on Discussion { __typename id @skip(if: $skip) title } } }
       forwardedVariables:
         - skip
       dependencies:

@@ -400,32 +400,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_eb2214e5_1 {
-          users {
-            posts {
-              __typename
-              ... on Photo {
-                product {
-                  id
-                }
-              }
-              ... on Discussion {
-                author {
-                  id
-                }
-              }
-            }
-          }
-        }
+        query testQuery_eb2214e5_1 { users { posts { __typename ... on Photo { product { id } } ... on Discussion { author { id } } } } }
     - id: 2
       type: Operation
       schema: C
       operation: |
-        query testQuery_eb2214e5_2($__fusion_1_id: ID!) {
-          authorById(id: $__fusion_1_id) {
-            subgraph3
-          }
-        }
+        query testQuery_eb2214e5_2($__fusion_1_id: ID!) { authorById(id: $__fusion_1_id) { subgraph3 } }
       source: $.authorById
       target: $.users.posts<Discussion>.author
       requirements:
@@ -438,11 +418,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_eb2214e5_3($__fusion_2_id: ID!) {
-          productById(id: $__fusion_2_id) {
-            subgraph2
-          }
-        }
+        query testQuery_eb2214e5_3($__fusion_2_id: ID!) { productById(id: $__fusion_2_id) { subgraph2 } }
       source: $.productById
       target: $.users.posts<Photo>.product
       requirements:

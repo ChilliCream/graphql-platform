@@ -19,16 +19,4 @@ nodes:
     type: Operation
     schema: A
     operation: |
-      query Op_123456789101112_1 {
-        a {
-          __typename
-          ... on Pet {
-            __typename
-            petField
-          }
-          ... on Animal {
-            __typename
-            animalField
-          }
-        }
-      }
+      query Op_123456789101112_1 { a { __typename ... on Pet { __typename petField } ... on Animal { __typename animalField } } }

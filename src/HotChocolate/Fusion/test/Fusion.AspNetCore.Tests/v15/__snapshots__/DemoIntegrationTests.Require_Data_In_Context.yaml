@@ -446,32 +446,12 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Requires_beac16b7_1 {
-          reviews {
-            body
-            author {
-              id
-            }
-            product {
-              id
-            }
-          }
-        }
+        query Requires_beac16b7_1 { reviews { body author { id } product { id } } }
     - id: 2
       type: Operation
       schema: D
       operation: |
-        query Requires_beac16b7_2($__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
-            __typename
-            ... on Product {
-              deliveryEstimate(zip: "12345") {
-                min
-                max
-              }
-            }
-          }
-        }
+        query Requires_beac16b7_2($__fusion_1_id: ID!) { node(id: $__fusion_1_id) { __typename ... on Product { deliveryEstimate(zip: "12345") { min max } } } }
       source: $.node<Product>
       target: $.reviews.product
       requirements:
@@ -484,11 +464,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query Requires_beac16b7_3($__fusion_2_id: ID!) {
-          productById(id: $__fusion_2_id) {
-            name
-          }
-        }
+        query Requires_beac16b7_3($__fusion_2_id: ID!) { productById(id: $__fusion_2_id) { name } }
       source: $.productById
       target: $.reviews.product
       requirements:
@@ -501,15 +477,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Requires_beac16b7_4($__fusion_3_id: ID!) {
-          node(id: $__fusion_3_id) {
-            __typename
-            ... on User {
-              name
-              birthdate
-            }
-          }
-        }
+        query Requires_beac16b7_4($__fusion_3_id: ID!) { node(id: $__fusion_3_id) { __typename ... on User { name birthdate } } }
       source: $.node<User>
       target: $.reviews.author
       requirements:

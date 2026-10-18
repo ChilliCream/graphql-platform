@@ -124,14 +124,7 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query testQuery_f0a0d960_2($skip: Boolean!) {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
-            ... @skip(if: $skip) {
-              __typename
-            }
-          }
-        }
+        query testQuery_f0a0d960_2($skip: Boolean!) { node(id: "RGlzY3Vzc2lvbjox") { __typename ... @skip(if: $skip) { __typename } } }
       forwardedVariables:
         - skip
       dependencies:
@@ -140,21 +133,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_f0a0d960_3($skip: Boolean!) {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
-            ... on Discussion {
-              __typename
-              ... @skip(if: $skip) {
-                __typename
-              }
-              title
-              ... @skip(if: $skip) {
-                viewerCanVote
-              }
-            }
-          }
-        }
+        query testQuery_f0a0d960_3($skip: Boolean!) { node(id: "RGlzY3Vzc2lvbjox") { __typename ... on Discussion { __typename ... @skip(if: $skip) { __typename } title ... @skip(if: $skip) { viewerCanVote } } } }
       forwardedVariables:
         - skip
       dependencies:
@@ -163,20 +142,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_f0a0d960_4($skip: Boolean!) {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
-            ... on Author {
-              __typename
-              ... @skip(if: $skip) {
-                __typename
-              }
-              ... @skip(if: $skip) {
-                viewerCanVote
-              }
-            }
-          }
-        }
+        query testQuery_f0a0d960_4($skip: Boolean!) { node(id: "RGlzY3Vzc2lvbjox") { __typename ... on Author { __typename ... @skip(if: $skip) { __typename } ... @skip(if: $skip) { viewerCanVote } } } }
       forwardedVariables:
         - skip
       dependencies:

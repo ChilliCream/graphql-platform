@@ -78,11 +78,6 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query Op_e41649ee_2 {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            id
-            __typename
-          }
-        }
+        query Op_e41649ee_2 { node(id: "RGlzY3Vzc2lvbjox") { id __typename } }
       dependencies:
         - id: 1

@@ -169,23 +169,12 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_ac84cf0c_1 {
-          trendingMedia {
-            id
-          }
-        }
+        query testQuery_ac84cf0c_1 { trendingMedia { id } }
     - id: 2
       type: Operation
       schema: A
       operation: |
-        query testQuery_ac84cf0c_2($__fusion_1_id: ID!) {
-          mediaById(id: $__fusion_1_id) {
-            __typename
-            ... on Book {
-              isbn
-            }
-          }
-        }
+        query testQuery_ac84cf0c_2($__fusion_1_id: ID!) { mediaById(id: $__fusion_1_id) { __typename ... on Book { isbn } } }
       source: $.mediaById
       target: $.trendingMedia
       requirements:

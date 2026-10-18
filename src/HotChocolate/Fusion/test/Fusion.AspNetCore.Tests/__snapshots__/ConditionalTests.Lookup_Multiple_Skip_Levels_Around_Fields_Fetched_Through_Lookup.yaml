@@ -122,18 +122,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_321bae46_1($skip1: Boolean!, $skip2: Boolean!) {
-          productBySlug(slug: "product") {
-            name
-            review {
-              ... @skip(if: $skip1) {
-                ... @skip(if: $skip2) {
-                  id
-                }
-              }
-            }
-          }
-        }
+        query testQuery_321bae46_1($skip1: Boolean!, $skip2: Boolean!) { productBySlug(slug: "product") { name review { ... @skip(if: $skip1) { ... @skip(if: $skip2) { id } } } } }
       forwardedVariables:
         - skip1
         - skip2
@@ -141,12 +130,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_321bae46_2($__fusion_1_id: ID!) {
-          reviewById(id: $__fusion_1_id) {
-            title
-            rating
-          }
-        }
+        query testQuery_321bae46_2($__fusion_1_id: ID!) { reviewById(id: $__fusion_1_id) { title rating } }
       source: $.reviewById
       target: $.productBySlug.review
       requirements:

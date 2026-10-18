@@ -115,30 +115,12 @@ public sealed class InterfaceInheritanceLookupPlanningTests : FusionTestBase
                 type: Operation
                 schema: ordering
                 operation: |
-                  query Op_123456789101112_1 {
-                    orders {
-                      __typename
-                      name
-                      ... on MultiOrderBase {
-                        __typename
-                        items {
-                          product {
-                            id
-                          }
-                        }
-                      }
-                    }
-                  }
+                  query Op_123456789101112_1 { orders { __typename name ... on MultiOrderBase { __typename items { product { id } } } } }
               - id: 2
                 type: Operation
                 schema: products
                 operation: |
-                  query Op_123456789101112_2($__fusion_1_id: ID!) {
-                    productById(id: $__fusion_1_id) {
-                      name
-                      description
-                    }
-                  }
+                  query Op_123456789101112_2($__fusion_1_id: ID!) { productById(id: $__fusion_1_id) { name description } }
                 source: $.productById
                 target: $.orders<MultiOrderBase>.items.product
                 requirements:
@@ -218,36 +200,12 @@ public sealed class InterfaceInheritanceLookupPlanningTests : FusionTestBase
                 type: Operation
                 schema: ordering
                 operation: |
-                  query Op_123456789101112_1 {
-                    orders {
-                      __typename
-                      name
-                      ... on OrderA {
-                        items {
-                          product {
-                            id
-                          }
-                        }
-                      }
-                      ... on OrderB {
-                        items {
-                          product {
-                            id
-                          }
-                        }
-                      }
-                    }
-                  }
+                  query Op_123456789101112_1 { orders { __typename name ... on OrderA { items { product { id } } } ... on OrderB { items { product { id } } } } }
               - id: 2
                 type: OperationBatch
                 schema: products
                 operation: |
-                  query Op_123456789101112_2($__fusion_1_id: ID!) {
-                    productById(id: $__fusion_1_id) {
-                      name
-                      description
-                    }
-                  }
+                  query Op_123456789101112_2($__fusion_1_id: ID!) { productById(id: $__fusion_1_id) { name description } }
                 source: $.productById
                 targets:
                   - $.orders<OrderB>.items.product

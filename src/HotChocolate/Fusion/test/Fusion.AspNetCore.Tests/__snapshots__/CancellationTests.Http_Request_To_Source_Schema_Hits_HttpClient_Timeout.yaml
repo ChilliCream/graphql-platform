@@ -61,8 +61,4 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_486d07e5_1 {
-          topProduct {
-            id
-          }
-        }
+        query Op_486d07e5_1 { topProduct { id } }

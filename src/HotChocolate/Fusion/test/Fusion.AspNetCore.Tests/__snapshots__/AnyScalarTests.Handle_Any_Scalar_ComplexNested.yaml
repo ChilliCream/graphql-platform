@@ -135,6 +135,4 @@ operationPlan:
       type: Operation
       schema: a
       operation: |
-        query Op_3d57cc6e_1 {
-          complexNested
-        }
+        query Op_3d57cc6e_1 { complexNested }

@@ -64,11 +64,7 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query testQuery_10801a85_2 {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
-          }
-        }
+        query testQuery_10801a85_2 { node(id: "RGlzY3Vzc2lvbjox") { __typename } }
       dependencies:
         - id: 1
     - id: 3

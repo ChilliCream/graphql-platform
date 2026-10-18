@@ -268,20 +268,12 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_def11e8e_1 {
-          anotherUsers {
-            id
-          }
-        }
+        query testQuery_def11e8e_1 { anotherUsers { id } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query testQuery_def11e8e_2($__fusion_1_name: String, $__fusion_2_id: ID!) {
-          nodeByKey(id: $__fusion_2_id) {
-            username(name: $__fusion_1_name)
-          }
-        }
+        query testQuery_def11e8e_2($__fusion_1_name: String, $__fusion_2_id: ID!) { nodeByKey(id: $__fusion_2_id) { username(name: $__fusion_1_name) } }
       source: $.nodeByKey
       target: $.anotherUsers
       requirements:
@@ -297,12 +289,7 @@ operationPlan:
       type: OperationBatch
       schema: A
       operation: |
-        query testQuery_def11e8e_3($__fusion_3_id: ID!) {
-          nodeById(id: $__fusion_3_id) {
-            __typename
-            name
-          }
-        }
+        query testQuery_def11e8e_3($__fusion_3_id: ID!) { nodeById(id: $__fusion_3_id) { __typename name } }
       source: $.nodeById
       targets:
         - $.anotherUsers
@@ -318,12 +305,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_def11e8e_4($__fusion_4_id: ID!) {
-          nodeById(id: $__fusion_4_id) {
-            __typename
-            id
-          }
-        }
+        query testQuery_def11e8e_4($__fusion_4_id: ID!) { nodeById(id: $__fusion_4_id) { __typename id } }
       source: $.nodeById
       target: $.anotherUsers
       batchingGroupId: 6

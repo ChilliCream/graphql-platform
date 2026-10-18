@@ -22,33 +22,14 @@ nodes:
     type: Operation
     schema: c
     operation: |
-      query Op_123456789101112_1($limit: Int = 1) {
-        feed {
-          comments(limit: $limit) {
-            id
-          }
-          id
-          fusion__requirement_comments_0: comments {
-            authorId
-          }
-        }
-      }
+      query Op_123456789101112_1($limit: Int = 1) { feed { comments(limit: $limit) { id } id fusion__requirement_comments_0: comments { authorId } } }
     forwardedVariables:
       - limit
   - id: 2
     type: Operation
     schema: d
     operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_id: ID!
-        $__fusion_2_commentAuthorIds: [ID]
-      ) {
-        postById(id: $__fusion_1_id) {
-          author(commentAuthorIds: $__fusion_2_commentAuthorIds) {
-            id
-          }
-        }
-      }
+      query Op_123456789101112_2($__fusion_1_id: ID!, $__fusion_2_commentAuthorIds: [ID]) { postById(id: $__fusion_1_id) { author(commentAuthorIds: $__fusion_2_commentAuthorIds) { id } } }
     source: $.postById
     target: $.feed
     requirements:

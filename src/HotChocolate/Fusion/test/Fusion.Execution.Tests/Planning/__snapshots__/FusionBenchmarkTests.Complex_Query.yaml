@@ -240,67 +240,14 @@ nodes:
     type: Operation
     schema: reviews
     operation: |
-      query Op_123456789101112_1($includeReviews: Boolean!) {
-        viewer {
-          reviews(first: 5) @include(if: $includeReviews) {
-            pageInfo {
-              hasNextPage
-              hasPreviousPage
-              startCursor
-              endCursor
-            }
-            edges {
-              cursor
-              node {
-                id
-                body
-                stars
-                author {
-                  id
-                }
-              }
-            }
-          }
-        }
-      }
+      query Op_123456789101112_1($includeReviews: Boolean!) { viewer { reviews(first: 5) @include(if: $includeReviews) { pageInfo { hasNextPage hasPreviousPage startCursor endCursor } edges { cursor node { id body stars author { id } } } } } }
     forwardedVariables:
       - includeReviews
   - id: 2
     type: Operation
     schema: products
     operation: |
-      query Op_123456789101112_2(
-        $level1: Boolean!
-        $level2: Boolean!
-        $level3: Boolean!
-      ) {
-        productById(id: "1") {
-          id
-          name
-          ... @include(if: $level1) {
-            description
-            ... @skip(if: $level2) {
-              price
-              ... @include(if: $level3) {
-                dimension {
-                  height
-                  width
-                }
-              }
-            }
-          }
-        }
-        products(first: 3) {
-          edges {
-            node {
-              name
-              description
-              price
-              id
-            }
-          }
-        }
-      }
+      query Op_123456789101112_2($level1: Boolean!, $level2: Boolean!, $level3: Boolean!) { productById(id: "1") { id name ... @include(if: $level1) { description ... @skip(if: $level2) { price ... @include(if: $level3) { dimension { height width } } } } } products(first: 3) { edges { node { name description price id } } } }
     forwardedVariables:
       - level1
       - level2
@@ -309,35 +256,12 @@ nodes:
     type: Operation
     schema: search
     operation: |
-      query Op_123456789101112_3 {
-        searchContent(query: "extreme") {
-          __typename
-          id
-          title
-          description
-          ... on Product {
-            id
-          }
-          ... on Article {
-            content
-            author {
-              id
-            }
-            publishedAt
-            tags
-          }
-        }
-      }
+      query Op_123456789101112_3 { searchContent(query: "extreme") { __typename id title description ... on Product { id } ... on Article { content author { id } publishedAt tags } } }
   - id: 10
     type: Operation
     schema: products
     operation: |
-      query Op_123456789101112_10($__fusion_7_id: ID!) {
-        productById(id: $__fusion_7_id) {
-          name
-          price
-        }
-      }
+      query Op_123456789101112_10($__fusion_7_id: ID!) { productById(id: $__fusion_7_id) { name price } }
     source: $.productById
     target: $.searchContent<Product>
     requirements:
@@ -350,32 +274,12 @@ nodes:
     type: Operation
     schema: users
     operation: |
-      query Op_123456789101112_25 {
-        viewer {
-          displayName
-        }
-      }
+      query Op_123456789101112_25 { viewer { displayName } }
   - id: 4
     type: Operation
     schema: users
     operation: |
-      query Op_123456789101112_4(
-        $level3: Boolean!
-        $level4: Boolean!
-        $__fusion_1_id: ID!
-      ) {
-        userById(id: $__fusion_1_id) {
-          displayName
-          reviews(first: 2) @include(if: $level3) {
-            nodes {
-              id
-              ... @skip(if: $level4) {
-                id
-              }
-            }
-          }
-        }
-      }
+      query Op_123456789101112_4($level3: Boolean!, $level4: Boolean!, $__fusion_1_id: ID!) { userById(id: $__fusion_1_id) { displayName reviews(first: 2) @include(if: $level3) { nodes { id ... @skip(if: $level4) { id } } } } }
     source: $.userById
     target: $.searchContent<Article>.author
     batchingGroupId: 30
@@ -392,16 +296,7 @@ nodes:
     type: Operation
     schema: users
     operation: |
-      query Op_123456789101112_26($level3: Boolean!, $__fusion_22_id: ID!) {
-        userById(id: $__fusion_22_id) {
-          displayName
-          reviews(first: 3) @skip(if: $level3) {
-            nodes {
-              id
-            }
-          }
-        }
-      }
+      query Op_123456789101112_26($level3: Boolean!, $__fusion_22_id: ID!) { userById(id: $__fusion_22_id) { displayName reviews(first: 3) @skip(if: $level3) { nodes { id } } } }
     source: $.userById
     target: $.viewer.reviews.edges.node.author
     batchingGroupId: 30
@@ -420,20 +315,7 @@ nodes:
     type: Operation
     schema: reviews
     operation: |
-      query Op_123456789101112_9($level1: Boolean!, $__fusion_6_id: ID!) {
-        productById(id: $__fusion_6_id) {
-          reviews(first: 3) {
-            nodes {
-              id
-              body
-              stars
-              author @skip(if: $level1) {
-                id
-              }
-            }
-          }
-        }
-      }
+      query Op_123456789101112_9($level1: Boolean!, $__fusion_6_id: ID!) { productById(id: $__fusion_6_id) { reviews(first: 3) { nodes { id body stars author @skip(if: $level1) { id } } } } }
     source: $.productById
     target: $.searchContent<Product>
     batchingGroupId: 31
@@ -452,25 +334,7 @@ nodes:
     type: Operation
     schema: reviews
     operation: |
-      query Op_123456789101112_17(
-        $level1: Boolean!
-        $includeReviews: Boolean!
-        $__fusion_14_id: ID!
-      ) {
-        productById(id: $__fusion_14_id) {
-          averageRating
-          reviews(first: 5) @include(if: $includeReviews) {
-            nodes {
-              id
-              body
-              stars
-              author @skip(if: $level1) {
-                id
-              }
-            }
-          }
-        }
-      }
+      query Op_123456789101112_17($level1: Boolean!, $includeReviews: Boolean!, $__fusion_14_id: ID!) { productById(id: $__fusion_14_id) { averageRating reviews(first: 5) @include(if: $includeReviews) { nodes { id body stars author @skip(if: $level1) { id } } } } }
     source: $.productById
     target: $.products.edges.node
     batchingGroupId: 31
@@ -487,35 +351,7 @@ nodes:
     type: Operation
     schema: reviews
     operation: |
-      query Op_123456789101112_23(
-        $includeReviews: Boolean!
-        $includeMetadata: Boolean!
-        $__fusion_20_id: ID!
-      ) {
-        productById(id: $__fusion_20_id) {
-          reviews(first: 10) {
-            pageInfo {
-              hasNextPage
-              ... @include(if: $includeMetadata) {
-                hasPreviousPage
-                startCursor
-                endCursor
-              }
-            }
-            edges {
-              cursor
-              node {
-                id
-                body
-                stars
-                author @include(if: $includeReviews) {
-                  id
-                }
-              }
-            }
-          }
-        }
-      }
+      query Op_123456789101112_23($includeReviews: Boolean!, $includeMetadata: Boolean!, $__fusion_20_id: ID!) { productById(id: $__fusion_20_id) { reviews(first: 10) { pageInfo { hasNextPage ... @include(if: $includeMetadata) { hasPreviousPage startCursor endCursor } } edges { cursor node { id body stars author @include(if: $includeReviews) { id } } } } } }
     source: $.productById
     target: $.productById
     batchingGroupId: 31
@@ -545,11 +381,7 @@ nodes:
     type: Operation
     schema: reviews
     operation: |
-      query Op_123456789101112_5($__fusion_2_id: ID!) {
-        reviewById(id: $__fusion_2_id) {
-          body
-        }
-      }
+      query Op_123456789101112_5($__fusion_2_id: ID!) { reviewById(id: $__fusion_2_id) { body } }
     source: $.reviewById
     target: $.searchContent<Article>.author.reviews.nodes
     batchingGroupId: 32
@@ -566,17 +398,7 @@ nodes:
     type: Operation
     schema: reviews
     operation: |
-      query Op_123456789101112_6($level5: Boolean!, $__fusion_3_id: ID!) {
-        reviewById(id: $__fusion_3_id) {
-          stars
-          product {
-            id
-            ... @include(if: $level5) {
-              id
-            }
-          }
-        }
-      }
+      query Op_123456789101112_6($level5: Boolean!, $__fusion_3_id: ID!) { reviewById(id: $__fusion_3_id) { stars product { id ... @include(if: $level5) { id } } } }
     source: $.reviewById
     target: $.searchContent<Article>.author.reviews.nodes
     batchingGroupId: 32
@@ -597,22 +419,7 @@ nodes:
     type: Operation
     schema: reviews
     operation: |
-      query Op_123456789101112_27(
-        $level4: Boolean!
-        $level5: Boolean!
-        $__fusion_23_id: ID!
-      ) {
-        reviewById(id: $__fusion_23_id) {
-          body
-          stars
-          product @include(if: $level4) {
-            id
-            ... @skip(if: $level5) {
-              id
-            }
-          }
-        }
-      }
+      query Op_123456789101112_27($level4: Boolean!, $level5: Boolean!, $__fusion_23_id: ID!) { reviewById(id: $__fusion_23_id) { body stars product @include(if: $level4) { id ... @skip(if: $level5) { id } } } }
     source: $.reviewById
     target: $.viewer.reviews.edges.node.author.reviews.nodes
     batchingGroupId: 32
@@ -632,23 +439,7 @@ nodes:
     type: Operation
     schema: users
     operation: |
-      query Op_123456789101112_11(
-        $level2: Boolean!
-        $level3: Boolean!
-        $__fusion_8_id: ID!
-      ) {
-        userById(id: $__fusion_8_id) {
-          displayName
-          reviews(first: 2) @include(if: $level2) {
-            nodes {
-              id
-              ... @skip(if: $level3) {
-                id
-              }
-            }
-          }
-        }
-      }
+      query Op_123456789101112_11($level2: Boolean!, $level3: Boolean!, $__fusion_8_id: ID!) { userById(id: $__fusion_8_id) { displayName reviews(first: 2) @include(if: $level2) { nodes { id ... @skip(if: $level3) { id } } } } }
     source: $.userById
     target: $.searchContent<Product>.reviews.nodes.author
     batchingGroupId: 33
@@ -670,23 +461,7 @@ nodes:
     type: Operation
     schema: users
     operation: |
-      query Op_123456789101112_18(
-        $level2: Boolean!
-        $level3: Boolean!
-        $__fusion_15_id: ID!
-      ) {
-        userById(id: $__fusion_15_id) {
-          displayName
-          reviews(first: 3) @include(if: $level2) {
-            nodes {
-              id
-              ... @skip(if: $level3) {
-                id
-              }
-            }
-          }
-        }
-      }
+      query Op_123456789101112_18($level2: Boolean!, $level3: Boolean!, $__fusion_15_id: ID!) { userById(id: $__fusion_15_id) { displayName reviews(first: 3) @include(if: $level2) { nodes { id ... @skip(if: $level3) { id } } } } }
     source: $.userById
     target: $.products.edges.node.reviews.nodes.author
     batchingGroupId: 33
@@ -708,11 +483,7 @@ nodes:
     type: Operation
     schema: users
     operation: |
-      query Op_123456789101112_24($__fusion_21_id: ID!) {
-        userById(id: $__fusion_21_id) {
-          displayName
-        }
-      }
+      query Op_123456789101112_24($__fusion_21_id: ID!) { userById(id: $__fusion_21_id) { displayName } }
     source: $.userById
     target: $.productById.reviews.edges.node.author
     batchingGroupId: 33
@@ -731,15 +502,7 @@ nodes:
     type: Operation
     schema: products
     operation: |
-      query Op_123456789101112_8($level6: Boolean!, $__fusion_5_id: ID!) {
-        productById(id: $__fusion_5_id) {
-          price
-          dimension @skip(if: $level6) {
-            height
-            width
-          }
-        }
-      }
+      query Op_123456789101112_8($level6: Boolean!, $__fusion_5_id: ID!) { productById(id: $__fusion_5_id) { price dimension @skip(if: $level6) { height width } } }
     source: $.productById
     target: $.searchContent<Article>.author.reviews.nodes.product
     batchingGroupId: 34
@@ -758,11 +521,7 @@ nodes:
     type: Operation
     schema: products
     operation: |
-      query Op_123456789101112_28($__fusion_24_id: ID!) {
-        productById(id: $__fusion_24_id) {
-          name
-        }
-      }
+      query Op_123456789101112_28($__fusion_24_id: ID!) { productById(id: $__fusion_24_id) { name } }
     source: $.productById
     target: $.viewer.reviews.edges.node.author.reviews.nodes.product
     batchingGroupId: 34
@@ -779,15 +538,7 @@ nodes:
     type: Operation
     schema: products
     operation: |
-      query Op_123456789101112_29($level6: Boolean!, $__fusion_25_id: ID!) {
-        productById(id: $__fusion_25_id) {
-          price
-          dimension @include(if: $level6) {
-            height
-            width
-          }
-        }
-      }
+      query Op_123456789101112_29($level6: Boolean!, $__fusion_25_id: ID!) { productById(id: $__fusion_25_id) { price dimension @include(if: $level6) { height width } } }
     source: $.productById
     target: $.viewer.reviews.edges.node.author.reviews.nodes.product
     batchingGroupId: 34
@@ -808,11 +559,7 @@ nodes:
     type: OperationBatch
     schema: reviews
     operation: |
-      query Op_123456789101112_12($__fusion_9_id: ID!) {
-        reviewById(id: $__fusion_9_id) {
-          body
-        }
-      }
+      query Op_123456789101112_12($__fusion_9_id: ID!) { reviewById(id: $__fusion_9_id) { body } }
     source: $.reviewById
     targets:
       - $.searchContent<Product>.reviews.nodes.author.reviews.nodes
@@ -832,32 +579,7 @@ nodes:
     type: Operation
     schema: reviews
     operation: |
-      query Op_123456789101112_13(
-        $level4: Boolean!
-        $level5: Boolean!
-        $level6: Boolean!
-        $__fusion_10_id: ID!
-      ) {
-        reviewById(id: $__fusion_10_id) {
-          stars
-          product {
-            id
-            ... @include(if: $level4) {
-              ... @skip(if: $level5) {
-                reviews(first: 1) @include(if: $level6) {
-                  nodes {
-                    id
-                    body
-                    stars
-                  }
-                }
-                id
-              }
-              id
-            }
-          }
-        }
-      }
+      query Op_123456789101112_13($level4: Boolean!, $level5: Boolean!, $level6: Boolean!, $__fusion_10_id: ID!) { reviewById(id: $__fusion_10_id) { stars product { id ... @include(if: $level4) { ... @skip(if: $level5) { reviews(first: 1) @include(if: $level6) { nodes { id body stars } } id } id } } } }
     source: $.reviewById
     target: $.searchContent<Product>.reviews.nodes.author.reviews.nodes
     batchingGroupId: 35
@@ -880,17 +602,7 @@ nodes:
     type: Operation
     schema: reviews
     operation: |
-      query Op_123456789101112_20($level4: Boolean!, $__fusion_17_id: ID!) {
-        reviewById(id: $__fusion_17_id) {
-          stars
-          product {
-            id
-            ... @include(if: $level4) {
-              id
-            }
-          }
-        }
-      }
+      query Op_123456789101112_20($level4: Boolean!, $__fusion_17_id: ID!) { reviewById(id: $__fusion_17_id) { stars product { id ... @include(if: $level4) { id } } } }
     source: $.reviewById
     target: $.products.edges.node.reviews.nodes.author.reviews.nodes
     batchingGroupId: 35
@@ -911,11 +623,7 @@ nodes:
     type: OperationBatch
     schema: products
     operation: |
-      query Op_123456789101112_7($__fusion_4_id: ID!) {
-        productById(id: $__fusion_4_id) {
-          name
-        }
-      }
+      query Op_123456789101112_7($__fusion_4_id: ID!) { productById(id: $__fusion_4_id) { name } }
     source: $.productById
     targets:
       - $.searchContent<Article>.author.reviews.nodes.product
@@ -934,11 +642,7 @@ nodes:
     type: Operation
     schema: products
     operation: |
-      query Op_123456789101112_15($__fusion_12_id: ID!) {
-        productById(id: $__fusion_12_id) {
-          price
-        }
-      }
+      query Op_123456789101112_15($__fusion_12_id: ID!) { productById(id: $__fusion_12_id) { price } }
     source: $.productById
     target: $.searchContent<Product>.reviews.nodes.author.reviews.nodes.product
     batchingGroupId: 36
@@ -955,14 +659,7 @@ nodes:
     type: Operation
     schema: products
     operation: |
-      query Op_123456789101112_16($__fusion_13_id: ID!) {
-        productById(id: $__fusion_13_id) {
-          dimension {
-            height
-            width
-          }
-        }
-      }
+      query Op_123456789101112_16($__fusion_13_id: ID!) { productById(id: $__fusion_13_id) { dimension { height width } } }
     source: $.productById
     target: $.searchContent<Product>.reviews.nodes.author.reviews.nodes.product
     batchingGroupId: 36
@@ -981,15 +678,7 @@ nodes:
     type: Operation
     schema: products
     operation: |
-      query Op_123456789101112_22($level5: Boolean!, $__fusion_19_id: ID!) {
-        productById(id: $__fusion_19_id) {
-          price
-          dimension @skip(if: $level5) {
-            height
-            width
-          }
-        }
-      }
+      query Op_123456789101112_22($level5: Boolean!, $__fusion_19_id: ID!) { productById(id: $__fusion_19_id) { price dimension @skip(if: $level5) { height width } } }
     source: $.productById
     target: $.products.edges.node.reviews.nodes.author.reviews.nodes.product
     batchingGroupId: 36

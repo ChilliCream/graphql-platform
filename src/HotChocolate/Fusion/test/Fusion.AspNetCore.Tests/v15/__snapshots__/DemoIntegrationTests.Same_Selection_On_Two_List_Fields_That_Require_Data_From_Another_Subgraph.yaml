@@ -275,29 +275,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_9ad18dbf_1 {
-          productsA {
-            id
-            name
-          }
-          productsB {
-            id
-            name
-          }
-        }
+        query Op_9ad18dbf_1 { productsA { id name } productsB { id name } }
     - id: 2
       type: OperationBatch
       schema: B
       operation: |
-        query Op_9ad18dbf_2($__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
-            __typename
-            ... on Product {
-              price
-              reviewCount
-            }
-          }
-        }
+        query Op_9ad18dbf_2($__fusion_1_id: ID!) { node(id: $__fusion_1_id) { __typename ... on Product { price reviewCount } } }
       source: $.node<Product>
       targets:
         - $.productsB

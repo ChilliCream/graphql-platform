@@ -139,20 +139,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_1146a07f_1 {
-          productById(id: "1") {
-            sku
-          }
-        }
+        query Op_1146a07f_1 { productById(id: "1") { sku } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query Op_1146a07f_2($__fusion_1_key: ProductKeyInput!) {
-          productByKey(key: $__fusion_1_key) {
-            fieldB
-          }
-        }
+        query Op_1146a07f_2($__fusion_1_key: ProductKeyInput!) { productByKey(key: $__fusion_1_key) { fieldB } }
       source: $.productByKey
       target: $.productById
       requirements:

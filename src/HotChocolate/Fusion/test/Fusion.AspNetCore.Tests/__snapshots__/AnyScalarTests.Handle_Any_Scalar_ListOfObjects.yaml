@@ -111,6 +111,4 @@ operationPlan:
       type: Operation
       schema: a
       operation: |
-        query Op_d853a8aa_1 {
-          listOfObjects
-        }
+        query Op_d853a8aa_1 { listOfObjects }

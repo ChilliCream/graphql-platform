@@ -385,29 +385,12 @@ operationPlan:
       type: Operation
       schema: ordering
       operation: |
-        query Op_f0af5115_1 {
-          orders {
-            __typename
-            ... on MultiOrderBase {
-              __typename
-              items {
-                product {
-                  id
-                }
-              }
-            }
-          }
-        }
+        query Op_f0af5115_1 { orders { __typename ... on MultiOrderBase { __typename items { product { id } } } } }
     - id: 2
       type: Operation
       schema: products
       operation: |
-        query Op_f0af5115_2($__fusion_1_id: ID!) {
-          productById(id: $__fusion_1_id) {
-            name
-            description
-          }
-        }
+        query Op_f0af5115_2($__fusion_1_id: ID!) { productById(id: $__fusion_1_id) { name description } }
       source: $.productById
       target: $.orders<MultiOrderBase>.items.product
       requirements:

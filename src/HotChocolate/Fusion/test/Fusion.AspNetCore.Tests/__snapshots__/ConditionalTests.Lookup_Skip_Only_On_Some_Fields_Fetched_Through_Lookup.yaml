@@ -133,24 +133,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_8a7e6c10_1 {
-          productBySlug(slug: "product") {
-            name
-            review {
-              id
-            }
-          }
-        }
+        query testQuery_8a7e6c10_1 { productBySlug(slug: "product") { name review { id } } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query testQuery_8a7e6c10_2($skip: Boolean!, $__fusion_1_id: ID!) {
-          reviewById(id: $__fusion_1_id) {
-            rating
-            title @skip(if: $skip)
-          }
-        }
+        query testQuery_8a7e6c10_2($skip: Boolean!, $__fusion_1_id: ID!) { reviewById(id: $__fusion_1_id) { rating title @skip(if: $skip) } }
       source: $.reviewById
       target: $.productBySlug.review
       requirements:

@@ -24,38 +24,12 @@ nodes:
     type: Operation
     schema: products
     operation: |
-      query Op_123456789101112_1 {
-        topProducts {
-          products {
-            id
-            category {
-              id
-              tag
-            }
-          }
-        }
-      }
+      query Op_123456789101112_1 { topProducts { products { id category { id tag } } } }
   - id: 2
     type: Operation
     schema: price
     operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_categoryId: ID!
-          $__fusion_1_categoryTag: String
-          $__fusion_1_id: ID!
-          $__fusion_1_pid: ID!
-      ) {
-        productByIdPidAndCategory(
-          id: $__fusion_1_id
-          pid: $__fusion_1_pid
-          categoryId: $__fusion_1_categoryId
-          categoryTag: $__fusion_1_categoryTag
-        ) {
-          price {
-            price
-          }
-        }
-      }
+      query Op_123456789101112_2($__fusion_1_categoryId: ID!, $__fusion_1_categoryTag: String, $__fusion_1_id: ID!, $__fusion_1_pid: ID!) { productByIdPidAndCategory(id: $__fusion_1_id, pid: $__fusion_1_pid, categoryId: $__fusion_1_categoryId, categoryTag: $__fusion_1_categoryTag) { price { price } } }
     source: $.productByIdPidAndCategory
     target: $.topProducts.products
     requirements:
@@ -78,11 +52,7 @@ nodes:
     type: Operation
     schema: link
     operation: |
-      query Op_123456789101112_3($__fusion_2_id: ID!) {
-        productById(id: $__fusion_2_id) {
-          pid
-        }
-      }
+      query Op_123456789101112_3($__fusion_2_id: ID!) { productById(id: $__fusion_2_id) { pid } }
     source: $.productById
     target: $.topProducts.products
     requirements:

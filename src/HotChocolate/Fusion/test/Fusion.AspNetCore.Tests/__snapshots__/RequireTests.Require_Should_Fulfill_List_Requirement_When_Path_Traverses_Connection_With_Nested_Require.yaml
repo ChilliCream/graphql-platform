@@ -305,11 +305,7 @@ operationPlan:
       type: Operation
       schema: cart
       operation: |
-        query Op_fc20cd27_2($__fusion_1_lines: [Float!], $__fusion_2_id: Int!) {
-          cartById(id: $__fusion_2_id) {
-            subtotal(lines: $__fusion_1_lines)
-          }
-        }
+        query Op_fc20cd27_2($__fusion_1_lines: [Float!], $__fusion_2_id: Int!) { cartById(id: $__fusion_2_id) { subtotal(lines: $__fusion_1_lines) } }
       source: $.cartById
       target: $.cart
       requirements:
@@ -327,17 +323,7 @@ operationPlan:
       type: Operation
       schema: cart
       operation: |
-        query Op_fc20cd27_3($__fusion_3_id: Int!) {
-          cartById(id: $__fusion_3_id) {
-            items(first: 50) {
-              nodes {
-                product {
-                  id
-                }
-              }
-            }
-          }
-        }
+        query Op_fc20cd27_3($__fusion_3_id: Int!) { cartById(id: $__fusion_3_id) { items(first: 50) { nodes { product { id } } } } }
       source: $.cartById
       target: $.cart
       requirements:
@@ -350,11 +336,7 @@ operationPlan:
       type: Operation
       schema: promotions
       operation: |
-        query Op_fc20cd27_5($__fusion_5_price: Float!, $__fusion_6_id: Int!) {
-          productById(id: $__fusion_6_id) {
-            discountedPrice(price: $__fusion_5_price)
-          }
-        }
+        query Op_fc20cd27_5($__fusion_5_price: Float!, $__fusion_6_id: Int!) { productById(id: $__fusion_6_id) { discountedPrice(price: $__fusion_5_price) } }
       source: $.productById
       target: $.cart.items.nodes.product
       requirements:
@@ -371,11 +353,7 @@ operationPlan:
       type: Operation
       schema: products
       operation: |
-        query Op_fc20cd27_6($__fusion_7_id: Int!) {
-          productById(id: $__fusion_7_id) {
-            price
-          }
-        }
+        query Op_fc20cd27_6($__fusion_7_id: Int!) { productById(id: $__fusion_7_id) { price } }
       source: $.productById
       target: $.cart.items.nodes.product
       requirements:
@@ -388,11 +366,7 @@ operationPlan:
       type: OperationBatch
       schema: cart
       operation: |
-        query Op_fc20cd27_7 {
-          cart {
-            id
-          }
-        }
+        query Op_fc20cd27_7 { cart { id } }
       targets:
         - $
         - $

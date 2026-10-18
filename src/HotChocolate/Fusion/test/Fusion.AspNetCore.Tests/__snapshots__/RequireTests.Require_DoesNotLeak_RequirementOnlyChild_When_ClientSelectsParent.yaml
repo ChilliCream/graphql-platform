@@ -353,26 +353,12 @@ operationPlan:
       type: Operation
       schema: a
       operation: |
-        query Op_f023728f_1 {
-          books {
-            nodes {
-              title
-              id
-            }
-          }
-        }
+        query Op_f023728f_1 { books { nodes { title id } } }
     - id: 2
       type: Operation
       schema: b
       operation: |
-        query Op_f023728f_2($__fusion_1_id: Int!) {
-          book(id: $__fusion_1_id) {
-            dimension {
-              width
-              height
-            }
-          }
-        }
+        query Op_f023728f_2($__fusion_1_id: Int!) { book(id: $__fusion_1_id) { dimension { width height } } }
       source: $.book
       target: $.books.nodes
       requirements:
@@ -385,14 +371,7 @@ operationPlan:
       type: Operation
       schema: c
       operation: |
-        query Op_f023728f_3(
-          $__fusion_2_id: Int!
-          $__fusion_3_dimension: BookDimensionInput!
-        ) {
-          book(id: $__fusion_2_id) {
-            estimatedDelivery(dimension: $__fusion_3_dimension)
-          }
-        }
+        query Op_f023728f_3($__fusion_2_id: Int!, $__fusion_3_dimension: BookDimensionInput!) { book(id: $__fusion_2_id) { estimatedDelivery(dimension: $__fusion_3_dimension) } }
       source: $.book
       target: $.books.nodes
       requirements:

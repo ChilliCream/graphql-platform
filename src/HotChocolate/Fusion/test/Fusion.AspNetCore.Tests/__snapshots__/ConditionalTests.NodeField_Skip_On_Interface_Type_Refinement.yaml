@@ -104,28 +104,14 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query testQuery_eaa5be75_2 {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
-          }
-        }
+        query testQuery_eaa5be75_2 { node(id: "RGlzY3Vzc2lvbjox") { __typename } }
       dependencies:
         - id: 1
     - id: 3
       type: Operation
       schema: A
       operation: |
-        query testQuery_eaa5be75_3($skip: Boolean!) {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
-            ... on Discussion {
-              __typename
-              ... @skip(if: $skip) {
-                viewerCanVote
-              }
-            }
-          }
-        }
+        query testQuery_eaa5be75_3($skip: Boolean!) { node(id: "RGlzY3Vzc2lvbjox") { __typename ... on Discussion { __typename ... @skip(if: $skip) { viewerCanVote } } } }
       forwardedVariables:
         - skip
       dependencies:
@@ -134,17 +120,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_eaa5be75_4($skip: Boolean!) {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
-            ... on Author {
-              __typename
-              ... @skip(if: $skip) {
-                viewerCanVote
-              }
-            }
-          }
-        }
+        query testQuery_eaa5be75_4($skip: Boolean!) { node(id: "RGlzY3Vzc2lvbjox") { __typename ... on Author { __typename ... @skip(if: $skip) { viewerCanVote } } } }
       forwardedVariables:
         - skip
       dependencies:

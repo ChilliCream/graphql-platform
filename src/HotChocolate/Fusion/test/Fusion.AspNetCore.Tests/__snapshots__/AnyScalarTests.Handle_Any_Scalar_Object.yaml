@@ -89,6 +89,4 @@ operationPlan:
       type: Operation
       schema: a
       operation: |
-        query Op_59cc776c_1 {
-          object
-        }
+        query Op_59cc776c_1 { object }

@@ -19,14 +19,4 @@ nodes:
     type: Operation
     schema: A
     operation: |
-      query Op_123456789101112_1 {
-        featured {
-          __typename
-          ... on Product {
-            name
-          }
-          ... on Review {
-            rating
-          }
-        }
-      }
+      query Op_123456789101112_1 { featured { __typename ... on Product { name } ... on Review { rating } } }

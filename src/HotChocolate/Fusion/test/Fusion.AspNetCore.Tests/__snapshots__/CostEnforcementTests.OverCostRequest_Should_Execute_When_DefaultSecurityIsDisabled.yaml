@@ -73,8 +73,4 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query OverCost_25cbf6b5_1 {
-          expensive {
-            value
-          }
-        }
+        query OverCost_25cbf6b5_1 { expensive { value } }

@@ -65,48 +65,12 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query findMe_123456789101112_1 {
-        users {
-          nodes {
-            id
-            birthdate
-          }
-        }
-      }
+      query findMe_123456789101112_1 { users { nodes { id birthdate } } }
   - id: 2
     type: Operation
     schema: f
     operation: |
-      query findMe_123456789101112_2($__fusion_1_id: ID!) {
-        userById(id: $__fusion_1_id) {
-          reviews {
-            nodes {
-              author {
-                id
-                name
-              }
-              product {
-                id
-                reviews {
-                  nodes {
-                    author {
-                      reviews {
-                        nodes {
-                          stars
-                          product {
-                            id
-                          }
-                        }
-                      }
-                      id
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+      query findMe_123456789101112_2($__fusion_1_id: ID!) { userById(id: $__fusion_1_id) { reviews { nodes { author { id name } product { id reviews { nodes { author { reviews { nodes { stars product { id } } } id } } } } } } } }
     source: $.userById
     target: $.users.nodes
     requirements:
@@ -119,14 +83,7 @@ nodes:
     type: Operation
     schema: g
     operation: |
-      query findMe_123456789101112_5(
-        $__fusion_4_id: ID!
-        $__fusion_5_dimension: ProductDimensionInput!
-      ) {
-        productById(id: $__fusion_4_id) {
-          deliveryEstimate(zip: "4383", dimension: $__fusion_5_dimension)
-        }
-      }
+      query findMe_123456789101112_5($__fusion_4_id: ID!, $__fusion_5_dimension: ProductDimensionInput!) { productById(id: $__fusion_4_id) { deliveryEstimate(zip: "4383", dimension: $__fusion_5_dimension) } }
     source: $.productById
     target: $.users.nodes.reviews.nodes.product
     requirements:
@@ -148,11 +105,7 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query findMe_123456789101112_6($__fusion_6_id: ID!) {
-        userById(id: $__fusion_6_id) {
-          birthdate
-        }
-      }
+      query findMe_123456789101112_6($__fusion_6_id: ID!) { userById(id: $__fusion_6_id) { birthdate } }
     source: $.userById
     target: $.users.nodes.reviews.nodes.product.reviews.nodes.author
     requirements:
@@ -165,11 +118,7 @@ nodes:
     type: Operation
     schema: e
     operation: |
-      query findMe_123456789101112_9($__fusion_9_id: ID!) {
-        productById(id: $__fusion_9_id) {
-          name
-        }
-      }
+      query findMe_123456789101112_9($__fusion_9_id: ID!) { productById(id: $__fusion_9_id) { name } }
     source: $.productById
     target: $.users.nodes.reviews.nodes.product.reviews.nodes.author.reviews.nodes.product.item.product
     requirements:
@@ -182,18 +131,7 @@ nodes:
     type: Operation
     schema: e
     operation: |
-      query findMe_123456789101112_3($__fusion_2_id: ID!) {
-        productById(id: $__fusion_2_id) {
-          weight
-          pictureFileName
-          price
-          dimension {
-            length
-            width
-            height
-          }
-        }
-      }
+      query findMe_123456789101112_3($__fusion_2_id: ID!) { productById(id: $__fusion_2_id) { weight pictureFileName price dimension { length width height } } }
     source: $.productById
     target: $.users.nodes.reviews.nodes.product
     batchingGroupId: 10
@@ -207,11 +145,7 @@ nodes:
     type: Operation
     schema: e
     operation: |
-      query findMe_123456789101112_8($__fusion_8_id: ID!) {
-        productById(id: $__fusion_8_id) {
-          weight
-        }
-      }
+      query findMe_123456789101112_8($__fusion_8_id: ID!) { productById(id: $__fusion_8_id) { weight } }
     source: $.productById
     target: $.users.nodes.reviews.nodes.product.reviews.nodes.author.reviews.nodes.product
     batchingGroupId: 10
@@ -225,11 +159,7 @@ nodes:
     type: Operation
     schema: b
     operation: |
-      query findMe_123456789101112_4($__fusion_3_id: ID!) {
-        productByIdAsync(id: $__fusion_3_id) {
-          quantity
-        }
-      }
+      query findMe_123456789101112_4($__fusion_3_id: ID!) { productByIdAsync(id: $__fusion_3_id) { quantity } }
     source: $.productByIdAsync
     target: $.users.nodes.reviews.nodes.product
     batchingGroupId: 11
@@ -246,16 +176,7 @@ nodes:
     type: Operation
     schema: b
     operation: |
-      query findMe_123456789101112_7($__fusion_7_id: ID!) {
-        productByIdAsync(id: $__fusion_7_id) {
-          item {
-            quantity
-            product {
-              id
-            }
-          }
-        }
-      }
+      query findMe_123456789101112_7($__fusion_7_id: ID!) { productByIdAsync(id: $__fusion_7_id) { item { quantity product { id } } } }
     source: $.productByIdAsync
     target: $.users.nodes.reviews.nodes.product.reviews.nodes.author.reviews.nodes.product
     batchingGroupId: 11

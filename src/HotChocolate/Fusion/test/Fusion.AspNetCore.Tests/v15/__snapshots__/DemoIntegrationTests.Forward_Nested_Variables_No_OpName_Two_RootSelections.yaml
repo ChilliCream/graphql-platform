@@ -185,16 +185,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query Op_5090b8e6_1($id: ID!, $first: Int!) {
-          a: productById(id: $id) {
-            id
-            repeat(num: $first)
-          }
-          b: productById(id: $id) {
-            id
-            repeat(num: $first)
-          }
-        }
+        query Op_5090b8e6_1($id: ID!, $first: Int!) { a: productById(id: $id) { id repeat(num: $first) } b: productById(id: $id) { id repeat(num: $first) } }
       forwardedVariables:
         - id
         - first

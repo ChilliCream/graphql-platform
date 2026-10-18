@@ -100,21 +100,13 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query Op_72167d7d_2 {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
-          }
-        }
+        query Op_72167d7d_2 { node(id: "RGlzY3Vzc2lvbjox") { __typename } }
       dependencies:
         - id: 1
     - id: 3
       type: Operation
       schema: A
       operation: |
-        query Op_72167d7d_3 {
-          node: discussionById(discussionId: "RGlzY3Vzc2lvbjox") {
-            __typename
-          }
-        }
+        query Op_72167d7d_3 { node: discussionById(discussionId: "RGlzY3Vzc2lvbjox") { __typename } }
       dependencies:
         - id: 1

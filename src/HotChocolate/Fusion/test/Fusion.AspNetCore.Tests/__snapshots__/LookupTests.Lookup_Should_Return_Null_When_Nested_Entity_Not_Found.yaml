@@ -124,22 +124,12 @@ operationPlan:
       type: Operation
       schema: a
       operation: |
-        query Op_12ec73ed_1 {
-          resources {
-            displayImage {
-              originId
-            }
-          }
-        }
+        query Op_12ec73ed_1 { resources { displayImage { originId } } }
     - id: 2
       type: Operation
       schema: b
       operation: |
-        query Op_12ec73ed_2($__fusion_1_originId: Int!) {
-          fileByOriginId(originId: $__fusion_1_originId) {
-            id
-          }
-        }
+        query Op_12ec73ed_2($__fusion_1_originId: Int!) { fileByOriginId(originId: $__fusion_1_originId) { id } }
       source: $.fileByOriginId
       target: $.resources.displayImage
       requirements:

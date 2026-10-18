@@ -19,24 +19,12 @@ nodes:
     type: Operation
     schema: products
     operation: |
-      query Op_123456789101112_1 {
-        products {
-          upc
-        }
-      }
+      query Op_123456789101112_1 { products { upc } }
   - id: 2
     type: Operation
     schema: reviews
     operation: |
-      query Op_123456789101112_2($__fusion_1_upc: String!) {
-        productByUpc(upc: $__fusion_1_upc) {
-          reviews {
-            author {
-              id
-            }
-          }
-        }
-      }
+      query Op_123456789101112_2($__fusion_1_upc: String!) { productByUpc(upc: $__fusion_1_upc) { reviews { author { id } } } }
     source: $.productByUpc
     target: $.products
     requirements:
@@ -49,11 +37,7 @@ nodes:
     type: Operation
     schema: users
     operation: |
-      query Op_123456789101112_3($__fusion_2_id: ID!) {
-        userById(id: $__fusion_2_id) {
-          email
-        }
-      }
+      query Op_123456789101112_3($__fusion_2_id: ID!) { userById(id: $__fusion_2_id) { email } }
     source: $.userById
     target: $.products.reviews.author
     requirements:

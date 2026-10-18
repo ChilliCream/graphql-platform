@@ -135,14 +135,4 @@ operationPlan:
       type: Operation
       schema: a
       operation: |
-        query Op_2f5727f4_1 {
-          root {
-            level1 {
-              level2 {
-                level3 {
-                  value
-                }
-              }
-            }
-          }
-        }
+        query Op_2f5727f4_1 { root { level1 { level2 { level3 { value } } } } }

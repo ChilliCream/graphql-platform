@@ -263,11 +263,7 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query GetProduct_a287508a_2($id: ID!) {
-          node(id: $id) {
-            __typename
-          }
-        }
+        query GetProduct_a287508a_2($id: ID!) { node(id: $id) { __typename } }
       forwardedVariables:
         - id
       dependencies:
@@ -276,18 +272,7 @@ operationPlan:
       type: Operation
       schema: PRODUCTS
       operation: |
-        query GetProduct_a287508a_3($id: ID!, $include: Boolean!) {
-          node(id: $id) {
-            __typename
-            ... on Product {
-              __typename
-              ... @include(if: $include) {
-                productId
-                reviewAudience
-              }
-            }
-          }
-        }
+        query GetProduct_a287508a_3($id: ID!, $include: Boolean!) { node(id: $id) { __typename ... on Product { __typename ... @include(if: $include) { productId reviewAudience } } } }
       forwardedVariables:
         - id
         - include
@@ -297,15 +282,7 @@ operationPlan:
       type: Operation
       schema: REVIEWS
       operation: |
-        query GetProduct_a287508a_5($__fusion_2_audience: String!, $__fusion_3_id: Int!) {
-          productById(id: $__fusion_3_id) {
-            reviews(audience: $__fusion_2_audience) {
-              author {
-                userId
-              }
-            }
-          }
-        }
+        query GetProduct_a287508a_5($__fusion_2_audience: String!, $__fusion_3_id: Int!) { productById(id: $__fusion_3_id) { reviews(audience: $__fusion_2_audience) { author { userId } } } }
       source: $.productById
       target: $.node<Product>
       requirements:
@@ -321,11 +298,7 @@ operationPlan:
       type: Operation
       schema: USERS
       operation: |
-        query GetProduct_a287508a_6($__fusion_4_id: ID!) {
-          userById(id: $__fusion_4_id) {
-            name
-          }
-        }
+        query GetProduct_a287508a_6($__fusion_4_id: ID!) { userById(id: $__fusion_4_id) { name } }
       source: $.userById
       target: $.node<Product>.reviews.author
       requirements:

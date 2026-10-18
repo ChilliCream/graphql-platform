@@ -206,24 +206,12 @@ operationPlan:
       type: Operation
       schema: a
       operation: |
-        query Op_fb4f667e_1 {
-          books {
-            author {
-              id
-            }
-          }
-        }
+        query Op_fb4f667e_1 { books { author { id } } }
     - id: 2
       type: Operation
       schema: b
       operation: |
-        query Op_fb4f667e_2($__fusion_1_by: AuthorByInput!) {
-          lookups {
-            author(by: $__fusion_1_by) {
-              name
-            }
-          }
-        }
+        query Op_fb4f667e_2($__fusion_1_by: AuthorByInput!) { lookups { author(by: $__fusion_1_by) { name } } }
       source: $.lookups.author
       target: $.books.author
       requirements:

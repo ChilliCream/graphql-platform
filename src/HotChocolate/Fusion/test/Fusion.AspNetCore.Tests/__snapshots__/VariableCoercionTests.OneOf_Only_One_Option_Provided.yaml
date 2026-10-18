@@ -80,8 +80,6 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_6ad33e0e_1($pet: Pet!) {
-          petName(input: $pet)
-        }
+        query testQuery_6ad33e0e_1($pet: Pet!) { petName(input: $pet) }
       forwardedVariables:
         - pet

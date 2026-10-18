@@ -26,22 +26,12 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_1 {
-        products {
-          __typename
-          id
-          sku
-        }
-      }
+      query Op_123456789101112_1 { products { __typename id sku } }
   - id: 4
     type: Operation
     schema: books
     operation: |
-      query Op_123456789101112_4($__fusion_3_id: ID!) {
-        bookById(id: $__fusion_3_id) {
-          title
-        }
-      }
+      query Op_123456789101112_4($__fusion_3_id: ID!) { bookById(id: $__fusion_3_id) { title } }
     source: $.bookById
     target: $.products<Book><Book>
     requirements:
@@ -57,13 +47,7 @@ nodes:
     type: Operation
     schema: r
     operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!) {
-        magazineById(id: $__fusion_1_id) {
-          reviews {
-            id
-          }
-        }
-      }
+      query Op_123456789101112_2($__fusion_1_id: ID!) { magazineById(id: $__fusion_1_id) { reviews { id } } }
     source: $.magazineById
     target: $.products<Magazine>
     batchingGroupId: 5
@@ -77,16 +61,7 @@ nodes:
     type: Operation
     schema: r
     operation: |
-      query Op_123456789101112_3($__fusion_2_id: ID!) {
-        bookById(id: $__fusion_2_id) {
-          reviews {
-            id
-          }
-          ... on Book {
-            id
-          }
-        }
-      }
+      query Op_123456789101112_3($__fusion_2_id: ID!) { bookById(id: $__fusion_2_id) { reviews { id } ... on Book { id } } }
     source: $.bookById
     target: $.products<Book>
     batchingGroupId: 5

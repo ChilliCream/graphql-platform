@@ -93,6 +93,4 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_5fcd7a62_1 {
-          someField
-        }
+        query Op_5fcd7a62_1 { someField }

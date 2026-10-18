@@ -88,6 +88,4 @@ operationPlan:
       type: Operation
       schema: b
       operation: |
-        query Op_8f2de74d_1 {
-          shareable(input: { a: "Hello" })
-        }
+        query Op_8f2de74d_1 { shareable(input: { a: "Hello" }) }

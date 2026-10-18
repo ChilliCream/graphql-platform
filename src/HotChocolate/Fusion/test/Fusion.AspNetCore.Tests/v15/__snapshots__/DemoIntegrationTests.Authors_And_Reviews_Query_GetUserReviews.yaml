@@ -445,29 +445,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query GetUser_6e80578a_1 {
-          users {
-            name
-            id
-          }
-        }
+        query GetUser_6e80578a_1 { users { name id } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query GetUser_6e80578a_2($__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
-            __typename
-            ... on User {
-              reviews {
-                body
-                author {
-                  id
-                }
-              }
-            }
-          }
-        }
+        query GetUser_6e80578a_2($__fusion_1_id: ID!) { node(id: $__fusion_1_id) { __typename ... on User { reviews { body author { id } } } } }
       source: $.node<User>
       target: $.users
       requirements:
@@ -480,14 +463,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query GetUser_6e80578a_3($__fusion_2_id: ID!) {
-          node(id: $__fusion_2_id) {
-            __typename
-            ... on User {
-              name
-            }
-          }
-        }
+        query GetUser_6e80578a_3($__fusion_2_id: ID!) { node(id: $__fusion_2_id) { __typename ... on User { name } } }
       source: $.node<User>
       target: $.users.reviews.author
       requirements:

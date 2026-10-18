@@ -259,11 +259,7 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query GetProduct_5ff3a789_2($id: ID!) {
-          node(id: $id) {
-            __typename
-          }
-        }
+        query GetProduct_5ff3a789_2($id: ID!) { node(id: $id) { __typename } }
       forwardedVariables:
         - id
       dependencies:
@@ -272,16 +268,7 @@ operationPlan:
       type: Operation
       schema: PRODUCTS
       operation: |
-        query GetProduct_5ff3a789_3($id: ID!) {
-          node(id: $id) {
-            __typename
-            ... on Product {
-              __typename
-              productId
-              reviewAudience
-            }
-          }
-        }
+        query GetProduct_5ff3a789_3($id: ID!) { node(id: $id) { __typename ... on Product { __typename productId reviewAudience } } }
       forwardedVariables:
         - id
       dependencies:
@@ -290,15 +277,7 @@ operationPlan:
       type: Operation
       schema: REVIEWS
       operation: |
-        query GetProduct_5ff3a789_5($__fusion_2_audience: String!, $__fusion_3_id: Int!) {
-          productById(id: $__fusion_3_id) {
-            reviews(audience: $__fusion_2_audience) {
-              author {
-                userId
-              }
-            }
-          }
-        }
+        query GetProduct_5ff3a789_5($__fusion_2_audience: String!, $__fusion_3_id: Int!) { productById(id: $__fusion_3_id) { reviews(audience: $__fusion_2_audience) { author { userId } } } }
       source: $.productById
       target: $.node<Product>
       requirements:
@@ -314,11 +293,7 @@ operationPlan:
       type: Operation
       schema: USERS
       operation: |
-        query GetProduct_5ff3a789_6($__fusion_4_id: ID!) {
-          userById(id: $__fusion_4_id) {
-            name
-          }
-        }
+        query GetProduct_5ff3a789_6($__fusion_4_id: ID!) { userById(id: $__fusion_4_id) { name } }
       source: $.userById
       target: $.node<Product>.reviews.author
       requirements:

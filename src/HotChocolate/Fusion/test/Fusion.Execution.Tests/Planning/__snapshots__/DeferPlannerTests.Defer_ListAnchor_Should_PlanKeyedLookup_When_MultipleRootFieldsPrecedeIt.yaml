@@ -26,30 +26,14 @@ nodes:
     type: Operation
     schema: products
     operation: |
-      query t_123456789101112_1($productId: ID!) {
-        products {
-          nodes {
-            id
-            name
-          }
-        }
-        productById(id: $productId) {
-          id
-        }
-      }
+      query t_123456789101112_1($productId: ID!) { products { nodes { id name } } productById(id: $productId) { id } }
     forwardedVariables:
       - productId
   - id: 2
     type: Operation
     schema: users
     operation: |
-      query t_123456789101112_2 {
-        users {
-          nodes {
-            id
-          }
-        }
-      }
+      query t_123456789101112_2 { users { nodes { id } } }
 deliveryGroups:
   - id: 0
     path: $.users.nodes
@@ -66,12 +50,7 @@ incrementalPlans:
         type: Operation
         schema: users
         operation: |
-          query t_defer_1($__fusion_1_id: ID!) {
-            userById(id: $__fusion_1_id) {
-              id
-              name
-            }
-          }
+          query t_defer_1($__fusion_1_id: ID!) { userById(id: $__fusion_1_id) { id name } }
         source: $.userById
         target: $.users.nodes
         requirements:

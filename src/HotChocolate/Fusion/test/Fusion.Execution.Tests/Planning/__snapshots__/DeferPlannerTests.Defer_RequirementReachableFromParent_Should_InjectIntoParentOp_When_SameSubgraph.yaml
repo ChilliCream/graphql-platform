@@ -14,12 +14,7 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_1 {
-        user(id: "1") {
-          name
-          id
-        }
-      }
+      query Op_123456789101112_1 { user(id: "1") { name id } }
 deliveryGroups:
   - id: 0
     path: $.user
@@ -36,11 +31,7 @@ incrementalPlans:
         type: Operation
         schema: b
         operation: |
-          query Op_defer_1($__fusion_1_id: ID!) {
-            userById(id: $__fusion_1_id) {
-              email
-            }
-          }
+          query Op_defer_1($__fusion_1_id: ID!) { userById(id: $__fusion_1_id) { email } }
         source: $.userById
         target: $.user
         requirements:

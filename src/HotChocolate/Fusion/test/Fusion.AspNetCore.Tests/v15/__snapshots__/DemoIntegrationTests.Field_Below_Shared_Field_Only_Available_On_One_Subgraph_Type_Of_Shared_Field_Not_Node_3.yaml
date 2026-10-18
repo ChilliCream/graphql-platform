@@ -206,29 +206,14 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_b7bd95cc_1($productId: ID!) {
-          productById(id: $productId) {
-            subgraph1Only {
-              subgraph1Only
-              sharedLinked {
-                sharedScalar
-                subgraph1Only
-              }
-              id
-            }
-          }
-        }
+        query Op_b7bd95cc_1($productId: ID!) { productById(id: $productId) { subgraph1Only { subgraph1Only sharedLinked { sharedScalar subgraph1Only } id } } }
       forwardedVariables:
         - productId
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query Op_b7bd95cc_2($__fusion_1_id: ID!) {
-          productAvailabilityById(id: $__fusion_1_id) {
-            subgraph2Only
-          }
-        }
+        query Op_b7bd95cc_2($__fusion_1_id: ID!) { productAvailabilityById(id: $__fusion_1_id) { subgraph2Only } }
       source: $.productAvailabilityById
       target: $.productById.subgraph1Only
       batchingGroupId: 4
@@ -242,16 +227,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_b7bd95cc_3($__fusion_2_id: ID!) {
-          node(id: $__fusion_2_id) {
-            __typename
-            ... on ProductAvailability {
-              sharedLinked {
-                subgraph2Only
-              }
-            }
-          }
-        }
+        query Op_b7bd95cc_3($__fusion_2_id: ID!) { node(id: $__fusion_2_id) { __typename ... on ProductAvailability { sharedLinked { subgraph2Only } } } }
       source: $.node<ProductAvailability>
       target: $.productById.subgraph1Only
       batchingGroupId: 4

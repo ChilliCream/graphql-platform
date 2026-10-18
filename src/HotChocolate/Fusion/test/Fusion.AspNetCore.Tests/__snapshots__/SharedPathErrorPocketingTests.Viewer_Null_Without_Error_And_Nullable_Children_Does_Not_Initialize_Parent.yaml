@@ -97,17 +97,9 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_12d223a8_1 {
-          viewer {
-            a
-          }
-        }
+        query Op_12d223a8_1 { viewer { a } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query Op_12d223a8_2 {
-          viewer {
-            b
-          }
-        }
+        query Op_12d223a8_2 { viewer { b } }

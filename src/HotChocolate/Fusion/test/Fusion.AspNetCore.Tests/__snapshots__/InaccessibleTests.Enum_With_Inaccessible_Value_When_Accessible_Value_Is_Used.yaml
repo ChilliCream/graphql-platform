@@ -88,6 +88,4 @@ operationPlan:
       type: Operation
       schema: b
       operation: |
-        query Op_4d7bd59e_1 {
-          enumField(value: ITEM2)
-        }
+        query Op_4d7bd59e_1 { enumField(value: ITEM2) }

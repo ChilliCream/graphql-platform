@@ -131,23 +131,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_d44063d8_1 {
-          authorable {
-            __typename
-            author {
-              id
-            }
-          }
-        }
+        query testQuery_d44063d8_1 { authorable { __typename author { id } } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query testQuery_d44063d8_2($__fusion_1_id: ID!) {
-          authorById(id: $__fusion_1_id) {
-            displayName
-          }
-        }
+        query testQuery_d44063d8_2($__fusion_1_id: ID!) { authorById(id: $__fusion_1_id) { displayName } }
       source: $.authorById
       target: $.authorable.author
       requirements:

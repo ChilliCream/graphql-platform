@@ -725,33 +725,12 @@ public sealed class SupertypeNarrowingPlanningTests : FusionTestBase
                 type: Operation
                 schema: A
                 operation: |
-                  query Op_123456789101112_1 {
-                    products {
-                      __typename
-                      ... {
-                        ... on Oven {
-                          ... on Oven {
-                            __typename
-                            id
-                          }
-                        }
-                        ... on Toaster {
-                          ... on Toaster {
-                            warranty
-                          }
-                        }
-                      }
-                    }
-                  }
+                  query Op_123456789101112_1 { products { __typename ... { ... on Oven { ... on Oven { __typename id } } ... on Toaster { ... on Toaster { warranty } } } } }
               - id: 2
                 type: Operation
                 schema: B
                 operation: |
-                  query Op_123456789101112_2($__fusion_1_id: ID!) {
-                    ovenById(id: $__fusion_1_id) {
-                      warranty
-                    }
-                  }
+                  query Op_123456789101112_2($__fusion_1_id: ID!) { ovenById(id: $__fusion_1_id) { warranty } }
                 source: $.ovenById
                 target: $.products<Node><Oven><WithWarranty><Oven>
                 requirements:

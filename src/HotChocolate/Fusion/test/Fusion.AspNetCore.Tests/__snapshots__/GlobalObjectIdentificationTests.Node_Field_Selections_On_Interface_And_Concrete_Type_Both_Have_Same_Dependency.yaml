@@ -193,12 +193,7 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query testQuery_648537b2_2($id: ID!) {
-          node(id: $id) {
-            __typename
-            id
-          }
-        }
+        query testQuery_648537b2_2($id: ID!) { node(id: $id) { __typename id } }
       forwardedVariables:
         - id
       dependencies:
@@ -207,18 +202,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_648537b2_3($id: ID!) {
-          node(id: $id) {
-            __typename
-            ... on Discussion {
-              __typename
-              id
-              author {
-                id
-              }
-            }
-          }
-        }
+        query testQuery_648537b2_3($id: ID!) { node(id: $id) { __typename ... on Discussion { __typename id author { id } } } }
       forwardedVariables:
         - id
       dependencies:
@@ -227,11 +211,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_648537b2_4($__fusion_1_id: ID!) {
-          authorById(id: $__fusion_1_id) {
-            rating
-          }
-        }
+        query testQuery_648537b2_4($__fusion_1_id: ID!) { authorById(id: $__fusion_1_id) { rating } }
       source: $.authorById
       target: $.node<Discussion>.author
       requirements:
@@ -244,11 +224,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_648537b2_5($__fusion_2_id: ID!) {
-          authorById(id: $__fusion_2_id) {
-            username
-          }
-        }
+        query testQuery_648537b2_5($__fusion_2_id: ID!) { authorById(id: $__fusion_2_id) { username } }
       source: $.authorById
       target: $.node<Discussion>.author
       requirements:

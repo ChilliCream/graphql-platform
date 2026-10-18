@@ -178,24 +178,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_94874bbd_1 {
-          authorById(id: 1) {
-            name
-            id
-          }
-        }
+        query Op_94874bbd_1 { authorById(id: 1) { name id } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query Op_94874bbd_2($__fusion_1_id: Int!) {
-          otherInterface(id: $__fusion_1_id) {
-            __typename
-            ... on Author {
-              age
-            }
-          }
-        }
+        query Op_94874bbd_2($__fusion_1_id: Int!) { otherInterface(id: $__fusion_1_id) { __typename ... on Author { age } } }
       source: $.otherInterface<Author>
       target: $.authorById
       requirements:

@@ -126,22 +126,11 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        mutation Op_f2f24951_1 {
-          doSomething {
-            something
-            viewer {
-              subgraphA
-            }
-          }
-        }
+        mutation Op_f2f24951_1 { doSomething { something viewer { subgraphA } } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query Op_f2f24951_2 {
-          viewer {
-            subgraphB
-          }
-        }
+        query Op_f2f24951_2 { viewer { subgraphB } }
       source: $.viewer
       target: $.doSomething.viewer

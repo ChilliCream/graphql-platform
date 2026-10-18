@@ -16,20 +16,9 @@ nodes:
     type: Operation
     schema: A
     operation: |
-      query Op_123456789101112_1 {
-        featured {
-          __typename
-        }
-      }
+      query Op_123456789101112_1 { featured { __typename } }
   - id: 2
     type: Operation
     schema: B
     operation: |
-      query Op_123456789101112_2 {
-        featured {
-          __typename
-          ... on Product {
-            name
-          }
-        }
-      }
+      query Op_123456789101112_2 { featured { __typename ... on Product { name } } }

@@ -219,28 +219,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_8c4ceb7d_1 {
-          wrappers {
-            votable {
-              __typename
-              viewerCanVote
-              ... on Discussion {
-                author {
-                  id
-                }
-              }
-            }
-          }
-        }
+        query testQuery_8c4ceb7d_1 { wrappers { votable { __typename viewerCanVote ... on Discussion { author { id } } } } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query testQuery_8c4ceb7d_2($__fusion_1_id: ID!) {
-          authorById(id: $__fusion_1_id) {
-            displayName
-          }
-        }
+        query testQuery_8c4ceb7d_2($__fusion_1_id: ID!) { authorById(id: $__fusion_1_id) { displayName } }
       source: $.authorById
       target: $.wrappers.votable<Discussion>.author
       requirements:

@@ -201,43 +201,21 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query Op_474fbd54_2 {
-          node(id: "T3JkZXIxOjE=") {
-            __typename
-          }
-        }
+        query Op_474fbd54_2 { node(id: "T3JkZXIxOjE=") { __typename } }
       dependencies:
         - id: 1
     - id: 3
       type: Operation
       schema: A
       operation: |
-        query Op_474fbd54_3 {
-          node(id: "T3JkZXIxOjE=") {
-            __typename
-            ... on Order2 {
-              __typename
-              name
-              product {
-                id
-              }
-            }
-          }
-        }
+        query Op_474fbd54_3 { node(id: "T3JkZXIxOjE=") { __typename ... on Order2 { __typename name product { id } } } }
       dependencies:
         - id: 1
     - id: 4
       type: Operation
       schema: B
       operation: |
-        query Op_474fbd54_4($__fusion_1_id: ID!) {
-          productById(id: $__fusion_1_id) {
-            name
-            comments {
-              content
-            }
-          }
-        }
+        query Op_474fbd54_4($__fusion_1_id: ID!) { productById(id: $__fusion_1_id) { name comments { content } } }
       source: $.productById
       target: $.node<Order2>.product
       requirements:
@@ -250,32 +228,14 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_474fbd54_5 {
-          node(id: "T3JkZXIxOjE=") {
-            __typename
-            ... on Order1 {
-              __typename
-              name
-              product {
-                id
-              }
-            }
-          }
-        }
+        query Op_474fbd54_5 { node(id: "T3JkZXIxOjE=") { __typename ... on Order1 { __typename name product { id } } } }
       dependencies:
         - id: 1
     - id: 6
       type: Operation
       schema: B
       operation: |
-        query Op_474fbd54_6($__fusion_2_id: ID!) {
-          productById(id: $__fusion_2_id) {
-            name
-            comments {
-              content
-            }
-          }
-        }
+        query Op_474fbd54_6($__fusion_2_id: ID!) { productById(id: $__fusion_2_id) { name comments { content } } }
       source: $.productById
       target: $.node<Order1>.product
       requirements:

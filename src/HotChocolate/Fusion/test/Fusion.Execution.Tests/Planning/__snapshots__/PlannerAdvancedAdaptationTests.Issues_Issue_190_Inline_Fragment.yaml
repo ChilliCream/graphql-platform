@@ -19,17 +19,7 @@ nodes:
     type: Operation
     schema: recommender
     operation: |
-      query Op_123456789101112_1 {
-        recommender {
-          id
-          results {
-            __typename
-            ... on Product {
-              id
-            }
-          }
-        }
-      }
+      query Op_123456789101112_1 { recommender { id results { __typename ... on Product { id } } } }
     conditions:
       - variable: $included
         passingValue: true

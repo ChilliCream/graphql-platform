@@ -19,20 +19,12 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_1 {
-        feed {
-          id
-        }
-      }
+      query Op_123456789101112_1 { feed { id } }
   - id: 2
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_2($__fusion_1_byNovice: Boolean!, $__fusion_2_id: ID!) {
-        postById(id: $__fusion_2_id) {
-          byExpert(byNovice: $__fusion_1_byNovice)
-        }
-      }
+      query Op_123456789101112_2($__fusion_1_byNovice: Boolean!, $__fusion_2_id: ID!) { postById(id: $__fusion_2_id) { byExpert(byNovice: $__fusion_1_byNovice) } }
     source: $.postById
     target: $.feed
     requirements:
@@ -49,14 +41,7 @@ nodes:
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_4(
-        $__fusion_4_yearsOfExperience: Int!
-        $__fusion_5_id: ID!
-      ) {
-        postById(id: $__fusion_5_id) {
-          byNovice(yearsOfExperience: $__fusion_4_yearsOfExperience)
-        }
-      }
+      query Op_123456789101112_4($__fusion_4_yearsOfExperience: Int!, $__fusion_5_id: ID!) { postById(id: $__fusion_5_id) { byNovice(yearsOfExperience: $__fusion_4_yearsOfExperience) } }
     source: $.postById
     target: $.feed
     requirements:
@@ -73,11 +58,7 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_5($__fusion_6_id: ID!) {
-        authorById(id: $__fusion_6_id) {
-          yearsOfExperience
-        }
-      }
+      query Op_123456789101112_5($__fusion_6_id: ID!) { authorById(id: $__fusion_6_id) { yearsOfExperience } }
     source: $.authorById
     target: $.feed.author
     requirements:
@@ -90,13 +71,7 @@ nodes:
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_6($__fusion_7_id: ID!) {
-        postById(id: $__fusion_7_id) {
-          author {
-            id
-          }
-        }
-      }
+      query Op_123456789101112_6($__fusion_7_id: ID!) { postById(id: $__fusion_7_id) { author { id } } }
     source: $.postById
     target: $.feed
     requirements:

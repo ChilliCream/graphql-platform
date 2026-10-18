@@ -345,18 +345,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_63ddfa41_1 {
-          users {
-            __typename
-            nodes {
-              reviews {
-                product {
-                  name
-                }
-              }
-            }
-          }
-        }
+        query Op_63ddfa41_1 { users { __typename nodes { reviews { product { name } } } } }
   deliveryGroups:
     - id: 0
       path: $.users.nodes.reviews.product
@@ -370,17 +359,4 @@ operationPlan:
           type: Operation
           schema: A
           operation: |
-            query Op_defer_1 {
-              users {
-                __typename
-                nodes {
-                  reviews {
-                    product {
-                      dimension {
-                        height
-                      }
-                    }
-                  }
-                }
-              }
-            }
+            query Op_defer_1 { users { __typename nodes { reviews { product { dimension { height } } } } } }

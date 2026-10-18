@@ -182,11 +182,7 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query ProductReviews_a31f6868_2($id: ID!) {
-          node(id: $id) {
-            __typename
-          }
-        }
+        query ProductReviews_a31f6868_2($id: ID!) { node(id: $id) { __typename } }
       forwardedVariables:
         - id
       dependencies:
@@ -195,16 +191,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query ProductReviews_a31f6868_3($id: ID!, $first: Int!) {
-          node(id: $id) {
-            __typename
-            ... on Product {
-              __typename
-              id
-              repeat(num: $first)
-            }
-          }
-        }
+        query ProductReviews_a31f6868_3($id: ID!, $first: Int!) { node(id: $id) { __typename ... on Product { __typename id repeat(num: $first) } } }
       forwardedVariables:
         - id
         - first

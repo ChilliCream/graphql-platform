@@ -178,9 +178,4 @@ operationPlan:
       type: Operation
       schema: a
       operation: |
-        query Op_da31ef9b_1 {
-          bookById(id: 1) {
-            id
-            title
-          }
-        }
+        query Op_da31ef9b_1 { bookById(id: 1) { id title } }

@@ -321,26 +321,12 @@ operationPlan:
       type: Operation
       schema: a
       operation: |
-        query Op_684e067a_1 {
-          books {
-            nodes {
-              title
-              id
-              genreIds
-            }
-          }
-        }
+        query Op_684e067a_1 { books { nodes { title id genreIds } } }
     - id: 2
       type: Operation
       schema: d
       operation: |
-        query Op_684e067a_2($__fusion_1_id: Int!, $__fusion_2_genreIds: [Int!]!) {
-          book(id: $__fusion_1_id) {
-            genres(genreIds: $__fusion_2_genreIds) {
-              name
-            }
-          }
-        }
+        query Op_684e067a_2($__fusion_1_id: Int!, $__fusion_2_genreIds: [Int!]!) { book(id: $__fusion_1_id) { genres(genreIds: $__fusion_2_genreIds) { name } } }
       source: $.book
       target: $.books.nodes
       requirements:

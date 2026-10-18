@@ -85,6 +85,4 @@ operationPlan:
       type: Operation
       schema: a
       operation: |
-        query Op_9fcebbfa_1 {
-          nullValue
-        }
+        query Op_9fcebbfa_1 { nullValue }

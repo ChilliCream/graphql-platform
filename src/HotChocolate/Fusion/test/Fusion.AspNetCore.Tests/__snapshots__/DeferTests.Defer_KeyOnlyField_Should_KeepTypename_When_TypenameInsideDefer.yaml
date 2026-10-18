@@ -104,9 +104,4 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query GetUsers_a81cd442_1 {
-          users {
-            __typename
-            id
-          }
-        }
+        query GetUsers_a81cd442_1 { users { __typename id } }

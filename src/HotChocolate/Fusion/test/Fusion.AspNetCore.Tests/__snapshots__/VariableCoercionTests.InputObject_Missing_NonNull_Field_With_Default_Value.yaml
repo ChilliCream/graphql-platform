@@ -68,8 +68,6 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_d0958502_1($cat: Cat!) {
-          catName(input: $cat)
-        }
+        query testQuery_d0958502_1($cat: Cat!) { catName(input: $cat) }
       forwardedVariables:
         - cat

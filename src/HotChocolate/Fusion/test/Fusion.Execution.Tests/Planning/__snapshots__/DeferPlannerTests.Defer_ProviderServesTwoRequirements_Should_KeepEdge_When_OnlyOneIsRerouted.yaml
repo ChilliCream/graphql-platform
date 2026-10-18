@@ -15,13 +15,7 @@ nodes:
     type: Operation
     schema: accounts
     operation: |
-      query Op_123456789101112_1 {
-        user(id: "1") {
-          name
-          id
-          currencyCode
-        }
-      }
+      query Op_123456789101112_1 { user(id: "1") { name id currencyCode } }
 deliveryGroups:
   - id: 0
     path: $.user
@@ -47,12 +41,7 @@ incrementalPlans:
         type: Operation
         schema: profile
         operation: |
-          query Op_defer_1($__fusion_1_id: ID!) {
-            userById(id: $__fusion_1_id) {
-              bio
-              regionCode
-            }
-          }
+          query Op_defer_1($__fusion_1_id: ID!) { userById(id: $__fusion_1_id) { bio regionCode } }
         source: $.userById
         target: $.user
         requirements:
@@ -65,16 +54,7 @@ incrementalPlans:
         type: Operation
         schema: pricing
         operation: |
-          query Op_defer_2(
-            $__fusion_2_id: ID!
-            $__fusion_3_region: String!
-            $__fusion_4_currency: String!
-          ) {
-            userById(id: $__fusion_2_id) {
-              shippingFee(region: $__fusion_3_region)
-              totalSpent(currency: $__fusion_4_currency)
-            }
-          }
+          query Op_defer_2($__fusion_2_id: ID!, $__fusion_3_region: String!, $__fusion_4_currency: String!) { userById(id: $__fusion_2_id) { shippingFee(region: $__fusion_3_region) totalSpent(currency: $__fusion_4_currency) } }
         source: $.userById
         target: $.user
         requirements:

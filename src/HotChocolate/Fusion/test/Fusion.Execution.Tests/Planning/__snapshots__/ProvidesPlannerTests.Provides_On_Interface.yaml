@@ -21,16 +21,4 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_1 {
-        book {
-          featured {
-            __typename
-            ... on Cat {
-              age
-            }
-            ... on Dog {
-              tricks
-            }
-          }
-        }
-      }
+      query Op_123456789101112_1 { book { featured { __typename ... on Cat { age } ... on Dog { tricks } } } }

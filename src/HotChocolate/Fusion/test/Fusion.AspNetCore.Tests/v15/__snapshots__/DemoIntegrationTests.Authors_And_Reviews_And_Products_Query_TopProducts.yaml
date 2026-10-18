@@ -487,29 +487,12 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query TopProducts_c6ef3d11_1 {
-          topProducts(first: 2) {
-            name
-            id
-          }
-        }
+        query TopProducts_c6ef3d11_1 { topProducts(first: 2) { name id } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query TopProducts_c6ef3d11_2($__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
-            __typename
-            ... on Product {
-              reviews {
-                body
-                author {
-                  id
-                }
-              }
-            }
-          }
-        }
+        query TopProducts_c6ef3d11_2($__fusion_1_id: ID!) { node(id: $__fusion_1_id) { __typename ... on Product { reviews { body author { id } } } } }
       source: $.node<Product>
       target: $.topProducts
       requirements:
@@ -522,14 +505,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query TopProducts_c6ef3d11_3($__fusion_2_id: ID!) {
-          node(id: $__fusion_2_id) {
-            __typename
-            ... on User {
-              name
-            }
-          }
-        }
+        query TopProducts_c6ef3d11_3($__fusion_2_id: ID!) { node(id: $__fusion_2_id) { __typename ... on User { name } } }
       source: $.node<User>
       target: $.topProducts.reviews.author
       requirements:

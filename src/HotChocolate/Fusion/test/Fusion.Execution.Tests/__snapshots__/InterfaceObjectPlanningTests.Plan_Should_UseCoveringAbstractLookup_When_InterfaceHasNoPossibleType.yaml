@@ -15,12 +15,7 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_1 {
-        a {
-          __typename
-          id
-        }
-      }
+      query Op_123456789101112_1 { a { __typename id } }
   - id: 2
     type: ApolloOperation
     schema: b

@@ -140,23 +140,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_40bd37df_1 {
-          productBySlug {
-            id
-          }
-        }
+        query Op_40bd37df_1 { productBySlug { id } }
     - id: 2
       type: Operation
       schema: C
       operation: |
-        query Op_40bd37df_2($__fusion_1_id: ID!) {
-          productById(id: $__fusion_1_id) {
-            author {
-              name
-              rating
-            }
-          }
-        }
+        query Op_40bd37df_2($__fusion_1_id: ID!) { productById(id: $__fusion_1_id) { author { name rating } } }
       source: $.productById
       target: $.productBySlug
       requirements:

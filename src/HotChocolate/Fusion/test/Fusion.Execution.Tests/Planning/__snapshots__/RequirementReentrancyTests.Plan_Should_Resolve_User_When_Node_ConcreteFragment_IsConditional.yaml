@@ -30,11 +30,7 @@ nodes:
   - id: 2
     type: Operation
     operation: |
-      query GetProduct_123456789101112_2($id: ID!) {
-        node(id: $id) {
-          __typename
-        }
-      }
+      query GetProduct_123456789101112_2($id: ID!) { node(id: $id) { __typename } }
     forwardedVariables:
       - id
     dependencies:
@@ -43,18 +39,7 @@ nodes:
     type: Operation
     schema: PRODUCTS
     operation: |
-      query GetProduct_123456789101112_3($id: ID!, $include: Boolean!) {
-        node(id: $id) {
-          __typename
-          ... on Product {
-            __typename
-            ... @include(if: $include) {
-              productId
-              reviewAudience
-            }
-          }
-        }
-      }
+      query GetProduct_123456789101112_3($id: ID!, $include: Boolean!) { node(id: $id) { __typename ... on Product { __typename ... @include(if: $include) { productId reviewAudience } } } }
     forwardedVariables:
       - id
       - include
@@ -64,18 +49,7 @@ nodes:
     type: Operation
     schema: REVIEWS
     operation: |
-      query GetProduct_123456789101112_5(
-        $__fusion_2_audience: String!
-        $__fusion_3_id: Int!
-      ) {
-        productById(id: $__fusion_3_id) {
-          reviews(audience: $__fusion_2_audience) {
-            author {
-              userId
-            }
-          }
-        }
-      }
+      query GetProduct_123456789101112_5($__fusion_2_audience: String!, $__fusion_3_id: Int!) { productById(id: $__fusion_3_id) { reviews(audience: $__fusion_2_audience) { author { userId } } } }
     source: $.productById
     target: $.node<Product>
     requirements:
@@ -91,11 +65,7 @@ nodes:
     type: Operation
     schema: USERS
     operation: |
-      query GetProduct_123456789101112_6($__fusion_4_id: ID!) {
-        userById(id: $__fusion_4_id) {
-          name
-        }
-      }
+      query GetProduct_123456789101112_6($__fusion_4_id: ID!) { userById(id: $__fusion_4_id) { name } }
     source: $.userById
     target: $.node<Product>.reviews.author
     requirements:

@@ -142,26 +142,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_b4cd91a7_1 {
-          votable {
-            __typename
-            viewerCanVote
-            ... on Discussion {
-              author {
-                id
-              }
-            }
-          }
-        }
+        query testQuery_b4cd91a7_1 { votable { __typename viewerCanVote ... on Discussion { author { id } } } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query testQuery_b4cd91a7_2($__fusion_1_id: ID!) {
-          authorById(id: $__fusion_1_id) {
-            displayName
-          }
-        }
+        query testQuery_b4cd91a7_2($__fusion_1_id: ID!) { authorById(id: $__fusion_1_id) { displayName } }
       source: $.authorById
       target: $.votable<Discussion>.author
       requirements:

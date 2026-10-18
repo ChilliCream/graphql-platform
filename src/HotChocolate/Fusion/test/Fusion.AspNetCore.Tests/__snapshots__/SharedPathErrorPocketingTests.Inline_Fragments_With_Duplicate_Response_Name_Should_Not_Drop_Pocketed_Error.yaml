@@ -159,18 +159,4 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_e478e62b_1 {
-          node {
-            __typename
-            ... on Product {
-              shared {
-                a
-              }
-            }
-            ... on Review {
-              shared {
-                b
-              }
-            }
-          }
-        }
+        query Op_e478e62b_1 { node { __typename ... on Product { shared { a } } ... on Review { shared { b } } } }

@@ -189,34 +189,17 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        mutation Op_192dc5f8_1 {
-          a: createBook(input: { title: "Book1" }) {
-            book {
-              id
-            }
-          }
-        }
+        mutation Op_192dc5f8_1 { a: createBook(input: { title: "Book1" }) { book { id } } }
     - id: 3
       type: Operation
       schema: A
       operation: |
-        mutation Op_192dc5f8_3 {
-          b: createBook(input: { title: "Book2" }) {
-            book {
-              id
-              title
-            }
-          }
-        }
+        mutation Op_192dc5f8_3 { b: createBook(input: { title: "Book2" }) { book { id title } } }
     - id: 2
       type: OperationBatch
       schema: B
       operation: |
-        query Op_192dc5f8_2($__fusion_1_id: Int!) {
-          bookById(id: $__fusion_1_id) {
-            author
-          }
-        }
+        query Op_192dc5f8_2($__fusion_1_id: Int!) { bookById(id: $__fusion_1_id) { author } }
       source: $.bookById
       targets:
         - $.a.book

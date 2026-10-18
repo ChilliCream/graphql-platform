@@ -197,26 +197,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_7a8e1f91_1 {
-          wrappers {
-            votable {
-              __typename
-              viewerCanVote
-              ... on Discussion {
-                id
-              }
-            }
-          }
-        }
+        query testQuery_7a8e1f91_1 { wrappers { votable { __typename viewerCanVote ... on Discussion { id } } } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query testQuery_7a8e1f91_2($__fusion_1_id: ID!) {
-          discussionById(id: $__fusion_1_id) {
-            viewerRating
-          }
-        }
+        query testQuery_7a8e1f91_2($__fusion_1_id: ID!) { discussionById(id: $__fusion_1_id) { viewerRating } }
       source: $.discussionById
       target: $.wrappers.votable<Discussion>
       requirements:

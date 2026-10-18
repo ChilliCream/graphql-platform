@@ -85,27 +85,13 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query Op_82e961c4_2 {
-          node(id: "QnJhbmQ6MQ==") {
-            __typename
-            id
-          }
-        }
+        query Op_82e961c4_2 { node(id: "QnJhbmQ6MQ==") { __typename id } }
       dependencies:
         - id: 1
     - id: 3
       type: Operation
       schema: A
       operation: |
-        query Op_82e961c4_3 {
-          node(id: "QnJhbmQ6MQ==") {
-            __typename
-            ... on Brand {
-              __typename
-              id
-              name
-            }
-          }
-        }
+        query Op_82e961c4_3 { node(id: "QnJhbmQ6MQ==") { __typename ... on Brand { __typename id name } } }
       dependencies:
         - id: 1

@@ -22,27 +22,12 @@ nodes:
     type: Operation
     schema: media
     operation: |
-      query Op_123456789101112_1 {
-        media {
-          __typename
-          ... on Book {
-            id
-            title
-          }
-          ... on Movie {
-            id
-          }
-        }
-      }
+      query Op_123456789101112_1 { media { __typename ... on Book { id title } ... on Movie { id } } }
   - id: 2
     type: Operation
     schema: titles
     operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!) {
-        movieById(id: $__fusion_1_id) {
-          title
-        }
-      }
+      query Op_123456789101112_2($__fusion_1_id: ID!) { movieById(id: $__fusion_1_id) { title } }
     source: $.movieById
     target: $.media<Movie>
     requirements:

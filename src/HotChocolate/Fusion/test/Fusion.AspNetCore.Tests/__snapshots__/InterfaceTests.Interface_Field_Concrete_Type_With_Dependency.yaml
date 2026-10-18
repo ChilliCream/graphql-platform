@@ -128,24 +128,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_4a61c641_1 {
-          votable {
-            __typename
-            viewerCanVote
-            ... on Discussion {
-              id
-            }
-          }
-        }
+        query testQuery_4a61c641_1 { votable { __typename viewerCanVote ... on Discussion { id } } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query testQuery_4a61c641_2($__fusion_1_id: ID!) {
-          discussionById(id: $__fusion_1_id) {
-            viewerRating
-          }
-        }
+        query testQuery_4a61c641_2($__fusion_1_id: ID!) { discussionById(id: $__fusion_1_id) { viewerRating } }
       source: $.discussionById
       target: $.votable<Discussion>
       requirements:

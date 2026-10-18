@@ -17,23 +17,12 @@ nodes:
     type: Operation
     schema: opaque
     operation: |
-      query Op_123456789101112_1 {
-        product {
-          id
-        }
-      }
+      query Op_123456789101112_1 { product { id } }
   - id: 2
     type: Operation
     schema: products
     operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!) {
-        productById(id: $__fusion_1_id) {
-          __typename
-          ... on Bread {
-            id
-          }
-        }
-      }
+      query Op_123456789101112_2($__fusion_1_id: ID!) { productById(id: $__fusion_1_id) { __typename ... on Bread { id } } }
     source: $.productById
     target: $.product
     requirements:

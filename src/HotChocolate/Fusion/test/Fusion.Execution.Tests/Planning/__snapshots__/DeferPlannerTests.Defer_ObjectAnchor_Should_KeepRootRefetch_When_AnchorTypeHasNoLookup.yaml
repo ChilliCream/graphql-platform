@@ -13,11 +13,7 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_1 {
-        viewer {
-          __typename
-        }
-      }
+      query Op_123456789101112_1 { viewer { __typename } }
 deliveryGroups:
   - id: 0
     path: $.viewer
@@ -30,8 +26,4 @@ incrementalPlans:
         type: Operation
         schema: a
         operation: |
-          query Op_defer_1 {
-            viewer {
-              displayName
-            }
-          }
+          query Op_defer_1 { viewer { displayName } }

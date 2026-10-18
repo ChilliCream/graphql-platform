@@ -88,13 +88,6 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_d58c3d50_1($skip: Boolean!) {
-          viewer {
-            name
-          }
-          productBySlug(slug: "product") @skip(if: $skip) {
-            name
-          }
-        }
+        query testQuery_d58c3d50_1($skip: Boolean!) { viewer { name } productBySlug(slug: "product") @skip(if: $skip) { name } }
       forwardedVariables:
         - skip

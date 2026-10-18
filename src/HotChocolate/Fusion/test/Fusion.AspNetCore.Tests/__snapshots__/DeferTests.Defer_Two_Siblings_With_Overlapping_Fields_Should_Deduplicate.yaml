@@ -191,12 +191,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_29ccee0f_1 {
-          user(id: "1") {
-            name
-            id
-          }
-        }
+        query Op_29ccee0f_1 { user(id: "1") { name id } }
   deliveryGroups:
     - id: 0
       path: $.user
@@ -218,11 +213,7 @@ operationPlan:
           type: Operation
           schema: B
           operation: |
-            query Op_defer_1($__fusion_1_id: ID!) {
-              userById(id: $__fusion_1_id) {
-                email
-              }
-            }
+            query Op_defer_1($__fusion_1_id: ID!) { userById(id: $__fusion_1_id) { email } }
           source: $.userById
           target: $.user
           requirements:
@@ -243,11 +234,7 @@ operationPlan:
           type: Operation
           schema: B
           operation: |
-            query Op_defer_1($__fusion_1_id: ID!) {
-              userById(id: $__fusion_1_id) {
-                address
-              }
-            }
+            query Op_defer_1($__fusion_1_id: ID!) { userById(id: $__fusion_1_id) { address } }
           source: $.userById
           target: $.user
           requirements:

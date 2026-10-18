@@ -90,8 +90,4 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_405afc94_1 {
-          someField {
-            __typename
-          }
-        }
+        query Op_405afc94_1 { someField { __typename } }

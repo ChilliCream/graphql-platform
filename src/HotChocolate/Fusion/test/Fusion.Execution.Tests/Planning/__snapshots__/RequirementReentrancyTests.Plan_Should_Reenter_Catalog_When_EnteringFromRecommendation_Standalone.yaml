@@ -17,22 +17,12 @@ nodes:
     type: Operation
     schema: RECOMMENDATION
     operation: |
-      query getProducts_123456789101112_1 {
-        recommendations {
-          product {
-            id
-          }
-        }
-      }
+      query getProducts_123456789101112_1 { recommendations { product { id } } }
   - id: 2
     type: Operation
     schema: CATALOG
     operation: |
-      query getProducts_123456789101112_2($__fusion_1_id: ID!) {
-        productById(id: $__fusion_1_id) {
-          category
-        }
-      }
+      query getProducts_123456789101112_2($__fusion_1_id: ID!) { productById(id: $__fusion_1_id) { category } }
     source: $.productById
     target: $.recommendations.product
     requirements:

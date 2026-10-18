@@ -275,23 +275,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_6721fc4f_1 {
-          books {
-            nodes {
-              id
-              title
-            }
-          }
-        }
+        query Op_6721fc4f_1 { books { nodes { id title } } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query Op_6721fc4f_2($__fusion_1_id: Int!, $__fusion_2_title: String!) {
-          bookById(id: $__fusion_1_id) {
-            idAndTitle(title: $__fusion_2_title)
-          }
-        }
+        query Op_6721fc4f_2($__fusion_1_id: Int!, $__fusion_2_title: String!) { bookById(id: $__fusion_1_id) { idAndTitle(title: $__fusion_2_title) } }
       source: $.bookById
       target: $.books.nodes
       requirements:

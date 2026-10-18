@@ -325,11 +325,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query GetUsersPosts_711d06f0_1 {
-          users {
-            id
-          }
-        }
+        query GetUsersPosts_711d06f0_1 { users { id } }
   deliveryGroups:
     - id: 0
       path: $.users
@@ -347,13 +343,7 @@ operationPlan:
           type: Operation
           schema: B
           operation: |
-            query GetUsersPosts_defer_1($limit: Int!, $__fusion_1_id: ID!) {
-              userById(id: $__fusion_1_id) {
-                posts(first: $limit) {
-                  id
-                }
-              }
-            }
+            query GetUsersPosts_defer_1($limit: Int!, $__fusion_1_id: ID!) { userById(id: $__fusion_1_id) { posts(first: $limit) { id } } }
           source: $.userById
           target: $.users
           requirements:

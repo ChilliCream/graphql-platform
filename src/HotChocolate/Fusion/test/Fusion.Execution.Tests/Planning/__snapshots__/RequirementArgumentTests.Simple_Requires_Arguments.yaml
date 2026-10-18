@@ -16,20 +16,12 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_1 {
-        test {
-          id
-        }
-      }
+      query Op_123456789101112_1 { test { id } }
   - id: 2
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_2($__fusion_1_otherField: String!, $__fusion_2_id: ID!) {
-        testById(id: $__fusion_2_id) {
-          fieldWithRequiresAndArgs(otherField: $__fusion_1_otherField)
-        }
-      }
+      query Op_123456789101112_2($__fusion_1_otherField: String!, $__fusion_2_id: ID!) { testById(id: $__fusion_2_id) { fieldWithRequiresAndArgs(otherField: $__fusion_1_otherField) } }
     source: $.testById
     target: $.test
     requirements:
@@ -46,11 +38,7 @@ nodes:
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_3($__fusion_3_id: ID!) {
-        testById(id: $__fusion_3_id) {
-          otherField
-        }
-      }
+      query Op_123456789101112_3($__fusion_3_id: ID!) { testById(id: $__fusion_3_id) { otherField } }
     source: $.testById
     target: $.test
     requirements:

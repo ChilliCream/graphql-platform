@@ -75,11 +75,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_03eeda2f_1 {
-          productBySlug(slug: "product") {
-            name
-          }
-        }
+        query testQuery_03eeda2f_1 { productBySlug(slug: "product") { name } }
       conditions:
         - variable: $skip1
           passingValue: false
@@ -89,11 +85,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_03eeda2f_2 {
-          viewer {
-            name
-          }
-        }
+        query testQuery_03eeda2f_2 { viewer { name } }
       conditions:
         - variable: $skip1
           passingValue: false

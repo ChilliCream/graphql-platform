@@ -16,11 +16,4 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_1 {
-        media {
-          __typename
-          ... on Book {
-            title
-          }
-        }
-      }
+      query Op_123456789101112_1 { media { __typename ... on Book { title } } }

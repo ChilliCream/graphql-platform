@@ -287,26 +287,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_e1aceb9e_1 {
-          books {
-            nodes {
-              id
-              title
-              author {
-                id
-              }
-            }
-          }
-        }
+        query Op_e1aceb9e_1 { books { nodes { id title author { id } } } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query Op_e1aceb9e_2($__fusion_1_id: Int!) {
-          authorById(id: $__fusion_1_id) {
-            name
-          }
-        }
+        query Op_e1aceb9e_2($__fusion_1_id: Int!) { authorById(id: $__fusion_1_id) { name } }
       source: $.authorById
       target: $.books.nodes.author
       requirements:

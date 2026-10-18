@@ -288,21 +288,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_0731cc53_1($skip1: Boolean!, $skip2: Boolean!) {
-          abstractTypes {
-            __typename
-            ... on Discussion {
-              id
-            }
-            ... @skip(if: $skip1) {
-              __typename
-              ... on Author @skip(if: $skip2) {
-                __typename
-              }
-              id
-            }
-          }
-        }
+        query Op_0731cc53_1($skip1: Boolean!, $skip2: Boolean!) { abstractTypes { __typename ... on Discussion { id } ... @skip(if: $skip1) { __typename ... on Author @skip(if: $skip2) { __typename } id } } }
       forwardedVariables:
         - skip1
         - skip2
@@ -310,16 +296,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query Op_0731cc53_3($skip2: Boolean!, $__fusion_2_id: ID!) {
-          authorById(id: $__fusion_2_id) {
-            upvotes
-            ... on Author {
-              ... @skip(if: $skip2) {
-                score
-              }
-            }
-          }
-        }
+        query Op_0731cc53_3($skip2: Boolean!, $__fusion_2_id: ID!) { authorById(id: $__fusion_2_id) { upvotes ... on Author { ... @skip(if: $skip2) { score } } } }
       source: $.authorById
       target: $.abstractTypes<Author>
       requirements:
@@ -337,11 +314,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_0731cc53_2($__fusion_1_id: ID!) {
-          discussionById(id: $__fusion_1_id) {
-            upvotes
-          }
-        }
+        query Op_0731cc53_2($__fusion_1_id: ID!) { discussionById(id: $__fusion_1_id) { upvotes } }
       source: $.discussionById
       target: $.abstractTypes<Discussion>
       batchingGroupId: 5
@@ -358,11 +331,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_0731cc53_4($__fusion_3_id: ID!) {
-          discussionById(id: $__fusion_3_id) {
-            score
-          }
-        }
+        query Op_0731cc53_4($__fusion_3_id: ID!) { discussionById(id: $__fusion_3_id) { score } }
       source: $.discussionById
       target: $.abstractTypes<Discussion>
       batchingGroupId: 5

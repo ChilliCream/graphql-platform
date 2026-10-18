@@ -383,12 +383,7 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query ConnectorDetailsQuery_b0bc69b8_2($id: ID!) {
-          node(id: $id) {
-            __typename
-            id
-          }
-        }
+        query ConnectorDetailsQuery_b0bc69b8_2($id: ID!) { node(id: $id) { __typename id } }
       forwardedVariables:
         - id
       dependencies:
@@ -397,18 +392,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query ConnectorDetailsQuery_b0bc69b8_3($id: ID!) {
-          node(id: $id) {
-            __typename
-            ... on Connector {
-              __typename
-              id
-              system
-              version
-              vendor
-            }
-          }
-        }
+        query ConnectorDetailsQuery_b0bc69b8_3($id: ID!) { node(id: $id) { __typename ... on Connector { __typename id system version vendor } } }
       forwardedVariables:
         - id
       dependencies:
@@ -435,11 +419,7 @@ operationPlan:
         - id: 2
           type: Operation
           operation: |
-            query ConnectorDetailsQuery_defer_2($id: ID!) {
-              node(id: $id) {
-                __typename
-              }
-            }
+            query ConnectorDetailsQuery_defer_2($id: ID!) { node(id: $id) { __typename } }
           forwardedVariables:
             - id
           dependencies:
@@ -448,15 +428,7 @@ operationPlan:
           type: Operation
           schema: A
           operation: |
-            query ConnectorDetailsQuery_defer_3($id: ID!) {
-              node(id: $id) {
-                __typename
-                ... on Connector {
-                  __typename
-                  description
-                }
-              }
-            }
+            query ConnectorDetailsQuery_defer_3($id: ID!) { node(id: $id) { __typename ... on Connector { __typename description } } }
           forwardedVariables:
             - id
           dependencies:
@@ -475,11 +447,7 @@ operationPlan:
         - id: 2
           type: Operation
           operation: |
-            query ConnectorDetailsQuery_defer_2($id: ID!) {
-              node(id: $id) {
-                __typename
-              }
-            }
+            query ConnectorDetailsQuery_defer_2($id: ID!) { node(id: $id) { __typename } }
           forwardedVariables:
             - id
           dependencies:
@@ -488,25 +456,7 @@ operationPlan:
           type: Operation
           schema: B
           operation: |
-            query ConnectorDetailsQuery_defer_3($id: ID!) {
-              node(id: $id) {
-                __typename
-                ... on Connector {
-                  __typename
-                  devices(first: 10) {
-                    totalCount
-                    edges {
-                      cursor
-                      node {
-                        id
-                        name
-                        __typename
-                      }
-                    }
-                  }
-                }
-              }
-            }
+            query ConnectorDetailsQuery_defer_3($id: ID!) { node(id: $id) { __typename ... on Connector { __typename devices(first: 10) { totalCount edges { cursor node { id name __typename } } } } } }
           forwardedVariables:
             - id
           dependencies:

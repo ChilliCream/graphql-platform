@@ -75,31 +75,7 @@ nodes:
     type: Operation
     schema: search
     operation: |
-      query testQuery_123456789101112_1 {
-        search {
-          __typename
-          ... on ExistingResult {
-            asset {
-              id
-            }
-          }
-          ... on ConfigMatchesResult {
-            asset {
-              id
-            }
-          }
-          ... on NotSubmissableResult {
-            asset {
-              id
-            }
-          }
-          ... on CustomResult {
-            asset {
-              id
-            }
-          }
-        }
-      }
+      query testQuery_123456789101112_1 { search { __typename ... on ExistingResult { asset { id } } ... on ConfigMatchesResult { asset { id } } ... on NotSubmissableResult { asset { id } } ... on CustomResult { asset { id } } } }
   - id: 2
     type: ApolloOperationBatch
     schema: assets

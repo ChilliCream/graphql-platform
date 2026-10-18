@@ -209,25 +209,12 @@ operationPlan:
       type: Operation
       schema: a
       operation: |
-        query Op_1b3419da_1 {
-          books {
-            a: author {
-              id
-            }
-            b: author {
-              id
-            }
-          }
-        }
+        query Op_1b3419da_1 { books { a: author { id } b: author { id } } }
     - id: 2
       type: Operation
       schema: b
       operation: |
-        query Op_1b3419da_2($__fusion_1_id: ID!) {
-          authorById(id: $__fusion_1_id) {
-            b: name(postFix: "2")
-          }
-        }
+        query Op_1b3419da_2($__fusion_1_id: ID!) { authorById(id: $__fusion_1_id) { b: name(postFix: "2") } }
       source: $.authorById
       target: $.books.b
       batchingGroupId: 4
@@ -241,11 +228,7 @@ operationPlan:
       type: Operation
       schema: b
       operation: |
-        query Op_1b3419da_3($__fusion_2_id: ID!) {
-          authorById(id: $__fusion_2_id) {
-            a: name
-          }
-        }
+        query Op_1b3419da_3($__fusion_2_id: ID!) { authorById(id: $__fusion_2_id) { a: name } }
       source: $.authorById
       target: $.books.a
       batchingGroupId: 4

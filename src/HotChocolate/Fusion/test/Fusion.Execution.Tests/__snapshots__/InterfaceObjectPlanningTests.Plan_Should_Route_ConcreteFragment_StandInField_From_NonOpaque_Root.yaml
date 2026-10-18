@@ -19,25 +19,12 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_1 {
-        allMedia {
-          __typename
-          id
-          ... on Book {
-            isbn
-            id
-          }
-        }
-      }
+      query Op_123456789101112_1 { allMedia { __typename id ... on Book { isbn id } } }
   - id: 2
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!) {
-        mediaByKey(id: $__fusion_1_id) {
-          views
-        }
-      }
+      query Op_123456789101112_2($__fusion_1_id: ID!) { mediaByKey(id: $__fusion_1_id) { views } }
     source: $.mediaByKey
     target: $.allMedia<Book>
     requirements:

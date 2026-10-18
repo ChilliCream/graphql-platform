@@ -214,12 +214,7 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query testQuery_70eb1308_2($id: ID!) {
-          node(id: $id) {
-            __typename
-            id
-          }
-        }
+        query testQuery_70eb1308_2($id: ID!) { node(id: $id) { __typename id } }
       forwardedVariables:
         - id
       dependencies:
@@ -228,18 +223,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_70eb1308_3($id: ID!) {
-          node(id: $id) {
-            __typename
-            ... on Item2 {
-              __typename
-              id
-              products {
-                id
-              }
-            }
-          }
-        }
+        query testQuery_70eb1308_3($id: ID!) { node(id: $id) { __typename ... on Item2 { __typename id products { id } } } }
       forwardedVariables:
         - id
       dependencies:
@@ -248,14 +232,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_70eb1308_4($__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
-            __typename
-            ... on Product {
-              name
-            }
-          }
-        }
+        query testQuery_70eb1308_4($__fusion_1_id: ID!) { node(id: $__fusion_1_id) { __typename ... on Product { name } } }
       source: $.node<Product>
       target: $.node<Item2>.products
       requirements:
@@ -268,18 +245,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_70eb1308_5($id: ID!) {
-          node(id: $id) {
-            __typename
-            ... on Item1 {
-              __typename
-              id
-              products {
-                id
-              }
-            }
-          }
-        }
+        query testQuery_70eb1308_5($id: ID!) { node(id: $id) { __typename ... on Item1 { __typename id products { id } } } }
       forwardedVariables:
         - id
       dependencies:
@@ -288,14 +254,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_70eb1308_6($__fusion_2_id: ID!) {
-          node(id: $__fusion_2_id) {
-            __typename
-            ... on Product {
-              name
-            }
-          }
-        }
+        query testQuery_70eb1308_6($__fusion_2_id: ID!) { node(id: $__fusion_2_id) { __typename ... on Product { name } } }
       source: $.node<Product>
       target: $.node<Item1>.products
       requirements:

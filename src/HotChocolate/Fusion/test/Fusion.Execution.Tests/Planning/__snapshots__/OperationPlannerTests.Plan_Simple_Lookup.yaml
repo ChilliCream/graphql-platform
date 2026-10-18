@@ -17,21 +17,12 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query GetTopProducts_123456789101112_1 {
-        topProducts {
-          id
-          name
-        }
-      }
+      query GetTopProducts_123456789101112_1 { topProducts { id name } }
   - id: 2
     type: Operation
     schema: b
     operation: |
-      query GetTopProducts_123456789101112_2($__fusion_1_id: ID!) {
-        productById(id: $__fusion_1_id) {
-          price
-        }
-      }
+      query GetTopProducts_123456789101112_2($__fusion_1_id: ID!) { productById(id: $__fusion_1_id) { price } }
     source: $.productById
     target: $.topProducts
     requirements:

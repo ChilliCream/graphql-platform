@@ -19,23 +19,12 @@ nodes:
     type: Operation
     schema: store
     operation: |
-      query Op_123456789101112_1 {
-        products {
-          id
-        }
-      }
+      query Op_123456789101112_1 { products { id } }
   - id: 2
     type: Operation
     schema: cost
     operation: |
-      query Op_123456789101112_2($__fusion_1_uuid: ID!) {
-        productByUuid(uuid: $__fusion_1_uuid) {
-          price {
-            amount
-            currency
-          }
-        }
-      }
+      query Op_123456789101112_2($__fusion_1_uuid: ID!) { productByUuid(uuid: $__fusion_1_uuid) { price { amount currency } } }
     source: $.productByUuid
     target: $.products
     requirements:
@@ -48,11 +37,7 @@ nodes:
     type: Operation
     schema: info
     operation: |
-      query Op_123456789101112_3($__fusion_2_id: ID!) {
-        productById(id: $__fusion_2_id) {
-          isAvailable
-        }
-      }
+      query Op_123456789101112_3($__fusion_2_id: ID!) { productById(id: $__fusion_2_id) { isAvailable } }
     source: $.productById
     target: $.products
     batchingGroupId: 5
@@ -66,11 +51,7 @@ nodes:
     type: Operation
     schema: info
     operation: |
-      query Op_123456789101112_4($__fusion_3_id: ID!) {
-        productById(id: $__fusion_3_id) {
-          uuid
-        }
-      }
+      query Op_123456789101112_4($__fusion_3_id: ID!) { productById(id: $__fusion_3_id) { uuid } }
     source: $.productById
     target: $.products
     batchingGroupId: 5

@@ -31,11 +31,7 @@ nodes:
   - id: 2
     type: Operation
     operation: |
-      query GetProduct_123456789101112_2($id: ID!) {
-        node(id: $id) {
-          __typename
-        }
-      }
+      query GetProduct_123456789101112_2($id: ID!) { node(id: $id) { __typename } }
     forwardedVariables:
       - id
     dependencies:
@@ -44,17 +40,7 @@ nodes:
     type: Operation
     schema: PRODUCTS
     operation: |
-      query GetProduct_123456789101112_3($id: ID!) {
-        node(id: $id) {
-          __typename
-          ... on Product {
-            __typename
-            productId
-            recommendationAudience
-            reviewAudience
-          }
-        }
-      }
+      query GetProduct_123456789101112_3($id: ID!) { node(id: $id) { __typename ... on Product { __typename productId recommendationAudience reviewAudience } } }
     forwardedVariables:
       - id
     dependencies:
@@ -63,16 +49,7 @@ nodes:
     type: Operation
     schema: RECOMMENDATIONS
     operation: |
-      query GetProduct_123456789101112_4(
-        $__fusion_1_id: Int!
-        $__fusion_2_audience: String!
-      ) {
-        productById(id: $__fusion_1_id) {
-          recommendations(audience: $__fusion_2_audience) {
-            text
-          }
-        }
-      }
+      query GetProduct_123456789101112_4($__fusion_1_id: Int!, $__fusion_2_audience: String!) { productById(id: $__fusion_1_id) { recommendations(audience: $__fusion_2_audience) { text } } }
     source: $.productById
     target: $.node<Product>
     requirements:
@@ -88,16 +65,7 @@ nodes:
     type: Operation
     schema: REVIEWS
     operation: |
-      query GetProduct_123456789101112_5(
-        $__fusion_3_id: Int!
-        $__fusion_4_audience: String!
-      ) {
-        productById(id: $__fusion_3_id) {
-          reviews(audience: $__fusion_4_audience) {
-            body
-          }
-        }
-      }
+      query GetProduct_123456789101112_5($__fusion_3_id: Int!, $__fusion_4_audience: String!) { productById(id: $__fusion_3_id) { reviews(audience: $__fusion_4_audience) { body } } }
     source: $.productById
     target: $.node<Product>
     requirements:

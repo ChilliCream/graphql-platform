@@ -16,22 +16,12 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_1 {
-        products {
-          brand {
-            id
-          }
-        }
-      }
+      query Op_123456789101112_1 { products { brand { id } } }
   - id: 2
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_2($__fusion_1_id: Int!) {
-        brandById(id: $__fusion_1_id) {
-          name
-        }
-      }
+      query Op_123456789101112_2($__fusion_1_id: Int!) { brandById(id: $__fusion_1_id) { name } }
     source: $.brandById
     target: $.products.brand
     requirements:

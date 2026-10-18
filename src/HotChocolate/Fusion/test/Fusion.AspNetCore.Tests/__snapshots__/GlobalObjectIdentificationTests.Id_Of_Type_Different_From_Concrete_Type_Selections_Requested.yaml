@@ -109,24 +109,13 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query Op_83aee782_2 {
-          node(id: "UHJvZHVjdDox") {
-            __typename
-            id
-          }
-        }
+        query Op_83aee782_2 { node(id: "UHJvZHVjdDox") { __typename id } }
       dependencies:
         - id: 1
     - id: 3
       type: Operation
       schema: A
       operation: |
-        query Op_83aee782_3 {
-          node: discussionById(discussionId: "UHJvZHVjdDox") {
-            __typename
-            id
-            title
-          }
-        }
+        query Op_83aee782_3 { node: discussionById(discussionId: "UHJvZHVjdDox") { __typename id title } }
       dependencies:
         - id: 1

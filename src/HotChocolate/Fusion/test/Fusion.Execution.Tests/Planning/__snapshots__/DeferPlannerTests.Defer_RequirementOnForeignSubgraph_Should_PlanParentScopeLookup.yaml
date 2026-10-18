@@ -14,21 +14,12 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_1 {
-        product(id: "1") {
-          name
-          id
-        }
-      }
+      query Op_123456789101112_1 { product(id: "1") { name id } }
   - id: 2
     type: Operation
     schema: b
     operation: |
-      query Op_defer_3($__fusion_4_id: ID!) {
-        productById(id: $__fusion_4_id) {
-          productSku
-        }
-      }
+      query Op_defer_3($__fusion_4_id: ID!) { productById(id: $__fusion_4_id) { productSku } }
     source: $.productById
     target: $.product
     requirements:
@@ -54,11 +45,7 @@ incrementalPlans:
         type: Operation
         schema: c
         operation: |
-          query Op_defer_2($__fusion_2_productSku: String!, $__fusion_3_id: ID!) {
-            productById(id: $__fusion_3_id) {
-              reviews(productSku: $__fusion_2_productSku)
-            }
-          }
+          query Op_defer_2($__fusion_2_productSku: String!, $__fusion_3_id: ID!) { productById(id: $__fusion_3_id) { reviews(productSku: $__fusion_2_productSku) } }
         source: $.productById
         target: $.product
         requirements:

@@ -89,13 +89,7 @@ public class EntityChainTests : FusionTestBase
                 type: Operation
                 schema: list
                 operation: |
-                  query Op_123456789101112_2($__fusion_1_key: ProductListInput!) {
-                    productListByProducts(key: $__fusion_1_key) {
-                      selected {
-                        id
-                      }
-                    }
-                  }
+                  query Op_123456789101112_2($__fusion_1_key: ProductListInput!) { productListByProducts(key: $__fusion_1_key) { selected { id } } }
                 source: $.productListByProducts
                 target: $.topProducts
                 requirements:
@@ -114,11 +108,7 @@ public class EntityChainTests : FusionTestBase
                 type: Operation
                 schema: link
                 operation: |
-                  query Op_123456789101112_3($__fusion_2_id: ID!) {
-                    productById(id: $__fusion_2_id) {
-                      pid
-                    }
-                  }
+                  query Op_123456789101112_3($__fusion_2_id: ID!) { productById(id: $__fusion_2_id) { pid } }
                 source: $.productById
                 target: $.topProducts.products
                 requirements:
@@ -131,13 +121,7 @@ public class EntityChainTests : FusionTestBase
                 type: OperationBatch
                 schema: products
                 operation: |
-                  query Op_123456789101112_1 {
-                    topProducts {
-                      products {
-                        id
-                      }
-                    }
-                  }
+                  query Op_123456789101112_1 { topProducts { products { id } } }
                 targets:
                   - $
                   - $

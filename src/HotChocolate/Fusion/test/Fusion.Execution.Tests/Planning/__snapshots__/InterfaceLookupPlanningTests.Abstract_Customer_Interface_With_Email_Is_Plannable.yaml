@@ -23,28 +23,12 @@ nodes:
     type: Operation
     schema: common
     operation: |
-      query Op_123456789101112_1 {
-        ordersByAgent {
-          edges {
-            node {
-              id
-              customer {
-                __typename
-                id
-              }
-            }
-          }
-        }
-      }
+      query Op_123456789101112_1 { ordersByAgent { edges { node { id customer { __typename id } } } } }
   - id: 2
     type: Operation
     schema: de
     operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!) {
-        de_customerById(id: $__fusion_1_id) {
-          email
-        }
-      }
+      query Op_123456789101112_2($__fusion_1_id: ID!) { de_customerById(id: $__fusion_1_id) { email } }
     source: $.de_customerById
     target: $.ordersByAgent.edges.node.customer<de_Customer>
     requirements:
@@ -57,11 +41,7 @@ nodes:
     type: Operation
     schema: ch
     operation: |
-      query Op_123456789101112_3($__fusion_2_id: ID!) {
-        ch_customerById(id: $__fusion_2_id) {
-          email
-        }
-      }
+      query Op_123456789101112_3($__fusion_2_id: ID!) { ch_customerById(id: $__fusion_2_id) { email } }
     source: $.ch_customerById
     target: $.ordersByAgent.edges.node.customer<ch_Customer>
     requirements:

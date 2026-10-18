@@ -189,20 +189,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        subscription Op_a6fc02fc_1 {
-          onBookCreated {
-            id
-          }
-        }
+        subscription Op_a6fc02fc_1 { onBookCreated { id } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query Op_a6fc02fc_2($__fusion_1_id: Int!) {
-          bookById(id: $__fusion_1_id) {
-            title
-          }
-        }
+        query Op_a6fc02fc_2($__fusion_1_id: Int!) { bookById(id: $__fusion_1_id) { title } }
       source: $.bookById
       target: $.onBookCreated
       requirements:

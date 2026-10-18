@@ -25,11 +25,7 @@ nodes:
     type: Operation
     schema: cart
     operation: |
-      query Op_123456789101112_2($__fusion_1_lines: [Float!], $__fusion_2_id: ID!) {
-        cartById(id: $__fusion_2_id) {
-          subtotal(lines: $__fusion_1_lines)
-        }
-      }
+      query Op_123456789101112_2($__fusion_1_lines: [Float!], $__fusion_2_id: ID!) { cartById(id: $__fusion_2_id) { subtotal(lines: $__fusion_1_lines) } }
     source: $.cartById
     target: $.viewer.cart
     requirements:
@@ -47,17 +43,7 @@ nodes:
     type: Operation
     schema: cart
     operation: |
-      query Op_123456789101112_3($__fusion_3_id: ID!) {
-        cartById(id: $__fusion_3_id) {
-          items(first: 50) {
-            nodes {
-              product {
-                id
-              }
-            }
-          }
-        }
-      }
+      query Op_123456789101112_3($__fusion_3_id: ID!) { cartById(id: $__fusion_3_id) { items(first: 50) { nodes { product { id } } } } }
     source: $.cartById
     target: $.viewer.cart
     requirements:
@@ -70,11 +56,7 @@ nodes:
     type: Operation
     schema: promotions
     operation: |
-      query Op_123456789101112_5($__fusion_5_price: Float!, $__fusion_6_id: ID!) {
-        productById(id: $__fusion_6_id) {
-          discountedPrice(price: $__fusion_5_price)
-        }
-      }
+      query Op_123456789101112_5($__fusion_5_price: Float!, $__fusion_6_id: ID!) { productById(id: $__fusion_6_id) { discountedPrice(price: $__fusion_5_price) } }
     source: $.productById
     target: $.viewer.cart.items.nodes.product
     requirements:
@@ -91,11 +73,7 @@ nodes:
     type: Operation
     schema: products
     operation: |
-      query Op_123456789101112_6($__fusion_7_id: ID!) {
-        productById(id: $__fusion_7_id) {
-          price
-        }
-      }
+      query Op_123456789101112_6($__fusion_7_id: ID!) { productById(id: $__fusion_7_id) { price } }
     source: $.productById
     target: $.viewer.cart.items.nodes.product
     requirements:
@@ -108,13 +86,7 @@ nodes:
     type: OperationBatch
     schema: cart
     operation: |
-      query Op_123456789101112_7 {
-        viewer {
-          cart {
-            id
-          }
-        }
-      }
+      query Op_123456789101112_7 { viewer { cart { id } } }
     targets:
       - $
       - $

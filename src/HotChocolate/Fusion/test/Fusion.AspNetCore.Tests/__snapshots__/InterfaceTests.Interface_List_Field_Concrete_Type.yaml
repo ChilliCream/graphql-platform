@@ -110,12 +110,4 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_00fdde4e_1 {
-          votables {
-            __typename
-            viewerCanVote
-            ... on Discussion {
-              title
-            }
-          }
-        }
+        query testQuery_00fdde4e_1 { votables { __typename viewerCanVote ... on Discussion { title } } }

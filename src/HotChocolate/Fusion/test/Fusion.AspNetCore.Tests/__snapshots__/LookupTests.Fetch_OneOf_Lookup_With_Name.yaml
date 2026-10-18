@@ -141,22 +141,12 @@ operationPlan:
       type: Operation
       schema: c
       operation: |
-        query Op_54ef22d5_1 {
-          topAuthor {
-            name
-          }
-        }
+        query Op_54ef22d5_1 { topAuthor { name } }
     - id: 2
       type: Operation
       schema: b
       operation: |
-        query Op_54ef22d5_2($__fusion_1_by: AuthorByInput!) {
-          lookups {
-            author(by: $__fusion_1_by) {
-              id
-            }
-          }
-        }
+        query Op_54ef22d5_2($__fusion_1_by: AuthorByInput!) { lookups { author(by: $__fusion_1_by) { id } } }
       source: $.lookups.author
       target: $.topAuthor
       requirements:

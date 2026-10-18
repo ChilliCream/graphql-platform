@@ -101,12 +101,4 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_4d0b2677_1 {
-          someField {
-            __typename
-            value
-            ... on ConcreteTypeA {
-              specificToA
-            }
-          }
-        }
+        query Op_4d0b2677_1 { someField { __typename value ... on ConcreteTypeA { specificToA } } }

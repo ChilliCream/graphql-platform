@@ -24,32 +24,12 @@ nodes:
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_1 {
-        b {
-          id
-          a {
-            id
-          }
-        }
-      }
+      query Op_123456789101112_1 { b { id a { id } } }
   - id: 2
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_name: String!
-        $__fusion_2_compositeIdThree: ID!
-        $__fusion_2_compositeIdTwo: ID!
-        $__fusion_2_id: ID!
-      ) {
-        aByIdAndCompositeId(
-          id: $__fusion_2_id
-          compositeIdTwo: $__fusion_2_compositeIdTwo
-          compositeIdThree: $__fusion_2_compositeIdThree
-        ) {
-          nameInB(name: $__fusion_1_name)
-        }
-      }
+      query Op_123456789101112_2($__fusion_1_name: String!, $__fusion_2_compositeIdThree: ID!, $__fusion_2_compositeIdTwo: ID!, $__fusion_2_id: ID!) { aByIdAndCompositeId(id: $__fusion_2_id, compositeIdTwo: $__fusion_2_compositeIdTwo, compositeIdThree: $__fusion_2_compositeIdThree) { nameInB(name: $__fusion_1_name) } }
     source: $.aByIdAndCompositeId
     target: $.b.a
     requirements:
@@ -71,11 +51,7 @@ nodes:
     type: OperationBatch
     schema: a
     operation: |
-      query Op_123456789101112_3($__fusion_3_id: ID!) {
-        aById(id: $__fusion_3_id) {
-          name
-        }
-      }
+      query Op_123456789101112_3($__fusion_3_id: ID!) { aById(id: $__fusion_3_id) { name } }
     source: $.aById
     targets:
       - $.b.a
@@ -91,15 +67,7 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_4($__fusion_4_id: ID!) {
-        aById(id: $__fusion_4_id) {
-          id
-          compositeId {
-            two
-            three
-          }
-        }
-      }
+      query Op_123456789101112_4($__fusion_4_id: ID!) { aById(id: $__fusion_4_id) { id compositeId { two three } } }
     source: $.aById
     target: $.b.a
     batchingGroupId: 6

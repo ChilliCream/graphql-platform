@@ -265,30 +265,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_a7ffad65_1 {
-          wrappers {
-            authorable {
-              __typename
-              author {
-                id
-              }
-              ... on Discussion {
-                author {
-                  id
-                }
-              }
-            }
-          }
-        }
+        query testQuery_a7ffad65_1 { wrappers { authorable { __typename author { id } ... on Discussion { author { id } } } } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query testQuery_a7ffad65_2($__fusion_1_id: ID!) {
-          authorById(id: $__fusion_1_id) {
-            email
-          }
-        }
+        query testQuery_a7ffad65_2($__fusion_1_id: ID!) { authorById(id: $__fusion_1_id) { email } }
       source: $.authorById
       target: $.wrappers.authorable<Discussion>.author
       batchingGroupId: 4
@@ -302,11 +284,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_a7ffad65_3($__fusion_2_id: ID!) {
-          authorById(id: $__fusion_2_id) {
-            displayName
-          }
-        }
+        query testQuery_a7ffad65_3($__fusion_2_id: ID!) { authorById(id: $__fusion_2_id) { displayName } }
       source: $.authorById
       target: $.wrappers.authorable.author
       batchingGroupId: 4

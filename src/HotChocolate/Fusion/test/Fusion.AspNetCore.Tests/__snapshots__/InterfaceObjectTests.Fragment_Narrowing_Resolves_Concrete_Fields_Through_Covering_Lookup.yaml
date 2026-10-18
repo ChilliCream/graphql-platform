@@ -196,27 +196,12 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_236f64a0_1 {
-          trendingMedia {
-            id
-            views
-          }
-        }
+        query testQuery_236f64a0_1 { trendingMedia { id views } }
     - id: 2
       type: Operation
       schema: A
       operation: |
-        query testQuery_236f64a0_2($__fusion_1_id: ID!) {
-          mediaById(id: $__fusion_1_id) {
-            __typename
-            ... on Book {
-              isbn
-            }
-            ... on Movie {
-              runtime
-            }
-          }
-        }
+        query testQuery_236f64a0_2($__fusion_1_id: ID!) { mediaById(id: $__fusion_1_id) { __typename ... on Book { isbn } ... on Movie { runtime } } }
       source: $.mediaById
       target: $.trendingMedia
       requirements:

@@ -58,11 +58,7 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query testQuery_8330925c_2 {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
-          }
-        }
+        query testQuery_8330925c_2 { node(id: "RGlzY3Vzc2lvbjox") { __typename } }
       conditions:
         - variable: $skip
           passingValue: false

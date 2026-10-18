@@ -21,16 +21,4 @@ nodes:
     type: Operation
     schema: all-products
     operation: |
-      query Op_123456789101112_1 {
-        products {
-          id
-          categories {
-            id
-            name
-            details {
-              id
-              name
-            }
-          }
-        }
-      }
+      query Op_123456789101112_1 { products { id categories { id name details { id name } } } }

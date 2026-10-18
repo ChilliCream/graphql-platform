@@ -275,21 +275,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query t_7bbab574_1 {
-          products {
-            id
-            name
-          }
-        }
+        query t_7bbab574_1 { products { id name } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query t_7bbab574_2 {
-          users {
-            __typename
-          }
-        }
+        query t_7bbab574_2 { users { __typename } }
   deliveryGroups:
     - id: 0
       path: $.users
@@ -302,9 +293,4 @@ operationPlan:
           type: Operation
           schema: B
           operation: |
-            query t_defer_1 {
-              users {
-                id
-                name
-              }
-            }
+            query t_defer_1 { users { id name } }

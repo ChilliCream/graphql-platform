@@ -169,22 +169,12 @@ operationPlan:
       type: Operation
       schema: reviews
       operation: |
-        query Op_20abc898_1 {
-          reviews {
-            author {
-              id
-            }
-          }
-        }
+        query Op_20abc898_1 { reviews { author { id } } }
     - id: 2
       type: Operation
       schema: users
       operation: |
-        query Op_20abc898_2($__fusion_1_id: ID!) {
-          userById(id: $__fusion_1_id) {
-            email
-          }
-        }
+        query Op_20abc898_2($__fusion_1_id: ID!) { userById(id: $__fusion_1_id) { email } }
       source: $.userById
       target: $.reviews.author
       requirements:

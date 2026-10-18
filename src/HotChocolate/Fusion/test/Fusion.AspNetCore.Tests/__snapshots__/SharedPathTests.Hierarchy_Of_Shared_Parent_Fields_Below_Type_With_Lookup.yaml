@@ -207,29 +207,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_43e07475_1 {
-          productById(id: 1) {
-            shared {
-              shared2 {
-                schema1
-              }
-            }
-            id
-          }
-        }
+        query Op_43e07475_1 { productById(id: 1) { shared { shared2 { schema1 } } id } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query Op_43e07475_2($__fusion_1_id: Int!) {
-          product(id: $__fusion_1_id) {
-            shared {
-              shared2 {
-                schema2
-              }
-            }
-          }
-        }
+        query Op_43e07475_2($__fusion_1_id: Int!) { product(id: $__fusion_1_id) { shared { shared2 { schema2 } } } }
       source: $.product
       target: $.productById
       requirements:

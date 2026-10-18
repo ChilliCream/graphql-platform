@@ -21,24 +21,12 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_1 {
-        products {
-          brand {
-            name
-          }
-          id
-          name
-        }
-      }
+      query Op_123456789101112_1 { products { brand { name } id name } }
   - id: 2
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_2($__fusion_1_id: Int!, $__fusion_2_input: NameInput) {
-        productById(id: $__fusion_1_id) {
-          nameAndId(input: $__fusion_2_input)
-        }
-      }
+      query Op_123456789101112_2($__fusion_1_id: Int!, $__fusion_2_input: NameInput) { productById(id: $__fusion_1_id) { nameAndId(input: $__fusion_2_input) } }
     source: $.productById
     target: $.products
     requirements:

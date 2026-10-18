@@ -131,20 +131,12 @@ operationPlan:
       type: Operation
       schema: a
       operation: |
-        query Op_490e9345_1 {
-          books {
-            id
-          }
-        }
+        query Op_490e9345_1 { books { id } }
     - id: 2
       type: Operation
       schema: b
       operation: |
-        query Op_490e9345_2($__fusion_1_id: ID!) {
-          bookById(id: $__fusion_1_id) {
-            rating
-          }
-        }
+        query Op_490e9345_2($__fusion_1_id: ID!) { bookById(id: $__fusion_1_id) { rating } }
       source: $.bookById
       target: $.books
       requirements:

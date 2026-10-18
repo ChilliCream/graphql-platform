@@ -103,25 +103,14 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_dcf2affd_1($skip: Boolean!) {
-          productBySlug(slug: "product") {
-            name
-            review @skip(if: $skip) {
-              id
-            }
-          }
-        }
+        query testQuery_dcf2affd_1($skip: Boolean!) { productBySlug(slug: "product") { name review @skip(if: $skip) { id } } }
       forwardedVariables:
         - skip
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query testQuery_dcf2affd_2($__fusion_1_id: ID!) {
-          reviewById(id: $__fusion_1_id) {
-            title
-          }
-        }
+        query testQuery_dcf2affd_2($__fusion_1_id: ID!) { reviewById(id: $__fusion_1_id) { title } }
       source: $.reviewById
       target: $.productBySlug.review
       requirements:

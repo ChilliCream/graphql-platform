@@ -77,13 +77,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_26212815_1($s: Boolean!, $x: Boolean!) {
-          ... @skip(if: $s) {
-            a
-            b
-          }
-          c @include(if: $x)
-        }
+        query testQuery_26212815_1($s: Boolean!, $x: Boolean!) { ... @skip(if: $s) { a b } c @include(if: $x) }
       forwardedVariables:
         - s
         - x

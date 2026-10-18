@@ -251,11 +251,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_3f99ee57_1 {
-          product {
-            id
-          }
-        }
+        query Op_3f99ee57_1 { product { id } }
   deliveryGroups:
     - id: 0
       path: $.product
@@ -268,11 +264,7 @@ operationPlan:
           type: Operation
           schema: C
           operation: |
-            query Op_defer_2($__fusion_2_input: TotalInput!, $__fusion_3_id: ID!) {
-              productById(id: $__fusion_3_id) {
-                total(input: $__fusion_2_input)
-              }
-            }
+            query Op_defer_2($__fusion_2_input: TotalInput!, $__fusion_3_id: ID!) { productById(id: $__fusion_3_id) { total(input: $__fusion_2_input) } }
           source: $.productById
           target: $.product
           requirements:
@@ -293,11 +285,7 @@ operationPlan:
           type: Operation
           schema: A
           operation: |
-            query Op_defer_3($__fusion_4_id: ID!) {
-              productById(id: $__fusion_4_id) {
-                raw
-              }
-            }
+            query Op_defer_3($__fusion_4_id: ID!) { productById(id: $__fusion_4_id) { raw } }
           source: $.productById
           target: $.product
           requirements:
@@ -310,11 +298,7 @@ operationPlan:
           type: Operation
           schema: A
           operation: |
-            query Op_defer_4($__fusion_5_value: Int!, $__fusion_6_id: ID!) {
-              productById(id: $__fusion_6_id) {
-                computed(value: $__fusion_5_value)
-              }
-            }
+            query Op_defer_4($__fusion_5_value: Int!, $__fusion_6_id: ID!) { productById(id: $__fusion_6_id) { computed(value: $__fusion_5_value) } }
           source: $.productById
           target: $.product
           requirements:
@@ -331,11 +315,7 @@ operationPlan:
           type: Operation
           schema: B
           operation: |
-            query Op_defer_5($__fusion_7_id: ID!) {
-              productById(id: $__fusion_7_id) {
-                value
-              }
-            }
+            query Op_defer_5($__fusion_7_id: ID!) { productById(id: $__fusion_7_id) { value } }
           source: $.productById
           target: $.product
           requirements:
@@ -348,8 +328,4 @@ operationPlan:
           type: Operation
           schema: A
           operation: |
-            query Op_defer_7 {
-              product {
-                id
-              }
-            }
+            query Op_defer_7 { product { id } }

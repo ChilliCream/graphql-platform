@@ -115,27 +115,13 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query Op_f71a6d9f_2 {
-          node(id: "UHJvZHVjdDox") {
-            __typename
-            id
-          }
-        }
+        query Op_f71a6d9f_2 { node(id: "UHJvZHVjdDox") { __typename id } }
       dependencies:
         - id: 1
     - id: 3
       type: Operation
       schema: B
       operation: |
-        query Op_f71a6d9f_3 {
-          node(id: "UHJvZHVjdDox") {
-            __typename
-            ... on Product {
-              __typename
-              id
-              name
-            }
-          }
-        }
+        query Op_f71a6d9f_3 { node(id: "UHJvZHVjdDox") { __typename ... on Product { __typename id name } } }
       dependencies:
         - id: 1

@@ -32,27 +32,14 @@ nodes:
   - id: 2
     type: Operation
     operation: |
-      query Op_123456789101112_2 {
-        node(id: "test-id") {
-          __typename
-        }
-      }
+      query Op_123456789101112_2 { node(id: "test-id") { __typename } }
     dependencies:
       - id: 1
   - id: 3
     type: Operation
     schema: accounts
     operation: |
-      query Op_123456789101112_3 {
-        node(id: "test-id") {
-          __typename
-          ... on User {
-            __typename
-            id
-            email
-          }
-        }
-      }
+      query Op_123456789101112_3 { node(id: "test-id") { __typename ... on User { __typename id email } } }
     dependencies:
       - id: 1
       - id: 2
@@ -60,14 +47,7 @@ nodes:
     type: Operation
     schema: contributors
     operation: |
-      query Op_123456789101112_4($__fusion_1_id: ID!) {
-        node(id: $__fusion_1_id) {
-          __typename
-          ... on User {
-            name
-          }
-        }
-      }
+      query Op_123456789101112_4($__fusion_1_id: ID!) { node(id: $__fusion_1_id) { __typename ... on User { name } } }
     source: $.node<User>
     target: $.node<User>
     requirements:

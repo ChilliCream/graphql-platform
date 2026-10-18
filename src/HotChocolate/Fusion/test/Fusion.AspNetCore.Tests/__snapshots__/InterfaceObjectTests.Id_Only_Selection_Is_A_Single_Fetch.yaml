@@ -110,8 +110,4 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_751f491c_1 {
-          trendingMedia {
-            id
-          }
-        }
+        query testQuery_751f491c_1 { trendingMedia { id } }

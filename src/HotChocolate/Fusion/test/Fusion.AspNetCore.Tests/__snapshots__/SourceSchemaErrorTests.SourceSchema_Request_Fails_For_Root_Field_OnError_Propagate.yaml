@@ -66,8 +66,4 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_14c79a43_1 {
-          nullableTopProduct {
-            price
-          }
-        }
+        query Op_14c79a43_1 { nullableTopProduct { price } }

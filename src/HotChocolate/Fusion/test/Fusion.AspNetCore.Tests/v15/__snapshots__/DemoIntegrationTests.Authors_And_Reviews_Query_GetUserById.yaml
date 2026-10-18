@@ -110,8 +110,4 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query GetUser_d81f16d6_1 {
-          userById(id: "VXNlcjox") {
-            id
-          }
-        }
+        query GetUser_d81f16d6_1 { userById(id: "VXNlcjox") { id } }

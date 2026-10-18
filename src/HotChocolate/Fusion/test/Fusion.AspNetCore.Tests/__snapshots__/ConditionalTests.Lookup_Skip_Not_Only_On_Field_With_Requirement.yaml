@@ -125,20 +125,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_3197e72d_1 {
-          productBySlug(slug: "product") {
-            id
-          }
-        }
+        query testQuery_3197e72d_1 { productBySlug(slug: "product") { id } }
     - id: 2
       type: Operation
       schema: C
       operation: |
-        query testQuery_3197e72d_2($__fusion_1_id: ID!) {
-          productById(id: $__fusion_1_id) {
-            price
-          }
-        }
+        query testQuery_3197e72d_2($__fusion_1_id: ID!) { productById(id: $__fusion_1_id) { price } }
       source: $.productById
       target: $.productBySlug
       requirements:
@@ -151,11 +143,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query testQuery_3197e72d_3($__fusion_2_size: Int!, $__fusion_3_id: ID!) {
-          productById(id: $__fusion_3_id) {
-            dimension(size: $__fusion_2_size)
-          }
-        }
+        query testQuery_3197e72d_3($__fusion_2_size: Int!, $__fusion_3_id: ID!) { productById(id: $__fusion_3_id) { dimension(size: $__fusion_2_size) } }
       source: $.productById
       target: $.productBySlug
       requirements:
@@ -175,11 +163,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_3197e72d_4($__fusion_4_id: ID!) {
-          productById(id: $__fusion_4_id) {
-            size
-          }
-        }
+        query testQuery_3197e72d_4($__fusion_4_id: ID!) { productById(id: $__fusion_4_id) { size } }
       source: $.productById
       target: $.productBySlug
       requirements:

@@ -647,47 +647,17 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query GetUser_c03cccb0_1 {
-          a: reviews {
-            body
-            author {
-              id
-            }
-          }
-          b: reviews {
-            body
-            author {
-              id
-            }
-          }
-        }
+        query GetUser_c03cccb0_1 { a: reviews { body author { id } } b: reviews { body author { id } } }
     - id: 2
       type: Operation
       schema: A
       operation: |
-        query GetUser_c03cccb0_2 {
-          users {
-            name
-            id
-          }
-        }
+        query GetUser_c03cccb0_2 { users { name id } }
     - id: 3
       type: Operation
       schema: B
       operation: |
-        query GetUser_c03cccb0_3($__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
-            __typename
-            ... on User {
-              reviews {
-                body
-                author {
-                  id
-                }
-              }
-            }
-          }
-        }
+        query GetUser_c03cccb0_3($__fusion_1_id: ID!) { node(id: $__fusion_1_id) { __typename ... on User { reviews { body author { id } } } } }
       source: $.node<User>
       target: $.users
       requirements:
@@ -700,14 +670,7 @@ operationPlan:
       type: OperationBatch
       schema: A
       operation: |
-        query GetUser_c03cccb0_4($__fusion_2_id: ID!) {
-          node(id: $__fusion_2_id) {
-            __typename
-            ... on User {
-              name
-            }
-          }
-        }
+        query GetUser_c03cccb0_4($__fusion_2_id: ID!) { node(id: $__fusion_2_id) { __typename ... on User { name } } }
       source: $.node<User>
       targets:
         - $.users.reviews.author

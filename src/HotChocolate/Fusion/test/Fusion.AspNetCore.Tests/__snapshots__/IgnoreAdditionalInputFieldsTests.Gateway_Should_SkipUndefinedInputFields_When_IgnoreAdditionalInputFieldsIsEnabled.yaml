@@ -68,8 +68,6 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_b9069d12_1($input: SearchInput!) {
-          search(input: $input)
-        }
+        query testQuery_b9069d12_1($input: SearchInput!) { search(input: $input) }
       forwardedVariables:
         - input

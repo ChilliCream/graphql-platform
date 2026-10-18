@@ -14,11 +14,6 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_1($include: Boolean) {
-        product {
-          id
-          price @include(if: $include)
-        }
-      }
+      query Op_123456789101112_1($include: Boolean) { product { id price @include(if: $include) } }
     forwardedVariables:
       - include

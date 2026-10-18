@@ -409,27 +409,12 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query TopProducts_ca09eae1_1 {
-          topProducts(first: 5) {
-            weight
-            id
-          }
-        }
+        query TopProducts_ca09eae1_1 { topProducts(first: 5) { weight id } }
     - id: 2
       type: Operation
       schema: D
       operation: |
-        query TopProducts_ca09eae1_2($__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
-            __typename
-            ... on Product {
-              deliveryEstimate(zip: "12345") {
-                min
-                max
-              }
-            }
-          }
-        }
+        query TopProducts_ca09eae1_2($__fusion_1_id: ID!) { node(id: $__fusion_1_id) { __typename ... on Product { deliveryEstimate(zip: "12345") { min max } } } }
       source: $.node<Product>
       target: $.topProducts
       requirements:
@@ -442,16 +427,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query TopProducts_ca09eae1_3($__fusion_2_id: ID!) {
-          node(id: $__fusion_2_id) {
-            __typename
-            ... on Product {
-              reviews {
-                body
-              }
-            }
-          }
-        }
+        query TopProducts_ca09eae1_3($__fusion_2_id: ID!) { node(id: $__fusion_2_id) { __typename ... on Product { reviews { body } } } }
       source: $.node<Product>
       target: $.topProducts
       requirements:

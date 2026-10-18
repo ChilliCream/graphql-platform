@@ -95,22 +95,13 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query Op_3e875180_2 {
-          node(id: "invalid") {
-            __typename
-          }
-        }
+        query Op_3e875180_2 { node(id: "invalid") { __typename } }
       dependencies:
         - id: 1
     - id: 3
       type: Operation
       schema: A
       operation: |
-        query Op_3e875180_3 {
-          node: discussionById(discussionId: "invalid") {
-            __typename
-            title
-          }
-        }
+        query Op_3e875180_3 { node: discussionById(discussionId: "invalid") { __typename title } }
       dependencies:
         - id: 1

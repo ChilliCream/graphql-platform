@@ -97,6 +97,4 @@ operationPlan:
       type: Operation
       schema: a
       operation: |
-        query Op_1d43df26_1 {
-          list
-        }
+        query Op_1d43df26_1 { list }

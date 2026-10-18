@@ -18,23 +18,12 @@ nodes:
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_1 {
-        trendingMedia {
-          id
-        }
-      }
+      query Op_123456789101112_1 { trendingMedia { id } }
   - id: 2
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!) {
-        mediaById(id: $__fusion_1_id) {
-          __typename
-          ... on Book {
-            id
-          }
-        }
-      }
+      query Op_123456789101112_2($__fusion_1_id: ID!) { mediaById(id: $__fusion_1_id) { __typename ... on Book { id } } }
     source: $.mediaById
     target: $.trendingMedia
     requirements:
@@ -47,11 +36,7 @@ nodes:
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_3($__fusion_2_id: ID!) {
-        mediaByKey(id: $__fusion_2_id) {
-          views
-        }
-      }
+      query Op_123456789101112_3($__fusion_2_id: ID!) { mediaByKey(id: $__fusion_2_id) { views } }
     source: $.mediaByKey
     target: $.trendingMedia<Book>
     requirements:

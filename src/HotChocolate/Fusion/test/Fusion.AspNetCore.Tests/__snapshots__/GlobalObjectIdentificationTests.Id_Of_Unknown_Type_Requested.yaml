@@ -95,22 +95,13 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query Op_bcaa1f52_2 {
-          node(id: "VXNlcjox") {
-            __typename
-          }
-        }
+        query Op_bcaa1f52_2 { node(id: "VXNlcjox") { __typename } }
       dependencies:
         - id: 1
     - id: 3
       type: Operation
       schema: A
       operation: |
-        query Op_bcaa1f52_3 {
-          node: discussionById(discussionId: "VXNlcjox") {
-            __typename
-            title
-          }
-        }
+        query Op_bcaa1f52_3 { node: discussionById(discussionId: "VXNlcjox") { __typename title } }
       dependencies:
         - id: 1

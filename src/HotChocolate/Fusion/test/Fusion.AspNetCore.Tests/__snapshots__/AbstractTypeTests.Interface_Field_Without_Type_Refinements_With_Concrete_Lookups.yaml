@@ -127,21 +127,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_fb4e28df_1 {
-          votable {
-            __typename
-            id
-          }
-        }
+        query Op_fb4e28df_1 { votable { __typename id } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query Op_fb4e28df_2($__fusion_1_id: ID!) {
-          discussionById(id: $__fusion_1_id) {
-            viewerCanVote
-          }
-        }
+        query Op_fb4e28df_2($__fusion_1_id: ID!) { discussionById(id: $__fusion_1_id) { viewerCanVote } }
       source: $.discussionById
       target: $.votable<Discussion>
       batchingGroupId: 4
@@ -155,11 +146,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_fb4e28df_3($__fusion_2_id: ID!) {
-          commentById(id: $__fusion_2_id) {
-            viewerCanVote
-          }
-        }
+        query Op_fb4e28df_3($__fusion_2_id: ID!) { commentById(id: $__fusion_2_id) { viewerCanVote } }
       source: $.commentById
       target: $.votable<Comment>
       batchingGroupId: 4

@@ -162,29 +162,14 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query GetUser_033679a6_1($shouldDefer: Boolean!) {
-          user(id: "1") {
-            name
-            ... @skip(if: $shouldDefer) {
-              id
-            }
-            id
-          }
-        }
+        query GetUser_033679a6_1($shouldDefer: Boolean!) { user(id: "1") { name ... @skip(if: $shouldDefer) { id } id } }
       forwardedVariables:
         - shouldDefer
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query GetUser_033679a6_2($__fusion_1_id: ID!) {
-          userById(id: $__fusion_1_id) {
-            reviews {
-              title
-              body
-            }
-          }
-        }
+        query GetUser_033679a6_2($__fusion_1_id: ID!) { userById(id: $__fusion_1_id) { reviews { title body } } }
       source: $.userById
       target: $.user
       requirements:
@@ -214,14 +199,7 @@ operationPlan:
           type: Operation
           schema: B
           operation: |
-            query GetUser_defer_1($__fusion_1_id: ID!) {
-              userById(id: $__fusion_1_id) {
-                reviews {
-                  title
-                  body
-                }
-              }
-            }
+            query GetUser_defer_1($__fusion_1_id: ID!) { userById(id: $__fusion_1_id) { reviews { title body } } }
           source: $.userById
           target: $.user
           requirements:

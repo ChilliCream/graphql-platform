@@ -219,32 +219,14 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        mutation createReview_df7efcac_1($input: CreateReviewInput!) {
-          createReview(input: $input) {
-            id
-            body
-            author {
-              id
-            }
-            product {
-              id
-            }
-          }
-        }
+        mutation createReview_df7efcac_1($input: CreateReviewInput!) { createReview(input: $input) { id body author { id } product { id } } }
       forwardedVariables:
         - input
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query createReview_df7efcac_2($__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
-            __typename
-            ... on Product {
-              name
-            }
-          }
-        }
+        query createReview_df7efcac_2($__fusion_1_id: ID!) { node(id: $__fusion_1_id) { __typename ... on Product { name } } }
       source: $.node<Product>
       target: $.createReview.product
       batchingGroupId: 4
@@ -258,14 +240,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query createReview_df7efcac_3($__fusion_2_id: ID!) {
-          node(id: $__fusion_2_id) {
-            __typename
-            ... on Author {
-              name
-            }
-          }
-        }
+        query createReview_df7efcac_3($__fusion_2_id: ID!) { node(id: $__fusion_2_id) { __typename ... on Author { name } } }
       source: $.node<Author>
       target: $.createReview.author
       batchingGroupId: 4

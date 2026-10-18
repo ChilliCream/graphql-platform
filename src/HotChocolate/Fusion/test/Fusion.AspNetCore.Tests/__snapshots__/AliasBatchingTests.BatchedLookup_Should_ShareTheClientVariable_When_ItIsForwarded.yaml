@@ -107,7 +107,7 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query Op_2fede843_Batch_af64ebbf6213e7bd(
+            query Op_2fede843_Batch_32a63dfbbc8eeef9(
               $postFix: String
               $_0___fusion_1_id: ID!
               $_1___fusion_1_id: ID!
@@ -172,22 +172,12 @@ operationPlan:
       type: Operation
       schema: a
       operation: |
-        query Op_2fede843_1 {
-          books {
-            author {
-              id
-            }
-          }
-        }
+        query Op_2fede843_1 { books { author { id } } }
     - id: 2
       type: Operation
       schema: b
       operation: |
-        query Op_2fede843_2($postFix: String, $__fusion_1_id: ID!) {
-          authorById(id: $__fusion_1_id) {
-            name(postFix: $postFix)
-          }
-        }
+        query Op_2fede843_2($postFix: String, $__fusion_1_id: ID!) { authorById(id: $__fusion_1_id) { name(postFix: $postFix) } }
       source: $.authorById
       target: $.books.author
       requirements:

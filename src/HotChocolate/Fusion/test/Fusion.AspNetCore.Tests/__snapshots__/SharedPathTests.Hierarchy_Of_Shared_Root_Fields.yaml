@@ -186,21 +186,9 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_58df2c1b_1 {
-          viewer {
-            settings {
-              schema1
-            }
-          }
-        }
+        query Op_58df2c1b_1 { viewer { settings { schema1 } } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query Op_58df2c1b_2 {
-          viewer {
-            settings {
-              schema2
-            }
-          }
-        }
+        query Op_58df2c1b_2 { viewer { settings { schema2 } } }

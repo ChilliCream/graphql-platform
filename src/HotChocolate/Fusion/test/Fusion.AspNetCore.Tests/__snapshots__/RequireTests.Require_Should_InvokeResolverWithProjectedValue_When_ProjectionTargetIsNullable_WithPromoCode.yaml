@@ -152,20 +152,12 @@ operationPlan:
       type: Operation
       schema: cart
       operation: |
-        query Op_640ade6c_1 {
-          cartById(id: "1") {
-            id
-          }
-        }
+        query Op_640ade6c_1 { cartById(id: "1") { id } }
     - id: 2
       type: Operation
       schema: cart
       operation: |
-        query Op_640ade6c_2($__fusion_1_promo: PromoInput, $__fusion_2_id: ID!) {
-          cartById(id: $__fusion_2_id) {
-            discountPercent(promo: $__fusion_1_promo)
-          }
-        }
+        query Op_640ade6c_2($__fusion_1_promo: PromoInput, $__fusion_2_id: ID!) { cartById(id: $__fusion_2_id) { discountPercent(promo: $__fusion_1_promo) } }
       source: $.cartById
       target: $.cartById
       requirements:
@@ -185,14 +177,7 @@ operationPlan:
       type: Operation
       schema: promotions
       operation: |
-        query Op_640ade6c_3($__fusion_3_id: ID!) {
-          cartById(id: $__fusion_3_id) {
-            promoCode {
-              discountPercent
-              isExpired
-            }
-          }
-        }
+        query Op_640ade6c_3($__fusion_3_id: ID!) { cartById(id: $__fusion_3_id) { promoCode { discountPercent isExpired } } }
       source: $.cartById
       target: $.cartById
       requirements:

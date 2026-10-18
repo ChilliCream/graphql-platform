@@ -16,20 +16,12 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_1 {
-        product(id: "1") {
-          id
-        }
-      }
+      query Op_123456789101112_1 { product(id: "1") { id } }
   - id: 3
     type: Operation
     schema: c
     operation: |
-      query Op_123456789101112_3($__fusion_2_price: Float!, $__fusion_3_id: ID!) {
-        productById(id: $__fusion_3_id) {
-          convertedPrice(price: $__fusion_2_price)
-        }
-      }
+      query Op_123456789101112_3($__fusion_2_price: Float!, $__fusion_3_id: ID!) { productById(id: $__fusion_3_id) { convertedPrice(price: $__fusion_2_price) } }
     source: $.productById
     target: $.product
     requirements:
@@ -46,12 +38,7 @@ nodes:
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_4($__fusion_4_id: ID!) {
-        productById(id: $__fusion_4_id) {
-          price
-          __typename
-        }
-      }
+      query Op_123456789101112_4($__fusion_4_id: ID!) { productById(id: $__fusion_4_id) { price __typename } }
     source: $.productById
     target: $.product
     requirements:

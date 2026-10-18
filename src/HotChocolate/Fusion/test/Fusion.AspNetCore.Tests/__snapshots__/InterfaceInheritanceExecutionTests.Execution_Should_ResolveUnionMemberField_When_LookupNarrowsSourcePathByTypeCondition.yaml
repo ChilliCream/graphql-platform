@@ -143,29 +143,12 @@ operationPlan:
       type: Operation
       schema: catalog
       operation: |
-        query Op_36f2cac2_1 {
-          search {
-            __typename
-            ... on Book {
-              id
-            }
-            ... on Movie {
-              id
-            }
-          }
-        }
+        query Op_36f2cac2_1 { search { __typename ... on Book { id } ... on Movie { id } } }
     - id: 2
       type: Operation
       schema: details
       operation: |
-        query Op_36f2cac2_2($__fusion_1_id: ID!) {
-          searchResultById(id: $__fusion_1_id) {
-            __typename
-            ... on Movie {
-              runtime
-            }
-          }
-        }
+        query Op_36f2cac2_2($__fusion_1_id: ID!) { searchResultById(id: $__fusion_1_id) { __typename ... on Movie { runtime } } }
       source: $.searchResultById<Movie>
       target: $.search<Movie>
       batchingGroupId: 4
@@ -179,14 +162,7 @@ operationPlan:
       type: Operation
       schema: details
       operation: |
-        query Op_36f2cac2_3($__fusion_2_id: ID!) {
-          searchResultById(id: $__fusion_2_id) {
-            __typename
-            ... on Book {
-              title
-            }
-          }
-        }
+        query Op_36f2cac2_3($__fusion_2_id: ID!) { searchResultById(id: $__fusion_2_id) { __typename ... on Book { title } } }
       source: $.searchResultById<Book>
       target: $.search<Book>
       batchingGroupId: 4

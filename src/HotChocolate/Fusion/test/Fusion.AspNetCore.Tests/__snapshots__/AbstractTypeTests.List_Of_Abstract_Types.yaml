@@ -164,15 +164,4 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_39311c2e_1 {
-          abstractTypes {
-            __typename
-            id
-            ... on Discussion {
-              title
-            }
-            ... on Author {
-              name
-            }
-          }
-        }
+        query Op_39311c2e_1 { abstractTypes { __typename id ... on Discussion { title } ... on Author { name } } }

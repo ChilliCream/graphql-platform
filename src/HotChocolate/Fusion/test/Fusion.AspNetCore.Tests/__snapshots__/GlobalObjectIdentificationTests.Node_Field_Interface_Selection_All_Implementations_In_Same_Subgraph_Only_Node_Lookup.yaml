@@ -96,40 +96,20 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query Op_a088b140_2 {
-          node(id: "T3JkZXIxOjE=") {
-            __typename
-          }
-        }
+        query Op_a088b140_2 { node(id: "T3JkZXIxOjE=") { __typename } }
       dependencies:
         - id: 1
     - id: 3
       type: Operation
       schema: A
       operation: |
-        query Op_a088b140_3 {
-          node(id: "T3JkZXIxOjE=") {
-            __typename
-            ... on Order2 {
-              __typename
-              name
-            }
-          }
-        }
+        query Op_a088b140_3 { node(id: "T3JkZXIxOjE=") { __typename ... on Order2 { __typename name } } }
       dependencies:
         - id: 1
     - id: 4
       type: Operation
       schema: A
       operation: |
-        query Op_a088b140_4 {
-          node(id: "T3JkZXIxOjE=") {
-            __typename
-            ... on Order1 {
-              __typename
-              name
-            }
-          }
-        }
+        query Op_a088b140_4 { node(id: "T3JkZXIxOjE=") { __typename ... on Order1 { __typename name } } }
       dependencies:
         - id: 1

@@ -275,29 +275,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query GetUser_f346d273_1 {
-          users {
-            name
-            id
-          }
-        }
+        query GetUser_f346d273_1 { users { name id } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query GetUser_f346d273_2($skip: Boolean!, $__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
-            __typename
-            ... on User {
-              reviews {
-                body
-                author @skip(if: $skip) {
-                  id
-                }
-              }
-            }
-          }
-        }
+        query GetUser_f346d273_2($skip: Boolean!, $__fusion_1_id: ID!) { node(id: $__fusion_1_id) { __typename ... on User { reviews { body author @skip(if: $skip) { id } } } } }
       source: $.node<User>
       target: $.users
       requirements:
@@ -312,15 +295,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query GetUser_f346d273_3($__fusion_2_id: ID!) {
-          node(id: $__fusion_2_id) {
-            __typename
-            ... on User {
-              name
-              birthdate
-            }
-          }
-        }
+        query GetUser_f346d273_3($__fusion_2_id: ID!) { node(id: $__fusion_2_id) { __typename ... on User { name birthdate } } }
       source: $.node<User>
       target: $.users.reviews.author
       requirements:

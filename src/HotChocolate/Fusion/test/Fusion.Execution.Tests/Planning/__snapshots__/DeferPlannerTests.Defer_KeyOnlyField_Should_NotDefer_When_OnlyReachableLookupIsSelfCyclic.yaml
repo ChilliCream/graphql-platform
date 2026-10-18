@@ -14,8 +14,4 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_1 {
-        users {
-          id
-        }
-      }
+      query Op_123456789101112_1 { users { id } }

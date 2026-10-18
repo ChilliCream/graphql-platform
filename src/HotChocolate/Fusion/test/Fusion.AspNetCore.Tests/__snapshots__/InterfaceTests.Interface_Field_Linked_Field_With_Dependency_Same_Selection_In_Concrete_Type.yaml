@@ -149,28 +149,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_77a61d25_1 {
-          authorable {
-            __typename
-            author {
-              id
-            }
-            ... on Discussion {
-              author {
-                id
-              }
-            }
-          }
-        }
+        query testQuery_77a61d25_1 { authorable { __typename author { id } ... on Discussion { author { id } } } }
     - id: 2
       type: OperationBatch
       schema: B
       operation: |
-        query testQuery_77a61d25_2($__fusion_1_id: ID!) {
-          authorById(id: $__fusion_1_id) {
-            displayName
-          }
-        }
+        query testQuery_77a61d25_2($__fusion_1_id: ID!) { authorById(id: $__fusion_1_id) { displayName } }
       source: $.authorById
       targets:
         - $.authorable<Discussion>.author

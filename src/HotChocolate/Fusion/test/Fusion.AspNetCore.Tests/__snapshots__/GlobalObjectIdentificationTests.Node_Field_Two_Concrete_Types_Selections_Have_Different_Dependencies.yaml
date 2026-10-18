@@ -191,11 +191,7 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query testQuery_c0cdf5d7_2($id: ID!) {
-          node(id: $id) {
-            __typename
-          }
-        }
+        query testQuery_c0cdf5d7_2($id: ID!) { node(id: $id) { __typename } }
       forwardedVariables:
         - id
       dependencies:
@@ -204,17 +200,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_c0cdf5d7_3($id: ID!) {
-          node(id: $id) {
-            __typename
-            ... on Review {
-              __typename
-              product {
-                id
-              }
-            }
-          }
-        }
+        query testQuery_c0cdf5d7_3($id: ID!) { node(id: $id) { __typename ... on Review { __typename product { id } } } }
       forwardedVariables:
         - id
       dependencies:
@@ -223,14 +209,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query testQuery_c0cdf5d7_4($__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
-            __typename
-            ... on Product {
-              name
-            }
-          }
-        }
+        query testQuery_c0cdf5d7_4($__fusion_1_id: ID!) { node(id: $__fusion_1_id) { __typename ... on Product { name } } }
       source: $.node<Product>
       target: $.node<Review>.product
       requirements:
@@ -243,17 +222,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_c0cdf5d7_5($id: ID!) {
-          node(id: $id) {
-            __typename
-            ... on Discussion {
-              __typename
-              product {
-                id
-              }
-            }
-          }
-        }
+        query testQuery_c0cdf5d7_5($id: ID!) { node(id: $id) { __typename ... on Discussion { __typename product { id } } } }
       forwardedVariables:
         - id
       dependencies:
@@ -262,14 +231,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query testQuery_c0cdf5d7_6($__fusion_2_id: ID!) {
-          node(id: $__fusion_2_id) {
-            __typename
-            ... on Product {
-              name
-            }
-          }
-        }
+        query testQuery_c0cdf5d7_6($__fusion_2_id: ID!) { node(id: $__fusion_2_id) { __typename ... on Product { name } } }
       source: $.node<Product>
       target: $.node<Discussion>.product
       requirements:

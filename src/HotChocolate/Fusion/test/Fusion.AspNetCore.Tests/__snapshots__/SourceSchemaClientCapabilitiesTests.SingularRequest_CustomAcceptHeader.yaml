@@ -83,8 +83,4 @@ operationPlan:
       type: Operation
       schema: a
       operation: |
-        query Op_7d0b6399_1 {
-          books {
-            title
-          }
-        }
+        query Op_7d0b6399_1 { books { title } }

@@ -14,12 +14,7 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_1 {
-        user(id: "1") {
-          name
-          id
-        }
-      }
+      query Op_123456789101112_1 { user(id: "1") { name id } }
 deliveryGroups:
   - id: 0
     path: $.user
@@ -41,12 +36,7 @@ incrementalPlans:
         type: Operation
         schema: b
         operation: |
-          query Op_defer_1($__fusion_1_id: ID!) {
-            userById(id: $__fusion_1_id) {
-              email
-              nickname
-            }
-          }
+          query Op_defer_1($__fusion_1_id: ID!) { userById(id: $__fusion_1_id) { email nickname } }
         source: $.userById
         target: $.user
         requirements:
@@ -59,11 +49,7 @@ incrementalPlans:
         type: Operation
         schema: a
         operation: |
-          query Op_defer_5 {
-            user(id: "1") {
-              id
-            }
-          }
+          query Op_defer_5 { user(id: "1") { id } }
   - deliveryGroupIds:
       - 1
     parentNodeId: 1
@@ -79,11 +65,7 @@ incrementalPlans:
         type: Operation
         schema: c
         operation: |
-          query Op_defer_2($__fusion_2_nickname: String!, $__fusion_3_id: ID!) {
-            userById(id: $__fusion_3_id) {
-              badge(nickname: $__fusion_2_nickname)
-            }
-          }
+          query Op_defer_2($__fusion_2_nickname: String!, $__fusion_3_id: ID!) { userById(id: $__fusion_3_id) { badge(nickname: $__fusion_2_nickname) } }
         source: $.userById
         target: $.user
         requirements:

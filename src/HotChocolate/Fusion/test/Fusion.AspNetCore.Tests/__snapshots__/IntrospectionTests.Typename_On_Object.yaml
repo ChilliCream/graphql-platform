@@ -202,10 +202,4 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_710e4ed3_1 {
-          books {
-            nodes {
-              __typename
-            }
-          }
-        }
+        query Op_710e4ed3_1 { books { nodes { __typename } } }

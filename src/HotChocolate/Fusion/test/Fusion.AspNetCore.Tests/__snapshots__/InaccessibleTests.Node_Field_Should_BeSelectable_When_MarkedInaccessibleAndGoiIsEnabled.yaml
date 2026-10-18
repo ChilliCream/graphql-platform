@@ -101,10 +101,6 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query Op_deb478b6_2 {
-          node(id: "UmV2aWV3OjE=") {
-            __typename
-          }
-        }
+        query Op_deb478b6_2 { node(id: "UmV2aWV3OjE=") { __typename } }
       dependencies:
         - id: 1

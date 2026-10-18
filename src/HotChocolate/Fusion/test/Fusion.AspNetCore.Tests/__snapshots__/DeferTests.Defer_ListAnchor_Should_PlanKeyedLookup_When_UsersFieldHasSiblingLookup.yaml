@@ -206,11 +206,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_ffeee14c_1 {
-          users {
-            id
-          }
-        }
+        query Op_ffeee14c_1 { users { id } }
   deliveryGroups:
     - id: 0
       path: $.users
@@ -227,12 +223,7 @@ operationPlan:
           type: Operation
           schema: A
           operation: |
-            query Op_defer_1($__fusion_1_id: ID!) {
-              userById(id: $__fusion_1_id) {
-                id
-                name
-              }
-            }
+            query Op_defer_1($__fusion_1_id: ID!) { userById(id: $__fusion_1_id) { id name } }
           source: $.userById
           target: $.users
           requirements:

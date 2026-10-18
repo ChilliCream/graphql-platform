@@ -14,12 +14,7 @@ nodes:
     type: Operation
     schema: A
     operation: |
-      query Op_123456789101112_1($includeMedia: Boolean!, $skipPublication: Boolean!) {
-        book {
-          id @include(if: $includeMedia)
-          title @skip(if: $skipPublication)
-        }
-      }
+      query Op_123456789101112_1($includeMedia: Boolean!, $skipPublication: Boolean!) { book { id @include(if: $includeMedia) title @skip(if: $skipPublication) } }
     forwardedVariables:
       - includeMedia
       - skipPublication

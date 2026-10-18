@@ -169,17 +169,9 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_cd73759d_1 {
-          reviews {
-            body
-          }
-        }
+        query Op_cd73759d_1 { reviews { body } }
     - id: 2
       type: Operation
       schema: A
       operation: |
-        query Op_cd73759d_2 {
-          users {
-            id
-          }
-        }
+        query Op_cd73759d_2 { users { id } }

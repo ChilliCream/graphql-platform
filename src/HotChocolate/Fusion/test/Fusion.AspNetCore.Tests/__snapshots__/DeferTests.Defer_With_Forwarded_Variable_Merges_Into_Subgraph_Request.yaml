@@ -185,11 +185,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query GetUserPosts_ca271134_1 {
-          user(id: "1") {
-            id
-          }
-        }
+        query GetUserPosts_ca271134_1 { user(id: "1") { id } }
   deliveryGroups:
     - id: 0
       path: $.user
@@ -207,13 +203,7 @@ operationPlan:
           type: Operation
           schema: B
           operation: |
-            query GetUserPosts_defer_1($limit: Int!, $__fusion_1_id: ID!) {
-              userById(id: $__fusion_1_id) {
-                posts(first: $limit) {
-                  id
-                }
-              }
-            }
+            query GetUserPosts_defer_1($limit: Int!, $__fusion_1_id: ID!) { userById(id: $__fusion_1_id) { posts(first: $limit) { id } } }
           source: $.userById
           target: $.user
           requirements:

@@ -61,11 +61,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_23031ae0_1 {
-          viewer {
-            fieldA
-          }
-        }
+        query testQuery_23031ae0_1 { viewer { fieldA } }
       conditions:
         - variable: $skip
           passingValue: false
@@ -73,11 +69,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_23031ae0_2 {
-          viewer {
-            fieldB
-          }
-        }
+        query testQuery_23031ae0_2 { viewer { fieldB } }
       conditions:
         - variable: $skip
           passingValue: false

@@ -14,12 +14,7 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      mutation Op_123456789101112_1 {
-        createUser(name: "test") {
-          name
-          id
-        }
-      }
+      mutation Op_123456789101112_1 { createUser(name: "test") { name id } }
 deliveryGroups:
   - id: 0
     path: $.createUser
@@ -36,11 +31,7 @@ incrementalPlans:
         type: Operation
         schema: b
         operation: |
-          query Op_defer_2($__fusion_1_id: ID!) {
-            userById(id: $__fusion_1_id) {
-              email
-            }
-          }
+          query Op_defer_2($__fusion_1_id: ID!) { userById(id: $__fusion_1_id) { email } }
         source: $.userById
         target: $.createUser
         requirements:

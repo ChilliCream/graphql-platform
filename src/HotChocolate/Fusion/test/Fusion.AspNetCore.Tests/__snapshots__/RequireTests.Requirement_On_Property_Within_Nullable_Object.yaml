@@ -139,20 +139,12 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_b05a9c48_1 {
-          productById(id: "1") {
-            id
-          }
-        }
+        query Op_b05a9c48_1 { productById(id: "1") { id } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query Op_b05a9c48_2($__fusion_1_nullableArgument: String, $__fusion_2_id: ID!) {
-          productById(id: $__fusion_2_id) {
-            fieldWithNullableRequirement(nullableArgument: $__fusion_1_nullableArgument)
-          }
-        }
+        query Op_b05a9c48_2($__fusion_1_nullableArgument: String, $__fusion_2_id: ID!) { productById(id: $__fusion_2_id) { fieldWithNullableRequirement(nullableArgument: $__fusion_1_nullableArgument) } }
       source: $.productById
       target: $.productById
       requirements:
@@ -169,13 +161,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_b05a9c48_3($__fusion_3_id: ID!) {
-          productById(id: $__fusion_3_id) {
-            nullableObject {
-              field
-            }
-          }
-        }
+        query Op_b05a9c48_3($__fusion_3_id: ID!) { productById(id: $__fusion_3_id) { nullableObject { field } } }
       source: $.productById
       target: $.productById
       requirements:

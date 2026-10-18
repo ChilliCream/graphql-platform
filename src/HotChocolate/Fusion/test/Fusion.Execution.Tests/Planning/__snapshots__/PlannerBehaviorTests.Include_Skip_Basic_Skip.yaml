@@ -17,24 +17,12 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_1 {
-        product {
-          price
-          id
-        }
-      }
+      query Op_123456789101112_1 { product { price id } }
   - id: 3
     type: Operation
     schema: c
     operation: |
-      query Op_123456789101112_3(
-        $__fusion_2_isExpensive: Boolean!
-          $__fusion_3_id: ID!
-      ) {
-        productById(id: $__fusion_3_id) {
-          skip(isExpensive: $__fusion_2_isExpensive)
-        }
-      }
+      query Op_123456789101112_3($__fusion_2_isExpensive: Boolean!, $__fusion_3_id: ID!) { productById(id: $__fusion_3_id) { skip(isExpensive: $__fusion_2_isExpensive) } }
     source: $.productById
     target: $.product
     requirements:
@@ -54,11 +42,7 @@ nodes:
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_4($__fusion_4_id: ID!, $__fusion_5_price: Float!) {
-        productById(id: $__fusion_4_id) {
-          isExpensive(price: $__fusion_5_price)
-        }
-      }
+      query Op_123456789101112_4($__fusion_4_id: ID!, $__fusion_5_price: Float!) { productById(id: $__fusion_4_id) { isExpensive(price: $__fusion_5_price) } }
     source: $.productById
     target: $.product
     requirements:

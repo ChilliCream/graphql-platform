@@ -107,12 +107,4 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_cb97e457_1 {
-          someField {
-            __typename
-            value
-            ... on ConcreteTypeA {
-              specificToA
-            }
-          }
-        }
+        query Op_cb97e457_1 { someField { __typename value ... on ConcreteTypeA { specificToA } } }

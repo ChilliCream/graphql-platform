@@ -279,12 +279,7 @@ operationPlan:
       type: Operation
       schema: accounts
       operation: |
-        query Op_dd49dded_1 {
-          users {
-            name
-            id
-          }
-        }
+        query Op_dd49dded_1 { users { name id } }
   deliveryGroups:
     - id: 0
       path: $.users
@@ -304,11 +299,7 @@ operationPlan:
           type: Operation
           schema: reviews
           operation: |
-            query Op_defer_1($__fusion_1_id: ID!) {
-              userById(id: $__fusion_1_id) {
-                reviewCount
-              }
-            }
+            query Op_defer_1($__fusion_1_id: ID!) { userById(id: $__fusion_1_id) { reviewCount } }
           source: $.userById
           target: $.users
           requirements:
@@ -321,11 +312,7 @@ operationPlan:
           type: Operation
           schema: accounts
           operation: |
-            query Op_defer_2($__fusion_2_id: ID!) {
-              userById(id: $__fusion_2_id) {
-                birthdate
-              }
-            }
+            query Op_defer_2($__fusion_2_id: ID!) { userById(id: $__fusion_2_id) { birthdate } }
           source: $.userById
           target: $.users
           requirements:

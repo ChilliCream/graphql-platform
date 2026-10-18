@@ -280,28 +280,12 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_e46e034a_1 {
-          users {
-            posts {
-              __typename
-              ... on Photo {
-                id
-              }
-              ... on Discussion {
-                subgraph1
-              }
-            }
-          }
-        }
+        query testQuery_e46e034a_1 { users { posts { __typename ... on Photo { id } ... on Discussion { subgraph1 } } } }
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query testQuery_e46e034a_2($__fusion_1_id: ID!) {
-          photoById(id: $__fusion_1_id) {
-            subgraph2
-          }
-        }
+        query testQuery_e46e034a_2($__fusion_1_id: ID!) { photoById(id: $__fusion_1_id) { subgraph2 } }
       source: $.photoById
       target: $.users.posts<Photo>
       requirements:

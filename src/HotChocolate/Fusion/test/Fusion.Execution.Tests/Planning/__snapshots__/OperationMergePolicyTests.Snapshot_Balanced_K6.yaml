@@ -93,39 +93,17 @@ nodes:
     type: Operation
     schema: b
     operation: |
-      query TestQuery_123456789101112_1 {
-        topProducts(first: 5) {
-          name
-          price
-          upc
-          weight
-        }
-      }
+      query TestQuery_123456789101112_1 { topProducts(first: 5) { name price upc weight } }
   - id: 2
     type: Operation
     schema: a
     operation: |
-      query TestQuery_123456789101112_2 {
-        users {
-          id
-          username
-          name
-        }
-      }
+      query TestQuery_123456789101112_2 { users { id username name } }
   - id: 10
     type: Operation
     schema: d
     operation: |
-      query TestQuery_123456789101112_10(
-        $__fusion_10_upc: ID!
-        $__fusion_11_price: Long!
-        $__fusion_11_weight: Long!
-      ) {
-        productByUpc(upc: $__fusion_10_upc) {
-          inStock
-          shippingEstimate(weight: $__fusion_11_weight, price: $__fusion_11_price)
-        }
-      }
+      query TestQuery_123456789101112_10($__fusion_10_upc: ID!, $__fusion_11_price: Long!, $__fusion_11_weight: Long!) { productByUpc(upc: $__fusion_10_upc) { inStock shippingEstimate(weight: $__fusion_11_weight, price: $__fusion_11_price) } }
     source: $.productByUpc
     target: $.topProducts
     requirements:
@@ -144,31 +122,7 @@ nodes:
     type: Operation
     schema: c
     operation: |
-      query TestQuery_123456789101112_3($__fusion_1_id: ID!) {
-        user(id: $__fusion_1_id) {
-          reviews {
-            id
-            body
-            product {
-              upc
-              reviews {
-                id
-                body
-                author {
-                  id
-                  reviews {
-                    id
-                    body
-                    product {
-                      upc
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+      query TestQuery_123456789101112_3($__fusion_1_id: ID!) { user(id: $__fusion_1_id) { reviews { id body product { upc reviews { id body author { id reviews { id body product { upc } } } } } } } }
     source: $.user
     target: $.users
     batchingGroupId: 14
@@ -182,24 +136,7 @@ nodes:
     type: Operation
     schema: c
     operation: |
-      query TestQuery_123456789101112_9($__fusion_9_upc: ID!) {
-        product(upc: $__fusion_9_upc) {
-          reviews {
-            id
-            body
-            author {
-              id
-              reviews {
-                id
-                body
-                product {
-                  upc
-                }
-              }
-            }
-          }
-        }
-      }
+      query TestQuery_123456789101112_9($__fusion_9_upc: ID!) { product(upc: $__fusion_9_upc) { reviews { id body author { id reviews { id body product { upc } } } } } }
     source: $.product
     target: $.topProducts
     batchingGroupId: 14
@@ -213,13 +150,7 @@ nodes:
     type: OperationBatch
     schema: b
     operation: |
-      query TestQuery_123456789101112_4($__fusion_2_upc: ID!) {
-        product(upc: $__fusion_2_upc) {
-          name
-          price
-          weight
-        }
-      }
+      query TestQuery_123456789101112_4($__fusion_2_upc: ID!) { product(upc: $__fusion_2_upc) { name price weight } }
     source: $.product
     targets:
       - $.users.reviews.product
@@ -237,16 +168,7 @@ nodes:
     type: OperationBatch
     schema: d
     operation: |
-      query TestQuery_123456789101112_5(
-        $__fusion_3_upc: ID!
-        $__fusion_4_price: Long!
-        $__fusion_4_weight: Long!
-      ) {
-        productByUpc(upc: $__fusion_3_upc) {
-          inStock
-          shippingEstimate(weight: $__fusion_4_weight, price: $__fusion_4_price)
-        }
-      }
+      query TestQuery_123456789101112_5($__fusion_3_upc: ID!, $__fusion_4_price: Long!, $__fusion_4_weight: Long!) { productByUpc(upc: $__fusion_3_upc) { inStock shippingEstimate(weight: $__fusion_4_weight, price: $__fusion_4_price) } }
     source: $.productByUpc
     targets:
       - $.users.reviews.product
@@ -271,12 +193,7 @@ nodes:
     type: OperationBatch
     schema: a
     operation: |
-      query TestQuery_123456789101112_6($__fusion_5_id: ID!) {
-        user(id: $__fusion_5_id) {
-          username
-          name
-        }
-      }
+      query TestQuery_123456789101112_6($__fusion_5_id: ID!) { user(id: $__fusion_5_id) { username name } }
     source: $.user
     targets:
       - $.users.reviews.product.reviews.author

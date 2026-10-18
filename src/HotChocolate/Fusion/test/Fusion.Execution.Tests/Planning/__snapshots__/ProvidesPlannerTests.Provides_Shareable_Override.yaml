@@ -17,12 +17,4 @@ nodes:
     type: Operation
     schema: products
     operation: |
-      query Op_123456789101112_1 {
-        products {
-          reviews {
-            author {
-              displayName
-            }
-          }
-        }
-      }
+      query Op_123456789101112_1 { products { reviews { author { displayName } } } }

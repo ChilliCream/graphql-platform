@@ -110,8 +110,4 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query GetUser_3fe4ea3e_1 {
-          userById(id: 1) {
-            id
-          }
-        }
+        query GetUser_3fe4ea3e_1 { userById(id: 1) { id } }

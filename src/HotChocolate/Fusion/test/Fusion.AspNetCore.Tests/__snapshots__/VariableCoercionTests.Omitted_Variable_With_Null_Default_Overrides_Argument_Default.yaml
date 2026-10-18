@@ -55,8 +55,6 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_dcfd4e86_1($value: Int = null) {
-          field(arg: $value)
-        }
+        query testQuery_dcfd4e86_1($value: Int = null) { field(arg: $value) }
       forwardedVariables:
         - value

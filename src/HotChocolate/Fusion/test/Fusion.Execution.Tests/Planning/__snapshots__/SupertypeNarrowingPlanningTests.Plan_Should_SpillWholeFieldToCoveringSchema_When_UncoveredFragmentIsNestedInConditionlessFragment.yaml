@@ -19,16 +19,6 @@ nodes:
     type: Operation
     schema: A
     operation: |
-      query Op_123456789101112_1($includeReview: Boolean!) {
-        featured {
-          __typename
-          ... on Product {
-            name
-          }
-          ... on Review @include(if: $includeReview) {
-            rating
-          }
-        }
-      }
+      query Op_123456789101112_1($includeReview: Boolean!) { featured { __typename ... on Product { name } ... on Review @include(if: $includeReview) { rating } } }
     forwardedVariables:
       - includeReview

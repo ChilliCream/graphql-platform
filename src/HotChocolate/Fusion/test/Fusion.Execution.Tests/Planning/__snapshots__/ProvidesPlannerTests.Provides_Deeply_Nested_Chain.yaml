@@ -19,14 +19,4 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_1 {
-        root {
-          level1 {
-            level2 {
-              level3 {
-                value
-              }
-            }
-          }
-        }
-      }
+      query Op_123456789101112_1 { root { level1 { level2 { level3 { value } } } } }

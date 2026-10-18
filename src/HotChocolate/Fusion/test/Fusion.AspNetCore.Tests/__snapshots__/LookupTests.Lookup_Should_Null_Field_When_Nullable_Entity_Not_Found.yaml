@@ -217,29 +217,12 @@ operationPlan:
       type: Operation
       schema: a
       operation: |
-        query Op_12ec73ed_1 {
-          resources {
-            displayImage {
-              originId
-              origin
-            }
-          }
-        }
+        query Op_12ec73ed_1 { resources { displayImage { originId origin } } }
     - id: 2
       type: Operation
       schema: b
       operation: |
-        query Op_12ec73ed_2(
-          $__fusion_1_origin: FileOrigin!
-          $__fusion_1_originId: UUID!
-        ) {
-          fileByOriginIdAndOrigin(
-            originId: $__fusion_1_originId
-            origin: $__fusion_1_origin
-          ) {
-            id
-          }
-        }
+        query Op_12ec73ed_2($__fusion_1_origin: FileOrigin!, $__fusion_1_originId: UUID!) { fileByOriginIdAndOrigin(originId: $__fusion_1_originId, origin: $__fusion_1_origin) { id } }
       source: $.fileByOriginIdAndOrigin
       target: $.resources.displayImage
       requirements:

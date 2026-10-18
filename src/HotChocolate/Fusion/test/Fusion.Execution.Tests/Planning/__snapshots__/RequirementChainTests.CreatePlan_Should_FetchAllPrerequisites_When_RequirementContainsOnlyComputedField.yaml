@@ -16,20 +16,12 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_1 {
-        product {
-          id
-        }
-      }
+      query Op_123456789101112_1 { product { id } }
   - id: 3
     type: Operation
     schema: c
     operation: |
-      query Op_123456789101112_3($__fusion_2_input: TotalInput!, $__fusion_3_id: ID!) {
-        productById(id: $__fusion_3_id) {
-          total(input: $__fusion_2_input)
-        }
-      }
+      query Op_123456789101112_3($__fusion_2_input: TotalInput!, $__fusion_3_id: ID!) { productById(id: $__fusion_3_id) { total(input: $__fusion_2_input) } }
     source: $.productById
     target: $.product
     requirements:
@@ -48,11 +40,7 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_5($__fusion_5_value: Int!, $__fusion_6_id: ID!) {
-        productById(id: $__fusion_6_id) {
-          computed(value: $__fusion_5_value)
-        }
-      }
+      query Op_123456789101112_5($__fusion_5_value: Int!, $__fusion_6_id: ID!) { productById(id: $__fusion_6_id) { computed(value: $__fusion_5_value) } }
     source: $.productById
     target: $.product
     requirements:
@@ -69,11 +57,7 @@ nodes:
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_6($__fusion_7_id: ID!) {
-        productById(id: $__fusion_7_id) {
-          value
-        }
-      }
+      query Op_123456789101112_6($__fusion_7_id: ID!) { productById(id: $__fusion_7_id) { value } }
     source: $.productById
     target: $.product
     requirements:

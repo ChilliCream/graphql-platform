@@ -22,16 +22,7 @@ nodes:
     type: Operation
     schema: cart
     operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_price: Float!
-        $__fusion_2_id: ID!
-        $__fusion_4_price: Float!
-      ) {
-        cartItemById(id: $__fusion_2_id) {
-          u2: unitPrice(price: $__fusion_1_price)
-          unitPrice(price: $__fusion_4_price)
-        }
-      }
+      query Op_123456789101112_2($__fusion_1_price: Float!, $__fusion_2_id: ID!, $__fusion_4_price: Float!) { cartItemById(id: $__fusion_2_id) { u2: unitPrice(price: $__fusion_1_price) unitPrice(price: $__fusion_4_price) } }
     source: $.cartItemById
     target: $.item
     requirements:
@@ -51,13 +42,7 @@ nodes:
     type: OperationBatch
     schema: cart
     operation: |
-      query Op_123456789101112_1 {
-        item {
-          product {
-            id
-          }
-        }
-      }
+      query Op_123456789101112_1 { item { product { id } } }
     targets:
       - $
       - $
@@ -67,21 +52,13 @@ nodes:
     type: Operation
     schema: cart
     operation: |
-      query Op_123456789101112_5 {
-        item {
-          id
-        }
-      }
+      query Op_123456789101112_5 { item { id } }
     batchingGroupId: 8
   - id: 3
     type: OperationBatch
     schema: promotions
     operation: |
-      query Op_123456789101112_3($__fusion_3_id: ID!) {
-        productById(id: $__fusion_3_id) {
-          discountedPrice
-        }
-      }
+      query Op_123456789101112_3($__fusion_3_id: ID!) { productById(id: $__fusion_3_id) { discountedPrice } }
     source: $.productById
     targets:
       - $.item.product
