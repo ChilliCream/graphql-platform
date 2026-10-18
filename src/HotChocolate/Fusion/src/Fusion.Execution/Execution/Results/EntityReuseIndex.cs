@@ -35,6 +35,19 @@ internal sealed class EntityReuseIndex
     /// </returns>
     public static EntityReuseIndex? Create(OperationPlan plan)
     {
+        try
+        {
+            return CreateIndex(plan);
+        }
+        catch
+        {
+            // A plan that cannot be analyzed executes without entity reuse.
+            return null;
+        }
+    }
+
+    private static EntityReuseIndex? CreateIndex(OperationPlan plan)
+    {
         if (plan.Operation.Definition.Operation is not OperationType.Query
             || !plan.IncrementalPlans.IsDefaultOrEmpty
             || !plan.DeliveryGroups.IsDefaultOrEmpty)
@@ -289,9 +302,23 @@ internal sealed class EntityReuseIndex
         {
             if (!producerSelectionSet.TryGetSelection(fieldName, out var producerSelection)
                 || producerSelection.IsConditional
+                || !producerSelection.Field.Name.Equals(fieldName, StringComparison.Ordinal)
                 || !IsWrittenOnlyBy(writers, path, fieldName, dependencies))
             {
                 return false;
+            }
+
+            // The producer must hold the requirement field itself, not an alias of another field.
+            foreach (var targetSelectionSet in targetSelectionSets)
+            {
+                targetSelectionSet.TryGetSelection(fieldName, out var targetSelection);
+
+                if (targetSelection is null
+                    || !ReferenceEquals(targetSelection.Field, producerSelection.Field)
+                    || !HaveSameArguments(targetSelection, producerSelection))
+                {
+                    return false;
+                }
             }
         }
 

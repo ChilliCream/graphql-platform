@@ -905,7 +905,10 @@ AddErrors_Next:
                 requestVariables,
                 requiredData);
 
-            if (variableValueSets.IsEmpty)
+            // Entities are only reused while the result has no errors.
+            if (variableValueSets.IsEmpty
+                || _errors is { Count: > 0 }
+                || _pocketedErrors is { Count: > 0 })
             {
                 return variableValueSets;
             }

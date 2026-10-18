@@ -1,5 +1,8 @@
 using System.Text.Json;
+using HotChocolate.Resolvers;
 using HotChocolate.Transport.Http;
+using HotChocolate.Types.Composite;
+using HotChocolate.Types.Relay;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -147,6 +150,76 @@ public sealed class EntityReuseTests : FusionTestBase
             CountRequests(gateway));
     }
 
+    [Fact]
+    public async Task Execute_Lookup_Should_FetchEntity_When_ProducerAliasesKeyField()
+    {
+        // arrange
+        using var accountsApi = CreateSourceSchema(
+            "accounts-api",
+            builder => builder.AddQueryType<AliasAccountsQuery>(d => d.Name("Query")));
+        using var reviewsApi = CreateSourceSchema(
+            "reviews-api",
+            builder => builder.AddQueryType<AliasReviewsQuery>(d => d.Name("Query")));
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("accounts-api", accountsApi), ("reviews-api", reviewsApi)]);
+        using var gatewayWithoutReuse = await CreateCompositeSchemaAsync(
+            [("accounts-api", accountsApi), ("reviews-api", reviewsApi)],
+            configureGatewayBuilder: builder => builder.ModifyOptions(options => options.EnableEntityReuse = false));
+
+        // Alice's username equals Bob's id, and users returns the username under the response name id.
+        const string query =
+            """
+            {
+              users { id: username email name reviews { author { name } } }
+            }
+            """;
+
+        // act
+        var data = await ExecuteAsync(gateway, query);
+        var dataWithoutReuse = await ExecuteAsync(gatewayWithoutReuse, query);
+
+        // assert
+        Assert.Equal(dataWithoutReuse, data);
+        data.MatchInlineSnapshot(
+            """
+            {"users":[{"id":"2","email":"alice@example.com","name":"Alice","reviews":[{"author":{"name":"Bob"}}]},{"id":"bob","email":"bob@example.com","name":"Bob","reviews":[]}]}
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_Lookup_Should_KeepFieldErrors_When_ProducerFieldHasError()
+    {
+        // arrange
+        using var accountsApi = CreateSourceSchema(
+            "accounts-api",
+            builder => builder.AddQueryType<ErrorAccountsQuery>(d => d.Name("Query")));
+        using var reviewsApi = CreateReviewsApi();
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("accounts-api", accountsApi), ("reviews-api", reviewsApi)]);
+        using var gatewayWithoutReuse = await CreateCompositeSchemaAsync(
+            [("accounts-api", accountsApi), ("reviews-api", reviewsApi)],
+            configureGatewayBuilder: builder => builder.ModifyOptions(options => options.EnableEntityReuse = false));
+
+        // name returns a value and reports an error.
+        const string query =
+            """
+            {
+              users { id name reviews { author { name } } }
+            }
+            """;
+
+        // act
+        var data = await ExecuteAsync(gateway, query);
+        var dataWithoutReuse = await ExecuteAsync(gatewayWithoutReuse, query);
+
+        // assert
+        Assert.Equal(dataWithoutReuse, data);
+        data.MatchInlineSnapshot(
+            """
+            {"users":[{"id":"1","name":"Uri Goldshtein","reviews":[{"author":{"name":"Uri Goldshtein"}},{"author":{"name":"Uri Goldshtein"}}]}]}[{"message":"NAME_WARNING","path":["users",0,"name"]},{"message":"NAME_WARNING","path":["users",0,"reviews",0,"author","name"]},{"message":"NAME_WARNING","path":["users",0,"reviews",1,"author","name"]}]
+            """);
+    }
+
     private Task<Gateway> CreateGatewayAsync(
         TestServer accountsApi,
         TestServer inventoryApi,
@@ -194,11 +267,14 @@ public sealed class EntityReuseTests : FusionTestBase
 
         using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
+        var data = response.Data.ValueKind is JsonValueKind.Undefined
+            ? string.Empty
+            : response.Data.GetRawText();
         var errors = response.Errors.ValueKind is JsonValueKind.Undefined
             ? string.Empty
             : response.Errors.GetRawText();
 
-        return response.Data.GetRawText() + errors;
+        return data + errors;
     }
 
     private static string CountRequests(Gateway gateway)
@@ -207,4 +283,110 @@ public sealed class EntityReuseTests : FusionTestBase
             gateway.Interactions
                 .OrderBy(t => t.Key, StringComparer.Ordinal)
                 .Select(t => $"{t.Key}: {t.Value.Count}"));
+
+    public sealed class AliasAccountsQuery
+    {
+        private static readonly List<AliasAccountUser> s_users =
+        [
+            new() { Id = "1", Email = "alice@example.com", Username = "2", Name = "Alice" },
+            new() { Id = "2", Email = "bob@example.com", Username = "bob", Name = "Bob" }
+        ];
+
+        public List<AliasAccountUser> GetUsers() => s_users;
+
+        [Lookup]
+        public AliasAccountUser? GetUser([ID] string id)
+            => s_users.FirstOrDefault(t => t.Id == id);
+    }
+
+    [GraphQLName("User")]
+    public sealed class AliasAccountUser
+    {
+        [ID]
+        public required string Id { get; init; }
+
+        [Shareable]
+        public required string Email { get; init; }
+
+        public required string Username { get; init; }
+
+        public required string Name { get; init; }
+    }
+
+    public sealed class AliasReviewsQuery
+    {
+        [Lookup, Internal]
+        public AliasReviewUser? GetUserByEmail(string email)
+            => AliasReviewUser.ByEmail(email);
+    }
+
+    [GraphQLName("User")]
+    public sealed class AliasReviewUser
+    {
+        private static readonly Dictionary<string, string> s_emailById = new()
+        {
+            ["1"] = "alice@example.com",
+            ["2"] = "bob@example.com"
+        };
+
+        [ID]
+        [Shareable]
+        public required string Id { get; init; }
+
+        [Shareable]
+        public required string Email { get; init; }
+
+        public IEnumerable<AliasReview> GetReviews()
+            => Id == "1" ? [new AliasReview { Id = "1", AuthorId = "2" }] : [];
+
+        public static AliasReviewUser? ByEmail(string email)
+            => s_emailById.FirstOrDefault(t => t.Value == email) is { Key: { } id }
+                ? new AliasReviewUser { Id = id, Email = email }
+                : null;
+
+        public static AliasReviewUser ById(string id)
+            => new() { Id = id, Email = s_emailById[id] };
+    }
+
+    [GraphQLName("Review")]
+    public sealed class AliasReview
+    {
+        [ID]
+        public required string Id { get; init; }
+
+        public required string AuthorId { get; init; }
+
+        public AliasReviewUser GetAuthor() => AliasReviewUser.ById(AuthorId);
+    }
+
+    public sealed class ErrorAccountsQuery
+    {
+        private static readonly List<ErrorAccountUser> s_users =
+        [
+            new() { Id = "1", Name = "Uri Goldshtein" }
+        ];
+
+        public List<ErrorAccountUser> GetUsers() => s_users;
+
+        [Lookup]
+        public ErrorAccountUser? GetUser([ID] string id)
+            => s_users.FirstOrDefault(t => t.Id == id);
+    }
+
+    [GraphQLName("User")]
+    public sealed class ErrorAccountUser
+    {
+        [ID]
+        public required string Id { get; init; }
+
+        [GraphQLIgnore]
+        public required string Name { get; init; }
+
+        [GraphQLName("name")]
+        public string GetName(IResolverContext context)
+        {
+            context.ReportError("NAME_WARNING");
+            return Name;
+        }
+    }
 }
