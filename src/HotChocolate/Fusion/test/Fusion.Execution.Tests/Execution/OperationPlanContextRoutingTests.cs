@@ -338,7 +338,7 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
             Node = fixture.GetRootNode(),
             SchemaName = "a",
             OperationType = OperationType.Subscription,
-            OperationSourceText = new OperationSourceText(
+            OperationSourceText = OperationSourceText.Create(
                 "Op",
                 OperationType.Subscription,
                 sourceText,

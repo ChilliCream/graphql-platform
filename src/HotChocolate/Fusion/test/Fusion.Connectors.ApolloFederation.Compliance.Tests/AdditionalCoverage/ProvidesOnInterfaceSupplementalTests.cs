@@ -33,10 +33,10 @@ public sealed class ProvidesOnInterfaceSupplementalTests
             .MatchInlineSnapshot(
                 """
                 b:
-                {"query":"query Op_3e0174e7_1 {\n  media {\n    __typename\n    id\n    ... on Book {\n      animals {\n        __typename\n        ... on Cat {\n          id\n        }\n        ... on Dog {\n          id\n        }\n        ... on Cat {\n          name\n        }\n        ... on Dog {\n          name\n        }\n      }\n    }\n  }\n}"}
+                {"query":"query Op_3e0174e7_1 { media { __typename id ... on Book { animals { __typename ... on Cat { id } ... on Dog { id } ... on Cat { name } ... on Dog { name } } } } }"}
 
                 c:
-                {"query":"query($representations: [_Any!]!) {\n  _entities(representations: $representations) {\n    ... on Cat {\n      age\n    }\n  }\n}","variables":{"representations":[{"__typename":"Cat","id":"a2"}]}}
+                {"query":"query($representations: [_Any!]!) { _entities(representations: $representations) { ... on Cat { age } } }","variables":{"representations":[{"__typename":"Cat","id":"a2"}]}}
                 """);
     }
 }

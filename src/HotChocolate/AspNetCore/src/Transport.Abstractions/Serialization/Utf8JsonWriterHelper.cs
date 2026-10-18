@@ -1,4 +1,5 @@
 #if FUSION
+using System.Text.Encodings.Web;
 using HotChocolate.Language;
 using HotChocolate.Text.Json;
 #else
@@ -20,6 +21,8 @@ namespace HotChocolate.Transport.Serialization;
 internal static class Utf8JsonWriterHelper
 {
 #if FUSION
+    private static readonly JavaScriptEncoder? s_literalEncoder = JsonOptionDefaults.WriterOptions.Encoder;
+
     public static void WriteOperationRequest(JsonWriter writer, OperationBatchRequest batchRequest)
     {
         writer.WriteStartArray();
@@ -45,7 +48,7 @@ internal static class Utf8JsonWriterHelper
         if (!request.Query.IsEmpty)
         {
             writer.WritePropertyName(Utf8GraphQLRequestProperties.QueryProp);
-            writer.WriteStringValue(request.Query.Span);
+            WriteQuery(writer, request.Query.Span, request.QueryJsonLiteral.Span);
         }
 
         if (!string.IsNullOrWhiteSpace(request.OperationName))
@@ -88,7 +91,7 @@ internal static class Utf8JsonWriterHelper
         if (!request.Query.IsEmpty)
         {
             writer.WritePropertyName(Utf8GraphQLRequestProperties.QueryProp);
-            writer.WriteStringValue(request.Query.Span);
+            WriteQuery(writer, request.Query.Span, request.QueryJsonLiteral.Span);
         }
 
         if (!string.IsNullOrWhiteSpace(request.OperationName))
@@ -121,6 +124,24 @@ internal static class Utf8JsonWriterHelper
         }
 
         writer.WriteEndObject();
+    }
+
+    /// <summary>
+    /// Writes the query as a JSON string value. The literal is used only when it is not empty and
+    /// the writer uses the default encoder instance; otherwise the query text is escaped.
+    /// </summary>
+    private static void WriteQuery(
+        JsonWriter writer,
+        ReadOnlySpan<byte> query,
+        ReadOnlySpan<byte> queryJsonLiteral)
+    {
+        if (!queryJsonLiteral.IsEmpty && ReferenceEquals(writer.Options.Encoder, s_literalEncoder))
+        {
+            writer.WriteStringValue(queryJsonLiteral, skipEscaping: true);
+            return;
+        }
+
+        writer.WriteStringValue(query);
     }
 #else
     public static void WriteOperationRequest(Utf8JsonWriter writer, OperationBatchRequest batchRequest)

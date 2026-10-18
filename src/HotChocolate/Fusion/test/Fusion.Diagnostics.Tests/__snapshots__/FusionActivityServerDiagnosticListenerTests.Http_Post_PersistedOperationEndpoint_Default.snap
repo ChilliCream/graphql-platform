@@ -208,7 +208,7 @@
                 },
                 {
                   "Key": "graphql.operation.step.plan.id",
-                  "Value": "6d7a80e1ae77084da23293e2e7a2034726a5cae937f272827f490b9aa219318f"
+                  "Value": "bd2eb73b6ebcd12636671f74f07cc62eacb25fd273a5a9f3e6a586df6ce2b459"
                 },
                 {
                   "Key": "graphql.source_schema.name",
@@ -220,7 +220,7 @@
                 },
                 {
                   "Key": "graphql.source_schema.operation.hash",
-                  "Value": "sha256:e5aaf2f10548340313456a0bdb1b80bddfd8dbf000c2c9eb5a51500492a63d9d"
+                  "Value": "sha256:1098c87c4d711d9442012ed04dcecf6e168f683d88444b8782ee9f665fe3ca06"
                 }
               ],
               "event": [],

@@ -565,7 +565,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
               }
             }
             """u8.ToArray();
-        var operation = new OperationSourceText(
+        var operation = OperationSourceText.Create(
             "Op",
             OperationType.Query,
             operationText,
@@ -679,7 +679,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
               }
             }
             """u8.ToArray();
-        var operation = new OperationSourceText(
+        var operation = OperationSourceText.Create(
             "Op",
             OperationType.Query,
             operationText,

@@ -38,10 +38,10 @@
           "operation": {
             "name": "Op_defer_1",
             "kind": "Query",
-            "document": "query Op_defer_1 {\n  users {\n    id\n  }\n}",
-            "hash": "2cc3b5a55fdfdf80b9984b175e1cae7bc21de0a605d4647d549c5ed435bea939",
-            "shortHash": "2cc3b5a5",
-            "xxHash": 2175018508951606729
+            "document": "query Op_defer_1 { users { id } }",
+            "hash": "58609217679b63887bacdf54a6f434c240f54959a4a97b2c3bd908091d39370e",
+            "shortHash": "58609217",
+            "xxHash": 7685719456176520928
           },
           "resultSelectionSet": "{ users }"
         }

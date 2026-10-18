@@ -870,7 +870,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             source = SelectionPath.Parse(sourceElement.GetString()!);
         }
 
-        var opSource = new OperationSourceText(
+        var opSource = OperationSourceText.Create(
             operationName,
             operationType,
             documentBytes,

@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Text;
+using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.ApolloFederation;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -184,6 +185,26 @@ public class LookupEntityQueryRewriterTests
         """;
 
     [Fact]
+    public void Rewrite_Should_CreateCompactTextAndJsonLiteral_When_LookupIsRewritten()
+    {
+        // arrange
+        var schema = ComposeSchema(CatalogSchema);
+        var operation = CreateOperation("query GetProduct($id: ID!) { productById(id: $id) { name } }");
+
+        // act
+        var rewritten = LookupEntityQueryRewriter.Rewrite(schema, "catalog", operation);
+        using var literal = JsonDocument.Parse(rewritten.SourceText.JsonLiteral);
+
+        // assert
+        Encoding.UTF8.GetString(rewritten.SourceText.Value.Span).MatchInlineSnapshot(
+            "query($representations: [_Any!]!) { _entities(representations: $representations) { ... on Product { name } } }");
+        Assert.Equal(Encoding.UTF8.GetString(rewritten.SourceText.Value.Span), literal.RootElement.GetString());
+        Assert.Equal(
+            OperationSourceTextHash.Compute(rewritten.SourceText.Value.Span),
+            rewritten.SourceText.Hash);
+    }
+
+    [Fact]
     public void Rewrite_Should_LiftSelectionSetIntoEntities_When_SimpleScalarKey()
     {
         // arrange
@@ -204,7 +225,7 @@ public class LookupEntityQueryRewriterTests
 
         // assert
         Assert.Equal("Product", rewritten.EntityTypeName);
-        Encoding.UTF8.GetString(rewritten.SourceText.Value.Span).MatchInlineSnapshot(
+        Utf8GraphQLParser.Parse(rewritten.SourceText.Value.Span).ToString(indented: true).MatchInlineSnapshot(
             """
             query($representations: [_Any!]!) {
               _entities(representations: $representations) {
@@ -262,7 +283,7 @@ public class LookupEntityQueryRewriterTests
 
         // assert
         Assert.Equal("Product", rewritten.EntityTypeName);
-        Encoding.UTF8.GetString(rewritten.SourceText.Value.Span).MatchInlineSnapshot(
+        Utf8GraphQLParser.Parse(rewritten.SourceText.Value.Span).ToString(indented: true).MatchInlineSnapshot(
             """
             query($representations: [_Any!]!) {
               _entities(representations: $representations) {
@@ -293,7 +314,7 @@ public class LookupEntityQueryRewriterTests
         var rewritten = LookupEntityQueryRewriter.Rewrite(schema, "shipping", operation);
 
         // assert
-        Encoding.UTF8.GetString(rewritten.SourceText.Value.Span).MatchInlineSnapshot(
+        Utf8GraphQLParser.Parse(rewritten.SourceText.Value.Span).ToString(indented: true).MatchInlineSnapshot(
             """
             query($representations: [_Any!]!, $__fusion_3_currency: String!) {
               _entities(representations: $representations) {
@@ -329,7 +350,7 @@ public class LookupEntityQueryRewriterTests
         var rewritten = LookupEntityQueryRewriter.Rewrite(schema, "inested", operation);
 
         // assert
-        Encoding.UTF8.GetString(rewritten.SourceText.Value.Span).MatchInlineSnapshot(
+        Utf8GraphQLParser.Parse(rewritten.SourceText.Value.Span).ToString(indented: true).MatchInlineSnapshot(
             """
             query($representations: [_Any!]!) {
               _entities(representations: $representations) {
@@ -365,7 +386,7 @@ public class LookupEntityQueryRewriterTests
         var rewritten = LookupEntityQueryRewriter.Rewrite(schema, "shipping", operation);
 
         // assert
-        Encoding.UTF8.GetString(rewritten.SourceText.Value.Span).MatchInlineSnapshot(
+        Utf8GraphQLParser.Parse(rewritten.SourceText.Value.Span).ToString(indented: true).MatchInlineSnapshot(
             """
             query($representations: [_Any!]!, $__fusion_3_currency: String!) {
               _entities(representations: $representations) {
@@ -482,7 +503,7 @@ public class LookupEntityQueryRewriterTests
     private static OperationSourceText CreateOperation(string sourceText)
     {
         var value = Encoding.UTF8.GetBytes(sourceText);
-        return new OperationSourceText(
+        return OperationSourceText.Create(
             "Op",
             OperationType.Query,
             value,

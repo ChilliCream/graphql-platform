@@ -108,7 +108,7 @@ public sealed class OperationExecutionNodeCreationTests : FusionTestBase
         var plan = PlanOperation(schema, "{ books { title } }");
         var node = Assert.Single(plan.AllNodes.OfType<OperationExecutionNode>());
         var sourceText = "query { books "u8.ToArray();
-        var operation = new OperationSourceText(
+        var operation = OperationSourceText.Create(
             "Op_1",
             OperationType.Query,
             sourceText,

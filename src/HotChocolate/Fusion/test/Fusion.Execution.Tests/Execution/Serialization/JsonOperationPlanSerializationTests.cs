@@ -56,6 +56,13 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
 
         // assert
         formatter.Format(parsedPlan).MatchInlineSnapshot(Encoding.UTF8.GetString(buffer.WrittenSpan));
+        foreach (var original in originalPlan.AllNodes.OfType<OperationExecutionNode>())
+        {
+            var parsed = parsedPlan.AllNodes.OfType<OperationExecutionNode>().Single(t => t.Id == original.Id);
+            Assert.Equal(original.Operation.Value.ToArray(), parsed.Operation.Value.ToArray());
+            Assert.Equal(original.Operation.Hash, parsed.Operation.Hash);
+            Assert.Equal(original.Operation.JsonLiteral.ToArray(), parsed.Operation.JsonLiteral.ToArray());
+        }
     }
 
     // Source schema A owns the union and the nested lookups, source schema B the Asset entity

@@ -374,7 +374,7 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
               }
             }
             """u8.ToArray();
-        var operation = new OperationSourceText(
+        var operation = OperationSourceText.Create(
             "ApolloProducts",
             OperationType.Query,
             operationDocument,

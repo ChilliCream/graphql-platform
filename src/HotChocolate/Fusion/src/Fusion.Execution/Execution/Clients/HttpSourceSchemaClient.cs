@@ -663,7 +663,10 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
                                     operationName: null,
                                     onError: _onError,
                                     variables: sourceRequest.Variables[j],
-                                    extensions: JsonSegment.Empty));
+                                    extensions: JsonSegment.Empty)
+                                {
+                                    QueryJsonLiteral = sourceRequest.OperationSourceText.JsonLiteral
+                                });
                             }
                         }
 
@@ -706,7 +709,10 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
                 onError: onError,
                 variables: variables with { Values = cleanedJson },
                 extensions: JsonSegment.Empty,
-                fileMap: fileMap);
+                fileMap: fileMap)
+            {
+                QueryJsonLiteral = originalRequest.OperationSourceText.JsonLiteral
+            };
         }
 
         return new OperationRequest(
@@ -715,7 +721,10 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
             operationName: null,
             onError: onError,
             variables: variables,
-            extensions: JsonSegment.Empty);
+            extensions: JsonSegment.Empty)
+        {
+            QueryJsonLiteral = originalRequest.OperationSourceText.JsonLiteral
+        };
     }
 
     private static OperationRequest CreateBatchUploadRequest(
@@ -735,7 +744,10 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
             operationName: null,
             onError: onError,
             variables: variables with { Values = cleanedJson },
-            extensions: JsonSegment.Empty);
+            extensions: JsonSegment.Empty)
+        {
+            QueryJsonLiteral = originalRequest.OperationSourceText.JsonLiteral
+        };
     }
 
     private static OperationBatchRequest CreateOperationBatchRequest(
@@ -779,7 +791,10 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
                     operationName: null,
                     onError: onError,
                     variables: originalRequest.Variables[i],
-                    extensions: JsonSegment.Empty);
+                    extensions: JsonSegment.Empty)
+                {
+                    QueryJsonLiteral = originalRequest.OperationSourceText.JsonLiteral
+                };
             }
 
             return new OperationBatchRequest(ImmutableArray.Create<IOperationRequest>(requests));
@@ -797,7 +812,10 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
             operationName: null,
             onError: onError,
             variables: originalRequest.Variables,
-            extensions: JsonSegment.Empty);
+            extensions: JsonSegment.Empty)
+        {
+            QueryJsonLiteral = originalRequest.OperationSourceText.JsonLiteral
+        };
     }
 
     private static int ResolveRequestIndex(
