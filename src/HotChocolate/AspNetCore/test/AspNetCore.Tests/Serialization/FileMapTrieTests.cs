@@ -4,46 +4,61 @@ namespace HotChocolate.AspNetCore.Serialization;
 
 public sealed class FileMapTrieTests
 {
-    [Fact]
-    public void Parse_Should_PreserveFileBindings_When_MapsContainOrdinaryUploadPaths()
+    [Theory]
+    [InlineData("variables.file", new string[] { "file" })]
+    [InlineData("variables.files.0", new string[] { "files", "0" })]
+    [InlineData("variables.input.files.0", new string[] { "input", "files", "0" })]
+    public void Parse_Should_PreserveFileBindings_When_MapsContainOrdinaryUploadPaths(
+        string firstPath,
+        string[] firstKeys)
     {
         // arrange
-        (string Name, Dictionary<string, string[]> Map, string[][] Paths)[] cases =
-        [
-            ("SingleFile", new() { ["0"] = ["variables.file"] }, [["file"]]),
-            ("List2", new()
-            {
-                ["0"] = ["variables.files.0"],
-                ["1"] = ["variables.files.1"]
-            }, [["files", "0"], ["files", "1"]]),
-            ("NestedList2", new()
-            {
-                ["0"] = ["variables.input.files.0"],
-                ["1"] = ["variables.input.files.1"]
-            }, [["input", "files", "0"], ["input", "files", "1"]]),
-            ("EmptyMapControl", new(), [])
-        ];
-        var results = new List<object>();
-
-        // act
-        foreach (var item in cases)
+        var isList = firstKeys[^1] == "0";
+        Dictionary<string, string[]> map = new() { ["0"] = [firstPath] };
+        if (isList)
         {
-            var trie = FileMapTrie.Parse(item.Map);
-            results.Add(new
-            {
-                item.Name,
-                RootFileKey = trie.Root.FileKey,
-                Bindings = DescribeBindings(trie, item.Paths),
-                Missing = trie.Root.TryGetNode("missing", out _),
-                WrongCase = trie.Root.TryGetNode("File", out _),
-                Prefix = trie.Root.TryGetNode("variables", out _)
-            });
+            map.Add("1", [firstPath[..^1] + "1"]);
         }
 
+        // act
+        var trie = FileMapTrie.Parse(map);
+
         // assert
-        Snapshot.Create()
-            .Add(results, "Complete File Bindings")
-            .MatchMarkdownSnapshot();
+        Assert.Null(trie.Root.FileKey);
+        Assert.Equal(
+            firstKeys.Select((key, index) => (key, index == firstKeys.Length - 1 ? "0" : null)),
+            GetNodes(trie, firstKeys));
+        if (isList)
+        {
+            var secondKeys = firstKeys.ToArray();
+            secondKeys[^1] = "1";
+            Assert.Equal(
+                secondKeys.Select((key, index) => (key, index == secondKeys.Length - 1 ? "1" : null)),
+                GetNodes(trie, secondKeys));
+        }
+        Assert.Equal(
+            (false, false, false),
+            (trie.Root.TryGetNode("missing", out _),
+                trie.Root.TryGetNode("File", out _),
+                trie.Root.TryGetNode("variables", out _)));
+    }
+
+    [Fact]
+    public void Parse_Should_ReturnEmptyTrie_When_MapIsEmpty()
+    {
+        // arrange
+        Dictionary<string, string[]> map = new();
+
+        // act
+        var trie = FileMapTrie.Parse(map);
+
+        // assert
+        Assert.Null(trie.Root.FileKey);
+        Assert.Equal(
+            (false, false, false),
+            (trie.Root.TryGetNode("missing", out _),
+                trie.Root.TryGetNode("File", out _),
+                trie.Root.TryGetNode("variables", out _)));
     }
 
     [Fact]
@@ -58,14 +73,13 @@ public sealed class FileMapTrieTests
             ["0"] = ["variables.files.~2"],
             ["1"] = ["variables.files. +1 "]
         };
-        object[] bindings;
+        FileMapTrie trie;
 
         // act
         try
         {
             CultureInfo.CurrentCulture = culture;
-            var trie = FileMapTrie.Parse(map);
-            bindings = DescribeBindings(trie, [["files", "~2"], ["files", "1"]]);
+            trie = FileMapTrie.Parse(map);
         }
         finally
         {
@@ -73,63 +87,45 @@ public sealed class FileMapTrieTests
         }
 
         // assert
-        Snapshot.Create()
-            .Add(bindings, "Current Culture Numeric Bindings")
-            .MatchMarkdownSnapshot();
+        Assert.Equal(
+            new (string, string?)[] { ("files", null), ("~2", "0") },
+            GetNodes(trie, ["files", "~2"]));
+        Assert.Equal(
+            new (string, string?)[] { ("files", null), ("1", "1") },
+            GetNodes(trie, ["files", "1"]));
     }
 
-    [Fact]
-    public void Parse_Should_PreserveBindingErrors_When_PathsConflict()
+    [Theory]
+    [InlineData("variables.file", "variables.file", "A filename can only be set once.")]
+    [InlineData("variables.input.file", "variables.input", "A filename can only be set on a leaf node.")]
+    public void Parse_Should_PreserveBindingErrors_When_PathsConflict(
+        string firstPath,
+        string secondPath,
+        string message)
     {
         // arrange
-        (string Name, Dictionary<string, string[]> Map)[] cases =
-        [
-            ("DuplicateLeaf", new()
-            {
-                ["0"] = ["variables.file"],
-                ["1"] = ["variables.file"]
-            }),
-            ("ChildBeforeParent", new()
-            {
-                ["0"] = ["variables.input.file"],
-                ["1"] = ["variables.input"]
-            })
-        ];
-        var results = new List<object>();
+        Dictionary<string, string[]> map = new()
+        {
+            ["0"] = [firstPath],
+            ["1"] = [secondPath]
+        };
 
         // act
-        foreach (var item in cases)
-        {
-            var exception = Record.Exception(() => _ = FileMapTrie.Parse(item.Map));
-            var error = Assert.IsType<InvalidOperationException>(exception);
-            results.Add(new { item.Name, Exception = error.GetType().Name, error.Message });
-        }
+        var exception = Assert.Throws<InvalidOperationException>(() => FileMapTrie.Parse(map));
 
         // assert
-        Snapshot.Create()
-            .Add(results, "Binding Error Order")
-            .MatchMarkdownSnapshot();
+        Assert.Equal(message, exception.Message);
     }
 
-    private static object[] DescribeBindings(FileMapTrie trie, string[][] paths)
+    private static IEnumerable<(string Key, string? FileKey)> GetNodes(FileMapTrie trie, string[] path)
     {
-        var bindings = new List<object>();
+        var current = trie.Root;
 
-        foreach (var path in paths)
+        foreach (var key in path)
         {
-            var current = trie.Root;
-            var nodes = new List<object>();
-
-            foreach (var key in path)
-            {
-                Assert.True(current.TryGetNode(key, out var next));
-                current = next;
-                nodes.Add(new { Key = key, current.FileKey });
-            }
-
-            bindings.Add(new { Nodes = nodes, current.FileKey });
+            Assert.True(current.TryGetNode(key, out var next));
+            current = next;
+            yield return (key, current.FileKey);
         }
-
-        return bindings.ToArray();
     }
 }

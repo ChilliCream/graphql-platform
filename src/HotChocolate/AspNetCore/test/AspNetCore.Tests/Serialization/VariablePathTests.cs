@@ -64,70 +64,73 @@ public class VariablePathTests
         Assert.Equal("baz", Assert.IsType<KeyPathSegment>(path.Key.Next.Next.Next).Value);
     }
 
-    [Fact]
-    public void Parse_Should_PreserveSegments_When_PathsContainEmptyOrSpecialTokens()
+    [Theory]
+    [InlineData("variables.upload", new object[] { "upload" })]
+    [InlineData(".variables..input.0.0.file.", new object[] { "input", 0, 0, "file" })]
+    [InlineData("variables.foo.variables.01.bar", new object[] { "foo", 1, "bar" })]
+    [InlineData("variables. file ", new object[] { " file " })]
+    [InlineData("variables.files. +1 ", new object[] { "files", 1 })]
+    [InlineData("variables.files.2147483648", new object[] { "files", "2147483648" })]
+    [InlineData("variables.2147483648", new object[] { "2147483648" })]
+    public void Parse_Should_PreserveSegments_When_PathsContainEmptyOrSpecialTokens(string input, object[] expected)
     {
         // arrange
-        string[] inputs =
-        [
-            "variables.upload",
-            ".variables..input.0.0.file.",
-            "variables.foo.variables.01.bar",
-            "variables. file ",
-            "variables.files. +1 ",
-            "variables.files.2147483648",
-            "variables.2147483648"
-        ];
-
         // act
-        var results = inputs
-            .Select(input => new { Input = input, Segments = Describe(VariablePath.Parse(input)) })
-            .ToArray();
+        var path = VariablePath.Parse(input);
 
         // assert
-        Snapshot.Create()
-            .Add(results, "Complete Linked Segments")
-            .MatchMarkdownSnapshot();
+        Assert.Equal(expected, GetValues(path));
+    }
+
+    [Theory]
+    [InlineData("", "Invalid variable path `` in `map`.", "HC0041")]
+    [InlineData("...", "Invalid variable path `...` in `map`.", "HC0041")]
+    [InlineData("variables", "Invalid variable path `variables` in `map`.", "HC0041")]
+    [InlineData("..wrong..", "Invalid variable path `..wrong..` in `map`.", "HC0041")]
+    [InlineData("wrong.file", "The variable path must start with `variables`.", "HC0042")]
+    [InlineData("Variables.file", "The variable path must start with `variables`.", "HC0042")]
+    public void Parse_Should_PreserveValidationErrors_When_PathIsInvalid(
+        string input,
+        string message,
+        string code)
+    {
+        // arrange
+        Action parse = () => VariablePath.Parse(input);
+
+        // act
+        var exception = Assert.Throws<GraphQLRequestException>(parse);
+
+        // assert
+        Assert.Equal(message, exception.Message);
+        var error = Assert.Single(exception.Errors);
+        Assert.Equal(message, error.Message);
+        Assert.Equal(code, error.Code);
     }
 
     [Fact]
-    public void Parse_Should_PreserveValidationErrors_When_PathIsInvalid()
+    public void Parse_Should_ThrowNullReferenceException_When_PathIsNull()
     {
         // arrange
-        (string? Input, Type ExceptionType)[] cases =
-        [
-            (null, typeof(NullReferenceException)),
-            (string.Empty, typeof(GraphQLRequestException)),
-            ("...", typeof(GraphQLRequestException)),
-            ("variables", typeof(GraphQLRequestException)),
-            ("..wrong..", typeof(GraphQLRequestException)),
-            ("wrong.file", typeof(GraphQLRequestException)),
-            ("Variables.file", typeof(GraphQLRequestException)),
-            ("variables.1.foo", typeof(InvalidOperationException)),
-            ("variables.variables", typeof(InvalidOperationException))
-        ];
-        var results = new List<object>();
+        Action parse = () => VariablePath.Parse(null!);
 
         // act
-        foreach (var item in cases)
-        {
-            var exception = Record.Exception(() => _ = VariablePath.Parse(item.Input!));
-            Assert.Equal(item.ExceptionType, exception?.GetType());
-            results.Add(new
-            {
-                item.Input,
-                Exception = exception!.GetType().Name,
-                exception.Message,
-                Errors = exception is GraphQLRequestException requestException
-                    ? requestException.Errors.Select(error => new { error.Message, error.Code }).ToArray()
-                    : []
-            });
-        }
+        // assert
+        Assert.Throws<NullReferenceException>(parse);
+    }
+
+    [Theory]
+    [InlineData("variables.1.foo")]
+    [InlineData("variables.variables")]
+    public void Parse_Should_RejectPath_When_FirstSegmentIsNotAKey(string input)
+    {
+        // arrange
+        Action parse = () => VariablePath.Parse(input);
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(parse);
 
         // assert
-        Snapshot.Create()
-            .Add(results, "Validation Order And Errors")
-            .MatchMarkdownSnapshot();
+        Assert.Equal("The first path segment must be a key.", exception.Message);
     }
 
     [Fact]
@@ -135,52 +138,56 @@ public class VariablePathTests
     {
         // arrange
         var originalCulture = CultureInfo.CurrentCulture;
-        (string Input, Type? ExceptionType, int FormatRequests)[] cases =
-        [
-            (".variables..head.variables.!2..~1.", null, 3),
-            ("wrong.head.~1", typeof(GraphQLRequestException), 0),
-            ("variables", typeof(GraphQLRequestException), 0),
-            ("variables.variables", typeof(InvalidOperationException), 0)
-        ];
-        var results = new List<object>();
+        var culture = new OrderedNumberCulture();
 
-        // act
         try
         {
-            foreach (var item in cases)
-            {
-                var culture = new OrderedNumberCulture();
-                CultureInfo.CurrentCulture = culture;
-                VariablePath? path = null;
-                var exception = Record.Exception(() => path = VariablePath.Parse(item.Input));
-                Assert.Equal(item.ExceptionType, exception?.GetType());
-                Assert.Equal(item.FormatRequests, culture.FormatRequests);
-                results.Add(new
-                {
-                    item.Input,
-                    Segments = path is null ? [] : Describe(path),
-                    culture.FormatRequests,
-                    Exception = exception?.GetType().Name
-                });
-            }
+            CultureInfo.CurrentCulture = culture;
+
+            // act
+            var path = VariablePath.Parse(".variables..head.variables.!2..~1.");
+
+            // assert
+            Assert.Equal(3, culture.FormatRequests);
+            Assert.Equal(new object[] { "head", -2, -1 }, GetValues(path));
         }
         finally
         {
             CultureInfo.CurrentCulture = originalCulture;
         }
-
-        // assert
-        Snapshot.Create()
-            .Add(results, "Reverse Culture Access And Linked Segments")
-            .MatchMarkdownSnapshot();
     }
 
-    private static object[] Describe(VariablePath path)
-        => path.Select(segment => new
+    [Theory]
+    [InlineData("wrong.head.~1", typeof(GraphQLRequestException))]
+    [InlineData("variables", typeof(GraphQLRequestException))]
+    [InlineData("variables.variables", typeof(InvalidOperationException))]
+    public void Parse_Should_RejectPathBeforeReadingCulture_When_PathIsInvalid(string input, Type exceptionType)
+    {
+        // arrange
+        var originalCulture = CultureInfo.CurrentCulture;
+        var culture = new OrderedNumberCulture();
+
+        try
         {
-            Type = segment.GetType().Name,
-            Value = segment is KeyPathSegment key ? (object)key.Value : ((IndexPathSegment)segment).Value
-        }).ToArray();
+            CultureInfo.CurrentCulture = culture;
+
+            // act
+            var exception = Record.Exception(() => VariablePath.Parse(input));
+
+            // assert
+            Assert.IsType(exceptionType, exception);
+            Assert.Equal(0, culture.FormatRequests);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+        }
+    }
+
+    private static IEnumerable<object> GetValues(VariablePath path)
+        => path.Select(segment => segment is KeyPathSegment key
+            ? (object)key.Value
+            : ((IndexPathSegment)segment).Value);
 
     private sealed class OrderedNumberCulture : CultureInfo
     {
