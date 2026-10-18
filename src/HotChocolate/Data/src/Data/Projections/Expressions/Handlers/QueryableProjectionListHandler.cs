@@ -18,7 +18,8 @@ public class QueryableProjectionListHandler
         Selection selection)
     {
         var field = selection.Field;
-        if (field.Member is PropertyInfo { CanWrite: true })
+        if (field.Member is PropertyInfo { CanWrite: true } propertyInfo
+            && !QueryableProjectionJsonbDetector.IsJsonbMappedProperty(context, propertyInfo))
         {
             var next = context.GetInstance().Append(field.Member);
 
@@ -35,9 +36,16 @@ public class QueryableProjectionListHandler
     {
         var field = selection.Field;
 
-        if (field.Member is not PropertyInfo { CanWrite: true })
+        if (field.Member is not PropertyInfo { CanWrite: true } propertyInfo)
         {
             action = SelectionVisitor.Skip;
+
+            return true;
+        }
+
+        if (QueryableProjectionJsonbDetector.IsJsonbMappedProperty(context, propertyInfo))
+        {
+            action = SelectionVisitor.SkipAndLeave;
 
             return true;
         }
@@ -63,11 +71,32 @@ public class QueryableProjectionListHandler
     {
         var field = selection.Field;
 
-        if (field.Member is null)
+        if (field.Member is not PropertyInfo propertyInfo)
         {
             action = null;
 
             return false;
+        }
+
+        if (QueryableProjectionJsonbDetector.IsJsonbMappedProperty(context, propertyInfo))
+        {
+            if (context.Scopes.Count > 0
+                && context.Scopes.Peek() is QueryableProjectionScope closure)
+            {
+                var instance = closure.Instance.Peek();
+
+                closure.Level
+                    .Peek()
+                    .Enqueue(Expression.Bind(propertyInfo, Expression.Property(instance, propertyInfo)));
+
+                action = SelectionVisitor.Continue;
+
+                return true;
+            }
+
+            action = SelectionVisitor.Skip;
+
+            return true;
         }
 
         var scope = context.PopScope();
