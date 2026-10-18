@@ -3,14 +3,16 @@ using HotChocolate.Execution;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Types;
 using Microsoft.Extensions.DependencyInjection;
-using static System.Threading.CancellationTokenSource;
+using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Fusion.Execution.Pipeline;
 
 internal sealed class TimeoutMiddleware
 {
+    private const int MaximumRetainedTimeoutSources = 256;
+
     private readonly RequestDelegate _next;
-    private readonly FusionSchemaDefinition _schema;
+    private readonly ObjectPool<RequestTimeoutSource> _timeoutSources;
     private readonly TimeSpan _timeout;
 
     private TimeoutMiddleware(
@@ -23,8 +25,10 @@ internal sealed class TimeoutMiddleware
         ArgumentNullException.ThrowIfNull(options);
 
         _next = next;
-        _schema = schema;
         _timeout = options.ExecutionTimeout;
+
+        var poolProvider = new DefaultObjectPoolProvider { MaximumRetained = MaximumRetainedTimeoutSources };
+        _timeoutSources = poolProvider.Create(new RequestTimeoutSource.Policy(schema.GetCancellationToken()));
     }
 
     public async ValueTask InvokeAsync(RequestContext context)
@@ -36,22 +40,20 @@ internal sealed class TimeoutMiddleware
             return;
         }
 
-        using var timeout = new CancellationTokenSource(_timeout);
-
-        // We do not dispose the combined token in this middleware at all times.
-        // The `Dispose` is handled in the finally block.
-        var combined = CreateLinkedTokenSource(context.RequestAborted, timeout.Token, _schema.GetCancellationToken());
+        var requestAborted = context.RequestAborted;
+        var timeout = _timeoutSources.Get();
+        timeout.Start(requestAborted, _timeout);
 
         try
         {
-            // Replace the request abort cancellation token with the newly created combined
-            // token. That now tracks our request timeout as well as the outer request
-            // cancellation token.
-            context.RequestAborted = combined.Token;
+            // Replace the request abort cancellation token with the token of the timeout source.
+            // That now tracks our request timeout as well as the outer request
+            // cancellation token and the schema shutdown.
+            context.RequestAborted = timeout.Token;
 
             await _next(context).ConfigureAwait(false);
 
-            if (timeout.IsCancellationRequested)
+            if (timeout.IsTimedOut)
             {
                 context.Result = ErrorHelper.RequestTimeout(_timeout);
             }
@@ -59,7 +61,7 @@ internal sealed class TimeoutMiddleware
         catch (OperationCanceledException)
         {
             // if its not the timeout that canceled we will let somebody else handle this.
-            if (!timeout.IsCancellationRequested)
+            if (!timeout.IsTimedOut)
             {
                 throw;
             }
@@ -68,21 +70,21 @@ internal sealed class TimeoutMiddleware
         }
         finally
         {
-            // If we return a stream we want to keep the combined token alive until
-            // the stream is completed. By doing so we allow the initial cancellation token
-            // to still signal to resolvers that the request was canceled.
-            //
-            // In the case of a stream it is still ok that we disposed the timeout since the
-            // timeout is meant for the request processing itself which is finished at this
-            // stage.
+            // The timeout is meant for the request processing itself which is finished at this
+            // stage, so it is stopped in any case.
+            timeout.StopTimeout();
+
+            // If we return a stream we want to keep the token alive until the stream is completed.
+            // By doing so we allow the outer cancellation token to still signal to resolvers
+            // that the request was canceled.
             if (context.Result is IResponseStream stream)
             {
-                stream.RegisterForCleanup(combined);
+                stream.RegisterForCleanup(() => _timeoutSources.Return(timeout));
             }
             else
             {
-                // if the result is not a stream than we can safely dispose.
-                combined.Dispose();
+                context.RequestAborted = requestAborted;
+                _timeoutSources.Return(timeout);
             }
         }
     }
