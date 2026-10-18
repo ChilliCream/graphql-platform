@@ -184,6 +184,34 @@ public class LookupEntityQueryRewriterTests
         """;
 
     [Fact]
+    public void Rewrite_Should_CreateCompactText_When_LookupIsRewritten()
+    {
+        // arrange
+        var schema = ComposeSchema(CatalogSchema);
+        var operation = CreateOperation("query GetProduct($id: ID!) { productById(id: $id) { name } }");
+
+        // act
+        var rewritten = LookupEntityQueryRewriter.Rewrite(schema, "catalog", operation);
+
+        // assert
+        FormatSourceText(rewritten.SourceText).MatchInlineSnapshot(
+            """
+            query($representations: [_Any!]!) {
+              _entities(representations: $representations) {
+                ... on Product {
+                  name
+                }
+              }
+            }
+            """);
+        var text = Encoding.UTF8.GetString(rewritten.SourceText.Value.Span);
+        Assert.Equal(Utf8GraphQLParser.Parse(text).ToString(indented: false), text);
+        Assert.Equal(
+            OperationSourceTextHash.Compute(rewritten.SourceText.Value.Span),
+            rewritten.SourceText.Hash);
+    }
+
+    [Fact]
     public void Rewrite_Should_LiftSelectionSetIntoEntities_When_SimpleScalarKey()
     {
         // arrange
@@ -204,7 +232,7 @@ public class LookupEntityQueryRewriterTests
 
         // assert
         Assert.Equal("Product", rewritten.EntityTypeName);
-        Encoding.UTF8.GetString(rewritten.SourceText.Value.Span).MatchInlineSnapshot(
+        FormatSourceText(rewritten.SourceText).MatchInlineSnapshot(
             """
             query($representations: [_Any!]!) {
               _entities(representations: $representations) {
@@ -262,7 +290,7 @@ public class LookupEntityQueryRewriterTests
 
         // assert
         Assert.Equal("Product", rewritten.EntityTypeName);
-        Encoding.UTF8.GetString(rewritten.SourceText.Value.Span).MatchInlineSnapshot(
+        FormatSourceText(rewritten.SourceText).MatchInlineSnapshot(
             """
             query($representations: [_Any!]!) {
               _entities(representations: $representations) {
@@ -293,7 +321,7 @@ public class LookupEntityQueryRewriterTests
         var rewritten = LookupEntityQueryRewriter.Rewrite(schema, "shipping", operation);
 
         // assert
-        Encoding.UTF8.GetString(rewritten.SourceText.Value.Span).MatchInlineSnapshot(
+        FormatSourceText(rewritten.SourceText).MatchInlineSnapshot(
             """
             query($representations: [_Any!]!, $__fusion_3_currency: String!) {
               _entities(representations: $representations) {
@@ -329,7 +357,7 @@ public class LookupEntityQueryRewriterTests
         var rewritten = LookupEntityQueryRewriter.Rewrite(schema, "inested", operation);
 
         // assert
-        Encoding.UTF8.GetString(rewritten.SourceText.Value.Span).MatchInlineSnapshot(
+        FormatSourceText(rewritten.SourceText).MatchInlineSnapshot(
             """
             query($representations: [_Any!]!) {
               _entities(representations: $representations) {
@@ -365,7 +393,7 @@ public class LookupEntityQueryRewriterTests
         var rewritten = LookupEntityQueryRewriter.Rewrite(schema, "shipping", operation);
 
         // assert
-        Encoding.UTF8.GetString(rewritten.SourceText.Value.Span).MatchInlineSnapshot(
+        FormatSourceText(rewritten.SourceText).MatchInlineSnapshot(
             """
             query($representations: [_Any!]!, $__fusion_3_currency: String!) {
               _entities(representations: $representations) {
@@ -478,6 +506,9 @@ public class LookupEntityQueryRewriterTests
     // above drives the internal-lookup branch, but a single source schema cannot expose two lookups
     // that share a root field name through the composer (duplicate root field names are invalid
     // GraphQL), so the multi-candidate tie-break cannot be constructed realistically here.
+
+    private static string FormatSourceText(OperationSourceText sourceText)
+        => Utf8GraphQLParser.Parse(sourceText.Value.Span).ToString(indented: true);
 
     private static OperationSourceText CreateOperation(string sourceText)
     {
