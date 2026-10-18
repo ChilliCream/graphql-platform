@@ -131,7 +131,7 @@ internal ref struct JsonVariableCoercion
             }
 
             var length = element.GetArrayLength();
-            var items = length == 0 ? Array.Empty<IValueNode>() : new IValueNode[length];
+            var items = length == 0 ? [] : new IValueNode[length];
             var index = 0;
 
             foreach (var item in element.EnumerateArray())
