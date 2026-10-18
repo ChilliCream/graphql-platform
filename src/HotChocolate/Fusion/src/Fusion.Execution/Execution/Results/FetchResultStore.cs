@@ -1879,6 +1879,32 @@ AddErrors_Next:
 
     internal VariableValues CreateVariableValueSets(
         CompactPath path,
+        IVariableValueCollection variables,
+        ReadOnlySpan<string> forwardedVariables)
+    {
+        _jsonWriter.Reset(_variableWriter);
+        var startPosition = _variableWriter.Position;
+        _jsonWriter.WriteStartObject();
+
+        if (!variables.IsEmpty)
+        {
+            foreach (var name in forwardedVariables)
+            {
+                if (variables.TryGetValue<IValueNode>(name, out var value))
+                {
+                    _jsonWriter.WritePropertyName(name);
+                    WriteValueNode(value);
+                }
+            }
+        }
+
+        _jsonWriter.WriteEndObject();
+        var length = _variableWriter.Position - startPosition;
+        return new VariableValues(path, JsonSegment.Create(_variableWriter, startPosition, length));
+    }
+
+    internal VariableValues CreateVariableValueSets(
+        CompactPath path,
         IReadOnlyList<ObjectFieldNode> fields)
     {
         _jsonWriter.Reset(_variableWriter);
