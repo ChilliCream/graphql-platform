@@ -1,5 +1,4 @@
 using System.Globalization;
-using CookieCrumble;
 using HotChocolate.AspNetCore.Parsers;
 
 namespace HotChocolate.AspNetCore.Serialization;
@@ -112,10 +111,7 @@ public class VariablePathTests
         // act
         foreach (var item in cases)
         {
-            var exception = Record.Exception(() =>
-            {
-                _ = VariablePath.Parse(item.Input!);
-            });
+            var exception = Record.Exception(() => _ = VariablePath.Parse(item.Input!));
             Assert.Equal(item.ExceptionType, exception?.GetType());
             results.Add(new
             {
@@ -156,10 +152,7 @@ public class VariablePathTests
                 var culture = new OrderedNumberCulture();
                 CultureInfo.CurrentCulture = culture;
                 VariablePath? path = null;
-                var exception = Record.Exception(() =>
-                {
-                    path = VariablePath.Parse(item.Input);
-                });
+                var exception = Record.Exception(() => path = VariablePath.Parse(item.Input));
                 Assert.Equal(item.ExceptionType, exception?.GetType());
                 Assert.Equal(item.FormatRequests, culture.FormatRequests);
                 results.Add(new

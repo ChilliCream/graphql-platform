@@ -1,5 +1,4 @@
 using System.Globalization;
-using CookieCrumble;
 
 namespace HotChocolate.AspNetCore.Serialization;
 
@@ -101,10 +100,7 @@ public sealed class FileMapTrieTests
         // act
         foreach (var item in cases)
         {
-            var exception = Record.Exception(() =>
-            {
-                _ = FileMapTrie.Parse(item.Map);
-            });
+            var exception = Record.Exception(() => _ = FileMapTrie.Parse(item.Map));
             var error = Assert.IsType<InvalidOperationException>(exception);
             results.Add(new { item.Name, Exception = error.GetType().Name, error.Message });
         }
@@ -127,7 +123,7 @@ public sealed class FileMapTrieTests
             foreach (var key in path)
             {
                 Assert.True(current.TryGetNode(key, out var next));
-                current = next!;
+                current = next;
                 nodes.Add(new { Key = key, current.FileKey });
             }
 
