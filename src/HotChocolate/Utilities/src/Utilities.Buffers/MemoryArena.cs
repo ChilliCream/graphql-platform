@@ -44,9 +44,10 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
 #else
     private readonly object _lock = new();
 #endif
+    private readonly MemoryArenaPool? _pool;
     private MemorySegment[][]? _tables;
     private int _tableCount;
-    private readonly long _id = Interlocked.Increment(ref s_nextId);
+    private long _id = Interlocked.Increment(ref s_nextId);
     private byte[][] _pages = new byte[4][];
     private long _state = InitialState;
     private int _pageCount;
@@ -57,8 +58,19 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
     /// <summary>
     /// Initializes a new instance of <see cref="MemoryArena"/>.
     /// </summary>
-    public MemoryArena()
+    public MemoryArena() : this(null)
     {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="MemoryArena"/> that returns itself to
+    /// <paramref name="pool"/> when it is disposed after being sealed.
+    /// </summary>
+    /// <param name="pool">The pool that owns the arena, or <c>null</c> if the arena is not pooled.</param>
+    internal MemoryArena(MemoryArenaPool? pool)
+    {
+        _pool = pool;
+
         if (Log.IsEnabled())
         {
             Log.ArenaCreated(_id);
@@ -328,11 +340,16 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
     /// </summary>
     public void Dispose()
     {
-        GC.SuppressFinalize(this);
-        Dispose(disposing: true);
+        // A recycled arena stays registered for finalization, because it is open again and can be
+        // leaked by its next owner.
+        if (!Dispose(disposing: true))
+        {
+            GC.SuppressFinalize(this);
+        }
     }
 
-    private void Dispose(bool disposing)
+    // Returns true if the arena was recycled into its pool.
+    private bool Dispose(bool disposing)
     {
         // Move to the disposed phase exactly once. The previous phase tells us whether the arena
         // was sealed. A sealed arena returns its pages to the pool, but only on the deterministic
@@ -342,7 +359,7 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
 
         if (previous == Disposed)
         {
-            return;
+            return false;
         }
 
         var reclaim = disposing && (previous == Sealed);
@@ -398,7 +415,7 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
                     Interlocked.Read(ref _rentBytes));
             }
 
-            return;
+            return disposing && _pool is not null && Recycle(pages, count);
         }
 
         // The abandon event is emitted before the count check so that tables rented without a page
@@ -415,10 +432,43 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
 
         if (count == 0)
         {
-            return;
+            return false;
         }
 
         JsonMemory.Abandon(JsonMemoryKind.Arena, count);
+        return false;
+    }
+
+    // Reopens a reclaimed arena with its page table and hands it back to its pool. The pages were
+    // already returned to JsonMemory, so only the references to them are cleared.
+    private bool Recycle(byte[][] pages, int pageCount)
+    {
+        Array.Clear(pages, 0, pageCount);
+        _rentCount = 0;
+        _rentBytes = 0;
+        Volatile.Write(ref _pages, pages);
+        Volatile.Write(ref _phase, Open);
+
+        if (_pool!.TryReturn(this))
+        {
+            return true;
+        }
+
+        Volatile.Write(ref _phase, Disposed);
+        Volatile.Write(ref _pages, []);
+        return false;
+    }
+
+    /// <summary>
+    /// Starts a new lifecycle of a recycled arena that was rented from its pool.
+    /// </summary>
+    internal void OnRented()
+    {
+        if (Log.IsEnabled())
+        {
+            _id = Interlocked.Increment(ref s_nextId);
+            Log.ArenaCreated(_id);
+        }
     }
 
     ~MemoryArena() => Dispose(disposing: false);
