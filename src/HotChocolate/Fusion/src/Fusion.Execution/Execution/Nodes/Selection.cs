@@ -19,6 +19,7 @@ public sealed class Selection : ISelection
     private readonly ulong[]? _wideIncludeFlags;
     private readonly int _wideIncludeFlagsStride;
     private readonly byte[] _utf8ResponseName;
+    private readonly byte[] _utf8JsonPropertyName;
     private readonly ulong _deferMask;
     private readonly ulong[]? _wideDeferMask;
     private readonly DeliveryGroup[] _deliveryGroups;
@@ -139,6 +140,7 @@ public sealed class Selection : ISelection
         }
 
         _utf8ResponseName = Utf8StringCache.GetUtf8String(responseName);
+        _utf8JsonPropertyName = Utf8StringCache.GetJsonPropertyName(responseName);
     }
 
     /// <inheritdoc />
@@ -148,6 +150,12 @@ public sealed class Selection : ISelection
     public string ResponseName { get; }
 
     internal ReadOnlySpan<byte> Utf8ResponseName => _utf8ResponseName;
+
+    /// <summary>
+    /// Gets the response name as a minimized JSON property name token: the quoted
+    /// UTF-8 name followed by a colon.
+    /// </summary>
+    internal ReadOnlySpan<byte> Utf8JsonPropertyName => _utf8JsonPropertyName;
 
     /// <inheritdoc />
     public bool IsInternal => (_flags & Flags.Internal) == Flags.Internal;

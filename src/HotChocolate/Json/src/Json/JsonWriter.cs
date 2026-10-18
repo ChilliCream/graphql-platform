@@ -531,7 +531,7 @@ public sealed partial class JsonWriter
 
     internal void WriteRawValueEnd(JsonTokenType tokenType)
     {
-        Debug.Assert(tokenType is JsonTokenType.String or JsonTokenType.Number);
+        Debug.Assert(tokenType is JsonTokenType.String or JsonTokenType.Number or JsonTokenType.EndObject);
         WriteRawValueEnd();
         _tokenType = tokenType;
     }

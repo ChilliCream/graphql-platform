@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using System.Text.Encodings.Web;
+using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Text.Json;
 
@@ -12,6 +14,11 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
         {
             var formatter = new NullMarkerRawJsonFormatter(this, jsonWriter);
             formatter.Write();
+        }
+        else if (MinimizedRawJsonFormatter.CanWrite(jsonWriter))
+        {
+            var formatter = new MinimizedRawJsonFormatter(this);
+            formatter.Write(jsonWriter);
         }
         else
         {
@@ -209,6 +216,218 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
             }
 
             writer.WriteEndArray();
+        }
+    }
+
+    /// <summary>
+    /// Writes the document as minimized JSON directly into the buffer of a
+    /// <see cref="JsonWriter"/> that neither indents nor omits nulls.
+    /// </summary>
+    internal readonly ref struct MinimizedRawJsonFormatter(CompositeResultDocument document)
+    {
+        public static bool CanWrite(JsonWriter writer)
+        {
+            var options = writer.Options;
+
+            // Response names are GraphQL names, which these encoders never escape.
+            return !options.Indented
+                && writer.NullIgnoreCondition is JsonNullIgnoreCondition.None
+                && (options.Encoder is null
+                    || ReferenceEquals(options.Encoder, JavaScriptEncoder.UnsafeRelaxedJsonEscaping)
+                    || ReferenceEquals(options.Encoder, JavaScriptEncoder.Default));
+        }
+
+        public void Write(JsonWriter writer)
+        {
+            Debug.Assert(CanWrite(writer));
+
+            var root = Cursor.CreateZero();
+            var row = document._metaDb.Get(root);
+
+            if (row.TokenType is ElementTokenType.Null
+                || (ElementFlags.Invalidated & row.Flags) == ElementFlags.Invalidated)
+            {
+                writer.WriteNullValue();
+                return;
+            }
+
+            var maxDepth = writer.Options.MaxDepth == 0 ? 64 : writer.Options.MaxDepth;
+
+            writer.WriteRawValueStart([]);
+            var emitter = new MinimizedJsonEmitter(writer.InnerWriter, writer.CurrentDepth, maxDepth);
+            WriteObject(ref emitter, root, row);
+            emitter.Flush();
+            writer.WriteRawValueEnd(JsonTokenType.EndObject);
+        }
+
+        private void WriteValue(ref MinimizedJsonEmitter emitter, Cursor cursor, DbRow row)
+        {
+            var tokenType = row.TokenType;
+
+            if (tokenType is ElementTokenType.Reference)
+            {
+                cursor = new Cursor(row.Location);
+                row = document._metaDb.Get(cursor);
+                tokenType = row.TokenType;
+            }
+
+            Debug.Assert(tokenType is not ElementTokenType.Reference);
+            Debug.Assert(tokenType is not ElementTokenType.EndObject);
+            Debug.Assert(tokenType is not ElementTokenType.EndArray);
+            var isSourceResult = (ElementFlags.SourceResult & row.Flags) == ElementFlags.SourceResult;
+
+            switch (tokenType)
+            {
+                case ElementTokenType.StartObject:
+                    if (isSourceResult)
+                    {
+                        WriteSourceValue(ref emitter, row);
+                    }
+                    else
+                    {
+                        WriteObject(ref emitter, cursor, row);
+                    }
+                    break;
+
+                case ElementTokenType.StartArray:
+                    if (isSourceResult)
+                    {
+                        WriteSourceValue(ref emitter, row);
+                    }
+                    else
+                    {
+                        WriteArray(ref emitter, cursor, row);
+                    }
+                    break;
+
+                case ElementTokenType.None:
+                case ElementTokenType.Null:
+                    emitter.WriteRawValue(JsonConstants.NullValue);
+                    break;
+
+                case ElementTokenType.True:
+                    emitter.WriteRawValue(JsonConstants.TrueValue);
+                    break;
+
+                case ElementTokenType.False:
+                    emitter.WriteRawValue(JsonConstants.FalseValue);
+                    break;
+
+                case ElementTokenType.String:
+                    if (isSourceResult)
+                    {
+                        document._sources[row.SourceDocumentId]
+                            .WriteRawStringValueTo(ref emitter, row.Location, row.SizeOrLength);
+                    }
+                    else
+                    {
+                        emitter.WriteStringValue(document.ReadRawValue(row));
+                    }
+                    break;
+
+                case ElementTokenType.Number:
+                    if (isSourceResult)
+                    {
+                        document._sources[row.SourceDocumentId]
+                            .WriteRawNumberValueTo(ref emitter, row.Location, row.SizeOrLength);
+                    }
+                    else
+                    {
+                        emitter.WriteRawValue(document.ReadRawValue(row));
+                    }
+                    break;
+
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+
+        private void WriteSourceValue(ref MinimizedJsonEmitter emitter, DbRow row)
+        {
+            var sourceDocument = document._sources[row.SourceDocumentId];
+            var sourceCursor = SourceResultDocument.Cursor.From(row.Location, row.SizeOrLength);
+            sourceDocument.WriteValueTo(ref emitter, sourceCursor);
+        }
+
+        private void WriteObject(ref MinimizedJsonEmitter emitter, Cursor start, DbRow startRow)
+        {
+            Debug.Assert(startRow.TokenType is ElementTokenType.StartObject);
+
+            var remainingRows = startRow.NumberOfRows - 1;
+            var operation = document._operation;
+
+            emitter.WriteStartObject();
+
+            if (remainingRows == 0)
+            {
+                emitter.WriteEndObject();
+                return;
+            }
+
+            var reader = document._metaDb.CreateSequentialReader(start + 1);
+
+            while (remainingRows > 0)
+            {
+                var property = reader.ReadProperty();
+
+                if ((ElementFlags.IsInternal & property.Flags) == ElementFlags.IsInternal
+                    || (ElementFlags.IsExcluded & property.Flags) == ElementFlags.IsExcluded)
+                {
+                    remainingRows -= 2;
+
+                    if (remainingRows > 0)
+                    {
+                        reader.Advance(1);
+                    }
+
+                    continue;
+                }
+
+                emitter.WritePropertyName(
+                    operation
+                        .GetSelectionById(property.SelectionId)
+                        .Utf8JsonPropertyName);
+
+                WriteValue(ref emitter, reader.Cursor, reader.PeekRow());
+                remainingRows -= 2;
+
+                if (remainingRows > 0)
+                {
+                    reader.Advance(1);
+                }
+            }
+
+            emitter.WriteEndObject();
+        }
+
+        private void WriteArray(ref MinimizedJsonEmitter emitter, Cursor start, DbRow startRow)
+        {
+            Debug.Assert(startRow.TokenType is ElementTokenType.StartArray);
+
+            var remainingRows = startRow.NumberOfRows - 1;
+
+            emitter.WriteStartArray();
+
+            if (remainingRows == 0)
+            {
+                emitter.WriteEndArray();
+                return;
+            }
+
+            var reader = document._metaDb.CreateSequentialReader(start + 1);
+
+            while (remainingRows > 0)
+            {
+                WriteValue(ref emitter, reader.Cursor, reader.PeekRow());
+                remainingRows--;
+
+                if (remainingRows > 0)
+                {
+                    reader.Advance(1);
+                }
+            }
+
+            emitter.WriteEndArray();
         }
     }
 
