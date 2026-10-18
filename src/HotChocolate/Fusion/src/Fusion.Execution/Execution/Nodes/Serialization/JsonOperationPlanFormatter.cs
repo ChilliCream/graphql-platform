@@ -134,7 +134,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WriteStringValue(operation.Definition.Operation.ToString());
 
         jsonWriter.WritePropertyName("document");
-        jsonWriter.WriteStringValue(operation.Definition.ToString(indented: true));
+        jsonWriter.WriteStringValue(operation.Definition.ToString(indented: false));
 
         jsonWriter.WritePropertyName("id");
         jsonWriter.WriteStringValue(operation.Id);

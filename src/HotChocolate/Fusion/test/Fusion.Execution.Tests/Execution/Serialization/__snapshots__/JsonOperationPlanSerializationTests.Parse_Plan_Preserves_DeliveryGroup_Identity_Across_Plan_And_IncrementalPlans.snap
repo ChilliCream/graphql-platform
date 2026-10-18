@@ -1,9 +1,9 @@
 {
   "version": "1.1.0",
-  "id": "198af484dd501182643a323c2dec2a9d5220ae6dbbb35cb5550076a8a88a9ebf",
+  "id": "8714fc9992e82158b0f6d15d7f4b5f8644c53d1faab749b121824826cab4bcc9",
   "operation": {
     "kind": "Query",
-    "document": "{\n  user(id: \"1\") {\n    name\n    id @fusion__requirement\n  }\n}",
+    "document": "{ user(id: \"1\") { name id @fusion__requirement } }",
     "id": "123456789101112",
     "hash": "123456789101112",
     "shortHash": "123456789101112"
@@ -61,7 +61,7 @@
       ],
       "operation": {
         "kind": "Query",
-        "document": "{\n  user(id: \"1\") {\n    email\n    id @fusion__requirement\n  }\n}",
+        "document": "{ user(id: \"1\") { email id @fusion__requirement } }",
         "id": "123456789101112#defer_0",
         "hash": "123456789101112#defer_0",
         "shortHash": "123456789101112"
@@ -128,7 +128,7 @@
       ],
       "operation": {
         "kind": "Query",
-        "document": "{\n  user(id: \"1\") {\n    address\n    id @fusion__requirement\n  }\n}",
+        "document": "{ user(id: \"1\") { address id @fusion__requirement } }",
         "id": "123456789101112#defer_1",
         "hash": "123456789101112#defer_1",
         "shortHash": "123456789101112"
