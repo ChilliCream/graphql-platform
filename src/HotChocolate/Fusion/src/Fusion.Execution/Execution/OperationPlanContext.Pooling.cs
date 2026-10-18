@@ -233,6 +233,7 @@ public sealed partial class OperationPlanContext
             _variableValueSets = new ImmutableArray<VariableValues>[nodeSlotCount];
             _transportUris = new Uri?[nodeSlotCount];
             _transportContentTypes = new string?[nodeSlotCount];
+            _nodeContinuations = new ExecutionNodeContinuation?[nodeSlotCount];
             _nodeSlotCapacity = nodeSlotCount;
         }
     }

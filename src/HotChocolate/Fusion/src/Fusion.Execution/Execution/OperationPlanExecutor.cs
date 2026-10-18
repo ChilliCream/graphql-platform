@@ -36,7 +36,19 @@ internal static partial class OperationPlanExecutor
             switch (operationPlan.Operation.Definition.Operation)
             {
                 case OperationType.Query:
-                    await ExecuteQueryAsync(context, operationPlan, executionCts.Token);
+                    var executionState = context.ExecutionState;
+                    var executionToken = executionCts.Token;
+
+                    await using (StartQuery(context, operationPlan, executionToken))
+                    {
+                        while (ProcessQuery(context, operationPlan, executionToken))
+                        {
+                            await executionState.Signal;
+                        }
+
+                        await DrainActiveNodesAsync(operationPlan, executionState);
+                        CompleteTraces(context, executionState);
+                    }
                     break;
 
                 case OperationType.Mutation:
@@ -974,7 +986,31 @@ internal static partial class OperationPlanExecutor
     {
         var executionState = context.ExecutionState;
 
-        await using var cancellationRegistration = cancellationToken.Register(
+        await using var cancellationRegistration = StartQuery(context, plan, cancellationToken);
+
+        while (ProcessQuery(context, plan, cancellationToken))
+        {
+            // The signal will be set every time a node completes and will release the executor
+            // from the async wait to go through the completed results.
+            await executionState.Signal;
+        }
+
+        await DrainActiveNodesAsync(plan, executionState);
+        CompleteTraces(context, executionState);
+    }
+
+    /// <summary>
+    /// Fills the backlog with all nodes of the query plan and starts the root nodes.
+    /// The returned registration must be disposed when the query execution ends.
+    /// </summary>
+    private static CancellationTokenRegistration StartQuery(
+        OperationPlanContext context,
+        IOperationPlan plan,
+        CancellationToken cancellationToken)
+    {
+        var executionState = context.ExecutionState;
+
+        var cancellationRegistration = cancellationToken.Register(
             static state => Unsafe.As<AsyncAutoResetEvent>(state)!.TryResetToIdle(),
             executionState.Signal);
 
@@ -988,42 +1024,60 @@ internal static partial class OperationPlanExecutor
             executionState.StartNode(context, root, cancellationToken);
         }
 
-        while (!cancellationToken.IsCancellationRequested && executionState.IsProcessing())
+        return cancellationRegistration;
+    }
+
+    /// <summary>
+    /// Applies the pending merges and node completions and starts the nodes that became ready.
+    /// Returns true when the query has nodes in flight and the executor must wait for the signal.
+    /// </summary>
+    private static bool ProcessQuery(
+        OperationPlanContext context,
+        IOperationPlan plan,
+        CancellationToken cancellationToken)
+    {
+        var executionState = context.ExecutionState;
+
+        if (cancellationToken.IsCancellationRequested || !executionState.IsProcessing())
+        {
+            return false;
+        }
+
+        ApplyCompletedWork(context, plan, executionState);
+
+        if (!cancellationToken.IsCancellationRequested)
+        {
+            executionState.EnqueueNextNodes(context, cancellationToken);
+        }
+
+        return !cancellationToken.IsCancellationRequested && executionState.IsProcessing();
+    }
+
+    private static void ApplyCompletedWork(
+        OperationPlanContext context,
+        IOperationPlan plan,
+        ExecutionState executionState)
+    {
+        while (executionState.TryDequeuePendingMerge(out var merge))
+        {
+            executionState.ApplyMerge(context, merge);
+        }
+
+        while (executionState.TryDequeueCompletedResult(out var result))
         {
             while (executionState.TryDequeuePendingMerge(out var merge))
             {
                 executionState.ApplyMerge(context, merge);
             }
 
-            while (executionState.TryDequeueCompletedResult(out var result))
-            {
-                while (executionState.TryDequeuePendingMerge(out var merge))
-                {
-                    executionState.ApplyMerge(context, merge);
-                }
-
-                result = executionState.ApplyPendingMergeFailure(result);
-                var node = plan.GetNodeById(result.Id);
-                executionState.CompleteNode(plan, node, result);
-            }
-
-            if (!cancellationToken.IsCancellationRequested)
-            {
-                executionState.EnqueueNextNodes(context, cancellationToken);
-            }
-
-            if (cancellationToken.IsCancellationRequested || !executionState.IsProcessing())
-            {
-                break;
-            }
-
-            // The signal will be set every time a node completes and will release the executor
-            // from the async wait to go through the completed results.
-            await executionState.Signal;
+            result = executionState.ApplyPendingMergeFailure(result);
+            var node = plan.GetNodeById(result.Id);
+            executionState.CompleteNode(plan, node, result);
         }
+    }
 
-        await DrainActiveNodesAsync(plan, executionState);
-
+    private static void CompleteTraces(OperationPlanContext context, ExecutionState executionState)
+    {
         if (context.CollectTelemetry)
         {
             context.Traces = executionState.Traces.ToImmutableDictionary();
@@ -1058,22 +1112,7 @@ internal static partial class OperationPlanExecutor
             // as long as there are active nodes that result from processing the current subtree.
             while (!cancellationToken.IsCancellationRequested && executionState.HasActiveNodes())
             {
-                while (executionState.TryDequeuePendingMerge(out var merge))
-                {
-                    executionState.ApplyMerge(context, merge);
-                }
-
-                while (executionState.TryDequeueCompletedResult(out var result))
-                {
-                    while (executionState.TryDequeuePendingMerge(out var merge))
-                    {
-                        executionState.ApplyMerge(context, merge);
-                    }
-
-                    result = executionState.ApplyPendingMergeFailure(result);
-                    var node = plan.GetNodeById(result.Id);
-                    executionState.CompleteNode(plan, node, result);
-                }
+                ApplyCompletedWork(context, plan, executionState);
 
                 if (!cancellationToken.IsCancellationRequested)
                 {
@@ -1097,11 +1136,7 @@ internal static partial class OperationPlanExecutor
         }
 
         await DrainActiveNodesAsync(plan, executionState);
-
-        if (context.CollectTelemetry)
-        {
-            context.Traces = executionState.Traces.ToImmutableDictionary();
-        }
+        CompleteTraces(context, executionState);
     }
 
     private static async IAsyncEnumerable<OperationResult> CreateResponseStream(

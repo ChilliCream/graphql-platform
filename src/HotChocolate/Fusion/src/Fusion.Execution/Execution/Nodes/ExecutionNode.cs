@@ -65,23 +65,36 @@ public abstract class ExecutionNode : IOperationPlanNode, IEquatable<ExecutionNo
     internal ReadOnlySpan<int> BufferedParentDependencies
         => _parentDependencies.AsSpan(0, _parentDependencyCount);
 
-#pragma warning disable CA2012
     public void BeginExecute(
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
-        => _ = ExecuteAsync(context, cancellationToken);
-#pragma warning restore CA2012
+    {
+        // Changes the node makes to the execution context, like the current activity of its scope,
+        // must not leak to the caller.
+        var callerContext = ExecutionContext.Capture();
 
-    private async ValueTask ExecuteAsync(
+        try
+        {
+            StartExecute(context, cancellationToken);
+        }
+        finally
+        {
+            if (callerContext is not null)
+            {
+                ExecutionContext.Restore(callerContext);
+            }
+        }
+    }
+
+    private void StartExecute(
         OperationPlanContext context,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         var collectTelemetry = context.CollectTelemetry;
         var start = collectTelemetry ? Stopwatch.GetTimestamp() : 0;
         var activity = collectTelemetry ? Activity.Current : null;
         IDisposable? scope = null;
-        var status = ExecutionStatus.Failed;
-        Exception? error = null;
+        ValueTask<ExecutionStatus> execution;
 
         try
         {
@@ -89,40 +102,77 @@ public abstract class ExecutionNode : IOperationPlanNode, IEquatable<ExecutionNo
 
             if (IsSkipped(context))
             {
-                status = ExecutionStatus.Skipped;
+                EndExecute(context, scope, start, activity, ExecutionStatus.Skipped, error: null);
+                return;
             }
-            else
-            {
-                status = await OnExecuteAsync(context, cancellationToken).ConfigureAwait(false);
-            }
+
+            execution = OnExecuteAsync(context, cancellationToken);
         }
         catch (Exception ex)
         {
-            error = ex;
-            status = ExecutionStatus.Failed;
-            OnError(context, scope, ex);
+            EndExecute(context, scope, start, activity, ExecutionStatus.Failed, ex);
+            return;
         }
-        finally
+
+        if (execution.IsCompleted)
         {
-            scope?.Dispose();
+            ExecutionStatus status;
 
-            // A started node must always report exactly one completion so the
-            // execution state's active-node count stays balanced. Otherwise the
-            // executor (and its drain) would wait forever for a node that never
-            // reports back.
-            var result = new ExecutionNodeResult(
-                Id,
-                activity,
-                status,
-                collectTelemetry ? Stopwatch.GetElapsedTime(start) : default,
-                error,
-                context.GetDependentsToExecute(this),
-                context.GetSkippedDefinitions(this),
-                context.GetVariableValueSets(this),
-                context.GetTransportDetails(this));
+            try
+            {
+                status = execution.Result;
+            }
+            catch (Exception ex)
+            {
+                EndExecute(context, scope, start, activity, ExecutionStatus.Failed, ex);
+                return;
+            }
 
-            context.CompleteNode(result);
+            EndExecute(context, scope, start, activity, status, error: null);
+            return;
         }
+
+        context.RentNodeContinuation(this).Await(context, this, scope, start, activity, execution);
+    }
+
+    internal void EndExecute(
+        OperationPlanContext context,
+        IDisposable? scope,
+        long start,
+        Activity? activity,
+        ExecutionStatus status,
+        Exception? error)
+    {
+        if (error is not null)
+        {
+            try
+            {
+                OnError(context, scope, error);
+            }
+            catch
+            {
+                // A failure while reporting the error must not prevent the node completion.
+            }
+        }
+
+        scope?.Dispose();
+
+        // A started node must always report exactly one completion so the
+        // execution state's active-node count stays balanced. Otherwise the
+        // executor (and its drain) would wait forever for a node that never
+        // reports back.
+        var result = new ExecutionNodeResult(
+            Id,
+            activity,
+            status,
+            context.CollectTelemetry ? Stopwatch.GetElapsedTime(start) : default,
+            error,
+            context.GetDependentsToExecute(this),
+            context.GetSkippedDefinitions(this),
+            context.GetVariableValueSets(this),
+            context.GetTransportDetails(this));
+
+        context.CompleteNode(result);
     }
 
     protected abstract ValueTask<ExecutionStatus> OnExecuteAsync(

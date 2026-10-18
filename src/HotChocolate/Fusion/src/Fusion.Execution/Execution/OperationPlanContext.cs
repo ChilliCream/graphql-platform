@@ -34,6 +34,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     private string?[] _transportContentTypes = [];
     private List<IOperationPlanNode>?[] _skippedDefinitions = [];
     private Dictionary<int, Exception>?[] _batchRequestErrors = [];
+    private ExecutionNodeContinuation?[] _nodeContinuations = [];
     private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
     private readonly FetchResultStore _resultStore;
     private ImmutableArray<VariableValues> _requirementValues;
@@ -371,6 +372,23 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
 
     internal void CompleteNode(ExecutionNodeResult result)
         => _executionState.EnqueueForCompletion(result);
+
+    /// <summary>
+    /// Gets the continuation that completes the asynchronous execution of the specified node.
+    /// The instance is reused by later executions of a node with the same id in this context.
+    /// </summary>
+    internal ExecutionNodeContinuation RentNodeContinuation(ExecutionNode node)
+    {
+        var nodeId = node.Id;
+        var continuations = _nodeContinuations;
+
+        if ((uint)nodeId < (uint)continuations.Length)
+        {
+            return continuations[nodeId] ??= new ExecutionNodeContinuation();
+        }
+
+        return new ExecutionNodeContinuation();
+    }
 
     internal void EnqueuePendingMerge(PendingMerge merge)
         => _executionState.EnqueueMerge(merge);

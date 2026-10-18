@@ -106,6 +106,65 @@ public sealed class ExecutionNodeCompletionTests : FusionTestBase
     }
 
     [Fact]
+    public async Task BeginExecute_Should_RestoreCallerActivity_When_NodeScopeStartsActivity()
+    {
+        // arrange
+        var first = new TestExecutionNode(0, TestOutcome.Success, delayMilliseconds: 10)
+        {
+            StartsActivityScope = true
+        };
+        var second = new TestExecutionNode(1, TestOutcome.Success, delayMilliseconds: 10)
+        {
+            StartsActivityScope = true
+        };
+        first.Seal();
+        second.Seal();
+
+        await using var fixture = await ExecutionTestFixture.CreateAsync(true, first, second);
+        fixture.State.FillBacklog(fixture.Plan);
+
+        using var activity = new Activity("caller");
+        activity.Start();
+
+        // act
+        fixture.State.StartNode(fixture.Context, first, CancellationToken.None);
+        var currentAfterFirst = Activity.Current;
+        fixture.State.StartNode(fixture.Context, second, CancellationToken.None);
+        var firstResult = await WaitForCompletedResultAsync(fixture.State);
+        var secondResult = await WaitForCompletedResultAsync(fixture.State);
+
+        // assert
+        Assert.Same(activity, currentAfterFirst);
+        Assert.Same(activity, firstResult.Activity);
+        Assert.Same(activity, secondResult.Activity);
+    }
+
+    [Fact]
+    public async Task BeginExecute_Should_CompleteNodeOnce_When_OnErrorThrows()
+    {
+        // arrange
+        var failure = new InvalidOperationException("execution failed");
+        var node = new TestExecutionNode(0, TestOutcome.Failed, failure)
+        {
+            ThrowsOnError = true
+        };
+        node.Seal();
+
+        await using var fixture = await ExecutionTestFixture.CreateAsync(false, node);
+        fixture.State.FillBacklog(fixture.Plan);
+
+        // act
+        var result = await ExecuteNodeAsync(fixture, node, CancellationToken.None);
+        fixture.State.CompleteNode(fixture.Plan, node, result);
+
+        // assert
+        Assert.Equal(ExecutionStatus.Failed, result.Status);
+        Assert.Same(failure, result.Exception);
+        Assert.False(fixture.State.TryDequeueCompletedResult(out _));
+        Assert.False(fixture.State.IsProcessing());
+    }
+
+    [Fact]
     public async Task CompleteNode_Should_ScheduleSelectedDependentAndPreserveSkippedDefinitions_When_ResultSelectsDependent()
     {
         var source = new TestExecutionNode(0, TestOutcome.Success);
@@ -251,6 +310,13 @@ public sealed class ExecutionNodeCompletionTests : FusionTestBase
 
         public IOperationPlanNode? SkippedDefinition { get; set; }
 
+        public bool StartsActivityScope { get; init; }
+
+        public bool ThrowsOnError { get; init; }
+
+        protected override IDisposable? CreateScope(OperationPlanContext context)
+            => StartsActivityScope ? new Activity("node-" + Id).Start() : null;
+
         protected override bool IsSkipped(OperationPlanContext context)
             => Outcome is TestOutcome.Skipped;
 
@@ -293,6 +359,10 @@ public sealed class ExecutionNodeCompletionTests : FusionTestBase
             IDisposable? scope,
             Exception error)
         {
+            if (ThrowsOnError)
+            {
+                throw new InvalidOperationException("error reporting failed");
+            }
         }
     }
 
