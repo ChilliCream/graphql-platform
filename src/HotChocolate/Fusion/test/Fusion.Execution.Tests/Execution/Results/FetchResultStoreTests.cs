@@ -699,10 +699,11 @@ public sealed class FetchResultStoreTests : FusionTestBase
             sourceArena);
 
         // assert
-        RenderData(store).MatchInlineSnapshot(
+        Assert.Equal(
             """
             {"empty":[],"allNull":[null,null],"mixed":[{"label":"first"},null,{"label":"last"}]}
-            """);
+            """,
+            RenderData(store));
         Assert.Null(store.Errors);
     }
 
