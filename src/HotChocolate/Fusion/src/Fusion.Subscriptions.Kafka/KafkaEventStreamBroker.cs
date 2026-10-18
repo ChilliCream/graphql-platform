@@ -695,7 +695,7 @@ internal sealed class KafkaEventStreamBroker(KafkaEventStreamOptions options)
                 }
             }
 
-            var rawCursorLength = KafkaCompositeCursorFormatter.GetFormattedLength(cursorMap);
+            var rawCursorLength = KafkaCompositeCursorFormatter.GetFormattedLength(cursorMap, out var groups);
 
             byte[]? rented = null;
             var rawCursor = rawCursorLength <= 256
@@ -704,7 +704,7 @@ internal sealed class KafkaEventStreamBroker(KafkaEventStreamOptions options)
 
             try
             {
-                KafkaCompositeCursorFormatter.Format(cursorMap, rawCursor[..rawCursorLength]);
+                KafkaCompositeCursorFormatter.Format(cursorMap, groups, rawCursor[..rawCursorLength]);
                 return EncodeMessage(body, rawCursor[..rawCursorLength]);
             }
             finally

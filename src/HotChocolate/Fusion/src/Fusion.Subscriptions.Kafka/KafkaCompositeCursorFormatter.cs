@@ -43,8 +43,13 @@ internal static class KafkaCompositeCursorFormatter
     /// Computes the formatted (pre base64) byte length of the supplied cursor map.
     /// </summary>
     public static int GetFormattedLength(Dictionary<TopicPartition, long> map)
+        => GetFormattedLength(map, out _);
+
+    internal static int GetFormattedLength(
+        Dictionary<TopicPartition, long> map,
+        out Dictionary<string, int> groups)
     {
-        var groups = CreateTopicGroups(map);
+        groups = CreateTopicGroups(map);
         var length = HeaderLength;
 
         foreach (var (topic, count) in groups)
@@ -57,14 +62,21 @@ internal static class KafkaCompositeCursorFormatter
 
     /// <summary>
     /// Formats the supplied cursor map into <paramref name="destination"/>, which must be at
-    /// least <see cref="GetFormattedLength"/> bytes long.
+    /// least <see cref="GetFormattedLength(Dictionary{TopicPartition, long})"/> bytes long.
     /// </summary>
     public static void Format(
         Dictionary<TopicPartition, long> map,
         Span<byte> destination)
     {
         var groups = CreateTopicGroups(map);
+        Format(map, groups, destination);
+    }
 
+    internal static void Format(
+        Dictionary<TopicPartition, long> map,
+        Dictionary<string, int> groups,
+        Span<byte> destination)
+    {
         destination[0] = Version;
         BinaryPrimitives.WriteInt32BigEndian(destination[1..], groups.Count);
 
@@ -102,7 +114,8 @@ internal static class KafkaCompositeCursorFormatter
 
     /// <summary>
     /// Formats a single partition 0 cursor at <paramref name="offset"/> into
-    /// <paramref name="destination"/>. The output is byte-identical to <see cref="Format"/> for a
+    /// <paramref name="destination"/>. The output is byte-identical to
+    /// <see cref="Format(Dictionary{TopicPartition, long}, Span{byte})"/> for a
     /// map that holds only partition 0 for the same topic.
     /// </summary>
     public static void FormatSingle(

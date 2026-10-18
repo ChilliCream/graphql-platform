@@ -5,6 +5,68 @@ namespace HotChocolate.Fusion.Subscriptions.Kafka;
 
 public sealed class KafkaEventStreamBrokerInternalsTests
 {
+    [Theory]
+    [InlineData("MultiTopic2")]
+    [InlineData("SingleTopic3")]
+    public async Task EmitMessageAsync_Should_PreserveFullCursorFrontier_When_MultiplePartitionsAreTracked(
+        string scenario)
+    {
+        // arrange
+        var channel = KafkaEventStreamOptions.CreateDefaultMessageChannel();
+        var cursorMap = CreateMultiPartitionMap(scenario);
+        var partition = new TopicPartition("topic-a", new Partition(0));
+
+        // act
+        var outcome = await KafkaEventStreamBroker.EmitMessageAsync(
+            channel.Writer, cursorMap, new SingleEntryCursorCache(), emitCursor: true, partition,
+            offset: 5, """{"id":1}"""u8.ToArray(), CancellationToken.None);
+
+        // assert
+        Assert.Equal(KafkaEventStreamBroker.WriteOutcome.Delivered, outcome);
+        Assert.True(channel.Reader.TryRead(out var delivered));
+        using (delivered)
+        {
+            var cursor = Encoding.UTF8.GetString(delivered!.Cursor);
+            string[] topics = scenario == "MultiTopic2" ? ["topic-a", "topic-b"] : ["topic-a"];
+            var state = KafkaCompositeCursorFormatter.Parse(cursor, topics);
+            Snapshot.Create(scenario)
+                .Add(Encoding.UTF8.GetString(delivered.Body), "Body")
+                .Add(cursor, "Cursor")
+                .Add(Convert.ToHexString(Convert.FromBase64String(cursor)), "Raw Cursor Bytes")
+                .Add(DescribeMap(state.Offsets), "Decoded Frontier")
+                .Add(state.MintedPartitionCounts, "Minted Partition Counts")
+                .Add(DescribeMap(cursorMap), "Committed Frontier")
+                .MatchMarkdownSnapshot();
+        }
+    }
+
+    [Theory]
+    [InlineData("MultiTopic2")]
+    [InlineData("SingleTopic3")]
+    public async Task EmitMessageAsync_Should_RestoreFullCursorFrontier_When_ExistingPartitionCannotBeDelivered(
+        string scenario)
+    {
+        // arrange
+        var channel = KafkaEventStreamOptions.CreateDefaultMessageChannel();
+        channel.Writer.Complete();
+        var cursorMap = CreateMultiPartitionMap(scenario);
+        var before = DescribeMap(cursorMap);
+        var partition = new TopicPartition("topic-a", new Partition(0));
+
+        // act
+        var outcome = await KafkaEventStreamBroker.EmitMessageAsync(
+            channel.Writer, cursorMap, new SingleEntryCursorCache(), emitCursor: true, partition,
+            offset: 5, """{"id":1}"""u8.ToArray(), CancellationToken.None);
+
+        // assert
+        Snapshot.Create(scenario)
+            .Add(outcome, "Write Outcome")
+            .Add(before, "Frontier Before")
+            .Add(DescribeMap(cursorMap), "Frontier After")
+            .Add(channel.Reader.TryRead(out _), "Delivered Message")
+            .MatchMarkdownSnapshot();
+    }
+
     [Fact]
     public async Task EmitMessageAsync_Should_CommitAdvanceOnPumpThread_When_WriteSucceeds()
     {
@@ -338,6 +400,28 @@ public sealed class KafkaEventStreamBrokerInternalsTests
         Assert.NotSame(resumeState.Offsets, map);
         Assert.Equal(resumeState.Offsets, map);
     }
+
+    private static Dictionary<TopicPartition, long> CreateMultiPartitionMap(string scenario)
+        => scenario == "MultiTopic2"
+            ? new Dictionary<TopicPartition, long>
+            {
+                [new TopicPartition("topic-a", new Partition(0))] = 5,
+                [new TopicPartition("topic-b", new Partition(0))] = 9
+            }
+            : new Dictionary<TopicPartition, long>
+            {
+                [new TopicPartition("topic-a", new Partition(0))] = 1,
+                [new TopicPartition("topic-a", new Partition(1))] = 2,
+                [new TopicPartition("topic-a", new Partition(2))] = 3
+            };
+
+    private static object[] DescribeMap(Dictionary<TopicPartition, long> map)
+        => map.Select(entry => (object)new
+        {
+            entry.Key.Topic,
+            Partition = entry.Key.Partition.Value,
+            NextOffset = entry.Value
+        }).ToArray();
 
     private static Dictionary<TopicPartition, Offset> Resolve(
         IPartitionWatermarkSource watermarks,
