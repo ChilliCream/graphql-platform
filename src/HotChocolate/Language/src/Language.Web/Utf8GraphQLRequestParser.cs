@@ -59,7 +59,7 @@ public ref struct Utf8GraphQLRequestParser
 
             return reader.TokenType switch
             {
-                JsonTokenType.StartObject => [ParseRequest(ref reader, OperationDocumentId.Empty)],
+                JsonTokenType.StartObject => [ParseRequest(ref reader, OperationDocumentId.Empty, false, null)],
                 JsonTokenType.StartArray => ParseBatchRequest(ref reader),
                 _ => throw new InvalidGraphQLRequestException(Utf8GraphQLRequestParser_Parse_InvalidRequestStructure)
             };
@@ -104,16 +104,7 @@ public ref struct Utf8GraphQLRequestParser
                     new JsonException(Utf8GraphQLRequestParser_Parse_EmptyJSONDocument));
             }
 
-            var request = ParseRequest(ref reader, operationId);
-
-            return new GraphQLRequest(
-                request.Document,
-                operationId,
-                request.DocumentHash,
-                operationName,
-                request.ErrorHandlingMode,
-                request.Variables,
-                request.Extensions);
+            return ParseRequest(ref reader, operationId, true, operationName);
         }
         catch (JsonException ex)
         {
@@ -144,7 +135,7 @@ public ref struct Utf8GraphQLRequestParser
                         rentedArray = newArray;
                     }
 
-                    rentedArray[count++] = ParseRequest(ref reader, OperationDocumentId.Empty);
+                    rentedArray[count++] = ParseRequest(ref reader, OperationDocumentId.Empty, false, null);
                 }
             }
 
@@ -163,8 +154,13 @@ public ref struct Utf8GraphQLRequestParser
         }
     }
 
-    private readonly GraphQLRequest ParseRequest(ref Utf8JsonReader reader, OperationDocumentId documentId = default)
+    private readonly GraphQLRequest ParseRequest(
+        ref Utf8JsonReader reader,
+        OperationDocumentId documentId,
+        bool isPersistedOperation,
+        string? persistedOperationName)
     {
+        var persistedDocumentId = documentId;
         DocumentNode? document = null;
         OperationDocumentHash documentHash = default;
         string? operationName = null;
@@ -374,13 +370,13 @@ public ref struct Utf8GraphQLRequestParser
 
         return new GraphQLRequest(
             document,
-            documentId.IsEmpty ? null : documentId,
+            isPersistedOperation ? persistedDocumentId : documentId.IsEmpty ? null : documentId,
             documentHash.IsEmpty ? null : documentHash,
-            operationName,
+            isPersistedOperation ? persistedOperationName : operationName,
             errorHandlingMode,
             variables,
             extensions,
-            hasDocumentBody);
+            !isPersistedOperation && hasDocumentBody);
     }
 
     private readonly void ParseDocument(
