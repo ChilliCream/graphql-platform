@@ -42,7 +42,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     private readonly INodeIdParser _nodeIdParser;
     private readonly IErrorHandler _errorHandler;
     private bool _collectTelemetry;
-    private EntityReuseIndex? _entityReuseIndex;
+    private EntityReuseCandidateMap? _entityReuseCandidateMap;
     private bool _usesDynamicSchemaNames;
     private bool _usesBatchNodes;
 #pragma warning disable IDE0370 // Remove unnecessary suppression
@@ -431,11 +431,11 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     }
 
     /// <summary>
-    /// Gets the entity reuse of a lookup in the executing plan, or <c>null</c> if the lookup
-    /// always fetches its entities.
+    /// Gets the reuse candidates of a lookup in the executing plan, or <c>null</c> if the
+    /// lookup always fetches its entities.
     /// </summary>
-    internal EntityReuse? GetEntityReuse(int lookupId)
-        => _entityReuseIndex?.GetReuse(lookupId);
+    internal EntityReuseCandidateList? GetEntityReuseCandidates(int lookupId)
+        => _entityReuseCandidateMap?.GetCandidates(lookupId);
 
     /// <summary>
     /// Creates the variable value sets of a lookup and fills the targets whose entity the result
@@ -445,12 +445,12 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         ReadOnlySpan<SelectionPath> selectionSets,
         ReadOnlySpan<string> forwardedVariables,
         ReadOnlySpan<OperationRequirement> requiredData,
-        EntityReuse? reuse,
+        EntityReuseCandidateList? candidates,
         out int reusedCount)
     {
         reusedCount = 0;
 
-        if (reuse is null
+        if (candidates is null
             || requiredData.Length == 0
             || forwardedVariables.Length > 0
             || CountImportedRequirementKeys(requiredData) > 0)
@@ -462,7 +462,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
             selectionSets,
             GetPathThroughVariables(forwardedVariables),
             requiredData,
-            reuse,
+            candidates,
             out reusedCount);
     }
 

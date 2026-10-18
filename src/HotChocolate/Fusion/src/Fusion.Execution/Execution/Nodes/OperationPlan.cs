@@ -43,9 +43,9 @@ public sealed partial record OperationPlan : IOperationPlan
         UsesDynamicSchemaNames = usesDynamicSchemaNames;
         UsesBatchNodes = usesBatchNodes;
 
-        if (EntityReuseIndex.Create(this) is { } entityReuseIndex)
+        if (EntityReuseCandidateMap.Create(this) is { } entityReuseCandidateMap)
         {
-            operation.Features.Set(entityReuseIndex);
+            operation.Features.Set(entityReuseCandidateMap);
         }
     }
 

@@ -866,7 +866,7 @@ AddErrors_Next:
 
     /// <summary>
     /// Creates the variable value sets of a lookup and fills the targets of entities that the
-    /// result already holds from the producers described by <paramref name="reuse"/>.
+    /// result already holds at the paths of <paramref name="candidates"/>.
     /// </summary>
     /// <returns>
     /// The variable value sets of the entities that still have to be fetched.
@@ -875,12 +875,12 @@ AddErrors_Next:
         ReadOnlySpan<SelectionPath> selectionSets,
         IReadOnlyList<ObjectFieldNode> requestVariables,
         ReadOnlySpan<OperationRequirement> requiredData,
-        EntityReuse reuse,
+        EntityReuseCandidateList candidates,
         out int reusedCount)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(requestVariables);
-        ArgumentNullException.ThrowIfNull(reuse);
+        ArgumentNullException.ThrowIfNull(candidates);
 
         reusedCount = 0;
 
@@ -913,14 +913,14 @@ AddErrors_Next:
                 return variableValueSets;
             }
 
-            var producerCount = CollectCombinedElements(reuse.ProducerPaths);
+            var producerCount = CollectCombinedElements(candidates.Paths);
             var producers = _collectTargetCombined.AsSpan(0, producerCount);
             var holdingCount = 0;
 
             // Only entities that hold a leaf value for every reused field can produce.
             for (var i = 0; i < producers.Length; i++)
             {
-                if (HoldsLeafValues(producers[i], reuse.ResponseNames))
+                if (HoldsLeafValues(producers[i], candidates.ResponseNames))
                 {
                     producers[holdingCount++] = producers[i];
                 }
@@ -936,7 +936,7 @@ AddErrors_Next:
                 requestVariables,
                 requiredData);
 
-            return ReuseEntities(variableValueSets, producerValueSets, reuse.ResponseNames, out reusedCount);
+            return ReuseEntities(variableValueSets, producerValueSets, candidates.ResponseNames, out reusedCount);
         }
     }
 

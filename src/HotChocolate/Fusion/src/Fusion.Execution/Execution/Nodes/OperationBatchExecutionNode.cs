@@ -493,7 +493,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
     {
         reusedCount = 0;
 
-        if (context.GetEntityReuse(operation.Id) is not { } reuse)
+        if (context.GetEntityReuseCandidates(operation.Id) is not { } candidates)
         {
             return CreateVariableValueSets(context, operation);
         }
@@ -504,7 +504,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                 [single.Target],
                 single.ForwardedVariables,
                 single.Requirements,
-                reuse,
+                candidates,
                 out reusedCount);
         }
 
@@ -514,7 +514,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                 batch.Targets,
                 batch.ForwardedVariables,
                 batch.Requirements,
-                reuse,
+                candidates,
                 out reusedCount);
         }
 

@@ -8,10 +8,10 @@ internal static class OperationPlanExtensions
     extension(OperationPlan plan)
     {
         /// <summary>
-        /// Gets the entity reuse index of the plan, or <c>null</c> if no lookup of the plan
-        /// can reuse entities.
+        /// Gets the reuse candidate map of the plan, or <c>null</c> if no lookup of the plan
+        /// has reuse candidates.
         /// </summary>
-        public EntityReuseIndex? EntityReuseIndex
-            => plan.Operation.Features.Get<EntityReuseIndex>();
+        public EntityReuseCandidateMap? EntityReuseCandidateMap
+            => plan.Operation.Features.Get<EntityReuseCandidateMap>();
     }
 }

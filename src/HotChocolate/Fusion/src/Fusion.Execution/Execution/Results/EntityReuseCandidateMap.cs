@@ -6,38 +6,38 @@ using HotChocolate.Types;
 namespace HotChocolate.Fusion.Execution.Results;
 
 /// <summary>
-/// Holds the <see cref="EntityReuse"/> of every lookup in an operation plan that can take
-/// entities from the composite result instead of fetching them again.
+/// Holds the <see cref="EntityReuseCandidateList"/> of every lookup in an operation plan that may
+/// take entities from the composite result instead of fetching them again.
 /// </summary>
-internal sealed class EntityReuseIndex
+internal sealed class EntityReuseCandidateMap
 {
-    private readonly EntityReuse?[] _reuseById;
+    private readonly EntityReuseCandidateList?[] _candidatesById;
 
-    private EntityReuseIndex(EntityReuse?[] reuseById)
+    private EntityReuseCandidateMap(EntityReuseCandidateList?[] candidatesById)
     {
-        _reuseById = reuseById;
+        _candidatesById = candidatesById;
     }
 
     /// <summary>
-    /// Gets the entity reuse of a lookup, or <c>null</c> if the lookup always fetches.
+    /// Gets the reuse candidates of a lookup, or <c>null</c> if the lookup always fetches.
     /// </summary>
     /// <param name="lookupId">
     /// The id of an <see cref="OperationExecutionNode"/> or of an <see cref="OperationDefinition"/> in a batch.
     /// </param>
-    public EntityReuse? GetReuse(int lookupId)
-        => (uint)lookupId < (uint)_reuseById.Length ? _reuseById[lookupId] : null;
+    public EntityReuseCandidateList? GetCandidates(int lookupId)
+        => (uint)lookupId < (uint)_candidatesById.Length ? _candidatesById[lookupId] : null;
 
     /// <summary>
-    /// Creates the entity reuse index of the specified plan.
+    /// Creates the reuse candidate map of the specified plan.
     /// </summary>
     /// <returns>
-    /// The index, or <c>null</c> if no lookup of the plan can reuse entities.
+    /// The map, or <c>null</c> if no lookup of the plan has reuse candidates.
     /// </returns>
-    public static EntityReuseIndex? Create(OperationPlan plan)
+    public static EntityReuseCandidateMap? Create(OperationPlan plan)
     {
         try
         {
-            return CreateIndex(plan);
+            return CreateMap(plan);
         }
         catch
         {
@@ -46,7 +46,7 @@ internal sealed class EntityReuseIndex
         }
     }
 
-    private static EntityReuseIndex? CreateIndex(OperationPlan plan)
+    private static EntityReuseCandidateMap? CreateMap(OperationPlan plan)
     {
         if (plan.Operation.Definition.Operation is not OperationType.Query
             || !plan.IncrementalPlans.IsDefaultOrEmpty
@@ -143,21 +143,21 @@ internal sealed class EntityReuseIndex
         var pathsByType = new Dictionary<string, List<string>>(StringComparer.Ordinal);
         CollectSelectionSets(plan.Operation, plan.Operation.RootSelectionSet, string.Empty, selectionSets, pathsByType);
 
-        EntityReuse?[]? reuseById = null;
+        EntityReuseCandidateList?[]? candidatesById = null;
 
         foreach (var lookup in lookups)
         {
-            if (TryCreateReuse(nodesById, lookup, writers, selectionSets, pathsByType) is { } reuse)
+            if (TryCreateCandidates(nodesById, lookup, writers, selectionSets, pathsByType) is { } candidates)
             {
-                reuseById ??= new EntityReuse?[plan.MaxNodeId + 1];
-                reuseById[lookup.Id] = reuse;
+                candidatesById ??= new EntityReuseCandidateList?[plan.MaxNodeId + 1];
+                candidatesById[lookup.Id] = candidates;
             }
         }
 
-        return reuseById is null ? null : new EntityReuseIndex(reuseById);
+        return candidatesById is null ? null : new EntityReuseCandidateMap(candidatesById);
     }
 
-    private static EntityReuse? TryCreateReuse(
+    private static EntityReuseCandidateList? TryCreateCandidates(
         Dictionary<int, ExecutionNode> nodesById,
         Lookup lookup,
         Dictionary<(string Path, string ResponseName), HashSet<int>> writers,
@@ -262,7 +262,7 @@ internal sealed class EntityReuseIndex
             producerPaths.Add(ToSelectionPath(candidatePath));
         }
 
-        return producerPaths is null ? null : new EntityReuse([.. producerPaths], responseNames);
+        return producerPaths is null ? null : new EntityReuseCandidateList([.. producerPaths], responseNames);
     }
 
     private static bool IsProducer(
