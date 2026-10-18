@@ -292,13 +292,27 @@ internal sealed partial class FetchResultStore
         var completed = false;
         var variableStartPosition = StartRepresentationVariableValue();
         var nextIndex = 0;
+        var hasLeafShape = IsLeafShape(requiredShape);
 
         dedupTable.Initialize(elements.Length);
+        _leafKeyDedupTable.Initialize(elements.Length, representationWriter);
 
         try
         {
             foreach (var result in elements)
             {
+                var leafKey = StartLeafKey(representationWriter, _leafKeyDedupTable);
+
+                if (!hasLeafShape || !TryAppendShapeLeafKey(ref leafKey, result, requiredShape))
+                {
+                    leafKey.IsValid = false;
+                }
+                else if (TryGetLeafKeyDuplicate(ref leafKey, out var duplicateIndex))
+                {
+                    additionalPaths.Add(duplicateIndex, result);
+                    continue;
+                }
+
                 var writeResult = TryWriteRepresentation(
                     result,
                     requiredShape,
@@ -315,10 +329,12 @@ internal sealed partial class FetchResultStore
                         break;
 
                     case RepresentationWriteResult.Duplicate:
+                        AddLeafKey(ref leafKey, index);
                         additionalPaths.Add(index, result);
                         break;
 
                     case RepresentationWriteResult.Written:
+                        AddLeafKey(ref leafKey, index);
                         resultPaths[nextIndex] = new EntityResultPath(result.CompactPath, default);
                         nextIndex++;
                         break;
@@ -348,6 +364,47 @@ internal sealed partial class FetchResultStore
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Returns <c>true</c> when every node of the shape is a leaf field without type conditions,
+    /// so a representation is determined by the raw leaf values of its entity.
+    /// </summary>
+    private static bool IsLeafShape(ImmutableArray<RepresentationShapeNode> shape)
+    {
+        foreach (var node in shape)
+        {
+            if (node.ParentTypeCondition is not null
+                || node.TypeCondition is not null
+                || !node.Nodes.IsDefault)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool TryAppendShapeLeafKey(
+        ref LeafKey key,
+        CompositeResultElement element,
+        ImmutableArray<RepresentationShapeNode> shape)
+    {
+        foreach (var node in shape)
+        {
+            if (!element.TryGetProperty(node.ResponseNameUtf8, out var value))
+            {
+                key.Writer.ResetTo(key.Start);
+                return false;
+            }
+
+            if (!TryAppendLeafKey(ref key, value))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private void WriteRequestVariableProperties(IReadOnlyList<ObjectFieldNode> requestVariables)

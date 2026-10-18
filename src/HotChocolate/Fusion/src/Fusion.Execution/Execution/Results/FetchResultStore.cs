@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Buffers.Binary;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -51,6 +52,7 @@ internal sealed partial class FetchResultStore : IDisposable
     private PooledArrayWriter? _forwardedVariableWriter;
     private readonly JsonWriter _jsonWriter;
     private readonly VariableDedupTable _variableDedupTable;
+    private readonly VariableDedupTable _leafKeyDedupTable;
     private FusionSchemaDefinition _schema = default!;
     private IErrorHandler _errorHandler = default!;
     private Operation _operation = default!;
@@ -76,6 +78,7 @@ internal sealed partial class FetchResultStore : IDisposable
     {
         _jsonWriter = new JsonWriter(_variableWriter, new JsonWriterOptions { Indented = false });
         _variableDedupTable = new VariableDedupTable(_variableWriter);
+        _leafKeyDedupTable = new VariableDedupTable(_variableWriter);
     }
 
     public CompositeResultDocument Result => _result;
@@ -1268,6 +1271,7 @@ AddErrors_Next:
         ReadOnlySpan<OperationRequirement> requiredData)
     {
         _variableDedupTable.Initialize(elements.Length);
+        _leafKeyDedupTable.Initialize(elements.Length, _variableWriter);
         PooledArrayWriter? buffer = null;
 
         if (requestVariables.Count == 0)
@@ -1419,6 +1423,15 @@ AddErrors_Next:
                 continue;
             }
 
+            var leafKey = StartLeafKey(_variableWriter, _leafKeyDedupTable);
+
+            if (TryAppendLeafKey(ref leafKey, value)
+                && TryGetLeafKeyDuplicate(ref leafKey, out var duplicateIndex))
+            {
+                additionalPaths.Add(duplicateIndex, result);
+                continue;
+            }
+
             variableValueSets ??= s_variableValuePool.Rent(elements.Length);
 
             _jsonWriter.Reset(_variableWriter);
@@ -1432,7 +1445,13 @@ AddErrors_Next:
 
             // we try to create a VariableValues object,
             // if that fails the variables already were created and we move on.
-            var entry = TryCreateVariableValues(result, startPosition, ref additionalPaths, nextIndex);
+            var entry = TryCreateVariableValues(
+                result,
+                startPosition,
+                ref additionalPaths,
+                nextIndex,
+                out var dedupIndex);
+            AddLeafKey(ref leafKey, dedupIndex);
 
             if (entry is null)
             {
@@ -1551,6 +1570,16 @@ AddErrors_Next:
                 continue;
             }
 
+            var leafKey = StartLeafKey(_variableWriter, _leafKeyDedupTable);
+
+            if (TryAppendLeafKey(ref leafKey, value1)
+                && TryAppendLeafKey(ref leafKey, value2)
+                && TryGetLeafKeyDuplicate(ref leafKey, out var duplicateIndex))
+            {
+                additionalPaths.Add(duplicateIndex, result);
+                continue;
+            }
+
             variableValueSets ??= s_variableValuePool.Rent(elements.Length);
 
             _jsonWriter.Reset(_variableWriter);
@@ -1563,7 +1592,8 @@ AddErrors_Next:
             _jsonWriter.WriteEndObject();
 
             var entry = TryCreateVariableValues(
-                result, startPosition, ref additionalPaths, nextIndex);
+                result, startPosition, ref additionalPaths, nextIndex, out var dedupIndex);
+            AddLeafKey(ref leafKey, dedupIndex);
 
             if (entry is null)
             {
@@ -1716,6 +1746,17 @@ AddErrors_Next:
                 continue;
             }
 
+            var leafKey = StartLeafKey(_variableWriter, _leafKeyDedupTable);
+
+            if (TryAppendLeafKey(ref leafKey, value1)
+                && TryAppendLeafKey(ref leafKey, value2)
+                && TryAppendLeafKey(ref leafKey, value3)
+                && TryGetLeafKeyDuplicate(ref leafKey, out var duplicateIndex))
+            {
+                additionalPaths.Add(duplicateIndex, result);
+                continue;
+            }
+
             variableValueSets ??= s_variableValuePool.Rent(elements.Length);
 
             _jsonWriter.Reset(_variableWriter);
@@ -1729,7 +1770,9 @@ AddErrors_Next:
             WriteCompositeResultValue(value3);
             _jsonWriter.WriteEndObject();
 
-            var entry = TryCreateVariableValues(result, startPosition, ref additionalPaths, nextIndex);
+            var entry = TryCreateVariableValues(
+                result, startPosition, ref additionalPaths, nextIndex, out var dedupIndex);
+            AddLeafKey(ref leafKey, dedupIndex);
 
             if (entry is null)
             {
@@ -1818,6 +1861,59 @@ AddErrors_Next:
         }
 
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
+    }
+
+    private static LeafKey StartLeafKey(ChunkedArrayWriter writer, VariableDedupTable table)
+        => new(writer, table, writer.Position);
+
+    /// <summary>
+    /// Appends the kind marker, length and raw bytes of a leaf value to the key.
+    /// Discards the key and returns <c>false</c> when the value is not a non-null leaf.
+    /// </summary>
+    private static bool TryAppendLeafKey(ref LeafKey key, CompositeResultElement value)
+    {
+        if (!value.TryGetLeafValueKey(out var kind, out var raw))
+        {
+            key.Writer.ResetTo(key.Start);
+            key.IsValid = false;
+            return false;
+        }
+
+        var length = raw.Length + 5;
+        var span = key.Writer.GetSpan(length);
+        span[0] = kind;
+        BinaryPrimitives.WriteInt32LittleEndian(span[1..], raw.Length);
+        raw.CopyTo(span[5..]);
+        key.Writer.Advance(length);
+        return true;
+    }
+
+    /// <summary>
+    /// Returns the variable set index of an earlier target with the same key and discards the key,
+    /// or keeps the key so it can be registered with <see cref="AddLeafKey"/>.
+    /// </summary>
+    private static bool TryGetLeafKeyDuplicate(ref LeafKey key, out int index)
+    {
+        var length = key.Writer.Position - key.Start;
+        key.Hash = key.Writer.GetHashCode(key.Start, length);
+        key.Length = length;
+
+        if (key.Table.TryGet(key.Hash, key.Start, length, out index))
+        {
+            key.Writer.ResetTo(key.Start);
+            key.IsValid = false;
+            return true;
+        }
+
+        return false;
+    }
+
+    private static void AddLeafKey(ref LeafKey key, int index)
+    {
+        if (key.IsValid)
+        {
+            key.Table.Add(key.Hash, index, key.Start, key.Length);
+        }
     }
 
     private static bool TryGetSimpleRequirementFieldName(
@@ -2781,6 +2877,7 @@ AddErrors_Next:
 
         _variableDedupTable.Dispose();
         _variableWriter.Dispose();
+        _leafKeyDedupTable.Dispose();
         _forwardedVariableWriter?.Dispose();
         _pathPool?.Dispose();
     }
@@ -2855,19 +2952,39 @@ AddErrors_Next:
         return ImmutableCollectionsMarshal.AsImmutableArray(result);
     }
 
+    /// <summary>
+    /// The raw leaf values of a lookup target, written to a buffer so that targets with equal values
+    /// are matched before their variable JSON is written.
+    /// </summary>
+    private struct LeafKey(ChunkedArrayWriter writer, VariableDedupTable table, int start)
+    {
+        public readonly ChunkedArrayWriter Writer = writer;
+        public readonly VariableDedupTable Table = table;
+        public readonly int Start = start;
+        public int Length;
+        public int Hash;
+        public bool IsValid = true;
+    }
+
     private sealed class VariableDedupTable(ChunkedArrayWriter writer) : IDisposable
     {
         private const int DefaultBucketSize = 4;
         private const int DefaultBucketCount = 16;
         private const int TrackedSlotCapacity = 16;
 
-        private readonly ChunkedArrayWriter _writer = writer;
+        private ChunkedArrayWriter _writer = writer;
         private Entry[] _table = RentClearedTable(DefaultBucketCount * DefaultBucketSize);
         private int[] _writtenSlots = [];
         private int _bucketCount = DefaultBucketCount;
         private readonly int _bucketSize = DefaultBucketSize;
         private int _writtenCount;
         private bool _clearFullTable;
+
+        public void Initialize(int capacity, ChunkedArrayWriter writer)
+        {
+            _writer = writer;
+            Initialize(capacity);
+        }
 
         public void Initialize(int capacity)
         {
