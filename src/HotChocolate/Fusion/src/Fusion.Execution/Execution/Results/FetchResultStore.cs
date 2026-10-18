@@ -1012,10 +1012,25 @@ AddErrors_Next:
         lock (_lock)
         {
             var combinedCount = 0;
+            Span<(int Start, int Length)> collected = selectionSets.Length <= 16
+                ? stackalloc (int, int)[selectionSets.Length]
+                : new (int, int)[selectionSets.Length];
 
-            foreach (var selectionSet in selectionSets)
+            for (var i = 0; i < selectionSets.Length; i++)
             {
-                var elements = CollectTargetElements(selectionSet);
+                var selectionSet = selectionSets[i];
+
+                // A target that extends an earlier target continues from the elements
+                // collected for the earlier target instead of walking from the root.
+                var prefix = FindCollectedPrefix(selectionSets, i);
+                var elements = prefix == -1
+                    ? CollectTargetElements(selectionSet)
+                    : CollectTargetElements(
+                        selectionSet,
+                        selectionSets[prefix].Length,
+                        _collectTargetCombined.AsSpan(collected[prefix].Start, collected[prefix].Length));
+
+                collected[i] = (combinedCount, elements.Length);
 
                 if (!elements.IsEmpty)
                 {
@@ -1077,17 +1092,60 @@ AddErrors_Next:
         }
     }
 
+    /// <summary>
+    /// Returns the index of the longest earlier target path that is a proper prefix of the
+    /// target path at <paramref name="index"/>, or -1 if there is none.
+    /// </summary>
+    private static int FindCollectedPrefix(ReadOnlySpan<SelectionPath> selectionSets, int index)
+    {
+        var target = selectionSets[index];
+        var prefix = -1;
+        var prefixLength = 0;
+
+        for (var i = 0; i < index; i++)
+        {
+            var candidate = selectionSets[i];
+
+            if (candidate.Length > prefixLength
+                && candidate.Length < target.Length
+                && candidate.IsParentOfOrSame(target))
+            {
+                prefix = i;
+                prefixLength = candidate.Length;
+            }
+        }
+
+        return prefix;
+    }
+
     // Caller must hold _lock for reading.
     private ReadOnlySpan<CompositeResultElement> CollectTargetElements(SelectionPath selectionSet)
     {
+        var root = _result.Data;
+        return CollectTargetElements(selectionSet, 0, new ReadOnlySpan<CompositeResultElement>(in root));
+    }
+
+    // Caller must hold _lock for reading.
+    private ReadOnlySpan<CompositeResultElement> CollectTargetElements(
+        SelectionPath selectionSet,
+        int startSegment,
+        scoped ReadOnlySpan<CompositeResultElement> startElements)
+    {
         var current = _collectTargetA;
-        var currentCount = 0;
         var next = _collectTargetB;
         var nextCount = 0;
 
-        current[currentCount++] = _result.Data;
+        if (startElements.IsEmpty)
+        {
+            return [];
+        }
 
-        for (var i = 0; i < selectionSet.Length; i++)
+        EnsureCapacity(ref current, startElements.Length, 0);
+        _collectTargetA = current;
+        startElements.CopyTo(current);
+        var currentCount = startElements.Length;
+
+        for (var i = startSegment; i < selectionSet.Length; i++)
         {
             var segment = selectionSet[i];
 
