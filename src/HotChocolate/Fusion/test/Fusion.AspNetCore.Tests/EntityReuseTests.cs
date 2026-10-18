@@ -220,6 +220,111 @@ public sealed class EntityReuseTests : FusionTestBase
             """);
     }
 
+    [Fact]
+    public async Task Execute_Lookup_Should_FetchEntity_When_CandidateKeyIsNull()
+    {
+        // arrange
+        using var accountsApi = CreateSourceSchema(
+            "accounts-api",
+            builder => builder.AddQueryType<NullKeyAccountsQuery>(d => d.Name("Query")));
+        using var reviewsApi = CreateSourceSchema(
+            "reviews-api",
+            builder => builder.AddQueryType<NullKeyReviewsQuery>(d => d.Name("Query")));
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("accounts-api", accountsApi), ("reviews-api", reviewsApi)]);
+        using var gatewayWithoutReuse = await CreateCompositeSchemaAsync(
+            [("accounts-api", accountsApi), ("reviews-api", reviewsApi)],
+            configureGatewayBuilder: builder => builder.ModifyOptions(options => options.EnableEntityReuse = false));
+
+        // Alice and the review author Bob both have no email, the only key of the author lookup.
+        const string query =
+            """
+            {
+              users { id email name reviews { author { name } } }
+            }
+            """;
+
+        // act
+        var data = await ExecuteAsync(gateway, query);
+        var dataWithoutReuse = await ExecuteAsync(gatewayWithoutReuse, query);
+
+        // assert
+        Assert.Equal(dataWithoutReuse, data);
+        data.MatchInlineSnapshot(
+            """
+            {"users":[{"id":"1","email":null,"name":"Alice","reviews":[{"author":{"name":null}}]}]}
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_Lookup_Should_ReuseEntity_When_CompositeKeyIsPartlyNull()
+    {
+        // arrange
+        using var productsApi = CreateCompositeKeyProductsApi(
+            new CompositeKeyProduct { Sku = "A", Region = null, Name = "Table" });
+        using var reviewsApi = CreateCompositeKeyReviewsApi();
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("products-api", productsApi), ("reviews-api", reviewsApi)]);
+        using var gatewayWithoutReuse = await CreateCompositeSchemaAsync(
+            [("products-api", productsApi), ("reviews-api", reviewsApi)],
+            configureGatewayBuilder: builder => builder.ModifyOptions(options => options.EnableEntityReuse = false));
+
+        // act
+        var data = await ExecuteAsync(gateway, CompositeKeyQuery);
+        var dataWithoutReuse = await ExecuteAsync(gatewayWithoutReuse, CompositeKeyQuery);
+
+        // assert
+        Assert.Equal(dataWithoutReuse, data);
+        Assert.Equal("products-api: 1, reviews-api: 1", CountRequests(gateway));
+        data.MatchInlineSnapshot(
+            """
+            {"products":[{"sku":"A","region":null,"name":"Table","reviews":[{"product":{"name":"Table"}}]}]}
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_Lookup_Should_FetchEntity_When_CompositeKeyIsAllNull()
+    {
+        // arrange
+        using var productsApi = CreateCompositeKeyProductsApi(
+            new CompositeKeyProduct { Sku = null, Region = null, Name = "Unknown" });
+        using var reviewsApi = CreateCompositeKeyReviewsApi();
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("products-api", productsApi), ("reviews-api", reviewsApi)]);
+        using var gatewayWithoutReuse = await CreateCompositeSchemaAsync(
+            [("products-api", productsApi), ("reviews-api", reviewsApi)],
+            configureGatewayBuilder: builder => builder.ModifyOptions(options => options.EnableEntityReuse = false));
+
+        // act
+        var data = await ExecuteAsync(gateway, CompositeKeyQuery);
+        var dataWithoutReuse = await ExecuteAsync(gatewayWithoutReuse, CompositeKeyQuery);
+
+        // assert
+        Assert.Equal(dataWithoutReuse, data);
+        data.MatchInlineSnapshot(
+            """
+            {"products":[{"sku":null,"region":null,"name":"Unknown","reviews":[{"product":{"name":null}}]}]}
+            """);
+    }
+
+    private const string CompositeKeyQuery =
+        """
+        {
+          products { sku region name reviews { product { name } } }
+        }
+        """;
+
+    private TestServer CreateCompositeKeyProductsApi(params CompositeKeyProduct[] products)
+        => CreateSourceSchema(
+            "products-api",
+            builder => builder.AddQueryType<CompositeKeyProductsQuery>(d => d.Name("Query")),
+            configureServices: services => services.AddSingleton(new CompositeKeyProductData(products)));
+
+    private TestServer CreateCompositeKeyReviewsApi()
+        => CreateSourceSchema(
+            "reviews-api",
+            builder => builder.AddQueryType<CompositeKeyReviewsQuery>(d => d.Name("Query")));
+
     private Task<Gateway> CreateGatewayAsync(
         TestServer accountsApi,
         TestServer inventoryApi,
@@ -388,5 +493,125 @@ public sealed class EntityReuseTests : FusionTestBase
             context.ReportError("NAME_WARNING");
             return Name;
         }
+    }
+
+    public sealed class NullKeyAccountsQuery
+    {
+        private static readonly List<NullKeyAccountUser> s_users =
+        [
+            new() { Id = "1", Email = null, Name = "Alice" }
+        ];
+
+        public List<NullKeyAccountUser> GetUsers() => s_users;
+
+        [Lookup]
+        public NullKeyAccountUser? GetUserByEmail(string? email)
+            => email is null ? null : s_users.FirstOrDefault(t => t.Email == email);
+    }
+
+    [GraphQLName("User")]
+    public sealed class NullKeyAccountUser
+    {
+        [ID]
+        [Shareable]
+        public required string Id { get; init; }
+
+        [Shareable]
+        public string? Email { get; init; }
+
+        public string? Name { get; init; }
+    }
+
+    public sealed class NullKeyReviewsQuery
+    {
+        [Lookup, Internal]
+        public NullKeyReviewUser? GetUser([ID] string id)
+            => new() { Id = id };
+    }
+
+    [GraphQLName("User")]
+    public sealed class NullKeyReviewUser
+    {
+        [ID]
+        public required string Id { get; init; }
+
+        [Shareable]
+        public string? Email => null;
+
+        public IEnumerable<NullKeyReview> GetReviews()
+            => Id == "1" ? [new NullKeyReview { Id = "1", AuthorId = "2" }] : [];
+    }
+
+    [GraphQLName("Review")]
+    public sealed class NullKeyReview
+    {
+        [ID]
+        public required string Id { get; init; }
+
+        public required string AuthorId { get; init; }
+
+        public NullKeyReviewUser GetAuthor() => new() { Id = AuthorId };
+    }
+
+    public sealed record CompositeKeyProductData(CompositeKeyProduct[] Products);
+
+    public sealed class CompositeKeyProductsQuery
+    {
+        public IEnumerable<CompositeKeyProduct> GetProducts([Service] CompositeKeyProductData data)
+            => data.Products;
+
+        [Lookup]
+        public CompositeKeyProduct? GetProductByKey(
+            string? sku,
+            string? region,
+            [Service] CompositeKeyProductData data)
+            => sku is null && region is null
+                ? null
+                : data.Products.FirstOrDefault(t => t.Sku == sku && t.Region == region);
+    }
+
+    [GraphQLName("Product")]
+    public sealed class CompositeKeyProduct
+    {
+        [Shareable]
+        public string? Sku { get; init; }
+
+        [Shareable]
+        public string? Region { get; init; }
+
+        public string? Name { get; init; }
+    }
+
+    public sealed class CompositeKeyReviewsQuery
+    {
+        [Lookup, Internal]
+        public CompositeKeyReviewProduct? GetProductByKey(string? sku, string? region)
+            => new() { Sku = sku, Region = region };
+    }
+
+    [GraphQLName("Product")]
+    public sealed class CompositeKeyReviewProduct
+    {
+        [Shareable]
+        public string? Sku { get; init; }
+
+        [Shareable]
+        public string? Region { get; init; }
+
+        public IEnumerable<CompositeKeyReview> GetReviews()
+            => [new CompositeKeyReview { Id = "1", Sku = Sku, Region = Region }];
+    }
+
+    [GraphQLName("Review")]
+    public sealed class CompositeKeyReview
+    {
+        [ID]
+        public required string Id { get; init; }
+
+        public string? Sku { get; init; }
+
+        public string? Region { get; init; }
+
+        public CompositeKeyReviewProduct GetProduct() => new() { Sku = Sku, Region = Region };
     }
 }

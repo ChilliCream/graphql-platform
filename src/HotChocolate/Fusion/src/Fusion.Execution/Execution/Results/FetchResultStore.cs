@@ -917,10 +917,12 @@ AddErrors_Next:
             var producers = _collectTargetCombined.AsSpan(0, producerCount);
             var holdingCount = 0;
 
-            // Only entities that hold a leaf value for every reused field can produce.
+            // Only entities that hold a leaf value for every reused field and a key that is not
+            // all null can produce.
             for (var i = 0; i < producers.Length; i++)
             {
-                if (HoldsLeafValues(producers[i], candidates.ResponseNames))
+                if (HoldsLeafValues(producers[i], candidates.ResponseNames)
+                    && HasNonNullKeyValue(producers[i], candidates.KeyResponseNames))
                 {
                     producers[holdingCount++] = producers[i];
                 }
@@ -1092,6 +1094,20 @@ AddErrors_Next:
         }
 
         return true;
+    }
+
+    private static bool HasNonNullKeyValue(CompositeResultElement element, ReadOnlySpan<string> keyResponseNames)
+    {
+        foreach (var responseName in keyResponseNames)
+        {
+            if (element.TryGetProperty(responseName, out var value)
+                && value.ValueKind is not (JsonValueKind.Null or JsonValueKind.Undefined))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     internal ImmutableArray<VariableValues> CreateVariableValueSetsFromSnapshot(

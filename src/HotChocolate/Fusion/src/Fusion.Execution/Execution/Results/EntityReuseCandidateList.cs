@@ -6,7 +6,10 @@ namespace HotChocolate.Fusion.Execution.Results;
 /// Describes where in the composite result a lookup may find entities it would otherwise
 /// fetch from the source schema.
 /// </summary>
-internal sealed class EntityReuseCandidateList(SelectionPath[] paths, string[] responseNames)
+internal sealed class EntityReuseCandidateList(
+    SelectionPath[] paths,
+    string[] responseNames,
+    string[] keyResponseNames)
 {
     /// <summary>
     /// Gets the result paths of entities that may hold every field the lookup selects.
@@ -17,4 +20,9 @@ internal sealed class EntityReuseCandidateList(SelectionPath[] paths, string[] r
     /// Gets the response names of the leaf fields the lookup selects.
     /// </summary>
     public ReadOnlySpan<string> ResponseNames => responseNames;
+
+    /// <summary>
+    /// Gets the response names of the key fields that identify the entities of the lookup.
+    /// </summary>
+    public ReadOnlySpan<string> KeyResponseNames => keyResponseNames;
 }

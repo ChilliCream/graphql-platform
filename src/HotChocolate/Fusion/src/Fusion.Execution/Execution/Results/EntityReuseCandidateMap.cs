@@ -262,7 +262,9 @@ internal sealed class EntityReuseCandidateMap
             producerPaths.Add(ToSelectionPath(candidatePath));
         }
 
-        return producerPaths is null ? null : new EntityReuseCandidateList([.. producerPaths], responseNames);
+        return producerPaths is null
+            ? null
+            : new EntityReuseCandidateList([.. producerPaths], responseNames, requirementFields);
     }
 
     private static bool IsProducer(
