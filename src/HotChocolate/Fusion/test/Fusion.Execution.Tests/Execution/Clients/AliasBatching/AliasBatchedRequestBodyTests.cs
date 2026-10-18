@@ -165,6 +165,39 @@ public sealed class AliasBatchedRequestBodyTests
             StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void WriteTo_Should_WriteTheSameJson_When_TheQueryWasCreatedBefore()
+    {
+        // arrange
+        using var memory = new ChunkedArrayWriter();
+        using var document = ParseLookup(
+            "query($search: String, $__fusion_1_id: ID!)"
+            + "{productById(id: $__fusion_1_id){name(q: $search)}}");
+        List<Utf8VariableDefinitionNode> shared = [GetVariableDefinition(document, "search")];
+        var items = new[]
+        {
+            CreateItem(memory, document, """{"search":"a\"b","__fusion_1_id":"1"}"""),
+            CreateItem(memory, document, """{"search":"a\"b","__fusion_1_id":"2"}""")
+        };
+        var query = AliasBatchedRequestBody.CreateQuery(
+            items,
+            shared,
+            "GetProducts",
+            OperationShortHash,
+            CompositionHash);
+        var body = new AliasBatchedRequestBody(query, items, items.Length, shared, ErrorHandlingMode.Null);
+
+        // act
+        using var buffer = new PooledArrayWriter();
+        body.WriteTo(new JsonWriter(buffer, default));
+        var json = Encoding.UTF8.GetString(buffer.WrittenSpan);
+
+        // assert
+        Assert.Equal(
+            Write(items, shared, ErrorHandlingMode.Null, operationName: "GetProducts"),
+            json);
+    }
+
     private static string Write(
         AliasBatchItem[] items,
         List<Utf8VariableDefinitionNode> sharedVariables,

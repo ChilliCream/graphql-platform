@@ -51,6 +51,56 @@ public class AliasBatchingTests : FusionTestBase
     }
 
     [Fact]
+    public async Task BatchedLookup_Should_SendTheSameAliasedRequest_When_TheRequestRepeats()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            b => b.AddQueryType<SourceSchema2.Query>(),
+            capabilities: SourceSchemaClientCapabilities.AliasBatching);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", server1),
+            ("b", server2)
+        ]);
+
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              books {
+                rating
+              }
+            }
+            """);
+
+        // the first two requests populate the merged operation cache of the plan node
+        for (var i = 0; i < 2; i++)
+        {
+            using var warmup = await client.PostAsync(
+                request,
+                new Uri("http://localhost:5000/graphql"),
+                TestContext.Current.CancellationToken);
+            using var warmupResult = await warmup.ReadAsResultAsync(TestContext.Current.CancellationToken);
+        }
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
     public async Task BatchedLookup_Should_RouteErrorsToTheirItem_When_OneItemFails()
     {
         // arrange

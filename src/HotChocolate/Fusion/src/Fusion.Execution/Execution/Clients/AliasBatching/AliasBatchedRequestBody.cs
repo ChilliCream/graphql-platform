@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Text;
 using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Transport;
 using HotChocolate.Fusion.Transport.Serialization;
@@ -25,8 +26,9 @@ internal sealed class AliasBatchedRequestBody : IRequestBody
     private readonly AliasBatchItem[] _items;
     private readonly int _itemCount;
     private readonly List<Utf8VariableDefinitionNode> _sharedVariables;
+    private readonly ReadOnlyMemory<byte> _query;
     private readonly string? _operationName;
-    private readonly string _nameSafeShortHash;
+    private readonly string? _operationShortHash;
     private readonly ulong _compositionHash;
     private readonly ErrorHandlingMode? _onError;
 
@@ -61,8 +63,35 @@ internal sealed class AliasBatchedRequestBody : IRequestBody
         _itemCount = itemCount;
         _sharedVariables = sharedVariables;
         _operationName = operationName;
-        _nameSafeShortHash = OperationShortHash.ToNameSafe(operationShortHash);
+        _operationShortHash = operationShortHash;
         _compositionHash = compositionHash;
+        _onError = onError;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="AliasBatchedRequestBody"/> whose merged operation
+    /// was created before by <see cref="CreateQuery"/>.
+    /// </summary>
+    /// <param name="query">
+    /// The merged operation of <paramref name="items"/> as a JSON string value.
+    /// </param>
+    /// <param name="items">The items that are merged into one operation.</param>
+    /// <param name="itemCount">The number of items in <paramref name="items"/>.</param>
+    /// <param name="sharedVariables">
+    /// The variable definitions that the items share. They keep their name and are declared once.
+    /// </param>
+    /// <param name="onError">The requested error handling mode.</param>
+    public AliasBatchedRequestBody(
+        ReadOnlyMemory<byte> query,
+        AliasBatchItem[] items,
+        int itemCount,
+        List<Utf8VariableDefinitionNode> sharedVariables,
+        ErrorHandlingMode? onError)
+    {
+        _query = query;
+        _items = items;
+        _itemCount = itemCount;
+        _sharedVariables = sharedVariables;
         _onError = onError;
     }
 
@@ -76,7 +105,20 @@ internal sealed class AliasBatchedRequestBody : IRequestBody
         writer.WriteStartObject();
 
         writer.WritePropertyName(Utf8GraphQLRequestProperties.QueryProp);
-        WriteQuery(writer, items);
+        writer.WriteRawValueStart(_query.Span);
+
+        if (_query.IsEmpty)
+        {
+            WriteQuery(
+                writer.InnerWriter,
+                items,
+                _sharedVariables,
+                _operationName,
+                _operationShortHash!,
+                _compositionHash);
+        }
+
+        writer.WriteRawValueEnd(JsonTokenType.String);
 
         writer.WritePropertyName(Utf8GraphQLRequestProperties.VariablesProp);
         AliasBatchVariableWriter.Write(writer, items, _sharedVariables);
@@ -91,13 +133,49 @@ internal sealed class AliasBatchedRequestBody : IRequestBody
     }
 
     /// <summary>
+    /// Creates the merged operation of the items as a JSON string value.
+    /// </summary>
+    /// <param name="items">The items that are merged into one operation.</param>
+    /// <param name="sharedVariables">
+    /// The variable definitions that the items share. They keep their name and are declared once.
+    /// </param>
+    /// <param name="operationName">
+    /// The name of the client operation, or <see langword="null"/> when it is anonymous.
+    /// </param>
+    /// <param name="operationShortHash">
+    /// The short hash of the client operation.
+    /// </param>
+    /// <param name="compositionHash">
+    /// The hash of the batch composition.
+    /// </param>
+    /// <returns>
+    /// The UTF-8 encoded JSON string value, including the enclosing quotation marks.
+    /// </returns>
+    public static byte[] CreateQuery(
+        ReadOnlySpan<AliasBatchItem> items,
+        List<Utf8VariableDefinitionNode> sharedVariables,
+        string? operationName,
+        string operationShortHash,
+        ulong compositionHash)
+    {
+        using var buffer = new PooledArrayWriter();
+        WriteQuery(buffer, items, sharedVariables, operationName, operationShortHash, compositionHash);
+        return buffer.WrittenSpan.ToArray();
+    }
+
+    /// <summary>
     /// Writes the merged operation as a JSON string value.
     /// </summary>
-    private void WriteQuery(JsonWriter writer, ReadOnlySpan<AliasBatchItem> items)
+    private static void WriteQuery(
+        IBufferWriter<byte> output,
+        ReadOnlySpan<AliasBatchItem> items,
+        List<Utf8VariableDefinitionNode> sharedVariables,
+        string? operationName,
+        string operationShortHash,
+        ulong compositionHash)
     {
-        writer.WriteRawValueStart([]);
-
-        var nameLength = GetOperationNameLength();
+        var nameSafeShortHash = OperationShortHash.ToNameSafe(operationShortHash);
+        var nameLength = GetOperationNameLength(operationName, nameSafeShortHash);
         byte[]? rented = null;
         Span<byte> stackBuffer = stackalloc byte[StackBufferLength];
         var nameBuffer = nameLength <= StackBufferLength
@@ -107,10 +185,10 @@ internal sealed class AliasBatchedRequestBody : IRequestBody
         try
         {
             var builder = Utf8OperationDocumentBuilder
-                .New(writer.InnerWriter, formatAsJsonStringValue: true)
-                .SetName(ComposeOperationName(nameBuffer));
+                .New(output, formatAsJsonStringValue: true)
+                .SetName(ComposeOperationName(nameBuffer, operationName, nameSafeShortHash, compositionHash));
 
-            foreach (var sharedVariable in _sharedVariables)
+            foreach (var sharedVariable in sharedVariables)
             {
                 builder = builder.AddSharedVariable(sharedVariable);
             }
@@ -129,17 +207,15 @@ internal sealed class AliasBatchedRequestBody : IRequestBody
                 ArrayPool<byte>.Shared.Return(rented);
             }
         }
-
-        writer.WriteRawValueEnd(JsonTokenType.String);
     }
 
     /// <summary>
     /// Gets the number of bytes the name of the merged operation takes.
     /// </summary>
-    private int GetOperationNameLength()
-        => (_operationName?.Length ?? AnonymousOperationName.Length)
+    private static int GetOperationNameLength(string? operationName, string nameSafeShortHash)
+        => (operationName?.Length ?? AnonymousOperationName.Length)
             + 1
-            + _nameSafeShortHash.Length
+            + nameSafeShortHash.Length
             + Batch.Length
             + CompositionHashLength;
 
@@ -147,25 +223,29 @@ internal sealed class AliasBatchedRequestBody : IRequestBody
     /// Writes the name of the merged operation into <paramref name="buffer"/>. The name is derived
     /// from the client operation and the composition of the batch.
     /// </summary>
-    private ReadOnlySpan<byte> ComposeOperationName(Span<byte> buffer)
+    private static ReadOnlySpan<byte> ComposeOperationName(
+        Span<byte> buffer,
+        string? operationName,
+        string nameSafeShortHash,
+        ulong compositionHash)
     {
         int written;
 
-        if (_operationName is null)
+        if (operationName is null)
         {
             AnonymousOperationName.CopyTo(buffer);
             written = AnonymousOperationName.Length;
         }
         else
         {
-            written = Encoding.ASCII.GetBytes(_operationName, buffer);
+            written = Encoding.ASCII.GetBytes(operationName, buffer);
         }
 
         buffer[written++] = NameSeparator;
-        written += Encoding.ASCII.GetBytes(_nameSafeShortHash, buffer[written..]);
+        written += Encoding.ASCII.GetBytes(nameSafeShortHash, buffer[written..]);
         Batch.CopyTo(buffer[written..]);
         written += Batch.Length;
-        WriteHexLower(buffer[written..], _compositionHash);
+        WriteHexLower(buffer[written..], compositionHash);
 
         return buffer[..(written + CompositionHashLength)];
     }

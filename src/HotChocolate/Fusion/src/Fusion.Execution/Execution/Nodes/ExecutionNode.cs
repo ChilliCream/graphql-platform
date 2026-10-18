@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using HotChocolate.Fusion.Execution.Clients.AliasBatching;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -16,6 +17,7 @@ public abstract class ExecutionNode : IOperationPlanNode, IEquatable<ExecutionNo
     private int _dependencyCount;
     private int _optionalDependencyCount;
     private int _parentDependencyCount;
+    private AliasBatchQueryCache? _aliasBatchQueryCache;
 
     /// <summary>
     /// The unique id of this execution node.
@@ -44,6 +46,23 @@ public abstract class ExecutionNode : IOperationPlanNode, IEquatable<ExecutionNo
     /// before they can be executed.
     /// </summary>
     public ReadOnlySpan<IOperationPlanNode> Dependents => _dependents;
+
+    /// <summary>
+    /// Gets the merged operations of the batched requests this node sends.
+    /// </summary>
+    internal AliasBatchQueryCache AliasBatchQueryCache
+    {
+        get
+        {
+            return _aliasBatchQueryCache ?? Create();
+
+            AliasBatchQueryCache Create()
+            {
+                Interlocked.CompareExchange(ref _aliasBatchQueryCache, new AliasBatchQueryCache(), null);
+                return _aliasBatchQueryCache;
+            }
+        }
+    }
 
     /// <summary>
     /// Gets the execution nodes that this operation depends on (required).

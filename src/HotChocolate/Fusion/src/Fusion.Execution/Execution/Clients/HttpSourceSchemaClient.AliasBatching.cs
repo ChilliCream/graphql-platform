@@ -98,14 +98,46 @@ public sealed partial class HttpSourceSchemaClient
         var request = requests[0];
         var node = request.Node;
         var operation = context.OperationPlan.Operation;
-        var body = new AliasBatchedRequestBody(
-            items,
-            itemCount,
-            sharedVariables,
+        var queryCache = node.AliasBatchQueryCache;
+        AliasBatchedRequestBody body;
+
+        // The merged operation is taken from the plan node when the node sent the same batch
+        // composition before.
+        if (queryCache.TryGetQuery(
             operation.Name,
             operation.ShortHash,
-            ComputeCompositionHash(requests, items, itemCount),
-            _onError);
+            items.AsSpan(0, itemCount),
+            out var query))
+        {
+            body = new AliasBatchedRequestBody(query, items, itemCount, sharedVariables, _onError);
+        }
+        else
+        {
+            var compositionHash = ComputeCompositionHash(requests, items, itemCount);
+
+            if (queryCache.ShouldAdd(compositionHash, itemCount))
+            {
+                var createdQuery = AliasBatchedRequestBody.CreateQuery(
+                    items.AsSpan(0, itemCount),
+                    sharedVariables,
+                    operation.Name,
+                    operation.ShortHash,
+                    compositionHash);
+                queryCache.Add(operation.Name, operation.ShortHash, items.AsSpan(0, itemCount), createdQuery);
+                body = new AliasBatchedRequestBody(createdQuery, items, itemCount, sharedVariables, _onError);
+            }
+            else
+            {
+                body = new AliasBatchedRequestBody(
+                    items,
+                    itemCount,
+                    sharedVariables,
+                    operation.Name,
+                    operation.ShortHash,
+                    compositionHash,
+                    _onError);
+            }
+        }
 
         var httpRequest = new GraphQLHttpRequest(body, _configuration.BaseAddress)
         {
