@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
@@ -1931,11 +1932,19 @@ public sealed partial class OperationPlanner
 
     private static string ComputeCanonicalSignature(OperationExecutionNode node)
     {
-        var replacements = BuildPrefixReplacements(node.Requirements);
-        var normalized = ApplyPrefixReplacements(node.Operation.Value.Span, replacements);
+        var operations = node.OperationDocument.GetOperations().GetEnumerator();
 
-        // The signature starts at the root selection set.
-        var bodyText = Encoding.UTF8.GetString(SkipOperationHeader(normalized));
+        if (!operations.MoveNext())
+        {
+            throw ThrowHelper.SingleOperationRequired();
+        }
+
+        using var buffer = new PooledArrayWriter();
+        operations.Current.SelectionSet.Format(buffer, indented: true);
+
+        var replacements = BuildPrefixReplacements(node.Requirements);
+        var normalized = ApplyPrefixReplacements(buffer.WrittenSpan, replacements);
+        var bodyText = Encoding.UTF8.GetString(normalized);
 
         var conditions = string.Join(",", node.Conditions.ToArray()
             .OrderBy(c => c.VariableName)
@@ -1948,95 +1957,6 @@ public sealed partial class OperationPlanner
         OperationExecutionNode node)
     {
         return (node.Operation, node.Requirements.ToArray());
-    }
-
-    /// <summary>
-    /// Returns the operation text from the root selection set on, or the whole text when no
-    /// root selection set follows the header.
-    /// </summary>
-    private static ReadOnlySpan<byte> SkipOperationHeader(ReadOnlySpan<byte> operationText)
-    {
-        // The first brace outside strings and brackets opens the root selection set.
-        var depth = 0;
-        var position = 0;
-
-        while (position < operationText.Length)
-        {
-            switch (operationText[position])
-            {
-                case (byte)'"':
-                    position = SkipStringValue(operationText, position);
-                    continue;
-
-                case (byte)'(' or (byte)'[':
-                    depth++;
-                    break;
-
-                case (byte)')' or (byte)']' or (byte)'}':
-                    depth--;
-                    break;
-
-                case (byte)'{':
-                    if (depth == 0)
-                    {
-                        return operationText[position..];
-                    }
-
-                    depth++;
-                    break;
-            }
-
-            position++;
-        }
-
-        return operationText;
-    }
-
-    /// <summary>
-    /// Returns the position after the string value that starts at <paramref name="start"/>,
-    /// or the text length when the string is not terminated.
-    /// </summary>
-    private static int SkipStringValue(ReadOnlySpan<byte> text, int start)
-    {
-        if (text[(start + 1)..].StartsWith("\"\""u8))
-        {
-            var position = start + 3;
-
-            while (position < text.Length)
-            {
-                var end = text[position..].IndexOf("\"\"\""u8);
-
-                if (end < 0)
-                {
-                    break;
-                }
-
-                position += end;
-
-                if (text[position - 1] != (byte)'\\')
-                {
-                    return position + 3;
-                }
-
-                position++;
-            }
-
-            return text.Length;
-        }
-
-        for (var position = start + 1; position < text.Length; position++)
-        {
-            if (text[position] == (byte)'\\')
-            {
-                position++;
-            }
-            else if (text[position] == (byte)'"')
-            {
-                return position + 1;
-            }
-        }
-
-        return text.Length;
     }
 
     /// <summary>

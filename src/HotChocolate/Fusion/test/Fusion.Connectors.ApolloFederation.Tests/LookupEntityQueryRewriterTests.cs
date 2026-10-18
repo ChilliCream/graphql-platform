@@ -196,9 +196,19 @@ public class LookupEntityQueryRewriterTests
         using var literal = JsonDocument.Parse(rewritten.SourceText.JsonLiteral);
 
         // assert
-        Encoding.UTF8.GetString(rewritten.SourceText.Value.Span).MatchInlineSnapshot(
-            "query($representations: [_Any!]!) { _entities(representations: $representations) { ... on Product { name } } }");
-        Assert.Equal(Encoding.UTF8.GetString(rewritten.SourceText.Value.Span), literal.RootElement.GetString());
+        FormatSourceText(rewritten.SourceText).MatchInlineSnapshot(
+            """
+            query($representations: [_Any!]!) {
+              _entities(representations: $representations) {
+                ... on Product {
+                  name
+                }
+              }
+            }
+            """);
+        var text = Encoding.UTF8.GetString(rewritten.SourceText.Value.Span);
+        Assert.Equal(text, literal.RootElement.GetString());
+        Assert.Equal(Utf8GraphQLParser.Parse(text).ToString(indented: false), text);
         Assert.Equal(
             OperationSourceTextHash.Compute(rewritten.SourceText.Value.Span),
             rewritten.SourceText.Hash);
@@ -225,7 +235,7 @@ public class LookupEntityQueryRewriterTests
 
         // assert
         Assert.Equal("Product", rewritten.EntityTypeName);
-        Utf8GraphQLParser.Parse(rewritten.SourceText.Value.Span).ToString(indented: true).MatchInlineSnapshot(
+        FormatSourceText(rewritten.SourceText).MatchInlineSnapshot(
             """
             query($representations: [_Any!]!) {
               _entities(representations: $representations) {
@@ -283,7 +293,7 @@ public class LookupEntityQueryRewriterTests
 
         // assert
         Assert.Equal("Product", rewritten.EntityTypeName);
-        Utf8GraphQLParser.Parse(rewritten.SourceText.Value.Span).ToString(indented: true).MatchInlineSnapshot(
+        FormatSourceText(rewritten.SourceText).MatchInlineSnapshot(
             """
             query($representations: [_Any!]!) {
               _entities(representations: $representations) {
@@ -314,7 +324,7 @@ public class LookupEntityQueryRewriterTests
         var rewritten = LookupEntityQueryRewriter.Rewrite(schema, "shipping", operation);
 
         // assert
-        Utf8GraphQLParser.Parse(rewritten.SourceText.Value.Span).ToString(indented: true).MatchInlineSnapshot(
+        FormatSourceText(rewritten.SourceText).MatchInlineSnapshot(
             """
             query($representations: [_Any!]!, $__fusion_3_currency: String!) {
               _entities(representations: $representations) {
@@ -350,7 +360,7 @@ public class LookupEntityQueryRewriterTests
         var rewritten = LookupEntityQueryRewriter.Rewrite(schema, "inested", operation);
 
         // assert
-        Utf8GraphQLParser.Parse(rewritten.SourceText.Value.Span).ToString(indented: true).MatchInlineSnapshot(
+        FormatSourceText(rewritten.SourceText).MatchInlineSnapshot(
             """
             query($representations: [_Any!]!) {
               _entities(representations: $representations) {
@@ -386,7 +396,7 @@ public class LookupEntityQueryRewriterTests
         var rewritten = LookupEntityQueryRewriter.Rewrite(schema, "shipping", operation);
 
         // assert
-        Utf8GraphQLParser.Parse(rewritten.SourceText.Value.Span).ToString(indented: true).MatchInlineSnapshot(
+        FormatSourceText(rewritten.SourceText).MatchInlineSnapshot(
             """
             query($representations: [_Any!]!, $__fusion_3_currency: String!) {
               _entities(representations: $representations) {
@@ -499,6 +509,9 @@ public class LookupEntityQueryRewriterTests
     // above drives the internal-lookup branch, but a single source schema cannot expose two lookups
     // that share a root field name through the composer (duplicate root field names are invalid
     // GraphQL), so the multi-candidate tie-break cannot be constructed realistically here.
+
+    private static string FormatSourceText(OperationSourceText sourceText)
+        => Utf8GraphQLParser.Parse(sourceText.Value.Span).ToString(indented: true);
 
     private static OperationSourceText CreateOperation(string sourceText)
     {
