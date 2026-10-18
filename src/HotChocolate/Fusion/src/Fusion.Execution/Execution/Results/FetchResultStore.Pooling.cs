@@ -44,12 +44,18 @@ internal sealed partial class FetchResultStore
             deferFlags,
             _pathPool);
 
-        _valueCompletion = new ValueCompletion(
-            this,
-            _schema,
-            _errorHandler,
-            _errorHandlingMode,
-            maxDepth: 32);
+        // A pooled store keeps its value completion while the schema, error handler and
+        // error handling mode stay the same.
+        if (_valueCompletion is null
+            || !_valueCompletion.IsConfiguredFor(_schema, _errorHandler, _errorHandlingMode))
+        {
+            _valueCompletion = new ValueCompletion(
+                this,
+                _schema,
+                _errorHandler,
+                _errorHandlingMode,
+                maxDepth: 32);
+        }
 
         _memory.Push(_result);
     }
@@ -162,7 +168,6 @@ internal sealed partial class FetchResultStore
 
         // null out per-request references
         _result = default!;
-        _valueCompletion = default!;
         _schema = default!;
         _errorHandler = default!;
         _operation = default!;

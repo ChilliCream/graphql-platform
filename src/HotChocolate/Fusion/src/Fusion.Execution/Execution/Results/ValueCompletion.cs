@@ -44,6 +44,18 @@ internal sealed class ValueCompletion
     }
 
     /// <summary>
+    /// Returns <c>true</c> if this instance completes values with the given schema, error handler
+    /// and error handling mode.
+    /// </summary>
+    public bool IsConfiguredFor(
+        FusionSchemaDefinition schema,
+        IErrorHandler errorHandler,
+        ErrorHandlingMode errorHandlingMode)
+        => ReferenceEquals(_schema, schema)
+            && ReferenceEquals(_errorHandler, errorHandler)
+            && _errorHandlingMode == errorHandlingMode;
+
+    /// <summary>
     /// Tries to complete the selection set data represented by <paramref name="target"/>.
     /// <paramref name="source"/>, checking for errors on the <paramref name="errorTrie"/>.
     /// </summary>
