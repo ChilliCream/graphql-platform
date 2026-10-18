@@ -86,11 +86,8 @@ public sealed class Cache<TValue>
 
         if (_map.TryGetValue(key, out var entry))
         {
-            // We mark our entry as used by setting Accessed to 1
-            // this means the entry will be safe from the next eviction.
-            // Note: Volatile.Write is faster than Interlocked.Exchange, and we accept the
-            // tiny risk that an in‑flight eviction may still remove this entry.
-            Volatile.Write(ref entry.Accessed, 1);
+            // We mark our entry as used so it is safe from the next eviction.
+            entry.MarkAccessed();
             _diagnostics.Hit();
             value = entry.Value!;
             return true;
@@ -171,11 +168,8 @@ public sealed class Cache<TValue>
         // This is a fast lookup and will be used most of the time.
         if (_map.TryGetValue(key, out var entry))
         {
-            // We mark our entry as used by setting Accessed to 1
-            // this means the entry will be safe from the next eviction.
-            // Note: Volatile.Write is faster than Interlocked.Exchange, and we accept the
-            // tiny risk that an in‑flight eviction may still remove this entry.
-            Volatile.Write(ref entry.Accessed, 1);
+            // We mark our entry as used so it is safe from the next eviction.
+            entry.MarkAccessed();
             _diagnostics.Hit();
             return entry.Value;
         }
@@ -210,10 +204,8 @@ public sealed class Cache<TValue>
             args);
 
         // In the case we did not add a new entry but instead retrieved it
-        // from the ConcurrentDictionary we need to mark it as recently accessed
-        // Note: Volatile.Write is faster than Interlocked.Exchange, and we accept the
-        // tiny risk that an in‑flight eviction may still remove this entry.
-        Volatile.Write(ref entry.Accessed, 1);
+        // from the ConcurrentDictionary we need to mark it as recently accessed.
+        entry.MarkAccessed();
         return entry.Value;
     }
 
@@ -239,11 +231,8 @@ public sealed class Cache<TValue>
 
         if (_spanLookup.TryGetValue(key, out var entry))
         {
-            // We mark our entry as used by setting Accessed to 1
-            // this means the entry will be safe from the next eviction.
-            // Note: Volatile.Write is faster than Interlocked.Exchange, and we accept the
-            // tiny risk that an in‑flight eviction may still remove this entry.
-            Volatile.Write(ref entry.Accessed, 1);
+            // We mark our entry as used so it is safe from the next eviction.
+            entry.MarkAccessed();
             _diagnostics.Hit();
             value = entry.Value!;
             return true;
@@ -334,11 +323,8 @@ public sealed class Cache<TValue>
         // This is a fast lookup and will be used most of the time.
         if (_spanLookup.TryGetValue(key, out var entry))
         {
-            // We mark our entry as used by setting Accessed to 1
-            // this means the entry will be safe from the next eviction.
-            // Note: Volatile.Write is faster than Interlocked.Exchange, and we accept the
-            // tiny risk that an in‑flight eviction may still remove this entry.
-            Volatile.Write(ref entry.Accessed, 1);
+            // We mark our entry as used so it is safe from the next eviction.
+            entry.MarkAccessed();
             _diagnostics.Hit();
             return entry.Value;
         }
@@ -435,6 +421,20 @@ public sealed class Cache<TValue>
         /// 1 = accessed recently
         /// </summary>
         public int Accessed = 1;
+
+        /// <summary>
+        /// Marks the entry as accessed recently.
+        /// </summary>
+        public void MarkAccessed()
+        {
+            // The flag is read first so that hits on an already marked entry do not write to
+            // the shared entry. Volatile.Write is used instead of Interlocked.Exchange, and we
+            // accept the tiny risk that an in-flight eviction may still remove this entry.
+            if (Volatile.Read(ref Accessed) == 0)
+            {
+                Volatile.Write(ref Accessed, 1);
+            }
+        }
     }
 
     private readonly struct CacheEntryCreateArgs<TState>(
