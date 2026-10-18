@@ -34,6 +34,7 @@ internal sealed partial class FetchResultStore : IDisposable
     private const int MaxRetainedDataElementStagingLength = 1024;
     private const int MaxRetainedForwardedVariableCapacity = 16 * 1024;
     private const int MaxStackAllocPathSegments = 32;
+    private const int MaxLinearProducerScanLength = 4;
 
     private static readonly ArrayPool<VariableValues> s_variableValuePool = ArrayPool<VariableValues>.Shared;
     private static readonly ArrayPool<object> s_objectPool = ArrayPool<object>.Shared;
@@ -1008,16 +1009,30 @@ AddErrors_Next:
         return remaining is null ? variableValueSets : remaining.ToImmutable();
     }
 
-    private static bool TryFindProducer(
+    // Caller must hold _lock and pass the value sets of the last build, which the dedup table indexes.
+    private bool TryFindProducer(
         ImmutableArray<VariableValues> producerValueSets,
         JsonSegment values,
         out CompactPath producerPath)
     {
-        foreach (var producer in producerValueSets)
+        if (producerValueSets.Length <= MaxLinearProducerScanLength)
         {
-            if (producer.Values.Equals(values))
+            foreach (var producer in producerValueSets)
             {
-                producerPath = producer.Path;
+                if (producer.Values.Equals(values))
+                {
+                    producerPath = producer.Path;
+                    return true;
+                }
+            }
+        }
+        else
+        {
+            var hash = _variableWriter.GetHashCode(values.Location, values.Length);
+
+            if (_variableDedupTable.TryGet(hash, values.Location, values.Length, out var index))
+            {
+                producerPath = producerValueSets[index].Path;
                 return true;
             }
         }
