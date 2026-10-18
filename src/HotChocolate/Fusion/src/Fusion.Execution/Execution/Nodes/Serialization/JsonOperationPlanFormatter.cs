@@ -28,7 +28,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
     /// <summary>
     /// The version of the operation plan JSON format written by this formatter.
     /// </summary>
-    private const string FormatVersion = "1.1.0";
+    private const string FormatVersion = "1.2.0";
 
     private readonly JsonWriterOptions _writerOptions = options ?? new JsonWriterOptions
     {
@@ -895,7 +895,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         JsonWriter jsonWriter,
         Operation operation,
         ApolloOperationBatchExecutionNode batchNode,
-        SingleOperationDefinition operationDef,
+        OperationDefinition operationDef,
         ApolloEntityLookup lookup,
         ExecutionNodeTrace? trace)
     {
@@ -927,10 +927,24 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             jsonWriter.WriteStringValue(operationDef.Source.ToString());
         }
 
-        if (!operationDef.Target.IsRoot)
+        switch (operationDef)
         {
-            jsonWriter.WritePropertyName("target");
-            jsonWriter.WriteStringValue(operationDef.Target.ToString());
+            case SingleOperationDefinition { Target.IsRoot: false } single:
+                jsonWriter.WritePropertyName("target");
+                jsonWriter.WriteStringValue(single.Target.ToString());
+                break;
+
+            case BatchOperationDefinition batch:
+                jsonWriter.WritePropertyName("targets");
+                jsonWriter.WriteStartArray();
+
+                foreach (var target in batch.Targets)
+                {
+                    jsonWriter.WriteStringValue(target.ToString());
+                }
+
+                jsonWriter.WriteEndArray();
+                break;
         }
 
         jsonWriter.WritePropertyName("batchingGroupId");

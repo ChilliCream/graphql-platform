@@ -240,8 +240,7 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
                 if (result is not null)
                 {
                     current.Dispose();
-                    throw new InvalidOperationException(
-                        "Apollo entity fetches must produce a single source schema result.");
+                    throw ThrowHelper.ApolloEntityFetchProducedMultipleResults();
                 }
 
                 result = current;

@@ -764,7 +764,7 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
     {
         // arrange
         // The Product lookups for '$.products' and '$.brands.featured' are identical and sit
-        // at the same depth.
+        // at the same depth, so they merge into one lookup with two targets.
         var compositeSchema = ComposeApolloSchema(
             """
             schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"]) {
@@ -858,13 +858,12 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         MatchSnapshot(originalPlan);
         var parsedNode = Assert.Single(
             parsedPlan.AllNodes.OfType<ApolloOperationBatchExecutionNode>());
+        var parsedOperation = Assert.IsType<BatchOperationDefinition>(
+            Assert.Single(parsedNode.Operations.ToArray()));
         Assert.Equal(
             ["$.brands.featured", "$.products"],
-            parsedNode.Operations.ToArray().Select(o => o.Target.ToString()));
-        Assert.Collection(
-            parsedNode.Lookups.ToArray(),
-            lookup => AssertApolloLookup(lookup, "Product"),
-            lookup => AssertApolloLookup(lookup, "Product"));
+            parsedOperation.Targets.ToArray().Select(t => t.ToString()));
+        AssertApolloLookup(Assert.Single(parsedNode.Lookups.ToArray()), "Product");
         formatter.Format(parsedPlan).MatchInlineSnapshot(Encoding.UTF8.GetString(buffer.WrittenSpan));
     }
 
