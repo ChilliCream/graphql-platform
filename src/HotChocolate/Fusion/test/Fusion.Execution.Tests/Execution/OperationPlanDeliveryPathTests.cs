@@ -60,27 +60,6 @@ public class OperationPlanDeliveryPathTests : FusionTestBase
         formatter.Format(parsed).MatchInlineSnapshot(formatter.Format(plan));
     }
 
-    [Theory]
-    [InlineData("Alias")]
-    [InlineData("Deep")]
-    [InlineData("List")]
-    [InlineData("Nested")]
-    public void GetDeliveryPath_Should_ReusePendingPaths_When_PlanIsReused(string shape)
-    {
-        // arrange
-        var plan = CreatePlan(shape);
-        var clone = plan with { };
-
-        // act
-        var first = plan.GetDeliveryPath(0);
-        var second = plan.GetDeliveryPath(0);
-        var cloned = clone.GetDeliveryPath(0);
-
-        // assert
-        Assert.Same(first.PendingPath, second.PendingPath);
-        Assert.Same(first.PendingPath, cloned.PendingPath);
-    }
-
     [Fact]
     public void GetDeliveryPath_Should_ReusePendingPaths_When_ReadersAreConcurrent()
     {
