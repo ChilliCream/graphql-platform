@@ -1,6 +1,10 @@
 using System.IO.Hashing;
 using System.Security.Cryptography;
+using System.Text;
+using HotChocolate.Buffers;
+using HotChocolate.Fusion.Transport.Serialization;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -23,7 +27,49 @@ public readonly record struct OperationSourceText(
     string Name,
     OperationType Type,
     ReadOnlyMemory<byte> Value,
-    OperationSourceTextHash Hash);
+    OperationSourceTextHash Hash)
+{
+    /// <summary>
+    /// Gets <see cref="Value"/> encoded as the JSON string literal of a source schema request body,
+    /// quotes included. It is empty when <see cref="Value"/> is empty.
+    /// </summary>
+    public ReadOnlyMemory<byte> JsonLiteral { get; } = EncodeJsonLiteral(Value.Span);
+
+    /// <summary>
+    /// Compares <see cref="Name"/>, <see cref="Type"/>, <see cref="Value"/> and <see cref="Hash"/>.
+    /// </summary>
+    public bool Equals(OperationSourceText other)
+        => Name == other.Name
+            && Type == other.Type
+            && Value.Equals(other.Value)
+            && Hash.Equals(other.Hash);
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+        => HashCode.Combine(Name, Type, Value, Hash);
+
+    private bool PrintMembers(StringBuilder builder)
+    {
+        builder.Append("Name = ").Append(Name);
+        builder.Append(", Type = ").Append(Type);
+        builder.Append(", Value = ").Append(Value);
+        builder.Append(", Hash = ").Append(Hash);
+        return true;
+    }
+
+    private static ReadOnlyMemory<byte> EncodeJsonLiteral(ReadOnlySpan<byte> value)
+    {
+        if (value.IsEmpty)
+        {
+            return ReadOnlyMemory<byte>.Empty;
+        }
+
+        using var buffer = new PooledArrayWriter();
+        var writer = new JsonWriter(buffer, JsonOptionDefaults.WriterOptions);
+        writer.WriteStringValue(value);
+        return buffer.WrittenSpan.ToArray();
+    }
+}
 
 /// <summary>
 /// Represents the hash of a GraphQL operation source text.
