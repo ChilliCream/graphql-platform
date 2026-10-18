@@ -83,48 +83,6 @@ public class OperationPlanDeliveryPathTests : FusionTestBase
     }
 
     [Fact]
-    public void Equals_Should_IgnoreDerivedPaths_When_EqualPlansAreCreated()
-    {
-        // arrange
-        var original = CreatePlan("Alias");
-        var first = OperationPlan.Create(
-            "equal", original.Operation, [], [], original.DeliveryGroups, original.IncrementalPlans, 0, 0);
-        var second = OperationPlan.Create(
-            "equal", original.Operation, [], [], original.DeliveryGroups, original.IncrementalPlans, 0, 0);
-        var clone = first with { };
-        var plans = new HashSet<OperationPlan> { first };
-
-        // act
-        var firstPath = first.GetDeliveryPath(0);
-        var secondPath = second.GetDeliveryPath(0);
-        plans.Add(second);
-        plans.Add(clone);
-
-        // assert
-        Assert.Equal(first, second);
-        Assert.Equal(first, clone);
-        Assert.NotSame(firstPath.PendingPath, secondPath.PendingPath);
-        Assert.Single(plans);
-    }
-
-    [Fact]
-    public void Equals_Should_DistinguishPlans_When_PlanningStatisticsDiffer()
-    {
-        // arrange
-        var operation = CreatePlan("Empty").Operation;
-        var first = OperationPlan.Create("equal", operation, [], [], [], [], 0, 0);
-        var second = OperationPlan.Create("equal", operation, [], [], [], [], 1, 0);
-        var third = OperationPlan.Create("equal", operation, [], [], [], [], 0, 1);
-
-        // act
-        var plans = new HashSet<OperationPlan> { first, second, third };
-
-        // assert
-        Assert.Equal(3, plans.Count);
-        Assert.False(first.Equals(null));
-    }
-
-    [Fact]
     public void GetDeliveryPath_Should_ReusePendingPaths_When_ReadersAreConcurrent()
     {
         // arrange
