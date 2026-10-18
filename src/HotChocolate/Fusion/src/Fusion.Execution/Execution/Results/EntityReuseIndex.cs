@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
@@ -12,43 +11,53 @@ namespace HotChocolate.Fusion.Execution.Results;
 /// </summary>
 internal sealed class EntityReuseIndex
 {
-    private static readonly ConditionalWeakTable<OperationPlan, EntityReuseIndex> s_indexes = new();
+    private readonly EntityReuse?[] _reuseById;
 
-    public static readonly EntityReuseIndex Empty = new(new Dictionary<object, EntityReuse>());
-
-    private readonly Dictionary<object, EntityReuse> _reuseByLookup;
-
-    private EntityReuseIndex(Dictionary<object, EntityReuse> reuseByLookup)
+    private EntityReuseIndex(EntityReuse?[] reuseById)
     {
-        _reuseByLookup = reuseByLookup;
+        _reuseById = reuseById;
     }
 
     /// <summary>
     /// Gets the entity reuse of a lookup, or <c>null</c> if the lookup always fetches.
     /// </summary>
-    /// <param name="lookup">
-    /// The <see cref="OperationExecutionNode"/> or the <see cref="OperationDefinition"/> of a batch.
+    /// <param name="lookupId">
+    /// The id of an <see cref="OperationExecutionNode"/> or of an <see cref="OperationDefinition"/> in a batch.
     /// </param>
-    public EntityReuse? GetReuse(object lookup)
-        => _reuseByLookup.Count > 0 && _reuseByLookup.TryGetValue(lookup, out var reuse) ? reuse : null;
+    public EntityReuse? GetReuse(int lookupId)
+        => (uint)lookupId < (uint)_reuseById.Length ? _reuseById[lookupId] : null;
 
     /// <summary>
-    /// Gets the entity reuse index of the specified plan.
+    /// Creates the entity reuse index of the specified plan.
     /// </summary>
-    public static EntityReuseIndex Get(OperationPlan plan)
-        => s_indexes.GetValue(plan, static p => Create(p));
-
-    private static EntityReuseIndex Create(OperationPlan plan)
+    /// <returns>
+    /// The index, or <c>null</c> if no lookup of the plan can reuse entities.
+    /// </returns>
+    public static EntityReuseIndex? Create(OperationPlan plan)
     {
         if (plan.Operation.Definition.Operation is not OperationType.Query
             || !plan.IncrementalPlans.IsDefaultOrEmpty
             || !plan.DeliveryGroups.IsDefaultOrEmpty)
         {
-            return Empty;
+            return null;
         }
 
         var writers = new Dictionary<(string Path, string ResponseName), HashSet<int>>();
         var lookups = new List<Lookup>();
+        var nodesById = new Dictionary<int, ExecutionNode>();
+
+        foreach (var node in plan.AllNodes)
+        {
+            nodesById[node.Id] = node;
+
+            if (node is OperationBatchExecutionNode batchNode)
+            {
+                foreach (var definition in batchNode.Operations)
+                {
+                    nodesById[definition.Id] = node;
+                }
+            }
+        }
 
         foreach (var node in plan.AllNodes)
         {
@@ -58,11 +67,11 @@ internal sealed class EntityReuseIndex
                     if (!TryGetPathKey(operation.Target, out var targetKey)
                         || !TryAddWriters(writers, targetKey, operation.Operation, operation.Source, node.Id))
                     {
-                        return Empty;
+                        return null;
                     }
 
                     lookups.Add(new Lookup(
-                        operation,
+                        operation.Id,
                         operation.Dependencies.ToArray(),
                         operation.LookupTypeName,
                         operation.ResultSelectionSet,
@@ -79,7 +88,7 @@ internal sealed class EntityReuseIndex
 
                         if (targets is null)
                         {
-                            return Empty;
+                            return null;
                         }
 
                         var targetKeys = new string[targets.Length];
@@ -88,19 +97,19 @@ internal sealed class EntityReuseIndex
                         {
                             if (!TryGetPathKey(targets[i], out var key))
                             {
-                                return Empty;
+                                return null;
                             }
 
                             if (!TryAddWriters(writers, key, definition.SourceText, definition.Source, node.Id))
                             {
-                                return Empty;
+                                return null;
                             }
 
                             targetKeys[i] = key;
                         }
 
                         lookups.Add(new Lookup(
-                            definition,
+                            definition.Id,
                             definition.Dependencies.ToArray(),
                             definition.LookupTypeName,
                             definition.ResultSelectionSet,
@@ -113,7 +122,7 @@ internal sealed class EntityReuseIndex
 
                 default:
                     // Other node kinds can write anywhere in the result.
-                    return Empty;
+                    return null;
             }
         }
 
@@ -121,22 +130,22 @@ internal sealed class EntityReuseIndex
         var pathsByType = new Dictionary<string, List<string>>(StringComparer.Ordinal);
         CollectSelectionSets(plan.Operation, plan.Operation.RootSelectionSet, string.Empty, selectionSets, pathsByType);
 
-        Dictionary<object, EntityReuse>? reuseByLookup = null;
+        EntityReuse?[]? reuseById = null;
 
         foreach (var lookup in lookups)
         {
-            if (TryCreateReuse(plan, lookup, writers, selectionSets, pathsByType) is { } reuse)
+            if (TryCreateReuse(nodesById, lookup, writers, selectionSets, pathsByType) is { } reuse)
             {
-                reuseByLookup ??= new Dictionary<object, EntityReuse>(ReferenceEqualityComparer.Instance);
-                reuseByLookup.Add(lookup.Key, reuse);
+                reuseById ??= new EntityReuse?[plan.MaxNodeId + 1];
+                reuseById[lookup.Id] = reuse;
             }
         }
 
-        return reuseByLookup is null ? Empty : new EntityReuseIndex(reuseByLookup);
+        return reuseById is null ? null : new EntityReuseIndex(reuseById);
     }
 
     private static EntityReuse? TryCreateReuse(
-        OperationPlan plan,
+        Dictionary<int, ExecutionNode> nodesById,
         Lookup lookup,
         Dictionary<(string Path, string ResponseName), HashSet<int>> writers,
         Dictionary<string, SelectionSet> selectionSets,
@@ -208,7 +217,11 @@ internal sealed class EntityReuseIndex
             targetSelectionSets[i] = targetSelectionSet;
         }
 
-        var dependencies = CollectTransitiveDependencies(plan, lookup.Dependencies);
+        if (CollectTransitiveDependencies(nodesById, lookup.Dependencies) is not { } dependencies)
+        {
+            return null;
+        }
+
         List<SelectionPath>? producerPaths = null;
 
         foreach (var candidatePath in candidatePaths)
@@ -318,9 +331,10 @@ internal sealed class EntityReuseIndex
         return true;
     }
 
-    // Collects the execution nodes that complete before a lookup executes.
-    private static HashSet<int> CollectTransitiveDependencies(
-        OperationPlan plan,
+    // Collects the execution nodes that complete before a lookup executes, or returns null
+    // when a dependency is not part of the plan.
+    private static HashSet<int>? CollectTransitiveDependencies(
+        Dictionary<int, ExecutionNode> nodesById,
         IOperationPlanNode[] dependencies)
     {
         var visited = new HashSet<int>();
@@ -328,7 +342,10 @@ internal sealed class EntityReuseIndex
 
         while (stack.TryPop(out var dependency))
         {
-            var node = plan.GetNodeById(dependency.Id);
+            if (!nodesById.TryGetValue(dependency.Id, out var node))
+            {
+                return null;
+            }
 
             if (!visited.Add(node.Id))
             {
@@ -364,7 +381,7 @@ internal sealed class EntityReuseIndex
         SelectionPath sourcePath,
         int nodeId)
     {
-        var document = Utf8GraphQLParser.Parse(sourceText.Value.Span);
+        var document = Utf8GraphQLParser.Parse(sourceText.Value.Span, ParserOptions.Trusted);
 
         if (document.Definitions.Count != 1
             || document.Definitions[0] is not OperationDefinitionNode operation)
@@ -553,7 +570,7 @@ internal sealed class EntityReuseIndex
     }
 
     private readonly record struct Lookup(
-        object Key,
+        int Id,
         IOperationPlanNode[] Dependencies,
         string? LookupTypeName,
         ResultSelectionSet ResultSelectionSet,

@@ -42,7 +42,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     private readonly INodeIdParser _nodeIdParser;
     private readonly IErrorHandler _errorHandler;
     private bool _collectTelemetry;
-    private EntityReuseIndex _entityReuseIndex = EntityReuseIndex.Empty;
+    private EntityReuseIndex? _entityReuseIndex;
     private bool _usesDynamicSchemaNames;
     private bool _usesBatchNodes;
 #pragma warning disable IDE0370 // Remove unnecessary suppression
@@ -434,8 +434,8 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     /// Gets the entity reuse of a lookup in the executing plan, or <c>null</c> if the lookup
     /// always fetches its entities.
     /// </summary>
-    internal EntityReuse? GetEntityReuse(object lookup)
-        => _entityReuseIndex.GetReuse(lookup);
+    internal EntityReuse? GetEntityReuse(int lookupId)
+        => _entityReuseIndex?.GetReuse(lookupId);
 
     /// <summary>
     /// Creates the variable value sets of a lookup and fills the targets whose entity the result

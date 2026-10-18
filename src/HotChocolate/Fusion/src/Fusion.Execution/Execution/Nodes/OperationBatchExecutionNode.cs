@@ -493,7 +493,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
     {
         reusedCount = 0;
 
-        if (context.GetEntityReuse(operation) is not { } reuse)
+        if (context.GetEntityReuse(operation.Id) is not { } reuse)
         {
             return CreateVariableValueSets(context, operation);
         }

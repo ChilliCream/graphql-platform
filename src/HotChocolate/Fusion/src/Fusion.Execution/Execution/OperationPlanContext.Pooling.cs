@@ -61,14 +61,14 @@ public sealed partial class OperationPlanContext
                 _usesDynamicSchemaNames = plan.UsesDynamicSchemaNames;
                 _usesBatchNodes = plan.UsesBatchNodes;
                 _entityReuseIndex = requestContext.Schema.GetOptions().EnableEntityReuse
-                    ? EntityReuseIndex.Get(plan)
-                    : EntityReuseIndex.Empty;
+                    ? plan.EntityReuseIndex
+                    : null;
                 break;
 
             case IncrementalPlan plan:
                 _usesDynamicSchemaNames = plan.UsesDynamicSchemaNames;
                 _usesBatchNodes = plan.UsesBatchNodes;
-                _entityReuseIndex = EntityReuseIndex.Empty;
+                _entityReuseIndex = null;
                 break;
         }
 
@@ -170,7 +170,7 @@ public sealed partial class OperationPlanContext
         _currentMemorySource = null!;
         Variables = default!;
         OperationPlan = default!;
-        _entityReuseIndex = EntityReuseIndex.Empty;
+        _entityReuseIndex = null;
         IncludeConditionFlags = default;
         DeferConditionFlags = default;
         // if a custom scope is used we cannot reuse it and have to null it.

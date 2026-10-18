@@ -123,7 +123,7 @@ public sealed class OperationExecutionNode : ExecutionNode
     {
         var diagnosticEvents = context.DiagnosticEvents;
         var reusedCount = 0;
-        var variables = context.GetEntityReuse(this) is { } reuse
+        var variables = context.GetEntityReuse(Id) is { } reuse
             ? context.CreateVariableValueSets([_target], _forwardedVariables, _requirements, reuse, out reusedCount)
             : context.CreateVariableValueSets(_target, _forwardedVariables, _requirements);
 
