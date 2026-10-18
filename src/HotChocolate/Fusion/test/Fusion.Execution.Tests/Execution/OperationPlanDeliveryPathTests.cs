@@ -1,17 +1,35 @@
-using System.Collections;
-using System.Reflection;
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Language;
+using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Fusion.Execution;
 
 public class OperationPlanDeliveryPathTests : FusionTestBase
 {
-    private static readonly Func<OperationPlan, IDictionary> s_createDeliveryPaths =
-        typeof(OperationPlanExecutor)
-            .GetMethod("CreateDeliveryPaths", BindingFlags.NonPublic | BindingFlags.Static)!
-            .CreateDelegate<Func<OperationPlan, IDictionary>>();
+    [Theory]
+    [InlineData("Root", "0:  (0)")]
+    [InlineData("Alias", "0: renamed (1)")]
+    [InlineData("Deep", "0: renamed.profile (2)")]
+    [InlineData("List", "0: users (1)")]
+    [InlineData("Nested", "0: user (1)", "1: user (1)")]
+    [InlineData("Empty")]
+    public void Create_Should_PreparePendingPaths_When_PlanIsCreated(
+        string shape,
+        params string[] expected)
+    {
+        // arrange
+        var plan = CreatePlan(shape);
+
+        // act
+        var paths = Describe(plan);
+
+        // assert
+        paths.MatchInlineSnapshots(expected);
+    }
 
     [Theory]
     [InlineData("Root", "0:  (0)")]
@@ -20,63 +38,109 @@ public class OperationPlanDeliveryPathTests : FusionTestBase
     [InlineData("List", "0: users (1)")]
     [InlineData("Nested", "0: user (1)", "1: user (1)")]
     [InlineData("Empty")]
-    public void CreateDeliveryPaths_Should_PreservePendingPaths_When_PlanIsReused(
+    public void Parse_Should_PreparePendingPaths_When_PlanIsDeserialized(
         string shape,
         params string[] expected)
     {
         // arrange
         var plan = CreatePlan(shape);
+        var formatter = new JsonOperationPlanFormatter();
+        using var buffer = new PooledArrayWriter();
+        formatter.Format(buffer, plan);
+        var compiler = new OperationCompiler(
+            (FusionSchemaDefinition)plan.Operation.Schema,
+            new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+        var parser = new JsonOperationPlanParser(compiler);
 
         // act
-        var first = s_createDeliveryPaths(plan);
-        var second = s_createDeliveryPaths(plan);
+        var parsed = parser.Parse(buffer.WrittenMemory);
 
         // assert
-        Assert.Equal(expected, Describe(first));
-        Assert.Equal(expected, Describe(second));
-        Assert.Same(first, second);
+        Describe(parsed).MatchInlineSnapshots(expected);
+        formatter.Format(parsed).MatchInlineSnapshot(formatter.Format(plan));
+    }
+
+    [Theory]
+    [InlineData("Alias")]
+    [InlineData("Deep")]
+    [InlineData("List")]
+    [InlineData("Nested")]
+    public void GetDeliveryPath_Should_ReusePendingPaths_When_PlanIsReused(string shape)
+    {
+        // arrange
+        var plan = CreatePlan(shape);
+        var clone = plan with { };
+
+        // act
+        var first = plan.GetDeliveryPath(0);
+        var second = plan.GetDeliveryPath(0);
+        var cloned = clone.GetDeliveryPath(0);
+
+        // assert
+        Assert.Same(first.PendingPath, second.PendingPath);
+        Assert.Same(first.PendingPath, cloned.PendingPath);
     }
 
     [Fact]
-    public void CreateDeliveryPaths_Should_PreserveRecordEqualityAndHash_When_EqualPlansAreInitialized()
+    public void Equals_Should_IgnoreDerivedPaths_When_EqualPlansAreCreated()
     {
         // arrange
-        var operation = CreatePlan("Empty").Operation;
-        var first = OperationPlan.Create("equal", operation, [], [], [], [], 0, 0);
-        var second = OperationPlan.Create("equal", operation, [], [], [], [], 0, 0);
+        var original = CreatePlan("Alias");
+        var first = OperationPlan.Create(
+            "equal", original.Operation, [], [], original.DeliveryGroups, original.IncrementalPlans, 0, 0);
+        var second = OperationPlan.Create(
+            "equal", original.Operation, [], [], original.DeliveryGroups, original.IncrementalPlans, 0, 0);
         var clone = first with { };
-        var hash = first.GetHashCode();
+        var plans = new HashSet<OperationPlan> { first };
 
         // act
-        var firstPaths = s_createDeliveryPaths(first);
-        var secondPaths = s_createDeliveryPaths(second);
-        var clonePaths = s_createDeliveryPaths(clone);
+        var firstPath = first.GetDeliveryPath(0);
+        var secondPath = second.GetDeliveryPath(0);
+        plans.Add(second);
+        plans.Add(clone);
 
         // assert
         Assert.Equal(first, second);
         Assert.Equal(first, clone);
-        Assert.Equal(hash, first.GetHashCode());
-        Assert.NotSame(firstPaths, secondPaths);
-        Assert.NotSame(firstPaths, clonePaths);
+        Assert.NotSame(firstPath.PendingPath, secondPath.PendingPath);
+        Assert.Single(plans);
     }
 
     [Fact]
-    public async Task CreateDeliveryPaths_Should_PublishOneMap_When_FirstUseIsConcurrent()
+    public void Equals_Should_DistinguishPlans_When_PlanningStatisticsDiffer()
+    {
+        // arrange
+        var operation = CreatePlan("Empty").Operation;
+        var first = OperationPlan.Create("equal", operation, [], [], [], [], 0, 0);
+        var second = OperationPlan.Create("equal", operation, [], [], [], [], 1, 0);
+        var third = OperationPlan.Create("equal", operation, [], [], [], [], 0, 1);
+
+        // act
+        var plans = new HashSet<OperationPlan> { first, second, third };
+
+        // assert
+        Assert.Equal(3, plans.Count);
+        Assert.False(first.Equals(null));
+    }
+
+    [Fact]
+    public void GetDeliveryPath_Should_ReusePendingPaths_When_ReadersAreConcurrent()
     {
         // arrange
         var plan = CreatePlan("Nested");
+        var paths = new OperationPlan.DeliveryPath[64];
 
         // act
-        var maps = await Task.WhenAll(Enumerable.Range(0, 8)
-            .Select(_ => Task.Run(() => s_createDeliveryPaths(plan))));
+        Parallel.For(0, paths.Length, i => paths[i] = plan.GetDeliveryPath(0));
 
         // assert
-        Assert.Equal(["0: user (1)", "1: user (1)"], Describe(maps[0]));
-        Assert.All(maps, map => Assert.Same(maps[0], map));
+        Assert.All(paths, path => Assert.Same(paths[0].PendingPath, path.PendingPath));
+        Describe(plan).MatchInlineSnapshots(["0: user (1)", "1: user (1)"]);
     }
 
     [Fact]
-    public void CreateDeliveryPaths_Should_RetryFailedBuild_When_PathIsInvalid()
+    public void Create_Should_RejectInvalidPath_When_MetadataCannotBePrepared()
     {
         // arrange
         var original = CreatePlan("Alias");
@@ -85,41 +149,51 @@ public class OperationPlanDeliveryPathTests : FusionTestBase
         {
             Path = SelectionPath.Root.AppendField("missing")
         };
-        var invalid = OperationPlan.Create(
+        var invalidIncrementalPlan = new IncrementalPlan(
+            incremental.Operation,
+            incremental.RootNodes,
+            incremental.AllNodes,
+            [group],
+            incremental.Requirements);
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(() => OperationPlan.Create(
             original.Id,
             original.Operation,
             original.RootNodes,
             original.AllNodes,
             [group],
-            [new IncrementalPlan(
-                incremental.Operation,
-                incremental.RootNodes,
-                incremental.AllNodes,
-                [group],
-                incremental.Requirements)],
+            [invalidIncrementalPlan],
             original.SearchSpace,
-            original.ExpandedNodes);
-
-        // act
-        var first = Assert.Throws<InvalidOperationException>(() => s_createDeliveryPaths(invalid));
-        var second = Assert.Throws<InvalidOperationException>(() => s_createDeliveryPaths(invalid));
+            original.ExpandedNodes));
 
         // assert
-        Assert.Equal("Could not resolve selection path segment 'missing'.", first.Message);
-        Assert.Equal(first.Message, second.Message);
-        Assert.NotSame(first, second);
+        exception.Message.MatchInlineSnapshot("Could not resolve selection path segment 'missing'.");
     }
 
-    private static string[] Describe(IDictionary paths)
-        => paths.Keys.Cast<int>()
+    [Fact]
+    public void GetDeliveryPath_Should_RejectUnknownGroup_When_PlanHasNoIncrementalParts()
+    {
+        // arrange
+        var plan = CreatePlan("Empty");
+
+        // act
+        var exception = Assert.Throws<KeyNotFoundException>(() => plan.GetDeliveryPath(0));
+
+        // assert
+        exception.Message.MatchInlineSnapshot("The delivery group with the ID '0' was not found.");
+    }
+
+    private static string[] Describe(OperationPlan plan)
+        => plan.IncrementalPlans
+            .SelectMany(incremental => incremental.DeliveryGroups)
+            .Select(group => group.Id)
+            .Distinct()
             .Order()
-            .Select(key =>
+            .Select(id =>
             {
-                var value = paths[key]!;
-                var type = value.GetType();
-                var path = (Path)type.GetProperty("PendingPath")!.GetValue(value)!;
-                var count = (int)type.GetProperty("PendingFieldCount")!.GetValue(value)!;
-                return $"{key}: {path} ({count})";
+                var path = plan.GetDeliveryPath(id);
+                return $"{id}: {path.PendingPath} ({path.PendingFieldCount})";
             })
             .ToArray();
 
