@@ -151,12 +151,6 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
     /// Gets the UTF-8 encoded query document containing the operation to execute.
     /// </summary>
     public ReadOnlyMemory<byte> Query { get; }
-
-    /// <summary>
-    /// Gets <see cref="Query"/> encoded as a JSON string literal, quotes included, or empty when
-    /// the query is escaped while the request is written.
-    /// </summary>
-    public ReadOnlyMemory<byte> QueryJsonLiteral { get; init; }
 #else
     /// <summary>
     /// Gets the query string or document containing the operation to execute.

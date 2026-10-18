@@ -1,4 +1,4 @@
-# SendAsync_Should_WriteSameBody_When_K6QueryLiteralIsCached
+# SendAsync_Should_WriteBody_When_K6SourceTextIsCompact
 
 ## Node 1, TestQuery_123456789101112_1 (85 bytes of operation text)
 

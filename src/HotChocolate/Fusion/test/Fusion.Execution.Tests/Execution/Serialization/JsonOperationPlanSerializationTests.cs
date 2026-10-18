@@ -61,7 +61,6 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
             var parsed = parsedPlan.AllNodes.OfType<OperationExecutionNode>().Single(t => t.Id == original.Id);
             Assert.Equal(original.Operation.Value.ToArray(), parsed.Operation.Value.ToArray());
             Assert.Equal(original.Operation.Hash, parsed.Operation.Hash);
-            Assert.Equal(original.Operation.JsonLiteral.ToArray(), parsed.Operation.JsonLiteral.ToArray());
         }
     }
 

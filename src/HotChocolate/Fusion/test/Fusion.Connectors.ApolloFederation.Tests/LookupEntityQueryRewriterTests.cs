@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Text;
-using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.ApolloFederation;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -185,7 +184,7 @@ public class LookupEntityQueryRewriterTests
         """;
 
     [Fact]
-    public void Rewrite_Should_CreateCompactTextAndJsonLiteral_When_LookupIsRewritten()
+    public void Rewrite_Should_CreateCompactText_When_LookupIsRewritten()
     {
         // arrange
         var schema = ComposeSchema(CatalogSchema);
@@ -193,7 +192,6 @@ public class LookupEntityQueryRewriterTests
 
         // act
         var rewritten = LookupEntityQueryRewriter.Rewrite(schema, "catalog", operation);
-        using var literal = JsonDocument.Parse(rewritten.SourceText.JsonLiteral);
 
         // assert
         FormatSourceText(rewritten.SourceText).MatchInlineSnapshot(
@@ -207,7 +205,6 @@ public class LookupEntityQueryRewriterTests
             }
             """);
         var text = Encoding.UTF8.GetString(rewritten.SourceText.Value.Span);
-        Assert.Equal(text, literal.RootElement.GetString());
         Assert.Equal(Utf8GraphQLParser.Parse(text).ToString(indented: false), text);
         Assert.Equal(
             OperationSourceTextHash.Compute(rewritten.SourceText.Value.Span),
@@ -516,7 +513,7 @@ public class LookupEntityQueryRewriterTests
     private static OperationSourceText CreateOperation(string sourceText)
     {
         var value = Encoding.UTF8.GetBytes(sourceText);
-        return OperationSourceText.Create(
+        return new OperationSourceText(
             "Op",
             OperationType.Query,
             value,

@@ -120,7 +120,7 @@ public sealed class BatchBufferTests : FusionTestBase
             Node = node,
             SchemaName = "A",
             OperationType = OperationType.Query,
-            OperationSourceText = OperationSourceText.Create(
+            OperationSourceText = new OperationSourceText(
                 "Op",
                 OperationType.Query,
                 sourceText,

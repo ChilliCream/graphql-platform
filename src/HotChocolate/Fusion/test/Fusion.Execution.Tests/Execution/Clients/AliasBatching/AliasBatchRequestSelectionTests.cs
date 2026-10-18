@@ -225,7 +225,7 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
     private static OperationSourceText CreateSourceText(string sourceText)
     {
         var value = Encoding.UTF8.GetBytes(sourceText);
-        return OperationSourceText.Create(
+        return new OperationSourceText(
             "Op",
             OperationType.Query,
             value,

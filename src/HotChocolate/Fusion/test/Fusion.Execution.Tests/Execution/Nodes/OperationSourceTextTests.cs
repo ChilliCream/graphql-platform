@@ -1,6 +1,5 @@
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Text.Json;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -8,85 +7,55 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 public class OperationSourceTextTests
 {
     [Fact]
-    public void Create_Should_ShareLiteralArray_When_TextNeedsNoEscaping()
+    public void Create_Should_RenderCompactText_When_SyntaxNodeIsProvided()
     {
         // arrange
         var node = Utf8GraphQLParser.Parse("query Test { field }");
 
         // act
         var source = OperationSourceText.Create("Test", OperationType.Query, node);
-        var hasValueArray = MemoryMarshal.TryGetArray(source.Value, out var value);
-        var hasLiteralArray = MemoryMarshal.TryGetArray(source.JsonLiteral, out var literal);
 
         // assert
-        Assert.True(hasValueArray && hasLiteralArray);
-        Assert.Same(literal.Array, value.Array);
-        Assert.Equal(literal.Offset + 1, value.Offset);
-        Assert.Equal(literal.Count - 2, value.Count);
+        Encoding.UTF8.GetString(source.Value.Span).MatchInlineSnapshot("query Test { field }");
         Assert.Equal(OperationSourceTextHash.Compute(source.Value.Span), source.Hash);
-        Encoding.UTF8.GetString(source.JsonLiteral.Span).MatchInlineSnapshot(
-            "\"query Test { field }\"");
     }
 
-    [Fact]
-    public void Create_Should_UseSeparateArray_When_TextContainsQuote()
+    [Theory]
+    [InlineData("query Test { node(id: \"a\\\"b\") { id } }")]
+    [InlineData("query Test { field(value: \"non-ascii ü 日本 😀\\n\\t\\\\\") }")]
+    [InlineData("query Test { field(value: \"\"\"\n  first line\n  second line\n\"\"\") }")]
+    public void Create_Should_PreserveStringValues_When_TextIsCompacted(string text)
     {
         // arrange
-        var node = Utf8GraphQLParser.Parse("""query Test { node(id: "a\"b") { id } }""");
+        var node = Utf8GraphQLParser.Parse(text);
 
         // act
         var source = OperationSourceText.Create("Test", OperationType.Query, node);
-        var hasValueArray = MemoryMarshal.TryGetArray(source.Value, out var value);
-        var hasLiteralArray = MemoryMarshal.TryGetArray(source.JsonLiteral, out var literal);
-        using var json = JsonDocument.Parse(source.JsonLiteral);
+        var parsed = Utf8GraphQLParser.Parse(source.Value.Span);
 
         // assert
-        Assert.True(hasValueArray && hasLiteralArray);
-        Assert.NotSame(literal.Array, value.Array);
-        Assert.Equal(Encoding.UTF8.GetString(source.Value.Span), json.RootElement.GetString());
+        Assert.Equal(node.ToString(indented: true), parsed.ToString(indented: true));
         Assert.Equal(OperationSourceTextHash.Compute(source.Value.Span), source.Hash);
-        Encoding.UTF8.GetString(source.Value.Span).MatchInlineSnapshot(
-            """query Test { node(id: "a\"b") { id } }""");
-    }
-
-    [Fact]
-    public void Create_Should_ShareLiteralArray_When_StoredTextNeedsNoEscaping()
-    {
-        // arrange
-        var bytes = "query Stored { field }"u8.ToArray();
-        var hash = OperationSourceTextHash.Compute(bytes);
-
-        // act
-        var source = OperationSourceText.Create("Stored", OperationType.Query, bytes, hash);
-        var hasValueArray = MemoryMarshal.TryGetArray(source.Value, out var value);
-        var hasLiteralArray = MemoryMarshal.TryGetArray(source.JsonLiteral, out var literal);
-
-        // assert
-        Assert.True(hasValueArray && hasLiteralArray);
-        Assert.Same(literal.Array, value.Array);
-        Assert.Equal(literal.Offset + 1, value.Offset);
-        Assert.Equal(bytes, source.Value.ToArray());
-        Assert.Equal(hash, source.Hash);
     }
 
     [Theory]
     [InlineData("query Stored {\n  field\n}")]
     [InlineData("query Stored { field(value: \"a\") }")]
-    public void Create_Should_PreserveStoredTextAndHash_When_PlanIsPersisted(string text)
+    public void Constructor_Should_PreserveStoredTextAndHash_When_SourceIsDeconstructed(string text)
     {
         // arrange
         var bytes = Encoding.UTF8.GetBytes(text);
-        var hash = OperationSourceTextHash.Compute(bytes);
+        var suppliedHash = new OperationSourceTextHash("supplied-sha256", "supplied-short", 123);
 
         // act
-        var source = OperationSourceText.Create("Stored", OperationType.Query, bytes, hash);
-        using var json = JsonDocument.Parse(source.JsonLiteral);
+        var source = new OperationSourceText("Stored", OperationType.Query, bytes, suppliedHash);
+        var (name, type, value, hash) = source;
 
         // assert
-        Assert.Equal(bytes, source.Value.ToArray());
-        Assert.Equal(hash, source.Hash);
-        Assert.Equal(text, json.RootElement.GetString());
-        Assert.True(MemoryMarshal.TryGetArray(source.Value, out var value));
-        Assert.Same(bytes, value.Array);
+        Assert.Equal(("Stored", OperationType.Query), (name, type));
+        Assert.Equal(text, Encoding.UTF8.GetString(value.Span));
+        Assert.Equal(suppliedHash, hash);
+        Assert.True(MemoryMarshal.TryGetArray(value, out var array));
+        Assert.Same(bytes, array.Array);
     }
 }

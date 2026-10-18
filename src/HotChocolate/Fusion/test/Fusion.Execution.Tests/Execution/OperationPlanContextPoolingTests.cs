@@ -143,7 +143,7 @@ public sealed class OperationPlanContextPoolingTests : FusionTestBase
         var operationText = "query BatchOperation { field }"u8.ToArray();
         var batchDefinition = new SingleOperationDefinition(
             127,
-            OperationSourceText.Create(
+            new OperationSourceText(
                 "BatchOperation",
                 OperationType.Query,
                 operationText,

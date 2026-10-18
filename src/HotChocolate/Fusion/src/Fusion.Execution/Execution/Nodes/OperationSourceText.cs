@@ -1,10 +1,7 @@
 using System.IO.Hashing;
 using System.Security.Cryptography;
 using System.Text;
-using HotChocolate.Buffers;
-using HotChocolate.Fusion.Transport.Serialization;
 using HotChocolate.Language;
-using HotChocolate.Text.Json;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -23,58 +20,19 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// <param name="Hash">
 /// Gets the hash of the operation source text.
 /// </param>
-/// <param name="JsonLiteral">
-/// Gets <see cref="Value"/> encoded as a JSON string value, including quotes, with the default transport options.
-/// </param>
 public readonly record struct OperationSourceText(
     string Name,
     OperationType Type,
     ReadOnlyMemory<byte> Value,
-    OperationSourceTextHash Hash,
-    ReadOnlyMemory<byte> JsonLiteral)
+    OperationSourceTextHash Hash)
 {
     /// <summary>
-    /// Creates compact source text and its hash and JSON string literal from a syntax node.
+    /// Creates compact source text and its hash from a syntax node.
     /// </summary>
     internal static OperationSourceText Create(string name, OperationType type, ISyntaxNode node)
     {
-        var compact = node.ToString(indented: false);
-        using var textBuffer = new PooledArrayWriter();
-        var length = Encoding.UTF8.GetBytes(compact.AsSpan(), textBuffer.GetSpan(Encoding.UTF8.GetByteCount(compact)));
-        textBuffer.Advance(length);
-
-        using var literalBuffer = new PooledArrayWriter();
-        var writer = new JsonWriter(literalBuffer, JsonOptionDefaults.WriterOptions);
-        writer.WriteStringValue(textBuffer.WrittenSpan);
-        var literal = literalBuffer.WrittenSpan.ToArray().AsMemory();
-        ReadOnlyMemory<byte> value = literal.Length == length + 2
-            ? literal.Slice(1, length)
-            : textBuffer.WrittenSpan.ToArray();
-
-        return new OperationSourceText(name, type, value, OperationSourceTextHash.Compute(value.Span), literal);
-    }
-
-    /// <summary>
-    /// Creates source text with the supplied bytes and hash and encodes its JSON string literal.
-    /// </summary>
-    internal static OperationSourceText Create(
-        string name,
-        OperationType type,
-        ReadOnlyMemory<byte> value,
-        OperationSourceTextHash hash)
-    {
-        using var buffer = new PooledArrayWriter();
-        var writer = new JsonWriter(buffer, JsonOptionDefaults.WriterOptions);
-        writer.WriteStringValue(value.Span);
-
-        var literal = buffer.WrittenSpan.ToArray().AsMemory();
-
-        if (literal.Length == value.Length + 2)
-        {
-            value = literal.Slice(1, value.Length);
-        }
-
-        return new OperationSourceText(name, type, value, hash, literal);
+        var value = Encoding.UTF8.GetBytes(node.ToString(indented: false));
+        return new OperationSourceText(name, type, value, OperationSourceTextHash.Compute(value));
     }
 }
 

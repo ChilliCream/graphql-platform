@@ -15,7 +15,7 @@ namespace HotChocolate.Fusion.Execution.Clients;
 public class SourceSchemaRequestBodyTests : FusionTestBase
 {
     [Fact]
-    public async Task SendAsync_Should_WriteSameBody_When_K6QueryLiteralIsCached()
+    public async Task SendAsync_Should_WriteBody_When_K6SourceTextIsCompact()
     {
         // arrange
         var schema = ComposeSchema(
@@ -28,8 +28,6 @@ public class SourceSchemaRequestBodyTests : FusionTestBase
         using var variableWriter = new ChunkedArrayWriter();
         var handler = new CapturingHandler();
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
-        var escapedBodies = new List<string>();
-        var cachedBodies = new List<string>();
         var snapshot = Snapshot.Create();
 
         // act
@@ -37,34 +35,23 @@ public class SourceSchemaRequestBodyTests : FusionTestBase
         {
             var variables = CreateVariableValues(variableWriter, requirements, 1);
 
-            escapedBodies.Add(
-                await SendAsync(
-                    client,
-                    handler,
-                    new OperationRequest(sourceText.Value, null, null, null, variables, JsonSegment.Empty)));
-
-            var cachedBody = await SendAsync(
+            var body = await SendAsync(
                 client,
                 handler,
-                new OperationRequest(sourceText.Value, null, null, null, variables, JsonSegment.Empty)
-                {
-                    QueryJsonLiteral = sourceText.JsonLiteral
-                });
-            cachedBodies.Add(cachedBody);
+                new OperationRequest(sourceText.Value, null, null, null, variables, JsonSegment.Empty));
             snapshot.Add(
-                cachedBody,
+                body,
                 $"Node {id}, {sourceText.Name} ({sourceText.Value.Length} bytes of operation text)",
                 MarkdownLanguages.Json);
         }
 
         // assert
         Assert.Equal(7, operations.Count);
-        Assert.Equal(escapedBodies, cachedBodies);
         snapshot.MatchMarkdownSnapshot();
     }
 
     [Fact]
-    public async Task SendAsync_Should_WriteSameVariableBatchBody_When_QueryLiteralIsCached()
+    public async Task SendAsync_Should_WriteVariableBatchBody_When_SourceTextIsCompact()
     {
         // arrange
         var sourceText = OperationSourceText.Create("Lookup", OperationType.Query, Utf8GraphQLParser.Parse(
@@ -83,25 +70,17 @@ public class SourceSchemaRequestBodyTests : FusionTestBase
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
         // act
-        var escapedBody = await SendAsync(
+        var body = await SendAsync(
             client,
             handler,
             new VariableBatchRequest(sourceText.Value, null, null, null, variables, JsonSegment.Empty));
-        var cachedBody = await SendAsync(
-            client,
-            handler,
-            new VariableBatchRequest(sourceText.Value, null, null, null, variables, JsonSegment.Empty)
-            {
-                QueryJsonLiteral = sourceText.JsonLiteral
-            });
 
         // assert
-        Assert.Equal(escapedBody, cachedBody);
-        cachedBody.MatchMarkdownSnapshot();
+        body.MatchMarkdownSnapshot();
     }
 
     [Fact]
-    public async Task SendAsync_Should_WriteSameBody_When_QueryContainsEscapableCharacters()
+    public async Task SendAsync_Should_EscapeQuery_When_QueryContainsEscapableCharacters()
     {
         // arrange
         var sourceText = CreateSourceText(
@@ -114,22 +93,14 @@ public class SourceSchemaRequestBodyTests : FusionTestBase
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
         // act
-        var escapedBody = await SendAsync(
+        var body = await SendAsync(
             client,
             handler,
             new OperationRequest(sourceText.Value, null, null, null, VariableValues.Empty, JsonSegment.Empty));
-        var cachedBody = await SendAsync(
-            client,
-            handler,
-            new OperationRequest(sourceText.Value, null, null, null, VariableValues.Empty, JsonSegment.Empty)
-            {
-                QueryJsonLiteral = sourceText.JsonLiteral
-            });
 
         // assert
-        Assert.Equal(escapedBody, cachedBody);
         // The relaxed encoder keeps non-ASCII characters of the basic plane and escapes surrogate pairs.
-        cachedBody.MatchInlineSnapshot(
+        body.MatchInlineSnapshot(
             """
             {"query":"query Special($value: String = \"quote \\\" backslash \\\\ tab \t newline \\n non-ascii ü 日本 \uD83D\uDE00 html <>&'+\") {\n  field(value: $value)\n}"}
             """);
@@ -141,10 +112,7 @@ public class SourceSchemaRequestBodyTests : FusionTestBase
         // arrange
         var sourceText = CreateSourceText("{ field(value: \"ü\") }");
         var options = new JsonWriterOptions { Encoder = JavaScriptEncoder.Default };
-        var request = new OperationRequest(sourceText.Value, null, null, null, VariableValues.Empty, JsonSegment.Empty)
-        {
-            QueryJsonLiteral = sourceText.JsonLiteral
-        };
+        var request = new OperationRequest(sourceText.Value, null, null, null, VariableValues.Empty, JsonSegment.Empty);
 
         // act
         using var buffer = new PooledArrayWriter();
@@ -155,44 +123,10 @@ public class SourceSchemaRequestBodyTests : FusionTestBase
         body.MatchInlineSnapshot("{\"query\":\"{ field(value: \\u0022\\u00FC\\u0022) }\"}");
     }
 
-    [Fact]
-    public void JsonLiteral_Should_BeTheEscapedQuotedValue_When_SourceTextIsCreated()
-    {
-        // arrange
-        var sourceText = CreateSourceText(
-            """
-            query Test {
-              field(value: "ü \" \\")
-            }
-            """);
-
-        // act
-        var literal = Encoding.UTF8.GetString(sourceText.JsonLiteral.Span);
-
-        // assert
-        literal.MatchInlineSnapshot(
-            """
-            "query Test {\n  field(value: \"ü \\\" \\\\\")\n}"
-            """);
-    }
-
-    [Fact]
-    public void JsonLiteral_Should_BeEmpty_When_SourceTextIsDefault()
-    {
-        // arrange
-        var sourceText = default(OperationSourceText);
-
-        // act
-        var literal = sourceText.JsonLiteral;
-
-        // assert
-        Assert.True(literal.IsEmpty);
-    }
-
     private static OperationSourceText CreateSourceText(string operationText)
     {
         var bytes = Encoding.UTF8.GetBytes(operationText);
-        return OperationSourceText.Create("Test", OperationType.Query, bytes, OperationSourceTextHash.Compute(bytes));
+        return new OperationSourceText("Test", OperationType.Query, bytes, OperationSourceTextHash.Compute(bytes));
     }
 
     private static List<(int Id, OperationSourceText SourceText, string[] Requirements)> CollectOperations(
