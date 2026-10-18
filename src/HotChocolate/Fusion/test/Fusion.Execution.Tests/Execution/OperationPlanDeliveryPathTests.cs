@@ -3,7 +3,6 @@ using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Types;
-using HotChocolate.Language;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Fusion.Execution;
