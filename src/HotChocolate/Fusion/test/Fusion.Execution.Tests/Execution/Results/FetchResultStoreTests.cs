@@ -2301,6 +2301,49 @@ public sealed class FetchResultStoreTests : FusionTestBase
             """);
     }
 
+    [Fact]
+    public void CreateVariableValueSets_Should_AddRepeatedTargetsAsAdditionalPaths_When_RequirementValuesRepeat()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id } }",
+            """{"data":{"foos":[{"id":"1"},{"id":"2"},{"id":"1"},{"id":"2"},{"id":"1"}]}}""",
+            resultArena,
+            sourceArena);
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("foos"),
+            [],
+            [Requirement(schema, "__fusion_1_id", "id", new NamedTypeNode("ID"))]);
+
+        // assert
+        RenderVariableValueSets(store, result).MatchInlineSnapshot(
+            """
+            Path: foos[0]
+            Additional paths: [foos[2], foos[4]]
+            Variables: {"__fusion_1_id":"1"}
+            Path: foos[1]
+            Additional paths: [foos[3]]
+            Variables: {"__fusion_1_id":"2"}
+            """);
+    }
+
     private static FetchResultStore CreateLiveStore(
         FusionSchemaDefinition schema,
         string operationText,
