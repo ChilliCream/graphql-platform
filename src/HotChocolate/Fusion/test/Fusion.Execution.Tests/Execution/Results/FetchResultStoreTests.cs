@@ -34,6 +34,112 @@ public sealed class FetchResultStoreTests : FusionTestBase
             "FetchResultStore no longer contains a non-public instance field named '_dataElementStaging'. Update the tests accordingly.");
     private static readonly byte[] s_fieldPayload = """{"data":{"field":"value"}}"""u8.ToArray();
 
+    [Theory]
+    [InlineData(1, false, false)]
+    [InlineData(1, false, true)]
+    [InlineData(1, true, false)]
+    [InlineData(1, true, true)]
+    [InlineData(3, false, false)]
+    [InlineData(3, false, true)]
+    [InlineData(3, true, false)]
+    [InlineData(3, true, true)]
+    public void GetPocketedErrorsSnapshot_Should_KeepEntries_When_CompletionAndErrorHandlersDrainPockets(
+        int count,
+        bool populateParent,
+        bool throwOnce)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: A
+            type Query { viewer: Viewer @shareable }
+            type Viewer @shareable { a: String c: String d: String }
+            """,
+            """
+            # name: B
+            type Query { viewer: Viewer @shareable }
+            type Viewer @shareable { b: String }
+            """);
+        string[] fields = count == 1 ? ["a"] : ["a", "c", "d"];
+        var plan = PlanOperation(schema, $"{{ viewer {{ {string.Join(' ', fields)} b }} }}");
+        var nodes = plan.AllNodes.OfType<OperationExecutionNode>().ToArray();
+        var nodeA = nodes.Single(node => node.SchemaName == "A");
+        var nodeB = nodes.Single(node => node.SchemaName == "B");
+        using var arena = new MemoryArena();
+        using var store = new FetchResultStore();
+        IReadOnlyList<KeyValuePair<Path, IError>>? handlerSnapshot = null;
+        var failure = new InvalidOperationException("handler failed");
+        var handled = 0;
+        var handler = new SnapshotErrorHandler(error =>
+        {
+            handlerSnapshot ??= store.GetPocketedErrorsSnapshot();
+
+            if (throwOnce && handled++ == 0)
+            {
+                throw failure;
+            }
+
+            return error;
+        });
+        store.Initialize(
+            arena, schema, handler, plan.Operation,
+            ErrorHandlingMode.Propagate, default, default, 16);
+        var failedPayload = """{"data":{"viewer":null},"errors":[{"message":"boom","path":["viewer"]}]}"""u8.ToArray();
+        store.AddPartialResult(
+            SelectionPath.Root,
+            new SourceSchemaResult(CompactPath.Root, SourceResultDocument.Parse(arena, failedPayload, failedPayload.Length)),
+            nodeA.ResultSelectionSet,
+            containsErrors: true);
+        var initialSnapshot = store.GetPocketedErrorsSnapshot();
+
+        // act
+        var exception = Record.Exception(() =>
+        {
+            if (populateParent)
+            {
+                var payload = """{"data":{"viewer":{"b":"visible"}}}"""u8.ToArray();
+                store.AddPartialResult(
+                    SelectionPath.Root,
+                    new SourceSchemaResult(CompactPath.Root, SourceResultDocument.Parse(arena, payload, payload.Length)),
+                    nodeB.ResultSelectionSet,
+                    containsErrors: false);
+            }
+
+            store.FinalizePocketedErrors();
+        });
+
+        if (exception is not null)
+        {
+            store.FinalizePocketedErrors();
+        }
+
+        arena.Seal();
+
+        // assert
+        Assert.Same(throwOnce ? failure : null, exception);
+        Assert.False(store.HasPocketedErrors);
+        Assert.Equal(
+            populateParent
+                ? count == 1
+                    ? "{\"viewer\":{\"a\":null,\"b\":\"visible\"}}"
+                    : "{\"viewer\":{\"a\":null,\"c\":null,\"d\":null,\"b\":\"visible\"}}"
+                : "{\"viewer\":null}",
+            RenderData(store));
+        Assert.Equal(
+            populateParent
+                ? fields.Select(field => ("boom", $"viewer.{field}"))
+                : [("boom", "viewer")],
+            store.Errors!.Select(error => (error.Message, error.Path!.Print())));
+        Assert.Equal(
+            fields.Select(field => ($"viewer.{field}", true, true)),
+            handlerSnapshot!.Zip(
+                initialSnapshot,
+                (entry, initial) => (
+                    entry.Key.Print(),
+                    ReferenceEquals(entry.Key, initial.Key),
+                    ReferenceEquals(entry.Value, initial.Value))));
+    }
+
     [Fact]
     public void GetResultPaths_Should_ThrowInvalidOperationException_When_TargetTraversesScalar()
     {
@@ -2654,5 +2760,10 @@ public sealed class FetchResultStoreTests : FusionTestBase
         Assert.Empty(store.MemoryOwners);
         Assert.NotSame(pooledPath.UnsafeGetBackingArray(), allocatedPath.UnsafeGetBackingArray());
         Assert.Equal(pooledPath, allocatedPath);
+    }
+
+    private sealed class SnapshotErrorHandler(Func<IError, IError> handle) : IErrorHandler
+    {
+        public IError Handle(IError error) => handle(error);
     }
 }

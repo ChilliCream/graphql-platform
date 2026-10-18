@@ -596,9 +596,9 @@ AddErrors_Next:
     internal bool HasPocketedErrors
         => _pocketedErrors?.Count > 0;
 
-    internal List<KeyValuePair<Path, IError>> GetPocketedErrorsSnapshot()
+    internal KeyValuePair<Path, IError>[] GetPocketedErrorsSnapshot()
         => _pocketedErrors is { Count: > 0 } errors
-            ? [.. errors]
+            ? errors.ToArray()
             : [];
 
     internal bool RemovePocketedError(Path path)
