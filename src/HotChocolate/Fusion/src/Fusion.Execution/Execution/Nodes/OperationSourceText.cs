@@ -67,7 +67,14 @@ public readonly record struct OperationSourceText(
         var writer = new JsonWriter(buffer, JsonOptionDefaults.WriterOptions);
         writer.WriteStringValue(value.Span);
 
-        return new OperationSourceText(name, type, value, hash, buffer.WrittenSpan.ToArray());
+        var literal = buffer.WrittenSpan.ToArray().AsMemory();
+
+        if (literal.Length == value.Length + 2)
+        {
+            value = literal.Slice(1, value.Length);
+        }
+
+        return new OperationSourceText(name, type, value, hash, literal);
     }
 }
 

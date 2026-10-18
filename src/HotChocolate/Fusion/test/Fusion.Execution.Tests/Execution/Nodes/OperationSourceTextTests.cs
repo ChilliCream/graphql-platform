@@ -50,10 +50,32 @@ public class OperationSourceTextTests
     }
 
     [Fact]
-    public void Create_Should_PreserveStoredTextAndHash_When_PlanIsPersisted()
+    public void Create_Should_ShareLiteralArray_When_StoredTextNeedsNoEscaping()
     {
         // arrange
-        var bytes = "query Stored {\n  field\n}"u8.ToArray();
+        var bytes = "query Stored { field }"u8.ToArray();
+        var hash = OperationSourceTextHash.Compute(bytes);
+
+        // act
+        var source = OperationSourceText.Create("Stored", OperationType.Query, bytes, hash);
+        var hasValueArray = MemoryMarshal.TryGetArray(source.Value, out var value);
+        var hasLiteralArray = MemoryMarshal.TryGetArray(source.JsonLiteral, out var literal);
+
+        // assert
+        Assert.True(hasValueArray && hasLiteralArray);
+        Assert.Same(literal.Array, value.Array);
+        Assert.Equal(literal.Offset + 1, value.Offset);
+        Assert.Equal(bytes, source.Value.ToArray());
+        Assert.Equal(hash, source.Hash);
+    }
+
+    [Theory]
+    [InlineData("query Stored {\n  field\n}")]
+    [InlineData("query Stored { field(value: \"a\") }")]
+    public void Create_Should_PreserveStoredTextAndHash_When_PlanIsPersisted(string text)
+    {
+        // arrange
+        var bytes = Encoding.UTF8.GetBytes(text);
         var hash = OperationSourceTextHash.Compute(bytes);
 
         // act
@@ -63,6 +85,8 @@ public class OperationSourceTextTests
         // assert
         Assert.Equal(bytes, source.Value.ToArray());
         Assert.Equal(hash, source.Hash);
-        Assert.Equal(Encoding.UTF8.GetString(bytes), json.RootElement.GetString());
+        Assert.Equal(text, json.RootElement.GetString());
+        Assert.True(MemoryMarshal.TryGetArray(source.Value, out var value));
+        Assert.Same(bytes, value.Array);
     }
 }
