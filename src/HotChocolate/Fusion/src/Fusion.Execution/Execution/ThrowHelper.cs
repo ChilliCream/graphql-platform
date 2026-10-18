@@ -70,6 +70,15 @@ internal static class ThrowHelper
     public static InvalidOperationException OperationDocumentNotAvailable()
         => new("The operation document is not available in the context.");
 
+    public static KeyNotFoundException DeliveryGroupNotFound(int deliveryGroupId)
+        => new($"The delivery group with the ID '{deliveryGroupId}' was not found.");
+
+    public static InvalidOperationException DeliveryPathSegmentNotFound(string segmentName)
+        => new($"Could not resolve selection path segment '{segmentName}'.");
+
+    public static InvalidOperationException DeliveryPathSelectionSetMissing(string segmentName)
+        => new($"Selection path segment '{segmentName}' has no selection set.");
+
     public static InvalidOperationException OperationPlanTaskCompletedWithoutResult()
         => new("The operation plan task completed without a result.");
 
