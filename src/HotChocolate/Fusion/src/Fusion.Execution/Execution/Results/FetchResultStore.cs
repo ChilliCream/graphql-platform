@@ -34,6 +34,7 @@ internal sealed partial class FetchResultStore : IDisposable
     private const int MaxRetainedDataElementStagingLength = 1024;
     private const int MaxRetainedForwardedVariableCapacity = 16 * 1024;
     private const int MaxStackAllocPathSegments = 32;
+    private const int MaxReplayLeafValues = 64;
 
     private static readonly ArrayPool<VariableValues> s_variableValuePool = ArrayPool<VariableValues>.Shared;
     private static readonly ArrayPool<object> s_objectPool = ArrayPool<object>.Shared;
@@ -706,45 +707,156 @@ AddErrors_Next:
         ErrorTrie? errorTrie,
         ResultSelectionSet resultSelectionSet)
     {
+        if (additionalPaths.Length > 0 && errorTrie is null && !HasPocketedErrors)
+        {
+            return SaveSafeResultWithLeafReplay(
+                resultData,
+                path,
+                additionalPaths,
+                dataElement,
+                resultSelectionSet);
+        }
+
         if (!SaveSafeResult(resultData, path, dataElement, errorTrie, resultSelectionSet))
         {
             return false;
         }
 
-        switch (additionalPaths.Length)
+        for (var i = 0; i < additionalPaths.Length; i++)
         {
-            case 0:
-                return true;
-
-            case 1:
-                return SaveSafeResult(resultData, additionalPaths[0], dataElement, errorTrie, resultSelectionSet);
-
-            case 2:
-                return SaveSafeResult(resultData, additionalPaths[0], dataElement, errorTrie, resultSelectionSet)
-                    && SaveSafeResult(resultData, additionalPaths[1], dataElement, errorTrie, resultSelectionSet);
-
-            case 3:
-                return SaveSafeResult(resultData, additionalPaths[0], dataElement, errorTrie, resultSelectionSet)
-                    && SaveSafeResult(resultData, additionalPaths[1], dataElement, errorTrie, resultSelectionSet)
-                    && SaveSafeResult(resultData, additionalPaths[2], dataElement, errorTrie, resultSelectionSet);
-
-            case 4:
-                return SaveSafeResult(resultData, additionalPaths[0], dataElement, errorTrie, resultSelectionSet)
-                    && SaveSafeResult(resultData, additionalPaths[1], dataElement, errorTrie, resultSelectionSet)
-                    && SaveSafeResult(resultData, additionalPaths[2], dataElement, errorTrie, resultSelectionSet)
-                    && SaveSafeResult(resultData, additionalPaths[3], dataElement, errorTrie, resultSelectionSet);
-
-            default:
-                for (var i = 0; i < additionalPaths.Length; i++)
-                {
-                    if (!SaveSafeResult(resultData, additionalPaths[i], dataElement, errorTrie, resultSelectionSet))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
+            if (!SaveSafeResult(resultData, additionalPaths[i], dataElement, errorTrie, resultSelectionSet))
+            {
+                return false;
+            }
         }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Completes the primary target from the source data and copies the completed leaf values into
+    /// every additional target, which are completed from the same source data. Targets that do not
+    /// qualify for the copy are completed from the source data.
+    /// </summary>
+    private bool SaveSafeResultWithLeafReplay(
+        CompositeResultElement resultData,
+        CompactPath path,
+        ReadOnlySpan<CompactPath> additionalPaths,
+        SourceResultElement dataElement,
+        ResultSelectionSet resultSelectionSet)
+    {
+        if (resultData.IsNullOrInvalidated)
+        {
+            return false;
+        }
+
+        var errorCount = _errors?.Count ?? 0;
+        var primary = path.IsRoot ? resultData : GetStartResult(path);
+
+        if (!SaveSafeResult(resultData, primary, dataElement, errorTrie: null, resultSelectionSet))
+        {
+            return false;
+        }
+
+        Span<int> rowOffsets = stackalloc int[MaxReplayLeafValues];
+
+        if (errorCount != (_errors?.Count ?? 0)
+            || HasPocketedErrors
+            || !TryGetLeafRowOffsets(primary, dataElement, resultSelectionSet, rowOffsets, out var primaryObject))
+        {
+            for (var i = 0; i < additionalPaths.Length; i++)
+            {
+                if (!SaveSafeResult(resultData, additionalPaths[i], dataElement, errorTrie: null, resultSelectionSet))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        rowOffsets = rowOffsets[..primaryObject.RowOffsetCount];
+        var canReplay = true;
+
+        for (var i = 0; i < additionalPaths.Length; i++)
+        {
+            var target = GetStartResult(additionalPaths[i]);
+            Debug.Assert(target.ValueKind is JsonValueKind.Object or JsonValueKind.Null or JsonValueKind.Undefined);
+
+            if (target.IsNullOrInvalidated)
+            {
+                continue;
+            }
+
+            if (canReplay
+                && target.TryGetObjectContext(out var targetContext)
+                && ReferenceEquals(targetContext.SelectionSet, primaryObject.Context.SelectionSet))
+            {
+                _result.CopyValues(
+                    primaryObject.Context.ObjectStartCursor,
+                    targetContext.ObjectStartCursor,
+                    rowOffsets);
+                continue;
+            }
+
+            if (!SaveSafeResult(resultData, target, dataElement, errorTrie: null, resultSelectionSet))
+            {
+                return false;
+            }
+
+            // Completing the source again can pocket errors that later targets must apply.
+            canReplay = !HasPocketedErrors;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Collects the row offsets of the values that completing <paramref name="dataElement"/> wrote into
+    /// <paramref name="primary"/>, when every one of them is a non-null, non-enum leaf of an object
+    /// with a concrete selection set, so copying the rows is equivalent to completing the source again.
+    /// </summary>
+    private static bool TryGetLeafRowOffsets(
+        CompositeResultElement primary,
+        SourceResultElement dataElement,
+        ResultSelectionSet resultSelectionSet,
+        Span<int> rowOffsets,
+        out LeafReplayObject primaryObject)
+    {
+        primaryObject = default;
+
+        if (resultSelectionSet.HasSourceResponseNameMappings
+            || dataElement.ValueKind is not JsonValueKind.Object
+            || primary.IsNullOrInvalidated
+            || !primary.TryGetObjectContext(out var context)
+            || context.SelectionSet is not { Type.Kind: TypeKind.Object })
+        {
+            return false;
+        }
+
+        var start = context.ObjectStartCursor.Index;
+        var count = 0;
+
+        foreach (var property in dataElement.EnumerateObject())
+        {
+            if (!context.TryGetProperty(property.NameSpan, out var field, out var selection))
+            {
+                continue;
+            }
+
+            if (property.Value.ValueKind
+                    is not (JsonValueKind.String or JsonValueKind.Number or JsonValueKind.True or JsonValueKind.False)
+                || selection.IsEnumValue
+                || count == rowOffsets.Length)
+            {
+                return false;
+            }
+
+            rowOffsets[count++] = field.Cursor.Index - start;
+        }
+
+        primaryObject = new LeafReplayObject(context, count);
+        return true;
     }
 
     private bool SaveSafeResult(
@@ -760,6 +872,21 @@ AddErrors_Next:
         }
 
         var element = path.IsRoot ? resultData : GetStartResult(path);
+        return SaveSafeResult(resultData, element, dataElement, errorTrie, resultSelectionSet);
+    }
+
+    private bool SaveSafeResult(
+        CompositeResultElement resultData,
+        CompositeResultElement element,
+        SourceResultElement dataElement,
+        ErrorTrie? errorTrie,
+        ResultSelectionSet resultSelectionSet)
+    {
+        if (resultData.IsNullOrInvalidated)
+        {
+            return false;
+        }
+
         Debug.Assert(element.ValueKind is JsonValueKind.Object or JsonValueKind.Null or JsonValueKind.Undefined);
 
         if (element.IsNullOrInvalidated)
@@ -782,6 +909,8 @@ AddErrors_Next:
         resultData.Invalidate();
         return false;
     }
+
+    private readonly record struct LeafReplayObject(CompositeObjectContext Context, int RowOffsetCount);
 
     public ImmutableArray<VariableValues> CreateVariableValueSets(
         SelectionPath selectionSet,
