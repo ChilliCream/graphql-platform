@@ -624,6 +624,37 @@ public sealed partial class CompositeResultDocument : IDisposable
             tokenType: ElementTokenType.Null);
     }
 
+    /// <summary>
+    /// Assigns the leaf value of <paramref name="source"/> to <paramref name="target"/> without
+    /// copying the value data. Both elements must belong to this document.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c> if the source holds a non-null leaf value that was assigned;
+    /// otherwise, <c>false</c> and the target is unchanged.
+    /// </returns>
+    internal bool TryAssignLeafValue(CompositeResultElement target, CompositeResultElement source)
+    {
+        var row = _metaDb.Get(source.Cursor);
+
+        if (row.TokenType is not (ElementTokenType.String
+            or ElementTokenType.Number
+            or ElementTokenType.True
+            or ElementTokenType.False)
+            || (row.Flags & ElementFlags.Invalidated) == ElementFlags.Invalidated)
+        {
+            return false;
+        }
+
+        _metaDb.ReplacePreserveParent(
+            cursor: target.Cursor,
+            tokenType: row.TokenType,
+            location: row.Location,
+            sizeOrLength: row.SizeOrLength,
+            sourceDocumentId: row.SourceDocumentId,
+            flags: row.Flags);
+        return true;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Cursor WriteStartArray(Cursor parent, int length = 0)
         => _metaDb.AppendStartArray(parent.Value, length, ElementFlags.None);

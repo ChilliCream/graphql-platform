@@ -101,6 +101,22 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
     } = 64;
 
     /// <summary>
+    /// Gets or sets whether a lookup takes entities that the result of the same query already
+    /// holds with every field the lookup selects, instead of fetching them again.
+    /// <c>true</c> by default.
+    /// </summary>
+    public bool EnableEntityReuse
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    } = true;
+
+    /// <summary>
     /// Gets or sets whether the request executor should be initialized lazily.
     /// <c>false</c> by default.
     /// </summary>
