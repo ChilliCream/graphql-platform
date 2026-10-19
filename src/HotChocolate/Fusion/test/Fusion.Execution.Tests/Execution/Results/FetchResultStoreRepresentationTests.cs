@@ -456,6 +456,65 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
     }
 
     [Fact]
+    public void CreateRepresentationVariableValue_Should_CollectNestedTargetFromParentTarget_When_TargetPathsSharePrefix()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+              child: Foo
+            }
+            """);
+        var lookupField = ParseLookupField("{ fooById(id: $__fusion_1_id) { id } }");
+        OperationRequirement[] requirements = [Requirement(schema, "__fusion_1_id", "id", new NamedTypeNode("ID"))];
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id child { id } } }",
+            """{"data":{"foos":[{"id":"1","child":{"id":"1"}},{"id":"2","child":{"id":"3"}}]}}""",
+            resultArena,
+            sourceArena);
+        var foos = SelectionPath.Root.AppendField("foos");
+
+        // act
+        var representation = store.CreateRepresentationVariableValue(
+            [foos, foos.AppendField("child")],
+            [],
+            requirements,
+            RepresentationShapeBuilder.Build(lookupField, requirements, schema, "Foo"),
+            "Foo");
+
+        // assert
+        var operation = store.Result.Data.Operation;
+        var output = new StringBuilder();
+        output.AppendLine(Normalize(representation.Value));
+
+        foreach (var (path, additionalPaths) in representation.ResultPaths)
+        {
+            output.Append(path.ToPath(operation).Print());
+            output.Append(" [");
+            output.AppendJoin(", ", additionalPaths.AsSpan().ToArray().Select(p => p.ToPath(operation).Print()));
+            output.AppendLine("]");
+        }
+
+        output.ToString().TrimEnd().MatchInlineSnapshot(
+            """
+            {"representations":[{"__typename":"Foo","id":"1"},{"__typename":"Foo","id":"2"},{"__typename":"Foo","id":"3"}]}
+            foos[0] [foos[0].child]
+            foos[1] []
+            foos[1].child []
+            """);
+    }
+
+    [Fact]
     public void RepresentationShapeBuilder_Should_MatchValueSelectionRewriterOutput_When_MapsAreRewritten()
     {
         // arrange

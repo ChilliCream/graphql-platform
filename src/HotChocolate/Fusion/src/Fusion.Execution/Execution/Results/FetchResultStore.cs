@@ -1011,47 +1011,14 @@ AddErrors_Next:
 
         lock (_lock)
         {
-            var combinedCount = 0;
-            Span<(int Start, int Length)> collected = selectionSets.Length <= 16
-                ? stackalloc (int, int)[selectionSets.Length]
-                : new (int, int)[selectionSets.Length];
+            var elements = CollectTargetElements(selectionSets);
 
-            for (var i = 0; i < selectionSets.Length; i++)
-            {
-                var selectionSet = selectionSets[i];
-
-                // A target that extends an earlier target continues from the elements
-                // collected for the earlier target instead of walking from the root.
-                var prefix = FindCollectedPrefix(selectionSets, i);
-                var elements = prefix == -1
-                    ? CollectTargetElements(selectionSet)
-                    : CollectTargetElements(
-                        selectionSet,
-                        selectionSets[prefix].Length,
-                        _collectTargetCombined.AsSpan(collected[prefix].Start, collected[prefix].Length));
-
-                collected[i] = (combinedCount, elements.Length);
-
-                if (!elements.IsEmpty)
-                {
-                    EnsureCapacity(
-                        ref _collectTargetCombined,
-                        combinedCount + elements.Length,
-                        combinedCount);
-                    elements.CopyTo(_collectTargetCombined.AsSpan(combinedCount));
-                    combinedCount += elements.Length;
-                }
-            }
-
-            if (combinedCount == 0)
+            if (elements.IsEmpty)
             {
                 return [];
             }
 
-            return BuildVariableValueSets(
-                _collectTargetCombined.AsSpan(0, combinedCount),
-                requestVariables,
-                requiredData);
+            return BuildVariableValueSets(elements, requestVariables, requiredData);
         }
     }
 
@@ -1090,6 +1057,44 @@ AddErrors_Next:
         {
             return BuildVariableValueSetsFromSnapshot(importedEntries, requestVariables, requiredData);
         }
+    }
+
+    // Caller must hold _lock for reading.
+    private ReadOnlySpan<CompositeResultElement> CollectTargetElements(ReadOnlySpan<SelectionPath> selectionSets)
+    {
+        var combinedCount = 0;
+        Span<(int Start, int Length)> collected = selectionSets.Length <= 16
+            ? stackalloc (int, int)[selectionSets.Length]
+            : new (int, int)[selectionSets.Length];
+
+        for (var i = 0; i < selectionSets.Length; i++)
+        {
+            var selectionSet = selectionSets[i];
+
+            // A target that extends an earlier target continues from the elements
+            // collected for the earlier target instead of walking from the root.
+            var prefix = FindCollectedPrefix(selectionSets, i);
+            var elements = prefix == -1
+                ? CollectTargetElements(selectionSet)
+                : CollectTargetElements(
+                    selectionSet,
+                    selectionSets[prefix].Length,
+                    _collectTargetCombined.AsSpan(collected[prefix].Start, collected[prefix].Length));
+
+            collected[i] = (combinedCount, elements.Length);
+
+            if (!elements.IsEmpty)
+            {
+                EnsureCapacity(
+                    ref _collectTargetCombined,
+                    combinedCount + elements.Length,
+                    combinedCount);
+                elements.CopyTo(_collectTargetCombined.AsSpan(combinedCount));
+                combinedCount += elements.Length;
+            }
+        }
+
+        return _collectTargetCombined.AsSpan(0, combinedCount);
     }
 
     /// <summary>

@@ -533,6 +533,47 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
             entityTypeName);
     }
 
+    internal RepresentationValue CreateRepresentationVariableValue(
+        ReadOnlySpan<SelectionPath> selectionSets,
+        ReadOnlySpan<string> forwardedVariables,
+        ReadOnlySpan<OperationRequirement> requirements,
+        ImmutableArray<RepresentationShapeNode> requiredShape,
+        string entityTypeName)
+    {
+        if (requirements.Length == 0)
+        {
+            return RepresentationValue.Empty;
+        }
+
+        var importedMatchCount = CountImportedRequirementKeys(requirements);
+
+        if (importedMatchCount == 0)
+        {
+            var variableValues = GetPathThroughVariables(forwardedVariables);
+            return _resultStore.CreateRepresentationVariableValue(
+                selectionSets,
+                variableValues,
+                requirements,
+                requiredShape,
+                entityTypeName);
+        }
+
+        if (importedMatchCount != requirements.Length)
+        {
+            // Planner-invariant guard, see the single-target overload.
+            throw CreateMixedScopeException(requirements);
+        }
+
+        var variableValuesFromSnapshot = GetPathThroughVariables(forwardedVariables);
+        return _resultStore.CreateRepresentationVariableValueFromSnapshot(
+            _requirementValues,
+            _requirementKeys!,
+            variableValuesFromSnapshot,
+            requirements,
+            requiredShape,
+            entityTypeName);
+    }
+
     private InvalidOperationException CreateMixedScopeException(
         ReadOnlySpan<OperationRequirement> requirements)
     {
