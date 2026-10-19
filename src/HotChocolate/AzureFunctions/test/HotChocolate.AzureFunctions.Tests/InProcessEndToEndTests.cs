@@ -182,6 +182,49 @@ public class InProcessEndToEndTests
     }
 
     [Theory]
+    [InlineData("", "<html")]
+    [InlineData("nitro-config.json", "\"useBrowserUrlAsEndpoint\"")]
+    public async Task AzFuncInProcess_NitroServesFileTestAsync(string path, string expectedContent)
+    {
+        var hostBuilder = new MockInProcessFunctionsHostBuilder();
+
+        hostBuilder.Services.AddHttpContextAccessor();
+
+        hostBuilder
+            .AddGraphQLFunction()
+            .AddQueryType(d => d.Name("Query").Field("person").Resolve("Luke Skywalker"));
+
+        var requestExecutor = hostBuilder.BuildServiceProvider().GetRequiredService<IGraphQLRequestExecutor>();
+        var httpContext = TestHttpContextHelper.NewNitroHttpContext(path);
+
+        await requestExecutor.ExecuteAsync(httpContext.Request);
+
+        var resultContent = await httpContext.ReadResponseContentAsync();
+        Assert.Equal(StatusCodes.Status200OK, httpContext.Response.StatusCode);
+        Assert.Contains(expectedContent, resultContent);
+    }
+
+    [Fact]
+    public async Task AzFuncInProcess_NitroDisabledTestAsync()
+    {
+        var hostBuilder = new MockInProcessFunctionsHostBuilder();
+
+        hostBuilder.Services.AddHttpContextAccessor();
+
+        hostBuilder
+            .AddGraphQLFunction()
+            .AddQueryType(d => d.Name("Query").Field("person").Resolve("Luke Skywalker"))
+            .ModifyFunctionOptions(o => o.Tool.Enable = false);
+
+        var requestExecutor = hostBuilder.BuildServiceProvider().GetRequiredService<IGraphQLRequestExecutor>();
+        var httpContext = TestHttpContextHelper.NewNitroHttpContext();
+
+        await requestExecutor.ExecuteAsync(httpContext.Request);
+
+        Assert.Equal(StatusCodes.Status404NotFound, httpContext.Response.StatusCode);
+    }
+
+    [Theory]
     [InlineData(HttpTransportVersion.Legacy, StatusCodes.Status404NotFound, null)]
     [InlineData(HttpTransportVersion.Draft20250508, StatusCodes.Status404NotFound, null)]
     [InlineData(
