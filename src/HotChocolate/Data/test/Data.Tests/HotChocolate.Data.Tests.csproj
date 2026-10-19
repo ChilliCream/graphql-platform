@@ -11,6 +11,9 @@
     <ProjectReference Include="..\..\..\Core\src\Authorization\HotChocolate.Authorization.csproj" />
     <ProjectReference Include="..\..\..\Core\test\Types.Tests\HotChocolate.Types.Tests.csproj" />
     <ProjectReference Include="..\..\src\Data\HotChocolate.Data.csproj" />
+    <ProjectReference
+      Include="..\..\..\Core\src\Types.Analyzers\HotChocolate.Types.Analyzers.csproj"
+      OutputItemType="Analyzer" />
     <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.Resources.PostgreSql\CookieCrumble.Resources.PostgreSql.csproj" />
   </ItemGroup>
 

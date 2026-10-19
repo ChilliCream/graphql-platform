@@ -79,6 +79,7 @@ public class TypeValidationTests
             .MatchSnapshot();
     }
 
+#pragma warning disable HC0100
     public class InvalidMiddlewarePipeline1
     {
         [UseFiltering]
@@ -93,6 +94,7 @@ public class TypeValidationTests
         [UseProjection]
         public IEnumerable<string> GetBars() => throw new NotImplementedException();
     }
+#pragma warning restore HC0100
 
     public class InvalidMiddlewarePipeline3
     {

@@ -23,7 +23,7 @@ public class RelativeCursorMiddlewareTests
         var executor = await new ServiceCollection()
             .AddSingleton(probe)
             .AddGraphQLServer()
-            .ModifyPagingOptions(options => options.EnableRelativeCursors = true)
+            .ModifyPagingOptions(options => options.EnableRelativeCursors = false)
             .AddQueryType<QueryType>()
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
