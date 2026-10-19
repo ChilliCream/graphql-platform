@@ -172,7 +172,6 @@ public class RabbitMQConnectionManagerBaseTests
         public int BeforeConnectionCreatedCount { get; private set; }
         public int AfterConnectionCreatedCount { get; private set; }
         public int ConnectionLostCount { get; private set; }
-        public int ConnectionRecoveredCount { get; private set; }
         public int ConnectionEstablishedCount { get; private set; }
 
         public TestConnectionManager(ILogger logger, Func<CancellationToken, ValueTask<IConnection>> factory)
@@ -195,12 +194,6 @@ public class RabbitMQConnectionManagerBaseTests
         protected override Task OnConnectionLostAsync()
         {
             ConnectionLostCount++;
-            return Task.CompletedTask;
-        }
-
-        protected override Task OnConnectionRecoveredAsync(CancellationToken cancellationToken)
-        {
-            ConnectionRecoveredCount++;
             return Task.CompletedTask;
         }
 

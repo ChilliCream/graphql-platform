@@ -97,27 +97,66 @@ public class RabbitMQDispatchProvisioningTests
     {
         // arrange
         var channelMock = CreateOpenChannel();
-        var connectionMock = CreateOpenConnection(channelMock);
-        var recoveryHandlers = new List<AsyncEventHandler<AsyncEventArgs>>();
-        connectionMock
-            .SetupAdd(c => c.RecoverySucceededAsync += It.IsAny<AsyncEventHandler<AsyncEventArgs>>())
-            .Callback<AsyncEventHandler<AsyncEventArgs>>(recoveryHandlers.Add);
+        var connections = new List<Mock<IConnection>>();
+        var shutdownHandlers = new List<AsyncEventHandler<ShutdownEventArgs>>();
 
-        await using var bus = await BuildTestBusAsync(connectionMock.Object, t =>
+        await using var bus = await BuildTestBusAsync(
+            () =>
+            {
+                var connectionMock = CreateOpenConnection(channelMock);
+                connectionMock
+                    .SetupAdd(c => c.ConnectionShutdownAsync += It.IsAny<AsyncEventHandler<ShutdownEventArgs>>())
+                    .Callback<AsyncEventHandler<ShutdownEventArgs>>(handler =>
+                    {
+                        lock (shutdownHandlers)
+                        {
+                            shutdownHandlers.Add(handler);
+                        }
+                    });
+
+                lock (connections)
+                {
+                    connections.Add(connectionMock);
+                }
+
+                return connectionMock.Object;
+            },
+            t =>
+            {
+                t.DeclareExchange("recover-ex").AutoProvision(true);
+                t.DeclareQueue("recover-q").AutoProvision(true);
+                t.DeclareBinding("recover-ex", "recover-q").AutoProvision(true);
+                t.DispatchEndpoint("recover-ep").ToExchange("recover-ex").Publish<OrderCreated>();
+            });
+
+        Mock<IConnection>[] lostConnections;
+        AsyncEventHandler<ShutdownEventArgs>[] handlers;
+        lock (connections)
         {
-            t.DeclareExchange("recover-ex").AutoProvision(true);
-            t.DeclareQueue("recover-q").AutoProvision(true);
-            t.DeclareBinding("recover-ex", "recover-q").AutoProvision(true);
-            t.DispatchEndpoint("recover-ep").ToExchange("recover-ex").Publish<OrderCreated>();
-        });
+            lostConnections = [.. connections];
+            handlers = [.. shutdownHandlers];
+        }
 
         channelMock.Invocations.Clear();
 
-        // act - await the recovery handlers directly instead of racing a real-time delay
-        // against the fire-and-forget RabbitMQ.Client event, which is how automatic topology
-        // recovery presents itself to the transport
-        await Task.WhenAll(recoveryHandlers.Select(
-            handler => handler(connectionMock.Object, AsyncEventArgs.Empty)));
+        // act
+        // the broker closes every connection, and the dispatcher opens a new one for the next publish
+        foreach (var connectionMock in lostConnections)
+        {
+            connectionMock.SetupGet(c => c.IsOpen).Returns(false);
+        }
+
+        var reason = new ShutdownEventArgs(ShutdownInitiator.Peer, 320, "CONNECTION_FORCED");
+        await Task.WhenAll(handlers.Select(handler => handler(lostConnections[0].Object, reason)));
+
+        Assert.True(
+            await Condition.WaitAsync(
+                () => lostConnections.All(c => c.Invocations.Any(i => i.Method.Name == nameof(IConnection.DisposeAsync))),
+                TimeSpan.FromSeconds(10)));
+
+        using var scope = bus.Provider.CreateScope();
+        await scope.ServiceProvider.GetRequiredService<IMessageBus>()
+            .PublishAsync(new OrderCreated { OrderId = "ORD-1" }, CancellationToken.None);
 
         // assert - the exchange, queue, and binding are all redeclared, not just the resources
         // touched by a prior dispatch
@@ -385,8 +424,13 @@ public class RabbitMQDispatchProvisioningTests
         return connectionMock;
     }
 
-    private static async Task<TestBus> BuildTestBusAsync(
+    private static Task<TestBus> BuildTestBusAsync(
         IConnection connection,
+        Action<IRabbitMQMessagingTransportDescriptor> configure)
+        => BuildTestBusAsync(() => connection, configure);
+
+    private static async Task<TestBus> BuildTestBusAsync(
+        Func<IConnection> createConnection,
         Action<IRabbitMQMessagingTransportDescriptor> configure)
     {
         var services = new ServiceCollection();
@@ -395,7 +439,7 @@ public class RabbitMQDispatchProvisioningTests
         var provider = builder
             .AddRabbitMQ(t =>
             {
-                t.ConnectionProvider(_ => new FakeConnectionProvider(connection));
+                t.ConnectionProvider(_ => new FakeConnectionProvider(createConnection));
                 configure(t);
             })
             .Services
@@ -407,12 +451,12 @@ public class RabbitMQDispatchProvisioningTests
         return new TestBus(provider, runtime);
     }
 
-    private sealed class FakeConnectionProvider(IConnection connection) : IRabbitMQConnectionProvider
+    private sealed class FakeConnectionProvider(Func<IConnection> createConnection) : IRabbitMQConnectionProvider
     {
         public string Host => "localhost";
         public string VirtualHost => "/";
         public int Port => 5672;
 
-        public ValueTask<IConnection> CreateAsync(CancellationToken cancellationToken) => new(connection);
+        public ValueTask<IConnection> CreateAsync(CancellationToken cancellationToken) => new(createConnection());
     }
 }

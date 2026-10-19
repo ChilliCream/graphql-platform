@@ -2,23 +2,31 @@ using System.Text;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
 
 namespace Mocha.Transport.RabbitMQ;
 
 /// <summary>
-/// Base class for RabbitMQ connection management with automatic reconnection,
-/// exponential backoff, and connection event handling.
+/// Base class for RabbitMQ connection management with reconnection, exponential backoff, and connection event
+/// handling.
 /// </summary>
+/// <remarks>
+/// The manager owns recovery: it disposes a connection that the broker or the network took away, which stops the
+/// client's automatic recovery for that connection, and creates a new connection instead.
+/// </remarks>
 public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
 {
-    private const int InitialConnectionRetryDelaySeconds = 1;
     private const int MaxConnectionAttempts = 5;
-    private static readonly TimeSpan s_maxBackoffDelay = TimeSpan.FromSeconds(60);
+    private static readonly TimeSpan s_initialRetryDelay = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan s_maxBackoffDelay = TimeSpan.FromSeconds(10);
 
     private readonly Func<CancellationToken, ValueTask<IConnection>> _connectionFactory;
     private readonly SemaphoreSlim _connectionLock = new(1, 1);
+    private readonly CancellationTokenSource _disposeCts = new();
 
     private IConnection? _currentConnection;
+    private Task? _reconnectTask;
+    private int _isReconnecting;
     private bool _isDisposed;
 
     /// <summary>
@@ -95,6 +103,61 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
     }
 
     /// <summary>
+    /// Makes one attempt to connect, and keeps connecting in the background when the broker cannot be reached.
+    /// </summary>
+    /// <exception cref="Exception">
+    /// The broker refused the credentials, the access to the virtual host, or an operation on an open connection,
+    /// which retrying cannot resolve.
+    /// </exception>
+    internal async Task ConnectOrRetryInBackgroundAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _connectionLock.WaitAsync(cancellationToken);
+            try
+            {
+                if (_currentConnection is not { IsOpen: true })
+                {
+                    await ConnectAsync(cancellationToken);
+                }
+            }
+            finally
+            {
+                _connectionLock.Release();
+            }
+        }
+        catch (Exception ex) when (!cancellationToken.IsCancellationRequested && IsConnectivityFailure(ex))
+        {
+            Logger.BrokerUnreachableConnectingInBackground(ex);
+            StartReconnecting();
+        }
+    }
+
+    private static bool IsConnectivityFailure(Exception exception)
+    {
+        for (var current = exception; current is not null; current = current.InnerException)
+        {
+            // Refused credentials or virtual host access, and operations the broker rejects, such as a declare
+            // with different arguments, fail the same way on every attempt.
+            if (current is AuthenticationFailureException
+                || current is OperationInterruptedException
+                {
+                    ShutdownReason.ReplyCode:
+                        Constants.AccessRefused
+                        or Constants.NotFound
+                        or Constants.ResourceLocked
+                        or Constants.PreconditionFailed
+                        or Constants.NotAllowed
+                })
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
     /// Called before a new connection is created.
     /// Override to perform cleanup (e.g., clearing channel pools).
     /// </summary>
@@ -122,12 +185,72 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
     }
 
     /// <summary>
-    /// Called after automatic recovery succeeds.
-    /// Override to perform post-recovery actions.
+    /// Starts establishing a connection in the background, retrying with exponential backoff until a connection
+    /// is open or the manager is disposed. Does nothing while such an attempt is already running.
     /// </summary>
-    protected virtual Task OnConnectionRecoveredAsync(CancellationToken cancellationToken)
+    protected void StartReconnecting()
     {
-        return Task.CompletedTask;
+        if (_isDisposed || Interlocked.CompareExchange(ref _isReconnecting, 1, 0) != 0)
+        {
+            return;
+        }
+
+        _reconnectTask = ReconnectAsync(_disposeCts.Token);
+    }
+
+    private async Task ReconnectAsync(CancellationToken cancellationToken)
+    {
+        var attempt = 0;
+
+        try
+        {
+            while (true)
+            {
+                TimeSpan delay;
+
+                await _connectionLock.WaitAsync(cancellationToken);
+                try
+                {
+                    if (_currentConnection is { IsOpen: true })
+                    {
+                        return;
+                    }
+
+                    await ConnectAsync(cancellationToken);
+                    return;
+                }
+                catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
+                {
+                    attempt++;
+                    delay = CalculateBackoffDelay(attempt);
+                    Logger.ReconnectionAttemptFailed(ex, attempt, delay);
+                }
+                finally
+                {
+                    _connectionLock.Release();
+                }
+
+                await Task.Delay(delay, cancellationToken);
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // The manager was disposed.
+        }
+        catch (ObjectDisposedException) when (_isDisposed)
+        {
+            // The manager was disposed.
+        }
+        finally
+        {
+            Volatile.Write(ref _isReconnecting, 0);
+        }
+
+        // A connection lost between the successful attempt and the reset above is not reconnected otherwise.
+        if (!cancellationToken.IsCancellationRequested && _currentConnection is not { IsOpen: true })
+        {
+            StartReconnecting();
+        }
     }
 
     /// <summary>
@@ -137,36 +260,12 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
     private async Task CreateConnectionWithRetryAsync(CancellationToken cancellationToken)
     {
         var attempt = 0;
-        var baseDelay = TimeSpan.FromSeconds(InitialConnectionRetryDelaySeconds);
 
-        Logger.CreatingConnectionUsingFactoryDelegate();
-
-        while (attempt < MaxConnectionAttempts)
+        while (true)
         {
             try
             {
-                // Clean up existing connection if any
-                await DisposeConnectionInternalAsync();
-
-                // Allow derived classes to perform cleanup
-                await OnBeforeConnectionCreatedAsync(cancellationToken);
-
-                // Create new connection
-                var connection = await _connectionFactory(cancellationToken);
-
-                // Wire up connection events
-                WireConnectionEvents(connection);
-
-                _currentConnection = connection;
-
-                Logger.SuccessfullyCreatedConnection(connection.ClientProvidedName ?? "Unknown");
-
-                // Run setup actions (declare exchanges, queues, etc.)
-                await OnConnectionEstablished(connection, cancellationToken);
-
-                // Allow derived classes to perform post-connection setup
-                await OnAfterConnectionCreatedAsync(connection, cancellationToken);
-
+                await ConnectAsync(cancellationToken);
                 return;
             }
             catch (OperationCanceledException)
@@ -183,7 +282,7 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
                     throw;
                 }
 
-                var delay = CalculateBackoffDelay(baseDelay, attempt);
+                var delay = CalculateBackoffDelay(attempt);
                 Logger.FailedToCreateConnectionRetrying(ex, attempt, MaxConnectionAttempts, delay);
 
                 await Task.Delay(delay, cancellationToken);
@@ -191,12 +290,41 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
         }
     }
 
+    /// <summary>
+    /// Replaces the current connection with a new one and runs the connection setup.
+    /// Must be called while holding _connectionLock.
+    /// </summary>
+    private async Task ConnectAsync(CancellationToken cancellationToken)
+    {
+        Logger.CreatingConnectionUsingFactoryDelegate();
+
+        await DisposeConnectionInternalAsync();
+        await OnBeforeConnectionCreatedAsync(cancellationToken);
+
+        var connection = await _connectionFactory(cancellationToken);
+        WireConnectionEvents(connection);
+        _currentConnection = connection;
+
+        Logger.SuccessfullyCreatedConnection(connection.ClientProvidedName ?? "Unknown");
+
+        try
+        {
+            // Declare exchanges, queues and bindings, then let derived classes attach to the connection.
+            await OnConnectionEstablished(connection, cancellationToken);
+            await OnAfterConnectionCreatedAsync(connection, cancellationToken);
+        }
+        catch
+        {
+            // A connection without its topology must not be handed out, so the next attempt starts over.
+            await DisposeConnectionInternalAsync();
+            throw;
+        }
+    }
+
     private void WireConnectionEvents(IConnection connection)
     {
         connection.CallbackExceptionAsync += OnCallbackExceptionAsync;
         connection.ConnectionShutdownAsync += OnConnectionShutdownAsync;
-        connection.RecoverySucceededAsync += OnRecoverySucceededAsync;
-        connection.ConnectionRecoveryErrorAsync += OnConnectionRecoveryErrorAsync;
         connection.ConnectionBlockedAsync += OnConnectionBlockedAsync;
         connection.ConnectionUnblockedAsync += OnConnectionUnblockedAsync;
     }
@@ -205,8 +333,6 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
     {
         connection.CallbackExceptionAsync -= OnCallbackExceptionAsync;
         connection.ConnectionShutdownAsync -= OnConnectionShutdownAsync;
-        connection.RecoverySucceededAsync -= OnRecoverySucceededAsync;
-        connection.ConnectionRecoveryErrorAsync -= OnConnectionRecoveryErrorAsync;
         connection.ConnectionBlockedAsync -= OnConnectionBlockedAsync;
         connection.ConnectionUnblockedAsync -= OnConnectionUnblockedAsync;
     }
@@ -221,44 +347,50 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
         return Task.CompletedTask;
     }
 
-    private async Task OnConnectionShutdownAsync(object? sender, ShutdownEventArgs e)
+    private Task OnConnectionShutdownAsync(object? sender, ShutdownEventArgs e)
     {
         if (e.Initiator == ShutdownInitiator.Application)
         {
             Logger.ConnectionClosedByApplication();
-            return;
+            return Task.CompletedTask;
         }
 
         Logger.ConnectionShutdownDetected(e.Initiator, e.ReplyText);
 
-        await OnConnectionLostAsync();
+        // The client raises this event on its reader loop or heartbeat timer, which cannot process the
+        // replies that closing a channel waits for, so the cleanup must not run inline.
+        _ = Task.Run(HandleConnectionLostAsync);
+        return Task.CompletedTask;
     }
 
-    private async Task OnRecoverySucceededAsync(object? sender, AsyncEventArgs e)
+    private async Task HandleConnectionLostAsync()
     {
-        Logger.ConnectionRecoverySucceeded();
-
         try
         {
-            if (_currentConnection is not null)
+            await _connectionLock.WaitAsync(_disposeCts.Token);
+            try
             {
-                await OnConnectionEstablished(_currentConnection, CancellationToken.None);
+                // Disposing stops the client's automatic recovery, which would otherwise compete with this manager.
+                if (_currentConnection is { IsOpen: false })
+                {
+                    await DisposeConnectionInternalAsync();
+                }
+            }
+            finally
+            {
+                _connectionLock.Release();
             }
 
-            await OnConnectionRecoveredAsync(CancellationToken.None);
-
-            Logger.SuccessfullyRecoveredConnectionTopologyAndConsumers();
+            await OnConnectionLostAsync();
+        }
+        catch (Exception) when (_isDisposed)
+        {
+            // The manager was disposed.
         }
         catch (Exception ex)
         {
-            Logger.ErrorDuringPostRecoveryOperations(ex);
+            Logger.ErrorHandlingConnectionLoss(ex);
         }
-    }
-
-    private Task OnConnectionRecoveryErrorAsync(object? sender, ConnectionRecoveryErrorEventArgs e)
-    {
-        Logger.ConnectionRecoveryFailedWillRetry(e.Exception, e.Exception?.Message);
-        return Task.CompletedTask;
     }
 
     private Task OnConnectionBlockedAsync(object? sender, ConnectionBlockedEventArgs e)
@@ -273,9 +405,9 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
         return Task.CompletedTask;
     }
 
-    private static TimeSpan CalculateBackoffDelay(TimeSpan baseDelay, int attempt)
+    private static TimeSpan CalculateBackoffDelay(int attempt)
     {
-        var delay = baseDelay * Math.Pow(2, attempt - 1);
+        var delay = s_initialRetryDelay * Math.Pow(2, Math.Min(attempt - 1, 16));
         return delay > s_maxBackoffDelay ? s_maxBackoffDelay : delay;
     }
 
@@ -326,14 +458,29 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
         }
 
         _isDisposed = true;
+        await _disposeCts.CancelAsync();
 
         // Allow derived classes to clean up first
         await DisposeAsyncCore();
+
+        // A reconnect that is still running could otherwise create a connection after the one below is disposed.
+        if (_reconnectTask is not null)
+        {
+            try
+            {
+                await _reconnectTask;
+            }
+            catch
+            {
+                // Ignore
+            }
+        }
 
         // Dispose connection
         await DisposeConnectionInternalAsync();
 
         _connectionLock.Dispose();
+        _disposeCts.Dispose();
     }
 }
 
