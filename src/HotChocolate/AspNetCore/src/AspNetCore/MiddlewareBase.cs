@@ -197,30 +197,7 @@ public class MiddlewareBase : IDisposable
     }
 
     protected static RequestContentType ParseContentType(HttpContext context)
-    {
-        if (context.Items.TryGetValue(nameof(RequestContentType), out var value) &&
-            value is RequestContentType contentType)
-        {
-            return contentType;
-        }
-
-        var span = context.Request.ContentType.AsSpan();
-
-        if (span.StartsWith(ContentType.JsonSpan()))
-        {
-            context.Items[nameof(RequestContentType)] = RequestContentType.Json;
-            return RequestContentType.Json;
-        }
-
-        if (span.StartsWith(ContentType.MultiPartFormSpan()))
-        {
-            context.Items[nameof(RequestContentType)] = RequestContentType.Form;
-            return RequestContentType.Form;
-        }
-
-        context.Items[nameof(RequestContentType)] = RequestContentType.None;
-        return RequestContentType.None;
-    }
+        => context.ParseContentType();
 
     protected GraphQLServerOptions GetOptions(HttpContext context)
     {

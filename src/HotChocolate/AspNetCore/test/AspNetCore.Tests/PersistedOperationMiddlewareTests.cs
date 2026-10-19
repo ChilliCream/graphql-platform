@@ -223,4 +223,28 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
         var json = await result.Content.ReadFromJsonAsync<JsonDocument>();
         json!.RootElement.MatchMarkdownSnapshot();
     }
+
+    [Theory]
+    [InlineData("text/plain")]
+    [InlineData(null)]
+    public async Task Post_Should_ReturnNotFound_When_ContentTypeIsNotJson(string? contentType)
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            "http://localhost:5000/graphql/persisted/60ddx_GGk4FDObSa6eK0sg/GetHeroName");
+        request.Content = contentType is null
+            ? new ByteArrayContent(Encoding.UTF8.GetBytes("{ }"))
+            : new StringContent("{ }", Encoding.UTF8, contentType);
+
+        using var response = await client.SendAsync(request);
+
+        // assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal("", await response.Content.ReadAsStringAsync());
+    }
 }
