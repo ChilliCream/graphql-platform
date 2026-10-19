@@ -307,6 +307,43 @@ public sealed class EntityReuseTests : FusionTestBase
             """);
     }
 
+    [Fact]
+    public async Task Execute_Lookup_Should_FetchEntity_When_KeyIsNested()
+    {
+        // arrange
+        using var productsApi = CreateSourceSchema(
+            "products-api",
+            builder => builder.AddQueryType<NestedKeyProductsQuery>(d => d.Name("Query")));
+        using var reviewsApi = CreateSourceSchema(
+            "reviews-api",
+            builder => builder.AddQueryType<NestedKeyReviewsQuery>(d => d.Name("Query")));
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("products-api", productsApi), ("reviews-api", reviewsApi)]);
+        using var gatewayWithoutReuse = await CreateCompositeSchemaAsync(
+            [("products-api", productsApi), ("reviews-api", reviewsApi)],
+            configureGatewayBuilder: builder => builder.ModifyOptions(options => options.EnableEntityReuse = false));
+
+        // The product lookup key is { sku region { code } }.
+        const string query =
+            """
+            {
+              products { sku region { code } name reviews { product { name } } }
+            }
+            """;
+
+        // act
+        var data = await ExecuteAsync(gateway, query);
+        var dataWithoutReuse = await ExecuteAsync(gatewayWithoutReuse, query);
+
+        // assert
+        Assert.Equal(dataWithoutReuse, data);
+        Assert.Equal("products-api: 2, reviews-api: 1", CountRequests(gateway));
+        data.MatchInlineSnapshot(
+            """
+            {"products":[{"sku":"A","region":{"code":"EU"},"name":"Table","reviews":[{"product":{"name":"Table"}}]}]}
+            """);
+    }
+
     private const string CompositeKeyQuery =
         """
         {
@@ -613,5 +650,67 @@ public sealed class EntityReuseTests : FusionTestBase
         public string? Region { get; init; }
 
         public CompositeKeyReviewProduct GetProduct() => new() { Sku = Sku, Region = Region };
+    }
+
+    public sealed class NestedKeyProductsQuery
+    {
+        private static readonly List<NestedKeyProduct> s_products =
+        [
+            new() { Sku = "A", Region = new NestedKeyRegion { Code = "EU" }, Name = "Table" }
+        ];
+
+        public List<NestedKeyProduct> GetProducts() => s_products;
+
+        [Lookup]
+        public NestedKeyProduct? GetProductByKey(string sku, [Is("region.code")] string regionCode)
+            => s_products.FirstOrDefault(t => t.Sku == sku && t.Region.Code == regionCode);
+    }
+
+    [GraphQLName("Product")]
+    public sealed class NestedKeyProduct
+    {
+        [Shareable]
+        public required string Sku { get; init; }
+
+        [Shareable]
+        public required NestedKeyRegion Region { get; init; }
+
+        public required string Name { get; init; }
+    }
+
+    [GraphQLName("Region")]
+    public sealed class NestedKeyRegion
+    {
+        [Shareable]
+        public required string Code { get; init; }
+    }
+
+    public sealed class NestedKeyReviewsQuery
+    {
+        [Lookup, Internal]
+        public NestedKeyReviewProduct? GetProductByKey(string sku, [Is("region.code")] string regionCode)
+            => new() { Sku = sku, Region = new NestedKeyRegion { Code = regionCode } };
+    }
+
+    [GraphQLName("Product")]
+    public sealed class NestedKeyReviewProduct
+    {
+        [Shareable]
+        public required string Sku { get; init; }
+
+        [Shareable]
+        public required NestedKeyRegion Region { get; init; }
+
+        public IEnumerable<NestedKeyReview> GetReviews()
+            => [new NestedKeyReview { Id = "1", Product = this }];
+    }
+
+    [GraphQLName("Review")]
+    public sealed class NestedKeyReview
+    {
+        [ID]
+        public required string Id { get; init; }
+
+        public required NestedKeyReviewProduct Product { get; init; }
     }
 }
