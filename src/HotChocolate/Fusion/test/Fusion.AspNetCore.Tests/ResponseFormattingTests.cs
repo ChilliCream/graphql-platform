@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.IO.Pipelines;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
@@ -112,6 +113,77 @@ public sealed class ResponseFormattingTests : FusionTestBase
         Assert.Equal(expected, actual);
     }
 
+    [Fact]
+    public async Task FormatAsync_Should_WriteDataIntoPipeMemory_When_ResultIsMinimized()
+    {
+        // arrange
+        using var accountsApi = CreateSourceSchema(
+            "accounts-api",
+            builder => builder.AddQueryType<K6ExecutionTests.AccountsQuery>(d => d.Name("Query")));
+
+        using var inventoryApi = CreateSourceSchema(
+            "inventory-api",
+            builder => builder.AddQueryType<K6ExecutionTests.InventoryQuery>(d => d.Name("Query")));
+
+        using var productsApi = CreateSourceSchema(
+            "products-api",
+            builder => builder.AddQueryType<K6ExecutionTests.ProductsQuery>(d => d.Name("Query")));
+
+        using var reviewsApi = CreateSourceSchema(
+            "reviews-api",
+            builder => builder.AddQueryType<K6ExecutionTests.ReviewsQuery>(d => d.Name("Query")));
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("accounts-api", accountsApi),
+                ("inventory-api", inventoryApi),
+                ("products-api", productsApi),
+                ("reviews-api", reviewsApi)
+            ]);
+
+        var executor = await gateway.Services.GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        await using var result = await executor.ExecuteAsync(
+            """
+            query TestQuery {
+              users {
+                id
+                username
+                name
+                reviews {
+                  id
+                  body
+                  product { inStock name price shippingEstimate upc weight reviews { id body } }
+                }
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+        var operationResult = Assert.IsType<OperationResult>(result);
+
+        var expected = new ArrayBufferWriter<byte>();
+        JsonResultFormatter.Default.Format(operationResult, expected);
+
+        var pipe = new Pipe(new PipeOptions(pauseWriterThreshold: 0, resumeWriterThreshold: 0));
+        var writer = new SizeHintRecordingPipeWriter(pipe.Writer);
+
+        // act
+        await JsonResultFormatter.Default.FormatAsync(
+            operationResult,
+            writer,
+            TestContext.Current.CancellationToken);
+        await writer.CompleteAsync();
+
+        // assert
+        var read = await pipe.Reader.ReadAsync(TestContext.Current.CancellationToken);
+        var actual = Encoding.UTF8.GetString(read.Buffer);
+        pipe.Reader.AdvanceTo(read.Buffer.End);
+        Assert.Equal(Encoding.UTF8.GetString(expected.WrittenSpan), actual);
+
+        // only the enclosing {"data": and } go through the formatter's buffer
+        Assert.Equal(expected.WrittenCount - 9, writer.BytesWrittenToLargeSpans);
+    }
+
     private static async Task<(string Expected, string Actual)> FormatWithBothFormattersAsync(
         Gateway gateway,
         string query)
@@ -134,6 +206,46 @@ public sealed class ResponseFormattingTests : FusionTestBase
         JsonResultFormatter.Default.Format(operationResult, actual);
 
         return (Encoding.UTF8.GetString(expected.WrittenSpan), Encoding.UTF8.GetString(actual.WrittenSpan));
+    }
+
+    /// <summary>
+    /// A pipe writer that counts the bytes written into spans requested with a size hint of
+    /// at least 2 KB.
+    /// </summary>
+    private sealed class SizeHintRecordingPipeWriter(PipeWriter inner) : PipeWriter
+    {
+        private bool _largeSpan;
+
+        public long BytesWrittenToLargeSpans { get; private set; }
+
+        public override void Advance(int bytes)
+        {
+            if (_largeSpan)
+            {
+                BytesWrittenToLargeSpans += bytes;
+            }
+
+            inner.Advance(bytes);
+        }
+
+        public override Memory<byte> GetMemory(int sizeHint = 0)
+        {
+            _largeSpan = sizeHint >= 2048;
+            return inner.GetMemory(sizeHint);
+        }
+
+        public override Span<byte> GetSpan(int sizeHint = 0)
+        {
+            _largeSpan = sizeHint >= 2048;
+            return inner.GetSpan(sizeHint);
+        }
+
+        public override ValueTask<FlushResult> FlushAsync(CancellationToken cancellationToken = default)
+            => inner.FlushAsync(cancellationToken);
+
+        public override void CancelPendingFlush() => inner.CancelPendingFlush();
+
+        public override void Complete(Exception? exception = null) => inner.Complete(exception);
     }
 
     public class Query
