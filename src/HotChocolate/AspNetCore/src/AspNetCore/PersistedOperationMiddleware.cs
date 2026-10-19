@@ -137,7 +137,14 @@ internal static class PersistedOperationMiddleware
         HttpStatusCode? statusCode;
         IExecutionResult? result;
 
-        // first we validate the accept headers.
+        // first, we refuse a request whose body is not JSON.
+        if (services.Context.ParseContentType() is not RequestContentType.Json)
+        {
+            services.Context.Response.StatusCode = StatusCodes.Status404NotFound;
+            return;
+        }
+
+        // next we validate the accept headers.
         var validationResult =
             MiddlewareHelper.ValidateAcceptContentType(
                 services.Context,
