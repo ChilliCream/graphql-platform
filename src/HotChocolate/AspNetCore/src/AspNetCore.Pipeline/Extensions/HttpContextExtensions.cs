@@ -42,7 +42,7 @@ internal static class HttpContextExtensions
     }
 
     /// <summary>
-    /// Sets the Nitro app slug route value from the request path below <paramref name="path"/>.
+    /// Sets the path the Nitro app serves from the request path below <paramref name="path"/>.
     /// </summary>
     public static void SetNitroAppSlug(this HttpContext context, PathString path)
     {
@@ -50,8 +50,7 @@ internal static class HttpContextExtensions
 
         if (request.Path.StartsWithSegments(path, StringComparison.OrdinalIgnoreCase, out var remaining))
         {
-            request.RouteValues[NitroAppMiddleware.SlugRouteValueName] =
-                remaining.Value?.TrimStart('/') ?? string.Empty;
+            NitroAppMiddleware.SetSlug(context, remaining.Value?.TrimStart('/') ?? string.Empty);
         }
     }
 

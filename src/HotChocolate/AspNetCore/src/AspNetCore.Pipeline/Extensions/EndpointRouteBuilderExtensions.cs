@@ -148,12 +148,8 @@ public static class EndpointRouteBuilderExtensions
                 branch => branch
                     .Use(next => context =>
                     {
-                        // Endpoint routing provides the slug; without it, derive it from the path.
-                        if (context.GetEndpoint() is null)
-                        {
-                            context.SetNitroAppSlug(path);
-                        }
-
+                        // Used when the Nitro app is not mounted on its own endpoint.
+                        context.SetNitroAppSlug(path);
                         return next(context);
                     })
                     .UseNitroApp(serverOptions.Tool, EmbeddedNitroApp.AssetSource))

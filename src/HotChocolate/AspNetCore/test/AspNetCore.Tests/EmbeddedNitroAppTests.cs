@@ -130,6 +130,34 @@ public class EmbeddedNitroAppTests : ServerTestBase
     }
 
     [Fact]
+    public async Task MapGraphQL_Middleware_Does_Not_Proxy_Nitro_For_Other_Endpoints_With_A_Slug()
+    {
+        // arrange
+        var forwarder = new RecordingForwarder();
+        var server = ServerFactory.Create(
+            services => services
+                .AddSingleton<IHttpForwarder>(forwarder)
+                .AddRouting()
+                .AddGraphQLServer()
+                .AddStarWarsTypes()
+                .AddStarWarsRepositories(),
+            app => app
+                .UseRouting()
+                .MapGraphQL("/graphql", ISchemaDefinition.DefaultName)
+                .UseEndpoints(e => e.MapGet("/posts/{slug}", () => "post")));
+
+        // act
+        await GetHtmlAsync(server, "/posts/hello");
+        var postDestination = forwarder.DestinationPrefix;
+        var nitro = await GetHtmlAsync(server, "/graphql/");
+
+        // assert
+        Assert.Null(postDestination);
+        Assert.Equal(HttpStatusCode.OK, nitro.StatusCode);
+        Assert.Equal("https://cdn.chillicream.com/web/latest/", forwarder.DestinationPrefix);
+    }
+
+    [Fact]
     public async Task MapGraphQL_With_ServeMode_Embedded_Still_Serves_Embedded_Nitro()
     {
         // arrange
