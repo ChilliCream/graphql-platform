@@ -29,6 +29,8 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
     private int _hasBatches;
     private bool _isCompleted;
     private bool _isInitialized;
+    private bool _executionCompleted;
+    private bool _clearAfterExecution;
 
     public void Initialize(RequestContext requestContext, IBatchDispatcher batchDispatcher)
     {
@@ -43,6 +45,8 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
 
         _hasBatches = 0;
         _isCompleted = false;
+        _executionCompleted = false;
+        _clearAfterExecution = false;
         _isInitialized = true;
     }
 
@@ -69,7 +73,45 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
 
         _hasBatches = 0;
         _isCompleted = false;
+        _executionCompleted = false;
+        _clearAfterExecution = false;
         _isInitialized = false;
+    }
+
+    public void ClearAfterExecution()
+    {
+        bool clear;
+
+        lock (_sync)
+        {
+            clear = _executionCompleted;
+
+            if (!clear)
+            {
+                _clearAfterExecution = true;
+            }
+        }
+
+        if (clear)
+        {
+            operationContext.Clean();
+        }
+    }
+
+    public void CompleteExecution()
+    {
+        bool clear;
+
+        lock (_sync)
+        {
+            _executionCompleted = true;
+            clear = _clearAfterExecution;
+        }
+
+        if (clear)
+        {
+            operationContext.Clean();
+        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

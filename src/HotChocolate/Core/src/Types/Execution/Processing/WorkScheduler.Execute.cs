@@ -21,6 +21,7 @@ internal sealed partial class WorkScheduler : IObserver<BatchDispatchEventArgs>
         finally
         {
             _buffer.AsSpan().Clear();
+            CompleteExecution();
         }
     }
 

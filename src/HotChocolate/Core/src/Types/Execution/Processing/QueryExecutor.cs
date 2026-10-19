@@ -91,13 +91,14 @@ internal sealed class QueryExecutor
                 yield return result;
             }
 
-            // The stream was read to completion, so every deferred branch has been delivered and
-            // the scheduler has fully settled: no resolver or batch task can write into the arena
-            // anymore, so we seal it to allow its memory to be returned on dispose.
-            // On cancellation or early disposal we never reach here and the arena is abandoned,
-            // because in-flight parallel work (including the batch dispatcher) may still write to it.
-            await execution.ConfigureAwait(false);
-            memory.Seal();
+            if (!requestAborted.IsCancellationRequested)
+            {
+                // The stream was read to completion, so every deferred branch has been delivered and
+                // the scheduler has fully settled: no resolver or batch task can write into the arena
+                // anymore, so we seal it to allow its memory to be returned on dispose.
+                await execution.ConfigureAwait(false);
+                memory.Seal();
+            }
         }
     }
 
@@ -223,12 +224,13 @@ internal sealed class QueryExecutor
                 yield return result;
             }
 
-            // The batch streams were read to completion, so the scheduler has fully settled and
-            // nothing can write into the shared arena anymore, so we seal it for reuse.
-            // On cancellation or early disposal we never reach here and the arena is abandoned,
-            // because in-flight parallel work (including the batch dispatcher) may still write to it.
-            await execution.ConfigureAwait(false);
-            memory.Seal();
+            if (!requestAborted.IsCancellationRequested)
+            {
+                // The batch streams were read to completion, so the scheduler has fully settled and
+                // nothing can write into the shared arena anymore, so we seal it for reuse.
+                await execution.ConfigureAwait(false);
+                memory.Seal();
+            }
         }
     }
 

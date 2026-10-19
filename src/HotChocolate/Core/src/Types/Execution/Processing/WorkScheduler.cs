@@ -17,7 +17,11 @@ internal sealed partial class WorkScheduler
         get
         {
             AssertNotPooled();
-            return _isCompleted;
+
+            lock (_sync)
+            {
+                return _isCompleted && _executionCompleted;
+            }
         }
     }
 

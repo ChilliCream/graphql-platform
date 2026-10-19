@@ -178,7 +178,9 @@ internal static class InternalServiceCollectionExtensions
                 return true;
             }
 
-            if (obj.IsSharedScheduler)
+            var isSharedScheduler = obj.IsSharedScheduler;
+
+            if (isSharedScheduler)
             {
                 obj.ResetScheduler();
             }
@@ -191,9 +193,15 @@ internal static class InternalServiceCollectionExtensions
                 return true;
             }
 
-            // we also clean if we cannot reuse the context so that the context is
-            // gracefully discarded and can be garbage collected.
-            obj.Clean();
+            if (isSharedScheduler)
+            {
+                obj.Clean();
+            }
+            else
+            {
+                obj.Scheduler.ClearAfterExecution();
+            }
+
             return false;
         }
     }
