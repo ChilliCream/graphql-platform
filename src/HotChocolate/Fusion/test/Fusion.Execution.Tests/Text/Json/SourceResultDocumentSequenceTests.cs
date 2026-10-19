@@ -82,8 +82,8 @@ public class SourceResultDocumentSequenceTests
         arena.Seal();
 
         // assert
-        Assert.False(document.Root.TryGetProperty("value", out _));
-        Assert.Equal(["padding\"", "value\"\t\r\n"], document.Root.EnumerateObject().Select(t => t.Name));
+        Assert.Equal(42, document.Root.GetProperty("value").GetInt32());
+        Assert.Equal(["padding", "value"], document.Root.EnumerateObject().Select(t => t.Name));
     }
 
     private static (MemorySegment[] Segments, int UsedChunks, int LastLength) CreateSegments(
