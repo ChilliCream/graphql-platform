@@ -2198,7 +2198,12 @@ public sealed partial class OperationPlanner
         planSteps = TransformPlanSteps(planSteps, deferredOperation);
         IndexDependencies(planSteps, ctx);
         BuildExecutionNodes(planSteps, ctx, _schema, hasVariables, cancellationToken);
-        MergeAndBatchOperations(ctx, _options.EnableRequestGrouping, _options.MergePolicy, _schema);
+        MergeAndBatchOperations(
+            ctx,
+            _options.EnableRequestGrouping,
+            _options.MergePolicy,
+            splitForEntityReuse: false,
+            _schema);
         WireExecutionDependencies(ctx);
 
         var rootNodes = planSteps
