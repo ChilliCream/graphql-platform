@@ -48,6 +48,6 @@ public sealed class RequestContextPoolTests : FusionTestBase
         }
 
         // assert
-        Assert.Equal(Math.Min(inFlight, Environment.ProcessorCount * 2), reused);
+        Assert.Equal(inFlight, reused);
     }
 }
