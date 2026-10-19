@@ -1097,7 +1097,9 @@ public sealed partial class OperationPlanner
 
     /// <summary>
     /// Merges Apollo Federation entity lookups that are structurally identical and share
-    /// a source schema and dependency depth into one lookup with a target per merged node.
+    /// a source schema into one lookup with a target per merged node. Lookups at the same
+    /// dependency depth always merge. A shallower lookup that no node depends on also folds
+    /// into a deeper identical lookup that already waits for all of its dependencies.
     /// </summary>
     private static Dictionary<int, ApolloOperationExecutionNode[]> MergeStructurallyIdenticalApolloLookups(
         ExecutionPlanBuildContext ctx,
@@ -1130,35 +1132,161 @@ public sealed partial class OperationPlanner
             GetDependencyDepth(node.Id, ctx.DependenciesByStepId, depthLookup, recursionStack);
         }
 
-        var candidates = new Dictionary<(int Depth, string Signature), List<ApolloOperationExecutionNode>>();
+        var groupsBySignature = new Dictionary<string, List<ApolloLookupGroup>>(StringComparer.Ordinal);
 
         foreach (var node in lookupNodes)
         {
             var depth = depthLookup.TryGetValue(node.Id, out var d) ? d : 0;
-            var key = (depth, ComputeApolloCanonicalSignature(ctx, node));
+            var signature = ComputeApolloCanonicalSignature(ctx, node);
 
-            if (!candidates.TryGetValue(key, out var list))
+            if (!groupsBySignature.TryGetValue(signature, out var groups))
             {
-                list = [];
-                candidates[key] = list;
+                groups = [];
+                groupsBySignature[signature] = groups;
             }
 
-            list.Add(node);
+            var group = groups.Find(g => g.Depth == depth);
+
+            if (group is null)
+            {
+                group = new ApolloLookupGroup(depth);
+                groups.Add(group);
+            }
+
+            group.Nodes.Add(node);
         }
 
-        foreach (var group in candidates.Values)
+        foreach (var groups in groupsBySignature.Values)
         {
-            if (group.Count <= 1)
+            foreach (var group in groups)
             {
-                continue;
+                if (group.Nodes.Count > 1)
+                {
+                    group.Nodes.Sort((a, b) => a.Id.CompareTo(b.Id));
+                    AbsorbMergedNodes(ctx, group.Nodes[0].Id, group.Nodes);
+                }
+            }
+        }
+
+        // Folding runs after all same-depth merges, so the dependency graph
+        // it inspects already references the merged lookups.
+        foreach (var groups in groupsBySignature.Values)
+        {
+            if (groups.Count > 1)
+            {
+                FoldLeafApolloLookupGroups(ctx, groups);
             }
 
-            group.Sort((a, b) => a.Id.CompareTo(b.Id));
-            mergeResults[group[0].Id] = [.. group];
-            AbsorbMergedNodes(ctx, group[0].Id, group);
+            foreach (var group in groups)
+            {
+                if (group.Nodes.Count > 1)
+                {
+                    mergeResults[group.Nodes[0].Id] = [.. group.Nodes];
+                }
+            }
         }
 
         return mergeResults;
+    }
+
+    /// <summary>
+    /// Folds every group in <paramref name="groups"/> that no node depends on into the nearest
+    /// deeper group whose transitive dependencies contain all direct dependencies of the folded
+    /// group. Folded groups are removed from <paramref name="groups"/>.
+    /// </summary>
+    private static void FoldLeafApolloLookupGroups(
+        ExecutionPlanBuildContext ctx,
+        List<ApolloLookupGroup> groups)
+    {
+        groups.Sort((a, b) => a.Depth.CompareTo(b.Depth));
+
+        var visited = new HashSet<int>();
+        var i = 0;
+
+        while (i < groups.Count - 1)
+        {
+            var leaf = groups[i];
+            var leafPrimary = leaf.Nodes[0];
+            ApolloLookupGroup? target = null;
+
+            if (!HasDependents(ctx.DependenciesByStepId, leafPrimary.Id))
+            {
+                for (var j = i + 1; j < groups.Count; j++)
+                {
+                    if (AreTransitiveDependencies(
+                        ctx.DependenciesByStepId,
+                        leafPrimary.Id,
+                        groups[j].Nodes[0].Id,
+                        visited))
+                    {
+                        target = groups[j];
+                        break;
+                    }
+                }
+            }
+
+            if (target is null)
+            {
+                i++;
+                continue;
+            }
+
+            var targetPrimary = target.Nodes[0];
+
+            if (leafPrimary.Id < targetPrimary.Id)
+            {
+                AbsorbMergedNodes(ctx, leafPrimary.Id, [leafPrimary, targetPrimary]);
+            }
+            else
+            {
+                AbsorbMergedNodes(ctx, targetPrimary.Id, [targetPrimary, leafPrimary]);
+            }
+
+            target.Nodes.AddRange(leaf.Nodes);
+            target.Nodes.Sort((a, b) => a.Id.CompareTo(b.Id));
+            groups.RemoveAt(i);
+        }
+    }
+
+    private static bool HasDependents(Dictionary<int, HashSet<int>> dependenciesByStepId, int nodeId)
+    {
+        foreach (var dependencies in dependenciesByStepId.Values)
+        {
+            if (dependencies.Contains(nodeId))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Checks whether every direct dependency of <paramref name="nodeId"/> is also a
+    /// transitive dependency of <paramref name="otherNodeId"/>.
+    /// </summary>
+    private static bool AreTransitiveDependencies(
+        Dictionary<int, HashSet<int>> dependenciesByStepId,
+        int nodeId,
+        int otherNodeId,
+        HashSet<int> visited)
+    {
+        if (!dependenciesByStepId.TryGetValue(nodeId, out var dependencies))
+        {
+            return true;
+        }
+
+        foreach (var dependency in dependencies)
+        {
+            visited.Clear();
+
+            if (!IsTransitivelyReachable(otherNodeId, dependency, dependenciesByStepId, visited))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -3188,6 +3316,17 @@ public sealed partial class OperationPlanner
         OperationSourceText CanonicalOp,
         OperationRequirement[] CanonicalRequirements,
         OperationExecutionNode Primary);
+
+    /// <summary>
+    /// Structurally identical Apollo lookups that merge into one lookup. The node with the
+    /// lowest identifier is the primary node that represents the group in the plan.
+    /// </summary>
+    private sealed class ApolloLookupGroup(int depth)
+    {
+        public int Depth { get; } = depth;
+
+        public List<ApolloOperationExecutionNode> Nodes { get; } = [];
+    }
 }
 
 file static class Extensions
