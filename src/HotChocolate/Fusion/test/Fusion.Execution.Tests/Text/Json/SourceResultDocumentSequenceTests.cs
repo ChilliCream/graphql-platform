@@ -1,4 +1,6 @@
+using System.Buffers;
 using System.Text;
+using System.Text.Json;
 using HotChocolate.Buffers;
 
 namespace HotChocolate.Fusion.Text.Json;
@@ -38,6 +40,23 @@ public class SourceResultDocumentSequenceTests
         Assert.Equal(payload, document.Root.GetRawText());
         Assert.Equal(padding + "\né", document.Root.GetProperty("escaped\"name").GetString());
         Assert.Equal(123456789, document.Root.GetProperty("number").GetInt32());
+    }
+
+    [Theory]
+    [InlineData(10)]
+    [InlineData(1500)]
+    public void Parse_Should_ReadRootArray_When_SequenceDoesNotFillLastChunk(int length)
+    {
+        // arrange
+        var payload = "[\"" + new string('a', length) + "\"]";
+        var input = new ReadOnlySequence<byte>(Encoding.UTF8.GetBytes(payload));
+        using var arena = new MemoryArena();
+
+        // act
+        void Action() => SourceResultDocument.Parse(arena, input).Dispose();
+
+        // assert
+        Assert.Throws<JsonException>(Action);
     }
 
     [Theory]
