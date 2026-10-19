@@ -1,10 +1,13 @@
+using System.Net;
 using System.Text;
 using HotChocolate.AzureFunctions.IsolatedProcess.Tests.Helpers;
+using HotChocolate.AzureFunctions.Tests.Helpers;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json.Linq;
 
 namespace HotChocolate.AzureFunctions.IsolatedProcess.Tests;
@@ -121,6 +124,106 @@ public class IsolatedProcessEndToEndTests
         Assert.False(string.IsNullOrWhiteSpace(resultContent));
         Assert.True(resultContent!.Contains("<html") && resultContent.Contains("</html>"));
     }
+
+    [Fact]
+    public async Task Post_Should_ReturnNotFound_When_ContentTypeIsMissing()
+    {
+        // arrange
+        var host = CreateHost(enforceGetRequestsPreflightHeader: false);
+        var requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();
+        var request = new MockHttpRequestData(
+            new MockFunctionContext(host.Services),
+            HttpMethods.Post,
+            TestHttpContextHelper.DefaultAzFuncGraphQLUri,
+            """{"query":"{ person }"}""",
+            requestBodyContentType: null);
+
+        // act
+        var response = await requestExecutor.ExecuteAsync(request);
+
+        // assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(0, response.Body.Length);
+    }
+
+    [Fact]
+    public async Task Get_Should_ReturnNotFound_When_PreflightHeaderIsMissing()
+    {
+        // arrange
+        var host = CreateHost(enforceGetRequestsPreflightHeader: true);
+        var requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();
+        var request = new MockHttpRequestData(
+            new MockFunctionContext(host.Services),
+            HttpMethods.Get,
+            new Uri(
+                TestHttpContextHelper.DefaultAzFuncGraphQLUri,
+                "?query=%7B%20person%20%7D"));
+
+        // act
+        var response = await requestExecutor.ExecuteAsync(request);
+
+        // assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(0, response.Body.Length);
+    }
+
+    [Fact]
+    public async Task Get_Should_ExecuteRequest_When_PreflightHeaderIsSent()
+    {
+        // arrange
+        var host = CreateHost(enforceGetRequestsPreflightHeader: true);
+        var requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();
+        var request = new MockHttpRequestData(
+            new MockFunctionContext(host.Services),
+            HttpMethods.Get,
+            new Uri(
+                TestHttpContextHelper.DefaultAzFuncGraphQLUri,
+                "?query=%7B%20person%20%7D"));
+        request.Headers.TryAddWithoutValidation("GraphQL-Preflight", "1");
+
+        // act
+        var response = await requestExecutor.ExecuteAsync(request);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(
+            """{"data":{"person":"Luke Skywalker"}}""",
+            await ReadResponseAsStringAsync(response));
+    }
+
+    [Fact]
+    public async Task Get_Should_ExecuteRequest_When_ContentTypeIsJson()
+    {
+        // arrange
+        var host = CreateHost(enforceGetRequestsPreflightHeader: true);
+        var requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();
+        var request = new MockHttpRequestData(
+            new MockFunctionContext(host.Services),
+            HttpMethods.Get,
+            new Uri(
+                TestHttpContextHelper.DefaultAzFuncGraphQLUri,
+                "?query=%7B%20person%20%7D"));
+        request.Headers.TryAddWithoutValidation("Content-Type", "application/json");
+
+        // act
+        var response = await requestExecutor.ExecuteAsync(request);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(
+            """{"data":{"person":"Luke Skywalker"}}""",
+            await ReadResponseAsStringAsync(response));
+    }
+
+    private static IHost CreateHost(bool enforceGetRequestsPreflightHeader)
+        => new MockIsolatedProcessHostBuilder()
+            .AddGraphQLFunction(
+                b => b
+                    .AddQueryType(d => d.Name("Query").Field("person").Resolve("Luke Skywalker"))
+                    .ModifyFunctionOptions(
+                        o => o.EnforceGetRequestsPreflightHeader =
+                            enforceGetRequestsPreflightHeader))
+            .Build();
 
     private static Task<string> ReadResponseAsStringAsync(HttpResponseData responseData)
     {
