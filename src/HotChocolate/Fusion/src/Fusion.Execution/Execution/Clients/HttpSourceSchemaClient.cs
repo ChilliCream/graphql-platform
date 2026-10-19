@@ -100,54 +100,34 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
             return ExecuteAliasBatchAsync(context, request, cancellationToken);
         }
 
-        return CreateStreamAsync(context, request, cancellationToken);
+        ChunkedArrayWriter? buffer = null;
 
-        async IAsyncEnumerable<SourceSchemaResult> CreateStreamAsync(
-            OperationPlanContext context,
-            SourceSchemaClientRequest request,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+        try
         {
-            ChunkedArrayWriter? buffer = null;
-            GraphQLHttpResponse? httpResponse = null;
+            var httpRequest = CreateHttpRequest(context, request, ref buffer);
+            SourceSchemaCallbackHelper.ConfigureCallbacks(httpRequest, context, request.Node, _configuration);
 
-            try
-            {
-                var httpRequest = CreateHttpRequest(context, request, ref buffer);
-                SourceSchemaCallbackHelper.ConfigureCallbacks(
-                    httpRequest,
+            var results = ExecuteStreamAsync(
+                context,
+                request.Node,
+                request.Variables,
+                httpRequest,
+                buffer,
+                cancellationToken);
+
+            return _configuration.OnSourceSchemaResult is null
+                ? results
+                : WithResultCallback(
+                    results,
                     context,
                     request.Node,
-                    _configuration);
-
-                httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
-                context.TrackTransport(request.Node, httpRequest.Uri, httpResponse.RawContentType);
-
-                var results = ReadAsResultStreamAsync(
-                    context,
-                    request.Variables,
-                    httpResponse,
+                    _configuration.OnSourceSchemaResult,
                     cancellationToken);
-
-                if (_configuration.OnSourceSchemaResult is not null)
-                {
-                    results = WithResultCallback(
-                        results,
-                        context,
-                        request.Node,
-                        _configuration.OnSourceSchemaResult,
-                        cancellationToken);
-                }
-
-                await foreach (var result in results.WithCancellation(cancellationToken).ConfigureAwait(false))
-                {
-                    yield return result;
-                }
-            }
-            finally
-            {
-                httpResponse?.Dispose();
-                buffer?.Dispose();
-            }
+        }
+        catch
+        {
+            buffer?.Dispose();
+            throw;
         }
     }
 
@@ -293,8 +273,18 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
         int requestIndex,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var enumerator = ExecuteAsync(context, request, cancellationToken)
-            .WithCancellation(cancellationToken).ConfigureAwait(false).GetAsyncEnumerator();
+        ConfiguredCancelableAsyncEnumerable<SourceSchemaResult>.Enumerator enumerator;
+
+        try
+        {
+            enumerator = ExecuteAsync(context, request, cancellationToken)
+                .WithCancellation(cancellationToken).ConfigureAwait(false).GetAsyncEnumerator();
+        }
+        catch (Exception exception)
+        {
+            context.TrackBatchRequestError(request.Node, requestIndex, exception);
+            yield break;
+        }
 
         try
         {
@@ -930,12 +920,22 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
         return false;
     }
 
-    private async IAsyncEnumerable<SourceSchemaResult> ReadAsResultStreamAsync(
+    /// <summary>
+    /// Sends <paramref name="httpRequest"/> and streams the results of its response, one per
+    /// variable set. The response and <paramref name="buffer"/> are disposed once the stream ends.
+    /// </summary>
+    private async IAsyncEnumerable<SourceSchemaResult> ExecuteStreamAsync(
         OperationPlanContext context,
+        ExecutionNode node,
         ImmutableArray<VariableValues> variables,
-        GraphQLHttpResponse response,
+        GraphQLHttpRequest httpRequest,
+        ChunkedArrayWriter? buffer,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
+        using var requestBuffer = buffer;
+        using var response = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
+        context.TrackTransport(node, httpRequest.Uri, response.RawContentType);
+
         switch (variables.Length)
         {
             case 0:
