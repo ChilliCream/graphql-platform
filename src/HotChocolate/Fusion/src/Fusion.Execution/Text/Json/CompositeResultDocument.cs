@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -10,8 +11,10 @@ namespace HotChocolate.Fusion.Text.Json;
 
 public sealed partial class CompositeResultDocument : IDisposable
 {
+    private const int InitialSourceCapacity = 32;
     private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
-    private readonly List<SourceResultDocument> _sources = [];
+    private SourceResultDocument[] _sources = [];
+    private int _sourceCount;
     private readonly Operation _operation;
     private readonly ulong _includeFlags;
     private readonly ulong _deferFlags;
@@ -586,12 +589,12 @@ public sealed partial class CompositeResultDocument : IDisposable
 
         if (parent.Id == -1)
         {
-            Debug.Assert(!_sources.Contains(parent), "The source document is marked as unbound but is already registered.");
-            parent.Id = _sources.Count;
-            _sources.Add(parent);
+            RegisterSource(parent);
         }
 
-        Debug.Assert(_sources.Contains(parent), "Expected the source document of the source element to be registered.");
+        Debug.Assert(
+            Array.IndexOf(_sources, parent, 0, _sourceCount) != -1,
+            "Expected the source document of the source element to be registered.");
 
         var tokenType = sourceRow.TokenType.ToElementTokenType();
 
@@ -642,6 +645,41 @@ public sealed partial class CompositeResultDocument : IDisposable
         }
     }
 
+    private void RegisterSource(SourceResultDocument source)
+    {
+        Debug.Assert(
+            Array.IndexOf(_sources, source, 0, _sourceCount) == -1,
+            "The source document is marked as unbound but is already registered.");
+
+        if (_sourceCount == _sources.Length)
+        {
+            GrowSources();
+        }
+
+        source.Id = _sourceCount;
+        _sources[_sourceCount++] = source;
+    }
+
+    private void GrowSources()
+    {
+        var sources = ArrayPool<SourceResultDocument>.Shared.Rent(
+            Math.Max(InitialSourceCapacity, _sources.Length * 2));
+
+        if (_sources.Length > 0)
+        {
+            _sources.AsSpan(0, _sourceCount).CopyTo(sources);
+            ReturnSources();
+        }
+
+        _sources = sources;
+    }
+
+    private void ReturnSources()
+    {
+        _sources.AsSpan(0, _sourceCount).Clear();
+        ArrayPool<SourceResultDocument>.Shared.Return(_sources);
+    }
+
     public void Dispose()
     {
         if (Interlocked.Exchange(ref _disposed, 1) != 0)
@@ -650,5 +688,12 @@ public sealed partial class CompositeResultDocument : IDisposable
         }
 
         _metaDb.Dispose();
+
+        if (_sources.Length > 0)
+        {
+            ReturnSources();
+            _sources = [];
+            _sourceCount = 0;
+        }
     }
 }
