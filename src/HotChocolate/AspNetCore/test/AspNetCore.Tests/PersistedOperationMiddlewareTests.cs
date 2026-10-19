@@ -2,7 +2,9 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Tests.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.AspNetCore;
 
@@ -235,4 +237,44 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
         var json = await result.Content.ReadFromJsonAsync<JsonDocument>(TestContext.Current.CancellationToken);
         json!.RootElement.MatchMarkdownSnapshot();
     }
+
+    [Theory]
+    [InlineData(HttpTransportVersion.Legacy, "text/plain")]
+    [InlineData(HttpTransportVersion.Legacy, null)]
+    [InlineData(HttpTransportVersion.Latest, "text/plain")]
+    [InlineData(HttpTransportVersion.Latest, null)]
+    public async Task Post_Should_ReturnNotFound_When_ContentTypeIsNotJson(
+        HttpTransportVersion transportVersion,
+        string? contentType)
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        HttpTransportVersion = transportVersion
+                    }));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            "http://localhost:5000/graphql/persisted/60ddx_GGk4FDObSa6eK0sg/GetHeroName");
+        request.Content = CreateContent("{ }", contentType);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(
+            "",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    private static HttpContent CreateContent(string body, string? contentType)
+        => contentType is null
+            ? new ByteArrayContent(Encoding.UTF8.GetBytes(body))
+            : new StringContent(body, Encoding.UTF8, contentType);
 }

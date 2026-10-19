@@ -221,9 +221,16 @@ HANDLE_RESULT:
         var ct = context.RequestAborted;
         var executorSession = await executorProxy.GetOrCreateSessionAsync(ct);
 
+        // first, we refuse a request whose body is not JSON.
+        if (context.ParseContentType() is not RequestContentType.Json)
+        {
+            context.Response.StatusCode = StatusCodes.Status404NotFound;
+            return;
+        }
+
         using (executorSession.DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpPost))
         {
-            // first, we validate the accept-headers.
+            // next, we validate the accept-headers.
             var validationResult = MiddlewareHelper.ValidateAcceptContentType(context, executorSession);
 
             var acceptMediaTypes = validationResult.AcceptMediaTypes;
