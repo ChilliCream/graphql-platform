@@ -42,8 +42,7 @@ internal static class HttpContextExtensions
     }
 
     /// <summary>
-    /// Sets the Nitro app slug route value for a request below <paramref name="path"/>, for
-    /// hosts that mount the Nitro app without endpoint routing.
+    /// Sets the Nitro app slug route value from the request path below <paramref name="path"/>.
     /// </summary>
     public static void SetNitroAppSlug(this HttpContext context, PathString path)
     {
