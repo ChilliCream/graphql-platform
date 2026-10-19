@@ -136,4 +136,5 @@ jobs:
           gh release edit "$GIT_TAG" \
             --repo "${{ github.repository }}" \
             --draft=false \
-            --prerelease=$prerelease
+            --prerelease=$prerelease \
+            --latest=false
