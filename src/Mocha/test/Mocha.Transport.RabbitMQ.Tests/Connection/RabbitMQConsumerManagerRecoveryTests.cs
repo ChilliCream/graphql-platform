@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Connection;
 
@@ -156,6 +157,85 @@ public class RabbitMQConsumerManagerRecoveryTests
             QueueName,
             TestContext.Current.CancellationToken);
         Assert.Equal(0u, queue.ConsumerCount);
+    }
+
+    [Fact]
+    public async Task Consumer_Should_StayDetached_When_DisposedDuringReattachBackoff()
+    {
+        // arrange
+        await using var vhost = await _fixture.CreateVhostAsync();
+        await using var admin = await AdminChannel.CreateAsync(vhost);
+        await using var manager = await CreateManagerAsync(vhost);
+        var received = new DeliveryRecorder();
+
+        var registration = await manager.RegisterConsumerAsync(
+            QueueName,
+            received.HandleAsync,
+            prefetchCount: 1,
+            consumerDispatchConcurrency: 1,
+            CancellationToken.None);
+
+        // the queue stays missing, so every re-attach attempt fails and the consumer backs off
+        await vhost.DeleteQueueAsync(QueueName);
+        Assert.True(
+            await Condition.WaitAsync(
+                async () => !(await vhost.GetConsumerCountsAsync()).ContainsKey(QueueName),
+                s_timeout));
+
+        // act
+        await registration.DisposeAsync().AsTask().WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        await admin.DeclareQueueAsync();
+
+        // assert
+        // a re-attach that outlived the dispose would subscribe within its next backoff of at most two seconds
+        Assert.False(
+            await Condition.WaitAsync(
+                async () => (await vhost.GetConsumerCountsAsync()).GetValueOrDefault(QueueName) > 0,
+                TimeSpan.FromSeconds(4)));
+    }
+
+    [Fact]
+    public async Task RegisterConsumerAsync_Should_LeaveNoConsumerBehind_When_FirstAttachFails()
+    {
+        // arrange
+        await using var vhost = await _fixture.CreateVhostAsync();
+        await using var admin = await AdminChannel.CreateAsync(vhost);
+        await using var manager = await CreateManagerAsync(vhost);
+        var received = new DeliveryRecorder();
+        await manager.RegisterConsumerAsync(
+            QueueName,
+            received.HandleAsync,
+            prefetchCount: 1,
+            consumerDispatchConcurrency: 1,
+            CancellationToken.None);
+
+        // act
+        var exception = await Record.ExceptionAsync(() => manager.RegisterConsumerAsync(
+            "missing-queue",
+            received.HandleAsync,
+            prefetchCount: 1,
+            consumerDispatchConcurrency: 1,
+            CancellationToken.None));
+        await admin.Channel.QueueDeclareAsync(
+            "missing-queue",
+            durable: true,
+            exclusive: false,
+            autoDelete: false,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // a new connection re-attaches every registered consumer
+        await _fixture.CloseAllConnectionsAsync();
+        var reattached = await Condition.WaitAsync(
+            async () => (await vhost.GetConsumerCountsAsync()).GetValueOrDefault(QueueName) == 1,
+            s_timeout);
+        var zombie = await Condition.WaitAsync(
+            async () => (await vhost.GetConsumerCountsAsync()).GetValueOrDefault("missing-queue") > 0,
+            TimeSpan.FromSeconds(3));
+
+        // assert
+        Assert.IsType<OperationInterruptedException>(exception);
+        Assert.True(reattached);
+        Assert.False(zombie);
     }
 
     private static async Task<RabbitMQConsumerManager> CreateManagerAsync(VhostContext vhost)

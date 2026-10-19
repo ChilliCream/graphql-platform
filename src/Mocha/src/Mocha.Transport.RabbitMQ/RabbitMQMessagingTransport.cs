@@ -310,14 +310,12 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     }
 
     /// <summary>
-    /// Ensures that both the consumer and dispatcher RabbitMQ connections are established before
-    /// the transport's endpoints begin processing messages.
+    /// Connects the consumer and dispatcher RabbitMQ connections before the transport's endpoints start.
     /// </summary>
     /// <remarks>
-    /// Both <see cref="ConsumerManager"/> and <see cref="Dispatcher"/> connect concurrently via
-    /// <c>Task.WhenAll</c>. If either connection fails, the start-up will fail and the host will
-    /// not begin consuming or dispatching messages. This is the last opportunity to guarantee
-    /// network connectivity before the messaging pipeline is active.
+    /// When the broker cannot be reached, both connections keep connecting in the background and the
+    /// transport starts anyway: consumers attach once the broker is reachable, and publishing fails until then.
+    /// Refused credentials, refused virtual host access, and topology the broker rejects fail the start.
     /// </remarks>
     /// <param name="context">The configuration context for the current startup phase.</param>
     /// <param name="cancellationToken">A token to cancel the connection establishment.</param>
@@ -325,10 +323,9 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
         IMessagingConfigurationContext context,
         CancellationToken cancellationToken)
     {
-        // TODO we probably should make this resilient!
         await Task.WhenAll(
-            ConsumerManager.EnsureConnectedAsync(cancellationToken),
-            Dispatcher.EnsureConnectedAsync(cancellationToken));
+            ConsumerManager.ConnectOrRetryInBackgroundAsync(cancellationToken),
+            Dispatcher.ConnectOrRetryInBackgroundAsync(cancellationToken));
     }
 
     /// <summary>

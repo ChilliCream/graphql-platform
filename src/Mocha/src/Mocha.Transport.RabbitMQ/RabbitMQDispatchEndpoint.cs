@@ -38,10 +38,13 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
             await EnsureProvisionedAsync(channel, cancellationToken);
             await DispatchAsync(channel, envelope, timeProvider, cancellationToken);
         }
-        finally
+        catch
         {
-            await dispatcher.ReturnChannelAsync(channel);
+            dispatcher.DiscardChannel(channel);
+            throw;
         }
+
+        await dispatcher.ReturnChannelAsync(channel);
     }
 
     private async ValueTask DispatchAsync(

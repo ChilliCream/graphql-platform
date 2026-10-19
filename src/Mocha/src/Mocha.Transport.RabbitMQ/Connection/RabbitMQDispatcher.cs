@@ -15,6 +15,12 @@ public sealed class RabbitMQDispatcher(
 {
     private const int MaxPooledChannels = 10;
 
+    // Every publish waits for the broker's confirm, so a rejected or lost message surfaces as an exception.
+    private static readonly CreateChannelOptions s_publishChannelOptions = new(
+        publisherConfirmationsEnabled: true,
+        publisherConfirmationTrackingEnabled: true,
+        outstandingPublisherConfirmationsRateLimiter: null);
+
     private readonly ConcurrentQueue<IChannel> _channelPool = new();
     private int _pooledChannelCount;
 
@@ -44,7 +50,7 @@ public sealed class RabbitMQDispatcher(
 
         // No valid pooled channel, create a new one
         var connection = await GetConnectionAsync(cancellationToken);
-        var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken);
+        var channel = await connection.CreateChannelAsync(s_publishChannelOptions, cancellationToken);
 
         Logger.CreatedNewChannel();
 
@@ -82,6 +88,16 @@ public sealed class RabbitMQDispatcher(
         }
     }
 
+    /// <summary>
+    /// Disposes a rented channel in the background instead of returning it to the pool, after an operation on it
+    /// failed.
+    /// </summary>
+    /// <remarks>
+    /// A failed channel can be closing, or can still wait for the reply or confirm of a cancelled operation. Closing
+    /// it waits for the broker, which does not read from a blocked connection.
+    /// </remarks>
+    internal void DiscardChannel(IChannel channel) => _ = DisposeChannelSafelyAsync(channel).AsTask();
+
     protected override async Task OnConnectionEstablished(IConnection connection, CancellationToken cancellationToken)
     {
         await onConnectionEstablished(connection, cancellationToken);
@@ -93,11 +109,6 @@ public sealed class RabbitMQDispatcher(
     }
 
     protected override async Task OnConnectionLostAsync()
-    {
-        await ClearChannelPoolAsync();
-    }
-
-    protected override async Task OnConnectionRecoveredAsync(CancellationToken cancellationToken)
     {
         await ClearChannelPoolAsync();
     }
@@ -121,12 +132,21 @@ public sealed class RabbitMQDispatcher(
             {
                 await channel.CloseAsync();
             }
-
-            await channel.DisposeAsync();
         }
         catch
         {
-            // Ignore disposal errors
+            // Ignore close errors
+        }
+        finally
+        {
+            try
+            {
+                await channel.DisposeAsync();
+            }
+            catch
+            {
+                // Ignore disposal errors
+            }
         }
     }
 
