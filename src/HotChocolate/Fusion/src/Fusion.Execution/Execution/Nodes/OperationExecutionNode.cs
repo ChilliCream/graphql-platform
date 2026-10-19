@@ -122,11 +122,15 @@ public sealed class OperationExecutionNode : ExecutionNode
         CancellationToken cancellationToken = default)
     {
         var diagnosticEvents = context.DiagnosticEvents;
-        var variables = context.CreateVariableValueSets(_target, _forwardedVariables, _requirements);
+        var reusedCount = 0;
+        var variables = context.GetEntityReuseCandidates(Id) is { } candidates
+            ? context.CreateVariableValueSets([_target], _forwardedVariables, _requirements, candidates, out reusedCount)
+            : context.CreateVariableValueSets(_target, _forwardedVariables, _requirements);
 
         if (variables.Length == 0 && (_requirements.Length > 0 || _forwardedVariables.Length > 0))
         {
-            return ExecutionStatus.Skipped;
+            // When every entity was taken from the result, the node completed its work.
+            return reusedCount > 0 ? ExecutionStatus.Success : ExecutionStatus.Skipped;
         }
 
         var schemaName = _schemaName ?? context.GetDynamicSchemaName(this);
