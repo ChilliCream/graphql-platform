@@ -104,15 +104,10 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
                 .Use(MiddlewareFactory.CreateHttpGetSchemaMiddleware(executor, serverOptions, path, MiddlewareRoutingType.Integrated))
                 .UseWhen(
                     context => context.MayReachNitroApp(path),
-                    branch => branch
-                        .Use(next => context =>
-                        {
-                            context.SetNitroAppSlug(path);
-                            return next(context);
-                        })
-                        .Use(NitroAppMiddleware.Create(
-                            serverOptions.Tool,
-                            embeddedAssetSource: EmbeddedNitroApp.AssetSource)))
+                    branch => branch.Use(NitroAppMiddleware.Create(
+                        serverOptions.Tool,
+                        path,
+                        embeddedAssetSource: EmbeddedNitroApp.AssetSource)))
                 .Use(MiddlewareFactory.CreateHttpUnsupportedRequestMiddleware(
                     executor,
                     serverOptions,

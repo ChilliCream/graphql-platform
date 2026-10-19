@@ -2,6 +2,7 @@ using ChilliCream.Nitro.App;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Utilities;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
 
 namespace HotChocolate.AspNetCore;
 
@@ -30,7 +31,7 @@ internal static class HttpContextExtensions
     {
         var request = context.Request;
 
-        if (!request.IsGetOrHeadMethod() || !request.IsEndpointPath(path))
+        if (!request.IsGetOrHeadMethod() || !IsGraphQLEndpointPath(context, path))
         {
             return true;
         }
@@ -41,18 +42,12 @@ internal static class HttpContextExtensions
             && DefaultHttpResponseFormatter.PrefersHtml(acceptHeader.AcceptMediaTypes);
     }
 
-    /// <summary>
-    /// Sets the path the Nitro app serves from the request path below <paramref name="path"/>.
-    /// </summary>
-    public static void SetNitroAppSlug(this HttpContext context, PathString path)
-    {
-        var request = context.Request;
-
-        if (request.Path.StartsWithSegments(path, StringComparison.OrdinalIgnoreCase, out var remaining))
-        {
-            NitroAppMiddleware.SetSlug(context, remaining.Value?.TrimStart('/') ?? string.Empty);
-        }
-    }
+    // Inside a route group, path is relative to the group. On an endpoint, an empty slug route
+    // value identifies the endpoint path instead.
+    private static bool IsGraphQLEndpointPath(HttpContext context, PathString path)
+        => context.Request.IsEndpointPath(path)
+            || (context.GetEndpoint() is not null
+                && string.IsNullOrEmpty(context.GetRouteValue(NitroAppMiddleware.SlugRouteValueName)?.ToString()));
 
     public static string? TryGetCostSwitch(this HttpContext context)
     {

@@ -157,6 +157,35 @@ public class EmbeddedNitroAppTests : ServerTestBase
         Assert.Equal("https://cdn.chillicream.com/web/latest/", forwarder.DestinationPrefix);
     }
 
+    [Theory]
+    [InlineData("")]
+    [InlineData("/api")]
+    public async Task MapGraphQL_Does_Not_Serve_Nitro_To_GraphQL_Clients(string groupPrefix)
+    {
+        // arrange
+        var forwarder = new RecordingForwarder();
+        var server = CreateServer(
+            forwarder,
+            e =>
+            {
+                var target = groupPrefix.Length == 0 ? e : e.MapGroup(groupPrefix);
+                target.MapGraphQL();
+            });
+
+        // act
+        var withSlash = await GetAsync(server, groupPrefix + "/graphql/", "application/graphql-response+json");
+        var withoutSlash = await GetAsync(server, groupPrefix + "/graphql", "application/graphql-response+json");
+        var clientDestination = forwarder.DestinationPrefix;
+        var browser = await GetHtmlAsync(server, groupPrefix + "/graphql/");
+
+        // assert
+        Assert.Equal(HttpStatusCode.NotFound, withSlash.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, withoutSlash.StatusCode);
+        Assert.Null(clientDestination);
+        Assert.Equal(HttpStatusCode.OK, browser.StatusCode);
+        Assert.Equal("https://cdn.chillicream.com/web/latest/", forwarder.DestinationPrefix);
+    }
+
     [Fact]
     public async Task MapGraphQL_With_ServeMode_Embedded_Still_Serves_Embedded_Nitro()
     {
@@ -222,9 +251,12 @@ public class EmbeddedNitroAppTests : ServerTestBase
                 .UseEndpoints(configure));
 
     private static Task<HttpResponseMessage> GetHtmlAsync(TestServer server, string path)
+        => GetAsync(server, path, "text/html");
+
+    private static Task<HttpResponseMessage> GetAsync(TestServer server, string path, string accept)
     {
         var request = new HttpRequestMessage(HttpMethod.Get, path);
-        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("text/html"));
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
         return server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
     }
 

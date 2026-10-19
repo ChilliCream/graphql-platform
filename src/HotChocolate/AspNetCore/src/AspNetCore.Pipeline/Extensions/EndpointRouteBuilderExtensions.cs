@@ -87,7 +87,7 @@ public static class EndpointRouteBuilderExtensions
         var pattern = Parse(path + "/{**slug}");
         var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
         var services = endpointRouteBuilder.ServiceProvider;
-        requestPipeline.MapGraphQL(path, schemaNameOrDefault);
+        MapGraphQLPipeline(requestPipeline, path, schemaNameOrDefault, mountedOnEndpoint: true);
         var serverOptions = services.GetServerOptions(schemaNameOrDefault);
 
         return new GraphQLEndpointConventionBuilder(
@@ -124,6 +124,15 @@ public static class EndpointRouteBuilderExtensions
         ArgumentNullException.ThrowIfNull(applicationBuilder);
         ArgumentException.ThrowIfNullOrEmpty(schemaName);
 
+        return MapGraphQLPipeline(applicationBuilder, path, schemaName, mountedOnEndpoint: false);
+    }
+
+    private static IApplicationBuilder MapGraphQLPipeline(
+        IApplicationBuilder applicationBuilder,
+        PathString path,
+        string schemaName,
+        bool mountedOnEndpoint)
+    {
         path = path.ToString().TrimEnd('/');
 
         var services = applicationBuilder.ApplicationServices;
@@ -145,14 +154,20 @@ public static class EndpointRouteBuilderExtensions
                 executor, serverOptions, path, MiddlewareRoutingType.Integrated))
             .UseWhen(
                 context => context.MayReachNitroApp(path),
-                branch => branch
-                    .Use(next => context =>
+                branch =>
+                {
+                    if (mountedOnEndpoint)
                     {
-                        // Used when the Nitro app is not mounted on its own endpoint.
-                        context.SetNitroAppSlug(path);
-                        return next(context);
-                    })
-                    .UseNitroApp(serverOptions.Tool, EmbeddedNitroApp.AssetSource))
+                        branch.UseNitroApp(serverOptions.Tool, EmbeddedNitroApp.AssetSource);
+                    }
+                    else
+                    {
+                        branch.Use(NitroAppMiddleware.Create(
+                            serverOptions.Tool,
+                            path,
+                            embeddedAssetSource: EmbeddedNitroApp.AssetSource));
+                    }
+                })
             .Use(MiddlewareFactory.CreateHttpUnsupportedRequestMiddleware(
                 executor,
                 serverOptions,
