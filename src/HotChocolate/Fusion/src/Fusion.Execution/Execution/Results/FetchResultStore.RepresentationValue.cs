@@ -173,30 +173,15 @@ internal sealed partial class FetchResultStore
 
         lock (_lock)
         {
-            var combinedCount = 0;
+            var elements = CollectTargetElements(selectionSets);
 
-            foreach (var selectionSet in selectionSets)
-            {
-                var elements = CollectTargetElements(selectionSet);
-
-                if (!elements.IsEmpty)
-                {
-                    EnsureCapacity(
-                        ref _collectTargetCombined,
-                        combinedCount + elements.Length,
-                        combinedCount);
-                    elements.CopyTo(_collectTargetCombined.AsSpan(combinedCount));
-                    combinedCount += elements.Length;
-                }
-            }
-
-            if (combinedCount == 0)
+            if (elements.IsEmpty)
             {
                 return RepresentationValue.Empty;
             }
 
             return BuildRepresentationValue(
-                _collectTargetCombined.AsSpan(0, combinedCount),
+                elements,
                 requestVariables,
                 requiredShape,
                 entityTypeName);
