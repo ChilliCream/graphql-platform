@@ -21,7 +21,7 @@ public sealed class MockHttpRequestData : HttpRequestData, IDisposable
         string requestHttpMethod,
         Uri requestUri,
         string? requestBody = null,
-        string requestBodyContentType = TestConstants.DefaultJsonContentType,
+        string? requestBodyContentType = TestConstants.DefaultJsonContentType,
         HttpHeaders? requestHeaders = null,
         IEnumerable<ClaimsIdentity>? claimsIdentities = null)
         : base(functionContext)
@@ -39,7 +39,12 @@ public sealed class MockHttpRequestData : HttpRequestData, IDisposable
             // Initialize a valid Stream for the Request (must be tracked & Disposed of!)
             var requestBodyBytes = Encoding.UTF8.GetBytes(requestBody);
             Body = new MemoryStream(requestBodyBytes);
-            Headers.TryAddWithoutValidation(ContentType, requestBodyContentType);
+
+            if (requestBodyContentType is not null)
+            {
+                Headers.TryAddWithoutValidation(ContentType, requestBodyContentType);
+            }
+
             Headers.TryAddWithoutValidation(ContentLength, requestBodyBytes.Length.ToString());
         }
 
