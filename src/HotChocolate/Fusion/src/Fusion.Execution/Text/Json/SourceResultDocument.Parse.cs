@@ -72,25 +72,9 @@ public sealed partial class SourceResultDocument
         ArgumentNullException.ThrowIfNull(arena);
 
         // Copy the raw payload into the document's own geometric arena chunks without gaps and
-        // parse them. Token start positions are gap-free linear offsets, which are mapped to packed
-        // (chunk, offset) data locations.
-        var segments = IngestToArena(arena, input, out var usedChunks);
-
-        var totalBytes = input.Length;
-        var estimatedTokens = (int)Math.Max(totalBytes / 12, 100);
-        var metaDb = MetaDb.CreateForEstimatedRows(arena, estimatedTokens);
-
-        try
-        {
-            ParseJson(BuildSequence(segments, usedChunks), ref metaDb, singleChunk: usedChunks == 1);
-        }
-        catch
-        {
-            metaDb.Dispose();
-            throw;
-        }
-
-        return new SourceResultDocument(metaDb, segments, usedChunks);
+        // parse the filled bytes.
+        var segments = IngestToArena(arena, input, out var usedChunks, out var lastLength);
+        return ParseFilled(arena, segments, usedChunks, lastLength);
     }
 
     /// <summary>
@@ -181,11 +165,13 @@ public sealed partial class SourceResultDocument
     /// <summary>
     /// Copies the input payload into geometric arena chunks without gaps so the chunk schedule
     /// matches the packed data-location encoding, and returns the rented segment table.
+    /// <paramref name="lastLength"/> is the number of bytes filled in the last used chunk.
     /// </summary>
     private static MemorySegment[] IngestToArena(
         IMemoryArena arena,
         ReadOnlySequence<byte> input,
-        out int usedChunks)
+        out int usedChunks,
+        out int lastLength)
     {
         var segments = arena.RentSegmentTable(64);
         var totalLength = input.Length;
@@ -195,6 +181,7 @@ public sealed partial class SourceResultDocument
             // An empty payload still needs a backing chunk so location 0 is addressable.
             segments[0] = arena.Rent(GetDataChunkSize(0));
             usedChunks = 1;
+            lastLength = 0;
             return segments;
         }
 
@@ -240,6 +227,7 @@ public sealed partial class SourceResultDocument
         }
 
         usedChunks = chunkIndex + 1;
+        lastLength = offset;
         return segments;
     }
 
@@ -289,27 +277,6 @@ public sealed partial class SourceResultDocument
         }
 
         return new ReadOnlySequence<byte>(first!, 0, previous!, lastLength);
-    }
-
-    private static ReadOnlySequence<byte> BuildSequence(MemorySegment[] segments, int usedChunks)
-    {
-        if (usedChunks == 1)
-        {
-            return new ReadOnlySequence<byte>(segments[0].Memory);
-        }
-
-        SequenceSegment? first = null;
-        SequenceSegment? previous = null;
-
-        for (var i = 0; i < usedChunks; i++)
-        {
-            var current = new SequenceSegment(segments[i].Memory);
-            first ??= current;
-            previous?.SetNext(current);
-            previous = current;
-        }
-
-        return new ReadOnlySequence<byte>(first!, 0, previous!, previous!.Memory.Length);
     }
 
     private static ReadOnlySequence<byte> BuildSequence(byte[][] dataChunks, int lastLength, int usedChunks)

@@ -1,6 +1,5 @@
 using System.Buffers;
 using System.Text;
-using System.Text.Json;
 using HotChocolate.Buffers;
 
 namespace HotChocolate.Fusion.Text.Json;
@@ -53,10 +52,11 @@ public class SourceResultDocumentSequenceTests
         using var arena = new MemoryArena();
 
         // act
-        void Action() => SourceResultDocument.Parse(arena, input).Dispose();
+        using var document = SourceResultDocument.Parse(arena, input);
+        arena.Seal();
 
         // assert
-        Assert.Throws<JsonException>(Action);
+        Assert.Equal(payload, document.Root.GetRawText());
     }
 
     [Theory]
