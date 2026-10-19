@@ -1,3 +1,4 @@
+using ChilliCream.Nitro.App;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Utilities;
 using Microsoft.AspNetCore.Http;
@@ -38,6 +39,21 @@ internal static class HttpContextExtensions
 
         return !acceptHeader.HasError
             && DefaultHttpResponseFormatter.PrefersHtml(acceptHeader.AcceptMediaTypes);
+    }
+
+    /// <summary>
+    /// Sets the Nitro app slug route value for a request below <paramref name="path"/>, for
+    /// hosts that mount the Nitro app without endpoint routing.
+    /// </summary>
+    public static void SetNitroAppSlug(this HttpContext context, PathString path)
+    {
+        var request = context.Request;
+
+        if (request.Path.StartsWithSegments(path, StringComparison.OrdinalIgnoreCase, out var remaining))
+        {
+            request.RouteValues[NitroAppMiddleware.SlugRouteValueName] =
+                remaining.Value?.TrimStart('/') ?? string.Empty;
+        }
     }
 
     public static string? TryGetCostSwitch(this HttpContext context)

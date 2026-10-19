@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Azure.WebJobs.Host.Config;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
 using MiddlewareFactory = HotChocolate.AspNetCore.MiddlewareFactory;
 
@@ -104,7 +103,13 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
                 .Use(MiddlewareFactory.CreateHttpGetSchemaMiddleware(executor, serverOptions, path, MiddlewareRoutingType.Integrated))
                 .UseWhen(
                     context => context.MayReachNitroApp(path),
-                    branch => branch.UseNitroApp(path, serverOptions.Tool))
+                    branch => branch
+                        .Use(next => context =>
+                        {
+                            context.SetNitroAppSlug(path);
+                            return next(context);
+                        })
+                        .Use(NitroAppMiddleware.Create(serverOptions.Tool)))
                 .Use(MiddlewareFactory.CreateHttpUnsupportedRequestMiddleware(
                     executor,
                     serverOptions,
@@ -138,47 +143,5 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
 
         builder.ModifyServerOptions(configure);
         return builder;
-    }
-
-    private static PipelineBuilder UseNitroApp(
-        this PipelineBuilder requestPipeline,
-        PathString path,
-        NitroAppOptions options)
-    {
-        ArgumentNullException.ThrowIfNull(requestPipeline);
-
-        path = path.ToString().TrimEnd('/');
-        var fileProvider = CreateFileProvider();
-        var forwarderAccessor = new HttpForwarderAccessor();
-
-        return requestPipeline
-            .Use(next =>
-            {
-                var middleware = new NitroAppOptionsFileMiddleware(next, path, options);
-                return middleware.Invoke;
-            })
-            .Use(next =>
-            {
-                var middleware = new NitroAppCdnMiddleware(next, path, forwarderAccessor, options);
-                return middleware.Invoke;
-            })
-            .Use(next =>
-            {
-                var middleware = new NitroAppDefaultFileMiddleware(next, fileProvider, path, options);
-                return middleware.Invoke;
-            })
-            .Use(next =>
-            {
-                var middleware = new NitroAppStaticFileMiddleware(next, fileProvider, path, options);
-                return middleware.Invoke;
-            });
-    }
-
-    private static IFileProvider CreateFileProvider()
-    {
-        var type = typeof(NitroAppStaticFileMiddleware);
-        var resourceNamespace = type.Namespace + ".Resources";
-
-        return new EmbeddedFileProvider(type.Assembly, resourceNamespace);
     }
 }

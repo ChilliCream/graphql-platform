@@ -144,7 +144,18 @@ public static class EndpointRouteBuilderExtensions
                 executor, serverOptions, path, MiddlewareRoutingType.Integrated))
             .UseWhen(
                 context => context.MayReachNitroApp(path),
-                branch => branch.UseNitroApp(path, serverOptions.Tool))
+                branch => branch
+                    .Use(next => context =>
+                    {
+                        // Endpoint routing provides the slug; without it, derive it from the path.
+                        if (context.GetEndpoint() is null)
+                        {
+                            context.SetNitroAppSlug(path);
+                        }
+
+                        return next(context);
+                    })
+                    .UseNitroApp(serverOptions.Tool))
             .Use(MiddlewareFactory.CreateHttpUnsupportedRequestMiddleware(
                 executor,
                 serverOptions,
@@ -529,7 +540,7 @@ public static class EndpointRouteBuilderExtensions
         var nitroOptions = new NitroAppOptions { GraphQLEndpoint = relativeRequestPath };
 
         requestPipeline
-            .UseNitroApp(toolPath, nitroOptions)
+            .UseNitroApp(nitroOptions)
             .Use(_ => context =>
             {
                 context.Response.StatusCode = 404;
