@@ -4,34 +4,36 @@ using HotChocolate.Fusion.Text.Json;
 namespace HotChocolate.Fusion.Execution.Results;
 
 /// <summary>
-/// A flat, allocation-free accumulator for additional CompactPath entries
-/// that replaces per-slot List&lt;CompactPath&gt; with ArrayPool-rented buffers.
-/// Stores (slotIndex, path) pairs and produces <see cref="CompactPathSegment"/>
-/// per slot via counting sort in ApplyTo.
+/// A flat, allocation-free accumulator for additional targets that replaces per-slot
+/// List&lt;CompactPath&gt; with ArrayPool-rented buffers.
+/// Stores (slotIndex, target) pairs and produces <see cref="CompactPathSegment"/>
+/// per slot via counting sort in ApplyTo. A target is either a path or a result element; when
+/// every target is a result element, the segments keep cursors and create paths on first access.
 /// </summary>
 internal ref struct AdditionalPathAccumulator
 {
+    private const int NoCursor = -1;
+
     private CompactPath[]? _paths;
+    private int[]? _cursors;
     private int[]? _slotIndices;
     private int _count;
+    private int _pathCount;
 
     public readonly bool HasEntries => _count > 0;
 
     public void Add(int slotIndex, CompactPath path)
     {
-        if (_paths is null)
-        {
-            _paths = ArrayPool<CompactPath>.Shared.Rent(16);
-            _slotIndices = ArrayPool<int>.Shared.Rent(16);
-        }
-        else if (_count == _paths.Length)
-        {
-            Grow();
-        }
+        var index = Reserve(slotIndex);
+        _paths![index] = path;
+        _cursors![index] = NoCursor;
+        _pathCount++;
+    }
 
-        _paths[_count] = path;
-        _slotIndices![_count] = slotIndex;
-        _count++;
+    public void Add(int slotIndex, CompositeResultElement target)
+    {
+        var index = Reserve(slotIndex);
+        _cursors![index] = target.Cursor.Value;
     }
 
     public void AddRange(int slotIndex, ReadOnlySpan<CompactPath> paths)
@@ -42,14 +44,70 @@ internal ref struct AdditionalPathAccumulator
         }
     }
 
-    public void ApplyTo(VariableValues[] variableValueSets, int slotCount)
+    public void ApplyTo(
+        VariableValues[] variableValueSets,
+        int slotCount,
+        FetchResultStore store,
+        CompositeResultDocument document)
     {
         if (_count == 0)
         {
             return;
         }
 
-        // Count paths per slot.
+        var segmentBuffer = ArrayPool<CompactPathSegment>.Shared.Rent(slotCount);
+        var segments = segmentBuffer.AsSpan(0, slotCount);
+        segments.Clear();
+        CreateSegments(segments, store, document);
+
+        for (var slot = 0; slot < slotCount; slot++)
+        {
+            if (!segments[slot].IsDefaultOrEmpty)
+            {
+                variableValueSets[slot] = variableValueSets[slot] with { AdditionalPaths = segments[slot] };
+            }
+        }
+
+        segments.Clear();
+        ArrayPool<CompactPathSegment>.Shared.Return(segmentBuffer);
+    }
+
+    public void ApplyTo(
+        EntityResultPath[] resultPaths,
+        int slotCount,
+        FetchResultStore store,
+        CompositeResultDocument document)
+    {
+        if (_count == 0)
+        {
+            return;
+        }
+
+        var segmentBuffer = ArrayPool<CompactPathSegment>.Shared.Rent(slotCount);
+        var segments = segmentBuffer.AsSpan(0, slotCount);
+        segments.Clear();
+        CreateSegments(segments, store, document);
+
+        for (var slot = 0; slot < slotCount; slot++)
+        {
+            if (!segments[slot].IsDefaultOrEmpty)
+            {
+                resultPaths[slot] = resultPaths[slot] with { AdditionalPaths = segments[slot] };
+            }
+        }
+
+        segments.Clear();
+        ArrayPool<CompactPathSegment>.Shared.Return(segmentBuffer);
+    }
+
+    private readonly void CreateSegments(
+        Span<CompactPathSegment> segments,
+        FetchResultStore store,
+        CompositeResultDocument document)
+    {
+        var slotCount = segments.Length;
+
+        // Count targets per slot.
         var counts = slotCount <= 256
             ? stackalloc int[slotCount]
             : new int[slotCount];
@@ -70,33 +128,70 @@ internal ref struct AdditionalPathAccumulator
             offsets[i] = offsets[i - 1] + counts[i - 1];
         }
 
-        // Scatter paths into a single shared array in sorted order.
+        // Scatter targets into a single shared array in sorted order.
         var writePos = slotCount <= 256
             ? stackalloc int[slotCount]
             : new int[slotCount];
         offsets.CopyTo(writePos);
 
+        if (_pathCount == 0)
+        {
+            var cursors = new int[_count];
+
+            for (var i = 0; i < _count; i++)
+            {
+                cursors[writePos[_slotIndices![i]]++] = _cursors![i];
+            }
+
+            var source = new TargetCursorPaths(store, document, cursors);
+
+            for (var slot = 0; slot < slotCount; slot++)
+            {
+                if (counts[slot] > 0)
+                {
+                    segments[slot] = new CompactPathSegment(source, offsets[slot], counts[slot]);
+                }
+            }
+
+            return;
+        }
+
         var shared = new CompactPath[_count];
 
         for (var i = 0; i < _count; i++)
         {
-            var idx = _slotIndices![i];
-            shared[writePos[idx]++] = _paths![i];
+            shared[writePos[_slotIndices![i]]++] = GetPath(i, document);
         }
 
-        // Build CompactPathSegment for each non-empty slot from contiguous slices.
         for (var slot = 0; slot < slotCount; slot++)
         {
-            if (counts[slot] == 0)
+            if (counts[slot] > 0)
             {
-                continue;
+                segments[slot] = new CompactPathSegment(shared, offsets[slot], counts[slot]);
             }
-
-            variableValueSets[slot] = variableValueSets[slot] with
-            {
-                AdditionalPaths = new CompactPathSegment(shared, offsets[slot], counts[slot])
-            };
         }
+    }
+
+    private readonly CompactPath GetPath(int index, CompositeResultDocument document)
+        => _cursors![index] == NoCursor
+            ? _paths![index]
+            : document.CreateCompactPath(new CompositeResultDocument.Cursor(_cursors[index]));
+
+    private int Reserve(int slotIndex)
+    {
+        if (_paths is null)
+        {
+            _paths = ArrayPool<CompactPath>.Shared.Rent(16);
+            _cursors = ArrayPool<int>.Shared.Rent(16);
+            _slotIndices = ArrayPool<int>.Shared.Rent(16);
+        }
+        else if (_count == _paths.Length)
+        {
+            Grow();
+        }
+
+        _slotIndices![_count] = slotIndex;
+        return _count++;
     }
 
     private void Grow()
@@ -108,6 +203,11 @@ internal ref struct AdditionalPathAccumulator
         _paths.AsSpan(0, _count).Clear();
         ArrayPool<CompactPath>.Shared.Return(_paths);
         _paths = newPaths;
+
+        var newCursors = ArrayPool<int>.Shared.Rent(newSize);
+        _cursors.AsSpan(0, _count).CopyTo(newCursors);
+        ArrayPool<int>.Shared.Return(_cursors!);
+        _cursors = newCursors;
 
         var newIndices = ArrayPool<int>.Shared.Rent(newSize);
         _slotIndices.AsSpan(0, _count).CopyTo(newIndices);
@@ -124,6 +224,12 @@ internal ref struct AdditionalPathAccumulator
             _paths = null;
         }
 
+        if (_cursors is not null)
+        {
+            ArrayPool<int>.Shared.Return(_cursors);
+            _cursors = null;
+        }
+
         if (_slotIndices is not null)
         {
             ArrayPool<int>.Shared.Return(_slotIndices);
@@ -131,5 +237,6 @@ internal ref struct AdditionalPathAccumulator
         }
 
         _count = 0;
+        _pathCount = 0;
     }
 }

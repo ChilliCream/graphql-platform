@@ -736,7 +736,8 @@ public class ForwardedVariableBlitBenchmark
             return [];
         }
 
-        additionalPaths.ApplyTo(variableValueSets, nextIndex);
+        // The accumulator only holds paths here, so it never reads the store or the document.
+        additionalPaths.ApplyTo(variableValueSets, nextIndex, store: null!, document: null!);
         additionalPaths.Dispose();
 
         var span = variableValueSets.AsSpan(0, nextIndex);

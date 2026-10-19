@@ -20,6 +20,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     private PathSegmentLocalPool? _pathPool;
     internal MetaDb _metaDb;
     private NullMarkerState _nullMarkerState;
+    private int _structureVersion;
     private int _disposed;
 
     internal CompositeResultDocument(
@@ -62,6 +63,12 @@ public sealed partial class CompositeResultDocument : IDisposable
     }
 
     public CompositeResultElement Data { get; }
+
+    /// <summary>
+    /// Gets a version that changes whenever a value that references an object or a list is
+    /// replaced. While it is unchanged, every element keeps the path it had when it was read.
+    /// </summary>
+    internal int StructureVersion => _structureVersion;
 
     /// <summary>
     /// Stops this document from renting path segment arrays from the request scoped pool.
@@ -577,6 +584,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void AssignCompositeValue(CompositeResultElement target, CompositeResultElement value)
     {
+        TrackValueReplacement(target.Cursor);
         _metaDb.ReplacePreserveParent(
             cursor: target.Cursor,
             tokenType: ElementTokenType.Reference,
@@ -606,6 +614,7 @@ public sealed partial class CompositeResultDocument : IDisposable
         Debug.Assert(_sources.Contains(parent), "Expected the source document of the source element to be registered.");
 
         var tokenType = sourceRow.TokenType.ToElementTokenType();
+        TrackValueReplacement(target.Cursor);
 
         if (tokenType is ElementTokenType.StartObject or ElementTokenType.StartArray)
         {
@@ -631,9 +640,20 @@ public sealed partial class CompositeResultDocument : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void AssignNullValue(CompositeResultElement target)
     {
+        TrackValueReplacement(target.Cursor);
         _metaDb.ReplacePreserveParent(
             cursor: target.Cursor,
             tokenType: ElementTokenType.Null);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void TrackValueReplacement(Cursor target)
+    {
+        if (_metaDb.GetElementTokenType(target, resolveReferences: false)
+            is ElementTokenType.Reference or ElementTokenType.StartObject or ElementTokenType.StartArray)
+        {
+            _structureVersion++;
+        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
