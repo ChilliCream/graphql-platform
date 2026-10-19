@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using ChilliCream.Nitro.App;
+using ChilliCream.Nitro.App.Embed;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Http;
@@ -155,7 +156,7 @@ public static class EndpointRouteBuilderExtensions
 
                         return next(context);
                     })
-                    .UseNitroApp(serverOptions.Tool))
+                    .UseNitroApp(serverOptions.Tool, EmbeddedNitroApp.AssetSource))
             .Use(MiddlewareFactory.CreateHttpUnsupportedRequestMiddleware(
                 executor,
                 serverOptions,
@@ -540,7 +541,7 @@ public static class EndpointRouteBuilderExtensions
         var nitroOptions = new NitroAppOptions { GraphQLEndpoint = relativeRequestPath };
 
         requestPipeline
-            .UseNitroApp(nitroOptions)
+            .UseNitroApp(nitroOptions, EmbeddedNitroApp.AssetSource)
             .Use(_ => context =>
             {
                 context.Response.StatusCode = 404;

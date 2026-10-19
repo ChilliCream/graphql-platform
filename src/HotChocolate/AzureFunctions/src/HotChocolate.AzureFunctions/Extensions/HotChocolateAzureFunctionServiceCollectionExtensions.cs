@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.App;
+using ChilliCream.Nitro.App.Embed;
 using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AzureFunctions;
@@ -109,7 +110,9 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
                             context.SetNitroAppSlug(path);
                             return next(context);
                         })
-                        .Use(NitroAppMiddleware.Create(serverOptions.Tool)))
+                        .Use(NitroAppMiddleware.Create(
+                            serverOptions.Tool,
+                            embeddedAssetSource: EmbeddedNitroApp.AssetSource)))
                 .Use(MiddlewareFactory.CreateHttpUnsupportedRequestMiddleware(
                     executor,
                     serverOptions,
