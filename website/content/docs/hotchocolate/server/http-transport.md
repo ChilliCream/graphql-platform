@@ -556,10 +556,10 @@ SSE is not limited to streaming. A client can send `Accept: text/event-stream` f
 
 Hot Chocolate provides two settings for enforcing preflight headers as a defense against cross-site request forgery (CSRF) attacks. These settings require that certain requests include a non-standard header (such as `X-Requested-With` or `GraphQL-Preflight`), which triggers a CORS preflight check in browsers.
 
-| Property                                  | Type   | Default | Description                                                                                                                                              |
-| ----------------------------------------- | ------ | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `EnforceGetRequestsPreflightHeader`       | `bool` | `false` | When `true`, HTTP GET requests must include a preflight header. Prevents a browser from issuing GET requests via `<script>` or `<img>` tags.             |
-| `EnforceMultipartRequestsPreflightHeader` | `bool` | `true`  | When `true`, multipart form requests must include a preflight header. Prevents a browser from submitting multipart forms via standard `<form>` elements. |
+| Property                                  | Type   | Default | Description                                                                                                                                                                          |
+| ----------------------------------------- | ------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `EnforceGetRequestsPreflightHeader`       | `bool` | `false` | When `true`, HTTP GET requests must include a preflight header or an `application/json` `Content-Type`. Prevents a browser from issuing GET requests via `<script>` or `<img>` tags. |
+| `EnforceMultipartRequestsPreflightHeader` | `bool` | `true`  | When `true`, multipart form requests must include a preflight header. Prevents a browser from submitting multipart forms via standard `<form>` elements.                             |
 
 Configure these settings through `ModifyServerOptions` or per-endpoint via `WithOptions`:
 

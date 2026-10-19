@@ -425,6 +425,30 @@ public class IsolatedProcessEndToEndTests
     }
 
     [Fact]
+    public async Task Get_Should_ExecuteRequest_When_ContentTypeIsJson()
+    {
+        // arrange
+        var host = CreateHost(HttpTransportVersion.Latest, enforceGetRequestsPreflightHeader: true);
+        var requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();
+        var request = new MockHttpRequestData(
+            new MockFunctionContext(host.Services),
+            HttpMethods.Get,
+            new Uri(
+                TestHttpContextHelper.DefaultAzFuncGraphQLUri,
+                "?query=%7B%20person%20%7D"));
+        request.Headers.TryAddWithoutValidation("Content-Type", "application/json");
+
+        // act
+        var response = await requestExecutor.ExecuteAsync(request);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(
+            """{"data":{"person":"Luke Skywalker"}}""",
+            await ReadResponseAsStringAsync(response));
+    }
+
+    [Fact]
     public async Task Put_Should_ReturnNotFound_When_PathIsBelowTheFunctionRoute()
     {
         // arrange
