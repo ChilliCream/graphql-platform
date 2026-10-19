@@ -387,8 +387,11 @@ public sealed partial class SourceResultDocument
 
             if (tokenType == JsonTokenType.PropertyName)
             {
-                // Remove the colon
-                tokenLength--;
+                // The reader consumes the colon and any white space before it with the name, so the
+                // quote-inclusive length is taken from the raw name.
+                tokenLength = (reader.HasValueSequence
+                    ? (int)reader.ValueSequence.Length
+                    : reader.ValueSpan.Length) + 2;
             }
 
             // Count direct children incrementally.

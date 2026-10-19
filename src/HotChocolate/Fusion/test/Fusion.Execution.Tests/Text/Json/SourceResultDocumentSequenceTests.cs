@@ -67,6 +67,25 @@ public class SourceResultDocumentSequenceTests
         Assert.Equal(secondPayload, second.Root.GetRawText());
     }
 
+    [Theory]
+    [InlineData("adjacent")]
+    [InlineData("separate")]
+    public void ParseFilled_Should_ReadPropertyNames_When_WhiteSpacePrecedesColon(string layout)
+    {
+        // arrange
+        var payload = "{\"padding\" :\"" + new string('a', 1500) + "\",\"value\"\t\r\n : 42}";
+        using var arena = new MemoryArena();
+        var (segments, usedChunks, lastLength) = CreateSegments(payload, layout, emptyLast: false);
+
+        // act
+        using var document = SourceResultDocument.ParseFilled(arena, segments, usedChunks, lastLength);
+        arena.Seal();
+
+        // assert
+        Assert.Equal(42, document.Root.GetProperty("value").GetInt32());
+        Assert.Equal(["padding", "value"], document.Root.EnumerateObject().Select(t => t.Name));
+    }
+
     private static (MemorySegment[] Segments, int UsedChunks, int LastLength) CreateSegments(
         string payload,
         string layout,
