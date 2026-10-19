@@ -56,6 +56,18 @@ internal static class HttpResponseExtensions
         headers.Vary = StringValues.Concat(vary, Join(", ", missing));
     }
 
+    /// <summary>
+    /// Sets the <c>Accept-Query</c> header (RFC 10008, section 3) to the media types a QUERY
+    /// request body may use, when <paramref name="options"/> enables QUERY requests.
+    /// </summary>
+    public static void SetAcceptQuery(this IHeaderDictionary headers, GraphQLServerOptions options)
+    {
+        if (options.EnableQueryRequests)
+        {
+            headers[HttpHeaderKeys.AcceptQuery] = HttpHeaderValues.AcceptQueryMediaTypes;
+        }
+    }
+
     public static IHeaderDictionary SetContentDisposition(
         this IHeaderDictionary headers,
         string fileName)
