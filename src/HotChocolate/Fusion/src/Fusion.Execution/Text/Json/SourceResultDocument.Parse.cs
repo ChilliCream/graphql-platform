@@ -21,20 +21,19 @@ public sealed partial class SourceResultDocument
         ArgumentNullException.ThrowIfNull(arena);
 
         // A single foreign buffer that fits the 17-bit offset field is adopted as chunk 0 and
-        // parsed in place, so no bytes are copied. Token start positions reported by the reader are
-        // gap-free linear offsets that map directly to packed (0, offset) data locations.
+        // parsed in place, so no bytes are copied. Token start positions are gap-free linear offsets
+        // that map directly to packed (0, offset) data locations.
         if (size <= DataOffsetMask + 1)
         {
             var segments = arena.RentSegmentTable(1);
             segments[0] = new MemorySegment(data, 0, size);
 
-            var reader = new Utf8JsonReader(data.AsSpan(0, size));
             var estimatedTokens = Math.Max(size / 12, 100);
             var metaDb = MetaDb.CreateForEstimatedRows(arena, estimatedTokens);
 
             try
             {
-                ParseJson(ref reader, ref metaDb, singleChunk: true);
+                ParseJson(data.AsSpan(0, size), ref metaDb, singleChunk: true);
             }
             catch
             {
@@ -73,18 +72,17 @@ public sealed partial class SourceResultDocument
         ArgumentNullException.ThrowIfNull(arena);
 
         // Copy the raw payload into the document's own geometric arena chunks without gaps and
-        // build a reader over them. Token start positions reported by the reader are gap-free
-        // linear offsets, which are mapped to packed (chunk, offset) data locations.
+        // parse them. Token start positions are gap-free linear offsets, which are mapped to packed
+        // (chunk, offset) data locations.
         var segments = IngestToArena(arena, input, out var usedChunks);
 
-        var reader = new Utf8JsonReader(BuildSequence(segments, usedChunks));
         var totalBytes = input.Length;
         var estimatedTokens = (int)Math.Max(totalBytes / 12, 100);
         var metaDb = MetaDb.CreateForEstimatedRows(arena, estimatedTokens);
 
         try
         {
-            ParseJson(ref reader, ref metaDb, singleChunk: usedChunks == 1);
+            ParseJson(BuildSequence(segments, usedChunks), ref metaDb, singleChunk: usedChunks == 1);
         }
         catch
         {
@@ -112,13 +110,12 @@ public sealed partial class SourceResultDocument
         Debug.Assert(usedChunks > 0, "data must contain at least one chunk.");
 
         var sequence = BuildFilledSequence(segments, usedChunks, lastLength);
-        var reader = new Utf8JsonReader(sequence);
         var estimatedTokens = (int)Math.Max(sequence.Length / 12, 100);
         var metaDb = MetaDb.CreateForEstimatedRows(arena, estimatedTokens);
 
         try
         {
-            ParseJson(ref reader, ref metaDb, singleChunk: usedChunks == 1);
+            ParseJson(sequence, ref metaDb, singleChunk: usedChunks == 1);
         }
         catch
         {
@@ -170,7 +167,7 @@ public sealed partial class SourceResultDocument
 
         try
         {
-            ParseJson(ref reader, ref metaDb, skipInitialRead: true, singleChunk: usedChunks == 1);
+            ParseJson(ref reader, ref metaDb, singleChunk: usedChunks == 1);
         }
         catch
         {
@@ -341,8 +338,7 @@ public sealed partial class SourceResultDocument
     private static void ParseJson(
         ref Utf8JsonReader reader,
         ref MetaDb metaDb,
-        bool skipInitialRead = false,
-        bool singleChunk = false)
+        bool singleChunk)
     {
         Span<Cursor> containerStart = stackalloc Cursor[64];
         Span<int> containerStartLocation = stackalloc int[64];
@@ -359,9 +355,9 @@ public sealed partial class SourceResultDocument
         var chunkStartLinear = 0L;
         var chunkEndLinear = (long)GetDataChunkSize(0);
 
-        while (skipInitialRead || reader.Read())
+        // The reader is positioned at the first token of the value.
+        do
         {
-            skipInitialRead = false;
             var tokenType = reader.TokenType;
             var linearStart = reader.TokenStartIndex;
             var tokenLength = (int)(reader.BytesConsumed - linearStart);
@@ -496,7 +492,7 @@ public sealed partial class SourceResultDocument
                 default:
                     throw new JsonException($"Unexpected token type: {tokenType}");
             }
-        }
+        } while (reader.Read());
 
         Debug.Assert(stackIndex == 0, "Unclosed containers remain");
     }
