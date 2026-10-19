@@ -12,7 +12,9 @@ public sealed class ScriptedAsyncSource<T> : IAsyncEnumerable<T>
 {
     private readonly IReadOnlyList<T> _items;
     private readonly Dictionary<int, TaskCompletionSource> _gates = [];
+    private readonly Dictionary<int, TaskCompletionSource> _gateReached = [];
     private readonly List<T> _yielded = [];
+    private int _activeMoves;
     private int? _throwAtIndex;
     private Exception? _exceptionToThrow;
     private Exception? _disposeException;
@@ -34,6 +36,11 @@ public sealed class ScriptedAsyncSource<T> : IAsyncEnumerable<T>
     public int DisposeCount { get; private set; }
 
     /// <summary>
+    /// Rejects source advancement while another move is still in progress.
+    /// </summary>
+    public bool RejectConcurrentMoves { get; set; }
+
+    /// <summary>
     /// The items yielded so far, in the order they were yielded.
     /// </summary>
     public IReadOnlyList<T> Yielded => _yielded;
@@ -49,8 +56,17 @@ public sealed class ScriptedAsyncSource<T> : IAsyncEnumerable<T>
     {
         var gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         _gates[index] = gate;
+        _gateReached[index] = new(TaskCreationOptions.RunContinuationsAsynchronously);
         return gate;
     }
+
+    /// <summary>
+    /// Waits until the enumerator has reached a gate configured for <paramref name="index"/>.
+    /// </summary>
+    /// <param name="index">
+    /// The zero-based index of the gated item.
+    /// </param>
+    public Task WaitForGateAsync(int index) => _gateReached[index].Task;
 
     /// <summary>
     /// Makes the enumerator throw <paramref name="exception"/> instead of yielding the item at
@@ -89,29 +105,46 @@ public sealed class ScriptedAsyncSource<T> : IAsyncEnumerable<T>
 
         public async ValueTask<bool> MoveNextAsync()
         {
-            source.MoveNextCount++;
-            _index++;
-
-            if (source._gates.TryGetValue(_index, out var gate))
+            if (source.RejectConcurrentMoves && Interlocked.Increment(ref source._activeMoves) != 1)
             {
-                await gate.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+                Interlocked.Decrement(ref source._activeMoves);
+                throw new InvalidOperationException("The source was advanced concurrently.");
             }
 
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (source._throwAtIndex == _index)
+            try
             {
-                throw source._exceptionToThrow!;
-            }
+                source.MoveNextCount++;
+                _index++;
 
-            if (_index >= source._items.Count)
+                if (source._gates.TryGetValue(_index, out var gate))
+                {
+                    source._gateReached[_index].TrySetResult();
+                    await gate.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+                }
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (source._throwAtIndex == _index)
+                {
+                    throw source._exceptionToThrow!;
+                }
+
+                if (_index >= source._items.Count)
+                {
+                    return false;
+                }
+
+                Current = source._items[_index];
+                source._yielded.Add(Current);
+                return true;
+            }
+            finally
             {
-                return false;
+                if (source.RejectConcurrentMoves)
+                {
+                    Interlocked.Decrement(ref source._activeMoves);
+                }
             }
-
-            Current = source._items[_index];
-            source._yielded.Add(Current);
-            return true;
         }
 
         public ValueTask DisposeAsync()

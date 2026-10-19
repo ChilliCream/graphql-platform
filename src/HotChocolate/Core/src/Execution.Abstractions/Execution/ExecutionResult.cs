@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 using HotChocolate.Features;
 
 namespace HotChocolate.Execution;
@@ -85,13 +86,21 @@ public abstract class ExecutionResult : IExecutionResult
     /// <inheritdoc cref="IAsyncDisposable"/>
     public async ValueTask DisposeAsync()
     {
-        if (!_disposed)
+        if (_disposed)
         {
-            if (_cleanupTasksLength > 0)
-            {
-                var entries = _cleanUpTasks;
+            GC.SuppressFinalize(this);
+            return;
+        }
 
-                for (var i = 0; i < _cleanupTasksLength; i++)
+        ExceptionDispatchInfo? exception = null;
+        var entries = _cleanUpTasks;
+        var length = _cleanupTasksLength;
+
+        try
+        {
+            for (var i = 0; i < length; i++)
+            {
+                try
                 {
                     switch (entries[i].Kind)
                     {
@@ -112,15 +121,27 @@ public abstract class ExecutionResult : IExecutionResult
                             break;
                     }
                 }
-
-                entries.AsSpan(0, _cleanupTasksLength).Clear();
+                catch (Exception ex)
+                {
+                    exception ??= ExceptionDispatchInfo.Capture(ex);
+                }
+            }
+        }
+        finally
+        {
+            if (length > 0)
+            {
+                entries.AsSpan(0, length).Clear();
                 s_cleanUpTaskPool.Return(entries);
             }
 
+            _cleanUpTasks = [];
+            _cleanupTasksLength = 0;
             _disposed = true;
+            GC.SuppressFinalize(this);
         }
 
-        GC.SuppressFinalize(this);
+        exception?.Throw();
     }
 
     private void AddCleanupEntry(CleanupEntry entry)

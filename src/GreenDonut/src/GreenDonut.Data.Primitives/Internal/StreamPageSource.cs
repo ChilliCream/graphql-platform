@@ -11,6 +11,14 @@ namespace GreenDonut.Data.Internal;
 /// </typeparam>
 internal abstract class StreamPageSource<TValue> : IAsyncDisposable
 {
+    protected StreamPageSource(StreamPageAccess access)
+    {
+        ArgumentNullException.ThrowIfNull(access);
+        Access = access;
+    }
+
+    internal StreamPageAccess Access { get; }
+
     /// <summary>
     /// Gets a value indicating whether this source has finished streaming.
     /// </summary>

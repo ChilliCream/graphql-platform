@@ -16,9 +16,9 @@ public class UseConnectionAttributeTests
             .ExecuteRequestAsync(
                 """
                 {
-                  foos(first: 3)
+            foos(first: 3)
                 }
-                """,
+        """,
                 cancellationToken: TestContext.Current.CancellationToken);
 
         AssertErrorCode(result, ErrorCodes.Paging.MaxPaginationItems);
@@ -33,9 +33,9 @@ public class UseConnectionAttributeTests
             .ExecuteRequestAsync(
                 """
                 {
-                  foos
+            foos
                 }
-                """,
+        """,
                 cancellationToken: TestContext.Current.CancellationToken);
 
         AssertErrorCode(result, ErrorCodes.Paging.NoPagingBoundaries);
@@ -50,12 +50,33 @@ public class UseConnectionAttributeTests
             .ExecuteRequestAsync(
                 """
                 {
-                  foosNoBackward
+            foosNoBackward
                 }
-                """,
+        """,
                 cancellationToken: TestContext.Current.CancellationToken);
 
         AssertErrorCode(result, ErrorCodes.Paging.FirstValueNotSet);
+    }
+
+    [Fact]
+    public async Task UseConnectionAttribute_Should_NotDisposeAnUnrelatedAsyncDisposableResult()
+    {
+        // arrange
+        var disposable = new UnrelatedAsyncDisposable();
+        var executor = await new ServiceCollection()
+            .AddSingleton(disposable)
+            .AddGraphQL()
+            .AddQueryType<UseConnectionQueryType>()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            "{ unrelatedDisposable { value } }",
+            TestContext.Current.CancellationToken);
+        await result.DisposeAsync();
+
+        // assert
+        Assert.Equal(0, disposable.DisposeCount);
     }
 
     [Fact]
@@ -67,9 +88,9 @@ public class UseConnectionAttributeTests
             .ExecuteRequestAsync(
                 """
                 {
-                  foosClampedDefault
+            foosClampedDefault
                 }
-                """,
+        """,
                 cancellationToken: TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
@@ -103,6 +124,10 @@ public class UseConnectionAttributeTests
             descriptor
                 .Field(t => t.GetFoosClampedDefault(default!))
                 .AddPagingArguments();
+
+            descriptor
+                .Field(t => t.GetUnrelatedAsyncDisposable(default!))
+                .AddPagingArguments();
         }
     }
 
@@ -122,6 +147,23 @@ public class UseConnectionAttributeTests
             var pagingArgs =
                 context.GetLocalState<CursorPagingArguments>(WellKnownContextData.PagingArguments);
             return pagingArgs.First ?? -1;
+        }
+
+        [UseConnection]
+        public UnrelatedAsyncDisposable GetUnrelatedAsyncDisposable([Service] UnrelatedAsyncDisposable disposable)
+            => disposable;
+    }
+
+    public sealed class UnrelatedAsyncDisposable : IAsyncDisposable
+    {
+        public int DisposeCount { get; private set; }
+
+        public string Value => "value";
+
+        public ValueTask DisposeAsync()
+        {
+            DisposeCount++;
+            return default;
         }
     }
 

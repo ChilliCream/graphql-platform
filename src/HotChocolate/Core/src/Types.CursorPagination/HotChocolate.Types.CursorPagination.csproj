@@ -12,6 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Types.CursorPagination.Extensions" />
     <InternalsVisibleTo Include="HotChocolate.Types.CursorPagination.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Types.Tests" />
   </ItemGroup>

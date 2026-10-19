@@ -31,18 +31,27 @@ internal sealed class PagingArgumentsParameterExpressionBuilder()
         var pagingOptions = PagingHelper.GetPagingOptions(context.Schema, context.Selection.Field);
         var pagingArguments = context.GetLocalState<CursorPagingArguments>(WellKnownContextData.PagingArguments);
         var includeTotalCount = IncludeTotalCount(context.Selection);
+        var includeItems = true;
 
         if (includeTotalCount)
         {
             includeTotalCount = context.IsSelected("totalCount");
         }
 
-        return MapArguments(pagingArguments, includeTotalCount, pagingOptions.NullOrdering);
+        if (includeTotalCount)
+        {
+            includeItems = context.IsSelected("nodes")
+                || context.IsSelected("edges")
+                || context.IsSelected("pageInfo");
+        }
+
+        return MapArguments(pagingArguments, includeTotalCount, includeItems, pagingOptions.NullOrdering);
     }
 
     private static PagingArguments MapArguments(
         CursorPagingArguments arguments,
         bool includeTotalCount,
+        bool includeItems,
         NullOrdering nullOrdering)
         => new(
             arguments.First,
@@ -50,7 +59,10 @@ internal sealed class PagingArgumentsParameterExpressionBuilder()
             arguments.Last,
             arguments.Before,
             includeTotalCount)
-        { NullOrdering = nullOrdering };
+        {
+            IncludeItems = includeItems,
+            NullOrdering = nullOrdering
+        };
 
     private static bool IncludeTotalCount(Selection selection)
         => selection.Field.Features.Get<PagingOptions>()?.IncludeTotalCount is true;

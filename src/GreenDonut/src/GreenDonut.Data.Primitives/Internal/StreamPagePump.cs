@@ -26,28 +26,37 @@ internal sealed class StreamPagePump<TElement>
     /// The number of pages fed by this pump. The pump releases the source and the lifetime once
     /// this many pages have completed or been disposed.
     /// </param>
+    /// <param name="access">
+    /// The access coordinator shared by every pump that reads from the same source reader.
+    /// </param>
     /// <param name="lifetime">
     /// A resource owned by this pump, disposed once every page has completed or been disposed,
     /// or null if this pump owns nothing beyond the source.
     /// </param>
     /// <param name="primedFirstRow">
-    /// A row already read from <paramref name="source"/> before construction, returned as the
-    /// first result of <see cref="ReadNextAsync"/> without advancing the source again.
+    /// A row already read from <paramref name="source"/> before construction, or null if no row was
+    /// read ahead. When supplied, it is returned as the first result of <see cref="ReadNextAsync"/>
+    /// without advancing the source again.
     /// </param>
     public StreamPagePump(
         IAsyncEnumerator<StreamRow<TElement>> source,
         int pageCount,
-        IAsyncDisposable? lifetime = null,
-        StreamRow<TElement>? primedFirstRow = null)
+        StreamPageAccess access,
+        IAsyncDisposable? lifetime,
+        StreamRow<TElement>? primedFirstRow)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentOutOfRangeException.ThrowIfLessThan(pageCount, 1);
+        ArgumentNullException.ThrowIfNull(access);
 
         _source = source;
         _livePages = pageCount;
         _lifetime = lifetime;
         _primedFirstRow = primedFirstRow;
+        Access = access;
     }
+
+    internal StreamPageAccess Access { get; }
 
     /// <summary>
     /// Reads the next row from the shared source, or null once the source is exhausted.

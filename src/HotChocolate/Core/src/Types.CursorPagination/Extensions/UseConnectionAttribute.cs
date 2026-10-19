@@ -176,7 +176,16 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
             ValidateRelativeCursors(context, options);
             ValidateContext(context, options);
             PublishPagingArguments(context, options);
-            return next(context);
+
+            var task = next(context);
+
+            if (task.IsCompletedSuccessfully)
+            {
+                RegisterResultForCleanup(context);
+                return ValueTask.CompletedTask;
+            }
+
+            return AwaitAndRegisterResultForCleanupAsync(task, context);
         };
 
     private static void ValidateRelativeCursors(
@@ -189,6 +198,22 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
             throw ThrowHelper.PagingHandler_RelativeCursorsNotEnabled(
                 context.Selection.Field,
                 context.Path);
+        }
+    }
+
+    private static async ValueTask AwaitAndRegisterResultForCleanupAsync(
+        ValueTask task,
+        IMiddlewareContext context)
+    {
+        await task.ConfigureAwait(false);
+        RegisterResultForCleanup(context);
+    }
+
+    private static void RegisterResultForCleanup(IMiddlewareContext context)
+    {
+        if (context.Result is IStreamPageConnection connection)
+        {
+            context.RegisterForCleanup(connection.DisposeAsync, CleanAfter.Request);
         }
     }
 

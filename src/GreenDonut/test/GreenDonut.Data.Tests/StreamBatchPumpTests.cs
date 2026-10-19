@@ -149,6 +149,36 @@ public class StreamBatchPumpTests
     }
 
     [Fact]
+    public async Task Readers_Should_SerializeAdvancement_When_DifferentKeysShareAPump()
+    {
+        // arrange
+        var source = new ScriptedAsyncSource<StreamBatchRow<string, string>>(Row("A", "a1"), Row("B", "b1"))
+        {
+            RejectConcurrentMoves = true
+        };
+        var gate = source.GateBeforeItem(1);
+        var pump = await CreatePump(source, ["A", "B"]);
+        var pageA = CreatePage(pump, "A", Definition<string>(requestedCount: 1, forward: true));
+        var pageB = CreatePage(pump, "B", Definition<string>(requestedCount: 1, forward: true));
+        await using var enumeratorA = pageA.GetAsyncEnumerator(TestContext.Current.CancellationToken);
+        await using var enumeratorB = pageB.GetAsyncEnumerator(TestContext.Current.CancellationToken);
+        await enumeratorA.MoveNextAsync();
+
+        // act
+        var advanceB = enumeratorB.MoveNextAsync().AsTask();
+        await source.WaitForGateAsync(1).WaitAsync(TestContext.Current.CancellationToken);
+        var advanceA = enumeratorA.MoveNextAsync().AsTask();
+        var aWasWaiting = !advanceA.IsCompleted;
+        gate.TrySetResult();
+        var advances = (await advanceA, await advanceB);
+        await pageB.DisposeAsync();
+
+        // assert
+        Assert.True(aWasWaiting);
+        Assert.Equal((false, true), advances);
+    }
+
+    [Fact]
     public async Task Enumerators_Should_Interleave_AcrossKeys_OverTheSharedPump()
     {
         // arrange
@@ -283,7 +313,8 @@ public class StreamBatchPumpTests
         var exception = await Assert.ThrowsAsync<ArgumentException>(
             () => StreamBatchPump<string, string>.CreateAsync(
                 source.GetAsyncEnumerator(TestContext.Current.CancellationToken),
-                ["A", "B", "A"]).AsTask());
+                ["A", "B", "A"],
+                lifetime: null).AsTask());
 
         // assert
         Assert.Equal("keys", exception.ParamName);
@@ -652,7 +683,7 @@ public class StreamBatchPumpTests
         => new() { Key = key, Item = item };
 
     private static async Task<StreamBatchPump<TKey, TElement>> CreatePump<TKey, TElement>(
-        ScriptedAsyncSource<StreamBatchRow<TKey, TElement>> source,
+        IAsyncEnumerable<StreamBatchRow<TKey, TElement>> source,
         IReadOnlyCollection<TKey> keys,
         IAsyncDisposable? lifetime = null)
         where TKey : notnull

@@ -63,6 +63,27 @@ internal sealed partial class OperationContext
 
     public bool IsInitialized => _isInitialized;
 
+    /// <summary>
+    /// Gets or sets the collector for the request cleanup of an incremental operation,
+    /// or <c>null</c> when the operation has no incremental parts.
+    /// </summary>
+    internal RequestCleanup? RequestCleanup { get; set; }
+
+    /// <summary>
+    /// Registers a cleanup action that runs when the request ends. In an incremental operation,
+    /// the action is registered with the request cleanup of the response stream.
+    /// </summary>
+    internal void RegisterRequestCleanup(Func<ValueTask> action)
+    {
+        if (RequestCleanup is { } requestCleanup)
+        {
+            requestCleanup.Register(action);
+            return;
+        }
+
+        Result.RegisterForCleanup(action);
+    }
+
     public bool IsSharedScheduler => !ReferenceEquals(_workScheduler, _currentWorkScheduler);
 
     public void Initialize(
@@ -146,6 +167,7 @@ internal sealed partial class OperationContext
         _resolveQueryRootValue = context._resolveQueryRootValue;
         _batchDispatcher = context._batchDispatcher;
         _memory = context._memory;
+        RequestCleanup = context.RequestCleanup;
         _currentBranchTracker = context._currentBranchTracker;
         _currentWorkScheduler = context._currentWorkScheduler;
         _currentDeferExecutionCoordinator = context._currentDeferExecutionCoordinator;
@@ -202,6 +224,7 @@ internal sealed partial class OperationContext
             _resolveQueryRootValue = null!;
             _batchDispatcher = null!;
             _memory = null;
+            RequestCleanup = null;
             _branchId = int.MinValue;
             _propagateNullValues = false;
             _isInitialized = false;

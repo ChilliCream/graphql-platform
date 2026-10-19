@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using GreenDonut.Data.Internal;
 
 namespace GreenDonut.Data;
@@ -8,18 +9,15 @@ namespace GreenDonut.Data;
 /// <typeparam name="T">
 /// The type of the items.
 /// </typeparam>
-/// <remarks>
-/// The source is read once; enumerating the page more than once, or enumerating it with more
-/// than one enumerator at a time, replays or shares the same buffered rows. This type has no
-/// cross-thread safety, the same stance as <c>DbContext</c>.
-/// </remarks>
 public abstract class StreamPage<T> : IAsyncEnumerable<T>, IAsyncDisposable
 {
     private readonly StreamPageSource<T> _source;
+    private readonly StreamPageAccess _access;
 
     private protected StreamPage(StreamPageSource<T> source, int? index)
     {
         _source = source;
+        _access = source.Access;
         Index = index;
     }
 
@@ -47,7 +45,7 @@ public abstract class StreamPage<T> : IAsyncEnumerable<T>, IAsyncDisposable
     /// A token to cancel the enumeration.
     /// </param>
     public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
-        => _source.GetValuesAsync(cancellationToken).GetAsyncEnumerator(cancellationToken);
+        => GetValuesAsync(cancellationToken).GetAsyncEnumerator(cancellationToken);
 
     /// <summary>
     /// Enumerates the entries of this page, bundling each item with its position.
@@ -56,7 +54,7 @@ public abstract class StreamPage<T> : IAsyncEnumerable<T>, IAsyncDisposable
     /// A token to cancel the enumeration.
     /// </param>
     public IAsyncEnumerable<PageEntry<T>> GetEntriesAsync(CancellationToken cancellationToken = default)
-        => _source.GetEntriesAsync(cancellationToken);
+        => GetEntriesCore(cancellationToken);
 
     /// <summary>
     /// Gets the total count of items in the dataset, reading ahead only as far as needed.
@@ -68,7 +66,7 @@ public abstract class StreamPage<T> : IAsyncEnumerable<T>, IAsyncDisposable
     /// Returns the total count, or null if it was not requested.
     /// </returns>
     public ValueTask<int?> TotalCountAsync(CancellationToken cancellationToken = default)
-        => _source.TotalCountAsync(cancellationToken);
+        => GetTotalCountAsync(cancellationToken);
 
     /// <summary>
     /// Gets a value indicating whether there is a next page, reading ahead only as far as needed.
@@ -77,7 +75,7 @@ public abstract class StreamPage<T> : IAsyncEnumerable<T>, IAsyncDisposable
     /// A token to cancel the operation.
     /// </param>
     public ValueTask<bool> HasNextPageAsync(CancellationToken cancellationToken = default)
-        => _source.HasNextPageAsync(cancellationToken);
+        => GetHasNextPageAsync(cancellationToken);
 
     /// <summary>
     /// Gets a value indicating whether there is a previous page, reading ahead only as far as
@@ -87,7 +85,7 @@ public abstract class StreamPage<T> : IAsyncEnumerable<T>, IAsyncDisposable
     /// A token to cancel the operation.
     /// </param>
     public ValueTask<bool> HasPreviousPageAsync(CancellationToken cancellationToken = default)
-        => _source.HasPreviousPageAsync(cancellationToken);
+        => GetHasPreviousPageAsync(cancellationToken);
 
     /// <summary>
     /// Creates a cursor for an entry of this page.
@@ -132,7 +130,112 @@ public abstract class StreamPage<T> : IAsyncEnumerable<T>, IAsyncDisposable
     /// the source; disposing a completed page is a no-op, and its buffered items stay readable
     /// either way.
     /// </summary>
-    public ValueTask DisposeAsync() => _source.DisposeAsync();
+    public async ValueTask DisposeAsync()
+    {
+        using (await _access.EnterAsync(CancellationToken.None).ConfigureAwait(false))
+        {
+            await _source.DisposeAsync().ConfigureAwait(false);
+        }
+    }
+
+    internal IAsyncEnumerable<PageEntry<T>> GetEntriesUnsafeAsync(CancellationToken cancellationToken)
+        => _source.GetEntriesAsync(cancellationToken);
+
+    internal ValueTask DisposeUnsafeAsync() => _source.DisposeAsync();
 
     protected abstract string CreateCursor(int index, int offset, int pageIndex, int totalCount);
+
+    private async ValueTask<int?> GetTotalCountAsync(CancellationToken cancellationToken)
+    {
+        using (await _access.EnterAsync(cancellationToken).ConfigureAwait(false))
+        {
+            return await _source.TotalCountAsync(cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private async ValueTask<bool> GetHasNextPageAsync(CancellationToken cancellationToken)
+    {
+        using (await _access.EnterAsync(cancellationToken).ConfigureAwait(false))
+        {
+            return await _source.HasNextPageAsync(cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private async ValueTask<bool> GetHasPreviousPageAsync(CancellationToken cancellationToken)
+    {
+        using (await _access.EnterAsync(cancellationToken).ConfigureAwait(false))
+        {
+            return await _source.HasPreviousPageAsync(cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private async IAsyncEnumerable<T> GetValuesAsync(
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var enumerator = _source
+            .GetValuesAsync(cancellationToken)
+            .GetAsyncEnumerator(cancellationToken);
+
+        try
+        {
+            while (true)
+            {
+                T item;
+
+                using (await _access.EnterAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    if (!await enumerator.MoveNextAsync().ConfigureAwait(false))
+                    {
+                        yield break;
+                    }
+
+                    item = enumerator.Current;
+                }
+
+                yield return item;
+            }
+        }
+        finally
+        {
+            using (await _access.EnterAsync(CancellationToken.None).ConfigureAwait(false))
+            {
+                await enumerator.DisposeAsync().ConfigureAwait(false);
+            }
+        }
+    }
+
+    private async IAsyncEnumerable<PageEntry<T>> GetEntriesCore(
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var enumerator = _source
+            .GetEntriesAsync(cancellationToken)
+            .GetAsyncEnumerator(cancellationToken);
+
+        try
+        {
+            while (true)
+            {
+                PageEntry<T> entry;
+
+                using (await _access.EnterAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    if (!await enumerator.MoveNextAsync().ConfigureAwait(false))
+                    {
+                        yield break;
+                    }
+
+                    entry = enumerator.Current;
+                }
+
+                yield return entry;
+            }
+        }
+        finally
+        {
+            using (await _access.EnterAsync(CancellationToken.None).ConfigureAwait(false))
+            {
+                await enumerator.DisposeAsync().ConfigureAwait(false);
+            }
+        }
+    }
 }

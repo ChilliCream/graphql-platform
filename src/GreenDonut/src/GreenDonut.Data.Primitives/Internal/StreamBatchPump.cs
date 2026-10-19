@@ -22,6 +22,7 @@ internal sealed class StreamBatchPump<TKey, TElement>
     where TKey : notnull
 {
     private readonly IAsyncEnumerator<StreamBatchRow<TKey, TElement>> _source;
+    private readonly StreamPageAccess _access = new();
     private readonly Dictionary<TKey, KeyChannel> _keys;
     private IAsyncDisposable? _lifetime;
     private int _liveKeys;
@@ -75,7 +76,7 @@ internal sealed class StreamBatchPump<TKey, TElement>
     public static async ValueTask<StreamBatchPump<TKey, TElement>?> CreateAsync(
         IAsyncEnumerator<StreamBatchRow<TKey, TElement>> source,
         IReadOnlyCollection<TKey> keys,
-        IAsyncDisposable? lifetime = null)
+        IAsyncDisposable? lifetime)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(keys);
@@ -189,7 +190,12 @@ internal sealed class StreamBatchPump<TKey, TElement>
             throw ThrowHelper.StreamBatchPump_KeyAlreadyHasPage(key);
         }
 
-        return new StreamPagePump<TElement>(new KeyReader(this, key), pageCount: 1);
+        return new StreamPagePump<TElement>(
+            new KeyReader(this, key),
+            pageCount: 1,
+            access: _access,
+            lifetime: null,
+            primedFirstRow: null);
     }
 
     private void RegisterDrain<TValue>(TKey key, StreamPage<TValue> page)
@@ -203,7 +209,7 @@ internal sealed class StreamBatchPump<TKey, TElement>
     {
         try
         {
-            await foreach (var _ in page.GetEntriesAsync(cancellationToken).ConfigureAwait(false))
+            await foreach (var _ in page.GetEntriesUnsafeAsync(cancellationToken).ConfigureAwait(false))
             {
                 // Only the buffering side effect is needed; entries are discarded.
             }
@@ -212,7 +218,7 @@ internal sealed class StreamBatchPump<TKey, TElement>
         {
             try
             {
-                await page.DisposeAsync().ConfigureAwait(false);
+                await page.DisposeUnsafeAsync().ConfigureAwait(false);
             }
             catch (Exception disposeException)
             {

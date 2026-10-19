@@ -1951,6 +1951,19 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     Writer.WriteIndentedLine("}");
                     Writer.WriteLine();
                     Writer.WriteIndentedLine(
+                        "var args{0}_includeItems = !args{0}_includeTotalCount",
+                        i);
+                    using (Writer.IncreaseIndent())
+                    {
+                        Writer.WriteIndentedLine(
+                            "|| (args{0}_flags & ~global::{1}.TotalCount) != global::{1}.None",
+                            i,
+                            WellKnownTypes.ConnectionFlags);
+                        Writer.WriteIndentedLine("|| context.Select().IsSelected(\"pageInfo\");");
+                    }
+
+                    Writer.WriteLine();
+                    Writer.WriteIndentedLine(
                         "var args{0} = new global::{1}(",
                         i,
                         WellKnownTypes.PagingArguments);
@@ -1964,6 +1977,9 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         Writer.WriteIndentedLine("{");
                         using (Writer.IncreaseIndent())
                         {
+                            Writer.WriteIndentedLine(
+                                "IncludeItems = args{0}_includeItems,",
+                                i);
                             Writer.WriteIndentedLine(
                                 "EnableRelativeCursors = args{0}_flags.HasFlag(global::{1}.RelativeCursor),",
                                 i,

@@ -49,6 +49,17 @@ public class StreamPageConnectionTests
     }
 
     [Fact]
+    public void StreamPageConnection_Should_NotImplementIAsyncDisposable()
+    {
+        // act
+        var implementsAsyncDisposable = typeof(IAsyncDisposable)
+            .IsAssignableFrom(typeof(StreamPageConnection<Item>));
+
+        // assert
+        Assert.False(implementsAsyncDisposable);
+    }
+
+    [Fact]
     public async Task GetEdgesAsync_Should_PreserveEntryCursors_When_PageIsEnumerated()
     {
         // arrange

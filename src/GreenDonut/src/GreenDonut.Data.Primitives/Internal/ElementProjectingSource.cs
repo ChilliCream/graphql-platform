@@ -14,7 +14,7 @@ namespace GreenDonut.Data.Internal;
 /// </typeparam>
 internal sealed class ElementProjectingSource<TElement, TValue>(
     StreamPageBuffer<TElement> buffer,
-    Func<TElement, TValue> valueSelector) : StreamPageSource<TValue>
+    Func<TElement, TValue> valueSelector) : StreamPageSource<TValue>(buffer.Access)
 {
     private readonly List<TValue> _values = [];
 

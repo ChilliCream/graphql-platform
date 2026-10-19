@@ -393,7 +393,12 @@ public static class StreamPagingQueryableExtensions
             }
         }
 
-        var pump = new StreamPagePump<T>(enumerator, pageCount: 1, lifetime, firstRow);
+        var pump = new StreamPagePump<T>(
+            enumerator,
+            pageCount: 1,
+            access: new StreamPageAccess(),
+            lifetime: lifetime,
+            primedFirstRow: firstRow);
         var createCursor = CreateCursorFactory<T>(keys, relativeShaped: index is not null);
         var definition = new StreamPageDefinition<T>(
             RequestedCount: requestedCount,

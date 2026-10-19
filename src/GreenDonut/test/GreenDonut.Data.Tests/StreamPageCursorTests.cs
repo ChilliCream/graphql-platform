@@ -58,7 +58,9 @@ public class StreamPageCursorTests
         var source = new ScriptedAsyncSource<StreamBatchRow<string, int>>(Row("A", 1), Row("A", 2), Row("B", 3));
         var gate = source.GateBeforeItem(2);
         var pump = (await StreamBatchPump<string, int>.CreateAsync(
-            source.GetAsyncEnumerator(TestContext.Current.CancellationToken), ["A", "B"]))!;
+            source.GetAsyncEnumerator(TestContext.Current.CancellationToken),
+            ["A", "B"],
+            lifetime: null))!;
         _ = pump.CreatePage(
             "A",
             Definition(requestedCount: 1),
@@ -159,7 +161,9 @@ public class StreamPageCursorTests
         var source = new ScriptedAsyncSource<StreamBatchRow<string, int>>(Row("A", 1), Row("A", 2), Row("B", 3));
         var gate = source.GateBeforeItem(2);
         var pump = (await StreamBatchPump<string, int>.CreateAsync(
-            source.GetAsyncEnumerator(TestContext.Current.CancellationToken), ["A", "B"]))!;
+            source.GetAsyncEnumerator(TestContext.Current.CancellationToken),
+            ["A", "B"],
+            lifetime: null))!;
         _ = pump.CreatePage(
             "A",
             Definition(requestedCount: 1),
@@ -191,7 +195,9 @@ public class StreamPageCursorTests
         var source = new ScriptedAsyncSource<StreamBatchRow<string, int>>(Row("A", 1), Row("A", 2), Row("B", 3));
         var gate = source.GateBeforeItem(2);
         var pump = (await StreamBatchPump<string, int>.CreateAsync(
-            source.GetAsyncEnumerator(TestContext.Current.CancellationToken), ["A", "B"]))!;
+            source.GetAsyncEnumerator(TestContext.Current.CancellationToken),
+            ["A", "B"],
+            lifetime: null))!;
         _ = pump.CreatePage(
             "A",
             Definition(requestedCount: 1),
@@ -384,7 +390,12 @@ public class StreamPageCursorTests
         ScriptedRowSource<int> source,
         StreamPageDefinition<int> definition)
     {
-        var pump = new StreamPagePump<int>(source.GetAsyncEnumerator(), pageCount: 1);
+        var pump = new StreamPagePump<int>(
+            source.GetAsyncEnumerator(),
+            pageCount: 1,
+            access: new StreamPageAccess(),
+            lifetime: null,
+            primedFirstRow: null);
         return ValueCursorStreamPage<int>.CreatePrimedAsync(
             pump,
             definition,

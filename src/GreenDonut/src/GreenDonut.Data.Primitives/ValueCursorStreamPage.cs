@@ -17,7 +17,13 @@ internal sealed class ValueCursorStreamPage<T> : StreamPage<T>
         StreamPagePump<T>? pump,
         StreamPageDefinition<T> definition,
         Func<EdgeEntry<T>, string> createCursor)
-        : this(new StreamPageBuffer<T>(pump, definition), definition.Index, createCursor)
+        : this(
+            new StreamPageBuffer<T>(
+                pump,
+                definition,
+                pump is null ? new StreamPageAccess() : pump.Access),
+            definition.Index,
+            createCursor)
     {
     }
 

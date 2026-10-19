@@ -54,12 +54,27 @@ internal sealed class DeferTask : ExecutionTask
             s_pool.Return(bufferedTasks);
         }
 
-        // ... and then wait for the scheduler to complete the deferred tasks.
-        await deferContext.Scheduler.WaitForCompletionAsync(_executionBranchId);
+        try
+        {
+            // ... and then wait for the scheduler to complete the deferred tasks.
+            await deferContext.Scheduler.WaitForCompletionAsync(_executionBranchId);
 
-        // once the execution branch has completed we enqueue the completed
-        // result with the defer coordinator so it can be delivered.
-        deferContext.DeferExecutionCoordinator.EnqueueResult(deferContext.BuildResult(), _executionBranchId);
+            // once the execution branch has completed we enqueue the completed
+            // result with the defer coordinator so it can be delivered.
+            var result = deferContext.BuildResult();
+            deferContext.DeferExecutionCoordinator.EnqueueResult(result, _executionBranchId);
+        }
+        finally
+        {
+            // the request cleanup registered by the deferred resolvers is handed to the collector of
+            // the response stream, also when the branch faults or is cancelled, before the context is reset.
+            var requestCleanup = deferContext.RequestCleanup!;
+
+            foreach (var cleanupTask in deferContext.Result.TakeCleanupTasks())
+            {
+                requestCleanup.Register(cleanupTask);
+            }
+        }
     }
 
     protected override ValueTask OnAfterCompletedAsync(CancellationToken cancellationToken)

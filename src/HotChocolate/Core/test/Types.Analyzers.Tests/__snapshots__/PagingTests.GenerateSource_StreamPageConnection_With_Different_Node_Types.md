@@ -787,6 +787,10 @@ namespace TestNamespace.Types.Root
                     args0_includeTotalCount = args0_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.TotalCount);
                 }
 
+                var args0_includeItems = !args0_includeTotalCount
+                    || (args0_flags & ~global::HotChocolate.Types.Pagination.ConnectionFlags.TotalCount) != global::HotChocolate.Types.Pagination.ConnectionFlags.None
+                    || context.Select().IsSelected("pageInfo");
+
                 var args0 = new global::GreenDonut.Data.PagingArguments(
                     args0_first,
                     args0_after,
@@ -794,6 +798,7 @@ namespace TestNamespace.Types.Root
                     args0_before,
                     args0_includeTotalCount)
                     {
+                        IncludeItems = args0_includeItems,
                         EnableRelativeCursors = args0_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.RelativeCursor),
                         NullOrdering = args0_options.NullOrdering
                     };
@@ -831,6 +836,10 @@ namespace TestNamespace.Types.Root
                     args0_includeTotalCount = args0_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.TotalCount);
                 }
 
+                var args0_includeItems = !args0_includeTotalCount
+                    || (args0_flags & ~global::HotChocolate.Types.Pagination.ConnectionFlags.TotalCount) != global::HotChocolate.Types.Pagination.ConnectionFlags.None
+                    || context.Select().IsSelected("pageInfo");
+
                 var args0 = new global::GreenDonut.Data.PagingArguments(
                     args0_first,
                     args0_after,
@@ -838,6 +847,7 @@ namespace TestNamespace.Types.Root
                     args0_before,
                     args0_includeTotalCount)
                     {
+                        IncludeItems = args0_includeItems,
                         EnableRelativeCursors = args0_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.RelativeCursor),
                         NullOrdering = args0_options.NullOrdering
                     };

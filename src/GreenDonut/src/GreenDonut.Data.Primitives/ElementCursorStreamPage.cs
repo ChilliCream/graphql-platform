@@ -22,7 +22,14 @@ internal sealed class ElementCursorStreamPage<TElement, TValue> : StreamPage<TVa
         StreamPageDefinition<TElement> definition,
         Func<TElement, TValue> valueSelector,
         Func<EdgeEntry<TElement>, string> createCursor)
-        : this(new StreamPageBuffer<TElement>(pump, definition), definition.Index, valueSelector, createCursor)
+        : this(
+            new StreamPageBuffer<TElement>(
+                pump,
+                definition,
+                pump is null ? new StreamPageAccess() : pump.Access),
+            definition.Index,
+            valueSelector,
+            createCursor)
     {
     }
 
