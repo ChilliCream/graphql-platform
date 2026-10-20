@@ -509,4 +509,199 @@ public class OperationMergePolicyTests : FusionTestBase
           }
         }
         """;
+    [Fact]
+    public void Plan_Should_KeepIdenticalLookupsSeparate_When_MergePolicyIsNoneAndGroupingIsDisabled()
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = FusionTestBase.PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { topProduct { name } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.None,
+                EnableRequestGrouping = false
+            });
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_BatchSeparateLookups_When_MergePolicyIsNone()
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = FusionTestBase.PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { topProduct { name } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.None,
+                EnableRequestGrouping = true
+            });
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_MergeSameDepthLookups_When_MergePolicyIsConservative(bool grouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = FusionTestBase.PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { topProduct { name } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.Conservative,
+                EnableRequestGrouping = grouping
+            });
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_MergeSameDepthLookups_When_MergePolicyIsBalanced(bool grouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = FusionTestBase.PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { topProduct { name } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.Balanced,
+                EnableRequestGrouping = grouping
+            });
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_MergeSameDepthLookups_When_MergePolicyIsAggressive(bool grouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = FusionTestBase.PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { topProduct { name } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.Aggressive,
+                EnableRequestGrouping = grouping
+            });
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_KeepUnrelatedLookupsSeparate_When_RequestGroupingIsDisabled()
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = FusionTestBase.PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { topProduct { name } }
+              other: products { price }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.Aggressive,
+                EnableRequestGrouping = false
+            });
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    private static FusionSchemaDefinition CreateLookupPolicySchema()
+        => ComposeSchema(
+            """
+            type Query {
+              products: [Product!]!
+              brands: [Brand!]!
+            }
+
+            type Product @key(fields: "id") { id: ID! }
+
+            type Brand @key(fields: "id") {
+              id: ID!
+              topProduct: Product!
+            }
+            """,
+            """
+            type Query {
+              brandById(id: ID! @is(field: "id")): Brand @lookup @internal
+            }
+
+            type Brand @key(fields: "id") {
+              id: ID!
+              featured: Product!
+            }
+
+            type Product @key(fields: "id") { id: ID! }
+            """,
+            """
+            type Query {
+              productById(id: ID! @is(field: "id")): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              name: String!
+              price: Int!
+            }
+            """);
 }
