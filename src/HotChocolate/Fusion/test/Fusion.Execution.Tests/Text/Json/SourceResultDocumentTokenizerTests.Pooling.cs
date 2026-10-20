@@ -1,6 +1,4 @@
 using System.Buffers;
-using System.Diagnostics.Tracing;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
@@ -11,21 +9,19 @@ public partial class SourceResultDocumentTokenizerTests
 {
     [Theory]
     [MemberData(nameof(StitchedInputs))]
-    public void Parse_Should_ReturnStitchBuffers_When_ParsingEnds(string input, bool accepted)
+    public void Parse_Should_ReturnTemporaryBuffers_When_ParsingEnds(string input, bool accepted)
     {
         // arrange
         var bytes = Encoding.UTF8.GetBytes(input);
         var (segments, usedChunks, lastLength) = CreateSegments(bytes, ChunkLayout.Separate);
         using var arena = new MemoryArena();
-        using var listener = new BytePoolListener();
+        var pool = new TrackingArrayPool();
 
         // act
-        listener.Start();
         var exception = Record.Exception(() =>
         {
-            using var document = SourceResultDocument.ParseFilled(arena, segments, usedChunks, lastLength);
+            using var document = SourceResultDocument.ParseFilled(arena, segments, usedChunks, lastLength, pool);
         });
-        listener.Stop();
         arena.Seal();
 
         // assert
@@ -38,8 +34,9 @@ public partial class SourceResultDocumentTokenizerTests
             Assert.IsAssignableFrom<JsonException>(exception);
         }
 
-        Assert.True(listener.RentCount > 0);
-        Assert.Empty(listener.Outstanding);
+        Assert.True(pool.RentCount > 0);
+        Assert.Equal(pool.RentCount, pool.ReturnCount);
+        Assert.Empty(pool.Outstanding);
     }
 
     public static TheoryData<string, bool> StitchedInputs()
@@ -59,51 +56,31 @@ public partial class SourceResultDocumentTokenizerTests
         };
     }
 
-    private sealed class BytePoolListener : EventListener
+    private sealed class TrackingArrayPool : ArrayPool<byte>
     {
-        private readonly int _poolId = RuntimeHelpers.GetHashCode(ArrayPool<byte>.Shared);
-        private readonly Dictionary<int, int> _outstanding = [];
-        private int _threadId;
+        public HashSet<byte[]> Outstanding { get; } = [];
 
         public int RentCount { get; private set; }
 
-        public IEnumerable<int> Outstanding => _outstanding.Where(t => t.Value != 0).Select(t => t.Key);
+        public int ReturnCount { get; private set; }
 
-        public void Start() => _threadId = Environment.CurrentManagedThreadId;
-
-        public void Stop() => _threadId = 0;
-
-        protected override void OnEventSourceCreated(EventSource eventSource)
+        public override byte[] Rent(int minimumLength)
         {
-            if (eventSource.Name == "System.Buffers.ArrayPoolEventSource")
-            {
-                EnableEvents(eventSource, EventLevel.Verbose);
-            }
+            var buffer = new byte[minimumLength];
+            Outstanding.Add(buffer);
+            RentCount++;
+            return buffer;
         }
 
-        protected override void OnEventWritten(EventWrittenEventArgs eventData)
+        public override void Return(byte[] array, bool clearArray)
         {
-            if (_threadId != Environment.CurrentManagedThreadId
-                || eventData.EventName is not ("BufferRented" or "BufferReturned")
-                || eventData.Payload is not { Count: >= 3 } payload
-                || payload[2] is not int poolId
-                || poolId != _poolId)
+            if (clearArray)
             {
-                return;
+                array.AsSpan().Clear();
             }
 
-            var bufferId = (int)payload[0]!;
-            _outstanding.TryGetValue(bufferId, out var count);
-
-            if (eventData.EventName == "BufferRented")
-            {
-                RentCount++;
-                _outstanding[bufferId] = count + 1;
-            }
-            else
-            {
-                _outstanding[bufferId] = count - 1;
-            }
+            Outstanding.Remove(array);
+            ReturnCount++;
         }
     }
 }

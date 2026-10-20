@@ -33,7 +33,13 @@ public sealed partial class SourceResultDocument
 
             try
             {
-                ParseJson<SingleWindow>(data.AsSpan(0, size), segments: null, size, singleChunk: true, ref metaDb);
+                ParseJson<SingleWindow>(
+                    data.AsSpan(0, size),
+                    segments: null,
+                    size,
+                    singleChunk: true,
+                    ref metaDb,
+                    ArrayPool<byte>.Shared);
             }
             catch
             {
@@ -86,7 +92,13 @@ public sealed partial class SourceResultDocument
 
         try
         {
-            ParseJson<SingleWindow>(input.FirstSpan, segments: null, length, singleChunk: usedChunks == 1, ref metaDb);
+            ParseJson<SingleWindow>(
+                input.FirstSpan,
+                segments: null,
+                length,
+                singleChunk: usedChunks == 1,
+                ref metaDb,
+                ArrayPool<byte>.Shared);
         }
         catch
         {
@@ -109,8 +121,17 @@ public sealed partial class SourceResultDocument
         MemorySegment[] segments,
         int usedChunks,
         int lastLength)
+        => ParseFilled(arena, segments, usedChunks, lastLength, ArrayPool<byte>.Shared);
+
+    internal static SourceResultDocument ParseFilled(
+        IMemoryArena arena,
+        MemorySegment[] segments,
+        int usedChunks,
+        int lastLength,
+        ArrayPool<byte> bufferPool)
     {
         ArgumentNullException.ThrowIfNull(arena);
+        ArgumentNullException.ThrowIfNull(bufferPool);
         Debug.Assert(usedChunks > 0, "data must contain at least one chunk.");
 
         var length = lastLength;
@@ -125,7 +146,7 @@ public sealed partial class SourceResultDocument
 
         try
         {
-            ParseJson(segments, usedChunks, length, ref metaDb);
+            ParseJson(segments, usedChunks, length, ref metaDb, bufferPool);
         }
         catch
         {

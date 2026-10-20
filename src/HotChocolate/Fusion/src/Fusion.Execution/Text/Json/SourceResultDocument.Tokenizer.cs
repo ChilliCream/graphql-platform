@@ -41,13 +41,20 @@ public sealed partial class SourceResultDocument
         MemorySegment[] segments,
         int usedChunks,
         int length,
-        ref MetaDb metaDb)
+        ref MetaDb metaDb,
+        ArrayPool<byte> bufferPool)
     {
         var first = segments[0];
 
         if (usedChunks == 1)
         {
-            ParseJson<SingleWindow>(first.Buffer.AsSpan(first.Offset, length), null, length, singleChunk: true, ref metaDb);
+            ParseJson<SingleWindow>(
+                first.Buffer.AsSpan(first.Offset, length),
+                null,
+                length,
+                singleChunk: true,
+                ref metaDb,
+                bufferPool);
             return;
         }
 
@@ -56,11 +63,11 @@ public sealed partial class SourceResultDocument
 
         if (runLength == length)
         {
-            ParseJson<SingleWindow>(data, null, length, singleChunk: false, ref metaDb);
+            ParseJson<SingleWindow>(data, null, length, singleChunk: false, ref metaDb, bufferPool);
             return;
         }
 
-        ParseJson<MultipleWindows>(data, segments, length, singleChunk: false, ref metaDb);
+        ParseJson<MultipleWindows>(data, segments, length, singleChunk: false, ref metaDb, bufferPool);
     }
 
     /// <summary>
@@ -77,6 +84,7 @@ public sealed partial class SourceResultDocument
     /// <c>true</c> when the whole input lies in data chunk 0, so a linear offset is its packed location.
     /// </param>
     /// <param name="metaDb">The database that receives one row per token.</param>
+    /// <param name="bufferPool">The owner of temporary byte buffers.</param>
     /// <typeparam name="TMode">Whether the input is read in more than one window.</typeparam>
     [SkipLocalsInit]
     private static void ParseJson<TMode>(
@@ -84,7 +92,8 @@ public sealed partial class SourceResultDocument
         MemorySegment[]? segments,
         int length,
         bool singleChunk,
-        ref MetaDb metaDb)
+        ref MetaDb metaDb,
+        ArrayPool<byte> bufferPool)
         where TMode : struct, IWindowMode
     {
         Span<Container> containers = stackalloc Container[MaxSourceDepth];
@@ -101,7 +110,7 @@ public sealed partial class SourceResultDocument
         // in the input, and a step that reaches the end of a window that is not the last one resumes
         // at resumeStep in the next window.
         scoped ReadOnlySpan<byte> data = input;
-        var windows = new InputWindows(segments, length);
+        var windows = new InputWindows(segments, length, bufferPool);
         var offset = 0;
         var isFinal = data.Length == length;
         var position = 0;
@@ -234,7 +243,7 @@ ReadValue:
                             goto IncompleteValue;
                         }
 
-                        end = ReadNumberAtEndOfInput(data, position, offset);
+                        end = ReadNumberAtEndOfInput(data, position, offset, bufferPool);
                     }
 
                     AppendNumberToken(ref metaDb, location, end - position);
@@ -889,11 +898,15 @@ NextWindow:
     /// Reads the number that starts at <paramref name="start"/> and ends with the input, and returns
     /// the end of <paramref name="data"/>.
     /// </summary>
-    private static int ReadNumberAtEndOfInput(ReadOnlySpan<byte> data, int start, int offset)
+    private static int ReadNumberAtEndOfInput(
+        ReadOnlySpan<byte> data,
+        int start,
+        int offset,
+        ArrayPool<byte> bufferPool)
     {
         // The number is read again followed by a delimiter, which ends a complete number.
         var number = data[start..];
-        var buffer = ArrayPool<byte>.Shared.Rent(number.Length + 1);
+        var buffer = bufferPool.Rent(number.Length + 1);
 
         try
         {
@@ -907,7 +920,7 @@ NextWindow:
         }
         finally
         {
-            ArrayPool<byte>.Shared.Return(buffer);
+            bufferPool.Return(buffer);
         }
 
         return data.Length;
@@ -991,7 +1004,7 @@ NextWindow:
     /// <summary>
     /// The windows of an input that lies in gap-free data chunks.
     /// </summary>
-    private struct InputWindows(MemorySegment[]? segments, int length)
+    private struct InputWindows(MemorySegment[]? segments, int length, ArrayPool<byte> bufferPool)
     {
         private byte[]? _stitch;
 
@@ -1032,7 +1045,7 @@ NextWindow:
             if (_stitch is null || _stitch.Length < stitchLength)
             {
                 ReturnStitch();
-                _stitch = ArrayPool<byte>.Shared.Rent(stitchLength);
+                _stitch = bufferPool.Rent(stitchLength);
             }
 
             var written = 0;
@@ -1059,7 +1072,7 @@ NextWindow:
             if (_stitch is not null)
             {
                 _stitch.AsSpan().Clear();
-                ArrayPool<byte>.Shared.Return(_stitch);
+                bufferPool.Return(_stitch);
                 _stitch = null;
             }
         }
