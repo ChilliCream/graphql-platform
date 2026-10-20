@@ -30,6 +30,9 @@ public class MartenQueryableFilterProvider : QueryableFilterProvider
     {
     }
 
+    public override IQueryBuilder CreateBuilder<TEntityType>(string argumentName)
+        => new MartenQueryBuilder<TEntityType>(base.CreateBuilder<TEntityType>(argumentName));
+
     /// <inheritdoc cref="FilterProvider{TContext}"/>
     protected override void Configure(IFilterProviderDescriptor<QueryableFilterContext> descriptor)
     {
