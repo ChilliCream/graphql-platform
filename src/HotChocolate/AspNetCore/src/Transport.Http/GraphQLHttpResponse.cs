@@ -676,7 +676,8 @@ public sealed class GraphQLHttpResponse : IDisposable
     /// <param name="arenaSource">The source of arenas that back the produced documents.</param>
     /// <param name="requireStreaming">
     /// When <c>true</c>, a response that is not delivered over a streaming transport (Server-Sent Events
-    /// or JSON Lines) is rejected. A subscription requires a streaming response.
+    /// or JSON Lines) is rejected, and every JSON Lines record is backed by its own arena. A subscription
+    /// requires a streaming response.
     /// </param>
     /// <returns>
     /// A <see cref="IAsyncEnumerable{T}"/> of <see cref="SourceResultDocument"/> that represents the asynchronous
@@ -694,7 +695,8 @@ public sealed class GraphQLHttpResponse : IDisposable
     /// <param name="arenaSource">The source of arenas that back the produced documents.</param>
     /// <param name="requireStreaming">
     /// When <c>true</c>, a response that is not delivered over a streaming transport (Server-Sent Events
-    /// or JSON Lines) is rejected. A subscription requires a streaming response.
+    /// or JSON Lines) is rejected, and every JSON Lines record is backed by its own arena. A subscription
+    /// requires a streaming response.
     /// </param>
     /// <param name="readTimeout">
     /// The maximum time between two reads of data from a streaming response (Server-Sent Events or
@@ -737,7 +739,11 @@ public sealed class GraphQLHttpResponse : IDisposable
         if (mediaType.Equals(ContentType.GraphQLJsonLine, StringComparison.OrdinalIgnoreCase)
             || mediaType.Equals(ContentType.JsonLine, StringComparison.OrdinalIgnoreCase))
         {
-            return new JsonLinesReader(_message, arenaSource, readTimeout);
+            // A subscription keeps one arena per event; any other response reads all records into
+            // one arena and parses them in place.
+            return requireStreaming
+                ? new JsonLinesReader(_message, arenaSource, readTimeout)
+                : new ArenaJsonLinesReader(_message, arenaSource, readTimeout);
         }
 
         if (requireStreaming)

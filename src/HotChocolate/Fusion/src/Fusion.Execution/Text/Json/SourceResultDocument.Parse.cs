@@ -182,6 +182,80 @@ public sealed partial class SourceResultDocument
     }
 
     /// <summary>
+    /// Parses the JSON value stored at the gap-free linear byte range that starts at
+    /// <paramref name="start"/> and spans <paramref name="length"/> bytes of the shared filled arena
+    /// segments <paramref name="segments"/>. The produced document's packed data locations point into
+    /// those shared segments, so no bytes are copied.
+    /// </summary>
+    internal static SourceResultDocument ParseFilledRange(
+        IMemoryArena arena,
+        MemorySegment[] segments,
+        int usedChunks,
+        long start,
+        int length)
+    {
+        ArgumentNullException.ThrowIfNull(arena);
+        Debug.Assert(length > 0, "length must be > 0.");
+
+        var reader = new Utf8JsonReader(BuildFilledRange(segments, start, length));
+        var metaDb = MetaDb.CreateForEstimatedRows(arena, Math.Max(length / 12, 100));
+
+        try
+        {
+            ParseJson(
+                ref reader,
+                ref metaDb,
+                singleChunk: start + length <= GetDataChunkSize(0),
+                baseOffset: start);
+        }
+        catch
+        {
+            metaDb.Dispose();
+            throw;
+        }
+
+        return new SourceResultDocument(metaDb, segments, usedChunks);
+    }
+
+    private static ReadOnlySequence<byte> BuildFilledRange(MemorySegment[] segments, long start, int length)
+    {
+        var chunkIndex = 0;
+        var chunkStart = 0L;
+        var chunkSize = GetDataChunkSize(0);
+
+        while (start >= chunkStart + chunkSize)
+        {
+            chunkStart += chunkSize;
+            chunkSize = GetDataChunkSize(++chunkIndex);
+        }
+
+        var offset = (int)(start - chunkStart);
+
+        if (offset + length <= chunkSize)
+        {
+            return new ReadOnlySequence<byte>(segments[chunkIndex].Memory.Slice(offset, length));
+        }
+
+        SequenceSegment? first = null;
+        SequenceSegment? previous = null;
+        var remaining = length;
+
+        while (remaining > 0)
+        {
+            var take = Math.Min(remaining, chunkSize - offset);
+            var current = new SequenceSegment(segments[chunkIndex].Memory.Slice(offset, take));
+            first ??= current;
+            previous?.SetNext(current);
+            previous = current;
+            remaining -= take;
+            offset = 0;
+            chunkSize = GetDataChunkSize(++chunkIndex);
+        }
+
+        return new ReadOnlySequence<byte>(first!, 0, previous!, previous!.Memory.Length);
+    }
+
+    /// <summary>
     /// Copies the input payload into geometric arena chunks without gaps so the chunk schedule
     /// matches the packed data-location encoding, and returns the rented segment table.
     /// </summary>
@@ -342,7 +416,8 @@ public sealed partial class SourceResultDocument
         ref Utf8JsonReader reader,
         ref MetaDb metaDb,
         bool skipInitialRead = false,
-        bool singleChunk = false)
+        bool singleChunk = false,
+        long baseOffset = 0)
     {
         Span<Cursor> containerStart = stackalloc Cursor[64];
         Span<int> containerStartLocation = stackalloc int[64];
@@ -363,8 +438,8 @@ public sealed partial class SourceResultDocument
         {
             skipInitialRead = false;
             var tokenType = reader.TokenType;
-            var linearStart = reader.TokenStartIndex;
-            var tokenLength = (int)(reader.BytesConsumed - linearStart);
+            var linearStart = baseOffset + reader.TokenStartIndex;
+            var tokenLength = (int)(baseOffset + reader.BytesConsumed - linearStart);
 
             // A single chunk holds the whole payload, so the gap-free linear offset is already the
             // packed (0, offset) location and the geometric ramp walk can be skipped.

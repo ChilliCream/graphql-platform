@@ -1394,6 +1394,138 @@ public class DefaultGraphQLHttpClientTests
     }
 
     [Fact]
+    public async Task ReadAsResultStream_Should_SkipBlankLines_When_JsonLinesResponseHasBlankLines()
+    {
+        // arrange
+        const string body = "\n{\"data\":{\"number\":0}}\r\n\n \t\n{\"data\":{\"number\":1}}\n\n";
+
+        // act
+        var (numbers, error) = await ReadJsonLinesNumbersAsync(body);
+
+        // assert
+        Assert.Null(error);
+        Assert.Equal([0, 1], numbers);
+    }
+
+    [Fact]
+    public async Task ReadAsResultStream_Should_YieldNoRecords_When_JsonLinesResponseIsEmpty()
+    {
+        // act
+        var (numbers, error) = await ReadJsonLinesNumbersAsync(string.Empty);
+
+        // assert
+        Assert.Null(error);
+        Assert.Empty(numbers);
+    }
+
+    [Fact]
+    public async Task ReadAsResultStream_Should_YieldPrecedingRecords_When_JsonLinesRecordIsMalformed()
+    {
+        // arrange
+        const string body = "{\"data\":{\"number\":0}}\n{\"data\":{\"number\":\n";
+
+        // act
+        var (numbers, error) = await ReadJsonLinesNumbersAsync(body);
+
+        // assert
+        Assert.Equal([0], numbers);
+        Assert.IsType<JsonException>(error, exactMatch: false);
+    }
+
+    [Fact]
+    public async Task ReadAsResultStream_Should_ParseRecords_When_JsonLinesRecordsSpanArenaChunks()
+    {
+        // arrange
+        var text = new StringBuilder();
+
+        for (var i = 0; i < 8; i++)
+        {
+            text.Append($"{{\"data\":{{\"number\":{i},\"text\":\"{new string((char)('a' + i), 20_000 + i)}\"}}}}");
+            text.Append('\n');
+        }
+
+        var handler = new MockHttpMessageHandler(text.ToString(), "application/jsonl");
+        using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
+        var request = CreateVariableBatchRequest(8);
+
+        // act
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var stream = result.ReadAsResultStreamAsync(new FixedMemoryArenaSource(CommonTestExtensions.CreateArena()));
+        var records = new List<string>();
+
+        await foreach (var document in stream)
+        {
+            var data = document.Root.GetProperty("data");
+            var value = data.GetProperty("text").GetString()!;
+            records.Add($"{data.GetProperty("number").GetInt32()}: {value[0]} x {value.Length}");
+        }
+
+        // assert
+        string.Join(Environment.NewLine, records).MatchInlineSnapshot(
+            """
+            0: a x 20000
+            1: b x 20001
+            2: c x 20002
+            3: d x 20003
+            4: e x 20004
+            5: f x 20005
+            6: g x 20006
+            7: h x 20007
+            """);
+    }
+
+    [Fact]
+    public async Task ReadAsResultStream_Should_ParseRecords_When_JsonLinesRecordsArriveInSmallReads()
+    {
+        // arrange
+        var text = new StringBuilder();
+
+        for (var i = 0; i < 300; i++)
+        {
+            text.Append($"{{\"data\":{{\"number\":{i},\"text\":\"{new string('x', i)}\"}}}}\n");
+        }
+
+        var handler = new MockHttpMessageHandler(
+            new SmallReadStream(Encoding.UTF8.GetBytes(text.ToString()), 7),
+            "application/jsonl");
+        using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
+
+        // act
+        using var result = await client.SendAsync(CreateVariableBatchRequest(300), TestContext.Current.CancellationToken);
+        var stream = result.ReadAsResultStreamAsync(new FixedMemoryArenaSource(CommonTestExtensions.CreateArena()));
+        var mismatches = new List<string>();
+        var count = 0;
+
+        await foreach (var document in stream)
+        {
+            var data = document.Root.GetProperty("data");
+
+            if (data.GetProperty("number").GetInt32() != count
+                || data.GetProperty("text").GetString()!.Length != count)
+            {
+                mismatches.Add(count.ToString());
+            }
+
+            count++;
+        }
+
+        // assert
+        Assert.Empty(mismatches);
+        Assert.Equal(300, count);
+    }
+
+    [Fact]
+    public async Task ReadAsResultStream_Should_YieldLastRecord_When_JsonLinesResponseHasNoTrailingNewLine()
+    {
+        // act
+        var (numbers, error) = await ReadJsonLinesNumbersAsync("{\"data\":{\"number\":0}}\n{\"data\":{\"number\":1}}");
+
+        // assert
+        Assert.Null(error);
+        Assert.Equal([0, 1], numbers);
+    }
+
+    [Fact]
     public async Task ReadAsResultStream_Large_Application_Json_Array_Response()
     {
         // arrange
@@ -1597,6 +1729,55 @@ public class DefaultGraphQLHttpClientTests
         public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
         public override void SetLength(long value) => throw new NotSupportedException();
         public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+    }
+
+    private static async Task<(List<int> Numbers, Exception? Error)> ReadJsonLinesNumbersAsync(string body)
+    {
+        var handler = new MockHttpMessageHandler(body, "application/jsonl");
+        using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
+        using var result = await client.SendAsync(CreateVariableBatchRequest(2), TestContext.Current.CancellationToken);
+        var stream = result.ReadAsResultStreamAsync(new FixedMemoryArenaSource(CommonTestExtensions.CreateArena()));
+        var numbers = new List<int>();
+
+        try
+        {
+            await foreach (var document in stream)
+            {
+                numbers.Add(document.Root.GetProperty("data").GetProperty("number").GetInt32());
+            }
+        }
+        catch (Exception ex)
+        {
+            return (numbers, ex);
+        }
+
+        return (numbers, null);
+    }
+
+    private static GraphQLHttpRequest CreateVariableBatchRequest(int count)
+        => new(
+            new VariableBatchRequest(
+                "{ number }"u8.ToArray(),
+                null,
+                null,
+                null,
+                [.. Enumerable.Repeat(VariableValues.Empty, count)],
+                JsonSegment.Empty),
+            new Uri("http://localhost:5000/graphql"));
+
+    private sealed class SmallReadStream(byte[] data, int maxRead) : MemoryStream(data)
+    {
+        public override int Read(byte[] buffer, int offset, int count)
+            => base.Read(buffer, offset, Math.Min(count, maxRead));
+
+        public override int Read(Span<byte> buffer)
+            => base.Read(buffer[..Math.Min(buffer.Length, maxRead)]);
+
+        public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+            => base.ReadAsync(buffer, offset, Math.Min(count, maxRead), cancellationToken);
+
+        public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+            => base.ReadAsync(buffer[..Math.Min(buffer.Length, maxRead)], cancellationToken);
     }
 
     private class MockHttpMessageHandler(Stream responseStream, string contentType) : HttpMessageHandler
