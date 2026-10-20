@@ -200,7 +200,7 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
                 Endpoint = this,
                 Transport = Transport
             },
-            DispatchAsync,
+            DispatchOrDeferAsync,
             [Transport.GetDispatchMiddlewares(), Configuration.DispatchMiddlewares],
             [Transport.GetDispatchPipelineModifiers(), Configuration.DispatchPipelineModifiers]);
 
@@ -242,13 +242,33 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
     /// message to the destination.
     /// </summary>
     /// <remarks>
-    /// This method is called as the terminal delegate of the compiled dispatch pipeline, after
-    /// all middleware has executed. Transport implementations should serialize and transmit
-    /// the message here.
+    /// This method is called when a message leaves the endpoint, after all middleware has executed.
+    /// A message dispatched from a consumer reaches it once the consumer attempt completes.
+    /// Transport implementations transmit the serialized envelope here.
     /// </remarks>
     /// <param name="context">The dispatch context containing the fully prepared message.</param>
     /// <returns>A <see cref="ValueTask"/> that completes when the transport-level send is finished.</returns>
     protected abstract ValueTask DispatchAsync(IDispatchContext context);
+
+    /// <summary>
+    /// Transmits a message that a <see cref="DeferredDispatchScope"/> held back. The dispatch pipeline
+    /// already ran when the message was captured, so the message goes straight to the transport.
+    /// </summary>
+    /// <param name="context">The dispatch context carrying the held envelope.</param>
+    internal ValueTask DispatchDeferredAsync(IDispatchContext context) => DispatchAsync(context);
+
+    private ValueTask DispatchOrDeferAsync(IDispatchContext context)
+    {
+        if (context.Features.Get<DeferredDispatchFeature>() is { Scope: { IsOpen: true } scope } feature
+            && context.Envelope is { } envelope)
+        {
+            scope.Add(this, context.MessageType, context.DestinationAddress, envelope);
+            feature.IsHeld = true;
+            return default;
+        }
+
+        return DispatchAsync(context);
+    }
 
     // TODO complete lifecyle
     private void AssertUninitialized()

@@ -487,6 +487,7 @@ All background tasks use exponential backoff on failure and shut down gracefully
 | Queue (subscribe) | Service and message type (e.g., `billing.order-placed-event`) | Handler is bound to the transport  |
 | Queue (send)      | Message type name (e.g., `process-order-command`)             | First send or handler registration |
 | Reply queue       | Instance-specific name                                        | Transport starts                   |
+| Saga reply queue  | Service and saga name (e.g., `billing.refund-saga_reply`)     | Transport starts                   |
 | Subscription      | Topic-to-queue link                                           | Endpoint discovery phase           |
 
 All auto-provisioned resources are inserted as rows in the corresponding topology tables at transport startup.

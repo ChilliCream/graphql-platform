@@ -36,6 +36,12 @@ public readonly struct SendOptions
     public Dictionary<string, object?>? Headers { get; init; }
 
     /// <summary>
+    /// Gets whether the message leaves at once when dispatched from a consumer, instead of after the
+    /// consumer attempt completes.
+    /// </summary>
+    public bool ImmediateDispatch { get; init; }
+
+    /// <summary>
     /// Gets the default send options with no overrides.
     /// </summary>
     public static readonly SendOptions Default;

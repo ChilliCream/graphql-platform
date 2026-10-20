@@ -60,6 +60,8 @@ After publishing a message, open your tracing backend (Aspire Dashboard, Jaeger,
 
 In the Aspire Dashboard, you will see the `publish` span from the publishing service linked to the `receive` span in the consumer service, with a child `consumer` span for the handler execution. The three spans appear as a single distributed trace that crosses service boundaries.
 
+A message dispatched from inside a handler is held until the handler completes (see [Deferred dispatch](./reliability.md#deferred-dispatch)). Its dispatch span under the `consumer` span carries the `messaging.operation.type` value `create` and is the span the receiving side links to. The transport send appears afterwards as a `publish` span under a `{handler} dispatch` span.
+
 # How trace context propagates
 
 When the dispatch instrumentation middleware runs, it writes the current `Activity`'s trace context into the outgoing message headers using the [W3C Trace Context](https://www.w3.org/TR/trace-context/) standard (`traceparent` and `tracestate`). The receive instrumentation middleware on the other side reads those headers and restores the parent context, linking the two spans into a single trace. This is the same propagation format used by ASP.NET Core, HttpClient, and the broader OpenTelemetry ecosystem, so Mocha traces connect seamlessly with spans from other frameworks.

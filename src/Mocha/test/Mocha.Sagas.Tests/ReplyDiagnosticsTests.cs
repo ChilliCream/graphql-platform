@@ -6,8 +6,8 @@ using Mocha.Transport.InMemory;
 namespace Mocha.Sagas.Tests;
 
 /// <summary>
-/// Tests that a reply reaching the shared reply endpoint without a pending request is reported when
-/// nothing else claims it, and stays quiet when a saga route owns it.
+/// Tests that a reply reaching a reply endpoint without a pending request is reported when nothing
+/// else claims it, and stays quiet when a saga route owns it.
 /// </summary>
 public class ReplyDiagnosticsTests
 {

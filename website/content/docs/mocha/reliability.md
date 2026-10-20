@@ -60,10 +60,12 @@ TransportCircuitBreaker
                   -> Routing
                     -> Consumer pipeline
                       -> Retry   <- immediate in-process retries
-                        -> Transaction middleware (BEGIN)
-                          -> Inbox (claim inside transaction)
-                            -> Your handler
-                        -> Transaction middleware (COMMIT/ROLLBACK)
+                        -> DeferredDispatch   <- holds outgoing messages
+                          -> Transaction middleware (BEGIN)
+                            -> Inbox (claim inside transaction)
+                              -> Your handler
+                          -> Transaction middleware (COMMIT/ROLLBACK)
+                        <- DeferredDispatch   <- held messages leave
 ```
 
 Each middleware can intercept failures from downstream, transform them, or short-circuit the pipeline. The reliability middlewares - dead-letter, fault, circuit breaker, expiry, inbox, and concurrency limiter - are all enabled by default with sensible defaults. You tune them when the defaults do not match your workload.
@@ -524,7 +526,7 @@ public class PaymentConsumer(ILogger<PaymentConsumer> logger) : IConsumer<Proces
 
 ## Retry and sagas
 
-[Sagas](./sagas.md) are consumers, so retry and redelivery apply automatically - no special configuration needed. Each saga handler invocation runs inside a saga transaction. If the handler throws, the transaction is never committed and all state changes are discarded. On the next retry attempt, the saga state is loaded fresh from the store.
+[Sagas](./sagas.md) are consumers, so retry and redelivery apply automatically - no special configuration needed. Each saga handler invocation runs inside a saga transaction. If the handler throws, the transaction is never committed, all state changes are discarded, and the messages the attempt dispatched are dropped with them (see [Deferred dispatch](#deferred-dispatch)). On the next retry attempt, the saga state is loaded fresh from the store.
 
 This means retry is safe for sagas by default. You do not need to worry about partial state mutations leaking between retry attempts.
 
@@ -565,6 +567,64 @@ See [Exception Policies](./exception-policies.md) for the full per-exception con
 ## "Request/reply messages are not redelivered"
 
 This is by design. Redelivery skips request/reply messages because the caller is waiting for a synchronous response. Immediate retry still applies. See the [note above](#combine-retry-and-redelivery) for details.
+
+# Deferred dispatch
+
+A handler that publishes before its database transaction commits lets subscribers read data that is not committed yet. A saga that sends a command before its state is saved can receive the reply before the state exists. A handler that publishes and then throws has produced an event that the retried attempt produces again.
+
+Mocha holds the messages a consumer dispatches until the consumer attempt completes. The `DeferredDispatch` middleware in the consumer pipeline opens the hold before the inner middlewares and the handler run, and releases the held messages after they return. The release follows the commit of `UseTransaction()` and the commit of the saga transaction. The messages leave in the order they were dispatched. Deferred dispatch is on for every consumer.
+
+```text
+Retry
+  -> DeferredDispatch          <- opens the hold
+    -> Instrumentation
+      -> Transaction (BEGIN)
+        -> Your handler        <- PublishAsync, SendAsync, ReplyAsync are held
+      -> Transaction (COMMIT)
+  <- DeferredDispatch          <- held messages leave
+```
+
+## What is held
+
+`PublishAsync`, `SendAsync`, and `ReplyAsync` are held when they are called through an `IMessageBus` resolved from the consumer's service scope. This covers the responses of request handlers, the acknowledgements of send handlers, and the publishes, sends, and responses of sagas.
+
+Not held:
+
+- `RequestAsync`. The request leaves at once and the handler awaits the response as before.
+- Scheduled messages (`SchedulePublishAsync`, `ScheduleSendAsync`, or a `ScheduledTime` in the options). The scheduling store persists them when they are dispatched.
+- Messages the [transactional outbox](#guarantee-delivery-with-the-transactional-outbox) intercepts. The outbox writes the message to its table inside the handler's transaction, and the outbox processor relays it after the commit.
+- Dispatches outside a consumer, for example from an `IMessageBus` resolved outside a consume scope, from a receive middleware, or from a background service.
+
+Each attempt of a retried consumer has its own hold. A failed attempt drops its messages before the next attempt starts, so the retried attempt publishes once.
+
+## Expect the commit in the response latency
+
+The held messages leave after every consumer middleware inside `DeferredDispatch` has unwound. Under `UseTransaction()` a requester receives the response after the handler's transaction has committed, so the response latency includes the commit.
+
+## Dispatch a message immediately
+
+Set `ImmediateDispatch` on `SendOptions`, `PublishOptions`, or `ReplyOptions` for a message that has to leave while the handler is still running, for example a progress notification:
+
+```csharp
+await bus.PublishAsync(
+    new ImportProgress { Percent = 50 },
+    new PublishOptions { ImmediateDispatch = true },
+    cancellationToken);
+```
+
+An immediately dispatched message leaves before the handler's transaction commits, and a retried attempt sends it again. The flag also bypasses the [transactional outbox](#guarantee-delivery-with-the-transactional-outbox), so the message is not part of the handler's transaction and goes to the transport at once.
+
+## Do not wait for your own messages
+
+A handler that sends a message and then waits for a consequence of that message inside the same handler never completes, because the message does not leave until the handler returns. Return from the handler and continue in the consumer of the follow-up message, or use a [saga](./sagas.md). Request/reply inside a handler keeps working because `RequestAsync` is not held.
+
+## Telemetry of held messages
+
+The dispatch span of a held message ends when the message is captured and carries the `messaging.operation.type` value `create`. Its context goes into the message headers, so the receiving side links to it. The release runs under a `{consumer} dispatch` span with one `send` span per message, which records the transport call, its failure, and the sent-message metrics.
+
+## Failures after the commit
+
+When a held message fails to leave, the exception propagates through the consumer pipeline after the handler's work has committed. Retry and redelivery run the handler again, so its side effects can repeat and the messages that did leave can leave again. This is at-least-once delivery: design handlers that produce messages to be idempotent, or use the [transactional outbox](#guarantee-delivery-with-the-transactional-outbox), which commits the messages with the handler's data and survives a crash between the commit and the release.
 
 # Limit concurrency
 
@@ -827,7 +887,7 @@ The `TimesSent` column tracks dispatch attempts. If dispatch fails, the processo
 
 ## Skip the outbox for specific dispatches
 
-Some messages - like internal system events or replies that do not need durability - can bypass the outbox. The outbox middleware checks for an `OutboxMiddlewareFeature` on the dispatch context. Messages with `SkipOutbox = true` pass straight through to the transport.
+Some messages - like internal system events or replies that do not need durability - can bypass the outbox. Set `ImmediateDispatch` on the publish, send, or reply options, or set `SkipOutbox = true` on the `OutboxMiddlewareFeature` of the dispatch context from a dispatch middleware. Both pass the message straight through to the transport.
 
 The outbox middleware also only intercepts messages of kind `Publish`, `Send`, `Reply`, or `Fault`. Other message kinds pass through without outbox persistence.
 

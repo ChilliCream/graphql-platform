@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -220,6 +221,8 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
 
     private SagaState _initialState = null!;
 
+    private readonly ConcurrentDictionary<MessagingTransport, Uri?> _replyAddresses = new();
+
     /// <inheritdoc />
     /// <exception cref="InvalidOperationException">Thrown when the saga has not been initialized.</exception>
     public override IReadOnlyDictionary<string, SagaState> States => _states ?? throw ThrowHelper.SagaNotInitialized();
@@ -253,6 +256,7 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
             state = await LoadStateAsync(correlationId, context, ct);
             if (state is null)
             {
+                _logger!.SagaStateNotFound(Name, correlationId, @event.GetType().Name);
                 return false;
             }
 
@@ -541,7 +545,7 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
 
             var eventType = context.Runtime.GetMessageType(message.GetType());
             var endpoint = context.Runtime.GetPublishEndpoint(eventType);
-            var replyEndpoint = endpoint.Transport.ReplyReceiveEndpoint?.Source.Address;
+            var replyEndpoint = GetReplyAddress(context.Runtime, endpoint.Transport);
 
             options = options with { FaultEndpoint = replyEndpoint };
 
@@ -587,9 +591,9 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
             var requestType = context.Runtime.GetMessageType(message.GetType());
             var endpoint = context.Runtime.GetSendEndpoint(requestType);
 
-            // Route replies and faults to the shared reply endpoint, where the saga's reply routes
-            // are bound and correlated by the saga header.
-            var replyEndpoint = endpoint.Transport.ReplyReceiveEndpoint?.Source.Address;
+            // Route replies and faults to the saga's reply endpoint, where the saga's reply routes
+            // correlate them by the saga header.
+            var replyEndpoint = GetReplyAddress(context.Runtime, endpoint.Transport);
             options = options with { ReplyEndpoint = replyEndpoint, FaultEndpoint = replyEndpoint };
 
             options.Headers.Set(SagaContextData.SagaId, state.Id.ToString("D"));
@@ -598,6 +602,32 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
 
             await context.GetBus().SendAsync(message, options, ct);
         }
+    }
+
+    private Uri? GetReplyAddress(IMessagingRuntime runtime, MessagingTransport transport)
+    {
+        var replyAddress = _replyAddresses.GetOrAdd(
+            transport,
+            static (transport, state) => state.Saga.FindReplyAddress(state.Router, transport),
+            (Saga: this, Router: runtime.Router));
+
+        // The saga's reply endpoint on this transport, or the instance's reply endpoint when the
+        // transport has none.
+        return replyAddress ?? transport.ReplyReceiveEndpoint?.Source.Address;
+    }
+
+    private Uri? FindReplyAddress(IMessageRouter router, MessagingTransport transport)
+    {
+        foreach (var route in router.GetInboundByConsumer(Consumer))
+        {
+            if (route is { Kind: InboundRouteKind.Reply, Endpoint: { Kind: ReceiveEndpointKind.Reply } endpoint }
+                && endpoint.Transport == transport)
+            {
+                return endpoint.Source.Address;
+            }
+        }
+
+        return null;
     }
 }
 
@@ -632,6 +662,15 @@ internal static partial class Logs
         this ILogger logger,
         string sagaName,
         Guid correlationId);
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "No saga state found for correlation id {SagaName} {CorrelationId}, discarding {Event}")]
+    public static partial void SagaStateNotFound(
+        this ILogger logger,
+        string sagaName,
+        Guid correlationId,
+        string @event);
 
     [LoggerMessage(LogLevel.Information, "Entering state {SagaName} {State}")]
     public static partial void EnteringState(this ILogger logger, string sagaName, string state);
