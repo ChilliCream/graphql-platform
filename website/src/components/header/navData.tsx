@@ -5,6 +5,7 @@ import { GitHubIcon } from "@/src/icons/GitHub";
 import { LinkedInIcon } from "@/src/icons/LinkedIn";
 import { RobotIcon } from "@/src/icons/RobotIcon";
 import { SlackIcon } from "@/src/icons/Slack";
+import { VideoIcon } from "@/src/icons/Video";
 import { XIcon } from "@/src/icons/X";
 import { YouTubeIcon } from "@/src/icons/YouTube";
 import {
@@ -20,6 +21,7 @@ import {
 
 export const TOOLS = {
   blog: "/blog",
+  videos: "/videos",
   github: GITHUB_REPO_URL,
   linkedIn: "https://www.linkedin.com/company/chillicream",
   nitro: "https://nitro.chillicream.com",
@@ -168,6 +170,7 @@ export const NAV_ITEMS: NavItem[] = [
         title: "Additional Resources",
         links: [
           { href: TOOLS.blog, label: "Blog", icon: BlogIcon },
+          { href: TOOLS.videos, label: "Videos", icon: VideoIcon },
           { href: TOOLS.github, label: "GitHub", icon: GitHubIcon },
           { href: TOOLS.slack, label: "Slack / Community", icon: SlackIcon },
           { href: TOOLS.youtube, label: "YouTube Channel", icon: YouTubeIcon },
