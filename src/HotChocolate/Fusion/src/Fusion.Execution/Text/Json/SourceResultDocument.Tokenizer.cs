@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using HotChocolate.Buffers;
@@ -110,6 +111,13 @@ public sealed partial class SourceResultDocument
         bool escaped;
         bool isArray;
 
+        // A string that continues in the next window: its position in the input, its location, whether
+        // it is a property name and whether the part read so far has escape sequences.
+        var stringStart = 0;
+        var stringLocation = 0;
+        var stringIsPropertyName = false;
+        var stringEscaped = false;
+
 SkipToValue:
         position = SkipWhiteSpace(data, position);
 
@@ -160,7 +168,14 @@ ReadValue:
                 {
                     if (end == IncompleteString)
                     {
-                        goto IncompleteValue;
+                        if (!TMode.IsWindowed || isFinal)
+                        {
+                            throw ThrowHelper.InvalidSourceJson(data, data.Length, offset);
+                        }
+
+                        stringLocation = location;
+                        stringIsPropertyName = false;
+                        goto SuspendString;
                     }
 
                     end = ~end;
@@ -362,8 +377,9 @@ ReadPropertyName:
                     throw ThrowHelper.InvalidSourceJson(data, data.Length, offset);
                 }
 
-                resumeStep = ResumeStep.PropertyName;
-                goto NextWindow;
+                stringLocation = MapLocation(position, singleChunk, ref locationChunk, ref locationChunkStart, ref locationChunkEnd);
+                stringIsPropertyName = true;
+                goto SuspendString;
             }
 
             end = ~end;
@@ -400,6 +416,53 @@ AfterPropertyName:
         position++;
         goto SkipToValue;
 
+// The string at position continues after the end of the window, where its scan resumes.
+SuspendString:
+        stringStart = offset + position;
+        end = ScanIncompleteString(data, position + 1, offset);
+        stringEscaped = end < 0;
+        position = stringEscaped ? ~end : end;
+        resumeStep = ResumeStep.StringRemainder;
+        goto NextWindow;
+
+ContinueString:
+        end = ReadStringRemainder(data, position, offset);
+
+        if (end == IncompleteString)
+        {
+            if (!TMode.IsWindowed || isFinal)
+            {
+                throw ThrowHelper.InvalidSourceJson(data, data.Length, offset);
+            }
+
+            end = ScanIncompleteString(data, position, offset);
+            stringEscaped |= end < 0;
+            position = end < 0 ? ~end : end;
+            resumeStep = ResumeStep.StringRemainder;
+            goto NextWindow;
+        }
+
+        if (end < 0)
+        {
+            end = ~end;
+            stringEscaped = true;
+        }
+
+        metaDb.Append(
+            stringIsPropertyName ? JsonTokenType.PropertyName : JsonTokenType.String,
+            stringLocation,
+            offset + end - stringStart,
+            hasComplexChildren: stringEscaped);
+        position = end;
+
+        if (!stringIsPropertyName)
+        {
+            goto AfterValue;
+        }
+
+        containers[stackIndex - 1].ChildCount++;
+        goto AfterPropertyName;
+
 // The value at position continues after the end of the window.
 IncompleteValue:
         if (!TMode.IsWindowed || isFinal)
@@ -431,8 +494,8 @@ NextWindow:
             case ResumeStep.AfterComma:
                 goto AfterComma;
 
-            case ResumeStep.PropertyName:
-                goto ReadPropertyName;
+            case ResumeStep.StringRemainder:
+                goto ContinueString;
 
             default:
                 goto AfterPropertyName;
@@ -620,6 +683,44 @@ NextWindow:
                 position++;
             }
         }
+    }
+
+    /// <summary>
+    /// Gets the position at which the read of a string that continues after the end of
+    /// <paramref name="data"/> resumes, from <paramref name="position"/> in the string. The bitwise
+    /// complement of the position is returned when the bytes from <paramref name="position"/> have
+    /// escape sequences.
+    /// </summary>
+    private static int ScanIncompleteString(ReadOnlySpan<byte> data, int position, int offset)
+    {
+        var escaped = false;
+
+        while (true)
+        {
+            var index = data[position..].IndexOfAny(s_stringStopBytes);
+
+            if (index == -1)
+            {
+                position = data.Length;
+                break;
+            }
+
+            // The string is incomplete, so the scan only stops at escape sequences.
+            position += index;
+            Debug.Assert(data[position] == (byte)'\\', "An incomplete string only stops at escapes.");
+            escaped = true;
+            var next = ReadEscapeSequence(data, position, offset);
+
+            // An escape sequence that continues after the end of the data is read again.
+            if (next < 0)
+            {
+                break;
+            }
+
+            position = next;
+        }
+
+        return escaped ? ~position : position;
     }
 
     /// <summary>
@@ -853,7 +954,7 @@ NextWindow:
         ContainerStart,
         AfterValue,
         AfterComma,
-        PropertyName,
+        StringRemainder,
         AfterPropertyName
     }
 
