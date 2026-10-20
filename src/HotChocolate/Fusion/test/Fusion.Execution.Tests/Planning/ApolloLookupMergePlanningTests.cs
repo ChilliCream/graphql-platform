@@ -38,6 +38,16 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         }
         """;
 
+    private const string Related =
+        """
+        extend schema @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+        type Product @key(fields: "id") {
+          id: ID!
+          related: Product!
+        }
+        """;
+
     private const string Details =
         """
         extend schema @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
@@ -45,6 +55,31 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         type Product @key(fields: "id") {
           id: ID!
           name: String!
+        }
+        """;
+
+    private const string CategorizedDetails =
+        """
+        extend schema @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+        type Product @key(fields: "id") {
+          id: ID!
+          name: String!
+          category: Category!
+        }
+
+        type Category @key(fields: "id") {
+          id: ID!
+        }
+        """;
+
+    private const string Categories =
+        """
+        extend schema @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+        type Category @key(fields: "id") {
+          id: ID!
+          label: String!
         }
         """;
 
@@ -75,7 +110,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
     }
 
     [Fact]
-    public void Plan_Should_KeepApolloLookupsSeparate_When_IdenticalLookupsDifferInDepth()
+    public void Plan_Should_MergeApolloLookupsAcrossDepths_When_ShallowerLookupHasNoDependents()
     {
         // arrange
         var schema = ComposeSchema(Catalog, Featured, Details);
@@ -101,6 +136,115 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         // assert
         MatchSnapshot(plan);
     }
+    [Fact]
+    public void Plan_Should_KeepApolloLookupsSeparate_When_ShallowerLookupHasDependents()
+    {
+        // arrange
+        var schema = ComposeSchema(Catalog, Featured, CategorizedDetails, Categories);
+
+        // act
+        // the Categories lookup for 'products.category' depends on the shallower
+        // Details lookup, and the deeper Categories lookup does not wait for it
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products {
+                name
+                category {
+                  label
+                }
+              }
+              brands {
+                featured {
+                  name
+                  category {
+                    label
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_KeepApolloLookupsSeparate_When_DeeperLookupIsDeferred()
+    {
+        // arrange
+        var schema = ComposeSchema(Catalog, Related, Details);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products {
+                name
+                related {
+                  ... @defer(label: "deeper") { name }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_KeepApolloLookupsSeparate_When_LookupsBelongToSiblingDefers()
+    {
+        // arrange
+        var schema = ComposeSchema(Catalog, Related, Details);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products {
+                ... @defer(label: "shallower") { name }
+                related {
+                  ... @defer(label: "deeper") { name }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_KeepApolloLookupsSeparate_When_DeeperLookupBelongsToNestedDefer()
+    {
+        // arrange
+        var schema = ComposeSchema(Catalog, Related, Details);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products {
+                ... @defer(label: "outer") {
+                  name
+                  related {
+                    id
+                    ... @defer(label: "inner") { name }
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
     [Fact]
     public void Plan_Should_KeepIdenticalLookupsSeparate_When_MergePolicyIsNoneAndGroupingIsDisabled()
     {
@@ -161,7 +305,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public void Plan_Should_MergeSameDepthLookups_When_MergePolicyIsConservative(bool grouping)
+    public void Plan_Should_MergeSameDepthLookups_When_MergePolicyIsConservative(bool enableRequestGrouping)
     {
         // arrange
         var schema = CreateLookupPolicySchema();
@@ -178,7 +322,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
             new OperationPlannerOptions
             {
                 MergePolicy = OperationMergePolicy.Conservative,
-                EnableRequestGrouping = grouping
+                EnableRequestGrouping = enableRequestGrouping
             });
 
         // assert
@@ -193,7 +337,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public void Plan_Should_MergeSameDepthLookups_When_MergePolicyIsBalanced(bool grouping)
+    public void Plan_Should_MergeSameDepthLookups_When_MergePolicyIsBalanced(bool enableRequestGrouping)
     {
         // arrange
         var schema = CreateLookupPolicySchema();
@@ -210,7 +354,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
             new OperationPlannerOptions
             {
                 MergePolicy = OperationMergePolicy.Balanced,
-                EnableRequestGrouping = grouping
+                EnableRequestGrouping = enableRequestGrouping
             });
 
         // assert
@@ -225,7 +369,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public void Plan_Should_MergeSameDepthLookups_When_MergePolicyIsAggressive(bool grouping)
+    public void Plan_Should_MergeSameDepthLookups_When_MergePolicyIsAggressive(bool enableRequestGrouping)
     {
         // arrange
         var schema = CreateLookupPolicySchema();
@@ -242,7 +386,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
             new OperationPlannerOptions
             {
                 MergePolicy = OperationMergePolicy.Aggressive,
-                EnableRequestGrouping = grouping
+                EnableRequestGrouping = enableRequestGrouping
             });
 
         // assert
@@ -285,6 +429,284 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         Assert.Contains(operations, operation => operation is BatchOperationDefinition { Targets.Length: 2 });
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_KeepAdjacentDepthLookupsSeparate_When_MergePolicyIsNone(bool enableRequestGrouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = FusionTestBase.PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { featured { name } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.None,
+                EnableRequestGrouping = enableRequestGrouping
+            });
+
+        // assert
+        var nodes = plan.AllNodes.Where(n => n.SchemaName == "c").ToArray();
+        Assert.Equal(2, nodes.Length);
+        Assert.All(nodes, node => Assert.IsType<ApolloOperationExecutionNode>(node));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_KeepDistantDepthLookupsSeparate_When_MergePolicyIsNone(bool enableRequestGrouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = FusionTestBase.PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { collection { featured { name } } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.None,
+                EnableRequestGrouping = enableRequestGrouping
+            });
+
+        // assert
+        var nodes = plan.AllNodes.Where(n => n.SchemaName == "c").ToArray();
+        Assert.Equal(2, nodes.Length);
+        Assert.All(nodes, node => Assert.IsType<ApolloOperationExecutionNode>(node));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_KeepAdjacentDepthLookupsSeparate_When_MergePolicyIsConservative(bool enableRequestGrouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = FusionTestBase.PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { featured { name } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.Conservative,
+                EnableRequestGrouping = enableRequestGrouping
+            });
+
+        // assert
+        var nodes = plan.AllNodes.Where(n => n.SchemaName == "c").ToArray();
+        Assert.Equal(2, nodes.Length);
+        Assert.All(nodes, node => Assert.IsType<ApolloOperationExecutionNode>(node));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_KeepDistantDepthLookupsSeparate_When_MergePolicyIsConservative(bool enableRequestGrouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = FusionTestBase.PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { collection { featured { name } } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.Conservative,
+                EnableRequestGrouping = enableRequestGrouping
+            });
+
+        // assert
+        var nodes = plan.AllNodes.Where(n => n.SchemaName == "c").ToArray();
+        Assert.Equal(2, nodes.Length);
+        Assert.All(nodes, node => Assert.IsType<ApolloOperationExecutionNode>(node));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_MergeAdjacentDepthLookups_When_MergePolicyIsBalanced(bool enableRequestGrouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = FusionTestBase.PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { featured { name } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.Balanced,
+                EnableRequestGrouping = enableRequestGrouping
+            });
+
+        // assert
+        var nodes = plan.AllNodes.Where(n => n.SchemaName == "c").ToArray();
+        var operations = nodes.OfType<ApolloOperationBatchExecutionNode>()
+            .SelectMany(n => n.Operations.ToArray()).ToArray();
+        Assert.Single(nodes);
+        Assert.Single(operations);
+        Assert.Contains(operations, operation => operation is BatchOperationDefinition { Targets.Length: 2 });
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_KeepDistantDepthLookupsSeparate_When_MergePolicyIsBalanced(bool enableRequestGrouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = FusionTestBase.PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { collection { featured { name } } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.Balanced,
+                EnableRequestGrouping = enableRequestGrouping
+            });
+
+        // assert
+        var nodes = plan.AllNodes.Where(n => n.SchemaName == "c").ToArray();
+        Assert.Equal(2, nodes.Length);
+        Assert.All(nodes, node => Assert.IsType<ApolloOperationExecutionNode>(node));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_MergeAdjacentDepthLookups_When_MergePolicyIsAggressive(bool enableRequestGrouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = FusionTestBase.PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { featured { name } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.Aggressive,
+                EnableRequestGrouping = enableRequestGrouping
+            });
+
+        // assert
+        var nodes = plan.AllNodes.Where(n => n.SchemaName == "c").ToArray();
+        var operations = nodes.OfType<ApolloOperationBatchExecutionNode>()
+            .SelectMany(n => n.Operations.ToArray()).ToArray();
+        Assert.Single(nodes);
+        Assert.Single(operations);
+        Assert.Contains(operations, operation => operation is BatchOperationDefinition { Targets.Length: 2 });
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_MergeDistantDepthLookups_When_MergePolicyIsAggressive(bool enableRequestGrouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = FusionTestBase.PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { collection { featured { name } } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.Aggressive,
+                EnableRequestGrouping = enableRequestGrouping
+            });
+
+        // assert
+        var nodes = plan.AllNodes.Where(n => n.SchemaName == "c").ToArray();
+        var operations = nodes.OfType<ApolloOperationBatchExecutionNode>()
+            .SelectMany(n => n.Operations.ToArray()).ToArray();
+        Assert.Single(nodes);
+        Assert.Single(operations);
+        Assert.Contains(operations, operation => operation is BatchOperationDefinition { Targets.Length: 2 });
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_KeepDistantLookupsSeparate_When_BalancedMergesPassThroughAdjacentDepths(bool enableRequestGrouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = FusionTestBase.PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands {
+                featured { name }
+                collection { featured { name } }
+              }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.Balanced,
+                EnableRequestGrouping = enableRequestGrouping
+            });
+
+        // assert
+        var nodes = plan.AllNodes.Where(n => n.SchemaName == "c").ToArray();
+        var operations = nodes.OfType<ApolloOperationBatchExecutionNode>()
+            .SelectMany(n => n.Operations.ToArray()).ToArray();
+        Assert.Equal(2, nodes.Length);
+        var merged = Assert.IsType<BatchOperationDefinition>(Assert.Single(operations));
+        Assert.Equal(
+            ["$.brands.featured", "$.products"],
+            merged.Targets.ToArray().Select(t => t.ToString()).Order(StringComparer.Ordinal));
+    }
+
     private static FusionSchemaDefinition CreateLookupPolicySchema()
         => ComposeSchema(
             """
@@ -308,7 +730,10 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
             type Brand @key(fields: "id") {
               id: ID!
               featured: Product!
+              collection: Collection!
             }
+
+            type Collection @key(fields: "id") { id: ID! }
 
             type Product @key(fields: "id") { id: ID! }
             """,
@@ -320,5 +745,15 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
               name: String!
               price: Int!
             }
+            """,
+            """
+            extend schema @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+            type Collection @key(fields: "id") {
+              id: ID!
+              featured: Product!
+            }
+
+            type Product @key(fields: "id") { id: ID! }
             """);
 }

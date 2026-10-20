@@ -3,11 +3,19 @@ operation:
       {
         products {
           name
+          category {
+            label
+            id @fusion__requirement
+          }
           id @fusion__requirement
         }
         brands {
           featured {
             name
+            category {
+              label
+              id @fusion__requirement
+            }
             id @fusion__requirement
           }
           id @fusion__requirement
@@ -15,7 +23,7 @@ operation:
       }
     hash: 123456789101112
     searchSpace: 1
-    expandedNodes: 2
+    expandedNodes: 4
 nodes:
   - id: 1
     type: Operation
@@ -58,6 +66,9 @@ nodes:
         _entities(representations: $representations) {
           ... on Product {
             name
+            category {
+              id
+            }
           }
         }
       }
@@ -71,20 +82,61 @@ nodes:
       - id: 2
   - id: 4
     type: ApolloOperation
+    schema: d
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Category {
+            label
+          }
+        }
+      }
+    source: $._entities
+    target: $.brands.featured.category
+    requirements:
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 3
+  - id: 5
+    type: ApolloOperation
     schema: c
     operation: |
       query($representations: [_Any!]!) {
         _entities(representations: $representations) {
           ... on Product {
             name
+            category {
+              id
+            }
           }
         }
       }
     source: $._entities
     target: $.products
     requirements:
-      - name: __fusion_3_id
+      - name: __fusion_4_id
         selectionMap: >-
           id
     dependencies:
       - id: 1
+  - id: 6
+    type: ApolloOperation
+    schema: d
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Category {
+            label
+          }
+        }
+      }
+    source: $._entities
+    target: $.products.category
+    requirements:
+      - name: __fusion_5_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 5
