@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Time.Testing;
 using Mocha.Middlewares;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -181,7 +182,7 @@ public class RabbitMQMessageEnvelopeParserTests
         var deliverBy = sentAt.AddHours(2).AddMilliseconds(125);
         var published = RabbitMQMessageEnvelopeFormatter.Format(
             new MessageEnvelope { SentAt = sentAt, DeliverBy = deliverBy },
-            new FixedTimeProvider(sentAt.AddHours(1)));
+            new FakeTimeProvider(sentAt.AddHours(1)));
         var args = CreateDeliverEventArgs(props =>
         {
             props.Timestamp = published.Timestamp;
@@ -646,10 +647,5 @@ public class RabbitMQMessageEnvelopeParserTests
             routingKey: "test-key",
             properties: props,
             body: body ?? ReadOnlyMemory<byte>.Empty);
-    }
-
-    private sealed class FixedTimeProvider(DateTimeOffset utcNow) : TimeProvider
-    {
-        public override DateTimeOffset GetUtcNow() => utcNow;
     }
 }

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Immutable;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Microsoft.Extensions.Time.Testing;
 using Mocha.Middlewares;
 using RabbitMQ.Client;
 
@@ -10,7 +11,7 @@ namespace Mocha.Transport.RabbitMQ.Tests;
 public class RabbitMQMessageEnvelopeFormatterTests
 {
     private static readonly DateTimeOffset s_now = new(2026, 8, 12, 10, 30, 0, TimeSpan.Zero);
-    private static readonly TimeProvider s_timeProvider = new FixedTimeProvider(s_now);
+    private static readonly TimeProvider s_timeProvider = new FakeTimeProvider(s_now);
 
     [Fact]
     public void Format_Should_SetBasicProperties_When_EnvelopeContainsMetadata()
@@ -596,10 +597,5 @@ public class RabbitMQMessageEnvelopeFormatterTests
     {
         Low,
         High
-    }
-
-    private sealed class FixedTimeProvider(DateTimeOffset utcNow) : TimeProvider
-    {
-        public override DateTimeOffset GetUtcNow() => utcNow;
     }
 }
