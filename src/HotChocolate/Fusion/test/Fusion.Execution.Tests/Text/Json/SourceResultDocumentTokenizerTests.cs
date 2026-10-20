@@ -5,9 +5,10 @@ using HotChocolate.Buffers;
 namespace HotChocolate.Fusion.Text.Json;
 
 /// <summary>
-/// Tests the rows and the input validation of the source JSON tokenizer. Each test parses its input in a
-/// single chunk and behind paddings that place a chunk boundary at each position of the input, in each
-/// chunk layout, and asserts that every parse creates the same rows.
+/// Tests the rows and the input validation of the source JSON tokenizer, for documents and for the
+/// elements of batched arrays. Each test parses its input in a single chunk and behind paddings that
+/// place a chunk boundary at each position of the input, in each chunk layout, and asserts that every
+/// parse creates the same rows.
 /// </summary>
 public partial class SourceResultDocumentTokenizerTests
 {
@@ -62,6 +63,34 @@ public partial class SourceResultDocumentTokenizerTests
             "\"s\"\n",
             "true\t",
             "-1.5 "
+        ];
+
+    // The arrays that the batched mutation test mutates.
+    private static readonly string[] s_arrayMutationSeeds =
+        [
+            "[]",
+            " \t\r\n[ \n]",
+            "[{}]",
+            "[{\"data\":{\"a\":1}},{\"errors\":[{\"message\":\"x\"}]}]",
+            "[1,\"a\",true,false,null,-1.5e3,0]",
+            "[[],[1,[2]],{},[{}]]",
+            "[ {\"a\" : [ 1 , 2 ] } , [ 3 ] , \"s\" ]",
+            "[{\"a\":1}\n,\n{\"b\":2}\n]\n",
+            "[\"\\u00e9\",{\"\\n\":\"\\\"\"},\"\\\\\"]",
+            "[1]garbage",
+            "[1]]",
+            "[{}] [",
+            "[{}],",
+            "[]x",
+            "[1] [2]",
+            "[1]/**/",
+            "[1]\u0000",
+            "[\"" + new string('x', 5000) + "\",{\"b\":\"" + new string('y', 3000) + "\\n\"}]",
+            "[" + new string('1', 3000) + ",-" + new string('2', 3000) + ".5e+7]",
+            "[" + Nest(63) + "]",
+            "[" + Nest(63) + "," + Nest(63) + "]",
+            "[" + new string('[', 63) + new string(']', 63) + "]",
+            "[" + string.Join(",", Enumerable.Repeat("{\"data\":{\"id\":\"1\"}}", 20)) + "]"
         ];
 
     [Fact]
@@ -720,6 +749,367 @@ public partial class SourceResultDocumentTokenizerTests
         Assert.Equal(3283, rejected);
     }
 
+    [Fact]
+    public void ParseArrayElements_Should_CreateOneDocumentPerElement_When_ElementsAreObjects()
+    {
+        // act
+        var elements = ParseArrayElements("[{\"data\":{\"a\":1}},{\"errors\":[{\"message\":\"x\"}]}]");
+
+        // assert
+        elements.MatchInlineSnapshot(
+            """
+            Element 0
+              StartObject @1 properties=1 rows=7 complex
+                PropertyName @2 "data"
+                StartObject @9 properties=1 rows=4
+                  PropertyName @10 "a"
+                  Number @14 1
+                EndObject @15
+              EndObject @16
+            Element 1
+              StartObject @18 properties=1 rows=9 complex
+                PropertyName @19 "errors"
+                StartArray @28 items=1 rows=6 complex
+                  StartObject @29 properties=1 rows=4
+                    PropertyName @30 "message"
+                    String @40 "x"
+                  EndObject @43
+                EndArray @44
+              EndObject @45
+            """);
+    }
+
+    [Fact]
+    public void ParseArrayElements_Should_CreateOneDocumentPerElement_When_ElementsAreScalarsOrArrays()
+    {
+        // act
+        var elements = ParseArrayElements("[1,\"a\\n\",true,false,null,-1.5e3,[],[1,[2]],{}]");
+
+        // assert
+        elements.MatchInlineSnapshot(
+            """
+            Element 0
+              Number @1 1
+            Element 1
+              String @3 "a\n" escaped
+            Element 2
+              True @9 true
+            Element 3
+              False @14 false
+            Element 4
+              Null @20 null
+            Element 5
+              Number @25 -1.5e3
+            Element 6
+              StartArray @32 items=0 rows=2
+              EndArray @33
+            Element 7
+              StartArray @35 items=2 rows=6 complex
+                Number @36 1
+                StartArray @38 items=1 rows=3
+                  Number @39 2
+                EndArray @40
+              EndArray @41
+            Element 8
+              StartObject @43 properties=0 rows=2
+              EndObject @44
+            """);
+    }
+
+    [Fact]
+    public void ParseArrayElements_Should_SkipWhiteSpace_When_WhiteSpaceSurroundsSeparators()
+    {
+        // act
+        var elements = ParseArrayElements(" \t\r\n[ {\"a\" : [ 1 , 2 ] }\n,\n[ 3 ] , \"s\" ]\n");
+
+        // assert
+        elements.MatchInlineSnapshot(
+            """
+            Element 0
+              StartObject @6 properties=1 rows=7 complex
+                PropertyName @7 "a"
+                StartArray @13 items=2 rows=4
+                  Number @15 1
+                  Number @19 2
+                EndArray @21
+              EndObject @23
+            Element 1
+              StartArray @27 items=1 rows=3
+                Number @29 3
+              EndArray @31
+            Element 2
+              String @35 "s"
+            """);
+    }
+
+    [Fact]
+    public void ParseArrayElements_Should_CreateRows_When_ElementsSpanSeveralChunks()
+    {
+        // act
+        var elements = ParseArrayElements(
+            "[\"" + new string('x', 5000) + "\","
+            + "{\"b\":\"" + new string('y', 3000) + "\\n\"},"
+            + new string('1', 3000) + "]");
+
+        // assert
+        elements.MatchInlineSnapshot(
+            """
+            Element 0
+              String @1 "xxxxxxxxxxxxxxx... (5002 bytes)
+            Element 1
+              StartObject @5004 properties=1 rows=4
+                PropertyName @5005 "b"
+                String @5009 "yyyyyyyyyyyyyyy... (3004 bytes) escaped
+              EndObject @8013
+            Element 2
+              Number @8015 1111111111111111... (3000 bytes)
+            """);
+    }
+
+    [Theory]
+    // an empty array
+    [InlineData("[]")]
+    // an empty array with white space around and inside it
+    [InlineData(" \t\r\n[ \n]")]
+    public void ParseArrayElements_Should_CreateNoDocuments_When_ArrayIsEmpty(string input)
+    {
+        // act
+        var elements = ParseArrayElements(input);
+
+        // assert
+        Assert.Equal("", elements);
+    }
+
+    [Theory]
+    // any text after the array
+    [InlineData("garbage")]
+    // a closing bracket without an opening bracket
+    [InlineData("]")]
+    // a comma
+    [InlineData(",")]
+    // an array that is never closed
+    [InlineData(" [")]
+    // a second array
+    [InlineData(" [2]")]
+    // a comment
+    [InlineData("/**/")]
+    // a NUL byte
+    [InlineData("\u0000")]
+    public void ParseArrayElements_Should_StopAfterArray_When_InputContinues(string rest)
+    {
+        // act
+        var elements = ParseArrayElements("[1,{}]" + rest);
+
+        // assert
+        Assert.Equal(ParseArrayElements("[1,{}]"), elements);
+    }
+
+    [Theory]
+    [MemberData(nameof(ArraysAtMaxDepth))]
+    public void ParseArrayElements_Should_Accept_When_ElementNestingIsAtMaxDepth(string input, int expectedElements)
+    {
+        // act
+        var elements = ParseArrayElements(input);
+
+        // assert
+        Assert.Equal(expectedElements, elements.Split('\n').Count(t => t.StartsWith("Element ")));
+    }
+
+    public static TheoryData<string, int> ArraysAtMaxDepth()
+        => new()
+        {
+            // one element of 63 nested arrays, 64 levels with the batched array
+            { "[" + new string('[', 63) + new string(']', 63) + "]", 1 },
+            // two elements of 63 nested objects and arrays
+            { "[" + Nest(63) + "," + Nest(63) + "]", 2 },
+            // a flat element before an element of 63 nested arrays
+            { "[{}," + new string('[', 63) + new string(']', 63) + "]", 2 }
+        };
+
+    [Theory]
+    [MemberData(nameof(ArraysOverMaxDepth))]
+    public void ParseArrayElements_Should_Reject_When_ElementNestingExceedsMaxDepth(string input)
+    {
+        // act
+        var elements = ParseArrayElements(input);
+
+        // assert
+        Assert.Equal(Rejected, elements);
+    }
+
+    public static TheoryData<string> ArraysOverMaxDepth()
+        =>
+        [
+            // one element of 64 nested arrays, 65 levels with the batched array
+            "[" + new string('[', 64) + new string(']', 64) + "]",
+            // one element of 64 nested objects and arrays
+            "[" + Nest(64) + "]",
+            // a flat element before an element of 64 nested objects and arrays
+            "[{}," + Nest(64) + "]"
+        ];
+
+    [Theory]
+    [MemberData(nameof(TruncatedArrays))]
+    public void ParseArrayElements_Should_Reject_When_ArrayEndsEarly(string input)
+    {
+        // act
+        var elements = ParseArrayElements(input);
+
+        // assert
+        Assert.Equal(Rejected, elements);
+    }
+
+    public static TheoryData<string> TruncatedArrays()
+        =>
+        [
+            // an opening bracket only
+            "[",
+            "[ \n",
+            // an element without the closing bracket
+            "[{}",
+            "[{} ",
+            // a comma without the next element
+            "[{},",
+            // a number at the end of the input
+            "[1",
+            "[" + new string('1', 3000),
+            // a number that ends after its decimal point
+            "[1.",
+            // a number that ends after its minus sign
+            "[-",
+            // a literal at the end of the input
+            "[true",
+            // a string without its closing quote
+            "[\"abc",
+            "[\"" + new string('s', 20000),
+            // a string that ends inside an escape sequence
+            "[\"a\\"
+        ];
+
+    [Theory]
+    [MemberData(nameof(ArraysWithInvalidSeparators))]
+    public void ParseArrayElements_Should_Reject_When_SeparatorIsMissingOrMisplaced(string input)
+    {
+        // act
+        var elements = ParseArrayElements(input);
+
+        // assert
+        Assert.Equal(Rejected, elements);
+    }
+
+    public static TheoryData<string> ArraysWithInvalidSeparators()
+        =>
+        [
+            // a comma after the last element
+            "[{},]",
+            "[1,]",
+            // a comma before the first element
+            "[,{}]",
+            // a comma without elements
+            "[,]",
+            // two commas
+            "[{},,{}]",
+            // no comma between objects
+            "[{} {}]",
+            "[{}{}]",
+            // no comma between scalars
+            "[1 2]",
+            "[\"a\" \"b\"]",
+            // a colon between elements
+            "[{}:{}]"
+        ];
+
+    [Theory]
+    [MemberData(nameof(ArraysWithInvalidStructure))]
+    public void ParseArrayElements_Should_Reject_When_StructureIsInvalid(string input)
+    {
+        // act
+        var elements = ParseArrayElements(input);
+
+        // assert
+        Assert.Equal(Rejected, elements);
+    }
+
+    public static TheoryData<string> ArraysWithInvalidStructure()
+        =>
+        [
+            // a closing brace after an element object
+            "[{}}",
+            // the batched array closed with a brace
+            "[1}",
+            // an element object closed with a bracket
+            "[{]",
+            "[{\"a\":1]",
+            // a literal that is cut short
+            "[tru]",
+            // a number with a leading zero
+            "[{\"a\":01}]"
+        ];
+
+    [Theory]
+    [MemberData(nameof(ArraysWithInvalidWhiteSpace))]
+    public void ParseArrayElements_Should_Reject_When_ArrayHasCommentsOrOtherWhiteSpace(string input)
+    {
+        // act
+        var elements = ParseArrayElements(input);
+
+        // assert
+        Assert.Equal(Rejected, elements);
+    }
+
+    public static TheoryData<string> ArraysWithInvalidWhiteSpace()
+        =>
+        [
+            // a block comment after an element
+            "[{}/**/]",
+            // a line comment before an element
+            "[//c\n1]",
+            // a form feed after an element
+            "[1\f]",
+            // a vertical tab before an element
+            "[\v1]",
+            // a no-break space after an element
+            "[{}\u00a0]",
+            // a byte order mark before an element
+            "[\uFEFF1]"
+        ];
+
+    [Fact]
+    public void ParseArrayElements_Should_CreateSameRows_When_MutatedArrayChunkBoundariesMove()
+    {
+        // arrange
+        var corpus = CreateArrayCorpus();
+        var random = new Random(91);
+        var accepted = 0;
+        var rejected = 0;
+
+        // act
+        while (accepted + rejected < 3000)
+        {
+            var input = Mutate(random, corpus[random.Next(corpus.Length)]);
+
+            // A batched response body starts with an array.
+            if (!StartsWithArray(input))
+            {
+                continue;
+            }
+
+            if (AssertArrayBoundaryIndependence(input, RandomBoundaryPaddings(random, input.Length)) == Rejected)
+            {
+                rejected++;
+            }
+            else
+            {
+                accepted++;
+            }
+        }
+
+        // assert
+        // The counts pin which of the mutated arrays are accepted.
+        Assert.Equal(698, accepted);
+        Assert.Equal(2302, rejected);
+    }
+
     /// <summary>
     /// Parses <paramref name="input"/> in each chunk layout and returns the rows that every parse
     /// creates, or <see cref="Rejected"/> when every parse rejects it.
@@ -754,6 +1144,91 @@ public partial class SourceResultDocumentTokenizerTests
 
         Assert.Equal(expectedResults.ToString(), results.ToString());
         return expected;
+    }
+
+    /// <summary>
+    /// Parses the elements of the array in <paramref name="input"/> in each chunk layout and returns the
+    /// rows that every parse creates, or <see cref="Rejected"/> when every parse rejects it.
+    /// </summary>
+    private static string ParseArrayElements(string input)
+        => AssertArrayBoundaryIndependence(Encoding.UTF8.GetBytes(input), GetBoundaryPaddings(input.Length));
+
+    /// <summary>
+    /// Parses the elements of the array in <paramref name="input"/> behind each padding of
+    /// <paramref name="paddings"/> in each chunk layout, asserts that each parse creates the rows of the
+    /// input in adjacent chunks, and returns those rows, or <see cref="Rejected"/> when the array is
+    /// rejected.
+    /// </summary>
+    private static string AssertArrayBoundaryIndependence(byte[] input, IEnumerable<int> paddings)
+    {
+        var expected = ParseArrayElements(input, 0, ChunkLayout.Adjacent);
+        var results = new StringBuilder();
+        var expectedResults = new StringBuilder();
+
+        foreach (var padding in paddings)
+        {
+            var padded = Pad(input, padding);
+
+            foreach (var layout in Enum.GetValues<ChunkLayout>())
+            {
+                results.Append($"{layout} {padding}\n{ParseArrayElements(padded, padding, layout)}\n");
+                expectedResults.Append($"{layout} {padding}\n{expected}\n");
+            }
+        }
+
+        Assert.Equal(expectedResults.ToString(), results.ToString());
+        return expected;
+    }
+
+    private static string ParseArrayElements(byte[] input, int padding, ChunkLayout layout)
+    {
+        using var arena = new MemoryArena();
+        var (segments, usedChunks, lastLength) = CreateSegments(input, layout);
+        List<SourceResultDocument> documents = [];
+
+        try
+        {
+            documents = SourceResultDocument.ParseFilledArrayElements(arena, segments, usedChunks, lastLength);
+            var text = new StringBuilder();
+
+            for (var i = 0; i < documents.Count; i++)
+            {
+                text.Append(i > 0 ? "\n" : "").Append("Element ").Append(i);
+
+                foreach (var line in DescribeRows(documents[i], input, padding).Split('\n'))
+                {
+                    text.Append("\n  ").Append(line);
+                }
+            }
+
+            return text.ToString();
+        }
+        catch (JsonException)
+        {
+            return Rejected;
+        }
+        finally
+        {
+            foreach (var document in documents)
+            {
+                document.Dispose();
+            }
+
+            arena.Seal();
+        }
+    }
+
+    private static bool StartsWithArray(byte[] input)
+    {
+        foreach (var value in input)
+        {
+            if (value is not ((byte)' ' or (byte)'\t' or (byte)'\r' or (byte)'\n'))
+            {
+                return value == (byte)'[';
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -978,6 +1453,22 @@ public partial class SourceResultDocumentTokenizerTests
             Encoding.UTF8.GetBytes(
                 "{\"requestIndex\":1,\"variableIndex\":3,\"data\":{\"productByUpc\":"
                 + "{\"inStock\":true,\"shippingEstimate\":-12.5e-3,\"name\":\"T\\u00e9st \\\"1\\\"\"}}}"));
+        return [.. corpus];
+    }
+
+    private static byte[][] CreateArrayCorpus()
+    {
+        var corpus = new List<byte[]>();
+
+        foreach (var input in s_arrayMutationSeeds)
+        {
+            corpus.Add(Encoding.UTF8.GetBytes(input));
+        }
+
+        var records = CreateCorpus().Select(Encoding.UTF8.GetString).ToArray();
+        corpus.Add(Encoding.UTF8.GetBytes("[" + string.Join(",", records.Take(4)) + "]"));
+        corpus.Add(Encoding.UTF8.GetBytes("[ " + string.Join(" ,\n ", records.Skip(20)) + " ]"));
+        corpus.Add(Encoding.UTF8.GetBytes("[" + string.Join(",", records.Where(t => t.StartsWith('{'))) + "]"));
         return [.. corpus];
     }
 
