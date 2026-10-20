@@ -32,6 +32,30 @@ public sealed class ApolloLookupMergeTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
+    [Fact]
+    public async Task ApolloEntityLookups_Should_FoldLeafLookupIntoDeeperLookup_When_NothingDependsOnLeaf()
+    {
+        // arrange
+        using var gateway = await CreateGatewayAsync();
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+              products { name }
+              brands { featured { name } }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
     private Task<Gateway> CreateGatewayAsync()
     {
         var catalog = CreateSourceSchema(
