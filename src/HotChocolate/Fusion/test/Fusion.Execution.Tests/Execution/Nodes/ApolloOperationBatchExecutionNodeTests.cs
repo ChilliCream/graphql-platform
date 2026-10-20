@@ -65,24 +65,8 @@ public sealed class ApolloOperationBatchExecutionNodeTests : FusionTestBase
         ];
         documents.MatchInlineSnapshots(
         [
-            """
-            query($representations: [_Any!]!) {
-              _entities(representations: $representations) {
-                ... on Bar {
-                  title
-                }
-              }
-            }
-            """,
-            """
-            query($representations: [_Any!]!) {
-              _entities(representations: $representations) {
-                ... on Foo {
-                  name
-                }
-              }
-            }
-            """
+            "query($representations: [_Any!]!) { _entities(representations: $representations) { ... on Bar { title } } }",
+            "query($representations: [_Any!]!) { _entities(representations: $representations) { ... on Foo { name } } }"
         ]);
     }
 

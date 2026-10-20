@@ -4,12 +4,17 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
+/// <summary>
+/// Handles the Claude Code hook contract for <paramref name="harness"/>, whose sessions
+/// <paramref name="sessionFileReader"/> looks up.
+/// </summary>
 internal sealed class ClaudeHookHandler(
     IFileSystem fileSystem,
     TimeProvider timeProvider,
     IAgentStore agentStore,
     IAgentDeliveryLedger ledger,
     IMailStore mailStore,
+    string harness,
     IClaudeSessionFileReader sessionFileReader) : IClaudeHookHandler
 {
     /// <summary>
@@ -139,6 +144,30 @@ internal sealed class ClaudeHookHandler(
             : ClaudeHookOutcome.Neutral;
     }
 
+    public async Task<ClaudeHookOutcome> HandleAgentNamingAsync(
+        ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken)
+    {
+        // A subagent's naming event carries its parent's session id, so only the main kind may
+        // register a session.
+        if (payload.AgentKind != "main")
+        {
+            return ClaudeHookOutcome.Neutral;
+        }
+
+        var resolved = Resolve(payload, skipSessionFileLookup);
+
+        if (resolved is null)
+        {
+            return ClaudeHookOutcome.Neutral;
+        }
+
+        var result = await agentStore.StartSessionAsync(BuildStartRequest(payload, resolved), cancellationToken);
+
+        return result.Kind == AgentSessionStartKind.Ignored
+            ? ClaudeHookOutcome.Neutral
+            : new ClaudeHookOutcome { AgentName = result.Row!.Name };
+    }
+
     public async Task<ClaudeHookOutcome> HandleSessionEndAsync(
         ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken)
     {
@@ -151,7 +180,7 @@ internal sealed class ClaudeHookHandler(
 
         if (resolved is not null)
         {
-            await agentStore.EndSessionAsync(AgentSessionHarness.ClaudeCode, payload.SessionId!, cancellationToken);
+            await agentStore.EndSessionAsync(harness, payload.SessionId!, cancellationToken);
         }
 
         return ClaudeHookOutcome.Neutral;
@@ -174,8 +203,7 @@ internal sealed class ClaudeHookHandler(
             return null;
         }
 
-        var row = await agentStore.FindBySessionAsync(
-            AgentSessionHarness.ClaudeCode, payload.SessionId!, cancellationToken);
+        var row = await agentStore.FindBySessionAsync(harness, payload.SessionId!, cancellationToken);
 
         if (row is not null)
         {
@@ -184,7 +212,15 @@ internal sealed class ClaudeHookHandler(
                 return null;
             }
 
-            await agentStore.TouchSessionAsync(AgentSessionHarness.ClaudeCode, payload.SessionId!, cancellationToken);
+            await agentStore.TouchSessionAsync(harness, payload.SessionId!, cancellationToken);
+
+            var (endpointKind, endpointAddr) = ResolveEndpoint(resolved);
+
+            if (row.EndpointKind == AgentSessionEndpointKind.None && endpointKind != AgentSessionEndpointKind.None)
+            {
+                // The session advertised its endpoint after the row was last started.
+                await agentStore.SetEndpointAsync(row.Name, endpointKind, endpointAddr, null, cancellationToken);
+            }
 
             return new ResolvedRow(row, Minted: false);
         }
@@ -285,16 +321,18 @@ internal sealed class ClaudeHookHandler(
         return new ResolvedSession(payloadWorkspace, session?.Name, session?.Version ?? string.Empty);
     }
 
-    private static AgentSessionStartRequest BuildStartRequest(ClaudeHookPayload payload, ResolvedSession resolved)
+    private static (string Kind, string Addr) ResolveEndpoint(ResolvedSession resolved)
+        => resolved.EndpointName is { Length: > 0 } name && EndpointAddress.IsValid(name)
+            ? (AgentSessionEndpointKind.ClaudePeer, name)
+            : (AgentSessionEndpointKind.None, string.Empty);
+
+    private AgentSessionStartRequest BuildStartRequest(ClaudeHookPayload payload, ResolvedSession resolved)
     {
-        var (endpointKind, endpointAddr) = resolved.EndpointName is { Length: > 0 } name
-            && EndpointAddress.IsValid(name)
-                ? (AgentSessionEndpointKind.ClaudePeer, name)
-                : (AgentSessionEndpointKind.None, string.Empty);
+        var (endpointKind, endpointAddr) = ResolveEndpoint(resolved);
 
         return new AgentSessionStartRequest
         {
-            Harness = AgentSessionHarness.ClaudeCode,
+            Harness = harness,
             SessionId = payload.SessionId!,
             HarnessVersion = resolved.HarnessVersion,
             Cwd = payload.Cwd!,

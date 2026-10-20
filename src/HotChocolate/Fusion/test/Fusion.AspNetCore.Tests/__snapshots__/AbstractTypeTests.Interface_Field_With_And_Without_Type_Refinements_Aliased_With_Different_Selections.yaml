@@ -28,7 +28,7 @@ response:
           },
           {
             "upvotes": 123,
-            "someId": "QXV0aG9yOjI="
+            "someId": "QXV0aG9yOjI0NTA2NDI1Nw=="
           },
           {
             "upvotes": 123,
@@ -96,18 +96,18 @@ sourceSchemas:
                   "abstractTypes": [
                     {
                       "__typename": "Discussion",
-                      "someId": "RGlzY3Vzc2lvbjox",
-                      "id": "RGlzY3Vzc2lvbjox"
+                      "someId": "RGlzY3Vzc2lvbjo4NDU0NzcwNDE=",
+                      "id": "RGlzY3Vzc2lvbjo4NDU0NzcwNDE="
                     },
                     {
                       "__typename": "Author",
-                      "someId": "QXV0aG9yOjI=",
-                      "id": "QXV0aG9yOjI="
+                      "someId": "QXV0aG9yOjI0NTA2NDI1Nw==",
+                      "id": "QXV0aG9yOjI0NTA2NDI1Nw=="
                     },
                     {
                       "__typename": "Discussion",
-                      "someId": "RGlzY3Vzc2lvbjoz",
-                      "id": "RGlzY3Vzc2lvbjoz"
+                      "someId": "RGlzY3Vzc2lvbjoyOTQ5OTQ1OTg1",
+                      "id": "RGlzY3Vzc2lvbjoyOTQ5OTQ1OTg1"
                     }
                   ],
                   "b": [
@@ -116,7 +116,7 @@ sourceSchemas:
                     },
                     {
                       "__typename": "Author",
-                      "id": "QXV0aG9yOjU="
+                      "id": "QXV0aG9yOjM0NTkxMDE3ODQ="
                     },
                     {
                       "__typename": "Discussion"
@@ -165,10 +165,10 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_2_id": "RGlzY3Vzc2lvbjox"
+                "__fusion_2_id": "RGlzY3Vzc2lvbjo4NDU0NzcwNDE="
               },
               {
-                "__fusion_2_id": "RGlzY3Vzc2lvbjoz"
+                "__fusion_2_id": "RGlzY3Vzc2lvbjoyOTQ5OTQ1OTg1"
               }
             ]
         response:
@@ -230,10 +230,10 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "QXV0aG9yOjU="
+                "__fusion_1_id": "QXV0aG9yOjM0NTkxMDE3ODQ="
               },
               {
-                "__fusion_1_id": "QXV0aG9yOjI="
+                "__fusion_1_id": "QXV0aG9yOjI0NTA2NDI1Nw=="
               }
             ]
         response:

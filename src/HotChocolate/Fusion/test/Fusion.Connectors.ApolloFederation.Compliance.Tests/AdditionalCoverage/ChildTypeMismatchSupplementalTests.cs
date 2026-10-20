@@ -29,8 +29,8 @@ public sealed class ChildTypeMismatchSupplementalTests
             .MatchInlineSnapshot(
                 """
                 [
-                  "{\"query\":\"query Op_56dcc647_1 {\\n  accounts {\\n    __typename\\n    ... on User {\\n      id\\n      name\\n    }\\n    ... on Admin {\\n      fusion__field_1: id\\n      name\\n    }\\n  }\\n}\"}",
-                  "{\"query\":\"query($representations: [_Any!]!) {\\n  _entities(representations: $representations) {\\n    ... on User {\\n      name\\n    }\\n  }\\n}\",\"variables\":{\"representations\":[{\"__typename\":\"User\",\"id\":\"u1\"}]}}"
+                  "{\"query\":\"query Op_56dcc647_1 { accounts { __typename ... on User { id name } ... on Admin { fusion__field_1: id name } } }\"}",
+                  "{\"query\":\"query($representations: [_Any!]!) { _entities(representations: $representations) { ... on User { name } } }\",\"variables\":{\"representations\":[{\"__typename\":\"User\",\"id\":\"u1\"}]}}"
                 ]
                 """);
     }

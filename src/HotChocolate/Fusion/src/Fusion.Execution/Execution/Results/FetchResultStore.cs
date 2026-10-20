@@ -32,7 +32,9 @@ namespace HotChocolate.Fusion.Execution.Results;
 internal sealed partial class FetchResultStore : IDisposable
 {
     private const int MaxRetainedDataElementStagingLength = 1024;
+    private const int MaxRetainedForwardedVariableCapacity = 16 * 1024;
     private const int MaxStackAllocPathSegments = 32;
+    private const int MaxLinearProducerScanLength = 4;
 
     private static readonly ArrayPool<VariableValues> s_variableValuePool = ArrayPool<VariableValues>.Shared;
     private static readonly ArrayPool<object> s_objectPool = ArrayPool<object>.Shared;
@@ -46,6 +48,7 @@ internal sealed partial class FetchResultStore : IDisposable
 #endif
     private readonly List<IDisposable> _memory = [];
     private readonly ChunkedArrayWriter _variableWriter = new();
+    private PooledArrayWriter? _forwardedVariableWriter;
     private readonly JsonWriter _jsonWriter;
     private readonly VariableDedupTable _variableDedupTable;
     private FusionSchemaDefinition _schema = default!;
@@ -80,6 +83,8 @@ internal sealed partial class FetchResultStore : IDisposable
     public IReadOnlyList<IError>? Errors => _errors;
 
     public List<IDisposable> MemoryOwners => _memory;
+
+    internal PathSegmentLocalPool PathPool => _pathPool;
 
     public bool AddPartialResult(
         SelectionPath sourcePath,
@@ -860,6 +865,266 @@ AddErrors_Next:
         }
     }
 
+    /// <summary>
+    /// Creates the variable value sets of a lookup and fills the targets of entities that the
+    /// result already holds at the paths of <paramref name="candidates"/>.
+    /// </summary>
+    /// <returns>
+    /// The variable value sets of the entities that still have to be fetched.
+    /// </returns>
+    internal ImmutableArray<VariableValues> CreateVariableValueSets(
+        ReadOnlySpan<SelectionPath> selectionSets,
+        IReadOnlyList<ObjectFieldNode> requestVariables,
+        ReadOnlySpan<OperationRequirement> requiredData,
+        EntityReuseCandidateList candidates,
+        out int reusedCount)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(requestVariables);
+        ArgumentNullException.ThrowIfNull(candidates);
+
+        reusedCount = 0;
+
+        if (requiredData.Length == 0)
+        {
+            throw new ArgumentException(
+                "The required data span must contain at least one requirement.",
+                nameof(requiredData));
+        }
+
+        lock (_lock)
+        {
+            var targetCount = CollectCombinedElements(selectionSets);
+
+            if (targetCount == 0)
+            {
+                return [];
+            }
+
+            var variableValueSets = BuildVariableValueSets(
+                _collectTargetCombined.AsSpan(0, targetCount),
+                requestVariables,
+                requiredData);
+
+            // Entities are only reused while the result has no errors.
+            if (variableValueSets.IsEmpty
+                || _errors is { Count: > 0 }
+                || _pocketedErrors is { Count: > 0 })
+            {
+                return variableValueSets;
+            }
+
+            var producerCount = CollectCombinedElements(candidates.Paths);
+            var producers = _collectTargetCombined.AsSpan(0, producerCount);
+            var holdingCount = 0;
+
+            // Only entities that hold a leaf value for every reused field and a key that is not
+            // all null can produce.
+            for (var i = 0; i < producers.Length; i++)
+            {
+                if (HoldsLeafValues(producers[i], candidates.ResponseNames)
+                    && HasNonNullKeyValue(producers[i], candidates.KeyResponseNames))
+                {
+                    producers[holdingCount++] = producers[i];
+                }
+            }
+
+            if (holdingCount == 0)
+            {
+                return variableValueSets;
+            }
+
+            var producerValueSets = BuildVariableValueSets(
+                producers[..holdingCount],
+                requestVariables,
+                requiredData);
+
+            return ReuseEntities(variableValueSets, producerValueSets, candidates.ResponseNames, out reusedCount);
+        }
+    }
+
+    // Caller must hold _lock.
+    private int CollectCombinedElements(ReadOnlySpan<SelectionPath> selectionSets)
+    {
+        var combinedCount = 0;
+
+        foreach (var selectionSet in selectionSets)
+        {
+            var elements = CollectTargetElements(selectionSet);
+
+            if (!elements.IsEmpty)
+            {
+                EnsureCapacity(
+                    ref _collectTargetCombined,
+                    combinedCount + elements.Length,
+                    combinedCount);
+                elements.CopyTo(_collectTargetCombined.AsSpan(combinedCount));
+                combinedCount += elements.Length;
+            }
+        }
+
+        return combinedCount;
+    }
+
+    // Caller must hold _lock.
+    private ImmutableArray<VariableValues> ReuseEntities(
+        ImmutableArray<VariableValues> variableValueSets,
+        ImmutableArray<VariableValues> producerValueSets,
+        ReadOnlySpan<string> responseNames,
+        out int reusedCount)
+    {
+        reusedCount = 0;
+
+        if (producerValueSets.IsEmpty)
+        {
+            return variableValueSets;
+        }
+
+        ImmutableArray<VariableValues>.Builder? remaining = null;
+
+        for (var i = 0; i < variableValueSets.Length; i++)
+        {
+            var variableValues = variableValueSets[i];
+
+            if (TryFindProducer(producerValueSets, variableValues.Values, out var producerPath)
+                && TryFillTargets(variableValues, GetStartResult(producerPath), responseNames))
+            {
+                if (remaining is null)
+                {
+                    remaining = ImmutableArray.CreateBuilder<VariableValues>(variableValueSets.Length - 1);
+
+                    for (var j = 0; j < i; j++)
+                    {
+                        remaining.Add(variableValueSets[j]);
+                    }
+                }
+
+                reusedCount++;
+                continue;
+            }
+
+            remaining?.Add(variableValueSets[i]);
+        }
+
+        return remaining is null ? variableValueSets : remaining.ToImmutable();
+    }
+
+    // Caller must hold _lock and pass the value sets of the last build, which the dedup table indexes.
+    private bool TryFindProducer(
+        ImmutableArray<VariableValues> producerValueSets,
+        JsonSegment values,
+        out CompactPath producerPath)
+    {
+        if (producerValueSets.Length <= MaxLinearProducerScanLength)
+        {
+            foreach (var producer in producerValueSets)
+            {
+                if (producer.Values.Equals(values))
+                {
+                    producerPath = producer.Path;
+                    return true;
+                }
+            }
+        }
+        else
+        {
+            var hash = _variableWriter.GetHashCode(values.Location, values.Length);
+
+            if (_variableDedupTable.TryGet(hash, values.Location, values.Length, out var index))
+            {
+                producerPath = producerValueSets[index].Path;
+                return true;
+            }
+        }
+
+        producerPath = default;
+        return false;
+    }
+
+    // Caller must hold _lock.
+    private bool TryFillTargets(
+        VariableValues variableValues,
+        CompositeResultElement producer,
+        ReadOnlySpan<string> responseNames)
+    {
+        if (!TryFillTarget(variableValues.Path, producer, responseNames))
+        {
+            return false;
+        }
+
+        foreach (var additionalPath in variableValues.AdditionalPaths)
+        {
+            if (!TryFillTarget(additionalPath, producer, responseNames))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private bool TryFillTarget(
+        CompactPath path,
+        CompositeResultElement producer,
+        ReadOnlySpan<string> responseNames)
+    {
+        var target = GetStartResult(path);
+
+        if (target.IsNullOrInvalidated)
+        {
+            return true;
+        }
+
+        foreach (var responseName in responseNames)
+        {
+            if (!target.TryGetProperty(responseName, out var targetValue)
+                || !producer.TryGetProperty(responseName, out var producerValue)
+                || !targetValue.TrySetLeafValue(producerValue))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool HoldsLeafValues(CompositeResultElement element, ReadOnlySpan<string> responseNames)
+    {
+        if (element.IsNullOrInvalidated)
+        {
+            return false;
+        }
+
+        foreach (var responseName in responseNames)
+        {
+            if (!element.TryGetProperty(responseName, out var value)
+                || value.IsInvalidated
+                || value.ValueKind is not (JsonValueKind.String
+                    or JsonValueKind.Number
+                    or JsonValueKind.True
+                    or JsonValueKind.False))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool HasNonNullKeyValue(CompositeResultElement element, ReadOnlySpan<string> keyResponseNames)
+    {
+        foreach (var responseName in keyResponseNames)
+        {
+            if (element.TryGetProperty(responseName, out var value)
+                && value.ValueKind is not (JsonValueKind.Null or JsonValueKind.Undefined))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     internal ImmutableArray<VariableValues> CreateVariableValueSetsFromSnapshot(
         ImmutableArray<VariableValues> importedEntries,
         HashSet<string> importedKeys,
@@ -1038,6 +1303,7 @@ AddErrors_Next:
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
+        var forwardedVariables = SerializeForwardedVariables(requestVariables, importedEntries.Length);
 
         foreach (var importedEntry in importedEntries)
         {
@@ -1049,13 +1315,7 @@ AddErrors_Next:
             _jsonWriter.Reset(_variableWriter);
             var startPosition = _variableWriter.Position;
             _jsonWriter.WriteStartObject();
-
-            for (var i = 0; i < requestVariables.Count; i++)
-            {
-                var field = requestVariables[i];
-                _jsonWriter.WritePropertyName(field.Name.Value);
-                WriteValueNode(field.Value);
-            }
+            WriteForwardedVariables(requestVariables, forwardedVariables);
 
             if (!TryWriteRequestedRequirementValues(importedEntry.Values, requiredData))
             {
@@ -1133,6 +1393,7 @@ AddErrors_Next:
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator();
         var nextIndex = 0;
+        var forwardedVariables = SerializeForwardedVariables(requestVariables, elements.Length);
 
         foreach (var result in elements)
         {
@@ -1141,14 +1402,7 @@ AddErrors_Next:
             _jsonWriter.Reset(_variableWriter);
             var startPosition = _variableWriter.Position;
             _jsonWriter.WriteStartObject();
-
-            // Write forwarded variables.
-            for (var i = 0; i < requestVariables.Count; i++)
-            {
-                var field = requestVariables[i];
-                _jsonWriter.WritePropertyName(field.Name.Value);
-                WriteValueNode(field.Value);
-            }
+            WriteForwardedVariables(requestVariables, forwardedVariables);
 
             // Write requirement fields.
             var failed = false;
@@ -1651,7 +1905,7 @@ AddErrors_Next:
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
-    private static bool TryGetSimpleRequirementFieldName(
+    internal static bool TryGetSimpleRequirementFieldName(
         OperationRequirement requirement,
         [NotNullWhen(true)] out string? fieldName)
     {
@@ -1783,6 +2037,51 @@ AddErrors_Next:
         _jsonWriter.WriteRawValue(value.ToArray());
     }
 
+    private ReadOnlySpan<byte> SerializeForwardedVariables(
+        IReadOnlyList<ObjectFieldNode> requestVariables,
+        int entityCount)
+    {
+        if (entityCount < 2 || requestVariables.Count == 0)
+        {
+            return [];
+        }
+
+        var writer = _forwardedVariableWriter ??= new PooledArrayWriter();
+        writer.Reset();
+        _jsonWriter.Reset(writer);
+        _jsonWriter.WriteStartObject();
+
+        for (var i = 0; i < requestVariables.Count; i++)
+        {
+            var field = requestVariables[i];
+            _jsonWriter.WritePropertyName(field.Name.Value);
+            WriteValueNode(field.Value);
+        }
+
+        _jsonWriter.WriteEndObject();
+        _jsonWriter.Reset(_variableWriter);
+
+        return writer.WrittenSpan[1..^1];
+    }
+
+    private void WriteForwardedVariables(
+        IReadOnlyList<ObjectFieldNode> requestVariables,
+        ReadOnlySpan<byte> serialized)
+    {
+        if (!serialized.IsEmpty)
+        {
+            _jsonWriter.WriteRawProperties(serialized);
+            return;
+        }
+
+        for (var i = 0; i < requestVariables.Count; i++)
+        {
+            var field = requestVariables[i];
+            _jsonWriter.WritePropertyName(field.Name.Value);
+            WriteValueNode(field.Value);
+        }
+    }
+
     private void WriteValueNode(IValueNode value)
     {
         switch (value)
@@ -1792,15 +2091,15 @@ AddErrors_Next:
                 break;
 
             case StringValueNode sv:
-                _jsonWriter.WriteStringValue(sv.Value);
+                _jsonWriter.WriteStringValue(sv.AsSpan());
                 break;
 
             case IntValueNode iv:
-                WriteRawAscii(iv.Value);
+                _jsonWriter.WriteRawValue(iv.AsSpan());
                 break;
 
             case FloatValueNode fv:
-                WriteRawAscii(fv.Value);
+                _jsonWriter.WriteRawValue(fv.AsSpan());
                 break;
 
             case BooleanValueNode bv:
@@ -1808,7 +2107,7 @@ AddErrors_Next:
                 break;
 
             case EnumValueNode ev:
-                _jsonWriter.WriteStringValue(ev.Value);
+                _jsonWriter.WriteStringValue(ev.AsSpan());
                 break;
 
             case ObjectValueNode ov:
@@ -1836,15 +2135,34 @@ AddErrors_Next:
         }
     }
 
-    private void WriteRawAscii(string value)
-    {
-        Span<byte> buffer = stackalloc byte[value.Length];
-        Encoding.UTF8.GetBytes(value.AsSpan(), buffer);
-        _jsonWriter.WriteRawValue(buffer);
-    }
-
     private void WriteCompositeResultValue(CompositeResultElement value)
         => value.WriteTo(_jsonWriter);
+
+    internal VariableValues CreateVariableValueSets(
+        CompactPath path,
+        IVariableValueCollection variables,
+        ReadOnlySpan<string> forwardedVariables)
+    {
+        _jsonWriter.Reset(_variableWriter);
+        var startPosition = _variableWriter.Position;
+        _jsonWriter.WriteStartObject();
+
+        if (!variables.IsEmpty)
+        {
+            foreach (var name in forwardedVariables)
+            {
+                if (variables.TryGetValue<IValueNode>(name, out var value))
+                {
+                    _jsonWriter.WritePropertyName(name);
+                    WriteValueNode(value);
+                }
+            }
+        }
+
+        _jsonWriter.WriteEndObject();
+        var length = _variableWriter.Position - startPosition;
+        return new VariableValues(path, JsonSegment.Create(_variableWriter, startPosition, length));
+    }
 
     internal VariableValues CreateVariableValueSets(
         CompactPath path,
@@ -2505,6 +2823,7 @@ AddErrors_Next:
 
         _variableDedupTable.Dispose();
         _variableWriter.Dispose();
+        _forwardedVariableWriter?.Dispose();
         _pathPool?.Dispose();
     }
 

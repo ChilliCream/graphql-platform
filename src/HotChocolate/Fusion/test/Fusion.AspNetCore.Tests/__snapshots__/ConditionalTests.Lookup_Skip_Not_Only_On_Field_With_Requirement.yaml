@@ -49,7 +49,7 @@ sourceSchemas:
               {
                 "data": {
                   "productBySlug": {
-                    "id": "UHJvZHVjdDox"
+                    "id": "UHJvZHVjdDoxMTY3NDUwNjg="
                   }
                 }
               }
@@ -93,7 +93,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_id": "UHJvZHVjdDox"
+              "__fusion_1_id": "UHJvZHVjdDoxMTY3NDUwNjg="
             }
         response:
           results:

@@ -109,18 +109,44 @@ internal sealed class ConsumerRetryMiddleware(
 file static class Extensions
 {
     /// <summary>
-    /// Resolves the bus-level exception policy feature, if configured.
+    /// Resolves the exception policy of the endpoints the consumer is bound to, falling back to the bus policy
+    /// when the consumer is not bound to an endpoint.
     /// </summary>
     public static ExceptionPolicyFeature? GetExceptionPolicyFeature(this ConsumerMiddlewareFactoryContext context)
     {
-        var busFeatures = context.Services.GetRequiredService<IFeatureCollection>();
+        var router = context.Services.GetRequiredService<IMessageRouter>();
+        ReceiveEndpoint? resolvedEndpoint = null;
+        ExceptionPolicyFeature? resolvedFeature = null;
 
-        if (busFeatures.TryGet(out ExceptionPolicyFeature? busFeature))
+        foreach (var route in router.GetInboundByConsumer(context.Consumer))
         {
-            return busFeature;
+            if (route.Endpoint is not { } endpoint)
+            {
+                continue;
+            }
+
+            var feature = ExceptionPolicyResolver.Resolve(context.Services, endpoint);
+
+            if (resolvedEndpoint is null)
+            {
+                resolvedEndpoint = endpoint;
+                resolvedFeature = feature;
+            }
+            else if (!ReferenceEquals(resolvedFeature, feature))
+            {
+                throw ThrowHelper.ConsumerExceptionPolicyConflict(
+                    context.Consumer.Name,
+                    resolvedEndpoint.Name,
+                    endpoint.Name);
+            }
         }
 
-        return null;
+        if (resolvedEndpoint is null)
+        {
+            return context.Services.GetRequiredService<IFeatureCollection>().Get<ExceptionPolicyFeature>();
+        }
+
+        return resolvedFeature;
     }
 
     /// <summary>

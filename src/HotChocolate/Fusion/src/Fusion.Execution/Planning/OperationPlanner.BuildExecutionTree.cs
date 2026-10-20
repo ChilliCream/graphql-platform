@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
@@ -1931,17 +1932,19 @@ public sealed partial class OperationPlanner
 
     private static string ComputeCanonicalSignature(OperationExecutionNode node)
     {
-        var replacements = BuildPrefixReplacements(node.Requirements);
-        var normalized = ApplyPrefixReplacements(node.Operation.Value.Span, replacements);
+        var operations = node.OperationDocument.GetOperations().GetEnumerator();
 
-        // The first line contains the operation name, which embeds a
-        // step-specific identifier. We skip it so that two operations
-        // with the same structure produce the same signature. '\n' is a
-        // single ASCII byte in UTF-8, so the byte scan matches the text scan.
-        var normalizedSpan = normalized.AsSpan();
-        var firstNewline = normalizedSpan.IndexOf((byte)'\n');
-        var bodySpan = firstNewline >= 0 ? normalizedSpan[(firstNewline + 1)..] : normalizedSpan;
-        var bodyText = Encoding.UTF8.GetString(bodySpan);
+        if (!operations.MoveNext())
+        {
+            throw ThrowHelper.SingleOperationRequired();
+        }
+
+        using var buffer = new PooledArrayWriter();
+        operations.Current.SelectionSet.Format(buffer, indented: true);
+
+        var replacements = BuildPrefixReplacements(node.Requirements);
+        var normalized = ApplyPrefixReplacements(buffer.WrittenSpan, replacements);
+        var bodyText = Encoding.UTF8.GetString(normalized);
 
         var conditions = string.Join(",", node.Conditions.ToArray()
             .OrderBy(c => c.VariableName)
@@ -3021,8 +3024,6 @@ public sealed partial class OperationPlanner
 
 file static class Extensions
 {
-    private static readonly Encoding s_encoding = Encoding.UTF8;
-
     public static bool IsIntrospectionOnly(this Operation operation)
     {
         var hasNonInternalIntrospectionSelection = false;
@@ -3075,14 +3076,5 @@ file static class Extensions
     }
 
     public static OperationSourceText ToSourceText(this OperationDefinitionNode operation)
-    {
-        var sourceText = operation.ToString(indented: true);
-        var sourceTextUtf8 = s_encoding.GetBytes(sourceText);
-
-        return new OperationSourceText(
-            operation.Name!.Value,
-            operation.Operation,
-            sourceTextUtf8,
-            OperationSourceTextHash.Compute(sourceTextUtf8));
-    }
+        => OperationSourceText.Create(operation.Name!.Value, operation.Operation, operation);
 }

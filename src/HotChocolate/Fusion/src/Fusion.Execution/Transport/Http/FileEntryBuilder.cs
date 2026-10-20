@@ -160,35 +160,62 @@ internal static class FileEntryBuilder
     /// </summary>
     private static string PrintPath(Path path)
     {
-        var segments = path.ToList();
-
-        if (segments.Count == 0)
+        if (path.IsRoot)
         {
             return string.Empty;
         }
 
-        var sb = new StringBuilder();
+        var length = path.Length - 1;
+        var current = path;
 
-        for (var i = 0; i < segments.Count; i++)
+        while (!current.IsRoot)
         {
-            if (i > 0)
-            {
-                sb.Append('.');
-            }
-
-            switch (segments[i])
-            {
-                case string name:
-                    sb.Append(name);
-                    break;
-
-                case int index:
-                    sb.Append(index);
-                    break;
-            }
+            length += current is NamePathSegment name
+                ? name.Name.Length
+                : CountDigits(((IndexerPathSegment)current).Index);
+            current = current.Parent;
         }
 
-        return sb.ToString();
+        return string.Create(length, path, static (span, current) =>
+        {
+            var position = span.Length;
+
+            while (!current.IsRoot)
+            {
+                if (current is NamePathSegment name)
+                {
+                    position -= name.Name.Length;
+                    name.Name.AsSpan().CopyTo(span[position..]);
+                }
+                else
+                {
+                    var index = ((IndexerPathSegment)current).Index;
+                    var digits = CountDigits(index);
+                    position -= digits;
+                    index.TryFormat(span.Slice(position, digits), out _, format: default, provider: null);
+                }
+
+                current = current.Parent;
+
+                if (!current.IsRoot)
+                {
+                    span[--position] = '.';
+                }
+            }
+        });
+    }
+
+    private static int CountDigits(int value)
+    {
+        var digits = 1;
+
+        while (value >= 10)
+        {
+            value /= 10;
+            digits++;
+        }
+
+        return digits;
     }
 
     private static bool TryExtractFileKey(ReadOnlySpan<byte> value, out string key)

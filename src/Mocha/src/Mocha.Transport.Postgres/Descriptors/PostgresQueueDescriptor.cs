@@ -146,6 +146,14 @@ internal sealed class PostgresQueueDescriptor
     }
 
     /// <inheritdoc />
+    public void Configure(Action<IReceiveMiddlewareProvider> configure)
+    {
+        ArgumentNullException.ThrowIfNull(configure);
+
+        Configuration.ConfigureReceiveEndpoint.Add(configure);
+    }
+
+    /// <inheritdoc />
     public IPostgresQueueDescriptor FaultEndpoint(Uri address)
     {
         ArgumentNullException.ThrowIfNull(address);

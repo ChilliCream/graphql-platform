@@ -77,10 +77,11 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
 
     private async ValueTask FormatOperationResultAsync(
         OperationResult result,
-        PipeWriter writer,
+        PipeWriter pipe,
         bool useIncrementalRfc1,
         CancellationToken ct = default)
     {
+        using var writer = ChunkedPipeBufferWriter.Rent(pipe);
         OperationResultFormatterContext? formatContext = null;
         try
         {
@@ -110,10 +111,11 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
 
     private async ValueTask FormatResultBatchAsync(
         OperationResultBatch resultBatch,
-        PipeWriter writer,
+        PipeWriter pipe,
         bool useIncrementalRfc1,
         CancellationToken ct = default)
     {
+        using var writer = ChunkedPipeBufferWriter.Rent(pipe);
         foreach (var result in resultBatch.Results)
         {
             switch (result)
@@ -148,7 +150,7 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
                     break;
 
                 case IResponseStream responseStream:
-                    await FormatResponseStreamAsync(
+                    await WriteResponseStreamAsync(
                         responseStream,
                         writer,
                         useIncrementalRfc1,
@@ -160,9 +162,19 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
 
     private async ValueTask FormatResponseStreamAsync(
         IResponseStream responseStream,
-        PipeWriter writer,
+        PipeWriter pipe,
         bool useIncrementalRfc1,
         CancellationToken ct = default)
+    {
+        using var writer = ChunkedPipeBufferWriter.Rent(pipe);
+        await WriteResponseStreamAsync(responseStream, writer, useIncrementalRfc1, ct).ConfigureAwait(false);
+    }
+
+    private async ValueTask WriteResponseStreamAsync(
+        IResponseStream responseStream,
+        ChunkedPipeBufferWriter writer,
+        bool useIncrementalRfc1,
+        CancellationToken ct)
     {
         // first, we create the iterator.
         await using var enumerator = responseStream.ReadResultsAsync().GetAsyncEnumerator(ct);

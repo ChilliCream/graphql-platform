@@ -1325,6 +1325,119 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
     }
 
     [Fact]
+    public void CreateRepresentationVariableValue_Should_PreserveLookupFallback_When_RuntimeTypeNameIsEscaped()
+    {
+        // arrange
+        var schema = ComposeConcreteBranchSchema();
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ entities { id data { __typename foo ... on Bar { bar } ... on Qux { qux } } } }",
+            """{"data":{"entities":[{"id":"1","data":{"__typename":"Q\u0075x","foo":"f","bar":"b","qux":"q"}}]}}""",
+            resultArena,
+            sourceArena);
+        var lookupField = ParseLookupField("{ entityById(input: $__fusion_1_input) { id } }");
+        var requirements = new[]
+        {
+            Requirement("__fusion_1_input", "{ foo: data.foo bar: data<Bar>.bar qux: data<Qux>.qux }")
+        };
+
+        // act
+        var exception = Assert.Throws<KeyNotFoundException>(() => CreateRepresentation(
+            store, schema, SelectionPath.Root.AppendField("entities"), [], requirements, "Entity", lookupField));
+
+        // assert
+        exception.Message.MatchInlineSnapshot("""A type with the name `Q\u0075x` does not exist.""");
+    }
+
+    [Fact]
+    public void CreateRepresentationVariableValue_Should_UseSourceTypeName_When_MetadataTypeDiffers()
+    {
+        // arrange
+        var schema = ComposeConcreteBranchSchema();
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ entities { id data { __typename foo bar qux } } }",
+            """{"data":{"entities":[{"id":"1","data":{"__typename":"Baz","foo":"f","bar":"b","qux":"q"}}]}}""",
+            resultArena,
+            sourceArena);
+        var lookupField = ParseLookupField("{ entityById(input: $__fusion_1_input) { id } }");
+        var requirements = new[]
+        {
+            Requirement("__fusion_1_input", "{ foo: data.foo bar: data<Bar>.bar qux: data<Qux>.qux }")
+        };
+
+        // act
+        var representation = CreateRepresentation(
+            store, schema, SelectionPath.Root.AppendField("entities"), [], requirements, "Entity", lookupField);
+
+        // assert
+        Normalize(representation.Value).MatchInlineSnapshot(
+            """
+            {"representations":[{"__typename":"Entity","data":{"__typename":"Baz","foo":"f","bar":"b"}}]}
+            """);
+    }
+
+    [Theory]
+    [InlineData("{}")]
+    [InlineData("{\"__typename\":123}")]
+    public void CreateRepresentationVariableValue_Should_SkipEntity_When_RuntimeTypeNameIsUnavailable(string data)
+    {
+        // arrange
+        var schema = ComposeConcreteBranchSchema();
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ entities { id data { __typename foo bar qux } } }",
+            "{\"data\":{\"entities\":[{\"id\":\"1\",\"data\":" + data + "}]}}",
+            resultArena,
+            sourceArena);
+        var lookupField = ParseLookupField("{ entityById(input: $__fusion_1_input) { id } }");
+        var requirements = new[]
+        {
+            Requirement("__fusion_1_input", "{ foo: data.foo bar: data<Bar>.bar }")
+        };
+
+        // act
+        var representation = CreateRepresentation(
+            store, schema, SelectionPath.Root.AppendField("entities"), [], requirements, "Entity", lookupField);
+
+        // assert
+        Assert.Equal(RepresentationValue.Empty, representation);
+    }
+
+    [Fact]
+    public void CreateRepresentationVariableValue_Should_Throw_When_RuntimeTypeNameIsUnknown()
+    {
+        // arrange
+        var schema = ComposeConcreteBranchSchema();
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ entities { id data { __typename foo bar qux } } }",
+            """{"data":{"entities":[{"id":"1","data":{"__typename":"Missing","foo":"f","bar":"b","qux":"q"}}]}}""",
+            resultArena,
+            sourceArena);
+        var lookupField = ParseLookupField("{ entityById(input: $__fusion_1_input) { id } }");
+        var requirements = new[]
+        {
+            Requirement("__fusion_1_input", "{ foo: data.foo bar: data<Bar>.bar }")
+        };
+
+        // act
+        var exception = Assert.Throws<KeyNotFoundException>(() => CreateRepresentation(
+            store, schema, SelectionPath.Root.AppendField("entities"), [], requirements, "Entity", lookupField));
+
+        // assert
+        exception.Message.MatchInlineSnapshot("A type with the name `Missing` does not exist.");
+    }
+
+    [Fact]
     public void CreateRepresentationVariableValue_Should_OmitNonMatchingBranch_When_RuntimeTypeIsDifferentImplementor()
     {
         // arrange
@@ -3022,6 +3135,11 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             error.Message);
         Assert.Equal("foos[0].name", error.Path!.Print());
     }
+
+    private static FusionSchemaDefinition ComposeConcreteBranchSchema()
+        => ComposeSchema(
+            AbstractBranchSchema.Replace("data: Foo", "data: Qux", StringComparison.Ordinal)
+                + "\nextend type Query { other: Foo }");
 
     private static FetchResultStore CreateMergeStore(
         FusionSchemaDefinition schema,

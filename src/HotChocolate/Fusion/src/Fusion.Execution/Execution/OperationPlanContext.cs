@@ -42,6 +42,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     private readonly INodeIdParser _nodeIdParser;
     private readonly IErrorHandler _errorHandler;
     private bool _collectTelemetry;
+    private EntityReuseCandidateMap? _entityReuseCandidateMap;
     private bool _usesDynamicSchemaNames;
     private bool _usesBatchNodes;
 #pragma warning disable IDE0370 // Remove unnecessary suppression
@@ -394,8 +395,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
                 return [_resultStore.CreateVariableValueSets(ToResultPath(selectionSet), [])];
             }
 
-            var variableValues = GetPathThroughVariables(forwardedVariables);
-            return [_resultStore.CreateVariableValueSets(CompactPath.Root, variableValues)];
+            return [_resultStore.CreateVariableValueSets(CompactPath.Root, Variables, forwardedVariables)];
         }
         else
         {
@@ -430,6 +430,42 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         }
     }
 
+    /// <summary>
+    /// Gets the reuse candidates of a lookup in the executing plan, or <c>null</c> if the
+    /// lookup always fetches its entities.
+    /// </summary>
+    internal EntityReuseCandidateList? GetEntityReuseCandidates(int lookupId)
+        => _entityReuseCandidateMap?.GetCandidates(lookupId);
+
+    /// <summary>
+    /// Creates the variable value sets of a lookup and fills the targets whose entity the result
+    /// already holds. <paramref name="reusedCount"/> is the number of entities that were filled.
+    /// </summary>
+    internal ImmutableArray<VariableValues> CreateVariableValueSets(
+        ReadOnlySpan<SelectionPath> selectionSets,
+        ReadOnlySpan<string> forwardedVariables,
+        ReadOnlySpan<OperationRequirement> requiredData,
+        EntityReuseCandidateList? candidates,
+        out int reusedCount)
+    {
+        reusedCount = 0;
+
+        if (candidates is null
+            || requiredData.Length == 0
+            || forwardedVariables.Length > 0
+            || CountImportedRequirementKeys(requiredData) > 0)
+        {
+            return CreateVariableValueSets(selectionSets, forwardedVariables, requiredData);
+        }
+
+        return _resultStore.CreateVariableValueSets(
+            selectionSets,
+            GetPathThroughVariables(forwardedVariables),
+            requiredData,
+            candidates,
+            out reusedCount);
+    }
+
     internal ImmutableArray<VariableValues> CreateVariableValueSets(
         ReadOnlySpan<SelectionPath> selectionSets,
         ReadOnlySpan<string> forwardedVariables,
@@ -442,8 +478,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
                 return [];
             }
 
-            var variableValues = GetPathThroughVariables(forwardedVariables);
-            return [_resultStore.CreateVariableValueSets(CompactPath.Root, variableValues)];
+            return [_resultStore.CreateVariableValueSets(CompactPath.Root, Variables, forwardedVariables)];
         }
         else
         {
@@ -614,15 +649,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     /// <see cref="OperationResult"/>.
     /// </summary>
     internal void TransferRetainedMemoryTo(OperationResult operationResult)
-    {
-        var memoryOwners = _resultStore.MemoryOwners;
-        foreach (var disposable in memoryOwners)
-        {
-            operationResult.RegisterForCleanup(disposable);
-        }
-
-        memoryOwners.Clear();
-    }
+        => _resultStore.TransferMemoryOwnersTo(operationResult);
 
     private CompactPath ToResultPath(SelectionPath selectionSet)
     {
@@ -821,13 +848,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
             // we take over the memory owners from the result context
             // and store them on the response so that the server can
             // dispose them when it disposes of the result itself.
-            var memoryOwners = _resultStore.MemoryOwners;
-            foreach (var disposable in memoryOwners)
-            {
-                operationResult.RegisterForCleanup(disposable);
-            }
-
-            memoryOwners.Clear();
+            _resultStore.TransferMemoryOwnersTo(operationResult);
         }
 
         operationResult.Features.Set(OperationPlan);

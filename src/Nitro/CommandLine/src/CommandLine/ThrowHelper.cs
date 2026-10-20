@@ -63,6 +63,25 @@ internal static class ThrowHelper
         return Exit($"No recipients left: {string.Join(", ", reasons)}.");
     }
 
+    public static ExitException NoAgentWorkspaceFound()
+        => Exit("No agent workspace found. Run `nitro agent init` first.");
+
+    public static ExitException UserHomeDirectoryNotResolved()
+        => Exit("Could not resolve the current user's home directory.");
+
+    public static ExitException ConflictingHookEntries(
+        string conflictingSettingsPath,
+        string settingsPath,
+        string conflictingCommand,
+        string command,
+        IReadOnlyList<string> events)
+        => Exit(
+            $"'{conflictingSettingsPath}' already runs Nitro's `{conflictingCommand}` hooks under "
+            + $"{string.Join(", ", events)}. Next to the `{command}` hooks in '{settingsPath}' they would "
+            + $"handle every event twice. Remove the `{conflictingCommand}` entries from "
+            + $"'{conflictingSettingsPath}', keeping any other hooks, then run the command again. "
+            + "Nothing was written.");
+
     public static ExitException NoAgentWorkspaceToBackUp()
         => Exit(
             "No agent workspace found to back up. Neither a '.nitro' directory nor a "

@@ -19,22 +19,23 @@ internal sealed class RabbitMQAcknowledgementMiddleware
         var feature = context.Features.GetOrSet<RabbitMQReceiveFeature>();
         var channel = feature.Channel;
         var eventArgs = feature.EventArgs;
-        var cancellationToken = context.CancellationToken;
 
         try
         {
             await next(context);
 
+            // Once next returns the handler's work is committed, so the ack is sent without the
+            // shutdown token. A cancelled handler throws and is nacked with requeue instead.
             if (channel.IsOpen)
             {
-                await channel.BasicAckAsync(eventArgs.DeliveryTag, false, cancellationToken);
+                await channel.BasicAckAsync(eventArgs.DeliveryTag, false, CancellationToken.None);
             }
         }
         catch
         {
             if (channel.IsOpen)
             {
-                await channel.BasicNackAsync(eventArgs.DeliveryTag, false, true, cancellationToken);
+                await channel.BasicNackAsync(eventArgs.DeliveryTag, false, true, CancellationToken.None);
             }
 
             throw;

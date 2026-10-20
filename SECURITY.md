@@ -1,6 +1,6 @@
 # Security Policy
 
-This document is the cybersecurity policy for the open-source projects developed in this repository: Hot Chocolate, Fusion, Strawberry Shake, Green Donut, and the related packages published under the `HotChocolate.*`, `StrawberryShake.*`, `GreenDonut.*`, and `ChilliCream.*` package IDs on NuGet.org.
+This document is the cybersecurity policy for the open-source projects developed in this repository: Hot Chocolate, Fusion, Strawberry Shake, Green Donut, Mocha, and the related packages published under the `HotChocolate.*`, `StrawberryShake.*`, `GreenDonut.*`, `Mocha.*`, and `ChilliCream.*` package IDs on NuGet.org.
 
 ChilliCream Inc. supports the development of these projects as an open-source software steward within the meaning of Article 24 of Regulation (EU) 2024/2847 (the Cyber Resilience Act, "CRA"). This policy is maintained to satisfy Article 24(1) and describes how vulnerabilities are documented, remediated, and communicated, and how ChilliCream meets its reporting and cooperation duties under Article 24(2) and 24(3).
 
@@ -11,7 +11,7 @@ The projects are provided under the MIT License, without warranty.
 Please report suspected vulnerabilities privately. Do not open a public issue, discussion, or pull request for anything that might have a security impact.
 
 - Preferred: GitHub private vulnerability reporting at <https://github.com/ChilliCream/graphql-platform/security/advisories/new>
-- Alternative: email <contact@chillicream.com> with the subject line `[SECURITY]`
+- Alternative: email <security@chillicream.com>
 
 Please include the affected package and version, a description of the issue and its impact, and steps to reproduce or a proof of concept.
 
@@ -73,8 +73,8 @@ ChilliCream cooperates with market surveillance authorities on request to mitiga
 
 ## Point of Contact
 
-ChilliCream Inc.
-Email: <contact@chillicream.com>
+ChilliCream Inc.\
+Email: <security@chillicream.com>\
 Security advisories: <https://github.com/ChilliCream/graphql-platform/security/advisories>
 
 ## References

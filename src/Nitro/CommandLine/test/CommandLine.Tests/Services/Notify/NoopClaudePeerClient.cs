@@ -8,6 +8,6 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 internal sealed class NoopClaudePeerClient : IClaudePeerClient
 {
     public Task<ClaudePeerSendOutcome> SendAsync(
-        string sessionId, string message, CancellationToken cancellationToken)
+        string harness, string sessionId, string message, CancellationToken cancellationToken)
         => Task.FromResult(ClaudePeerSendOutcome.Ok);
 }

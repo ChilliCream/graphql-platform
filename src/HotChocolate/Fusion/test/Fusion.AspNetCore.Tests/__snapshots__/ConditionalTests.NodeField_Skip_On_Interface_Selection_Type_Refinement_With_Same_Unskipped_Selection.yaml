@@ -80,7 +80,7 @@ sourceSchemas:
                   "node": {
                     "__typename": "Discussion",
                     "author": {
-                      "id": "QXV0aG9yOjE="
+                      "id": "QXV0aG9yOjE4OTA0OTI5MTU="
                     }
                   }
                 }
@@ -111,7 +111,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_id": "QXV0aG9yOjE="
+              "__fusion_1_id": "QXV0aG9yOjE4OTA0OTI5MTU="
             }
         response:
           results:

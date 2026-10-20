@@ -1,40 +1,48 @@
-using ChilliCream.Nitro.CommandLine.Commands.Agent.Hooks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Hook;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Hooks.Claude;
 
 /// <summary>
 /// Idempotent: installing twice writes the same entries, reporting the
-/// second run as unchanged. Only ever adds or replaces the single
-/// Nitro-owned hook group per event; foreign entries (another tool's hook
-/// under the same event) are left untouched.
+/// second run as unchanged. Leaves exactly one Nitro-owned hook handler per
+/// event; foreign handlers (another tool's hook under the same event, even in
+/// the same group) are left untouched.
 /// </summary>
 internal sealed class InstallClaudeHooksCommand : Command
 {
-    public InstallClaudeHooksCommand() : base("install")
+    public InstallClaudeHooksCommand(ClaudeHooksTemplate template, Option<string> scopeOption) : base("install")
     {
-        Description = "Add or update this CLI's Claude Code turn-boundary hook entries.";
+        Description = $"Add or update this CLI's {AgentHarnessDisplay.Name(template.Harness)} "
+            + "turn-boundary hook entries.";
 
-        Options.Add(Opt<HookInstallScopeOption>.Instance);
+        Options.Add(scopeOption);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
-        this.AddExamples("agent hooks claude install", "agent hooks claude install --scope project");
+        this.AddExamples(
+            $"agent hooks {template.CommandName} install",
+            $"agent hooks {template.CommandName} install --scope project");
 
-        this.SetActionWithExceptionHandling(ExecuteAsync);
+        this.SetActionWithExceptionHandling(
+            (services, parseResult, cancellationToken) =>
+                ExecuteAsync(services, parseResult, template, scopeOption, cancellationToken));
     }
 
     internal static async Task<int> ExecuteAsync(
         ICommandServices services,
         ParseResult parseResult,
+        ClaudeHooksTemplate template,
+        Option<string> scopeOption,
         CancellationToken cancellationToken)
     {
         var console = services.GetRequiredService<INitroConsole>();
-        var installer = services.GetRequiredService<IClaudeHooksInstallerService>();
+        var installer = services.GetRequiredKeyedService<IClaudeHooksInstallerService>(template.Harness);
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        var scope = parseResult.GetRequiredValue(Opt<HookInstallScopeOption>.Instance);
+        var scope = parseResult.GetRequiredValue(scopeOption);
+        var harnessName = AgentHarnessDisplay.Name(template.Harness);
 
         var report = await installer.InstallAsync(scope, cancellationToken);
 
@@ -44,12 +52,19 @@ internal sealed class InstallClaudeHooksCommand : Command
             return ExitCodes.Success;
         }
 
-        console.OkLine($"Installed Claude Code hooks in '{report.SettingsPath.EscapeMarkup()}'.");
+        console.OkLine($"Installed {harnessName} hooks in '{report.SettingsPath.EscapeMarkup()}'.");
 
         foreach (var eventResult in report.Events)
         {
             console.WriteLine($"  {eventResult.Event,-18}{Describe(eventResult.Outcome)}");
         }
+
+        HookSwitchGuidance.Write(
+            console,
+            harnessName,
+            report.SettingsPath,
+            [.. report.Events.Where(e => e.Outcome == HookInstallOutcome.Disabled).Select(e => e.Event)],
+            report.AllHooksDisabledIn);
 
         return ExitCodes.Success;
     }
@@ -59,14 +74,17 @@ internal sealed class InstallClaudeHooksCommand : Command
         HookInstallOutcome.Installed => "installed",
         HookInstallOutcome.Updated => "updated",
         HookInstallOutcome.Unchanged => "unchanged",
+        HookInstallOutcome.Disabled => "disabled",
         _ => outcome.ToString()
     };
 
     private static HooksInstallResult ToResult(ClaudeHooksInstallReport report) => new(
         report.SettingsPath,
-        [.. report.Events.Select(e => new HookEventResult(e.Event, e.Outcome.ToString()))]);
+        [.. report.Events.Select(e => new HookEventInstallResult(e.Event, e.Outcome.ToString()))],
+        report.AllHooksDisabledIn);
 
-    public sealed record HookEventResult(string Event, string Outcome);
+    public sealed record HookEventInstallResult(string Event, string Outcome);
 
-    public sealed record HooksInstallResult(string SettingsPath, IReadOnlyList<HookEventResult> Events);
+    public sealed record HooksInstallResult(
+        string SettingsPath, IReadOnlyList<HookEventInstallResult> Events, string? AllHooksDisabledIn);
 }

@@ -537,6 +537,42 @@ public sealed partial class JsonWriter
     }
 
     /// <summary>
+    /// Writes raw UTF-8 JSON object properties into the current object without validation.
+    /// Supported for minimized output only. An empty span writes nothing.
+    /// </summary>
+    /// <param name="utf8Properties">
+    /// Comma separated properties without the enclosing braces.
+    /// </param>
+    internal void WriteRawProperties(ReadOnlySpan<byte> utf8Properties)
+    {
+        Debug.Assert(!_indented, "Raw properties are only supported for minimized output.");
+        Debug.Assert(_tokenType is not JsonTokenType.PropertyName && !HasDeferredPropertyName);
+        Debug.Assert(CurrentDepth > 0 && !IsInArray);
+
+        if (utf8Properties.IsEmpty)
+        {
+            return;
+        }
+
+        var maxRequired = utf8Properties.Length + 1; // Optionally, 1 list separator
+        var bytesWritten = 0;
+
+        var output = _writer.GetSpan(maxRequired);
+
+        if (_currentDepth < 0)
+        {
+            output[bytesWritten++] = JsonConstants.Comma;
+        }
+
+        utf8Properties.CopyTo(output[bytesWritten..]);
+        bytesWritten += utf8Properties.Length;
+
+        _writer.Advance(bytesWritten);
+
+        SetFlagToAddListSeparatorBeforeNextItem();
+    }
+
+    /// <summary>
     /// Internal buffer used for deferred property name writes.
     /// </summary>
     private sealed class DeferBuffer : IBufferWriter<byte>

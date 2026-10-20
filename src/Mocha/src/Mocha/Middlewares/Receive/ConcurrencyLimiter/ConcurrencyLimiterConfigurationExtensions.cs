@@ -44,9 +44,10 @@ public static class ConcurrencyLimiterConfigurationExtensions
     public static TDescriptor AddConcurrencyLimiter<TDescriptor>(
         this TDescriptor descriptor,
         Action<ConcurrencyLimiterOptions> configure)
-        where TDescriptor : IReceiveMiddlewareProvider
+        where TDescriptor : IConfigurable<IReceiveMiddlewareProvider>
     {
-        descriptor.Extend().Configuration.Features.GetOrSet<ConcurrencyLimiterFeature>().Configure(configure);
+        descriptor.Configure(
+            d => d.Extend().Configuration.Features.GetOrSet<ConcurrencyLimiterFeature>().Configure(configure));
 
         return descriptor;
     }

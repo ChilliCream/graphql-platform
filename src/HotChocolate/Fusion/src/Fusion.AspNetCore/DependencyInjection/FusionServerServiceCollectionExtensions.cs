@@ -93,6 +93,9 @@ public static class FusionServerServiceCollectionExtensions
                     .Get(schemaName);
                 return new ExecutionConcurrencyGate(serverOptions.MaxConcurrentExecutions);
             });
+
+            sc.TryAddSingleton(
+                static sp => new ExecutorSession(sp.GetRequiredService<IRequestExecutor>()));
         });
 
         return builder;

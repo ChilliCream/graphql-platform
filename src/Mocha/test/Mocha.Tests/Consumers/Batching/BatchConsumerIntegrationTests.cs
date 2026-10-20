@@ -306,18 +306,26 @@ public sealed class BatchConsumerIntegrationTests : ConsumerIntegrationTestsBase
     [Fact]
     public async Task Handler_Should_ReceiveMultiMessageBatch_When_ConcurrentDelivery()
     {
-        // arrange - MaxBatchSize=5 with MaxConcurrency=5 so all 5 pipelines call Add()
-        // concurrently, filling the batch by size before any handler completes
+        // arrange - MaxBatchSize=5 with MaxConcurrency=5 on the endpoint and its concurrency
+        // limiter so all 5 pipelines call Add() concurrently, filling the batch by size before
+        // any handler completes; a long BatchTimeout so only the size triggers dispatch
         var recorder = new BatchMessageRecorder();
         const int messageCount = 5;
         await using var provider = await CreateBusAsync(
             b =>
             {
                 b.Services.AddSingleton(recorder);
-                b.AddBatchHandler<TestBatchHandler>(opts => opts.MaxBatchSize = messageCount);
+                b.AddBatchHandler<TestBatchHandler>(opts =>
+                {
+                    opts.MaxBatchSize = messageCount;
+                    opts.BatchTimeout = TimeSpan.FromMinutes(5);
+                });
             },
             t =>
-                t.Endpoint("batch-ep").Handler<TestBatchHandler>().MaxConcurrency(messageCount));
+                t.Endpoint("batch-ep")
+                    .Handler<TestBatchHandler>()
+                    .MaxConcurrency(messageCount)
+                    .AddConcurrencyLimiter(o => o.MaxConcurrency = messageCount));
 
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();

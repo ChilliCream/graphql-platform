@@ -1,5 +1,6 @@
 using System.Text;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
 
@@ -208,6 +209,9 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         writer.Unindent();
     }
 
+    private static string FormatSourceText(ReadOnlyMemory<byte> value)
+        => Utf8GraphQLParser.Parse(value.Span).ToString(indented: true);
+
     private static void WriteOperationNode(OperationExecutionNode node, ExecutionNodeTrace? trace, CodeWriter writer)
     {
         writer.WriteLine("- id: {0}", node.Id);
@@ -222,8 +226,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         writer.WriteLine("operation: |");
         writer.Indent();
-        // Decode the UTF-8 operation text for line-by-line YAML output (cold diagnostic path).
-        var reader = new StringReader(Encoding.UTF8.GetString(node.Operation.Value.Span));
+        var reader = new StringReader(FormatSourceText(node.Operation.Value));
         var line = reader.ReadLine();
         while (line != null)
         {
@@ -415,8 +418,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         writer.WriteLine("operation: |");
         writer.Indent();
-        // Decode the UTF-8 operation text for line-by-line YAML output (cold diagnostic path).
-        var reader = new StringReader(Encoding.UTF8.GetString(opDef.SourceText.Value.Span));
+        var reader = new StringReader(FormatSourceText(opDef.SourceText.Value));
         var line = reader.ReadLine();
         while (line != null)
         {
@@ -470,8 +472,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         writer.WriteLine("operation: |");
         writer.Indent();
-        // Decode the UTF-8 operation text for line-by-line YAML output (cold diagnostic path).
-        var reader = new StringReader(Encoding.UTF8.GetString(opDef.SourceText.Value.Span));
+        var reader = new StringReader(FormatSourceText(opDef.SourceText.Value));
         var line = reader.ReadLine();
         while (line != null)
         {
@@ -530,8 +531,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         writer.WriteLine("operation: |");
         writer.Indent();
-        // Decode the UTF-8 operation text for line-by-line YAML output (cold diagnostic path).
-        var reader = new StringReader(Encoding.UTF8.GetString(node.Operation.Value.Span));
+        var reader = new StringReader(FormatSourceText(node.Operation.Value));
         var line = reader.ReadLine();
         while (line != null)
         {
@@ -603,8 +603,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         writer.WriteLine("operation: |");
         writer.Indent();
-        // Decode the UTF-8 operation text for line-by-line YAML output (cold diagnostic path).
-        var reader = new StringReader(Encoding.UTF8.GetString(operation.Value.Span));
+        var reader = new StringReader(FormatSourceText(operation.Value));
         var line = reader.ReadLine();
         while (line != null)
         {

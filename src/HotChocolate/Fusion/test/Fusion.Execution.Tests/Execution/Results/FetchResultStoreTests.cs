@@ -1,9 +1,13 @@
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
+#if !NET9_0_OR_GREATER
+using System.Text.Json.Nodes;
+#endif
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Errors;
+using HotChocolate.Features;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
@@ -662,6 +666,44 @@ public sealed class FetchResultStoreTests : FusionTestBase
             """
             {"color":null,"sibling":"visible"}
             """);
+        Assert.Null(store.Errors);
+    }
+
+    [Fact]
+    public void AddPartialResults_Should_PreserveNullableObjectLists_When_ListsAreEmptyOrContainNulls()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              empty: [Item]
+              allNull: [Item]
+              mixed: [Item]
+            }
+            type Item {
+              name: String
+            }
+            """);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+
+        // act
+        using var store = CreateLiveStore(
+            schema,
+            "{ empty { name } allNull { name } mixed { label: name } }",
+            """
+            {"data":{"empty":[],"allNull":[null,null],"mixed":[{"label":"first","ignored":42},null,{"label":"last"}]}}
+            """,
+            resultArena,
+            sourceArena);
+
+        // assert
+        Assert.Equal(
+            """
+            {"empty":[],"allNull":[null,null],"mixed":[{"label":"first"},null,{"label":"last"}]}
+            """,
+            RenderData(store));
         Assert.Null(store.Errors);
     }
 
@@ -1542,6 +1584,225 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void CreateVariableValueSets_Should_WriteForwardedVariablesForEveryEntity_When_RequestHasForwardedVariables()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id } }",
+            """{"data":{"foos":[{"id":"1"},{"id":"2"},{"id":"3"}]}}""",
+            resultArena,
+            sourceArena);
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("foos"),
+            [
+                Field("first", new IntValueNode(10)),
+                Field("filter", new ObjectValueNode(Field("name", new StringValueNode("a\"b"))))
+            ],
+            [Requirement(schema, "__fusion_1_id", "id", new NamedTypeNode("ID"))]);
+
+        // assert
+        result.Select(entry => Normalize(entry.Values)).MatchInlineSnapshots(
+            [
+                """
+                {"first":10,"filter":{"name":"a\u0022b"},"__fusion_1_id":"1"}
+                """,
+                """
+                {"first":10,"filter":{"name":"a\u0022b"},"__fusion_1_id":"2"}
+                """,
+                """
+                {"first":10,"filter":{"name":"a\u0022b"},"__fusion_1_id":"3"}
+                """
+            ]);
+    }
+
+    [Fact]
+    public void CreateVariableValueSets_Should_WriteForwardedVariables_When_RequestHasSingleEntity()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id } }",
+            """{"data":{"foos":[{"id":"1"}]}}""",
+            resultArena,
+            sourceArena);
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("foos"),
+            [
+                Field("first", new IntValueNode(10)),
+                Field("filter", new ObjectValueNode(Field("name", new StringValueNode("a\"b"))))
+            ],
+            [Requirement(schema, "__fusion_1_id", "id", new NamedTypeNode("ID"))]);
+
+        // assert
+        var entry = Assert.Single(result);
+        Normalize(entry.Values).MatchInlineSnapshot(
+            """
+            {"first":10,"filter":{"name":"a\u0022b"},"__fusion_1_id":"1"}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSets_Should_WriteForwardedVariablesForRemainingEntities_When_FirstEntityFailsRequirement()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id } }",
+            """{"data":{"foos":[{"id":null},{"id":"2"},{"id":"3"}]}}""",
+            resultArena,
+            sourceArena);
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("foos"),
+            [Field("first", new IntValueNode(10))],
+            [Requirement(schema, "__fusion_1_id", "id", new NonNullTypeNode(new NamedTypeNode("ID")))]);
+
+        // assert
+        result.Select(entry => Normalize(entry.Values)).MatchInlineSnapshots(
+            [
+                """
+                {"first":10,"__fusion_1_id":"2"}
+                """,
+                """
+                {"first":10,"__fusion_1_id":"3"}
+                """
+            ]);
+    }
+
+    [Fact]
+    public void CreateVariableValueSetsFromSnapshot_Should_WriteForwardedVariablesForEveryEntry_When_MultipleEntriesAreImported()
+    {
+        // arrange
+        using var source = new FetchResultStore();
+        using var target = new FetchResultStore();
+
+        var first = CreateVariableValues(source, Path(1), Field("__fusion_1_id", new StringValueNode("1")));
+        var second = CreateVariableValues(source, Path(2), Field("__fusion_1_id", new StringValueNode("2")));
+        var third = CreateVariableValues(source, Path(3), Field("__fusion_1_id", new StringValueNode("3")));
+
+        // act
+        var result = target.CreateVariableValueSetsFromSnapshot(
+            [first, second, third],
+            ImportedKeys("__fusion_1_id"),
+            [
+                Field("first", new IntValueNode(10)),
+                Field("filter", new ObjectValueNode(Field("name", new StringValueNode("a\"b"))))
+            ],
+            [Requirement("__fusion_1_id")]);
+
+        // assert
+        result.Select(entry => Normalize(entry.Values)).MatchInlineSnapshots(
+            [
+                """
+                {"first":10,"filter":{"name":"a\u0022b"},"__fusion_1_id":"1"}
+                """,
+                """
+                {"first":10,"filter":{"name":"a\u0022b"},"__fusion_1_id":"2"}
+                """,
+                """
+                {"first":10,"filter":{"name":"a\u0022b"},"__fusion_1_id":"3"}
+                """
+            ]);
+    }
+
+    [Fact]
+    public void CreateVariableValueSetsFromSnapshot_Should_WriteForwardedVariables_When_StoreIsReusedAfterLargeInputWasCleaned()
+    {
+        // arrange
+        using var source = new FetchResultStore();
+        using var target = new FetchResultStore();
+
+        var first = CreateVariableValues(source, Path(1), Field("__fusion_1_id", new StringValueNode("1")));
+        var second = CreateVariableValues(source, Path(2), Field("__fusion_1_id", new StringValueNode("2")));
+
+        // a forwarded value above the retained capacity grows the forwarded variable buffer, so Clean releases it
+        var payload = new string('a', 40_000);
+
+        var largeValues = target.CreateVariableValueSetsFromSnapshot(
+                [first, second],
+                ImportedKeys("__fusion_1_id"),
+                [Field("payload", new StringValueNode(payload))],
+                [Requirement("__fusion_1_id")])
+            .Select(entry => Normalize(entry.Values))
+            .ToArray();
+
+        target.Clean(maxCollectTargetRetainLength: 256, maxDictionaryRetainCapacity: 256);
+
+        // act
+        var result = target.CreateVariableValueSetsFromSnapshot(
+            [first, second],
+            ImportedKeys("__fusion_1_id"),
+            [Field("first", new IntValueNode(10))],
+            [Requirement("__fusion_1_id")]);
+
+        // assert
+        string[] expectedLargeValues =
+        [
+            $$"""{"payload":"{{payload}}","__fusion_1_id":"1"}""",
+            $$"""{"payload":"{{payload}}","__fusion_1_id":"2"}"""
+        ];
+        Assert.Equal(expectedLargeValues, largeValues);
+
+        result.Select(entry => Normalize(entry.Values)).MatchInlineSnapshots(
+            [
+                """
+                {"first":10,"__fusion_1_id":"1"}
+                """,
+                """
+                {"first":10,"__fusion_1_id":"2"}
+                """
+            ]);
+    }
+
+    [Fact]
     public void CreateVariableValueSets_Should_ResolveInvariantNames_When_SelectionSetOrdinalsDiffer()
     {
         // arrange
@@ -2116,6 +2377,77 @@ public sealed class FetchResultStoreTests : FusionTestBase
             }
             """);
 
+    [Fact]
+    public void CreateVariableValueSets_Should_WriteForwardedVariablesAsUtf8_When_ValuesAreEscapedOrNonAscii()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+              field(text: String, plain: String, color: Color, plainColor: Color, count: Int, ratio: Float): String
+            }
+
+            enum Color {
+              RED
+              GREEN
+            }
+            """);
+        var variableDefinitions = new List<VariableDefinitionNode>
+        {
+            VariableDefinition("text", "String"),
+            VariableDefinition("plain", "String"),
+            VariableDefinition("color", "Color"),
+            VariableDefinition("plainColor", "Color"),
+            VariableDefinition("count", "Int"),
+            VariableDefinition("ratio", "Float")
+        };
+        using var variables = JsonDocument.Parse(
+            """
+            {
+              "text": "café \"quoted\" \\ \n 😀 über",
+              "plain": "plain",
+              "color": "GREEN",
+              "plainColor": "RED",
+              "count": 42,
+              "ratio": 1.5e3
+            }
+            """);
+        Assert.True(
+            VariableCoercionHelper.TryCoerceVariableValues(
+                new FeatureProvider(),
+                schema,
+                variableDefinitions,
+                variables.RootElement,
+                ignoreAdditionalInputFields: false,
+                out var coercedVariableValues,
+                out var error),
+            error?.Message);
+        using var store = new FetchResultStore();
+
+        // act
+        var result = store.CreateVariableValueSets(
+            CompactPath.Root,
+            variableDefinitions
+                .Select(t => Field(t.Variable.Name.Value, coercedVariableValues[t.Variable.Name.Value].Value))
+                .ToArray());
+
+        // assert
+        var json = Encoding.UTF8.GetString(result.Values.AsSequence());
+        json.MatchInlineSnapshot(
+            """
+            {"text":"caf\u00E9 \u0022quoted\u0022 \\ \n \uD83D\uDE00 \u00FCber","plain":"plain","color":"GREEN","plainColor":"RED","count":42,"ratio":1.5e3}
+            """);
+        using var forwarded = JsonDocument.Parse(json);
+#if NET9_0_OR_GREATER
+        Assert.True(JsonElement.DeepEquals(variables.RootElement, forwarded.RootElement));
+#else
+        Assert.True(
+            JsonNode.DeepEquals(
+                JsonNode.Parse(variables.RootElement.GetRawText()),
+                JsonNode.Parse(forwarded.RootElement.GetRawText())));
+#endif
+    }
+
     private static VariableValues CreateVariableValues(
         FetchResultStore store,
         CompactPath path,
@@ -2129,6 +2461,14 @@ public sealed class FetchResultStoreTests : FusionTestBase
         {
             AdditionalPaths = new CompactPathSegment(additionalPaths, 0, additionalPaths.Length)
         };
+
+    private static VariableDefinitionNode VariableDefinition(string name, string typeName)
+        => new(null, new VariableNode(name), description: null, new NamedTypeNode(typeName), null, []);
+
+    private sealed class FeatureProvider : IFeatureProvider
+    {
+        public IFeatureCollection Features { get; } = new FeatureCollection();
+    }
 
     private static ObjectFieldNode Field(string name, IValueNode value)
         => new(name, value);
@@ -2305,5 +2645,52 @@ public sealed class FetchResultStoreTests : FusionTestBase
             store,
             CompactPath.Root,
             Field("k", new StringValueNode(new string('p', fillerLength))));
+    }
+
+    [Fact]
+    public async Task TransferMemoryOwnersTo_Should_DetachPathPoolFromResult_When_Called()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              field: String
+            }
+            """);
+        var plan = PlanOperation(schema, "{ field }");
+
+        using var resultArena = new MemoryArena();
+        using var store = new FetchResultStore();
+        store.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            plan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: default,
+            deferFlags: default,
+            pathSegmentLocalPoolCapacity: 16);
+
+        var document = store.Result;
+        var field = document.Data.GetProperty("field");
+        var pooledPath = field.CompactPath;
+        var pool = store.PathPool;
+        var freeBeforeTransfer = pool.FreeCount;
+        await using var operationResult = new OperationResult(
+            new OperationResultData(document, false, document, document));
+
+        // act
+        store.TransferMemoryOwnersTo(operationResult);
+        store.Clean(256, 256);
+        var allocatedPath = field.CompactPath;
+
+        // assert
+        // the reset kept the configured 16 arrays, the handed off document must not rent them
+        Assert.Equal(31, freeBeforeTransfer);
+        Assert.Equal(16, pool.FreeCount);
+        Assert.Empty(store.MemoryOwners);
+        Assert.NotSame(pooledPath.UnsafeGetBackingArray(), allocatedPath.UnsafeGetBackingArray());
+        Assert.Equal(pooledPath, allocatedPath);
     }
 }

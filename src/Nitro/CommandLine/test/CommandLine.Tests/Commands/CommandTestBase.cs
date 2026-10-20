@@ -43,6 +43,7 @@ public abstract class CommandTestBase
     private IGlobalConfigDirectoryProvider? _globalConfigDirectoryProviderOverride;
     private Services.Preferences.IBoardPreferencesStore? _boardPreferencesStoreOverride;
     private Services.Hook.IClaudeSettingsPathResolver? _claudeSettingsPathResolverOverride;
+    private Services.Hook.IClaudeSettingsPathResolver? _ventiSettingsPathResolverOverride;
     private Services.Hook.ICodexPathResolver? _codexPathResolverOverride;
     private Services.Hook.ICodexQueueClient? _codexQueueClientOverride;
     private Services.Notify.IClaudePeerClient? _claudePeerClientOverride;
@@ -123,6 +124,14 @@ public abstract class CommandTestBase
     private protected void SetupClaudeSettingsPathResolver(string userScopePath, string projectScopePath)
     {
         _claudeSettingsPathResolverOverride = new FixedClaudeSettingsPathResolver(userScopePath, projectScopePath);
+    }
+
+    /// <summary>
+    /// Configures Venti settings lookup to use the supplied user and project paths.
+    /// </summary>
+    private protected void SetupVentiSettingsPathResolver(string userScopePath, string projectScopePath)
+    {
+        _ventiSettingsPathResolverOverride = new FixedClaudeSettingsPathResolver(userScopePath, projectScopePath);
     }
 
     /// <summary>
@@ -394,6 +403,12 @@ public abstract class CommandTestBase
             services.Replace(ServiceDescriptor.Singleton(_claudeSettingsPathResolverOverride));
         }
 
+        if (_ventiSettingsPathResolverOverride is not null)
+        {
+            services.RemoveAllKeyed<Services.Hook.IClaudeSettingsPathResolver>(AgentSessionHarness.Venti);
+            services.AddKeyedSingleton(AgentSessionHarness.Venti, _ventiSettingsPathResolverOverride);
+        }
+
         if (_codexPathResolverOverride is not null)
         {
             services.Replace(ServiceDescriptor.Singleton(_codexPathResolverOverride));
@@ -647,6 +662,8 @@ internal sealed class FixedClaudeSettingsPathResolver(string userScopePath, stri
 {
     public string Resolve(string scope)
         => scope == Services.Hook.HookInstallScopes.Project ? projectScopePath : userScopePath;
+
+    public IReadOnlyList<string> ResolveForCurrentDirectory() => [userScopePath, projectScopePath];
 }
 
 internal sealed class FixedCodexPathResolver(string hooksJsonPath, string configTomlPath)

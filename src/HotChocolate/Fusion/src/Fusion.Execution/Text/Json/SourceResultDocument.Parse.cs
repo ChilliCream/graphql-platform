@@ -256,6 +256,29 @@ public sealed partial class SourceResultDocument
             return new ReadOnlySequence<byte>(segments[0].Memory[..lastLength]);
         }
 
+        var firstMemory = segments[0];
+        var contiguousLength = firstMemory.Length;
+        var contiguous = true;
+
+        for (var i = 1; i < usedChunks; i++)
+        {
+            var segment = segments[i];
+
+            if (!ReferenceEquals(segment.Buffer, firstMemory.Buffer)
+                || segment.Offset != firstMemory.Offset + contiguousLength)
+            {
+                contiguous = false;
+                break;
+            }
+
+            contiguousLength += i == usedChunks - 1 ? lastLength : segment.Length;
+        }
+
+        if (contiguous)
+        {
+            return new ReadOnlySequence<byte>(firstMemory.Buffer, firstMemory.Offset, contiguousLength);
+        }
+
         SequenceSegment? first = null;
         SequenceSegment? previous = null;
 
@@ -364,8 +387,11 @@ public sealed partial class SourceResultDocument
 
             if (tokenType == JsonTokenType.PropertyName)
             {
-                // Remove the colon
-                tokenLength--;
+                // The reader consumes the colon and any white space before it with the name, so the
+                // quote-inclusive length is taken from the raw name.
+                tokenLength = (reader.HasValueSequence
+                    ? (int)reader.ValueSequence.Length
+                    : reader.ValueSpan.Length) + 2;
             }
 
             // Count direct children incrementally.

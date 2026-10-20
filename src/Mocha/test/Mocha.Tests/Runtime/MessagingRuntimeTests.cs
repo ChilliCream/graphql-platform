@@ -45,6 +45,29 @@ public class MessagingRuntimeTests
     }
 
     [Fact]
+    public async Task DisposeAsync_Should_DisposeEveryConsumerAndTransport_When_ConsumersFailToDispose()
+    {
+        // arrange
+        var first = new FaultingConsumer(typeof(FirstMarker));
+        var second = new FaultingConsumer(typeof(SecondMarker));
+        await using var provider = await CreateBusAsync(b =>
+        {
+            b.AddConsumer(() => first);
+            b.AddConsumer(() => second);
+        });
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+
+        // act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => runtime.DisposeAsync().AsTask());
+
+        // assert
+        Assert.Contains(exception, new[] { first.Failure, second.Failure });
+        Assert.True(first.IsDisposed);
+        Assert.True(second.IsDisposed);
+        Assert.All(runtime.Transports, transport => Assert.False(transport.IsStarted));
+    }
+
+    [Fact]
     public async Task DefaultMessageBus_Should_BeRegistered_When_BuiltWithAddMessageBus()
     {
         // arrange
@@ -122,6 +145,27 @@ public class MessagingRuntimeTests
     public sealed class TestEvent
     {
         public string OrderId { get; init; } = "";
+    }
+
+    private sealed class FirstMarker;
+
+    private sealed class SecondMarker;
+
+    private sealed class FaultingConsumer(Type identity) : Consumer(identity)
+    {
+        public InvalidOperationException Failure { get; } = new("The consumer failed to dispose.");
+
+        public bool IsDisposed { get; private set; }
+
+        protected override void Configure(IConsumerDescriptor descriptor) => descriptor.Name(Identity.Name);
+
+        protected override ValueTask ConsumeAsync(IConsumeContext context) => default;
+
+        public override ValueTask DisposeAsync()
+        {
+            IsDisposed = true;
+            throw Failure;
+        }
     }
 
     public sealed class TestEventHandler : IEventHandler<TestEvent>

@@ -23,23 +23,23 @@ response:
             "items": [
               {
                 "product": {
-                  "id": "UHJvZHVjdDoxOQ==",
-                  "name": "Product: UHJvZHVjdDoxOQ==",
-                  "description": "Product: UHJvZHVjdDoxOQ=="
+                  "id": "UHJvZHVjdDozMjE1NzE0MjQ=",
+                  "name": "Product: UHJvZHVjdDozMjE1NzE0MjQ=",
+                  "description": "Product: UHJvZHVjdDozMjE1NzE0MjQ="
                 }
               },
               {
                 "product": {
-                  "id": "UHJvZHVjdDoyMA==",
-                  "name": "Product: UHJvZHVjdDoyMA==",
-                  "description": "Product: UHJvZHVjdDoyMA=="
+                  "id": "UHJvZHVjdDoyODE5MDc5NjE0",
+                  "name": "Product: UHJvZHVjdDoyODE5MDc5NjE0",
+                  "description": "Product: UHJvZHVjdDoyODE5MDc5NjE0"
                 }
               },
               {
                 "product": {
-                  "id": "UHJvZHVjdDoyMQ==",
-                  "name": "Product: UHJvZHVjdDoyMQ==",
-                  "description": "Product: UHJvZHVjdDoyMQ=="
+                  "id": "UHJvZHVjdDoyMTg0OTg2MzEz",
+                  "name": "Product: UHJvZHVjdDoyMTg0OTg2MzEz",
+                  "description": "Product: UHJvZHVjdDoyMTg0OTg2MzEz"
                 }
               }
             ]
@@ -48,23 +48,23 @@ response:
             "items": [
               {
                 "product": {
-                  "id": "UHJvZHVjdDoxNg==",
-                  "name": "Product: UHJvZHVjdDoxNg==",
-                  "description": "Product: UHJvZHVjdDoxNg=="
+                  "id": "UHJvZHVjdDo0MTgyMjQzMDY4",
+                  "name": "Product: UHJvZHVjdDo0MTgyMjQzMDY4",
+                  "description": "Product: UHJvZHVjdDo0MTgyMjQzMDY4"
                 }
               },
               {
                 "product": {
-                  "id": "UHJvZHVjdDoxNw==",
-                  "name": "Product: UHJvZHVjdDoxNw==",
-                  "description": "Product: UHJvZHVjdDoxNw=="
+                  "id": "UHJvZHVjdDozNDczNDA2NDg=",
+                  "name": "Product: UHJvZHVjdDozNDczNDA2NDg=",
+                  "description": "Product: UHJvZHVjdDozNDczNDA2NDg="
                 }
               },
               {
                 "product": {
-                  "id": "UHJvZHVjdDoxOA==",
-                  "name": "Product: UHJvZHVjdDoxOA==",
-                  "description": "Product: UHJvZHVjdDoxOA=="
+                  "id": "UHJvZHVjdDoxOTc0MTcwNzY1",
+                  "name": "Product: UHJvZHVjdDoxOTc0MTcwNzY1",
+                  "description": "Product: UHJvZHVjdDoxOTc0MTcwNzY1"
                 }
               }
             ]
@@ -73,23 +73,23 @@ response:
             "items": [
               {
                 "product": {
-                  "id": "UHJvZHVjdDoxMw==",
-                  "name": "Product: UHJvZHVjdDoxMw==",
-                  "description": "Product: UHJvZHVjdDoxMw=="
+                  "id": "UHJvZHVjdDo1MTMyMjM4MTA=",
+                  "name": "Product: UHJvZHVjdDo1MTMyMjM4MTA=",
+                  "description": "Product: UHJvZHVjdDo1MTMyMjM4MTA="
                 }
               },
               {
                 "product": {
-                  "id": "UHJvZHVjdDoxNA==",
-                  "name": "Product: UHJvZHVjdDoxNA==",
-                  "description": "Product: UHJvZHVjdDoxNA=="
+                  "id": "UHJvZHVjdDo3Njc3NDcwMjg=",
+                  "name": "Product: UHJvZHVjdDo3Njc3NDcwMjg=",
+                  "description": "Product: UHJvZHVjdDo3Njc3NDcwMjg="
                 }
               },
               {
                 "product": {
-                  "id": "UHJvZHVjdDoxNQ==",
-                  "name": "Product: UHJvZHVjdDoxNQ==",
-                  "description": "Product: UHJvZHVjdDoxNQ=="
+                  "id": "UHJvZHVjdDoyNjI1NzA1NTQy",
+                  "name": "Product: UHJvZHVjdDoyNjI1NzA1NTQy",
+                  "description": "Product: UHJvZHVjdDoyNjI1NzA1NTQy"
                 }
               }
             ]
@@ -162,17 +162,17 @@ sourceSchemas:
                       "items": [
                         {
                           "product": {
-                            "id": "UHJvZHVjdDoxOQ=="
+                            "id": "UHJvZHVjdDozMjE1NzE0MjQ="
                           }
                         },
                         {
                           "product": {
-                            "id": "UHJvZHVjdDoyMA=="
+                            "id": "UHJvZHVjdDoyODE5MDc5NjE0"
                           }
                         },
                         {
                           "product": {
-                            "id": "UHJvZHVjdDoyMQ=="
+                            "id": "UHJvZHVjdDoyMTg0OTg2MzEz"
                           }
                         }
                       ]
@@ -182,17 +182,17 @@ sourceSchemas:
                       "items": [
                         {
                           "product": {
-                            "id": "UHJvZHVjdDoxNg=="
+                            "id": "UHJvZHVjdDo0MTgyMjQzMDY4"
                           }
                         },
                         {
                           "product": {
-                            "id": "UHJvZHVjdDoxNw=="
+                            "id": "UHJvZHVjdDozNDczNDA2NDg="
                           }
                         },
                         {
                           "product": {
-                            "id": "UHJvZHVjdDoxOA=="
+                            "id": "UHJvZHVjdDoxOTc0MTcwNzY1"
                           }
                         }
                       ]
@@ -202,17 +202,17 @@ sourceSchemas:
                       "items": [
                         {
                           "product": {
-                            "id": "UHJvZHVjdDoxMw=="
+                            "id": "UHJvZHVjdDo1MTMyMjM4MTA="
                           }
                         },
                         {
                           "product": {
-                            "id": "UHJvZHVjdDoxNA=="
+                            "id": "UHJvZHVjdDo3Njc3NDcwMjg="
                           }
                         },
                         {
                           "product": {
-                            "id": "UHJvZHVjdDoxNQ=="
+                            "id": "UHJvZHVjdDoyNjI1NzA1NTQy"
                           }
                         }
                       ]
@@ -248,31 +248,31 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "UHJvZHVjdDoxOQ=="
+                "__fusion_1_id": "UHJvZHVjdDozMjE1NzE0MjQ="
               },
               {
-                "__fusion_1_id": "UHJvZHVjdDoyMA=="
+                "__fusion_1_id": "UHJvZHVjdDoyODE5MDc5NjE0"
               },
               {
-                "__fusion_1_id": "UHJvZHVjdDoyMQ=="
+                "__fusion_1_id": "UHJvZHVjdDoyMTg0OTg2MzEz"
               },
               {
-                "__fusion_1_id": "UHJvZHVjdDoxNg=="
+                "__fusion_1_id": "UHJvZHVjdDo0MTgyMjQzMDY4"
               },
               {
-                "__fusion_1_id": "UHJvZHVjdDoxNw=="
+                "__fusion_1_id": "UHJvZHVjdDozNDczNDA2NDg="
               },
               {
-                "__fusion_1_id": "UHJvZHVjdDoxOA=="
+                "__fusion_1_id": "UHJvZHVjdDoxOTc0MTcwNzY1"
               },
               {
-                "__fusion_1_id": "UHJvZHVjdDoxMw=="
+                "__fusion_1_id": "UHJvZHVjdDo1MTMyMjM4MTA="
               },
               {
-                "__fusion_1_id": "UHJvZHVjdDoxNA=="
+                "__fusion_1_id": "UHJvZHVjdDo3Njc3NDcwMjg="
               },
               {
-                "__fusion_1_id": "UHJvZHVjdDoxNQ=="
+                "__fusion_1_id": "UHJvZHVjdDoyNjI1NzA1NTQy"
               }
             ]
         response:
@@ -282,8 +282,8 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "name": "Product: UHJvZHVjdDoxOQ==",
-                    "description": "Product: UHJvZHVjdDoxOQ=="
+                    "name": "Product: UHJvZHVjdDozMjE1NzE0MjQ=",
+                    "description": "Product: UHJvZHVjdDozMjE1NzE0MjQ="
                   }
                 }
               }
@@ -291,8 +291,8 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "name": "Product: UHJvZHVjdDoyMA==",
-                    "description": "Product: UHJvZHVjdDoyMA=="
+                    "name": "Product: UHJvZHVjdDoyODE5MDc5NjE0",
+                    "description": "Product: UHJvZHVjdDoyODE5MDc5NjE0"
                   }
                 }
               }
@@ -300,8 +300,8 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "name": "Product: UHJvZHVjdDoyMQ==",
-                    "description": "Product: UHJvZHVjdDoyMQ=="
+                    "name": "Product: UHJvZHVjdDoyMTg0OTg2MzEz",
+                    "description": "Product: UHJvZHVjdDoyMTg0OTg2MzEz"
                   }
                 }
               }
@@ -309,8 +309,8 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "name": "Product: UHJvZHVjdDoxNg==",
-                    "description": "Product: UHJvZHVjdDoxNg=="
+                    "name": "Product: UHJvZHVjdDo0MTgyMjQzMDY4",
+                    "description": "Product: UHJvZHVjdDo0MTgyMjQzMDY4"
                   }
                 }
               }
@@ -318,8 +318,8 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "name": "Product: UHJvZHVjdDoxNw==",
-                    "description": "Product: UHJvZHVjdDoxNw=="
+                    "name": "Product: UHJvZHVjdDozNDczNDA2NDg=",
+                    "description": "Product: UHJvZHVjdDozNDczNDA2NDg="
                   }
                 }
               }
@@ -327,8 +327,8 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "name": "Product: UHJvZHVjdDoxOA==",
-                    "description": "Product: UHJvZHVjdDoxOA=="
+                    "name": "Product: UHJvZHVjdDoxOTc0MTcwNzY1",
+                    "description": "Product: UHJvZHVjdDoxOTc0MTcwNzY1"
                   }
                 }
               }
@@ -336,8 +336,8 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "name": "Product: UHJvZHVjdDoxMw==",
-                    "description": "Product: UHJvZHVjdDoxMw=="
+                    "name": "Product: UHJvZHVjdDo1MTMyMjM4MTA=",
+                    "description": "Product: UHJvZHVjdDo1MTMyMjM4MTA="
                   }
                 }
               }
@@ -345,8 +345,8 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "name": "Product: UHJvZHVjdDoxNA==",
-                    "description": "Product: UHJvZHVjdDoxNA=="
+                    "name": "Product: UHJvZHVjdDo3Njc3NDcwMjg=",
+                    "description": "Product: UHJvZHVjdDo3Njc3NDcwMjg="
                   }
                 }
               }
@@ -354,8 +354,8 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "name": "Product: UHJvZHVjdDoxNQ==",
-                    "description": "Product: UHJvZHVjdDoxNQ=="
+                    "name": "Product: UHJvZHVjdDoyNjI1NzA1NTQy",
+                    "description": "Product: UHJvZHVjdDoyNjI1NzA1NTQy"
                   }
                 }
               }

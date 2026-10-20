@@ -78,8 +78,9 @@ public class BatchingTests
     [Fact]
     public async Task Handler_Should_ReceiveMultiMessageBatch_When_ConcurrentDelivery()
     {
-        // arrange - MaxBatchSize=5 with MaxConcurrency=5 so all 5 pipelines call Add()
-        // concurrently, filling the batch by size before any handler completes
+        // arrange - MaxBatchSize=5 with MaxConcurrency=5 on the endpoint and its concurrency
+        // limiter so all 5 pipelines call Add() concurrently, filling the batch by size before
+        // any handler completes; a long BatchTimeout so only the size triggers dispatch
         var recorder = new BatchMessageRecorder();
         const int messageCount = 5;
         await using var vhost = await _fixture.CreateVhostAsync();
@@ -87,13 +88,18 @@ public class BatchingTests
             .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(recorder)
             .AddMessageBus()
-            .AddBatchHandler<TestBatchHandler>(opts => opts.MaxBatchSize = messageCount)
+            .AddBatchHandler<TestBatchHandler>(opts =>
+            {
+                opts.MaxBatchSize = messageCount;
+                opts.BatchTimeout = TimeSpan.FromMinutes(5);
+            })
             .AddRabbitMQ(t =>
             {
                 t.Endpoint("batch-ep")
                     .Handler<TestBatchHandler>()
                     .MaxConcurrency(messageCount)
-                    .MaxPrefetch(messageCount);
+                    .MaxPrefetch(messageCount)
+                    .AddConcurrencyLimiter(o => o.MaxConcurrency = messageCount);
             })
             .BuildTestBusAsync();
 
