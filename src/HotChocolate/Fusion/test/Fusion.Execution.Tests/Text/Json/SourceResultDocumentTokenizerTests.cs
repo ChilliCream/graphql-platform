@@ -47,7 +47,10 @@ public class SourceResultDocumentTokenizerTests
             "{\"data\":{\"user\":null},\"errors\":[{\"message\":\"x\",\"path\":[\"user\",0],\"extensions\":{\"code\":\"E\"}}]}",
             "[1] \r\n\t ",
             new string('[', 64) + new string(']', 64),
-            Nest(64)
+            Nest(64),
+            "[\"" + new string('s', 20000) + "\"]",
+            "{\"a\":\"" + string.Concat(Enumerable.Repeat("\\u00e9\\n", 1500)) + "\"}",
+            "[" + new string('1', 3000) + ",-" + new string('2', 3000) + ".5e+7]"
         ];
 
     public static TheoryData<string> ValidInputs() => new(s_validInputs);
@@ -123,7 +126,10 @@ public class SourceResultDocumentTokenizerTests
             "\uFEFF{}",
             "\u00e9",
             new string('[', 65) + new string(']', 65),
-            Nest(65)
+            Nest(65),
+            "[\"" + new string('s', 20000),
+            "{\"a\":\"" + string.Concat(Enumerable.Repeat("\\u00e9", 1500)) + "\\u00\"}",
+            "[" + new string('1', 3000) + "."
         ];
 
     [Theory]
@@ -190,7 +196,7 @@ public class SourceResultDocumentTokenizerTests
         {
             var input = Mutate(random, corpus[random.Next(corpus.Length)]);
 
-            if (AssertParity(input) == Rejected)
+            if (AssertParity(input, RandomBoundaryPaddings(random, input.Length)) == Rejected)
             {
                 rejected++;
             }
@@ -205,32 +211,78 @@ public class SourceResultDocumentTokenizerTests
         Assert.InRange(rejected, 400, 3600);
     }
 
+    private static string AssertParity(byte[] input)
+        => AssertParity(input, GetBoundaryPaddings(input.Length));
+
     /// <summary>
     /// Parses <paramref name="input"/> with both parsers and returns the rows they agree on, or
-    /// <see cref="Rejected"/> when both reject it.
+    /// <see cref="Rejected"/> when both reject it. The tokenizer parses the input behind each padding of
+    /// <paramref name="paddings"/> in each chunk layout.
     /// </summary>
-    private static string AssertParity(byte[] input)
+    private static string AssertParity(byte[] input, IEnumerable<int> paddings)
     {
-        var padded = new byte[Padding + input.Length];
-        padded.AsSpan(0, Padding).Fill((byte)' ');
-        input.CopyTo(padded, Padding);
+        var expected = ParseWithReader(Pad(input, Padding), Padding);
+        var results = new StringBuilder();
+        var expectedResults = new StringBuilder();
 
-        var expected = ParseWithReader(padded);
-        var contiguous = ParseFilled(padded, contiguous: true);
-        var separate = ParseFilled(padded, contiguous: false);
-        var unpadded = ParseUnpadded(input);
+        foreach (var padding in paddings)
+        {
+            var padded = Pad(input, padding);
 
-        Assert.Equal(expected, contiguous);
-        Assert.Equal(expected, separate);
-        Assert.Equal(expected, unpadded);
+            foreach (var layout in Enum.GetValues<ChunkLayout>())
+            {
+                results.Append($"{layout} {padding}\n{ParseFilled(padded, padding, layout)}\n");
+                expectedResults.Append($"{layout} {padding}\n{expected}\n");
+            }
+        }
+
+        Assert.Equal(expectedResults.ToString(), results.ToString());
+        Assert.Equal(expected, ParseUnpadded(input));
         Assert.Equal(expected != Rejected, ParseWithSingleSegmentReader(input));
         return expected;
     }
 
-    private static string ParseWithReader(byte[] input)
+    /// <summary>
+    /// Gets the paddings that place the end of the first data chunk at each position of an input of
+    /// <paramref name="length"/> bytes, sampled for long inputs.
+    /// </summary>
+    private static IEnumerable<int> GetBoundaryPaddings(int length)
+    {
+        var boundary = SourceResultDocument.GetDataChunkSize(0);
+        yield return Padding;
+
+        for (var position = 0; position <= length; position++)
+        {
+            if (length <= 80 || position <= 40 || position >= length - 40 || position % 37 == 0)
+            {
+                yield return boundary - Math.Min(position, boundary);
+            }
+        }
+    }
+
+    private static int[] RandomBoundaryPaddings(Random random, int length)
+    {
+        var boundary = SourceResultDocument.GetDataChunkSize(0);
+        return
+        [
+            Padding,
+            boundary - random.Next(Math.Min(length, boundary) + 1),
+            boundary - random.Next(Math.Min(length, boundary) + 1)
+        ];
+    }
+
+    private static byte[] Pad(byte[] input, int padding)
+    {
+        var padded = new byte[padding + input.Length];
+        padded.AsSpan(0, padding).Fill((byte)' ');
+        input.CopyTo(padded, padding);
+        return padded;
+    }
+
+    private static string ParseWithReader(byte[] input, int padding)
     {
         using var arena = new MemoryArena();
-        var (segments, usedChunks, lastLength) = CreateSegments(input, contiguous: false);
+        var (segments, usedChunks, lastLength) = CreateSegments(input, ChunkLayout.Separate);
 
         try
         {
@@ -246,7 +298,7 @@ public class SourceResultDocumentTokenizerTests
                 }
             }
 
-            return DescribeRows(document, Padding);
+            return DescribeRows(document, padding);
         }
         catch (JsonException)
         {
@@ -258,15 +310,15 @@ public class SourceResultDocumentTokenizerTests
         }
     }
 
-    private static string ParseFilled(byte[] input, bool contiguous)
+    private static string ParseFilled(byte[] input, int padding, ChunkLayout layout)
     {
         using var arena = new MemoryArena();
-        var (segments, usedChunks, lastLength) = CreateSegments(input, contiguous);
+        var (segments, usedChunks, lastLength) = CreateSegments(input, layout);
 
         try
         {
             using var document = SourceResultDocument.ParseFilled(arena, segments, usedChunks, lastLength);
-            return DescribeRows(document, Padding);
+            return DescribeRows(document, padding);
         }
         catch (JsonException)
         {
@@ -280,10 +332,11 @@ public class SourceResultDocumentTokenizerTests
 
     private static (MemorySegment[] Segments, int UsedChunks, int LastLength) CreateSegments(
         byte[] input,
-        bool contiguous)
+        ChunkLayout layout)
     {
         var segments = new MemorySegment[64];
         var backing = new byte[(input.Length * 2) + 4096];
+        var pair = Array.Empty<byte>();
         var offset = 0;
         var consumed = 0;
         var usedChunks = 0;
@@ -292,9 +345,32 @@ public class SourceResultDocumentTokenizerTests
         while (consumed < input.Length)
         {
             var chunkSize = SourceResultDocument.GetDataChunkSize(usedChunks);
-            var segment = contiguous
-                ? new MemorySegment(backing, offset, chunkSize)
-                : new MemorySegment(new byte[chunkSize], 0, chunkSize);
+            MemorySegment segment;
+
+            switch (layout)
+            {
+                case ChunkLayout.Adjacent:
+                    segment = new MemorySegment(backing, offset, chunkSize);
+                    break;
+
+                case ChunkLayout.Separate:
+                    segment = new MemorySegment(new byte[chunkSize], 0, chunkSize);
+                    break;
+
+                default:
+                    if (usedChunks % 2 == 0)
+                    {
+                        pair = new byte[chunkSize + SourceResultDocument.GetDataChunkSize(usedChunks + 1)];
+                        segment = new MemorySegment(pair, 0, chunkSize);
+                    }
+                    else
+                    {
+                        segment = new MemorySegment(pair, pair.Length - chunkSize, chunkSize);
+                    }
+
+                    break;
+            }
+
             segments[usedChunks++] = segment;
             lastLength = Math.Min(chunkSize, input.Length - consumed);
             input.AsSpan(consumed, lastLength).CopyTo(segment.Span);
@@ -480,5 +556,12 @@ public class SourceResultDocumentTokenizerTests
         }
 
         return text.ToString();
+    }
+
+    private enum ChunkLayout
+    {
+        Adjacent,
+        Separate,
+        Paired
     }
 }

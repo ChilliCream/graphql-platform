@@ -33,7 +33,7 @@ public sealed partial class SourceResultDocument
 
             try
             {
-                ParseJson(data.AsSpan(0, size), ref metaDb, singleChunk: true);
+                ParseJson<SingleWindow>(data.AsSpan(0, size), segments: null, size, singleChunk: true, ref metaDb);
             }
             catch
             {
@@ -71,10 +71,30 @@ public sealed partial class SourceResultDocument
     {
         ArgumentNullException.ThrowIfNull(arena);
 
-        // Copy the raw payload into the document's own geometric arena chunks without gaps and
-        // parse the filled bytes.
+        // Copy the raw payload into the document's own geometric arena chunks without gaps. The
+        // token locations are the same in the copy, so a contiguous input is parsed in place.
         var segments = IngestToArena(arena, input, out var usedChunks, out var lastLength);
-        return ParseFilled(arena, segments, usedChunks, lastLength);
+
+        if (!input.IsSingleSegment)
+        {
+            return ParseFilled(arena, segments, usedChunks, lastLength);
+        }
+
+        var length = (int)input.Length;
+        var estimatedTokens = Math.Max(length / 12, 100);
+        var metaDb = MetaDb.CreateForEstimatedRows(arena, estimatedTokens);
+
+        try
+        {
+            ParseJson<SingleWindow>(input.FirstSpan, segments: null, length, singleChunk: usedChunks == 1, ref metaDb);
+        }
+        catch
+        {
+            metaDb.Dispose();
+            throw;
+        }
+
+        return new SourceResultDocument(metaDb, segments, usedChunks);
     }
 
     /// <summary>
@@ -208,8 +228,7 @@ public sealed partial class SourceResultDocument
                 {
                     if (nextChunkIndex >= DataMaxChunks)
                     {
-                        throw new InvalidOperationException(
-                            "The source result document has exceeded its maximum data capacity.");
+                        throw ThrowHelper.SourceResultDocumentTooLarge();
                     }
 
                     chunkSize = GetDataChunkSize(nextChunkIndex);
@@ -313,9 +332,9 @@ public sealed partial class SourceResultDocument
         ref MetaDb metaDb,
         bool singleChunk)
     {
-        Span<Cursor> containerStart = stackalloc Cursor[64];
-        Span<int> containerStartLocation = stackalloc int[64];
-        Span<int> containerChildCount = stackalloc int[64];
+        Span<Cursor> containerStart = stackalloc Cursor[MaxSourceDepth];
+        Span<int> containerStartLocation = stackalloc int[MaxSourceDepth];
+        Span<int> containerChildCount = stackalloc int[MaxSourceDepth];
         var containerIsArrayBits = 0UL;
         var containerHasComplexBits = 0UL;
         var stackIndex = 0;
