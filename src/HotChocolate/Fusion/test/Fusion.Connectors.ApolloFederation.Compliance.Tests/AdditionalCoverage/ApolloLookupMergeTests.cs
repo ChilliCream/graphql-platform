@@ -1,4 +1,5 @@
 using HotChocolate.ApolloFederation.Types;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types;
@@ -12,7 +13,7 @@ public sealed class ApolloLookupMergeTests : Testing.FusionTestBase
     public async Task ApolloEntityLookups_Should_SendOneDeduplicatedLookup_When_TargetPathsShareLookup()
     {
         // arrange
-        using var gateway = await CreateGatewayAsync();
+        using var gateway = await CreateGatewayAsync(grouping: true);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
         var request = new OperationRequest(
             """
@@ -36,7 +37,7 @@ public sealed class ApolloLookupMergeTests : Testing.FusionTestBase
     public async Task ApolloEntityLookups_Should_FoldLeafLookupIntoDeeperLookup_When_NothingDependsOnLeaf()
     {
         // arrange
-        using var gateway = await CreateGatewayAsync();
+        using var gateway = await CreateGatewayAsync(grouping: true);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
         var request = new OperationRequest(
             """
@@ -56,7 +57,42 @@ public sealed class ApolloLookupMergeTests : Testing.FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    private Task<Gateway> CreateGatewayAsync()
+    [Theory]
+    [InlineData(false, OperationMergePolicy.Aggressive)]
+    [InlineData(true, OperationMergePolicy.Aggressive)]
+    [InlineData(false, OperationMergePolicy.None)]
+    [InlineData(true, OperationMergePolicy.Conservative)]
+    [InlineData(true, OperationMergePolicy.Balanced)]
+    public async Task ApolloEntityLookups_Should_ApplyMergePolicy_When_RequestGroupingIsDisabled(
+        bool crossDepth,
+        OperationMergePolicy policy)
+    {
+        // arrange
+        using var gateway = await CreateGatewayAsync(grouping: false, policy);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            crossDepth
+                ? "{ products { name } brands { featured { name } } }"
+                : "{ products { name } brands { topProduct { name } } }");
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(
+            gateway,
+            request,
+            result,
+            postFix: $"{(crossDepth ? "CrossDepth" : "SameDepth")}_{policy}");
+    }
+
+    private Task<Gateway> CreateGatewayAsync(bool grouping)
+        => CreateGatewayAsync(grouping, OperationMergePolicy.Aggressive);
+
+    private Task<Gateway> CreateGatewayAsync(bool grouping, OperationMergePolicy policy)
     {
         var catalog = CreateSourceSchema(
             "catalog",
@@ -80,6 +116,11 @@ public sealed class ApolloLookupMergeTests : Testing.FusionTestBase
 
         return CreateCompositeSchemaAsync(
             [("catalog", catalog), ("featured", featured), ("details", details)],
+            configureGatewayBuilder: builder => builder.ModifyPlannerOptions(options =>
+            {
+                options.EnableRequestGrouping = grouping;
+                options.MergePolicy = policy;
+            }),
             enableGlobalObjectIdentification: false);
     }
 
