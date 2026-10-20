@@ -54,9 +54,6 @@ incrementalPlans:
       - 0
     parentNodeId: 2
     requirements:
-      - name: __fusion_1_id
-        selectionMap: >-
-          id
       - name: __fusion_2_id
         selectionMap: >-
           id
