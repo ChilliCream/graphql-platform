@@ -5,8 +5,8 @@ using HotChocolate.Buffers;
 namespace HotChocolate.Fusion.Text.Json;
 
 /// <summary>
-/// Compares the source JSON tokenizer with the <see cref="Utf8JsonReader"/> based parser that parses
-/// the elements of a batched JSON array.
+/// Tests the rows and the input validation of the source JSON tokenizer, and that both are the same
+/// wherever the chunk boundaries of the input fall.
 /// </summary>
 public class SourceResultDocumentTokenizerTests
 {
@@ -50,7 +50,16 @@ public class SourceResultDocumentTokenizerTests
             Nest(64),
             "[\"" + new string('s', 20000) + "\"]",
             "{\"a\":\"" + string.Concat(Enumerable.Repeat("\\u00e9\\n", 1500)) + "\"}",
-            "[" + new string('1', 3000) + ",-" + new string('2', 3000) + ".5e+7]"
+            "[" + new string('1', 3000) + ",-" + new string('2', 3000) + ".5e+7]",
+            "[1E5,1e+5,1E-5,0e0,-0.0,0.5e-0,-123.456e-7]",
+            "[1\t,\r\n2 ]",
+            "{\"a\":1,\"a\":2}",
+            "{\"\":\"\"}",
+            "[\"\\/\",\"\\u0041\\u00E9\\uffff\",\"\\u004a\"]",
+            "{}\u0000",
+            "\"s\"\n",
+            "true\t",
+            "-1.5 "
         ];
 
     public static TheoryData<string> ValidInputs() => new(s_validInputs);
@@ -129,18 +138,60 @@ public class SourceResultDocumentTokenizerTests
             Nest(65),
             "[\"" + new string('s', 20000),
             "{\"a\":\"" + string.Concat(Enumerable.Repeat("\\u00e9", 1500)) + "\\u00\"}",
-            "[" + new string('1', 3000) + "."
+            "[" + new string('1', 3000) + ".",
+            "[1\f]",
+            "[1\v]",
+            "[\u00a01]",
+            "[\"\u001f\"]",
+            "[\"\\U0041\"]",
+            "[\"\\\"]",
+            "[-01]",
+            "[--1]",
+            "[1-2]",
+            "[1.0.0]",
+            "[1e5.5]",
+            "[01.5]",
+            "[1e+-5]",
+            "[.]",
+            "[00]",
+            "[1,\n]",
+            "{1:2}",
+            "{\"a\":1,\"b\"}",
+            "\"abc",
+            "\"",
+            "tRue",
+            "1.",
+            "-",
+            "1e+",
+            "0x",
+            "-00"
         ];
+
+    [Fact]
+    public void Parse_Should_CreateRows_When_InputIsValid()
+    {
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        for (var i = 0; i < s_validInputs.Length; i++)
+        {
+            snapshot.Add(ParseUnpadded(Encoding.UTF8.GetBytes(s_validInputs[i])), DescribeInput(i, s_validInputs[i]));
+        }
+
+        // assert
+        snapshot.MatchMarkdownSnapshot();
+    }
 
     [Theory]
     [MemberData(nameof(ValidInputs))]
-    public void Parse_Should_MatchReaderParser_When_InputIsValid(string input)
+    public void Parse_Should_CreateSameRows_When_ChunkBoundariesMove(string input)
     {
         // arrange
         var bytes = Encoding.UTF8.GetBytes(input);
 
         // act
-        var rows = AssertParity(bytes);
+        var rows = AssertBoundaryIndependence(bytes);
 
         // assert
         Assert.NotEqual(Rejected, rows);
@@ -148,13 +199,13 @@ public class SourceResultDocumentTokenizerTests
 
     [Theory]
     [MemberData(nameof(InvalidInputs))]
-    public void Parse_Should_RejectLikeReaderParser_When_InputIsInvalid(string input)
+    public void Parse_Should_Reject_When_InputIsInvalid(string input)
     {
         // arrange
         var bytes = Encoding.UTF8.GetBytes(input);
 
         // act
-        var rows = AssertParity(bytes);
+        var rows = AssertBoundaryIndependence(bytes);
 
         // assert
         Assert.Equal(Rejected, rows);
@@ -173,17 +224,17 @@ public class SourceResultDocumentTokenizerTests
     [InlineData(new byte[] { 0x5B, 0xFF, 0x5D }, false)]
     // <EF BB BF>{}: the reader does not skip a UTF-8 byte order mark, so 0xEF is an unexpected byte.
     [InlineData(new byte[] { 0xEF, 0xBB, 0xBF, 0x7B, 0x7D }, false)]
-    public void Parse_Should_MatchReaderParser_When_InputIsNotValidUtf8(byte[] input, bool accepted)
+    public void Parse_Should_ValidateOnlyStructure_When_InputIsNotValidUtf8(byte[] input, bool accepted)
     {
         // act
-        var rows = AssertParity(input);
+        var rows = AssertBoundaryIndependence(input);
 
         // assert
         Assert.Equal(accepted, rows != Rejected);
     }
 
     [Fact]
-    public void Parse_Should_MatchReaderParser_When_SubgraphResponsesAreMutated()
+    public void Parse_Should_CreateSameRows_When_MutatedInputChunkBoundariesMove()
     {
         // arrange
         var corpus = CreateCorpus();
@@ -196,7 +247,7 @@ public class SourceResultDocumentTokenizerTests
         {
             var input = Mutate(random, corpus[random.Next(corpus.Length)]);
 
-            if (AssertParity(input, RandomBoundaryPaddings(random, input.Length)) == Rejected)
+            if (AssertBoundaryIndependence(input, RandomBoundaryPaddings(random, input.Length)) == Rejected)
             {
                 rejected++;
             }
@@ -207,21 +258,21 @@ public class SourceResultDocumentTokenizerTests
         }
 
         // assert
-        Assert.InRange(accepted, 400, 3600);
-        Assert.InRange(rejected, 400, 3600);
+        Assert.Equal(717, accepted);
+        Assert.Equal(3283, rejected);
     }
 
-    private static string AssertParity(byte[] input)
-        => AssertParity(input, GetBoundaryPaddings(input.Length));
+    private static string AssertBoundaryIndependence(byte[] input)
+        => AssertBoundaryIndependence(input, GetBoundaryPaddings(input.Length));
 
     /// <summary>
-    /// Parses <paramref name="input"/> with both parsers and returns the rows they agree on, or
-    /// <see cref="Rejected"/> when both reject it. The tokenizer parses the input behind each padding of
-    /// <paramref name="paddings"/> in each chunk layout.
+    /// Parses <paramref name="input"/> behind each padding of <paramref name="paddings"/> in each chunk
+    /// layout, asserts that each parse creates the rows of the input in a single chunk, and returns those
+    /// rows, or <see cref="Rejected"/> when the input is rejected.
     /// </summary>
-    private static string AssertParity(byte[] input, IEnumerable<int> paddings)
+    private static string AssertBoundaryIndependence(byte[] input, IEnumerable<int> paddings)
     {
-        var expected = ParseWithReader(Pad(input, Padding), Padding);
+        var expected = ParseUnpadded(input);
         var results = new StringBuilder();
         var expectedResults = new StringBuilder();
 
@@ -237,8 +288,6 @@ public class SourceResultDocumentTokenizerTests
         }
 
         Assert.Equal(expectedResults.ToString(), results.ToString());
-        Assert.Equal(expected, ParseUnpadded(input));
-        Assert.Equal(expected != Rejected, ParseWithSingleSegmentReader(input));
         return expected;
     }
 
@@ -277,37 +326,6 @@ public class SourceResultDocumentTokenizerTests
         padded.AsSpan(0, padding).Fill((byte)' ');
         input.CopyTo(padded, padding);
         return padded;
-    }
-
-    private static string ParseWithReader(byte[] input, int padding)
-    {
-        using var arena = new MemoryArena();
-        var (segments, usedChunks, lastLength) = CreateSegments(input, ChunkLayout.Separate);
-
-        try
-        {
-            var reader = SourceResultDocument.CreateFilledReader(segments, usedChunks, lastLength);
-            reader.Read();
-            using var document = SourceResultDocument.ParseFilledElement(arena, ref reader, segments, usedChunks);
-
-            // Only a root object ends the document, any other root value must be the only value.
-            if (document.GetDbRow(SourceResultDocument.Cursor.Zero).TokenType != JsonTokenType.StartObject)
-            {
-                while (reader.Read())
-                {
-                }
-            }
-
-            return DescribeRows(document, padding);
-        }
-        catch (JsonException)
-        {
-            return Rejected;
-        }
-        finally
-        {
-            arena.Seal();
-        }
     }
 
     private static string ParseFilled(byte[] input, int padding, ChunkLayout layout)
@@ -400,28 +418,6 @@ public class SourceResultDocumentTokenizerTests
         }
     }
 
-    private static bool ParseWithSingleSegmentReader(byte[] input)
-    {
-        var reader = new Utf8JsonReader(input);
-
-        try
-        {
-            while (reader.Read())
-            {
-                if (reader.TokenType == JsonTokenType.EndObject && reader.CurrentDepth == 0)
-                {
-                    return true;
-                }
-            }
-
-            return true;
-        }
-        catch (JsonException)
-        {
-            return false;
-        }
-    }
-
     private static string DescribeRows(SourceResultDocument document, int padding)
     {
         var text = new StringBuilder();
@@ -445,6 +441,26 @@ public class SourceResultDocumentTokenizerTests
         }
 
         return text.ToString();
+    }
+
+    private static string DescribeInput(int index, string input)
+    {
+        var text = new StringBuilder($"Input {index}: ");
+
+        foreach (var c in input.Length > 48 ? input[..48] : input)
+        {
+            text.Append(
+                c switch
+                {
+                    '\t' => "\\t",
+                    '\r' => "\\r",
+                    '\n' => "\\n",
+                    < ' ' or '\u007f' => $"\\u{(int)c:x4}",
+                    _ => c.ToString()
+                });
+        }
+
+        return input.Length > 48 ? text.Append($"... ({input.Length} chars)").ToString() : text.ToString();
     }
 
     private static byte[][] CreateCorpus()
