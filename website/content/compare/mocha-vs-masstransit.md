@@ -6,9 +6,6 @@ lead: "Mocha does the messaging you build with MassTransit in less code. One IMe
 product: "mocha"
 competitor: "MassTransit"
 lastChecked: "2026-10-20"
-versions:
-  product: "16.6"
-  competitor: "9.2"
 migrationGuide: "/docs/mocha/migration/coming-from-masstransit"
 features:
   - title: "Licensing"

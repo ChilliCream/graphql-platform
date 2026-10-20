@@ -346,9 +346,6 @@ lead: "The introduction under the page heading."
 product: "mocha"
 competitor: "MediatR"
 lastChecked: "2026-10-20"
-versions:
-  product: "16.6"
-  competitor: "14.2"
 migrationGuide: "/docs/mocha/migration/coming-from-mediatr"
 features:
   - title: "Licensing"
@@ -395,7 +392,6 @@ public record PlaceOrder(Guid ProductId) : IRequest<Guid>;
 | `product`        | yes      | Slug of the ChilliCream product from `src/data/products.ts`, e.g. `mocha`.                                 |
 | `competitor`     | yes      | Name of the other tool as its maintainers write it.                                                        |
 | `lastChecked`    | yes      | Quoted `YYYY-MM-DD` date the facts about the other tool were last checked against `sources`.               |
-| `versions`       | yes      | The `product` and `competitor` versions the comparison is based on.                                        |
 | `migrationGuide` | no       | Path of a docs page, e.g. `/docs/mocha/migration/coming-from-mediatr`. Adds the **Migrate from** buttons.  |
 | `features`       | yes      | Table groups, each with a `title` and `rows`. A cell is `true` (check), `false` (dash), or a short string. |
 | `sources`        | yes      | `https://` links to the other tool's official docs, license, or announcements behind every claim.          |

@@ -6,9 +6,6 @@ lead: "Mocha does what most teams use MediatR for, with less ceremony: commands 
 product: "mocha"
 competitor: "MediatR"
 lastChecked: "2026-10-20"
-versions:
-  product: "16.6"
-  competitor: "14.2"
 migrationGuide: "/docs/mocha/migration/coming-from-mediatr"
 features:
   - title: "Licensing"

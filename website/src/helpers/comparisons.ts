@@ -38,8 +38,6 @@ export type ComparisonSummary = {
   readonly competitor: string;
   /** Date (`YYYY-MM-DD`) the competitor facts were last checked against their sources. */
   readonly lastChecked: string;
-  /** Versions the comparison is based on. */
-  readonly versions: { readonly product: string; readonly competitor: string };
   /** Docs path of the guide for moving from the competitor, or null. */
   readonly migrationGuide: string | null;
   readonly features: readonly ComparisonFeatureGroup[];
@@ -126,7 +124,6 @@ function readComparison(fileName: string): ComparisonSummary {
     product,
     competitor: requiredString(frontmatter, "competitor", fileName),
     lastChecked,
-    versions: readVersions(frontmatter, fileName),
     migrationGuide: readMigrationGuide(frontmatter, fileName),
     features: readList(frontmatter, "features", fileName, (item, at) => ({
       title: requiredString(item, "title", fileName, at),
@@ -151,23 +148,6 @@ function readComparison(fileName: string): ComparisonSummary {
             question: requiredString(item, "question", fileName, at),
             answer: requiredString(item, "answer", fileName, at),
           })),
-  };
-}
-
-function readVersions(
-  frontmatter: Record<string, unknown>,
-  fileName: string,
-): ComparisonSummary["versions"] {
-  const versions = frontmatter.versions;
-  if (!isRecord(versions)) {
-    return invalid(
-      fileName,
-      `"versions" is required, with the "product" and "competitor" versions compared.`,
-    );
-  }
-  return {
-    product: requiredString(versions, "product", fileName, "versions."),
-    competitor: requiredString(versions, "competitor", fileName, "versions."),
   };
 }
 
