@@ -114,6 +114,90 @@ public class RabbitMQMessageEnvelopeParserTests
     }
 
     [Fact]
+    public void Parse_Should_PreferSentAtHeader_When_HeaderAndTimestampPresent()
+    {
+        // arrange
+        var args = CreateDeliverEventArgs(props =>
+        {
+            props.Timestamp = new AmqpTimestamp(1700000000);
+            props.Headers = new Dictionary<string, object?> { ["x-sent-at"] = 1699999990750L };
+        });
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.Equal(DateTimeOffset.FromUnixTimeMilliseconds(1699999990750), envelope.SentAt);
+    }
+
+    [Fact]
+    public void Parse_Should_FallbackToTimestamp_When_SentAtHeaderIsOutOfRange()
+    {
+        // arrange
+        var args = CreateDeliverEventArgs(props =>
+        {
+            props.Timestamp = new AmqpTimestamp(1700000000);
+            props.Headers = new Dictionary<string, object?> { ["x-sent-at"] = long.MaxValue };
+        });
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.Equal(DateTimeOffset.FromUnixTimeSeconds(1700000000), envelope.SentAt);
+    }
+
+    [Fact]
+    public void Parse_Should_HideTimeHeaders_When_HeadersPresent()
+    {
+        // arrange
+        var args = CreateDeliverEventArgs(props =>
+            props.Headers = new Dictionary<string, object?>
+            {
+                ["x-sent-at"] = 1700000000750L,
+                ["x-deliver-by"] = 1700000060750L,
+                ["x-tenant"] = "acme"u8.ToArray()
+            });
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.Collection(
+            envelope.Headers!,
+            header =>
+            {
+                Assert.Equal("x-tenant", header.Key);
+                Assert.Equal("acme", header.Value);
+            });
+    }
+
+    [Fact]
+    public void Parse_Should_RestoreExactTimes_When_PublishedLaterThanSent()
+    {
+        // arrange
+        // an outbox or scheduler publishes the stored envelope after it was sent
+        var sentAt = new DateTimeOffset(2026, 8, 12, 10, 0, 0, 750, TimeSpan.Zero);
+        var deliverBy = sentAt.AddHours(2).AddMilliseconds(125);
+        var published = RabbitMQMessageEnvelopeFormatter.Format(
+            new MessageEnvelope { SentAt = sentAt, DeliverBy = deliverBy },
+            new FixedTimeProvider(sentAt.AddHours(1)));
+        var args = CreateDeliverEventArgs(props =>
+        {
+            props.Timestamp = published.Timestamp;
+            props.Expiration = published.Expiration;
+            props.Headers = published.Headers;
+        });
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.Equal(sentAt, envelope.SentAt);
+        Assert.Equal(deliverBy, envelope.DeliverBy);
+    }
+
+    [Fact]
     public void Parse_Should_ExtractBody_When_BodyPresent()
     {
         // arrange
@@ -455,6 +539,24 @@ public class RabbitMQMessageEnvelopeParserTests
     }
 
     [Fact]
+    public void Parse_Should_PreferDeliverByHeader_When_HeaderAndExpirationPresent()
+    {
+        // arrange
+        var args = CreateDeliverEventArgs(props =>
+        {
+            props.Timestamp = new AmqpTimestamp(1700000000);
+            props.Expiration = "60000";
+            props.Headers = new Dictionary<string, object?> { ["x-deliver-by"] = 1700000060125L };
+        });
+
+        // act
+        var envelope = _parser.Parse(args, TimeProvider.System);
+
+        // assert
+        Assert.Equal(DateTimeOffset.FromUnixTimeMilliseconds(1700000060125), envelope.DeliverBy);
+    }
+
+    [Fact]
     public void Parse_Should_FallbackToUtcNow_When_ExpirationPresentButNoTimestamp()
     {
         // arrange
@@ -544,5 +646,10 @@ public class RabbitMQMessageEnvelopeParserTests
             routingKey: "test-key",
             properties: props,
             body: body ?? ReadOnlyMemory<byte>.Empty);
+    }
+
+    private sealed class FixedTimeProvider(DateTimeOffset utcNow) : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => utcNow;
     }
 }

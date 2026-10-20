@@ -53,6 +53,25 @@ public class RabbitMQMessageEnvelopeFormatterTests
     }
 
     [Fact]
+    public void Format_Should_SendExactTimes_When_EnvelopeWasSentBeforePublish()
+    {
+        // arrange
+        // an outbox or scheduler publishes the stored envelope after it was sent
+        var sentAt = s_now.AddHours(-1).AddMilliseconds(750);
+        var deliverBy = s_now.AddHours(1).AddMilliseconds(125);
+        var envelope = new MessageEnvelope { SentAt = sentAt, DeliverBy = deliverBy };
+
+        // act
+        var properties = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider);
+
+        // assert
+        Assert.Equal(s_now.ToUnixTimeSeconds(), properties.Timestamp.UnixTime);
+        Assert.Equal("3600125", properties.Expiration);
+        Assert.Equal(sentAt.ToUnixTimeMilliseconds(), properties.Headers!["x-sent-at"]);
+        Assert.Equal(deliverBy.ToUnixTimeMilliseconds(), properties.Headers!["x-deliver-by"]);
+    }
+
+    [Fact]
     public void Format_Should_ConvertDateTimeOffset_When_HeaderContainsDateTimeOffset()
     {
         // arrange
@@ -295,7 +314,7 @@ public class RabbitMQMessageEnvelopeFormatterTests
     }
 
     [Fact]
-    public void Format_Should_ReturnEmptyHeaders_When_EnvelopeIsEmpty()
+    public void Format_Should_OnlySetSentAt_When_EnvelopeIsEmpty()
     {
         // arrange
         var envelope = new MessageEnvelope();
@@ -304,7 +323,27 @@ public class RabbitMQMessageEnvelopeFormatterTests
         var headers = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!;
 
         // assert
-        Assert.Empty(headers);
+        Assert.Equal(new Dictionary<string, object?> { ["x-sent-at"] = s_now.ToUnixTimeMilliseconds() }, headers);
+    }
+
+    [Fact]
+    public void Format_Should_IgnoreTimeHeaders_When_EnvelopeHeadersContainThem()
+    {
+        // arrange
+        var envelope = new MessageEnvelope
+        {
+            Headers = new Headers(
+            [
+                new HeaderValue { Key = "x-sent-at", Value = 1L },
+                new HeaderValue { Key = "x-deliver-by", Value = 2L }
+            ])
+        };
+
+        // act
+        var headers = RabbitMQMessageEnvelopeFormatter.Format(envelope, s_timeProvider).Headers!;
+
+        // assert
+        Assert.Equal(new Dictionary<string, object?> { ["x-sent-at"] = s_now.ToUnixTimeMilliseconds() }, headers);
     }
 
     [Fact]
@@ -352,7 +391,8 @@ public class RabbitMQMessageEnvelopeFormatterTests
                 ["element"] = new Dictionary<string, object?> { ["k"] = 1 },
                 ["node"] = new Dictionary<string, object?> { ["k"] = 1 },
                 ["nested"] = new Dictionary<string, object?> { ["inner"] = "00:00:00" },
-                ["set"] = new List<object?> { 7L }
+                ["set"] = new List<object?> { 7L },
+                ["x-sent-at"] = s_now.ToUnixTimeMilliseconds()
             },
             headers);
     }
@@ -422,7 +462,8 @@ public class RabbitMQMessageEnvelopeFormatterTests
             {
                 ["fits"] = 9.95m,
                 ["exceeds"] = "21474836.48",
-                ["negative"] = "-21474836.48"
+                ["negative"] = "-21474836.48",
+                ["x-sent-at"] = s_now.ToUnixTimeMilliseconds()
             },
             headers);
     }
@@ -453,7 +494,8 @@ public class RabbitMQMessageEnvelopeFormatterTests
                 ["object"] = new Dictionary<string, object?> { ["k"] = 1 },
                 ["array"] = new List<object?> { 1, 2 },
                 ["text"] = "abc",
-                ["number"] = 5
+                ["number"] = 5,
+                ["x-sent-at"] = s_now.ToUnixTimeMilliseconds()
             },
             headers);
     }
