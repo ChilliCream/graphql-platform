@@ -33,9 +33,8 @@ export function VideosHero({ videos, browseHref }: VideosHeroProps) {
             <span className="text-cc-amber">who build it.</span>
           </h1>
           <p className="text-cc-prose mt-6 max-w-lg text-lg leading-relaxed">
-            Hands-on episodes from the Hot Chocolate team on DataLoader,
-            pagination, projections, and everything else that goes into a fast
-            GraphQL API in .NET.
+            Hands-on episodes on GraphQL and .NET with Hot Chocolate, Fusion,
+            Nitro, Mocha, and Strawberry Shake.
           </p>
           <ButtonRow align="start" className="mt-9">
             <SolidButton href={browseHref}>Browse episodes</SolidButton>

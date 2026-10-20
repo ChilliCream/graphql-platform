@@ -3,6 +3,7 @@ title: "How to Use State in DataLoader for Context-Aware Fetching"
 description: "Make your DataLoaders stateful to pass tenant IDs or authorization context and fetch data in the right scope without losing performance."
 youtubeId: "4Mw2A548OGM"
 duration: "15:51"
+uploadDate: "2025-05-01T02:55:26-07:00"
 example: "https://github.com/ChilliCream/platform-examples/tree/main/examples/HotChocolate/StatefulDataLoader"
 author: "michael-staib"
 tags:

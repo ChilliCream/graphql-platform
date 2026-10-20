@@ -11,6 +11,8 @@ export const CHILLICREAM_TV_CHANNEL_URL =
 
 const STEM_RE = /^(\d{4})-(\d{2})-(\d{2})-[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const YOUTUBE_ID_RE = /^[A-Za-z0-9_-]{11}$/;
+const UPLOAD_DATE_RE =
+  /^(\d{4}-\d{2}-\d{2})T\d{2}:\d{2}:\d{2}(?:Z|[+-]\d{2}:\d{2})$/;
 const DURATION_RE = /^(?:(\d+):)?([0-5]?\d):([0-5]\d)$/;
 const TAG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -30,6 +32,8 @@ export type VideoSummary = {
   readonly description: string;
   /** Publish date (`YYYY-MM-DD`), taken from the file name. */
   readonly date: string;
+  /** Upload time on YouTube, ISO 8601 with a time zone offset. */
+  readonly uploadDate: string;
   readonly youtubeId: string;
   /** Running time in seconds. */
   readonly duration: number;
@@ -174,13 +178,15 @@ function readVideo(fileName: string): Omit<VideoSummary, "episode"> {
         ));
 
   const [, year, month, day] = match;
+  const date = `${year}-${month}-${day}`;
   return {
     stem,
     href: videoUrl(stem),
     file,
     title: requiredString(frontmatter, "title", fileName),
     description: requiredString(frontmatter, "description", fileName),
-    date: `${year}-${month}-${day}`,
+    date,
+    uploadDate: readUploadDate(frontmatter, date, fileName),
     youtubeId,
     duration: readDuration(frontmatter, fileName),
     example,
@@ -213,6 +219,28 @@ function optionalString(
     return invalid(fileName, `"${key}" must be a non-empty, quoted string.`);
   }
   return value.trim();
+}
+
+function readUploadDate(
+  frontmatter: Record<string, unknown>,
+  date: string,
+  fileName: string,
+): string {
+  const uploadDate = requiredString(frontmatter, "uploadDate", fileName);
+  const match = UPLOAD_DATE_RE.exec(uploadDate);
+  if (!match) {
+    return invalid(
+      fileName,
+      `"uploadDate" must be a date and time with a time zone offset (e.g. "2025-05-01T02:55:26-07:00").`,
+    );
+  }
+  if (match[1] !== date) {
+    return invalid(
+      fileName,
+      `"uploadDate" must be on the date in the file name (${date}).`,
+    );
+  }
+  return uploadDate;
 }
 
 function readDuration(

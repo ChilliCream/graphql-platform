@@ -3,6 +3,7 @@ title: "Smarter Caching with DataLoader: Add a 2nd-Level Cache!"
 description: "Add a second-level cache to DataLoader to cache entities across requests and give your GraphQL API a real performance boost."
 youtubeId: "h6GDT9l-4zQ"
 duration: "12:14"
+uploadDate: "2025-04-09T06:11:51-07:00"
 author: "michael-staib"
 tags:
   - dataloader
