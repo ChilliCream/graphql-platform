@@ -38,6 +38,16 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         }
         """;
 
+    private const string Related =
+        """
+        extend schema @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+        type Product @key(fields: "id") {
+          id: ID!
+          related: Product!
+        }
+        """;
+
     private const string Details =
         """
         extend schema @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
@@ -150,6 +160,81 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
                   name
                   category {
                     label
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_KeepApolloLookupsSeparate_When_DeeperLookupIsDeferred()
+    {
+        // arrange
+        var schema = ComposeSchema(Catalog, Related, Details);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products {
+                name
+                related {
+                  ... @defer(label: "deeper") { name }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_KeepApolloLookupsSeparate_When_LookupsBelongToSiblingDefers()
+    {
+        // arrange
+        var schema = ComposeSchema(Catalog, Related, Details);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products {
+                ... @defer(label: "shallower") { name }
+                related {
+                  ... @defer(label: "deeper") { name }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_KeepApolloLookupsSeparate_When_DeeperLookupBelongsToNestedDefer()
+    {
+        // arrange
+        var schema = ComposeSchema(Catalog, Related, Details);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products {
+                ... @defer(label: "outer") {
+                  name
+                  related {
+                    id
+                    ... @defer(label: "inner") { name }
                   }
                 }
               }
@@ -380,5 +465,4 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
               price: Int!
             }
             """);
-
 }

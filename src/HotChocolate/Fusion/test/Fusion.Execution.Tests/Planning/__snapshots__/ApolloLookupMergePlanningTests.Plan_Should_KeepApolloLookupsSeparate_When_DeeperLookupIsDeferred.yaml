@@ -1,0 +1,120 @@
+operation:
+  - document: |
+      {
+        products {
+          name
+          related {
+            __typename @fusion__empty
+          }
+          id @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 2
+    expandedNodes: 5
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        products {
+          id
+        }
+      }
+  - id: 2
+    type: ApolloOperation
+    schema: b
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Product {
+            related {
+              __typename
+            }
+          }
+        }
+      }
+    source: $._entities
+    target: $.products
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 3
+    type: ApolloOperation
+    schema: c
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Product {
+            name
+          }
+        }
+      }
+    source: $._entities
+    target: $.products
+    requirements:
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+deliveryGroups:
+  - id: 0
+    path: $.products.related
+    label: deeper
+incrementalPlans:
+  - deliveryGroupIds:
+      - 0
+    parentNodeId: 2
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    nodes:
+      - id: 1
+        type: ApolloOperation
+        schema: c
+        operation: |
+          query($representations: [_Any!]!) {
+            _entities(representations: $representations) {
+              ... on Product {
+                name
+              }
+            }
+          }
+        source: $._entities
+        target: $.products.related
+        requirements:
+          - name: __fusion_1_id
+            selectionMap: >-
+              id
+        dependencies:
+          - id: 2
+      - id: 2
+        type: ApolloOperation
+        schema: b
+        operation: |
+          query($representations: [_Any!]!) {
+            _entities(representations: $representations) {
+              ... on Product {
+                related {
+                  id
+                }
+              }
+            }
+          }
+        source: $._entities
+        target: $.products
+        requirements:
+          - name: __fusion_2_id
+            selectionMap: >-
+              id
+        dependencies:
+          - parentNodeId: 1
