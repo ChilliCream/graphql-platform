@@ -818,6 +818,8 @@ async function validateMachineReadableRepresentations() {
     ["/docs/llms-full.txt"],
     ["/blog/llms.txt"],
     ["/blog/llms-full.txt"],
+    ["/videos/llms.txt"],
+    ["/videos/llms-full.txt"],
   ];
   for (const [pathname, existingResponse] of catalogs) {
     const response =

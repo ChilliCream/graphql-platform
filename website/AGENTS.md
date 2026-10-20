@@ -13,6 +13,9 @@ the conventions in [README.md → Authoring Markdown Content](./README.md#author
 It covers frontmatter, `structure.yaml` sidebars, links, images, YouTube videos,
 admonitions, Mermaid diagrams, and MDX gotchas.
 
+When creating or editing a video under `content/videos/`, also follow
+[README.md → Videos](./README.md#videos) for the file name and frontmatter.
+
 # Components
 
 This site is built to be extended agent-first: adding a page or component should
