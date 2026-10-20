@@ -237,6 +237,15 @@ public class SourceResultDocumentTokenizerTests
             var reader = SourceResultDocument.CreateFilledReader(segments, usedChunks, lastLength);
             reader.Read();
             using var document = SourceResultDocument.ParseFilledElement(arena, ref reader, segments, usedChunks);
+
+            // Only a root object ends the document, any other root value must be the only value.
+            if (document.GetDbRow(SourceResultDocument.Cursor.Zero).TokenType != JsonTokenType.StartObject)
+            {
+                while (reader.Read())
+                {
+                }
+            }
+
             return DescribeRows(document, Padding);
         }
         catch (JsonException)

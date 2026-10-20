@@ -107,10 +107,10 @@ public class SourceResultDocumentSequenceTests
     }
 
     [Theory]
-    [InlineData("[null]", new[] { "IndexOutOfRangeException" })]
-    [InlineData("[[1]]", new[] { "IndexOutOfRangeException" })]
-    [InlineData("[1,{\"a\":1}]", new[] { "1" })]
-    [InlineData("[{\"a\":1},2]", new[] { "{\"a\":1}", "IndexOutOfRangeException" })]
+    [InlineData("[null]", new[] { "null" })]
+    [InlineData("[[1]]", new[] { "[1]" })]
+    [InlineData("[1,{\"a\":1}]", new[] { "1", "{\"a\":1}" })]
+    [InlineData("[{\"a\":1},2]", new[] { "{\"a\":1}", "2" })]
     public void ParseFilledElement_Should_ReadEachElement_When_ElementIsNotAnObject(
         string payload,
         string[] expected)

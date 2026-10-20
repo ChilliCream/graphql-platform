@@ -405,11 +405,6 @@ public sealed partial class SourceResultDocument
                         location,
                         containerChildCount[stackIndex],
                         (containerHasComplexBits & (1UL << stackIndex)) != 0);
-
-                    if (stackIndex == 0)
-                    {
-                        return;
-                    }
                     break;
 
                 case JsonTokenType.StartArray:
@@ -464,6 +459,12 @@ public sealed partial class SourceResultDocument
 
                 default:
                     throw new JsonException($"Unexpected token type: {tokenType}");
+            }
+
+            // The value the reader was positioned at is complete.
+            if (stackIndex == 0)
+            {
+                return;
             }
         } while (reader.Read());
 
