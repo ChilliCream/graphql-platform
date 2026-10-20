@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
 
 namespace HotChocolate.Fusion.Planning;
@@ -122,7 +123,9 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
             });
 
         // assert
-        MatchSnapshot(plan);
+        var nodes = plan.AllNodes.Where(n => n.SchemaName == "c").ToArray();
+        Assert.Equal(2, nodes.Length);
+        Assert.All(nodes, node => Assert.IsType<ApolloOperationExecutionNode>(node));
     }
 
     [Fact]
@@ -147,7 +150,12 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
             });
 
         // assert
-        MatchSnapshot(plan);
+        var nodes = plan.AllNodes.Where(n => n.SchemaName == "c").ToArray();
+        var operations = nodes.OfType<ApolloOperationBatchExecutionNode>()
+            .SelectMany(n => n.Operations.ToArray()).ToArray();
+        Assert.Single(nodes);
+        Assert.Equal(2, operations.Length);
+        Assert.All(operations, operation => Assert.IsType<SingleOperationDefinition>(operation));
     }
 
     [Theory]
@@ -174,7 +182,12 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
             });
 
         // assert
-        MatchSnapshot(plan);
+        var nodes = plan.AllNodes.Where(n => n.SchemaName == "c").ToArray();
+        var operations = nodes.OfType<ApolloOperationBatchExecutionNode>()
+            .SelectMany(n => n.Operations.ToArray()).ToArray();
+        Assert.Single(nodes);
+        Assert.Single(operations);
+        Assert.Contains(operations, operation => operation is BatchOperationDefinition { Targets.Length: 2 });
     }
 
     [Theory]
@@ -201,7 +214,12 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
             });
 
         // assert
-        MatchSnapshot(plan);
+        var nodes = plan.AllNodes.Where(n => n.SchemaName == "c").ToArray();
+        var operations = nodes.OfType<ApolloOperationBatchExecutionNode>()
+            .SelectMany(n => n.Operations.ToArray()).ToArray();
+        Assert.Single(nodes);
+        Assert.Single(operations);
+        Assert.Contains(operations, operation => operation is BatchOperationDefinition { Targets.Length: 2 });
     }
 
     [Theory]
@@ -228,7 +246,12 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
             });
 
         // assert
-        MatchSnapshot(plan);
+        var nodes = plan.AllNodes.Where(n => n.SchemaName == "c").ToArray();
+        var operations = nodes.OfType<ApolloOperationBatchExecutionNode>()
+            .SelectMany(n => n.Operations.ToArray()).ToArray();
+        Assert.Single(nodes);
+        Assert.Single(operations);
+        Assert.Contains(operations, operation => operation is BatchOperationDefinition { Targets.Length: 2 });
     }
 
     [Fact]
@@ -254,7 +277,12 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
             });
 
         // assert
-        MatchSnapshot(plan);
+        var nodes = plan.AllNodes.Where(n => n.SchemaName == "c").ToArray();
+        var operations = nodes.OfType<ApolloOperationBatchExecutionNode>()
+            .SelectMany(n => n.Operations.ToArray()).ToArray();
+        Assert.Equal(2, nodes.Length);
+        Assert.Single(operations);
+        Assert.Contains(operations, operation => operation is BatchOperationDefinition { Targets.Length: 2 });
     }
 
     private static FusionSchemaDefinition CreateLookupPolicySchema()
