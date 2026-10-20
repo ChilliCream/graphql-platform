@@ -15,6 +15,9 @@ fi
 # CPU core assignment for source schemas (set by caller, e.g. run-single-benchmark.sh)
 SOURCES_CPUSET="${SOURCES_CPUSET:-}"
 
+# FUSION_ARENA_TRACE is meant for the gateway; eShop.Reviews only traces through start-review.sh.
+unset FUSION_ARENA_TRACE
+
 # Helper function for optional CPU pinning
 maybe_taskset() {
   local cpus="$1"; shift

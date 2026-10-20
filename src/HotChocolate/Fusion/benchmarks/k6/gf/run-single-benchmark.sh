@@ -21,7 +21,9 @@ set -eo pipefail
 #
 # Methodology (mirrors k6/benchmark.sh of graphql-federation-benchmarks):
 #   The services start once, a full-duration warmup run is discarded, then
-#   BENCH_RUNS measured runs follow against the same services.
+#   BENCH_RUNS measured runs follow against the same services. Runs with failed
+#   requests or failed checks are left out, and the median run by requests per
+#   second is reported.
 # =============================================================================
 
 TEST_NAME="${1:?Usage: $0 <test> <mode> <output-file> [runner-group] [runner-label]}"
@@ -96,16 +98,16 @@ trap cleanup EXIT
 # ---------------------------------------------------------------------------
 # CPU pinning, aligned with profiles.json of graphql-federation-benchmarks
 # ---------------------------------------------------------------------------
-# 16 cores:   k6: 1,9   Gateway: 2-3,10-11   Sources: 4-7,12-15   (SMT siblings stay together)
-# 8+ cores:   k6: 1     Gateway: 2-3         Sources: 4-7         (constant)
-#             k6: 1     Gateway: 2-4         Sources: 5-7         (ramping)
-# Core 0 (and 8 on 16 cores) stays free for the system.
-# Fewer than 8 cores run without pinning.
+# 16+ threads: k6: 1,9   Gateway: 2-3,10-11   Sources: 4-7,12-15   (SMT siblings stay together)
+# 8+ threads:  k6: 1     Gateway: 2-3         Sources: 4-7         (constant)
+#              k6: 1     Gateway: 2-4         Sources: 5-7         (ramping)
+# Core 0 (and 8 on 16+ threads) stays free for the system.
+# Fewer than 8 threads run without pinning.
 # ---------------------------------------------------------------------------
 
-TOTAL_CORES=$(nproc 2>/dev/null || grep -c ^processor /proc/cpuinfo 2>/dev/null || echo 8)
+TOTAL_CORES=$(nproc --all 2>/dev/null || grep -c ^processor /proc/cpuinfo 2>/dev/null || echo 8)
 
-if [ "$TOTAL_CORES" -eq 16 ]; then
+if [ "$TOTAL_CORES" -ge 16 ]; then
     K6_CPUSET="1,9"
     GATEWAY_CPUSET_PIN="2-3,10-11"
     SOURCES_CPUSET_PIN="4-7,12-15"
@@ -136,6 +138,8 @@ echo ""
 # ---------------------------------------------------------------------------
 
 start_infrastructure_gateway() {
+    "$SCRIPT_DIR/stop-services.sh" > /dev/null 2>&1 || true
+
     echo -e "${YELLOW}    Starting source schemas on cores ${SOURCES_CPUSET_PIN:-unpinned}...${NC}"
     export SOURCES_CPUSET="$SOURCES_CPUSET_PIN"
     "$SCRIPT_DIR/start-source-schemas.sh" > /dev/null 2>&1
@@ -149,6 +153,8 @@ start_infrastructure_gateway() {
 }
 
 start_infrastructure_variable_batch() {
+    "$SCRIPT_DIR/stop-services.sh" > /dev/null 2>&1 || true
+
     echo -e "${YELLOW}    Starting inventory service on cores ${GATEWAY_CPUSET_PIN:-unpinned}...${NC}"
     export INVENTORY_CPUSET="$GATEWAY_CPUSET_PIN"
     "$SCRIPT_DIR/start-inventory-only.sh" > /dev/null 2>&1
@@ -180,7 +186,7 @@ extract_metric() {
         "avg")   value=$(jq -r --arg m "$metric" '.metrics[$m].avg // null' "$file" 2>/dev/null) ;;
         "p(90)") value=$(jq -r --arg m "$metric" '.metrics[$m]["p(90)"] // null' "$file" 2>/dev/null) ;;
         "p(95)") value=$(jq -r --arg m "$metric" '.metrics[$m]["p(95)"] // null' "$file" 2>/dev/null) ;;
-        "rate")  value=$(jq -r --arg m "$metric" '.metrics[$m].rate // null' "$file" 2>/dev/null) ;;
+        "rate")  value=$(jq -r --arg m "$metric" '.metrics[$m].rate // .metrics[$m].value // null' "$file" 2>/dev/null) ;;
         "count") value=$(jq -r --arg m "$metric" '.metrics[$m].count // null' "$file" 2>/dev/null) ;;
     esac
 
@@ -189,15 +195,6 @@ extract_metric() {
     else
         echo "$value"
     fi
-}
-
-calculate_median() {
-    local values=("$@")
-    local count=${#values[@]}
-    IFS=$'\n' sorted=($(sort -n <<<"${values[*]}"))
-    unset IFS
-    local middle_index=$(( (count - 1) / 2 ))
-    echo "${sorted[$middle_index]}"
 }
 
 # Extract a metric with optional fallback to untagged metric
@@ -269,6 +266,10 @@ run_k6() {
     if [ -n "${BENCH_VUS:-}" ]; then
         k6_args+=(-e "BENCH_VUS=$BENCH_VUS")
     fi
+    # variable-batch reads GATEWAY_ENDPOINT as the address of the inventory source schema.
+    if [ "$TEST_NAME" != "variable-batch" ]; then
+        k6_args+=(-e "GATEWAY_ENDPOINT=http://localhost:5220/graphql")
+    fi
     maybe_taskset "$K6_CPUSET" k6 run "${k6_args[@]}" --summary-export="$summary_file" "$K6_SCRIPT"
 }
 
@@ -302,37 +303,39 @@ start_infra
 echo -e "${BLUE}Warmup run (${MEASURE_SECONDS}s, discarded)...${NC}"
 run_k6 "/tmp/benchmark-summary-warmup.json" > /dev/null 2>&1 || true
 
-echo -e "${BLUE}Running ${NUM_RUNS} measured runs for median calculation...${NC}"
+echo -e "${BLUE}Running ${NUM_RUNS} measured runs...${NC}"
 
-declare -a MIN_V P50_V MAX_V AVG_V P90_V P95_V RPS_V ERR_V ITER_V
+declare -a RPS_V RUN_FILES
+ERRORED_RUNS=0
 
 for i in $(seq 1 $NUM_RUNS); do
     echo -e "${YELLOW}  Run $i/$NUM_RUNS${NC}"
-    run_k6 "/tmp/benchmark-summary-${i}.json"
+    summary_file="/tmp/benchmark-summary-${i}.json"
+    run_k6 "$summary_file"
 
-    extract_results_from_file "/tmp/benchmark-summary-${i}.json"
-    MIN_V+=("$RESULT_MIN")
-    P50_V+=("$RESULT_P50")
-    MAX_V+=("$RESULT_MAX")
-    AVG_V+=("$RESULT_AVG")
-    P90_V+=("$RESULT_P90")
-    P95_V+=("$RESULT_P95")
+    if jq -e '((.metrics.http_req_failed.passes // 0) + (.metrics.success_rate.fails // 0)) > 0' "$summary_file" > /dev/null 2>&1; then
+        echo -e "${YELLOW}  Run $i had failed requests or failed checks, excluded from the median${NC}"
+        ERRORED_RUNS=$((ERRORED_RUNS + 1))
+        continue
+    fi
+
+    extract_results_from_file "$summary_file"
     RPS_V+=("$RESULT_RPS")
-    ERR_V+=("$RESULT_ERR")
-    ITER_V+=("$RESULT_ITER")
+    RUN_FILES+=("$summary_file")
 done
 
 stop_infrastructure
 
-RESULT_MIN=$(calculate_median "${MIN_V[@]}")
-RESULT_P50=$(calculate_median "${P50_V[@]}")
-RESULT_MAX=$(calculate_median "${MAX_V[@]}")
-RESULT_AVG=$(calculate_median "${AVG_V[@]}")
-RESULT_P90=$(calculate_median "${P90_V[@]}")
-RESULT_P95=$(calculate_median "${P95_V[@]}")
-RESULT_RPS=$(calculate_median "${RPS_V[@]}")
-RESULT_ERR=$(calculate_median "${ERR_V[@]}")
-RESULT_ITER=$(calculate_median "${ITER_V[@]}")
+if [ ${#RPS_V[@]} -eq 0 ]; then
+    echo -e "${RED}All ${NUM_RUNS} measured runs had failed requests or failed checks${NC}"
+    exit 1
+fi
+
+# Report the median run by requests per second (the upper middle one for an even count).
+MEDIAN_INDEX=$(for i in "${!RPS_V[@]}"; do echo "${RPS_V[$i]} $i"; done \
+    | LC_ALL=C sort -k1,1g -k2,2n \
+    | awk -v n="${#RPS_V[@]}" 'NR == int(n / 2) + 1 { print $2 }')
+extract_results_from_file "${RUN_FILES[$MEDIAN_INDEX]}"
 
 # ---------------------------------------------------------------------------
 # Write JSON output
@@ -359,7 +362,8 @@ cat > "$OUTPUT_FILE" <<EOF
     "total_iterations": ${RESULT_ITER}
   },
   "reliability": {
-    "error_rate": ${RESULT_ERR}
+    "error_rate": ${RESULT_ERR},
+    "errored_runs": ${ERRORED_RUNS}
   }
 }
 EOF

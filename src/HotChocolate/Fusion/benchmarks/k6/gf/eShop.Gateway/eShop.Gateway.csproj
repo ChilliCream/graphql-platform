@@ -3,6 +3,7 @@
   <PropertyGroup>
     <RootNamespace>eShop.Gateway</RootNamespace>
     <IsAotCompatible>true</IsAotCompatible>
+    <Features>$(Features);runtime-async=on</Features>
   </PropertyGroup>
 
   <ItemGroup>

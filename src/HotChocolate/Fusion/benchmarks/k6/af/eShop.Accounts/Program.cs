@@ -4,8 +4,11 @@ using HotChocolate.ApolloFederation;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
-    .AddGraphQLServer(disableDefaultSecurity: true)
+    .AddGraphQLServer()
     .AddApolloFederation(FederationVersion.Federation27)
+    // The cost analysis of this repository rates the gateway's entity requests above the default
+    // limit, so it runs without enforcing the limit.
+    .ModifyCostOptions(o => o.EnforceCostLimits = false)
     // Fusion sends transport-level request batches (a JSON array of operations) to
     // subgraphs; HotChocolate 16 rejects those with HC0009 unless batching is enabled.
     .ModifyServerOptions(o => o.Batching = AllowedBatching.All)
