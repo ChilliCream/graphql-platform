@@ -1326,6 +1326,107 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
                 node => Assert.IsType<OperationExecutionNode>(node).Id));
     }
 
+    [Fact]
+    public void Parse_Should_UseIncrementalPlanId_When_IdIsPresent()
+    {
+        // arrange
+        // The ids are swapped so that they no longer match the positions.
+        var (planId, planSource, parser) = CreateSiblingDeferPlanSource(
+            (incrementalPlan, position) => incrementalPlan["id"] = 1 - position);
+
+        // act
+        var parsedPlan = parser.Parse(planSource);
+
+        // assert
+        Assert.Collection(
+            parsedPlan.IncrementalPlans,
+            p => Assert.Equal($"{planId}#1", p.Id),
+            p => Assert.Equal($"{planId}#0", p.Id));
+    }
+
+    [Fact]
+    public void Parse_Should_UseIncrementalPlanPosition_When_IdIsMissing()
+    {
+        // arrange
+        var (planId, planSource, parser) = CreateSiblingDeferPlanSource(
+            (incrementalPlan, _) => incrementalPlan.Remove("id"));
+
+        // act
+        var parsedPlan = parser.Parse(planSource);
+
+        // assert
+        Assert.Collection(
+            parsedPlan.IncrementalPlans,
+            p => Assert.Equal($"{planId}#0", p.Id),
+            p => Assert.Equal($"{planId}#1", p.Id));
+    }
+
+    /// <summary>
+    /// Plans two sibling <c>@defer</c> fragments that produce two incremental plans and
+    /// returns the formatted plan after <paramref name="mutateIncrementalPlan"/> was applied
+    /// to each incremental plan, along with a parser for it.
+    /// </summary>
+    private (string PlanId, byte[] PlanSource, JsonOperationPlanParser Parser) CreateSiblingDeferPlanSource(
+        Action<JsonObject, int> mutateIncrementalPlan)
+    {
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+                address: String!
+            }
+            """);
+
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "contact") {
+                        email
+                    }
+                    ... @defer(label: "location") {
+                        email
+                        address
+                    }
+                }
+            }
+            """);
+
+        var json = JsonNode.Parse(new JsonOperationPlanFormatter().Format(plan))!;
+        var incrementalPlans = json["incrementalPlans"]!.AsArray();
+
+        for (var i = 0; i < incrementalPlans.Count; i++)
+        {
+            mutateIncrementalPlan(incrementalPlans[i]!.AsObject(), i);
+        }
+
+        var compiler = new OperationCompiler(
+            schema,
+            new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+
+        return (plan.Id, Encoding.UTF8.GetBytes(json.ToJsonString()), new JsonOperationPlanParser(compiler));
+    }
+
     /// <summary>
     /// Returns the nodes of the given type from a formatted plan as an indented JSON array.
     /// </summary>

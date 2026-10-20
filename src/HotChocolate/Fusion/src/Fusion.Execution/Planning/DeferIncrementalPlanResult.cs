@@ -13,6 +13,10 @@ namespace HotChocolate.Fusion.Planning;
 /// The <see cref="OperationDefinitionNode"/> for the incremental plan, or
 /// <c>null</c> when planning produced no operation.
 /// </param>
+/// <param name="LastRequirementId">
+/// The highest requirement id used by this incremental plan or by the plans planned before it.
+/// </param>
 internal readonly record struct DeferIncrementalPlanResult(
     ImmutableList<PlanStep> Steps,
-    OperationDefinitionNode? InternalOperationDefinition);
+    OperationDefinitionNode? InternalOperationDefinition,
+    uint LastRequirementId);

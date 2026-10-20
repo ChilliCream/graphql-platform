@@ -87,7 +87,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_defer_1 {
+            query Op_4f64f7a8_defer0_1 {
               users {
                 id
                 name
@@ -128,7 +128,8 @@ operationPlan:
     - id: 0
       path: $
   incrementalPlans:
-    - deliveryGroupIds:
+    - id: 0
+      deliveryGroupIds:
         - 0
       parentNodeId: 0
       nodes:
@@ -136,7 +137,7 @@ operationPlan:
           type: Operation
           schema: A
           operation: |
-            query Op_defer_1 {
+            query Op_4f64f7a8_defer0_1 {
               users {
                 id
                 name

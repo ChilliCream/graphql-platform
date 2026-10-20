@@ -24,7 +24,8 @@ deliveryGroups:
   - id: 0
     path: $.users
 incrementalPlans:
-  - deliveryGroupIds:
+  - id: 0
+    deliveryGroupIds:
       - 0
     parentNodeId: 1
     requirements:
@@ -39,7 +40,7 @@ incrementalPlans:
         type: Operation
         schema: reviews
         operation: |
-          query Op_defer_1($__fusion_1_id: ID!) {
+          query Op_123456789101112_defer0_1($__fusion_1_id: ID!) {
             userById(id: $__fusion_1_id) {
               reviewCount
             }
@@ -56,7 +57,7 @@ incrementalPlans:
         type: Operation
         schema: accounts
         operation: |
-          query Op_defer_2($__fusion_2_id: ID!) {
+          query Op_123456789101112_defer0_2($__fusion_2_id: ID!) {
             userById(id: $__fusion_2_id) {
               birthdate
             }

@@ -983,7 +983,7 @@ The step ID is assigned by the operation planner and is also the ID of the step 
 Three further shapes replace their v15 equivalents:
 
 - An anonymous client operation produces `Op_<shortHash>_<stepId>` instead of v15's `fetch_<rootFieldNames>_<counter>`.
-- An incremental plan produced by `@defer` uses the literal `defer` in place of the short hash, for example `Op_defer_1`.
+- A step of an incremental plan produced by `@defer` adds `defer<id>` between the short hash and the step ID, for example `Op_94a407d5_defer0_1`. The `<id>` is the `id` of the incremental plan in the operation plan.
 - With subgraph alias batching enabled, the merged operation is named `<name>_<shortHash>_Batch_<compositionHash>`, or `Op_<shortHash>_Batch_<compositionHash>` for an anonymous client operation, where the trailing 16 hex digits identify the composition of the batch.
 
 Update any subgraph log parsing, dashboard grouping, or alert that matched the v15 name shape.

@@ -68,7 +68,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         if (rootElement.TryGetProperty("incrementalPlans", out var incrementalPlansElement))
         {
-            incrementalPlans = ParseIncrementalPlans(incrementalPlansElement, deliveryGroupMap);
+            incrementalPlans = ParseIncrementalPlans(id, incrementalPlansElement, deliveryGroupMap);
         }
 
         // Root nodes are the entry points of the execution plan. A node is a
@@ -150,6 +150,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     }
 
     private ImmutableArray<IncrementalPlan> ParseIncrementalPlans(
+        string planId,
         JsonElement incrementalPlansElement,
         Dictionary<int, DeliveryGroup> deliveryGroupMap)
     {
@@ -157,6 +158,11 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         foreach (var incrementalPlanElement in incrementalPlansElement.EnumerateArray())
         {
+            // Documents before format version 1.3.0 carry no id, which was always the position.
+            var incrementalPlanId = incrementalPlanElement.TryGetProperty("id", out var incrementalPlanIdElement)
+                ? incrementalPlanIdElement.GetInt32()
+                : builder.Count;
+
             var deliveryGroupIdsElement = incrementalPlanElement.GetProperty("deliveryGroupIds");
             var incrementalPlanDeliveryGroupsBuilder = ImmutableArray.CreateBuilder<DeliveryGroup>();
 
@@ -211,6 +217,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 incrementalPlanDeliveryGroupsBuilder.ToImmutable(),
                 incrementalPlanRequirements)
             {
+                Id = $"{planId}#{incrementalPlanId}",
                 ParentNodeId = incrementalPlanElement.GetProperty("parentNodeId").GetInt32()
             };
 

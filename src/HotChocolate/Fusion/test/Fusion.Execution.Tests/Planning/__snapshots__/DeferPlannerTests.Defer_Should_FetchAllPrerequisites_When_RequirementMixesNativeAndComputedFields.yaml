@@ -22,7 +22,8 @@ deliveryGroups:
   - id: 0
     path: $.product
 incrementalPlans:
-  - deliveryGroupIds:
+  - id: 0
+    deliveryGroupIds:
       - 0
     parentNodeId: 1
     nodes:
@@ -30,7 +31,10 @@ incrementalPlans:
         type: Operation
         schema: c
         operation: |
-          query Op_defer_2($__fusion_2_input: TotalInput!, $__fusion_3_id: ID!) {
+          query Op_123456789101112_defer0_2(
+            $__fusion_2_input: TotalInput!
+            $__fusion_3_id: ID!
+          ) {
             productById(id: $__fusion_3_id) {
               total(input: $__fusion_2_input)
             }
@@ -55,7 +59,7 @@ incrementalPlans:
         type: Operation
         schema: a
         operation: |
-          query Op_defer_3($__fusion_4_id: ID!) {
+          query Op_123456789101112_defer0_3($__fusion_4_id: ID!) {
             productById(id: $__fusion_4_id) {
               raw
             }
@@ -72,7 +76,7 @@ incrementalPlans:
         type: Operation
         schema: a
         operation: |
-          query Op_defer_4($__fusion_5_value: Int!, $__fusion_6_id: ID!) {
+          query Op_123456789101112_defer0_4($__fusion_5_value: Int!, $__fusion_6_id: ID!) {
             productById(id: $__fusion_6_id) {
               computed(value: $__fusion_5_value)
             }
@@ -93,7 +97,7 @@ incrementalPlans:
         type: Operation
         schema: b
         operation: |
-          query Op_defer_5($__fusion_7_id: ID!) {
+          query Op_123456789101112_defer0_5($__fusion_7_id: ID!) {
             productById(id: $__fusion_7_id) {
               value
             }
@@ -110,7 +114,7 @@ incrementalPlans:
         type: Operation
         schema: a
         operation: |
-          query Op_defer_7 {
+          query Op_123456789101112_defer0_7 {
             product {
               id
             }

@@ -29,7 +29,8 @@ deliveryGroups:
     label: inner
     parentId: 0
 incrementalPlans:
-  - deliveryGroupIds:
+  - id: 0
+    deliveryGroupIds:
       - 0
     parentNodeId: 1
     requirements:
@@ -41,7 +42,7 @@ incrementalPlans:
         type: Operation
         schema: b
         operation: |
-          query Op_defer_1($__fusion_1_id: ID!) {
+          query Op_123456789101112_defer0_1($__fusion_1_id: ID!) {
             userById(id: $__fusion_1_id) {
               email
             }
@@ -58,20 +59,21 @@ incrementalPlans:
         type: Operation
         schema: a
         operation: |
-          query Op_defer_5 {
+          query Op_123456789101112_defer0_2 {
             user(id: "1") {
               id
               preferences
             }
           }
-  - deliveryGroupIds:
+  - id: 1
+    deliveryGroupIds:
       - 1
     parentNodeId: 1
     requirements:
-      - name: __fusion_2_preferences
+      - name: __fusion_3_preferences
         selectionMap: >-
           preferences
-      - name: __fusion_3_id
+      - name: __fusion_4_id
         selectionMap: >-
           id
     nodes:
@@ -79,18 +81,21 @@ incrementalPlans:
         type: Operation
         schema: c
         operation: |
-          query Op_defer_2($__fusion_2_preferences: String!, $__fusion_3_id: ID!) {
-            userById(id: $__fusion_3_id) {
-              customized(preferences: $__fusion_2_preferences)
+          query Op_123456789101112_defer1_1(
+            $__fusion_3_preferences: String!
+            $__fusion_4_id: ID!
+          ) {
+            userById(id: $__fusion_4_id) {
+              customized(preferences: $__fusion_3_preferences)
             }
           }
         source: $.userById
         target: $.user
         requirements:
-          - name: __fusion_2_preferences
+          - name: __fusion_3_preferences
             selectionMap: >-
               preferences
-          - name: __fusion_3_id
+          - name: __fusion_4_id
             selectionMap: >-
               id
         dependencies:

@@ -50,9 +50,9 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.WriteLine("incrementalPlans:");
             writer.Indent();
 
-            foreach (var incrementalPlan in plan.IncrementalPlans)
+            for (var i = 0; i < plan.IncrementalPlans.Length; i++)
             {
-                WriteIncrementalPlan(incrementalPlan, writer);
+                WriteIncrementalPlan(plan.IncrementalPlans[i], i, writer);
             }
 
             writer.Unindent();
@@ -120,10 +120,12 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         writer.Unindent();
     }
 
-    private static void WriteIncrementalPlan(IncrementalPlan incrementalPlan, CodeWriter writer)
+    private static void WriteIncrementalPlan(IncrementalPlan incrementalPlan, int id, CodeWriter writer)
     {
-        writer.WriteLine("- deliveryGroupIds:");
+        writer.WriteLine("- id: {0}", id);
         writer.Indent();
+
+        writer.WriteLine("deliveryGroupIds:");
         writer.Indent();
 
         foreach (var deliveryGroup in incrementalPlan.DeliveryGroups)

@@ -28,7 +28,8 @@ deliveryGroups:
     path: $.user
     label: location
 incrementalPlans:
-  - deliveryGroupIds:
+  - id: 0
+    deliveryGroupIds:
       - 0
     parentNodeId: 1
     requirements:
@@ -40,7 +41,7 @@ incrementalPlans:
         type: Operation
         schema: b
         operation: |
-          query Op_defer_1($__fusion_1_id: ID!) {
+          query Op_123456789101112_defer0_1($__fusion_1_id: ID!) {
             userById(id: $__fusion_1_id) {
               email
             }
@@ -53,11 +54,12 @@ incrementalPlans:
               id
         dependencies:
           - parentNodeId: 1
-  - deliveryGroupIds:
+  - id: 1
+    deliveryGroupIds:
       - 1
     parentNodeId: 1
     requirements:
-      - name: __fusion_1_id
+      - name: __fusion_2_id
         selectionMap: >-
           id
     nodes:
@@ -65,15 +67,15 @@ incrementalPlans:
         type: Operation
         schema: b
         operation: |
-          query Op_defer_1($__fusion_1_id: ID!) {
-            userById(id: $__fusion_1_id) {
+          query Op_123456789101112_defer1_1($__fusion_2_id: ID!) {
+            userById(id: $__fusion_2_id) {
               address
             }
           }
         source: $.userById
         target: $.user
         requirements:
-          - name: __fusion_1_id
+          - name: __fusion_2_id
             selectionMap: >-
               id
         dependencies:

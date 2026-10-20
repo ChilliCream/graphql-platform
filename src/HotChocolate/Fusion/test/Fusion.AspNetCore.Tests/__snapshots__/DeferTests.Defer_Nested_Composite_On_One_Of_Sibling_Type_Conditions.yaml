@@ -189,7 +189,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query DashboardQuery_defer_3($id: ID!) {
+            query DashboardQuery_91bf5e71_defer0_3($id: ID!) {
               node(id: $id) {
                 __typename
                 ... on Dashboard {
@@ -284,7 +284,8 @@ operationPlan:
       path: $.node
       label: testing
   incrementalPlans:
-    - deliveryGroupIds:
+    - id: 0
+      deliveryGroupIds:
         - 0
       parentNodeId: 2
       nodes:
@@ -298,7 +299,7 @@ operationPlan:
         - id: 2
           type: Operation
           operation: |
-            query DashboardQuery_defer_2($id: ID!) {
+            query DashboardQuery_91bf5e71_defer0_2($id: ID!) {
               node(id: $id) {
                 __typename
               }
@@ -311,7 +312,7 @@ operationPlan:
           type: Operation
           schema: A
           operation: |
-            query DashboardQuery_defer_3($id: ID!) {
+            query DashboardQuery_91bf5e71_defer0_3($id: ID!) {
               node(id: $id) {
                 __typename
                 ... on Dashboard {

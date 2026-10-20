@@ -28,7 +28,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
     /// <summary>
     /// The version of the operation plan JSON format written by this formatter.
     /// </summary>
-    private const string FormatVersion = "1.2.0";
+    private const string FormatVersion = "1.3.0";
 
     private readonly JsonWriterOptions _writerOptions = options ?? new JsonWriterOptions
     {
@@ -261,9 +261,9 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WritePropertyName("incrementalPlans");
         jsonWriter.WriteStartArray();
 
-        foreach (var incrementalPlan in incrementalPlans)
+        for (var i = 0; i < incrementalPlans.Length; i++)
         {
-            WriteIncrementalPlan(jsonWriter, incrementalPlan);
+            WriteIncrementalPlan(jsonWriter, incrementalPlans[i], i);
         }
 
         jsonWriter.WriteEndArray();
@@ -271,9 +271,13 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
     private static void WriteIncrementalPlan(
         JsonWriter jsonWriter,
-        IncrementalPlan incrementalPlan)
+        IncrementalPlan incrementalPlan,
+        int id)
     {
         jsonWriter.WriteStartObject();
+
+        jsonWriter.WritePropertyName("id");
+        jsonWriter.WriteNumberValue(id);
 
         jsonWriter.WritePropertyName("deliveryGroupIds");
         jsonWriter.WriteStartArray();

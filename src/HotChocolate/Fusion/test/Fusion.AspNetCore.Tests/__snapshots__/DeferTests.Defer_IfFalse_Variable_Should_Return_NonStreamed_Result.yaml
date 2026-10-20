@@ -202,11 +202,12 @@ operationPlan:
       label: reviews
       ifVariable: $shouldDefer
   incrementalPlans:
-    - deliveryGroupIds:
+    - id: 0
+      deliveryGroupIds:
         - 0
       parentNodeId: 2
       requirements:
-        - name: __fusion_1_id
+        - name: __fusion_2_id
           selectionMap: >-
             id
       nodes:
@@ -214,8 +215,8 @@ operationPlan:
           type: Operation
           schema: B
           operation: |
-            query GetUser_defer_1($__fusion_1_id: ID!) {
-              userById(id: $__fusion_1_id) {
+            query GetUser_033679a6_defer0_1($__fusion_2_id: ID!) {
+              userById(id: $__fusion_2_id) {
                 reviews {
                   title
                   body
@@ -225,7 +226,7 @@ operationPlan:
           source: $.userById
           target: $.user
           requirements:
-            - name: __fusion_1_id
+            - name: __fusion_2_id
               selectionMap: >-
                 id
           dependencies:
