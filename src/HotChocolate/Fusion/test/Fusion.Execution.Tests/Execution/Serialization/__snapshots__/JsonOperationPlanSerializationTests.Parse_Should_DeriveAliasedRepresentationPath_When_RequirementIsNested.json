@@ -6,10 +6,10 @@
     "operation": {
       "name": "Op_123456789101112_2",
       "kind": "Query",
-      "document": "query($representations: [_Any!]!) {\n  _entities(representations: $representations) {\n    ... on Foo {\n      details: bar {\n        x\n      }\n    }\n  }\n}",
-      "hash": "155215c957a65a76fbd51f86069672e611933694f3c16794b765cb92ccb16c16",
-      "shortHash": "155215c9",
-      "xxHash": 1829608922667530834
+      "document": "query($representations: [_Any!]!) { _entities(representations: $representations) { ... on Foo { details: bar { x } } } }",
+      "hash": "ba9bac1bc9c4581b05b09216662e71da5edfa946114a4204237e9ec24f7bc123",
+      "shortHash": "ba9bac1b",
+      "xxHash": 8012958482167272849
     },
     "entityType": "Foo",
     "resultSelectionSet": "{ details { x } }",

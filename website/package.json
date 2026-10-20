@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3002",
-    "build": "next build && npm run generate:llms && npm run validate:llms",
+    "build": "npm run validate:benchmarks && next build && npm run generate:llms && npm run validate:llms",
     "start": "next start -p 3002",
     "optimize-images": "node scripts/optimize-images.mjs",
     "generate-git-metadata": "node scripts/generate-git-metadata.mjs",
@@ -12,6 +12,8 @@
     "generate:llms": "node scripts/generate-llms-files.mjs",
     "validate:llms": "node scripts/validate-llms-files.mjs",
     "validate:structured-data": "node scripts/validate-structured-data.mjs",
+    "validate:benchmarks": "node scripts/validate-benchmark-report.mjs",
+    "test:benchmarks": "node --test tests/benchmarks/*.test.mjs",
     "ci-local": "bash start-optimized.sh",
     "lint": "eslint",
     "format": "prettier --write .",

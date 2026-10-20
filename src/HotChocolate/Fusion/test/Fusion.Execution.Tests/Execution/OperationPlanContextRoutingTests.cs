@@ -22,6 +22,91 @@ namespace HotChocolate.Fusion.Execution;
 
 public sealed class OperationPlanContextRoutingTests : FusionTestBase
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task CreateVariableValueSets_Should_PreserveForwardedValues_When_NoRequirements(bool multipleTargets)
+    {
+        // arrange
+        await using var fixture = await RoutingTestFixture.CreateAsync(
+            variables: new Dictionary<string, IValueNode>
+            {
+                ["limit"] = new IntValueNode(10),
+                ["nullable"] = HotChocolate.Language.NullValueNode.Default,
+                ["input"] = new HotChocolate.Language.ObjectValueNode(
+                    Field("name", new StringValueNode("quoted \"value\""))),
+                ["unused"] = new StringValueNode("not forwarded")
+            });
+        var context = fixture.CreateContext();
+        string[] forwardedVariables = ["nullable", "missing", "input", "limit", "limit"];
+
+        // act
+        var result = multipleTargets
+            ? context.CreateVariableValueSets([SelectionPath.Root], forwardedVariables, [])
+            : context.CreateVariableValueSets(SelectionPath.Root, forwardedVariables, []);
+
+        // assert
+        var entry = Assert.Single(result);
+        Assert.True(entry.Path.IsRoot);
+        Normalize(entry.Values).MatchInlineSnapshot(
+            """
+            {"nullable":null,"input":{"name":"quoted \u0022value\u0022"},"limit":10,"limit":10}
+            """);
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task CreateVariableValueSets_Should_WriteEmptyObject_When_ForwardedVariablesAreAbsent(
+        bool multipleTargets,
+        bool emptyVariables)
+    {
+        // arrange
+        await using var fixture = await RoutingTestFixture.CreateAsync(
+            variables: emptyVariables
+                ? null
+                : new Dictionary<string, IValueNode>
+                {
+                    ["unused"] = new IntValueNode(1)
+                });
+        var context = fixture.CreateContext();
+        string[] forwardedVariables = ["missing"];
+
+        // act
+        var result = multipleTargets
+            ? context.CreateVariableValueSets([SelectionPath.Root], forwardedVariables, [])
+            : context.CreateVariableValueSets(SelectionPath.Root, forwardedVariables, []);
+
+        // assert
+        var entry = Assert.Single(result);
+        Normalize(entry.Values).MatchInlineSnapshot("{}");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task CreateVariableValueSets_Should_ReturnNoVariables_When_NoRequirementsOrForwardedVariables(
+        bool multipleTargets)
+    {
+        // arrange
+        await using var fixture = await RoutingTestFixture.CreateAsync(
+            variables: new Dictionary<string, IValueNode>
+            {
+                ["unused"] = new IntValueNode(1)
+            });
+        var context = fixture.CreateContext();
+
+        // act
+        var result = multipleTargets
+            ? context.CreateVariableValueSets([SelectionPath.Root], [], [])
+            : context.CreateVariableValueSets(SelectionPath.Root, [], []);
+
+        // assert
+        Assert.True(result.IsDefaultOrEmpty);
+    }
+
     [Fact]
     public async Task CreateVariableValueSets_Should_RouteThroughResultStore_When_RequirementKeysIsNull()
     {

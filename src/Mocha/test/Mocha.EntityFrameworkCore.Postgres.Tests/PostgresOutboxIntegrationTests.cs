@@ -106,7 +106,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
         services.AddSingleton<IOutboxSignal, ResilientOutboxSignal>();
 
         var builder = services.AddMessageBus();
-        builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox());
+        builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox(o => o.RequireTransaction = false));
         builder.AddEventHandler<TestEventHandler>();
         builder.AddInMemory();
 
@@ -182,7 +182,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
         services.AddSingleton<IOutboxSignal, ResilientOutboxSignal>();
 
         var builder = services.AddMessageBus();
-        builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox());
+        builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox(o => o.RequireTransaction = false));
         builder.AddEventHandler<TestEventHandler>();
         builder.AddInMemory();
 
@@ -345,7 +345,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
         services.AddSingleton<IOutboxSignal, ResilientOutboxSignal>();
 
         var builder = services.AddMessageBus();
-        builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox());
+        builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox(o => o.RequireTransaction = false));
         builder.AddEventHandler<TestEventHandler>();
         builder.AddInMemory();
 
