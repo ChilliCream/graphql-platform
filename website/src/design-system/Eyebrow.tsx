@@ -1,7 +1,7 @@
 import type { ComponentPropsWithoutRef, ElementType, ReactNode } from "react";
 
 type EyebrowSize = "2xs" | "xs";
-type EyebrowColor = "nav-label" | "ink-dim" | "accent";
+type EyebrowColor = "nav-label" | "ink-dim" | "accent" | "amber";
 
 interface EyebrowProps {
   readonly children: ReactNode;
@@ -21,6 +21,7 @@ const COLOR_CLASSES: Record<EyebrowColor, string> = {
   "nav-label": "text-cc-nav-label",
   "ink-dim": "text-cc-ink-dim",
   accent: "text-cc-accent",
+  amber: "text-cc-amber",
 };
 
 /**

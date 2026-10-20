@@ -10,10 +10,10 @@ using HotChocolate.Language;
 namespace HotChocolate.Fusion.Execution.Nodes;
 
 /// <summary>
-/// Executes multiple Apollo Federation entity lookups against the same source
-/// schema. Each lookup is sent as its own <c>_entities</c> request with its own
-/// representations variable, and the source schema client transports the
-/// requests as a batch.
+/// Executes Apollo Federation entity lookups against one source schema, sending each
+/// lookup as its own <c>_entities</c> request with its own representations variable
+/// in a transport batch. A lookup with several targets sends one deduplicated
+/// representation list for all of its targets.
 /// </summary>
 /// <remarks>
 /// Per-definition skipped-dependency drops require the plan builder to wire
@@ -25,13 +25,13 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
     private static readonly SelectionPath s_entitiesSource =
         SelectionPath.Root.AppendField("_entities");
 
-    private readonly SingleOperationDefinition[] _operations;
+    private readonly OperationDefinition[] _operations;
     private readonly ApolloEntityLookup[] _lookups;
     private readonly string _schemaName;
 
     private ApolloOperationBatchExecutionNode(
         int id,
-        SingleOperationDefinition[] operations,
+        OperationDefinition[] operations,
         ApolloEntityLookup[] lookups,
         FusionSchemaDefinition schema,
         string schemaName)
@@ -55,7 +55,7 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
             var representationShape = RepresentationShapeBuilder.Build(
                 lookup.Operation,
                 lookup.EntityTypeName,
-                operations[i].Target,
+                GetPrimaryTarget(operations[i]),
                 operations[i].Requirements,
                 operations[i].ResultSelectionSet,
                 schema);
@@ -66,7 +66,7 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
 
     internal static ApolloOperationBatchExecutionNode CreateFromLookup(
         int id,
-        SingleOperationDefinition[] operations,
+        OperationDefinition[] operations,
         FusionSchemaDefinition schema)
     {
         ArgumentNullException.ThrowIfNull(operations);
@@ -90,7 +90,7 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
 
     internal static ApolloOperationBatchExecutionNode CreateFromParser(
         int id,
-        SingleOperationDefinition[] operations,
+        OperationDefinition[] operations,
         ApolloEntityLookup[] lookups,
         FusionSchemaDefinition schema)
     {
@@ -128,22 +128,170 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
     /// <inheritdoc />
     public override string SchemaName => _schemaName;
 
-    internal ReadOnlySpan<SingleOperationDefinition> Operations => _operations;
+    internal ReadOnlySpan<OperationDefinition> Operations => _operations;
 
     internal ReadOnlySpan<ApolloEntityLookup> Lookups => _lookups;
 
     protected override IDisposable CreateScope(OperationPlanContext context)
         => context.DiagnosticEvents.ExecuteApolloOperationBatchExecutionNode(context, this, _schemaName);
 
-    protected override async ValueTask<ExecutionStatus> OnExecuteAsync(
+    protected override ValueTask<ExecutionStatus> OnExecuteAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
+    {
+        if (_operations.Length == 1)
+        {
+            return ExecuteSingleAsync(context, cancellationToken);
+        }
+
+        return ExecuteBatchAsync(context, cancellationToken);
+    }
+
+    private async ValueTask<ExecutionStatus> ExecuteSingleAsync(
+        OperationPlanContext context,
+        CancellationToken cancellationToken)
+    {
+        var diagnosticEvents = context.DiagnosticEvents;
+        var schemaName = _schemaName;
+        var operation = _operations[0];
+        var lookup = _lookups[0];
+
+        if (IsSkipped(context, operation) || HasSkippedDependencies(context, operation))
+        {
+            context.TrackSkippedDefinition(this, operation);
+            return ExecutionStatus.Skipped;
+        }
+
+        var representation = CreateRepresentationVariableValue(context, operation, lookup);
+
+        if (representation.IsEmpty)
+        {
+            context.TrackSkippedDefinition(this, operation);
+            return ExecutionStatus.Skipped;
+        }
+
+        var variables = representation.ToVariableValues();
+
+        // The combined representations object must be the request's single
+        // variable set so the request is routed as a single operation. The
+        // per-entity variable value sets are only used for error attribution.
+        var requestVariables = ImmutableArray.Create(
+            new VariableValues(CompactPath.Root, representation.Value));
+        context.TrackVariableValueSets(this, requestVariables);
+
+        var request = new SourceSchemaClientRequest
+        {
+            Node = this,
+            SchemaName = schemaName,
+            OperationType = lookup.Operation.Type,
+            OperationSourceText = lookup.Operation,
+            OperationDocument = lookup.OperationDocument,
+            LookupTypeName = lookup.EntityTypeName,
+            Variables = requestVariables,
+            RequiresFileUpload = false
+        };
+
+        SourceSchemaResult? result = null;
+        var hasSomeErrors = false;
+
+        try
+        {
+            var client = context.GetClient(schemaName, lookup.Operation.Type);
+            using var clientScope = diagnosticEvents.ExecuteSourceSchemaRequest(context, this, schemaName);
+
+            await foreach (var current in client.ExecuteAsync(context, request, cancellationToken)
+                .ConfigureAwait(false))
+            {
+                if (result is not null)
+                {
+                    current.Dispose();
+                    throw ThrowHelper.ApolloEntityFetchProducedMultipleResults();
+                }
+
+                result = current;
+
+                if (current.Errors is not null)
+                {
+                    hasSomeErrors = true;
+                }
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            result?.Dispose();
+            return ExecutionStatus.Failed;
+        }
+        catch (Exception exception)
+        {
+            diagnosticEvents.SourceSchemaTransportError(context, this, schemaName, exception);
+            result?.Dispose();
+            context.AddErrors(exception, variables, operation.ResultSelectionSet);
+            return ExecutionStatus.Failed;
+        }
+
+        if (result is null)
+        {
+            context.AddErrors(
+                ThrowHelper.MissingBatchResult(operation.Id),
+                variables,
+                operation.ResultSelectionSet);
+            return ExecutionStatus.Failed;
+        }
+
+        var pendingMerge = default(PendingMerge);
+        var hasPendingMerge = false;
+
+        try
+        {
+            pendingMerge = PendingMerge.RepresentationSingle(
+                this,
+                schemaName,
+                s_entitiesSource,
+                operation.ResultSelectionSet,
+                variables,
+                representation,
+                result,
+                hasSomeErrors);
+            hasPendingMerge = true;
+            context.EnqueuePendingMerge(pendingMerge);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            if (hasPendingMerge)
+            {
+                pendingMerge.DisposeUnmerged();
+            }
+
+            return ExecutionStatus.Failed;
+        }
+        catch (Exception exception)
+        {
+            if (hasPendingMerge)
+            {
+                pendingMerge.DisposeUnmerged();
+            }
+            else
+            {
+                result.Dispose();
+            }
+
+            diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
+            context.AddErrors(exception, variables, operation.ResultSelectionSet);
+            return ExecutionStatus.Failed;
+        }
+
+        return hasSomeErrors ? ExecutionStatus.PartialSuccess : ExecutionStatus.Success;
+    }
+
+    private async ValueTask<ExecutionStatus> ExecuteBatchAsync(
+        OperationPlanContext context,
+        CancellationToken cancellationToken)
     {
         var diagnosticEvents = context.DiagnosticEvents;
         var schemaName = _schemaName;
 
         var requestBuilder = ImmutableArray.CreateBuilder<SourceSchemaClientRequest>(_operations.Length);
-        var operationByIndex = ArrayPool<SingleOperationDefinition>.Shared.Rent(_operations.Length);
+        var operationByIndex = ArrayPool<OperationDefinition>.Shared.Rent(_operations.Length);
         var representationByIndex = ArrayPool<RepresentationValue>.Shared.Rent(_operations.Length);
         var variablesByIndex = ArrayPool<ImmutableArray<VariableValues>>.Shared.Rent(_operations.Length);
         var receivedResults = ArrayPool<bool>.Shared.Rent(_operations.Length);
@@ -298,7 +446,7 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
             operationByIndex.AsSpan(0, operationCount).Clear();
             representationByIndex.AsSpan(0, operationCount).Clear();
             variablesByIndex.AsSpan(0, operationCount).Clear();
-            ArrayPool<SingleOperationDefinition>.Shared.Return(operationByIndex);
+            ArrayPool<OperationDefinition>.Shared.Return(operationByIndex);
             ArrayPool<RepresentationValue>.Shared.Return(representationByIndex);
             ArrayPool<ImmutableArray<VariableValues>>.Shared.Return(variablesByIndex);
             ArrayPool<bool>.Shared.Return(receivedResults);
@@ -309,7 +457,7 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
         OperationPlanContext context,
         string schemaName,
         ImmutableArray<SourceSchemaClientRequest>.Builder requestBuilder,
-        SingleOperationDefinition[] operationByIndex,
+        OperationDefinition[] operationByIndex,
         RepresentationValue[] representationByIndex,
         ImmutableArray<VariableValues>[] variablesByIndex)
     {
@@ -332,12 +480,7 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
                 continue;
             }
 
-            var representation = context.CreateRepresentationVariableValue(
-                operation.Target,
-                operation.ForwardedVariables,
-                operation.Requirements,
-                lookup.RepresentationShape,
-                lookup.EntityTypeName);
+            var representation = CreateRepresentationVariableValue(context, operation, lookup);
 
             if (representation.IsEmpty)
             {
@@ -432,6 +575,26 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
 
     private static bool HasSkippedDependencies(OperationPlanContext context, OperationDefinition operation)
     {
+        // A lookup with several targets can still execute as long as at least
+        // one dependency delivered data. Targets without data produce no representations.
+        if (operation is BatchOperationDefinition)
+        {
+            if (operation.Dependencies.Length == 0)
+            {
+                return false;
+            }
+
+            foreach (var dep in operation.Dependencies)
+            {
+                if (!context.IsNodeSkipped(dep.Id))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         foreach (var dep in operation.Dependencies)
         {
             if (context.IsNodeSkipped(dep.Id))
@@ -465,9 +628,41 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
             RepresentationShape: default);
     }
 
-    private static string ValidateOperations(SingleOperationDefinition[] operations)
+    private static RepresentationValue CreateRepresentationVariableValue(
+        OperationPlanContext context,
+        OperationDefinition operation,
+        ApolloEntityLookup lookup)
+        => operation switch
+        {
+            SingleOperationDefinition single
+                => context.CreateRepresentationVariableValue(
+                    single.Target,
+                    single.ForwardedVariables,
+                    single.Requirements,
+                    lookup.RepresentationShape,
+                    lookup.EntityTypeName),
+            BatchOperationDefinition batch
+                => context.CreateRepresentationVariableValue(
+                    batch.Targets,
+                    batch.ForwardedVariables,
+                    batch.Requirements,
+                    lookup.RepresentationShape,
+                    lookup.EntityTypeName),
+            _ => throw ThrowHelper.UnknownOperationDefinition(operation.GetType())
+        };
+
+    private static SelectionPath GetPrimaryTarget(OperationDefinition operation)
+        => operation switch
+        {
+            SingleOperationDefinition single => single.Target,
+            BatchOperationDefinition batch => batch.Targets[0],
+            _ => throw ThrowHelper.UnknownOperationDefinition(operation.GetType())
+        };
+
+    private static string ValidateOperations(OperationDefinition[] operations)
     {
-        if (operations.Length < 2)
+        if (operations.Length == 0
+            || (operations.Length == 1 && operations[0] is not BatchOperationDefinition))
         {
             throw new ArgumentException(
                 "An Apollo entity batch requires at least two operation definitions.",
