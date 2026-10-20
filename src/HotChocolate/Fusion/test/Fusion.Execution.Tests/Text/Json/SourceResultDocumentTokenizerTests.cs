@@ -5,8 +5,9 @@ using HotChocolate.Buffers;
 namespace HotChocolate.Fusion.Text.Json;
 
 /// <summary>
-/// Tests the rows and the input validation of the source JSON tokenizer, and that both are the same
-/// wherever the chunk boundaries of the input fall.
+/// Tests the rows and the input validation of the source JSON tokenizer. Each test parses its input in a
+/// single chunk and behind paddings that place a chunk boundary at each position of the input, in each
+/// chunk layout, and asserts that every parse creates the same rows.
 /// </summary>
 public class SourceResultDocumentTokenizerTests
 {
@@ -15,7 +16,8 @@ public class SourceResultDocumentTokenizerTests
 
     private const string Rejected = "rejected";
 
-    private static readonly string[] s_validInputs =
+    // The inputs that the mutation test mutates.
+    private static readonly string[] s_mutationSeeds =
         [
             "{}",
             "[]",
@@ -62,150 +64,605 @@ public class SourceResultDocumentTokenizerTests
             "-1.5 "
         ];
 
-    public static TheoryData<string> ValidInputs() => new(s_validInputs);
+    [Fact]
+    public void Parse_Should_CountPropertiesAndRows_When_InputIsObject()
+    {
+        // act
+        var rows = Parse("{\"a\":1,\"b\":{\"c\":[true,false,null]},\"d\":[]}");
 
-    public static TheoryData<string> InvalidInputs()
+        // assert
+        rows.MatchInlineSnapshot(
+            """
+            StartObject @0 properties=3 rows=16 complex
+              PropertyName @1 "a"
+              Number @5 1
+              PropertyName @7 "b"
+              StartObject @11 properties=1 rows=8 complex
+                PropertyName @12 "c"
+                StartArray @16 items=3 rows=5
+                  True @17 true
+                  False @22 false
+                  Null @28 null
+                EndArray @32
+              EndObject @33
+              PropertyName @35 "d"
+              StartArray @39 items=0 rows=2
+              EndArray @40
+            EndObject @41
+            """);
+    }
+
+    [Fact]
+    public void Parse_Should_CountItemsAndRows_When_InputIsArray()
+    {
+        // act
+        var rows = Parse("[1,[2,3],{},\"s\",[]]");
+
+        // assert
+        rows.MatchInlineSnapshot(
+            """
+            StartArray @0 items=5 rows=12 complex
+              Number @1 1
+              StartArray @3 items=2 rows=4
+                Number @4 2
+                Number @6 3
+              EndArray @7
+              StartObject @9 properties=0 rows=2
+              EndObject @10
+              String @12 "s"
+              StartArray @16 items=0 rows=2
+              EndArray @17
+            EndArray @18
+            """);
+    }
+
+    [Fact]
+    public void Parse_Should_MarkStringsAsEscaped_When_StringsHaveEscapeSequences()
+    {
+        // act
+        var rows = Parse(
+            "{\"a\\\"b\":\"\\\"\\\\\\/\\b\\f\\n\\r\\t\",\"\\u0061\":\"\\u00e9\\uD83D\\uDE00\",\"c\":\"\\uD800\",\"plain\":\"x\"}");
+
+        // assert
+        rows.MatchInlineSnapshot(
+            """
+            StartObject @0 properties=4 rows=10
+              PropertyName @1 "a\"b" escaped
+              String @8 "\"\\\/\b\f\n\r\t" escaped
+              PropertyName @27 "\u0061" escaped
+              String @36 "\u00e9\uD83D\uDE00" escaped
+              PropertyName @57 "c"
+              String @61 "\uD800" escaped
+              PropertyName @70 "plain"
+              String @78 "x"
+            EndObject @81
+            """);
+    }
+
+    [Fact]
+    public void Parse_Should_SkipWhiteSpace_When_WhiteSpaceSurroundsTokens()
+    {
+        // act
+        var rows = Parse(" \t\r\n{ \"a\" : [ 1 , 2 ] , \"b\"\t\r\n:\n{ } } \n");
+
+        // assert
+        rows.MatchInlineSnapshot(
+            """
+            StartObject @4 properties=2 rows=10 complex
+              PropertyName @6 "a"
+              StartArray @12 items=2 rows=4
+                Number @14 1
+                Number @18 2
+              EndArray @20
+              PropertyName @24 "b"
+              StartObject @32 properties=0 rows=2
+              EndObject @34
+            EndObject @36
+            """);
+    }
+
+    [Fact]
+    public void Parse_Should_ReadEveryNumberForm_When_ArrayHoldsNumbers()
+    {
+        // act
+        var rows = Parse(
+            "[0,-0,0.0,-0.0,1.5,1E5,1e+5,1E-5,0e0,0.5e-0,-123.456e-7,123456789012345678901234567890,1e999]");
+
+        // assert
+        rows.MatchInlineSnapshot(
+            """
+            StartArray @0 items=13 rows=15
+              Number @1 0
+              Number @3 -0
+              Number @6 0.0
+              Number @10 -0.0
+              Number @15 1.5
+              Number @19 1E5
+              Number @23 1e+5
+              Number @28 1E-5
+              Number @33 0e0
+              Number @37 0.5e-0
+              Number @44 -123.456e-7
+              Number @56 123456789012345678901234567890
+              Number @87 1e999
+            EndArray @92
+            """);
+    }
+
+    [Fact]
+    public void Parse_Should_CountLocationsInBytes_When_StringsHaveMultiByteCharacters()
+    {
+        // act
+        var rows = Parse("[\"é\",\"日本\",\"😀\",\"\u007f\"]");
+
+        // assert
+        rows.MatchInlineSnapshot(
+            """
+            StartArray @0 items=4 rows=6
+              String @1 "é"
+              String @6 "日本"
+              String @15 "😀"
+              String @22 "\u007f"
+            EndArray @25
+            """);
+    }
+
+    [Fact]
+    public void Parse_Should_KeepEveryProperty_When_PropertyNamesAreDuplicateOrEmpty()
+    {
+        // act
+        var rows = Parse("{\"a\":1,\"a\":2,\"\":\"\"}");
+
+        // assert
+        rows.MatchInlineSnapshot(
+            """
+            StartObject @0 properties=3 rows=8
+              PropertyName @1 "a"
+              Number @5 1
+              PropertyName @7 "a"
+              Number @11 2
+              PropertyName @13 ""
+              String @16 ""
+            EndObject @18
+            """);
+    }
+
+    [Fact]
+    public void Parse_Should_CreateRows_When_ValuesSpanSeveralChunks()
+    {
+        // act
+        var rows = Parse(
+            "{\"long\":\"" + new string('x', 5000) + "\","
+            + "\"escaped\":\"" + string.Concat(Enumerable.Repeat("\\u00e9\\n", 1500)) + "\","
+            + "\"numbers\":[" + new string('1', 3000) + ",-" + new string('2', 3000) + ".5e+7]}");
+
+        // assert
+        rows.MatchInlineSnapshot(
+            """
+            StartObject @0 properties=3 rows=11 complex
+              PropertyName @1 "long"
+              String @8 "xxxxxxxxxxxxxxx... (5002 bytes)
+              PropertyName @5011 "escaped"
+              String @5021 "\u00e9\n\u00e9\... (12002 bytes) escaped
+              PropertyName @17024 "numbers"
+              StartArray @17034 items=2 rows=4
+                Number @17035 1111111111111111... (3000 bytes)
+                Number @20036 -222222222222222... (3006 bytes)
+              EndArray @23042
+            EndObject @23043
+            """);
+    }
+
+    [Fact]
+    public void Parse_Should_CreateRows_When_InputIsGraphQLResponse()
+    {
+        // act
+        var rows = Parse(
+            "{\"data\":{\"user\":null},\"errors\":[{\"message\":\"x\",\"path\":[\"user\",0],"
+            + "\"extensions\":{\"code\":\"E\"}}]}");
+
+        // assert
+        rows.MatchInlineSnapshot(
+            """
+            StartObject @0 properties=2 rows=24 complex
+              PropertyName @1 "data"
+              StartObject @8 properties=1 rows=4
+                PropertyName @9 "user"
+                Null @16 null
+              EndObject @20
+              PropertyName @22 "errors"
+              StartArray @31 items=1 rows=16 complex
+                StartObject @32 properties=3 rows=14 complex
+                  PropertyName @33 "message"
+                  String @43 "x"
+                  PropertyName @47 "path"
+                  StartArray @54 items=2 rows=4
+                    String @55 "user"
+                    Number @62 0
+                  EndArray @63
+                  PropertyName @65 "extensions"
+                  StartObject @78 properties=1 rows=4
+                    PropertyName @79 "code"
+                    String @86 "E"
+                  EndObject @89
+                EndObject @90
+              EndArray @91
+            EndObject @92
+            """);
+    }
+
+    [Theory]
+    // a string
+    [InlineData("\"root\"", "String @0 \"root\"")]
+    // a number
+    [InlineData("123", "Number @0 123")]
+    // a negative zero
+    [InlineData("-0", "Number @0 -0")]
+    // a number with a fraction and an exponent
+    [InlineData("-1.5e+10", "Number @0 -1.5e+10")]
+    // a number with an upper case exponent
+    [InlineData("1E-2", "Number @0 1E-2")]
+    // the true literal
+    [InlineData("true", "True @0 true")]
+    // the false literal
+    [InlineData("false", "False @0 false")]
+    // the null literal
+    [InlineData("null", "Null @0 null")]
+    // a string followed by a line feed
+    [InlineData("\"s\"\n", "String @0 \"s\"")]
+    // a literal followed by a tab
+    [InlineData("true\t", "True @0 true")]
+    // a number followed by a space, which ends the number
+    [InlineData("-1.5 ", "Number @0 -1.5")]
+    // white space before the value is skipped
+    [InlineData("  null", "Null @2 null")]
+    public void Parse_Should_CreateOneRow_When_InputIsScalar(string input, string expected)
+    {
+        // act
+        var rows = Parse(input);
+
+        // assert
+        Assert.Equal(expected, rows);
+    }
+
+    [Theory]
+    // any text after the object
+    [InlineData("garbage")]
+    // a closing brace without an opening brace
+    [InlineData("}")]
+    // an array that is never closed
+    [InlineData(" [")]
+    // a NUL byte
+    [InlineData("\u0000")]
+    // a second object
+    [InlineData("{\"b\":2}")]
+    public void Parse_Should_StopAfterRootObject_When_InputContinues(string rest)
+    {
+        // act
+        var rows = Parse("{\"a\":1}" + rest);
+
+        // assert
+        Assert.Equal(Parse("{\"a\":1}"), rows);
+    }
+
+    [Theory]
+    // 64 nested arrays: a start and an end row each
+    [InlineData(64, false, 128)]
+    // 32 objects with one property and 32 arrays nested in turn: 3 rows per object, 2 rows per array and
+    // 1 row for the innermost number
+    [InlineData(64, true, 161)]
+    public void Parse_Should_Accept_When_NestingIsAtMaxDepth(int depth, bool objects, int expectedRows)
+    {
+        // act
+        var rows = Parse(objects ? Nest(depth) : new string('[', depth) + new string(']', depth));
+
+        // assert
+        Assert.Equal(expectedRows, rows.Split('\n', StringSplitOptions.RemoveEmptyEntries).Length);
+    }
+
+    [Theory]
+    [MemberData(nameof(TruncatedInputs))]
+    public void Parse_Should_Reject_When_InputEndsEarly(string input)
+    {
+        // act
+        var rows = Parse(input);
+
+        // assert
+        Assert.Equal(Rejected, rows);
+    }
+
+    public static TheoryData<string> TruncatedInputs()
         =>
         [
+            // no input
             "",
+            // only white space
             "   ",
+            // an object without its closing brace
             "{",
+            // an array without its closing bracket
             "[",
+            // a property name without a colon
             "{\"a\"",
+            // a property name without a value
             "{\"a\":",
+            // a property without the closing brace
             "{\"a\":1",
+            // a comma without the next property
             "{\"a\":1,",
-            "{\"a\":1,}",
+            // a string that ends inside an escape sequence
+            "[\"a\\",
+            // a string that ends inside a unicode escape sequence
+            "[\"a\\u00",
+            // a string without its closing quote
+            "[\"unterminated]",
+            "\"abc",
+            "\"",
+            // a long string without its closing quote
+            "[\"" + new string('s', 20000),
+            // a number that ends after its decimal point
+            "1.",
+            "[" + new string('1', 3000) + ".",
+            // a number that ends after its minus sign
+            "-",
+            // a number that ends after its exponent sign
+            "1e+"
+        ];
+
+    [Theory]
+    [MemberData(nameof(InputsWithInvalidSeparators))]
+    public void Parse_Should_Reject_When_SeparatorIsMissingOrMisplaced(string input)
+    {
+        // act
+        var rows = Parse(input);
+
+        // assert
+        Assert.Equal(Rejected, rows);
+    }
+
+    public static TheoryData<string> InputsWithInvalidSeparators()
+        =>
+        [
+            // a comma after the last item
             "[1,]",
+            "[1,\n]",
+            // a comma after the last property
+            "{\"a\":1,}",
+            // a comma before the first item
             "[,1]",
+            // a comma in an empty object
             "{,}",
-            "{\"a\" 1}",
-            "{\"a\":1 \"b\":2}",
+            // two commas
+            "[1,,2]",
+            // no comma between items
             "[1 2]",
+            // no comma between properties
+            "{\"a\":1 \"b\":2}",
+            // no colon after a property name
+            "{\"a\" 1}",
+            // two colons
+            "{\"a\"::1}",
+            // a comma instead of a colon
+            "{\"a\",1}",
+            // a colon without a value
+            "{\"a\":}",
+            // a property name without a colon and value
+            "{\"a\":1,\"b\"}"
+        ];
+
+    [Theory]
+    [MemberData(nameof(InputsWithInvalidStructure))]
+    public void Parse_Should_Reject_When_StructureIsInvalid(string input)
+    {
+        // act
+        var rows = Parse(input);
+
+        // assert
+        Assert.Equal(Rejected, rows);
+    }
+
+    public static TheoryData<string> InputsWithInvalidStructure()
+        =>
+        [
+            // an array closed with a brace
+            "[1}",
+            // an object closed with a bracket
+            "{\"a\":1]",
+            // a closing bracket without an opening bracket
+            "]",
+            // a closing brace without an opening brace
+            "}",
+            // a colon without a property
+            ":",
+            // a comma without a container
+            ",",
+            // a property name without quotes
             "{a:1}",
+            // a property name in single quotes
             "{'a':1}",
-            "['a']",
+            // a number as property name
+            "{1:2}"
+        ];
+
+    [Theory]
+    [MemberData(nameof(InputsWithContentAfterRootValue))]
+    public void Parse_Should_Reject_When_ContentFollowsRootArrayOrScalar(string input)
+    {
+        // act
+        var rows = Parse(input);
+
+        // assert
+        Assert.Equal(Rejected, rows);
+    }
+
+    public static TheoryData<string> InputsWithContentAfterRootValue()
+        =>
+        [
+            // text after a root array
+            "[1]x",
+            // a second root array
+            "[1] [2]",
+            // a comment after a root array
+            "[1]/**/",
+            // a second root number
+            "1 2",
+            // a second root string
+            "\"a\" \"b\"",
+            // a second root literal
+            "truefalse"
+        ];
+
+    [Theory]
+    [MemberData(nameof(InvalidNumbers))]
+    public void Parse_Should_Reject_When_NumberIsInvalid(string input)
+    {
+        // act
+        var rows = Parse(input);
+
+        // assert
+        Assert.Equal(Rejected, rows);
+    }
+
+    public static TheoryData<string> InvalidNumbers()
+        =>
+        [
+            // a leading zero
             "[01]",
+            "[-01]",
+            "[00]",
+            "-00",
+            "[01.5]",
+            // a minus sign without digits
             "[-]",
             "[-a]",
+            "[--1]",
+            // a decimal point without digits
             "[1.]",
             "[.5]",
+            "[.]",
+            // an exponent without digits
             "[1e]",
             "[1e+]",
             "[1.5E-]",
+            "[1e+-5]",
+            // a plus sign
             "[+1]",
+            // a hexadecimal number
             "[0x10]",
-            "[NaN]",
-            "[Infinity]",
-            "[-Infinity]",
-            "[tru]",
-            "[True]",
-            "[nul]",
-            "[nulll]",
-            "[truex]",
+            "0x",
+            // characters directly after a number
             "[1x]",
             "[1/]",
-            "[\"a\\x\"]",
-            "[\"a\\u12\"]",
-            "[\"a\\u12G4\"]",
-            "[\"a\\",
-            "[\"a\\u00",
-            "[\"unterminated]",
-            "[\"tab\there\"]",
-            "[\"a\nb\"]",
-            "[\"a\u0000b\"]",
-            "// c\n{}",
-            "/* c */{}",
-            "[1]/**/",
-            "[1]x",
-            "[1] [2]",
-            "1 2",
-            "\"a\" \"b\"",
-            "truefalse",
-            "[1}",
-            "{\"a\":1]",
-            "]",
-            "}",
-            ":",
-            ",",
-            "[1,,2]",
-            "{\"a\"::1}",
-            "{\"a\":}",
-            "{\"a\",1}",
-            "\uFEFF{}",
-            "\u00e9",
-            new string('[', 65) + new string(']', 65),
-            Nest(65),
-            "[\"" + new string('s', 20000),
-            "{\"a\":\"" + string.Concat(Enumerable.Repeat("\\u00e9", 1500)) + "\\u00\"}",
-            "[" + new string('1', 3000) + ".",
-            "[1\f]",
-            "[1\v]",
-            "[\u00a01]",
-            "[\"\u001f\"]",
-            "[\"\\U0041\"]",
-            "[\"\\\"]",
-            "[-01]",
-            "[--1]",
             "[1-2]",
             "[1.0.0]",
             "[1e5.5]",
-            "[01.5]",
-            "[1e+-5]",
-            "[.]",
-            "[00]",
-            "[1,\n]",
-            "{1:2}",
-            "{\"a\":1,\"b\"}",
-            "\"abc",
-            "\"",
-            "tRue",
-            "1.",
-            "-",
-            "1e+",
-            "0x",
-            "-00"
+            // names that are not JSON numbers
+            "[NaN]",
+            "[Infinity]",
+            "[-Infinity]"
         ];
 
-    [Fact]
-    public void Parse_Should_CreateRows_When_InputIsValid()
+    [Theory]
+    [MemberData(nameof(InvalidLiterals))]
+    public void Parse_Should_Reject_When_LiteralIsInvalid(string input)
     {
-        // arrange
-        var snapshot = Snapshot.Create();
-
         // act
-        for (var i = 0; i < s_validInputs.Length; i++)
-        {
-            snapshot.Add(ParseUnpadded(Encoding.UTF8.GetBytes(s_validInputs[i])), DescribeInput(i, s_validInputs[i]));
-        }
+        var rows = Parse(input);
 
         // assert
-        snapshot.MatchMarkdownSnapshot();
+        Assert.Equal(Rejected, rows);
     }
 
-    [Theory]
-    [MemberData(nameof(ValidInputs))]
-    public void Parse_Should_CreateSameRows_When_ChunkBoundariesMove(string input)
-    {
-        // arrange
-        var bytes = Encoding.UTF8.GetBytes(input);
+    public static TheoryData<string> InvalidLiterals()
+        =>
+        [
+            // a literal that is cut short
+            "[tru]",
+            "[nul]",
+            // a literal with upper case letters
+            "[True]",
+            "tRue",
+            // characters directly after a literal
+            "[nulll]",
+            "[truex]"
+        ];
 
+    [Theory]
+    [MemberData(nameof(InvalidStrings))]
+    public void Parse_Should_Reject_When_StringIsInvalid(string input)
+    {
         // act
-        var rows = AssertBoundaryIndependence(bytes);
+        var rows = Parse(input);
 
         // assert
-        Assert.NotEqual(Rejected, rows);
+        Assert.Equal(Rejected, rows);
     }
 
-    [Theory]
-    [MemberData(nameof(InvalidInputs))]
-    public void Parse_Should_Reject_When_InputIsInvalid(string input)
-    {
-        // arrange
-        var bytes = Encoding.UTF8.GetBytes(input);
+    public static TheoryData<string> InvalidStrings()
+        =>
+        [
+            // a string in single quotes
+            "['a']",
+            // an unknown escape sequence
+            "[\"a\\x\"]",
+            // an upper case unicode escape sequence
+            "[\"\\U0041\"]",
+            // a unicode escape sequence with too few hex digits
+            "[\"a\\u12\"]",
+            "{\"a\":\"" + string.Concat(Enumerable.Repeat("\\u00e9", 1500)) + "\\u00\"}",
+            // a unicode escape sequence with a character that is not a hex digit
+            "[\"a\\u12G4\"]",
+            // an escaped closing quote
+            "[\"\\\"]",
+            // an unescaped tab
+            "[\"tab\there\"]",
+            // an unescaped line feed
+            "[\"a\nb\"]",
+            // an unescaped NUL
+            "[\"a\u0000b\"]",
+            // an unescaped unit separator, the last control character
+            "[\"\u001f\"]"
+        ];
 
+    [Theory]
+    [MemberData(nameof(InputsWithInvalidWhiteSpace))]
+    public void Parse_Should_Reject_When_InputHasCommentsOrOtherWhiteSpace(string input)
+    {
         // act
-        var rows = AssertBoundaryIndependence(bytes);
+        var rows = Parse(input);
+
+        // assert
+        Assert.Equal(Rejected, rows);
+    }
+
+    public static TheoryData<string> InputsWithInvalidWhiteSpace()
+        =>
+        [
+            // a line comment
+            "// c\n{}",
+            // a block comment
+            "/* c */{}",
+            // a form feed
+            "[1\f]",
+            // a vertical tab
+            "[1\v]",
+            // a no-break space
+            "[\u00a01]",
+            // a byte order mark
+            "\uFEFF{}",
+            // a letter outside a string
+            "\u00e9"
+        ];
+
+    [Theory]
+    // 65 nested arrays
+    [InlineData(65, false)]
+    // 65 nested objects and arrays
+    [InlineData(65, true)]
+    public void Parse_Should_Reject_When_NestingExceedsMaxDepth(int depth, bool objects)
+    {
+        // act
+        var rows = Parse(objects ? Nest(depth) : new string('[', depth) + new string(']', depth));
 
         // assert
         Assert.Equal(Rejected, rows);
@@ -258,9 +715,17 @@ public class SourceResultDocumentTokenizerTests
         }
 
         // assert
+        // The counts pin which of the mutated inputs are accepted.
         Assert.Equal(717, accepted);
         Assert.Equal(3283, rejected);
     }
+
+    /// <summary>
+    /// Parses <paramref name="input"/> in each chunk layout and returns the rows that every parse
+    /// creates, or <see cref="Rejected"/> when every parse rejects it.
+    /// </summary>
+    private static string Parse(string input)
+        => AssertBoundaryIndependence(Encoding.UTF8.GetBytes(input));
 
     private static string AssertBoundaryIndependence(byte[] input)
         => AssertBoundaryIndependence(input, GetBoundaryPaddings(input.Length));
@@ -336,7 +801,7 @@ public class SourceResultDocumentTokenizerTests
         try
         {
             using var document = SourceResultDocument.ParseFilled(arena, segments, usedChunks, lastLength);
-            return DescribeRows(document, padding);
+            return DescribeRows(document, input, padding);
         }
         catch (JsonException)
         {
@@ -406,7 +871,7 @@ public class SourceResultDocumentTokenizerTests
         try
         {
             using var document = SourceResultDocument.Parse(arena, input, input.Length);
-            return DescribeRows(document, 0);
+            return DescribeRows(document, input, 0);
         }
         catch (JsonException)
         {
@@ -418,36 +883,71 @@ public class SourceResultDocumentTokenizerTests
         }
     }
 
-    private static string DescribeRows(SourceResultDocument document, int padding)
+    /// <summary>
+    /// Describes the rows of <paramref name="document"/>, one line per row indented by nesting depth,
+    /// with the bytes of <paramref name="input"/> that each value row covers. Locations are reported
+    /// relative to <paramref name="padding"/>.
+    /// </summary>
+    private static string DescribeRows(SourceResultDocument document, byte[] input, int padding)
     {
         var text = new StringBuilder();
+        var starts = new Stack<SourceResultDocument.DbRow>();
         var cursor = SourceResultDocument.Cursor.Zero;
-        var rows = document.GetDbRow(cursor).NumberOfRows;
+        var rowCount = document.GetDbRow(cursor).NumberOfRows;
 
-        for (var i = 0; i < rows; i++)
+        for (var i = 0; i < rowCount; i++, cursor++)
         {
             var row = document.GetDbRow(cursor);
-            text.Append(row.TokenType)
-                .Append(' ')
-                .Append(SourceResultDocument.PackedToLinear(row.Location) - padding)
-                .Append(' ')
-                .Append(row.SizeOrLength)
-                .Append(' ')
-                .Append(row.NumberOfRows)
-                .Append(' ')
-                .Append(row.HasComplexChildren)
-                .Append('\n');
-            cursor++;
+            var location = (int)SourceResultDocument.PackedToLinear(row.Location);
+
+            switch (row.TokenType)
+            {
+                case JsonTokenType.StartObject:
+                case JsonTokenType.StartArray:
+                    text.Append(' ', starts.Count * 2)
+                        .Append($"{row.TokenType} @{location - padding} ")
+                        .Append(row.TokenType == JsonTokenType.StartObject ? "properties=" : "items=")
+                        .Append($"{row.SizeOrLength} rows={row.NumberOfRows}")
+                        .Append(row.HasComplexChildren ? " complex" : "")
+                        .Append('\n');
+                    starts.Push(row);
+                    break;
+
+                case JsonTokenType.EndObject:
+                case JsonTokenType.EndArray:
+                    var start = starts.Pop();
+                    text.Append(' ', starts.Count * 2).Append($"{row.TokenType} @{location - padding}");
+
+                    // The end row repeats the counts of the start row.
+                    if (row.SizeOrLength != start.SizeOrLength || row.NumberOfRows != start.NumberOfRows)
+                    {
+                        text.Append($" mismatch size={row.SizeOrLength} rows={row.NumberOfRows}");
+                    }
+
+                    text.Append('\n');
+                    break;
+
+                default:
+                    text.Append(' ', starts.Count * 2)
+                        .Append($"{row.TokenType} @{location - padding} ")
+                        .Append(DescribeBytes(input.AsSpan(location, row.SizeOrLength)))
+                        .Append(row.HasComplexChildren ? " escaped" : "")
+                        .Append('\n');
+                    break;
+            }
         }
 
-        return text.ToString();
+        return text.ToString().TrimEnd('\n');
     }
 
-    private static string DescribeInput(int index, string input)
+    /// <summary>
+    /// Describes the bytes of a value, shortened when it has more than 40 bytes.
+    /// </summary>
+    private static string DescribeBytes(ReadOnlySpan<byte> value)
     {
-        var text = new StringBuilder($"Input {index}: ");
+        var text = new StringBuilder();
 
-        foreach (var c in input.Length > 48 ? input[..48] : input)
+        foreach (var c in Encoding.UTF8.GetString(value.Length > 40 ? value[..16] : value))
         {
             text.Append(
                 c switch
@@ -460,14 +960,14 @@ public class SourceResultDocumentTokenizerTests
                 });
         }
 
-        return input.Length > 48 ? text.Append($"... ({input.Length} chars)").ToString() : text.ToString();
+        return value.Length > 40 ? text.Append($"... ({value.Length} bytes)").ToString() : text.ToString();
     }
 
     private static byte[][] CreateCorpus()
     {
         var corpus = new List<byte[]>();
 
-        foreach (var input in s_validInputs)
+        foreach (var input in s_mutationSeeds)
         {
             corpus.Add(Encoding.UTF8.GetBytes(input));
         }
