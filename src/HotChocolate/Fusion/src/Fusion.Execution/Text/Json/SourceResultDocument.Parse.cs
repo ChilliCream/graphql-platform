@@ -93,13 +93,19 @@ public sealed partial class SourceResultDocument
         ArgumentNullException.ThrowIfNull(arena);
         Debug.Assert(usedChunks > 0, "data must contain at least one chunk.");
 
-        var sequence = BuildFilledSequence(segments, usedChunks, lastLength);
-        var estimatedTokens = (int)Math.Max(sequence.Length / 12, 100);
+        var length = lastLength;
+
+        for (var i = 0; i < usedChunks - 1; i++)
+        {
+            length += segments[i].Length;
+        }
+
+        var estimatedTokens = Math.Max(length / 12, 100);
         var metaDb = MetaDb.CreateForEstimatedRows(arena, estimatedTokens);
 
         try
         {
-            ParseJson(sequence, ref metaDb, singleChunk: usedChunks == 1);
+            ParseJson(segments, usedChunks, length, ref metaDb);
         }
         catch
         {

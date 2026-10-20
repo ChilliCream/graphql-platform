@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using HotChocolate.Buffers;
 
 namespace HotChocolate.Fusion.Text.Json;
 
@@ -9,32 +10,79 @@ public sealed partial class SourceResultDocument
     // The maximum container nesting of a source document, the default of Utf8JsonReader.
     private const int MaxSourceDepth = 64;
 
+    // The number of bytes at the start of a string that are checked one at a time before the
+    // vectorized search.
+    private const int ScalarStringStartScanLength = 8;
+
+    // The number of bytes after an escape sequence that are checked one at a time before the
+    // vectorized search.
+    private const int ScalarStringScanLength = 16;
+
+    // The number of white space bytes checked one at a time before the vectorized search.
+    private const int ScalarWhiteSpaceScanLength = 4;
+
+    private static readonly SearchValues<byte> s_whiteSpaceBytes = SearchValues.Create(" \n\r\t"u8);
+
     // The bytes that stop a string scan: the closing quote, an escape and the control characters.
     private static readonly SearchValues<byte> s_stringStopBytes = SearchValues.Create(CreateStringStopBytes());
 
+    /// <summary>
+    /// Parses the JSON value in the first <paramref name="length"/> bytes of the gap-free data chunks
+    /// <paramref name="segments"/> into <paramref name="metaDb"/>.
+    /// </summary>
     private static void ParseJson(
-        ReadOnlySequence<byte> data,
-        ref MetaDb metaDb,
-        bool singleChunk)
+        MemorySegment[] segments,
+        int usedChunks,
+        int length,
+        ref MetaDb metaDb)
     {
-        if (data.IsSingleSegment)
+        var first = segments[0];
+
+        if (usedChunks == 1)
         {
-            ParseJson(data.FirstSpan, ref metaDb, singleChunk);
+            ParseJson(first.Buffer.AsSpan(first.Offset, length), ref metaDb, singleChunk: true);
             return;
         }
 
-        // Token locations are linear offsets, so a contiguous copy of the input maps to the same
-        // locations in the original chunks.
-        var length = checked((int)data.Length);
+        var adjacentLength = first.Length;
+
+        for (var i = 1; i < usedChunks; i++)
+        {
+            var segment = segments[i];
+
+            if (!ReferenceEquals(segment.Buffer, first.Buffer) || segment.Offset != first.Offset + adjacentLength)
+            {
+                break;
+            }
+
+            adjacentLength += segment.Length;
+        }
+
+        if (adjacentLength >= length)
+        {
+            ParseJson(first.Buffer.AsSpan(first.Offset, length), ref metaDb, singleChunk: false);
+            return;
+        }
+
+        // Token locations are linear offsets, so they are the same in a contiguous copy of the chunks.
         var buffer = ArrayPool<byte>.Shared.Rent(length);
+        var written = 0;
 
         try
         {
-            data.CopyTo(buffer);
-            ParseJson(buffer.AsSpan(0, length), ref metaDb, singleChunk);
+            for (var i = 0; i < usedChunks; i++)
+            {
+                var segment = segments[i];
+                var chunkLength = Math.Min(segment.Length, length - written);
+                segment.Buffer.AsSpan(segment.Offset, chunkLength).CopyTo(buffer.AsSpan(written));
+                written += chunkLength;
+            }
+
+            ParseJson(buffer.AsSpan(0, length), ref metaDb, singleChunk: false);
         }
         finally
         {
+            buffer.AsSpan(0, written).Clear();
             ArrayPool<byte>.Shared.Return(buffer);
         }
     }
@@ -48,6 +96,7 @@ public sealed partial class SourceResultDocument
     /// <param name="singleChunk">
     /// <c>true</c> when the whole input lies in data chunk 0, so a linear offset is its packed location.
     /// </param>
+    [SkipLocalsInit]
     private static void ParseJson(
         ReadOnlySpan<byte> data,
         ref MetaDb metaDb,
@@ -248,42 +297,53 @@ ReadPropertyName:
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int SkipWhiteSpace(ReadOnlySpan<byte> data, int position)
     {
-        while ((uint)position < (uint)data.Length)
+        if ((uint)position < (uint)data.Length && data[position] > (byte)' ')
         {
-            var current = data[position];
+            return position;
+        }
 
-            if (current > (byte)' '
-                || (current != (byte)' '
-                    && current != (byte)'\n'
-                    && current != (byte)'\r'
-                    && current != (byte)'\t'))
+        return SkipWhiteSpaceRun(data, position);
+    }
+
+    private static int SkipWhiteSpaceRun(ReadOnlySpan<byte> data, int position)
+    {
+        var scalarEnd = Math.Min(data.Length, position + ScalarWhiteSpaceScanLength);
+
+        while (position < scalarEnd)
+        {
+            if (!IsWhiteSpace(data[position]))
             {
-                break;
+                return position;
             }
 
             position++;
         }
 
-        return position;
+        var index = data[position..].IndexOfAnyExcept(s_whiteSpaceBytes);
+        return index == -1 ? data.Length : position + index;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsWhiteSpace(byte value)
+        => value is (byte)' ' or (byte)'\n' or (byte)'\r' or (byte)'\t';
 
     /// <summary>
     /// Reads the string that starts with the quote at <paramref name="start"/> and returns the
     /// position after its closing quote.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int ReadString(ReadOnlySpan<byte> data, int start, out bool escaped)
     {
         var position = start + 1;
-        var shortEnd = Math.Min(data.Length, position + 8);
-        escaped = false;
+        var scalarEnd = Math.Min(data.Length, position + ScalarStringStartScanLength);
 
-        // Names and ids are short, so the first bytes are checked before the vectorized search.
-        while (position < shortEnd)
+        while (position < scalarEnd)
         {
             var current = data[position];
 
             if (current == (byte)'"')
             {
+                escaped = false;
                 return position + 1;
             }
 
@@ -295,6 +355,17 @@ ReadPropertyName:
             position++;
         }
 
+        return ReadStringRemainder(data, position, out escaped);
+    }
+
+    /// <summary>
+    /// Reads the rest of a string from <paramref name="position"/> and returns the position after its
+    /// closing quote.
+    /// </summary>
+    private static int ReadStringRemainder(ReadOnlySpan<byte> data, int position, out bool escaped)
+    {
+        escaped = false;
+
         while (true)
         {
             var index = data[position..].IndexOfAny(s_stringStopBytes);
@@ -305,20 +376,45 @@ ReadPropertyName:
             }
 
             position += index;
-            var current = data[position];
+            var stop = data[position];
 
-            if (current == (byte)'"')
+            if (stop == (byte)'"')
             {
                 return position + 1;
             }
 
-            if (current != (byte)'\\')
+            if (stop != (byte)'\\')
             {
                 throw ThrowHelper.InvalidSourceJson(data, position);
             }
 
             escaped = true;
             position = ReadEscapeSequence(data, position);
+            var scalarEnd = Math.Min(data.Length, position + ScalarStringScanLength);
+
+            while (position < scalarEnd)
+            {
+                var current = data[position];
+
+                if (current == (byte)'"')
+                {
+                    return position + 1;
+                }
+
+                if (current == (byte)'\\')
+                {
+                    position = ReadEscapeSequence(data, position);
+                    scalarEnd = Math.Min(data.Length, position + ScalarStringScanLength);
+                    continue;
+                }
+
+                if (current < (byte)' ')
+                {
+                    throw ThrowHelper.InvalidSourceJson(data, position);
+                }
+
+                position++;
+            }
         }
     }
 
