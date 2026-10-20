@@ -34,7 +34,7 @@ public sealed class UnionSiblingPartialSkipSupplementalTests
         // the two asset siblings select differing sub-selections so each gets its
         // own lookup; the nested meterType lookups from all branches must still be
         // issued for the surviving siblings
-        var result = await gateway.Executor.ExecuteAsync(
+        const string query =
             """
             {
               search {
@@ -62,7 +62,9 @@ public sealed class UnionSiblingPartialSkipSupplementalTests
                 }
               }
             }
-            """,
+            """;
+        var result = await gateway.Executor.ExecuteAsync(
+            query,
             TestContext.Current.CancellationToken);
 
         // assert
@@ -94,9 +96,11 @@ public sealed class UnionSiblingPartialSkipSupplementalTests
             """,
             expectsErrors: true);
 
-        Assert.Contains(
-            capture.Requests,
-            r => r.SubgraphName == SearchSubgraph.Name
-                && r.Body.Contains("MeterType", StringComparison.Ordinal));
+        await ApolloIntegrationSnapshot.MatchAsync(
+            new Snapshot(extension: ".yaml"),
+            query,
+            capture,
+            result,
+            includeRequestOrder: false);
     }
 }

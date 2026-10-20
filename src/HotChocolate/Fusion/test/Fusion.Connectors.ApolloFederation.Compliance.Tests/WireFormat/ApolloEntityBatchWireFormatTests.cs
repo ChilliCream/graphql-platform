@@ -44,7 +44,12 @@ public sealed class ApolloEntityBatchWireFormatTests
         var result = await gateway.Executor.ExecuteAsync(Query, TestContext.Current.CancellationToken);
 
         // assert
-        await WireFormatSnapshot.MatchExchangeAsync(capture, result);
+        await ApolloIntegrationSnapshot.MatchAsync(
+            new Snapshot(extension: ".yaml"),
+            Query,
+            capture,
+            result,
+            includeRequestOrder: true);
     }
 
     [Fact]
@@ -86,6 +91,11 @@ public sealed class ApolloEntityBatchWireFormatTests
         var result = await gateway.Executor.ExecuteAsync(Query, TestContext.Current.CancellationToken);
 
         // assert
-        await WireFormatSnapshot.MatchExchangeAsync(capture, result);
+        await ApolloIntegrationSnapshot.MatchAsync(
+            new Snapshot(extension: ".yaml"),
+            Query,
+            capture,
+            result,
+            includeRequestOrder: true);
     }
 }

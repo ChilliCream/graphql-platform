@@ -25,13 +25,11 @@ public sealed class ChildTypeMismatchSupplementalTests
             TestContext.Current.CancellationToken);
         AuditAssertions.Assert(result.ToJson(), testCase.ExpectedData, expectsErrors: false);
 
-        capture.ForSubgraph(BSubgraph.Name).Select(static request => request.Body)
-            .MatchInlineSnapshot(
-                """
-                [
-                  "{\"query\":\"query Op_56dcc647_1 { accounts { __typename ... on User { id name } ... on Admin { fusion__field_1: id name } } }\"}",
-                  "{\"query\":\"query($representations: [_Any!]!) { _entities(representations: $representations) { ... on User { name } } }\",\"variables\":{\"representations\":[{\"__typename\":\"User\",\"id\":\"u1\"}]}}"
-                ]
-                """);
+        await ApolloIntegrationSnapshot.MatchAsync(
+            new Snapshot(extension: ".yaml"),
+            testCase.Query,
+            capture,
+            result,
+            includeRequestOrder: false);
     }
 }

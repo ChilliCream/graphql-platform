@@ -1,0 +1,185 @@
+title: Operation_Should_AliasOnlyConflictingSourceField_When_SourceTypesDiffer
+request:
+  document: |
+    {
+      users {
+        id
+        name
+      }
+      accounts {
+        ... on User {
+          id
+          name
+        }
+        ... on Admin {
+          id
+          name
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "users": [
+          {
+            "id": "u1",
+            "name": "u1-name"
+          }
+        ],
+        "accounts": [
+          {
+            "id": "u1",
+            "name": "u1-name"
+          },
+          {
+            "id": "a1",
+            "name": "a1-name"
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: a
+    interactions:
+      - request:
+          body: |
+            {
+              "query": "query Op_56dcc647_2 { users { id } }"
+            }
+        response:
+          statusCode: 200
+          contentType: application/graphql-response+json; charset=utf-8
+          body: |
+            {
+              "data": {
+                "users": [
+                  {
+                    "id": "u1"
+                  }
+                ]
+              }
+            }
+  - name: b
+    interactions:
+      - request:
+          body: |
+            {
+              "query": "query Op_56dcc647_1 { accounts { __typename ... on User { id name } ... on Admin { fusion__field_1: id name } } }"
+            }
+        response:
+          statusCode: 200
+          contentType: application/graphql-response+json; charset=utf-8
+          body: |
+            {
+              "data": {
+                "accounts": [
+                  {
+                    "__typename": "User",
+                    "id": "u1",
+                    "name": "u1-name"
+                  },
+                  {
+                    "__typename": "Admin",
+                    "fusion__field_1": "a1",
+                    "name": "a1-name"
+                  }
+                ]
+              }
+            }
+      - request:
+          body: |
+            {
+              "query": "query($representations: [_Any!]!) { _entities(representations: $representations) { ... on User { name } } }",
+              "variables": {
+                "representations": [
+                  {
+                    "__typename": "User",
+                    "id": "u1"
+                  }
+                ]
+              }
+            }
+        response:
+          statusCode: 200
+          contentType: application/graphql-response+json; charset=utf-8
+          body: |
+            {
+              "data": {
+                "_entities": [
+                  {
+                    "name": "u1-name"
+                  }
+                ]
+              }
+            }
+operationPlan: |
+  operation:
+    - document: |
+        {
+          users {
+            id
+            id @fusion__requirement
+            name
+          }
+          accounts {
+            __typename @fusion__requirement
+            ... on User {
+              id
+              name
+            }
+            ... on Admin {
+              id
+              name
+            }
+          }
+        }
+      hash: 56dcc647bd8cb966a3f47a64e14f3893
+      searchSpace: 2
+      expandedNodes: 5
+  nodes:
+    - id: 1
+      type: Operation
+      schema: b
+      operation: |
+        query Op_56dcc647_1 {
+          accounts {
+            __typename
+            ... on User {
+              id
+              name
+            }
+            ... on Admin {
+              fusion__field_1: id
+              name
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: a
+      operation: |
+        query Op_56dcc647_2 {
+          users {
+            id
+          }
+        }
+    - id: 3
+      type: ApolloOperation
+      schema: b
+      operation: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on User {
+              name
+            }
+          }
+        }
+      source: $._entities
+      target: $.users
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 2

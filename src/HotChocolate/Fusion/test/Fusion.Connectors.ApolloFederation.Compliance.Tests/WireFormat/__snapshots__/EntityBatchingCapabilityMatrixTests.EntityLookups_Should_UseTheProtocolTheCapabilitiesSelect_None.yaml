@@ -1,0 +1,182 @@
+title: EntityLookups_Should_UseTheProtocolTheCapabilitiesSelect
+request:
+  document: |
+    {
+      parent {
+        a: child {
+          a: value
+        }
+        b: child {
+          b: value(suffix: "!")
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "parent": {
+          "a": {
+            "a": "child-1"
+          },
+          "b": {
+            "b": "child-1!"
+          }
+        }
+      }
+    }
+requestOrder:
+  - left
+  - right
+  - right
+sourceSchemas:
+  - name: left
+    interactions:
+      - request:
+          body: |
+            {
+              "query": "query Op_88f73202_1 { parent { a: child { id } b: child { id } } }"
+            }
+        response:
+          statusCode: 200
+          contentType: application/graphql-response+json; charset=utf-8
+          body: |
+            {
+              "data": {
+                "parent": {
+                  "a": {
+                    "id": "1"
+                  },
+                  "b": {
+                    "id": "1"
+                  }
+                }
+              }
+            }
+  - name: right
+    interactions:
+      - request:
+          body: |
+            {
+              "query": "query($representations: [_Any!]!) { _entities(representations: $representations) { ... on Child { b: value(suffix: \"!\") } } }",
+              "variables": {
+                "representations": [
+                  {
+                    "__typename": "Child",
+                    "id": "1"
+                  }
+                ]
+              }
+            }
+        response:
+          statusCode: 200
+          contentType: application/graphql-response+json; charset=utf-8
+          body: |
+            {
+              "data": {
+                "_entities": [
+                  {
+                    "b": "child-1!"
+                  }
+                ]
+              }
+            }
+      - request:
+          body: |
+            {
+              "query": "query($representations: [_Any!]!) { _entities(representations: $representations) { ... on Child { a: value } } }",
+              "variables": {
+                "representations": [
+                  {
+                    "__typename": "Child",
+                    "id": "1"
+                  }
+                ]
+              }
+            }
+        response:
+          statusCode: 200
+          contentType: application/graphql-response+json; charset=utf-8
+          body: |
+            {
+              "data": {
+                "_entities": [
+                  {
+                    "a": "child-1"
+                  }
+                ]
+              }
+            }
+operationPlan: |
+  operation:
+    - document: |
+        {
+          parent {
+            a: child {
+              a: value
+              id @fusion__requirement
+            }
+            b: child {
+              b: value(suffix: "!")
+              id @fusion__requirement
+            }
+          }
+        }
+      hash: 88f73202daf737b95c5ccc7b56fff410
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: left
+      operation: |
+        query Op_88f73202_1 {
+          parent {
+            a: child {
+              id
+            }
+            b: child {
+              id
+            }
+          }
+        }
+    - id: 2
+      type: ApolloOperationBatch
+      schema: right
+      operation: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Child {
+              b: value(suffix: "!")
+            }
+          }
+        }
+      source: $._entities
+      target: $.parent.b
+      batchingGroupId: 4
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: ApolloOperationBatch
+      schema: right
+      operation: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Child {
+              a: value
+            }
+          }
+        }
+      source: $._entities
+      target: $.parent.a
+      batchingGroupId: 4
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
