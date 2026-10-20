@@ -152,7 +152,7 @@ public sealed class ConnectionTypeInfo
         {
             switch (member)
             {
-                case IMethodSymbol { MethodKind: MethodKind.Ordinary } method:
+                case IMethodSymbol { MethodKind: MethodKind.Ordinary, ReturnsVoid: false } method:
                     resolvers.Add(CreateResolver(compilation, runtimeType, method, connectionName));
                     break;
 
