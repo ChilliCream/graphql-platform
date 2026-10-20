@@ -1,6 +1,10 @@
 using System.Buffers;
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Sockets;
+#else
 namespace HotChocolate.Transport.Sockets;
+#endif
 
 /// <summary>
 /// The message handler processes the incoming socket messages.

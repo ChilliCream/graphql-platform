@@ -1,7 +1,11 @@
 using System.Buffers;
 using System.Text.Json;
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
+#else
 namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
+#endif
 
 internal sealed class CompleteMessage : IDataMessage
 {
@@ -19,6 +23,10 @@ internal sealed class CompleteMessage : IDataMessage
         // a complete message carries no pooled buffers, so there is nothing to release.
     }
 
+#if FUSION
+    public static CompleteMessage From(string? id)
+        => new(id ?? throw ThrowHelper.MessageHasNoId());
+#else
     public static CompleteMessage From(ReadOnlySequence<byte> message)
     {
         var id = ParseId(message);
@@ -47,4 +55,5 @@ internal sealed class CompleteMessage : IDataMessage
 
         throw ThrowHelper.MessageHasNoId();
     }
+#endif
 }

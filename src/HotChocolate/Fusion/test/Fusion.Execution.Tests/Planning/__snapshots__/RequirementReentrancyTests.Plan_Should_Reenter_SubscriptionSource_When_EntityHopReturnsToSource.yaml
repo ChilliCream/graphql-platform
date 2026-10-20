@@ -1,0 +1,63 @@
+operation:
+  - document: |
+      subscription {
+        onBookCreated {
+          id
+          id @fusion__requirement
+          title
+          sequel {
+            title
+            id @fusion__requirement
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 3
+nodes:
+  - id: 1
+    type: Operation
+    schema: X
+    operation: |
+      subscription Op_123456789101112_1 {
+        onBookCreated {
+          id
+          title
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: Y
+    operation: |
+      query Op_123456789101112_2($__fusion_1_id: ID!) {
+        bookById(id: $__fusion_1_id) {
+          sequel {
+            id
+          }
+        }
+      }
+    source: $.bookById
+    target: $.onBookCreated
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 3
+    type: Operation
+    schema: X
+    operation: |
+      query Op_123456789101112_3($__fusion_2_id: ID!) {
+        bookById(id: $__fusion_2_id) {
+          title
+        }
+      }
+    source: $.bookById
+    target: $.onBookCreated.sequel
+    requirements:
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 2

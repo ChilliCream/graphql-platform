@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -11,6 +12,40 @@ namespace HotChocolate.Fusion.Execution;
 
 public sealed class OperationPlanContextPoolingTests : FusionTestBase
 {
+    [Fact]
+    public async Task ClientScope_Should_UseBorrowedScope_WithoutRetainingItAfterContextReuse()
+    {
+        // arrange
+        await using var fixture = await PoolingTestFixture.CreateAsync();
+        var borrowedScope = new TestClientScope();
+        OperationPlanContext pooledContext;
+        ISourceSchemaClientScope regularScope;
+
+        await using (var rental = fixture.Rent())
+        {
+            rental.Initialize(CreateSmallPlan(fixture.DefaultOperation).Plan);
+            pooledContext = rental.Context;
+            regularScope = rental.Context.ClientScope;
+
+            // act
+            using (rental.Context.BorrowClientScope(borrowedScope))
+            {
+                // assert
+                Assert.Same(borrowedScope, rental.Context.ClientScope);
+            }
+
+            Assert.Same(regularScope, rental.Context.ClientScope);
+        }
+
+        await using var reusedRental = fixture.Rent();
+        reusedRental.Initialize(CreateSmallPlan(fixture.DefaultOperation).Plan);
+
+        // assert
+        Assert.Same(pooledContext, reusedRental.Context);
+        Assert.Same(regularScope, reusedRental.Context.ClientScope);
+        Assert.Equal(0, borrowedScope.DisposeCount);
+    }
+
     [Fact]
     public async Task Pool_Should_Clear_Large_Plan_State_Before_Smaller_Plan_Reuse()
     {
@@ -218,6 +253,20 @@ public sealed class OperationPlanContextPoolingTests : FusionTestBase
             OperationPlanContext context,
             CancellationToken cancellationToken = default)
             => ValueTask.FromResult(ExecutionStatus.Success);
+    }
+
+    private sealed class TestClientScope : ISourceSchemaClientScope
+    {
+        public int DisposeCount { get; private set; }
+
+        public ISourceSchemaClient GetClient(string schemaName, OperationType operationType)
+            => throw new NotSupportedException();
+
+        public ValueTask DisposeAsync()
+        {
+            DisposeCount++;
+            return ValueTask.CompletedTask;
+        }
     }
 
     private sealed class PoolingTestFixture : IAsyncDisposable
