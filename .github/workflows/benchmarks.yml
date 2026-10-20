@@ -168,11 +168,11 @@ jobs:
           fi
 
       - name: Make scripts executable
-        working-directory: src/HotChocolate/Fusion/benchmarks/k6
+        working-directory: src/HotChocolate/Fusion/benchmarks/k6/gf
         run: chmod +x *.sh
 
       - name: Run benchmark
-        working-directory: src/HotChocolate/Fusion/benchmarks/k6
+        working-directory: src/HotChocolate/Fusion/benchmarks/k6/gf
         run: |
           ./run-single-benchmark.sh \
             "${{ matrix.test }}" \
@@ -186,7 +186,7 @@ jobs:
         if: always()
         with:
           name: benchmark-${{ matrix.test }}-${{ matrix.mode }}-${{ matrix.runner-group }}
-          path: src/HotChocolate/Fusion/benchmarks/k6/result.json
+          path: src/HotChocolate/Fusion/benchmarks/k6/gf/result.json
           retention-days: 30
 
       # Lightweight progressive PR update — reads only the local result.json
@@ -204,7 +204,7 @@ jobs:
             let result;
             try {
               result = JSON.parse(fs.readFileSync(
-                'src/HotChocolate/Fusion/benchmarks/k6/result.json', 'utf8'));
+                'src/HotChocolate/Fusion/benchmarks/k6/gf/result.json', 'utf8'));
             } catch (e) {
               console.log('No result.json found, skipping comment update');
               return;
