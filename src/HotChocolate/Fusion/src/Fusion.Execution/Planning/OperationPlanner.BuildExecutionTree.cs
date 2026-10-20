@@ -993,9 +993,7 @@ public sealed partial class OperationPlanner
     {
         var nodeFieldBoundCache = new Dictionary<int, bool>();
         var mergeResults = MergeStructurallyIdenticalOperations(ctx, nodeFieldBoundCache, mergePolicy);
-        var apolloMergeResults = enableRequestGrouping
-            ? MergeStructurallyIdenticalApolloLookups(ctx, nodeFieldBoundCache)
-            : [];
+        var apolloMergeResults = MergeStructurallyIdenticalApolloLookups(ctx, nodeFieldBoundCache, mergePolicy);
 
         // Capture each node's dependency identifiers now, because the batching
         // step below will rewrite the dependency lookup as it merges nodes.
@@ -1029,6 +1027,11 @@ public sealed partial class OperationPlanner
         Dictionary<int, bool> nodeFieldBoundCache,
         OperationMergePolicy mergePolicy)
     {
+        if (mergePolicy is OperationMergePolicy.None)
+        {
+            return [];
+        }
+
         var candidates = new Dictionary<string, List<OperationExecutionNode>>(StringComparer.Ordinal);
 
         foreach (var node in ctx.ExecutionNodes.Values.OfType<OperationExecutionNode>())
@@ -1098,8 +1101,14 @@ public sealed partial class OperationPlanner
     /// </summary>
     private static Dictionary<int, ApolloOperationExecutionNode[]> MergeStructurallyIdenticalApolloLookups(
         ExecutionPlanBuildContext ctx,
-        Dictionary<int, bool> nodeFieldBoundCache)
+        Dictionary<int, bool> nodeFieldBoundCache,
+        OperationMergePolicy mergePolicy)
     {
+        if (mergePolicy is OperationMergePolicy.None)
+        {
+            return [];
+        }
+
         var mergeResults = new Dictionary<int, ApolloOperationExecutionNode[]>();
 
         var lookupNodes = ctx.ExecutionNodes.Values
@@ -1328,15 +1337,11 @@ public sealed partial class OperationPlanner
     {
         var perOperationDependencies = new Dictionary<ExecutionNode, Dictionary<int, int[]>>();
 
-        if (!enableRequestGrouping)
-        {
-            return perOperationDependencies;
-        }
-
         var lookupNodes = ctx.ExecutionNodes.Values
             .OfType<ApolloOperationExecutionNode>()
             .Where(n => n.Operation.Type == OperationType.Query)
             .Where(n => !IsNodeFieldBound(n.Id, ctx, nodeFieldBoundCache))
+            .Where(n => enableRequestGrouping || mergeResults.ContainsKey(n.Id))
             .ToList();
 
         var depthLookup = new Dictionary<int, int>();
@@ -1347,14 +1352,14 @@ public sealed partial class OperationPlanner
             GetDependencyDepth(node.Id, ctx.DependenciesByStepId, depthLookup, recursionStack);
         }
 
-        var batchGroups = new Dictionary<(string schema, int depth), List<ApolloOperationExecutionNode>>();
+        var batchGroups = new Dictionary<(string schema, int depth, int operationId), List<ApolloOperationExecutionNode>>();
 
         foreach (var node in lookupNodes)
         {
             // Apollo lookup nodes always carry a concrete schema name because
             // the routing in CreateOperationExecutionNode rejects dynamic ones.
             var depth = depthLookup.TryGetValue(node.Id, out var d) ? d : 0;
-            var key = (node.SchemaName, depth);
+            var key = (node.SchemaName, depth, enableRequestGrouping ? 0 : node.Id);
 
             if (!batchGroups.TryGetValue(key, out var group))
             {
