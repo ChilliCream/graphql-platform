@@ -118,258 +118,308 @@ public sealed partial class SourceResultDocument
         var stringIsPropertyName = false;
         var stringEscaped = false;
 
-SkipToValue:
-        position = SkipWhiteSpace(data, position);
-
-        if (position == data.Length)
+        try
         {
-            if (!TMode.IsWindowed || isFinal)
+SkipToValue:
+            position = SkipWhiteSpace(data, position);
+
+            if (position == data.Length)
             {
-                throw ThrowHelper.InvalidSourceJson(data, position, offset);
+                if (!TMode.IsWindowed || isFinal)
+                {
+                    throw ThrowHelper.InvalidSourceJson(data, position, offset);
+                }
+
+                resumeStep = ResumeStep.Value;
+                goto NextWindow;
             }
 
-            resumeStep = ResumeStep.Value;
-            goto NextWindow;
-        }
-
 ReadValue:
-        location = MapLocation(position, singleChunk, ref locationChunk, ref locationChunkStart, ref locationChunkEnd);
+            location = MapLocation(position, singleChunk, ref locationChunk, ref locationChunkStart, ref locationChunkEnd);
 
-        switch (data[position])
-        {
-            case (byte)'{':
-            case (byte)'[':
-                if (stackIndex == MaxSourceDepth)
-                {
-                    throw ThrowHelper.SourceJsonDepthExceeded(MaxSourceDepth, offset + position);
-                }
-
-                // The new container is a complex child of its parent.
-                if (stackIndex > 0)
-                {
-                    containerHasComplexBits |= 1UL << (stackIndex - 1);
-                }
-
-                containers[stackIndex] = new Container(metaDb.Reserve(), location);
-                containerHasComplexBits &= ~(1UL << stackIndex);
-                containerIsArrayBits = data[position] == (byte)'['
-                    ? containerIsArrayBits | (1UL << stackIndex)
-                    : containerIsArrayBits & ~(1UL << stackIndex);
-                stackIndex++;
-                position++;
-                goto ContainerStart;
-
-            case (byte)'"':
-                // Strings are stored quote-inclusive, see AppendStringToken.
-                end = ReadString(data, position, offset);
-                escaped = false;
-
-                if (end < 0)
-                {
-                    if (end == IncompleteString)
+            switch (data[position])
+            {
+                case (byte)'{':
+                case (byte)'[':
+                    if (stackIndex == MaxSourceDepth)
                     {
-                        if (!TMode.IsWindowed || isFinal)
-                        {
-                            throw ThrowHelper.InvalidSourceJson(data, data.Length, offset);
-                        }
-
-                        stringLocation = location;
-                        stringIsPropertyName = false;
-                        goto SuspendString;
+                        throw ThrowHelper.SourceJsonDepthExceeded(MaxSourceDepth, offset + position);
                     }
 
-                    end = ~end;
-                    escaped = true;
-                }
+                    // The new container is a complex child of its parent.
+                    if (stackIndex > 0)
+                    {
+                        containerHasComplexBits |= 1UL << (stackIndex - 1);
+                    }
 
-                metaDb.Append(JsonTokenType.String, location, end - position, hasComplexChildren: escaped);
-                position = end;
-                goto AfterValue;
+                    containers[stackIndex] = new Container(metaDb.Reserve(), location);
+                    containerHasComplexBits &= ~(1UL << stackIndex);
+                    containerIsArrayBits = data[position] == (byte)'['
+                        ? containerIsArrayBits | (1UL << stackIndex)
+                        : containerIsArrayBits & ~(1UL << stackIndex);
+                    stackIndex++;
+                    position++;
+                    goto ContainerStart;
 
-            case (byte)'t':
-                end = ReadLiteral(data, position, offset, "true"u8);
+                case (byte)'"':
+                    // Strings are stored quote-inclusive, see AppendStringToken.
+                    end = ReadString(data, position, offset);
+                    escaped = false;
 
-                if (end < 0)
-                {
-                    goto IncompleteValue;
-                }
+                    if (end < 0)
+                    {
+                        if (end == IncompleteString)
+                        {
+                            if (!TMode.IsWindowed || isFinal)
+                            {
+                                throw ThrowHelper.InvalidSourceJson(data, data.Length, offset);
+                            }
 
-                metaDb.Append(JsonTokenType.True, location, 4);
-                position = end;
-                goto AfterValue;
+                            stringLocation = location;
+                            stringIsPropertyName = false;
+                            goto SuspendString;
+                        }
 
-            case (byte)'f':
-                end = ReadLiteral(data, position, offset, "false"u8);
+                        end = ~end;
+                        escaped = true;
+                    }
 
-                if (end < 0)
-                {
-                    goto IncompleteValue;
-                }
+                    metaDb.Append(JsonTokenType.String, location, end - position, hasComplexChildren: escaped);
+                    position = end;
+                    goto AfterValue;
 
-                metaDb.Append(JsonTokenType.False, location, 5);
-                position = end;
-                goto AfterValue;
+                case (byte)'t':
+                    end = ReadLiteral(data, position, offset, "true"u8);
 
-            case (byte)'n':
-                end = ReadLiteral(data, position, offset, "null"u8);
-
-                if (end < 0)
-                {
-                    goto IncompleteValue;
-                }
-
-                metaDb.Append(JsonTokenType.Null, location, 4);
-                position = end;
-                goto AfterValue;
-
-            default:
-                end = ReadNumber(data, position, offset);
-
-                if (end < 0)
-                {
-                    if (TMode.IsWindowed && !isFinal)
+                    if (end < 0)
                     {
                         goto IncompleteValue;
                     }
 
-                    end = ReadNumberAtEndOfInput(data, position, offset);
-                }
+                    metaDb.Append(JsonTokenType.True, location, 4);
+                    position = end;
+                    goto AfterValue;
 
-                AppendNumberToken(ref metaDb, location, end - position);
-                position = end;
-                goto AfterValue;
-        }
+                case (byte)'f':
+                    end = ReadLiteral(data, position, offset, "false"u8);
 
-ContainerStart:
-        position = SkipWhiteSpace(data, position);
+                    if (end < 0)
+                    {
+                        goto IncompleteValue;
+                    }
 
-        if (position == data.Length)
-        {
-            if (!TMode.IsWindowed || isFinal)
-            {
-                throw ThrowHelper.InvalidSourceJson(data, position, offset);
+                    metaDb.Append(JsonTokenType.False, location, 5);
+                    position = end;
+                    goto AfterValue;
+
+                case (byte)'n':
+                    end = ReadLiteral(data, position, offset, "null"u8);
+
+                    if (end < 0)
+                    {
+                        goto IncompleteValue;
+                    }
+
+                    metaDb.Append(JsonTokenType.Null, location, 4);
+                    position = end;
+                    goto AfterValue;
+
+                default:
+                    end = ReadNumber(data, position, offset);
+
+                    if (end < 0)
+                    {
+                        if (TMode.IsWindowed && !isFinal)
+                        {
+                            goto IncompleteValue;
+                        }
+
+                        end = ReadNumberAtEndOfInput(data, position, offset);
+                    }
+
+                    AppendNumberToken(ref metaDb, location, end - position);
+                    position = end;
+                    goto AfterValue;
             }
 
-            resumeStep = ResumeStep.ContainerStart;
-            goto NextWindow;
-        }
+ContainerStart:
+            position = SkipWhiteSpace(data, position);
 
-        isArray = (containerIsArrayBits & (1UL << (stackIndex - 1))) != 0;
-
-        if (data[position] == (isArray ? (byte)']' : (byte)'}'))
-        {
-            goto EndContainer;
-        }
-
-        if (isArray)
-        {
-            containers[stackIndex - 1].ChildCount++;
-            goto ReadValue;
-        }
-
-        goto ReadPropertyName;
-
-AfterValue:
-        position = SkipWhiteSpace(data, position);
-
-        if (position == data.Length)
-        {
-            if (TMode.IsWindowed && !isFinal)
+            if (position == data.Length)
             {
-                resumeStep = ResumeStep.AfterValue;
+                if (!TMode.IsWindowed || isFinal)
+                {
+                    throw ThrowHelper.InvalidSourceJson(data, position, offset);
+                }
+
+                resumeStep = ResumeStep.ContainerStart;
                 goto NextWindow;
             }
 
-            if (stackIndex == 0)
+            isArray = (containerIsArrayBits & (1UL << (stackIndex - 1))) != 0;
+
+            if (data[position] == (isArray ? (byte)']' : (byte)'}'))
             {
-                if (TMode.IsWindowed)
+                goto EndContainer;
+            }
+
+            if (isArray)
+            {
+                containers[stackIndex - 1].ChildCount++;
+                goto ReadValue;
+            }
+
+            goto ReadPropertyName;
+
+AfterValue:
+            position = SkipWhiteSpace(data, position);
+
+            if (position == data.Length)
+            {
+                if (TMode.IsWindowed && !isFinal)
                 {
-                    windows.ReturnStitch();
+                    resumeStep = ResumeStep.AfterValue;
+                    goto NextWindow;
                 }
 
-                return;
+                if (stackIndex == 0)
+                {
+                    return;
+                }
+
+                throw ThrowHelper.InvalidSourceJson(data, position, offset);
             }
 
-            throw ThrowHelper.InvalidSourceJson(data, position, offset);
-        }
-
-        // A root array or a root scalar must be the only value of the input.
-        if (stackIndex == 0)
-        {
-            throw ThrowHelper.InvalidSourceJson(data, position, offset);
-        }
-
-        if (data[position] == (byte)',')
-        {
-            position++;
-            goto AfterComma;
-        }
-
-        isArray = (containerIsArrayBits & (1UL << (stackIndex - 1))) != 0;
-
-        if (data[position] != (isArray ? (byte)']' : (byte)'}'))
-        {
-            throw ThrowHelper.InvalidSourceJson(data, position, offset);
-        }
-
-EndContainer:
-        stackIndex--;
-        isArray = (containerIsArrayBits & (1UL << stackIndex)) != 0;
-        CloseContainer(
-            ref metaDb,
-            isArray ? JsonTokenType.StartArray : JsonTokenType.StartObject,
-            isArray ? JsonTokenType.EndArray : JsonTokenType.EndObject,
-            containers[stackIndex].Start,
-            containers[stackIndex].StartLocation,
-            MapLocation(position, singleChunk, ref locationChunk, ref locationChunkStart, ref locationChunkEnd),
-            containers[stackIndex].ChildCount,
-            (containerHasComplexBits & (1UL << stackIndex)) != 0);
-        position++;
-
-        // A root object ends the document, the input after it is not read.
-        if (stackIndex == 0 && !isArray)
-        {
-            if (TMode.IsWindowed)
-            {
-                windows.ReturnStitch();
-            }
-
-            return;
-        }
-
-        goto AfterValue;
-
-AfterComma:
-        position = SkipWhiteSpace(data, position);
-
-        if (position == data.Length)
-        {
-            if (!TMode.IsWindowed || isFinal)
+            // A root array or a root scalar must be the only value of the input.
+            if (stackIndex == 0)
             {
                 throw ThrowHelper.InvalidSourceJson(data, position, offset);
             }
 
-            resumeStep = ResumeStep.AfterComma;
-            goto NextWindow;
-        }
+            if (data[position] == (byte)',')
+            {
+                position++;
+                goto AfterComma;
+            }
 
-        if ((containerIsArrayBits & (1UL << (stackIndex - 1))) != 0)
-        {
-            containers[stackIndex - 1].ChildCount++;
-            goto ReadValue;
-        }
+            isArray = (containerIsArrayBits & (1UL << (stackIndex - 1))) != 0;
+
+            if (data[position] != (isArray ? (byte)']' : (byte)'}'))
+            {
+                throw ThrowHelper.InvalidSourceJson(data, position, offset);
+            }
+
+EndContainer:
+            stackIndex--;
+            isArray = (containerIsArrayBits & (1UL << stackIndex)) != 0;
+            CloseContainer(
+                ref metaDb,
+                isArray ? JsonTokenType.StartArray : JsonTokenType.StartObject,
+                isArray ? JsonTokenType.EndArray : JsonTokenType.EndObject,
+                containers[stackIndex].Start,
+                containers[stackIndex].StartLocation,
+                MapLocation(position, singleChunk, ref locationChunk, ref locationChunkStart, ref locationChunkEnd),
+                containers[stackIndex].ChildCount,
+                (containerHasComplexBits & (1UL << stackIndex)) != 0);
+            position++;
+
+            // A root object ends the document, the input after it is not read.
+            if (stackIndex == 0 && !isArray)
+            {
+                return;
+            }
+
+            goto AfterValue;
+
+AfterComma:
+            position = SkipWhiteSpace(data, position);
+
+            if (position == data.Length)
+            {
+                if (!TMode.IsWindowed || isFinal)
+                {
+                    throw ThrowHelper.InvalidSourceJson(data, position, offset);
+                }
+
+                resumeStep = ResumeStep.AfterComma;
+                goto NextWindow;
+            }
+
+            if ((containerIsArrayBits & (1UL << (stackIndex - 1))) != 0)
+            {
+                containers[stackIndex - 1].ChildCount++;
+                goto ReadValue;
+            }
 
 ReadPropertyName:
-        if (data[position] != (byte)'"')
-        {
-            throw ThrowHelper.InvalidSourceJson(data, position, offset);
-        }
+            if (data[position] != (byte)'"')
+            {
+                throw ThrowHelper.InvalidSourceJson(data, position, offset);
+            }
 
-        end = ReadString(data, position, offset);
-        escaped = false;
+            end = ReadString(data, position, offset);
+            escaped = false;
 
-        if (end < 0)
-        {
+            if (end < 0)
+            {
+                if (end == IncompleteString)
+                {
+                    if (!TMode.IsWindowed || isFinal)
+                    {
+                        throw ThrowHelper.InvalidSourceJson(data, data.Length, offset);
+                    }
+
+                    stringLocation = MapLocation(position, singleChunk, ref locationChunk, ref locationChunkStart, ref locationChunkEnd);
+                    stringIsPropertyName = true;
+                    goto SuspendString;
+                }
+
+                end = ~end;
+                escaped = true;
+            }
+
+            metaDb.Append(
+                JsonTokenType.PropertyName,
+                MapLocation(position, singleChunk, ref locationChunk, ref locationChunkStart, ref locationChunkEnd),
+                end - position,
+                hasComplexChildren: escaped);
+            containers[stackIndex - 1].ChildCount++;
+            position = end;
+
+AfterPropertyName:
+            position = SkipWhiteSpace(data, position);
+
+            if (position == data.Length)
+            {
+                if (!TMode.IsWindowed || isFinal)
+                {
+                    throw ThrowHelper.InvalidSourceJson(data, position, offset);
+                }
+
+                resumeStep = ResumeStep.AfterPropertyName;
+                goto NextWindow;
+            }
+
+            if (data[position] != (byte)':')
+            {
+                throw ThrowHelper.InvalidSourceJson(data, position, offset);
+            }
+
+            position++;
+            goto SkipToValue;
+
+// The string at position continues after the end of the window, where its scan resumes.
+SuspendString:
+            stringStart = offset + position;
+            end = ScanIncompleteString(data, position + 1, offset);
+            stringEscaped = end < 0;
+            position = stringEscaped ? ~end : end;
+            resumeStep = ResumeStep.StringRemainder;
+            goto NextWindow;
+
+ContinueString:
+            end = ReadStringRemainder(data, position, offset);
+
             if (end == IncompleteString)
             {
                 if (!TMode.IsWindowed || isFinal)
@@ -377,128 +427,78 @@ ReadPropertyName:
                     throw ThrowHelper.InvalidSourceJson(data, data.Length, offset);
                 }
 
-                stringLocation = MapLocation(position, singleChunk, ref locationChunk, ref locationChunkStart, ref locationChunkEnd);
-                stringIsPropertyName = true;
-                goto SuspendString;
+                end = ScanIncompleteString(data, position, offset);
+                stringEscaped |= end < 0;
+                position = end < 0 ? ~end : end;
+                resumeStep = ResumeStep.StringRemainder;
+                goto NextWindow;
             }
 
-            end = ~end;
-            escaped = true;
-        }
-
-        metaDb.Append(
-            JsonTokenType.PropertyName,
-            MapLocation(position, singleChunk, ref locationChunk, ref locationChunkStart, ref locationChunkEnd),
-            end - position,
-            hasComplexChildren: escaped);
-        containers[stackIndex - 1].ChildCount++;
-        position = end;
-
-AfterPropertyName:
-        position = SkipWhiteSpace(data, position);
-
-        if (position == data.Length)
-        {
-            if (!TMode.IsWindowed || isFinal)
+            if (end < 0)
             {
-                throw ThrowHelper.InvalidSourceJson(data, position, offset);
+                end = ~end;
+                stringEscaped = true;
             }
 
-            resumeStep = ResumeStep.AfterPropertyName;
-            goto NextWindow;
-        }
+            metaDb.Append(
+                stringIsPropertyName ? JsonTokenType.PropertyName : JsonTokenType.String,
+                stringLocation,
+                offset + end - stringStart,
+                hasComplexChildren: stringEscaped);
+            position = end;
 
-        if (data[position] != (byte)':')
-        {
-            throw ThrowHelper.InvalidSourceJson(data, position, offset);
-        }
+            if (!stringIsPropertyName)
+            {
+                goto AfterValue;
+            }
 
-        position++;
-        goto SkipToValue;
+            containers[stackIndex - 1].ChildCount++;
+            goto AfterPropertyName;
 
-// The string at position continues after the end of the window, where its scan resumes.
-SuspendString:
-        stringStart = offset + position;
-        end = ScanIncompleteString(data, position + 1, offset);
-        stringEscaped = end < 0;
-        position = stringEscaped ? ~end : end;
-        resumeStep = ResumeStep.StringRemainder;
-        goto NextWindow;
-
-ContinueString:
-        end = ReadStringRemainder(data, position, offset);
-
-        if (end == IncompleteString)
-        {
+// The value at position continues after the end of the window.
+IncompleteValue:
             if (!TMode.IsWindowed || isFinal)
             {
                 throw ThrowHelper.InvalidSourceJson(data, data.Length, offset);
             }
 
-            end = ScanIncompleteString(data, position, offset);
-            stringEscaped |= end < 0;
-            position = end < 0 ? ~end : end;
-            resumeStep = ResumeStep.StringRemainder;
-            goto NextWindow;
-        }
-
-        if (end < 0)
-        {
-            end = ~end;
-            stringEscaped = true;
-        }
-
-        metaDb.Append(
-            stringIsPropertyName ? JsonTokenType.PropertyName : JsonTokenType.String,
-            stringLocation,
-            offset + end - stringStart,
-            hasComplexChildren: stringEscaped);
-        position = end;
-
-        if (!stringIsPropertyName)
-        {
-            goto AfterValue;
-        }
-
-        containers[stackIndex - 1].ChildCount++;
-        goto AfterPropertyName;
-
-// The value at position continues after the end of the window.
-IncompleteValue:
-        if (!TMode.IsWindowed || isFinal)
-        {
-            throw ThrowHelper.InvalidSourceJson(data, data.Length, offset);
-        }
-
-        resumeStep = ResumeStep.Value;
+            resumeStep = ResumeStep.Value;
 
 NextWindow:
-        data = windows.GetNextWindow(offset + position, offset + data.Length);
-        locationChunkStart -= position;
-        locationChunkEnd -= position;
-        offset += position;
-        isFinal = offset + data.Length == windows.Length;
-        position = 0;
+            data = windows.GetNextWindow(offset + position, offset + data.Length);
+            locationChunkStart -= position;
+            locationChunkEnd -= position;
+            offset += position;
+            isFinal = offset + data.Length == windows.Length;
+            position = 0;
 
-        switch (resumeStep)
+            switch (resumeStep)
+            {
+                case ResumeStep.Value:
+                    goto SkipToValue;
+
+                case ResumeStep.ContainerStart:
+                    goto ContainerStart;
+
+                case ResumeStep.AfterValue:
+                    goto AfterValue;
+
+                case ResumeStep.AfterComma:
+                    goto AfterComma;
+
+                case ResumeStep.StringRemainder:
+                    goto ContinueString;
+
+                default:
+                    goto AfterPropertyName;
+            }
+        }
+        finally
         {
-            case ResumeStep.Value:
-                goto SkipToValue;
-
-            case ResumeStep.ContainerStart:
-                goto ContainerStart;
-
-            case ResumeStep.AfterValue:
-                goto AfterValue;
-
-            case ResumeStep.AfterComma:
-                goto AfterComma;
-
-            case ResumeStep.StringRemainder:
-                goto ContinueString;
-
-            default:
-                goto AfterPropertyName;
+            if (TMode.IsWindowed)
+            {
+                windows.ReturnStitch();
+            }
         }
     }
 
