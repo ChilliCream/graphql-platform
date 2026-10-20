@@ -10,6 +10,8 @@
     <PackageReference Include="Aspire.Hosting.AppHost" />
     <PackageReference Include="Aspire.Hosting.RabbitMQ" />
     <PackageReference Include="Aspire.Hosting.PostgreSQL" />
+    <!-- Dependency of Aspire.Hosting.AppHost. Pinned to secure version. -->
+    <PackageReference Include="MessagePack" VersionOverride="2.5.307" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Demo.Catalog\Demo.Catalog.csproj" />
