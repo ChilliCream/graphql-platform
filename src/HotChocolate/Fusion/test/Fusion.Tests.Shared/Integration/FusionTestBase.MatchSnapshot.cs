@@ -18,7 +18,7 @@ using Microsoft.Extensions.DependencyInjection;
 using OperationRequest = HotChocolate.Transport.OperationRequest;
 using OperationResult = HotChocolate.Transport.OperationResult;
 
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Testing;
 
 public abstract partial class FusionTestBase
 {

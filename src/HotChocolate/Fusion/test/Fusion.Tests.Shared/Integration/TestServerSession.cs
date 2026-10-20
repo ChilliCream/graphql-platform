@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Testing;
 
-internal sealed class TestServerSession : IDisposable
+public sealed class TestServerSession : IDisposable
 {
     private readonly Channel<TestServer> _cleanupPipeline = Channel.CreateUnbounded<TestServer>();
     private bool _disposed;

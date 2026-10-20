@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Composite = HotChocolate.Types.Composite;
 
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Testing;
 
 public abstract partial class FusionTestBase
 {

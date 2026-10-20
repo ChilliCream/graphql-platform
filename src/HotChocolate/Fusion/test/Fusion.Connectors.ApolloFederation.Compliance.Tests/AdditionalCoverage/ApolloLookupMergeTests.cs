@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion;
 
-public sealed class ApolloLookupMergeTests : FusionTestBase
+public sealed class ApolloLookupMergeTests : Testing.FusionTestBase
 {
     [Fact]
     public async Task ApolloEntityLookups_Should_SendOneDeduplicatedLookup_When_TargetPathsShareLookup()
