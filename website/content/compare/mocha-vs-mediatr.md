@@ -2,7 +2,7 @@
 title: "Mocha vs MediatR"
 metaTitle: "Mocha vs MediatR: An MIT-Licensed MediatR Alternative"
 description: "Compare the Mocha mediator with MediatR for commands, queries, and notifications in .NET: licensing, source-generated dispatch, pipelines, and migration."
-lead: "The mediator you know from MediatR, with commands and queries as separate types, handlers registered by a source generator at build time, and a message bus for when your messages leave the process. Free for every company under the MIT license."
+lead: "Mocha does what most teams use MediatR for, with less ceremony: commands and queries as separate types, handlers wired at build time instead of through reflection, one middleware model for every cross-cutting concern, and a message bus for when your messages leave the process. Free for every company under the MIT license, with no license key."
 product: "mocha"
 competitor: "MediatR"
 lastChecked: "2026-10-20"
@@ -10,15 +10,6 @@ versions:
   product: "16.6"
   competitor: "14.2"
 migrationGuide: "/docs/mocha/migration/coming-from-mediatr"
-highlights:
-  - title: "MIT licensed, no license key"
-    text: "Mocha is free for any company. Since version 13, MediatR is licensed under the copyleft RPL-1.5 or a commercial license, which is free only for smaller companies."
-  - title: "Handlers registered at build time"
-    text: "A source generator writes the registration code for every handler when you compile. MediatR scans assemblies at startup and builds handler wrappers through reflection."
-  - title: "Commands and queries are separate"
-    text: "ICommand and IQuery replace IRequest, so reads and writes are different types with different dispatch methods, and middleware can target either one."
-  - title: "A message bus when you need one"
-    text: "The same framework sends events and commands between services, with sagas, an outbox, and retries. MediatR handles in-process messages only."
 features:
   - title: "Licensing"
     rows:
@@ -117,17 +108,28 @@ faq:
     answer: "No. The mediator ships in its own packages, Mocha.Mediator and Mocha.Analyzers. Add the message bus later if your messages need to reach other services."
   - question: "Does Mocha support .NET Framework?"
     answer: "No. Mocha targets .NET 8 and later."
+gaps:
+  - "Stream requests, like MediatR's IStreamRequest."
+  - "Notification handlers that run for a base type or interface."
+  - "Notification publishers beyond the sequential and concurrent modes."
+  - ".NET Framework and .NET Standard. Mocha targets .NET 8 and later."
 ---
 
-Most teams use MediatR for one thing: sending a request to exactly one handler and publishing notifications to many, with behaviors around both. The Mocha mediator does the same job. This page walks through the differences in code, from the messages and handlers to registration, pipelines, and what happens when your messages need to leave the process.
+# Free for every company
 
-# What you pay
+Mocha is MIT licensed, like Hot Chocolate. Any company can use it in production for free. There is no paid edition, no license key, and no revenue limit.
 
-MediatR changed its license with version 13.0 in July 2025. Versions up to 12.5 stay under the Apache 2.0 license, but Lucky Penny Software, the company behind MediatR, no longer provides support or security updates for them. Version 13 and later are dual licensed. You either accept the Reciprocal Public License 1.5, a copyleft license, or buy a commercial license.
+MediatR changed its license with version 13.0 in July 2025. Versions up to 12.5 stay under the Apache 2.0 license, but Lucky Penny Software, the company behind MediatR, no longer provides support or security updates for them. Version 13 and later are dual licensed: you either accept the Reciprocal Public License 1.5, a copyleft license, or buy a commercial license. The commercial license is free as the Community edition if your company has less than $5 million in annual revenue, has raised no more than $10 million in outside capital, and is not a government body, among other conditions. Otherwise it costs $499 per year for up to 10 developers, $1,499 for up to 50, and $3,999 for an unlimited number, and production deployments are expected to set a license key.
 
-The commercial license is free as the Community edition if your company has less than $5 million in annual revenue, has raised no more than $10 million in outside capital, and is not a government body, among other conditions. Otherwise it costs $499 per year for up to 10 developers, $1,499 for up to 50, and $3,999 for an unlimited number. Production deployments are expected to set a license key. Without one, MediatR logs a warning and keeps working.
+<CodeComparison>
 
-```csharp filename="MediatR 13 and later"
+```csharp filename="Mocha"
+builder.Services
+    .AddMediator()
+    .AddOrdering();
+```
+
+```csharp filename="MediatR 13 and later" {3,4}
 builder.Services.AddMediatR(cfg =>
 {
     cfg.LicenseKey =
@@ -137,33 +139,13 @@ builder.Services.AddMediatR(cfg =>
 });
 ```
 
-Mocha is MIT licensed, like Hot Chocolate. There is no paid edition, no license key, and no revenue limit.
+</CodeComparison>
 
-# Messages and handlers
+# Commands and queries say what they do
 
-Both libraries describe a unit of work as a message and a handler. Mocha replaces `IRequest` with `ICommand` for changes and `IQuery` for reads, and handlers implement `HandleAsync`, which returns a `ValueTask`.
+MediatR models every message as a request. Mocha makes the intent part of the type: `ICommand` changes state, `IQuery` reads, and handlers implement `HandleAsync`, which returns a `ValueTask`. You can tell reads from writes in code review, and middleware can target either one, for example to open a transaction for commands only.
 
 <CodeComparison>
-
-```csharp filename="MediatR" {2,5,7}
-public record PlaceOrder(Guid ProductId, int Quantity)
-    : IRequest<Guid>;
-
-public class PlaceOrderHandler(AppDbContext db)
-    : IRequestHandler<PlaceOrder, Guid>
-{
-    public async Task<Guid> Handle(
-        PlaceOrder request,
-        CancellationToken ct)
-    {
-        var order = new Order(request.ProductId,
-            request.Quantity);
-        db.Orders.Add(order);
-        await db.SaveChangesAsync(ct);
-        return order.Id;
-    }
-}
-```
 
 ```csharp filename="Mocha" {2,5,7}
 public record PlaceOrder(Guid ProductId, int Quantity)
@@ -185,22 +167,31 @@ public class PlaceOrderHandler(AppDbContext db)
 }
 ```
 
+```csharp filename="MediatR" {2,5,7}
+public record PlaceOrder(Guid ProductId, int Quantity)
+    : IRequest<Guid>;
+
+public class PlaceOrderHandler(AppDbContext db)
+    : IRequestHandler<PlaceOrder, Guid>
+{
+    public async Task<Guid> Handle(
+        PlaceOrder request,
+        CancellationToken ct)
+    {
+        var order = new Order(request.ProductId,
+            request.Quantity);
+        db.Orders.Add(order);
+        await db.SaveChangesAsync(ct);
+        return order.Id;
+    }
+}
+```
+
 </CodeComparison>
 
-The split pays off at the call site and in the pipeline. A read is dispatched with `QueryAsync`, so you can tell from the code what changes state, and middleware can apply a transaction to commands only.
+The call sites show the same split. A command is sent, a query is queried, and a notification is published.
 
 <CodeComparison>
-
-```csharp filename="MediatR" {1,4,7}
-var orderId = await sender.Send(
-    new PlaceOrder(productId, 2), ct);
-
-var order = await sender.Send(
-    new GetOrder(orderId), ct);
-
-await publisher.Publish(
-    new OrderPlaced(orderId), ct);
-```
 
 ```csharp filename="Mocha" {1,4,7}
 var orderId = await sender.SendAsync(
@@ -213,15 +204,34 @@ await publisher.PublishAsync(
     new OrderPlaced(orderId), ct);
 ```
 
+```csharp filename="MediatR" {1,4,7}
+var orderId = await sender.Send(
+    new PlaceOrder(productId, 2), ct);
+
+var order = await sender.Send(
+    new GetOrder(orderId), ct);
+
+await publisher.Publish(
+    new OrderPlaced(orderId), ct);
+```
+
 </CodeComparison>
 
-# Registration at build time
+# Wired at build time, not at startup
 
-MediatR finds handlers by scanning your assemblies when the application starts. The first time a request type is sent, it creates a handler wrapper through reflection and caches it, then resolves the handler and its behaviors from the service provider on every call. A request without a handler fails when it is sent.
+The `Mocha.Analyzers` source generator finds the handlers in your project when you compile and writes a registration method named after the assembly, here `AddOrdering()` for `MyApp.Ordering`. Each handler gets a pipeline built from generic code, so dispatch needs no reflection, and the mediator packages are marked compatible with Native AOT.
 
-Mocha does this work when you compile. The `Mocha.Analyzers` source generator finds the handlers in your project and writes a registration method named after the assembly, here `AddOrdering()` for `MyApp.Ordering`. Each handler gets a pipeline built from generic code, so dispatch needs no reflection, and the mediator packages are marked compatible with Native AOT.
+Mistakes surface when you build, not in production. A message type without a handler is a build warning (`MO0001`), a message type with two handlers is a build error (`MO0002`), and sending a command or query that has no handler in the project is a warning at the call site (`MO0020`).
+
+MediatR does this work at runtime. It scans your assemblies when the application starts, creates a handler wrapper through reflection the first time each request type is sent, and resolves the handler and its behaviors from the service provider on every call. A request without a handler fails only when it is sent.
 
 <CodeComparison>
+
+```csharp filename="Mocha"
+builder.Services
+    .AddMediator()
+    .AddOrdering(); // written by the source generator
+```
 
 ```csharp filename="MediatR"
 builder.Services.AddMediatR(cfg =>
@@ -231,47 +241,15 @@ builder.Services.AddMediatR(cfg =>
 });
 ```
 
-```csharp filename="Mocha"
-builder.Services
-    .AddMediator()
-    .AddOrdering(); // written by the source generator
-```
-
 </CodeComparison>
 
-The generator also checks your messages while it runs. A message type without a handler is a build warning (`MO0001`), a message type with two handlers is a build error (`MO0002`), and sending a command or query that has no handler in the project is a warning at the call site (`MO0020`).
+# One middleware model for every concern
 
-# Behaviors become middleware
+Mocha has one concept for cross-cutting code: middleware. A middleware factory runs once per message type when the pipeline is built, and returns the delegate that runs on every dispatch. Code before `next` does what a pre-processor does, code after it what a post-processor does, and a `try`/`catch` around it handles exceptions.
 
-A MediatR behavior is a generic class, `IPipelineBehavior<TRequest, TResponse>`, resolved from the container on every request. Pre-processors, post-processors, and exception handlers are separate interfaces on top of that.
-
-Mocha has one concept for all of these: middleware. A middleware factory runs once per message type when the pipeline is built and returns the delegate that runs on every dispatch. Code before `next` replaces a pre-processor, code after it replaces a post-processor, and a `try`/`catch` around it replaces an exception handler.
+MediatR splits the same job across four interfaces: pipeline behaviors, pre-processors, post-processors, and exception handlers. A behavior is a generic class, `IPipelineBehavior<TRequest, TResponse>`, resolved from the container on every request.
 
 <CodeComparison>
-
-```csharp filename="MediatR"
-public class TimingBehavior<TRequest, TResponse>(
-    ILogger<TimingBehavior<TRequest, TResponse>> log)
-    : IPipelineBehavior<TRequest, TResponse>
-    where TRequest : notnull
-{
-    public async Task<TResponse> Handle(
-        TRequest request,
-        RequestHandlerDelegate<TResponse> next,
-        CancellationToken ct)
-    {
-        var started = Stopwatch.GetTimestamp();
-        var response = await next(ct);
-        log.LogInformation("{Request} took {Elapsed}",
-            typeof(TRequest).Name,
-            Stopwatch.GetElapsedTime(started));
-        return response;
-    }
-}
-
-// Registration
-cfg.AddOpenBehavior(typeof(TimingBehavior<,>));
-```
 
 ```csharp filename="Mocha"
 public sealed class TimingMiddleware(
@@ -309,15 +287,48 @@ public sealed class TimingMiddleware(
 .Use(TimingMiddleware.Create());
 ```
 
+```csharp filename="MediatR"
+public class TimingBehavior<TRequest, TResponse>(
+    ILogger<TimingBehavior<TRequest, TResponse>> log)
+    : IPipelineBehavior<TRequest, TResponse>
+    where TRequest : notnull
+{
+    public async Task<TResponse> Handle(
+        TRequest request,
+        RequestHandlerDelegate<TResponse> next,
+        CancellationToken ct)
+    {
+        var started = Stopwatch.GetTimestamp();
+        var response = await next(ct);
+        log.LogInformation("{Request} took {Elapsed}",
+            typeof(TRequest).Name,
+            Stopwatch.GetElapsedTime(started));
+        return response;
+    }
+}
+
+// Registration
+cfg.AddOpenBehavior(typeof(TimingBehavior<,>));
+```
+
 </CodeComparison>
 
-Because the factory knows the message type before the first dispatch, it can leave the middleware out of a pipeline entirely. Return `next` when `factory.IsQuery()` is true, and queries run without the middleware and without a type check on every call. `IsMessageAssignableTo<T>()` narrows a middleware to one message or base type.
+Because the factory knows the message type before the first dispatch, a middleware can leave a pipeline out entirely. Return `next` when `factory.IsQuery()` is true, and queries run without the middleware and without a type check on every call. `IsMessageAssignableTo<T>()` narrows a middleware to one message or base type.
 
-# Notifications
+# Notifications as you know them
 
-Notifications work the same in both libraries: one `INotification`, any number of handlers. Both run the handlers one after another by default and can run them concurrently instead.
+One `INotification`, any number of handlers. Mocha runs them one after another by default, or concurrently with a single option.
 
 <CodeComparison>
+
+```csharp filename="Mocha"
+builder.Services
+    .AddMediator()
+    .ConfigureOptions(o =>
+        o.NotificationPublishMode =
+            NotificationPublishMode.Concurrent)
+    .AddOrdering();
+```
 
 ```csharp filename="MediatR"
 builder.Services.AddMediatR(cfg =>
@@ -329,51 +340,46 @@ builder.Services.AddMediatR(cfg =>
 });
 ```
 
-```csharp filename="Mocha"
-builder.Services
-    .AddMediator()
-    .ConfigureOptions(o =>
-        o.NotificationPublishMode =
-            NotificationPublishMode.Concurrent)
-    .AddOrdering();
-```
-
 </CodeComparison>
 
-# When messages leave the process
+# Ready for messages that leave the process
 
-MediatR stops at the process boundary. When an order placed in one service has to reach the billing and shipping services, you add a second library and a second way of writing handlers.
+When an order placed in one service has to reach the billing and shipping services, MediatR cannot help: it handles in-process messages only, so you add a second library with its own way of writing handlers.
 
-With Mocha, the next step is the message bus from the same framework. Event handlers look like notification handlers, the source generator registers them the same way, and the bus adds what messaging between services needs: retries and redelivery, a transactional outbox, sagas, and request/reply.
+With Mocha, the message bus is part of the same framework. Event handlers look like notification handlers, the source generator registers them the same way, and the bus adds what messaging between services needs: retries and redelivery, a transactional outbox, sagas, and request/reply.
 
-```csharp filename="Billing service"
+<CodeComparison>
+
+```csharp filename="Mocha: ordering service"
+builder.Services
+    .AddMessageBus()
+    .AddOrdering()
+    .AddRabbitMQ();
+
+// Publish to every service that handles it
+await bus.PublishAsync(
+    new OrderPlaced(orderId), ct);
+```
+
+```csharp filename="Mocha: billing service"
 builder.Services
     .AddMessageBus()
     .AddBilling()
     .AddRabbitMQ();
 
-public class OrderPlacedHandler(IInvoiceService invoices)
+public class OrderPlacedHandler(
+    IInvoiceService invoices)
     : IEventHandler<OrderPlaced>
 {
     public async ValueTask HandleAsync(
         OrderPlaced message,
         CancellationToken ct)
-        => await invoices.CreateAsync(message.OrderId, ct);
+        => await invoices.CreateAsync(
+            message.OrderId, ct);
 }
 ```
 
-```csharp filename="Ordering service"
-await bus.PublishAsync(new OrderPlaced(orderId), ct);
-```
-
-# What Mocha does not have yet
-
-- **Stream requests.** There is no equivalent of `IStreamRequest` and `IStreamRequestHandler`. Call a service that returns `IAsyncEnumerable<T>` directly for now.
-- **Polymorphic notification handlers.** A notification handler runs for the exact type it declares, not for derived notifications.
-- **Custom notification publishers.** The publish strategy is one of two built-in modes, sequential or concurrent.
-- **.NET Framework and .NET Standard.** Mocha targets .NET 8 and later.
-
-If one of these blocks you, see [what you can do about it](#missing-something).
+</CodeComparison>
 
 # Moving from MediatR
 

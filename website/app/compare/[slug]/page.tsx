@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ComparisonGapOptions } from "@/src/components/compare/ComparisonGapOptions";
 import { ComparisonHeader } from "@/src/components/compare/ComparisonHeader";
-import { ComparisonHighlights } from "@/src/components/compare/ComparisonHighlights";
 import { ComparisonSources } from "@/src/components/compare/ComparisonSources";
 import { DotGridSurface } from "@/src/components/DotGridSurface";
 import { FaqSection } from "@/src/components/FaqSection";
@@ -83,14 +82,11 @@ export default async function ComparisonPage({ params }: PageProps) {
       />
       <article className="mx-auto max-w-5xl">
         <ComparisonHeader comparison={comparison} />
-        <ComparisonHighlights
-          highlights={comparison.highlights}
-          className="mt-16"
-        />
+        <div className="mt-6 [&_li]:max-w-3xl [&_p]:max-w-3xl">{content}</div>
         <FeatureComparison
           id="features"
           className="mt-24"
-          eyebrow="At a glance"
+          eyebrow="Summary"
           heading={`${product.title} and ${competitor} side by side`}
           columns={[product.title, competitor]}
           groups={comparison.features.map((group) => ({
@@ -101,8 +97,11 @@ export default async function ComparisonPage({ params }: PageProps) {
             })),
           }))}
         />
-        <div className="mt-16 [&_li]:max-w-3xl [&_p]:max-w-3xl">{content}</div>
-        <ComparisonGapOptions product={product.title} className="mt-24" />
+        <ComparisonGapOptions
+          product={product.title}
+          gaps={comparison.gaps}
+          className="mt-24"
+        />
         {comparison.faq.length > 0 ? (
           <FaqSection
             id="faq"

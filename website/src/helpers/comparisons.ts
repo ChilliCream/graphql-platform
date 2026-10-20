@@ -42,12 +42,10 @@ export type ComparisonSummary = {
   readonly versions: { readonly product: string; readonly competitor: string };
   /** Docs path of the guide for moving from the competitor, or null. */
   readonly migrationGuide: string | null;
-  readonly highlights: readonly {
-    readonly title: string;
-    readonly text: string;
-  }[];
   readonly features: readonly ComparisonFeatureGroup[];
   readonly sources: readonly { readonly title: string; readonly url: string }[];
+  /** What the product does not have yet, shown above the ways to get it. */
+  readonly gaps: readonly string[];
   /** Questions and answers shown in the FAQ, empty when the page has none. */
   readonly faq: readonly {
     readonly question: string;
@@ -130,10 +128,6 @@ function readComparison(fileName: string): ComparisonSummary {
     lastChecked,
     versions: readVersions(frontmatter, fileName),
     migrationGuide: readMigrationGuide(frontmatter, fileName),
-    highlights: readList(frontmatter, "highlights", fileName, (item, at) => ({
-      title: requiredString(item, "title", fileName, at),
-      text: requiredString(item, "text", fileName, at),
-    })),
     features: readList(frontmatter, "features", fileName, (item, at) => ({
       title: requiredString(item, "title", fileName, at),
       rows: readList(item, "rows", fileName, (row, rowAt) => ({
@@ -149,6 +143,7 @@ function readComparison(fileName: string): ComparisonSummary {
       }
       return { title: requiredString(item, "title", fileName, at), url };
     }),
+    gaps: readGaps(frontmatter, fileName),
     faq:
       frontmatter.faq === undefined
         ? []
@@ -194,6 +189,23 @@ function readMigrationGuide(
     );
   }
   return guide;
+}
+
+function readGaps(
+  frontmatter: Record<string, unknown>,
+  fileName: string,
+): string[] {
+  const value = frontmatter.gaps;
+  if (value === undefined || value === null) {
+    return [];
+  }
+  if (
+    !Array.isArray(value) ||
+    !value.every((gap) => typeof gap === "string" && gap.trim().length > 0)
+  ) {
+    return invalid(fileName, `"gaps" must be a list of non-empty strings.`);
+  }
+  return value.map((gap: string) => gap.trim());
 }
 
 function readList<T>(

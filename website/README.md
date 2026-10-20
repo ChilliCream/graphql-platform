@@ -332,10 +332,10 @@ comparison is one Markdown file in `content/compare/`, named `slug.md`, and is
 served at `/compare/slug`. The slug is lowercase and hyphenated, e.g.
 `mocha-vs-mediatr`.
 
-A comparison page shows, in order: the heading with `lead`, the `highlights`
-cards, the `features` table, the Markdown body, a "Missing something?" section
-(build it, request it on GitHub, or have us build it), the `faq`, the
-`sources`, and a closing call to action.
+A comparison page shows, in order: the heading with `lead`, the Markdown body,
+the `features` table as a summary, a "Missing something?" section with the
+`gaps` and three ways to close them (build it, request it on GitHub, or have us
+build it), the `faq`, the `sources`, and a closing call to action.
 
 ````markdown
 ---
@@ -350,9 +350,6 @@ versions:
   product: "16.6"
   competitor: "14.2"
 migrationGuide: "/docs/mocha/migration/coming-from-mediatr"
-highlights:
-  - title: "MIT licensed, no license key"
-    text: "One or two sentences on a key difference."
 features:
   - title: "Licensing"
     rows:
@@ -365,6 +362,8 @@ features:
 sources:
   - title: "MediatR license (LICENSE.md)"
     url: "https://..."
+gaps:
+  - "Stream requests, like MediatR's IStreamRequest."
 faq:
   - question: "Is Mocha free for commercial use?"
     answer: "Plain text, no Markdown."
@@ -376,12 +375,12 @@ One or two paragraphs on the difference, then the same code in both tools:
 
 <CodeComparison>
 
-```csharp filename="MediatR"
-public record PlaceOrder(Guid ProductId) : IRequest<Guid>;
-```
-
 ```csharp filename="Mocha"
 public record PlaceOrder(Guid ProductId) : ICommand<Guid>;
+```
+
+```csharp filename="MediatR"
+public record PlaceOrder(Guid ProductId) : IRequest<Guid>;
 ```
 
 </CodeComparison>
@@ -398,20 +397,22 @@ public record PlaceOrder(Guid ProductId) : ICommand<Guid>;
 | `lastChecked`    | yes      | Quoted `YYYY-MM-DD` date the facts about the other tool were last checked against `sources`.               |
 | `versions`       | yes      | The `product` and `competitor` versions the comparison is based on.                                        |
 | `migrationGuide` | no       | Path of a docs page, e.g. `/docs/mocha/migration/coming-from-mediatr`. Adds the **Migrate from** buttons.  |
-| `highlights`     | yes      | The key differences, each with a `title` and a one or two sentence `text`. Use an even number.             |
 | `features`       | yes      | Table groups, each with a `title` and `rows`. A cell is `true` (check), `false` (dash), or a short string. |
 | `sources`        | yes      | `https://` links to the other tool's official docs, license, or announcements behind every claim.          |
+| `gaps`           | no       | What our product does not have yet, one short sentence each. Shown in the "Missing something?" section.    |
 | `faq`            | no       | Questions and plain-text answers. Also emitted as `FAQPage` structured data.                               |
 
 - Every claim about the other tool must come from one of `sources`. Do not cite
   third-party blogs. Update `lastChecked` whenever you check the facts again.
-- Show the difference in code. Give each section of the body a
-  `<CodeComparison>` with the same task in both tools, and label each block
-  with `filename="<Tool>"`. Keep lines under about 55 characters so the two
-  columns do not scroll.
-- When our product lacks something, say so, and point to the "Missing
-  something?" section with `[...](#missing-something)`. Do not tell readers to
-  stay on the other tool for it.
+- Write the body as an article that makes the case for our product. Lead each
+  section with what our product does better, then show the other tool.
+- Show the difference in code. Give each section a `<CodeComparison>` with the
+  same task in both tools, our product first, and label each block with
+  `filename="<Tool>"`. Every code example shows our product; never show only
+  the other tool. Keep lines under about 55 characters so the two columns
+  do not scroll.
+- List what our product lacks in `gaps`, not in the body. Do not tell readers
+  to stay on the other tool for it.
 - The body follows the same Markdown rules as docs and blog posts, so `#`
   renders as a section heading. Link to docs pages relatively, e.g.
   `[quick start](../docs/mocha/quick-start.md)`.

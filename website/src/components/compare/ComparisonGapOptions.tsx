@@ -7,15 +7,18 @@ import { GITHUB_REPO_URL } from "@/src/helpers/github";
 interface ComparisonGapOptionsProps {
   /** Name of the ChilliCream product, e.g. "Mocha". */
   readonly product: string;
+  /** What the product does not have yet; the list is left out when empty. */
+  readonly gaps: readonly string[];
   readonly className?: string;
 }
 
 /**
- * What to do when the product lacks something the other tool has: build it,
+ * What the product does not have yet, and the ways to get it: build it,
  * request it on GitHub, or have the ChilliCream team build it.
  */
 export function ComparisonGapOptions({
   product,
+  gaps,
   className,
 }: ComparisonGapOptionsProps) {
   return (
@@ -30,6 +33,13 @@ export function ComparisonGapOptions({
         title={`Need something ${product} does not have yet?`}
         description={`A missing transport, store, or feature does not have to block your move to ${product}.`}
       />
+      {gaps.length > 0 ? (
+        <ul className="text-cc-ink mt-6 grid max-w-3xl list-disc gap-1.5 pl-5 text-sm leading-relaxed">
+          {gaps.map((gap) => (
+            <li key={gap}>{gap}</li>
+          ))}
+        </ul>
+      ) : null}
       <div className="mt-8">
         <CardGrid cols={3} gap={4} itemsStretch>
           <LinkCard

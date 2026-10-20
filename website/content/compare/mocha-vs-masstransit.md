@@ -2,7 +2,7 @@
 title: "Mocha vs MassTransit"
 metaTitle: "Mocha vs MassTransit: An MIT-Licensed MassTransit Alternative"
 description: "Compare Mocha and MassTransit for messaging in .NET: licensing, transports, sagas, the outbox, retries, and what a migration takes."
-lead: "Everything you rely on in MassTransit has a counterpart in Mocha: consumers, publish and send, request/reply, retries, the outbox, and state machine sagas. Handlers are registered at build time, and Mocha is free for every company under the MIT license."
+lead: "Mocha does the messaging you build with MassTransit in less code. One IMessageBus publishes, sends, and requests, handlers receive the message instead of a context, retries are exception policies, and a source generator registers your handlers at build time. Free for every company under the MIT license, with no license key on any machine."
 product: "mocha"
 competitor: "MassTransit"
 lastChecked: "2026-10-20"
@@ -10,15 +10,6 @@ versions:
   product: "16.6"
   competitor: "9.2"
 migrationGuide: "/docs/mocha/migration/coming-from-masstransit"
-highlights:
-  - title: "MIT licensed, no license key"
-    text: "Mocha is free for any company. MassTransit 9 is commercial, $4,000 per year for one product line, and needs a license key on every machine that runs it."
-  - title: "Handlers registered at build time"
-    text: "A source generator writes the registration code for each project when you compile and reports missing or duplicate handlers as build diagnostics."
-  - title: "Transports and stores you can extend"
-    text: "Mocha runs on RabbitMQ, Azure Service Bus, and PostgreSQL today. Transports and stores build on public abstractions, so a missing one can be added, by you or by us."
-  - title: "Familiar concepts"
-    text: "Consumers, publish and send, request/reply, retries, redelivery, the outbox, and state machine sagas all have direct counterparts, so most of a migration is renaming."
 features:
   - title: "Licensing"
     rows:
@@ -173,37 +164,63 @@ faq:
     answer: "Not with the stores that ship today, which use PostgreSQL. The outbox, inbox, and saga store are public interfaces, so you can implement them for your database, or have the ChilliCream team build them for you."
   - question: "Does Mocha have an in-process mediator like MassTransit Mediator?"
     answer: "Yes. The Mocha mediator dispatches commands, queries, and notifications inside a service, with handlers registered by the same source generator as the message bus."
+gaps:
+  - "Amazon SQS/SNS, ActiveMQ, SQL Server, Kafka, and Event Hubs transports."
+  - "Outbox, inbox, and saga stores outside PostgreSQL, such as SQL Server, MySQL, MongoDB, or Redis."
+  - "Routing slips, job consumers, rate limiting, and Quartz.NET or Hangfire scheduling."
+  - "A dedicated test harness. Tests run the bus on the in-memory transport."
+  - ".NET Framework and .NET Standard. Mocha targets .NET 8 and later."
 ---
 
-Mocha and MassTransit solve the same problem: services that talk to each other through a message broker, with consumers, retries, an outbox, and sagas that coordinate work across services. This page walks through the differences in code, from licensing and configuration to consumers, reliability, and sagas.
+# Free for every company, no key on any machine
 
-# What you pay
+Mocha is MIT licensed, like Hot Chocolate. Any company can use it in production for free. There is no paid edition, no license key, and no revenue limit, and the source code is public.
 
-MassTransit 8 is licensed under Apache 2.0 and still gets releases. When MassTransit 9 was announced in April 2025, the announcement said version 8 would be patched through at least the end of 2026. That page is no longer online, and no current page gives an end date.
+MassTransit 9, released in January 2026, is a commercial product from Massient. Its source code is available to licensed customers, not publicly. A license for one product line costs $4,000 per year, and one for the whole organization costs $12,000 per year. Organizations with less than $1 million in annual revenue may qualify for a free license without commercial support. The license key has to be available on every machine that runs MassTransit, including developer machines and build agents. MassTransit 8 stays under the Apache 2.0 license and still gets releases. When version 9 was announced in April 2025, the announcement said version 8 would be patched through at least the end of 2026. That page is no longer online, and no current page gives an end date.
 
-MassTransit 9, released in January 2026, is a commercial product from Massient. Its source code is available to licensed customers, not publicly. A license for one product line costs $4,000 per year, and one for the whole organization costs $12,000 per year, with no per-developer or per-message fees. Organizations with less than $1 million in annual revenue may qualify for a free license without commercial support. The license key has to be available on every machine that runs MassTransit, including developer machines and build agents. When a subscription expires, MassTransit logs a warning and keeps running.
+<CodeComparison>
 
-```csharp filename="MassTransit 9"
+```csharp filename="Mocha"
+builder.Services
+    .AddMessageBus()
+    .AddOrdering()
+    .AddRabbitMQ();
+```
+
+```csharp filename="MassTransit 9" {6,7}
 builder.Services.AddMassTransit(x =>
 {
+    x.AddConsumers(typeof(Program).Assembly);
     x.UsingRabbitMq((context, cfg) =>
     {
-        // Or the MT_LICENSE environment variable,
-        // on every machine that runs the service
-        cfg.SetLicense(
-            builder.Configuration["MassTransit:License"]);
+        cfg.SetLicense(builder
+            .Configuration["MassTransit:License"]);
         cfg.ConfigureEndpoints(context);
     });
 });
 ```
 
-Mocha is MIT licensed, like Hot Chocolate. There is no paid edition, no license key, and no revenue limit.
+</CodeComparison>
 
-# Consumers become handlers
+The Mocha registration is complete. `AddOrdering()` is a method the source generator writes for the handlers in `MyApp.Ordering` when you compile, and the RabbitMQ connection comes from dependency injection, for example from Aspire's `AddRabbitMQClient`. Exchanges and queues are created at startup from naming conventions. Two handlers for the same command or request are a build error instead of a surprise at runtime.
+
+# Handlers get the message, not a context
 
 A MassTransit consumer receives a `ConsumeContext<T>` and reads the message from it. Most Mocha handlers receive the message itself, and the interface says what kind of message it is: `IEventHandler<T>` for events, `IEventRequestHandler<T>` for commands, and `IEventRequestHandler<TRequest, TResponse>` for requests that get a response.
 
 <CodeComparison>
+
+```csharp filename="Mocha" {3,5,6}
+public class OrderPlacedHandler(
+    IInvoiceService invoices)
+    : IEventHandler<OrderPlaced>
+{
+    public async ValueTask HandleAsync(
+        OrderPlaced message, CancellationToken ct)
+        => await invoices.CreateAsync(
+            message.OrderId, ct);
+}
+```
 
 ```csharp filename="MassTransit" {3,5,6}
 public class OrderPlacedConsumer(
@@ -218,40 +235,15 @@ public class OrderPlacedConsumer(
 }
 ```
 
-```csharp filename="Mocha" {3,5,6}
-public class OrderPlacedHandler(
-    IInvoiceService invoices)
-    : IEventHandler<OrderPlaced>
-{
-    public async ValueTask HandleAsync(
-        OrderPlaced message, CancellationToken ct)
-        => await invoices.CreateAsync(
-            message.OrderId, ct);
-}
-```
-
 </CodeComparison>
 
-A request handler returns its response instead of calling `RespondAsync`, and the request type declares which response it expects:
+When a handler needs headers or message metadata, Mocha's `IConsumer<T>` receives an `IConsumeContext<T>`, so nothing is lost.
+
+# Requests return their response
+
+A Mocha request declares the response it expects, and its handler returns that response. There is no `RespondAsync` call to forget, and the compiler checks that the response type matches.
 
 <CodeComparison>
-
-```csharp filename="MassTransit"
-public record CheckOrderStatus(Guid OrderId);
-
-public class CheckOrderStatusConsumer(
-    OrderStore orders)
-    : IConsumer<CheckOrderStatus>
-{
-    public async Task Consume(
-        ConsumeContext<CheckOrderStatus> context)
-    {
-        var status = await orders.GetStatusAsync(
-            context.Message.OrderId);
-        await context.RespondAsync(status);
-    }
-}
-```
 
 ```csharp filename="Mocha"
 public record CheckOrderStatus(Guid OrderId)
@@ -270,15 +262,41 @@ public class CheckOrderStatusHandler(
 }
 ```
 
+```csharp filename="MassTransit"
+public record CheckOrderStatus(Guid OrderId);
+
+public class CheckOrderStatusConsumer(
+    OrderStore orders)
+    : IConsumer<CheckOrderStatus>
+{
+    public async Task Consume(
+        ConsumeContext<CheckOrderStatus> context)
+    {
+        var status = await orders.GetStatusAsync(
+            context.Message.OrderId);
+        await context.RespondAsync(status);
+    }
+}
+```
+
 </CodeComparison>
 
-When a handler needs headers or message metadata, Mocha's `IConsumer<T>` receives an `IConsumeContext<T>`, much like a MassTransit consumer.
+# One bus for publish, send, and request
 
-# Publish, send, and request
-
-Everything goes through one `IMessageBus`. A command is sent to the queue of its handler, named after the message type, so you do not look up a send endpoint first. A request returns the response message directly.
+Everything goes through one `IMessageBus`. A command is sent to the queue of its handler, named after the message type, so there is no send endpoint to look up first, and a request returns the response message directly.
 
 <CodeComparison>
+
+```csharp filename="Mocha"
+await bus.PublishAsync(
+    new OrderPlaced(orderId), ct);
+
+await bus.SendAsync(
+    new ReserveStock(orderId), ct);
+
+var status = await bus.RequestAsync(
+    new CheckOrderStatus(orderId), ct);
+```
 
 ```csharp filename="MassTransit"
 await publishEndpoint.Publish(
@@ -294,70 +312,15 @@ var response = await client
 var status = response.Message;
 ```
 
-```csharp filename="Mocha"
-await bus.PublishAsync(
-    new OrderPlaced(orderId), ct);
-
-await bus.SendAsync(
-    new ReserveStock(orderId), ct);
-
-var status = await bus.RequestAsync(
-    new CheckOrderStatus(orderId), ct);
-```
-
 </CodeComparison>
 
-# Configuration
+# Exception policies instead of retry middleware
 
-Both libraries create exchanges and queues at startup from naming conventions. In Mocha, the registration is a chain of builder calls, and the handlers come from a method the source generator writes for each project, here `AddOrdering()` for `MyApp.Ordering`. Two handlers for the same command or request are a build error instead of a surprise at runtime.
+Mocha decides what happens to a failed message by exception type, in one place: retry it, redeliver it later, dead-letter it, or discard it. Policies apply to the whole bus, a transport, or a single handler. Failed messages end up in an `_error` endpoint and unhandled ones in a `_skipped` endpoint,, the same suffixes MassTransit uses.
 
-<CodeComparison>
-
-```csharp filename="MassTransit"
-builder.Services.AddMassTransit(x =>
-{
-    x.AddConsumers(typeof(Program).Assembly);
-    x.UsingRabbitMq((context, cfg) =>
-    {
-        cfg.Host("localhost", "/", h =>
-        {
-            h.Username("guest");
-            h.Password("guest");
-        });
-        cfg.ConfigureEndpoints(context);
-    });
-});
-```
-
-```csharp filename="Mocha"
-// Aspire registers the RabbitMQ connection
-builder.AddRabbitMQClient("rabbitmq");
-
-builder.Services
-    .AddMessageBus()
-    .AddOrdering()
-    .AddRabbitMQ();
-```
-
-</CodeComparison>
-
-# Retries, redelivery, and errors
-
-MassTransit configures retries and redelivery as middleware on each endpoint. Mocha configures them as exception policies: for each exception type, you decide whether to retry, redeliver later, dead-letter, or discard the message. Policies apply to the whole bus, a transport, or a single handler. Failed messages end up in an `_error` endpoint and unhandled ones in a `_skipped` endpoint, the same naming MassTransit uses.
+MassTransit configures retries and redelivery as separate middleware on each endpoint.
 
 <CodeComparison>
-
-```csharp filename="MassTransit"
-x.AddConfigureEndpointsCallback(
-    (context, name, cfg) =>
-    {
-        cfg.UseDelayedRedelivery(r => r.Intervals(
-            TimeSpan.FromMinutes(5),
-            TimeSpan.FromMinutes(15),
-            TimeSpan.FromMinutes(30)));
-        cfg.UseMessageRetry(r => r.Immediate(3));
-    });
-```
 
 ```csharp filename="Mocha"
 .AddResilience(policy =>
@@ -374,21 +337,25 @@ x.AddConfigureEndpointsCallback(
 })
 ```
 
+```csharp filename="MassTransit"
+x.AddConfigureEndpointsCallback(
+    (context, name, cfg) =>
+    {
+        cfg.UseDelayedRedelivery(r => r.Intervals(
+            TimeSpan.FromMinutes(5),
+            TimeSpan.FromMinutes(15),
+            TimeSpan.FromMinutes(30)));
+        cfg.UseMessageRetry(r => r.Immediate(3));
+    });
+```
+
 </CodeComparison>
 
-# The transactional outbox
+# Outbox and inbox
 
-Both libraries write outgoing messages to the database in the same transaction as your changes, then deliver them in the background. Mocha's outbox and inbox use Entity Framework Core with PostgreSQL.
+Mocha writes outgoing messages to the database in the same transaction as your changes and delivers them in the background, and its inbox drops messages a handler has already processed. Both use Entity Framework Core with PostgreSQL.
 
 <CodeComparison>
-
-```csharp filename="MassTransit"
-x.AddEntityFrameworkOutbox<AppDbContext>(o =>
-{
-    o.UsePostgres();
-    o.UseBusOutbox();
-});
-```
 
 ```csharp filename="Mocha"
 .AddEntityFramework<AppDbContext>(p =>
@@ -399,13 +366,45 @@ x.AddEntityFrameworkOutbox<AppDbContext>(o =>
 })
 ```
 
+```csharp filename="MassTransit"
+x.AddEntityFrameworkOutbox<AppDbContext>(o =>
+{
+    o.UsePostgres();
+    o.UseBusOutbox();
+});
+```
+
 </CodeComparison>
 
-# Sagas
+# Sagas without the ceremony
 
-A MassTransit state machine and a Mocha saga describe the same thing: states, the events that move between them, and the actions that run on each transition. Mocha states are strings, and a saga is correlated by its ID. The state factory below sets the ID to the order ID, and later events return it from `ICorrelatable.CorrelationId`.
+A Mocha saga needs no `State` and `Event` properties. States are strings, events are type arguments, and each transition reads top to bottom. The saga is correlated by its ID: the state factory below sets it to the order ID, and later events return it from `ICorrelatable.CorrelationId`.
 
 <CodeComparison>
+
+```csharp filename="Mocha"
+public sealed class OrderSaga : Saga<OrderState>
+{
+    private const string Submitted = nameof(Submitted);
+    private const string Accepted = nameof(Accepted);
+
+    protected override void Configure(
+        ISagaDescriptor<OrderState> saga)
+    {
+        saga.Initially()
+            .OnEvent<OrderSubmitted>()
+            .StateFactory(e =>
+                new OrderState { Id = e.OrderId })
+            .TransitionTo(Submitted);
+
+        saga.During(Submitted)
+            .OnEvent<OrderAccepted>()
+            .TransitionTo(Accepted);
+
+        saga.Finally(Accepted);
+    }
+}
+```
 
 ```csharp filename="MassTransit"
 public class OrderStateMachine
@@ -434,43 +433,9 @@ public class OrderStateMachine
 }
 ```
 
-```csharp filename="Mocha"
-public sealed class OrderSaga : Saga<OrderState>
-{
-    private const string Submitted = nameof(Submitted);
-    private const string Accepted = nameof(Accepted);
-
-    protected override void Configure(
-        ISagaDescriptor<OrderState> saga)
-    {
-        saga.Initially()
-            .OnEvent<OrderSubmitted>()
-            .StateFactory(e =>
-                new OrderState { Id = e.OrderId })
-            .TransitionTo(Submitted);
-
-        saga.During(Submitted)
-            .OnEvent<OrderAccepted>()
-            .TransitionTo(Accepted);
-
-        saga.Finally(Accepted);
-    }
-}
-```
-
 </CodeComparison>
 
 Saga state lives in PostgreSQL through Entity Framework Core, or in memory for tests. Sagas can also start from a request and answer it when they finish, send commands, publish events, and time out.
-
-# What Mocha does not have yet
-
-- **Transports:** Amazon SQS/SNS, ActiveMQ, the SQL Server transport, and Kafka and Event Hubs.
-- **Stores:** the outbox, inbox, and sagas outside PostgreSQL, for example in SQL Server, MySQL, MongoDB, or Redis.
-- **Routing slips, job consumers, rate limiting,** and Quartz.NET or Hangfire scheduling.
-- **A test harness.** Tests run the bus on the in-memory transport.
-- **.NET Framework and .NET Standard.** Mocha targets .NET 8 and later.
-
-None of these has to block a move. Transports build on the public `MessagingTransport` base class, and the outbox, inbox, and saga store are public interfaces (`IMessageOutbox`, `IMessageInbox`, and `ISagaStore`), so you can add a missing piece in your own code. You can also [request it, or have us build it](#missing-something).
 
 # Moving from MassTransit
 
