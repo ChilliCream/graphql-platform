@@ -34,26 +34,30 @@ public sealed partial class SourceResultDocument
     private static readonly SearchValues<byte> s_stringStopBytes = SearchValues.Create(CreateStringStopBytes());
 
     /// <summary>
-    /// Parses the JSON value in the first <paramref name="length"/> bytes of the gap-free data chunks
-    /// <paramref name="segments"/> into <paramref name="metaDb"/>.
+    /// Parses the JSON input in the first <paramref name="length"/> bytes of the gap-free data chunks
+    /// <paramref name="segments"/> into <paramref name="metaDb"/>, or into the element documents of
+    /// <paramref name="documents"/>.
     /// </summary>
-    private static void ParseJson(
+    private static void ParseJson<TDocuments>(
         MemorySegment[] segments,
         int usedChunks,
         int length,
         ref MetaDb metaDb,
+        ref TDocuments documents,
         ArrayPool<byte> bufferPool)
+        where TDocuments : struct, IDocumentMode
     {
         var first = segments[0];
 
         if (usedChunks == 1)
         {
-            ParseJson<SingleWindow>(
+            ParseJson<SingleWindow, TDocuments>(
                 first.Buffer.AsSpan(first.Offset, length),
                 null,
                 length,
                 singleChunk: true,
                 ref metaDb,
+                ref documents,
                 bufferPool);
             return;
         }
@@ -63,16 +67,33 @@ public sealed partial class SourceResultDocument
 
         if (runLength == length)
         {
-            ParseJson<SingleWindow>(data, null, length, singleChunk: false, ref metaDb, bufferPool);
+            ParseJson<SingleWindow, TDocuments>(
+                data,
+                null,
+                length,
+                singleChunk: false,
+                ref metaDb,
+                ref documents,
+                bufferPool);
             return;
         }
 
-        ParseJson<MultipleWindows>(data, segments, length, singleChunk: false, ref metaDb, bufferPool);
+        ParseJson<MultipleWindows, TDocuments>(
+            data,
+            segments,
+            length,
+            singleChunk: false,
+            ref metaDb,
+            ref documents,
+            bufferPool);
     }
 
     /// <summary>
-    /// Parses the JSON value of the input into <paramref name="metaDb"/>. The input is accepted and
-    /// rejected like the <see cref="Utf8JsonReader"/> based parser accepts and rejects it.
+    /// Parses the JSON value of the input into <paramref name="metaDb"/>, or each element of the JSON
+    /// array of the input into its own document of <paramref name="documents"/>. The input is accepted
+    /// and rejected like <see cref="Utf8JsonReader"/> with its default options accepts and rejects it.
+    /// The input after a root object, or after the closing bracket of an array of element documents,
+    /// is not read.
     /// </summary>
     /// <param name="input">The first bytes of the UTF-8 JSON input.</param>
     /// <param name="segments">
@@ -83,18 +104,25 @@ public sealed partial class SourceResultDocument
     /// <param name="singleChunk">
     /// <c>true</c> when the whole input lies in data chunk 0, so a linear offset is its packed location.
     /// </param>
-    /// <param name="metaDb">The database that receives one row per token.</param>
+    /// <param name="metaDb">
+    /// The database that receives one row per token. For an array of element documents, the database
+    /// of the current element.
+    /// </param>
+    /// <param name="documents">The element documents of an array input.</param>
     /// <param name="bufferPool">The owner of temporary byte buffers.</param>
     /// <typeparam name="TMode">Whether the input is read in more than one window.</typeparam>
+    /// <typeparam name="TDocuments">Whether the input is one document or an array of element documents.</typeparam>
     [SkipLocalsInit]
-    private static void ParseJson<TMode>(
+    private static void ParseJson<TMode, TDocuments>(
         ReadOnlySpan<byte> input,
         MemorySegment[]? segments,
         int length,
         bool singleChunk,
         ref MetaDb metaDb,
+        ref TDocuments documents,
         ArrayPool<byte> bufferPool)
         where TMode : struct, IWindowMode
+        where TDocuments : struct, IDocumentMode
     {
         Span<Container> containers = stackalloc Container[MaxSourceDepth];
         var containerIsArrayBits = 0UL;
@@ -129,6 +157,11 @@ public sealed partial class SourceResultDocument
 
         try
         {
+            if (TDocuments.IsArrayOfElements)
+            {
+                goto ArrayStart;
+            }
+
 SkipToValue:
             position = SkipWhiteSpace(data, position);
 
@@ -150,7 +183,8 @@ ReadValue:
             {
                 case (byte)'{':
                 case (byte)'[':
-                    if (stackIndex == MaxSourceDepth)
+                    // The array of element documents counts towards the depth of its elements.
+                    if (stackIndex == (TDocuments.IsArrayOfElements ? MaxSourceDepth - 1 : MaxSourceDepth))
                     {
                         throw ThrowHelper.SourceJsonDepthExceeded(MaxSourceDepth, offset + position);
                     }
@@ -291,7 +325,7 @@ AfterValue:
                     goto NextWindow;
                 }
 
-                if (stackIndex == 0)
+                if (stackIndex == 0 && !TDocuments.IsArrayOfElements)
                 {
                     return;
                 }
@@ -299,9 +333,15 @@ AfterValue:
                 throw ThrowHelper.InvalidSourceJson(data, position, offset);
             }
 
-            // A root array or a root scalar must be the only value of the input.
+            // A root array or a root scalar must be the only value of the input. An element must be followed
+            // by a comma or the end of the array.
             if (stackIndex == 0)
             {
+                if (TDocuments.IsArrayOfElements)
+                {
+                    goto ElementEnd;
+                }
+
                 throw ThrowHelper.InvalidSourceJson(data, position, offset);
             }
 
@@ -333,7 +373,7 @@ EndContainer:
             position++;
 
             // A root object ends the document, the input after it is not read.
-            if (stackIndex == 0 && !isArray)
+            if (stackIndex == 0 && !isArray && !TDocuments.IsArrayOfElements)
             {
                 return;
             }
@@ -464,6 +504,87 @@ ContinueString:
             containers[stackIndex - 1].ChildCount++;
             goto AfterPropertyName;
 
+// The input is an array whose elements are parsed into separate documents.
+ArrayStart:
+            position = SkipWhiteSpace(data, position);
+
+            if (position == data.Length)
+            {
+                if (!TMode.IsWindowed || isFinal)
+                {
+                    throw ThrowHelper.InvalidSourceJson(data, position, offset);
+                }
+
+                resumeStep = ResumeStep.ArrayStart;
+                goto NextWindow;
+            }
+
+            if (data[position] != (byte)'[')
+            {
+                throw ThrowHelper.InvalidSourceJson(data, position, offset);
+            }
+
+            position++;
+
+FirstElement:
+            position = SkipWhiteSpace(data, position);
+
+            if (position == data.Length)
+            {
+                if (!TMode.IsWindowed || isFinal)
+                {
+                    throw ThrowHelper.InvalidSourceJson(data, position, offset);
+                }
+
+                resumeStep = ResumeStep.FirstElement;
+                goto NextWindow;
+            }
+
+            if (data[position] == (byte)']')
+            {
+                goto ArrayEnd;
+            }
+
+            documents.StartElement(ref metaDb);
+            goto ReadValue;
+
+// The element that ends at position is complete.
+ElementEnd:
+            documents.EndElement(ref metaDb);
+
+            if (data[position] == (byte)']')
+            {
+                goto ArrayEnd;
+            }
+
+            if (data[position] != (byte)',')
+            {
+                throw ThrowHelper.InvalidSourceJson(data, position, offset);
+            }
+
+            position++;
+
+NextElement:
+            position = SkipWhiteSpace(data, position);
+
+            if (position == data.Length)
+            {
+                if (!TMode.IsWindowed || isFinal)
+                {
+                    throw ThrowHelper.InvalidSourceJson(data, position, offset);
+                }
+
+                resumeStep = ResumeStep.NextElement;
+                goto NextWindow;
+            }
+
+            documents.StartElement(ref metaDb);
+            goto ReadValue;
+
+// The array of element documents ends, the input after it is not read.
+ArrayEnd:
+            return;
+
 // The value at position continues after the end of the window.
 IncompleteValue:
             if (!TMode.IsWindowed || isFinal)
@@ -480,6 +601,21 @@ NextWindow:
             offset += position;
             isFinal = offset + data.Length == windows.Length;
             position = 0;
+
+            if (TDocuments.IsArrayOfElements)
+            {
+                switch (resumeStep)
+                {
+                    case ResumeStep.ArrayStart:
+                        goto ArrayStart;
+
+                    case ResumeStep.FirstElement:
+                        goto FirstElement;
+
+                    case ResumeStep.NextElement:
+                        goto NextElement;
+                }
+            }
 
             switch (resumeStep)
             {
@@ -968,7 +1104,10 @@ NextWindow:
         AfterValue,
         AfterComma,
         StringRemainder,
-        AfterPropertyName
+        AfterPropertyName,
+        ArrayStart,
+        FirstElement,
+        NextElement
     }
 
     /// <summary>
@@ -987,6 +1126,81 @@ NextWindow:
     private readonly struct MultipleWindows : IWindowMode
     {
         public static bool IsWindowed => true;
+    }
+
+    /// <summary>
+    /// Whether the parser reads one document, or an array whose elements are separate documents.
+    /// </summary>
+    private interface IDocumentMode
+    {
+        static abstract bool IsArrayOfElements { get; }
+
+        /// <summary>
+        /// Starts the document of the next element in <paramref name="metaDb"/>.
+        /// </summary>
+        void StartElement(ref MetaDb metaDb);
+
+        /// <summary>
+        /// Completes the document of the element in <paramref name="metaDb"/>.
+        /// </summary>
+        void EndElement(ref MetaDb metaDb);
+    }
+
+    private readonly struct SingleDocument : IDocumentMode
+    {
+        public static bool IsArrayOfElements => false;
+
+        public void StartElement(ref MetaDb metaDb)
+        {
+        }
+
+        public void EndElement(ref MetaDb metaDb)
+        {
+        }
+    }
+
+    /// <summary>
+    /// The documents of the elements of an array, which share the data chunks of the array.
+    /// </summary>
+    private struct ElementDocuments(IMemoryArena arena, MemorySegment[] segments, int usedChunks) : IDocumentMode
+    {
+        private bool _hasOpenElement;
+
+        public static bool IsArrayOfElements => true;
+
+        /// <summary>
+        /// The documents of the completed elements.
+        /// </summary>
+        public List<SourceResultDocument> Documents { get; } = [];
+
+        public void StartElement(ref MetaDb metaDb)
+        {
+            metaDb = MetaDb.CreateForEstimatedRows(arena, 1);
+            _hasOpenElement = true;
+        }
+
+        public void EndElement(ref MetaDb metaDb)
+        {
+            Documents.Add(new SourceResultDocument(metaDb, segments, usedChunks));
+            metaDb = default;
+            _hasOpenElement = false;
+        }
+
+        /// <summary>
+        /// Disposes the completed documents and the element in <paramref name="metaDb"/>.
+        /// </summary>
+        public readonly void Dispose(ref MetaDb metaDb)
+        {
+            if (_hasOpenElement)
+            {
+                metaDb.Dispose();
+            }
+
+            foreach (var document in Documents)
+            {
+                document.Dispose();
+            }
+        }
     }
 
     /// <summary>

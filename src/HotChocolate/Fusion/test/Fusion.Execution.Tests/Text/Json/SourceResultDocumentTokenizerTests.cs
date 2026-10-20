@@ -1184,18 +1184,11 @@ public partial class SourceResultDocumentTokenizerTests
     {
         using var arena = new MemoryArena();
         var (segments, usedChunks, lastLength) = CreateSegments(input, layout);
-        var documents = new List<SourceResultDocument>();
+        List<SourceResultDocument> documents = [];
 
         try
         {
-            var reader = SourceResultDocument.CreateFilledReader(segments, usedChunks, lastLength);
-            reader.Read();
-
-            while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
-            {
-                documents.Add(SourceResultDocument.ParseFilledElement(arena, ref reader, segments, usedChunks));
-            }
-
+            documents = SourceResultDocument.ParseFilledArrayElements(arena, segments, usedChunks, lastLength);
             var text = new StringBuilder();
 
             for (var i = 0; i < documents.Count; i++)

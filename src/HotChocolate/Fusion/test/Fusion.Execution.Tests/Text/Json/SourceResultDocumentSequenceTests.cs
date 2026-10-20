@@ -1,6 +1,5 @@
 using System.Buffers;
 using System.Text;
-using System.Text.Json;
 using HotChocolate.Buffers;
 
 namespace HotChocolate.Fusion.Text.Json;
@@ -106,7 +105,7 @@ public class SourceResultDocumentSequenceTests
     [InlineData("adjacent")]
     [InlineData("gapped")]
     [InlineData("separate")]
-    public void ParseFilledElement_Should_PreserveOffsets_When_ReaderContainsMultipleResults(string layout)
+    public void ParseFilledArrayElements_Should_PreserveOffsets_When_ArrayContainsMultipleResults(string layout)
     {
         // arrange
         var firstPayload = "{\"value\":\"" + new string('a', 1500) + "\"}";
@@ -114,19 +113,13 @@ public class SourceResultDocumentSequenceTests
         var payload = "[" + firstPayload + "," + secondPayload + "]";
         using var arena = new MemoryArena();
         var (segments, usedChunks, lastLength) = CreateSegments(payload, layout, emptyLast: false);
-        var reader = SourceResultDocument.CreateFilledReader(segments, usedChunks, lastLength);
-        reader.Read();
-        reader.Read();
 
         // act
-        using var first = SourceResultDocument.ParseFilledElement(arena, ref reader, segments, usedChunks);
-        reader.Read();
-        using var second = SourceResultDocument.ParseFilledElement(arena, ref reader, segments, usedChunks);
+        var documents = SourceResultDocument.ParseFilledArrayElements(arena, segments, usedChunks, lastLength);
         arena.Seal();
 
         // assert
-        Assert.Equal(firstPayload, first.Root.GetRawText());
-        Assert.Equal(secondPayload, second.Root.GetRawText());
+        Assert.Equal([firstPayload, secondPayload], documents.Select(t => t.Root.GetRawText()));
     }
 
     [Theory]
@@ -153,7 +146,7 @@ public class SourceResultDocumentSequenceTests
     [InlineData("[[1]]", new[] { "[1]" })]
     [InlineData("[1,{\"a\":1}]", new[] { "1", "{\"a\":1}" })]
     [InlineData("[{\"a\":1},2]", new[] { "{\"a\":1}", "2" })]
-    public void ParseFilledElement_Should_ReadEachElement_When_ElementIsNotAnObject(
+    public void ParseFilledArrayElements_Should_ReadEachElement_When_ElementIsNotAnObject(
         string payload,
         string[] expected)
     {
@@ -176,15 +169,15 @@ public class SourceResultDocumentSequenceTests
         int lastLength)
     {
         var elements = new List<string>();
-        var reader = SourceResultDocument.CreateFilledReader(segments, usedChunks, lastLength);
-        reader.Read();
 
         try
         {
-            while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
+            foreach (var document in SourceResultDocument.ParseFilledArrayElements(arena, segments, usedChunks, lastLength))
             {
-                using var document = SourceResultDocument.ParseFilledElement(arena, ref reader, segments, usedChunks);
-                elements.Add(document.Root.GetRawText());
+                using (document)
+                {
+                    elements.Add(document.Root.GetRawText());
+                }
             }
         }
         catch (Exception ex)
