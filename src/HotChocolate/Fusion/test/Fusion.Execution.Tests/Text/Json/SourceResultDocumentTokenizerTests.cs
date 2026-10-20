@@ -9,7 +9,7 @@ namespace HotChocolate.Fusion.Text.Json;
 /// single chunk and behind paddings that place a chunk boundary at each position of the input, in each
 /// chunk layout, and asserts that every parse creates the same rows.
 /// </summary>
-public class SourceResultDocumentTokenizerTests
+public partial class SourceResultDocumentTokenizerTests
 {
     // Leading white space that makes every input span at least two data chunks.
     private const int Padding = 1100;

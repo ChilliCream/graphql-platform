@@ -2,10 +2,12 @@ using System.Buffers;
 using System.Diagnostics.Tracing;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
+using HotChocolate.Buffers;
 
 namespace HotChocolate.Fusion.Text.Json;
 
-public partial class SourceResultDocumentTokenizerReaderTests
+public partial class SourceResultDocumentTokenizerTests
 {
     [Theory]
     [MemberData(nameof(StitchedInputs))]
@@ -13,16 +15,29 @@ public partial class SourceResultDocumentTokenizerReaderTests
     {
         // arrange
         var bytes = Encoding.UTF8.GetBytes(input);
-        var (segments, usedChunks, lastLength) = CreateSegments(bytes, ReaderLayout.Separate);
+        var (segments, usedChunks, lastLength) = CreateSegments(bytes, ChunkLayout.Separate);
+        using var arena = new MemoryArena();
         using var listener = new BytePoolListener();
 
         // act
         listener.Start();
-        var result = DescribeSource(segments, usedChunks, lastLength, padding: 0);
+        var exception = Record.Exception(() =>
+        {
+            using var document = SourceResultDocument.ParseFilled(arena, segments, usedChunks, lastLength);
+        });
         listener.Stop();
+        arena.Seal();
 
         // assert
-        Assert.Equal(accepted, result != Rejected);
+        if (accepted)
+        {
+            Assert.Null(exception);
+        }
+        else
+        {
+            Assert.IsAssignableFrom<JsonException>(exception);
+        }
+
         Assert.True(listener.RentCount > 0);
         Assert.Empty(listener.Outstanding);
     }

@@ -8,6 +8,48 @@ namespace HotChocolate.Fusion.Text.Json;
 public class SourceResultDocumentSequenceTests
 {
     [Theory]
+    [InlineData("adjacent")]
+    [InlineData("gapped")]
+    [InlineData("separate")]
+    public void ParseFilled_Should_ReadEscapedPropertyName_When_NameSpansChunks(string layout)
+    {
+        // arrange
+        var name = new string('k', 4000);
+        var payload = "{\"" + name + "\\u0061\":\"value\\n\"}";
+        using var arena = new MemoryArena();
+        var (segments, usedChunks, lastLength) = CreateSegments(payload, layout, emptyLast: false);
+
+        // act
+        using var document = SourceResultDocument.ParseFilled(arena, segments, usedChunks, lastLength);
+        arena.Seal();
+
+        // assert
+        Assert.Equal(1, document.Root.GetPropertyCount());
+        Assert.Equal("value\n", document.Root.GetProperty(name + "a").GetString());
+        Assert.Equal(payload, document.Root.GetRawText());
+    }
+
+    [Theory]
+    [InlineData("adjacent")]
+    [InlineData("gapped")]
+    [InlineData("separate")]
+    public void ParseFilled_Should_ReadRootNumber_When_NumberEndsAtEndOfInput(string layout)
+    {
+        // arrange
+        var payload = new string('1', 5000);
+        using var arena = new MemoryArena();
+        var (segments, usedChunks, lastLength) = CreateSegments(payload, layout, emptyLast: false);
+
+        // act
+        using var document = SourceResultDocument.ParseFilled(arena, segments, usedChunks, lastLength);
+        arena.Seal();
+
+        // assert
+        Assert.Equal(System.Text.Json.JsonValueKind.Number, document.Root.ValueKind);
+        Assert.Equal(payload, document.Root.GetRawText());
+    }
+
+    [Theory]
     [InlineData("adjacent", 1024, false)]
     [InlineData("adjacent", 1024, true)]
     [InlineData("adjacent", 1025, false)]
