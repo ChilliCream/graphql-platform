@@ -305,7 +305,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public void Plan_Should_MergeSameDepthLookups_When_MergePolicyIsConservative(bool grouping)
+    public void Plan_Should_MergeSameDepthLookups_When_MergePolicyIsConservative(bool enableRequestGrouping)
     {
         // arrange
         var schema = CreateLookupPolicySchema();
@@ -322,7 +322,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
             new OperationPlannerOptions
             {
                 MergePolicy = OperationMergePolicy.Conservative,
-                EnableRequestGrouping = grouping
+                EnableRequestGrouping = enableRequestGrouping
             });
 
         // assert
@@ -337,7 +337,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public void Plan_Should_MergeSameDepthLookups_When_MergePolicyIsBalanced(bool grouping)
+    public void Plan_Should_MergeSameDepthLookups_When_MergePolicyIsBalanced(bool enableRequestGrouping)
     {
         // arrange
         var schema = CreateLookupPolicySchema();
@@ -354,7 +354,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
             new OperationPlannerOptions
             {
                 MergePolicy = OperationMergePolicy.Balanced,
-                EnableRequestGrouping = grouping
+                EnableRequestGrouping = enableRequestGrouping
             });
 
         // assert
@@ -369,7 +369,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public void Plan_Should_MergeSameDepthLookups_When_MergePolicyIsAggressive(bool grouping)
+    public void Plan_Should_MergeSameDepthLookups_When_MergePolicyIsAggressive(bool enableRequestGrouping)
     {
         // arrange
         var schema = CreateLookupPolicySchema();
@@ -386,7 +386,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
             new OperationPlannerOptions
             {
                 MergePolicy = OperationMergePolicy.Aggressive,
-                EnableRequestGrouping = grouping
+                EnableRequestGrouping = enableRequestGrouping
             });
 
         // assert
@@ -429,6 +429,252 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         Assert.Contains(operations, operation => operation is BatchOperationDefinition { Targets.Length: 2 });
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_KeepAdjacentDepthLookupsSeparate_When_MergePolicyIsNone(bool enableRequestGrouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = FusionTestBase.PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { featured { name } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.None,
+                EnableRequestGrouping = enableRequestGrouping
+            });
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_KeepDistantDepthLookupsSeparate_When_MergePolicyIsNone(bool enableRequestGrouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = FusionTestBase.PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { collection { featured { name } } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.None,
+                EnableRequestGrouping = enableRequestGrouping
+            });
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_KeepAdjacentDepthLookupsSeparate_When_MergePolicyIsConservative(bool enableRequestGrouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = FusionTestBase.PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { featured { name } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.Conservative,
+                EnableRequestGrouping = enableRequestGrouping
+            });
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_KeepDistantDepthLookupsSeparate_When_MergePolicyIsConservative(bool enableRequestGrouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = FusionTestBase.PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { collection { featured { name } } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.Conservative,
+                EnableRequestGrouping = enableRequestGrouping
+            });
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_MergeAdjacentDepthLookups_When_MergePolicyIsBalanced(bool enableRequestGrouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = FusionTestBase.PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { featured { name } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.Balanced,
+                EnableRequestGrouping = enableRequestGrouping
+            });
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_KeepDistantDepthLookupsSeparate_When_MergePolicyIsBalanced(bool enableRequestGrouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = FusionTestBase.PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { collection { featured { name } } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.Balanced,
+                EnableRequestGrouping = enableRequestGrouping
+            });
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_MergeAdjacentDepthLookups_When_MergePolicyIsAggressive(bool enableRequestGrouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = FusionTestBase.PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { featured { name } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.Aggressive,
+                EnableRequestGrouping = enableRequestGrouping
+            });
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_MergeDistantDepthLookups_When_MergePolicyIsAggressive(bool enableRequestGrouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = FusionTestBase.PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { collection { featured { name } } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.Aggressive,
+                EnableRequestGrouping = enableRequestGrouping
+            });
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_KeepDistantLookupsSeparate_When_BalancedMergesPassThroughAdjacentDepths(bool enableRequestGrouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = FusionTestBase.PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands {
+                featured { name }
+                collection { featured { name } }
+              }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.Balanced,
+                EnableRequestGrouping = enableRequestGrouping
+            });
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
     private static FusionSchemaDefinition CreateLookupPolicySchema()
         => ComposeSchema(
             """
@@ -452,7 +698,10 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
             type Brand @key(fields: "id") {
               id: ID!
               featured: Product!
+              collection: Collection!
             }
+
+            type Collection @key(fields: "id") { id: ID! }
 
             type Product @key(fields: "id") { id: ID! }
             """,
@@ -464,5 +713,15 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
               name: String!
               price: Int!
             }
+            """,
+            """
+            extend schema @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+            type Collection @key(fields: "id") {
+              id: ID!
+              featured: Product!
+            }
+
+            type Product @key(fields: "id") { id: ID! }
             """);
 }
