@@ -3,6 +3,7 @@ title: "Make Your GraphQL Connections Smarter! Add Aggregations"
 description: "Use the Connections API in Hot Chocolate to add aggregations like totals and counts to your GraphQL connections, right alongside the data."
 youtubeId: "DtISlxOBmPQ"
 duration: "12:44"
+uploadDate: "2025-03-24T16:29:47-07:00"
 example: "https://github.com/ChilliCream/platform-examples/tree/main/examples/HotChocolate/ConnectionAggregations"
 author: "michael-staib"
 tags:

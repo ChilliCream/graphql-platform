@@ -9,7 +9,7 @@ import {
 import { videoPosterUrl, type VideoSummary } from "@/src/helpers/videos";
 
 export const VIDEOS_DESCRIPTION =
-  "Hands-on ChilliCream TV episodes on Hot Chocolate, DataLoader, and building GraphQL APIs in .NET, each with its example source code.";
+  "Hands-on ChilliCream TV episodes on GraphQL and .NET with Hot Chocolate, Fusion, Nitro, Mocha, and Strawberry Shake, from the team that builds them.";
 
 /** The video's running time as an ISO 8601 duration, e.g. `PT0H12M18S`. */
 function isoDuration(seconds: number): string {
@@ -31,7 +31,7 @@ export function createVideoObjectNode(video: VideoSummary): JsonLdNode {
     name: video.title,
     description: video.description,
     thumbnailUrl: [toAbsoluteUrl(videoPosterUrl(video.youtubeId))],
-    uploadDate: video.date,
+    uploadDate: video.uploadDate,
     duration: isoDuration(video.duration),
     embedUrl: `https://www.youtube-nocookie.com/embed/${video.youtubeId}`,
     publisher: schemaRef(ORGANIZATION_ID),
@@ -66,7 +66,7 @@ export function createVideoItemListNode(
         name: video.title,
         description: video.description,
         thumbnailUrl: [toAbsoluteUrl(videoPosterUrl(video.youtubeId))],
-        uploadDate: video.date,
+        uploadDate: video.uploadDate,
         duration: isoDuration(video.duration),
       },
     })),
