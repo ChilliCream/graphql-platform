@@ -514,9 +514,6 @@ operationPlan:
         - 1
       parentNodeId: 1
       requirements:
-        - name: __fusion_1_id
-          selectionMap: >-
-            id
         - name: __fusion_2_id
           selectionMap: >-
             id
