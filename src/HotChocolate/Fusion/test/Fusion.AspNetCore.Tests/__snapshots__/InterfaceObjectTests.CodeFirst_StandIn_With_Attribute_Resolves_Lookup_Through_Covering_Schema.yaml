@@ -1,0 +1,148 @@
+title: CodeFirst_StandIn_With_Attribute_Resolves_Lookup_Through_Covering_Schema
+request:
+  document: |
+    query testQuery {
+      mediaById(id: "1") {
+        id
+        views
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "mediaById": {
+          "id": "1",
+          "views": 123
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        mediaById(id: ID!): Media @lookup
+      }
+
+      type Book implements Media @key(fields: "id") {
+        id: ID!
+        title: String!
+        isbn: String!
+      }
+
+      type Movie implements Media @key(fields: "id") {
+        id: ID!
+        title: String!
+        runtime: Int!
+      }
+
+      interface Media {
+        id: ID!
+        title: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_80c7d422_1 {
+              mediaById(id: "1") {
+                __typename
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "mediaById": {
+                    "__typename": "Book",
+                    "id": "1"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        trendingMedia: [Media!]!
+        mediaByKey(id: ID!): Media @lookup @internal
+      }
+
+      type Media @interfaceObject @key(fields: "id") {
+        id: ID!
+        views: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_80c7d422_2($__fusion_1_id: ID!) {
+              mediaByKey(id: $__fusion_1_id) {
+                views
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "1"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "mediaByKey": {
+                    "views": 123
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          mediaById(id: "1") {
+            __typename @fusion__requirement
+            id
+            id @fusion__requirement
+            views
+          }
+        }
+      name: testQuery
+      hash: 80c7d422bb882086cf524fd4663844cd
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_80c7d422_1 {
+          mediaById(id: "1") {
+            __typename
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_80c7d422_2($__fusion_1_id: ID!) {
+          mediaByKey(id: $__fusion_1_id) {
+            views
+          }
+        }
+      source: $.mediaByKey
+      target: $.mediaById
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
