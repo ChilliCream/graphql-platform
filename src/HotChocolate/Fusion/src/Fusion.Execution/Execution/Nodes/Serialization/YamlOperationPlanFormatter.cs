@@ -586,7 +586,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
     private static void WriteApolloOperationDefinitionAsNode(
         ApolloOperationBatchExecutionNode batchNode,
-        SingleOperationDefinition opDef,
+        OperationDefinition opDef,
         OperationSourceText operation,
         ExecutionNodeTrace? trace,
         CodeWriter writer)
@@ -617,9 +617,21 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.WriteLine("source: {0}", opDef.Source.ToString());
         }
 
-        if (!opDef.Target.IsRoot)
+        switch (opDef)
         {
-            writer.WriteLine("target: {0}", opDef.Target.ToString());
+            case SingleOperationDefinition { Target.IsRoot: false } single:
+                writer.WriteLine("target: {0}", single.Target.ToString());
+                break;
+
+            case BatchOperationDefinition batch:
+                writer.WriteLine("targets:");
+                writer.Indent();
+                foreach (var target in batch.Targets)
+                {
+                    writer.WriteLine("- {0}", target.ToString());
+                }
+                writer.Unindent();
+                break;
         }
 
         writer.WriteLine("batchingGroupId: {0}", batchNode.Id);

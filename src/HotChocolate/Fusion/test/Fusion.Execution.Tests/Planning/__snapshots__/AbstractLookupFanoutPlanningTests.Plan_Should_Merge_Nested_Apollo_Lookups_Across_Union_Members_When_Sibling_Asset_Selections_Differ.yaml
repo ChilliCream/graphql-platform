@@ -117,7 +117,9 @@ nodes:
         }
       }
     source: $._entities
-    target: $.search<CustomResult>.asset
+    targets:
+      - $.search<CustomResult>.asset
+      - $.search<ExistingResult>.asset
     batchingGroupId: 14
     requirements:
       - name: __fusion_1_id
@@ -176,31 +178,6 @@ nodes:
           id
     dependencies:
       - id: 1
-  - id: 11
-    type: ApolloOperationBatch
-    schema: assets
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Asset {
-            meterType {
-              id
-            }
-            category {
-              id
-            }
-          }
-        }
-      }
-    source: $._entities
-    target: $.search<ExistingResult>.asset
-    batchingGroupId: 14
-    requirements:
-      - name: __fusion_10_id
-        selectionMap: >-
-          id
-    dependencies:
-      - id: 1
   - id: 3
     type: ApolloOperationBatch
     schema: search
@@ -215,7 +192,11 @@ nodes:
         }
       }
     source: $._entities
-    target: $.search<CustomResult>.asset.category
+    targets:
+      - $.search<CustomResult>.asset.category
+      - $.search<NotSubmissableResult>.asset.category
+      - $.search<ConfigMatchesResult>.asset.category
+      - $.search<ExistingResult>.asset.category
     batchingGroupId: 15
     requirements:
       - name: __fusion_2_id
@@ -223,6 +204,8 @@ nodes:
           id
     dependencies:
       - id: 2
+      - id: 5
+      - id: 8
   - id: 4
     type: ApolloOperationBatch
     schema: search
@@ -235,7 +218,11 @@ nodes:
         }
       }
     source: $._entities
-    target: $.search<CustomResult>.asset.meterType
+    targets:
+      - $.search<CustomResult>.asset.meterType
+      - $.search<NotSubmissableResult>.asset.meterType
+      - $.search<ConfigMatchesResult>.asset.meterType
+      - $.search<ExistingResult>.asset.meterType
     batchingGroupId: 15
     requirements:
       - name: __fusion_3_id
@@ -243,129 +230,5 @@ nodes:
           id
     dependencies:
       - id: 2
-  - id: 6
-    type: ApolloOperationBatch
-    schema: search
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Category {
-            allowedMeterTypes {
-              type
-            }
-          }
-        }
-      }
-    source: $._entities
-    target: $.search<NotSubmissableResult>.asset.category
-    batchingGroupId: 15
-    requirements:
-      - name: __fusion_5_id
-        selectionMap: >-
-          id
-    dependencies:
       - id: 5
-  - id: 7
-    type: ApolloOperationBatch
-    schema: search
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on MeterType {
-            type
-          }
-        }
-      }
-    source: $._entities
-    target: $.search<NotSubmissableResult>.asset.meterType
-    batchingGroupId: 15
-    requirements:
-      - name: __fusion_6_id
-        selectionMap: >-
-          id
-    dependencies:
-      - id: 5
-  - id: 9
-    type: ApolloOperationBatch
-    schema: search
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on MeterType {
-            type
-          }
-        }
-      }
-    source: $._entities
-    target: $.search<ConfigMatchesResult>.asset.meterType
-    batchingGroupId: 15
-    requirements:
-      - name: __fusion_8_id
-        selectionMap: >-
-          id
-    dependencies:
       - id: 8
-  - id: 10
-    type: ApolloOperationBatch
-    schema: search
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Category {
-            allowedMeterTypes {
-              type
-            }
-          }
-        }
-      }
-    source: $._entities
-    target: $.search<ConfigMatchesResult>.asset.category
-    batchingGroupId: 15
-    requirements:
-      - name: __fusion_9_id
-        selectionMap: >-
-          id
-    dependencies:
-      - id: 8
-  - id: 12
-    type: ApolloOperationBatch
-    schema: search
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Category {
-            allowedMeterTypes {
-              type
-            }
-          }
-        }
-      }
-    source: $._entities
-    target: $.search<ExistingResult>.asset.category
-    batchingGroupId: 15
-    requirements:
-      - name: __fusion_11_id
-        selectionMap: >-
-          id
-    dependencies:
-      - id: 11
-  - id: 13
-    type: ApolloOperationBatch
-    schema: search
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on MeterType {
-            type
-          }
-        }
-      }
-    source: $._entities
-    target: $.search<ExistingResult>.asset.meterType
-    batchingGroupId: 15
-    requirements:
-      - name: __fusion_12_id
-        selectionMap: >-
-          id
-    dependencies:
-      - id: 11

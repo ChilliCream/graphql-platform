@@ -152,6 +152,57 @@ internal sealed partial class FetchResultStore
         }
     }
 
+    /// <summary>
+    /// Creates one representations variable for the entities at all <paramref name="selectionSets"/>.
+    /// Entities that produce identical representations share a single representation entry.
+    /// </summary>
+    public RepresentationValue CreateRepresentationVariableValue(
+        ReadOnlySpan<SelectionPath> selectionSets,
+        IReadOnlyList<ObjectFieldNode> requestVariables,
+        ReadOnlySpan<OperationRequirement> requiredData,
+        ImmutableArray<RepresentationShapeNode> requiredShape,
+        string entityTypeName)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(requestVariables);
+
+        if (requiredData.Length == 0)
+        {
+            return RepresentationValue.Empty;
+        }
+
+        lock (_lock)
+        {
+            var combinedCount = 0;
+
+            foreach (var selectionSet in selectionSets)
+            {
+                var elements = CollectTargetElements(selectionSet);
+
+                if (!elements.IsEmpty)
+                {
+                    EnsureCapacity(
+                        ref _collectTargetCombined,
+                        combinedCount + elements.Length,
+                        combinedCount);
+                    elements.CopyTo(_collectTargetCombined.AsSpan(combinedCount));
+                    combinedCount += elements.Length;
+                }
+            }
+
+            if (combinedCount == 0)
+            {
+                return RepresentationValue.Empty;
+            }
+
+            return BuildRepresentationValue(
+                _collectTargetCombined.AsSpan(0, combinedCount),
+                requestVariables,
+                requiredShape,
+                entityTypeName);
+        }
+    }
+
     internal RepresentationValue CreateRepresentationVariableValueFromSnapshot(
         ImmutableArray<VariableValues> importedEntries,
         HashSet<string> importedKeys,

@@ -82,6 +82,15 @@ internal static class ThrowHelper
     public static InvalidOperationException OperationPlanTaskCompletedWithoutResult()
         => new("The operation plan task completed without a result.");
 
+    public static InvalidOperationException ApolloLookupOperationMissing(int stepId)
+        => new($"The original Apollo lookup operation for execution step {stepId} is missing.");
+
+    public static InvalidOperationException ApolloEntityFetchProducedMultipleResults()
+        => new("Apollo entity fetches must produce a single source schema result.");
+
+    public static InvalidOperationException UnknownOperationDefinition(Type definitionType)
+        => new($"Unknown operation definition type: {definitionType.Name}");
+
     public static ArgumentOutOfRangeException InvalidCostOptionValue(
         string optionName,
         double value)
