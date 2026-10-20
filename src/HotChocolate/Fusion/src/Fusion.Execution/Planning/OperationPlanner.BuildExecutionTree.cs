@@ -1097,9 +1097,9 @@ public sealed partial class OperationPlanner
 
     /// <summary>
     /// Merges Apollo Federation entity lookups that are structurally identical and share
-    /// a source schema into one lookup with a target per merged node. Lookups at the same
-    /// dependency depth always merge. A shallower lookup that no node depends on also folds
-    /// into a deeper identical lookup that already waits for all of its dependencies.
+    /// a source schema into one lookup with a target per merged node, subject to the merge policy.
+    /// Cross-depth merges require the shallower lookup to have no dependents and the deeper
+    /// lookup to already wait for all of its dependencies.
     /// </summary>
     private static Dictionary<int, ApolloOperationExecutionNode[]> MergeStructurallyIdenticalApolloLookups(
         ExecutionPlanBuildContext ctx,
@@ -1172,9 +1172,9 @@ public sealed partial class OperationPlanner
         // it inspects already references the merged lookups.
         foreach (var groups in groupsBySignature.Values)
         {
-            if (groups.Count > 1)
+            if (groups.Count > 1 && mergePolicy is not OperationMergePolicy.Conservative)
             {
-                FoldLeafApolloLookupGroups(ctx, groups);
+                FoldLeafApolloLookupGroups(ctx, groups, mergePolicy);
             }
 
             foreach (var group in groups)
@@ -1196,7 +1196,8 @@ public sealed partial class OperationPlanner
     /// </summary>
     private static void FoldLeafApolloLookupGroups(
         ExecutionPlanBuildContext ctx,
-        List<ApolloLookupGroup> groups)
+        List<ApolloLookupGroup> groups,
+        OperationMergePolicy mergePolicy)
     {
         groups.Sort((a, b) => a.Depth.CompareTo(b.Depth));
 
@@ -1213,6 +1214,12 @@ public sealed partial class OperationPlanner
             {
                 for (var j = i + 1; j < groups.Count; j++)
                 {
+                    if (mergePolicy is OperationMergePolicy.Balanced
+                        && groups[j].Depth - leaf.MinDepth > 1)
+                    {
+                        break;
+                    }
+
                     if (AreTransitiveDependencies(
                         ctx.DependenciesByStepId,
                         leafPrimary.Id,
@@ -1242,6 +1249,7 @@ public sealed partial class OperationPlanner
                 AbsorbMergedNodes(ctx, targetPrimary.Id, [targetPrimary, leafPrimary]);
             }
 
+            target.MinDepth = Math.Min(target.MinDepth, leaf.MinDepth);
             target.Nodes.AddRange(leaf.Nodes);
             target.Nodes.Sort((a, b) => a.Id.CompareTo(b.Id));
             groups.RemoveAt(i);
@@ -3324,6 +3332,8 @@ public sealed partial class OperationPlanner
     private sealed class ApolloLookupGroup(int depth)
     {
         public int Depth { get; } = depth;
+
+        public int MinDepth { get; set; } = depth;
 
         public List<ApolloOperationExecutionNode> Nodes { get; } = [];
     }
