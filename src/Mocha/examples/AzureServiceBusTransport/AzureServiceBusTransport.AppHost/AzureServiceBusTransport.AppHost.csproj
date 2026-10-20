@@ -9,6 +9,8 @@
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting.AppHost" />
     <PackageReference Include="Aspire.Hosting.Azure.ServiceBus" />
+    <!-- Dependency of Aspire.Hosting.AppHost. Pinned to secure version. -->
+    <PackageReference Include="MessagePack" VersionOverride="2.5.307" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AzureServiceBusTransport.OrderService\AzureServiceBusTransport.OrderService.csproj" />
