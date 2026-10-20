@@ -241,6 +241,7 @@ slug is lowercase and hyphenated.
 title: "How to Use State in DataLoader for Context-Aware Fetching"
 description: "One sentence shown on the video card and used for SEO."
 youtubeId: "4Mw2A548OGM"
+duration: "15:51"
 example: "https://github.com/<org>/<repo>/tree/main/<folder>"
 author: "michael-staib"
 tags:
@@ -258,6 +259,7 @@ Hot Chocolate version used in this video: [15.1.4](https://www.nuget.org/package
 | `title`       | yes      | Page title and card heading.                                                    |
 | `description` | yes      | One sentence for the card, meta description, and Open Graph.                    |
 | `youtubeId`   | yes      | The 11-character YouTube video id. Quote it, so YAML always reads a string.     |
+| `duration`    | yes      | Running time as YouTube shows it, e.g. `"12:18"` or `"1:02:03"`.                |
 | `example`     | no       | `https://` link to the example source code. Adds the **Example source** button. |
 | `author`      | no       | Slug of a presenter in `src/data/authors.ts`.                                   |
 | `tags`        | no       | Lowercase, hyphenated topics. They become the filter chips on `/videos`.        |

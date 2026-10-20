@@ -2,6 +2,7 @@
 title: "The Future of Data APIs: GreenDonut in Action!"
 description: "Dive into the GreenDonut.Data package and use paging, projections, filtering, and sorting in a layered architecture."
 youtubeId: "FhNK7KMAnXc"
+duration: "41:28"
 example: "https://github.com/ChilliCream/platform-examples/tree/main/examples/HotChocolate/GreenDonutData"
 author: "michael-staib"
 tags:

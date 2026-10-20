@@ -2,6 +2,7 @@
 title: "DataLoader Explained: What, Why & Where It Belongs!"
 description: "What DataLoaders are, why you should use them, and where they belong in your project, with Green Donut and Hot Chocolate 15."
 youtubeId: "gVIxde5nlWE"
+duration: "12:18"
 example: "https://github.com/ChilliCream/platform-examples/tree/main/examples/HotChocolate/DataLoaderExplained"
 author: "michael-staib"
 tags:

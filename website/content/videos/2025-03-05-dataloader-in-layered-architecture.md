@@ -2,6 +2,7 @@
 title: "Master DataLoader in Layered Architecture!"
 description: "Use DataLoader in your business layer without taking a dependency on Hot Chocolate."
 youtubeId: "ZHq1pBjo0Qk"
+duration: "18:25"
 example: "https://github.com/ChilliCream/platform-examples/tree/main/examples/HotChocolate/LayeredDataLoader"
 author: "michael-staib"
 tags:

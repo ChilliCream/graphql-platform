@@ -11,6 +11,13 @@ import { videoPosterUrl, type VideoSummary } from "@/src/helpers/videos";
 export const VIDEOS_DESCRIPTION =
   "Hands-on ChilliCream TV episodes on Hot Chocolate, DataLoader, and building GraphQL APIs in .NET, each with its example source code.";
 
+/** The video's running time as an ISO 8601 duration, e.g. `PT0H12M18S`. */
+function isoDuration(seconds: number): string {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  return `PT${hours}H${minutes}M${seconds % 60}S`;
+}
+
 export function videoObjectId(video: VideoSummary): string {
   return schemaId(video.href, "video");
 }
@@ -25,7 +32,8 @@ export function createVideoObjectNode(video: VideoSummary): JsonLdNode {
     description: video.description,
     thumbnailUrl: [toAbsoluteUrl(videoPosterUrl(video.youtubeId))],
     uploadDate: video.date,
-    embedUrl: `https://www.youtube.com/embed/${video.youtubeId}`,
+    duration: isoDuration(video.duration),
+    embedUrl: `https://www.youtube-nocookie.com/embed/${video.youtubeId}`,
     publisher: schemaRef(ORGANIZATION_ID),
     ...(video.author
       ? { author: schemaRef(authorPersonId(video.author)) }
@@ -59,6 +67,7 @@ export function createVideoItemListNode(
         description: video.description,
         thumbnailUrl: [toAbsoluteUrl(videoPosterUrl(video.youtubeId))],
         uploadDate: video.date,
+        duration: isoDuration(video.duration),
       },
     })),
   };

@@ -1,7 +1,8 @@
 ---
 title: "GraphQL Federation Development Just Got Easier"
-description: "Use Fusion 16.6 and Aspire to work on one subgraph locally against the rest of your federated system, with automatic gateway recomposition and breaking change feedback."
+description: "Use Fusion 16.6 and Aspire to develop one subgraph locally against your federated system, with automatic gateway recomposition and breaking change feedback."
 youtubeId: "_gVSJRS0h5w"
+duration: "10:24"
 example: "https://github.com/ChilliCream/fusion-demo-recommendations"
 author: "michael-staib"
 tags:

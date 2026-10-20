@@ -65,7 +65,14 @@ export async function generateMetadata({
       description: video.description,
       url: video.href,
       images,
-      videos: [{ url: `https://www.youtube.com/embed/${video.youtubeId}` }],
+      videos: [
+        {
+          url: `https://www.youtube.com/embed/${video.youtubeId}`,
+          type: "text/html",
+          width: 1280,
+          height: 720,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
@@ -126,6 +133,7 @@ export default async function VideoPage({ params }: PageProps) {
           <YouTubeVideo
             videoId={video.youtubeId}
             playlabel={`Play ${video.title}`}
+            autoload
             sizes="(max-width: 1023px) calc(100vw - 2.5rem), 880px"
             className="mt-5 rounded-2xl"
           />

@@ -11,6 +11,7 @@ export const CHILLICREAM_TV_CHANNEL_URL =
 
 const STEM_RE = /^(\d{4})-(\d{2})-(\d{2})-[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const YOUTUBE_ID_RE = /^[A-Za-z0-9_-]{11}$/;
+const DURATION_RE = /^(?:(\d+):)?([0-5]?\d):([0-5]\d)$/;
 const TAG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 const TOPIC_LABELS: Record<string, string> = {
@@ -30,6 +31,8 @@ export type VideoSummary = {
   /** Publish date (`YYYY-MM-DD`), taken from the file name. */
   readonly date: string;
   readonly youtubeId: string;
+  /** Running time in seconds. */
+  readonly duration: number;
   /** Link to the example source code, or null when the video has none. */
   readonly example: string | null;
   readonly tags: readonly string[];
@@ -179,6 +182,7 @@ function readVideo(fileName: string): Omit<VideoSummary, "episode"> {
     description: requiredString(frontmatter, "description", fileName),
     date: `${year}-${month}-${day}`,
     youtubeId,
+    duration: readDuration(frontmatter, fileName),
     example,
     tags: readTags(frontmatter, fileName),
     author,
@@ -209,6 +213,23 @@ function optionalString(
     return invalid(fileName, `"${key}" must be a non-empty, quoted string.`);
   }
   return value.trim();
+}
+
+function readDuration(
+  frontmatter: Record<string, unknown>,
+  fileName: string,
+): number {
+  const match = DURATION_RE.exec(
+    requiredString(frontmatter, "duration", fileName),
+  );
+  if (!match) {
+    return invalid(
+      fileName,
+      `"duration" must be the running time as YouTube shows it (e.g. "12:18" or "1:02:03").`,
+    );
+  }
+  const [, hours = "0", minutes, seconds] = match;
+  return Number(hours) * 3600 + Number(minutes) * 60 + Number(seconds);
 }
 
 function readTags(

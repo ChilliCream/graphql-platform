@@ -2,6 +2,7 @@
 title: "Offset Pagination is Dead! Meet Relative Cursors"
 description: "A look at the new paging capabilities in Hot Chocolate 15.1, including relative cursors, which make offset pagination obsolete."
 youtubeId: "8TQ2oDUQ1ng"
+duration: "16:01"
 example: "https://github.com/ChilliCream/platform-examples/tree/main/examples/HotChocolate/RelativeCursors"
 author: "michael-staib"
 tags:

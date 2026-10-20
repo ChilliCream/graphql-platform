@@ -12,6 +12,11 @@ type YouTubeVideoProps = {
   videoId: string;
   /** Visually hidden label for the play button. */
   playlabel?: string;
+  /**
+   * Loads the player without a click once the visitor has given marketing
+   * consent. For pages whose main content is the video.
+   */
+  autoload?: boolean;
   /** Poster `sizes` hint; defaults to a content-column width. */
   sizes?: string;
   /** Spacing and corner-radius classes for the outer frame. */
@@ -22,11 +27,12 @@ type YouTubeVideoProps = {
  * Embeds a YouTube video as a click-to-load facade. Resolves the self-hosted,
  * optimized poster (AVIF/WebP) for the id at build time, renders it here, and
  * hands it to the client <VideoFacade>, which only loads the player iframe once
- * clicked.
+ * clicked (or, with `autoload`, once marketing consent is given).
  */
 export function YouTubeVideo({
   videoId,
   playlabel,
+  autoload = false,
   sizes = POSTER_SIZES,
   className = "my-6 rounded-md",
 }: YouTubeVideoProps) {
@@ -36,7 +42,7 @@ export function YouTubeVideo({
 
   return (
     <div className={`ring-cc-card-border overflow-hidden ring-1 ${className}`}>
-      <VideoFacade videoId={videoId} playlabel={playlabel}>
+      <VideoFacade videoId={videoId} playlabel={playlabel} autoload={autoload}>
         <YouTubePoster
           videoId={videoId}
           sizes={sizes}
