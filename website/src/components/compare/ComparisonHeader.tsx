@@ -38,7 +38,7 @@ export function ComparisonHeader({ comparison }: ComparisonHeaderProps) {
         {comparison.title}
       </h1>
       <p className="text-cc-prose mt-6 max-w-3xl text-lg leading-relaxed">
-        {comparison.description}
+        {comparison.lead}
       </p>
       <p className="text-cc-ink-dim mt-4 text-sm">
         Based on {product.title} {versions.product} and {competitor}{" "}

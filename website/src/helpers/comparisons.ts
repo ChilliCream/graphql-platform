@@ -31,6 +31,8 @@ export type ComparisonSummary = {
   /** `<title>` override; falls back to `title`. */
   readonly metaTitle: string;
   readonly description: string;
+  /** Introduction under the page heading; falls back to `description`. */
+  readonly lead: string;
   /** The ChilliCream product compared, from {@link PRODUCTS}. */
   readonly product: Product;
   readonly competitor: string;
@@ -46,6 +48,11 @@ export type ComparisonSummary = {
   }[];
   readonly features: readonly ComparisonFeatureGroup[];
   readonly sources: readonly { readonly title: string; readonly url: string }[];
+  /** Questions and answers shown in the FAQ, empty when the page has none. */
+  readonly faq: readonly {
+    readonly question: string;
+    readonly answer: string;
+  }[];
 };
 
 /**
@@ -109,13 +116,15 @@ function readComparison(fileName: string): ComparisonSummary {
   }
 
   const title = requiredString(frontmatter, "title", fileName);
+  const description = requiredString(frontmatter, "description", fileName);
   return {
     slug,
     href: comparisonUrl(slug),
     file,
     title,
     metaTitle: optionalString(frontmatter, "metaTitle", fileName) ?? title,
-    description: requiredString(frontmatter, "description", fileName),
+    description,
+    lead: optionalString(frontmatter, "lead", fileName) ?? description,
     product,
     competitor: requiredString(frontmatter, "competitor", fileName),
     lastChecked,
@@ -140,6 +149,13 @@ function readComparison(fileName: string): ComparisonSummary {
       }
       return { title: requiredString(item, "title", fileName, at), url };
     }),
+    faq:
+      frontmatter.faq === undefined
+        ? []
+        : readList(frontmatter, "faq", fileName, (item, at) => ({
+            question: requiredString(item, "question", fileName, at),
+            answer: requiredString(item, "answer", fileName, at),
+          })),
   };
 }
 

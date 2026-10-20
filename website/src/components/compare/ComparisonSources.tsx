@@ -38,7 +38,7 @@ export function ComparisonSources({
           </>
         }
       />
-      <ul className="mt-6 grid gap-2 text-sm">
+      <ul className="mt-6 grid gap-x-8 gap-y-2 text-sm sm:grid-cols-2">
         {comparison.sources.map((source) => (
           <li key={source.url}>
             <a

@@ -332,58 +332,86 @@ comparison is one Markdown file in `content/compare/`, named `slug.md`, and is
 served at `/compare/slug`. The slug is lowercase and hyphenated, e.g.
 `mocha-vs-mediatr`.
 
-```markdown
+A comparison page shows, in order: the heading with `lead`, the `highlights`
+cards, the `features` table, the Markdown body, a "Missing something?" section
+(build it, request it on GitHub, or have us build it), the `faq`, the
+`sources`, and a closing call to action.
+
+````markdown
 ---
 title: "Mocha vs MediatR"
-metaTitle: "Mocha vs MediatR: A Free MediatR Alternative for .NET"
-description: "One or two sentences shown under the title, on the card, and as the meta description."
+metaTitle: "Mocha vs MediatR: An MIT-Licensed MediatR Alternative"
+description: "One or two sentences for the `/compare` card and the meta description."
+lead: "The introduction under the page heading."
 product: "mocha"
 competitor: "MediatR"
 lastChecked: "2026-10-20"
 versions:
-  product: "16.7"
-  competitor: "13.1"
+  product: "16.6"
+  competitor: "14.2"
 migrationGuide: "/docs/mocha/migration/coming-from-mediatr"
 highlights:
-  - title: "MIT licensed"
+  - title: "MIT licensed, no license key"
     text: "One or two sentences on a key difference."
 features:
   - title: "Licensing"
     rows:
       - label: "License"
         product: "MIT"
-        competitor: "Commercial"
-      - label: "Source generated"
-        product: true
-        competitor: false
+        competitor: "RPL-1.5 or commercial"
+      - label: "Stream requests"
+        product: false
+        competitor: true
 sources:
-  - title: "MediatR license announcement"
+  - title: "MediatR license (LICENSE.md)"
     url: "https://..."
+faq:
+  - question: "Is Mocha free for commercial use?"
+    answer: "Plain text, no Markdown."
 ---
 
-# When MediatR is the better fit
+# Messages and handlers
 
-...
+One or two paragraphs on the difference, then the same code in both tools:
+
+<CodeComparison>
+
+```csharp filename="MediatR"
+public record PlaceOrder(Guid ProductId) : IRequest<Guid>;
 ```
+
+```csharp filename="Mocha"
+public record PlaceOrder(Guid ProductId) : ICommand<Guid>;
+```
+
+</CodeComparison>
+````
 
 | Field            | Required | Meaning                                                                                                    |
 | ---------------- | -------- | ---------------------------------------------------------------------------------------------------------- |
 | `title`          | yes      | The page heading and card title, usually `<Product> vs <Competitor>`.                                      |
 | `metaTitle`      | no       | Overrides the `<title>` tag and social title. Defaults to `title`.                                         |
-| `description`    | yes      | Summary under the heading, on the `/compare` card, and in the meta description.                            |
+| `description`    | yes      | Text on the `/compare` card and the meta description.                                                      |
+| `lead`           | no       | Introduction under the page heading. Defaults to `description`.                                            |
 | `product`        | yes      | Slug of the ChilliCream product from `src/data/products.ts`, e.g. `mocha`.                                 |
 | `competitor`     | yes      | Name of the other tool as its maintainers write it.                                                        |
 | `lastChecked`    | yes      | Quoted `YYYY-MM-DD` date the facts about the other tool were last checked against `sources`.               |
 | `versions`       | yes      | The `product` and `competitor` versions the comparison is based on.                                        |
-| `migrationGuide` | no       | Path of a docs page, e.g. `/docs/mocha/migration/coming-from-mediatr`. Adds the **Migrate from** button.   |
+| `migrationGuide` | no       | Path of a docs page, e.g. `/docs/mocha/migration/coming-from-mediatr`. Adds the **Migrate from** buttons.  |
 | `highlights`     | yes      | The key differences, each with a `title` and a one or two sentence `text`. Use an even number.             |
 | `features`       | yes      | Table groups, each with a `title` and `rows`. A cell is `true` (check), `false` (dash), or a short string. |
 | `sources`        | yes      | `https://` links to the other tool's official docs, license, or announcements behind every claim.          |
+| `faq`            | no       | Questions and plain-text answers. Also emitted as `FAQPage` structured data.                               |
 
 - Every claim about the other tool must come from one of `sources`. Do not cite
   third-party blogs. Update `lastChecked` whenever you check the facts again.
-- Say where the other tool is the better fit. A comparison that only praises
-  our product is not credible to developers.
+- Show the difference in code. Give each section of the body a
+  `<CodeComparison>` with the same task in both tools, and label each block
+  with `filename="<Tool>"`. Keep lines under about 55 characters so the two
+  columns do not scroll.
+- When our product lacks something, say so, and point to the "Missing
+  something?" section with `[...](#missing-something)`. Do not tell readers to
+  stay on the other tool for it.
 - The body follows the same Markdown rules as docs and blog posts, so `#`
   renders as a section heading. Link to docs pages relatively, e.g.
   `[quick start](../docs/mocha/quick-start.md)`.

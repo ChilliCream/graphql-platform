@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { ComparisonGapOptions } from "@/src/components/compare/ComparisonGapOptions";
 import { ComparisonHeader } from "@/src/components/compare/ComparisonHeader";
 import { ComparisonHighlights } from "@/src/components/compare/ComparisonHighlights";
 import { ComparisonSources } from "@/src/components/compare/ComparisonSources";
+import { DotGridSurface } from "@/src/components/DotGridSurface";
+import { FaqSection } from "@/src/components/FaqSection";
 import { FeatureComparison } from "@/src/components/FeatureComparison";
+import { NextStepsSection } from "@/src/components/NextStepsSection";
 import { PageStructuredData } from "@/src/components/PageStructuredData";
-import { Card } from "@/src/design-system/Card";
 import { compileDoc } from "@/src/helpers/compileDoc";
 import { COMPARISONS_PATH, listComparisons } from "@/src/helpers/comparisons";
 import { getLastModifiedFromGit } from "@/src/helpers/gitMetadata";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
+import { createFaqNode } from "@/src/helpers/structuredData";
 
 type Params = { slug: string };
 type PageProps = { params: Promise<Params> };
@@ -57,6 +61,7 @@ export default async function ComparisonPage({ params }: PageProps) {
     getLastModifiedFromGit(comparison.file),
   ]);
   const { product, competitor } = comparison;
+  const docsPath = `/docs/${product.slug}`;
 
   return (
     <div className="px-5 py-8 sm:px-12">
@@ -70,6 +75,11 @@ export default async function ComparisonPage({ params }: PageProps) {
           { name: "Compare", path: COMPARISONS_PATH },
           { name: comparison.title },
         ]}
+        additionalNodes={
+          comparison.faq.length > 0
+            ? [createFaqNode(comparison.href, comparison.faq)]
+            : []
+        }
       />
       <article className="mx-auto max-w-5xl">
         <ComparisonHeader comparison={comparison} />
@@ -79,9 +89,9 @@ export default async function ComparisonPage({ params }: PageProps) {
         />
         <FeatureComparison
           id="features"
-          className="mt-20"
-          eyebrow="Side by side"
-          heading={`${product.title} and ${competitor} compared`}
+          className="mt-24"
+          eyebrow="At a glance"
+          heading={`${product.title} and ${competitor} side by side`}
           columns={[product.title, competitor]}
           groups={comparison.features.map((group) => ({
             title: group.title,
@@ -91,8 +101,34 @@ export default async function ComparisonPage({ params }: PageProps) {
             })),
           }))}
         />
-        <Card className="mt-20 px-6 py-2 sm:px-10">{content}</Card>
-        <ComparisonSources comparison={comparison} className="mt-16" />
+        <div className="mt-16 [&_li]:max-w-3xl [&_p]:max-w-3xl">{content}</div>
+        <ComparisonGapOptions product={product.title} className="mt-24" />
+        {comparison.faq.length > 0 ? (
+          <FaqSection
+            id="faq"
+            className="mt-24 scroll-mt-24"
+            eyebrow="FAQ"
+            heading={`${product.title} and ${competitor} questions`}
+            items={comparison.faq}
+          />
+        ) : null}
+        <ComparisonSources comparison={comparison} className="mt-24" />
+        <DotGridSurface className="mt-24 rounded-3xl">
+          <NextStepsSection
+            skin="accent"
+            className="py-0"
+            title={`Try ${product.title} in your project.`}
+            text={`Start with the docs, or move from ${competitor} step by step with the migration guide.`}
+            primaryLink={docsPath}
+            primaryLinkText={`Get started with ${product.title}`}
+            secondaryLink={comparison.migrationGuide ?? docsPath}
+            secondaryLinkText={
+              comparison.migrationGuide
+                ? `Migrate from ${competitor}`
+                : "Read the docs"
+            }
+          />
+        </DotGridSurface>
       </article>
     </div>
   );
