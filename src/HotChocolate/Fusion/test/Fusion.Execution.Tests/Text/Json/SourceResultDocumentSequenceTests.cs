@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Text;
+using System.Text.Json;
 using HotChocolate.Buffers;
 
 namespace HotChocolate.Fusion.Text.Json;
@@ -103,6 +104,53 @@ public class SourceResultDocumentSequenceTests
         // assert
         Assert.Equal(42, document.Root.GetProperty("value").GetInt32());
         Assert.Equal(["padding", "value"], document.Root.EnumerateObject().Select(t => t.Name));
+    }
+
+    [Theory]
+    [InlineData("[null]", new[] { "IndexOutOfRangeException" })]
+    [InlineData("[[1]]", new[] { "IndexOutOfRangeException" })]
+    [InlineData("[1,{\"a\":1}]", new[] { "1" })]
+    [InlineData("[{\"a\":1},2]", new[] { "{\"a\":1}", "IndexOutOfRangeException" })]
+    public void ParseFilledElement_Should_ReadEachElement_When_ElementIsNotAnObject(
+        string payload,
+        string[] expected)
+    {
+        // arrange
+        using var arena = new MemoryArena();
+        var (segments, usedChunks, lastLength) = CreateSegments(payload, "adjacent", emptyLast: false);
+
+        // act
+        var elements = ReadElements(arena, segments, usedChunks, lastLength);
+        arena.Seal();
+
+        // assert
+        Assert.Equal(expected, elements);
+    }
+
+    private static List<string> ReadElements(
+        MemoryArena arena,
+        MemorySegment[] segments,
+        int usedChunks,
+        int lastLength)
+    {
+        var elements = new List<string>();
+        var reader = SourceResultDocument.CreateFilledReader(segments, usedChunks, lastLength);
+        reader.Read();
+
+        try
+        {
+            while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
+            {
+                using var document = SourceResultDocument.ParseFilledElement(arena, ref reader, segments, usedChunks);
+                elements.Add(document.Root.GetRawText());
+            }
+        }
+        catch (Exception ex)
+        {
+            elements.Add(ex.GetType().Name);
+        }
+
+        return elements;
     }
 
     private static (MemorySegment[] Segments, int UsedChunks, int LastLength) CreateSegments(
