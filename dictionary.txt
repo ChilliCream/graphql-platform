@@ -32,6 +32,7 @@ bfnrt
 birthdates
 blazor
 blazorwasm
+Bogard
 Brontie
 Browsable
 BSON
@@ -152,6 +153,8 @@ lscache
 mapfile
 Marek
 marocchino
+Massient
+masstransit
 matchesBrics
 maxage
 maxAllowedResponseSize

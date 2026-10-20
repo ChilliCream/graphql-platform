@@ -73,6 +73,7 @@ export default function Footer() {
               <NavLink href="/products/nitro">Nitro</NavLink>
               <NavLink href="/products/fusion">Fusion</NavLink>
               <NavLink href="/products/mocha">Mocha</NavLink>
+              <NavLink href="/compare">Compare</NavLink>
             </LinkColumn>
             <LinkColumn title="Services">
               <NavLink href="/services/advisory">Advisory</NavLink>

@@ -1,11 +1,17 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const CONTENT_ROOTS = ["content/docs", "content/blog", "content/videos"];
+const CONTENT_ROOTS = [
+  "content/docs",
+  "content/blog",
+  "content/videos",
+  "content/compare",
+];
 const RULE_ID = "remark-rewrite-md-links";
 const PAGE_FILE_RE = /^page\.(tsx?|jsx?|mdx?)$/;
 const BLOG_STEM_RE = /^(\d{4})-(\d{2})-(\d{2})-(.+)$/;
 const VIDEO_STEM_RE = /^\d{4}-\d{2}-\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const COMPARISON_SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export default function remarkRewriteMdLinks() {
   return (tree, file) => {
@@ -19,7 +25,7 @@ export default function remarkRewriteMdLinks() {
     const appDir = path.join(cwd, "app");
 
     // Pages authored under content/ must use relative markdown links, not
-    // hard-coded root-absolute /blog/, /docs/, or /videos/ URLs.
+    // hard-coded root-absolute /blog/, /docs/, /videos/, or /compare/ URLs.
     const sourceRel = path.relative(cwd, sourcePath).split(path.sep).join("/");
     const sourceUnderContent = CONTENT_ROOTS.some(
       (r) => sourceRel === r || sourceRel.startsWith(`${r}/`),
@@ -63,20 +69,23 @@ export default function remarkRewriteMdLinks() {
         return;
       }
 
-      // Root-absolute: check content roots for /docs, /blog, and /videos,
-      // otherwise verify a matching literal/dynamic route exists in app/.
+      // Root-absolute: check content roots for /docs, /blog, /videos, and
+      // /compare, otherwise verify a matching literal/dynamic route exists in
+      // app/.
       if (node.url.startsWith("/")) {
         const pathPart = node.url.split(/[#?]/, 1)[0];
         const segments = pathPart.split("/").filter(Boolean);
 
-        // Forbid root-absolute /blog/, /docs/, and /videos/ links in content
-        // pages. Authors must link relatively so the URLs stay verifiable and
-        // survive restructuring (the relative target is rewritten below).
+        // Forbid root-absolute /blog/, /docs/, /videos/, and /compare/ links
+        // in content pages. Authors must link relatively so the URLs stay
+        // verifiable and survive restructuring (the relative target is
+        // rewritten below).
         if (
           sourceUnderContent &&
           (segments[0] === "blog" ||
             segments[0] === "docs" ||
-            (segments[0] === "videos" && segments.length > 1))
+            ((segments[0] === "videos" || segments[0] === "compare") &&
+              segments.length > 1))
         ) {
           file.fail(
             `Root-absolute link "${node.url}" is not allowed in content pages — ` +
@@ -124,6 +133,18 @@ export default function remarkRewriteMdLinks() {
             file.fail(
               `Broken root-absolute link "${node.url}" — no matching video found under videos/ ` +
                 `(expected /videos/YYYY-MM-DD-slug)`,
+              node,
+              RULE_ID,
+            );
+          }
+          return;
+        }
+
+        if (segments[0] === "compare" && segments.length > 1) {
+          if (!comparisonRouteExists(cwd, segments.slice(1))) {
+            file.fail(
+              `Broken root-absolute link "${node.url}" — no matching comparison found under compare/ ` +
+                `(expected /compare/slug)`,
               node,
               RULE_ID,
             );
@@ -330,6 +351,16 @@ function blogsRouteExists(cwd, subSegments) {
   ];
   return candidates.some((c) =>
     fs.existsSync(path.join(cwd, "content", "blog", c)),
+  );
+}
+
+/** Verify that /compare/slug maps to an actual comparison file on disk. */
+function comparisonRouteExists(cwd, subSegments) {
+  if (subSegments.length !== 1 || !COMPARISON_SLUG_RE.test(subSegments[0])) {
+    return false;
+  }
+  return fs.existsSync(
+    path.join(cwd, "content", "compare", `${subSegments[0]}.md`),
   );
 }
 

@@ -324,3 +324,68 @@ Hot Chocolate version used in this video: [15.1.4](https://www.nuget.org/package
   self-hosts it.
 - An invalid file name or frontmatter fails the build with a message naming the
   file.
+
+## Comparisons
+
+The `/compare` section compares ChilliCream products with other tools. Each
+comparison is one Markdown file in `content/compare/`, named `slug.md`, and is
+served at `/compare/slug`. The slug is lowercase and hyphenated, e.g.
+`mocha-vs-mediatr`.
+
+```markdown
+---
+title: "Mocha vs MediatR"
+metaTitle: "Mocha vs MediatR: A Free MediatR Alternative for .NET"
+description: "One or two sentences shown under the title, on the card, and as the meta description."
+product: "mocha"
+competitor: "MediatR"
+lastChecked: "2026-10-20"
+versions:
+  product: "16.7"
+  competitor: "13.1"
+migrationGuide: "/docs/mocha/migration/coming-from-mediatr"
+highlights:
+  - title: "MIT licensed"
+    text: "One or two sentences on a key difference."
+features:
+  - title: "Licensing"
+    rows:
+      - label: "License"
+        product: "MIT"
+        competitor: "Commercial"
+      - label: "Source generated"
+        product: true
+        competitor: false
+sources:
+  - title: "MediatR license announcement"
+    url: "https://..."
+---
+
+# When MediatR is the better fit
+
+...
+```
+
+| Field            | Required | Meaning                                                                                                    |
+| ---------------- | -------- | ---------------------------------------------------------------------------------------------------------- |
+| `title`          | yes      | The page heading and card title, usually `<Product> vs <Competitor>`.                                      |
+| `metaTitle`      | no       | Overrides the `<title>` tag and social title. Defaults to `title`.                                         |
+| `description`    | yes      | Summary under the heading, on the `/compare` card, and in the meta description.                            |
+| `product`        | yes      | Slug of the ChilliCream product from `src/data/products.ts`, e.g. `mocha`.                                 |
+| `competitor`     | yes      | Name of the other tool as its maintainers write it.                                                        |
+| `lastChecked`    | yes      | Quoted `YYYY-MM-DD` date the facts about the other tool were last checked against `sources`.               |
+| `versions`       | yes      | The `product` and `competitor` versions the comparison is based on.                                        |
+| `migrationGuide` | no       | Path of a docs page, e.g. `/docs/mocha/migration/coming-from-mediatr`. Adds the **Migrate from** button.   |
+| `highlights`     | yes      | The key differences, each with a `title` and a one or two sentence `text`. Use an even number.             |
+| `features`       | yes      | Table groups, each with a `title` and `rows`. A cell is `true` (check), `false` (dash), or a short string. |
+| `sources`        | yes      | `https://` links to the other tool's official docs, license, or announcements behind every claim.          |
+
+- Every claim about the other tool must come from one of `sources`. Do not cite
+  third-party blogs. Update `lastChecked` whenever you check the facts again.
+- Say where the other tool is the better fit. A comparison that only praises
+  our product is not credible to developers.
+- The body follows the same Markdown rules as docs and blog posts, so `#`
+  renders as a section heading. Link to docs pages relatively, e.g.
+  `[quick start](../docs/mocha/quick-start.md)`.
+- An invalid file name or frontmatter fails the build with a message naming the
+  file.
