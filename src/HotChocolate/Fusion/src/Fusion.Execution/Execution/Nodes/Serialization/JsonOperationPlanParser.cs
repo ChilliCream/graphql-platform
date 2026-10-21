@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Types;
@@ -581,6 +582,29 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         return [.. nodeMap.Values.OrderBy(t => t.Id)];
     }
 
+    private static ResultSelectionSet CreateResultSelectionSet(
+        SelectionSetNode resultSelectionSet,
+        FusionSchemaDefinition schema,
+        ITypeDefinition? parentType,
+        string? schemaName,
+        OperationSourceText operationSource,
+        SelectionPath source)
+    {
+        var result = ResultSelectionSet.CreateFromPlan(resultSelectionSet, schema, parentType, schemaName);
+        var document = Utf8GraphQLParser.Parse(operationSource.Value.Span);
+
+        foreach (var definition in document.Definitions)
+        {
+            if (definition is OperationDefinitionNode operation)
+            {
+                result.SetMergeTemplate(MergeProgramTemplate.TryCreate(operation, source));
+                break;
+            }
+        }
+
+        return result;
+    }
+
     private static ParsedOperationNodeInfo ParseOperationNodeInfo(
         JsonElement nodeElement, int id, FusionSchemaDefinition schema)
     {
@@ -608,11 +632,13 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             Requirements = requirements?.ToArray() ?? [],
             ForwardedVariables = forwardedVariables ?? [],
             ResultSelectionSet =
-                ResultSelectionSet.CreateFromPlan(
+                CreateResultSelectionSet(
                     resultSelectionSet!,
                     schema,
                     parentType,
-                    schemaName),
+                    schemaName,
+                    opSource,
+                    source ?? SelectionPath.Root),
             Dependencies = dependencies,
             ParentDependencies = parentDependencies,
             BatchingGroupId = batchingGroupId,
@@ -663,11 +689,13 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             Requirements = requirements?.ToArray() ?? [],
             ForwardedVariables = forwardedVariables ?? [],
             ResultSelectionSet =
-                ResultSelectionSet.CreateFromPlan(
+                CreateResultSelectionSet(
                     resultSelectionSet!,
                     schema,
                     parentType,
-                    schemaName),
+                    schemaName,
+                    opSource,
+                    source ?? SelectionPath.Root),
             Dependencies = dependencies,
             ParentDependencies = parentDependencies,
             BatchingGroupId = batchingGroupId,
@@ -798,11 +826,13 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             Requirements = requirements?.ToArray() ?? [],
             ForwardedVariables = forwardedVariables ?? [],
             ResultSelectionSet =
-                ResultSelectionSet.CreateFromPlan(
+                CreateResultSelectionSet(
                     resultSelectionSet!,
                     schema,
                     parentType,
-                    schemaName),
+                    schemaName,
+                    opSource,
+                    source ?? SelectionPath.Root),
             Dependencies = dependencies,
             ParentDependencies = parentDependencies,
             BatchingGroupId = batchingGroupId,

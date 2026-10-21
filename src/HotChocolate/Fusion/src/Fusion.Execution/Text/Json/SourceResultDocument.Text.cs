@@ -330,6 +330,13 @@ public sealed partial class SourceResultDocument
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal DbRow GetDbRow(Cursor cursor) => _parsedData.Get(cursor);
 
+    /// <summary>
+    /// Creates a reader that returns the rows from <paramref name="cursor"/> on in document order.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal MetaDb.SequentialReader CreateSequentialReader(Cursor cursor)
+        => _parsedData.CreateSequentialReader(cursor);
+
     // Reads the value row once so callers can derive the token type and value range from a single row read.
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal DbRow GetValueRow(Cursor cursor) => _parsedData.Get(cursor);

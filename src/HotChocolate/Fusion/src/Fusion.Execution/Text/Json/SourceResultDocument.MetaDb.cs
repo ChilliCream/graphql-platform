@@ -221,6 +221,93 @@ public sealed partial class SourceResultDocument
             return (JsonTokenType)(union >> 28);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal readonly SequentialReader CreateSequentialReader(Cursor cursor)
+        {
+            AssertValidCursor(cursor);
+            return new SequentialReader(_chunks, cursor);
+        }
+
+        /// <summary>
+        /// Reads rows in document order from a start cursor. Every row is read at most once and
+        /// the reader only touches rows that the document holds.
+        /// </summary>
+        internal ref struct SequentialReader
+        {
+            private readonly MemorySegment[] _chunks;
+            private ref byte _chunkStart;
+            private int _chunk;
+            private int _row;
+            private int _rowsInChunk;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            internal SequentialReader(MemorySegment[] chunks, Cursor cursor)
+            {
+                _chunks = chunks;
+                _chunkStart = ref Unsafe.NullRef<byte>();
+                _chunk = cursor.Chunk;
+                _row = cursor.Row;
+                _rowsInChunk = 0;
+                LoadChunk();
+            }
+
+            /// <summary>
+            /// Gets the cursor of the row the next <see cref="Read"/> returns.
+            /// </summary>
+            internal Cursor Cursor
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get
+                {
+                    if (_row >= _rowsInChunk)
+                    {
+                        Roll();
+                    }
+
+                    return Cursor.From(_chunk, _row);
+                }
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            internal DbRow Read()
+            {
+                if (_row >= _rowsInChunk)
+                {
+                    Roll();
+                }
+
+                var row = Unsafe.ReadUnaligned<DbRow>(ref Unsafe.Add(ref _chunkStart, _row * DbRow.Size));
+                _row++;
+                return row;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            internal void Skip(int rows)
+            {
+                _row += rows;
+            }
+
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            private void Roll()
+            {
+                while (_row >= _rowsInChunk)
+                {
+                    _row -= _rowsInChunk;
+                    _chunk++;
+                    LoadChunk();
+                }
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private void LoadChunk()
+            {
+                ref readonly var chunk = ref _chunks[_chunk];
+                Debug.Assert(chunk.Buffer is not null, "The reader moved past the written rows.");
+                _chunkStart = ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(chunk.Buffer), chunk.Offset);
+                _rowsInChunk = Cursor.RowsPerChunkFor(_chunk);
+            }
+        }
+
         [Conditional("DEBUG")]
         private readonly void AssertValidCursor(Cursor cursor)
         {
