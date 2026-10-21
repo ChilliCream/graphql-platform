@@ -185,7 +185,7 @@ internal ref struct AdditionalPathAccumulator
     private readonly CompactPath GetPath(int index, CompositeResultDocument document)
         => _cursors![index] == NoCursor
             ? _paths![index]
-            : document.CreateCompactPath(new CompositeResultDocument.Cursor(_cursors[index]), pooled: true);
+            : document.CreateCompactPath(new CompositeResultDocument.Cursor(_cursors[index]));
 
     private int Reserve(int slotIndex)
     {

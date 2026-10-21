@@ -220,7 +220,7 @@ public readonly partial struct CompositeResultElement
         {
             CheckValidInstance();
 
-            return _parent.CreateCompactPath(_cursor, pooled: true);
+            return _parent.CreateCompactPath(_cursor);
         }
     }
 
@@ -233,7 +233,7 @@ public readonly partial struct CompositeResultElement
         {
             CheckValidInstance();
 
-            var path = _parent.CreateCompactPath(_cursor, pooled: true);
+            var path = _parent.CreateCompactPath(_cursor);
             return path.ToPath(_parent.GetOperation());
         }
     }

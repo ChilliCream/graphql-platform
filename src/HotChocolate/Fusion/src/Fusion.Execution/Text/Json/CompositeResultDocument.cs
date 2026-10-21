@@ -172,7 +172,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     /// is <c>false</c>, the path arrays are allocated instead of rented from the request scoped pool.
     /// </summary>
     [SkipLocalsInit]
-    internal CompactPath CreateCompactPath(Cursor current, bool pooled)
+    internal CompactPath CreateCompactPath(Cursor current, bool pooled = true)
     {
         var firstRow = _metaDb.Get(current);
 
@@ -238,7 +238,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     }
 
     internal Path CreatePath(Cursor current)
-        => CreateCompactPath(current, pooled: true).ToPath(_operation);
+        => CreateCompactPath(current).ToPath(_operation);
 
     internal CompositeResultElement GetParent(Cursor current)
     {
