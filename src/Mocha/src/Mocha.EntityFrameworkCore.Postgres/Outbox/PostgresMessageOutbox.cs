@@ -1,7 +1,6 @@
 using System.Text.Json;
 using System.Transactions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -68,7 +67,7 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
     /// <returns>A new <see cref="PostgresMessageOutbox"/> configured for the specified DbContext.</returns>
     public static PostgresMessageOutbox Create(Type contextType, string optionsName, IServiceProvider services)
     {
-        var signal = services.GetRequiredService<IOutboxSignal>();
+        var signal = services.GetRequiredKeyedService<IOutboxSignal>(contextType);
         var outboxOptionsMonitor = services.GetRequiredService<IOptionsMonitor<PostgresMessageOutboxOptions>>();
         var outboxOptions = outboxOptionsMonitor.Get(optionsName);
         var insertSql = outboxOptions.Queries.InsertEnvelope;
@@ -92,15 +91,9 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
     /// </exception>
     public async ValueTask PersistAsync(MessageEnvelope envelope, CancellationToken cancellationToken)
     {
-        var targetOutbox = OutboxPublishContext.Current;
-
-        if (_requireTransaction && targetOutbox is null && RequiresTransaction(envelope) && !HasTransaction())
+        if (_requireTransaction && RequiresTransaction(envelope) && !HasTransaction())
         {
-            throw new InvalidOperationException(
-                $"The outbox for DbContext '{_contextType.FullName}' "
-                + "requires a transaction to publish or send a message. "
-                + "Begin a transaction on that DbContext, use UseTransaction() for consumers, "
-                + "or set RequireTransaction to false in UsePostgresOutbox().");
+            throw Mocha.EntityFrameworkCore.Postgres.ThrowHelper.OutboxRequiresTransaction(_contextType);
         }
 
         await _semaphore.WaitAsync(cancellationToken);
@@ -111,37 +104,30 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
             _jsonWriter.WriteEnvelope(envelope);
             _jsonWriter.Flush();
 
-            if (targetOutbox is not null)
+            var dbContext = OriginalDbContext;
+            var connection = (NpgsqlConnection)dbContext.Database.GetDbConnection();
+
+            try
             {
-                AddMessage(targetOutbox, _arrayWriter.WrittenMemory);
+                await dbContext.Database.OpenConnectionAsync(cancellationToken);
+
+                await using var command = connection.CreateCommand();
+                command.CommandText = _insertSql;
+                command.Parameters.AddWithValue("@id", NewVersion());
+                command.Parameters.Add(
+                    new NpgsqlParameter("@envelope", NpgsqlDbType.Json) { Value = _arrayWriter.WrittenMemory });
+                await command.PrepareAsync(cancellationToken);
+
+                await command.ExecuteNonQueryAsync(cancellationToken);
+
+                if (dbContext.Database.CurrentTransaction?.GetDbTransaction() is not NpgsqlTransaction)
+                {
+                    _signal.SetAfterAmbientTransaction();
+                }
             }
-            else
+            finally
             {
-                var dbContext = OriginalDbContext;
-                var connection = (NpgsqlConnection)dbContext.Database.GetDbConnection();
-
-                try
-                {
-                    await dbContext.Database.OpenConnectionAsync(cancellationToken);
-
-                    await using var command = connection.CreateCommand();
-                    command.CommandText = _insertSql;
-                    command.Parameters.AddWithValue("@id", NewVersion());
-                    command.Parameters.Add(
-                        new NpgsqlParameter("@envelope", NpgsqlDbType.Json) { Value = _arrayWriter.WrittenMemory });
-                    await command.PrepareAsync(cancellationToken);
-
-                    await command.ExecuteNonQueryAsync(cancellationToken);
-
-                    if (dbContext.Database.CurrentTransaction?.GetDbTransaction() is not NpgsqlTransaction)
-                    {
-                        _signal.SetAfterAmbientTransaction();
-                    }
-                }
-                finally
-                {
-                    await dbContext.Database.CloseConnectionAsync();
-                }
+                await dbContext.Database.CloseConnectionAsync();
             }
         }
         finally
@@ -162,14 +148,6 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
     // Replies and faults can be dispatched after the handler transaction rolls back.
     private static bool RequiresTransaction(MessageEnvelope envelope)
         => envelope.Headers?.Get(MessageHeaders.MessageKind) is MessageKind.Publish or MessageKind.Send;
-
-    private static void AddMessage(DbContextOutbox outbox, ReadOnlyMemory<byte> envelope)
-    {
-        var tracker = outbox.Context.GetService<PostgresOutboxTracker>();
-        var reader = new Utf8JsonReader(envelope.Span);
-        var document = JsonDocument.ParseValue(ref reader);
-        tracker.Track(outbox.Context, new OutboxMessage(NewVersion(), document));
-    }
 
     private static Guid NewVersion()
     {

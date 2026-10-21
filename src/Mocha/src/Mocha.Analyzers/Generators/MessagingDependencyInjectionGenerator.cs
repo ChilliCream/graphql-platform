@@ -40,7 +40,10 @@ public sealed class MessagingDependencyInjectionGenerator : ISyntaxGenerator
 
         var contextOnlyTypes = syntaxInfos.OfType<ContextOnlyMessageInfo>().OrderBy(c => c.OrderByKey).ToList();
 
-        if (handlers.Count == 0 && sagas.Count == 0 && contextOnlyTypes.Count == 0)
+        if (handlers.Count == 0
+            && sagas.Count == 0
+            && contextOnlyTypes.Count == 0
+            && !syntaxInfos.Any(static info => info is MessageDeclarationsInfo { Declarations.Count: > 0 }))
         {
             return;
         }

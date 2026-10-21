@@ -24,7 +24,8 @@ public sealed class DispatchSchedulingMiddleware
     /// <returns>A value task that completes when the message has been persisted or forwarded.</returns>
     public async ValueTask InvokeAsync(IDispatchContext context, DispatchDelegate next)
     {
-        if (context.ScheduledTime is not { } scheduledTime)
+        if (context.ScheduledTime is not { } scheduledTime
+            || context.Features.Get<DispatchTargetFeature>()?.Target is not null)
         {
             await next(context);
             return;

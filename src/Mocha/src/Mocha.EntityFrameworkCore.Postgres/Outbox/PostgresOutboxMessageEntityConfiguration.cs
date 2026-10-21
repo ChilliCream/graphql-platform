@@ -31,10 +31,14 @@ internal sealed class PostgresOutboxMessageEntityConfiguration : IEntityTypeConf
         builder.HasIndex(x => x.CreatedAt).HasDatabaseName(s_defaults.IxCreatedAt).IsDescending();
 
         builder.HasIndex(x => x.TimesSent).HasDatabaseName(s_defaults.IxTimesSent);
+        builder.HasIndex(x => new { x.GroupId, x.Sequence }).IsUnique().HasDatabaseName(s_defaults.IxGroupSequence);
 
         builder.Property(x => x.Id).HasColumnName(s_defaults.Id);
         builder.Property(x => x.Envelope).HasColumnName(s_defaults.Envelope).HasColumnType("json");
         builder.Property(x => x.TimesSent).HasColumnName(s_defaults.TimesSent);
         builder.Property(x => x.CreatedAt).HasColumnName(s_defaults.CreatedAt);
+        builder.Property(x => x.GroupId).HasColumnName(s_defaults.GroupId);
+        builder.Property(x => x.Sequence).HasColumnName(s_defaults.Sequence).HasDefaultValue(0L);
+        builder.Property(x => x.ScheduledAt).HasColumnName(s_defaults.ScheduledAt);
     }
 }

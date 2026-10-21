@@ -9,6 +9,16 @@ namespace Mocha.EntityFrameworkCore;
 /// </summary>
 public static class DbContextOutboxExtensions
 {
+    /// <summary>
+    /// Attaches the caller's messaging scope to this DbContext lease.
+    /// </summary>
+    public static void UseOutbox(this DbContext context, IMessageBus bus)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(bus);
+        context.Outbox.Attach(bus);
+    }
+
     extension(DbContext context)
     {
         /// <summary>
@@ -18,10 +28,7 @@ public static class DbContextOutboxExtensions
         /// The DbContext is not registered with an outbox through <c>AddEntityFramework</c>.
         /// </exception>
         public DbContextOutbox Outbox
-            => context.GetInfrastructure().GetService<DbContextOutbox>()
-                ?? throw new InvalidOperationException(
-                    $"The DbContext '{context.GetType().FullName}' has no outbox. "
-                    + $"Register an outbox for it with AddEntityFramework<{context.GetType().Name}>(), "
-                    + "for example by calling UsePostgresOutbox().");
+            => context.GetInfrastructure().GetService<DbContextOutboxScope>()?.GetOutbox(context)
+                ?? throw ThrowHelper.OutboxNotConfigured(context.GetType());
     }
 }

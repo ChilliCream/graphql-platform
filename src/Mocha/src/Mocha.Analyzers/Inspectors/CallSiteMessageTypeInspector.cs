@@ -9,7 +9,7 @@ namespace Mocha.Analyzers.Inspectors;
 
 /// <summary>
 /// Inspects dispatch call sites (<c>SendAsync</c>, <c>PublishAsync</c>, <c>RequestAsync</c>,
-/// <c>QueryAsync</c>, etc.) on <c>IMessageBus</c>, <c>ISender</c>, and <c>IPublisher</c>
+/// <c>QueryAsync</c>, etc.) on the messaging bus, explicit dispatcher, DbContext outbox, and mediator
 /// to extract the compile-time message and response types being dispatched.
 /// </summary>
 /// <remarks>
@@ -62,9 +62,12 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
             return false;
         }
 
-        // Try IMessageBus
-        if (knownSymbols.IMessageBus is not null
-            && SymbolEqualityComparer.Default.Equals(receiverType, knownSymbols.IMessageBus))
+        if ((knownSymbols.IMessageBus is not null
+                && SymbolEqualityComparer.Default.Equals(receiverType, knownSymbols.IMessageBus))
+            || (knownSymbols.IMessageDispatcher is not null
+                && SymbolEqualityComparer.Default.Equals(receiverType, knownSymbols.IMessageDispatcher))
+            || (knownSymbols.DbContextOutbox is not null
+                && SymbolEqualityComparer.Default.Equals(receiverType, knownSymbols.DbContextOutbox)))
         {
             return TryHandleMessageBus(methodSymbol, invocation, semanticModel, cancellationToken, out syntaxInfo);
         }
@@ -141,7 +144,7 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
             return false;
         }
 
-        // All other IMessageBus methods are generic - extract T from type arguments.
+        // All other dispatch methods are generic - extract T from type arguments.
         if (methodSymbol.TypeArguments.Length == 0)
         {
             return false;

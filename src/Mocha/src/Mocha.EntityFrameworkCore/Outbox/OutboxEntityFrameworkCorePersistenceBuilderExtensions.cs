@@ -25,24 +25,16 @@ public static class OutboxEntityFrameworkCorePersistenceBuilderExtensions
         }
 
         builder.HostBuilder.UseOutboxCore();
-        builder.HostBuilder.ConfigureMessageBus(bus => bus
-            .UseConsume(OutboxMessageCorrelation.CreateConsumeMiddleware(), after: "Retry")
-            .UseDispatch(OutboxMessageCorrelation.CreateDispatchMiddleware(), before: "Instrumentation"));
+        var contextType = builder.ContextType;
+        builder.Services.AddOutboxSignal(contextType);
 
         builder.ConfigureEntityFrameworkServices((sp, services) =>
         {
-            var signal = sp.GetService<IOutboxSignal>();
-
-            if (signal is not null)
-            {
-                services.AddSingleton<IInterceptor>(new OutboxDbTransactionInterceptor(signal));
-                services.AddSingleton<IInterceptor>(new OutboxSaveChangesInterceptor(signal));
-                services.AddScoped(_ => new DbContextOutboxScope(sp.GetRequiredService<IServiceScopeFactory>()));
-                services.AddScoped<IResettableService>(s => s.GetRequiredService<DbContextOutboxScope>());
-                services.AddScoped(s => new DbContextOutbox(
-                    s.GetRequiredService<ICurrentDbContext>().Context,
-                    s.GetRequiredService<DbContextOutboxScope>()));
-            }
+            var signal = sp.GetRequiredKeyedService<IOutboxSignal>(contextType);
+            services.AddSingleton<IInterceptor>(new OutboxDbTransactionInterceptor(signal));
+            services.AddSingleton<IInterceptor>(new OutboxSaveChangesInterceptor(signal));
+            services.AddScoped<DbContextOutboxScope>();
+            services.AddScoped<IResettableService>(s => s.GetRequiredService<DbContextOutboxScope>());
         });
         return builder;
     }

@@ -49,13 +49,15 @@ internal sealed class PostgresMessageOutboxQueries
                 """,
 
             NextPollingInterval = $"""
-                SELECT MIN(
-                    CASE WHEN "{t.TimesSent}" = 0 THEN NOW()
-                        ELSE "{t.CreatedAt}" + INTERVAL '1 seconds' * POWER(2, "{t.TimesSent}")
-                    END
-                ) AS "NextWakeUpTime"
-                FROM {t.QualifiedTableName}
-                WHERE "{t.TimesSent}" < {MaxAttempts};
+                SELECT MIN(GREATEST(
+                    CASE WHEN candidate."{t.TimesSent}" = 0 THEN NOW() ELSE candidate."{t.CreatedAt}" END,
+                    COALESCE(candidate."{t.ScheduledAt}", NOW())))
+                FROM {t.QualifiedTableName} AS candidate
+                WHERE candidate."{t.TimesSent}" < {MaxAttempts}
+                    AND NOT EXISTS (
+                        SELECT 1 FROM {t.QualifiedTableName} AS previous
+                        WHERE previous."{t.GroupId}" = candidate."{t.GroupId}"
+                            AND previous."{t.Sequence}" < candidate."{t.Sequence}");
                 """,
 
             ProcessEvent = $"""
@@ -63,11 +65,16 @@ internal sealed class PostgresMessageOutboxQueries
                 SET "{t.TimesSent}" = "{t.TimesSent}" + 1,
                     "{t.CreatedAt}" = NOW() + INTERVAL '1 second' * POWER(2, "{t.TimesSent}")
                 WHERE "{t.Id}" = (
-                    SELECT "{t.Id}" FROM {t.QualifiedTableName}
-                    WHERE "{t.TimesSent}" < {MaxAttempts}
-                        AND ("{t.TimesSent}" = 0 OR "{t.CreatedAt}" <= NOW())
-                    ORDER BY "{t.CreatedAt}"
-                    FOR UPDATE SKIP LOCKED
+                    SELECT candidate."{t.Id}" FROM {t.QualifiedTableName} AS candidate
+                    WHERE candidate."{t.TimesSent}" < {MaxAttempts}
+                        AND (candidate."{t.TimesSent}" = 0 OR candidate."{t.CreatedAt}" <= NOW())
+                        AND (candidate."{t.ScheduledAt}" IS NULL OR candidate."{t.ScheduledAt}" <= NOW())
+                        AND NOT EXISTS (
+                            SELECT 1 FROM {t.QualifiedTableName} AS previous
+                            WHERE previous."{t.GroupId}" = candidate."{t.GroupId}"
+                                AND previous."{t.Sequence}" < candidate."{t.Sequence}")
+                    ORDER BY candidate."{t.CreatedAt}", candidate."{t.Id}"
+                    FOR UPDATE OF candidate SKIP LOCKED
                     LIMIT 1
                 )
                 RETURNING

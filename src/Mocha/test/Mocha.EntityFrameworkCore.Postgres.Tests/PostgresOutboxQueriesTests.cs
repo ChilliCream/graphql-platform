@@ -9,7 +9,7 @@ public sealed class PostgresOutboxQueriesTests(PostgresFixture fixture) : IClass
 {
     [Theory]
     [InlineData(0, true, 0)]
-    [InlineData(1, false, 86402)]
+    [InlineData(1, false, 86400)]
     public async Task ProcessEvent_Should_OnlyDelayRetries_When_CreatedAtIsInTheFuture(
         int attempts,
         bool ready,

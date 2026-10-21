@@ -1,69 +1,76 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Mocha.EntityFrameworkCore;
 
 /// <summary>
-/// Owns the messaging services used by one DbContext lease.
+/// Associates one DbContext lease with its caller's messaging services.
 /// </summary>
-internal sealed class DbContextOutboxScope(IServiceScopeFactory scopeFactory)
-    : IResettableService, IDisposable, IAsyncDisposable
+internal sealed class DbContextOutboxScope : IResettableService, IDisposable
 {
-    private IServiceScope? _scope;
+    private IServiceProvider? _services;
     private IMessageBus? _bus;
+    private DbContextOutbox? _outbox;
     private bool _disposed;
 
-    public IMessageBus Bus
+    internal bool IsPreparing => _outbox?.IsPreparing ?? false;
+
+    internal DbContextOutbox GetOutbox(DbContext context)
     {
-        get
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        return _outbox ??= new DbContextOutbox(context, this);
+    }
+
+    internal void Attach(IServiceProvider services)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        if ((_services is not null && !ReferenceEquals(_services, services))
+            || (_bus is not null && !ReferenceEquals(_bus, services.GetRequiredService<IMessageBus>())))
         {
-            ObjectDisposedException.ThrowIf(_disposed, this);
-
-            if (_bus is null)
-            {
-                _scope ??= scopeFactory.CreateScope();
-                _bus = _scope.ServiceProvider.GetRequiredService<IMessageBus>();
-            }
-
-            return _bus;
+            throw ThrowHelper.OutboxAlreadyAttached();
         }
+
+        _services = services;
+    }
+
+    internal void Attach(IMessageBus bus)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        var current = _bus ?? _services?.GetRequiredService<IMessageBus>();
+        if (current is not null && !ReferenceEquals(current, bus))
+        {
+            throw ThrowHelper.OutboxAlreadyAttached();
+        }
+
+        _bus = bus;
+    }
+
+    internal IMessageBus GetBus(DbContext context)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        return _bus ??= _services?.GetRequiredService<IMessageBus>()
+            ?? throw ThrowHelper.OutboxNotAttached(context.GetType());
+    }
+
+    void IResettableService.ResetState() => Reset();
+
+    Task IResettableService.ResetStateAsync(CancellationToken cancellationToken)
+    {
+        Reset();
+        return Task.CompletedTask;
     }
 
     public void Dispose()
     {
         _disposed = true;
-        ReleaseScope()?.Dispose();
+        Reset();
     }
 
-    public ValueTask DisposeAsync()
+    private void Reset()
     {
-        _disposed = true;
-        return ReleaseScopeAsync();
-    }
-
-    void IResettableService.ResetState() => ReleaseScope()?.Dispose();
-
-    Task IResettableService.ResetStateAsync(CancellationToken cancellationToken)
-        => ReleaseScopeAsync().AsTask();
-
-    private IServiceScope? ReleaseScope()
-    {
-        var scope = _scope;
-        _scope = null;
+        _services = null;
         _bus = null;
-        return scope;
-    }
-
-    private ValueTask ReleaseScopeAsync()
-    {
-        var scope = ReleaseScope();
-
-        if (scope is IAsyncDisposable asyncDisposable)
-        {
-            return asyncDisposable.DisposeAsync();
-        }
-
-        scope?.Dispose();
-        return default;
+        _outbox = null;
     }
 }

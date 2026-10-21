@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Text.Json;
 using System.Transactions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -82,7 +81,7 @@ public sealed class PostgresOutboxAmbientTransactionSignalTests(PostgresFixture 
         {
             await using var scope = provider.CreateAsyncScope();
             var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
-            db.Add(new OutboxMessage(Guid.NewGuid(), JsonDocument.Parse("{}")));
+            db.Add(new OutboxMessage(Guid.NewGuid(), "{}"));
             await db.SaveChangesAsync(TestToken);
             signal.Mark("before-complete");
             transaction.Complete();

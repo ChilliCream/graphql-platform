@@ -31,6 +31,8 @@ public sealed class KnownTypeSymbols
     private Resolved<INamedTypeSymbol?>? _eventRequest;
     private Resolved<INamedTypeSymbol?>? _eventRequestOfT;
     private Resolved<INamedTypeSymbol?>? _messageBus;
+    private Resolved<INamedTypeSymbol?>? _messageDispatcher;
+    private Resolved<INamedTypeSymbol?>? _dbContextOutbox;
     private Resolved<INamedTypeSymbol?>? _sender;
     private Resolved<INamedTypeSymbol?>? _publisher;
     private Resolved<INamedTypeSymbol?>? _messageBusHostBuilderExtensions;
@@ -143,6 +145,18 @@ public sealed class KnownTypeSymbols
     /// </summary>
     public INamedTypeSymbol? IMessageBus
         => Resolve(SyntaxConstants.IMessageBus, ref _messageBus);
+
+    /// <summary>
+    /// Gets the symbol for the <c>IMessageDispatcher</c> interface.
+    /// </summary>
+    public INamedTypeSymbol? IMessageDispatcher
+        => Resolve(SyntaxConstants.IMessageDispatcher, ref _messageDispatcher);
+
+    /// <summary>
+    /// Gets the symbol for the <c>DbContextOutbox</c> class.
+    /// </summary>
+    public INamedTypeSymbol? DbContextOutbox
+        => Resolve(SyntaxConstants.DbContextOutbox, ref _dbContextOutbox);
 
     /// <summary>
     /// Gets the symbol for the <c>ISender</c> interface (Mediator).

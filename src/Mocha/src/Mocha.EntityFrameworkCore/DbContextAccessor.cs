@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Mocha.EntityFrameworkCore;
@@ -18,12 +19,25 @@ internal sealed class DbContextAccessor(DbContext context, bool ownsContext) : I
 
         if (services.GetService<IDbContextFactory<TContext>>() is { } factory)
         {
-            return new DbContextAccessor(factory.CreateDbContext(), true);
+            var createdContext = factory.CreateDbContext();
+
+            try
+            {
+                if (services.GetServices<OutboxDbContextRegistration>().Any(r => r.ContextType == typeof(TContext)))
+                {
+                    createdContext.GetService<DbContextOutboxScope>().Attach(services);
+                }
+
+                return new DbContextAccessor(createdContext, true);
+            }
+            catch
+            {
+                createdContext.Dispose();
+                throw;
+            }
         }
 
-        throw new InvalidOperationException(
-            $"The messaging DbContext '{typeof(TContext).FullName}' is not registered. "
-            + "Register the context or an IDbContextFactory for it before building the service provider.");
+        throw ThrowHelper.MissingMessagingDbContext(typeof(TContext));
     }
 
     public void Dispose()

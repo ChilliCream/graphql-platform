@@ -148,6 +148,16 @@ public static class SyntaxConstants
     public const string IMessageBus = "Mocha.IMessageBus";
 
     /// <summary>
+    /// Gets the metadata name for the <c>IMessageDispatcher</c> interface.
+    /// </summary>
+    public const string IMessageDispatcher = "Mocha.Middlewares.IMessageDispatcher";
+
+    /// <summary>
+    /// Gets the metadata name for the <c>DbContextOutbox</c> class.
+    /// </summary>
+    public const string DbContextOutbox = "Mocha.EntityFrameworkCore.DbContextOutbox";
+
+    /// <summary>
     /// Gets the metadata name for the <c>ISender</c> interface (Mediator).
     /// </summary>
     public const string ISender = "Mocha.Mediator.ISender";
