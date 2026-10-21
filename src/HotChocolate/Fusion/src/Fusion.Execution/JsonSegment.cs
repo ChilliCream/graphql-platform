@@ -7,7 +7,7 @@ namespace HotChocolate.Fusion;
 
 public readonly struct JsonSegment : IEquatable<JsonSegment>
 {
-    // a ChunkedArrayWriter or an ArenaBufferWriter
+    // a ChunkedArrayWriter, an ArenaBufferWriter or a byte array
     private readonly object? _memory;
     private readonly int _location;
     private readonly int _length;
@@ -101,9 +101,18 @@ public readonly struct JsonSegment : IEquatable<JsonSegment>
             return false;
         }
 
-        return _memory is ArenaBufferWriter arena
-            ? arena.SequenceEqual(_location, other._location, _length)
-            : ((ChunkedArrayWriter)_memory!).SequenceEqual(_location, other._location, _length);
+        switch (_memory)
+        {
+            case ArenaBufferWriter arena:
+                return arena.SequenceEqual(_location, other._location, _length);
+
+            case ChunkedArrayWriter chunked:
+                return chunked.SequenceEqual(_location, other._location, _length);
+
+            default:
+                var bytes = (byte[])_memory!;
+                return bytes.AsSpan(_location, _length).SequenceEqual(bytes.AsSpan(other._location, _length));
+        }
     }
 
     public override bool Equals(object? obj)
@@ -114,8 +123,36 @@ public readonly struct JsonSegment : IEquatable<JsonSegment>
         {
             null => 0,
             ArenaBufferWriter arena => arena.GetHashCode(_location, _length),
-            _ => ((ChunkedArrayWriter)_memory).GetHashCode(_location, _length)
+            ChunkedArrayWriter chunked => chunked.GetHashCode(_location, _length),
+            _ => (int)(ChunkedArrayWriter.ComputeHashCore(0u, ((byte[])_memory).AsSpan(_location, _length))
+                & 0x7FFFFFFF)
         };
+
+    /// <summary>
+    /// Copies the bytes of this segment into memory that only the returned segment reads, so the
+    /// returned segment stays valid when the memory of this segment is reused.
+    /// </summary>
+    internal JsonSegment Detach()
+    {
+        if (IsEmpty)
+        {
+            return this;
+        }
+
+        var bytes = new byte[_length];
+        var destination = bytes.AsSpan();
+        var start = _location;
+        var length = _length;
+
+        while (length > 0)
+        {
+            var source = Read(ref start, ref length);
+            source.CopyTo(destination);
+            destination = destination[source.Length..];
+        }
+
+        return new JsonSegment(bytes, 0, bytes.Length);
+    }
 
     public static JsonSegment Empty => default;
 
@@ -126,14 +163,30 @@ public readonly struct JsonSegment : IEquatable<JsonSegment>
         => new(memory, location, length);
 
     private ReadOnlySpan<byte> Read(ref int start, ref int length)
-        => _memory is ArenaBufferWriter arena
-            ? arena.Read(ref start, ref length)
-            : ((ChunkedArrayWriter)_memory!).Read(ref start, ref length);
+        => _memory switch
+        {
+            ArenaBufferWriter arena => arena.Read(ref start, ref length),
+            ChunkedArrayWriter chunked => chunked.Read(ref start, ref length),
+            _ => ReadMemory(ref start, ref length).Span
+        };
 
     private ReadOnlyMemory<byte> ReadMemory(ref int start, ref int length)
-        => _memory is ArenaBufferWriter arena
-            ? arena.ReadMemory(ref start, ref length)
-            : ((ChunkedArrayWriter)_memory!).ReadMemory(ref start, ref length);
+    {
+        switch (_memory)
+        {
+            case ArenaBufferWriter arena:
+                return arena.ReadMemory(ref start, ref length);
+
+            case ChunkedArrayWriter chunked:
+                return chunked.ReadMemory(ref start, ref length);
+
+            default:
+                var bytes = ((byte[])_memory!).AsMemory(start, length);
+                start += length;
+                length = 0;
+                return bytes;
+        }
+    }
 
     private sealed class MemorySegment : ReadOnlySequenceSegment<byte>
     {

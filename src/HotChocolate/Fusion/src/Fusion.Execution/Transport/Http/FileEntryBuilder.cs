@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Collections.Immutable;
 using System.Text;
 using System.Text.Json;
@@ -73,7 +74,9 @@ internal static class FileEntryBuilder
                     break;
 
                 case JsonTokenType.String:
-                    if (TryExtractFileKey(reader.ValueSpan, out var fileKey)
+                    var value = GetValueBytes(ref reader);
+
+                    if (TryExtractFileKey(value, out var fileKey)
                         && fileLookup.TryGetFile(fileKey, out var file))
                     {
                         fileEntries.Add(new FileEntry(fileKey, PrintPath(path), file));
@@ -82,13 +85,13 @@ internal static class FileEntryBuilder
                     }
                     else
                     {
-                        jsonWriter.WriteStringValue(reader.ValueSpan, skipEscaping: true);
+                        jsonWriter.WriteStringValue(value, skipEscaping: true);
                     }
                     path = PopAfterValue(path);
                     break;
 
                 case JsonTokenType.Number:
-                    jsonWriter.WriteRawValue(reader.ValueSpan);
+                    jsonWriter.WriteRawValue(GetValueBytes(ref reader));
                     path = PopAfterValue(path);
                     break;
 
@@ -117,6 +120,10 @@ internal static class FileEntryBuilder
 
         return JsonSegment.Create(writer, startPosition, writer.Position - startPosition);
     }
+
+    // a token that spans memory segments is copied into one span
+    private static ReadOnlySpan<byte> GetValueBytes(ref Utf8JsonReader reader)
+        => reader.HasValueSequence ? reader.ValueSequence.ToArray() : reader.ValueSpan;
 
     private static Path ParsePrefix(string pathPrefix)
     {

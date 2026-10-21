@@ -502,11 +502,11 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
                     break;
 
                 case JsonTokenType.PropertyName:
-                    writer.WritePropertyName(reader.ValueSpan);
+                    writer.WritePropertyName(GetValueBytes(ref reader));
                     break;
 
                 case JsonTokenType.String:
-                    var span = reader.ValueSpan;
+                    var span = GetValueBytes(ref reader);
                     if (span.Length > s_fileMarkerPrefix.Length + 1
                         && span.StartsWith(s_fileMarkerPrefix)
                         && span[^1] == (byte)')')
@@ -522,7 +522,7 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
                     break;
 
                 case JsonTokenType.Number:
-                    writer.WriteNumberValue(reader.ValueSpan);
+                    writer.WriteNumberValue(GetValueBytes(ref reader));
                     break;
 
                 case JsonTokenType.True:
@@ -541,6 +541,10 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
 
         return JsonSegment.Create(buffer, startPosition, buffer.Position - startPosition);
     }
+
+    // a token that spans memory segments is copied into one span
+    private static ReadOnlySpan<byte> GetValueBytes(ref Utf8JsonReader reader)
+        => reader.HasValueSequence ? reader.ValueSequence.ToArray() : reader.ValueSpan;
 
     private static int ResolveRequestIndex(
         ImmutableArray<SourceSchemaClientRequest> requests,
