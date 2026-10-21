@@ -806,6 +806,39 @@ public class IsSelectedTests
     }
 
     [Fact]
+    public async Task Select_Should_ReturnAllSelections_When_BufferMustGrowBeyondDoubleRemainingSpace()
+    {
+        // arrange
+        var auditCount = 0;
+        var firstAudits = string.Join(" ", Enumerable.Range(0, 14).Select(i => $"a{i}: audit {{ editedBy }}"));
+        var secondAudits = string.Join(" ", Enumerable.Range(0, 5).Select(i => $"a{i}: audit {{ editedBy }}"));
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(
+                    c =>
+                    {
+                        c.Name("Query");
+                        c.Field("user")
+                            .Resolve(
+                                ctx =>
+                                {
+                                    auditCount = ctx.Select("tags").Select("audit").Count;
+                                    return Query.DummyUser;
+                                });
+                    })
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        await executor.ExecuteAsync(
+            $"{{ user {{ first: tags {{ {firstAudits} }} second: tags {{ {secondAudits} }} }} }}",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(19, auditCount);
+    }
+
+    [Fact]
     public async Task Select_Category_Level_2()
     {
         var result =
