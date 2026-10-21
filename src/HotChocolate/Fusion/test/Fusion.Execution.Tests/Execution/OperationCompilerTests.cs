@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Text;
 using HotChocolate.Execution;
@@ -396,11 +397,31 @@ public class OperationCompilerTests : FusionTestBase
     }
 
     [Fact]
-    public void Compile_Should_ReleasePreviousSchema_When_SchemaIsReplaced()
+    public void GetSelectionSet_Should_KeepPreviousElementStorage_When_StorageGrows()
+    {
+        // arrange
+        var compiler = new OperationCompiler(CreateSchema(), _fieldMapPool);
+        var definition = CreateStorageGrowthDefinition(lazy: true, selectionCount: 160);
+        var operation = compiler.Compile("large", "large", "large", definition);
+        var rootSelection = operation.RootSelectionSet.Selections[0];
+        var previousStorage = GetElementsById(operation);
+
+        // act
+        operation.GetSelectionSet(rootSelection);
+        OverwritePooledArray(previousStorage.Length);
+
+        // assert
+        Assert.NotSame(previousStorage, GetElementsById(operation));
+        Assert.Same(rootSelection, previousStorage[rootSelection.Id]);
+    }
+
+    [Fact]
+    public async Task Compile_Should_ReleasePreviousSchema_When_SchemaIsReplaced()
     {
         // arrange
         var previousSchema = CompileLargeOperationWithDiscardedSchema();
-        var compiler = new OperationCompiler(CreateSchema(), _fieldMapPool);
+        await using var schema = CreateSchema();
+        var compiler = new OperationCompiler(schema, _fieldMapPool);
         var definition = Utf8GraphQLParser.Parse("{ __typename }")
             .Definitions.OfType<OperationDefinitionNode>().Single();
 
@@ -409,7 +430,6 @@ public class OperationCompilerTests : FusionTestBase
         GC.Collect();
         GC.WaitForPendingFinalizers();
         GC.Collect();
-        // The current operation is what would retain the previous schema, so it must outlive the collection.
         GC.KeepAlive(operation);
 
         // assert
@@ -425,8 +445,6 @@ public class OperationCompilerTests : FusionTestBase
         return Utf8GraphQLParser.Parse(document).Definitions.OfType<OperationDefinitionNode>().Single();
     }
 
-    // Keeps the previous schema in its own stack frame, so after this returns
-    // the only paths to it would be stale references held by compiled operations.
     [MethodImpl(MethodImplOptions.NoInlining)]
     private WeakReference CompileLargeOperationWithDiscardedSchema()
     {
@@ -434,8 +452,19 @@ public class OperationCompilerTests : FusionTestBase
         var compiler = new OperationCompiler(schema, _fieldMapPool);
         var definition = CreateStorageGrowthDefinition(lazy: false, selectionCount: 160);
         compiler.Compile("previous", "previous", "previous", definition);
+        schema.DisposeAsync().AsTask().GetAwaiter().GetResult();
         return new WeakReference(schema);
     }
+
+    private static void OverwritePooledArray(int length)
+    {
+        var array = ArrayPool<object>.Shared.Rent(length);
+        Array.Fill(array, new object());
+        ArrayPool<object>.Shared.Return(array, clearArray: true);
+    }
+
+    [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_elementsById")]
+    private static extern ref object[] GetElementsById(Operation operation);
 
     public static FusionSchemaDefinition CreateSchema()
     {

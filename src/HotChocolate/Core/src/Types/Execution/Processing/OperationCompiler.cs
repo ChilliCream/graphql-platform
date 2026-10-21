@@ -878,8 +878,8 @@ public sealed partial class OperationCompiler
         {
             if (id >= _elementsById.Length)
             {
-                // Resizing copies into a new array, so the published array stays intact for concurrent readers.
-                Array.Resize(ref _elementsById, _elementsById.Length * 2);
+                // Existing readers may continue using the previous array.
+                Array.Resize(ref _elementsById, Math.Max(_elementsById.Length * 2, id + 1));
             }
 
             _elementsById[id] = element;
