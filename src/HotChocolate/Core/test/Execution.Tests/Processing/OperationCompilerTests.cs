@@ -2058,6 +2058,45 @@ public class OperationCompilerTests
         result.MatchSnapshot();
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task GetSelectionById_Should_ReturnSelection_When_ElementStorageGrows(bool lazy)
+    {
+        // arrange
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddDocumentFromString(
+                    """
+                    type Query {
+                      foo: Foo
+                    }
+
+                    type Foo {
+                      bar: String
+                    }
+                    """)
+                .UseField(next => next)
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var fields = string.Join(
+            " ",
+            Enumerable.Range(0, 160).Select(i => lazy ? $"f{i}: bar" : $"f{i}: __typename"));
+        var document = Utf8GraphQLParser.Parse(lazy ? $"{{ foo {{ {fields} }} }}" : $"{{ {fields} }}");
+        var operation = OperationCompiler.Compile("opid", document, schema);
+        var rootSelection = operation.RootSelectionSet.Selections[0];
+
+        // act
+        var selections = lazy
+            ? operation.GetSelectionSet(rootSelection).Selections
+            : operation.RootSelectionSet.Selections;
+
+        // assert
+        Assert.Equal(160, selections.Length);
+        Assert.Same(rootSelection, operation.GetSelectionById(rootSelection.Id));
+        Assert.Same(selections[^1], operation.GetSelectionById(selections[^1].Id));
+    }
+
     [Fact]
     public void Compile_Should_ReleasePreviousSchema_When_SchemaIsReplaced()
     {
@@ -2070,12 +2109,15 @@ public class OperationCompilerTests
         GC.Collect();
         GC.WaitForPendingFinalizers();
         GC.Collect();
+        // The current operation is what would retain the previous schema, so it must outlive the collection.
+        GC.KeepAlive(operation);
 
         // assert
         Assert.False(previousSchema.IsAlive);
-        GC.KeepAlive(operation);
     }
 
+    // Keeps the previous schema in its own stack frame, so after this returns
+    // the only paths to it would be stale references held by compiled operations.
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static WeakReference CompileLargeOperationWithDiscardedSchema()
     {

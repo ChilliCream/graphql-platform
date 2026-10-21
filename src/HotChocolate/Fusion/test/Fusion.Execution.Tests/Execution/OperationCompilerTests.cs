@@ -409,10 +409,11 @@ public class OperationCompilerTests : FusionTestBase
         GC.Collect();
         GC.WaitForPendingFinalizers();
         GC.Collect();
+        // The current operation is what would retain the previous schema, so it must outlive the collection.
+        GC.KeepAlive(operation);
 
         // assert
         Assert.False(previousSchema.IsAlive);
-        GC.KeepAlive(operation);
     }
 
     private static OperationDefinitionNode CreateStorageGrowthDefinition(bool lazy, int selectionCount)
@@ -424,6 +425,8 @@ public class OperationCompilerTests : FusionTestBase
         return Utf8GraphQLParser.Parse(document).Definitions.OfType<OperationDefinitionNode>().Single();
     }
 
+    // Keeps the previous schema in its own stack frame, so after this returns
+    // the only paths to it would be stale references held by compiled operations.
     [MethodImpl(MethodImplOptions.NoInlining)]
     private WeakReference CompileLargeOperationWithDiscardedSchema()
     {
