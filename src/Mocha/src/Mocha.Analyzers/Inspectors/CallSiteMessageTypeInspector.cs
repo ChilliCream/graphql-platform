@@ -64,8 +64,6 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
 
         if ((knownSymbols.IMessageBus is not null
                 && SymbolEqualityComparer.Default.Equals(receiverType, knownSymbols.IMessageBus))
-            || (knownSymbols.IMessageDispatcher is not null
-                && SymbolEqualityComparer.Default.Equals(receiverType, knownSymbols.IMessageDispatcher))
             || (knownSymbols.DbContextOutbox is not null
                 && SymbolEqualityComparer.Default.Equals(receiverType, knownSymbols.DbContextOutbox)))
         {

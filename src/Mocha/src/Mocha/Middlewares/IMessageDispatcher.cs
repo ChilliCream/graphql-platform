@@ -3,7 +3,7 @@ namespace Mocha.Middlewares;
 /// <summary>
 /// Prepares outgoing messages through the messaging pipeline for an explicit destination.
 /// </summary>
-public interface IMessageDispatcher
+internal interface IMessageDispatcher
 {
     /// <summary>
     /// Prepares a publication for the specified target using the caller's messaging scope.

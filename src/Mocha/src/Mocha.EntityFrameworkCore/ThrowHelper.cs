@@ -19,8 +19,7 @@ internal static partial class ThrowHelper
             + "Register an IDbContextOutboxProvider with the DbContext's messaging services.");
 
     public static InvalidOperationException OutboxBusNotSupported(Type type)
-        => new($"The message bus '{type.Name}' does not implement IMessageDispatcher "
-            + "and cannot prepare messages for a DbContext outbox.");
+        => new($"The message bus '{type.Name}' does not support preparing messages for a DbContext outbox.");
 
     public static InvalidOperationException InvalidOutboxDispatch()
         => new("The outbox pipeline must prepare exactly one envelope per publication or send.");

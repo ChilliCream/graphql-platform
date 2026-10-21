@@ -14,8 +14,6 @@ public class OutboxCallSiteTests
     [InlineData("db.Outbox.SendAsync<OutboundMessage>(new(), cancellationToken)")]
     [InlineData("db.Outbox.SendAsync(new OutboundMessage(), SendOptions.Default, cancellationToken)")]
     [InlineData("outbox.SendAsync<OutboundMessage>(new(), SendOptions.Default, cancellationToken)")]
-    [InlineData("dispatcher.PublishAsync(new OutboundMessage(), PublishOptions.Default, target, cancellationToken)")]
-    [InlineData("dispatcher.SendAsync(new OutboundMessage(), SendOptions.Default, target, cancellationToken)")]
     public void Generate_Should_RegisterOutboundMessage_When_OutboxDispatches(string expression)
     {
         // arrange
@@ -229,8 +227,6 @@ public class OutboxCallSiteTests
                     DbContext db,
                     Mocha.EntityFrameworkCore.DbContextOutbox outbox,
                     DbContextOutbox unrelated,
-                    Mocha.Middlewares.IMessageDispatcher dispatcher,
-                    Mocha.Middlewares.IMessageDispatchTarget target,
                     CancellationToken cancellationToken)
                     => {{expression}};
             }

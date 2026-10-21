@@ -5,7 +5,7 @@ namespace Mocha.Middlewares;
 /// <summary>
 /// Identifies an explicit target for the current outgoing message.
 /// </summary>
-public sealed class DispatchTargetFeature : IPooledFeature
+internal sealed class DispatchTargetFeature : IPooledFeature
 {
     /// <summary>
     /// Gets or sets the target, or null for ordinary dispatch.
