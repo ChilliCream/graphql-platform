@@ -501,19 +501,12 @@ internal sealed class SelectionCollection : ISelectionCollection
 
     private static void EnsureCapacity(ref Selection[] buffer, int index, int requiredSpace)
     {
-        var capacity = buffer.Length - index;
-
-        if (capacity >= requiredSpace)
+        if (buffer.Length - index >= requiredSpace)
         {
             return;
         }
 
-        while (capacity < requiredSpace)
-        {
-            capacity *= 2;
-        }
-
-        var newBuffer = ArrayPool<Selection>.Shared.Rent(capacity);
+        var newBuffer = ArrayPool<Selection>.Shared.Rent(Math.Max(buffer.Length * 2, index + requiredSpace));
         buffer.AsSpan()[..index].CopyTo(newBuffer);
         ArrayPool<Selection>.Shared.Return(buffer);
         buffer = newBuffer;
