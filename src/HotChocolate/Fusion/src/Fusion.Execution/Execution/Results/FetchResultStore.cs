@@ -63,6 +63,7 @@ internal sealed partial class FetchResultStore : IDisposable
     private CompositeResultElement[] _collectTargetB = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private CompositeResultElement[] _collectTargetCombined = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private SourceResultElement[] _dataElementStaging = [];
+    private LeafValue[] _leafValues = [];
     private PathSegmentLocalPool _pathPool = default!;
     private IMemoryArena _arena = default!;
     private HashSet<int[]> _seenPaths = new(ReferenceEqualityComparer.Instance);
@@ -707,45 +708,182 @@ AddErrors_Next:
         ErrorTrie? errorTrie,
         ResultSelectionSet resultSelectionSet)
     {
+        if (additionalPaths.Length > 0 && errorTrie is null && !HasPocketedErrors)
+        {
+            return SaveSafeResultWithLeafCopy(
+                resultData,
+                path,
+                additionalPaths,
+                dataElement,
+                resultSelectionSet);
+        }
+
         if (!SaveSafeResult(resultData, path, dataElement, errorTrie, resultSelectionSet))
         {
             return false;
         }
 
-        switch (additionalPaths.Length)
+        for (var i = 0; i < additionalPaths.Length; i++)
         {
-            case 0:
-                return true;
+            if (!SaveSafeResult(resultData, additionalPaths[i], dataElement, errorTrie, resultSelectionSet))
+            {
+                return false;
+            }
+        }
 
-            case 1:
-                return SaveSafeResult(resultData, additionalPaths[0], dataElement, errorTrie, resultSelectionSet);
+        return true;
+    }
 
-            case 2:
-                return SaveSafeResult(resultData, additionalPaths[0], dataElement, errorTrie, resultSelectionSet)
-                    && SaveSafeResult(resultData, additionalPaths[1], dataElement, errorTrie, resultSelectionSet);
+    /// <summary>
+    /// Completes the primary target from the source data and assigns its completed leaf values to
+    /// the additional targets by response name. Targets that cannot take the leaf values are
+    /// completed from the source data.
+    /// </summary>
+    private bool SaveSafeResultWithLeafCopy(
+        CompositeResultElement resultData,
+        CompactPath path,
+        ReadOnlySpan<CompactPath> additionalPaths,
+        SourceResultElement dataElement,
+        ResultSelectionSet resultSelectionSet)
+    {
+        if (resultData.IsNullOrInvalidated)
+        {
+            return false;
+        }
 
-            case 3:
-                return SaveSafeResult(resultData, additionalPaths[0], dataElement, errorTrie, resultSelectionSet)
-                    && SaveSafeResult(resultData, additionalPaths[1], dataElement, errorTrie, resultSelectionSet)
-                    && SaveSafeResult(resultData, additionalPaths[2], dataElement, errorTrie, resultSelectionSet);
+        var errorCount = _errors?.Count ?? 0;
+        var primary = path.IsRoot ? resultData : GetStartResult(path);
 
-            case 4:
-                return SaveSafeResult(resultData, additionalPaths[0], dataElement, errorTrie, resultSelectionSet)
-                    && SaveSafeResult(resultData, additionalPaths[1], dataElement, errorTrie, resultSelectionSet)
-                    && SaveSafeResult(resultData, additionalPaths[2], dataElement, errorTrie, resultSelectionSet)
-                    && SaveSafeResult(resultData, additionalPaths[3], dataElement, errorTrie, resultSelectionSet);
+        if (!SaveSafeResult(resultData, primary, dataElement, errorTrie: null, resultSelectionSet))
+        {
+            return false;
+        }
 
-            default:
-                for (var i = 0; i < additionalPaths.Length; i++)
+        var leafCount = 0;
+
+        try
+        {
+            var canCopy = errorCount == (_errors?.Count ?? 0)
+                && !HasPocketedErrors
+                && TryCollectLeafValues(primary, dataElement, resultSelectionSet, ref leafCount);
+            var leafValues = _leafValues.AsSpan(0, leafCount);
+
+            for (var i = 0; i < additionalPaths.Length; i++)
+            {
+                var target = GetStartResult(additionalPaths[i]);
+                Debug.Assert(target.ValueKind is JsonValueKind.Object or JsonValueKind.Null or JsonValueKind.Undefined);
+
+                if (target.IsNullOrInvalidated)
                 {
-                    if (!SaveSafeResult(resultData, additionalPaths[i], dataElement, errorTrie, resultSelectionSet))
-                    {
-                        return false;
-                    }
+                    continue;
                 }
 
-                return true;
+                if (canCopy && TryAssignLeafValues(target, leafValues))
+                {
+                    continue;
+                }
+
+                if (!SaveSafeResult(resultData, target, dataElement, errorTrie: null, resultSelectionSet))
+                {
+                    return false;
+                }
+
+                // Once an error is pocketed, the remaining targets are completed from the source data.
+                canCopy &= !HasPocketedErrors;
+            }
+
+            return true;
         }
+        finally
+        {
+            _leafValues.AsSpan(0, leafCount).Clear();
+        }
+    }
+
+    /// <summary>
+    /// Collects the completed values of <paramref name="primary"/> for every property of
+    /// <paramref name="dataElement"/>. Returns <c>false</c> when the source data holds a property
+    /// that <paramref name="primary"/> does not select, a property that is not a scalar, or a
+    /// completed value that is not a leaf; <paramref name="count"/> then still counts the collected
+    /// values.
+    /// </summary>
+    private bool TryCollectLeafValues(
+        CompositeResultElement primary,
+        SourceResultElement dataElement,
+        ResultSelectionSet resultSelectionSet,
+        ref int count)
+    {
+        if (resultSelectionSet.HasSourceResponseNameMappings
+            || dataElement.ValueKind is not JsonValueKind.Object
+            || primary.IsNullOrInvalidated
+            || !primary.TryGetObjectContext(out var context)
+            || context.SelectionSet is not { Type.Kind: TypeKind.Object })
+        {
+            return false;
+        }
+
+        foreach (var property in dataElement.EnumerateObject())
+        {
+            if (!context.TryGetProperty(property.NameSpan, out var value, out var selection))
+            {
+                return false;
+            }
+
+            if (property.Value.ValueKind is not (JsonValueKind.String
+                    or JsonValueKind.Number
+                    or JsonValueKind.True
+                    or JsonValueKind.False)
+                || value.ValueKind is not (JsonValueKind.String
+                    or JsonValueKind.Number
+                    or JsonValueKind.True
+                    or JsonValueKind.False))
+            {
+                return false;
+            }
+
+            if (count == _leafValues.Length)
+            {
+                Array.Resize(ref _leafValues, Math.Max(8, count * 2));
+            }
+
+            _leafValues[count++] = new LeafValue(selection, value);
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Assigns the collected leaf values to the fields of <paramref name="target"/> that have the
+    /// same response names. Returns <c>false</c> when a value cannot be assigned; the target may
+    /// then hold some of the values and must be completed from the source data.
+    /// </summary>
+    private static bool TryAssignLeafValues(
+        CompositeResultElement target,
+        ReadOnlySpan<LeafValue> leafValues)
+    {
+        if (!target.TryGetObjectContext(out var context)
+            || context.SelectionSet is not { Type.Kind: TypeKind.Object })
+        {
+            return false;
+        }
+
+        foreach (var leafValue in leafValues)
+        {
+            if (!context.TryGetProperty(leafValue.Selection.Utf8ResponseName, out var value, out var selection))
+            {
+                continue;
+            }
+
+            // A completed enum value is only assigned to a field of the same enum type.
+            if (selection.IsEnumValue != leafValue.Selection.IsEnumValue
+                || (selection.IsEnumValue && !ReferenceEquals(selection.NamedType, leafValue.Selection.NamedType))
+                || !value.TrySetLeafValue(leafValue.Value))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private bool SaveSafeResult(
@@ -761,6 +899,21 @@ AddErrors_Next:
         }
 
         var element = path.IsRoot ? resultData : GetStartResult(path);
+        return SaveSafeResult(resultData, element, dataElement, errorTrie, resultSelectionSet);
+    }
+
+    private bool SaveSafeResult(
+        CompositeResultElement resultData,
+        CompositeResultElement element,
+        SourceResultElement dataElement,
+        ErrorTrie? errorTrie,
+        ResultSelectionSet resultSelectionSet)
+    {
+        if (resultData.IsNullOrInvalidated)
+        {
+            return false;
+        }
+
         Debug.Assert(element.ValueKind is JsonValueKind.Object or JsonValueKind.Null or JsonValueKind.Undefined);
 
         if (element.IsNullOrInvalidated)
@@ -783,6 +936,8 @@ AddErrors_Next:
         resultData.Invalidate();
         return false;
     }
+
+    private readonly record struct LeafValue(Selection Selection, CompositeResultElement Value);
 
     public ImmutableArray<VariableValues> CreateVariableValueSets(
         SelectionPath selectionSet,
