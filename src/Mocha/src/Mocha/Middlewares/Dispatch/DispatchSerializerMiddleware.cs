@@ -62,7 +62,8 @@ internal sealed class DispatchSerializerMiddleware()
             },
             "Serialization")
         {
-            Stages = DispatchMiddlewareStage.Dispatch
+            RunsDuringPreparation = false,
+            IsTerminal = true
         };
 }
 

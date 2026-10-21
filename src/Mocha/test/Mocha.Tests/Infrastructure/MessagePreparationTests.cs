@@ -11,8 +11,11 @@ namespace Mocha.Tests.Infrastructure;
 
 public class MessagePreparationTests(ITestOutputHelper output)
 {
-    [Fact]
-    public async Task PublishAsync_Should_PersistFinalMiddlewareHeaders_When_MiddlewareIsRegisteredAfterOutbox()
+    [Theory]
+    [InlineData("Serialization")]
+    [InlineData("Scheduling")]
+    [InlineData("Outbox")]
+    public async Task PublishAsync_Should_SerializeMiddlewareChanges_When_MiddlewareIsRegisteredAfterTerminal(string after)
     {
         // arrange
         var middlewareCalls = 0;
@@ -22,11 +25,12 @@ public class MessagePreparationTests(ITestOutputHelper output)
                     (_, next) => context =>
                     {
                         middlewareCalls++;
+                        context.Message = new TargetMessage("from-middleware");
                         context.Headers.Set("durable-header", "prepared-once");
                         return next(context);
                     },
-                    "AfterOutbox"),
-                after: "Outbox")));
+                    "ChangeMessage"),
+                after: after)));
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
@@ -46,7 +50,7 @@ public class MessagePreparationTests(ITestOutputHelper output)
             {
               "MiddlewareCalls": 1,
               "DurableHeader": "prepared-once",
-              "Message": "persisted",
+              "Message": "from-middleware",
               "TransportCalls": 0
             }
             """);
@@ -110,9 +114,13 @@ public class MessagePreparationTests(ITestOutputHelper output)
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task PrepareAsync_Should_SerializeFinalState_When_MiddlewareChangesMessageAfterNext(bool send)
+    [InlineData(false, "Serialization")]
+    [InlineData(false, "Scheduling")]
+    [InlineData(false, "Outbox")]
+    [InlineData(true, "Serialization")]
+    [InlineData(true, "Scheduling")]
+    [InlineData(true, "Outbox")]
+    public async Task PrepareAsync_Should_SerializeFinalState_When_MiddlewareRunsAfterTerminal(bool send, string after)
     {
         // arrange
         var time = new DateTimeOffset(2030, 1, 1, 0, 0, 0, TimeSpan.Zero);
@@ -129,7 +137,7 @@ public class MessagePreparationTests(ITestOutputHelper output)
                         context.Headers.Set("final-header", "after-next");
                     },
                     "MutateAfterNext"),
-                before: "Serialization")));
+                after: after)));
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
@@ -138,11 +146,27 @@ public class MessagePreparationTests(ITestOutputHelper output)
         var envelope = prepared.Envelope;
 
         // assert
-        Assert.Equal("after-next", Deserialize(envelope).Value);
-        Assert.Equal("final-correlation", envelope.CorrelationId);
-        Assert.Equal(time, envelope.SentAt);
-        Assert.Equal(time.AddMinutes(5), envelope.DeliverBy);
-        Assert.Equal("after-next", envelope.Headers!.GetValue("final-header"));
+        new
+        {
+            Message = Deserialize(envelope).Value,
+            envelope.CorrelationId,
+            envelope.SentAt,
+            envelope.DeliverBy,
+            Header = envelope.Headers!.GetValue("final-header"),
+            DefaultOutboxMessages = provider.GetRequiredService<CapturingOutbox>().Envelopes.Count,
+            TransportCalls = provider.GetRequiredService<TransportCounter>().Calls
+        }.MatchInlineSnapshot(
+            """
+            {
+              "Message": "after-next",
+              "CorrelationId": "final-correlation",
+              "SentAt": "2030-01-01T00:00:00+00:00",
+              "DeliverBy": "2030-01-01T00:05:00+00:00",
+              "Header": "after-next",
+              "DefaultOutboxMessages": 0,
+              "TransportCalls": 0
+            }
+            """);
     }
 
     [Theory]
@@ -356,20 +380,11 @@ public class MessagePreparationTests(ITestOutputHelper output)
 #else
     [Fact]
 #endif
-    public async Task PublishAsync_Should_PreserveAllocationBudget_When_OutboxIsBypassedOrMessageIsPrepared()
+    public async Task PrepareAsync_Should_PreserveAllocationBudget_When_MessageIsPrepared()
     {
         // arrange
         await using var plainProvider = await CreateProviderAsync(outbox: false, static _ => { });
-        await using var outboxProvider = await CreateProviderAsync(outbox: true, builder =>
-            builder.ConfigureMessageBus(b => b.UseDispatch(
-                new DispatchMiddlewareConfiguration(
-                    static (_, next) => context =>
-                    {
-                        context.SkipOutbox();
-                        return next(context);
-                    },
-                    "BypassOutbox"),
-                before: "Outbox")));
+        await using var outboxProvider = await CreateProviderAsync(outbox: true, static _ => { });
         using var plainScope = plainProvider.CreateScope();
         using var outboxScope = outboxProvider.CreateScope();
         var plainBus = plainScope.ServiceProvider.GetRequiredService<IMessageBus>();
@@ -378,14 +393,14 @@ public class MessagePreparationTests(ITestOutputHelper output)
 
         // act
         var plainBytes = MeasureAllocations(plainBus, message, prepare: false);
-        var outboxBytes = MeasureAllocations(outboxBus, message, prepare: false);
         var preparationBytes = MeasureAllocations(outboxBus, message, prepare: true);
-        output.WriteLine($"Warmed publish: plain {plainBytes / 4096d} B/op; bypassed outbox {outboxBytes / 4096d} B/op; prepare {preparationBytes / 4096d} B/op.");
+        output.WriteLine($"Warmed publish: plain {plainBytes / 4096d} B/op; prepare {preparationBytes / 4096d} B/op.");
 
         // assert
-        Assert.Equal(plainBytes, outboxBytes);
         Assert.InRange(preparationBytes, 0, plainBytes);
         Assert.Empty(outboxProvider.GetRequiredService<CapturingOutbox>().Envelopes);
+        Assert.Equal(16384, plainProvider.GetRequiredService<TransportCounter>().Calls);
+        Assert.Equal(0, outboxProvider.GetRequiredService<TransportCounter>().Calls);
     }
 
     private static long MeasureAllocations(IMessageBus bus, TargetMessage message, bool prepare)
@@ -461,7 +476,7 @@ public class MessagePreparationTests(ITestOutputHelper output)
                     },
                     "TestTerminal")
                 {
-                    Stages = DispatchMiddlewareStage.Dispatch,
+                    RunsDuringPreparation = false,
                     IsTerminal = true
                 },
                 after: outbox ? "Outbox" : "Scheduling");

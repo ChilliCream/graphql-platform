@@ -1,8 +1,10 @@
 using System.Collections.Concurrent;
+using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Time.Testing;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
 using Mocha.Middlewares;
 using Mocha.Scheduling;
@@ -34,6 +36,87 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         Assert.True(await recorder.WaitAsync(s_timeout), "Handler should have received the scheduled message");
         var received = Assert.Single(recorder.Messages.OfType<TestEvent>());
         Assert.Equal("hello", received.Payload);
+    }
+
+    [Fact]
+    public async Task Scheduler_Should_DeliverPreparedEnvelope_When_DispatchMiddlewareAlreadyRan()
+    {
+        // arrange
+        var connectionString = await fixture.CreateDatabaseAsync();
+        var recorder = new MessageRecorder();
+        var time = new FakeTimeProvider(new DateTimeOffset(2050, 1, 1, 12, 0, 0, TimeSpan.Zero));
+        var beforeSerialization = 0;
+        var afterScheduling = 0;
+        var received = new TaskCompletionSource<MessageEnvelope>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var services = new ServiceCollection();
+        services.AddSingleton(recorder);
+        services.AddSingleton<TimeProvider>(time);
+        services.AddSingleton<ISchedulerSignal>(new ResilientSchedulerSignal());
+        services.AddDbContext<TestDbContext>(options => options.UseTestNpgsql(connectionString));
+        var builder = services.AddMessageBus();
+        builder.AddEntityFramework<TestDbContext>(options => options.UsePostgresScheduling());
+        builder.AddEventHandler<TestEventHandler>();
+        builder.ConfigureMessageBus(bus =>
+        {
+            bus.AddTransport(new InMemoryMessagingTransport(static _ => { }));
+            bus.UseDispatch(new DispatchMiddlewareConfiguration(
+                (_, next) => context =>
+                {
+                    beforeSerialization++;
+                    context.Message = new TestEvent { Payload = "prepared" };
+                    context.Headers.Set("prepared-header", "stored");
+                    return next(context);
+                },
+                "PrepareScheduledMessage"), before: "Serialization");
+            bus.UseDispatch(new DispatchMiddlewareConfiguration(
+                (_, next) => context =>
+                {
+                    afterScheduling++;
+                    return next(context);
+                },
+                "ObserveScheduledMessage"), after: "Scheduling");
+            bus.UseReceive(new ReceiveMiddlewareConfiguration(
+                (_, next) => async context =>
+                {
+                    var envelope = MessageEnvelope.CopyWithOwnedBody(context.Envelope!);
+                    await next(context);
+                    received.TrySetResult(envelope);
+                },
+                "CaptureScheduledMessage"));
+        });
+        await using var provider = services.BuildServiceProvider();
+        await ((MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>())
+            .StartAsync(TestContext.Current.CancellationToken);
+        using var scope = provider.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
+        await db.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        await bus.SchedulePublishAsync(
+            new TestEvent { Payload = "original" },
+            DateTimeOffset.UtcNow.AddSeconds(-1),
+            TestContext.Current.CancellationToken);
+        var invocationCounts = (beforeSerialization, afterScheduling);
+        var json = await db.Set<ScheduledMessage>()
+            .Select(message => message.Envelope)
+            .SingleAsync(TestContext.Current.CancellationToken);
+        var stored = MessageEnvelopeReader.Parse(Encoding.UTF8.GetBytes(json.RootElement.GetRawText()));
+        time.Advance(TimeSpan.FromMinutes(11));
+        await using var host = await MessagingTestHost.StartAsync(provider, TestContext.Current.CancellationToken);
+        var delivered = await received.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal((1, 1), invocationCounts);
+        Assert.Equal((1, 1), (beforeSerialization, afterScheduling));
+        Assert.Null(stored.SentAt);
+        Assert.Equal(
+            ("prepared", "stored", "prepared", "stored"),
+            (JsonSerializer.Deserialize<TestEvent>(stored.Body.Span)!.Payload,
+                (string?)stored.Headers?.GetValue("prepared-header"),
+                JsonSerializer.Deserialize<TestEvent>(delivered.Body.Span)!.Payload,
+                (string?)delivered.Headers?.GetValue("prepared-header")));
+        Assert.Equal(time.GetUtcNow(), delivered.SentAt);
     }
 
     [Fact]
@@ -181,12 +264,9 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
     [Fact]
     public async Task Scheduler_Should_RecordLastError_When_DispatchFails()
     {
-        // Arrange - use a dispatch middleware that always throws AFTER the scheduling middleware.
-        // During initial publish the scheduling middleware intercepts (never calling next),
-        // so the throwing middleware is inactive. During re-dispatch from the worker the
-        // scheduling middleware is skipped, causing the throwing middleware to fire.
+        // arrange
         var recorder = new MessageRecorder();
-        await using var env = await CreateBusWithSchedulingAsync(recorder, AddFailingDispatchMiddleware);
+        await using var env = await CreateBusWithSchedulingAsync(recorder, AddInvalidReplyDestination);
 
         using (var scope = env.Provider.CreateScope())
         {
@@ -213,14 +293,14 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
 
             if (rows.Count > 0 && rows[0] is not null)
             {
-                // Assert - parse the JSON error
+                // assert
                 using var doc = JsonDocument.Parse(rows[0]!);
-                Assert.True(
-                    doc.RootElement.TryGetProperty("message", out _),
-                    "last_error should contain 'message'");
-                Assert.True(
-                    doc.RootElement.TryGetProperty("exceptionType", out _),
-                    "last_error should contain 'exceptionType'");
+                Assert.Equal(
+                    "Cannot determine topic or queue name from destination address memory://localhost/q/missing",
+                    doc.RootElement.GetProperty("message").GetString());
+                Assert.Equal(
+                    "System.InvalidOperationException",
+                    doc.RootElement.GetProperty("exceptionType").GetString());
                 return;
             }
         }
@@ -231,9 +311,9 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
     [Fact]
     public async Task Scheduler_Should_IncrementTimesSent_When_DispatchFails()
     {
-        // Arrange - same failing middleware approach as RecordLastError test
+        // arrange
         var recorder = new MessageRecorder();
-        await using var env = await CreateBusWithSchedulingAsync(recorder, AddFailingDispatchMiddleware);
+        await using var env = await CreateBusWithSchedulingAsync(recorder, AddInvalidReplyDestination);
 
         using (var scope = env.Provider.CreateScope())
         {
@@ -449,13 +529,17 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         Assert.False(cancelled);
     }
 
-    private static void AddFailingDispatchMiddleware(IMessageBusHostBuilder builder)
+    private static void AddInvalidReplyDestination(IMessageBusHostBuilder builder)
     {
-        builder.ConfigureMessageBus(h =>
-            h.UseDispatch(new DispatchMiddlewareConfiguration(
-                static (_, _) => static _ =>
-                    throw new InvalidOperationException("Simulated dispatch failure"),
-                "FailingTransport")));
+        builder.ConfigureMessageBus(bus =>
+            bus.UseDispatch(new DispatchMiddlewareConfiguration(
+                (_, next) => context =>
+                {
+                    context.Headers.Set("message-kind", "reply");
+                    context.DestinationAddress = new Uri("memory://localhost/q/missing");
+                    return next(context);
+                },
+                "InvalidReplyDestination"), before: "Serialization"));
     }
 
     [Fact]

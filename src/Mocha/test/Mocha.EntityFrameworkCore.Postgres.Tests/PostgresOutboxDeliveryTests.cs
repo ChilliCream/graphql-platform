@@ -28,10 +28,12 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
         var recorder = new DeliveryRecorder { FailFirstDelivery = retry };
         await using var provider = await CreateProviderAsync(connectionString, recorder);
         MessageEnvelope stored;
+        int preparationAtInvocation;
         await using (var scope = provider.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
             await db.Outbox.PublishAsync(new PreparedEvent { Value = "before-next" }, TestToken);
+            preparationAtInvocation = recorder.PreparationCount;
             await db.SaveChangesAsync(TestToken);
             var json = await db.Set<OutboxMessage>().Select(x => x.Envelope).SingleAsync(TestToken);
             stored = MessageEnvelopeReader.Parse(Encoding.UTF8.GetBytes(json));
@@ -50,7 +52,7 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
             provider.GetRequiredService<IMessagingRuntime>().Host.InstanceId,
             Encoding.UTF8.GetString(stored.Body.Span));
         Assert.Equal(Enumerable.Repeat(expected, retry ? 2 : 1), recorder.Attempts);
-        Assert.Equal(1, recorder.PreparationCount);
+        Assert.Equal((1, 1, 1), (preparationAtInvocation, recorder.PreparationCount, recorder.DispatchCount));
         Assert.Equal("after-next", delivered.Value);
         Assert.Equal("after-next", JsonSerializer.Deserialize<PreparedEvent>(stored.Body.Span)!.Value);
     }
@@ -88,7 +90,7 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
             [null, null, null],
             [attempt.SourceAddress, attempt.ResponseAddress, attempt.FaultAddress]);
         Assert.Equal("legacy", delivered.Value);
-        Assert.Equal(0, recorder.PreparationCount);
+        Assert.Equal((0, 0), (recorder.PreparationCount, recorder.DispatchCount));
     }
 
     [Fact]
@@ -150,7 +152,13 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
             "PrepareOriginalMessage"), before: "Serialization"));
 
         var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
-        await ((MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>()).StartAsync(TestToken);
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+        await runtime.StartAsync(TestToken);
+        var endpoint = runtime.GetPublishEndpoint(runtime.GetMessageType(typeof(PreparedEvent)));
+        var recordingEndpoint = new RecordingDispatchEndpoint(endpoint, recorder);
+        recordingEndpoint.Initialize(runtime, new DispatchEndpointConfiguration { Name = endpoint.Name });
+        recordingEndpoint.Complete(runtime);
+        runtime.Endpoints.Remove(endpoint);
         await using var scope = provider.CreateAsyncScope();
         await scope.ServiceProvider.GetRequiredService<TestDbContext>().Database.EnsureCreatedAsync(TestToken);
         return provider;
@@ -193,6 +201,8 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
 
         public int PreparationCount { get; set; }
 
+        public int DispatchCount { get; private set; }
+
         public bool FailFirstDelivery { get; init; }
 
         public bool FailSerialization { get; init; }
@@ -204,10 +214,13 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
 
         public override IDisposable Dispatch(IDispatchContext context)
         {
-            if (context.Envelope is not { } envelope)
-            {
-                return EmptyScope;
-            }
+            DispatchCount++;
+            return EmptyScope;
+        }
+
+        internal void RecordAttempt(IDispatchContext context)
+        {
+            var envelope = context.Envelope!;
 
             Attempts.Enqueue(new DeliveryState(
                 context.MessageId, context.CorrelationId, context.ConversationId, context.CausationId,
@@ -221,8 +234,29 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
             {
                 throw new InvalidOperationException("The first delivery failed deliberately.");
             }
+        }
+    }
 
-            return EmptyScope;
+    private sealed class RecordingDispatchEndpoint(DispatchEndpoint endpoint, DeliveryRecorder recorder)
+        : DispatchEndpoint(endpoint.Transport)
+    {
+        protected override void OnInitialize(
+            IMessagingConfigurationContext context,
+            DispatchEndpointConfiguration configuration)
+        {
+            Address = endpoint.Address;
+            Destination = endpoint.Destination;
+        }
+
+        protected override void OnComplete(
+            IMessagingConfigurationContext context,
+            DispatchEndpointConfiguration configuration)
+        { }
+
+        protected override ValueTask DispatchAsync(IDispatchContext context)
+        {
+            recorder.RecordAttempt(context);
+            return endpoint.DispatchInternalAsync(context);
         }
     }
 

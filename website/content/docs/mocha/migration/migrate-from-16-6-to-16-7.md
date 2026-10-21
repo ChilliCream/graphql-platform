@@ -15,7 +15,17 @@ Mocha now sets `SentAt` just before dispatching the message. It gets the current
 
 You can still set `SentAt` yourself. Mocha preserves a timestamp supplied on the context or envelope, with the context taking precedence if both are set.
 
+## Outbox and scheduler bypass features are removed
+
+`SkipOutbox()`, `SkipScheduler()`, `OutboxMiddlewareFeature`, and `SchedulingMiddlewareFeature` are removed. Remove calls and registrations that set these flags. Outbox and scheduler workers deliver stored envelopes directly through the transport.
+
 # Behavioral breaking changes
+
+## Dispatch middleware runs before serialization and persistence
+
+Application dispatch middleware runs when a message is published or sent, including scheduled messages. It runs before serialization, scheduling, and outbox persistence, even when registered after those built-in steps. Workers do not rerun dispatch middleware during delivery or retries.
+
+For a new message, `context.Envelope` is unset before `next(context)` unless middleware supplies one. Update the message and metadata on the context before calling `next(context)`. `DbContext.Outbox` also includes middleware changes made after `await next(context)` before serializing and staging the message.
 
 ## Configure one outbox DbContext type
 

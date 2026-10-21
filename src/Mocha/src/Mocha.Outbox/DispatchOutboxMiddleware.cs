@@ -9,8 +9,7 @@ namespace Mocha.Outbox;
 /// </summary>
 /// <remarks>
 /// Messages of kind Publish, Send, Reply, or Fault are redirected to <see cref="IMessageOutbox"/>.
-/// All other message kinds (e.g., system messages) and dispatches marked with
-/// <see cref="OutboxMiddlewareFeature.SkipOutbox"/> pass through to the next middleware.
+/// All other message kinds pass through to the next middleware.
 /// </remarks>
 public sealed class DispatchOutboxMiddleware
 {
@@ -22,14 +21,11 @@ public sealed class DispatchOutboxMiddleware
     /// <returns>A value task that completes when the message has been persisted or forwarded.</returns>
     public async ValueTask InvokeAsync(IDispatchContext context, DispatchDelegate next)
     {
-        var feature = context.Features.GetOrSet<OutboxMiddlewareFeature>();
         var messageKind = context.Headers.Get(MessageHeaders.MessageKind);
-        if (feature.SkipOutbox
-            || messageKind
-                is not MessageKind.Publish
-                and not MessageKind.Send
-                and not MessageKind.Reply
-                and not MessageKind.Fault)
+        if (messageKind is not MessageKind.Publish
+            and not MessageKind.Send
+            and not MessageKind.Reply
+            and not MessageKind.Fault)
         {
             await next(context);
         }
@@ -56,7 +52,7 @@ public sealed class DispatchOutboxMiddleware
             },
             "Outbox")
         {
-            Stages = DispatchMiddlewareStage.Dispatch,
+            RunsDuringPreparation = false,
             IsTerminal = true
         };
 }

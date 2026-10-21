@@ -522,7 +522,12 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         var bus = caller.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act
-        await bus.PublishAsync(new StartFactoryWork(), TestToken);
+        using var incoming = await ((IMessageDispatcher)bus).PreparePublishAsync(
+            new StartFactoryWork(), PublishOptions.Default, TestToken);
+        var runtime = provider.GetRequiredService<IMessagingRuntime>();
+        var endpoint = (InMemoryDispatchEndpoint)runtime.GetDispatchEndpoint(
+            new Uri(incoming.Envelope.DestinationAddress!));
+        await endpoint.Topic!.SendAsync(incoming.Envelope, TestToken);
         await handlerRecorder.Completed.Task.WaitAsync(s_timeout, TestToken);
         var messages = recorder.Messages.ToArray();
         var factory = provider.GetRequiredService<IDbContextFactory<UnitOfWorkDbContext>>();
@@ -1745,7 +1750,6 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
                         {
                             context.MessageId = "factory-message";
                             context.ConversationId = "factory-conversation";
-                            context.SkipOutbox();
                         }
                         else
                         {

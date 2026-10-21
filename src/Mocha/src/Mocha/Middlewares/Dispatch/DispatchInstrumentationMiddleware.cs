@@ -40,7 +40,6 @@ internal sealed class DispatchInstrumentationMiddleware(IMessagingDiagnosticEven
             },
             "Instrumentation")
         {
-            Stages = DispatchMiddlewareStage.Dispatch
-                | DispatchMiddlewareStage.Delivery
+            RunsDuringPreparation = false
         };
 }

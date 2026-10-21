@@ -54,7 +54,6 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
     private DispatchDelegate _pipeline;
     private TimeProvider _timeProvider = null!;
     private DispatchDelegate _preparationPipeline;
-    private DispatchDelegate _deliveryPipeline;
     private IMessagingDiagnosticEvents _diagnosticEvents = null!;
 
     /// <summary>
@@ -79,11 +78,6 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
         {
             await completed.WaitAsync(context.CancellationToken);
             await Volatile.Read(ref _preparationPipeline!)(context);
-        };
-        _deliveryPipeline = async context =>
-        {
-            await completed.WaitAsync(context.CancellationToken);
-            await Volatile.Read(ref _deliveryPipeline!)(context);
         };
         Transport = transport;
     }
@@ -218,8 +212,6 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
         }
     }
 
-    internal ValueTask DeliverAsync(IDispatchContext context) => _deliveryPipeline(context);
-
     /// <summary>
     /// Runs topology discovery conventions to resolve the destination resources for this endpoint
     /// and registers the endpoint in the endpoint collection.
@@ -268,7 +260,6 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
 
         Volatile.Write(ref _pipeline, pipeline.Dispatch);
         Volatile.Write(ref _preparationPipeline, pipeline.Preparation);
-        Volatile.Write(ref _deliveryPipeline, pipeline.Delivery);
 
         Configuration = null!;
         _completed.SetResult(true);
@@ -313,7 +304,7 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
     /// <returns>A <see cref="ValueTask"/> that completes when the transport-level send is finished.</returns>
     protected abstract ValueTask DispatchAsync(IDispatchContext context);
 
-    private ValueTask DispatchInternalAsync(IDispatchContext context)
+    internal ValueTask DispatchInternalAsync(IDispatchContext context)
     {
         var sentAt = context.SentAt ?? context.Envelope?.SentAt ?? _timeProvider.GetUtcNow();
         context.SentAt = sentAt;

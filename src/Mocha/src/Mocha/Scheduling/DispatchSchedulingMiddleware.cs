@@ -9,8 +9,7 @@ namespace Mocha.Scheduling;
 /// to the scheduled message store instead of forwarding them to the next pipeline stage.
 /// </summary>
 /// <remarks>
-/// Messages without a <see cref="IDispatchContext.ScheduledTime"/> and dispatches marked with
-/// <see cref="SchedulingMiddlewareFeature.SkipScheduler"/> pass through to the next middleware.
+/// Messages without a <see cref="IDispatchContext.ScheduledTime"/> pass through to the next middleware.
 /// Scheduled messages are routed to the registered store for the current transport.
 /// </remarks>
 public sealed class DispatchSchedulingMiddleware
@@ -25,14 +24,6 @@ public sealed class DispatchSchedulingMiddleware
     public async ValueTask InvokeAsync(IDispatchContext context, DispatchDelegate next)
     {
         if (context.ScheduledTime is not { } scheduledTime)
-        {
-            await next(context);
-            return;
-        }
-
-        var feature = context.Features.GetOrSet<SchedulingMiddlewareFeature>();
-
-        if (feature.SkipScheduler)
         {
             await next(context);
             return;
@@ -77,7 +68,8 @@ public sealed class DispatchSchedulingMiddleware
             },
             "Scheduling")
         {
-            Stages = DispatchMiddlewareStage.Dispatch
+            RunsDuringPreparation = false,
+            IsTerminal = true
         };
 }
 

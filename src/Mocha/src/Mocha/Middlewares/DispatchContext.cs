@@ -245,6 +245,46 @@ public sealed class DispatchContext : IDispatchContext
         _features.Initialize();
     }
 
+    internal void InitializeFromEnvelope(
+        IServiceProvider services,
+        DispatchEndpoint endpoint,
+        IMessagingRuntime runtime,
+        MessageType? messageType,
+        MessageEnvelope envelope,
+        CancellationToken cancellationToken)
+    {
+        Services = services;
+        Runtime = runtime;
+        Endpoint = endpoint;
+        Transport = endpoint.Transport;
+        Host = envelope.Host ?? runtime.Host;
+        CancellationToken = cancellationToken;
+        MessageType = messageType;
+        ContentType = MessageContentType.Parse(envelope.ContentType);
+        MessageId = envelope.MessageId;
+        CorrelationId = envelope.CorrelationId;
+        ConversationId = envelope.ConversationId;
+        CausationId = envelope.CausationId;
+        SourceAddress = ParseAddress(envelope.SourceAddress);
+        DestinationAddress = ParseAddress(envelope.DestinationAddress);
+        ResponseAddress = ParseAddress(envelope.ResponseAddress);
+        FaultAddress = ParseAddress(envelope.FaultAddress);
+        SentAt = envelope.SentAt;
+        DeliverBy = envelope.DeliverBy;
+        ScheduledTime = envelope.ScheduledTime;
+        Envelope = envelope;
+
+        if (envelope.Headers is { } headers)
+        {
+            _headers.AddRange(headers);
+        }
+
+        _features.Initialize();
+    }
+
+    private static Uri? ParseAddress(string? address)
+        => Uri.TryCreate(address, UriKind.Absolute, out var parsed) ? parsed : null;
+
     internal long AcquirePreparedMessageLease()
         => Interlocked.Increment(ref _preparedMessageLease);
 

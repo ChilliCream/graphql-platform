@@ -733,7 +733,7 @@ builder.Services
 
 With the outbox enabled, calls to `PublishAsync`, `SendAsync`, and `ReplyAsync` inside a handler persist the message envelope to the outbox table within the same database transaction. The outbox dispatch middleware intercepts these calls and writes to `IMessageOutbox` instead of the transport.
 
-Application dispatch middleware runs before outbox persistence, including middleware registered with `after: "Outbox"`. For ordinary bus dispatch, set headers before calling `next(context)` and change message data before serialization. Only `db.Outbox` waits for all application middleware to complete before serialization and staging.
+Application dispatch middleware runs before serialization and outbox persistence, including middleware registered with `after: "Serialization"`, `after: "Scheduling"`, or `after: "Outbox"`. For ordinary bus dispatch, change message data and headers before calling `next(context)`. Only `db.Outbox` waits for all application middleware to complete before serialization and staging.
 
 ```csharp
 public class OrderPlacedHandler(AppDbContext db, IMessageBus bus)
@@ -931,15 +931,11 @@ builder.Services
 
 The outbox processor is a background hosted service (`IHostedService`). When the EF Core interceptors detect a `SaveChanges` or transaction commit, they signal the processor through `IOutboxSignal`. Messages added through `DbContext.Outbox` are signaled the same way after the save. Inside an ambient `TransactionScope`, the signal is raised when the ambient transaction completes.
 
-The processor restores each stored message's payload, identifiers, addresses, headers, and timestamps. Delivery runs diagnostics and the transport operation without repeating application dispatch middleware.
+The processor restores each stored message's payload, identifiers, addresses, headers, and timestamps, then sends it directly through the transport. Dispatch middleware runs when the message is published or sent and is not repeated during delivery or retries. If `SentAt` is unset, it is assigned immediately before transport dispatch.
 
 `TimesSent` tracks dispatch attempts, with exponential retry delays and a maximum of ten attempts. Messages are deleted after successful transport dispatch.
 
-## Skip the outbox for specific dispatches
-
-Some messages - like internal system events or replies that do not need durability - can bypass the outbox. The outbox middleware checks for an `OutboxMiddlewareFeature` on the dispatch context. Messages with `SkipOutbox = true` pass straight through to the transport.
-
-The outbox middleware also only intercepts messages of kind `Publish`, `Send`, `Reply`, or `Fault`. Other message kinds pass through without outbox persistence. An explicit `db.Outbox` publication always uses its attached staging provider, including when middleware sets `SkipOutbox`.
+The outbox middleware intercepts messages of kind `Publish`, `Send`, `Reply`, or `Fault`. Other message kinds pass through without outbox persistence. An explicit `db.Outbox` publication uses its attached staging provider.
 
 # Deduplicate messages with the transactional inbox
 

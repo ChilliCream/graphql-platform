@@ -19,7 +19,7 @@ internal static class MiddlewareCompiler
     private static List<ReceiveMiddlewareConfiguration>? s_receiveMiddlewares;
     private static List<ConsumerMiddlewareConfiguration>? s_handlerMiddlewares;
 
-    public static (DispatchDelegate Dispatch, DispatchDelegate Preparation, DispatchDelegate Delivery) CompileDispatch(
+    public static (DispatchDelegate Dispatch, DispatchDelegate Preparation) CompileDispatch(
         DispatchMiddlewareFactoryContext context,
         DispatchDelegate dispatch,
         DispatchDelegate prepare,
@@ -46,27 +46,26 @@ internal static class MiddlewareCompiler
         // Reverse before fold so first configured middleware becomes outermost in execution.
         middlewares.Reverse();
 
-        var pipeline = Compile(context, dispatch, middlewares, DispatchMiddlewareStage.Dispatch);
-        var preparation = Compile(context, prepare, middlewares, DispatchMiddlewareStage.Preparation);
-        var delivery = Compile(context, dispatch, middlewares, DispatchMiddlewareStage.Delivery);
+        var pipeline = Compile(context, dispatch, middlewares, preparation: false);
+        var preparation = Compile(context, prepare, middlewares, preparation: true);
 
         middlewares.Clear();
 
         Interlocked.CompareExchange(ref s_dispatchMiddlewares, middlewares, null);
 
-        return (pipeline, preparation, delivery);
+        return (pipeline, preparation);
     }
 
     private static DispatchDelegate Compile(
         DispatchMiddlewareFactoryContext context,
         DispatchDelegate terminal,
         List<DispatchMiddlewareConfiguration> middlewares,
-        DispatchMiddlewareStage stage)
+        bool preparation)
     {
         var pipeline = terminal;
         foreach (var middleware in middlewares)
         {
-            if (middleware.IsTerminal && (middleware.Stages & stage) != 0)
+            if (middleware.IsTerminal && (!preparation || middleware.RunsDuringPreparation))
             {
                 pipeline = middleware.Middleware(context, pipeline);
             }
@@ -74,7 +73,7 @@ internal static class MiddlewareCompiler
 
         foreach (var middleware in middlewares)
         {
-            if (!middleware.IsTerminal && (middleware.Stages & stage) != 0)
+            if (!middleware.IsTerminal && (!preparation || middleware.RunsDuringPreparation))
             {
                 pipeline = middleware.Middleware(context, pipeline);
             }

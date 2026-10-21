@@ -1,6 +1,8 @@
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Time.Testing;
+using Mocha.Middlewares;
 
 namespace Mocha.Transport.InMemory.Tests.Scheduling;
 
@@ -45,6 +47,99 @@ public class InMemorySchedulingTests
             "Message must be delivered once its due time is reached");
         var received = Assert.Single(recorder.Messages.OfType<ScheduledPing>());
         Assert.Equal("ping", received.Text);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ScheduledMessage_Should_RunDispatchMiddlewareOnce_When_PublishedOrSent(bool send)
+    {
+        // arrange
+        var recorder = new MessageRecorder();
+        var time = new FakeTimeProvider(s_start);
+        var beforeSerialization = 0;
+        var afterScheduling = 0;
+        var received = new TaskCompletionSource<MessageEnvelope>(TaskCreationOptions.RunContinuationsAsynchronously);
+        await using var env = await CreateBusAsync(recorder, time, builder =>
+        {
+            builder.AddRequestHandler<ScheduledPingRequestHandler>();
+            builder.ConfigureMessageBus(bus =>
+            {
+                bus.UseDispatch(new DispatchMiddlewareConfiguration(
+                    (_, next) => context =>
+                    {
+                        beforeSerialization++;
+                        context.Message = new ScheduledPing { Text = "prepared" };
+                        context.Headers.Set("prepared-header", "stored");
+                        return next(context);
+                    },
+                    "PrepareScheduledMessage"), before: "Serialization");
+                bus.UseDispatch(new DispatchMiddlewareConfiguration(
+                    (_, next) => context =>
+                    {
+                        afterScheduling++;
+                        return next(context);
+                    },
+                    "ObserveScheduledMessage"), after: "Scheduling");
+                bus.UseReceive(new ReceiveMiddlewareConfiguration(
+                    (_, next) => async context =>
+                    {
+                        var envelope = MessageEnvelope.CopyWithOwnedBody(context.Envelope!);
+                        await next(context);
+                        received.TrySetResult(envelope);
+                    },
+                    "CaptureScheduledMessage"));
+            });
+        });
+        using var scope = env.Provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        if (send)
+        {
+            await bus.ScheduleSendAsync(
+                new ScheduledPing { Text = "original" },
+                s_start.AddMinutes(10),
+                TestContext.Current.CancellationToken);
+        }
+        else
+        {
+            await bus.SchedulePublishAsync(
+                new ScheduledPing { Text = "original" },
+                s_start.AddMinutes(10),
+                TestContext.Current.CancellationToken);
+        }
+
+        var atInvocation = new { BeforeSerialization = beforeSerialization, AfterScheduling = afterScheduling };
+        time.Advance(TimeSpan.FromMinutes(11));
+        var delivered = await received.Task.WaitAsync(s_deliveryTimeout, TestContext.Current.CancellationToken);
+
+        // assert
+        new
+        {
+            AtInvocation = atInvocation,
+            AtDelivery = new { BeforeSerialization = beforeSerialization, AfterScheduling = afterScheduling },
+            Body = System.Text.Encoding.UTF8.GetString(delivered.Body.Span),
+            Header = delivered.Headers?.GetValue("prepared-header"),
+            SentAt = delivered.SentAt?.ToString("O"),
+            ScheduledTime = delivered.ScheduledTime?.ToString("O")
+        }.MatchInlineSnapshot(
+            """
+            {
+              "AtInvocation": {
+                "BeforeSerialization": 1,
+                "AfterScheduling": 1
+              },
+              "AtDelivery": {
+                "BeforeSerialization": 1,
+                "AfterScheduling": 1
+              },
+              "Body": "{\"Text\":\"prepared\"}",
+              "Header": "stored",
+              "SentAt": "2026-06-01T12:11:00.0000000+00:00",
+              "ScheduledTime": "2026-06-01T12:10:00.0000000+00:00"
+            }
+            """);
     }
 
     [Fact]
@@ -119,15 +214,12 @@ public class InMemorySchedulingTests
     public async Task ScheduledMessage_Should_BeDroppedAndWorkerContinue_When_DispatchThrows()
     {
         // arrange
-        // a dispatch middleware throws on the first re-dispatch; the worker must log-and-drop that
-        // message and keep delivering later scheduled messages.
         var recorder = new MessageRecorder();
         var time = new FakeTimeProvider(s_start);
-        var toggle = new DispatchFailureToggle();
         await using var env = await CreateBusAsync(
             recorder,
             time,
-            b => AddThrowOnceDispatchMiddleware(b, toggle));
+            AddInvalidReplyDestination);
 
         await PublishScheduledAsync(env.Provider, s_start.AddMinutes(5), "dropped");
         time.Advance(TimeSpan.FromMinutes(6));
@@ -137,7 +229,7 @@ public class InMemorySchedulingTests
         // act
         time.Advance(TimeSpan.FromMinutes(6));
 
-        // assert - only the second message is delivered; the worker survived the failure
+        // assert
         Assert.True(
             await recorder.WaitAsync(s_deliveryTimeout),
             "The worker should survive a dispatch failure and deliver later messages");
@@ -198,25 +290,21 @@ public class InMemorySchedulingTests
         return new TestEnvironment(provider, hostedServices);
     }
 
-    private static void AddThrowOnceDispatchMiddleware(
-        IMessageBusHostBuilder builder,
-        DispatchFailureToggle toggle)
+    private static void AddInvalidReplyDestination(IMessageBusHostBuilder builder)
     {
-        builder.ConfigureMessageBus(h =>
-            h.UseDispatch(
-                new DispatchMiddlewareConfiguration(
-                    (_, next) => ctx =>
+        builder.ConfigureMessageBus(bus =>
+            bus.UseDispatch(new DispatchMiddlewareConfiguration(
+                (_, next) => context =>
+                {
+                    if (context.Message is ScheduledPing { Text: "dropped" })
                     {
-                        if (!toggle.Thrown)
-                        {
-                            toggle.Thrown = true;
+                        context.Headers.Set("message-kind", "reply");
+                        context.DestinationAddress = new Uri("memory://localhost/q/missing");
+                    }
 
-                            throw new InvalidOperationException("Simulated dispatch failure");
-                        }
-
-                        return next(ctx);
-                    },
-                    "ThrowOnceDispatch")));
+                    return next(context);
+                },
+                "InvalidReplyDestination"), before: "Serialization"));
     }
 
     public sealed class ScheduledPing
@@ -230,6 +318,15 @@ public class InMemorySchedulingTests
         {
             recorder.Record(message);
 
+            return default;
+        }
+    }
+
+    public sealed class ScheduledPingRequestHandler(MessageRecorder recorder) : IEventRequestHandler<ScheduledPing>
+    {
+        public ValueTask HandleAsync(ScheduledPing message, CancellationToken cancellationToken)
+        {
+            recorder.Record(message);
             return default;
         }
     }
@@ -250,10 +347,5 @@ public class InMemorySchedulingTests
 
             await provider.DisposeAsync();
         }
-    }
-
-    private sealed class DispatchFailureToggle
-    {
-        public bool Thrown;
     }
 }

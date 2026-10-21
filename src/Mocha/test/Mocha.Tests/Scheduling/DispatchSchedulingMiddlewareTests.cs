@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
-using Mocha.Features;
 using Mocha.Middlewares;
 using Mocha.Scheduling;
 
@@ -52,42 +51,7 @@ public class DispatchSchedulingMiddlewareTests
     }
 
     [Fact]
-    public async Task InvokeAsync_Should_CallNext_When_SkipSchedulerIsTrue()
-    {
-        // arrange
-        var timeProvider = new FakeTimeProvider();
-        var middleware = new DispatchSchedulingMiddleware();
-        var store = new InMemoryScheduledMessageStore();
-        await using var provider = BuildProvider(store);
-        using var scope = provider.CreateScope();
-
-        var context = new DispatchContext
-        {
-            ScheduledTime = timeProvider.GetUtcNow().AddMinutes(10),
-            Services = scope.ServiceProvider,
-            Envelope = new MessageEnvelope { MessageId = "msg-skip" },
-            Transport = new StubTransport()
-        };
-
-        context.Features.Configure<SchedulingMiddlewareFeature>(f => f.SkipScheduler = true);
-
-        var nextCalled = false;
-        DispatchDelegate next = _ =>
-        {
-            nextCalled = true;
-            return ValueTask.CompletedTask;
-        };
-
-        // act
-        await middleware.InvokeAsync(context, next);
-
-        // assert
-        Assert.True(nextCalled);
-        Assert.Empty(store.Entries);
-    }
-
-    [Fact]
-    public async Task InvokeAsync_Should_PersistToStore_When_ScheduledTimeSetAndNotSkipped()
+    public async Task InvokeAsync_Should_PersistToStore_When_ScheduledTimeSet()
     {
         // arrange
         var timeProvider = new FakeTimeProvider();
