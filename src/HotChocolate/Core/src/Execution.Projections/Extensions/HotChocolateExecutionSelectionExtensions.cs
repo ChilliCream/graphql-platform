@@ -308,7 +308,7 @@ public static class HotChocolateExecutionSelectionExtensions
         }
         finally
         {
-            ArrayPool<Selection>.Shared.Return(buffer);
+            ArrayPool<Selection>.Shared.Return(buffer, clearArray: true);
         }
 
         return new SelectorExpression<TValue>(
