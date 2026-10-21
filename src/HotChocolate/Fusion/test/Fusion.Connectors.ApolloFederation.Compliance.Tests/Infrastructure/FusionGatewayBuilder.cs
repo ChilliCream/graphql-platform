@@ -598,16 +598,28 @@ internal static class FusionGatewayBuilder
                     $"No subgraph host registered for '{host}'.");
             }
 
+            CapturedSubgraphRequest? captured = null;
+
             if (_capture is not null && request.Content is { } content)
             {
                 // Buffer the body so it can be recorded and still forwarded to the
                 // in-process subgraph handler.
                 await content.LoadIntoBufferAsync().ConfigureAwait(false);
                 var body = await content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-                _capture.Record(host, body);
+                captured = _capture.Record(host, body);
             }
 
-            return await invoker.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            var response = await invoker.SendAsync(request, cancellationToken).ConfigureAwait(false);
+
+            if (captured is not null)
+            {
+                captured.StatusCode = (int)response.StatusCode;
+                captured.ContentType = response.Content.Headers.ContentType?.ToString();
+                captured.ResponseBody = await response.Content.ReadAsStringAsync(cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
+            return response;
         }
     }
 

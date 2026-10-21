@@ -1,0 +1,514 @@
+title: ApolloEntityLookups_Should_IssueNestedLookups_When_UnionSiblingSelectionsDifferAndMembersAreAbsent
+request:
+  document: |
+    {
+      search {
+        ... on ExistingResult {
+          asset {
+            meterType {
+              type
+            }
+            category {
+              allowedMeterTypes {
+                type
+              }
+            }
+          }
+        }
+        ... on ConfigMatchesResult {
+          asset {
+            category {
+              allowedMeterTypes {
+                type
+              }
+            }
+            meterType {
+              type
+            }
+          }
+        }
+        ... on NotSubmissableResult {
+          asset {
+            meterType {
+              type
+            }
+            statusMessage
+            category {
+              allowedMeterTypes {
+                type
+              }
+            }
+          }
+        }
+        ... on CustomResult {
+          asset {
+            meterType {
+              type
+            }
+            category {
+              allowedMeterTypes {
+                type
+              }
+            }
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "search": [
+          {
+            "asset": {
+              "meterType": {
+                "type": "type-m1"
+              },
+              "category": {
+                "allowedMeterTypes": [
+                  {
+                    "type": "type-ac1"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "asset": {
+              "meterType": {
+                "type": "type-m2"
+              },
+              "category": {
+                "allowedMeterTypes": [
+                  {
+                    "type": "type-ac2"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "asset": {
+              "meterType": {
+                "type": "type-m3"
+              },
+              "category": {
+                "allowedMeterTypes": [
+                  {
+                    "type": "type-ac3"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+requestOrder:
+  - search
+  - assets
+  - search
+sourceSchemas:
+  - name: assets
+    interactions:
+      - request:
+          body: |
+            {
+              "query": "query($representations: [_Any!]!) { _entities(representations: $representations) { ... on Asset { meterType { id } category { id } } } }",
+              "variables": {
+                "representations": [
+                  {
+                    "__typename": "Asset",
+                    "id": "1"
+                  },
+                  {
+                    "__typename": "Asset",
+                    "id": "2"
+                  },
+                  {
+                    "__typename": "Asset",
+                    "id": "3"
+                  }
+                ]
+              }
+            }
+        response:
+          statusCode: 200
+          contentType: application/graphql-response+json; charset=utf-8
+          body: |
+            {
+              "data": {
+                "_entities": [
+                  {
+                    "meterType": {
+                      "id": "m1"
+                    },
+                    "category": {
+                      "id": "c1"
+                    }
+                  },
+                  {
+                    "meterType": {
+                      "id": "m2"
+                    },
+                    "category": {
+                      "id": "c2"
+                    }
+                  },
+                  {
+                    "meterType": {
+                      "id": "m3"
+                    },
+                    "category": {
+                      "id": "c3"
+                    }
+                  }
+                ]
+              }
+            }
+  - name: search
+    interactions:
+      - request:
+          body: |
+            {
+              "query": "query Op_f75113c5_1 { search { __typename ... on ExistingResult { asset { id } } ... on ConfigMatchesResult { asset { id } } ... on NotSubmissableResult { asset { id } } ... on CustomResult { asset { id } } } }"
+            }
+        response:
+          statusCode: 200
+          contentType: application/graphql-response+json; charset=utf-8
+          body: |
+            {
+              "data": {
+                "search": [
+                  {
+                    "__typename": "CustomResult",
+                    "asset": {
+                      "id": "1"
+                    }
+                  },
+                  {
+                    "__typename": "CustomResult",
+                    "asset": {
+                      "id": "2"
+                    }
+                  },
+                  {
+                    "__typename": "CustomResult",
+                    "asset": {
+                      "id": "3"
+                    }
+                  }
+                ]
+              }
+            }
+      - request:
+          body: |
+            {
+              "query": "query Op_f75113c5_Batch_d89d2a4f572054ae($_0_representations:[_Any!]!,$_1_representations:[_Any!]!){_0__entities:_entities(representations:$_0_representations){...on Category{allowedMeterTypes{type}}} _1__entities:_entities(representations:$_1_representations){...on MeterType{type}}}",
+              "variables": {
+                "_0_representations": [
+                  {
+                    "__typename": "Category",
+                    "id": "c1"
+                  },
+                  {
+                    "__typename": "Category",
+                    "id": "c2"
+                  },
+                  {
+                    "__typename": "Category",
+                    "id": "c3"
+                  }
+                ],
+                "_1_representations": [
+                  {
+                    "__typename": "MeterType",
+                    "id": "m1"
+                  },
+                  {
+                    "__typename": "MeterType",
+                    "id": "m2"
+                  },
+                  {
+                    "__typename": "MeterType",
+                    "id": "m3"
+                  }
+                ]
+              }
+            }
+        response:
+          statusCode: 200
+          contentType: application/graphql-response+json; charset=utf-8
+          body: |
+            {
+              "data": {
+                "_0__entities": [
+                  {
+                    "allowedMeterTypes": [
+                      {
+                        "type": "type-ac1"
+                      }
+                    ]
+                  },
+                  {
+                    "allowedMeterTypes": [
+                      {
+                        "type": "type-ac2"
+                      }
+                    ]
+                  },
+                  {
+                    "allowedMeterTypes": [
+                      {
+                        "type": "type-ac3"
+                      }
+                    ]
+                  }
+                ],
+                "_1__entities": [
+                  {
+                    "type": "type-m1"
+                  },
+                  {
+                    "type": "type-m2"
+                  },
+                  {
+                    "type": "type-m3"
+                  }
+                ]
+              }
+            }
+operationPlan: |
+  operation:
+    - document: |
+        {
+          search {
+            __typename @fusion__requirement
+            ... on ExistingResult {
+              asset {
+                meterType {
+                  type
+                  id @fusion__requirement
+                }
+                category {
+                  allowedMeterTypes {
+                    type
+                  }
+                  id @fusion__requirement
+                }
+                id @fusion__requirement
+              }
+            }
+            ... on ConfigMatchesResult {
+              asset {
+                category {
+                  allowedMeterTypes {
+                    type
+                  }
+                  id @fusion__requirement
+                }
+                meterType {
+                  type
+                  id @fusion__requirement
+                }
+                id @fusion__requirement
+              }
+            }
+            ... on NotSubmissableResult {
+              asset {
+                meterType {
+                  type
+                  id @fusion__requirement
+                }
+                statusMessage
+                category {
+                  allowedMeterTypes {
+                    type
+                  }
+                  id @fusion__requirement
+                }
+                id @fusion__requirement
+              }
+            }
+            ... on CustomResult {
+              asset {
+                meterType {
+                  type
+                  id @fusion__requirement
+                }
+                category {
+                  allowedMeterTypes {
+                    type
+                  }
+                  id @fusion__requirement
+                }
+                id @fusion__requirement
+              }
+            }
+          }
+        }
+      hash: f75113c55459c5662f1df7f9141b4cc2
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: search
+      operation: |
+        query Op_f75113c5_1 {
+          search {
+            __typename
+            ... on ExistingResult {
+              asset {
+                id
+              }
+            }
+            ... on ConfigMatchesResult {
+              asset {
+                id
+              }
+            }
+            ... on NotSubmissableResult {
+              asset {
+                id
+              }
+            }
+            ... on CustomResult {
+              asset {
+                id
+              }
+            }
+          }
+        }
+    - id: 2
+      type: ApolloOperationBatch
+      schema: assets
+      operation: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Asset {
+              meterType {
+                id
+              }
+              category {
+                id
+              }
+            }
+          }
+        }
+      source: $._entities
+      targets:
+        - $.search<CustomResult>.asset
+        - $.search<ExistingResult>.asset
+      batchingGroupId: 14
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 5
+      type: ApolloOperationBatch
+      schema: assets
+      operation: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Asset {
+              meterType {
+                id
+              }
+              statusMessage
+              category {
+                id
+              }
+            }
+          }
+        }
+      source: $._entities
+      target: $.search<NotSubmissableResult>.asset
+      batchingGroupId: 14
+      requirements:
+        - name: __fusion_4_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 8
+      type: ApolloOperationBatch
+      schema: assets
+      operation: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Asset {
+              category {
+                id
+              }
+              meterType {
+                id
+              }
+            }
+          }
+        }
+      source: $._entities
+      target: $.search<ConfigMatchesResult>.asset
+      batchingGroupId: 14
+      requirements:
+        - name: __fusion_7_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: ApolloOperationBatch
+      schema: search
+      operation: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Category {
+              allowedMeterTypes {
+                type
+              }
+            }
+          }
+        }
+      source: $._entities
+      targets:
+        - $.search<CustomResult>.asset.category
+        - $.search<NotSubmissableResult>.asset.category
+        - $.search<ConfigMatchesResult>.asset.category
+        - $.search<ExistingResult>.asset.category
+      batchingGroupId: 15
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 2
+        - id: 5
+        - id: 8
+    - id: 4
+      type: ApolloOperationBatch
+      schema: search
+      operation: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on MeterType {
+              type
+            }
+          }
+        }
+      source: $._entities
+      targets:
+        - $.search<CustomResult>.asset.meterType
+        - $.search<NotSubmissableResult>.asset.meterType
+        - $.search<ConfigMatchesResult>.asset.meterType
+        - $.search<ExistingResult>.asset.meterType
+      batchingGroupId: 15
+      requirements:
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 2
+        - id: 5
+        - id: 8

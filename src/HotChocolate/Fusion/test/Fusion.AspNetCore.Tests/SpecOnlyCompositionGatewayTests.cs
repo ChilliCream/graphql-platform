@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Testing;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Results;

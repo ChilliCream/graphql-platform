@@ -22,21 +22,20 @@ public sealed class ProvidesOnInterfaceSupplementalTests
         var testCase = AuditFixture.GetOfficialV2Case<ProvidesOnInterfaceTests>(
             "provides-on-interface/001");
 
-        await gateway.Executor.ExecuteAsync(
+        var result = await gateway.Executor.ExecuteAsync(
             OperationRequestBuilder.New().SetDocument(testCase.Query).Build(),
             TestContext.Current.CancellationToken);
 
-        string.Join(
-            "\n\n",
-            capture.Requests.Select(
-                static request => $"{request.SubgraphName}:\n{request.Body}"))
-            .MatchInlineSnapshot(
-                """
-                b:
-                {"query":"query Op_3e0174e7_1 { media { __typename id ... on Book { animals { __typename ... on Cat { id } ... on Dog { id } ... on Cat { name } ... on Dog { name } } } } }"}
+        AuditAssertions.Assert(
+            result.ToJson(),
+            testCase.ExpectedData,
+            testCase.HasExpectedErrors ? testCase.ExpectsErrors : null);
 
-                c:
-                {"query":"query($representations: [_Any!]!) { _entities(representations: $representations) { ... on Cat { age } } }","variables":{"representations":[{"__typename":"Cat","id":"a2"}]}}
-                """);
+        await ApolloIntegrationSnapshot.MatchAsync(
+            new Snapshot(extension: ".yaml"),
+            testCase.Query,
+            capture,
+            result,
+            includeRequestOrder: true);
     }
 }

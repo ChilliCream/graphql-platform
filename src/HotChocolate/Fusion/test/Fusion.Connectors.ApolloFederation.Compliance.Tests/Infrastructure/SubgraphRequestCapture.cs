@@ -3,16 +3,18 @@ using System.Collections.Concurrent;
 namespace HotChocolate.Fusion;
 
 /// <summary>
-/// Records the gateway to subgraph HTTP requests sent while executing a gateway
-/// operation, so a test can assert the number and wire shape of the requests that
-/// the source schema client produced.
+/// Records HTTP requests and responses exchanged between the gateway and subgraphs.
 /// </summary>
 public sealed class SubgraphRequestCapture
 {
     private readonly ConcurrentQueue<CapturedSubgraphRequest> _requests = new();
 
-    internal void Record(string subgraphName, string body)
-        => _requests.Enqueue(new CapturedSubgraphRequest(subgraphName, body));
+    internal CapturedSubgraphRequest Record(string subgraphName, string body)
+    {
+        var request = new CapturedSubgraphRequest(subgraphName, body);
+        _requests.Enqueue(request);
+        return request;
+    }
 
     /// <summary>
     /// All captured requests in the order they were sent.
@@ -30,8 +32,15 @@ public sealed class SubgraphRequestCapture
 }
 
 /// <summary>
-/// A single gateway to subgraph HTTP request body.
+/// A subgraph HTTP request and its response.
 /// </summary>
 /// <param name="SubgraphName">The subgraph the request was sent to.</param>
 /// <param name="Body">The UTF-8 request body.</param>
-public sealed record CapturedSubgraphRequest(string SubgraphName, string Body);
+public sealed record CapturedSubgraphRequest(string SubgraphName, string Body)
+{
+    public string ResponseBody { get; internal set; } = string.Empty;
+
+    public int? StatusCode { get; internal set; }
+
+    public string? ContentType { get; internal set; }
+}

@@ -1,0 +1,355 @@
+title: ApolloEntityLookups_Should_IssueNestedLookups_When_SiblingBatchPartiallySkippedAndOtherBranchFails
+request:
+  document: |
+    {
+      search {
+        ... on ExistingResult {
+          asset {
+            meterType {
+              type
+            }
+          }
+        }
+        ... on ExistingResult2 {
+          asset {
+            meterType {
+              type
+            }
+            statusMessage
+          }
+        }
+        ... on OtherResult {
+          doc {
+            meterType {
+              type
+            }
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "search",
+            2,
+            "doc",
+            "meterType"
+          ],
+          "extensions": {
+            "exception": {
+              "message": "Response status code does not indicate success: 500 (Internal Server Error).",
+              "stackTrace": "   at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()\n   at HotChocolate.Fusion.Transport.Http.GraphQLHttpResponse.ReadAsResultAsync(IMemoryArena arena, CancellationToken cancellationToken) in src/HotChocolate/AspNetCore/src/Transport.Http/GraphQLHttpResponse.cs\n   at HotChocolate.Fusion.Execution.Clients.HttpSourceSchemaClient.ReadAsResultStreamAsync(OperationPlanContext context, ImmutableArray`1 variables, GraphQLHttpResponse response, CancellationToken cancellationToken)+MoveNext() in src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Clients/HttpSourceSchemaClient.cs\n   at HotChocolate.Fusion.Execution.Clients.HttpSourceSchemaClient.ReadAsResultStreamAsync(OperationPlanContext context, ImmutableArray`1 variables, GraphQLHttpResponse response, CancellationToken cancellationToken)+System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetResult()\n   at HotChocolate.Fusion.Execution.Clients.HttpSourceSchemaClient.<ExecuteAsync>g__CreateStreamAsync|33_0(OperationPlanContext context, SourceSchemaClientRequest request, CancellationToken cancellationToken)+MoveNext() in src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Clients/HttpSourceSchemaClient.cs\n   at HotChocolate.Fusion.Execution.Clients.HttpSourceSchemaClient.<ExecuteAsync>g__CreateStreamAsync|33_0(OperationPlanContext context, SourceSchemaClientRequest request, CancellationToken cancellationToken)+MoveNext() in src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Clients/HttpSourceSchemaClient.cs\n   at HotChocolate.Fusion.Execution.Clients.HttpSourceSchemaClient.<ExecuteAsync>g__CreateStreamAsync|33_0(OperationPlanContext context, SourceSchemaClientRequest request, CancellationToken cancellationToken)+System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetResult()\n   at HotChocolate.Fusion.Execution.Nodes.ApolloOperationExecutionNode.OnExecuteAsync(OperationPlanContext context, CancellationToken cancellationToken) in src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Nodes/ApolloOperationExecutionNode.cs\n   at HotChocolate.Fusion.Execution.Nodes.ApolloOperationExecutionNode.OnExecuteAsync(OperationPlanContext context, CancellationToken cancellationToken) in src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Nodes/ApolloOperationExecutionNode.cs"
+            }
+          }
+        }
+      ],
+      "data": {
+        "search": [
+          {
+            "asset": {
+              "meterType": {
+                "type": "type-m1"
+              }
+            }
+          },
+          {
+            "asset": {
+              "meterType": {
+                "type": "type-m2"
+              }
+            }
+          },
+          {
+            "doc": {
+              "meterType": null
+            }
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: assets
+    interactions:
+      - request:
+          body: |
+            {
+              "query": "query($representations: [_Any!]!) { _entities(representations: $representations) { ... on Asset { meterType { id } } } }",
+              "variables": {
+                "representations": [
+                  {
+                    "__typename": "Asset",
+                    "id": "1"
+                  },
+                  {
+                    "__typename": "Asset",
+                    "id": "2"
+                  }
+                ]
+              }
+            }
+        response:
+          statusCode: 200
+          contentType: application/graphql-response+json; charset=utf-8
+          body: |
+            {
+              "data": {
+                "_entities": [
+                  {
+                    "meterType": {
+                      "id": "m1"
+                    }
+                  },
+                  {
+                    "meterType": {
+                      "id": "m2"
+                    }
+                  }
+                ]
+              }
+            }
+  - name: docs
+    interactions:
+      - request:
+          body: |
+            {
+              "query": "query($representations: [_Any!]!) { _entities(representations: $representations) { ... on Doc { meterType { id } } } }",
+              "variables": {
+                "representations": [
+                  {
+                    "__typename": "Doc",
+                    "id": "d1"
+                  }
+                ]
+              }
+            }
+        response:
+          statusCode: 500
+          contentType: null
+          body: |
+  - name: search
+    interactions:
+      - request:
+          body: |
+            {
+              "query": "query Op_8830a8ac_1 { search { __typename ... on ExistingResult { asset { id } } ... on ExistingResult2 { asset { id } } ... on OtherResult { doc { id } } } }"
+            }
+        response:
+          statusCode: 200
+          contentType: application/graphql-response+json; charset=utf-8
+          body: |
+            {
+              "data": {
+                "search": [
+                  {
+                    "__typename": "ExistingResult",
+                    "asset": {
+                      "id": "1"
+                    }
+                  },
+                  {
+                    "__typename": "ExistingResult",
+                    "asset": {
+                      "id": "2"
+                    }
+                  },
+                  {
+                    "__typename": "OtherResult",
+                    "doc": {
+                      "id": "d1"
+                    }
+                  }
+                ]
+              }
+            }
+      - request:
+          body: |
+            {
+              "query": "query($representations: [_Any!]!) { _entities(representations: $representations) { ... on MeterType { type } } }",
+              "variables": {
+                "representations": [
+                  {
+                    "__typename": "MeterType",
+                    "id": "m1"
+                  },
+                  {
+                    "__typename": "MeterType",
+                    "id": "m2"
+                  }
+                ]
+              }
+            }
+        response:
+          statusCode: 200
+          contentType: application/graphql-response+json; charset=utf-8
+          body: |
+            {
+              "data": {
+                "_entities": [
+                  {
+                    "type": "type-m1"
+                  },
+                  {
+                    "type": "type-m2"
+                  }
+                ]
+              }
+            }
+operationPlan: |
+  operation:
+    - document: |
+        {
+          search {
+            __typename @fusion__requirement
+            ... on ExistingResult {
+              asset {
+                meterType {
+                  type
+                  id @fusion__requirement
+                }
+                id @fusion__requirement
+              }
+            }
+            ... on ExistingResult2 {
+              asset {
+                meterType {
+                  type
+                  id @fusion__requirement
+                }
+                statusMessage
+                id @fusion__requirement
+              }
+            }
+            ... on OtherResult {
+              doc {
+                meterType {
+                  type
+                  id @fusion__requirement
+                }
+                id @fusion__requirement
+              }
+            }
+          }
+        }
+      hash: 8830a8ac71ec90a1b3ece3128181ec3c
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: search
+      operation: |
+        query Op_8830a8ac_1 {
+          search {
+            __typename
+            ... on ExistingResult {
+              asset {
+                id
+              }
+            }
+            ... on ExistingResult2 {
+              asset {
+                id
+              }
+            }
+            ... on OtherResult {
+              doc {
+                id
+              }
+            }
+          }
+        }
+    - id: 2
+      type: ApolloOperation
+      schema: docs
+      operation: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Doc {
+              meterType {
+                id
+              }
+            }
+          }
+        }
+      source: $._entities
+      target: $.search<OtherResult>.doc
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 4
+      type: ApolloOperationBatch
+      schema: assets
+      operation: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Asset {
+              meterType {
+                id
+              }
+              statusMessage
+            }
+          }
+        }
+      source: $._entities
+      target: $.search<ExistingResult2>.asset
+      batchingGroupId: 8
+      requirements:
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 6
+      type: ApolloOperationBatch
+      schema: assets
+      operation: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Asset {
+              meterType {
+                id
+              }
+            }
+          }
+        }
+      source: $._entities
+      target: $.search<ExistingResult>.asset
+      batchingGroupId: 8
+      requirements:
+        - name: __fusion_5_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: ApolloOperationBatch
+      schema: search
+      operation: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on MeterType {
+              type
+            }
+          }
+        }
+      source: $._entities
+      targets:
+        - $.search<OtherResult>.doc.meterType
+        - $.search<ExistingResult2>.asset.meterType
+        - $.search<ExistingResult>.asset.meterType
+      batchingGroupId: 9
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 2
+        - id: 4
+        - id: 6

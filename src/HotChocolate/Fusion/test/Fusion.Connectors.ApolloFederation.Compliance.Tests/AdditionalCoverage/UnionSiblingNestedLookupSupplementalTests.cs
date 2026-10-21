@@ -30,7 +30,7 @@ public sealed class UnionSiblingNestedLookupSupplementalTests
         // (ExistingResult, CustomResult), one with the entity fields reordered
         // (ConfigMatchesResult) and one with an extra field (NotSubmissableResult);
         // the runtime data contains only CustomResult items
-        var result = await gateway.Executor.ExecuteAsync(
+        const string query =
             """
             {
               search {
@@ -85,7 +85,9 @@ public sealed class UnionSiblingNestedLookupSupplementalTests
                 }
               }
             }
-            """,
+            """;
+        var result = await gateway.Executor.ExecuteAsync(
+            query,
             TestContext.Current.CancellationToken);
 
         // assert
@@ -118,18 +120,11 @@ public sealed class UnionSiblingNestedLookupSupplementalTests
             """,
             expectsErrors: false);
 
-        // guard: no candidate is a ConfigMatchesResult, so its dedicated asset
-        // lookup is skipped and the nested lookups must still reach 'search'
-        // guard: no candidate matches the other three sibling fragments, so their
-        // dedicated asset lookups are skipped at runtime and the nested MeterType
-        // and Category lookups must still reach the 'search' subgraph
-        capture.Requests.Select(r => $"{r.SubgraphName}: {r.Body}").MatchInlineSnapshot(
-            """
-            [
-              "search: {\"query\":\"query Op_f75113c5_1 { search { __typename ... on ExistingResult { asset { id } } ... on ConfigMatchesResult { asset { id } } ... on NotSubmissableResult { asset { id } } ... on CustomResult { asset { id } } } }\"}",
-              "assets: {\"query\":\"query($representations: [_Any!]!) { _entities(representations: $representations) { ... on Asset { meterType { id } category { id } } } }\",\"variables\":{\"representations\":[{\"__typename\":\"Asset\",\"id\":\"1\"},{\"__typename\":\"Asset\",\"id\":\"2\"},{\"__typename\":\"Asset\",\"id\":\"3\"}]}}",
-              "search: {\"query\":\"query Op_f75113c5_Batch_d89d2a4f572054ae($_0_representations:[_Any!]!,$_1_representations:[_Any!]!){_0__entities:_entities(representations:$_0_representations){...on Category{allowedMeterTypes{type}}} _1__entities:_entities(representations:$_1_representations){...on MeterType{type}}}\",\"variables\":{\"_0_representations\":[{\"__typename\":\"Category\",\"id\":\"c1\"},{\"__typename\":\"Category\",\"id\":\"c2\"},{\"__typename\":\"Category\",\"id\":\"c3\"}],\"_1_representations\":[{\"__typename\":\"MeterType\",\"id\":\"m1\"},{\"__typename\":\"MeterType\",\"id\":\"m2\"},{\"__typename\":\"MeterType\",\"id\":\"m3\"}]}}"
-            ]
-            """);
+        await ApolloIntegrationSnapshot.MatchAsync(
+            new Snapshot(extension: ".yaml"),
+            query,
+            capture,
+            result,
+            includeRequestOrder: true);
     }
 }
