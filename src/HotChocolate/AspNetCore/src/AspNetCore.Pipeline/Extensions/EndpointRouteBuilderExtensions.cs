@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using ChilliCream.Nitro.App;
+using ChilliCream.Nitro.App.Embed;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Http;
@@ -86,7 +87,7 @@ public static class EndpointRouteBuilderExtensions
         var pattern = Parse(path + "/{**slug}");
         var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
         var services = endpointRouteBuilder.ServiceProvider;
-        requestPipeline.MapGraphQL(path, schemaNameOrDefault);
+        MapGraphQLPipeline(requestPipeline, path, schemaNameOrDefault, mountedOnEndpoint: true);
         var serverOptions = services.GetServerOptions(schemaNameOrDefault);
 
         return new GraphQLEndpointConventionBuilder(
@@ -123,6 +124,15 @@ public static class EndpointRouteBuilderExtensions
         ArgumentNullException.ThrowIfNull(applicationBuilder);
         ArgumentException.ThrowIfNullOrEmpty(schemaName);
 
+        return MapGraphQLPipeline(applicationBuilder, path, schemaName, mountedOnEndpoint: false);
+    }
+
+    private static IApplicationBuilder MapGraphQLPipeline(
+        IApplicationBuilder applicationBuilder,
+        PathString path,
+        string schemaName,
+        bool mountedOnEndpoint)
+    {
         path = path.ToString().TrimEnd('/');
 
         var services = applicationBuilder.ApplicationServices;
@@ -144,7 +154,20 @@ public static class EndpointRouteBuilderExtensions
                 executor, serverOptions, path, MiddlewareRoutingType.Integrated))
             .UseWhen(
                 context => context.MayReachNitroApp(path),
-                branch => branch.UseNitroApp(path, serverOptions.Tool))
+                branch =>
+                {
+                    if (mountedOnEndpoint)
+                    {
+                        branch.UseNitroApp(serverOptions.Tool, EmbeddedNitroApp.AssetSource);
+                    }
+                    else
+                    {
+                        branch.Use(NitroAppMiddleware.Create(
+                            serverOptions.Tool,
+                            path,
+                            embeddedAssetSource: EmbeddedNitroApp.AssetSource));
+                    }
+                })
             .Use(MiddlewareFactory.CreateHttpUnsupportedRequestMiddleware(
                 executor,
                 serverOptions,
@@ -529,7 +552,7 @@ public static class EndpointRouteBuilderExtensions
         var nitroOptions = new NitroAppOptions { GraphQLEndpoint = relativeRequestPath };
 
         requestPipeline
-            .UseNitroApp(toolPath, nitroOptions)
+            .UseNitroApp(nitroOptions, EmbeddedNitroApp.AssetSource)
             .Use(_ => context =>
             {
                 context.Response.StatusCode = 404;

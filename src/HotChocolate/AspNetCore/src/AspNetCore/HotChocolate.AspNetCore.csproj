@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <PackageReference Include="ChilliCream.Nitro.App" />
+    <PackageReference Include="ChilliCream.Nitro.App.Embed" />
   </ItemGroup>
 
   <ItemGroup>
