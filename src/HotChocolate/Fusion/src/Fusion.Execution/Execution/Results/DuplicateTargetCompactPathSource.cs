@@ -3,10 +3,10 @@ using HotChocolate.Fusion.Text.Json;
 namespace HotChocolate.Fusion.Execution.Results;
 
 /// <summary>
-/// The additional targets of a lookup, kept as cursors into the result document until their paths
-/// are requested.
+/// A compact path source for the duplicate targets of a lookup, which keeps the targets as cursors
+/// into the result document until their paths are requested.
 /// </summary>
-internal sealed class TargetCursorPaths : CompactPathSource
+internal sealed class DuplicateTargetCompactPathSource : CompactPathSource
 {
     private readonly FetchResultStore _store;
     private readonly CompositeResultDocument _document;
@@ -14,7 +14,7 @@ internal sealed class TargetCursorPaths : CompactPathSource
     private readonly int _layoutVersion;
     private CompactPath[]? _paths;
 
-    public TargetCursorPaths(FetchResultStore store, CompositeResultDocument document, int[] cursors)
+    public DuplicateTargetCompactPathSource(FetchResultStore store, CompositeResultDocument document, int[] cursors)
     {
         _store = store;
         _document = document;

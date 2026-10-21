@@ -3120,13 +3120,13 @@ AddErrors_Next:
     {
         private readonly FetchResultStore _store;
         private readonly CompactPathSegment _segment;
-        private readonly TargetCursorPaths? _cursors;
+        private readonly DuplicateTargetCompactPathSource? _cursors;
 
         public AdditionalTargets(FetchResultStore store, CompactPathSegment segment)
         {
             _store = store;
             _segment = segment;
-            _cursors = segment.Source is TargetCursorPaths cursors
+            _cursors = segment.Source is DuplicateTargetCompactPathSource cursors
                 && ReferenceEquals(cursors.Document, store._result)
                     ? cursors
                     : null;

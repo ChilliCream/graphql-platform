@@ -153,7 +153,7 @@ internal ref struct AdditionalPathAccumulator
                 cursors[writePos[_slotIndices![i]]++] = _cursors![i];
             }
 
-            var source = new TargetCursorPaths(store, document, cursors);
+            var source = new DuplicateTargetCompactPathSource(store, document, cursors);
 
             for (var slot = 0; slot < slotCount; slot++)
             {
