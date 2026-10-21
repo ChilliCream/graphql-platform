@@ -7,11 +7,13 @@ namespace Mocha.Middlewares;
 /// identifiers, headers, and addressing information for cross-process messaging.
 /// </summary>
 /// <remarks>
-/// All properties use init-only setters so envelopes are effectively immutable after construction.
+/// An unset <see cref="SentAt"/> is initialized immediately before transport dispatch.
 /// The copy constructor creates a deep copy of mutable state (headers) while sharing the read-only body buffer.
 /// </remarks>
 public sealed class MessageEnvelope
 {
+    private DateTimeOffset? _sentAt;
+
     /// <summary>
     /// Creates an empty envelope with default values.
     /// </summary>
@@ -106,9 +108,13 @@ public sealed class MessageEnvelope
     public string? MessageType { get; init; }
 
     /// <summary>
-    /// UTC timestamp when the envelope was created.
+    /// UTC timestamp when the message was sent, or null before transport dispatch.
     /// </summary>
-    public DateTimeOffset? SentAt { get; init; }
+    public DateTimeOffset? SentAt
+    {
+        get => _sentAt;
+        init => _sentAt = value;
+    }
 
     /// <summary>
     /// Must be processed before this timestamp.
@@ -146,6 +152,8 @@ public sealed class MessageEnvelope
     /// Information about the remote host that produced this message (machine name, process ID, etc.).
     /// </summary>
     public IRemoteHostInfo? Host { get; init; }
+
+    internal void SetSentAt(DateTimeOffset sentAt) => _sentAt = sentAt;
 
     /// <summary>
     /// Well-known property name constants used for serialization and header mapping of envelope fields.
