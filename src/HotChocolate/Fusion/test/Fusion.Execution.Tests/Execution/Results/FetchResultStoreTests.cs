@@ -2815,6 +2815,62 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void CreateVariableValueSets_Should_KeepDistinctTargets_When_VariableHashesCollide()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+            }
+            """);
+
+        // "Aa" and "BB" have the same hash, so these variable values all share one hash
+        string[] ids = ["AaAaAa", "AaAaBB", "AaBBAa", "AaBBBB", "BBAaAa", "AaAaAa"];
+        var foos = ids.Select(id => $$"""{"id":"{{id}}"}""");
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id } }",
+            $$$"""{"data":{"foos":[{{{string.Join(",", foos)}}}]}}""",
+            resultArena,
+            sourceArena);
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("foos"),
+            [],
+            [Requirement(schema, "__fusion_1_id", "id", new NamedTypeNode("ID"))]);
+
+        // assert
+        RenderVariableValueSets(store, result).MatchInlineSnapshot(
+            """
+            Path: foos[0]
+            Additional paths: [foos[5]]
+            Variables: {"__fusion_1_id":"AaAaAa"}
+            Path: foos[1]
+            Additional paths: []
+            Variables: {"__fusion_1_id":"AaAaBB"}
+            Path: foos[2]
+            Additional paths: []
+            Variables: {"__fusion_1_id":"AaBBAa"}
+            Path: foos[3]
+            Additional paths: []
+            Variables: {"__fusion_1_id":"AaBBBB"}
+            Path: foos[4]
+            Additional paths: []
+            Variables: {"__fusion_1_id":"BBAaAa"}
+            """);
+    }
+
+    [Fact]
     public void AddPartialResult_Should_CompleteTargetsFromRoot_When_LayoutChangedAfterCollection()
     {
         // arrange

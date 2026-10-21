@@ -3313,6 +3313,7 @@ AddErrors_Next:
         private int[] _writtenSlots = [];
         private int _bucketCount = DefaultBucketCount;
         private readonly int _bucketSize = DefaultBucketSize;
+        private int _count;
         private int _writtenCount;
         private bool _clearFullTable;
 
@@ -3374,30 +3375,23 @@ AddErrors_Next:
             return false;
         }
 
+        /// <summary>
+        /// Adds an entry. The entry is not added when its bucket is full and the table already
+        /// has at least two buckets per entry, so a later lookup of the same key misses.
+        /// </summary>
         public void Add(int hash, int index, int location, int length)
         {
-            var bucket = hash & 0x7FFFFFFF & (_bucketCount - 1);
-            var start = bucket * _bucketSize;
-            var end = start + _bucketSize;
-
-            for (var s = start; s < end; s++)
+            while (!TryInsert(hash, index, location, length))
             {
-                ref var entry = ref _table[s];
-
-                if (entry.Index == 0)
+                if (_bucketCount >= 2 * _count)
                 {
-                    RecordWrittenSlot(s);
-
-                    entry.Hash = hash;
-                    entry.Index = index + 1;
-                    entry.Location = location;
-                    entry.Length = length;
                     return;
                 }
+
+                Grow();
             }
 
-            Grow();
-            Add(hash, index, location, length);
+            _count++;
         }
 
         /// <summary>
@@ -3414,6 +3408,7 @@ AddErrors_Next:
             ArrayPool<Entry>.Shared.Return(_table);
             _table = RentClearedTable(DefaultBucketCount * _bucketSize);
             _bucketCount = DefaultBucketCount;
+            _count = 0;
             ResetClearState();
         }
 
@@ -3431,12 +3426,38 @@ AddErrors_Next:
                 _writtenSlots = [];
             }
 
+            _count = 0;
             ResetClearState();
         }
 
         private bool SequenceEqual(int locationA, int locationB, int length)
             => _arenaWriter?.SequenceEqual(locationA, locationB, length)
                 ?? _writer!.SequenceEqual(locationA, locationB, length);
+
+        private bool TryInsert(int hash, int index, int location, int length)
+        {
+            var bucket = hash & 0x7FFFFFFF & (_bucketCount - 1);
+            var start = bucket * _bucketSize;
+            var end = start + _bucketSize;
+
+            for (var s = start; s < end; s++)
+            {
+                ref var entry = ref _table[s];
+
+                if (entry.Index == 0)
+                {
+                    RecordWrittenSlot(s);
+
+                    entry.Hash = hash;
+                    entry.Index = index + 1;
+                    entry.Location = location;
+                    entry.Length = length;
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         private void Grow()
         {
@@ -3459,7 +3480,9 @@ AddErrors_Next:
 
                     if (entry.Index != 0)
                     {
-                        Add(entry.Hash, entry.Index - 1, entry.Location, entry.Length);
+                        // a bucket of the doubled table receives the entries of one old bucket
+                        var inserted = TryInsert(entry.Hash, entry.Index - 1, entry.Location, entry.Length);
+                        Debug.Assert(inserted, "A grown bucket holds at most the entries of one old bucket.");
                     }
                 }
             }
@@ -3519,6 +3542,7 @@ AddErrors_Next:
                 }
             }
 
+            _count = 0;
             ResetClearState();
         }
 
