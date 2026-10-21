@@ -50,6 +50,7 @@ internal sealed class SelectionCollection : ISelectionCollection
 
         var selections = new Selection[size];
         buffer.AsSpan()[..size].CopyTo(selections);
+        buffer.AsSpan()[..size].Clear();
         ArrayPool<Selection>.Shared.Return(buffer);
         return new SelectionCollection(_schema, _operation, selections, _includeFlags);
     }
@@ -63,6 +64,7 @@ internal sealed class SelectionCollection : ISelectionCollection
 
         var selections = new Selection[size];
         buffer.AsSpan()[..size].CopyTo(selections);
+        buffer.AsSpan()[..size].Clear();
         ArrayPool<Selection>.Shared.Return(buffer);
         return new SelectionCollection(_schema, _operation, selections, _includeFlags);
     }
@@ -78,6 +80,7 @@ internal sealed class SelectionCollection : ISelectionCollection
 
         var selections = new Selection[size];
         buffer.AsSpan()[..size].CopyTo(selections);
+        buffer.AsSpan()[..size].Clear();
         ArrayPool<Selection>.Shared.Return(buffer);
         return new SelectionCollection(_schema, _operation, selections, _includeFlags);
     }
@@ -393,6 +396,7 @@ internal sealed class SelectionCollection : ISelectionCollection
         fieldNamesSpan[0] = fieldName;
 
         var result = CollectSelections(fieldNamesSpan, out buffer, out size);
+        fieldNamesSpan.Clear();
         ArrayPool<string>.Shared.Return(fieldNames);
         return result;
     }
@@ -508,6 +512,7 @@ internal sealed class SelectionCollection : ISelectionCollection
 
         var newBuffer = ArrayPool<Selection>.Shared.Rent(Math.Max(buffer.Length * 2, index + requiredSpace));
         buffer.AsSpan()[..index].CopyTo(newBuffer);
+        buffer.AsSpan()[..index].Clear();
         ArrayPool<Selection>.Shared.Return(buffer);
         buffer = newBuffer;
     }
