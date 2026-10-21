@@ -19,4 +19,19 @@ internal static class RabbitMQMessageHeaders
     /// Header key for the delivery count maintained by RabbitMQ quorum queues.
     /// </summary>
     public static readonly ContextDataKey<long> DeliveryCount = new("x-delivery-count");
+
+    /// <summary>
+    /// Header key for the time the message was sent, stored as Unix milliseconds.
+    /// </summary>
+    public static readonly ContextDataKey<long> SentAt = new("x-sent-at");
+
+    /// <summary>
+    /// Header key for the time by which the message must be delivered, stored as Unix milliseconds.
+    /// </summary>
+    public static readonly ContextDataKey<long> DeliverBy = new("x-deliver-by");
+
+    /// <summary>
+    /// Returns whether the header carries an envelope property and is therefore not a message header.
+    /// </summary>
+    public static bool IsEnvelopeProperty(string key) => key == SentAt.Key || key == DeliverBy.Key;
 }

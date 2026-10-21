@@ -420,6 +420,7 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
         }
 
         buffer ??= new ChunkedArrayWriter();
+        var startPosition = buffer.Position;
         var writer = new JsonWriter(buffer, s_jsonWriterOptions);
 
         writer.WriteStartArray();
@@ -431,7 +432,7 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
 
         writer.WriteEndArray();
 
-        var variables = JsonSegment.Create(buffer, 0, buffer.Length);
+        var variables = JsonSegment.Create(buffer, startPosition, buffer.Position - startPosition);
 
         var variableSequence = request.RequiresFileUpload
             ? StripFileMarkers(buffer, variables.AsSequence()).AsSequence()

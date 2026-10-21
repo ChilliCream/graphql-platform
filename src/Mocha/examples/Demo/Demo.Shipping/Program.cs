@@ -33,6 +33,7 @@ builder
     .AddEntityFramework<ShippingDbContext>(p =>
     {
         p.UsePostgresOutbox();
+        p.UseTransaction();
         p.UsePostgresInbox();
     })
     .AddRabbitMQ();
