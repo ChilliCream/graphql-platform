@@ -278,7 +278,7 @@ public class ForwardedVariableBlitBenchmark
         dedupTable.Initialize(importedEntries.Length);
 
         VariableValues[]? variableValueSets = null;
-        var additionalPaths = new AdditionalPathAccumulator();
+        var additionalPaths = new AdditionalPathAccumulator(importedEntries.Length);
         var nextIndex = 0;
 
         foreach (var importedEntry in importedEntries)
@@ -350,7 +350,7 @@ public class ForwardedVariableBlitBenchmark
         dedupTable.Initialize(importedEntries.Length);
 
         VariableValues[]? variableValueSets = null;
-        var additionalPaths = new AdditionalPathAccumulator();
+        var additionalPaths = new AdditionalPathAccumulator(importedEntries.Length);
         var nextIndex = 0;
 
         // Rider: requirement keys are GraphQL names (always ASCII), so they are
@@ -736,7 +736,8 @@ public class ForwardedVariableBlitBenchmark
             return [];
         }
 
-        additionalPaths.ApplyTo(variableValueSets, nextIndex);
+        // The accumulator only holds paths here, so it never reads the store or the document.
+        additionalPaths.ApplyTo(variableValueSets, nextIndex, store: null!, document: null!);
         additionalPaths.Dispose();
 
         var span = variableValueSets.AsSpan(0, nextIndex);

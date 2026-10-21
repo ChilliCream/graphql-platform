@@ -20,6 +20,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     private PathSegmentLocalPool? _pathPool;
     internal MetaDb _metaDb;
     private NullMarkerState _nullMarkerState;
+    private int _layoutVersion;
     private int _disposed;
 
     internal CompositeResultDocument(
@@ -62,6 +63,12 @@ public sealed partial class CompositeResultDocument : IDisposable
     }
 
     public CompositeResultElement Data { get; }
+
+    /// <summary>
+    /// Gets a version that changes whenever a value that references an object or a list is
+    /// replaced. While it is unchanged, every element keeps the path it had when it was read.
+    /// </summary>
+    internal int LayoutVersion => _layoutVersion;
 
     /// <summary>
     /// Stops this document from renting path segment arrays from the request scoped pool.
@@ -160,8 +167,12 @@ public sealed partial class CompositeResultDocument : IDisposable
         return row.SizeOrLength;
     }
 
+    /// <summary>
+    /// Creates the path of the element at <paramref name="current"/>. When <paramref name="pooled"/>
+    /// is <c>false</c>, the path arrays are allocated instead of rented from the request scoped pool.
+    /// </summary>
     [SkipLocalsInit]
-    internal CompactPath CreateCompactPath(Cursor current)
+    internal CompactPath CreateCompactPath(Cursor current, bool pooled = true)
     {
         var firstRow = _metaDb.Get(current);
 
@@ -194,7 +205,7 @@ public sealed partial class CompositeResultDocument : IDisposable
         }
 
         Span<int> pathBuffer = stackalloc int[32];
-        var path = new CompactPathBuilder(pathBuffer, Volatile.Read(ref _pathPool));
+        var path = new CompactPathBuilder(pathBuffer, pooled ? Volatile.Read(ref _pathPool) : null);
         var parentTokenType = ElementTokenType.StartObject;
 
         for (var i = written - 1; i >= 0; i--)
@@ -565,6 +576,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void AssignCompositeValue(CompositeResultElement target, CompositeResultElement value)
     {
+        TrackValueReplacement(target.Cursor);
         _metaDb.ReplacePreserveParent(
             cursor: target.Cursor,
             tokenType: ElementTokenType.Reference,
@@ -594,6 +606,7 @@ public sealed partial class CompositeResultDocument : IDisposable
         Debug.Assert(_sources.Contains(parent), "Expected the source document of the source element to be registered.");
 
         var tokenType = sourceRow.TokenType.ToElementTokenType();
+        TrackValueReplacement(target.Cursor);
 
         if (tokenType is ElementTokenType.StartObject or ElementTokenType.StartArray)
         {
@@ -619,6 +632,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void AssignNullValue(CompositeResultElement target)
     {
+        TrackValueReplacement(target.Cursor);
         _metaDb.ReplacePreserveParent(
             cursor: target.Cursor,
             tokenType: ElementTokenType.Null);
@@ -645,6 +659,7 @@ public sealed partial class CompositeResultDocument : IDisposable
             return false;
         }
 
+        TrackValueReplacement(target.Cursor);
         _metaDb.ReplacePreserveParent(
             cursor: target.Cursor,
             tokenType: row.TokenType,
@@ -653,6 +668,16 @@ public sealed partial class CompositeResultDocument : IDisposable
             sourceDocumentId: row.SourceDocumentId,
             flags: row.Flags);
         return true;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void TrackValueReplacement(Cursor target)
+    {
+        if (_metaDb.GetElementTokenType(target, resolveReferences: false)
+            is ElementTokenType.Reference or ElementTokenType.StartObject or ElementTokenType.StartArray)
+        {
+            _layoutVersion++;
+        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

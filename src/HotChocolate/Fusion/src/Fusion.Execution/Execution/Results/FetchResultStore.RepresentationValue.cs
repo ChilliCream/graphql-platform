@@ -256,7 +256,7 @@ internal sealed partial class FetchResultStore
             representationWriter,
             new JsonWriterOptions { Indented = false });
         var resultPaths = s_entityResultPathPool.Rent(importedEntries.Length);
-        var additionalPaths = new RepresentationPathAccumulator(importedEntries.Length);
+        var additionalPaths = new AdditionalPathAccumulator(importedEntries.Length);
         var completed = false;
         var variableStartPosition = StartRepresentationVariableValue();
         var nextIndex = 0;
@@ -339,7 +339,7 @@ internal sealed partial class FetchResultStore
             representationWriter,
             new JsonWriterOptions { Indented = false });
         var resultPaths = s_entityResultPathPool.Rent(elements.Length);
-        var additionalPaths = new RepresentationPathAccumulator(elements.Length);
+        var additionalPaths = new AdditionalPathAccumulator(elements.Length);
         var completed = false;
         var variableStartPosition = StartRepresentationVariableValue();
         var nextIndex = 0;
@@ -366,7 +366,7 @@ internal sealed partial class FetchResultStore
                         break;
 
                     case RepresentationWriteResult.Duplicate:
-                        additionalPaths.Add(index, result.CompactPath);
+                        additionalPaths.Add(index, result);
                         break;
 
                     case RepresentationWriteResult.Written:
@@ -425,7 +425,7 @@ internal sealed partial class FetchResultStore
         int startPosition,
         IReadOnlyList<ObjectFieldNode> requestVariables,
         EntityResultPath[] resultPaths,
-        ref RepresentationPathAccumulator additionalPaths,
+        ref AdditionalPathAccumulator additionalPaths,
         int count)
     {
         if (count == 0)
@@ -440,7 +440,7 @@ internal sealed partial class FetchResultStore
         WriteRequestVariableProperties(requestVariables);
         _jsonWriter.WriteEndObject();
 
-        additionalPaths.ApplyTo(resultPaths, count);
+        additionalPaths.ApplyTo(resultPaths, count, this, _result);
         additionalPaths.Dispose();
 
         var length = _variableWriter.Position - startPosition;
@@ -1511,7 +1511,7 @@ internal sealed partial class FetchResultStore
                 if (!SaveSafeResult(
                         resultData,
                         resultPath.Path,
-                        resultPath.AdditionalPaths.AsSpan(),
+                        resultPath.AdditionalPaths,
                         entity,
                         errorTrie: null,
                         resultSelectionSet))
@@ -1533,7 +1533,7 @@ internal sealed partial class FetchResultStore
             if (!SaveSafeResult(
                     resultData,
                     resultPath.Path,
-                    resultPath.AdditionalPaths.AsSpan(),
+                    resultPath.AdditionalPaths,
                     entity,
                     entityErrorTrie,
                     resultSelectionSet))
@@ -1878,6 +1878,11 @@ internal sealed partial class FetchResultStore
         {
             ReturnPathSegments(resultPath.Path, _seenPaths);
 
+            if (resultPath.AdditionalPaths.Source is not null)
+            {
+                continue;
+            }
+
             foreach (var additionalPath in resultPath.AdditionalPaths)
             {
                 ReturnPathSegments(additionalPath, _seenPaths);
@@ -1892,134 +1897,5 @@ internal sealed partial class FetchResultStore
         Skipped,
         Duplicate,
         Written
-    }
-
-    private ref struct RepresentationPathAccumulator
-    {
-        private readonly int _capacityHint;
-        private CompactPath[]? _paths;
-        private int[]? _slotIndices;
-        private int _count;
-
-        public RepresentationPathAccumulator(int capacityHint)
-        {
-            _capacityHint = capacityHint;
-            _paths = null;
-            _slotIndices = null;
-            _count = 0;
-        }
-
-        public void Add(int slotIndex, CompactPath path)
-        {
-            if (_paths is null)
-            {
-                var capacity = Math.Max(16, _capacityHint);
-                _paths = ArrayPool<CompactPath>.Shared.Rent(capacity);
-                _slotIndices = ArrayPool<int>.Shared.Rent(capacity);
-            }
-            else if (_count == _paths.Length)
-            {
-                Grow();
-            }
-
-            _paths[_count] = path;
-            _slotIndices![_count] = slotIndex;
-            _count++;
-        }
-
-        public void AddRange(int slotIndex, ReadOnlySpan<CompactPath> paths)
-        {
-            foreach (var path in paths)
-            {
-                Add(slotIndex, path);
-            }
-        }
-
-        public void ApplyTo(EntityResultPath[] resultPaths, int slotCount)
-        {
-            if (_count == 0)
-            {
-                return;
-            }
-
-            var counts = slotCount <= 256
-                ? stackalloc int[slotCount]
-                : new int[slotCount];
-
-            for (var i = 0; i < _count; i++)
-            {
-                counts[_slotIndices![i]]++;
-            }
-
-            var offsets = slotCount <= 256
-                ? stackalloc int[slotCount]
-                : new int[slotCount];
-
-            offsets[0] = 0;
-            for (var i = 1; i < slotCount; i++)
-            {
-                offsets[i] = offsets[i - 1] + counts[i - 1];
-            }
-
-            var writePos = slotCount <= 256
-                ? stackalloc int[slotCount]
-                : new int[slotCount];
-            offsets.CopyTo(writePos);
-
-            var shared = new CompactPath[_count];
-
-            for (var i = 0; i < _count; i++)
-            {
-                var idx = _slotIndices![i];
-                shared[writePos[idx]++] = _paths![i];
-            }
-
-            for (var slot = 0; slot < slotCount; slot++)
-            {
-                if (counts[slot] == 0)
-                {
-                    continue;
-                }
-
-                resultPaths[slot] = resultPaths[slot] with
-                {
-                    AdditionalPaths = new CompactPathSegment(shared, offsets[slot], counts[slot])
-                };
-            }
-        }
-
-        private void Grow()
-        {
-            var newSize = _paths!.Length * 2;
-
-            var newPaths = ArrayPool<CompactPath>.Shared.Rent(newSize);
-            _paths.AsSpan(0, _count).CopyTo(newPaths);
-            _paths.AsSpan(0, _count).Clear();
-            ArrayPool<CompactPath>.Shared.Return(_paths);
-            _paths = newPaths;
-
-            var newIndices = ArrayPool<int>.Shared.Rent(newSize);
-            _slotIndices.AsSpan(0, _count).CopyTo(newIndices);
-            ArrayPool<int>.Shared.Return(_slotIndices!);
-            _slotIndices = newIndices;
-        }
-
-        public void Dispose()
-        {
-            if (_paths is not null)
-            {
-                _paths.AsSpan(0, _count).Clear();
-                ArrayPool<CompactPath>.Shared.Return(_paths);
-                _paths = null;
-            }
-
-            if (_slotIndices is not null)
-            {
-                ArrayPool<int>.Shared.Return(_slotIndices);
-                _slotIndices = null;
-            }
-
-            _count = 0;
-        }
     }
 }

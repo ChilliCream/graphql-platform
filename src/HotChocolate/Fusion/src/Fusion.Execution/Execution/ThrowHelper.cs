@@ -26,6 +26,9 @@ internal static class ThrowHelper
     public static InvalidOperationException DeferredPlanNotFound(SelectionPath path)
         => new($"No plan was found for the @defer fragment at path '{path}'.");
 
+    public static InvalidOperationException LookupTargetPathsReleased()
+        => new("The paths of lookup targets can only be created while their result document is in use.");
+
     public static OperationPlannerGuardrailException PlanningGuardrailExceeded(
         string operationId,
         OperationPlannerGuardrailReason reason,

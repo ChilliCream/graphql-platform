@@ -195,7 +195,7 @@ internal sealed partial class FetchResultStore : IDisposable
                         if (!SaveSafeResult(
                                 resultData,
                                 result.Path,
-                                result.AdditionalPaths.AsSpan(),
+                                result.AdditionalPaths,
                                 dataElementsSpan[i],
                                 errorTriesSpan[i],
                                 resultSelectionSet))
@@ -324,7 +324,7 @@ internal sealed partial class FetchResultStore : IDisposable
                         if (!SaveSafeResult(
                                 resultData,
                                 result.Path,
-                                result.AdditionalPaths.AsSpan(),
+                                result.AdditionalPaths,
                                 dataElementsSpan[i],
                                 errorTrie: null,
                                 resultSelectionSet))
@@ -422,7 +422,7 @@ internal sealed partial class FetchResultStore : IDisposable
                 return SaveSafeResult(
                     _result.Data,
                     result.Path,
-                    result.AdditionalPaths.AsSpan(),
+                    result.AdditionalPaths,
                     dataElement,
                     errorTrie,
                     resultSelectionSet);
@@ -450,7 +450,7 @@ internal sealed partial class FetchResultStore : IDisposable
                 return SaveSafeResult(
                     _result.Data,
                     result.Path,
-                    result.AdditionalPaths.AsSpan(),
+                    result.AdditionalPaths,
                     dataElement,
                     errorTrie: null,
                     resultSelectionSet);
@@ -703,17 +703,19 @@ AddErrors_Next:
     private bool SaveSafeResult(
         CompositeResultElement resultData,
         CompactPath path,
-        ReadOnlySpan<CompactPath> additionalPaths,
+        CompactPathSegment additionalPaths,
         SourceResultElement dataElement,
         ErrorTrie? errorTrie,
         ResultSelectionSet resultSelectionSet)
     {
-        if (additionalPaths.Length > 0 && errorTrie is null && !HasPocketedErrors)
+        var additionalTargets = new AdditionalTargets(this, additionalPaths);
+
+        if (additionalTargets.Length > 0 && errorTrie is null && !HasPocketedErrors)
         {
             return SaveSafeResultWithLeafCopy(
                 resultData,
                 path,
-                additionalPaths,
+                additionalTargets,
                 dataElement,
                 resultSelectionSet);
         }
@@ -723,9 +725,9 @@ AddErrors_Next:
             return false;
         }
 
-        for (var i = 0; i < additionalPaths.Length; i++)
+        for (var i = 0; i < additionalTargets.Length; i++)
         {
-            if (!SaveSafeResult(resultData, additionalPaths[i], dataElement, errorTrie, resultSelectionSet))
+            if (!SaveSafeResult(resultData, additionalTargets, i, dataElement, errorTrie, resultSelectionSet))
             {
                 return false;
             }
@@ -742,7 +744,7 @@ AddErrors_Next:
     private bool SaveSafeResultWithLeafCopy(
         CompositeResultElement resultData,
         CompactPath path,
-        ReadOnlySpan<CompactPath> additionalPaths,
+        AdditionalTargets additionalTargets,
         SourceResultElement dataElement,
         ResultSelectionSet resultSelectionSet)
     {
@@ -768,9 +770,9 @@ AddErrors_Next:
                 && TryCollectLeafValues(primary, dataElement, resultSelectionSet, ref leafCount);
             var leafValues = _leafValues.AsSpan(0, leafCount);
 
-            for (var i = 0; i < additionalPaths.Length; i++)
+            for (var i = 0; i < additionalTargets.Length; i++)
             {
-                var target = GetStartResult(additionalPaths[i]);
+                var target = additionalTargets[i];
                 Debug.Assert(target.ValueKind is JsonValueKind.Object or JsonValueKind.Null or JsonValueKind.Undefined);
 
                 if (target.IsNullOrInvalidated)
@@ -937,7 +939,21 @@ AddErrors_Next:
         return false;
     }
 
-    private readonly record struct LeafValue(Selection Selection, CompositeResultElement Value);
+    private bool SaveSafeResult(
+        CompositeResultElement resultData,
+        AdditionalTargets additionalTargets,
+        int index,
+        SourceResultElement dataElement,
+        ErrorTrie? errorTrie,
+        ResultSelectionSet resultSelectionSet)
+    {
+        if (resultData.IsNullOrInvalidated)
+        {
+            return false;
+        }
+
+        return SaveSafeResult(resultData, additionalTargets[index], dataElement, errorTrie, resultSelectionSet);
+    }
 
     public ImmutableArray<VariableValues> CreateVariableValueSets(
         SelectionPath selectionSet,
@@ -1202,14 +1218,16 @@ AddErrors_Next:
         CompositeResultElement producer,
         ReadOnlySpan<string> responseNames)
     {
-        if (!TryFillTarget(variableValues.Path, producer, responseNames))
+        if (!TryFillTarget(GetStartResult(variableValues.Path), producer, responseNames))
         {
             return false;
         }
 
-        foreach (var additionalPath in variableValues.AdditionalPaths)
+        var additionalTargets = new AdditionalTargets(this, variableValues.AdditionalPaths);
+
+        for (var i = 0; i < additionalTargets.Length; i++)
         {
-            if (!TryFillTarget(additionalPath, producer, responseNames))
+            if (!TryFillTarget(additionalTargets[i], producer, responseNames))
             {
                 return false;
             }
@@ -1218,13 +1236,11 @@ AddErrors_Next:
         return true;
     }
 
-    private bool TryFillTarget(
-        CompactPath path,
+    private static bool TryFillTarget(
+        CompositeResultElement target,
         CompositeResultElement producer,
         ReadOnlySpan<string> responseNames)
     {
-        var target = GetStartResult(path);
-
         if (target.IsNullOrInvalidated)
         {
             return true;
@@ -1456,7 +1472,7 @@ AddErrors_Next:
         _variableDedupTable.Initialize(importedEntries.Length);
 
         VariableValues[]? variableValueSets = null;
-        var additionalPaths = new AdditionalPathAccumulator();
+        var additionalPaths = new AdditionalPathAccumulator(importedEntries.Length);
         var nextIndex = 0;
         var forwardedVariables = SerializeForwardedVariables(requestVariables, importedEntries.Length);
 
@@ -1546,7 +1562,7 @@ AddErrors_Next:
         }
 
         VariableValues[]? variableValueSets = null;
-        var additionalPaths = new AdditionalPathAccumulator();
+        var additionalPaths = new AdditionalPathAccumulator(elements.Length);
         var nextIndex = 0;
         var forwardedVariables = SerializeForwardedVariables(requestVariables, elements.Length);
 
@@ -1589,7 +1605,7 @@ AddErrors_Next:
             _jsonWriter.WriteEndObject();
 
             var entry = TryCreateVariableValues(
-                result.CompactPath, startPosition, ref additionalPaths, nextIndex);
+                result, startPosition, ref additionalPaths, nextIndex);
 
             if (entry is null)
             {
@@ -1632,7 +1648,7 @@ AddErrors_Next:
         string fieldName)
     {
         VariableValues[]? variableValueSets = null;
-        var additionalPaths = new AdditionalPathAccumulator();
+        var additionalPaths = new AdditionalPathAccumulator(elements.Length);
         var nextIndex = 0;
         var isNonNullRequirement = requirement.Type.Kind is SyntaxKind.NonNullType;
         var lookupName = requirement.InternalAlias ?? fieldName;
@@ -1672,7 +1688,7 @@ AddErrors_Next:
 
             // we try to create a VariableValues object,
             // if that fails the variables already were created and we move on.
-            var entry = TryCreateVariableValues(result.CompactPath, startPosition, ref additionalPaths, nextIndex);
+            var entry = TryCreateVariableValues(result, startPosition, ref additionalPaths, nextIndex);
 
             if (entry is null)
             {
@@ -1690,7 +1706,7 @@ AddErrors_Next:
         OperationRequirement requirement)
     {
         VariableValues[]? variableValueSets = null;
-        var additionalPaths = new AdditionalPathAccumulator();
+        var additionalPaths = new AdditionalPathAccumulator(elements.Length);
         var nextIndex = 0;
         var requirementType = requirement.Type;
 
@@ -1718,7 +1734,7 @@ AddErrors_Next:
             _jsonWriter.WriteEndObject();
 
             var entry = TryCreateVariableValues(
-                result.CompactPath, startPosition, ref additionalPaths, nextIndex);
+                result, startPosition, ref additionalPaths, nextIndex);
 
             if (entry is null)
             {
@@ -1766,7 +1782,7 @@ AddErrors_Next:
         string fieldName2)
     {
         VariableValues[]? variableValueSets = null;
-        var additionalPaths = new AdditionalPathAccumulator();
+        var additionalPaths = new AdditionalPathAccumulator(elements.Length);
         var nextIndex = 0;
         var lookupName1 = requirement1.InternalAlias ?? fieldName1;
         var lookupName2 = requirement2.InternalAlias ?? fieldName2;
@@ -1803,7 +1819,7 @@ AddErrors_Next:
             _jsonWriter.WriteEndObject();
 
             var entry = TryCreateVariableValues(
-                result.CompactPath, startPosition, ref additionalPaths, nextIndex);
+                result, startPosition, ref additionalPaths, nextIndex);
 
             if (entry is null)
             {
@@ -1822,7 +1838,7 @@ AddErrors_Next:
         OperationRequirement requirement2)
     {
         VariableValues[]? variableValueSets = null;
-        var additionalPaths = new AdditionalPathAccumulator();
+        var additionalPaths = new AdditionalPathAccumulator(elements.Length);
         var nextIndex = 0;
         var requirementType1 = requirement1.Type;
         var requirementType2 = requirement2.Type;
@@ -1865,7 +1881,7 @@ AddErrors_Next:
 
             _jsonWriter.WriteEndObject();
 
-            var entry = TryCreateVariableValues(result.CompactPath, startPosition, ref additionalPaths, nextIndex);
+            var entry = TryCreateVariableValues(result, startPosition, ref additionalPaths, nextIndex);
 
             if (entry is null)
             {
@@ -1921,7 +1937,7 @@ AddErrors_Next:
         string fieldName3)
     {
         VariableValues[]? variableValueSets = null;
-        var additionalPaths = new AdditionalPathAccumulator();
+        var additionalPaths = new AdditionalPathAccumulator(elements.Length);
         var nextIndex = 0;
         var lookupName1 = requirement1.InternalAlias ?? fieldName1;
         var lookupName2 = requirement2.InternalAlias ?? fieldName2;
@@ -1969,7 +1985,7 @@ AddErrors_Next:
             WriteCompositeResultValue(value3);
             _jsonWriter.WriteEndObject();
 
-            var entry = TryCreateVariableValues(result.CompactPath, startPosition, ref additionalPaths, nextIndex);
+            var entry = TryCreateVariableValues(result, startPosition, ref additionalPaths, nextIndex);
 
             if (entry is null)
             {
@@ -1989,7 +2005,7 @@ AddErrors_Next:
         OperationRequirement requirement3)
     {
         VariableValues[]? variableValueSets = null;
-        var additionalPaths = new AdditionalPathAccumulator();
+        var additionalPaths = new AdditionalPathAccumulator(elements.Length);
         var nextIndex = 0;
         var requirementType1 = requirement1.Type;
         var requirementType2 = requirement2.Type;
@@ -2047,7 +2063,7 @@ AddErrors_Next:
 
             _jsonWriter.WriteEndObject();
 
-            var entry = TryCreateVariableValues(result.CompactPath, startPosition, ref additionalPaths, nextIndex);
+            var entry = TryCreateVariableValues(result, startPosition, ref additionalPaths, nextIndex);
 
             if (entry is null)
             {
@@ -2082,12 +2098,54 @@ AddErrors_Next:
         return false;
     }
 
+    /// <summary>
+    /// Creates the paths of the elements at the given cursors of <paramref name="document"/>,
+    /// which must be the result document of the current request.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">
+    /// <paramref name="document"/> is no longer the result document of this store.
+    /// </exception>
+    internal CompactPath[] CreateCompactPaths(CompositeResultDocument document, ReadOnlySpan<int> cursors)
+    {
+        lock (_lock)
+        {
+            if (!ReferenceEquals(_result, document))
+            {
+                throw ThrowHelper.LookupTargetPathsReleased();
+            }
+
+            var paths = new CompactPath[cursors.Length];
+
+            for (var i = 0; i < cursors.Length; i++)
+            {
+                paths[i] = document.CreateCompactPath(new CompositeResultDocument.Cursor(cursors[i]), pooled: false);
+            }
+
+            return paths;
+        }
+    }
+
     private VariableValues? TryCreateVariableValues(
-        CompactPath path,
+        CompositeResultElement target,
         int startPosition,
         ref AdditionalPathAccumulator additionalPaths,
         int nextIndex)
-        => TryCreateVariableValues(path, startPosition, ref additionalPaths, nextIndex, out _);
+    {
+        var length = _variableWriter.Position - startPosition;
+        var hash = _variableWriter.GetHashCode(startPosition, length);
+
+        // A target whose variables were already written for an earlier target is merged from
+        // the same fetch, so it is tracked as an additional target of the existing entry.
+        if (_variableDedupTable.TryGet(hash, startPosition, length, out var existingIndex))
+        {
+            additionalPaths.Add(existingIndex, target);
+            _variableWriter.ResetTo(startPosition);
+            return null;
+        }
+
+        _variableDedupTable.Add(hash, nextIndex, startPosition, length);
+        return new VariableValues(target.CompactPath, JsonSegment.Create(_variableWriter, startPosition, length));
+    }
 
     private VariableValues? TryCreateVariableValues(
         CompactPath path,
@@ -3002,6 +3060,12 @@ AddErrors_Next:
     {
         ReturnPathSegments(result.Path, seen);
 
+        // Paths created on first access are not rented from the path pool, so they are not returned.
+        if (result.AdditionalPaths.Source is not null)
+        {
+            return;
+        }
+
         foreach (var additionalPath in result.AdditionalPaths)
         {
             ReturnPathSegments(additionalPath, seen);
@@ -3018,7 +3082,7 @@ AddErrors_Next:
         }
     }
 
-    private static ImmutableArray<VariableValues> FinalizeVariableValueSets(
+    private ImmutableArray<VariableValues> FinalizeVariableValueSets(
         VariableValues[]? variableValueSets,
         ref AdditionalPathAccumulator additionalPaths,
         int nextIndex)
@@ -3034,7 +3098,7 @@ AddErrors_Next:
             return [];
         }
 
-        additionalPaths.ApplyTo(variableValueSets, nextIndex);
+        additionalPaths.ApplyTo(variableValueSets, nextIndex, this, _result);
         additionalPaths.Dispose();
 
         var span = variableValueSets.AsSpan(0, nextIndex);
@@ -3043,6 +3107,36 @@ AddErrors_Next:
         s_variableValuePool.Return(variableValueSets);
 
         return ImmutableCollectionsMarshal.AsImmutableArray(result);
+    }
+
+    private readonly record struct LeafValue(Selection Selection, CompositeResultElement Value);
+
+    /// <summary>
+    /// Resolves the additional targets of a source schema result to the elements currently at their
+    /// paths.
+    /// </summary>
+    private readonly ref struct AdditionalTargets
+    {
+        private readonly FetchResultStore _store;
+        private readonly CompactPathSegment _segment;
+        private readonly DuplicateTargetCompactPathSource? _cursors;
+
+        public AdditionalTargets(FetchResultStore store, CompactPathSegment segment)
+        {
+            _store = store;
+            _segment = segment;
+            _cursors = segment.Source is DuplicateTargetCompactPathSource cursors
+                && ReferenceEquals(cursors.Document, store._result)
+                    ? cursors
+                    : null;
+        }
+
+        public int Length => _segment.Length;
+
+        public CompositeResultElement this[int index]
+            => _cursors is { IsCurrent: true } cursors
+                ? cursors.GetElement(_segment.Offset + index)
+                : _store.GetStartResult(_segment[index]);
     }
 
     private sealed class VariableDedupTable(ChunkedArrayWriter writer) : IDisposable
