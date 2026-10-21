@@ -74,6 +74,9 @@ internal sealed partial class FetchResultStore : IDisposable
     private ReuseObject[] _reuseTargetObjects = [];
     private int[] _reuseMatches = [];
     private bool[] _reuseProducerHits = [];
+    private int[] _leafRowOffsets = [];
+    private LeafRowOffsetEntry[] _leafRowOffsetEntries = [];
+    private int _leafRowOffsetEntryCount;
     private SourceResultElement[] _dataElementStaging = [];
     private LeafValue[] _leafValues = [];
     private PathSegmentLocalPool _pathPool = default!;
@@ -774,12 +777,14 @@ AddErrors_Next:
         }
 
         var leafCount = 0;
+        SelectionSet? primarySelectionSet = null;
+        _leafRowOffsetEntryCount = 0;
 
         try
         {
             var canCopy = errorCount == (_errors?.Count ?? 0)
                 && !HasPocketedErrors
-                && TryCollectLeafValues(primary, dataElement, resultSelectionSet, ref leafCount);
+                && TryCollectLeafValues(primary, dataElement, resultSelectionSet, ref leafCount, out primarySelectionSet);
             var leafValues = _leafValues.AsSpan(0, leafCount);
 
             for (var i = 0; i < additionalTargets.Length; i++)
@@ -792,7 +797,7 @@ AddErrors_Next:
                     continue;
                 }
 
-                if (canCopy && TryAssignLeafValues(target, leafValues))
+                if (canCopy && TryAssignLeafValues(target, primarySelectionSet!, leafValues))
                 {
                     continue;
                 }
@@ -825,16 +830,21 @@ AddErrors_Next:
         CompositeResultElement primary,
         SourceResultElement dataElement,
         ResultSelectionSet resultSelectionSet,
-        ref int count)
+        ref int count,
+        out SelectionSet? primarySelectionSet)
     {
+        primarySelectionSet = null;
+
         if (resultSelectionSet.HasSourceResponseNameMappings
             || dataElement.ValueKind is not JsonValueKind.Object
             || primary.IsNullOrInvalidated
             || !primary.TryGetObjectContext(out var context)
-            || context.SelectionSet is not { Type.Kind: TypeKind.Object })
+            || context.SelectionSet is not { Type.Kind: TypeKind.Object } selectionSet)
         {
             return false;
         }
+
+        primarySelectionSet = selectionSet;
 
         foreach (var property in dataElement.EnumerateObject())
         {
@@ -871,27 +881,53 @@ AddErrors_Next:
     /// same response names. Returns <c>false</c> when a value cannot be assigned; the target may
     /// then hold some of the values and must be completed from the source data.
     /// </summary>
-    private static bool TryAssignLeafValues(
+    private bool TryAssignLeafValues(
         CompositeResultElement target,
+        SelectionSet primarySelectionSet,
         ReadOnlySpan<LeafValue> leafValues)
     {
-        if (!target.TryGetObjectContext(out var context)
-            || context.SelectionSet is not { Type.Kind: TypeKind.Object })
+        if (!_result.TryGetSelectionSetObject(
+            target.Cursor,
+            out var startCursor,
+            out var selectionSetId,
+            out var numberOfRows))
         {
             return false;
         }
 
-        foreach (var leafValue in leafValues)
+        if (selectionSetId == primarySelectionSet.Id)
         {
-            if (!context.TryGetProperty(leafValue.Selection.Utf8ResponseName, out var value, out var selection))
+            foreach (var leafValue in leafValues)
+            {
+                var offset = CompositeResultDocument.GetValueRowOffset(primarySelectionSet, leafValue.Selection);
+                Debug.Assert(offset < numberOfRows);
+
+                if (!_result.TryAssignLeafValue(startCursor + offset, leafValue.Value.Cursor))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        if (!TryGetLeafRowOffsets(selectionSetId, leafValues, out var offsets))
+        {
+            return false;
+        }
+
+        for (var i = 0; i < offsets.Length; i++)
+        {
+            var offset = offsets[i];
+
+            if (offset < 0)
             {
                 continue;
             }
 
-            // A completed enum value is only assigned to a field of the same enum type.
-            if (selection.IsEnumValue != leafValue.Selection.IsEnumValue
-                || (selection.IsEnumValue && !ReferenceEquals(selection.NamedType, leafValue.Selection.NamedType))
-                || !value.TrySetLeafValue(leafValue.Value))
+            Debug.Assert(offset < numberOfRows);
+
+            if (!_result.TryAssignLeafValue(startCursor + offset, leafValues[i].Value.Cursor))
             {
                 return false;
             }
@@ -899,6 +935,74 @@ AddErrors_Next:
 
         return true;
     }
+
+    /// <summary>
+    /// Resolves the row offsets of the collected leaf values in the selection set with the given
+    /// id, once per selection set and merge call. An offset of <c>-1</c> marks a leaf the selection
+    /// set does not select.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c> if the selection set is a concrete object type whose leaves have the enum types
+    /// of the collected leaves; otherwise, <c>false</c>.
+    /// </returns>
+    private bool TryGetLeafRowOffsets(
+        int selectionSetId,
+        ReadOnlySpan<LeafValue> leafValues,
+        out ReadOnlySpan<int> offsets)
+    {
+        var entryCount = _leafRowOffsetEntryCount;
+
+        for (var i = 0; i < entryCount; i++)
+        {
+            ref readonly var entry = ref _leafRowOffsetEntries[i];
+
+            if (entry.SelectionSetId == selectionSetId)
+            {
+                offsets = entry.CanCopy ? _leafRowOffsets.AsSpan(entry.Offset, leafValues.Length) : default;
+                return entry.CanCopy;
+            }
+        }
+
+        var selectionSet = _operation.GetSelectionSetById(selectionSetId);
+        var canCopy = selectionSet.Type.Kind is TypeKind.Object;
+        var offsetStart = entryCount * leafValues.Length;
+
+        if (canCopy)
+        {
+            EnsureLength(ref _leafRowOffsets, offsetStart + leafValues.Length, offsetStart);
+            var resolved = _leafRowOffsets.AsSpan(offsetStart, leafValues.Length);
+
+            for (var i = 0; i < leafValues.Length; i++)
+            {
+                var leafSelection = leafValues[i].Selection;
+
+                if (!selectionSet.TryGetSelection(leafSelection.Utf8ResponseName, out var selection))
+                {
+                    resolved[i] = -1;
+                    continue;
+                }
+
+                // A completed enum value is only assigned to a field of the same enum type.
+                if (selection.IsEnumValue != leafSelection.IsEnumValue
+                    || (selection.IsEnumValue && !ReferenceEquals(selection.NamedType, leafSelection.NamedType)))
+                {
+                    canCopy = false;
+                    break;
+                }
+
+                resolved[i] = CompositeResultDocument.GetValueRowOffset(selectionSet, selection);
+            }
+        }
+
+        EnsureLength(ref _leafRowOffsetEntries, entryCount + 1, entryCount);
+        _leafRowOffsetEntries[entryCount] = new LeafRowOffsetEntry(selectionSetId, offsetStart, canCopy);
+        _leafRowOffsetEntryCount = entryCount + 1;
+
+        offsets = canCopy ? _leafRowOffsets.AsSpan(offsetStart, leafValues.Length) : default;
+        return canCopy;
+    }
+
+    private readonly record struct LeafRowOffsetEntry(int SelectionSetId, int Offset, bool CanCopy);
 
     private bool SaveSafeResult(
         CompositeResultElement resultData,
@@ -1428,6 +1532,17 @@ AddErrors_Next:
         {
             ReturnPooled(ref buffer);
             buffer = ArrayPool<T>.Shared.Rent(required);
+        }
+    }
+
+    private static void EnsureLength<T>(ref T[] buffer, int required, int preservedCount)
+    {
+        if (required > buffer.Length)
+        {
+            var grown = ArrayPool<T>.Shared.Rent(required);
+            buffer.AsSpan(0, preservedCount).CopyTo(grown);
+            ReturnPooled(ref buffer);
+            buffer = grown;
         }
     }
 
@@ -3336,6 +3451,8 @@ AddErrors_Next:
         ReturnPooled(ref _reuseTargetObjects);
         ReturnPooled(ref _reuseMatches);
         ReturnPooled(ref _reuseProducerHits);
+        ReturnPooled(ref _leafRowOffsets);
+        ReturnPooled(ref _leafRowOffsetEntries);
 
         foreach (var memory in _memory)
         {

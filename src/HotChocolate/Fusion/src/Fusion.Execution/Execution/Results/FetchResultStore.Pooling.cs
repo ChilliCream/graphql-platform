@@ -164,6 +164,9 @@ internal sealed partial class FetchResultStore
         TrimOrClearPooled(ref _reuseTargetObjects, maxCollectTargetRetainLength);
         TrimOrClearPooled(ref _reuseMatches, maxCollectTargetRetainLength);
         TrimOrClearPooled(ref _reuseProducerHits, maxCollectTargetRetainLength);
+        TrimOrClearPooled(ref _leafRowOffsets, maxCollectTargetRetainLength);
+        TrimOrClearPooled(ref _leafRowOffsetEntries, maxCollectTargetRetainLength);
+        _leafRowOffsetEntryCount = 0;
 
         // drop the leaf value buffer if a wide lookup selection made it grow
         if (_leafValues.Length > maxCollectTargetRetainLength)
