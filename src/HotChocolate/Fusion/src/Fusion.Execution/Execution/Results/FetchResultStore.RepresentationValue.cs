@@ -227,14 +227,16 @@ internal sealed partial class FetchResultStore
             // Entities are only reused while the result has no errors.
             var producerCount = _errors is { Count: > 0 } || _pocketedErrors is { Count: > 0 }
                 ? 0
-                : CollectHoldingProducers(candidates);
+                : CollectCombinedElements(candidates.Paths, ref _collectProducerCombined);
+            var producers = _collectProducerCombined.AsSpan(0, producerCount);
+            var holdingCount = FilterHoldingProducers(producers, candidates);
 
             return BuildRepresentationValue(
                 _collectTargetCombined.AsSpan(0, targetCount),
                 requestVariables,
                 requiredShape,
                 entityTypeName,
-                _collectProducerCombined.AsSpan(0, producerCount),
+                producers[..holdingCount],
                 candidates.ResponseNames,
                 out reusedCount);
         }
