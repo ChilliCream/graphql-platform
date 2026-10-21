@@ -955,36 +955,6 @@ AddErrors_Next:
         return SaveSafeResult(resultData, additionalTargets[index], dataElement, errorTrie, resultSelectionSet);
     }
 
-    private readonly record struct LeafValue(Selection Selection, CompositeResultElement Value);
-
-    /// <summary>
-    /// Resolves the additional targets of a source schema result to the elements currently at their
-    /// paths.
-    /// </summary>
-    private readonly ref struct AdditionalTargets
-    {
-        private readonly FetchResultStore _store;
-        private readonly CompactPathSegment _segment;
-        private readonly TargetCursorPaths? _cursors;
-
-        public AdditionalTargets(FetchResultStore store, CompactPathSegment segment)
-        {
-            _store = store;
-            _segment = segment;
-            _cursors = segment.Source is TargetCursorPaths cursors
-                && ReferenceEquals(cursors.Document, store._result)
-                    ? cursors
-                    : null;
-        }
-
-        public int Length => _segment.Length;
-
-        public CompositeResultElement this[int index]
-            => _cursors is { IsCurrent: true } cursors
-                ? cursors.GetElement(_segment.Offset + index)
-                : _store.GetStartResult(_segment[index]);
-    }
-
     public ImmutableArray<VariableValues> CreateVariableValueSets(
         SelectionPath selectionSet,
         IReadOnlyList<ObjectFieldNode> requestVariables,
@@ -3138,6 +3108,36 @@ AddErrors_Next:
         s_variableValuePool.Return(variableValueSets);
 
         return ImmutableCollectionsMarshal.AsImmutableArray(result);
+    }
+
+    private readonly record struct LeafValue(Selection Selection, CompositeResultElement Value);
+
+    /// <summary>
+    /// Resolves the additional targets of a source schema result to the elements currently at their
+    /// paths.
+    /// </summary>
+    private readonly ref struct AdditionalTargets
+    {
+        private readonly FetchResultStore _store;
+        private readonly CompactPathSegment _segment;
+        private readonly TargetCursorPaths? _cursors;
+
+        public AdditionalTargets(FetchResultStore store, CompactPathSegment segment)
+        {
+            _store = store;
+            _segment = segment;
+            _cursors = segment.Source is TargetCursorPaths cursors
+                && ReferenceEquals(cursors.Document, store._result)
+                    ? cursors
+                    : null;
+        }
+
+        public int Length => _segment.Length;
+
+        public CompositeResultElement this[int index]
+            => _cursors is { IsCurrent: true } cursors
+                ? cursors.GetElement(_segment.Offset + index)
+                : _store.GetStartResult(_segment[index]);
     }
 
     private sealed class VariableDedupTable(ChunkedArrayWriter writer) : IDisposable
