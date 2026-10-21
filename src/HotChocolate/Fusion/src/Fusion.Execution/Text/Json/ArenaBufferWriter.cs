@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using HotChocolate.Buffers;
 
@@ -15,8 +16,9 @@ internal sealed class ArenaBufferWriter : IBufferWriter<byte>, IDisposable
 {
     private readonly IMemoryArena _arena;
     private MemorySegment[] _segments;
-    private int _usedChunks;
+    private int _rentedChunks;
     private int _currentChunk;
+    private int _currentChunkStart;
     private int _currentChunkBytes;
     private int _currentChunkOffset;
     private byte[] _currentBuffer;
@@ -34,7 +36,7 @@ internal sealed class ArenaBufferWriter : IBufferWriter<byte>, IDisposable
         _currentChunkBytes = SourceResultDocument.GetDataChunkSize(0);
         var segment = arena.Rent(_currentChunkBytes);
         _segments[0] = segment;
-        _usedChunks = 1;
+        _rentedChunks = 1;
         _currentBuffer = segment.Buffer;
         _currentBase = segment.Offset;
     }
@@ -48,12 +50,17 @@ internal sealed class ArenaBufferWriter : IBufferWriter<byte>, IDisposable
     /// <summary>
     /// Gets the number of filled segments.
     /// </summary>
-    public int UsedChunks => _usedChunks;
+    public int UsedChunks => _currentChunk + 1;
 
     /// <summary>
     /// Gets the number of bytes written into the final segment.
     /// </summary>
     public int LastLength => _currentChunkOffset;
+
+    /// <summary>
+    /// Gets the gap-free position of the next byte to write.
+    /// </summary>
+    public int Position => _currentChunkStart + _currentChunkOffset;
 
     /// <inheritdoc />
     public Span<byte> GetSpan(int sizeHint = 0)
@@ -142,9 +149,103 @@ internal sealed class ArenaBufferWriter : IBufferWriter<byte>, IDisposable
         }
     }
 
+    /// <summary>
+    /// Moves the write position back to the start. The rented segments are kept and reused by
+    /// later writes.
+    /// </summary>
+    public void Reset() => ResetTo(0);
+
+    /// <summary>
+    /// Moves the write position back to <paramref name="position"/>, which must not be after
+    /// <see cref="Position"/>. Later writes overwrite the bytes after it.
+    /// </summary>
+    public void ResetTo(int position)
+    {
+        Debug.Assert(
+            position >= 0 && position <= Position,
+            "The position must not be after the write position.");
+
+        while (position < _currentChunkStart)
+        {
+            _currentChunk--;
+            _currentChunkStart -= _segments[_currentChunk].Length;
+        }
+
+        var segment = _segments[_currentChunk];
+        _currentBuffer = segment.Buffer;
+        _currentBase = segment.Offset;
+        _currentChunkBytes = segment.Length;
+        _currentChunkOffset = position - _currentChunkStart;
+        _advanceFromScratch = false;
+    }
+
+    /// <summary>
+    /// Compares <paramref name="length"/> written bytes at <paramref name="positionA"/> with the
+    /// written bytes at <paramref name="positionB"/>.
+    /// </summary>
+    public bool SequenceEqual(int positionA, int positionB, int length)
+    {
+        if (positionA == positionB || length == 0)
+        {
+            return true;
+        }
+
+        var chunkA = FindChunk(positionA, out var offsetA);
+        var chunkB = FindChunk(positionB, out var offsetB);
+
+        while (true)
+        {
+            var segmentA = _segments[chunkA];
+            var segmentB = _segments[chunkB];
+            var count = Math.Min(length, Math.Min(segmentA.Length - offsetA, segmentB.Length - offsetB));
+
+            if (!segmentA.Buffer.AsSpan(segmentA.Offset + offsetA, count).SequenceEqual(
+                segmentB.Buffer.AsSpan(segmentB.Offset + offsetB, count)))
+            {
+                return false;
+            }
+
+            length -= count;
+
+            if (length == 0)
+            {
+                return true;
+            }
+
+            offsetA += count;
+            offsetB += count;
+
+            if (offsetA == segmentA.Length)
+            {
+                chunkA++;
+                offsetA = 0;
+            }
+
+            if (offsetB == segmentB.Length)
+            {
+                chunkB++;
+                offsetB = 0;
+            }
+        }
+    }
+
     public void Dispose()
     {
         ReturnScratch();
+    }
+
+    private int FindChunk(int position, out int offset)
+    {
+        var chunk = 0;
+
+        while (position >= _segments[chunk].Length)
+        {
+            position -= _segments[chunk].Length;
+            chunk++;
+        }
+
+        offset = position;
+        return chunk;
     }
 
     private void ReturnScratch()
@@ -159,9 +260,10 @@ internal sealed class ArenaBufferWriter : IBufferWriter<byte>, IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void MoveToNextChunk()
     {
+        _currentChunkStart += _currentChunkBytes;
         _currentChunk++;
 
-        if (_currentChunk >= _usedChunks)
+        if (_currentChunk >= _rentedChunks)
         {
             if (_currentChunk >= SourceResultDocument.DataMaxChunks)
             {
@@ -175,7 +277,7 @@ internal sealed class ArenaBufferWriter : IBufferWriter<byte>, IDisposable
             }
 
             _segments[_currentChunk] = _arena.Rent(SourceResultDocument.GetDataChunkSize(_currentChunk));
-            _usedChunks = _currentChunk + 1;
+            _rentedChunks = _currentChunk + 1;
         }
 
         var segment = _segments[_currentChunk];

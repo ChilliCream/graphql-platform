@@ -2605,8 +2605,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
             }
             """);
 
-        // 4,096 keys of 32 bytes (marker, length, quoted 25 character string) fill one 128 KB chunk
-        var foos = Enumerable.Range(0, 4096)
+        // 32 keys of 32 bytes (marker, length, quoted 25 character string) fill the first arena segment
+        var foos = Enumerable.Range(0, 32)
             .Select(i => $$"""{"key":"{{i:D25}}"}""")
             .Append("""{"key":null}""")
             .Append("""{"key":"last"}""");
@@ -2629,17 +2629,188 @@ public sealed class FetchResultStoreTests : FusionTestBase
             ]);
 
         // assert
-        RenderVariableValueSets(store, result.Skip(4095)).MatchInlineSnapshot(
+        RenderVariableValueSets(store, result.Skip(31)).MatchInlineSnapshot(
             """
-            Path: foos[4095]
+            Path: foos[31]
             Additional paths: []
-            Variables: {"__fusion_1_key":"0000000000000000000004095"}
-            Path: foos[4096]
+            Variables: {"__fusion_1_key":"0000000000000000000000031"}
+            Path: foos[32]
             Additional paths: []
             Variables: {"__fusion_1_key":null}
-            Path: foos[4097]
+            Path: foos[33]
             Additional paths: []
             Variables: {"__fusion_1_key":"last"}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSets_Should_MatchKeys_When_KeySpansArenaSegments()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              key: String
+            }
+            """);
+
+        // keys of 30 bytes (marker, length, quoted 23 character string), so key 34 spans the first segment end
+        var foos = Enumerable.Range(0, 35)
+            .Append(34)
+            .Select(i => $$"""{"key":"{{i:D23}}"}""");
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { key } }",
+            $$$"""{"data":{"foos":[{{{string.Join(",", foos)}}}]}}""",
+            resultArena,
+            sourceArena);
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("foos"),
+            [],
+            [
+                Requirement(schema, "__fusion_1_key", "key", new NamedTypeNode("String"))
+            ]);
+
+        // assert
+        RenderVariableValueSets(store, result.Skip(34)).MatchInlineSnapshot(
+            """
+            Path: foos[34]
+            Additional paths: [foos[35]]
+            Variables: {"__fusion_1_key":"00000000000000000000034"}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSets_Should_WriteKeysToCurrentArena_When_StoreIsResetForNextEvent()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              key: String
+            }
+            """);
+        var plan = PlanOperation(schema, "{ foos { key } }");
+        var node = Assert.IsType<OperationExecutionNode>(Assert.Single(plan.RootNodes));
+        var requirement = Requirement(schema, "__fusion_1_key", "key", new NamedTypeNode("String"));
+
+        var firstArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = new FetchResultStore();
+        store.Initialize(
+            firstArena,
+            schema,
+            DefaultErrorHandler.Default,
+            plan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: default,
+            deferFlags: default,
+            pathSegmentLocalPoolCapacity: 16);
+        AddKeyResults(store, node, sourceArena, count: 1);
+        store.CreateVariableValueSets(SelectionPath.Root.AppendField("foos"), [], [requirement]);
+
+        // the first event completes and releases its memory
+        var firstEventMemory = store.MemoryOwners.ToArray();
+        store.MemoryOwners.Clear();
+        store.Reset(new MemoryArena());
+        Array.ForEach(firstEventMemory, memory => memory.Dispose());
+        firstArena.Dispose();
+
+        // 40 keys of 32 bytes need a second arena segment
+        AddKeyResults(store, node, sourceArena, count: 40);
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("foos"),
+            [],
+            [requirement]);
+
+        // assert
+        RenderVariableValueSets(store, result.Skip(39)).MatchInlineSnapshot(
+            """
+            Path: foos[39]
+            Additional paths: []
+            Variables: {"__fusion_1_key":"0000000000000000000000039"}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSets_Should_WriteKeysToCurrentArena_When_StoreIsReusedAfterClean()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              key: String
+            }
+            """);
+        var plan = PlanOperation(schema, "{ foos { key } }");
+        var node = Assert.IsType<OperationExecutionNode>(Assert.Single(plan.RootNodes));
+        var requirement = Requirement(schema, "__fusion_1_key", "key", new NamedTypeNode("String"));
+
+        var firstArena = new MemoryArena();
+        using var secondArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = new FetchResultStore();
+        store.Initialize(
+            firstArena,
+            schema,
+            DefaultErrorHandler.Default,
+            plan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: default,
+            deferFlags: default,
+            pathSegmentLocalPoolCapacity: 16);
+        AddKeyResults(store, node, sourceArena, count: 1);
+        store.CreateVariableValueSets(SelectionPath.Root.AppendField("foos"), [], [requirement]);
+        store.Clean(maxCollectTargetRetainLength: 256, maxDictionaryRetainCapacity: 256);
+        firstArena.Dispose();
+
+        store.Initialize(
+            secondArena,
+            schema,
+            DefaultErrorHandler.Default,
+            plan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: default,
+            deferFlags: default,
+            pathSegmentLocalPoolCapacity: 16);
+
+        // 40 keys of 32 bytes need a second arena segment
+        AddKeyResults(store, node, sourceArena, count: 40);
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("foos"),
+            [],
+            [requirement]);
+
+        // assert
+        RenderVariableValueSets(store, result.Skip(39)).MatchInlineSnapshot(
+            """
+            Path: foos[39]
+            Additional paths: []
+            Variables: {"__fusion_1_key":"0000000000000000000000039"}
             """);
     }
 
@@ -3026,6 +3197,23 @@ public sealed class FetchResultStoreTests : FusionTestBase
         Assert.True(added);
 
         return store;
+    }
+
+    private static void AddKeyResults(
+        FetchResultStore store,
+        OperationExecutionNode node,
+        MemoryArena sourceArena,
+        int count)
+    {
+        var foos = Enumerable.Range(0, count).Select(i => $$"""{"key":"{{i:D25}}"}""");
+        var payload = Encoding.UTF8.GetBytes($$$"""{"data":{"foos":[{{{string.Join(",", foos)}}}]}}""");
+        var document = SourceResultDocument.Parse(sourceArena, payload, payload.Length);
+        var added = store.AddPartialResults(
+            SelectionPath.Root,
+            [new SourceSchemaResult(CompactPath.Root, document)],
+            node.ResultSelectionSet,
+            containsErrors: false);
+        Assert.True(added);
     }
 
     private static FetchResultStore CreateEmptyStore(

@@ -44,6 +44,77 @@ public class ArenaBufferWriterTests
         Assert.Equal(Encoding.UTF8.GetString(json), document.Root.GetRawText());
     }
 
+    [Fact]
+    public void Reset_Should_ReuseRentedSegments_When_WriterIsRewound()
+    {
+        // Arrange
+        using var arena = new MemoryArena();
+        using var writer = new ArenaBufferWriter(arena);
+        var bytes = Encoding.UTF8.GetBytes(CreateAsciiPattern(3000));
+        Write(writer, bytes);
+        var secondSegment = writer.Segments[1];
+
+        // Act
+        writer.Reset();
+        var usedChunksAfterReset = writer.UsedChunks;
+        Write(writer, bytes);
+
+        // Assert
+        Assert.Equal(1, usedChunksAfterReset);
+        Assert.Same(secondSegment.Buffer, writer.Segments[1].Buffer);
+        Assert.Equal(secondSegment.Offset, writer.Segments[1].Offset);
+        Assert.Equal(3000, writer.Position);
+    }
+
+    [Fact]
+    public void ResetTo_Should_WriteIntoNextSegment_When_PositionIsAtEndOfFullSegment()
+    {
+        // Arrange
+        using var arena = new MemoryArena();
+        using var writer = new ArenaBufferWriter(arena);
+        var firstSegmentSize = SourceResultDocument.GetDataChunkSize(0);
+        Write(writer, Encoding.UTF8.GetBytes(CreateAsciiPattern(firstSegmentSize)));
+
+        // Act
+        writer.ResetTo(firstSegmentSize);
+        Write(writer, "z"u8.ToArray());
+
+        // Assert
+        Assert.Equal(firstSegmentSize + 1, writer.Position);
+        Assert.Equal(2, writer.UsedChunks);
+        Assert.Equal((byte)'z', writer.Segments[1].Buffer[writer.Segments[1].Offset]);
+    }
+
+    [Fact]
+    public void SequenceEqual_Should_CompareWrittenBytes_When_RangeSpansSegments()
+    {
+        // Arrange
+        using var arena = new MemoryArena();
+        using var writer = new ArenaBufferWriter(arena);
+        var firstSegmentSize = SourceResultDocument.GetDataChunkSize(0);
+        Write(writer, new byte[firstSegmentSize - 4]);
+        var spanning = writer.Position;
+        Write(writer, "abcdefghij"u8.ToArray());
+        var equal = writer.Position;
+        Write(writer, "abcdefghij"u8.ToArray());
+        var different = writer.Position;
+        Write(writer, "abcdefghiX"u8.ToArray());
+
+        // Act
+        var matchesEqual = writer.SequenceEqual(spanning, equal, 10);
+        var matchesDifferent = writer.SequenceEqual(spanning, different, 10);
+
+        // Assert
+        Assert.True(matchesEqual);
+        Assert.False(matchesDifferent);
+    }
+
+    private static void Write(ArenaBufferWriter writer, byte[] bytes)
+    {
+        bytes.CopyTo(writer.GetSpan(bytes.Length));
+        writer.Advance(bytes.Length);
+    }
+
     private static string CreateAsciiPattern(int length)
     {
         var chars = new char[length];

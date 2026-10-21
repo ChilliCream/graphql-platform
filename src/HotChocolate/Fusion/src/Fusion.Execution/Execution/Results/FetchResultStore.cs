@@ -52,7 +52,7 @@ internal sealed partial class FetchResultStore : IDisposable
     private PooledArrayWriter? _forwardedVariableWriter;
     private readonly JsonWriter _jsonWriter;
     private readonly VariableDedupTable _variableDedupTable;
-    private ChunkedArrayWriter? _leafKeyWriter;
+    private ArenaBufferWriter? _leafKeyWriter;
     private VariableDedupTable? _leafKeyDedupTable;
     private FusionSchemaDefinition _schema = default!;
     private IErrorHandler _errorHandler = default!;
@@ -2123,13 +2123,13 @@ AddErrors_Next:
 
     /// <summary>
     /// Clears the leaf keys of the previous lookup and sizes the key table for
-    /// <paramref name="capacity"/> targets.
+    /// <paramref name="capacity"/> targets. The keys are written to the memory arena of the request.
     /// </summary>
     private void ResetLeafKeys(int capacity)
     {
         if (_leafKeyWriter is null || _leafKeyDedupTable is null)
         {
-            _leafKeyWriter = new ChunkedArrayWriter();
+            _leafKeyWriter = new ArenaBufferWriter(_arena);
             _leafKeyDedupTable = new VariableDedupTable(_leafKeyWriter);
         }
         else
@@ -2164,6 +2164,8 @@ AddErrors_Next:
         BinaryPrimitives.WriteInt32LittleEndian(span[1..], raw.Length);
         raw.CopyTo(span[5..]);
         key.Writer.Advance(length);
+        key.Hasher.Add(kind);
+        key.Hasher.AddBytes(raw);
         return true;
     }
 
@@ -2174,7 +2176,7 @@ AddErrors_Next:
     private static bool TryGetLeafKeyDuplicate(ref LeafKey key, out int index)
     {
         var length = key.Writer.Position - key.Start;
-        key.Hash = key.Writer.GetHashCode(key.Start, length);
+        key.Hash = key.Hasher.ToHashCode();
         key.Length = length;
 
         if (key.Table.TryGet(key.Hash, key.Start, length, out index))
@@ -2191,13 +2193,7 @@ AddErrors_Next:
     /// </summary>
     private static void DiscardLeafKey(ref LeafKey key)
     {
-        // a writer positioned at the end of a full chunk has not rented the next one yet,
-        // so it is only moved back when the key wrote bytes.
-        if (key.Writer.Position != key.Start)
-        {
-            key.Writer.ResetTo(key.Start);
-        }
-
+        key.Writer.ResetTo(key.Start);
         key.IsValid = false;
     }
 
@@ -2207,6 +2203,17 @@ AddErrors_Next:
         {
             key.Table.Add(key.Hash, index, key.Start, key.Length);
         }
+    }
+
+    /// <summary>
+    /// Releases the leaf key writer and table, which are bound to the memory arena of the request.
+    /// </summary>
+    private void ReleaseLeafKeys()
+    {
+        _leafKeyDedupTable?.Dispose();
+        _leafKeyDedupTable = null;
+        _leafKeyWriter?.Dispose();
+        _leafKeyWriter = null;
     }
 
     internal static bool TryGetSimpleRequirementFieldName(
@@ -3179,8 +3186,7 @@ AddErrors_Next:
 
         _variableDedupTable.Dispose();
         _variableWriter.Dispose();
-        _leafKeyDedupTable?.Dispose();
-        _leafKeyWriter?.Dispose();
+        ReleaseLeafKeys();
         _forwardedVariableWriter?.Dispose();
         _pathPool?.Dispose();
     }
@@ -3288,29 +3294,41 @@ AddErrors_Next:
     /// A key built from the raw leaf values of a lookup target. Targets with equal keys have
     /// equal variable values. The default key is invalid.
     /// </summary>
-    private struct LeafKey(ChunkedArrayWriter writer, VariableDedupTable table, int start)
+    private struct LeafKey(ArenaBufferWriter writer, VariableDedupTable table, int start)
     {
-        public readonly ChunkedArrayWriter Writer = writer;
+        public readonly ArenaBufferWriter Writer = writer;
         public readonly VariableDedupTable Table = table;
         public readonly int Start = start;
+        public HashCode Hasher;
         public int Length;
         public int Hash;
         public bool IsValid = true;
     }
 
-    private sealed class VariableDedupTable(ChunkedArrayWriter writer) : IDisposable
+    private sealed class VariableDedupTable : IDisposable
     {
         private const int DefaultBucketSize = 4;
         private const int DefaultBucketCount = 16;
         private const int TrackedSlotCapacity = 16;
 
-        private readonly ChunkedArrayWriter _writer = writer;
+        private readonly ChunkedArrayWriter? _writer;
+        private readonly ArenaBufferWriter? _arenaWriter;
         private Entry[] _table = RentClearedTable(DefaultBucketCount * DefaultBucketSize);
         private int[] _writtenSlots = [];
         private int _bucketCount = DefaultBucketCount;
         private readonly int _bucketSize = DefaultBucketSize;
         private int _writtenCount;
         private bool _clearFullTable;
+
+        public VariableDedupTable(ChunkedArrayWriter writer)
+        {
+            _writer = writer;
+        }
+
+        public VariableDedupTable(ArenaBufferWriter writer)
+        {
+            _arenaWriter = writer;
+        }
 
         public void Initialize(int capacity)
         {
@@ -3349,7 +3367,7 @@ AddErrors_Next:
 
                 if (entry.Hash == hash
                     && entry.Length == length
-                    && _writer.SequenceEqual(entry.Location, location, length))
+                    && SequenceEqual(entry.Location, location, length))
                 {
                     existingIndex = entry.Index - 1;
                     return true;
@@ -3419,6 +3437,10 @@ AddErrors_Next:
 
             ResetClearState();
         }
+
+        private bool SequenceEqual(int locationA, int locationB, int length)
+            => _arenaWriter?.SequenceEqual(locationA, locationB, length)
+                ?? _writer!.SequenceEqual(locationA, locationB, length);
 
         private void Grow()
         {
