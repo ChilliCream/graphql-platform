@@ -83,7 +83,10 @@ public sealed class OperationCompiler
 
         var fields = _fieldsPool.Get();
 
-        var compilationContext = new CompilationContext(s_objectArrayPool.Rent(128));
+        var elementsById = s_objectArrayPool.Rent(128);
+        // Unused slots must not reference selections from another operation.
+        Array.Clear(elementsById);
+        var compilationContext = new CompilationContext(elementsById, canReturnStorage: true);
 
         try
         {
@@ -150,7 +153,7 @@ public sealed class OperationCompiler
         ref object[] elementsById,
         ref int lastId)
     {
-        var compilationContext = new CompilationContext(elementsById);
+        var compilationContext = new CompilationContext(elementsById, canReturnStorage: false);
         var fields = _fieldsPool.Get();
         fields.Clear();
 
@@ -793,9 +796,10 @@ public sealed class OperationCompiler
         }
     }
 
-    private class CompilationContext(object[] elementsById)
+    private class CompilationContext(object[] elementsById, bool canReturnStorage)
     {
         private object[] _elementsById = elementsById;
+        private bool _canReturnStorage = canReturnStorage;
 
         public object[] ElementsById => _elementsById;
 
@@ -804,9 +808,15 @@ public sealed class OperationCompiler
             if (id >= _elementsById.Length)
             {
                 var newArray = s_objectArrayPool.Rent(_elementsById.Length * 2);
+                Array.Clear(newArray);
                 _elementsById.AsSpan().CopyTo(newArray);
-                s_objectArrayPool.Return(_elementsById);
+                // Published storage remains readable until outstanding readers release it.
+                if (_canReturnStorage)
+                {
+                    s_objectArrayPool.Return(_elementsById, clearArray: true);
+                }
                 _elementsById = newArray;
+                _canReturnStorage = true;
             }
 
             _elementsById[id] = element;

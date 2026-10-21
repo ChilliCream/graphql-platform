@@ -1,3 +1,5 @@
+using System.Buffers;
+using System.Runtime.CompilerServices;
 using System.Text;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -370,6 +372,175 @@ public class OperationCompilerTests : FusionTestBase
 
         // assert
         Assert.Equal("BnjEJe8-", operation.ShortHash);
+    }
+
+    [Fact]
+    public void Compile_Should_ClearRentedElementStorage_When_StorageIsReused()
+    {
+        // arrange
+        var compiler = new OperationCompiler(CreateSchema(), _fieldMapPool);
+        var definition = Utf8GraphQLParser.Parse("{ __typename }")
+            .Definitions.OfType<OperationDefinitionNode>().Single();
+        var previousOwner = SeedElementStorage(128);
+
+        // act
+        var operation = compiler.Compile("small", "small", "small", definition);
+        CollectGarbage();
+
+        // assert
+        Assert.Equal("__typename", operation.RootSelectionSet.Selections[0].Field.Name);
+        Assert.False(previousOwner.IsAlive);
+        GC.KeepAlive(operation);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Compile_Should_ClearRentedElementStorage_When_StorageGrows(bool lazy)
+    {
+        // arrange
+        var compiler = new OperationCompiler(CreateSchema(), _fieldMapPool);
+        var definition = CreateStorageGrowthDefinition(lazy, selectionCount: 160);
+        var previousOwner = SeedElementStorage(256);
+
+        // act
+        var operation = compiler.Compile("large", "large", "large", definition);
+        var selections = lazy
+            ? operation.GetSelectionSet(operation.RootSelectionSet.Selections[0]).Selections
+            : operation.RootSelectionSet.Selections;
+        CollectGarbage();
+
+        // assert
+        Assert.Equal(160, selections.Length);
+        var rootSelection = operation.RootSelectionSet.Selections[0];
+        Assert.Same(rootSelection, operation.GetSelectionById(rootSelection.Id));
+        Assert.Same(selections[^1], operation.GetSelectionById(selections[^1].Id));
+        Assert.False(previousOwner.IsAlive);
+        GC.KeepAlive(operation);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Compile_Should_ClearReturnedElementStorage_When_StorageGrows(bool lazy)
+    {
+        // arrange
+        var compiler = new OperationCompiler(CreateSchema(), _fieldMapPool);
+        var definition = CreateStorageGrowthDefinition(lazy, selectionCount: lazy ? 320 : 160);
+        var storageLength = lazy ? 256 : 128;
+        var privateStorage = ArrayPool<object>.Shared.Rent(storageLength);
+        ArrayPool<object>.Shared.Return(privateStorage, clearArray: true);
+
+        // act
+        var operation = compiler.Compile("large", "large", "large", definition);
+        if (lazy)
+        {
+            operation.GetSelectionSet(operation.RootSelectionSet.Selections[0]);
+        }
+        var returnedStorage = ArrayPool<object>.Shared.Rent(storageLength);
+
+        // assert
+        try
+        {
+            Assert.Same(privateStorage, returnedStorage);
+            Assert.All(returnedStorage, Assert.Null);
+        }
+        finally
+        {
+            ArrayPool<object>.Shared.Return(returnedStorage, clearArray: true);
+        }
+        GC.KeepAlive(operation);
+    }
+
+    [Fact]
+    public void Compile_Should_PreservePublishedElementStorage_When_LazyStorageGrows()
+    {
+        // arrange
+        var compiler = new OperationCompiler(CreateSchema(), _fieldMapPool);
+        var definition = CreateStorageGrowthDefinition(lazy: true, selectionCount: 160);
+        var publishedStorage = ArrayPool<object>.Shared.Rent(128);
+        ArrayPool<object>.Shared.Return(publishedStorage, clearArray: true);
+        var operation = compiler.Compile("lazy", "lazy", "lazy", definition);
+        var root = operation.RootSelectionSet;
+        var product = root.Selections[0];
+
+        // act
+        var selections = operation.GetSelectionSet(product).Selections;
+        var rentedStorage = ArrayPool<object>.Shared.Rent(128);
+
+        // assert
+        try
+        {
+            Assert.Same(root, publishedStorage[root.Id]);
+            Assert.Same(product, publishedStorage[product.Id]);
+            Assert.NotSame(publishedStorage, rentedStorage);
+            Assert.Same(product, operation.GetSelectionById(product.Id));
+            Assert.Same(selections[^1], operation.GetSelectionById(selections[^1].Id));
+        }
+        finally
+        {
+            ArrayPool<object>.Shared.Return(rentedStorage, clearArray: true);
+        }
+        GC.KeepAlive(operation);
+    }
+
+    [Fact]
+    public void Compile_Should_ReleasePreviousSchema_When_NewOperationReusesElementStorage()
+    {
+        // arrange
+        var (operation, previousSchema) = CompileAcrossSchemas();
+
+        // act
+        CollectGarbage();
+
+        // assert
+        Assert.Equal("__typename", operation.RootSelectionSet.Selections[0].Field.Name);
+        Assert.False(previousSchema.IsAlive);
+        GC.KeepAlive(operation);
+    }
+
+    private static OperationDefinitionNode CreateStorageGrowthDefinition(bool lazy, int selectionCount)
+    {
+        var fields = string.Join(
+            " ",
+            Enumerable.Range(0, selectionCount).Select(i => lazy ? $"f{i}:id" : $"f{i}:__typename"));
+        var document = lazy ? $"{{ product {{ {fields} }} }}" : $"{{ {fields} }}";
+        return Utf8GraphQLParser.Parse(document).Definitions.OfType<OperationDefinitionNode>().Single();
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static WeakReference SeedElementStorage(int minimumLength)
+    {
+        var previousOwner = new object();
+        var storage = ArrayPool<object>.Shared.Rent(minimumLength);
+        Array.Fill(storage, previousOwner);
+        ArrayPool<object>.Shared.Return(storage);
+        return new WeakReference(previousOwner);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private (Operation Operation, WeakReference PreviousSchema) CompileAcrossSchemas()
+    {
+        var previousSchema = CreateSchema();
+        var previousCompiler = new OperationCompiler(previousSchema, _fieldMapPool);
+        var compiler = new OperationCompiler(CreateSchema(), _fieldMapPool);
+        var large = CreateStorageGrowthDefinition(lazy: false, selectionCount: 160);
+        var small = Utf8GraphQLParser.Parse("{ __typename }")
+            .Definitions.OfType<OperationDefinitionNode>().Single();
+        var previousSchemaReference = new WeakReference(previousSchema);
+
+        previousCompiler.Compile("previous", "previous", "previous", large);
+        var operation = compiler.Compile("current", "current", "current", small);
+        previousSchema.DisposeAsync().GetAwaiter().GetResult();
+
+        return (operation, previousSchemaReference);
+    }
+
+    private static void CollectGarbage()
+    {
+        GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: true);
+        GC.WaitForPendingFinalizers();
+        GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: true);
     }
 
     public static FusionSchemaDefinition CreateSchema()
