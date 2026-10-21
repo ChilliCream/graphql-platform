@@ -224,15 +224,24 @@ internal sealed partial class FetchResultStore
                 return RepresentationValue.Empty;
             }
 
+            var targets = _collectTargetCombined.AsSpan(0, targetCount);
+
             // Entities are only reused while the result has no errors.
             var producerCount = _errors is { Count: > 0 } || _pocketedErrors is { Count: > 0 }
                 ? 0
                 : CollectCombinedElements(candidates.Paths, ref _collectProducerCombined);
             var producers = _collectProducerCombined.AsSpan(0, producerCount);
+
+            if (requestVariables.Count == 0
+                && TryReuseAllEntities(targets, producers, requiredData, candidates, out reusedCount))
+            {
+                return RepresentationValue.Empty;
+            }
+
             var holdingCount = FilterHoldingProducers(producers, candidates);
 
             return BuildRepresentationValue(
-                _collectTargetCombined.AsSpan(0, targetCount),
+                targets,
                 requestVariables,
                 requiredShape,
                 entityTypeName,

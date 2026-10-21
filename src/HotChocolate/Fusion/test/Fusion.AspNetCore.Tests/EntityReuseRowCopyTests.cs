@@ -1,5 +1,8 @@
 using System.Text.Json;
+using HotChocolate.ApolloFederation.Resolvers;
+using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Transport.Http;
+using HotChocolate.Types;
 using HotChocolate.Types.Composite;
 using HotChocolate.Types.Relay;
 using Microsoft.AspNetCore.TestHost;
@@ -9,8 +12,9 @@ namespace HotChocolate.Fusion;
 
 /// <summary>
 /// Covers the entity reuse that matches targets to producers on raw key values and fills them
-/// by row offset, and the leaf copy into duplicate lookup targets by row offset. Every test
-/// compares the gateway response with and without entity reuse.
+/// by row offset, for composite and Apollo entity lookups, and the leaf copy into duplicate
+/// lookup targets by row offset. Every test compares the gateway response with and without
+/// entity reuse.
 /// </summary>
 public sealed class EntityReuseRowCopyTests : FusionTestBase
 {
@@ -276,9 +280,165 @@ public sealed class EntityReuseRowCopyTests : FusionTestBase
         }.MatchMarkdownSnapshot();
     }
 
+    [Fact]
+    public async Task Execute_ApolloLookup_Should_ReuseEntities_When_EveryTargetHasAProducer()
+    {
+        // arrange
+        using var accountsApi = CreateApolloAccountsApi<ApolloAccountsQuery>();
+        using var reviewsApi = CreateApolloReviewsApi();
+        using var gateway = await CreateApolloGatewayAsync(accountsApi, reviewsApi, enableEntityReuse: true);
+        using var gatewayWithoutReuse = await CreateApolloGatewayAsync(accountsApi, reviewsApi, enableEntityReuse: false);
+
+        // The authors at two target paths are all held by users.
+        const string query =
+            """
+            {
+              users {
+                id
+                name
+                reviews {
+                  author { name }
+                  coAuthor { name }
+                }
+              }
+            }
+            """;
+
+        // act
+        var data = await ExecuteAsync(gateway, query);
+        var dataWithoutReuse = await ExecuteAsync(gatewayWithoutReuse, query);
+
+        // assert
+        Assert.Equal(dataWithoutReuse, data);
+        new
+        {
+            WithReuse = CountRequests(gateway),
+            WithoutReuse = CountRequests(gatewayWithoutReuse),
+            Data = data
+        }.MatchInlineSnapshot(
+            """
+            {
+              "WithReuse": "accounts-api: 1, reviews-api: 1",
+              "WithoutReuse": "accounts-api: 2, reviews-api: 1",
+              "Data": "{\"users\":[{\"id\":\"1\",\"name\":\"Alice\",\"reviews\":[{\"author\":{\"name\":\"Bob\"},\"coAuthor\":{\"name\":\"Carol\"}},{\"author\":{\"name\":\"Carol\"},\"coAuthor\":{\"name\":\"Bob\"}}]},{\"id\":\"2\",\"name\":\"Bob\",\"reviews\":[{\"author\":{\"name\":\"Alice\"},\"coAuthor\":{\"name\":\"Carol\"}}]},{\"id\":\"3\",\"name\":\"Carol\",\"reviews\":[]}]}"
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_ApolloLookup_Should_FetchRemainingEntities_When_SomeTargetsHaveNoProducer()
+    {
+        // arrange
+        using var accountsApi = CreateApolloAccountsApi<ApolloPartialAccountsQuery>();
+        using var reviewsApi = CreateApolloReviewsApi();
+        using var gateway = await CreateApolloGatewayAsync(accountsApi, reviewsApi, enableEntityReuse: true);
+        using var gatewayWithoutReuse = await CreateApolloGatewayAsync(accountsApi, reviewsApi, enableEntityReuse: false);
+
+        // Alice and Bob review each other and Carol, who is not in users.
+        const string query =
+            """
+            {
+              users { id name reviews { author { name } } }
+            }
+            """;
+
+        // act
+        var data = await ExecuteAsync(gateway, query);
+        var dataWithoutReuse = await ExecuteAsync(gatewayWithoutReuse, query);
+
+        // assert
+        Assert.Equal(dataWithoutReuse, data);
+        new
+        {
+            WithReuse = CountRequests(gateway),
+            WithoutReuse = CountRequests(gatewayWithoutReuse),
+            Representations = GetRepresentations(gateway, "accounts-api"),
+            Data = data
+        }.MatchInlineSnapshot(
+            """
+            {
+              "WithReuse": "accounts-api: 2, reviews-api: 1",
+              "WithoutReuse": "accounts-api: 2, reviews-api: 1",
+              "Representations": [
+                "[{\"__typename\":\"User\",\"id\":\"3\"}]"
+              ],
+              "Data": "{\"users\":[{\"id\":\"1\",\"name\":\"Alice\",\"reviews\":[{\"author\":{\"name\":\"Bob\"}},{\"author\":{\"name\":\"Carol\"}}]},{\"id\":\"2\",\"name\":\"Bob\",\"reviews\":[{\"author\":{\"name\":\"Alice\"}}]}]}"
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_ApolloLookup_Should_FetchEntities_When_NoTargetKeyMatchesAProducer()
+    {
+        // arrange
+        using var accountsApi = CreateApolloAccountsApi<ApolloDisjointAccountsQuery>();
+        using var reviewsApi = CreateApolloReviewsApi();
+        using var gateway = await CreateApolloGatewayAsync(accountsApi, reviewsApi, enableEntityReuse: true);
+        using var gatewayWithoutReuse = await CreateApolloGatewayAsync(accountsApi, reviewsApi, enableEntityReuse: false);
+
+        // Dave and Eve only review Frank, who is not in users.
+        const string query =
+            """
+            {
+              users { id name reviews { author { name } } }
+            }
+            """;
+
+        // act
+        var data = await ExecuteAsync(gateway, query);
+        var dataWithoutReuse = await ExecuteAsync(gatewayWithoutReuse, query);
+
+        // assert
+        Assert.Equal(dataWithoutReuse, data);
+        new
+        {
+            WithReuse = CountRequests(gateway),
+            WithoutReuse = CountRequests(gatewayWithoutReuse),
+            Representations = GetRepresentations(gateway, "accounts-api"),
+            Data = data
+        }.MatchInlineSnapshot(
+            """
+            {
+              "WithReuse": "accounts-api: 2, reviews-api: 1",
+              "WithoutReuse": "accounts-api: 2, reviews-api: 1",
+              "Representations": [
+                "[{\"__typename\":\"User\",\"id\":\"6\"}]"
+              ],
+              "Data": "{\"users\":[{\"id\":\"4\",\"name\":\"Dave\",\"reviews\":[{\"author\":{\"name\":\"Frank\"}}]},{\"id\":\"5\",\"name\":\"Eve\",\"reviews\":[{\"author\":{\"name\":\"Frank\"}}]}]}"
+            }
+            """);
+    }
+
     private TestServer CreateK6Api<TQuery>(string name)
         where TQuery : class
         => CreateSourceSchema(name, builder => builder.AddQueryType<TQuery>(d => d.Name("Query")));
+
+    private TestServer CreateApolloAccountsApi<TQuery>()
+        where TQuery : class
+        => CreateSourceSchema(
+            "accounts-api",
+            builder => builder
+                .AddApolloFederation()
+                .AddQueryType<TQuery>(d => d.Name("Query"))
+                .AddType<ApolloAccountUser>());
+
+    private TestServer CreateApolloReviewsApi()
+        => CreateSourceSchema(
+            "reviews-api",
+            builder => builder
+                .AddApolloFederation()
+                .AddQueryType<ApolloReviewsQuery>(d => d.Name("Query"))
+                .AddType<ApolloReviewUser>());
+
+    private Task<Gateway> CreateApolloGatewayAsync(
+        TestServer accountsApi,
+        TestServer reviewsApi,
+        bool enableEntityReuse)
+        => CreateCompositeSchemaAsync(
+            [("accounts-api", accountsApi), ("reviews-api", reviewsApi)],
+            configureGatewayBuilder: builder =>
+                builder.ModifyOptions(options => options.EnableEntityReuse = enableEntityReuse),
+            enableGlobalObjectIdentification: false);
 
     private Task<Gateway> CreateGatewayAsync(
         (string SchemaName, TestServer Server)[] sourceSchemaServers,
@@ -315,6 +475,25 @@ public sealed class EntityReuseRowCopyTests : FusionTestBase
             gateway.Interactions
                 .OrderBy(t => t.Key, StringComparer.Ordinal)
                 .Select(t => $"{t.Key}: {t.Value.Count}"));
+
+    // The representations variable of every _entities request that was sent to the source schema.
+    private static List<string> GetRepresentations(Gateway gateway, string schemaName)
+    {
+        var representations = new List<string>();
+
+        foreach (var interaction in gateway.Interactions[schemaName].Values.OrderBy(t => t.NodeId))
+        {
+            using var body = JsonDocument.Parse(interaction.Request!.Body.ToArray());
+
+            if (body.RootElement.TryGetProperty("variables", out var variables)
+                && variables.TryGetProperty("representations", out var value))
+            {
+                representations.Add(value.GetRawText());
+            }
+        }
+
+        return representations;
+    }
 
     public sealed class PartialAccountsQuery
     {
@@ -471,5 +650,90 @@ public sealed class EntityReuseRowCopyTests : FusionTestBase
         public int ProductId { get; init; }
 
         public NumberKeyReviewProduct GetProduct() => new() { Id = ProductId };
+    }
+
+    public sealed class ApolloAccountsQuery
+    {
+        public IEnumerable<ApolloAccountUser> GetUsers() => ApolloAccountUser.All.Take(3);
+    }
+
+    public sealed class ApolloPartialAccountsQuery
+    {
+        public IEnumerable<ApolloAccountUser> GetUsers() => ApolloAccountUser.All.Take(2);
+    }
+
+    public sealed class ApolloDisjointAccountsQuery
+    {
+        public IEnumerable<ApolloAccountUser> GetUsers() => ApolloAccountUser.All.Skip(3).Take(2);
+    }
+
+    [GraphQLName("User")]
+    [Key("id")]
+    public sealed class ApolloAccountUser
+    {
+        internal static readonly List<ApolloAccountUser> All =
+        [
+            new() { Id = "1", Name = "Alice" },
+            new() { Id = "2", Name = "Bob" },
+            new() { Id = "3", Name = "Carol" },
+            new() { Id = "4", Name = "Dave" },
+            new() { Id = "5", Name = "Eve" },
+            new() { Id = "6", Name = "Frank" }
+        ];
+
+        [GraphQLType(typeof(IdType))]
+        public required string Id { get; init; }
+
+        public string? Name { get; init; }
+
+        [ReferenceResolver]
+        public static ApolloAccountUser? ResolveReference(string id)
+            => All.FirstOrDefault(t => t.Id == id);
+    }
+
+    public sealed class ApolloReviewsQuery;
+
+    [GraphQLName("User")]
+    [ExtendServiceType]
+    [Key("id")]
+    public sealed class ApolloReviewUser
+    {
+        [External]
+        [GraphQLType(typeof(IdType))]
+        public string Id { get; set; } = default!;
+
+        public IEnumerable<ApolloReview> GetReviews()
+            => Id switch
+            {
+                "1" =>
+                [
+                    new ApolloReview { Id = "1", AuthorId = "2", CoAuthorId = "3" },
+                    new ApolloReview { Id = "2", AuthorId = "3", CoAuthorId = "2" }
+                ],
+                "2" => [new ApolloReview { Id = "3", AuthorId = "1", CoAuthorId = "3" }],
+                "4" => [new ApolloReview { Id = "4", AuthorId = "6", CoAuthorId = "6" }],
+                "5" => [new ApolloReview { Id = "5", AuthorId = "6", CoAuthorId = "6" }],
+                _ => []
+            };
+
+        [ReferenceResolver]
+        public static ApolloReviewUser ResolveReference(string id) => new() { Id = id };
+    }
+
+    [GraphQLName("Review")]
+    public sealed class ApolloReview
+    {
+        [GraphQLType(typeof(IdType))]
+        public required string Id { get; init; }
+
+        [GraphQLIgnore]
+        public required string AuthorId { get; init; }
+
+        [GraphQLIgnore]
+        public required string CoAuthorId { get; init; }
+
+        public ApolloReviewUser GetAuthor() => new() { Id = AuthorId };
+
+        public ApolloReviewUser GetCoAuthor() => new() { Id = CoAuthorId };
     }
 }
