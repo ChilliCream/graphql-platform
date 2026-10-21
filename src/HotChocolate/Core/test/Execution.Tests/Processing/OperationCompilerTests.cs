@@ -1,5 +1,4 @@
 using System.Buffers;
-using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -9,6 +8,7 @@ using HotChocolate.StarWars;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using EmptyServiceProvider = HotChocolate.Utilities.EmptyServiceProvider;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -2135,7 +2135,7 @@ public class OperationCompilerTests
     }
 
     [Fact]
-    public async Task Compile_Should_ReleasePreviousSchema_When_SchemaIsReplaced()
+    public void Compile_Should_ReleasePreviousSchema_When_SchemaIsReplaced()
     {
         // arrange
         var previousSchema = CompileLargeOperationWithDiscardedSchema();
@@ -2143,11 +2143,13 @@ public class OperationCompilerTests
 
         // act
         var operation = OperationCompiler.Compile("current", document, CreateFooSchema());
-        await CollectUntilReleasedAsync(previousSchema);
-        GC.KeepAlive(operation);
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
 
         // assert
         Assert.False(previousSchema.IsAlive);
+        GC.KeepAlive(operation);
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
@@ -2158,25 +2160,6 @@ public class OperationCompilerTests
         var document = Utf8GraphQLParser.Parse($"{{ {fields} }}");
         OperationCompiler.Compile("previous", document, schema);
         return new WeakReference(schema);
-    }
-
-    private static async Task CollectUntilReleasedAsync(WeakReference reference)
-    {
-        var elapsed = Stopwatch.StartNew();
-
-        while (true)
-        {
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
-
-            if (!reference.IsAlive || elapsed.Elapsed > TimeSpan.FromSeconds(30))
-            {
-                return;
-            }
-
-            await Task.Delay(50, TestContext.Current.CancellationToken);
-        }
     }
 
     private static void OverwritePooledArray(int length)
@@ -2207,6 +2190,7 @@ public class OperationCompilerTests
 
     private static Schema CreateFooSchema()
         => SchemaBuilder.New()
+            .AddServices(EmptyServiceProvider.Instance)
             .AddQueryType(
                 c => c
                     .Name("Query")

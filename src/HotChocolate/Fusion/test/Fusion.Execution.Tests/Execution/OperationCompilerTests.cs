@@ -430,10 +430,10 @@ public class OperationCompilerTests : FusionTestBase
         GC.Collect();
         GC.WaitForPendingFinalizers();
         GC.Collect();
-        GC.KeepAlive(operation);
 
         // assert
         Assert.False(previousSchema.IsAlive);
+        GC.KeepAlive(operation);
     }
 
     private static OperationDefinitionNode CreateStorageGrowthDefinition(bool lazy, int selectionCount)
