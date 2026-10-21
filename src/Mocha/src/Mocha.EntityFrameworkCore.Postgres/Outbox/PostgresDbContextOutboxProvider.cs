@@ -1,5 +1,4 @@
 using System.Data.Common;
-using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -44,33 +43,37 @@ internal sealed class PostgresDbContextOutboxProvider(
         _validatedLease = context.ContextId;
     }
 
-    public IPreparedOutboxMessage Prepare(MessageEnvelope envelope)
+    public void Stage(DbContext context, MessageEnvelope envelope, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         _arrayWriter ??= new PooledArrayWriter();
         _jsonWriter ??= new Utf8JsonWriter(_arrayWriter);
+        JsonDocument? document = null;
 
         try
         {
             var writer = new MessageEnvelopeWriter(_jsonWriter);
             writer.WriteMessage(envelope);
             _jsonWriter.Flush();
+            var reader = new Utf8JsonReader(_arrayWriter.WrittenMemory.Span);
+            document = JsonDocument.ParseValue(ref reader);
+            cancellationToken.ThrowIfCancellationRequested();
 
 #if NET9_0_OR_GREATER
             var id = Guid.CreateVersion7();
 #else
             var id = Guid.NewGuid();
 #endif
-            return new OutboxMessage(id, Encoding.UTF8.GetString(_arrayWriter.WrittenMemory.Span));
+            tracker.Track(context, new OutboxMessage(id, document));
+            document = null;
         }
         finally
         {
+            document?.Dispose();
             _jsonWriter.Reset();
             _arrayWriter.Reset();
         }
     }
-
-    public void Stage(DbContext context, IPreparedOutboxMessage message)
-        => tracker.Track(context, (OutboxMessage)message);
 
     public void Dispose()
     {

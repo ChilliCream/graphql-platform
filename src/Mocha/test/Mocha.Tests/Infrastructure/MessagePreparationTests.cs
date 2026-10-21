@@ -88,10 +88,9 @@ public class MessagePreparationTests(ITestOutputHelper output)
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act
-        using var prepared = await PrepareAsync(bus, new TargetMessage("prepared"), send);
+        var envelope = await CaptureAsync(bus, new TargetMessage("prepared"), send);
 
         // assert
-        var envelope = prepared.Envelope;
         envelope.Headers!.TryGetValue("scope", out var scopeValue);
         new
         {
@@ -142,8 +141,7 @@ public class MessagePreparationTests(ITestOutputHelper output)
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act
-        using var prepared = await PrepareAsync(bus, new TargetMessage("before-next"), send);
-        var envelope = prepared.Envelope;
+        var envelope = await CaptureAsync(bus, new TargetMessage("before-next"), send);
 
         // assert
         new
@@ -204,9 +202,7 @@ public class MessagePreparationTests(ITestOutputHelper output)
 
         // act
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-        {
-            using var prepared = await PrepareAsync(bus, new TargetMessage("failed"), send);
-        });
+            await PrepareAsync(bus, new TargetMessage("failed"), send, static (_, _) => { }));
         fail = false;
         await bus.PublishAsync(new TargetMessage("ordinary"), CancellationToken.None);
 
@@ -215,6 +211,94 @@ public class MessagePreparationTests(ITestOutputHelper output)
         var ordinary = Assert.Single(provider.GetRequiredService<CapturingOutbox>().Envelopes);
         Assert.Equal("ordinary", Deserialize(ordinary).Value);
         Assert.Equal((1, 2), (pool.ContextCount, pool.ReturnCount));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PrepareAsync_Should_ReturnContext_When_CallbackThrows(bool send)
+    {
+        // arrange
+        var pool = new TrackingContextPool();
+        await using var provider = await CreateProviderAsync(outbox: true, builder =>
+            builder.Services.AddSingleton<ObjectPool<DispatchContext>>(pool));
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        string? callbackMessage = null;
+        var returnedDuringCallback = -1;
+
+        // act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await PrepareAsync(bus, new TargetMessage("callback"), send, (envelope, _) =>
+            {
+                callbackMessage = Deserialize(envelope).Value;
+                returnedDuringCallback = pool.ReturnCount;
+                throw new InvalidOperationException("callback failed");
+            }));
+        var next = await CaptureAsync(bus, new TargetMessage("reused"), send);
+
+        // assert
+        new
+        {
+            Error = exception.Message,
+            CallbackMessage = callbackMessage,
+            ReturnedDuringCallback = returnedDuringCallback,
+            NextMessage = Deserialize(next).Value,
+            pool.ContextCount,
+            pool.ReturnCount
+        }.MatchInlineSnapshot(
+            """
+            {
+              "Error": "callback failed",
+              "CallbackMessage": "callback",
+              "ReturnedDuringCallback": 0,
+              "NextMessage": "reused",
+              "ContextCount": 1,
+              "ReturnCount": 2
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task PrepareAsync_Should_PreserveOwnedEnvelopes_When_ContextIsReused()
+    {
+        // arrange
+        var pool = new TrackingContextPool();
+        await using var provider = await CreateProviderAsync(outbox: true, builder =>
+            builder.Services.AddSingleton<ObjectPool<DispatchContext>>(pool));
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        var first = await CaptureAsync(bus, new TargetMessage("first"), send: false);
+        var second = await CaptureAsync(bus, new TargetMessage("other"), send: true);
+
+        // assert
+        new
+        {
+            Messages = new[] { Deserialize(first).Value, Deserialize(second).Value },
+            MessageKinds = new[]
+            {
+                first.Headers!.Get(MessageHeaders.MessageKind),
+                second.Headers!.Get(MessageHeaders.MessageKind)
+            },
+            pool.ContextCount,
+            pool.ReturnCount
+        }.MatchInlineSnapshot(
+            """
+            {
+              "Messages": [
+                "first",
+                "other"
+              ],
+              "MessageKinds": [
+                "publish",
+                "send"
+              ],
+              "ContextCount": 1,
+              "ReturnCount": 2
+            }
+            """);
     }
 
     [Theory]
@@ -235,9 +319,7 @@ public class MessagePreparationTests(ITestOutputHelper output)
 
         // act
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-        {
-            using var prepared = await PrepareAsync(bus, new TargetMessage("incomplete"), send);
-        });
+            await PrepareAsync(bus, new TargetMessage("incomplete"), send, static (_, _) => { }));
 
         // assert
         Assert.Equal("The message preparation pipeline must complete before a message can be staged.", exception.Message);
@@ -256,6 +338,7 @@ public class MessagePreparationTests(ITestOutputHelper output)
         using var cancellation = new CancellationTokenSource();
         var pool = new TrackingContextPool();
         var entered = false;
+        var callbackCalled = false;
         await using var provider = await CreateProviderAsync(outbox: true, builder =>
         {
             builder.Services.AddSingleton<ObjectPool<DispatchContext>>(pool);
@@ -279,13 +362,16 @@ public class MessagePreparationTests(ITestOutputHelper output)
         // act
         await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
         {
-            using var prepared = send
-                ? await bus.PrepareSendAsync(new TargetMessage("cancelled"), SendOptions.Default, cancellation.Token)
-                : await bus.PreparePublishAsync(new TargetMessage("cancelled"), PublishOptions.Default, cancellation.Token);
+            await (send
+                ? bus.PrepareSendAsync(new TargetMessage("cancelled"), SendOptions.Default,
+                    (_, _) => callbackCalled = true, cancellation.Token)
+                : bus.PreparePublishAsync(new TargetMessage("cancelled"), PublishOptions.Default,
+                    (_, _) => callbackCalled = true, cancellation.Token));
         });
 
         // assert
         Assert.Equal(afterNext, entered);
+        Assert.False(callbackCalled);
         Assert.Empty(provider.GetRequiredService<CapturingOutbox>().Envelopes);
         Assert.Equal(1, pool.ReturnCount);
     }
@@ -325,11 +411,11 @@ public class MessagePreparationTests(ITestOutputHelper output)
         // act
         var exception = await Assert.ThrowsAsync<NotSupportedException>(async () =>
         {
-            using var prepared = send
-                ? await dispatcher.PrepareSendAsync(new TargetMessage("scheduled"),
-                    new SendOptions { ScheduledTime = optionsScheduledTime }, CancellationToken.None)
-                : await dispatcher.PreparePublishAsync(new TargetMessage("scheduled"),
-                    new PublishOptions { ScheduledTime = optionsScheduledTime }, CancellationToken.None);
+            await (send
+                ? dispatcher.PrepareSendAsync(new TargetMessage("scheduled"),
+                    new SendOptions { ScheduledTime = optionsScheduledTime }, static (_, _) => { }, CancellationToken.None)
+                : dispatcher.PreparePublishAsync(new TargetMessage("scheduled"),
+                    new PublishOptions { ScheduledTime = optionsScheduledTime }, static (_, _) => { }, CancellationToken.None));
         });
 
         // assert
@@ -363,15 +449,13 @@ public class MessagePreparationTests(ITestOutputHelper output)
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act
-        var publish = PrepareAsync(bus, new TargetMessage("published"), send: false);
-        var send = PrepareAsync(bus, new TargetMessage("sent"), send: true);
+        var publish = CaptureAsync(bus, new TargetMessage("published"), send: false);
+        var send = CaptureAsync(bus, new TargetMessage("sent"), send: true);
         var messages = await Task.WhenAll(publish.AsTask(), send.AsTask());
-        using var publication = messages[0];
-        using var directed = messages[1];
 
         // assert
-        Assert.Equal("published", Deserialize(publication.Envelope).Value);
-        Assert.Equal("sent", Deserialize(directed.Envelope).Value);
+        Assert.Equal("published", Deserialize(messages[0]).Value);
+        Assert.Equal("sent", Deserialize(messages[1]).Value);
         Assert.Empty(provider.GetRequiredService<CapturingOutbox>().Envelopes);
     }
 
@@ -429,7 +513,7 @@ public class MessagePreparationTests(ITestOutputHelper output)
     {
         if (prepare)
         {
-            using var result = PrepareAsync(bus, message, send: false).GetAwaiter().GetResult();
+            PrepareAsync(bus, message, send: false, static (_, _) => { }).GetAwaiter().GetResult();
         }
         else
         {
@@ -437,10 +521,21 @@ public class MessagePreparationTests(ITestOutputHelper output)
         }
     }
 
-    private static ValueTask<PreparedMessage> PrepareAsync(IMessageBus bus, TargetMessage message, bool send)
+    private static async ValueTask<MessageEnvelope> CaptureAsync(IMessageBus bus, TargetMessage message, bool send)
+    {
+        MessageEnvelope envelope = null!;
+        await PrepareAsync(bus, message, send, (prepared, _) => envelope = MessageEnvelope.CopyWithOwnedBody(prepared));
+        return envelope;
+    }
+
+    private static ValueTask PrepareAsync(
+        IMessageBus bus,
+        TargetMessage message,
+        bool send,
+        Action<MessageEnvelope, CancellationToken> onPrepared)
         => send
-            ? ((IMessageDispatcher)bus).PrepareSendAsync(message, SendOptions.Default, CancellationToken.None)
-            : ((IMessageDispatcher)bus).PreparePublishAsync(message, PublishOptions.Default, CancellationToken.None);
+            ? ((IMessageDispatcher)bus).PrepareSendAsync(message, SendOptions.Default, onPrepared, CancellationToken.None)
+            : ((IMessageDispatcher)bus).PreparePublishAsync(message, PublishOptions.Default, onPrepared, CancellationToken.None);
 
     private static TargetMessage Deserialize(MessageEnvelope envelope)
         => JsonSerializer.Deserialize<TargetMessage>(envelope.Body.Span, JsonSerializerOptions.Web)!;

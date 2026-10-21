@@ -82,9 +82,10 @@ public sealed class DefaultMessageBus(
         }
     }
 
-    async ValueTask<PreparedMessage> IMessageDispatcher.PreparePublishAsync<T>(
+    async ValueTask IMessageDispatcher.PreparePublishAsync<T>(
         T message,
         PublishOptions options,
+        Action<MessageEnvelope, CancellationToken> onPrepared,
         CancellationToken cancellationToken)
     {
         var messageType = runtime.GetMessageType(message.GetType());
@@ -104,12 +105,11 @@ public sealed class DefaultMessageBus(
 
             await endpoint.PrepareAsync(context);
 
-            return new PreparedMessage(context, _contextPool);
+            onPrepared(context.Envelope!, cancellationToken);
         }
-        catch
+        finally
         {
             _contextPool.Return(context);
-            throw;
         }
     }
 
@@ -174,9 +174,10 @@ public sealed class DefaultMessageBus(
         }
     }
 
-    async ValueTask<PreparedMessage> IMessageDispatcher.PrepareSendAsync<T>(
+    async ValueTask IMessageDispatcher.PrepareSendAsync<T>(
         T message,
         SendOptions options,
+        Action<MessageEnvelope, CancellationToken> onPrepared,
         CancellationToken cancellationToken)
     {
         var messageType = runtime.GetMessageType(message.GetType());
@@ -199,12 +200,11 @@ public sealed class DefaultMessageBus(
 
             await endpoint.PrepareAsync(context);
 
-            return new PreparedMessage(context, _contextPool);
+            onPrepared(context.Envelope!, cancellationToken);
         }
-        catch
+        finally
         {
             _contextPool.Return(context);
-            throw;
         }
     }
 

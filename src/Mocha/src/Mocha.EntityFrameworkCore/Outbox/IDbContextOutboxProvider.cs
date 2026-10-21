@@ -14,13 +14,8 @@ public interface IDbContextOutboxProvider
     void Validate(DbContext context);
 
     /// <summary>
-    /// Creates an independent snapshot of an envelope without writing to the database or change tracker.
-    /// </summary>
-    IPreparedOutboxMessage Prepare(MessageEnvelope envelope);
-
-    /// <summary>
-    /// Attaches a prepared message to the specified context and transfers ownership on success.
+    /// Serializes and attaches an envelope to the specified context for its next save.
     /// On failure, the context must retain no changes from this operation.
     /// </summary>
-    void Stage(DbContext context, IPreparedOutboxMessage message);
+    void Stage(DbContext context, MessageEnvelope envelope, CancellationToken cancellationToken);
 }

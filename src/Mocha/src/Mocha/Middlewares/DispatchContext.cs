@@ -18,7 +18,6 @@ public sealed class DispatchContext : IDispatchContext
     private readonly PooledFeatureCollection _features;
     private readonly PooledArrayWriter _writer = new();
     private readonly Headers _headers = new();
-    private long _preparedMessageLease;
 
     internal bool PreparationCompleted { get; set; }
 
@@ -284,13 +283,4 @@ public sealed class DispatchContext : IDispatchContext
 
     private static Uri? ParseAddress(string? address)
         => Uri.TryCreate(address, UriKind.Absolute, out var parsed) ? parsed : null;
-
-    internal long AcquirePreparedMessageLease()
-        => Interlocked.Increment(ref _preparedMessageLease);
-
-    internal bool IsPreparedMessageLeaseCurrent(long lease)
-        => Volatile.Read(ref _preparedMessageLease) == lease;
-
-    internal bool ReleasePreparedMessageLease(long lease)
-        => Interlocked.CompareExchange(ref _preparedMessageLease, lease + 1, lease) == lease;
 }

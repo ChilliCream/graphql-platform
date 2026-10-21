@@ -134,14 +134,22 @@ public class OutboxIntegrationTests
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
         var dispatcher = (IMessageDispatcher)bus;
-        using var first = await dispatcher.PreparePublishAsync(
-            new OutboxBatchInputEvent { Payload = "batch-1" }, PublishOptions.Default, CancellationToken.None);
-        using var second = await dispatcher.PreparePublishAsync(
-            new OutboxBatchInputEvent { Payload = "batch-2" }, PublishOptions.Default, CancellationToken.None);
+        MessageEnvelope first = null!;
+        MessageEnvelope second = null!;
+        await dispatcher.PreparePublishAsync(
+            new OutboxBatchInputEvent { Payload = "batch-1" },
+            PublishOptions.Default,
+            (envelope, _) => first = MessageEnvelope.CopyWithOwnedBody(envelope),
+            CancellationToken.None);
+        await dispatcher.PreparePublishAsync(
+            new OutboxBatchInputEvent { Payload = "batch-2" },
+            PublishOptions.Default,
+            (envelope, _) => second = MessageEnvelope.CopyWithOwnedBody(envelope),
+            CancellationToken.None);
 
         // act
-        await DeliverAsync(scope.ServiceProvider, first.Envelope);
-        await DeliverAsync(scope.ServiceProvider, second.Envelope);
+        await DeliverAsync(scope.ServiceProvider, first);
+        await DeliverAsync(scope.ServiceProvider, second);
 
         // assert
         Assert.True(await recorder.WaitAsync(s_timeout), "Batch handler did not publish from the batch");

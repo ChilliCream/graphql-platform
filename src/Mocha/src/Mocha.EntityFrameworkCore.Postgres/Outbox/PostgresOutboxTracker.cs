@@ -99,10 +99,19 @@ internal sealed class PostgresOutboxTracker : SaveChangesInterceptor, IResettabl
             if (entry.State is EntityState.Unchanged or EntityState.Detached)
             {
                 entry.State = EntityState.Detached;
+                entry.Entity.Dispose();
                 _entries.RemoveAt(i);
             }
         }
     }
 
-    private void ReleaseMessages() => _entries.Clear();
+    private void ReleaseMessages()
+    {
+        foreach (var entry in _entries)
+        {
+            entry.Entity.Dispose();
+        }
+
+        _entries.Clear();
+    }
 }

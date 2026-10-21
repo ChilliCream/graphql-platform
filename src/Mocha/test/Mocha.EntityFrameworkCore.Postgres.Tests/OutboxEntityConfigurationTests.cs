@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -57,12 +58,16 @@ public sealed class OutboxEntityConfigurationTests
     }
 
     [Fact]
-    public void Configure_Should_SetEnvelopeColumnType_When_Applied()
+    public void Configure_Should_MapJsonDocumentEnvelope_When_Applied()
     {
+        // arrange
         var entityType = GetOutboxMessageEntityType();
+
+        // act
         var envelopeProp = entityType.FindProperty(nameof(OutboxMessage.Envelope))!;
 
-        Assert.Equal("json", envelopeProp.GetColumnType());
+        // assert
+        Assert.Equal((typeof(JsonDocument), "json"), (envelopeProp.ClrType, envelopeProp.GetColumnType()));
     }
 
     [Fact]

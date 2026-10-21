@@ -829,6 +829,8 @@ app.MapPost("/products/{id:guid}/price", async (
 
 Await `Outbox.PublishAsync` before saving. The call runs application dispatch middleware in the attached caller's scope, then serializes the prepared message into an independent snapshot and attaches it to EF. Changes made by middleware after `await next(context)` are included; changes made after `PublishAsync` returns do not affect the stored message.
 
+`OutboxMessage.Envelope` is a `JsonDocument`. Staged documents remain valid through failed saves and `SaveChanges(false)`. The outbox releases them after an accepted save, when a subsequent save cleans up detached or cleared messages, or when the context is disposed or returned to its pool. Dispose outbox entities or documents loaded by your own queries after use.
+
 During preparation, `context.Envelope` is unset unless middleware supplies one. Read and change the message and metadata through the dispatch context. Cancellation or a middleware exception leaves no new staged message. You can call synchronous `SaveChanges` after the awaited publish. Saving while a publication is still being prepared throws.
 
 Use `db.Outbox.SendAsync(message, cancellationToken)` for a message routed to one destination. It supports `SendOptions` and the same attachment and save semantics as `PublishAsync`.

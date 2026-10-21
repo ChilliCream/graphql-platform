@@ -7,19 +7,23 @@ internal interface IMessageDispatcher
 {
     /// <summary>
     /// Prepares a publication using the caller's messaging scope.
+    /// The envelope is valid only during the callback.
     /// </summary>
-    ValueTask<PreparedMessage> PreparePublishAsync<T>(
+    ValueTask PreparePublishAsync<T>(
         T message,
         PublishOptions options,
+        Action<MessageEnvelope, CancellationToken> onPrepared,
         CancellationToken cancellationToken)
         where T : notnull;
 
     /// <summary>
     /// Prepares a directed message using the caller's messaging scope.
+    /// The envelope is valid only during the callback.
     /// </summary>
-    ValueTask<PreparedMessage> PrepareSendAsync<T>(
+    ValueTask PrepareSendAsync<T>(
         T message,
         SendOptions options,
+        Action<MessageEnvelope, CancellationToken> onPrepared,
         CancellationToken cancellationToken)
         where T : notnull;
 }

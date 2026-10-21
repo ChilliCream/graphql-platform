@@ -42,7 +42,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         // assert
         Assert.Equal(["published(rows=0)", "set(rows=1)"], signal.Events.Distinct().ToArray());
         Assert.Equal(EntityState.Detached, message.State);
-        Assert.Equal(JsonValueKind.Object, GetEnvelopeKind(message.Entity.Envelope));
+        Assert.Throws<ObjectDisposedException>(() => message.Entity.Envelope.RootElement.ValueKind);
     }
 
     [Fact]
@@ -67,8 +67,10 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         Assert.Equal(1, await CountOutboxRowsAsync(connectionString));
     }
 
-    [Fact]
-    public async Task OutboxPublishAsync_Should_NotWriteRow_When_DbContextIsNotSaved()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Dispose_Should_ReleaseUnpersistedEnvelope_When_DbContextIsNotSaved(bool asynchronous)
     {
         // arrange
         var connectionString = await CreateDatabaseAsync();
@@ -76,22 +78,25 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         await using var provider = await CreateProviderAsync(connectionString, signal);
         await EnsureCreatedAsync(provider);
         var setCountBefore = signal.SetCallCount;
-        string envelope;
+        await using var scope = provider.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
+        await db.Outbox.PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken);
+        var envelope = db.ChangeTracker.Entries<OutboxMessage>().Single().Entity.Envelope;
 
         // act
-        await using (var scope = provider.CreateAsyncScope())
+        if (asynchronous)
         {
-            var db = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
-            await db.Outbox.PublishAsync(
-                new OrderPlaced { OrderId = 1 },
-                TestToken);
-            envelope = db.ChangeTracker.Entries<OutboxMessage>().Single().Entity.Envelope;
+            await db.DisposeAsync();
+        }
+        else
+        {
+            db.Dispose();
         }
 
         // assert
         Assert.Equal(0, await CountOutboxRowsAsync(connectionString));
         Assert.Equal(setCountBefore, signal.SetCallCount);
-        Assert.Equal(JsonValueKind.Object, GetEnvelopeKind(envelope));
+        Assert.Throws<ObjectDisposedException>(() => envelope.RootElement.ValueKind);
     }
 
     [Fact]
@@ -116,13 +121,14 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         var failedSave = (
             await CountOutboxRowsAsync(connectionString),
             message.State,
-            GetEnvelopeKind(message.Entity.Envelope));
+            message.Entity.Envelope.RootElement.GetProperty("body").Deserialize<OrderPlaced>()!.OrderId);
         order.State = EntityState.Detached;
         await db.SaveChangesAsync(TestToken);
 
         // assert
-        Assert.Equal((0L, EntityState.Added, JsonValueKind.Object), failedSave);
+        Assert.Equal((0L, EntityState.Added, 1), failedSave);
         Assert.Equal(1, await CountOutboxRowsAsync(connectionString));
+        Assert.Throws<ObjectDisposedException>(() => message.Entity.Envelope.RootElement.ValueKind);
     }
 
     [Fact]
@@ -187,7 +193,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
             pooled: true);
         await EnsureCreatedAsync(provider);
         UnitOfWorkDbContext leased;
-        string envelope;
+        JsonDocument envelope;
         await using (var scope = provider.CreateAsyncScope())
         {
             leased = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
@@ -207,7 +213,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
 
         // assert
         Assert.Equal(0, await CountOutboxRowsAsync(connectionString));
-        Assert.Equal(JsonValueKind.Object, GetEnvelopeKind(envelope));
+        Assert.Throws<ObjectDisposedException>(() => envelope.RootElement.ValueKind);
     }
 
     [Theory]
@@ -357,7 +363,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         Assert.Same(first, second);
         Assert.NotSame(messages[0].Scope, messages[1].Scope);
         Assert.Equal((1, 0), (messages[0].Scope.DisposeCount, messages[1].Scope.DisposeCount));
-        Assert.Equal(JsonValueKind.Object, GetEnvelopeKind(discarded));
+        Assert.Throws<ObjectDisposedException>(() => discarded.RootElement.ValueKind);
         Assert.Equal(1, await CountOutboxRowsAsync(connectionString));
     }
 
@@ -486,7 +492,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
 
         // act
         await first.SaveChangesAsync(TestToken);
-        var pendingEnvelopeKind = GetEnvelopeKind(secondEnvelope);
+        var pendingEnvelopeKind = secondEnvelope.RootElement.ValueKind;
         await second.DisposeAsync();
         var messages = recorder.Messages.ToArray();
         var savedOrderIds = await first.Orders.Select(o => o.Id).ToArrayAsync(TestToken);
@@ -497,8 +503,8 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
             (await CountOutboxRowsAsync(connectionString), firstMessage.State, pendingEnvelopeKind));
         Assert.Equal([1], savedOrderIds);
         Assert.Same(messages[0].Scope, messages[1].Scope);
-        Assert.Equal(JsonValueKind.Object, GetEnvelopeKind(firstMessage.Entity.Envelope));
-        Assert.Equal(JsonValueKind.Object, GetEnvelopeKind(secondEnvelope));
+        Assert.Throws<ObjectDisposedException>(() => firstMessage.Entity.Envelope.RootElement.ValueKind);
+        Assert.Throws<ObjectDisposedException>(() => secondEnvelope.RootElement.ValueKind);
     }
 
     [Theory]
@@ -522,12 +528,16 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         var bus = caller.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act
-        using var incoming = await ((IMessageDispatcher)bus).PreparePublishAsync(
-            new StartFactoryWork(), PublishOptions.Default, TestToken);
+        MessageEnvelope incoming = null!;
+        await ((IMessageDispatcher)bus).PreparePublishAsync(
+            new StartFactoryWork(),
+            PublishOptions.Default,
+            (envelope, _) => incoming = MessageEnvelope.CopyWithOwnedBody(envelope),
+            TestToken);
         var runtime = provider.GetRequiredService<IMessagingRuntime>();
         var endpoint = (InMemoryDispatchEndpoint)runtime.GetDispatchEndpoint(
-            new Uri(incoming.Envelope.DestinationAddress!));
-        await endpoint.Topic!.SendAsync(incoming.Envelope, TestToken);
+            new Uri(incoming.DestinationAddress!));
+        await endpoint.Topic!.SendAsync(incoming, TestToken);
         await handlerRecorder.Completed.Task.WaitAsync(s_timeout, TestToken);
         var messages = recorder.Messages.ToArray();
         var factory = provider.GetRequiredService<IDbContextFactory<UnitOfWorkDbContext>>();
@@ -636,7 +646,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         await EnsureCreatedAsync(provider);
         await using var scope = provider.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
-        var envelopes = new List<string>();
+        var envelopes = new List<JsonDocument>();
 
         // act
         for (var i = 0; i < 3; i++)
@@ -658,7 +668,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         // assert
         Assert.Equal(0, await CountOutboxRowsAsync(connectionString));
         Assert.All(envelopes, envelope =>
-            Assert.Equal(JsonValueKind.Object, GetEnvelopeKind(envelope)));
+            Assert.Throws<ObjectDisposedException>(() => envelope.RootElement.ValueKind));
     }
 
     [Fact]
@@ -704,11 +714,13 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         // assert
         Assert.Equal(
             (1L, EntityState.Added, JsonValueKind.Object),
-            (await CountOutboxRowsAsync(connectionString), message.State, GetEnvelopeKind(message.Entity.Envelope)));
+            (await CountOutboxRowsAsync(connectionString), message.State, message.Entity.Envelope.RootElement.ValueKind));
     }
 
-    [Fact]
-    public async Task OutboxPublishAsync_Should_ReleaseOnlyClearedMessage_When_SaveDoesNotAcceptChanges()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task OutboxPublishAsync_Should_ReleaseOnlyRemovedMessage_When_SaveDoesNotAcceptChanges(bool clear)
     {
         // arrange
         var connectionString = await CreateDatabaseAsync();
@@ -717,8 +729,17 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         await using var scope = provider.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
         await db.Outbox.PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken);
-        var discarded = db.ChangeTracker.Entries<OutboxMessage>().Single().Entity.Envelope;
-        db.ChangeTracker.Clear();
+        var removed = db.ChangeTracker.Entries<OutboxMessage>().Single();
+        var discarded = removed.Entity.Envelope;
+        if (clear)
+        {
+            db.ChangeTracker.Clear();
+        }
+        else
+        {
+            removed.State = EntityState.Detached;
+        }
+
         await db.Outbox.PublishAsync(new OrderPlaced { OrderId = 2 }, TestToken);
         var pending = db.ChangeTracker.Entries<OutboxMessage>().Single();
 
@@ -726,10 +747,10 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         await db.SaveChangesAsync(acceptAllChangesOnSuccess: false, TestToken);
 
         // assert
-        Assert.Equal(JsonValueKind.Object, GetEnvelopeKind(discarded));
+        Assert.Throws<ObjectDisposedException>(() => discarded.RootElement.ValueKind);
         Assert.Equal(
             (1L, EntityState.Added, JsonValueKind.Object),
-            (await CountOutboxRowsAsync(connectionString), pending.State, GetEnvelopeKind(pending.Entity.Envelope)));
+            (await CountOutboxRowsAsync(connectionString), pending.State, pending.Entity.Envelope.RootElement.ValueKind));
     }
 
     [Theory]
@@ -763,7 +784,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         }
 
         db.ChangeTracker.AcceptAllChanges();
-        var acceptedState = (message.State, GetEnvelopeKind(message.Entity.Envelope));
+        var acceptedState = (message.State, message.Entity.Envelope.RootElement.ValueKind);
 
         if (asynchronous)
         {
@@ -777,7 +798,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         // assert
         Assert.Equal((EntityState.Unchanged, JsonValueKind.Object), acceptedState);
         Assert.Equal((1L, EntityState.Detached), (await CountOutboxRowsAsync(connectionString), message.State));
-        Assert.Equal(JsonValueKind.Object, GetEnvelopeKind(message.Entity.Envelope));
+        Assert.Throws<ObjectDisposedException>(() => message.Entity.Envelope.RootElement.ValueKind);
     }
 
     [Fact]
@@ -806,7 +827,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         Assert.Equal((0L, 0), (await CountOutboxRowsAsync(connectionString), await db.Orders.CountAsync(TestToken)));
         Assert.Equal(EntityState.Unchanged, order.State);
         Assert.Empty(db.ChangeTracker.Entries<OutboxMessage>());
-        Assert.Equal(JsonValueKind.Object, GetEnvelopeKind(envelope));
+        Assert.Throws<ObjectDisposedException>(() => envelope.RootElement.ValueKind);
     }
 
     [Fact]
@@ -832,13 +853,13 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         var rolledBackState = (
             await CountOutboxRowsAsync(connectionString),
             message.State,
-            GetEnvelopeKind(message.Entity.Envelope));
+            message.Entity.Envelope.RootElement.ValueKind);
         await db.SaveChangesAsync(TestToken);
 
         // assert
         Assert.Equal((0L, EntityState.Added, JsonValueKind.Object), rolledBackState);
         Assert.Equal((1L, 1), (await CountOutboxRowsAsync(connectionString), await db.Orders.CountAsync(TestToken)));
-        Assert.Equal(JsonValueKind.Object, GetEnvelopeKind(message.Entity.Envelope));
+        Assert.Throws<ObjectDisposedException>(() => message.Entity.Envelope.RootElement.ValueKind);
     }
 
     [Theory]
@@ -1083,8 +1104,10 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
             .Select(x => x.Envelope).ToArrayAsync(TestToken);
         var values = envelopes.Select(envelope =>
         {
-            var parsed = MessageEnvelopeReader.Parse(System.Text.Encoding.UTF8.GetBytes(envelope));
-            return JsonSerializer.Deserialize<OrderPlaced>(parsed.Body.Span)!.OrderId;
+            using (envelope)
+            {
+                return envelope.RootElement.GetProperty("body").Deserialize<OrderPlaced>()!.OrderId;
+            }
         }).ToArray();
 
         // assert
@@ -1120,8 +1143,8 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         await db.Outbox.PublishAsync(message, TestToken);
         message.OrderId = 99;
         await db.SaveChangesAsync(TestToken);
-        var stored = await db.Set<OutboxMessage>().Select(x => x.Envelope).SingleAsync(TestToken);
-        var envelope = MessageEnvelopeReader.Parse(System.Text.Encoding.UTF8.GetBytes(stored));
+        using var stored = await db.Set<OutboxMessage>().Select(x => x.Envelope).SingleAsync(TestToken);
+        var envelope = MessageEnvelopeReader.Parse(System.Text.Encoding.UTF8.GetBytes(stored.RootElement.GetRawText()));
 
         // assert
         Assert.Equal(42, JsonSerializer.Deserialize<OrderPlaced>(envelope.Body.Span)!.OrderId);
@@ -1525,12 +1548,6 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         return new NpgsqlConnectionStringBuilder(connectionString) { Pooling = false }.ConnectionString;
     }
 
-    private static JsonValueKind GetEnvelopeKind(string envelope)
-    {
-        using var document = JsonDocument.Parse(envelope);
-        return document.RootElement.ValueKind;
-    }
-
     private static async Task SaveOrderAsync(IServiceProvider provider, int id)
     {
         await using var scope = provider.CreateAsyncScope();
@@ -1928,8 +1945,10 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         public DateTimeOffset? ScheduledEnvelopeTime { get; init; }
     }
 
-    private sealed class CustomOutboxProvider : IDbContextOutboxProvider
+    private sealed class CustomOutboxProvider : IDbContextOutboxProvider, IDisposable
     {
+        private readonly List<OutboxMessage> _messages = [];
+
         public void Validate(DbContext context)
         {
             if (context is not UnitOfWorkDbContext)
@@ -1938,21 +1957,22 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
             }
         }
 
-        public IPreparedOutboxMessage Prepare(MessageEnvelope envelope)
+        public void Stage(DbContext context, MessageEnvelope envelope, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var body = JsonSerializer.Deserialize<OrderPlaced>(envelope.Body.Span);
-            return new CustomPreparedMessage(new OutboxMessage(Guid.NewGuid(), JsonSerializer.Serialize(body)));
+            var message = new OutboxMessage(Guid.NewGuid(), JsonSerializer.SerializeToDocument(body));
+            _messages.Add(message);
+            context.Add(message);
         }
 
-        public void Stage(DbContext context, IPreparedOutboxMessage message)
-            => context.Add(((CustomPreparedMessage)message).Entity);
-    }
-
-    private sealed class CustomPreparedMessage(OutboxMessage entity) : IPreparedOutboxMessage
-    {
-        public OutboxMessage Entity { get; } = entity;
-
-        public void Dispose() { }
+        public void Dispose()
+        {
+            foreach (var message in _messages)
+            {
+                message.Dispose();
+            }
+        }
     }
 
     private sealed class ImmediateMessageOutbox : IMessageOutbox

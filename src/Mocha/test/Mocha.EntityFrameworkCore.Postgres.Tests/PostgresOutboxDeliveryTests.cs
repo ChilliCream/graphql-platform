@@ -35,8 +35,8 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
             await db.Outbox.PublishAsync(new PreparedEvent { Value = "before-next" }, TestToken);
             preparationAtInvocation = recorder.PreparationCount;
             await db.SaveChangesAsync(TestToken);
-            var json = await db.Set<OutboxMessage>().Select(x => x.Envelope).SingleAsync(TestToken);
-            stored = MessageEnvelopeReader.Parse(Encoding.UTF8.GetBytes(json));
+            using var json = await db.Set<OutboxMessage>().Select(x => x.Envelope).SingleAsync(TestToken);
+            stored = MessageEnvelopeReader.Parse(Encoding.UTF8.GetBytes(json.RootElement.GetRawText()));
         }
 
         // act

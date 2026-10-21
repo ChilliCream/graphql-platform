@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Mocha.Middlewares;
 using Mocha.Scheduling;
 
 namespace Mocha;
@@ -218,9 +217,6 @@ internal static class ThrowHelper
     public static Exception ScheduledPreparationUnsupported()
         => new NotSupportedException(
             "Scheduled messages cannot be prepared for an outbox.");
-
-    public static ObjectDisposedException PreparedMessageDisposed()
-        => new(nameof(PreparedMessage), "The prepared message has been released.");
 
     public static InvalidOperationException MessagePreparationIncomplete()
         => new("The message preparation pipeline must complete before a message can be staged.");

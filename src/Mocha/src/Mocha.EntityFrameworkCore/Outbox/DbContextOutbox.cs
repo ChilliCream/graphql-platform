@@ -13,6 +13,7 @@ public sealed class DbContextOutbox
     private readonly DbContext _context;
     private readonly DbContextId _lease;
     private readonly DbContextOutboxScope _scope;
+    private readonly Action<MessageEnvelope, CancellationToken> _stage;
     private IDbContextOutboxProvider? _provider;
     private int _preparing;
 
@@ -21,6 +22,7 @@ public sealed class DbContextOutbox
         _context = context;
         _lease = context.ContextId;
         _scope = scope;
+        _stage = Stage;
     }
 
     internal bool IsPreparing => _preparing != 0;
@@ -51,8 +53,7 @@ public sealed class DbContextOutbox
         var dispatcher = Begin(cancellationToken);
         try
         {
-            using var prepared = await dispatcher.PreparePublishAsync(message, options, cancellationToken);
-            Complete(prepared.Envelope, cancellationToken);
+            await dispatcher.PreparePublishAsync(message, options, _stage, cancellationToken);
         }
         finally
         {
@@ -86,8 +87,7 @@ public sealed class DbContextOutbox
         var dispatcher = Begin(cancellationToken);
         try
         {
-            using var prepared = await dispatcher.PrepareSendAsync(message, options, cancellationToken);
-            Complete(prepared.Envelope, cancellationToken);
+            await dispatcher.PrepareSendAsync(message, options, _stage, cancellationToken);
         }
         finally
         {
@@ -125,7 +125,7 @@ public sealed class DbContextOutbox
         }
     }
 
-    private void Complete(MessageEnvelope envelope, CancellationToken cancellationToken)
+    private void Stage(MessageEnvelope envelope, CancellationToken cancellationToken)
     {
         EnsureCurrentLease();
         cancellationToken.ThrowIfCancellationRequested();
@@ -136,18 +136,7 @@ public sealed class DbContextOutbox
 
         var provider = GetProvider();
         provider.Validate(_context);
-        var prepared = provider.Prepare(envelope);
-        try
-        {
-            EnsureCurrentLease();
-            cancellationToken.ThrowIfCancellationRequested();
-            provider.Stage(_context, prepared);
-        }
-        catch
-        {
-            prepared.Dispose();
-            throw;
-        }
+        provider.Stage(_context, envelope, cancellationToken);
     }
 
     private void EnsureCurrentLease()
