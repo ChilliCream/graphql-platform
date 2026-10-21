@@ -2118,7 +2118,7 @@ AddErrors_Next:
 
             for (var i = 0; i < cursors.Length; i++)
             {
-                paths[i] = document.CreateUnpooledCompactPath(new CompositeResultDocument.Cursor(cursors[i]));
+                paths[i] = document.CreateCompactPath(new CompositeResultDocument.Cursor(cursors[i]), pooled: false);
             }
 
             return paths;

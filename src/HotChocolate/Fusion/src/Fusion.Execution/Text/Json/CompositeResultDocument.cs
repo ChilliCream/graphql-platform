@@ -167,18 +167,12 @@ public sealed partial class CompositeResultDocument : IDisposable
         return row.SizeOrLength;
     }
 
-    internal CompactPath CreateCompactPath(Cursor current)
-        => CreateCompactPath(current, Volatile.Read(ref _pathPool));
-
     /// <summary>
-    /// Creates the path of the element at <paramref name="current"/> in arrays that are not rented
-    /// from the request scoped pool.
+    /// Creates the path of the element at <paramref name="current"/>. When <paramref name="pooled"/>
+    /// is <c>false</c>, the path arrays are allocated instead of rented from the request scoped pool.
     /// </summary>
-    internal CompactPath CreateUnpooledCompactPath(Cursor current)
-        => CreateCompactPath(current, pathPool: null);
-
     [SkipLocalsInit]
-    private CompactPath CreateCompactPath(Cursor current, PathSegmentLocalPool? pathPool)
+    internal CompactPath CreateCompactPath(Cursor current, bool pooled)
     {
         var firstRow = _metaDb.Get(current);
 
@@ -211,7 +205,7 @@ public sealed partial class CompositeResultDocument : IDisposable
         }
 
         Span<int> pathBuffer = stackalloc int[32];
-        var path = new CompactPathBuilder(pathBuffer, pathPool);
+        var path = new CompactPathBuilder(pathBuffer, pooled ? Volatile.Read(ref _pathPool) : null);
         var parentTokenType = ElementTokenType.StartObject;
 
         for (var i = written - 1; i >= 0; i--)
@@ -244,7 +238,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     }
 
     internal Path CreatePath(Cursor current)
-        => CreateCompactPath(current).ToPath(_operation);
+        => CreateCompactPath(current, pooled: true).ToPath(_operation);
 
     internal CompositeResultElement GetParent(Cursor current)
     {
