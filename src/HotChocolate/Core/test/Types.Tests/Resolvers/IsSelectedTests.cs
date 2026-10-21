@@ -809,9 +809,9 @@ public class IsSelectedTests
     public async Task Select_Should_ReturnAllSelections_When_BufferMustGrowBeyondDoubleRemainingSpace()
     {
         // arrange
-        var auditCount = 0;
-        var firstAudits = string.Join(" ", Enumerable.Range(0, 14).Select(i => $"a{i}: audit {{ editedBy }}"));
-        var secondAudits = string.Join(" ", Enumerable.Range(0, 5).Select(i => $"a{i}: audit {{ editedBy }}"));
+        var selectionCount = 0;
+        var firstSelections = string.Join(" ", Enumerable.Range(0, 14).Select(i => $"a{i}: audit {{ editedBy }}"));
+        var secondSelections = string.Join(" ", Enumerable.Range(0, 5).Select(i => $"a{i}: audit {{ editedBy }}"));
         var executor =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -823,7 +823,7 @@ public class IsSelectedTests
                             .Resolve(
                                 ctx =>
                                 {
-                                    auditCount = ctx.Select("tags").Select("audit").Count;
+                                    selectionCount = ctx.Select("tags").Select("audit").Count;
                                     return Query.DummyUser;
                                 });
                     })
@@ -831,11 +831,11 @@ public class IsSelectedTests
 
         // act
         await executor.ExecuteAsync(
-            $"{{ user {{ first: tags {{ {firstAudits} }} second: tags {{ {secondAudits} }} }} }}",
+            $"{{ user {{ first: tags {{ {firstSelections} }} second: tags {{ {secondSelections} }} }} }}",
             TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Equal(19, auditCount);
+        Assert.Equal(19, selectionCount);
     }
 
     [Fact]

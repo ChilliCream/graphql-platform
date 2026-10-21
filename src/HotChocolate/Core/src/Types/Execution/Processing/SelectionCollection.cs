@@ -510,7 +510,8 @@ internal sealed class SelectionCollection : ISelectionCollection
             return;
         }
 
-        var newBuffer = ArrayPool<Selection>.Shared.Rent(Math.Max(buffer.Length * 2, index + requiredSpace));
+        var capacity = Math.Max(buffer.Length * 2, index + requiredSpace);
+        var newBuffer = ArrayPool<Selection>.Shared.Rent(capacity);
         buffer.AsSpan()[..index].CopyTo(newBuffer);
         buffer.AsSpan()[..index].Clear();
         ArrayPool<Selection>.Shared.Return(buffer);
