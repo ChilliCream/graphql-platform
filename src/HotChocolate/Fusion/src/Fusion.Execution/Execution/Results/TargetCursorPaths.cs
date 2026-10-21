@@ -11,7 +11,7 @@ internal sealed class TargetCursorPaths : CompactPathSource
     private readonly FetchResultStore _store;
     private readonly CompositeResultDocument _document;
     private readonly int[] _cursors;
-    private readonly int _structureVersion;
+    private readonly int _layoutVersion;
     private CompactPath[]? _paths;
 
     public TargetCursorPaths(FetchResultStore store, CompositeResultDocument document, int[] cursors)
@@ -19,7 +19,7 @@ internal sealed class TargetCursorPaths : CompactPathSource
         _store = store;
         _document = document;
         _cursors = cursors;
-        _structureVersion = document.StructureVersion;
+        _layoutVersion = document.LayoutVersion;
     }
 
     /// <summary>
@@ -30,7 +30,7 @@ internal sealed class TargetCursorPaths : CompactPathSource
     /// <summary>
     /// Gets <c>true</c> while every cursor still points to the element at its path.
     /// </summary>
-    public bool IsCurrent => _document.StructureVersion == _structureVersion;
+    public bool IsCurrent => _document.LayoutVersion == _layoutVersion;
 
     /// <summary>
     /// Gets the element at the cursor with the given index.

@@ -2345,7 +2345,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
-    public void AddPartialResult_Should_CompleteTargetsFromRoot_When_StructureChangedAfterCollection()
+    public void AddPartialResult_Should_CompleteTargetsFromRoot_When_LayoutChangedAfterCollection()
     {
         // arrange
         var schema = ComposeSchema(
@@ -2539,13 +2539,13 @@ public sealed class FetchResultStoreTests : FusionTestBase
                 SourceResultDocument.Parse(sourceArena, two, two.Length),
                 additionalPaths: entries[1].AdditionalPaths)
         ];
-        var structureVersion = store.Result.StructureVersion;
+        var layoutVersion = store.Result.LayoutVersion;
 
         // act
         store.AddPartialResults(SelectionPath.Root, results, resultSelectionSet, containsErrors: false);
 
         // assert
-        Assert.Equal(structureVersion, store.Result.StructureVersion);
+        Assert.Equal(layoutVersion, store.Result.LayoutVersion);
         RenderData(store).MatchInlineSnapshot(
             """
             {"foos":[{"id":"1","name":"One"},{"id":"2","name":"Two"},{"id":"1","name":"One"},{"id":"2","name":"Two"}]}

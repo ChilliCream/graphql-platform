@@ -20,7 +20,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     private PathSegmentLocalPool? _pathPool;
     internal MetaDb _metaDb;
     private NullMarkerState _nullMarkerState;
-    private int _structureVersion;
+    private int _layoutVersion;
     private int _disposed;
 
     internal CompositeResultDocument(
@@ -68,7 +68,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     /// Gets a version that changes whenever a value that references an object or a list is
     /// replaced. While it is unchanged, every element keeps the path it had when it was read.
     /// </summary>
-    internal int StructureVersion => _structureVersion;
+    internal int LayoutVersion => _layoutVersion;
 
     /// <summary>
     /// Stops this document from renting path segment arrays from the request scoped pool.
@@ -676,7 +676,7 @@ public sealed partial class CompositeResultDocument : IDisposable
         if (_metaDb.GetElementTokenType(target, resolveReferences: false)
             is ElementTokenType.Reference or ElementTokenType.StartObject or ElementTokenType.StartArray)
         {
-            _structureVersion++;
+            _layoutVersion++;
         }
     }
 
