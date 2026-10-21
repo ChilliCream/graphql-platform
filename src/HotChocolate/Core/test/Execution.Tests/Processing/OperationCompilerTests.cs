@@ -2098,7 +2098,7 @@ public class OperationCompilerTests
     }
 
     [Fact]
-    public void Compile_Should_ReleasePreviousSchema_When_SchemaIsReplaced()
+    public async Task Compile_Should_ReleasePreviousSchema_When_SchemaIsReplaced()
     {
         // arrange
         var previousSchema = CompileLargeOperationWithDiscardedSchema();
@@ -2106,9 +2106,21 @@ public class OperationCompilerTests
 
         // act
         var operation = OperationCompiler.Compile("current", document, CreateFooSchema());
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
-        GC.Collect();
+        // Queued dependency injection work can briefly hold the previous schema, so collect until it has run.
+        for (var attempt = 0; attempt < 100; attempt++)
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+
+            if (!previousSchema.IsAlive)
+            {
+                break;
+            }
+
+            await Task.Delay(50, TestContext.Current.CancellationToken);
+        }
+
         // The current operation is what would retain the previous schema, so it must outlive the collection.
         GC.KeepAlive(operation);
 
