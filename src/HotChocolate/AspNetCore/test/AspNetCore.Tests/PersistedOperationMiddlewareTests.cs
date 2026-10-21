@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 #endif
 using System.Text;
 using System.Text.Json;
+using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -241,6 +242,47 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
         json!.RootElement.MatchMarkdownSnapshot();
     }
 
+    [Theory]
+    [InlineData(HttpTransportVersion.Legacy, "text/plain", HttpStatusCode.NotFound)]
+    [InlineData(HttpTransportVersion.Legacy, null, HttpStatusCode.NotFound)]
+    [InlineData(HttpTransportVersion.Draft20250508, "text/plain", HttpStatusCode.NotFound)]
+    [InlineData(HttpTransportVersion.Draft20250508, null, HttpStatusCode.NotFound)]
+    [InlineData(
+        HttpTransportVersion.Draft20260903,
+        "text/plain",
+        HttpStatusCode.UnsupportedMediaType)]
+    [InlineData(HttpTransportVersion.Draft20260903, null, HttpStatusCode.UnsupportedMediaType)]
+    public async Task Post_Should_ReturnUnsupportedMediaType_When_ContentTypeIsNotJson(
+        HttpTransportVersion transportVersion,
+        string? contentType,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        HttpTransportVersion = transportVersion
+                    }));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            "http://localhost:5000/graphql/persisted/60ddx_GGk4FDObSa6eK0sg/GetHeroName");
+        request.Content = CreateContent("{ }", contentType);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(
+            "",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
     [Fact]
     public async Task Query_Should_ExecutePersistedOperation_When_QueryRequestsAreEnabled()
     {
@@ -406,6 +448,59 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
     }
 
     [Theory]
+    [InlineData(HttpTransportVersion.Legacy, "text/plain", HttpStatusCode.NotFound, null)]
+    [InlineData(HttpTransportVersion.Legacy, null, HttpStatusCode.NotFound, null)]
+    [InlineData(HttpTransportVersion.Draft20250508, "text/plain", HttpStatusCode.NotFound, null)]
+    [InlineData(HttpTransportVersion.Draft20250508, null, HttpStatusCode.NotFound, null)]
+    [InlineData(
+        HttpTransportVersion.Draft20260903,
+        "text/plain",
+        HttpStatusCode.UnsupportedMediaType,
+        "application/json")]
+    [InlineData(
+        HttpTransportVersion.Draft20260903,
+        null,
+        HttpStatusCode.UnsupportedMediaType,
+        "application/json")]
+    public async Task Query_Should_ReturnUnsupportedMediaType_When_ContentTypeIsNotJson(
+        HttpTransportVersion transportVersion,
+        string? contentType,
+        HttpStatusCode expectedStatusCode,
+        string? expectedAcceptQuery)
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        HttpTransportVersion = transportVersion
+                    })
+                .ModifyServerOptions(o => o.EnableQueryRequests = true));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            s_queryMethod,
+            "http://localhost:5000/graphql/persisted/60ddx_GGk4FDObSa6eK0sg/GetHeroName");
+        request.Content = CreateContent("{ }", contentType);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(
+            expectedAcceptQuery,
+            response.Headers.TryGetValues("Accept-Query", out var acceptQuery)
+                ? string.Join(", ", acceptQuery)
+                : null);
+        Assert.Equal(
+            "",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Theory]
     [InlineData("GET")]
     [InlineData("POST")]
     [InlineData("QUERY")]
@@ -435,4 +530,9 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(["Accept"], response.Headers.Vary);
     }
+
+    private static HttpContent CreateContent(string body, string? contentType)
+        => contentType is null
+            ? new ByteArrayContent(Encoding.UTF8.GetBytes(body))
+            : new StringContent(body, Encoding.UTF8, contentType);
 }

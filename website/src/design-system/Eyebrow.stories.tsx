@@ -11,7 +11,7 @@ const meta = {
     },
     color: {
       control: "select",
-      options: ["nav-label", "ink-dim", "accent"],
+      options: ["nav-label", "ink-dim", "accent", "amber"],
     },
   },
 } satisfies Meta<typeof Eyebrow>;
@@ -42,6 +42,7 @@ export const Colors: Story = {
       <Eyebrow color="nav-label">Nav label</Eyebrow>
       <Eyebrow color="ink-dim">Ink dim</Eyebrow>
       <Eyebrow color="accent">Accent</Eyebrow>
+      <Eyebrow color="amber">Amber</Eyebrow>
     </div>
   ),
 };

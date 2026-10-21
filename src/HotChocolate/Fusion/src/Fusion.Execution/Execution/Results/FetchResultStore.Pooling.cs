@@ -157,6 +157,12 @@ internal sealed partial class FetchResultStore
         TrimOrClearBuffer(ref _collectTargetB, maxCollectTargetRetainLength);
         TrimOrClearBuffer(ref _collectTargetCombined, maxCollectTargetRetainLength);
 
+        // drop the leaf value buffer if a wide lookup selection made it grow
+        if (_leafValues.Length > maxCollectTargetRetainLength)
+        {
+            _leafValues = [];
+        }
+
         // clear dictionaries/hashsets; drop oversized ones.
         TrimOrClear(ref _seenPaths, maxDictionaryRetainCapacity, ReferenceEqualityComparer.Instance);
 

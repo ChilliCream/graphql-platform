@@ -2344,6 +2344,73 @@ public sealed class FetchResultStoreTests : FusionTestBase
             """);
     }
 
+    [Theory]
+    [InlineData(
+        "price",
+        "\"price\":899",
+        "{\"first\":{\"name\":\"Table\"},\"second\":{\"name\":\"Table\",\"price\":899}}")]
+    [InlineData(
+        "dimensions { width }",
+        "\"dimensions\":{\"width\":120}",
+        "{\"first\":{\"name\":\"Table\"},\"second\":{\"name\":\"Table\",\"dimensions\":{\"width\":120}}}")]
+    [InlineData(
+        "price",
+        "\"price\":null",
+        "{\"first\":{\"name\":\"Table\"},\"second\":null}")]
+    public void AddPartialResult_Should_CompleteAdditionalFields_When_DuplicateTargetsHaveDifferentSelections(
+        string additionalSelection,
+        string additionalProperty,
+        string expected)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              product: Product
+            }
+
+            type Product {
+              name: String
+              price: Int!
+              dimensions: Dimensions
+            }
+
+            type Dimensions {
+              width: Int
+            }
+            """);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            $"{{ first: product {{ name }} second: product {{ name {additionalSelection} }} }}",
+            """{"data":{"first":{},"second":{}}}""",
+            resultArena,
+            sourceArena);
+        var first = store.Result.Data.GetProperty("first").CompactPath;
+        var second = store.Result.Data.GetProperty("second").CompactPath;
+        var resultSelectionSet = ResultSelectionSet.Create(
+            Utf8GraphQLParser.Parse($"{{ name {additionalSelection} }}")
+                .Definitions
+                .OfType<OperationDefinitionNode>()
+                .Single()
+                .SelectionSet,
+            schema);
+        var payload = Encoding.UTF8.GetBytes($"{{\"data\":{{\"name\":\"Table\",{additionalProperty}}}}}");
+        var document = SourceResultDocument.Parse(sourceArena, payload, payload.Length);
+        var result = new SourceSchemaResult(
+            first,
+            document,
+            additionalPaths: new CompactPathSegment([second], 0, 1));
+
+        // act
+        store.AddPartialResult(SelectionPath.Root, result, resultSelectionSet, containsErrors: false);
+
+        // assert
+        Assert.Equal(expected, RenderData(store));
+    }
+
     private static FetchResultStore CreateLiveStore(
         FusionSchemaDefinition schema,
         string operationText,

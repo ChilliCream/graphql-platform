@@ -558,18 +558,6 @@ public sealed partial class CompositeResultDocument : IDisposable
         AssignCompositeValue(element, newObject);
     }
 
-    /// <summary>
-    /// Copies the values at the given row offsets of one object into another object that has
-    /// the same selection set.
-    /// </summary>
-    internal void CopyValues(Cursor sourceObject, Cursor targetObject, ReadOnlySpan<int> rowOffsets)
-    {
-        foreach (var rowOffset in rowOffsets)
-        {
-            _metaDb.CopyValuePreserveParent(sourceObject + rowOffset, targetObject + rowOffset);
-        }
-    }
-
     internal CompositeResultElement CreateArray(Cursor parent, int length)
     {
         var cursor = WriteStartArray(parent, length);
@@ -644,6 +632,38 @@ public sealed partial class CompositeResultDocument : IDisposable
         _metaDb.ReplacePreserveParent(
             cursor: target.Cursor,
             tokenType: ElementTokenType.Null);
+    }
+
+    /// <summary>
+    /// Assigns the leaf value of <paramref name="source"/> to <paramref name="target"/> without
+    /// copying the value data. Both elements must belong to this document.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c> if the source holds a non-null leaf value that was assigned;
+    /// otherwise, <c>false</c> and the target is unchanged.
+    /// </returns>
+    internal bool TryAssignLeafValue(CompositeResultElement target, CompositeResultElement source)
+    {
+        var row = _metaDb.Get(source.Cursor);
+
+        if (row.TokenType is not (ElementTokenType.String
+            or ElementTokenType.Number
+            or ElementTokenType.True
+            or ElementTokenType.False)
+            || (row.Flags & ElementFlags.Invalidated) == ElementFlags.Invalidated)
+        {
+            return false;
+        }
+
+        TrackValueReplacement(target.Cursor);
+        _metaDb.ReplacePreserveParent(
+            cursor: target.Cursor,
+            tokenType: row.TokenType,
+            location: row.Location,
+            sizeOrLength: row.SizeOrLength,
+            sourceDocumentId: row.SourceDocumentId,
+            flags: row.Flags);
+        return true;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
