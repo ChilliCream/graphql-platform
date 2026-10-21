@@ -1,9 +1,19 @@
 ---
 title: Migrate Mocha from 16.6 to 16.7
-description: "Migration guide for Mocha v16.6 to v16.7: publish through the Postgres outbox with an open transaction or opt out of the transaction requirement."
+description: "Migration guide for Mocha v16.6 to v16.7: handle nullable dispatch timestamps and publish through the Postgres outbox with an open transaction or opt out of the transaction requirement."
 ---
 
 Update every `Mocha.*` package in the application to version 16.7 before applying these changes.
+
+# API breaking changes
+
+## Dispatch context SentAt is nullable
+
+`SentAt` is now nullable (`DateTimeOffset?`) on both `IDispatchContext` and `DispatchContext`. It defaults to `null`, so code that reads it before dispatch must handle a missing timestamp.
+
+Mocha now sets `SentAt` just before dispatching the message. It gets the current UTC time from the `TimeProvider` registered in your service collection, falling back to `TimeProvider.System` if you haven't registered one.
+
+You can still set `SentAt` yourself. Mocha preserves a timestamp supplied on the context or envelope, with the context taking precedence if both are set.
 
 # Behavioral breaking changes
 
