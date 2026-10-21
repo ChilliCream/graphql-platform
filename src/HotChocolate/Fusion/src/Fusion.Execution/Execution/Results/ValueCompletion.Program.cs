@@ -197,6 +197,22 @@ internal sealed partial class ValueCompletion
             return completed;
         }
 
+        return CompleteObjectProperties(document, ref reader, objectRow, program, objectContext, depth);
+    }
+
+    /// <summary>
+    /// Completes the properties of a source object into the object of
+    /// <paramref name="objectContext"/>. The reader stands behind the object's start row and is
+    /// left behind its end row.
+    /// </summary>
+    private bool CompleteObjectProperties(
+        SourceResultDocument document,
+        ref SequentialReader reader,
+        DbRow objectRow,
+        MergeProgram program,
+        CompositeObjectContext objectContext,
+        int depth)
+    {
         AssertDepthAllowed(ref depth);
 
         var propertyCount = objectRow.SizeOrLength;
@@ -263,6 +279,11 @@ internal sealed partial class ValueCompletion
 
         if (target.ValueKind is JsonValueKind.Undefined)
         {
+            if (entry.Op is MergeOp.ObjectList)
+            {
+                return CompleteObjectList(document, ref reader, length, in entry, target, depth);
+            }
+
             target.SetArrayValue(length);
         }
         else if (target.ValueKind is not JsonValueKind.Array
@@ -363,6 +384,120 @@ internal sealed partial class ValueCompletion
         // The array's end row.
         reader.Skip(1);
         return true;
+    }
+
+    /// <summary>
+    /// Completes a source array of objects into a new array whose element objects are created
+    /// together with it. The reader stands behind the array's start row and is left behind its
+    /// end row.
+    /// </summary>
+    private bool CompleteObjectList(
+        SourceResultDocument document,
+        ref SequentialReader reader,
+        int length,
+        in MergeProgramEntry entry,
+        CompositeResultElement target,
+        int depth)
+    {
+        var selection = entry.Selection!;
+        var selectionSet = entry.ChildSelectionSet!;
+        var program = entry.Child!;
+        var isNonNull = selection.IsNonNullListElement;
+        var array = target.SetObjectArrayValue(length, selectionSet, out var firstObject, out var blockRows);
+        var compositeDocument = array.Document;
+        var elementCursor = array.Cursor + 1;
+        var objectCursor = firstObject;
+        var numberOfRows = blockRows - 1;
+
+        for (var i = 0; i < length; i++)
+        {
+            var sourceCursor = reader.Cursor;
+            var elementRow = reader.Read();
+            var targetElement = new CompositeResultElement(compositeDocument, elementCursor);
+
+            if (elementRow.TokenType is JsonTokenType.Null)
+            {
+                if (isNonNull && _propagateNullValues)
+                {
+                    // The elements from this one on stay empty, like the elements the
+                    // generic completion never reaches.
+                    ClearElements(compositeDocument, elementCursor, length - i);
+                    return false;
+                }
+
+                targetElement.SetNullValue();
+            }
+            else
+            {
+                bool completed;
+
+                if (elementRow.TokenType is JsonTokenType.StartObject)
+                {
+                    var objectContext = new CompositeObjectContext(
+                        compositeDocument,
+                        objectCursor,
+                        selectionSet,
+                        numberOfRows);
+                    completed = CompleteObjectProperties(
+                        document,
+                        ref reader,
+                        elementRow,
+                        program,
+                        objectContext,
+                        depth);
+                }
+                else
+                {
+                    completed = TryCompleteObjectValue(
+                        new SourceResultElementSnapshot(document, sourceCursor, elementRow),
+                        targetElement,
+                        errorTrie: null,
+                        selection,
+                        (IComplexTypeDefinition)selection.NamedType,
+                        depth,
+                        entry.ChildResultSelectionSet,
+                        selectionSet);
+                    SkipValue(ref reader, elementRow);
+                }
+
+                if (!completed)
+                {
+                    if (isNonNull)
+                    {
+                        // The element keeps its partially completed object; the elements
+                        // after it stay empty, like the elements the generic completion
+                        // never reaches.
+                        ClearElements(compositeDocument, elementCursor + 1, length - i - 1);
+                        return false;
+                    }
+
+                    targetElement.SetNullValue();
+                }
+            }
+
+            elementCursor += 1;
+            objectCursor += blockRows;
+        }
+
+        // The array's end row.
+        reader.Skip(1);
+        return true;
+    }
+
+    /// <summary>
+    /// Empties <paramref name="count"/> element rows from <paramref name="elementCursor"/> on,
+    /// which is the state of an element the completion never reached.
+    /// </summary>
+    private static void ClearElements(
+        CompositeResultDocument document,
+        CompositeResultDocument.Cursor elementCursor,
+        int count)
+    {
+        for (var i = 0; i < count; i++)
+        {
+            document.ClearValue(elementCursor);
+            elementCursor += 1;
+        }
     }
 
     /// <summary>
