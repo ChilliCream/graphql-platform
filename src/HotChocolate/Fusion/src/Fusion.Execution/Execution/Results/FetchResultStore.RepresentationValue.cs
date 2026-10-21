@@ -173,22 +173,7 @@ internal sealed partial class FetchResultStore
 
         lock (_lock)
         {
-            var combinedCount = 0;
-
-            foreach (var selectionSet in selectionSets)
-            {
-                var elements = CollectTargetElements(selectionSet);
-
-                if (!elements.IsEmpty)
-                {
-                    EnsureCapacity(
-                        ref _collectTargetCombined,
-                        combinedCount + elements.Length,
-                        combinedCount);
-                    elements.CopyTo(_collectTargetCombined.AsSpan(combinedCount));
-                    combinedCount += elements.Length;
-                }
-            }
+            var combinedCount = CollectCombinedElements(selectionSets, ref _collectTargetCombined);
 
             if (combinedCount == 0)
             {
@@ -239,83 +224,20 @@ internal sealed partial class FetchResultStore
                 return RepresentationValue.Empty;
             }
 
-            var targets = _collectTargetCombined.AsSpan(0, targetCount);
-
             // Entities are only reused while the result has no errors.
-            if (_errors is { Count: > 0 } || _pocketedErrors is { Count: > 0 })
-            {
-                return BuildRepresentationValue(targets, requestVariables, requiredShape, entityTypeName);
-            }
-
-            var holdingCount = CollectHoldingProducers(candidates);
-
-            if (holdingCount == 0)
-            {
-                return BuildRepresentationValue(targets, requestVariables, requiredShape, entityTypeName);
-            }
-
-            // The requirement values identify the entities. They are only used for matching and
-            // are dropped before the representations are written.
-            var startPosition = _variableWriter.Position;
-            var variableValueSets = BuildVariableValueSets(targets, requestVariables, requiredData);
-            var remaining = variableValueSets;
-
-            if (!variableValueSets.IsEmpty)
-            {
-                var producerValueSets = BuildVariableValueSets(
-                    _collectProducerCombined.AsSpan(0, holdingCount),
-                    requestVariables,
-                    requiredData);
-
-                remaining = ReuseEntities(
-                    variableValueSets,
-                    producerValueSets,
-                    candidates.ResponseNames,
-                    out reusedCount);
-            }
-
-            _variableWriter.ResetTo(startPosition);
-
-            if (reusedCount == 0)
-            {
-                return BuildRepresentationValue(targets, requestVariables, requiredShape, entityTypeName);
-            }
-
-            if (remaining.IsEmpty)
-            {
-                return RepresentationValue.Empty;
-            }
-
-            var remainingCount = CollectRemainingElements(remaining, ref _collectProducerCombined);
+            var producerCount = _errors is { Count: > 0 } || _pocketedErrors is { Count: > 0 }
+                ? 0
+                : CollectHoldingProducers(candidates);
 
             return BuildRepresentationValue(
-                _collectProducerCombined.AsSpan(0, remainingCount),
+                _collectTargetCombined.AsSpan(0, targetCount),
                 requestVariables,
                 requiredShape,
-                entityTypeName);
+                entityTypeName,
+                _collectProducerCombined.AsSpan(0, producerCount),
+                candidates.ResponseNames,
+                out reusedCount);
         }
-    }
-
-    // Caller must hold _lock. Collects the entities of the variable value sets that were not reused.
-    private int CollectRemainingElements(
-        ImmutableArray<VariableValues> remaining,
-        ref CompositeResultElement[] buffer)
-    {
-        var count = 0;
-
-        foreach (var variableValues in remaining)
-        {
-            var additionalPaths = variableValues.AdditionalPaths.AsSpan();
-            EnsureCapacity(ref buffer, count + 1 + additionalPaths.Length, count);
-            buffer[count++] = GetStartResult(variableValues.Path);
-
-            foreach (var additionalPath in additionalPaths)
-            {
-                buffer[count++] = GetStartResult(additionalPath);
-            }
-        }
-
-        return count;
     }
 
     internal RepresentationValue CreateRepresentationVariableValueFromSnapshot(
@@ -447,9 +369,29 @@ internal sealed partial class FetchResultStore
         IReadOnlyList<ObjectFieldNode> requestVariables,
         ImmutableArray<RepresentationShapeNode> requiredShape,
         string entityTypeName)
+        => BuildRepresentationValue(
+            elements,
+            requestVariables,
+            requiredShape,
+            entityTypeName,
+            producers: [],
+            reusedResponseNames: [],
+            out _);
+
+    // Caller must hold _lock. An element whose representation equals the representation of a
+    // producer takes the reused fields from that producer and is not written.
+    private RepresentationValue BuildRepresentationValue(
+        ReadOnlySpan<CompositeResultElement> elements,
+        IReadOnlyList<ObjectFieldNode> requestVariables,
+        ImmutableArray<RepresentationShapeNode> requiredShape,
+        string entityTypeName,
+        ReadOnlySpan<CompositeResultElement> producers,
+        ReadOnlySpan<string> reusedResponseNames,
+        out int reusedCount)
     {
         using var representationWriter = new ChunkedArrayWriter();
         using var dedupTable = new VariableDedupTable(representationWriter);
+        using var producerTable = producers.IsEmpty ? null : new VariableDedupTable(representationWriter);
         var representationJsonWriter = new JsonWriter(
             representationWriter,
             new JsonWriterOptions { Indented = false });
@@ -459,27 +401,57 @@ internal sealed partial class FetchResultStore
         var variableStartPosition = StartRepresentationVariableValue();
         var nextIndex = 0;
 
+        reusedCount = 0;
         dedupTable.Initialize(elements.Length);
 
         try
         {
+            if (producerTable is not null)
+            {
+                BufferProducerRepresentations(
+                    producers,
+                    requiredShape,
+                    entityTypeName,
+                    representationWriter,
+                    representationJsonWriter,
+                    producerTable);
+            }
+
             foreach (var result in elements)
             {
-                var writeResult = TryWriteRepresentation(
+                if (!TryBufferRepresentation(
                     result,
                     requiredShape,
                     entityTypeName,
                     representationWriter,
                     representationJsonWriter,
+                    out var startPosition))
+                {
+                    continue;
+                }
+
+                if (producerTable is not null
+                    && TryReuseEntity(
+                        result,
+                        producers,
+                        reusedResponseNames,
+                        representationWriter,
+                        startPosition,
+                        producerTable))
+                {
+                    reusedCount++;
+                    continue;
+                }
+
+                var writeResult = TryAppendRepresentation(
+                    representationWriter,
+                    startPosition,
                     dedupTable,
                     nextIndex,
                     out var index);
 
                 switch (writeResult)
                 {
-                    case RepresentationWriteResult.Skipped:
-                        break;
-
                     case RepresentationWriteResult.Duplicate:
                         additionalPaths.Add(index, result);
                         break;
@@ -571,34 +543,54 @@ internal sealed partial class FetchResultStore
             ImmutableCollectionsMarshal.AsImmutableArray(resultPathArray));
     }
 
-    private RepresentationWriteResult TryWriteRepresentation(
-        CompositeResultElement result,
+    // Buffers the representation of every producer. A producer whose representation equals the
+    // representation of an earlier producer is dropped.
+    private void BufferProducerRepresentations(
+        ReadOnlySpan<CompositeResultElement> producers,
         ImmutableArray<RepresentationShapeNode> requiredShape,
         string entityTypeName,
         ChunkedArrayWriter representationWriter,
         JsonWriter representationJsonWriter,
-        VariableDedupTable dedupTable,
-        int nextIndex,
-        out int index)
+        VariableDedupTable producerTable)
     {
-        if (!TryBufferRepresentation(
-            result,
-            requiredShape,
-            entityTypeName,
-            representationWriter,
-            representationJsonWriter,
-            out var startPosition))
+        producerTable.Initialize(producers.Length);
+
+        for (var i = 0; i < producers.Length; i++)
         {
-            index = -1;
-            return RepresentationWriteResult.Skipped;
+            if (TryBufferRepresentation(
+                producers[i],
+                requiredShape,
+                entityTypeName,
+                representationWriter,
+                representationJsonWriter,
+                out var startPosition))
+            {
+                TryDeduplicateRepresentation(representationWriter, startPosition, producerTable, i, out _);
+            }
+        }
+    }
+
+    // Caller must hold _lock. Fills the target from the producer whose representation equals the
+    // representation buffered at startPosition and drops the buffered representation.
+    private static bool TryReuseEntity(
+        CompositeResultElement target,
+        ReadOnlySpan<CompositeResultElement> producers,
+        ReadOnlySpan<string> reusedResponseNames,
+        ChunkedArrayWriter representationWriter,
+        int startPosition,
+        VariableDedupTable producerTable)
+    {
+        var length = representationWriter.Position - startPosition;
+        var hash = representationWriter.GetHashCode(startPosition, length);
+
+        if (!producerTable.TryGet(hash, startPosition, length, out var producerIndex)
+            || !TryFillTarget(target, producers[producerIndex], reusedResponseNames))
+        {
+            return false;
         }
 
-        return TryAppendRepresentation(
-            representationWriter,
-            startPosition,
-            dedupTable,
-            nextIndex,
-            out index);
+        representationWriter.ResetTo(startPosition);
+        return true;
     }
 
     private bool TryBufferRepresentation(

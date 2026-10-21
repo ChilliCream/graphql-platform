@@ -1008,22 +1008,7 @@ AddErrors_Next:
 
         lock (_lock)
         {
-            var combinedCount = 0;
-
-            foreach (var selectionSet in selectionSets)
-            {
-                var elements = CollectTargetElements(selectionSet);
-
-                if (!elements.IsEmpty)
-                {
-                    EnsureCapacity(
-                        ref _collectTargetCombined,
-                        combinedCount + elements.Length,
-                        combinedCount);
-                    elements.CopyTo(_collectTargetCombined.AsSpan(combinedCount));
-                    combinedCount += elements.Length;
-                }
-            }
+            var combinedCount = CollectCombinedElements(selectionSets, ref _collectTargetCombined);
 
             if (combinedCount == 0)
             {

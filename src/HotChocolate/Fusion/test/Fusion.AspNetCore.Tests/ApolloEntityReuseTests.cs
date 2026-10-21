@@ -33,17 +33,9 @@ public sealed class ApolloEntityReuseTests : FusionTestBase
 
         // assert
         Assert.Equal(dataWithoutReuse, data);
-        new
-        {
-            WithReuse = CountRequests(gateway),
-            WithoutReuse = CountRequests(gatewayWithoutReuse)
-        }.MatchInlineSnapshot(
-            """
-            {
-              "WithReuse": "accounts-api: 1, inventory-api: 1, products-api: 1, reviews-api: 1",
-              "WithoutReuse": "accounts-api: 2, inventory-api: 1, products-api: 2, reviews-api: 1"
-            }
-            """);
+        Assert.Equal(
+            "accounts-api: 1, inventory-api: 1, products-api: 1, reviews-api: 1",
+            CountRequests(gateway));
     }
 
     [Fact]
@@ -149,21 +141,9 @@ public sealed class ApolloEntityReuseTests : FusionTestBase
 
         // assert
         Assert.Equal(dataWithoutReuse, data);
-        new
-        {
-            WithReuse = GetRepresentations(gateway, "products-api"),
-            WithoutReuse = GetRepresentations(gatewayWithoutReuse, "products-api")
-        }.MatchInlineSnapshot(
-            """
-            {
-              "WithReuse": [
-                "[{\"__typename\":\"Product\",\"upc\":\"2\"}]"
-              ],
-              "WithoutReuse": [
-                "[{\"__typename\":\"Product\",\"upc\":\"1\"},{\"__typename\":\"Product\",\"upc\":\"2\"}]"
-              ]
-            }
-            """);
+        Assert.Equal(
+            """[{"__typename":"Product","upc":"2"}]""",
+            Assert.Single(GetRepresentations(gateway, "products-api")));
     }
 
     [Fact]
@@ -205,6 +185,97 @@ public sealed class ApolloEntityReuseTests : FusionTestBase
         data.MatchInlineSnapshot(
             """
             {"topProducts":[{"upc":"1","name":"Table","price":899,"weight":100,"reviews":[{"id":"1","product":{"name":"Table","price":899,"weight":100,"inStock":true,"shippingEstimate":50}},{"id":"2","product":{"name":"Table","price":899,"weight":100,"inStock":true,"shippingEstimate":50}},{"id":"3","product":{"name":"Table","price":899,"weight":100,"inStock":true,"shippingEstimate":50}},{"id":"4","product":{"name":"Table","price":899,"weight":100,"inStock":true,"shippingEstimate":50}}]}]}
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_ApolloBatchLookup_Should_RunDependentLookup_When_OneOperationIsReused()
+    {
+        // arrange
+        using var accountsApi = CreateAccountsApi(
+            new AccountsData([new AccountsUser { Id = "1", Name = "Uri Goldshtein", Username = "urigo" }]));
+        using var inventoryApi = CreateInventoryApi();
+        using var productsApi = CreateProductsApi();
+        using var reviewsApi = CreateReviewsApi();
+        using var gateway = await CreateGatewayAsync(accountsApi, inventoryApi, productsApi, reviewsApi);
+        using var gatewayWithoutReuse = await CreateGatewayAsync(
+            accountsApi,
+            inventoryApi,
+            productsApi,
+            reviewsApi,
+            enableEntityReuse: false);
+
+        // The products batch reuses the price and weight lookup that a lookup in the inventory batch requires.
+        const string query =
+            """
+            {
+              topProducts(first: 1) {
+                upc price weight
+                reviews { product { price weight shippingEstimate } }
+              }
+              users { reviews { product { name inStock shippingEstimate } } }
+            }
+            """;
+
+        // act
+        var data = await ExecuteAsync(gateway, query);
+        var dataWithoutReuse = await ExecuteAsync(gatewayWithoutReuse, query);
+
+        // assert
+        Assert.Equal(dataWithoutReuse, data);
+        Assert.Equal(
+            "accounts-api: 1, inventory-api: 1, products-api: 2, reviews-api: 1",
+            CountRequests(gateway));
+        Assert.Equal(
+            """[{"__typename":"Product","upc":"1"},{"__typename":"Product","upc":"2"}]""",
+            Assert.Single(GetRepresentations(gateway, "products-api")));
+        data.MatchInlineSnapshot(
+            """
+            {"topProducts":[{"upc":"1","price":899,"weight":100,"reviews":[{"product":{"price":899,"weight":100,"shippingEstimate":50}},{"product":{"price":899,"weight":100,"shippingEstimate":50}},{"product":{"price":899,"weight":100,"shippingEstimate":50}},{"product":{"price":899,"weight":100,"shippingEstimate":50}}]}],"users":[{"reviews":[{"product":{"name":"Table","inStock":true,"shippingEstimate":50}},{"product":{"name":"Couch","inStock":false,"shippingEstimate":0}}]}]}
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_ApolloBatchLookup_Should_SendNoRequest_When_EveryOperationIsReused()
+    {
+        // arrange
+        using var accountsApi = CreateAccountsApi(
+            new AccountsData([new AccountsUser { Id = "1", Name = "Uri Goldshtein", Username = "urigo" }]));
+        using var inventoryApi = CreateInventoryApi();
+        using var productsApi = CreateProductsApi();
+        using var reviewsApi = CreateReviewsApi();
+        using var gateway = await CreateGatewayAsync(accountsApi, inventoryApi, productsApi, reviewsApi);
+        using var gatewayWithoutReuse = await CreateGatewayAsync(
+            accountsApi,
+            inventoryApi,
+            productsApi,
+            reviewsApi,
+            enableEntityReuse: false);
+
+        // Both lookups of the products batch are reused from topProducts.
+        const string query =
+            """
+            {
+              topProducts(first: 2) {
+                upc name price weight
+                reviews { product { price weight shippingEstimate } }
+              }
+              users { reviews { product { name } } }
+            }
+            """;
+
+        // act
+        var data = await ExecuteAsync(gateway, query);
+        var dataWithoutReuse = await ExecuteAsync(gatewayWithoutReuse, query);
+
+        // assert
+        Assert.Equal(dataWithoutReuse, data);
+        Assert.Equal(
+            "accounts-api: 1, inventory-api: 1, products-api: 1, reviews-api: 1",
+            CountRequests(gateway));
+        data.MatchInlineSnapshot(
+            """
+            {"topProducts":[{"upc":"1","name":"Table","price":899,"weight":100,"reviews":[{"product":{"price":899,"weight":100,"shippingEstimate":50}},{"product":{"price":899,"weight":100,"shippingEstimate":50}},{"product":{"price":899,"weight":100,"shippingEstimate":50}},{"product":{"price":899,"weight":100,"shippingEstimate":50}}]},{"upc":"2","name":"Couch","price":1299,"weight":1000,"reviews":[{"product":{"price":1299,"weight":1000,"shippingEstimate":0}},{"product":{"price":1299,"weight":1000,"shippingEstimate":0}}]}],"users":[{"reviews":[{"product":{"name":"Table"}},{"product":{"name":"Couch"}}]}]}
             """);
     }
 
@@ -267,17 +338,9 @@ public sealed class ApolloEntityReuseTests : FusionTestBase
             """
             {"topProducts":[{"upc":"1","price":899,"weight":100,"inStock":true,"shippingEstimate":50,"latestReview":{"id":"1","product":{"upc":"1","price":899,"weight":999,"inStock":true,"shippingEstimate":499}}}]}
             """);
-        new
-        {
-            WithReuse = CountRequests(gateway),
-            WithoutReuse = CountRequests(gatewayWithoutReuse)
-        }.MatchInlineSnapshot(
-            """
-            {
-              "WithReuse": "inventory-api: 3, products-api: 1, reviews-api: 2",
-              "WithoutReuse": "inventory-api: 3, products-api: 2, reviews-api: 2"
-            }
-            """);
+        Assert.Equal(
+            "inventory-api: 3, products-api: 1, reviews-api: 2",
+            CountRequests(gateway));
     }
 
     [Fact]
@@ -400,6 +463,106 @@ public sealed class ApolloEntityReuseTests : FusionTestBase
             """
             {"products":[{"sku":"A","region":{"code":"EU"},"name":"Table","reviews":[{"product":{"name":"Table"}}]}]}
             """);
+    }
+
+    [Fact]
+    public async Task Execute_ApolloMutation_Should_FetchChangedEntity_When_EarlierMutationFieldHoldsIt()
+    {
+        // arrange
+        using var accountsApi = CreateSourceSchema(
+            "accounts-api",
+            builder => builder
+                .AddApolloFederation()
+                .AddQueryType<AccountsQuery>(d => d.Name("Query"))
+                .AddMutationType<AccountsMutation>(d => d.Name("Mutation"))
+                .AddType<AccountsUser>(),
+            configureServices: services => services.AddSingleton(
+                new AccountsData([new AccountsUser { Id = "1", Name = "Uri Goldshtein", Username = "urigo" }])));
+        using var reviewsApi = CreateReviewsApi();
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("accounts-api", accountsApi), ("reviews-api", reviewsApi)],
+            enableGlobalObjectIdentification: false);
+
+        // Both fields rename user 1, so the author must be fetched after the second rename.
+        const string mutation =
+            """
+            mutation {
+              first: renameUser(id: "1", name: "First") { id name }
+              second: renameUser(id: "1", name: "Second") { id reviews { author { name } } }
+            }
+            """;
+
+        // act
+        var data = await ExecuteAsync(gateway, mutation);
+
+        // assert
+        Assert.Equal("accounts-api: 3, reviews-api: 1", CountRequests(gateway));
+        data.MatchInlineSnapshot(
+            """
+            {"first":{"id":"1","name":"First"},"second":{"id":"1","reviews":[{"author":{"name":"Second"}},{"author":{"name":"Second"}}]}}
+            """);
+    }
+
+    [Fact]
+    public async Task Subscribe_ApolloLookup_Should_FetchEntityForEachEvent_When_EventsHoldSameEntity()
+    {
+        // arrange
+        using var eventsApi = CreateSourceSchema(
+            "events-api",
+            builder => builder
+                .AddApolloFederation()
+                .AddQueryType<EventsQuery>(d => d.Name("Query"))
+                .AddSubscriptionType<EventsSubscription>(d => d.Name("Subscription"))
+                .AddType<EventsProduct>());
+        using var productsApi = CreateSourceSchema(
+            "products-api",
+            builder => builder
+                .AddApolloFederation()
+                .AddQueryType<CountingProductsQuery>(d => d.Name("Query"))
+                .AddType<CountingProduct>(),
+            configureServices: services => services.AddSingleton(new NameCounter()));
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("events-api", eventsApi), ("products-api", productsApi)],
+            enableGlobalObjectIdentification: false);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        // Every event holds product 1, and products returns a new name for every lookup.
+        const string subscription =
+            """
+            subscription {
+              onProductChanged { upc name }
+            }
+            """;
+
+        // act
+        using var response = await client.PostAsync(
+            subscription,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+        var events = new List<string>();
+
+        await foreach (var result in response.ReadAsResultStreamAsync()
+            .WithCancellation(TestContext.Current.CancellationToken))
+        {
+            using (result)
+            {
+                events.Add(result.Data.GetRawText());
+            }
+        }
+
+        // assert
+        events.MatchInlineSnapshots(
+            [
+                """
+                {"onProductChanged":{"upc":"1","name":"Name 1"}}
+                """,
+                """
+                {"onProductChanged":{"upc":"1","name":"Name 2"}}
+                """,
+                """
+                {"onProductChanged":{"upc":"1","name":"Name 3"}}
+                """
+            ]);
     }
 
     private Task<Gateway> CreateGatewayAsync(
@@ -544,6 +707,74 @@ public sealed class ApolloEntityReuseTests : FusionTestBase
         [ReferenceResolver]
         public static AccountsUser? ResolveReference(string id, [Service] AccountsData data)
             => data.Users.FirstOrDefault(u => u.Id == id);
+    }
+
+    public sealed class AccountsMutation
+    {
+        public AccountsUser RenameUser(
+            [GraphQLType(typeof(NonNullType<IdType>))] string id,
+            string name,
+            [Service] AccountsData data)
+        {
+            var index = data.Users.FindIndex(u => u.Id == id);
+            var user = new AccountsUser { Id = id, Name = name, Username = data.Users[index].Username };
+            data.Users[index] = user;
+            return user;
+        }
+    }
+
+    public sealed class EventsQuery
+    {
+        public string Foo() => "Foo";
+    }
+
+    public sealed class EventsSubscription
+    {
+        public async IAsyncEnumerable<EventsProduct> OnProductChangedStream()
+        {
+            for (var i = 0; i < 3; i++)
+            {
+                await Task.Yield();
+                yield return new EventsProduct { Upc = "1" };
+            }
+        }
+
+        [Subscribe(With = nameof(OnProductChangedStream))]
+        public EventsProduct OnProductChanged([EventMessage] EventsProduct product) => product;
+    }
+
+    [GraphQLName("Product")]
+    [ExtendServiceType]
+    [Key("upc")]
+    public sealed class EventsProduct
+    {
+        [External]
+        public string Upc { get; set; } = default!;
+
+        [ReferenceResolver]
+        public static EventsProduct ResolveReference(string upc) => new() { Upc = upc };
+    }
+
+    // The number of times a product name was resolved.
+    public sealed class NameCounter
+    {
+        private int _count;
+
+        public int Next() => Interlocked.Increment(ref _count);
+    }
+
+    public sealed class CountingProductsQuery;
+
+    [GraphQLName("Product")]
+    [Key("upc")]
+    public sealed class CountingProduct
+    {
+        public required string Upc { get; init; }
+
+        public string GetName([Service] NameCounter counter) => $"Name {counter.Next()}";
+
+        [ReferenceResolver]
+        public static CountingProduct ResolveReference(string upc) => new() { Upc = upc };
     }
 
     public sealed class ProductsQuery
