@@ -456,7 +456,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
     }
 
     [Fact]
-    public void CreateRepresentationVariableValue_Should_MatchLeafKeys_When_EntitiesRepeat()
+    public void CreateRepresentationVariableValue_Should_DeduplicateRepresentations_When_EntitiesRepeat()
     {
         // arrange
         var schema = ComposeSchema(
@@ -470,36 +470,15 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
               id: ID!
             }
             """);
-        var plan = PlanOperation(schema, "{ foos { id } }");
-        var node = Assert.IsType<OperationExecutionNode>(Assert.Single(plan.RootNodes));
-        var lookupField = ParseLookupField("{ fooById(id: $__fusion_1_id) { id } }");
-        var requirement = new OperationRequirement(
-            "__fusion_1_id",
-            new NamedTypeNode("String"),
-            SelectionPath.Root,
-            new FieldSelectionMapParser("id").Parse(),
-            null);
 
         using var resultArena = new MemoryArena();
         using var sourceArena = new MemoryArena();
-        using var store = new FetchResultStore();
-        store.Initialize(
-            resultArena,
+        using var store = CreateLiveStore(
             schema,
-            DefaultErrorHandler.Default,
-            plan.Operation,
-            ErrorHandlingMode.Propagate,
-            includeFlags: default,
-            deferFlags: default,
-            pathSegmentLocalPoolCapacity: 16);
-
-        var payload = """{"data":{"foos":[{"id":"1"},{"id":1},{"id":"1"},{"id":1}]}}"""u8.ToArray();
-        var document = SourceResultDocument.Parse(sourceArena, payload, payload.Length);
-        store.AddPartialResults(
-            SelectionPath.Root,
-            [new SourceSchemaResult(CompactPath.Root, document)],
-            node.ResultSelectionSet,
-            containsErrors: false);
+            "{ foos { id } }",
+            """{"data":{"foos":[{"id":"1"},{"id":1},{"id":"1"},{"id":1}]}}""",
+            resultArena,
+            sourceArena);
 
         // act
         var representation = CreateRepresentation(
@@ -507,21 +486,18 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             schema,
             SelectionPath.Root.AppendField("foos"),
             [],
-            [requirement],
+            [Requirement(schema, "__fusion_1_id", "id", new NamedTypeNode("ID"))],
             "Foo",
-            lookupField);
+            ParseLookupField("{ fooById(id: $__fusion_1_id) { id } }"));
 
         // assert
-        var operation = store.Result.Data.Operation;
-        var paths = representation.ResultPaths.Select(
-            resultPath => resultPath.Path.ToPath(operation).Print()
-                + " " + string.Join(", ", resultPath.AdditionalPaths.AsSpan().ToArray().Select(
-                    additionalPath => additionalPath.ToPath(operation).Print())));
-        (Normalize(representation.Value) + "\n" + string.Join("\n", paths)).MatchInlineSnapshot(
+        RenderRepresentation(store, representation).MatchInlineSnapshot(
             """
-            {"representations":[{"__typename":"Foo","id":"1"},{"__typename":"Foo","id":1}]}
-            foos[0] foos[2]
-            foos[1] foos[3]
+            Representations: {"representations":[{"__typename":"Foo","id":"1"},{"__typename":"Foo","id":1}]}
+            Path: foos[0]
+            Additional paths: [foos[2]]
+            Path: foos[1]
+            Additional paths: [foos[3]]
             """);
     }
 
@@ -3454,6 +3430,39 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
     {
         using var document = JsonDocument.Parse(segment.AsSequence());
         return JsonSerializer.Serialize(document.RootElement);
+    }
+
+    private static string RenderRepresentation(
+        FetchResultStore store,
+        RepresentationValue representation)
+    {
+        var operation = store.Result.Data.Operation;
+        var output = new StringBuilder();
+
+        output.Append("Representations: ");
+        output.AppendLine(Normalize(representation.Value));
+
+        foreach (var resultPath in representation.ResultPaths)
+        {
+            output.Append("Path: ");
+            output.AppendLine(resultPath.Path.ToPath(operation).Print());
+            output.Append("Additional paths: [");
+
+            var additionalPaths = resultPath.AdditionalPaths.AsSpan();
+            for (var i = 0; i < additionalPaths.Length; i++)
+            {
+                if (i > 0)
+                {
+                    output.Append(", ");
+                }
+
+                output.Append(additionalPaths[i].ToPath(operation).Print());
+            }
+
+            output.AppendLine("]");
+        }
+
+        return output.ToString().TrimEnd();
     }
 
     private static SelectionSetNode RenderShape(ImmutableArray<RepresentationShapeNode> level)

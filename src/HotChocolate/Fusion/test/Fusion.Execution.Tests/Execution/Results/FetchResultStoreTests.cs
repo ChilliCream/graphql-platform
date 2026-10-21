@@ -2543,6 +2543,107 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void CreateVariableValueSets_Should_KeepNumbersApart_When_DigitsShiftBetweenRequirements()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              a: Int
+              b: Int
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { a b } }",
+            """{"data":{"foos":[{"a":12,"b":3},{"a":1,"b":23},{"a":12,"b":3},{"a":1,"b":23}]}}""",
+            resultArena,
+            sourceArena);
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("foos"),
+            [],
+            [
+                Requirement(schema, "__fusion_1_a", "a", new NamedTypeNode("Int")),
+                Requirement(schema, "__fusion_2_b", "b", new NamedTypeNode("Int"))
+            ]);
+
+        // assert
+        RenderVariableValueSets(store, result).MatchInlineSnapshot(
+            """
+            Path: foos[0]
+            Additional paths: [foos[2]]
+            Variables: {"__fusion_1_a":12,"__fusion_2_b":3}
+            Path: foos[1]
+            Additional paths: [foos[3]]
+            Variables: {"__fusion_1_a":1,"__fusion_2_b":23}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSets_Should_ContinueKeys_When_NullFollowsFullKeyChunk()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              key: String
+            }
+            """);
+
+        // 4,096 keys of 32 bytes (marker, length, quoted 25 character string) fill one 128 KB chunk
+        var foos = Enumerable.Range(0, 4096)
+            .Select(i => $$"""{"key":"{{i:D25}}"}""")
+            .Append("""{"key":null}""")
+            .Append("""{"key":"last"}""");
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { key } }",
+            $$$"""{"data":{"foos":[{{{string.Join(",", foos)}}}]}}""",
+            resultArena,
+            sourceArena);
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("foos"),
+            [],
+            [
+                Requirement(schema, "__fusion_1_key", "key", new NamedTypeNode("String"))
+            ]);
+
+        // assert
+        RenderVariableValueSets(store, result.Skip(4095)).MatchInlineSnapshot(
+            """
+            Path: foos[4095]
+            Additional paths: []
+            Variables: {"__fusion_1_key":"0000000000000000000004095"}
+            Path: foos[4096]
+            Additional paths: []
+            Variables: {"__fusion_1_key":null}
+            Path: foos[4097]
+            Additional paths: []
+            Variables: {"__fusion_1_key":"last"}
+            """);
+    }
+
+    [Fact]
     public void AddPartialResult_Should_CompleteTargetsFromRoot_When_LayoutChangedAfterCollection()
     {
         // arrange

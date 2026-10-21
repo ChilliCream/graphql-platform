@@ -143,6 +143,7 @@ internal sealed partial class FetchResultStore
 
         // reset variable writer (returns excess chunks, keeps the first)
         _variableWriter.Clean();
+        _leafKeyWriter?.Clean();
 
         // release the forwarded variable buffer if a large input made it grow
         if (_forwardedVariableWriter is { Capacity: > MaxRetainedForwardedVariableCapacity })
@@ -159,7 +160,7 @@ internal sealed partial class FetchResultStore
 
         // drop dedup tables that a lookup with many targets made grow
         _variableDedupTable.Trim(maxCollectTargetRetainLength * 4);
-        _leafKeyDedupTable.Trim(maxCollectTargetRetainLength * 4);
+        _leafKeyDedupTable?.Trim(maxCollectTargetRetainLength * 4);
 
         // drop the leaf value buffer if a wide lookup selection made it grow
         if (_leafValues.Length > maxCollectTargetRetainLength)

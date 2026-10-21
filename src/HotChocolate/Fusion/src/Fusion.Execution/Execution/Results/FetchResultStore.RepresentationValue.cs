@@ -349,20 +349,18 @@ internal sealed partial class FetchResultStore
 
         if (hasLeafShape)
         {
-            _leafKeyDedupTable.Initialize(elements.Length, representationWriter);
+            ResetLeafKeys(elements.Length);
         }
 
         try
         {
             foreach (var result in elements)
             {
-                var leafKey = StartLeafKey(representationWriter, _leafKeyDedupTable);
+                var leafKey = hasLeafShape ? StartLeafKey() : default;
 
-                if (!hasLeafShape || !TryAppendShapeLeafKey(ref leafKey, result, requiredShape))
-                {
-                    leafKey.IsValid = false;
-                }
-                else if (TryGetLeafKeyDuplicate(ref leafKey, out var duplicateIndex))
+                if (hasLeafShape
+                    && TryAppendShapeLeafKey(ref leafKey, result, requiredShape)
+                    && TryGetLeafKeyDuplicate(ref leafKey, out var duplicateIndex))
                 {
                     additionalPaths.Add(duplicateIndex, result);
                     continue;
@@ -448,8 +446,7 @@ internal sealed partial class FetchResultStore
         {
             if (!element.TryGetProperty(node.ResponseNameUtf8, out var value))
             {
-                key.Writer.ResetTo(key.Start);
-                key.IsValid = false;
+                DiscardLeafKey(ref key);
                 return false;
             }
 

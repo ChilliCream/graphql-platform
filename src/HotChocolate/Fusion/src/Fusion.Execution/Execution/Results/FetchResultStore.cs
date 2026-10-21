@@ -52,7 +52,8 @@ internal sealed partial class FetchResultStore : IDisposable
     private PooledArrayWriter? _forwardedVariableWriter;
     private readonly JsonWriter _jsonWriter;
     private readonly VariableDedupTable _variableDedupTable;
-    private readonly VariableDedupTable _leafKeyDedupTable;
+    private ChunkedArrayWriter? _leafKeyWriter;
+    private VariableDedupTable? _leafKeyDedupTable;
     private FusionSchemaDefinition _schema = default!;
     private IErrorHandler _errorHandler = default!;
     private Operation _operation = default!;
@@ -79,7 +80,6 @@ internal sealed partial class FetchResultStore : IDisposable
     {
         _jsonWriter = new JsonWriter(_variableWriter, new JsonWriterOptions { Indented = false });
         _variableDedupTable = new VariableDedupTable(_variableWriter);
-        _leafKeyDedupTable = new VariableDedupTable(_variableWriter);
     }
 
     public CompositeResultDocument Result => _result;
@@ -1650,7 +1650,7 @@ AddErrors_Next:
         OperationRequirement requirement,
         string fieldName)
     {
-        _leafKeyDedupTable.Initialize(elements.Length, _variableWriter);
+        ResetLeafKeys(elements.Length);
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator(elements.Length);
         var nextIndex = 0;
@@ -1681,7 +1681,7 @@ AddErrors_Next:
 
             variableValueSets ??= s_variableValuePool.Rent(elements.Length);
 
-            var leafKey = StartLeafKey(_variableWriter, _leafKeyDedupTable);
+            var leafKey = StartLeafKey();
 
             if (TryAppendLeafKey(ref leafKey, value)
                 && TryGetLeafKeyDuplicate(ref leafKey, out var duplicateIndex))
@@ -1800,7 +1800,7 @@ AddErrors_Next:
         OperationRequirement requirement2,
         string fieldName2)
     {
-        _leafKeyDedupTable.Initialize(elements.Length, _variableWriter);
+        ResetLeafKeys(elements.Length);
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator(elements.Length);
         var nextIndex = 0;
@@ -1829,7 +1829,7 @@ AddErrors_Next:
 
             variableValueSets ??= s_variableValuePool.Rent(elements.Length);
 
-            var leafKey = StartLeafKey(_variableWriter, _leafKeyDedupTable);
+            var leafKey = StartLeafKey();
 
             if (TryAppendLeafKey(ref leafKey, value1)
                 && TryAppendLeafKey(ref leafKey, value2)
@@ -1967,7 +1967,7 @@ AddErrors_Next:
         OperationRequirement requirement3,
         string fieldName3)
     {
-        _leafKeyDedupTable.Initialize(elements.Length, _variableWriter);
+        ResetLeafKeys(elements.Length);
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator(elements.Length);
         var nextIndex = 0;
@@ -2006,7 +2006,7 @@ AddErrors_Next:
 
             variableValueSets ??= s_variableValuePool.Rent(elements.Length);
 
-            var leafKey = StartLeafKey(_variableWriter, _leafKeyDedupTable);
+            var leafKey = StartLeafKey();
 
             if (TryAppendLeafKey(ref leafKey, value1)
                 && TryAppendLeafKey(ref leafKey, value2)
@@ -2121,8 +2121,30 @@ AddErrors_Next:
         return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
     }
 
-    private static LeafKey StartLeafKey(ChunkedArrayWriter writer, VariableDedupTable table)
-        => new(writer, table, writer.Position);
+    /// <summary>
+    /// Clears the leaf keys of the previous lookup and sizes the key table for
+    /// <paramref name="capacity"/> targets.
+    /// </summary>
+    private void ResetLeafKeys(int capacity)
+    {
+        if (_leafKeyWriter is null || _leafKeyDedupTable is null)
+        {
+            _leafKeyWriter = new ChunkedArrayWriter();
+            _leafKeyDedupTable = new VariableDedupTable(_leafKeyWriter);
+        }
+        else
+        {
+            _leafKeyWriter.Reset();
+        }
+
+        _leafKeyDedupTable.Initialize(capacity);
+    }
+
+    private LeafKey StartLeafKey()
+    {
+        Debug.Assert(_leafKeyWriter is not null && _leafKeyDedupTable is not null);
+        return new LeafKey(_leafKeyWriter, _leafKeyDedupTable, _leafKeyWriter.Position);
+    }
 
     /// <summary>
     /// Appends the kind marker, length and raw bytes of a leaf value to the key.
@@ -2132,8 +2154,7 @@ AddErrors_Next:
     {
         if (!value.TryGetLeafValueKey(out var kind, out var raw))
         {
-            key.Writer.ResetTo(key.Start);
-            key.IsValid = false;
+            DiscardLeafKey(ref key);
             return false;
         }
 
@@ -2158,12 +2179,26 @@ AddErrors_Next:
 
         if (key.Table.TryGet(key.Hash, key.Start, length, out index))
         {
-            key.Writer.ResetTo(key.Start);
-            key.IsValid = false;
+            DiscardLeafKey(ref key);
             return true;
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Removes the bytes of the key from the writer and marks the key as invalid.
+    /// </summary>
+    private static void DiscardLeafKey(ref LeafKey key)
+    {
+        // a writer positioned at the end of a full chunk has not rented the next one yet,
+        // so it is only moved back when the key wrote bytes.
+        if (key.Writer.Position != key.Start)
+        {
+            key.Writer.ResetTo(key.Start);
+        }
+
+        key.IsValid = false;
     }
 
     private static void AddLeafKey(ref LeafKey key, int index)
@@ -3144,7 +3179,8 @@ AddErrors_Next:
 
         _variableDedupTable.Dispose();
         _variableWriter.Dispose();
-        _leafKeyDedupTable.Dispose();
+        _leafKeyDedupTable?.Dispose();
+        _leafKeyWriter?.Dispose();
         _forwardedVariableWriter?.Dispose();
         _pathPool?.Dispose();
     }
@@ -3249,8 +3285,8 @@ AddErrors_Next:
     }
 
     /// <summary>
-    /// A key built from the raw leaf values of a lookup target. Targets with equal keys have equal
-    /// variable values.
+    /// A key built from the raw leaf values of a lookup target. Targets with equal keys have
+    /// equal variable values. The default key is invalid.
     /// </summary>
     private struct LeafKey(ChunkedArrayWriter writer, VariableDedupTable table, int start)
     {
@@ -3268,19 +3304,13 @@ AddErrors_Next:
         private const int DefaultBucketCount = 16;
         private const int TrackedSlotCapacity = 16;
 
-        private ChunkedArrayWriter _writer = writer;
+        private readonly ChunkedArrayWriter _writer = writer;
         private Entry[] _table = RentClearedTable(DefaultBucketCount * DefaultBucketSize);
         private int[] _writtenSlots = [];
         private int _bucketCount = DefaultBucketCount;
         private readonly int _bucketSize = DefaultBucketSize;
         private int _writtenCount;
         private bool _clearFullTable;
-
-        public void Initialize(int capacity, ChunkedArrayWriter writer)
-        {
-            _writer = writer;
-            Initialize(capacity);
-        }
 
         public void Initialize(int capacity)
         {
@@ -3357,8 +3387,8 @@ AddErrors_Next:
         }
 
         /// <summary>
-        /// Replaces the table with one of the default size when it holds more than
-        /// <paramref name="maxEntryCount"/> entries.
+        /// Replaces the table with one of the default size when its slot capacity exceeds
+        /// <paramref name="maxEntryCount"/>.
         /// </summary>
         public void Trim(int maxEntryCount)
         {
