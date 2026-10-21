@@ -548,31 +548,77 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
             messages.Select(message => (message.Scope.Name, message.Scope.DisposeCount)));
     }
 
-    [Fact]
-    public async Task OutboxPublishAsync_Should_StageScheduledMessage_When_SaveHasNotCompleted()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task OutboxDispatch_Should_RejectScheduledMessage_When_OptionsSpecifyScheduledTime(bool send)
     {
         // arrange
         var connectionString = await CreateDatabaseAsync();
-        await using var provider = await CreateProviderAsync(connectionString, new StubOutboxSignal());
+        var recorder = new ScopeRecorder();
+        await using var provider = await CreateProviderAsync(
+            connectionString, new StubOutboxSignal(), scopeRecorder: recorder);
         await EnsureCreatedAsync(provider);
         await using var scope = provider.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
         var due = DateTimeOffset.UtcNow.AddHours(1);
-        var options = new PublishOptions { ScheduledTime = due };
 
         // act
-        await db.Outbox.PublishAsync(new OrderPlaced { OrderId = 1 }, options, TestToken);
-        await db.Outbox.PublishAsync(new OrderPlaced { OrderId = 2 }, TestToken);
-        var staged = db.ChangeTracker.Entries<OutboxMessage>().Select(x => x.Entity).ToArray();
-        var rowsBeforeSave = await CountOutboxRowsAsync(connectionString);
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () =>
+        {
+            if (send)
+            {
+                await db.Outbox.SendAsync(
+                    new FulfillOrder(1), new SendOptions { ScheduledTime = due }, TestToken);
+            }
+            else
+            {
+                await db.Outbox.PublishAsync(
+                    new OrderPlaced { OrderId = 1 }, new PublishOptions { ScheduledTime = due }, TestToken);
+            }
+        });
         await db.SaveChangesAsync(TestToken);
 
         // assert
-        Assert.Equal(0, rowsBeforeSave);
-        Assert.Equal(due.UtcDateTime, staged[0].ScheduledAt);
-        Assert.Null(staged[0].GroupId);
-        Assert.Equal(staged[1].Id, staged[1].GroupId);
-        Assert.Equal(2, await CountOutboxRowsAsync(connectionString));
+        Assert.Equal("options", exception.ParamName);
+        Assert.Empty(recorder.Messages);
+        Assert.Empty(db.ChangeTracker.Entries<OutboxMessage>());
+        Assert.Equal(0, await CountOutboxRowsAsync(connectionString));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task OutboxDispatch_Should_RejectScheduledMessage_When_MiddlewareChangesSerializedEnvelope(bool send)
+    {
+        // arrange
+        var connectionString = await CreateDatabaseAsync();
+        var recorder = new ScopeRecorder { ScheduledEnvelopeTime = DateTimeOffset.UtcNow.AddHours(1) };
+        await using var provider = await CreateProviderAsync(
+            connectionString, new StubOutboxSignal(), scopeRecorder: recorder);
+        await EnsureCreatedAsync(provider);
+        await using var scope = provider.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
+
+        // act
+        var exception = await Assert.ThrowsAsync<ArgumentException>(async () =>
+        {
+            if (send)
+            {
+                await db.Outbox.SendAsync(new FulfillOrder(1), TestToken);
+            }
+            else
+            {
+                await db.Outbox.PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken);
+            }
+        });
+        await db.SaveChangesAsync(TestToken);
+
+        // assert
+        Assert.Equal("envelope", exception.ParamName);
+        Assert.Single(recorder.Messages);
+        Assert.Empty(db.ChangeTracker.Entries<OutboxMessage>());
+        Assert.Equal(0, await CountOutboxRowsAsync(connectionString));
     }
 
     [Theory]
@@ -1104,27 +1150,39 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
     }
 
     [Fact]
-    public async Task OutboxPublishAsync_Should_StartNewOrderedGroup_When_PreviousSaveSucceeds()
+    public async Task OutboxPublishAsync_Should_SaveMessageAndBusinessChanges_When_UsingExistingSchema()
     {
         // arrange
         var connectionString = await CreateDatabaseAsync();
+        await using var connection = new NpgsqlConnection(connectionString);
+        await connection.OpenAsync(TestToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            CREATE TABLE outbox_messages (
+                id uuid PRIMARY KEY,
+                envelope json NOT NULL,
+                times_sent integer NOT NULL,
+                created_at timestamp with time zone NOT NULL
+            );
+            CREATE TABLE orders ("Id" integer PRIMARY KEY)
+            """;
+        await command.ExecuteNonQueryAsync(TestToken);
         await using var provider = await CreateProviderAsync(connectionString, new StubOutboxSignal());
-        await EnsureCreatedAsync(provider);
         await using var caller = provider.CreateAsyncScope();
         var db = caller.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
+        db.Orders.Add(new Order { Id = 1 });
 
         // act
         await db.Outbox.PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken);
-        await db.Outbox.PublishAsync(new OrderPlaced { OrderId = 2 }, TestToken);
         await db.SaveChangesAsync(TestToken);
-        await db.Outbox.PublishAsync(new OrderPlaced { OrderId = 3 }, TestToken);
-        await db.SaveChangesAsync(TestToken);
-        var groups = (await db.Set<OutboxMessage>().ToListAsync(TestToken))
-            .GroupBy(x => x.GroupId).OrderByDescending(x => x.Count())
-            .Select(group => group.OrderBy(x => x.Sequence).Select(x => x.Sequence).ToArray()).ToArray();
+        var orderIds = await db.Orders.Select(order => order.Id).ToArrayAsync(TestToken);
+        command.CommandText = "SELECT envelope -> 'body' FROM outbox_messages";
+        var body = (string)(await command.ExecuteScalarAsync(TestToken))!;
 
         // assert
-        Assert.Equal([[0L, 1L], [0L]], groups);
+        Assert.Equal([1], orderIds);
+        Assert.Equal(1, await CountOutboxRowsAsync(connectionString));
+        Assert.Equal(1, JsonSerializer.Deserialize<OrderPlaced>(body)!.OrderId);
     }
 
     [Theory]
@@ -1722,6 +1780,22 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
                     },
                     "ScopeRecorder"),
                 before: "Serialization"));
+
+            if (scopeRecorder.ScheduledEnvelopeTime is { } scheduledTime)
+            {
+                builder.ConfigureMessageBus(bus => bus.UseDispatch(
+                    new DispatchMiddlewareConfiguration(
+                        (_, next) => context =>
+                        {
+                            context.Envelope = new MessageEnvelope(context.Envelope!)
+                            {
+                                ScheduledTime = scheduledTime
+                            };
+                            return next(context);
+                        },
+                        "ScheduleSerializedEnvelope"),
+                    before: "Outbox"));
+            }
         }
 
         var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
@@ -1837,6 +1911,8 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         public CancellationTokenSource? CancelAfterNext { get; init; }
 
         public Func<ValueTask>? AfterNext { get; set; }
+
+        public DateTimeOffset? ScheduledEnvelopeTime { get; init; }
     }
 
     private sealed class CustomOutboxProvider : IDbContextOutboxProvider

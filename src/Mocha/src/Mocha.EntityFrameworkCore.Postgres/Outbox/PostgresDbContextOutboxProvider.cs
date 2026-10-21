@@ -60,10 +60,7 @@ internal sealed class PostgresDbContextOutboxProvider(
 #else
             var id = Guid.NewGuid();
 #endif
-            return new OutboxMessage(id, Encoding.UTF8.GetString(_arrayWriter.WrittenMemory.Span))
-            {
-                ScheduledAt = envelope.ScheduledTime?.UtcDateTime
-            };
+            return new OutboxMessage(id, Encoding.UTF8.GetString(_arrayWriter.WrittenMemory.Span));
         }
         finally
         {

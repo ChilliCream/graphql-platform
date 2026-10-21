@@ -36,26 +36,6 @@ public sealed class OutboxTableInfo
     public string CreatedAt { get; set; } = "created_at";
 
     /// <summary>
-    /// Gets or sets the column name for the ordered group identifier. Defaults to <c>"group_id"</c>.
-    /// </summary>
-    public string GroupId { get; set; } = "group_id";
-
-    /// <summary>
-    /// Gets or sets the column name for the group sequence. Defaults to <c>"sequence"</c>.
-    /// </summary>
-    public string Sequence { get; set; } = "sequence";
-
-    /// <summary>
-    /// Gets or sets the column name for the earliest delivery time. Defaults to <c>"scheduled_at"</c>.
-    /// </summary>
-    public string ScheduledAt { get; set; } = "scheduled_at";
-
-    /// <summary>
-    /// Gets or sets the name of the ordered group index. Defaults to <c>"ix_outbox_messages_group_sequence"</c>.
-    /// </summary>
-    public string IxGroupSequence { get; set; } = "ix_outbox_messages_group_sequence";
-
-    /// <summary>
     /// Gets or sets the name of the primary key index. Defaults to <c>"ix_outbox_messages_primary_key"</c>.
     /// </summary>
     public string IxPrimaryKey { get; set; } = "ix_outbox_messages_primary_key";

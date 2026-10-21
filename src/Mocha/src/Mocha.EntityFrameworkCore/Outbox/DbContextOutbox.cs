@@ -35,6 +35,7 @@ public sealed class DbContextOutbox : IMessageDispatchTarget
 
     /// <summary>
     /// Prepares a publication with the specified options for the next save.
+    /// Scheduled messages are not supported.
     /// </summary>
     public async ValueTask PublishAsync<T>(
         T message,
@@ -43,6 +44,11 @@ public sealed class DbContextOutbox : IMessageDispatchTarget
         where T : notnull
     {
         ArgumentNullException.ThrowIfNull(message);
+        if (options.ScheduledTime is not null)
+        {
+            throw ThrowHelper.ScheduledOutboxMessage(nameof(options));
+        }
+
         var dispatcher = Begin(cancellationToken);
         try
         {
@@ -64,6 +70,7 @@ public sealed class DbContextOutbox : IMessageDispatchTarget
 
     /// <summary>
     /// Prepares a directed message with the specified options for the next save.
+    /// Scheduled messages are not supported.
     /// </summary>
     public async ValueTask SendAsync<T>(
         T message,
@@ -72,6 +79,11 @@ public sealed class DbContextOutbox : IMessageDispatchTarget
         where T : notnull
     {
         ArgumentNullException.ThrowIfNull(message);
+        if (options.ScheduledTime is not null)
+        {
+            throw ThrowHelper.ScheduledOutboxMessage(nameof(options));
+        }
+
         var dispatcher = Begin(cancellationToken);
         try
         {
@@ -98,6 +110,11 @@ public sealed class DbContextOutbox : IMessageDispatchTarget
         if (!IsPreparing || _prepared is not null)
         {
             throw ThrowHelper.InvalidOutboxDispatch();
+        }
+
+        if (envelope.ScheduledTime is not null)
+        {
+            throw ThrowHelper.ScheduledOutboxMessage(nameof(envelope));
         }
 
         _prepared = GetProvider().Prepare(envelope);

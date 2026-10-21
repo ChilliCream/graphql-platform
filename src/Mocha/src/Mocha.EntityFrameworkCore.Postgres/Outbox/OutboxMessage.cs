@@ -29,20 +29,5 @@ public sealed class OutboxMessage(Guid id, string envelope) : IPreparedOutboxMes
     /// </summary>
     public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
 
-    /// <summary>
-    /// Gets the identifier of the ordered group, or null for an independently delivered message.
-    /// </summary>
-    public Guid? GroupId { get; internal set; }
-
-    /// <summary>
-    /// Gets the position of the message within its ordered group.
-    /// </summary>
-    public long Sequence { get; internal set; }
-
-    /// <summary>
-    /// Gets the earliest UTC delivery time, or null for immediate delivery after commit.
-    /// </summary>
-    public DateTime? ScheduledAt { get; internal set; }
-
     void IDisposable.Dispose() { }
 }

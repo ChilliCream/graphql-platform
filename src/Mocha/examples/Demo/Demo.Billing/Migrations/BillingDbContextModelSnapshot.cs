@@ -18,7 +18,7 @@ namespace HotChocolate.Demo.Billing.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.12")
+                .HasAnnotation("ProductVersion", "10.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -235,24 +235,10 @@ namespace HotChocolate.Demo.Billing.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<string>("Envelope")
+                    b.Property<JsonDocument>("Envelope")
                         .IsRequired()
                         .HasColumnType("json")
                         .HasColumnName("envelope");
-
-                    b.Property<Guid?>("GroupId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("group_id");
-
-                    b.Property<DateTime?>("ScheduledAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("scheduled_at");
-
-                    b.Property<long>("Sequence")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasDefaultValue(0L)
-                        .HasColumnName("sequence");
 
                     b.Property<int>("TimesSent")
                         .HasColumnType("integer")
@@ -267,10 +253,6 @@ namespace HotChocolate.Demo.Billing.Migrations
 
                     b.HasIndex("TimesSent")
                         .HasDatabaseName("ix_outbox_messages_times_sent");
-
-                    b.HasIndex("GroupId", "Sequence")
-                        .IsUnique()
-                        .HasDatabaseName("ix_outbox_messages_group_sequence");
 
                     b.ToTable("outbox_messages", (string)null);
                 });

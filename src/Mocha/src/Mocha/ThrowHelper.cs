@@ -214,6 +214,10 @@ internal static class ThrowHelper
             + $"'{transportType.FullName}'. Register a transport-specific scheduled "
             + "message store or configure a fallback scheduler.");
 
+    public static Exception ScheduledDispatchTargetUnsupported()
+        => new NotSupportedException(
+            "Scheduled dispatch is not supported for an explicit dispatch target.");
+
     public static Exception ScheduledStoreTokenPrefixEmpty()
         => new InvalidOperationException(
             "Scheduled message store registrations must define a non-empty token prefix.");

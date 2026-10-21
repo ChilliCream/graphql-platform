@@ -707,9 +707,7 @@ public class AppDbContext : DbContext
 }
 ```
 
-`OutboxMessage` stores the envelope as JSON with an identifier, attempt count, retry timestamp, group identifier, sequence number, and optional scheduled time. EF Core discovers the table name, schema, and column mappings from your model.
-
-Generate and apply an EF migration before starting the outbox worker. Existing outbox tables need nullable `group_id` (`uuid`) and `scheduled_at` (`timestamp with time zone`) columns, a `sequence` (`bigint`) column with default `0`, and a unique index on `(group_id, sequence)`. Existing rows with a null group remain independently deliverable. Stop older workers during this upgrade; they do not enforce group ordering.
+`OutboxMessage` has four columns: `Id` (Guid), `Envelope` (string stored as JSON), `TimesSent` (int), and `CreatedAt` (DateTime). EF Core discovers the table name, schema, and column mappings from your model.
 
 **3. Register the outbox and transaction middleware.**
 
@@ -875,7 +873,7 @@ await db.Outbox.PublishAsync(
     cancellationToken);
 ```
 
-`PublishOptions` and `SendOptions` can set an expiration time or `ScheduledTime`. Scheduled messages are saved atomically with the entity changes and become eligible for relay when due. Each scheduled message is independent of the save's ordered group, so it does not delay immediate messages.
+`PublishOptions` and `SendOptions` can set an expiration time. Setting `ScheduledTime` throws an `ArgumentException`; `DbContext.Outbox` does not support scheduled messages.
 
 Multiple contexts have independent save and transaction boundaries, including inside a handler. `UseTransaction()` manages the configured context in the handler scope. Additional factory-created contexts do not automatically join that transaction. If one commits and the handler later fails, that commit remains; a handler retry can repeat the work. Make such work idempotent, or explicitly enlist the contexts in a shared transaction.
 
@@ -930,8 +928,6 @@ builder.Services
 The outbox processor is a background hosted service (`IHostedService`). When the EF Core interceptors detect a `SaveChanges` or transaction commit, they signal the processor through `IOutboxSignal`. Messages added through `DbContext.Outbox` are signaled the same way after the save. Inside an ambient `TransactionScope`, the signal is raised when the ambient transaction completes. The processor reads pending `OutboxMessage` rows, deserializes the envelope, and dispatches each message through the bus's dispatch pipeline.
 
 The processor also polls at least once per second while idle, so a missed signal does not strand committed messages. `TimesSent` tracks dispatch attempts, with exponential retry delays and a maximum of ten attempts. Messages are deleted after successful transport dispatch.
-
-Immediate messages staged between saves form an ordered group. The relay locks the earliest remaining message in each group; a locked, delayed, or exhausted head blocks later messages in that group while other groups can progress. Deleting an acknowledged row advances the durable group position. A crash between transport acknowledgment and database commit can replay that message. This orders relay dispatch within a group, not execution by concurrent consumers or publications from independent contexts.
 
 ## Skip the outbox for specific dispatches
 

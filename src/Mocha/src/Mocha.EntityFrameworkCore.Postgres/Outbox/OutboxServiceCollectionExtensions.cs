@@ -102,10 +102,7 @@ public static class OutboxServiceCollectionExtensions
                     (nameof(OutboxMessage.Id), tableInfo.Outbox.Id),
                     (nameof(OutboxMessage.Envelope), tableInfo.Outbox.Envelope),
                     (nameof(OutboxMessage.TimesSent), tableInfo.Outbox.TimesSent),
-                    (nameof(OutboxMessage.CreatedAt), tableInfo.Outbox.CreatedAt),
-                    (nameof(OutboxMessage.GroupId), tableInfo.Outbox.GroupId),
-                    (nameof(OutboxMessage.Sequence), tableInfo.Outbox.Sequence),
-                    (nameof(OutboxMessage.ScheduledAt), tableInfo.Outbox.ScheduledAt)
+                    (nameof(OutboxMessage.CreatedAt), tableInfo.Outbox.CreatedAt)
                 };
 
                 options.MatchesDestination = context =>
@@ -271,21 +268,6 @@ public static class OutboxServiceCollectionExtensions
             {
                 outbox.CreatedAt = columnName;
             }
-        }
-
-        if (outboxEntity.FindProperty(nameof(OutboxMessage.GroupId))?.GetColumnName(storeObject.Value) is { } groupId)
-        {
-            outbox.GroupId = groupId;
-        }
-
-        if (outboxEntity.FindProperty(nameof(OutboxMessage.Sequence))?.GetColumnName(storeObject.Value) is { } sequence)
-        {
-            outbox.Sequence = sequence;
-        }
-
-        if (outboxEntity.FindProperty(nameof(OutboxMessage.ScheduledAt))?.GetColumnName(storeObject.Value) is { } scheduledAt)
-        {
-            outbox.ScheduledAt = scheduledAt;
         }
     }
 

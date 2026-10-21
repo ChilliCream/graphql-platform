@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 using Mocha.Middlewares;
 using Mocha.Outbox;
+using Mocha.Scheduling;
 using Mocha.Transport.InMemory;
 
 namespace Mocha.Tests.Infrastructure;
@@ -127,39 +128,67 @@ public class DispatchTargetTests(ITestOutputHelper output)
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task DispatchAsync_Should_CaptureScheduledMessage_When_TargetIsExplicit(bool send)
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task DispatchAsync_Should_RejectScheduledMessage_When_TargetIsExplicit(
+        bool send,
+        bool scheduledByMiddleware)
     {
         // arrange
         var target = new CapturingTarget(throwOnCapture: false);
-        await using var provider = await CreateProviderAsync(outbox: true, static _ => { });
+        var store = new CapturingScheduledMessageStore();
+        var scheduledTime = new DateTimeOffset(2030, 1, 1, 0, 0, 0, TimeSpan.Zero);
+        await using var provider = await CreateProviderAsync(outbox: true, builder =>
+        {
+            builder.Services.AddSingleton(store);
+            builder.Services.AddSingleton(new ScheduledMessageStoreRegistration(
+                typeof(InMemoryMessagingTransport),
+                "test:",
+                typeof(CapturingScheduledMessageStore)));
+            if (scheduledByMiddleware)
+            {
+                builder.ConfigureMessageBus(b => b.UseDispatch(
+                    new DispatchMiddlewareConfiguration(
+                        (_, next) => context =>
+                        {
+                            context.ScheduledTime = scheduledTime;
+                            return next(context);
+                        },
+                        "ScheduleMessage"),
+                    before: "Scheduling"));
+            }
+        });
         using var scope = provider.CreateScope();
         var dispatcher = (IMessageDispatcher)scope.ServiceProvider.GetRequiredService<IMessageBus>();
-        var scheduledTime = new DateTimeOffset(2030, 1, 1, 0, 0, 0, TimeSpan.Zero);
+        DateTimeOffset? optionsScheduledTime = scheduledByMiddleware ? null : scheduledTime;
 
         // act
-        if (send)
+        var exception = await Assert.ThrowsAsync<NotSupportedException>(async () =>
         {
-            await dispatcher.SendAsync(
-                new TargetMessage("scheduled"),
-                new SendOptions { ScheduledTime = scheduledTime },
-                target,
-                CancellationToken.None);
-        }
-        else
-        {
-            await dispatcher.PublishAsync(
-                new TargetMessage("scheduled"),
-                new PublishOptions { ScheduledTime = scheduledTime },
-                target,
-                CancellationToken.None);
-        }
+            if (send)
+            {
+                await dispatcher.SendAsync(
+                    new TargetMessage("scheduled"),
+                    new SendOptions { ScheduledTime = optionsScheduledTime },
+                    target,
+                    CancellationToken.None);
+            }
+            else
+            {
+                await dispatcher.PublishAsync(
+                    new TargetMessage("scheduled"),
+                    new PublishOptions { ScheduledTime = optionsScheduledTime },
+                    target,
+                    CancellationToken.None);
+            }
+        });
 
         // assert
-        var envelope = Assert.Single(target.Envelopes);
-        Assert.Equal(scheduledTime, envelope.ScheduledTime);
-        Assert.Equal("scheduled", Deserialize(envelope).Value);
+        Assert.Equal("Scheduled dispatch is not supported for an explicit dispatch target.", exception.Message);
+        Assert.Empty(target.Envelopes);
+        Assert.Empty(store.Envelopes);
         Assert.Empty(provider.GetRequiredService<CapturingOutbox>().Envelopes);
     }
 
@@ -335,6 +364,20 @@ public class DispatchTargetTests(ITestOutputHelper output)
             Envelopes.Add(MessageEnvelope.CopyWithOwnedBody(envelope));
             return default;
         }
+    }
+
+    private sealed class CapturingScheduledMessageStore : IScheduledMessageStore
+    {
+        public List<MessageEnvelope> Envelopes { get; } = [];
+
+        public ValueTask<string> PersistAsync(IDispatchContext context, CancellationToken cancellationToken)
+        {
+            Envelopes.Add(MessageEnvelope.CopyWithOwnedBody(context.Envelope!));
+            return ValueTask.FromResult("test:scheduled");
+        }
+
+        public ValueTask<bool> CancelAsync(string token, CancellationToken cancellationToken)
+            => ValueTask.FromResult(false);
     }
 
     private sealed class TrackingContextPool : ObjectPool<DispatchContext>

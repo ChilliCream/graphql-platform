@@ -29,6 +29,9 @@ internal static partial class ThrowHelper
         => new("A message is already being prepared for this DbContext. "
             + "Await the operation before publishing another message or saving changes.");
 
+    public static ArgumentException ScheduledOutboxMessage(string parameterName)
+        => new("DbContext.Outbox does not support scheduled messages.", parameterName);
+
     public static ObjectDisposedException OutboxLeaseExpired()
         => new(nameof(DbContextOutbox), "This outbox belongs to an expired DbContext lease.");
 }

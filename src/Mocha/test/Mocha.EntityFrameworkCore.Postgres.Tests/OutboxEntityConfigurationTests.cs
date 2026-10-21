@@ -9,6 +9,36 @@ namespace Mocha.EntityFrameworkCore.Postgres.Tests;
 public sealed class OutboxEntityConfigurationTests
 {
     [Fact]
+    public void Configure_Should_PreserveExistingSchema_When_Applied()
+    {
+        // arrange
+        var entityType = GetOutboxMessageEntityType();
+
+        // act
+        var columns = entityType.GetProperties()
+            .OrderBy(property => property.GetColumnName(), StringComparer.Ordinal)
+            .Select(property => (property.GetColumnName(), property.GetColumnType(), property.IsNullable))
+            .ToArray();
+        var indexes = entityType.GetIndexes()
+            .OrderBy(index => index.GetDatabaseName(), StringComparer.Ordinal)
+            .Select(index => (index.GetDatabaseName(), index.IsUnique))
+            .ToArray();
+
+        // assert
+        Assert.Equal(
+            [
+                ("created_at", "timestamp with time zone", false),
+                ("envelope", "json", false),
+                ("id", "uuid", false),
+                ("times_sent", "integer", false)
+            ],
+            columns);
+        Assert.Equal(
+            [("ix_outbox_messages_created_at", false), ("ix_outbox_messages_times_sent", false)],
+            indexes);
+    }
+
+    [Fact]
     public void Configure_Should_SetTableName_When_Applied()
     {
         var entityType = GetOutboxMessageEntityType();

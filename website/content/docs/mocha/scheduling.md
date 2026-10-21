@@ -255,7 +255,9 @@ When multiple instances of your service are running, each scheduled message is p
 
 ## Outbox integration
 
-When both the transactional outbox and scheduling are configured, scheduled messages participate in the transaction correctly. Messages with a `ScheduledTime` are intercepted by the scheduler and never reach the outbox. Messages dispatched by the background worker skip both the scheduler and the outbox, going directly to the transport. See [Reliability](./reliability.md) for outbox configuration.
+Messages published or sent through `IMessageBus` with a `ScheduledTime` are intercepted by the scheduler before reaching the outbox. The `UsePostgresScheduling()` store participates in the configured DbContext's current database transaction. Messages dispatched by the background worker skip both the scheduler and the outbox, going directly to the transport.
+
+`DbContext.Outbox` does not support scheduled messages. Setting `ScheduledTime` on its publish or send options throws an `ArgumentException`. See [Reliability](./reliability.md) for outbox configuration.
 
 # Schedule messages in sagas
 

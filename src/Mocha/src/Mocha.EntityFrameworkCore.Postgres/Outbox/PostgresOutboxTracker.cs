@@ -13,19 +13,10 @@ namespace Mocha.Outbox;
 internal sealed class PostgresOutboxTracker : SaveChangesInterceptor, IResettableService, IDisposable
 {
     private readonly List<EntityEntry<OutboxMessage>> _entries = [];
-    private Guid? _groupId;
-    private long _sequence;
 
     public void Track(DbContext context, OutboxMessage message)
     {
         EnsureAtomicSave(context);
-        if (message.ScheduledAt is null)
-        {
-            _groupId ??= message.Id;
-            message.GroupId = _groupId;
-            message.Sequence = _sequence++;
-        }
-
         try
         {
             _entries.Add(context.Add(message));
@@ -65,8 +56,6 @@ internal sealed class PostgresOutboxTracker : SaveChangesInterceptor, IResettabl
     public override int SavedChanges(SaveChangesCompletedEventData eventData, int result)
     {
         PruneMessages(eventData.Context!);
-        _groupId = null;
-        _sequence = 0;
         return result;
     }
 
@@ -113,18 +102,7 @@ internal sealed class PostgresOutboxTracker : SaveChangesInterceptor, IResettabl
                 _entries.RemoveAt(i);
             }
         }
-
-        if (_entries.Count == 0)
-        {
-            _groupId = null;
-            _sequence = 0;
-        }
     }
 
-    private void ReleaseMessages()
-    {
-        _entries.Clear();
-        _groupId = null;
-        _sequence = 0;
-    }
+    private void ReleaseMessages() => _entries.Clear();
 }
