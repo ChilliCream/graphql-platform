@@ -167,8 +167,18 @@ public sealed partial class CompositeResultDocument : IDisposable
         return row.SizeOrLength;
     }
 
-    [SkipLocalsInit]
     internal CompactPath CreateCompactPath(Cursor current)
+        => CreateCompactPath(current, Volatile.Read(ref _pathPool));
+
+    /// <summary>
+    /// Creates the path of the element at <paramref name="current"/> in arrays that are not rented
+    /// from the request scoped pool.
+    /// </summary>
+    internal CompactPath CreateUnpooledCompactPath(Cursor current)
+        => CreateCompactPath(current, pathPool: null);
+
+    [SkipLocalsInit]
+    private CompactPath CreateCompactPath(Cursor current, PathSegmentLocalPool? pathPool)
     {
         var firstRow = _metaDb.Get(current);
 
@@ -201,7 +211,7 @@ public sealed partial class CompositeResultDocument : IDisposable
         }
 
         Span<int> pathBuffer = stackalloc int[32];
-        var path = new CompactPathBuilder(pathBuffer, Volatile.Read(ref _pathPool));
+        var path = new CompactPathBuilder(pathBuffer, pathPool);
         var parentTokenType = ElementTokenType.StartObject;
 
         for (var i = written - 1; i >= 0; i--)

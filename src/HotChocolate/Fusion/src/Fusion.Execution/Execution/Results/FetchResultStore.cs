@@ -958,9 +958,8 @@ AddErrors_Next:
     private readonly record struct LeafValue(Selection Selection, CompositeResultElement Value);
 
     /// <summary>
-    /// Resolves the additional targets of a source schema result. Targets collected as cursors
-    /// are used directly while the result document keeps the structure they were collected in,
-    /// otherwise each target is resolved from the root by its path.
+    /// Resolves the additional targets of a source schema result to the elements currently at their
+    /// paths.
     /// </summary>
     private readonly ref struct AdditionalTargets
     {
@@ -2149,7 +2148,7 @@ AddErrors_Next:
 
             for (var i = 0; i < cursors.Length; i++)
             {
-                paths[i] = document.CreateCompactPath(new CompositeResultDocument.Cursor(cursors[i]));
+                paths[i] = document.CreateUnpooledCompactPath(new CompositeResultDocument.Cursor(cursors[i]));
             }
 
             return paths;
@@ -2161,14 +2160,6 @@ AddErrors_Next:
         int startPosition,
         ref AdditionalPathAccumulator additionalPaths,
         int nextIndex)
-        => TryCreateVariableValues(target, startPosition, ref additionalPaths, nextIndex, out _);
-
-    private VariableValues? TryCreateVariableValues(
-        CompositeResultElement target,
-        int startPosition,
-        ref AdditionalPathAccumulator additionalPaths,
-        int nextIndex,
-        out int dedupIndex)
     {
         var length = _variableWriter.Position - startPosition;
         var hash = _variableWriter.GetHashCode(startPosition, length);
@@ -2177,13 +2168,11 @@ AddErrors_Next:
         // the same fetch, so it is tracked as an additional target of the existing entry.
         if (_variableDedupTable.TryGet(hash, startPosition, length, out var existingIndex))
         {
-            dedupIndex = existingIndex;
             additionalPaths.Add(existingIndex, target);
             _variableWriter.ResetTo(startPosition);
             return null;
         }
 
-        dedupIndex = nextIndex;
         _variableDedupTable.Add(hash, nextIndex, startPosition, length);
         return new VariableValues(target.CompactPath, JsonSegment.Create(_variableWriter, startPosition, length));
     }

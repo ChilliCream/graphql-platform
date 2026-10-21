@@ -3,8 +3,8 @@ using HotChocolate.Fusion.Text.Json;
 namespace HotChocolate.Fusion.Execution.Results;
 
 /// <summary>
-/// The additional targets of lookup variable value sets, kept as cursors into the result document
-/// until their paths are requested.
+/// The additional targets of a lookup, kept as cursors into the result document until their paths
+/// are requested.
 /// </summary>
 internal sealed class TargetCursorPaths : CompactPathSource
 {

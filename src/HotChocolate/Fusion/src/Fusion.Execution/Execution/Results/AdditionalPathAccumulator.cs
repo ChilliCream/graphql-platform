@@ -4,11 +4,9 @@ using HotChocolate.Fusion.Text.Json;
 namespace HotChocolate.Fusion.Execution.Results;
 
 /// <summary>
-/// A flat, allocation-free accumulator for additional targets that replaces per-slot
-/// List&lt;CompactPath&gt; with ArrayPool-rented buffers.
-/// Stores (slotIndex, target) pairs and produces <see cref="CompactPathSegment"/>
-/// per slot via counting sort in ApplyTo. A target is either a path or a result element; when
-/// every target is a result element, the segments keep cursors and create paths on first access.
+/// Collects the additional targets of variable value set slots, as paths or result elements, and
+/// assigns them to their slots in the order they were added. When every target is a result element,
+/// the assigned segments create their paths on first access.
 /// </summary>
 internal ref struct AdditionalPathAccumulator
 {
@@ -24,8 +22,7 @@ internal ref struct AdditionalPathAccumulator
     private int _pathCount;
 
     /// <summary>
-    /// Creates an accumulator that sizes its buffers for <paramref name="capacityHint"/> targets
-    /// when the first target is added.
+    /// Creates an accumulator that expects about <paramref name="capacityHint"/> targets.
     /// </summary>
     public AdditionalPathAccumulator(int capacityHint)
     {
