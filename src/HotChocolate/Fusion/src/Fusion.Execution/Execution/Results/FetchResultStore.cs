@@ -3060,8 +3060,7 @@ AddErrors_Next:
     {
         ReturnPathSegments(result.Path, seen);
 
-        // Paths that are created on first access are not returned early;
-        // the path pool reclaims them when it is reset.
+        // Paths created on first access are not rented from the path pool, so they are not returned.
         if (result.AdditionalPaths.Source is not null)
         {
             return;
