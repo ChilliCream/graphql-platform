@@ -22,7 +22,8 @@ deliveryGroups:
   - id: 0
     path: $.viewer
 incrementalPlans:
-  - deliveryGroupIds:
+  - id: 0
+    deliveryGroupIds:
       - 0
     parentNodeId: 1
     nodes:
@@ -30,7 +31,7 @@ incrementalPlans:
         type: Operation
         schema: a
         operation: |
-          query Op_defer_1 {
+          query Op_123456789101112_defer0_1 {
             viewer {
               displayName
             }

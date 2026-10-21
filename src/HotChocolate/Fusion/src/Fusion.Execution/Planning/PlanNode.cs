@@ -138,14 +138,28 @@ internal sealed record PlanNode
         => PathCost + RemainingCost;
 
     public string CreateOperationName(int stepId)
+        => CreateOperationName(OperationDefinition, ShortHash, incrementalPlanId: null, stepId);
+
+    /// <summary>
+    /// Creates the name of the operation that a plan step sends to its source schema.
+    /// </summary>
+    /// <param name="operation">The client operation the plan step belongs to.</param>
+    /// <param name="shortHash">The short hash of the client operation document.</param>
+    /// <param name="incrementalPlanId">
+    /// The id of the incremental plan the step runs in, or <c>null</c> for a step of the main plan.
+    /// </param>
+    /// <param name="stepId">The id of the plan step.</param>
+    internal static string CreateOperationName(
+        OperationDefinitionNode operation,
+        string shortHash,
+        int? incrementalPlanId,
+        int stepId)
     {
-        var shortHash = OperationShortHash.ToNameSafe(ShortHash);
+        var name = operation.Name?.Value ?? "Op";
+        var nameSafeShortHash = OperationShortHash.ToNameSafe(shortHash);
 
-        if (OperationDefinition.Name is null)
-        {
-            return $"Op_{shortHash}_{stepId}";
-        }
-
-        return $"{OperationDefinition.Name.Value}_{shortHash}_{stepId}";
+        return incrementalPlanId is { } planId
+            ? $"{name}_{nameSafeShortHash}_defer{planId}_{stepId}"
+            : $"{name}_{nameSafeShortHash}_{stepId}";
     }
 }

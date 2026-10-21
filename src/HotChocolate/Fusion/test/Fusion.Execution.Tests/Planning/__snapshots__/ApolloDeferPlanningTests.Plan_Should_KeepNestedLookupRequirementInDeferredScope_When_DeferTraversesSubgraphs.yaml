@@ -43,11 +43,12 @@ deliveryGroups:
     path: $.products
     label: deeper
 incrementalPlans:
-  - deliveryGroupIds:
+  - id: 0
+    deliveryGroupIds:
       - 0
     parentNodeId: 2
     requirements:
-      - name: __fusion_1_id
+      - name: __fusion_2_id
         selectionMap: >-
           id
     nodes:
@@ -67,7 +68,7 @@ incrementalPlans:
         source: $._entities
         target: $.products
         requirements:
-          - name: __fusion_1_id
+          - name: __fusion_2_id
             selectionMap: >-
               id
         dependencies:
@@ -86,7 +87,7 @@ incrementalPlans:
         source: $._entities
         target: $.products.related
         requirements:
-          - name: __fusion_2_id
+          - name: __fusion_3_id
             selectionMap: >-
               id
         dependencies:

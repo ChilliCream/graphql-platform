@@ -133,7 +133,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_defer_1($__fusion_1_id: ID!) {
+            query Op_29ccee0f_defer0_1($__fusion_1_id: ID!) {
               userById(id: $__fusion_1_id) {
                 email
               }
@@ -155,14 +155,14 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_defer_1($__fusion_1_id: ID!) {
-              userById(id: $__fusion_1_id) {
+            query Op_29ccee0f_defer1_1($__fusion_2_id: ID!) {
+              userById(id: $__fusion_2_id) {
                 address
               }
             }
           variables: |
             {
-              "__fusion_1_id": "VXNlcjoyMDkyMTcyNjc2"
+              "__fusion_2_id": "VXNlcjoyMDkyMTcyNjc2"
             }
         response:
           results:
@@ -205,7 +205,8 @@ operationPlan:
       path: $.user
       label: location
   incrementalPlans:
-    - deliveryGroupIds:
+    - id: 0
+      deliveryGroupIds:
         - 0
         - 1
       parentNodeId: 1
@@ -218,7 +219,7 @@ operationPlan:
           type: Operation
           schema: B
           operation: |
-            query Op_defer_1($__fusion_1_id: ID!) {
+            query Op_29ccee0f_defer0_1($__fusion_1_id: ID!) {
               userById(id: $__fusion_1_id) {
                 email
               }
@@ -231,11 +232,12 @@ operationPlan:
                 id
           dependencies:
             - parentNodeId: 1
-    - deliveryGroupIds:
+    - id: 1
+      deliveryGroupIds:
         - 1
       parentNodeId: 1
       requirements:
-        - name: __fusion_1_id
+        - name: __fusion_2_id
           selectionMap: >-
             id
       nodes:
@@ -243,15 +245,15 @@ operationPlan:
           type: Operation
           schema: B
           operation: |
-            query Op_defer_1($__fusion_1_id: ID!) {
-              userById(id: $__fusion_1_id) {
+            query Op_29ccee0f_defer1_1($__fusion_2_id: ID!) {
+              userById(id: $__fusion_2_id) {
                 address
               }
             }
           source: $.userById
           target: $.user
           requirements:
-            - name: __fusion_1_id
+            - name: __fusion_2_id
               selectionMap: >-
                 id
           dependencies:

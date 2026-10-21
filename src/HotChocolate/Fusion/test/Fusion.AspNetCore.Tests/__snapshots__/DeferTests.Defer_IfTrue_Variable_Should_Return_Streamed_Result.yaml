@@ -154,8 +154,8 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query GetUser_defer_1($__fusion_1_id: ID!) {
-              userById(id: $__fusion_1_id) {
+            query GetUser_033679a6_defer0_1($__fusion_2_id: ID!) {
+              userById(id: $__fusion_2_id) {
                 reviews {
                   title
                   body
@@ -164,7 +164,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_id": "VXNlcjoyMDkyMTcyNjc2"
+              "__fusion_2_id": "VXNlcjoyMDkyMTcyNjc2"
             }
         response:
           results:
@@ -251,11 +251,12 @@ operationPlan:
       label: reviews
       ifVariable: $shouldDefer
   incrementalPlans:
-    - deliveryGroupIds:
+    - id: 0
+      deliveryGroupIds:
         - 0
       parentNodeId: 2
       requirements:
-        - name: __fusion_1_id
+        - name: __fusion_2_id
           selectionMap: >-
             id
       nodes:
@@ -263,8 +264,8 @@ operationPlan:
           type: Operation
           schema: B
           operation: |
-            query GetUser_defer_1($__fusion_1_id: ID!) {
-              userById(id: $__fusion_1_id) {
+            query GetUser_033679a6_defer0_1($__fusion_2_id: ID!) {
+              userById(id: $__fusion_2_id) {
                 reviews {
                   title
                   body
@@ -274,7 +275,7 @@ operationPlan:
           source: $.userById
           target: $.user
           requirements:
-            - name: __fusion_1_id
+            - name: __fusion_2_id
               selectionMap: >-
                 id
           dependencies:

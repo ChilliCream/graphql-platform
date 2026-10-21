@@ -113,7 +113,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_defer_2($__fusion_1_id: ID!) {
+            query Op_654979ad_defer0_1($__fusion_1_id: ID!) {
               productById(id: $__fusion_1_id) {
                 price
               }
@@ -160,7 +160,8 @@ operationPlan:
       path: $.createProduct
       label: pricing
   incrementalPlans:
-    - deliveryGroupIds:
+    - id: 0
+      deliveryGroupIds:
         - 0
       parentNodeId: 1
       requirements:
@@ -172,7 +173,7 @@ operationPlan:
           type: Operation
           schema: B
           operation: |
-            query Op_defer_2($__fusion_1_id: ID!) {
+            query Op_654979ad_defer0_1($__fusion_1_id: ID!) {
               productById(id: $__fusion_1_id) {
                 price
               }

@@ -1,5 +1,5 @@
 {
-  "version": "1.2.0",
+  "version": "1.3.0",
   "id": "9597da6e96f2ff9fc309076aadbbcb54f2e3fb5eaee19ae1a7df8d81babb9014",
   "operation": {
     "kind": "Query",
@@ -19,6 +19,7 @@
   ],
   "incrementalPlans": [
     {
+      "id": 0,
       "deliveryGroupIds": [
         0
       ],
@@ -36,12 +37,12 @@
           "type": "Operation",
           "schema": "a",
           "operation": {
-            "name": "Op_defer_1",
+            "name": "Op_123456789101112_defer0_1",
             "kind": "Query",
-            "document": "query Op_defer_1 { users { id } }",
-            "hash": "58609217679b63887bacdf54a6f434c240f54959a4a97b2c3bd908091d39370e",
-            "shortHash": "58609217",
-            "xxHash": 7685719456176520928
+            "document": "query Op_123456789101112_defer0_1 { users { id } }",
+            "hash": "8657ea19b773bc0d361b5672c413bf96252de01e55280bbbdd1a6a8db08b05be",
+            "shortHash": "8657ea19",
+            "xxHash": 4880014655446010210
           },
           "resultSelectionSet": "{ users }"
         }

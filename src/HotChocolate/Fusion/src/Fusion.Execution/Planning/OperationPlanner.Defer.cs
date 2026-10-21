@@ -14,12 +14,14 @@ public sealed partial class OperationPlanner
 {
     /// <summary>
     /// Plans each <see cref="IncrementalPlanDescriptor"/> and records any
-    /// parent-scope requirements needed by its incremental plan.
+    /// parent-scope requirements needed by its incremental plan. Requirement ids
+    /// continue after <paramref name="lastRequirementId"/>.
     /// </summary>
     private ImmutableArray<DeferRoutingState> RouteIncrementalPlans(
         string id,
         DeferSplitResult splitResult,
         PlanContextGraph contextGraph,
+        uint lastRequirementId,
         PlanningBudget budget,
         CancellationToken cancellationToken)
     {
@@ -54,8 +56,10 @@ public sealed partial class OperationPlanner
                 id,
                 descriptor,
                 i,
+                lastRequirementId,
                 budget,
                 cancellationToken);
+            lastRequirementId = incrementalPlanResult.LastRequirementId;
 
             var rewrittenIncrementalPlan = ApplyDeferRequirementsToParent(
                 descriptor,
@@ -139,8 +143,13 @@ public sealed partial class OperationPlanner
             var descriptor = routingState.Descriptor;
 
             // Use the registered scope state because nested descriptors may
-            // have added parent-scope requirements.
-            var finalSteps = contextGraph.GetRegisteredSteps(descriptor);
+            // have added parent-scope requirements. Steps are named after the
+            // position of the incremental plan, which becomes its id.
+            var finalSteps = AssignOperationNames(
+                contextGraph.GetRegisteredSteps(descriptor),
+                descriptor.Operation,
+                shortHash,
+                incrementalPlansBuilder.Count);
             var registeredInternalOp = contextGraph.GetRegisteredInternalOperation(descriptor);
 
             var (rootNodes, allNodes) = BuildDeferredExecutionNodes(
@@ -183,12 +192,14 @@ public sealed partial class OperationPlanner
         int Index);
 
     /// <summary>
-    /// Plans a single incremental plan descriptor.
+    /// Plans a single incremental plan descriptor. Requirement ids continue after
+    /// <paramref name="lastRequirementId"/>.
     /// </summary>
     private DeferIncrementalPlanResult PlanIncrementalPlan(
         string operationId,
         IncrementalPlanDescriptor descriptor,
         int incrementalPlanId,
+        uint lastRequirementId,
         PlanningBudget budget,
         CancellationToken cancellationToken)
     {
@@ -220,11 +231,12 @@ public sealed partial class OperationPlanner
             // it is planned like a normal root-rooted operation.
             SelectionSet selectionSet;
             (node, selectionSet) = CreateQueryPlanBase(deferredOperation, "defer", index);
+            node = node with { LastRequirementId = lastRequirementId };
 
             // Nothing to fetch: the deferred operation selects no field that needs a source.
             if (node.Backlog.IsEmpty)
             {
-                return new DeferIncrementalPlanResult([], null);
+                return new DeferIncrementalPlanResult([], null, lastRequirementId);
             }
 
             foreach (var (schemaName, resolutionCost) in _schema.GetPossibleSchemas(selectionSet))
@@ -250,7 +262,7 @@ public sealed partial class OperationPlanner
             var backlog = Backlog.Empty.Push(
                 new NodeFieldWorkItem(new NodeField { Field = nodeFieldNode, ParentFragments = null }));
 
-            node = CreateIncrementalPlanNode(deferredOperation, index, backlog);
+            node = CreateIncrementalPlanNode(deferredOperation, index, backlog, lastRequirementId);
             possiblePlans.EnqueueBranches(node);
         }
         else
@@ -276,11 +288,12 @@ public sealed partial class OperationPlanner
                 // later dropped and routed to the parent scope so the mutation runs exactly once.
                 SelectionSet mutationSelectionSet;
                 (node, mutationSelectionSet) = CreateMutationPlanBase(deferredOperation, "defer", index);
+                node = node with { LastRequirementId = lastRequirementId };
 
                 // Nothing to fetch: the deferred operation selects no field that needs a source.
                 if (node.Backlog.IsEmpty)
                 {
-                    return new DeferIncrementalPlanResult([], null);
+                    return new DeferIncrementalPlanResult([], null, lastRequirementId);
                 }
 
                 foreach (var (schemaName, resolutionCost) in _schema.GetPossibleSchemas(mutationSelectionSet))
@@ -311,7 +324,7 @@ public sealed partial class OperationPlanner
 
                 var backlog = Backlog.Empty.Push(new OperationWorkItem(OperationWorkItemKind.Lookup, anchorSet));
 
-                node = CreateIncrementalPlanNode(deferredOperation, index, backlog);
+                node = CreateIncrementalPlanNode(deferredOperation, index, backlog, lastRequirementId);
                 possiblePlans.EnqueueBranches(node);
             }
         }
@@ -339,17 +352,20 @@ public sealed partial class OperationPlanner
 
         return new DeferIncrementalPlanResult(
             plan.Value.Steps,
-            plan.Value.InternalOperationDefinition);
+            plan.Value.InternalOperationDefinition,
+            plan.Value.LastRequirementId);
     }
 
     /// <summary>
     /// Builds the initial <see cref="PlanNode"/> for a non-root-anchored incremental
-    /// plan search seeded with <paramref name="backlog"/>.
+    /// plan search seeded with <paramref name="backlog"/>, whose requirement ids
+    /// continue after <paramref name="lastRequirementId"/>.
     /// </summary>
     private PlanNode CreateIncrementalPlanNode(
         OperationDefinitionNode deferredOperation,
         ISelectionSetIndex index,
-        Backlog backlog)
+        Backlog backlog,
+        uint lastRequirementId)
     {
         var remainingCost = PlannerCostEstimator.EstimateRemainingCost(
             _options,
@@ -371,8 +387,48 @@ public sealed partial class OperationPlanner
             SelectionSetIndex = index,
             Backlog = backlog,
             RemainingCost = remainingCost,
-            OperationStepCount = 0
+            OperationStepCount = 0,
+            LastRequirementId = lastRequirementId
         };
+    }
+
+    /// <summary>
+    /// Names every operation step in <paramref name="steps"/> after the plan it runs in
+    /// and its own step id, which is also the id of its execution node.
+    /// </summary>
+    /// <param name="steps">The final steps of one plan.</param>
+    /// <param name="operation">The client operation the plan belongs to.</param>
+    /// <param name="shortHash">The short hash of the client operation document.</param>
+    /// <param name="incrementalPlanId">
+    /// The id of the incremental plan the steps run in, or <c>null</c> for the main plan.
+    /// </param>
+    private static ImmutableList<PlanStep> AssignOperationNames(
+        ImmutableList<PlanStep> steps,
+        OperationDefinitionNode operation,
+        string shortHash,
+        int? incrementalPlanId)
+    {
+        ImmutableList<PlanStep>.Builder? builder = null;
+
+        for (var i = 0; i < steps.Count; i++)
+        {
+            if (steps[i] is not OperationPlanStep step)
+            {
+                continue;
+            }
+
+            var name = Planning.PlanNode.CreateOperationName(operation, shortHash, incrementalPlanId, step.Id);
+
+            if (string.Equals(step.Definition.Name?.Value, name, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            builder ??= steps.ToBuilder();
+            builder[i] = step with { Definition = step.Definition.WithName(new NameNode(name)) };
+        }
+
+        return builder?.ToImmutable() ?? steps;
     }
 
     /// <summary>

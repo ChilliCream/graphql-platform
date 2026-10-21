@@ -162,6 +162,10 @@ public sealed partial class OperationPlanner
             var internalOperationDefinition = mainOperationDefinition;
             ImmutableList<PlanStep> planSteps = [];
 
+            // Incremental plans continue the requirement numbering of the main plan,
+            // so a requirement key is unique across the whole operation plan.
+            uint lastRequirementId = 0;
+
             // The backlog is only empty for pure introspection queries, which the
             // gateway serves directly without planning against any source schema.
             if (!node.Backlog.IsEmpty)
@@ -183,6 +187,7 @@ public sealed partial class OperationPlanner
                     searchSpace = eventStreamPlan.SearchSpace;
                     expandedNodes = eventStreamPlan.ExpandedNodes;
                     stepCount = eventStreamPlan.StepCount;
+                    lastRequirementId = eventStreamPlan.LastRequirementId;
                 }
                 else
                 {
@@ -221,6 +226,7 @@ public sealed partial class OperationPlanner
                     searchSpace = plan.Value.SearchSpace;
                     expandedNodes = plan.Value.ExpandedNodes;
                     stepCount = plan.Value.StepCount;
+                    lastRequirementId = plan.Value.LastRequirementId;
                 }
 
                 internalOperationDefinition =
@@ -247,14 +253,20 @@ public sealed partial class OperationPlanner
                     id,
                     deferSplit.Value,
                     deferContextGraph,
+                    lastRequirementId,
                     budget,
                     cancellationToken);
 
                 // Any parent-scope transformations applied while routing
                 // defer requirements flow back into the root step list and
                 // the root internal operation definition that compile and
-                // the execution tree builder consume below.
-                planSteps = deferContextGraph.RootSteps;
+                // the execution tree builder consume below. Steps moved into
+                // the main plan are renamed after it.
+                planSteps = AssignOperationNames(
+                    deferContextGraph.RootSteps,
+                    mainOperationDefinition,
+                    shortHash,
+                    incrementalPlanId: null);
                 internalOperationDefinition = deferContextGraph.RootInternalOperation;
 
                 // A descriptor whose deferred output turned out to be fully redundant with
@@ -574,7 +586,8 @@ public sealed partial class OperationPlanner
             bestCompletePlan.Steps,
             searchSpace,
             expandedNodes,
-            bestCompletePlan.OperationStepCount);
+            bestCompletePlan.OperationStepCount,
+            bestCompletePlan.LastRequirementId);
 
         static string FormatWorkItemName(WorkItem workItem)
             => workItem switch
@@ -881,7 +894,8 @@ public sealed partial class OperationPlanner
             steps,
             plan.Value.SearchSpace,
             plan.Value.ExpandedNodes,
-            plan.Value.StepCount);
+            plan.Value.StepCount,
+            plan.Value.LastRequirementId);
     }
 
     private OperationDefinitionNode CreateEventStreamMessageOperationDefinition(
@@ -988,7 +1002,8 @@ public sealed partial class OperationPlanner
         ImmutableList<PlanStep> Steps,
         int SearchSpace,
         int ExpandedNodes,
-        int StepCount);
+        int StepCount,
+        uint LastRequirementId);
 
     private void PlanRootSelections(
         OperationWorkItem workItem,
@@ -4353,7 +4368,8 @@ public sealed partial class OperationPlanner
         ImmutableList<PlanStep> Steps,
         int SearchSpace,
         int ExpandedNodes,
-        int StepCount);
+        int StepCount,
+        uint LastRequirementId);
 
     private readonly struct OperationStepCostState(
         int maxDepth,

@@ -1,5 +1,5 @@
 {
-  "version": "1.2.0",
+  "version": "1.3.0",
   "id": "8714fc9992e82158b0f6d15d7f4b5f8644c53d1faab749b121824826cab4bcc9",
   "operation": {
     "kind": "Query",
@@ -46,6 +46,7 @@
   ],
   "incrementalPlans": [
     {
+      "id": 0,
       "deliveryGroupIds": [
         0,
         2
@@ -72,12 +73,12 @@
           "type": "Operation",
           "schema": "b",
           "operation": {
-            "name": "Op_defer_1",
+            "name": "Op_123456789101112_defer0_1",
             "kind": "Query",
-            "document": "query Op_defer_1($__fusion_1_id: ID!) { userById(id: $__fusion_1_id) { email } }",
-            "hash": "2aab5972b753c9acb689478907ffd733cc3ea02794566e0aea0dd8c4c269412f",
-            "shortHash": "2aab5972",
-            "xxHash": 17733049673571298455
+            "document": "query Op_123456789101112_defer0_1($__fusion_1_id: ID!) { userById(id: $__fusion_1_id) { email } }",
+            "hash": "0b6d9339211f952f244bdc58db54f4c4ad58366c58f865ff8be87b07a07a7bdd",
+            "shortHash": "0b6d9339",
+            "xxHash": 8841601814834028520
           },
           "lookupTypeName": "User",
           "resultSelectionSet": "{ email }",
@@ -102,25 +103,26 @@
           "type": "Operation",
           "schema": "a",
           "operation": {
-            "name": "Op_defer_2",
+            "name": "Op_123456789101112_defer0_2",
             "kind": "Query",
-            "document": "query Op_defer_2 { user(id: \"1\") { id } }",
-            "hash": "1458dc538a1a50fd74a5b1d8f1f385fdc6a17aade3e2d5e6204885b5fd48b115",
-            "shortHash": "1458dc53",
-            "xxHash": 12093050853580119070
+            "document": "query Op_123456789101112_defer0_2 { user(id: \"1\") { id } }",
+            "hash": "e9b2c21e3555189a9e69010f31055312ba9c4b2cb3520ec5a18a86228dc608ab",
+            "shortHash": "e9b2c21e",
+            "xxHash": 5999246749484428549
           },
           "resultSelectionSet": "{ user }"
         }
       ]
     },
     {
+      "id": 1,
       "deliveryGroupIds": [
         1
       ],
       "parentNodeId": 1,
       "requirements": [
         {
-          "name": "__fusion_1_id",
+          "name": "__fusion_2_id",
           "type": "ID!",
           "path": "$.user",
           "selectionMap": "id"
@@ -139,12 +141,12 @@
           "type": "Operation",
           "schema": "b",
           "operation": {
-            "name": "Op_defer_1",
+            "name": "Op_123456789101112_defer1_1",
             "kind": "Query",
-            "document": "query Op_defer_1($__fusion_1_id: ID!) { userById(id: $__fusion_1_id) { address } }",
-            "hash": "a56aa2e152b8bb318ecbf4f0873ae958a7ab1397aa96cce78f910dc8d854be89",
-            "shortHash": "a56aa2e1",
-            "xxHash": 6720347005588463869
+            "document": "query Op_123456789101112_defer1_1($__fusion_2_id: ID!) { userById(id: $__fusion_2_id) { address } }",
+            "hash": "251eb65b594b955c5460279451e434084d7e356e42137fef33f7098e14ce53da",
+            "shortHash": "251eb65b",
+            "xxHash": 12014333497277924077
           },
           "lookupTypeName": "User",
           "resultSelectionSet": "{ address }",
@@ -152,7 +154,7 @@
           "target": "$.user",
           "requirements": [
             {
-              "name": "__fusion_1_id",
+              "name": "__fusion_2_id",
               "type": "ID!",
               "path": "$.user",
               "selectionMap": "id"

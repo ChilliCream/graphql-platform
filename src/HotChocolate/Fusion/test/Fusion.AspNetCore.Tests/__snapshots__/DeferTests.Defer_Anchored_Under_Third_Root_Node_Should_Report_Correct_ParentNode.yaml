@@ -304,7 +304,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query t_defer_1 {
+            query t_2e58f804_defer0_1 {
               orders {
                 id
                 total
@@ -385,7 +385,8 @@ operationPlan:
     - id: 0
       path: $.orders
   incrementalPlans:
-    - deliveryGroupIds:
+    - id: 0
+      deliveryGroupIds:
         - 0
       parentNodeId: 3
       nodes:
@@ -393,7 +394,7 @@ operationPlan:
           type: Operation
           schema: C
           operation: |
-            query t_defer_1 {
+            query t_2e58f804_defer0_1 {
               orders {
                 id
                 total
