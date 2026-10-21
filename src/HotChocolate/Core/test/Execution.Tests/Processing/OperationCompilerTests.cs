@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using HotChocolate.Execution.Internal;
 using HotChocolate.Language;
@@ -2056,6 +2057,44 @@ public class OperationCompilerTests
         // assert
         result.MatchSnapshot();
     }
+
+    [Fact]
+    public void Compile_Should_ReleasePreviousSchema_When_SchemaIsReplaced()
+    {
+        // arrange
+        var previousSchema = CompileLargeOperationWithDiscardedSchema();
+        var document = Utf8GraphQLParser.Parse("{ foo }");
+
+        // act
+        var operation = OperationCompiler.Compile("current", document, CreateFooSchema());
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+
+        // assert
+        Assert.False(previousSchema.IsAlive);
+        GC.KeepAlive(operation);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static WeakReference CompileLargeOperationWithDiscardedSchema()
+    {
+        var schema = CreateFooSchema();
+        var fields = string.Join(" ", Enumerable.Range(0, 160).Select(i => $"f{i}: foo"));
+        var document = Utf8GraphQLParser.Parse($"{{ {fields} }}");
+        OperationCompiler.Compile("previous", document, schema);
+        return new WeakReference(schema);
+    }
+
+    private static Schema CreateFooSchema()
+        => SchemaBuilder.New()
+            .AddQueryType(
+                c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolve("foo"))
+            .Create();
 
     private static void MatchSnapshot(DocumentNode original, IOperation compiled)
     {
