@@ -54,6 +54,7 @@ internal sealed partial class FetchResultStore : IDisposable
     private readonly VariableDedupTable _variableDedupTable;
     private ArenaBufferWriter? _leafKeyWriter;
     private VariableDedupTable? _leafKeyDedupTable;
+    private bool _leafKeyWriterHasArena;
     private FusionSchemaDefinition _schema = default!;
     private IErrorHandler _errorHandler = default!;
     private Operation _operation = default!;
@@ -2132,11 +2133,16 @@ AddErrors_Next:
             _leafKeyWriter = new ArenaBufferWriter(_arena);
             _leafKeyDedupTable = new VariableDedupTable(_leafKeyWriter);
         }
-        else
+        else if (_leafKeyWriterHasArena)
         {
             _leafKeyWriter.Reset();
         }
+        else
+        {
+            _leafKeyWriter.Reset(_arena);
+        }
 
+        _leafKeyWriterHasArena = true;
         _leafKeyDedupTable.Initialize(capacity);
     }
 
@@ -2203,17 +2209,6 @@ AddErrors_Next:
         {
             key.Table.Add(key.Hash, index, key.Start, key.Length);
         }
-    }
-
-    /// <summary>
-    /// Releases the leaf key writer and table, which are bound to the memory arena of the request.
-    /// </summary>
-    private void ReleaseLeafKeys()
-    {
-        _leafKeyDedupTable?.Dispose();
-        _leafKeyDedupTable = null;
-        _leafKeyWriter?.Dispose();
-        _leafKeyWriter = null;
     }
 
     internal static bool TryGetSimpleRequirementFieldName(
@@ -3186,7 +3181,8 @@ AddErrors_Next:
 
         _variableDedupTable.Dispose();
         _variableWriter.Dispose();
-        ReleaseLeafKeys();
+        _leafKeyDedupTable?.Dispose();
+        _leafKeyWriter?.Dispose();
         _forwardedVariableWriter?.Dispose();
         _pathPool?.Dispose();
     }

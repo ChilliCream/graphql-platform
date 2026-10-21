@@ -67,6 +67,29 @@ public class ArenaBufferWriterTests
     }
 
     [Fact]
+    public void Reset_Should_RentSegmentsFromNewArena_When_ArenaIsPassed()
+    {
+        // Arrange
+        using var firstArena = new MemoryArena();
+        using var secondArena = new MemoryArena();
+        using var writer = new ArenaBufferWriter(firstArena);
+        var bytes = Encoding.UTF8.GetBytes(CreateAsciiPattern(3000));
+        Write(writer, bytes);
+        var firstSegment = writer.Segments[0];
+        var secondSegment = writer.Segments[1];
+
+        // Act
+        writer.Reset(secondArena);
+        Write(writer, bytes);
+
+        // Assert
+        Assert.NotSame(firstSegment.Buffer, writer.Segments[0].Buffer);
+        Assert.NotSame(secondSegment.Buffer, writer.Segments[1].Buffer);
+        Assert.Equal(3000, writer.Position);
+        Assert.Equal(2, writer.UsedChunks);
+    }
+
+    [Fact]
     public void ResetTo_Should_WriteIntoNextSegment_When_PositionIsAtEndOfFullSegment()
     {
         // Arrange

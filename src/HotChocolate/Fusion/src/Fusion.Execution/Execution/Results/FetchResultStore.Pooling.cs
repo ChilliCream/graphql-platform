@@ -26,6 +26,7 @@ internal sealed partial class FetchResultStore
         ArgumentNullException.ThrowIfNull(operation);
 
         _arena = arena;
+        _leafKeyWriterHasArena = false;
         _schema = schema;
         _errorHandler = errorHandler;
         _operation = operation;
@@ -77,8 +78,8 @@ internal sealed partial class FetchResultStore
             pending.Dispose();
         }
 
-        // the leaf keys live in the memory arena of the previous event
-        ReleaseLeafKeys();
+        // the leaf key writer moves to the new arena on its next use
+        _leafKeyWriterHasArena = false;
         _arena = arena;
 
         _result = new CompositeResultDocument(
@@ -161,9 +162,7 @@ internal sealed partial class FetchResultStore
 
         // drop dedup tables that a lookup with many targets made grow
         _variableDedupTable.Trim(maxCollectTargetRetainLength * 4);
-
-        // the leaf keys live in the memory arena of the request
-        ReleaseLeafKeys();
+        _leafKeyDedupTable?.Trim(maxCollectTargetRetainLength * 4);
 
         // drop the leaf value buffer if a wide lookup selection made it grow
         if (_leafValues.Length > maxCollectTargetRetainLength)

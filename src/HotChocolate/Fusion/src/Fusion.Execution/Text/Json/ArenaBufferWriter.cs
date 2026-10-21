@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using HotChocolate.Buffers;
 
@@ -14,7 +15,7 @@ namespace HotChocolate.Fusion.Text.Json;
 /// </summary>
 internal sealed class ArenaBufferWriter : IBufferWriter<byte>, IDisposable
 {
-    private readonly IMemoryArena _arena;
+    private IMemoryArena _arena;
     private MemorySegment[] _segments;
     private int _rentedChunks;
     private int _currentChunk;
@@ -29,16 +30,7 @@ internal sealed class ArenaBufferWriter : IBufferWriter<byte>, IDisposable
     public ArenaBufferWriter(IMemoryArena arena)
     {
         ArgumentNullException.ThrowIfNull(arena);
-        _arena = arena;
-
-        // Rent the first segment now so the first write does not have to branch on an empty table.
-        _segments = arena.RentSegmentTable(64);
-        _currentChunkBytes = SourceResultDocument.GetDataChunkSize(0);
-        var segment = arena.Rent(_currentChunkBytes);
-        _segments[0] = segment;
-        _rentedChunks = 1;
-        _currentBuffer = segment.Buffer;
-        _currentBase = segment.Offset;
+        Start(arena);
     }
 
     /// <summary>
@@ -156,6 +148,16 @@ internal sealed class ArenaBufferWriter : IBufferWriter<byte>, IDisposable
     public void Reset() => ResetTo(0);
 
     /// <summary>
+    /// Moves the write position back to the start and writes into segments rented from
+    /// <paramref name="arena"/>. The segments of the previous arena are no longer used.
+    /// </summary>
+    public void Reset(IMemoryArena arena)
+    {
+        ArgumentNullException.ThrowIfNull(arena);
+        Start(arena);
+    }
+
+    /// <summary>
     /// Moves the write position back to <paramref name="position"/>, which must not be after
     /// <see cref="Position"/>. Later writes overwrite the bytes after it.
     /// </summary>
@@ -232,6 +234,25 @@ internal sealed class ArenaBufferWriter : IBufferWriter<byte>, IDisposable
     public void Dispose()
     {
         ReturnScratch();
+    }
+
+    [MemberNotNull(nameof(_arena), nameof(_segments), nameof(_currentBuffer))]
+    private void Start(IMemoryArena arena)
+    {
+        _arena = arena;
+
+        // Rent the first segment now so the first write does not have to branch on an empty table.
+        _segments = arena.RentSegmentTable(64);
+        _currentChunkBytes = SourceResultDocument.GetDataChunkSize(0);
+        var segment = arena.Rent(_currentChunkBytes);
+        _segments[0] = segment;
+        _rentedChunks = 1;
+        _currentChunk = 0;
+        _currentChunkStart = 0;
+        _currentChunkOffset = 0;
+        _currentBuffer = segment.Buffer;
+        _currentBase = segment.Offset;
+        _advanceFromScratch = false;
     }
 
     private int FindChunk(int position, out int offset)
