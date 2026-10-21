@@ -801,10 +801,11 @@ AddErrors_Next:
     }
 
     /// <summary>
-    /// Collects the completed values of <paramref name="primary"/> for the scalar properties of
+    /// Collects the completed values of <paramref name="primary"/> for every property of
     /// <paramref name="dataElement"/>. Returns <c>false</c> when the source data holds a property
-    /// that is not a scalar or a completed value that is not a leaf; <paramref name="count"/> then
-    /// still counts the collected values.
+    /// that <paramref name="primary"/> does not select, a property that is not a scalar, or a
+    /// completed value that is not a leaf; <paramref name="count"/> then still counts the collected
+    /// values.
     /// </summary>
     private bool TryCollectLeafValues(
         CompositeResultElement primary,
@@ -825,7 +826,7 @@ AddErrors_Next:
         {
             if (!context.TryGetProperty(property.NameSpan, out var value, out var selection))
             {
-                continue;
+                return false;
             }
 
             if (property.Value.ValueKind is not (JsonValueKind.String
