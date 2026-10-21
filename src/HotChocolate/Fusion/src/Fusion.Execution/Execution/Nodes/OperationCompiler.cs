@@ -1,4 +1,3 @@
-using System.Buffers;
 using System.Diagnostics;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Rewriters;
@@ -19,7 +18,6 @@ public sealed class OperationCompiler
     private readonly TypeNameField _typeNameField;
     private readonly int _maxAllowedIncludeConditions;
     private readonly int _maxAllowedDeferConditions;
-    private static readonly ArrayPool<object> s_objectArrayPool = ArrayPool<object>.Shared;
 
     public OperationCompiler(
         FusionSchemaDefinition schema,
@@ -83,10 +81,7 @@ public sealed class OperationCompiler
 
         var fields = _fieldsPool.Get();
 
-        var elementsById = s_objectArrayPool.Rent(128);
-        // Unused slots must not reference selections from another operation.
-        Array.Clear(elementsById);
-        var compilationContext = new CompilationContext(elementsById, canReturnStorage: true);
+        var compilationContext = new CompilationContext(new object[128]);
 
         try
         {
@@ -153,7 +148,7 @@ public sealed class OperationCompiler
         ref object[] elementsById,
         ref int lastId)
     {
-        var compilationContext = new CompilationContext(elementsById, canReturnStorage: false);
+        var compilationContext = new CompilationContext(elementsById);
         var fields = _fieldsPool.Get();
         fields.Clear();
 
@@ -796,10 +791,9 @@ public sealed class OperationCompiler
         }
     }
 
-    private class CompilationContext(object[] elementsById, bool canReturnStorage)
+    private class CompilationContext(object[] elementsById)
     {
         private object[] _elementsById = elementsById;
-        private bool _canReturnStorage = canReturnStorage;
 
         public object[] ElementsById => _elementsById;
 
@@ -807,16 +801,8 @@ public sealed class OperationCompiler
         {
             if (id >= _elementsById.Length)
             {
-                var newArray = s_objectArrayPool.Rent(_elementsById.Length * 2);
-                Array.Clear(newArray);
-                _elementsById.AsSpan().CopyTo(newArray);
-                // Published storage remains readable until outstanding readers release it.
-                if (_canReturnStorage)
-                {
-                    s_objectArrayPool.Return(_elementsById, clearArray: true);
-                }
-                _elementsById = newArray;
-                _canReturnStorage = true;
+                // Resizing copies into a new array, so the published array stays intact for concurrent readers.
+                Array.Resize(ref _elementsById, _elementsById.Length * 2);
             }
 
             _elementsById[id] = element;
