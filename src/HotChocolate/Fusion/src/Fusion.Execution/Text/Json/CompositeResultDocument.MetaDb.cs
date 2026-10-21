@@ -640,23 +640,6 @@ public sealed partial class CompositeResultDocument
                 (sourceDocumentId & 0x7FFF) | (((int)tokenType & 0x0F) << 15));
         }
 
-        /// <summary>
-        /// Copies the value payload of the source row into the target row and keeps the parent
-        /// pointer of the target row.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal readonly void CopyValuePreserveParent(Cursor source, Cursor target)
-        {
-            AssertValidCursor(source);
-            AssertValidCursor(target);
-
-            // int 0 (parent) is intentionally left untouched.
-            Unsafe.CopyBlockUnaligned(
-                ref Unsafe.Add(ref RowRef(target), DbRow.SelectionAndFlagsOffset),
-                ref Unsafe.Add(ref RowRef(source), DbRow.SelectionAndFlagsOffset),
-                DbRow.Size - DbRow.SelectionAndFlagsOffset);
-        }
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal readonly DbRow Get(Cursor cursor)
         {

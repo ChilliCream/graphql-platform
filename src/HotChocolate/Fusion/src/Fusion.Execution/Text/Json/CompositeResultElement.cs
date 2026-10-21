@@ -1072,6 +1072,26 @@ public readonly partial struct CompositeResultElement
         _parent.AssignSourceValue(this, source._parent, source._cursor, source._row);
     }
 
+    /// <summary>
+    /// Assigns the leaf value of <paramref name="source"/> to this element without copying
+    /// the value data. Both elements must belong to the same result document.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c> if the source holds a non-null leaf value that was assigned;
+    /// otherwise, <c>false</c>.
+    /// </returns>
+    internal bool TrySetLeafValue(CompositeResultElement source)
+    {
+        CheckValidInstance();
+
+        if (!ReferenceEquals(_parent, source._parent))
+        {
+            return false;
+        }
+
+        return _parent.TryAssignLeafValue(this, source);
+    }
+
     internal void SetNullValue()
     {
         CheckValidInstance();

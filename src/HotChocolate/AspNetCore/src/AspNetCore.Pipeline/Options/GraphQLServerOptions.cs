@@ -34,7 +34,8 @@ public sealed class GraphQLServerOptions
     public bool EnableGetRequests { get; set; } = true;
 
     /// <summary>
-    /// Defines if GraphQL HTTP GET requests are allowed.
+    /// Defines whether a GraphQL HTTP GET request must carry the <c>GraphQL-Preflight</c> header
+    /// or an <c>application/json</c> <c>Content-Type</c> to be executed.
     /// </summary>
     public bool EnforceGetRequestsPreflightHeader { get; set; }
 

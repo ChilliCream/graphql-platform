@@ -101,6 +101,7 @@ internal static class PersistedOperationMiddleware
                     await ExecuteBodyRequestAsync(
                         context,
                         executorProxy,
+                        serverOptions,
                         HttpRequestKind.HttpPost,
                         operationId,
                         operationName: null,
@@ -132,6 +133,7 @@ internal static class PersistedOperationMiddleware
                     await ExecuteBodyRequestAsync(
                         context,
                         executorProxy,
+                        serverOptions,
                         HttpRequestKind.HttpPost,
                         operationId,
                         operationName,
@@ -159,6 +161,7 @@ internal static class PersistedOperationMiddleware
                     await ExecuteBodyRequestAsync(
                         context,
                         executorProxy,
+                        serverOptions,
                         HttpRequestKind.HttpQuery,
                         operationId,
                         operationName: null,
@@ -194,6 +197,7 @@ internal static class PersistedOperationMiddleware
                     await ExecuteBodyRequestAsync(
                         context,
                         executorProxy,
+                        serverOptions,
                         HttpRequestKind.HttpQuery,
                         operationId,
                         operationName,
@@ -281,6 +285,7 @@ HANDLE_RESULT:
     private static async Task ExecuteBodyRequestAsync(
         HttpContext context,
         HttpRequestExecutorProxy executorProxy,
+        GraphQLServerOptions options,
         HttpRequestKind kind,
         string operationId,
         string? operationName,
@@ -291,9 +296,25 @@ HANDLE_RESULT:
         var ct = context.RequestAborted;
         var executorSession = await executorProxy.GetOrCreateSessionAsync(ct);
 
+        // first, we refuse a request whose body is not JSON.
+        if (context.ParseContentType() is not RequestContentType.Json)
+        {
+            if (executorSession.ReportsUnsupportedMethodOrMediaType)
+            {
+                context.Response.StatusCode = StatusCodes.Status415UnsupportedMediaType;
+                context.Response.Headers.SetAcceptQuery(options);
+            }
+            else
+            {
+                context.Response.StatusCode = StatusCodes.Status404NotFound;
+            }
+
+            return;
+        }
+
         using (executorSession.DiagnosticEvents.ExecuteHttpRequest(context, kind))
         {
-            // first, we validate the accept-headers.
+            // next, we validate the accept-headers.
             var validationResult = MiddlewareHelper.ValidateAcceptContentType(context, executorSession);
 
             var acceptMediaTypes = validationResult.AcceptMediaTypes;

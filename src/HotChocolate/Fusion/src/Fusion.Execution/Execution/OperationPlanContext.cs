@@ -42,6 +42,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     private readonly INodeIdParser _nodeIdParser;
     private readonly IErrorHandler _errorHandler;
     private bool _collectTelemetry;
+    private EntityReuseCandidateMap? _entityReuseCandidateMap;
     private bool _usesDynamicSchemaNames;
     private bool _usesBatchNodes;
 #pragma warning disable IDE0370 // Remove unnecessary suppression
@@ -429,6 +430,42 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         }
     }
 
+    /// <summary>
+    /// Gets the reuse candidates of a lookup in the executing plan, or <c>null</c> if the
+    /// lookup always fetches its entities.
+    /// </summary>
+    internal EntityReuseCandidateList? GetEntityReuseCandidates(int lookupId)
+        => _entityReuseCandidateMap?.GetCandidates(lookupId);
+
+    /// <summary>
+    /// Creates the variable value sets of a lookup and fills the targets whose entity the result
+    /// already holds. <paramref name="reusedCount"/> is the number of entities that were filled.
+    /// </summary>
+    internal ImmutableArray<VariableValues> CreateVariableValueSets(
+        ReadOnlySpan<SelectionPath> selectionSets,
+        ReadOnlySpan<string> forwardedVariables,
+        ReadOnlySpan<OperationRequirement> requiredData,
+        EntityReuseCandidateList? candidates,
+        out int reusedCount)
+    {
+        reusedCount = 0;
+
+        if (candidates is null
+            || requiredData.Length == 0
+            || forwardedVariables.Length > 0
+            || CountImportedRequirementKeys(requiredData) > 0)
+        {
+            return CreateVariableValueSets(selectionSets, forwardedVariables, requiredData);
+        }
+
+        return _resultStore.CreateVariableValueSets(
+            selectionSets,
+            GetPathThroughVariables(forwardedVariables),
+            requiredData,
+            candidates,
+            out reusedCount);
+    }
+
     internal ImmutableArray<VariableValues> CreateVariableValueSets(
         ReadOnlySpan<SelectionPath> selectionSets,
         ReadOnlySpan<string> forwardedVariables,
@@ -520,6 +557,47 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
             // the union of every parent-dependent node's full requirement list, so a single
             // node's requirements are either all imported or none imported. A partial overlap
             // means the planner produced a shape this routing layer is not built to handle.
+            throw CreateMixedScopeException(requirements);
+        }
+
+        var variableValuesFromSnapshot = GetPathThroughVariables(forwardedVariables);
+        return _resultStore.CreateRepresentationVariableValueFromSnapshot(
+            _requirementValues,
+            _requirementKeys!,
+            variableValuesFromSnapshot,
+            requirements,
+            requiredShape,
+            entityTypeName);
+    }
+
+    internal RepresentationValue CreateRepresentationVariableValue(
+        ReadOnlySpan<SelectionPath> selectionSets,
+        ReadOnlySpan<string> forwardedVariables,
+        ReadOnlySpan<OperationRequirement> requirements,
+        ImmutableArray<RepresentationShapeNode> requiredShape,
+        string entityTypeName)
+    {
+        if (requirements.Length == 0)
+        {
+            return RepresentationValue.Empty;
+        }
+
+        var importedMatchCount = CountImportedRequirementKeys(requirements);
+
+        if (importedMatchCount == 0)
+        {
+            var variableValues = GetPathThroughVariables(forwardedVariables);
+            return _resultStore.CreateRepresentationVariableValue(
+                selectionSets,
+                variableValues,
+                requirements,
+                requiredShape,
+                entityTypeName);
+        }
+
+        if (importedMatchCount != requirements.Length)
+        {
+            // Planner-invariant guard, see the single-target overload.
             throw CreateMixedScopeException(requirements);
         }
 

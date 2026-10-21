@@ -278,7 +278,7 @@ public class ForwardedVariableBlitBenchmark
         dedupTable.Initialize(importedEntries.Length);
 
         VariableValues[]? variableValueSets = null;
-        var additionalPaths = new AdditionalPathAccumulator();
+        var additionalPaths = new AdditionalPathAccumulator(importedEntries.Length);
         var nextIndex = 0;
 
         foreach (var importedEntry in importedEntries)
@@ -350,7 +350,7 @@ public class ForwardedVariableBlitBenchmark
         dedupTable.Initialize(importedEntries.Length);
 
         VariableValues[]? variableValueSets = null;
-        var additionalPaths = new AdditionalPathAccumulator();
+        var additionalPaths = new AdditionalPathAccumulator(importedEntries.Length);
         var nextIndex = 0;
 
         // Rider: requirement keys are GraphQL names (always ASCII), so they are

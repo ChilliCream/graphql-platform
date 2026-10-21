@@ -741,10 +741,11 @@ public sealed partial class OperationPlanner
             lifted,
             droppedStepIds);
 
-        // Record the parent-scope requirements on the descriptor.
+        // Record the parent-scope requirements on the descriptor. A step without a
+        // parent dependency is served entirely by other steps in this incremental plan.
         foreach (var step in rewrittenIncrementalPlan)
         {
-            if (step is not OperationPlanStep operationStep)
+            if (step is not OperationPlanStep operationStep || operationStep.ParentDependencies.IsEmpty)
             {
                 continue;
             }
@@ -1541,7 +1542,8 @@ public sealed partial class OperationPlanner
     /// <summary>
     /// Finds every step in <paramref name="incrementalPlanSteps"/> that targets either
     /// <paramref name="anchorPath"/> or the operation root and whose every selected field
-    /// is consumed as a requirement by one of its dependents.
+    /// is consumed as a requirement at or above <paramref name="anchorPath"/> by one of
+    /// its dependents.
     /// </summary>
     private static ImmutableArray<OperationPlanStep> FindDeferRequirementProducers(
         ImmutableList<PlanStep> incrementalPlanSteps,
@@ -1555,7 +1557,7 @@ public sealed partial class OperationPlanner
                 && operationStep.SchemaName is not null
                 && !operationStep.Dependents.IsEmpty
                 && (operationStep.Target.Equals(anchorPath) || operationStep.Target.IsRoot)
-                && IsPureRequirementProducer(operationStep, incrementalPlanSteps))
+                && IsPureRequirementProducer(operationStep, incrementalPlanSteps, anchorPath))
             {
                 producers.Add(operationStep);
             }
@@ -1566,12 +1568,13 @@ public sealed partial class OperationPlanner
 
     /// <summary>
     /// Determines whether every field <paramref name="step"/> selects is consumed as a
-    /// requirement by one of its dependents, meaning the step carries no output of its
-    /// own beyond what those dependents need from it.
+    /// requirement at or above <paramref name="anchorPath"/> by one of its dependents,
+    /// meaning the step carries no output of its own beyond what the enclosing scope can supply.
     /// </summary>
     private static bool IsPureRequirementProducer(
         OperationPlanStep step,
-        ImmutableList<PlanStep> incrementalPlanSteps)
+        ImmutableList<PlanStep> incrementalPlanSteps,
+        SelectionPath anchorPath)
     {
         var ownFields = new HashSet<string>(StringComparer.Ordinal);
         CollectLeafFieldNames(step.Definition.SelectionSet, ownFields);
@@ -1591,6 +1594,13 @@ public sealed partial class OperationPlanner
 
             foreach (var (_, requirement) in dependentStep.Requirements)
             {
+                // A requirement below the anchor reads a value this step fetches as
+                // deferred output, which the enclosing scope does not reach.
+                if (!requirement.Path.IsParentOfOrSame(anchorPath))
+                {
+                    continue;
+                }
+
                 var fieldName = requirement.InternalAlias ?? ExtractRootFieldName(requirement.Map.ToString());
 
                 if (fieldName is not null)

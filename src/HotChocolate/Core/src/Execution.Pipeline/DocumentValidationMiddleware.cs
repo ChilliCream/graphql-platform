@@ -25,7 +25,7 @@ internal sealed class DocumentValidationMiddleware
         _documentValidator = documentValidator;
     }
 
-    public async ValueTask InvokeAsync(RequestContext context)
+    public ValueTask InvokeAsync(RequestContext context)
     {
         var documentInfo = context.OperationDocumentInfo;
         if (documentInfo.Document is null
@@ -77,13 +77,15 @@ internal sealed class DocumentValidationMiddleware
                         };
 
                         _diagnosticEvents.ValidationErrors(context, result.Errors);
-                        return;
+                        return default;
                     }
                 }
             }
 
-            await _next(context).ConfigureAwait(false);
+            return _next(context);
         }
+
+        return default;
     }
 
     public static RequestMiddlewareConfiguration Create()

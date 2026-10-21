@@ -2344,6 +2344,359 @@ public sealed class FetchResultStoreTests : FusionTestBase
             """);
     }
 
+    [Fact]
+    public void AddPartialResult_Should_CompleteTargetsFromRoot_When_LayoutChangedAfterCollection()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+              name: String
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id name } }",
+            """{"data":{"foos":[{"id":"1"},{"id":"1"},{"id":"1"}]}}""",
+            resultArena,
+            sourceArena);
+        var entry = Assert.Single(
+            store.CreateVariableValueSets(
+                SelectionPath.Root.AppendField("foos"),
+                [],
+                [Requirement(schema, "__fusion_1_id", "id", new NamedTypeNode("ID"))]));
+
+        // replace the list so the collected cursors point to detached elements
+        var foos = store.Result.Data.GetProperty("foos");
+        Assert.True(foos[0].TryGetObjectContext(out var context));
+        foos.SetArrayValue(3);
+        foos = store.Result.Data.GetProperty("foos");
+        foos[0].SetObjectValue(context.SelectionSet!);
+        foos[1].SetObjectValue(context.SelectionSet!);
+        foos[2].SetObjectValue(context.SelectionSet!);
+
+        var resultSelectionSet = ResultSelectionSet.Create(
+            Utf8GraphQLParser.Parse("{ name }")
+                .Definitions
+                .OfType<OperationDefinitionNode>()
+                .Single()
+                .SelectionSet,
+            schema);
+        var payload = """{"data":{"name":"One"}}"""u8.ToArray();
+        var document = SourceResultDocument.Parse(sourceArena, payload, payload.Length);
+        var result = new SourceSchemaResult(entry.Path, document, additionalPaths: entry.AdditionalPaths);
+
+        // act
+        store.AddPartialResult(SelectionPath.Root, result, resultSelectionSet, containsErrors: false);
+
+        // assert
+        RenderData(store).MatchInlineSnapshot(
+            """
+            {"foos":[{"id":null,"name":"One"},{"id":null,"name":"One"},{"id":null,"name":"One"}]}
+            """);
+    }
+
+    [Fact]
+    public void AdditionalPaths_Should_Throw_When_StoreWasCleaned()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+              name: String
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id name } }",
+            """{"data":{"foos":[{"id":"1"},{"id":"1"}]}}""",
+            resultArena,
+            sourceArena);
+        var entry = Assert.Single(
+            store.CreateVariableValueSets(
+                SelectionPath.Root.AppendField("foos"),
+                [],
+                [Requirement(schema, "__fusion_1_id", "id", new NamedTypeNode("ID"))]));
+        store.Clean(maxCollectTargetRetainLength: 256, maxDictionaryRetainCapacity: 256);
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(() => entry.AdditionalPaths[0]);
+
+        // assert
+        Assert.Equal(
+            "The paths of lookup targets can only be created while their result document is in use.",
+            exception.Message);
+    }
+
+    [Fact]
+    public void ApplyTo_Should_KeepTargetOrder_When_PathsAndCursorsAreMixed()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+              name: String
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id name } }",
+            """{"data":{"foos":[{"id":"1"},{"id":"2"},{"id":"3"}]}}""",
+            resultArena,
+            sourceArena);
+        var foos = store.Result.Data.GetProperty("foos");
+        var variableValueSets = new[] { CreateVariableValues(store, foos[0].CompactPath) };
+        var accumulator = new AdditionalPathAccumulator(capacityHint: 2);
+        accumulator.Add(0, foos[1].CompactPath);
+        accumulator.Add(0, foos[2]);
+
+        // act
+        accumulator.ApplyTo(variableValueSets, 1, store, store.Result);
+        accumulator.Dispose();
+
+        // assert
+        RenderVariableValueSets(store, variableValueSets).MatchInlineSnapshot(
+            """
+            Path: foos[0]
+            Additional paths: [foos[1], foos[2]]
+            Variables: {}
+            """);
+    }
+
+    [Fact]
+    public void AddPartialResults_Should_CompleteRepeatedTargetsOfEachEntry_When_TargetsAreCurrent()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+              name: String
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id name } }",
+            """{"data":{"foos":[{"id":"1"},{"id":"2"},{"id":"1"},{"id":"2"}]}}""",
+            resultArena,
+            sourceArena);
+        var entries = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("foos"),
+            [],
+            [Requirement(schema, "__fusion_1_id", "id", new NamedTypeNode("ID"))]);
+        var resultSelectionSet = ResultSelectionSet.Create(
+            Utf8GraphQLParser.Parse("{ name }")
+                .Definitions
+                .OfType<OperationDefinitionNode>()
+                .Single()
+                .SelectionSet,
+            schema);
+        var one = """{"data":{"name":"One"}}"""u8.ToArray();
+        var two = """{"data":{"name":"Two"}}"""u8.ToArray();
+        SourceSchemaResult[] results =
+        [
+            new(
+                entries[0].Path,
+                SourceResultDocument.Parse(sourceArena, one, one.Length),
+                additionalPaths: entries[0].AdditionalPaths),
+            new(
+                entries[1].Path,
+                SourceResultDocument.Parse(sourceArena, two, two.Length),
+                additionalPaths: entries[1].AdditionalPaths)
+        ];
+        var layoutVersion = store.Result.LayoutVersion;
+
+        // act
+        store.AddPartialResults(SelectionPath.Root, results, resultSelectionSet, containsErrors: false);
+
+        // assert
+        Assert.Equal(layoutVersion, store.Result.LayoutVersion);
+        RenderData(store).MatchInlineSnapshot(
+            """
+            {"foos":[{"id":"1","name":"One"},{"id":"2","name":"Two"},{"id":"1","name":"One"},{"id":"2","name":"Two"}]}
+            """);
+    }
+
+    [Fact]
+    public void AddPartialResult_Should_CompleteRepeatedTargets_When_SourceResultHasErrors()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+              name: String
+              code: String
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id name code } }",
+            """{"data":{"foos":[{"id":"1"},{"id":"1"}]}}""",
+            resultArena,
+            sourceArena);
+        var entry = Assert.Single(
+            store.CreateVariableValueSets(
+                SelectionPath.Root.AppendField("foos"),
+                [],
+                [Requirement(schema, "__fusion_1_id", "id", new NamedTypeNode("ID"))]));
+        var resultSelectionSet = ResultSelectionSet.Create(
+            Utf8GraphQLParser.Parse("{ name code }")
+                .Definitions
+                .OfType<OperationDefinitionNode>()
+                .Single()
+                .SelectionSet,
+            schema);
+        var payload =
+            """{"data":{"name":"One","code":null},"errors":[{"message":"boom","path":["code"]}]}"""u8.ToArray();
+        var document = SourceResultDocument.Parse(sourceArena, payload, payload.Length);
+        var result = new SourceSchemaResult(entry.Path, document, additionalPaths: entry.AdditionalPaths);
+
+        // act
+        store.AddPartialResult(SelectionPath.Root, result, resultSelectionSet, containsErrors: true);
+
+        // assert
+        Assert.Equal(
+            ["foos[0].code", "foos[1].code"],
+            store.Errors!.Select(error => error.Path!.Print()));
+        RenderData(store).MatchInlineSnapshot(
+            """
+            {"foos":[{"id":"1","name":"One","code":null},{"id":"1","name":"One","code":null}]}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSetsFromSnapshot_Should_PreserveAdditionalPaths_When_PathsExceedInitialCapacity()
+    {
+        // arrange
+        using var source = new FetchResultStore();
+        using var target = new FetchResultStore();
+        var additionalPaths = Enumerable.Range(1, 20).Select(i => Path(i)).ToArray();
+        var entry = WithAdditionalPaths(
+            CreateVariableValues(source, Path(0), Field("__fusion_1_id", new StringValueNode("1"))),
+            additionalPaths);
+
+        // act
+        var result = target.CreateVariableValueSetsFromSnapshot(
+            [entry],
+            ImportedKeys("__fusion_1_id"),
+            [],
+            [Requirement("__fusion_1_id")]);
+
+        // assert
+        Assert.Equal(additionalPaths, Assert.Single(result).AdditionalPaths.AsSpan().ToArray());
+    }
+
+    [Theory]
+    [InlineData(
+        "price",
+        "\"price\":899",
+        "{\"first\":{\"name\":\"Table\"},\"second\":{\"name\":\"Table\",\"price\":899}}")]
+    [InlineData(
+        "dimensions { width }",
+        "\"dimensions\":{\"width\":120}",
+        "{\"first\":{\"name\":\"Table\"},\"second\":{\"name\":\"Table\",\"dimensions\":{\"width\":120}}}")]
+    [InlineData(
+        "price",
+        "\"price\":null",
+        "{\"first\":{\"name\":\"Table\"},\"second\":null}")]
+    public void AddPartialResult_Should_CompleteAdditionalFields_When_DuplicateTargetsHaveDifferentSelections(
+        string additionalSelection,
+        string additionalProperty,
+        string expected)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              product: Product
+            }
+
+            type Product {
+              name: String
+              price: Int!
+              dimensions: Dimensions
+            }
+
+            type Dimensions {
+              width: Int
+            }
+            """);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            $"{{ first: product {{ name }} second: product {{ name {additionalSelection} }} }}",
+            """{"data":{"first":{},"second":{}}}""",
+            resultArena,
+            sourceArena);
+        var first = store.Result.Data.GetProperty("first").CompactPath;
+        var second = store.Result.Data.GetProperty("second").CompactPath;
+        var resultSelectionSet = ResultSelectionSet.Create(
+            Utf8GraphQLParser.Parse($"{{ name {additionalSelection} }}")
+                .Definitions
+                .OfType<OperationDefinitionNode>()
+                .Single()
+                .SelectionSet,
+            schema);
+        var payload = Encoding.UTF8.GetBytes($"{{\"data\":{{\"name\":\"Table\",{additionalProperty}}}}}");
+        var document = SourceResultDocument.Parse(sourceArena, payload, payload.Length);
+        var result = new SourceSchemaResult(
+            first,
+            document,
+            additionalPaths: new CompactPathSegment([second], 0, 1));
+
+        // act
+        store.AddPartialResult(SelectionPath.Root, result, resultSelectionSet, containsErrors: false);
+
+        // assert
+        Assert.Equal(expected, RenderData(store));
+    }
+
     private static FetchResultStore CreateLiveStore(
         FusionSchemaDefinition schema,
         string operationText,
