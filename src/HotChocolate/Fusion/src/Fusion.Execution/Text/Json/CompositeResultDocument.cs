@@ -551,18 +551,6 @@ public sealed partial class CompositeResultDocument : IDisposable
         AssignCompositeValue(element, newObject);
     }
 
-    /// <summary>
-    /// Copies the values at the given row offsets of one object into another object that has
-    /// the same selection set.
-    /// </summary>
-    internal void CopyValues(Cursor sourceObject, Cursor targetObject, ReadOnlySpan<int> rowOffsets)
-    {
-        foreach (var rowOffset in rowOffsets)
-        {
-            _metaDb.CopyValuePreserveParent(sourceObject + rowOffset, targetObject + rowOffset);
-        }
-    }
-
     internal CompositeResultElement CreateArray(Cursor parent, int length)
     {
         var cursor = WriteStartArray(parent, length);
