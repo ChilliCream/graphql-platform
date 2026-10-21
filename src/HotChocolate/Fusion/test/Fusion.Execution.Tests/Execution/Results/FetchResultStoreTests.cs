@@ -2345,6 +2345,204 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void CreateVariableValueSets_Should_KeepKeysApart_When_StringAndNumberHaveSameText()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id } }",
+            """{"data":{"foos":[{"id":"1"},{"id":1},{"id":"1"},{"id":1}]}}""",
+            resultArena,
+            sourceArena);
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("foos"),
+            [],
+            [
+                Requirement(schema, "__fusion_1_id", "id", new NamedTypeNode("ID"))
+            ]);
+
+        // assert
+        RenderVariableValueSets(store, result).MatchInlineSnapshot(
+            """
+            Path: foos[0]
+            Additional paths: [foos[2]]
+            Variables: {"__fusion_1_id":"1"}
+            Path: foos[1]
+            Additional paths: [foos[3]]
+            Variables: {"__fusion_1_id":1}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSets_Should_MatchNullValues_When_RequirementIsNullable()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              key: String
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { key } }",
+            """{"data":{"foos":[{"key":null},{"key":"a"},{"key":null},{"key":"a"}]}}""",
+            resultArena,
+            sourceArena);
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("foos"),
+            [],
+            [
+                Requirement(schema, "__fusion_1_key", "key", new NamedTypeNode("String"))
+            ]);
+
+        // assert
+        RenderVariableValueSets(store, result).MatchInlineSnapshot(
+            """
+            Path: foos[0]
+            Additional paths: [foos[2]]
+            Variables: {"__fusion_1_key":null}
+            Path: foos[1]
+            Additional paths: [foos[3]]
+            Variables: {"__fusion_1_key":"a"}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSets_Should_MatchTwoRequirements_When_ValuesRepeat()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              a: String
+              b: String
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { a b } }",
+            """{"data":{"foos":[{"a":"ab","b":"c"},{"a":"a","b":"bc"},{"a":"ab","b":"c"},{"a":"a","b":null},{"a":"a","b":null},{"a":"ab","b":"d"}]}}""",
+            resultArena,
+            sourceArena);
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("foos"),
+            [],
+            [
+                Requirement(schema, "__fusion_1_a", "a", new NamedTypeNode("String")),
+                Requirement(schema, "__fusion_2_b", "b", new NamedTypeNode("String"))
+            ]);
+
+        // assert
+        RenderVariableValueSets(store, result).MatchInlineSnapshot(
+            """
+            Path: foos[0]
+            Additional paths: [foos[2]]
+            Variables: {"__fusion_1_a":"ab","__fusion_2_b":"c"}
+            Path: foos[1]
+            Additional paths: []
+            Variables: {"__fusion_1_a":"a","__fusion_2_b":"bc"}
+            Path: foos[3]
+            Additional paths: [foos[4]]
+            Variables: {"__fusion_1_a":"a","__fusion_2_b":null}
+            Path: foos[5]
+            Additional paths: []
+            Variables: {"__fusion_1_a":"ab","__fusion_2_b":"d"}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSets_Should_MatchThreeRequirements_When_ValuesRepeat()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              a: String
+              b: String
+              c: String
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { a b c } }",
+            """{"data":{"foos":[{"a":"ab","b":"c","c":"x"},{"a":"a","b":"bc","c":"x"},{"a":"ab","b":"c","c":"x"},{"a":"a","b":"b","c":null},{"a":"a","b":"b","c":null},{"a":"ab","b":"c","c":"y"}]}}""",
+            resultArena,
+            sourceArena);
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("foos"),
+            [],
+            [
+                Requirement(schema, "__fusion_1_a", "a", new NamedTypeNode("String")),
+                Requirement(schema, "__fusion_2_b", "b", new NamedTypeNode("String")),
+                Requirement(schema, "__fusion_3_c", "c", new NamedTypeNode("String"))
+            ]);
+
+        // assert
+        RenderVariableValueSets(store, result).MatchInlineSnapshot(
+            """
+            Path: foos[0]
+            Additional paths: [foos[2]]
+            Variables: {"__fusion_1_a":"ab","__fusion_2_b":"c","__fusion_3_c":"x"}
+            Path: foos[1]
+            Additional paths: []
+            Variables: {"__fusion_1_a":"a","__fusion_2_b":"bc","__fusion_3_c":"x"}
+            Path: foos[3]
+            Additional paths: [foos[4]]
+            Variables: {"__fusion_1_a":"a","__fusion_2_b":"b","__fusion_3_c":null}
+            Path: foos[5]
+            Additional paths: []
+            Variables: {"__fusion_1_a":"ab","__fusion_2_b":"c","__fusion_3_c":"y"}
+            """);
+    }
+
+    [Fact]
     public void AddPartialResult_Should_CompleteTargetsFromRoot_When_LayoutChangedAfterCollection()
     {
         // arrange

@@ -346,7 +346,11 @@ internal sealed partial class FetchResultStore
         var hasLeafShape = IsLeafShape(requiredShape);
 
         dedupTable.Initialize(elements.Length);
-        _leafKeyDedupTable.Initialize(elements.Length, representationWriter);
+
+        if (hasLeafShape)
+        {
+            _leafKeyDedupTable.Initialize(elements.Length, representationWriter);
+        }
 
         try
         {
@@ -418,8 +422,7 @@ internal sealed partial class FetchResultStore
     }
 
     /// <summary>
-    /// Returns <c>true</c> when every node of the shape is a leaf field without type conditions,
-    /// so a representation is determined by the raw leaf values of its entity.
+    /// Returns <c>true</c> when every node of the shape is a leaf field without type conditions.
     /// </summary>
     private static bool IsLeafShape(ImmutableArray<RepresentationShapeNode> shape)
     {
@@ -446,6 +449,7 @@ internal sealed partial class FetchResultStore
             if (!element.TryGetProperty(node.ResponseNameUtf8, out var value))
             {
                 key.Writer.ResetTo(key.Start);
+                key.IsValid = false;
                 return false;
             }
 

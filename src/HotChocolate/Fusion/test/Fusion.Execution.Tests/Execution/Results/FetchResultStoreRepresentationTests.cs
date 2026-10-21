@@ -456,6 +456,76 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
     }
 
     [Fact]
+    public void CreateRepresentationVariableValue_Should_MatchLeafKeys_When_EntitiesRepeat()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+            }
+            """);
+        var plan = PlanOperation(schema, "{ foos { id } }");
+        var node = Assert.IsType<OperationExecutionNode>(Assert.Single(plan.RootNodes));
+        var lookupField = ParseLookupField("{ fooById(id: $__fusion_1_id) { id } }");
+        var requirement = new OperationRequirement(
+            "__fusion_1_id",
+            new NamedTypeNode("String"),
+            SelectionPath.Root,
+            new FieldSelectionMapParser("id").Parse(),
+            null);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = new FetchResultStore();
+        store.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            plan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: default,
+            deferFlags: default,
+            pathSegmentLocalPoolCapacity: 16);
+
+        var payload = """{"data":{"foos":[{"id":"1"},{"id":1},{"id":"1"},{"id":1}]}}"""u8.ToArray();
+        var document = SourceResultDocument.Parse(sourceArena, payload, payload.Length);
+        store.AddPartialResults(
+            SelectionPath.Root,
+            [new SourceSchemaResult(CompactPath.Root, document)],
+            node.ResultSelectionSet,
+            containsErrors: false);
+
+        // act
+        var representation = CreateRepresentation(
+            store,
+            schema,
+            SelectionPath.Root.AppendField("foos"),
+            [],
+            [requirement],
+            "Foo",
+            lookupField);
+
+        // assert
+        var operation = store.Result.Data.Operation;
+        var paths = representation.ResultPaths.Select(
+            resultPath => resultPath.Path.ToPath(operation).Print()
+                + " " + string.Join(", ", resultPath.AdditionalPaths.AsSpan().ToArray().Select(
+                    additionalPath => additionalPath.ToPath(operation).Print())));
+        (Normalize(representation.Value) + "\n" + string.Join("\n", paths)).MatchInlineSnapshot(
+            """
+            {"representations":[{"__typename":"Foo","id":"1"},{"__typename":"Foo","id":1}]}
+            foos[0] foos[2]
+            foos[1] foos[3]
+            """);
+    }
+
+    [Fact]
     public void RepresentationShapeBuilder_Should_MatchValueSelectionRewriterOutput_When_MapsAreRewritten()
     {
         // arrange

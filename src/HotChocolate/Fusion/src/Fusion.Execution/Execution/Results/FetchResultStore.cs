@@ -1527,7 +1527,6 @@ AddErrors_Next:
         ReadOnlySpan<OperationRequirement> requiredData)
     {
         _variableDedupTable.Initialize(elements.Length);
-        _leafKeyDedupTable.Initialize(elements.Length, _variableWriter);
         PooledArrayWriter? buffer = null;
 
         if (requestVariables.Count == 0)
@@ -1651,6 +1650,7 @@ AddErrors_Next:
         OperationRequirement requirement,
         string fieldName)
     {
+        _leafKeyDedupTable.Initialize(elements.Length, _variableWriter);
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator(elements.Length);
         var nextIndex = 0;
@@ -1679,6 +1679,8 @@ AddErrors_Next:
                 continue;
             }
 
+            variableValueSets ??= s_variableValuePool.Rent(elements.Length);
+
             var leafKey = StartLeafKey(_variableWriter, _leafKeyDedupTable);
 
             if (TryAppendLeafKey(ref leafKey, value)
@@ -1687,8 +1689,6 @@ AddErrors_Next:
                 additionalPaths.Add(duplicateIndex, result);
                 continue;
             }
-
-            variableValueSets ??= s_variableValuePool.Rent(elements.Length);
 
             _jsonWriter.Reset(_variableWriter);
             var startPosition = _variableWriter.Position;
@@ -1800,6 +1800,7 @@ AddErrors_Next:
         OperationRequirement requirement2,
         string fieldName2)
     {
+        _leafKeyDedupTable.Initialize(elements.Length, _variableWriter);
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator(elements.Length);
         var nextIndex = 0;
@@ -1826,6 +1827,8 @@ AddErrors_Next:
                 continue;
             }
 
+            variableValueSets ??= s_variableValuePool.Rent(elements.Length);
+
             var leafKey = StartLeafKey(_variableWriter, _leafKeyDedupTable);
 
             if (TryAppendLeafKey(ref leafKey, value1)
@@ -1835,8 +1838,6 @@ AddErrors_Next:
                 additionalPaths.Add(duplicateIndex, result);
                 continue;
             }
-
-            variableValueSets ??= s_variableValuePool.Rent(elements.Length);
 
             _jsonWriter.Reset(_variableWriter);
             var startPosition = _variableWriter.Position;
@@ -1966,6 +1967,7 @@ AddErrors_Next:
         OperationRequirement requirement3,
         string fieldName3)
     {
+        _leafKeyDedupTable.Initialize(elements.Length, _variableWriter);
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator(elements.Length);
         var nextIndex = 0;
@@ -2002,6 +2004,8 @@ AddErrors_Next:
                 continue;
             }
 
+            variableValueSets ??= s_variableValuePool.Rent(elements.Length);
+
             var leafKey = StartLeafKey(_variableWriter, _leafKeyDedupTable);
 
             if (TryAppendLeafKey(ref leafKey, value1)
@@ -2012,8 +2016,6 @@ AddErrors_Next:
                 additionalPaths.Add(duplicateIndex, result);
                 continue;
             }
-
-            variableValueSets ??= s_variableValuePool.Rent(elements.Length);
 
             _jsonWriter.Reset(_variableWriter);
             var startPosition = _variableWriter.Position;
@@ -3247,8 +3249,8 @@ AddErrors_Next:
     }
 
     /// <summary>
-    /// The raw leaf values of a lookup target, written to a buffer so that targets with equal values
-    /// are matched before their variable JSON is written.
+    /// A key built from the raw leaf values of a lookup target. Targets with equal keys have equal
+    /// variable values.
     /// </summary>
     private struct LeafKey(ChunkedArrayWriter writer, VariableDedupTable table, int start)
     {
@@ -3352,6 +3354,23 @@ AddErrors_Next:
 
             Grow();
             Add(hash, index, location, length);
+        }
+
+        /// <summary>
+        /// Replaces the table with one of the default size when it holds more than
+        /// <paramref name="maxEntryCount"/> entries.
+        /// </summary>
+        public void Trim(int maxEntryCount)
+        {
+            if (_table.Length <= maxEntryCount)
+            {
+                return;
+            }
+
+            ArrayPool<Entry>.Shared.Return(_table);
+            _table = RentClearedTable(DefaultBucketCount * _bucketSize);
+            _bucketCount = DefaultBucketCount;
+            ResetClearState();
         }
 
         public void Dispose()
