@@ -40,7 +40,7 @@ public sealed class ApolloEntityReuseTests : FusionTestBase
         }.MatchInlineSnapshot(
             """
             {
-              "WithReuse": "accounts-api: 2, inventory-api: 1, products-api: 2, reviews-api: 1",
+              "WithReuse": "accounts-api: 1, inventory-api: 1, products-api: 1, reviews-api: 1",
               "WithoutReuse": "accounts-api: 2, inventory-api: 1, products-api: 2, reviews-api: 1"
             }
             """);
@@ -76,7 +76,7 @@ public sealed class ApolloEntityReuseTests : FusionTestBase
         // assert
         Assert.Equal(dataWithoutReuse, data);
         Assert.Equal(
-            "accounts-api: 2, reviews-api: 1",
+            "accounts-api: 1, reviews-api: 1",
             CountRequests(gateway));
     }
 
@@ -157,7 +157,7 @@ public sealed class ApolloEntityReuseTests : FusionTestBase
             """
             {
               "WithReuse": [
-                "[{\"__typename\":\"Product\",\"upc\":\"1\"},{\"__typename\":\"Product\",\"upc\":\"2\"}]"
+                "[{\"__typename\":\"Product\",\"upc\":\"2\"}]"
               ],
               "WithoutReuse": [
                 "[{\"__typename\":\"Product\",\"upc\":\"1\"},{\"__typename\":\"Product\",\"upc\":\"2\"}]"
@@ -200,7 +200,7 @@ public sealed class ApolloEntityReuseTests : FusionTestBase
         // assert
         Assert.Equal(dataWithoutReuse, data);
         Assert.Equal(
-            "inventory-api: 1, products-api: 2, reviews-api: 1",
+            "inventory-api: 1, products-api: 1, reviews-api: 1",
             CountRequests(gateway));
         data.MatchInlineSnapshot(
             """
@@ -274,7 +274,7 @@ public sealed class ApolloEntityReuseTests : FusionTestBase
         }.MatchInlineSnapshot(
             """
             {
-              "WithReuse": "inventory-api: 3, products-api: 2, reviews-api: 2",
+              "WithReuse": "inventory-api: 3, products-api: 1, reviews-api: 2",
               "WithoutReuse": "inventory-api: 3, products-api: 2, reviews-api: 2"
             }
             """);

@@ -62,6 +62,7 @@ internal sealed partial class FetchResultStore : IDisposable
     private CompositeResultElement[] _collectTargetA = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private CompositeResultElement[] _collectTargetB = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private CompositeResultElement[] _collectTargetCombined = ArrayPool<CompositeResultElement>.Shared.Rent(64);
+    private CompositeResultElement[] _collectProducerCombined = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private SourceResultElement[] _dataElementStaging = [];
     private LeafValue[] _leafValues = [];
     private PathSegmentLocalPool _pathPool = default!;
@@ -1065,7 +1066,7 @@ AddErrors_Next:
 
         lock (_lock)
         {
-            var targetCount = CollectCombinedElements(selectionSets);
+            var targetCount = CollectCombinedElements(selectionSets, ref _collectTargetCombined);
 
             if (targetCount == 0)
             {
@@ -1085,20 +1086,7 @@ AddErrors_Next:
                 return variableValueSets;
             }
 
-            var producerCount = CollectCombinedElements(candidates.Paths);
-            var producers = _collectTargetCombined.AsSpan(0, producerCount);
-            var holdingCount = 0;
-
-            // Only entities that hold a leaf value for every reused field and a key that is not
-            // all null can produce.
-            for (var i = 0; i < producers.Length; i++)
-            {
-                if (HoldsLeafValues(producers[i], candidates.ResponseNames)
-                    && HasNonNullKeyValue(producers[i], candidates.KeyResponseNames))
-                {
-                    producers[holdingCount++] = producers[i];
-                }
-            }
+            var holdingCount = CollectHoldingProducers(candidates);
 
             if (holdingCount == 0)
             {
@@ -1106,7 +1094,7 @@ AddErrors_Next:
             }
 
             var producerValueSets = BuildVariableValueSets(
-                producers[..holdingCount],
+                _collectProducerCombined.AsSpan(0, holdingCount),
                 requestVariables,
                 requiredData);
 
@@ -1115,7 +1103,9 @@ AddErrors_Next:
     }
 
     // Caller must hold _lock.
-    private int CollectCombinedElements(ReadOnlySpan<SelectionPath> selectionSets)
+    private int CollectCombinedElements(
+        ReadOnlySpan<SelectionPath> selectionSets,
+        ref CompositeResultElement[] buffer)
     {
         var combinedCount = 0;
 
@@ -1126,15 +1116,35 @@ AddErrors_Next:
             if (!elements.IsEmpty)
             {
                 EnsureCapacity(
-                    ref _collectTargetCombined,
+                    ref buffer,
                     combinedCount + elements.Length,
                     combinedCount);
-                elements.CopyTo(_collectTargetCombined.AsSpan(combinedCount));
+                elements.CopyTo(buffer.AsSpan(combinedCount));
                 combinedCount += elements.Length;
             }
         }
 
         return combinedCount;
+    }
+
+    // Caller must hold _lock. Collects the candidate entities that hold a leaf value for every
+    // reused field and a key that is not all null into _collectProducerCombined.
+    private int CollectHoldingProducers(EntityReuseCandidateList candidates)
+    {
+        var producerCount = CollectCombinedElements(candidates.Paths, ref _collectProducerCombined);
+        var producers = _collectProducerCombined.AsSpan(0, producerCount);
+        var holdingCount = 0;
+
+        for (var i = 0; i < producers.Length; i++)
+        {
+            if (HoldsLeafValues(producers[i], candidates.ResponseNames)
+                && HasNonNullKeyValue(producers[i], candidates.KeyResponseNames))
+            {
+                producers[holdingCount++] = producers[i];
+            }
+        }
+
+        return holdingCount;
     }
 
     // Caller must hold _lock.
@@ -3026,6 +3036,7 @@ AddErrors_Next:
         ArrayPool<CompositeResultElement>.Shared.Return(_collectTargetA, clearArray: true);
         ArrayPool<CompositeResultElement>.Shared.Return(_collectTargetB, clearArray: true);
         ArrayPool<CompositeResultElement>.Shared.Return(_collectTargetCombined, clearArray: true);
+        ArrayPool<CompositeResultElement>.Shared.Return(_collectProducerCombined, clearArray: true);
 
         foreach (var memory in _memory)
         {

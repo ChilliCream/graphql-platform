@@ -156,6 +156,7 @@ internal sealed partial class FetchResultStore
         TrimOrClearBuffer(ref _collectTargetA, maxCollectTargetRetainLength);
         TrimOrClearBuffer(ref _collectTargetB, maxCollectTargetRetainLength);
         TrimOrClearBuffer(ref _collectTargetCombined, maxCollectTargetRetainLength);
+        TrimOrClearBuffer(ref _collectProducerCombined, maxCollectTargetRetainLength);
 
         // drop the leaf value buffer if a wide lookup selection made it grow
         if (_leafValues.Length > maxCollectTargetRetainLength)

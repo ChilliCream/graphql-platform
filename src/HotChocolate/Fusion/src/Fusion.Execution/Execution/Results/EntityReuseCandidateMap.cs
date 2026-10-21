@@ -1,4 +1,6 @@
+using System.Collections.Immutable;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Execution.ApolloFederation;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -70,6 +72,13 @@ internal sealed class EntityReuseCandidateMap
                     nodesById[definition.Id] = node;
                 }
             }
+            else if (node is ApolloOperationBatchExecutionNode apolloBatchNode)
+            {
+                foreach (var definition in apolloBatchNode.Operations)
+                {
+                    nodesById[definition.Id] = node;
+                }
+            }
         }
 
         foreach (var node in plan.AllNodes)
@@ -91,7 +100,8 @@ internal sealed class EntityReuseCandidateMap
                         operation.Requirements.ToArray(),
                         operation.ForwardedVariables.Length,
                         operation.Conditions.Length,
-                        [targetKey]));
+                        [targetKey],
+                        RepresentationShape: default));
                     break;
 
                 case OperationBatchExecutionNode batch:
@@ -129,7 +139,74 @@ internal sealed class EntityReuseCandidateMap
                             definition.Requirements.ToArray(),
                             definition.ForwardedVariables.Length,
                             definition.Conditions.Length,
-                            targetKeys));
+                            targetKeys,
+                            RepresentationShape: default));
+                    }
+                    break;
+
+                case ApolloOperationExecutionNode apolloOperation:
+                    if (!TryGetPathKey(apolloOperation.Target, out var apolloTargetKey)
+                        || !TryAddWriters(
+                            writers,
+                            apolloTargetKey,
+                            apolloOperation.Lookup.Operation,
+                            apolloOperation.Source,
+                            node.Id))
+                    {
+                        return null;
+                    }
+
+                    lookups.Add(new Lookup(
+                        apolloOperation.Id,
+                        apolloOperation.Dependencies.ToArray(),
+                        apolloOperation.Lookup.EntityTypeName,
+                        apolloOperation.ResultSelectionSet,
+                        apolloOperation.Requirements.ToArray(),
+                        apolloOperation.ForwardedVariables.Length,
+                        apolloOperation.Conditions.Length,
+                        [apolloTargetKey],
+                        apolloOperation.Lookup.RepresentationShape));
+                    break;
+
+                case ApolloOperationBatchExecutionNode apolloBatch:
+                    for (var i = 0; i < apolloBatch.Operations.Length; i++)
+                    {
+                        var definition = apolloBatch.Operations[i];
+                        var apolloLookup = apolloBatch.Lookups[i];
+                        var targets = GetTargets(definition);
+
+                        if (targets is null)
+                        {
+                            return null;
+                        }
+
+                        var targetKeys = new string[targets.Length];
+
+                        for (var j = 0; j < targets.Length; j++)
+                        {
+                            if (!TryGetPathKey(targets[j], out var key))
+                            {
+                                return null;
+                            }
+
+                            if (!TryAddWriters(writers, key, apolloLookup.Operation, definition.Source, node.Id))
+                            {
+                                return null;
+                            }
+
+                            targetKeys[j] = key;
+                        }
+
+                        lookups.Add(new Lookup(
+                            definition.Id,
+                            definition.Dependencies.ToArray(),
+                            apolloLookup.EntityTypeName,
+                            definition.ResultSelectionSet,
+                            definition.Requirements.ToArray(),
+                            definition.ForwardedVariables.Length,
+                            definition.Conditions.Length,
+                            targetKeys,
+                            apolloLookup.RepresentationShape));
                     }
                     break;
 
@@ -205,6 +282,14 @@ internal sealed class EntityReuseCandidateMap
             }
 
             requirementFields[i] = fieldName;
+        }
+
+        // An Apollo representation must carry exactly the requirement fields, so equal
+        // requirement values mean equal representations.
+        if (!lookup.RepresentationShape.IsDefault
+            && !IsFlatRepresentationShape(lookup.RepresentationShape, requirementFields))
+        {
+            return null;
         }
 
         // Every target must select the lookup fields so we know which field and arguments they stand for.
@@ -327,6 +412,32 @@ internal sealed class EntityReuseCandidateMap
         return true;
     }
 
+    private static bool IsFlatRepresentationShape(
+        ImmutableArray<RepresentationShapeNode> shape,
+        string[] requirementFields)
+    {
+        if (shape.Length != requirementFields.Length)
+        {
+            return false;
+        }
+
+        foreach (var node in shape)
+        {
+            if (!node.Nodes.IsDefault
+                || node.IsList
+                || !node.LhsPath.IsEmpty
+                || node.ParentTypeCondition is not null
+                || node.TypeCondition is not null
+                || (uint)node.RequirementIndex >= (uint)requirementFields.Length
+                || !node.ResponseName.Equals(requirementFields[node.RequirementIndex], StringComparison.Ordinal))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private static bool IsWrittenOnlyBy(
         Dictionary<(string Path, string ResponseName), HashSet<int>> writers,
         string path,
@@ -389,6 +500,16 @@ internal sealed class EntityReuseCandidateMap
             if (node is OperationBatchExecutionNode batch)
             {
                 foreach (var operation in batch.Operations)
+                {
+                    foreach (var next in operation.Dependencies)
+                    {
+                        stack.Push(next);
+                    }
+                }
+            }
+            else if (node is ApolloOperationBatchExecutionNode apolloBatch)
+            {
+                foreach (var operation in apolloBatch.Operations)
                 {
                     foreach (var next in operation.Dependencies)
                     {
@@ -598,6 +719,8 @@ internal sealed class EntityReuseCandidateMap
         return builder.Build();
     }
 
+    // RepresentationShape is default for a lookup that sends variable value sets and the
+    // representation shape of an Apollo Federation entity lookup.
     private readonly record struct Lookup(
         int Id,
         IOperationPlanNode[] Dependencies,
@@ -606,5 +729,6 @@ internal sealed class EntityReuseCandidateMap
         OperationRequirement[] Requirements,
         int ForwardedVariableCount,
         int ConditionCount,
-        string[] TargetKeys);
+        string[] TargetKeys,
+        ImmutableArray<RepresentationShapeNode> RepresentationShape);
 }

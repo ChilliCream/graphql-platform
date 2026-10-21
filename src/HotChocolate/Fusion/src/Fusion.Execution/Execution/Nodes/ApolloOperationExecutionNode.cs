@@ -193,16 +193,27 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
         CancellationToken cancellationToken = default)
     {
         var diagnosticEvents = context.DiagnosticEvents;
-        var representation = context.CreateRepresentationVariableValue(
-            _target,
-            _forwardedVariables,
-            _requirements,
-            _lookup.RepresentationShape,
-            _lookup.EntityTypeName);
+        var reusedCount = 0;
+        var representation = context.GetEntityReuseCandidates(Id) is { } candidates
+            ? context.CreateRepresentationVariableValue(
+                [_target],
+                _forwardedVariables,
+                _requirements,
+                _lookup.RepresentationShape,
+                _lookup.EntityTypeName,
+                candidates,
+                out reusedCount)
+            : context.CreateRepresentationVariableValue(
+                _target,
+                _forwardedVariables,
+                _requirements,
+                _lookup.RepresentationShape,
+                _lookup.EntityTypeName);
 
         if (representation.IsEmpty)
         {
-            return ExecutionStatus.Skipped;
+            // When every entity was taken from the result, the node completed its work.
+            return reusedCount > 0 ? ExecutionStatus.Success : ExecutionStatus.Skipped;
         }
 
         var variables = representation.ToVariableValues();

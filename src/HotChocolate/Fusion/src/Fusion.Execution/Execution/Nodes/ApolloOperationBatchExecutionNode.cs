@@ -162,10 +162,16 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
             return ExecutionStatus.Skipped;
         }
 
-        var representation = CreateRepresentationVariableValue(context, operation, lookup);
+        var representation = CreateRepresentationVariableValue(context, operation, lookup, out var reusedCount);
 
         if (representation.IsEmpty)
         {
+            // When every entity was taken from the result, the node completed its work.
+            if (reusedCount > 0)
+            {
+                return ExecutionStatus.Success;
+            }
+
             context.TrackSkippedDefinition(this, operation);
             return ExecutionStatus.Skipped;
         }
@@ -305,11 +311,13 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
                 requestBuilder,
                 operationByIndex,
                 representationByIndex,
-                variablesByIndex);
+                variablesByIndex,
+                out var hasReusedEntities);
 
             if (operationCount == 0)
             {
-                return ExecutionStatus.Skipped;
+                // When every entity was taken from the result, the node completed its work.
+                return hasReusedEntities ? ExecutionStatus.Success : ExecutionStatus.Skipped;
             }
 
             var requests = requestBuilder.DrainToImmutable();
@@ -459,9 +467,11 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
         ImmutableArray<SourceSchemaClientRequest>.Builder requestBuilder,
         OperationDefinition[] operationByIndex,
         RepresentationValue[] representationByIndex,
-        ImmutableArray<VariableValues>[] variablesByIndex)
+        ImmutableArray<VariableValues>[] variablesByIndex,
+        out bool hasReusedEntities)
     {
         var operationCount = 0;
+        hasReusedEntities = false;
 
         for (var i = 0; i < _operations.Length; i++)
         {
@@ -480,11 +490,21 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
                 continue;
             }
 
-            var representation = CreateRepresentationVariableValue(context, operation, lookup);
+            var representation = CreateRepresentationVariableValue(context, operation, lookup, out var reusedCount);
+
+            if (reusedCount > 0)
+            {
+                hasReusedEntities = true;
+            }
 
             if (representation.IsEmpty)
             {
-                context.TrackSkippedDefinition(this, operation);
+                // An operation whose entities were all taken from the result is not skipped.
+                if (reusedCount == 0)
+                {
+                    context.TrackSkippedDefinition(this, operation);
+                }
+
                 continue;
             }
 
@@ -631,25 +651,46 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
     private static RepresentationValue CreateRepresentationVariableValue(
         OperationPlanContext context,
         OperationDefinition operation,
-        ApolloEntityLookup lookup)
-        => operation switch
+        ApolloEntityLookup lookup,
+        out int reusedCount)
+    {
+        var candidates = context.GetEntityReuseCandidates(operation.Id);
+
+        switch (operation)
         {
-            SingleOperationDefinition single
-                => context.CreateRepresentationVariableValue(
+            case SingleOperationDefinition single when candidates is null:
+                reusedCount = 0;
+                return context.CreateRepresentationVariableValue(
                     single.Target,
                     single.ForwardedVariables,
                     single.Requirements,
                     lookup.RepresentationShape,
-                    lookup.EntityTypeName),
-            BatchOperationDefinition batch
-                => context.CreateRepresentationVariableValue(
+                    lookup.EntityTypeName);
+
+            case SingleOperationDefinition single:
+                return context.CreateRepresentationVariableValue(
+                    [single.Target],
+                    single.ForwardedVariables,
+                    single.Requirements,
+                    lookup.RepresentationShape,
+                    lookup.EntityTypeName,
+                    candidates,
+                    out reusedCount);
+
+            case BatchOperationDefinition batch:
+                return context.CreateRepresentationVariableValue(
                     batch.Targets,
                     batch.ForwardedVariables,
                     batch.Requirements,
                     lookup.RepresentationShape,
-                    lookup.EntityTypeName),
-            _ => throw ThrowHelper.UnknownOperationDefinition(operation.GetType())
-        };
+                    lookup.EntityTypeName,
+                    candidates,
+                    out reusedCount);
+
+            default:
+                throw ThrowHelper.UnknownOperationDefinition(operation.GetType());
+        }
+    }
 
     private static SelectionPath GetPrimaryTarget(OperationDefinition operation)
         => operation switch

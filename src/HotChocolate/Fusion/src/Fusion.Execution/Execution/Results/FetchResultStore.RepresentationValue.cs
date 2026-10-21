@@ -203,6 +203,121 @@ internal sealed partial class FetchResultStore
         }
     }
 
+    /// <summary>
+    /// Creates the representations variable of an entity lookup and fills the targets whose entity
+    /// the result already holds at the paths of <paramref name="candidates"/>.
+    /// </summary>
+    /// <returns>
+    /// The representations of the entities that still have to be fetched.
+    /// </returns>
+    internal RepresentationValue CreateRepresentationVariableValue(
+        ReadOnlySpan<SelectionPath> selectionSets,
+        IReadOnlyList<ObjectFieldNode> requestVariables,
+        ReadOnlySpan<OperationRequirement> requiredData,
+        ImmutableArray<RepresentationShapeNode> requiredShape,
+        string entityTypeName,
+        EntityReuseCandidateList candidates,
+        out int reusedCount)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(requestVariables);
+        ArgumentNullException.ThrowIfNull(candidates);
+
+        reusedCount = 0;
+
+        if (requiredData.Length == 0)
+        {
+            return RepresentationValue.Empty;
+        }
+
+        lock (_lock)
+        {
+            var targetCount = CollectCombinedElements(selectionSets, ref _collectTargetCombined);
+
+            if (targetCount == 0)
+            {
+                return RepresentationValue.Empty;
+            }
+
+            var targets = _collectTargetCombined.AsSpan(0, targetCount);
+
+            // Entities are only reused while the result has no errors.
+            if (_errors is { Count: > 0 } || _pocketedErrors is { Count: > 0 })
+            {
+                return BuildRepresentationValue(targets, requestVariables, requiredShape, entityTypeName);
+            }
+
+            var holdingCount = CollectHoldingProducers(candidates);
+
+            if (holdingCount == 0)
+            {
+                return BuildRepresentationValue(targets, requestVariables, requiredShape, entityTypeName);
+            }
+
+            // The requirement values identify the entities. They are only used for matching and
+            // are dropped before the representations are written.
+            var startPosition = _variableWriter.Position;
+            var variableValueSets = BuildVariableValueSets(targets, requestVariables, requiredData);
+            var remaining = variableValueSets;
+
+            if (!variableValueSets.IsEmpty)
+            {
+                var producerValueSets = BuildVariableValueSets(
+                    _collectProducerCombined.AsSpan(0, holdingCount),
+                    requestVariables,
+                    requiredData);
+
+                remaining = ReuseEntities(
+                    variableValueSets,
+                    producerValueSets,
+                    candidates.ResponseNames,
+                    out reusedCount);
+            }
+
+            _variableWriter.ResetTo(startPosition);
+
+            if (reusedCount == 0)
+            {
+                return BuildRepresentationValue(targets, requestVariables, requiredShape, entityTypeName);
+            }
+
+            if (remaining.IsEmpty)
+            {
+                return RepresentationValue.Empty;
+            }
+
+            var remainingCount = CollectRemainingElements(remaining, ref _collectProducerCombined);
+
+            return BuildRepresentationValue(
+                _collectProducerCombined.AsSpan(0, remainingCount),
+                requestVariables,
+                requiredShape,
+                entityTypeName);
+        }
+    }
+
+    // Caller must hold _lock. Collects the entities of the variable value sets that were not reused.
+    private int CollectRemainingElements(
+        ImmutableArray<VariableValues> remaining,
+        ref CompositeResultElement[] buffer)
+    {
+        var count = 0;
+
+        foreach (var variableValues in remaining)
+        {
+            var additionalPaths = variableValues.AdditionalPaths.AsSpan();
+            EnsureCapacity(ref buffer, count + 1 + additionalPaths.Length, count);
+            buffer[count++] = GetStartResult(variableValues.Path);
+
+            foreach (var additionalPath in additionalPaths)
+            {
+                buffer[count++] = GetStartResult(additionalPath);
+            }
+        }
+
+        return count;
+    }
+
     internal RepresentationValue CreateRepresentationVariableValueFromSnapshot(
         ImmutableArray<VariableValues> importedEntries,
         HashSet<string> importedKeys,
