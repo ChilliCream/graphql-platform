@@ -45,6 +45,44 @@ public class ArenaBufferWriterTests
     }
 
     [Fact]
+    public void Advance_Should_RentNoSegmentTable_When_WritesFitFirstSegment()
+    {
+        // Arrange
+        using var arena = new MemoryArena();
+        using var writer = new ArenaBufferWriter(arena);
+
+        // Act
+        Write(writer, new byte[SourceResultDocument.GetDataChunkSize(0)]);
+
+        // Assert
+        Assert.Equal(0, arena.RentedTableCount);
+    }
+
+    [Fact]
+    public void Advance_Should_RentSegmentTable_When_WritesPassFirstSegment()
+    {
+        // Arrange
+        using var arena = new MemoryArena();
+        using var writer = new ArenaBufferWriter(arena);
+        var firstSegmentSize = SourceResultDocument.GetDataChunkSize(0);
+        Write(writer, new byte[firstSegmentSize - 4]);
+        var start = writer.Position;
+
+        // Act
+        Write(writer, "abcdefghij"u8.ToArray());
+        var length = 10;
+        string[] pieces =
+        [
+            Encoding.UTF8.GetString(writer.Read(ref start, ref length)),
+            Encoding.UTF8.GetString(writer.Read(ref start, ref length))
+        ];
+
+        // Assert
+        Assert.Equal(1, arena.RentedTableCount);
+        Assert.Equal(["abcd", "efghij"], pieces);
+    }
+
+    [Fact]
     public void Reset_Should_ReuseRentedSegments_When_WriterIsRewound()
     {
         // Arrange

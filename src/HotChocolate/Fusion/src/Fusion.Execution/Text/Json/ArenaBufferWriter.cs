@@ -16,6 +16,9 @@ namespace HotChocolate.Fusion.Text.Json;
 internal sealed class ArenaBufferWriter : IBufferWriter<byte>, IDisposable
 {
     private IMemoryArena? _arena;
+
+    // the first segment, which stays out of a segment table until the writer moves past it
+    private MemorySegment _firstSegment;
     private MemorySegment[] _segments;
     private int _rentedChunks;
     private int _currentChunk;
@@ -46,7 +49,18 @@ internal sealed class ArenaBufferWriter : IBufferWriter<byte>, IDisposable
     /// Gets the table of filled segments. Every segment except the last is full; the last holds
     /// <see cref="LastLength"/> bytes.
     /// </summary>
-    public MemorySegment[] Segments => _segments;
+    public MemorySegment[] Segments
+    {
+        get
+        {
+            if (_segments.Length == 0)
+            {
+                RentSegmentTable();
+            }
+
+            return _segments;
+        }
+    }
 
     /// <summary>
     /// Gets the number of filled segments.
@@ -172,6 +186,7 @@ internal sealed class ArenaBufferWriter : IBufferWriter<byte>, IDisposable
     public void Release()
     {
         _arena = null;
+        _firstSegment = default;
         _segments = [];
         _currentBuffer = [];
         _rentedChunks = 0;
@@ -196,10 +211,10 @@ internal sealed class ArenaBufferWriter : IBufferWriter<byte>, IDisposable
         while (position < _currentChunkStart)
         {
             _currentChunk--;
-            _currentChunkStart -= _segments[_currentChunk].Length;
+            _currentChunkStart -= GetSegment(_currentChunk).Length;
         }
 
-        var segment = _segments[_currentChunk];
+        var segment = GetSegment(_currentChunk);
         _currentBuffer = segment.Buffer;
         _currentBase = segment.Offset;
         _currentChunkBytes = segment.Length;
@@ -223,8 +238,8 @@ internal sealed class ArenaBufferWriter : IBufferWriter<byte>, IDisposable
 
         while (true)
         {
-            var segmentA = _segments[chunkA];
-            var segmentB = _segments[chunkB];
+            var segmentA = GetSegment(chunkA);
+            var segmentB = GetSegment(chunkB);
             var count = Math.Min(length, Math.Min(segmentA.Length - offsetA, segmentB.Length - offsetB));
 
             if (!segmentA.Buffer.AsSpan(segmentA.Offset + offsetA, count).SequenceEqual(
@@ -268,7 +283,7 @@ internal sealed class ArenaBufferWriter : IBufferWriter<byte>, IDisposable
             return default;
         }
 
-        var segment = _segments[FindChunk(start, out var offset)];
+        var segment = GetSegment(FindChunk(start, out var offset));
         var count = Math.Min(length, segment.Length - offset);
         var bytes = segment.Buffer.AsSpan(segment.Offset + offset, count);
         start += count;
@@ -287,7 +302,7 @@ internal sealed class ArenaBufferWriter : IBufferWriter<byte>, IDisposable
             return default;
         }
 
-        var segment = _segments[FindChunk(start, out var offset)];
+        var segment = GetSegment(FindChunk(start, out var offset));
         var count = Math.Min(length, segment.Length - offset);
         var bytes = segment.Buffer.AsMemory(segment.Offset + offset, count);
         start += count;
@@ -321,11 +336,12 @@ internal sealed class ArenaBufferWriter : IBufferWriter<byte>, IDisposable
     {
         _arena = arena;
 
-        // Rent the first segment now so the first write does not have to branch on an empty table.
-        _segments = arena.RentSegmentTable(64);
+        // Rent the first segment now so the first write does not have to branch on an empty writer.
+        // The segment table is rented once the writer moves past the first segment.
         _currentChunkBytes = SourceResultDocument.GetDataChunkSize(0);
         var segment = arena.Rent(_currentChunkBytes);
-        _segments[0] = segment;
+        _firstSegment = segment;
+        _segments = [];
         _rentedChunks = 1;
         _currentChunk = 0;
         _currentChunkStart = 0;
@@ -338,15 +354,28 @@ internal sealed class ArenaBufferWriter : IBufferWriter<byte>, IDisposable
     private int FindChunk(int position, out int offset)
     {
         var chunk = 0;
+        var length = _firstSegment.Length;
 
-        while (position >= _segments[chunk].Length)
+        while (position >= length)
         {
-            position -= _segments[chunk].Length;
-            chunk++;
+            position -= length;
+            length = _segments[++chunk].Length;
         }
 
         offset = position;
         return chunk;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private MemorySegment GetSegment(int chunk)
+        => chunk == 0 ? _firstSegment : _segments[chunk];
+
+    private void RentSegmentTable()
+    {
+        Debug.Assert(_arena is not null, "The writer must be reset with an arena before writing.");
+
+        _segments = _arena.RentSegmentTable(16);
+        _segments[0] = _firstSegment;
     }
 
     private void ReturnScratch()
@@ -374,7 +403,11 @@ internal sealed class ArenaBufferWriter : IBufferWriter<byte>, IDisposable
                     "The source result document has exceeded its maximum data capacity.");
             }
 
-            if (_currentChunk >= _segments.Length)
+            if (_segments.Length == 0)
+            {
+                RentSegmentTable();
+            }
+            else if (_currentChunk >= _segments.Length)
             {
                 _arena.GrowSegmentTable(ref _segments);
             }
