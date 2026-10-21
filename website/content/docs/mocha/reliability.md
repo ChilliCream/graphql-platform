@@ -931,7 +931,7 @@ builder.Services
 
 The outbox processor is a background hosted service (`IHostedService`). When the EF Core interceptors detect a `SaveChanges` or transaction commit, they signal the processor through `IOutboxSignal`. Messages added through `DbContext.Outbox` are signaled the same way after the save. Inside an ambient `TransactionScope`, the signal is raised when the ambient transaction completes.
 
-The processor restores each stored message's payload, identifiers, addresses, headers, and timestamps. Delivery runs diagnostics and the transport operation without repeating application dispatch middleware. The original `SentAt` and absolute `DeliverBy` deadline are preserved across attempts. Messages whose deadline has passed are deleted before transport dispatch.
+The processor restores each stored message's payload, identifiers, addresses, headers, and timestamps. Delivery runs diagnostics and the transport operation without repeating application dispatch middleware.
 
 The processor also polls at least once per second while idle, so a missed signal does not strand committed messages. `TimesSent` tracks dispatch attempts, with exponential retry delays and a maximum of ten attempts. Messages are deleted after successful transport dispatch.
 

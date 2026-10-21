@@ -3,7 +3,6 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Time.Testing;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
 using Mocha.Middlewares;
 using Mocha.Outbox;
@@ -26,9 +25,8 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
     {
         // arrange
         var connectionString = await fixture.CreateDatabaseAsync();
-        var clock = new FakeTimeProvider(s_now);
         var recorder = new DeliveryRecorder { FailFirstDelivery = retry };
-        await using var provider = await CreateProviderAsync(connectionString, clock, recorder);
+        await using var provider = await CreateProviderAsync(connectionString, recorder);
         MessageEnvelope stored;
         await using (var scope = provider.CreateAsyncScope())
         {
@@ -63,8 +61,7 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
         // arrange
         var connectionString = await fixture.CreateDatabaseAsync();
         var recorder = new DeliveryRecorder();
-        await using var provider = await CreateProviderAsync(
-            connectionString, new FakeTimeProvider(s_now), recorder);
+        await using var provider = await CreateProviderAsync(connectionString, recorder);
         var runtime = provider.GetRequiredService<IMessagingRuntime>();
         var type = runtime.GetMessageType(typeof(PreparedEvent));
         var endpoint = runtime.GetPublishEndpoint(type);
@@ -100,8 +97,7 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
         // arrange
         var connectionString = await fixture.CreateDatabaseAsync();
         var recorder = new DeliveryRecorder { FailSerialization = true };
-        await using var provider = await CreateProviderAsync(
-            connectionString, new FakeTimeProvider(s_now), recorder);
+        await using var provider = await CreateProviderAsync(connectionString, recorder);
         await using var scope = provider.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
 
@@ -117,72 +113,11 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
         Assert.Empty(recorder.Attempts);
     }
 
-    [Theory]
-    [InlineData(-1)]
-    [InlineData(0)]
-    public async Task ProcessAsync_Should_DiscardExpiredMessage_When_DeadlineHasBeenReached(int seconds)
-    {
-        // arrange
-        var connectionString = await fixture.CreateDatabaseAsync();
-        var recorder = new DeliveryRecorder();
-        await using var provider = await CreateProviderAsync(
-            connectionString, new FakeTimeProvider(s_now), recorder);
-        await MessageRows.InsertOutboxAsync(connectionString, new MessageEnvelope
-        {
-            MessageId = "expired-message",
-            MessageType = "urn:message:unknown",
-            DestinationAddress = "unknown://destination",
-            SentAt = s_now.AddHours(-1),
-            DeliverBy = s_now.AddSeconds(seconds)
-        }, TestToken);
-
-        // act
-        await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
-        await WaitForEmptyOutboxAsync(connectionString);
-
-        // assert
-        Assert.Empty(recorder.Attempts);
-        Assert.False(recorder.Delivered.Task.IsCompleted);
-        Assert.Equal(0, recorder.PreparationCount);
-    }
-
-    [Fact]
-    public async Task ProcessAsync_Should_DiscardExpiredMessage_When_DeadlinePassesAfterFailedDelivery()
-    {
-        // arrange
-        var connectionString = await fixture.CreateDatabaseAsync();
-        var clock = new FakeTimeProvider(s_now);
-        var recorder = new DeliveryRecorder
-        {
-            FailFirstDelivery = true,
-            OnFailure = () => clock.Advance(TimeSpan.FromHours(2))
-        };
-        await using var provider = await CreateProviderAsync(connectionString, clock, recorder);
-        await using (var scope = provider.CreateAsyncScope())
-        {
-            var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
-            await db.Outbox.PublishAsync(new PreparedEvent { Value = "before-next" }, TestToken);
-            await db.SaveChangesAsync(TestToken);
-        }
-
-        // act
-        await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
-        await WaitForEmptyOutboxAsync(connectionString);
-
-        // assert
-        var attempt = Assert.Single(recorder.Attempts);
-        Assert.Equal((s_now.AddMinutes(-5), s_now.AddHours(1)), (attempt.SentAt, attempt.DeliverBy));
-        Assert.False(recorder.Delivered.Task.IsCompleted);
-        Assert.Equal(1, recorder.PreparationCount);
-    }
-
     private static async Task<ServiceProvider> CreateProviderAsync(
         string connectionString,
-        TimeProvider clock,
         DeliveryRecorder recorder)
     {
         var services = new ServiceCollection();
-        services.AddSingleton(clock);
         services.AddSingleton(recorder);
         services.AddSingleton<IMessagingDiagnosticEventListener>(recorder);
         services.AddSingleton<IOutboxSignal, StubOutboxSignal>();
@@ -267,8 +202,6 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
         public override void DispatchError(IDispatchContext context, Exception exception)
             => DispatchErrors.Enqueue(exception);
 
-        public Action? OnFailure { get; init; }
-
         public override IDisposable Dispatch(IDispatchContext context)
         {
             if (context.Envelope is not { } envelope)
@@ -286,7 +219,6 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
 
             if (FailFirstDelivery && Attempts.Count == 1)
             {
-                OnFailure?.Invoke();
                 throw new InvalidOperationException("The first delivery failed deliberately.");
             }
 
