@@ -48,10 +48,11 @@ internal sealed partial class FetchResultStore : IDisposable
     private readonly object _lock = new();
 #endif
     private readonly List<IDisposable> _memory = [];
-    private readonly ChunkedArrayWriter _variableWriter = new();
+    private ArenaBufferWriter _variableWriter = new();
+    private bool _variableWriterHasArena;
     private PooledArrayWriter? _forwardedVariableWriter;
     private readonly JsonWriter _jsonWriter;
-    private readonly VariableDedupTable _variableDedupTable;
+    private readonly VariableDedupTable _variableDedupTable = new();
     private ArenaBufferWriter? _leafKeyWriter;
     private VariableDedupTable? _leafKeyDedupTable;
     private bool _leafKeyWriterHasArena;
@@ -80,7 +81,6 @@ internal sealed partial class FetchResultStore : IDisposable
     internal FetchResultStore()
     {
         _jsonWriter = new JsonWriter(_variableWriter, new JsonWriterOptions { Indented = false });
-        _variableDedupTable = new VariableDedupTable(_variableWriter);
     }
 
     public CompositeResultDocument Result => _result;
@@ -1205,7 +1205,7 @@ AddErrors_Next:
         {
             var hash = _variableWriter.GetHashCode(values.Location, values.Length);
 
-            if (_variableDedupTable.TryGet(hash, values.Location, values.Length, out var index))
+            if (_variableDedupTable.TryGet(_variableWriter, hash, values.Location, values.Length, out var index))
             {
                 producerPath = producerValueSets[index].Path;
                 return true;
@@ -1487,7 +1487,7 @@ AddErrors_Next:
                 continue;
             }
 
-            _jsonWriter.Reset(_variableWriter);
+            _jsonWriter.Reset(GetVariableWriter());
             var startPosition = _variableWriter.Position;
             _jsonWriter.WriteStartObject();
             WriteForwardedVariables(requestVariables, forwardedVariables);
@@ -1574,7 +1574,7 @@ AddErrors_Next:
         {
             variableValueSets ??= s_variableValuePool.Rent(elements.Length);
 
-            _jsonWriter.Reset(_variableWriter);
+            _jsonWriter.Reset(GetVariableWriter());
             var startPosition = _variableWriter.Position;
             _jsonWriter.WriteStartObject();
             WriteForwardedVariables(requestVariables, forwardedVariables);
@@ -1691,7 +1691,7 @@ AddErrors_Next:
                 continue;
             }
 
-            _jsonWriter.Reset(_variableWriter);
+            _jsonWriter.Reset(GetVariableWriter());
             var startPosition = _variableWriter.Position;
 
             // Write variable JSON: {"key":rawValue}
@@ -1734,7 +1734,7 @@ AddErrors_Next:
         {
             variableValueSets ??= s_variableValuePool.Rent(elements.Length);
 
-            _jsonWriter.Reset(_variableWriter);
+            _jsonWriter.Reset(GetVariableWriter());
             var startPosition = _variableWriter.Position;
             _jsonWriter.WriteStartObject();
             _jsonWriter.WritePropertyName(requirement.Key);
@@ -1840,7 +1840,7 @@ AddErrors_Next:
                 continue;
             }
 
-            _jsonWriter.Reset(_variableWriter);
+            _jsonWriter.Reset(GetVariableWriter());
             var startPosition = _variableWriter.Position;
             _jsonWriter.WriteStartObject();
             _jsonWriter.WritePropertyName(requirement1.Key);
@@ -1879,7 +1879,7 @@ AddErrors_Next:
         {
             variableValueSets ??= s_variableValuePool.Rent(elements.Length);
 
-            _jsonWriter.Reset(_variableWriter);
+            _jsonWriter.Reset(GetVariableWriter());
             var startPosition = _variableWriter.Position;
             _jsonWriter.WriteStartObject();
 
@@ -2018,7 +2018,7 @@ AddErrors_Next:
                 continue;
             }
 
-            _jsonWriter.Reset(_variableWriter);
+            _jsonWriter.Reset(GetVariableWriter());
             var startPosition = _variableWriter.Position;
             _jsonWriter.WriteStartObject();
             _jsonWriter.WritePropertyName(requirement1.Key);
@@ -2061,7 +2061,7 @@ AddErrors_Next:
         {
             variableValueSets ??= s_variableValuePool.Rent(elements.Length);
 
-            _jsonWriter.Reset(_variableWriter);
+            _jsonWriter.Reset(GetVariableWriter());
             var startPosition = _variableWriter.Position;
             _jsonWriter.WriteStartObject();
 
@@ -2123,6 +2123,20 @@ AddErrors_Next:
     }
 
     /// <summary>
+    /// Gets the variable writer, which writes to the memory arena of the current request or event.
+    /// </summary>
+    private ArenaBufferWriter GetVariableWriter()
+    {
+        if (!_variableWriterHasArena)
+        {
+            _variableWriter.Reset(_arena);
+            _variableWriterHasArena = true;
+        }
+
+        return _variableWriter;
+    }
+
+    /// <summary>
     /// Clears the leaf keys of the previous lookup and sizes the key table for
     /// <paramref name="capacity"/> targets. The keys are written to the memory arena of the request.
     /// </summary>
@@ -2131,7 +2145,7 @@ AddErrors_Next:
         if (_leafKeyWriter is null || _leafKeyDedupTable is null)
         {
             _leafKeyWriter = new ArenaBufferWriter(_arena);
-            _leafKeyDedupTable = new VariableDedupTable(_leafKeyWriter);
+            _leafKeyDedupTable = new VariableDedupTable();
         }
         else if (_leafKeyWriterHasArena)
         {
@@ -2185,7 +2199,7 @@ AddErrors_Next:
         key.Hash = key.Hasher.ToHashCode();
         key.Length = length;
 
-        if (key.Table.TryGet(key.Hash, key.Start, length, out index))
+        if (key.Table.TryGet(key.Writer, key.Hash, key.Start, length, out index))
         {
             DiscardLeafKey(ref key);
             return true;
@@ -2279,7 +2293,7 @@ AddErrors_Next:
 
         // A target whose variables were already written for an earlier target is merged from
         // the same fetch, so it is tracked as an additional target of the existing entry.
-        if (_variableDedupTable.TryGet(hash, startPosition, length, out var existingIndex))
+        if (_variableDedupTable.TryGet(_variableWriter, hash, startPosition, length, out var existingIndex))
         {
             dedupIndex = existingIndex;
             additionalPaths.Add(existingIndex, target);
@@ -2306,7 +2320,7 @@ AddErrors_Next:
         // on the existing index.
         //
         // this allows us to fetch once and then insert the data at different locations.
-        if (_variableDedupTable.TryGet(hash, startPosition, length, out var existingIndex))
+        if (_variableDedupTable.TryGet(_variableWriter, hash, startPosition, length, out var existingIndex))
         {
             dedupIndex = existingIndex;
             additionalPaths.Add(existingIndex, path);
@@ -2417,7 +2431,7 @@ AddErrors_Next:
         }
 
         _jsonWriter.WriteEndObject();
-        _jsonWriter.Reset(_variableWriter);
+        _jsonWriter.Reset(GetVariableWriter());
 
         return writer.WrittenSpan[1..^1];
     }
@@ -2501,7 +2515,7 @@ AddErrors_Next:
         IVariableValueCollection variables,
         ReadOnlySpan<string> forwardedVariables)
     {
-        _jsonWriter.Reset(_variableWriter);
+        _jsonWriter.Reset(GetVariableWriter());
         var startPosition = _variableWriter.Position;
         _jsonWriter.WriteStartObject();
 
@@ -2526,7 +2540,7 @@ AddErrors_Next:
         CompactPath path,
         IReadOnlyList<ObjectFieldNode> fields)
     {
-        _jsonWriter.Reset(_variableWriter);
+        _jsonWriter.Reset(GetVariableWriter());
         var startPosition = _variableWriter.Position;
         _jsonWriter.WriteStartObject();
 
@@ -2593,16 +2607,17 @@ AddErrors_Next:
             return JsonSegment.Empty;
         }
 
-        var startPosition = _variableWriter.Position;
+        var writer = GetVariableWriter();
+        var startPosition = writer.Position;
         foreach (var memory in source.AsSequence())
         {
-            var span = _variableWriter.GetSpan(memory.Length);
+            var span = writer.GetSpan(memory.Length);
             memory.Span.CopyTo(span);
-            _variableWriter.Advance(memory.Length);
+            writer.Advance(memory.Length);
         }
 
-        var length = _variableWriter.Position - startPosition;
-        return JsonSegment.Create(_variableWriter, startPosition, length);
+        var length = writer.Position - startPosition;
+        return JsonSegment.Create(writer, startPosition, length);
     }
 
     private static CompactPath ImportPath(CompactPath source)
@@ -3307,8 +3322,6 @@ AddErrors_Next:
         private const int DefaultBucketCount = 16;
         private const int TrackedSlotCapacity = 16;
 
-        private readonly ChunkedArrayWriter? _writer;
-        private readonly ArenaBufferWriter? _arenaWriter;
         private Entry[] _table = RentClearedTable(DefaultBucketCount * DefaultBucketSize);
         private int[] _writtenSlots = [];
         private int _bucketCount = DefaultBucketCount;
@@ -3316,16 +3329,6 @@ AddErrors_Next:
         private int _count;
         private int _writtenCount;
         private bool _clearFullTable;
-
-        public VariableDedupTable(ChunkedArrayWriter writer)
-        {
-            _writer = writer;
-        }
-
-        public VariableDedupTable(ArenaBufferWriter writer)
-        {
-            _arenaWriter = writer;
-        }
 
         public void Initialize(int capacity)
         {
@@ -3342,7 +3345,12 @@ AddErrors_Next:
             _bucketCount = bucketCount;
         }
 
+        /// <summary>
+        /// Gets the index of an entry whose bytes in <paramref name="writer"/> equal the
+        /// <paramref name="length"/> bytes at <paramref name="location"/>.
+        /// </summary>
         public bool TryGet(
+            ArenaBufferWriter writer,
             int hash,
             int location,
             int length,
@@ -3364,7 +3372,45 @@ AddErrors_Next:
 
                 if (entry.Hash == hash
                     && entry.Length == length
-                    && SequenceEqual(entry.Location, location, length))
+                    && writer.SequenceEqual(entry.Location, location, length))
+                {
+                    existingIndex = entry.Index - 1;
+                    return true;
+                }
+            }
+
+            existingIndex = -1;
+            return false;
+        }
+
+        /// <summary>
+        /// Gets the index of an entry whose bytes in <paramref name="writer"/> equal the
+        /// <paramref name="length"/> bytes at <paramref name="location"/>.
+        /// </summary>
+        public bool TryGet(
+            ChunkedArrayWriter writer,
+            int hash,
+            int location,
+            int length,
+            out int existingIndex)
+        {
+            var bucket = hash & 0x7FFFFFFF & (_bucketCount - 1);
+            var start = bucket * _bucketSize;
+            var end = start + _bucketSize;
+
+            for (var s = start; s < end; s++)
+            {
+                ref var entry = ref _table[s];
+
+                if (entry.Index == 0)
+                {
+                    existingIndex = -1;
+                    return false;
+                }
+
+                if (entry.Hash == hash
+                    && entry.Length == length
+                    && writer.SequenceEqual(entry.Location, location, length))
                 {
                     existingIndex = entry.Index - 1;
                     return true;
@@ -3429,10 +3475,6 @@ AddErrors_Next:
             _count = 0;
             ResetClearState();
         }
-
-        private bool SequenceEqual(int locationA, int locationB, int length)
-            => _arenaWriter?.SequenceEqual(locationA, locationB, length)
-                ?? _writer!.SequenceEqual(locationA, locationB, length);
 
         private bool TryInsert(int hash, int index, int location, int length)
         {

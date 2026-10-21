@@ -251,7 +251,7 @@ internal sealed partial class FetchResultStore
             ? stackalloc (long, long)[requiredData.Length]
             : new (long, long)[requiredData.Length];
         using var representationWriter = new ChunkedArrayWriter();
-        using var dedupTable = new VariableDedupTable(representationWriter);
+        using var dedupTable = new VariableDedupTable();
         var representationJsonWriter = new JsonWriter(
             representationWriter,
             new JsonWriterOptions { Indented = false });
@@ -334,7 +334,7 @@ internal sealed partial class FetchResultStore
         string entityTypeName)
     {
         using var representationWriter = new ChunkedArrayWriter();
-        using var dedupTable = new VariableDedupTable(representationWriter);
+        using var dedupTable = new VariableDedupTable();
         var representationJsonWriter = new JsonWriter(
             representationWriter,
             new JsonWriterOptions { Indented = false });
@@ -471,7 +471,7 @@ internal sealed partial class FetchResultStore
 
     private int StartRepresentationVariableValue()
     {
-        _jsonWriter.Reset(_variableWriter);
+        _jsonWriter.Reset(GetVariableWriter());
         var startPosition = _variableWriter.Position;
         _jsonWriter.WriteStartObject();
         _jsonWriter.WritePropertyName(RepresentationsVariableName);
@@ -674,7 +674,7 @@ internal sealed partial class FetchResultStore
         var length = representationWriter.Position - startPosition;
         var hash = representationWriter.GetHashCode(startPosition, length);
 
-        if (dedupTable.TryGet(hash, startPosition, length, out var existingIndex))
+        if (dedupTable.TryGet(representationWriter, hash, startPosition, length, out var existingIndex))
         {
             representationWriter.ResetTo(startPosition);
             index = existingIndex;

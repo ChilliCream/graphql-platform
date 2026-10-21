@@ -15,7 +15,7 @@ namespace HotChocolate.Fusion.Text.Json;
 /// </summary>
 internal sealed class ArenaBufferWriter : IBufferWriter<byte>, IDisposable
 {
-    private IMemoryArena _arena;
+    private IMemoryArena? _arena;
     private MemorySegment[] _segments;
     private int _rentedChunks;
     private int _currentChunk;
@@ -26,6 +26,15 @@ internal sealed class ArenaBufferWriter : IBufferWriter<byte>, IDisposable
     private int _currentBase;
     private byte[] _scratch = [];
     private bool _advanceFromScratch;
+
+    /// <summary>
+    /// Creates a writer without an arena. It must be reset with an arena before the first write.
+    /// </summary>
+    public ArenaBufferWriter()
+    {
+        _segments = [];
+        _currentBuffer = [];
+    }
 
     public ArenaBufferWriter(IMemoryArena arena)
     {
@@ -158,6 +167,23 @@ internal sealed class ArenaBufferWriter : IBufferWriter<byte>, IDisposable
     }
 
     /// <summary>
+    /// Drops the segments of the arena. The writer must be reset with an arena before the next write.
+    /// </summary>
+    public void Release()
+    {
+        _arena = null;
+        _segments = [];
+        _currentBuffer = [];
+        _rentedChunks = 0;
+        _currentChunk = 0;
+        _currentChunkStart = 0;
+        _currentChunkBytes = 0;
+        _currentChunkOffset = 0;
+        _currentBase = 0;
+        _advanceFromScratch = false;
+    }
+
+    /// <summary>
     /// Moves the write position back to <paramref name="position"/>, which must not be after
     /// <see cref="Position"/>. Later writes overwrite the bytes after it.
     /// </summary>
@@ -231,6 +257,60 @@ internal sealed class ArenaBufferWriter : IBufferWriter<byte>, IDisposable
         }
     }
 
+    /// <summary>
+    /// Reads at most <paramref name="length"/> written bytes at <paramref name="start"/> from one
+    /// segment and moves <paramref name="start"/> and <paramref name="length"/> past them.
+    /// </summary>
+    public ReadOnlySpan<byte> Read(ref int start, ref int length)
+    {
+        if (length == 0)
+        {
+            return default;
+        }
+
+        var segment = _segments[FindChunk(start, out var offset)];
+        var count = Math.Min(length, segment.Length - offset);
+        var bytes = segment.Buffer.AsSpan(segment.Offset + offset, count);
+        start += count;
+        length -= count;
+        return bytes;
+    }
+
+    /// <summary>
+    /// Reads at most <paramref name="length"/> written bytes at <paramref name="start"/> from one
+    /// segment and moves <paramref name="start"/> and <paramref name="length"/> past them.
+    /// </summary>
+    public ReadOnlyMemory<byte> ReadMemory(ref int start, ref int length)
+    {
+        if (length == 0)
+        {
+            return default;
+        }
+
+        var segment = _segments[FindChunk(start, out var offset)];
+        var count = Math.Min(length, segment.Length - offset);
+        var bytes = segment.Buffer.AsMemory(segment.Offset + offset, count);
+        start += count;
+        length -= count;
+        return bytes;
+    }
+
+    /// <summary>
+    /// Computes the hash code of <paramref name="length"/> written bytes at
+    /// <paramref name="location"/>. Equal bytes have equal hash codes.
+    /// </summary>
+    public int GetHashCode(int location, int length)
+    {
+        var hash = 0u;
+
+        while (length > 0)
+        {
+            hash = ChunkedArrayWriter.ComputeHashCore(hash, Read(ref location, ref length));
+        }
+
+        return (int)(hash & 0x7FFFFFFF);
+    }
+
     public void Dispose()
     {
         ReturnScratch();
@@ -286,6 +366,8 @@ internal sealed class ArenaBufferWriter : IBufferWriter<byte>, IDisposable
 
         if (_currentChunk >= _rentedChunks)
         {
+            Debug.Assert(_arena is not null, "The writer must be reset with an arena before writing.");
+
             if (_currentChunk >= SourceResultDocument.DataMaxChunks)
             {
                 throw new InvalidOperationException(

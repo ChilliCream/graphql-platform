@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 #if !NET9_0_OR_GREATER
@@ -33,6 +34,16 @@ public sealed class FetchResultStoreTests : FusionTestBase
         ?? throw new InvalidOperationException(
             "FetchResultStore no longer contains a non-public instance field named '_dataElementStaging'. Update the tests accordingly.");
     private static readonly byte[] s_fieldPayload = """{"data":{"field":"value"}}"""u8.ToArray();
+
+    private static readonly FusionSchemaDefinition s_snapshotSchema = ComposeSchema(
+        """
+        # name: test
+        type Query {
+          noop: String
+        }
+        """);
+
+    private static readonly Operation s_snapshotOperation = PlanOperation(s_snapshotSchema, "{ noop }").Operation;
 
     [Fact]
     public void GetResultPaths_Should_ThrowInvalidOperationException_When_TargetTraversesScalar()
@@ -1030,8 +1041,9 @@ public sealed class FetchResultStoreTests : FusionTestBase
     public void CreateVariableValueSetsFromSnapshot_Should_MergeForwardedVariables_When_RequirementsAreImported()
     {
         // arrange
-        using var source = new FetchResultStore();
-        using var target = new FetchResultStore();
+        using var arena = new MemoryArena();
+        using var source = CreateSnapshotStore(arena);
+        using var target = CreateSnapshotStore(arena);
 
         var imported = CreateVariableValues(
             source,
@@ -1060,8 +1072,9 @@ public sealed class FetchResultStoreTests : FusionTestBase
     public void CreateVariableValueSetsFromSnapshot_Should_PreserveAdditionalPaths_When_FilteredRequirementsDeduplicate()
     {
         // arrange
-        using var source = new FetchResultStore();
-        using var target = new FetchResultStore();
+        using var arena = new MemoryArena();
+        using var source = CreateSnapshotStore(arena);
+        using var target = CreateSnapshotStore(arena);
 
         var primaryPath = Path(1);
         var primaryAdditionalPath = Path(2);
@@ -1107,8 +1120,9 @@ public sealed class FetchResultStoreTests : FusionTestBase
     public void CreateVariableValueSetsFromSnapshot_Should_CopyCompositeValues_When_ImportedRequirementIsNested()
     {
         // arrange
-        using var source = new FetchResultStore();
-        using var target = new FetchResultStore();
+        using var arena = new MemoryArena();
+        using var source = CreateSnapshotStore(arena);
+        using var target = CreateSnapshotStore(arena);
 
         var imported = CreateVariableValues(
             source,
@@ -1138,8 +1152,9 @@ public sealed class FetchResultStoreTests : FusionTestBase
     public void CreateVariableValueSetsFromSnapshot_Should_Throw_When_RequirementWasNotImported()
     {
         // arrange
-        using var source = new FetchResultStore();
-        using var target = new FetchResultStore();
+        using var arena = new MemoryArena();
+        using var source = CreateSnapshotStore(arena);
+        using var target = CreateSnapshotStore(arena);
 
         var imported = CreateVariableValues(
             source,
@@ -1164,8 +1179,9 @@ public sealed class FetchResultStoreTests : FusionTestBase
     public void CreateVariableValueSetsFromSnapshot_Should_CopyCompositeArrayValues_When_ImportedRequirementIsArray()
     {
         // arrange
-        using var source = new FetchResultStore();
-        using var target = new FetchResultStore();
+        using var arena = new MemoryArena();
+        using var source = CreateSnapshotStore(arena);
+        using var target = CreateSnapshotStore(arena);
 
         var imported = CreateVariableValues(
             source,
@@ -1199,8 +1215,9 @@ public sealed class FetchResultStoreTests : FusionTestBase
     public void CreateVariableValueSetsFromSnapshot_Should_CopyValueAcrossChunks_When_ValueSpansChunkBoundary()
     {
         // arrange
-        using var source = new FetchResultStore();
-        using var target = new FetchResultStore();
+        using var arena = new MemoryArena();
+        using var source = CreateSnapshotStore(arena);
+        using var target = CreateSnapshotStore(arena);
 
         // The value alone exceeds one 128KB ChunkedArrayWriter chunk so the
         // imported entry's JsonSegment spans more than one chunk.
@@ -1227,8 +1244,9 @@ public sealed class FetchResultStoreTests : FusionTestBase
     public void CreateVariableValueSetsFromSnapshot_Should_MatchPropertyName_When_PropertyNameSpansChunkBoundary()
     {
         // arrange
-        using var source = new FetchResultStore();
-        using var target = new FetchResultStore();
+        using var arena = new MemoryArena();
+        using var source = CreateSnapshotStore(arena);
+        using var target = CreateSnapshotStore(arena);
 
         // Pad the source writer so the next entry's property name straddles
         // a 128KB ChunkedArrayWriter chunk boundary.
@@ -1258,8 +1276,9 @@ public sealed class FetchResultStoreTests : FusionTestBase
     public void CreateVariableValueSetsFromSnapshot_Should_EmitInRequestedOrder_When_ImportedSnapshotOrderDiffers()
     {
         // arrange
-        using var source = new FetchResultStore();
-        using var target = new FetchResultStore();
+        using var arena = new MemoryArena();
+        using var source = CreateSnapshotStore(arena);
+        using var target = CreateSnapshotStore(arena);
 
         // Imported snapshot has properties in order a, b, c.
         var imported = CreateVariableValues(
@@ -1293,7 +1312,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
     public void CreateVariableValueSetsFromSnapshot_Should_ReturnEmpty_When_ImportedEntriesIsEmpty()
     {
         // arrange
-        using var target = new FetchResultStore();
+        using var arena = new MemoryArena();
+        using var target = CreateSnapshotStore(arena);
 
         // act
         var result = target.CreateVariableValueSetsFromSnapshot(
@@ -1310,8 +1330,9 @@ public sealed class FetchResultStoreTests : FusionTestBase
     public void CreateVariableValueSetsFromSnapshot_Should_SkipEmptyEntries_When_EntryValuesIsEmpty()
     {
         // arrange
-        using var source = new FetchResultStore();
-        using var target = new FetchResultStore();
+        using var arena = new MemoryArena();
+        using var source = CreateSnapshotStore(arena);
+        using var target = CreateSnapshotStore(arena);
 
         var realEntry = CreateVariableValues(
             source,
@@ -1338,8 +1359,9 @@ public sealed class FetchResultStoreTests : FusionTestBase
     public void CreateVariableValueSetsFromSnapshot_Should_ReinitializeDeduplicationTable_When_Reused()
     {
         // arrange
-        using var source = new FetchResultStore();
-        using var target = new FetchResultStore();
+        using var arena = new MemoryArena();
+        using var source = CreateSnapshotStore(arena);
+        using var target = CreateSnapshotStore(arena);
 
         var firstEntries = new[]
         {
@@ -1393,8 +1415,9 @@ public sealed class FetchResultStoreTests : FusionTestBase
     {
         // arrange
         const int entryCount = 17;
-        using var source = new FetchResultStore();
-        using var target = new FetchResultStore();
+        using var arena = new MemoryArena();
+        using var source = CreateSnapshotStore(arena);
+        using var target = CreateSnapshotStore(arena);
 
         var entries = new VariableValues[entryCount];
 
@@ -1443,8 +1466,9 @@ public sealed class FetchResultStoreTests : FusionTestBase
     public void CreateVariableValueSetsFromSnapshot_Should_ReinitializeDeduplicationTable_When_GrowthIsFollowedByReuse()
     {
         // arrange
-        using var source = new FetchResultStore();
-        using var target = new FetchResultStore();
+        using var arena = new MemoryArena();
+        using var source = CreateSnapshotStore(arena);
+        using var target = CreateSnapshotStore(arena);
 
         // The serialized values have distinct full hashes whose low eight bits are all E3.
         // This fills one four-entry bucket and forces growth before the hashes redistribute.
@@ -1493,8 +1517,9 @@ public sealed class FetchResultStoreTests : FusionTestBase
     public void CreateVariableValueSetsFromSnapshot_Should_ReinitializeDeduplicationTable_When_PreviousCallThrows()
     {
         // arrange
-        using var source = new FetchResultStore();
-        using var target = new FetchResultStore();
+        using var arena = new MemoryArena();
+        using var source = CreateSnapshotStore(arena);
+        using var target = CreateSnapshotStore(arena);
         using var malformedWriter = new ChunkedArrayWriter();
 
         var valid = CreateVariableValues(
@@ -1721,8 +1746,9 @@ public sealed class FetchResultStoreTests : FusionTestBase
     public void CreateVariableValueSetsFromSnapshot_Should_WriteForwardedVariablesForEveryEntry_When_MultipleEntriesAreImported()
     {
         // arrange
-        using var source = new FetchResultStore();
-        using var target = new FetchResultStore();
+        using var arena = new MemoryArena();
+        using var source = CreateSnapshotStore(arena);
+        using var target = CreateSnapshotStore(arena);
 
         var first = CreateVariableValues(source, Path(1), Field("__fusion_1_id", new StringValueNode("1")));
         var second = CreateVariableValues(source, Path(2), Field("__fusion_1_id", new StringValueNode("2")));
@@ -1757,8 +1783,9 @@ public sealed class FetchResultStoreTests : FusionTestBase
     public void CreateVariableValueSetsFromSnapshot_Should_WriteForwardedVariables_When_StoreIsReusedAfterLargeInputWasCleaned()
     {
         // arrange
-        using var source = new FetchResultStore();
-        using var target = new FetchResultStore();
+        using var arena = new MemoryArena();
+        using var source = CreateSnapshotStore(arena);
+        using var target = CreateSnapshotStore(arena);
 
         var first = CreateVariableValues(source, Path(1), Field("__fusion_1_id", new StringValueNode("1")));
         var second = CreateVariableValues(source, Path(2), Field("__fusion_1_id", new StringValueNode("2")));
@@ -1775,6 +1802,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
             .ToArray();
 
         target.Clean(maxCollectTargetRetainLength: 256, maxDictionaryRetainCapacity: 256);
+        using var nextArena = new MemoryArena();
+        InitializeSnapshotStore(target, nextArena);
 
         // act
         var result = target.CreateVariableValueSetsFromSnapshot(
@@ -2815,6 +2844,96 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void CreateVariableValueSets_Should_KeepEarlierVariableValues_When_StoreIsResetForNextEvent()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              key: String
+            }
+            """);
+        var plan = PlanOperation(schema, "{ foos { key } }");
+        var node = Assert.IsType<OperationExecutionNode>(Assert.Single(plan.RootNodes));
+        var requirement = Requirement(schema, "__fusion_1_key", "key", new NamedTypeNode("String"));
+
+        using var requestArena = new MemoryArena();
+        using var eventArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = new FetchResultStore();
+        store.Initialize(
+            requestArena,
+            schema,
+            DefaultErrorHandler.Default,
+            plan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: default,
+            deferFlags: default,
+            pathSegmentLocalPoolCapacity: 16);
+        AddKeyResults(store, node, sourceArena, count: 1);
+        var requestValues = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("foos"),
+            [],
+            [requirement]);
+
+        // the subscription setup completes and the first event starts
+        var requestMemory = store.MemoryOwners.ToArray();
+        store.MemoryOwners.Clear();
+        Array.ForEach(requestMemory, memory => memory.Dispose());
+        requestArena.Seal();
+        store.Reset(eventArena);
+
+        // 40 keys of 32 bytes need a second arena segment
+        var foos = Enumerable.Range(0, 40).Select(i => $$"""{"key":"event-{{i:D19}}"}""");
+        var payload = Encoding.UTF8.GetBytes($$$"""{"data":{"foos":[{{{string.Join(",", foos)}}}]}}""");
+        var document = SourceResultDocument.Parse(sourceArena, payload, payload.Length);
+        Assert.True(
+            store.AddPartialResults(
+                SelectionPath.Root,
+                [new SourceSchemaResult(CompactPath.Root, document)],
+                node.ResultSelectionSet,
+                containsErrors: false));
+
+        // act
+        var eventValues = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("foos"),
+            [],
+            [requirement]);
+
+        // assert
+        new[] { requestValues[0], eventValues[39] }
+            .Select(values => Encoding.UTF8.GetString(values.Values.AsSequence()))
+            .MatchInlineSnapshots(
+            [
+                """{"__fusion_1_key":"0000000000000000000000000"}""",
+                """{"__fusion_1_key":"event-0000000000000000039"}"""
+            ]);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Clean_Should_ReleaseArenaPages_When_StoreIsReturnedToPool(bool lastTargetIsDuplicate)
+    {
+        // arrange
+        var (store, page) = CreateCleanedStoreWithAbandonedArena(lastTargetIsDuplicate);
+        using var retainedStore = store;
+
+        // act
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+
+        // assert
+        Assert.False(page.IsAlive);
+    }
+
+    [Fact]
     public void CreateVariableValueSets_Should_KeepDistinctTargets_When_VariableHashesCollide()
     {
         // arrange
@@ -3138,8 +3257,9 @@ public sealed class FetchResultStoreTests : FusionTestBase
     public void CreateVariableValueSetsFromSnapshot_Should_PreserveAdditionalPaths_When_PathsExceedInitialCapacity()
     {
         // arrange
-        using var source = new FetchResultStore();
-        using var target = new FetchResultStore();
+        using var arena = new MemoryArena();
+        using var source = CreateSnapshotStore(arena);
+        using var target = CreateSnapshotStore(arena);
         var additionalPaths = Enumerable.Range(1, 20).Select(i => Path(i)).ToArray();
         var entry = WithAdditionalPaths(
             CreateVariableValues(source, Path(0), Field("__fusion_1_id", new StringValueNode("1"))),
@@ -3255,6 +3375,59 @@ public sealed class FetchResultStoreTests : FusionTestBase
         return store;
     }
 
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static (FetchResultStore Store, WeakReference Page) CreateCleanedStoreWithAbandonedArena(
+        bool lastTargetIsDuplicate)
+    {
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              key: String
+            }
+            """);
+        var plan = PlanOperation(schema, "{ foos { key } }");
+        var node = Assert.IsType<OperationExecutionNode>(Assert.Single(plan.RootNodes));
+        var requirement = Requirement(schema, "__fusion_1_key", "key", new NamedTypeNode("String"));
+
+        // the request arena is disposed without being sealed, so its pages are left to the GC
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        var store = new FetchResultStore();
+        store.Initialize(
+            resultArena,
+            schema,
+            DefaultErrorHandler.Default,
+            plan.Operation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: default,
+            deferFlags: default,
+            pathSegmentLocalPoolCapacity: 16);
+
+        // 16 keys of 600 KB fill several arena pages with variables and leaf keys; the key of a
+        // duplicate last target takes the last pages, which only the leaf key writer holds
+        var foos = Enumerable.Range(0, 16)
+            .Concat(lastTargetIsDuplicate ? [15] : [])
+            .Select(i => $$"""{"key":"{{i}}{{new string('x', 600_000)}}"}""");
+        var payload = Encoding.UTF8.GetBytes($$$"""{"data":{"foos":[{{{string.Join(",", foos)}}}]}}""");
+        var document = SourceResultDocument.Parse(sourceArena, payload, payload.Length);
+        Assert.True(
+            store.AddPartialResults(
+                SelectionPath.Root,
+                [new SourceSchemaResult(CompactPath.Root, document)],
+                node.ResultSelectionSet,
+                containsErrors: false));
+        store.CreateVariableValueSets(SelectionPath.Root.AppendField("foos"), [], [requirement]);
+
+        var page = new WeakReference(resultArena.Rent(0).Buffer);
+        store.Clean(maxCollectTargetRetainLength: 256, maxDictionaryRetainCapacity: 256);
+        return (store, page);
+    }
+
     private static void AddKeyResults(
         FetchResultStore store,
         OperationExecutionNode node,
@@ -3361,7 +3534,8 @@ public sealed class FetchResultStoreTests : FusionTestBase
                 out var coercedVariableValues,
                 out var error),
             error?.Message);
-        using var store = new FetchResultStore();
+        using var arena = new MemoryArena();
+        using var store = CreateSnapshotStore(arena);
 
         // act
         var result = store.CreateVariableValueSets(
@@ -3386,6 +3560,24 @@ public sealed class FetchResultStoreTests : FusionTestBase
                 JsonNode.Parse(forwarded.RootElement.GetRawText())));
 #endif
     }
+
+    private static FetchResultStore CreateSnapshotStore(MemoryArena arena)
+    {
+        var store = new FetchResultStore();
+        InitializeSnapshotStore(store, arena);
+        return store;
+    }
+
+    private static void InitializeSnapshotStore(FetchResultStore store, MemoryArena arena)
+        => store.Initialize(
+            arena,
+            s_snapshotSchema,
+            DefaultErrorHandler.Default,
+            s_snapshotOperation,
+            ErrorHandlingMode.Propagate,
+            includeFlags: default,
+            deferFlags: default,
+            pathSegmentLocalPoolCapacity: 16);
 
     private static VariableValues CreateVariableValues(
         FetchResultStore store,

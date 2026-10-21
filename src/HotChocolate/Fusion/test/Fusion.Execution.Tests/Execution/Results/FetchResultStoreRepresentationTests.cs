@@ -42,7 +42,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
     {
         // arrange
         using var arena = new MemoryArena();
-        using var source = new FetchResultStore();
+        using var source = CreateSnapshotStore(arena);
         using var target = CreateSnapshotStore(arena);
 
         var lookupField = ParseLookupField(
@@ -76,7 +76,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
     {
         // arrange
         using var arena = new MemoryArena();
-        using var source = new FetchResultStore();
+        using var source = CreateSnapshotStore(arena);
         using var target = CreateSnapshotStore(arena);
 
         var lookupField = ParseLookupField(
@@ -110,7 +110,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
     {
         // arrange
         using var arena = new MemoryArena();
-        using var source = new FetchResultStore();
+        using var source = CreateSnapshotStore(arena);
         using var target = CreateSnapshotStore(arena);
 
         var lookupField = ParseLookupField("{ productByPKey(pkey: $__fusion_1_pkey) { id } }");
@@ -146,7 +146,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
     {
         // arrange
         using var arena = new MemoryArena();
-        using var source = new FetchResultStore();
+        using var source = CreateSnapshotStore(arena);
         using var target = CreateSnapshotStore(arena);
 
         var lookupField = ParseLookupField("{ thingByCompositeId(key: $__fusion_1_key) { id } }");
@@ -182,7 +182,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
     {
         // arrange
         using var arena = new MemoryArena();
-        using var source = new FetchResultStore();
+        using var source = CreateSnapshotStore(arena);
         using var target = CreateSnapshotStore(arena);
 
         var lookupField = ParseLookupField(
@@ -220,7 +220,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
     {
         // arrange
         using var arena = new MemoryArena();
-        using var source = new FetchResultStore();
+        using var source = CreateSnapshotStore(arena);
         using var target = CreateSnapshotStore(arena);
 
         var firstPath = Path(1);
@@ -279,7 +279,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
     {
         // arrange
         using var arena = new MemoryArena();
-        using var source = new FetchResultStore();
+        using var source = CreateSnapshotStore(arena);
         using var target = CreateSnapshotStore(arena);
 
         var lookupField = ParseLookupField("{ fooById(id: $__fusion_1_id) { id } }");
@@ -355,7 +355,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
             containsErrors: false);
 
         using var snapshotArena = new MemoryArena();
-        using var snapshotSource = new FetchResultStore();
+        using var snapshotSource = CreateSnapshotStore(snapshotArena);
         using var snapshotTarget = CreateSnapshotStore(snapshotArena);
         var entry = CreateEntry(
             snapshotSource,
@@ -1043,7 +1043,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         // The type condition is applied when the requirement value is extracted;
         // the snapshot path emits the already extracted value.
         using var arena = new MemoryArena();
-        using var source = new FetchResultStore();
+        using var source = CreateSnapshotStore(arena);
         using var target = CreateSnapshotStore(arena);
 
         var lookupField = ParseLookupField("{ fooById(id: $__fusion_1_id) { id } }");
@@ -1073,7 +1073,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         // arrange
         // Both maps project into 'y'; each leaf is sliced from its own requirement.
         using var arena = new MemoryArena();
-        using var source = new FetchResultStore();
+        using var source = CreateSnapshotStore(arena);
         using var target = CreateSnapshotStore(arena);
 
         var lookupField = ParseLookupField("{ foo(a: $__fusion_1_a, b: $__fusion_2_b) { id } }");
@@ -1108,7 +1108,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         // The element map reads the input property 'pid' and emits the source
         // field 'id'.
         using var arena = new MemoryArena();
-        using var source = new FetchResultStore();
+        using var source = CreateSnapshotStore(arena);
         using var target = CreateSnapshotStore(arena);
 
         var lookupField = ParseLookupField(
@@ -1146,7 +1146,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
     {
         // arrange
         using var arena = new MemoryArena();
-        using var source = new FetchResultStore();
+        using var source = CreateSnapshotStore(arena);
         using var target = CreateSnapshotStore(arena);
 
         var lookupField = ParseLookupField(
@@ -1262,7 +1262,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         var requirements = new[] { Requirement("__fusion_1_id", "<Foo>.id") };
 
         using var snapshotArena = new MemoryArena();
-        using var snapshotSource = new FetchResultStore();
+        using var snapshotSource = CreateSnapshotStore(snapshotArena);
         using var snapshotTarget = CreateSnapshotStore(snapshotArena);
         var entry = CreateEntry(
             snapshotSource,
@@ -1645,7 +1645,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         };
 
         using var snapshotArena = new MemoryArena();
-        using var snapshotSource = new FetchResultStore();
+        using var snapshotSource = CreateSnapshotStore(snapshotArena);
         using var snapshotTarget = CreateSnapshotStore(snapshotArena);
         var entry = CreateEntry(
             snapshotSource,
@@ -1717,7 +1717,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         };
 
         using var snapshotArena = new MemoryArena();
-        using var snapshotSource = new FetchResultStore();
+        using var snapshotSource = CreateSnapshotStore(snapshotArena);
         using var snapshotTarget = CreateSnapshotStore(snapshotArena);
         var entry = CreateEntry(
             snapshotSource,
@@ -1787,7 +1787,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         };
 
         using var snapshotArena = new MemoryArena();
-        using var snapshotSource = new FetchResultStore();
+        using var snapshotSource = CreateSnapshotStore(snapshotArena);
         using var snapshotTarget = CreateSnapshotStore(snapshotArena);
         var entry = CreateEntry(
             snapshotSource,
@@ -1862,7 +1862,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         };
 
         using var snapshotArena = new MemoryArena();
-        using var snapshotSource = new FetchResultStore();
+        using var snapshotSource = CreateSnapshotStore(snapshotArena);
         using var snapshotTarget = CreateSnapshotStore(snapshotArena);
         var entry = CreateEntry(
             snapshotSource,
@@ -1934,7 +1934,7 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
         };
 
         using var snapshotArena = new MemoryArena();
-        using var snapshotSource = new FetchResultStore();
+        using var snapshotSource = CreateSnapshotStore(snapshotArena);
         using var snapshotTarget = CreateSnapshotStore(snapshotArena);
         var entry = CreateEntry(
             snapshotSource,

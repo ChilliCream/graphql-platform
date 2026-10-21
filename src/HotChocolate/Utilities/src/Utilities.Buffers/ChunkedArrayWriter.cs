@@ -408,8 +408,12 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
         return (int)(hash & 0x7FFFFFFF);
     }
 
+    /// <summary>
+    /// Continues <paramref name="hash"/> with <paramref name="bytes"/> using <c>hash * 31 + b</c>,
+    /// so hashing a sequence piecewise gives the same result as hashing it at once.
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static uint ComputeHashCore(uint hash, ReadOnlySpan<byte> bytes)
+    internal static uint ComputeHashCore(uint hash, ReadOnlySpan<byte> bytes)
     {
 #if NET8_0_OR_GREATER
         if (bytes.Length >= SimdThreshold)

@@ -26,6 +26,7 @@ internal sealed partial class FetchResultStore
         ArgumentNullException.ThrowIfNull(operation);
 
         _arena = arena;
+        _variableWriterHasArena = false;
         _leafKeyWriterHasArena = false;
         _schema = schema;
         _errorHandler = errorHandler;
@@ -78,7 +79,17 @@ internal sealed partial class FetchResultStore
             pending.Dispose();
         }
 
+        // variable values written before this event stay readable in the arena they were
+        // written to, so the event writes its variables with a new writer
+        if (_variableWriterHasArena)
+        {
+            _variableWriter.Dispose();
+            _variableWriter = new ArenaBufferWriter();
+            _variableWriterHasArena = false;
+        }
+
         // the leaf key writer moves to the new arena on its next use
+        _leafKeyWriter?.Release();
         _leafKeyWriterHasArena = false;
         _arena = arena;
 
@@ -144,8 +155,11 @@ internal sealed partial class FetchResultStore
         _errors?.Clear();
         _pocketedErrors?.Clear();
 
-        // reset variable writer (returns excess chunks, keeps the first)
-        _variableWriter.Clean();
+        // drop the arena memory of the variable and leaf key writers
+        _variableWriter.Release();
+        _variableWriterHasArena = false;
+        _leafKeyWriter?.Release();
+        _leafKeyWriterHasArena = false;
 
         // release the forwarded variable buffer if a large input made it grow
         if (_forwardedVariableWriter is { Capacity: > MaxRetainedForwardedVariableCapacity })

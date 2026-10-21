@@ -1,16 +1,18 @@
 using System.Buffers;
 using HotChocolate.Buffers;
+using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Text.Json;
 
 namespace HotChocolate.Fusion;
 
 public readonly struct JsonSegment : IEquatable<JsonSegment>
 {
-    private readonly ChunkedArrayWriter _memory;
+    // a ChunkedArrayWriter or an ArenaBufferWriter
+    private readonly object? _memory;
     private readonly int _location;
     private readonly int _length;
 
-    private JsonSegment(ChunkedArrayWriter memory, int location, int length)
+    private JsonSegment(object memory, int location, int length)
     {
         _memory = memory;
         _location = location;
@@ -36,7 +38,7 @@ public readonly struct JsonSegment : IEquatable<JsonSegment>
 
         var start = _location;
         var length = _length;
-        var first = _memory.ReadMemory(ref start, ref length);
+        var first = ReadMemory(ref start, ref length);
 
         if (length == 0)
         {
@@ -50,7 +52,7 @@ public readonly struct JsonSegment : IEquatable<JsonSegment>
 
         do
         {
-            lastSegment = lastSegment.Append(_memory.ReadMemory(ref start, ref length));
+            lastSegment = lastSegment.Append(ReadMemory(ref start, ref length));
         }
         while (length > 0);
 
@@ -66,7 +68,7 @@ public readonly struct JsonSegment : IEquatable<JsonSegment>
 
         var start = _location;
         var length = _length;
-        var first = _memory.Read(ref start, ref length);
+        var first = Read(ref start, ref length);
 
         if (length == 0)
         {
@@ -80,7 +82,7 @@ public readonly struct JsonSegment : IEquatable<JsonSegment>
 
         do
         {
-            writer.WriteRawValueContinuation(_memory.Read(ref start, ref length));
+            writer.WriteRawValueContinuation(Read(ref start, ref length));
         }
         while (length > 0);
 
@@ -99,19 +101,39 @@ public readonly struct JsonSegment : IEquatable<JsonSegment>
             return false;
         }
 
-        return _memory.SequenceEqual(_location, other._location, _length);
+        return _memory is ArenaBufferWriter arena
+            ? arena.SequenceEqual(_location, other._location, _length)
+            : ((ChunkedArrayWriter)_memory!).SequenceEqual(_location, other._location, _length);
     }
 
     public override bool Equals(object? obj)
         => obj is JsonSegment other && Equals(other);
 
     public override int GetHashCode()
-        => IsEmpty ? 0 : _memory.GetHashCode(_location, _length);
+        => _memory switch
+        {
+            null => 0,
+            ArenaBufferWriter arena => arena.GetHashCode(_location, _length),
+            _ => ((ChunkedArrayWriter)_memory).GetHashCode(_location, _length)
+        };
 
     public static JsonSegment Empty => default;
 
     internal static JsonSegment Create(ChunkedArrayWriter memory, int location, int length)
         => new(memory, location, length);
+
+    internal static JsonSegment Create(ArenaBufferWriter memory, int location, int length)
+        => new(memory, location, length);
+
+    private ReadOnlySpan<byte> Read(ref int start, ref int length)
+        => _memory is ArenaBufferWriter arena
+            ? arena.Read(ref start, ref length)
+            : ((ChunkedArrayWriter)_memory!).Read(ref start, ref length);
+
+    private ReadOnlyMemory<byte> ReadMemory(ref int start, ref int length)
+        => _memory is ArenaBufferWriter arena
+            ? arena.ReadMemory(ref start, ref length)
+            : ((ChunkedArrayWriter)_memory!).ReadMemory(ref start, ref length);
 
     private sealed class MemorySegment : ReadOnlySequenceSegment<byte>
     {
