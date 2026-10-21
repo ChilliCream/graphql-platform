@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 using Mocha.Middlewares;
 
 namespace Mocha;
@@ -49,9 +50,12 @@ public interface IDispatchEndpoint : IEndpoint
 /// </remarks>
 public abstract class DispatchEndpoint : IDispatchEndpoint
 {
-    private TaskCompletionSource<bool> _completed;
+    private readonly TaskCompletionSource<bool> _completed;
     private DispatchDelegate _pipeline;
     private TimeProvider _timeProvider = null!;
+    private DispatchDelegate _preparationPipeline;
+    private DispatchDelegate _deliveryPipeline;
+    private IMessagingDiagnosticEvents _diagnosticEvents = null!;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DispatchEndpoint"/> class bound to
@@ -65,10 +69,21 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
     protected DispatchEndpoint(MessagingTransport transport)
     {
         _completed = new TaskCompletionSource<bool>();
+        var completed = _completed.Task;
         _pipeline = async context =>
         {
-            await _completed.Task;
+            await completed;
             await Volatile.Read(ref _pipeline!)(context);
+        };
+        _preparationPipeline = async context =>
+        {
+            await completed.WaitAsync(context.CancellationToken);
+            await Volatile.Read(ref _preparationPipeline!)(context);
+        };
+        _deliveryPipeline = async context =>
+        {
+            await completed.WaitAsync(context.CancellationToken);
+            await Volatile.Read(ref _deliveryPipeline!)(context);
         };
         Transport = transport;
     }
@@ -166,6 +181,45 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
     /// <returns>A <see cref="ValueTask"/> that completes when the message has been dispatched.</returns>
     public ValueTask ExecuteAsync(IDispatchContext context) => _pipeline(context);
 
+    internal async ValueTask PrepareAsync(DispatchContext context)
+    {
+        context.CancellationToken.ThrowIfCancellationRequested();
+        if (!IsCompleted)
+        {
+            await _completed.Task.WaitAsync(context.CancellationToken);
+        }
+
+        using var scope = _diagnosticEvents.Dispatch(context);
+        context.Headers.WithActivity();
+
+        try
+        {
+            context.PreparationCompleted = false;
+            await _preparationPipeline(context);
+            context.CancellationToken.ThrowIfCancellationRequested();
+
+            if (!context.PreparationCompleted)
+            {
+                throw ThrowHelper.MessagePreparationIncomplete();
+            }
+
+            if (context.ScheduledTime is not null || context.Envelope?.ScheduledTime is not null)
+            {
+                throw ThrowHelper.ScheduledPreparationUnsupported();
+            }
+
+            DispatchSerializerMiddleware.Serialize(context);
+            context.CancellationToken.ThrowIfCancellationRequested();
+        }
+        catch (Exception exception)
+        {
+            _diagnosticEvents.DispatchError(context, exception);
+            throw;
+        }
+    }
+
+    internal ValueTask DeliverAsync(IDispatchContext context) => _deliveryPipeline(context);
+
     /// <summary>
     /// Runs topology discovery conventions to resolve the destination resources for this endpoint
     /// and registers the endpoint in the endpoint collection.
@@ -194,6 +248,7 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
     {
         OnComplete(context, Configuration);
         _timeProvider = context.Services.GetTimeProvider();
+        _diagnosticEvents = context.Services.GetRequiredService<IMessagingDiagnosticEvents>();
 
         var pipeline = MiddlewareCompiler.CompileDispatch(
             new DispatchMiddlewareFactoryContext
@@ -203,14 +258,20 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
                 Transport = Transport
             },
             DispatchInternalAsync,
+            static context =>
+            {
+                ((DispatchContext)context).PreparationCompleted = true;
+                return default;
+            },
             [Transport.GetDispatchMiddlewares(), Configuration.DispatchMiddlewares],
             [Transport.GetDispatchPipelineModifiers(), Configuration.DispatchPipelineModifiers]);
 
-        Volatile.Write(ref _pipeline, pipeline);
+        Volatile.Write(ref _pipeline, pipeline.Dispatch);
+        Volatile.Write(ref _preparationPipeline, pipeline.Preparation);
+        Volatile.Write(ref _deliveryPipeline, pipeline.Delivery);
 
         Configuration = null!;
         _completed.SetResult(true);
-        _completed = null!;
         IsCompleted = true;
         Address ??= new UriBuilder { Scheme = Transport.Schema, Path = Name }.Uri;
 

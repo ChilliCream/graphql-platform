@@ -589,7 +589,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task OutboxDispatch_Should_RejectScheduledMessage_When_MiddlewareChangesSerializedEnvelope(bool send)
+    public async Task OutboxDispatch_Should_RejectScheduledMessage_When_MiddlewareSuppliesScheduledEnvelope(bool send)
     {
         // arrange
         var connectionString = await CreateDatabaseAsync();
@@ -601,7 +601,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         var db = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
 
         // act
-        var exception = await Assert.ThrowsAsync<ArgumentException>(async () =>
+        await Assert.ThrowsAsync<NotSupportedException>(async () =>
         {
             if (send)
             {
@@ -615,7 +615,6 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         await db.SaveChangesAsync(TestToken);
 
         // assert
-        Assert.Equal("envelope", exception.ParamName);
         Assert.Single(recorder.Messages);
         Assert.Empty(db.ChangeTracker.Entries<OutboxMessage>());
         Assert.Equal(0, await CountOutboxRowsAsync(connectionString));
@@ -1085,6 +1084,45 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
 
         // assert
         Assert.Equal([1, 2], values);
+    }
+
+    [Fact]
+    public async Task OutboxPublishAsync_Should_SnapshotFinalMessage_When_MiddlewareChangesMessageAfterNext()
+    {
+        // arrange
+        var connectionString = await CreateDatabaseAsync();
+        var sentAt = new DateTimeOffset(2026, 10, 21, 10, 0, 0, TimeSpan.Zero);
+        var recorder = new ScopeRecorder
+        {
+            AfterDispatch = async context =>
+            {
+                await Task.Yield();
+                ((OrderPlaced)context.Message!).OrderId = 42;
+                context.MessageId = "final-message";
+                context.Headers.Set("final-header", "final-value");
+                context.SentAt = sentAt;
+                context.DeliverBy = sentAt.AddHours(1);
+            }
+        };
+        await using var provider = await CreateProviderAsync(
+            connectionString, new StubOutboxSignal(), scopeRecorder: recorder);
+        await EnsureCreatedAsync(provider);
+        await using var scope = provider.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
+        var message = new OrderPlaced { OrderId = 1 };
+
+        // act
+        await db.Outbox.PublishAsync(message, TestToken);
+        message.OrderId = 99;
+        await db.SaveChangesAsync(TestToken);
+        var stored = await db.Set<OutboxMessage>().Select(x => x.Envelope).SingleAsync(TestToken);
+        var envelope = MessageEnvelopeReader.Parse(System.Text.Encoding.UTF8.GetBytes(stored));
+
+        // assert
+        Assert.Equal(42, JsonSerializer.Deserialize<OrderPlaced>(envelope.Body.Span)!.OrderId);
+        Assert.Equal("final-message", envelope.MessageId);
+        Assert.Equal("final-value", envelope.Headers!.GetValue("final-header"));
+        Assert.Equal((sentAt, sentAt.AddHours(1)), (envelope.SentAt, envelope.DeliverBy));
     }
 
     [Fact]
@@ -1777,6 +1815,11 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
                         {
                             await afterNext();
                         }
+
+                        if (recorder.AfterDispatch is { } afterDispatch)
+                        {
+                            await afterDispatch(context);
+                        }
                     },
                     "ScopeRecorder"),
                 before: "Serialization"));
@@ -1787,7 +1830,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
                     new DispatchMiddlewareConfiguration(
                         (_, next) => context =>
                         {
-                            context.Envelope = new MessageEnvelope(context.Envelope!)
+                            context.Envelope = new MessageEnvelope
                             {
                                 ScheduledTime = scheduledTime
                             };
@@ -1911,6 +1954,8 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         public CancellationTokenSource? CancelAfterNext { get; init; }
 
         public Func<ValueTask>? AfterNext { get; set; }
+
+        public Func<IDispatchContext, ValueTask>? AfterDispatch { get; init; }
 
         public DateTimeOffset? ScheduledEnvelopeTime { get; init; }
     }

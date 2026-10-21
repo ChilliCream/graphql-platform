@@ -53,24 +53,9 @@ public sealed class DefaultMessageBus(
     /// <param name="message">The message instance to publish. Must not be <see langword="null"/>.</param>
     /// <param name="options">Options controlling fault routing, headers, and expiration for this publish operation.</param>
     /// <param name="cancellationToken">A token to cancel the publish operation.</param>
-    public ValueTask PublishAsync<T>(T message, PublishOptions options, CancellationToken cancellationToken)
-        where T : notnull
-        => PublishAsync(message, options, null, cancellationToken);
-
-    ValueTask IMessageDispatcher.PublishAsync<T>(
+    public async ValueTask PublishAsync<T>(
         T message,
         PublishOptions options,
-        IMessageDispatchTarget target,
-        CancellationToken cancellationToken)
-    {
-        ArgumentNullException.ThrowIfNull(target);
-        return PublishAsync(message, options, target, cancellationToken);
-    }
-
-    private async ValueTask PublishAsync<T>(
-        T message,
-        PublishOptions options,
-        IMessageDispatchTarget? target,
         CancellationToken cancellationToken)
         where T : notnull
     {
@@ -88,16 +73,43 @@ public sealed class DefaultMessageBus(
             context.FaultAddress = options.FaultEndpoint;
             context.ScheduledTime = options.ScheduledTime;
             context.DeliverBy = options.ExpirationTime;
-            if (target is not null)
-            {
-                context.Features.GetOrSet<DispatchTargetFeature>().Target = target;
-            }
 
             await endpoint.ExecuteAsync(context);
         }
         finally
         {
             _contextPool.Return(context);
+        }
+    }
+
+    async ValueTask<PreparedMessage> IMessageDispatcher.PreparePublishAsync<T>(
+        T message,
+        PublishOptions options,
+        CancellationToken cancellationToken)
+    {
+        var messageType = runtime.GetMessageType(message.GetType());
+        var endpoint = runtime.GetPublishEndpoint(messageType);
+
+        var context = _contextPool.Get();
+        try
+        {
+            PropagateCorrelationIds(context);
+            context.Initialize(services, endpoint, runtime, messageType, cancellationToken);
+            context.Message = message;
+            context.AddHeaders(options.Headers);
+            context.Headers.SetMessageKind(MessageKind.Publish);
+            context.FaultAddress = options.FaultEndpoint;
+            context.ScheduledTime = options.ScheduledTime;
+            context.DeliverBy = options.ExpirationTime;
+
+            await endpoint.PrepareAsync(context);
+
+            return new PreparedMessage(context, _contextPool);
+        }
+        catch
+        {
+            _contextPool.Return(context);
+            throw;
         }
     }
 
@@ -125,24 +137,9 @@ public sealed class DefaultMessageBus(
     /// <param name="message">The message instance to send. Must not be <see langword="null"/>.</param>
     /// <param name="options">Options controlling the target endpoint, headers, reply/fault addresses, and expiration.</param>
     /// <param name="cancellationToken">A token to cancel the send operation.</param>
-    public ValueTask SendAsync<T>(T message, SendOptions options, CancellationToken cancellationToken)
-        where T : notnull
-        => SendAsync(message, options, null, cancellationToken);
-
-    ValueTask IMessageDispatcher.SendAsync<T>(
+    public async ValueTask SendAsync<T>(
         T message,
         SendOptions options,
-        IMessageDispatchTarget target,
-        CancellationToken cancellationToken)
-    {
-        ArgumentNullException.ThrowIfNull(target);
-        return SendAsync(message, options, target, cancellationToken);
-    }
-
-    private async ValueTask SendAsync<T>(
-        T message,
-        SendOptions options,
-        IMessageDispatchTarget? target,
         CancellationToken cancellationToken)
         where T : notnull
     {
@@ -168,16 +165,46 @@ public sealed class DefaultMessageBus(
             context.FaultAddress = faultEndpoint;
             context.ScheduledTime = options.ScheduledTime;
             context.DeliverBy = options.ExpirationTime;
-            if (target is not null)
-            {
-                context.Features.GetOrSet<DispatchTargetFeature>().Target = target;
-            }
 
             await endpoint.ExecuteAsync(context);
         }
         finally
         {
             _contextPool.Return(context);
+        }
+    }
+
+    async ValueTask<PreparedMessage> IMessageDispatcher.PrepareSendAsync<T>(
+        T message,
+        SendOptions options,
+        CancellationToken cancellationToken)
+    {
+        var messageType = runtime.GetMessageType(message.GetType());
+        var endpoint = options.Endpoint is { } address
+            ? runtime.GetDispatchEndpoint(address)
+            : runtime.GetSendEndpoint(messageType);
+
+        var context = _contextPool.Get();
+        try
+        {
+            PropagateCorrelationIds(context);
+            context.Initialize(services, endpoint, runtime, messageType, cancellationToken);
+            context.Message = message;
+            context.AddHeaders(options.Headers);
+            context.Headers.SetMessageKind(MessageKind.Send);
+            context.ResponseAddress = options.ReplyEndpoint;
+            context.FaultAddress = options.FaultEndpoint;
+            context.ScheduledTime = options.ScheduledTime;
+            context.DeliverBy = options.ExpirationTime;
+
+            await endpoint.PrepareAsync(context);
+
+            return new PreparedMessage(context, _contextPool);
+        }
+        catch
+        {
+            _contextPool.Return(context);
+            throw;
         }
     }
 

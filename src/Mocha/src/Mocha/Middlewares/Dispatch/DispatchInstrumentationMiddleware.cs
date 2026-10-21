@@ -38,5 +38,9 @@ internal sealed class DispatchInstrumentationMiddleware(IMessagingDiagnosticEven
                 var middleware = new DispatchInstrumentationMiddleware(events);
                 return ctx => middleware.InvokeAsync(ctx, next);
             },
-            "Instrumentation");
+            "Instrumentation")
+        {
+            Stages = DispatchMiddlewareStage.Dispatch
+                | DispatchMiddlewareStage.Delivery
+        };
 }

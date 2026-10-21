@@ -22,17 +22,6 @@ public sealed class DispatchOutboxMiddleware
     /// <returns>A value task that completes when the message has been persisted or forwarded.</returns>
     public async ValueTask InvokeAsync(IDispatchContext context, DispatchDelegate next)
     {
-        if (context.Features.Get<DispatchTargetFeature>()?.Target is { } target)
-        {
-            if (context.Envelope is not { } envelope)
-            {
-                throw ThrowHelper.MissingPreparedEnvelope();
-            }
-
-            target.Capture(envelope);
-            return;
-        }
-
         var feature = context.Features.GetOrSet<OutboxMiddlewareFeature>();
         var messageKind = context.Headers.Get(MessageHeaders.MessageKind);
         if (feature.SkipOutbox
@@ -65,5 +54,9 @@ public sealed class DispatchOutboxMiddleware
                 var middleware = new DispatchOutboxMiddleware();
                 return ctx => middleware.InvokeAsync(ctx, next);
             },
-            "Outbox");
+            "Outbox")
+        {
+            Stages = DispatchMiddlewareStage.Dispatch,
+            IsTerminal = true
+        };
 }

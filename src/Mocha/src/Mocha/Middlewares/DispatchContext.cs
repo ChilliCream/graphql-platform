@@ -18,6 +18,9 @@ public sealed class DispatchContext : IDispatchContext
     private readonly PooledFeatureCollection _features;
     private readonly PooledArrayWriter _writer = new();
     private readonly Headers _headers = new();
+    private long _preparedMessageLease;
+
+    internal bool PreparationCompleted { get; set; }
 
     /// <summary>
     /// Creates a new instance of the <see cref="DispatchContext"/> with pooled internal storage.
@@ -196,6 +199,7 @@ public sealed class DispatchContext : IDispatchContext
         ScheduledTime = null;
         Host = null!;
         Envelope = null!;
+        PreparationCompleted = false;
         _headers.Clear();
         _features.Reset();
         _writer.Reset();
@@ -224,6 +228,7 @@ public sealed class DispatchContext : IDispatchContext
         CancellationToken cancellationToken)
     {
         Services = services;
+        Runtime = runtime;
         Endpoint = endpoint;
         Transport = endpoint.Transport;
         Host = runtime.Host;
@@ -239,4 +244,13 @@ public sealed class DispatchContext : IDispatchContext
 
         _features.Initialize();
     }
+
+    internal long AcquirePreparedMessageLease()
+        => Interlocked.Increment(ref _preparedMessageLease);
+
+    internal bool IsPreparedMessageLeaseCurrent(long lease)
+        => Volatile.Read(ref _preparedMessageLease) == lease;
+
+    internal bool ReleasePreparedMessageLease(long lease)
+        => Interlocked.CompareExchange(ref _preparedMessageLease, lease + 1, lease) == lease;
 }

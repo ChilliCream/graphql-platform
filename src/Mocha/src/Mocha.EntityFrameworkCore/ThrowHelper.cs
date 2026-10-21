@@ -21,9 +21,6 @@ internal static partial class ThrowHelper
     public static InvalidOperationException OutboxBusNotSupported(Type type)
         => new($"The message bus '{type.Name}' does not support preparing messages for a DbContext outbox.");
 
-    public static InvalidOperationException InvalidOutboxDispatch()
-        => new("The outbox pipeline must prepare exactly one envelope per publication or send.");
-
     public static InvalidOperationException ConcurrentOutboxOperation()
         => new("A message is already being prepared for this DbContext. "
             + "Await the operation before publishing another message or saving changes.");

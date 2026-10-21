@@ -8,13 +8,12 @@ namespace Mocha.EntityFrameworkCore;
 /// <summary>
 /// Prepares messages for persistence in the same transaction as the owning DbContext's next save.
 /// </summary>
-public sealed class DbContextOutbox : IMessageDispatchTarget
+public sealed class DbContextOutbox
 {
     private readonly DbContext _context;
     private readonly DbContextId _lease;
     private readonly DbContextOutboxScope _scope;
     private IDbContextOutboxProvider? _provider;
-    private IPreparedOutboxMessage? _prepared;
     private int _preparing;
 
     internal DbContextOutbox(DbContext context, DbContextOutboxScope scope)
@@ -52,12 +51,12 @@ public sealed class DbContextOutbox : IMessageDispatchTarget
         var dispatcher = Begin(cancellationToken);
         try
         {
-            await dispatcher.PublishAsync(message, options, this, cancellationToken);
-            Complete(cancellationToken);
+            using var prepared = await dispatcher.PreparePublishAsync(message, options, cancellationToken);
+            Complete(prepared.Envelope, cancellationToken);
         }
         finally
         {
-            End();
+            _preparing = 0;
         }
     }
 
@@ -87,12 +86,12 @@ public sealed class DbContextOutbox : IMessageDispatchTarget
         var dispatcher = Begin(cancellationToken);
         try
         {
-            await dispatcher.SendAsync(message, options, this, cancellationToken);
-            Complete(cancellationToken);
+            using var prepared = await dispatcher.PrepareSendAsync(message, options, cancellationToken);
+            Complete(prepared.Envelope, cancellationToken);
         }
         finally
         {
-            End();
+            _preparing = 0;
         }
     }
 
@@ -102,22 +101,6 @@ public sealed class DbContextOutbox : IMessageDispatchTarget
         _ = GetProvider();
         _ = GetDispatcher(bus);
         _scope.Attach(bus);
-    }
-
-    void IMessageDispatchTarget.Capture(MessageEnvelope envelope)
-    {
-        EnsureCurrentLease();
-        if (!IsPreparing || _prepared is not null)
-        {
-            throw ThrowHelper.InvalidOutboxDispatch();
-        }
-
-        if (envelope.ScheduledTime is not null)
-        {
-            throw ThrowHelper.ScheduledOutboxMessage(nameof(envelope));
-        }
-
-        _prepared = GetProvider().Prepare(envelope);
     }
 
     private IMessageDispatcher Begin(CancellationToken cancellationToken)
@@ -142,25 +125,29 @@ public sealed class DbContextOutbox : IMessageDispatchTarget
         }
     }
 
-    private void Complete(CancellationToken cancellationToken)
+    private void Complete(MessageEnvelope envelope, CancellationToken cancellationToken)
     {
         EnsureCurrentLease();
         cancellationToken.ThrowIfCancellationRequested();
-        if (_prepared is not { } prepared)
+        if (envelope.ScheduledTime is not null)
         {
-            throw ThrowHelper.InvalidOutboxDispatch();
+            throw ThrowHelper.ScheduledOutboxMessage(nameof(envelope));
         }
 
-        GetProvider().Stage(_context, prepared);
-        _prepared = null;
-    }
-
-    private void End()
-    {
-        var prepared = _prepared;
-        _prepared = null;
-        _preparing = 0;
-        prepared?.Dispose();
+        var provider = GetProvider();
+        provider.Validate(_context);
+        var prepared = provider.Prepare(envelope);
+        try
+        {
+            EnsureCurrentLease();
+            cancellationToken.ThrowIfCancellationRequested();
+            provider.Stage(_context, prepared);
+        }
+        catch
+        {
+            prepared.Dispose();
+            throw;
+        }
     }
 
     private void EnsureCurrentLease()

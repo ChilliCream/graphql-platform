@@ -346,11 +346,27 @@ public sealed class PostgresOutboxProcessor
 
             context.Initialize(scope.ServiceProvider, endpoint, _runtime, messageType, cancellationToken);
 
-            context.SkipOutbox();
+            context.MessageId = envelope.MessageId;
+            context.CorrelationId = envelope.CorrelationId;
+            context.ConversationId = envelope.ConversationId;
+            context.CausationId = envelope.CausationId;
+            context.SourceAddress = ParseAddress(envelope.SourceAddress);
+            context.DestinationAddress = ParseAddress(envelope.DestinationAddress);
+            context.ResponseAddress = ParseAddress(envelope.ResponseAddress);
+            context.FaultAddress = ParseAddress(envelope.FaultAddress);
+            context.ContentType = MessageContentType.Parse(envelope.ContentType);
+            context.SentAt = envelope.SentAt ?? context.SentAt;
+            context.DeliverBy = envelope.DeliverBy;
+            context.ScheduledTime = envelope.ScheduledTime;
+            context.Host = envelope.Host ?? context.Host;
+            if (envelope.Headers is { } headers)
+            {
+                context.Headers.AddRange(headers);
+            }
 
             context.Envelope = envelope;
 
-            await endpoint.ExecuteAsync(context);
+            await endpoint.DeliverAsync(context);
         }
         finally
         {
@@ -358,6 +374,9 @@ public sealed class PostgresOutboxProcessor
             activity?.Dispose();
         }
     }
+
+    private static Uri? ParseAddress(string? address)
+        => Uri.TryCreate(address, UriKind.Absolute, out var parsed) ? parsed : null;
 
     private async Task DeleteEventAsync(
         NpgsqlConnection connection,

@@ -733,6 +733,8 @@ builder.Services
 
 With the outbox enabled, calls to `PublishAsync`, `SendAsync`, and `ReplyAsync` inside a handler persist the message envelope to the outbox table within the same database transaction. The outbox dispatch middleware intercepts these calls and writes to `IMessageOutbox` instead of the transport.
 
+Application dispatch middleware runs before outbox persistence, including middleware registered with `after: "Outbox"`. For ordinary bus dispatch, set headers before calling `next(context)` and change message data before serialization. Only `db.Outbox` waits for all application middleware to complete before serialization and staging.
+
 ```csharp
 public class OrderPlacedHandler(AppDbContext db, IMessageBus bus)
     : IEventHandler<OrderPlacedEvent>
@@ -825,7 +827,9 @@ app.MapPost("/products/{id:guid}/price", async (
 });
 ```
 
-Await `Outbox.PublishAsync` before saving. It serializes the message during the call, so later changes to the message object do not change the stored envelope. The message is attached to EF only after the dispatch pipeline succeeds; cancellation or a middleware exception leaves no new staged message. You can call synchronous `SaveChanges` after the awaited publish. Saving while a publication is still being prepared throws.
+Await `Outbox.PublishAsync` before saving. The call runs application dispatch middleware in the attached caller's scope, then serializes the prepared message into an independent snapshot and attaches it to EF. Changes made by middleware after `await next(context)` are included; changes made after `PublishAsync` returns do not affect the stored message.
+
+During preparation, `context.Envelope` is unset unless middleware supplies one. Read and change the message and metadata through the dispatch context. Cancellation or a middleware exception leaves no new staged message. You can call synchronous `SaveChanges` after the awaited publish. Saving while a publication is still being prepared throws.
 
 Use `db.Outbox.SendAsync(message, cancellationToken)` for a message routed to one destination. It supports `SendOptions` and the same attachment and save semantics as `PublishAsync`.
 
@@ -925,7 +929,9 @@ builder.Services
 
 ## How the outbox processor works
 
-The outbox processor is a background hosted service (`IHostedService`). When the EF Core interceptors detect a `SaveChanges` or transaction commit, they signal the processor through `IOutboxSignal`. Messages added through `DbContext.Outbox` are signaled the same way after the save. Inside an ambient `TransactionScope`, the signal is raised when the ambient transaction completes. The processor reads pending `OutboxMessage` rows, deserializes the envelope, and dispatches each message through the bus's dispatch pipeline.
+The outbox processor is a background hosted service (`IHostedService`). When the EF Core interceptors detect a `SaveChanges` or transaction commit, they signal the processor through `IOutboxSignal`. Messages added through `DbContext.Outbox` are signaled the same way after the save. Inside an ambient `TransactionScope`, the signal is raised when the ambient transaction completes.
+
+The processor restores each stored message's payload, identifiers, addresses, headers, and timestamps. Delivery runs diagnostics and the transport operation without repeating application dispatch middleware. The original `SentAt` and absolute `DeliverBy` deadline are preserved across attempts. Messages whose deadline has passed are deleted before transport dispatch.
 
 The processor also polls at least once per second while idle, so a missed signal does not strand committed messages. `TimesSent` tracks dispatch attempts, with exponential retry delays and a maximum of ten attempts. Messages are deleted after successful transport dispatch.
 

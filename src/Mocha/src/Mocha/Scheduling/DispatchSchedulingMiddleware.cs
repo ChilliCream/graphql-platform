@@ -30,11 +30,6 @@ public sealed class DispatchSchedulingMiddleware
             return;
         }
 
-        if (context.Features.Get<DispatchTargetFeature>()?.Target is not null)
-        {
-            throw ThrowHelper.ScheduledDispatchTargetUnsupported();
-        }
-
         var feature = context.Features.GetOrSet<SchedulingMiddlewareFeature>();
 
         if (feature.SkipScheduler)
@@ -80,7 +75,10 @@ public sealed class DispatchSchedulingMiddleware
                 var middleware = new DispatchSchedulingMiddleware();
                 return ctx => middleware.InvokeAsync(ctx, next);
             },
-            "Scheduling");
+            "Scheduling")
+        {
+            Stages = DispatchMiddlewareStage.Dispatch
+        };
 }
 
 file static class Extensions

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Mocha.Middlewares;
 using Mocha.Scheduling;
 
 namespace Mocha;
@@ -214,9 +215,15 @@ internal static class ThrowHelper
             + $"'{transportType.FullName}'. Register a transport-specific scheduled "
             + "message store or configure a fallback scheduler.");
 
-    public static Exception ScheduledDispatchTargetUnsupported()
+    public static Exception ScheduledPreparationUnsupported()
         => new NotSupportedException(
-            "Scheduled dispatch is not supported for an explicit dispatch target.");
+            "Scheduled messages cannot be prepared for an outbox.");
+
+    public static ObjectDisposedException PreparedMessageDisposed()
+        => new(nameof(PreparedMessage), "The prepared message has been released.");
+
+    public static InvalidOperationException MessagePreparationIncomplete()
+        => new("The message preparation pipeline must complete before a message can be staged.");
 
     public static Exception ScheduledStoreTokenPrefixEmpty()
         => new InvalidOperationException(

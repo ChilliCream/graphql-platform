@@ -19,9 +19,10 @@ internal static class MiddlewareCompiler
     private static List<ReceiveMiddlewareConfiguration>? s_receiveMiddlewares;
     private static List<ConsumerMiddlewareConfiguration>? s_handlerMiddlewares;
 
-    public static DispatchDelegate CompileDispatch(
+    public static (DispatchDelegate Dispatch, DispatchDelegate Preparation, DispatchDelegate Delivery) CompileDispatch(
         DispatchMiddlewareFactoryContext context,
         DispatchDelegate dispatch,
+        DispatchDelegate prepare,
         ReadOnlySpan<IReadOnlyList<DispatchMiddlewareConfiguration>> middlewareConfigurations,
         ReadOnlySpan<IReadOnlyList<Action<List<DispatchMiddlewareConfiguration>>>> pipelineModifiers)
     {
@@ -45,17 +46,39 @@ internal static class MiddlewareCompiler
         // Reverse before fold so first configured middleware becomes outermost in execution.
         middlewares.Reverse();
 
-        var pipeline = dispatch;
-
-        foreach (var middleware in middlewares)
-        {
-            var next = pipeline;
-            pipeline = middleware.Middleware(context, next);
-        }
+        var pipeline = Compile(context, dispatch, middlewares, DispatchMiddlewareStage.Dispatch);
+        var preparation = Compile(context, prepare, middlewares, DispatchMiddlewareStage.Preparation);
+        var delivery = Compile(context, dispatch, middlewares, DispatchMiddlewareStage.Delivery);
 
         middlewares.Clear();
 
         Interlocked.CompareExchange(ref s_dispatchMiddlewares, middlewares, null);
+
+        return (pipeline, preparation, delivery);
+    }
+
+    private static DispatchDelegate Compile(
+        DispatchMiddlewareFactoryContext context,
+        DispatchDelegate terminal,
+        List<DispatchMiddlewareConfiguration> middlewares,
+        DispatchMiddlewareStage stage)
+    {
+        var pipeline = terminal;
+        foreach (var middleware in middlewares)
+        {
+            if (middleware.IsTerminal && (middleware.Stages & stage) != 0)
+            {
+                pipeline = middleware.Middleware(context, pipeline);
+            }
+        }
+
+        foreach (var middleware in middlewares)
+        {
+            if (!middleware.IsTerminal && (middleware.Stages & stage) != 0)
+            {
+                pipeline = middleware.Middleware(context, pipeline);
+            }
+        }
 
         return pipeline;
     }
