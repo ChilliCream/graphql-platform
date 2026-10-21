@@ -51,7 +51,7 @@ internal sealed class PostgresMessageOutboxQueries
             NextPollingInterval = $"""
                 SELECT MIN(
                     CASE WHEN "{t.TimesSent}" = 0 THEN NOW()
-                        ELSE "{t.CreatedAt}"
+                        ELSE "{t.CreatedAt}" + INTERVAL '1 seconds' * POWER(2, "{t.TimesSent}")
                     END
                 ) AS "NextWakeUpTime"
                 FROM {t.QualifiedTableName}

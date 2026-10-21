@@ -9,7 +9,7 @@ namespace Mocha.Analyzers.Inspectors;
 
 /// <summary>
 /// Inspects dispatch call sites (<c>SendAsync</c>, <c>PublishAsync</c>, <c>RequestAsync</c>,
-/// <c>QueryAsync</c>, etc.) on the messaging bus, explicit dispatcher, DbContext outbox, and mediator
+/// <c>QueryAsync</c>, etc.) on the messaging bus, DbContext outbox, and mediator
 /// to extract the compile-time message and response types being dispatched.
 /// </summary>
 /// <remarks>

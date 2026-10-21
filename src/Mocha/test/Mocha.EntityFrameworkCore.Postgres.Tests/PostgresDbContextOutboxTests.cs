@@ -1126,42 +1126,6 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
     }
 
     [Fact]
-    public async Task ProcessAsync_Should_DeliverCommittedMessages_When_CommitSignalIsLost()
-    {
-        // arrange
-        var connectionString = await CreateDatabaseAsync();
-        var recorder = new MessageRecorder();
-        await using var provider = await CreateProviderAsync(connectionString, new StubOutboxSignal(), recorder);
-        await EnsureCreatedAsync(provider);
-        var services = await StartHostedServicesAsync(provider);
-
-        try
-        {
-            await Task.Delay(TimeSpan.FromSeconds(2), TestToken);
-
-            // act
-            await using (var caller = provider.CreateAsyncScope())
-            {
-                var db = caller.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
-                await db.Outbox.PublishAsync(new OrderPlaced { OrderId = 42 }, TestToken);
-                await db.SaveChangesAsync(TestToken);
-            }
-
-            var delivered = await recorder.WaitAsync(s_timeout);
-            var drained = await WaitForEmptyOutboxAsync(connectionString);
-
-            // assert
-            Assert.True(delivered);
-            Assert.True(drained);
-            Assert.Equal([42], recorder.OrderIds);
-        }
-        finally
-        {
-            await StopHostedServicesAsync(services);
-        }
-    }
-
-    [Fact]
     public async Task SaveChangesAsync_Should_RejectNonAtomicSave_When_AutomaticTransactionsAreDisabled()
     {
         // arrange

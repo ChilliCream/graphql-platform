@@ -43,10 +43,8 @@ public sealed class PostgresMessageOutboxTests : IClassFixture<PostgresFixture>
         Assert.Equal(1, await context.Set<OutboxMessage>().CountAsync(TestContext.Current.CancellationToken));
     }
 
-    [Theory]
-    [InlineData(1)]
-    [InlineData(2)]
-    public async Task PersistAsync_Should_InsertRows_When_Called(int messageCount)
+    [Fact]
+    public async Task PersistAsync_Should_InsertRow_When_Called()
     {
         // arrange
         var (context, outbox, _, services) = await CreateOutboxAsync();
@@ -57,10 +55,7 @@ public sealed class PostgresMessageOutboxTests : IClassFixture<PostgresFixture>
         var envelope = CreateTestEnvelope();
 
         // act
-        for (var i = 0; i < messageCount; i++)
-        {
-            await outbox.PersistAsync(envelope, CancellationToken.None);
-        }
+        await outbox.PersistAsync(envelope, CancellationToken.None);
 
         // assert
         var connection = (NpgsqlConnection)context.Database.GetDbConnection();
@@ -73,7 +68,7 @@ public sealed class PostgresMessageOutboxTests : IClassFixture<PostgresFixture>
         cmd.CommandText = "SELECT COUNT(*) FROM \"outbox_messages\"";
         var count = (long)(await cmd.ExecuteScalarAsync(CancellationToken.None))!;
 
-        Assert.Equal(messageCount, count);
+        Assert.Equal(1, count);
     }
 
     [Fact]

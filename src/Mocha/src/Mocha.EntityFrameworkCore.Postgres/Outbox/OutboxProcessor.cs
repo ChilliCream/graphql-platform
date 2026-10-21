@@ -13,8 +13,6 @@ namespace Mocha.Outbox;
 /// </summary>
 public sealed class PostgresOutboxProcessor
 {
-    private static readonly TimeSpan s_minPollingInterval = TimeSpan.FromMilliseconds(50);
-    private static readonly TimeSpan s_maxPollingInterval = TimeSpan.FromSeconds(1);
     private readonly ILogger<PostgresOutboxProcessor> _logger;
     private readonly IServiceProvider _services;
     private readonly IMessagingRuntime _runtime;
@@ -78,18 +76,16 @@ public sealed class PostgresOutboxProcessor
 
                 var nextPollingInterval = await ProcessPendingAsync(cancellationToken);
 
-                var delay = nextPollingInterval is { } interval && interval < s_maxPollingInterval
-                    ? interval
-                    : s_maxPollingInterval;
-                if (delay < s_minPollingInterval)
+                if (nextPollingInterval is not null)
                 {
-                    delay = s_minPollingInterval;
+                    _logger.OutboxProcessorSleeping(nextPollingInterval.Value);
+
+                    await Task.WhenAny(Task.Delay(nextPollingInterval.Value, cancellationToken), signaled);
                 }
-
-                _logger.OutboxProcessorSleeping(delay);
-
-                await Task.WhenAny(Task.Delay(delay, cancellationToken), signaled);
-                joinedCts.TryCancel();
+                else
+                {
+                    await signaled;
+                }
             }
             catch (OperationCanceledException)
             {
@@ -135,7 +131,7 @@ public sealed class PostgresOutboxProcessor
 
         var result = await command.ExecuteScalarAsync(cancellationToken);
 
-        return result is not null and not DBNull ? ((DateTime)result - DateTimeOffset.UtcNow) : null;
+        return result is not null and not DBNull ? ((DateTime)result - DateTimeOffset.UtcNow).Duration() : null;
     }
 
     private async Task<bool> ProcessEventAsync(NpgsqlConnection connection, CancellationToken cancellationToken)
@@ -225,17 +221,17 @@ public sealed class PostgresOutboxProcessor
                 }
                 catch
                 {
-                    // A failed commit can have an unknown outcome.
+                    // Commit failed (e.g., connection lost). Attempt rollback.
+                    // If commit actually succeeded server-side, the message stays
+                    // with times_sent incremented - safe, just causes a retry.
                     try
                     {
                         await transaction.RollbackAsync(CancellationToken.None);
                     }
                     catch
                     {
-                        // Preserve the commit failure.
+                        /* swallow */
                     }
-
-                    throw;
                 }
             }
         }

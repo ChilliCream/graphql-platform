@@ -933,7 +933,7 @@ The outbox processor is a background hosted service (`IHostedService`). When the
 
 The processor restores each stored message's payload, identifiers, addresses, headers, and timestamps. Delivery runs diagnostics and the transport operation without repeating application dispatch middleware.
 
-The processor also polls at least once per second while idle, so a missed signal does not strand committed messages. `TimesSent` tracks dispatch attempts, with exponential retry delays and a maximum of ten attempts. Messages are deleted after successful transport dispatch.
+`TimesSent` tracks dispatch attempts, with exponential retry delays and a maximum of ten attempts. Messages are deleted after successful transport dispatch.
 
 ## Skip the outbox for specific dispatches
 

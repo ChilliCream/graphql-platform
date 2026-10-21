@@ -31,7 +31,6 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
     private readonly bool _requireTransaction;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private PooledArrayWriter? _arrayWriter;
-    private Utf8JsonWriter? _jsonWriter;
     private readonly string? _insertSql;
 
     /// <summary>
@@ -100,9 +99,6 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
         try
         {
             _arrayWriter ??= new PooledArrayWriter();
-            _jsonWriter ??= new Utf8JsonWriter(_arrayWriter);
-            _jsonWriter.WriteEnvelope(envelope);
-            _jsonWriter.Flush();
 
             var dbContext = OriginalDbContext;
             var connection = (NpgsqlConnection)dbContext.Database.GetDbConnection();
@@ -111,6 +107,11 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
             {
                 await dbContext.Database.OpenConnectionAsync(cancellationToken);
 
+                await using var writer = new Utf8JsonWriter(_arrayWriter);
+                writer.WriteEnvelope(envelope);
+                writer.Flush(); // we know it's not async
+
+                // Execute the INSERT command
                 await using var command = connection.CreateCommand();
                 command.CommandText = _insertSql;
                 command.Parameters.AddWithValue("@id", NewVersion());
@@ -132,7 +133,6 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
         }
         finally
         {
-            _jsonWriter?.Reset();
             _arrayWriter?.Reset();
             _semaphore.Release();
         }
@@ -164,7 +164,6 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
     public void Dispose()
     {
         _semaphore.Dispose();
-        _jsonWriter?.Dispose();
         _arrayWriter?.Dispose();
     }
 }
