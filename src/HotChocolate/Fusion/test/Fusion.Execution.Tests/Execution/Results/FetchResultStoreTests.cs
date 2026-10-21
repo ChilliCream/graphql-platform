@@ -34,6 +34,62 @@ public sealed class FetchResultStoreTests : FusionTestBase
             "FetchResultStore no longer contains a non-public instance field named '_dataElementStaging'. Update the tests accordingly.");
     private static readonly byte[] s_fieldPayload = """{"data":{"field":"value"}}"""u8.ToArray();
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void FinalizePocketedErrors_Should_PreserveSharedValueErrors_When_ParentMayBePopulated(bool populateParent)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: A
+            type Query { viewer: Viewer @shareable }
+            type Viewer @shareable { a: String }
+            """,
+            """
+            # name: B
+            type Query { viewer: Viewer @shareable }
+            type Viewer @shareable { b: String }
+            """);
+        var plan = PlanOperation(schema, "{ viewer { a b } }");
+        var nodes = plan.AllNodes.OfType<OperationExecutionNode>().ToArray();
+        var nodeA = nodes.Single(node => node.SchemaName == "A");
+        var nodeB = nodes.Single(node => node.SchemaName == "B");
+        using var arena = new MemoryArena();
+        using var store = new FetchResultStore();
+        store.Initialize(
+            arena, schema, DefaultErrorHandler.Default, plan.Operation,
+            ErrorHandlingMode.Propagate, default, default, 16);
+        var failedPayload = """{"data":{"viewer":null},"errors":[{"message":"boom","path":["viewer"]}]}"""u8.ToArray();
+        store.AddPartialResult(
+            SelectionPath.Root,
+            new SourceSchemaResult(CompactPath.Root, SourceResultDocument.Parse(arena, failedPayload, failedPayload.Length)),
+            nodeA.ResultSelectionSet,
+            containsErrors: true);
+        var pocketedBefore = store.HasPocketedErrors;
+
+        // act
+        if (populateParent)
+        {
+            var payload = """{"data":{"viewer":{"b":"visible"}}}"""u8.ToArray();
+            store.AddPartialResult(
+                SelectionPath.Root,
+                new SourceSchemaResult(CompactPath.Root, SourceResultDocument.Parse(arena, payload, payload.Length)),
+                nodeB.ResultSelectionSet,
+                containsErrors: false);
+        }
+
+        store.FinalizePocketedErrors();
+        arena.Seal();
+
+        // assert
+        Assert.True(pocketedBefore);
+        Assert.False(store.HasPocketedErrors);
+        Assert.Equal(populateParent ? "{\"viewer\":{\"a\":null,\"b\":\"visible\"}}" : "{\"viewer\":null}", RenderData(store));
+        var error = Assert.Single(store.Errors!);
+        Assert.Equal(("boom", populateParent ? "viewer.a" : "viewer"), (error.Message, error.Path!.Print()));
+    }
+
     [Fact]
     public void GetResultPaths_Should_ThrowInvalidOperationException_When_TargetTraversesScalar()
     {

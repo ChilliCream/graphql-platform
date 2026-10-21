@@ -19,6 +19,47 @@ internal static class PathUtilities
             return includeSelf || !path.IsRoot;
         }
 
+        var alignedPath = path;
+        for (var i = path.Length - subtreeRoot.Length; i > 0; i--)
+        {
+            if (alignedPath is not NamePathSegment and not IndexerPathSegment)
+            {
+                goto Fallback;
+            }
+
+            alignedPath = alignedPath.Parent;
+        }
+
+        var currentSubtree = subtreeRoot;
+        var matches = true;
+        while (!alignedPath.IsRoot || !currentSubtree.IsRoot)
+        {
+            switch (alignedPath)
+            {
+                case NamePathSegment name when currentSubtree is NamePathSegment subtreeName:
+                    matches &= string.Equals(name.Name, subtreeName.Name, StringComparison.Ordinal);
+                    break;
+
+                case IndexerPathSegment index when currentSubtree is IndexerPathSegment subtreeIndex:
+                    matches &= index.Index == subtreeIndex.Index;
+                    break;
+
+                case NamePathSegment or IndexerPathSegment
+                    when currentSubtree is NamePathSegment or IndexerPathSegment:
+                    matches = false;
+                    break;
+
+                default:
+                    goto Fallback;
+            }
+
+            alignedPath = alignedPath.Parent;
+            currentSubtree = currentSubtree.Parent;
+        }
+
+        return matches;
+
+Fallback:
         var pathBuffer = s_objectPool.Rent(path.Length);
         var subtreeBuffer = s_objectPool.Rent(subtreeRoot.Length);
 
