@@ -13,19 +13,32 @@ namespace HotChocolate.Fusion.Execution.Results;
 internal ref struct AdditionalPathAccumulator
 {
     private const int NoCursor = -1;
+    private const int MinimumCapacity = 16;
 
+    private readonly int _capacityHint;
     private CompactPath[]? _paths;
     private int[]? _cursors;
     private int[]? _slotIndices;
+    private int _capacity;
     private int _count;
     private int _pathCount;
+
+    /// <summary>
+    /// Creates an accumulator that sizes its buffers for <paramref name="capacityHint"/> targets
+    /// when the first target is added.
+    /// </summary>
+    public AdditionalPathAccumulator(int capacityHint)
+    {
+        _capacityHint = capacityHint;
+    }
 
     public readonly bool HasEntries => _count > 0;
 
     public void Add(int slotIndex, CompactPath path)
     {
         var index = Reserve(slotIndex);
-        _paths![index] = path;
+        _paths ??= ArrayPool<CompactPath>.Shared.Rent(_capacity);
+        _paths[index] = path;
         _cursors![index] = NoCursor;
         _pathCount++;
     }
@@ -179,13 +192,14 @@ internal ref struct AdditionalPathAccumulator
 
     private int Reserve(int slotIndex)
     {
-        if (_paths is null)
+        if (_cursors is null)
         {
-            _paths = ArrayPool<CompactPath>.Shared.Rent(16);
-            _cursors = ArrayPool<int>.Shared.Rent(16);
-            _slotIndices = ArrayPool<int>.Shared.Rent(16);
+            var capacity = Math.Max(MinimumCapacity, _capacityHint);
+            _cursors = ArrayPool<int>.Shared.Rent(capacity);
+            _slotIndices = ArrayPool<int>.Shared.Rent(capacity);
+            _capacity = Math.Min(_cursors.Length, _slotIndices.Length);
         }
-        else if (_count == _paths.Length)
+        else if (_count == _capacity)
         {
             Grow();
         }
@@ -196,13 +210,16 @@ internal ref struct AdditionalPathAccumulator
 
     private void Grow()
     {
-        var newSize = _paths!.Length * 2;
+        var newSize = _capacity * 2;
 
-        var newPaths = ArrayPool<CompactPath>.Shared.Rent(newSize);
-        _paths.AsSpan(0, _count).CopyTo(newPaths);
-        _paths.AsSpan(0, _count).Clear();
-        ArrayPool<CompactPath>.Shared.Return(_paths);
-        _paths = newPaths;
+        if (_paths is not null)
+        {
+            var newPaths = ArrayPool<CompactPath>.Shared.Rent(newSize);
+            _paths.AsSpan(0, _count).CopyTo(newPaths);
+            _paths.AsSpan(0, _count).Clear();
+            ArrayPool<CompactPath>.Shared.Return(_paths);
+            _paths = newPaths;
+        }
 
         var newCursors = ArrayPool<int>.Shared.Rent(newSize);
         _cursors.AsSpan(0, _count).CopyTo(newCursors);
@@ -213,6 +230,8 @@ internal ref struct AdditionalPathAccumulator
         _slotIndices.AsSpan(0, _count).CopyTo(newIndices);
         ArrayPool<int>.Shared.Return(_slotIndices!);
         _slotIndices = newIndices;
+
+        _capacity = Math.Min(_cursors.Length, _slotIndices.Length);
     }
 
     public void Dispose()
@@ -236,6 +255,7 @@ internal ref struct AdditionalPathAccumulator
             _slotIndices = null;
         }
 
+        _capacity = 0;
         _count = 0;
         _pathCount = 0;
     }

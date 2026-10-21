@@ -1503,7 +1503,7 @@ AddErrors_Next:
         _variableDedupTable.Initialize(importedEntries.Length);
 
         VariableValues[]? variableValueSets = null;
-        var additionalPaths = new AdditionalPathAccumulator();
+        var additionalPaths = new AdditionalPathAccumulator(importedEntries.Length);
         var nextIndex = 0;
         var forwardedVariables = SerializeForwardedVariables(requestVariables, importedEntries.Length);
 
@@ -1593,7 +1593,7 @@ AddErrors_Next:
         }
 
         VariableValues[]? variableValueSets = null;
-        var additionalPaths = new AdditionalPathAccumulator();
+        var additionalPaths = new AdditionalPathAccumulator(elements.Length);
         var nextIndex = 0;
         var forwardedVariables = SerializeForwardedVariables(requestVariables, elements.Length);
 
@@ -1679,7 +1679,7 @@ AddErrors_Next:
         string fieldName)
     {
         VariableValues[]? variableValueSets = null;
-        var additionalPaths = new AdditionalPathAccumulator();
+        var additionalPaths = new AdditionalPathAccumulator(elements.Length);
         var nextIndex = 0;
         var isNonNullRequirement = requirement.Type.Kind is SyntaxKind.NonNullType;
         var lookupName = requirement.InternalAlias ?? fieldName;
@@ -1737,7 +1737,7 @@ AddErrors_Next:
         OperationRequirement requirement)
     {
         VariableValues[]? variableValueSets = null;
-        var additionalPaths = new AdditionalPathAccumulator();
+        var additionalPaths = new AdditionalPathAccumulator(elements.Length);
         var nextIndex = 0;
         var requirementType = requirement.Type;
 
@@ -1813,7 +1813,7 @@ AddErrors_Next:
         string fieldName2)
     {
         VariableValues[]? variableValueSets = null;
-        var additionalPaths = new AdditionalPathAccumulator();
+        var additionalPaths = new AdditionalPathAccumulator(elements.Length);
         var nextIndex = 0;
         var lookupName1 = requirement1.InternalAlias ?? fieldName1;
         var lookupName2 = requirement2.InternalAlias ?? fieldName2;
@@ -1869,7 +1869,7 @@ AddErrors_Next:
         OperationRequirement requirement2)
     {
         VariableValues[]? variableValueSets = null;
-        var additionalPaths = new AdditionalPathAccumulator();
+        var additionalPaths = new AdditionalPathAccumulator(elements.Length);
         var nextIndex = 0;
         var requirementType1 = requirement1.Type;
         var requirementType2 = requirement2.Type;
@@ -1968,7 +1968,7 @@ AddErrors_Next:
         string fieldName3)
     {
         VariableValues[]? variableValueSets = null;
-        var additionalPaths = new AdditionalPathAccumulator();
+        var additionalPaths = new AdditionalPathAccumulator(elements.Length);
         var nextIndex = 0;
         var lookupName1 = requirement1.InternalAlias ?? fieldName1;
         var lookupName2 = requirement2.InternalAlias ?? fieldName2;
@@ -2036,7 +2036,7 @@ AddErrors_Next:
         OperationRequirement requirement3)
     {
         VariableValues[]? variableValueSets = null;
-        var additionalPaths = new AdditionalPathAccumulator();
+        var additionalPaths = new AdditionalPathAccumulator(elements.Length);
         var nextIndex = 0;
         var requirementType1 = requirement1.Type;
         var requirementType2 = requirement2.Type;
@@ -2130,12 +2130,21 @@ AddErrors_Next:
     }
 
     /// <summary>
-    /// Creates the paths of the elements at the given cursors of <paramref name="document"/>.
+    /// Creates the paths of the elements at the given cursors of <paramref name="document"/>,
+    /// which must be the result document of the current request.
     /// </summary>
+    /// <exception cref="InvalidOperationException">
+    /// <paramref name="document"/> is no longer the result document of this store.
+    /// </exception>
     internal CompactPath[] CreateCompactPaths(CompositeResultDocument document, ReadOnlySpan<int> cursors)
     {
         lock (_lock)
         {
+            if (!ReferenceEquals(_result, document))
+            {
+                throw ThrowHelper.LookupTargetPathsReleased();
+            }
+
             var paths = new CompactPath[cursors.Length];
 
             for (var i = 0; i < cursors.Length; i++)

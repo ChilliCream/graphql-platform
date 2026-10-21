@@ -256,7 +256,7 @@ internal sealed partial class FetchResultStore
             representationWriter,
             new JsonWriterOptions { Indented = false });
         var resultPaths = s_entityResultPathPool.Rent(importedEntries.Length);
-        var additionalPaths = new AdditionalPathAccumulator();
+        var additionalPaths = new AdditionalPathAccumulator(importedEntries.Length);
         var completed = false;
         var variableStartPosition = StartRepresentationVariableValue();
         var nextIndex = 0;
@@ -339,7 +339,7 @@ internal sealed partial class FetchResultStore
             representationWriter,
             new JsonWriterOptions { Indented = false });
         var resultPaths = s_entityResultPathPool.Rent(elements.Length);
-        var additionalPaths = new AdditionalPathAccumulator();
+        var additionalPaths = new AdditionalPathAccumulator(elements.Length);
         var completed = false;
         var variableStartPosition = StartRepresentationVariableValue();
         var nextIndex = 0;
