@@ -1,4 +1,6 @@
+using System.Collections.Immutable;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Execution.ApolloFederation;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -22,7 +24,8 @@ internal sealed class EntityReuseCandidateMap
     /// Gets the reuse candidates of a lookup, or <c>null</c> if the lookup always fetches.
     /// </summary>
     /// <param name="lookupId">
-    /// The id of an <see cref="OperationExecutionNode"/> or of an <see cref="OperationDefinition"/> in a batch.
+    /// The id of an <see cref="OperationExecutionNode"/>, of an <see cref="ApolloOperationExecutionNode"/>,
+    /// or of an <see cref="OperationDefinition"/> in a batch.
     /// </param>
     public EntityReuseCandidateList? GetCandidates(int lookupId)
         => (uint)lookupId < (uint)_candidatesById.Length ? _candidatesById[lookupId] : null;
@@ -63,12 +66,9 @@ internal sealed class EntityReuseCandidateMap
         {
             nodesById[node.Id] = node;
 
-            if (node is OperationBatchExecutionNode batchNode)
+            foreach (var definition in GetBatchOperations(node))
             {
-                foreach (var definition in batchNode.Operations)
-                {
-                    nodesById[definition.Id] = node;
-                }
+                nodesById[definition.Id] = node;
             }
         }
 
@@ -91,45 +91,67 @@ internal sealed class EntityReuseCandidateMap
                         operation.Requirements.ToArray(),
                         operation.ForwardedVariables.Length,
                         operation.Conditions.Length,
-                        [targetKey]));
+                        [targetKey],
+                        RepresentationShape: default));
                     break;
 
                 case OperationBatchExecutionNode batch:
                     foreach (var definition in batch.Operations)
                     {
-                        var targets = GetTargets(definition);
-
-                        if (targets is null)
+                        if (!TryAddBatchLookup(
+                            writers,
+                            lookups,
+                            definition,
+                            definition.SourceText,
+                            definition.LookupTypeName,
+                            representationShape: default,
+                            node.Id))
                         {
                             return null;
                         }
+                    }
+                    break;
 
-                        var targetKeys = new string[targets.Length];
+                case ApolloOperationExecutionNode apolloOperation:
+                    if (!TryGetPathKey(apolloOperation.Target, out var apolloTargetKey)
+                        || !TryAddWriters(
+                            writers,
+                            apolloTargetKey,
+                            apolloOperation.Lookup.Operation,
+                            apolloOperation.Source,
+                            node.Id))
+                    {
+                        return null;
+                    }
 
-                        for (var i = 0; i < targets.Length; i++)
+                    lookups.Add(new Lookup(
+                        apolloOperation.Id,
+                        apolloOperation.Dependencies.ToArray(),
+                        apolloOperation.Lookup.EntityTypeName,
+                        apolloOperation.ResultSelectionSet,
+                        apolloOperation.Requirements.ToArray(),
+                        apolloOperation.ForwardedVariables.Length,
+                        apolloOperation.Conditions.Length,
+                        [apolloTargetKey],
+                        apolloOperation.Lookup.RepresentationShape));
+                    break;
+
+                case ApolloOperationBatchExecutionNode apolloBatch:
+                    for (var i = 0; i < apolloBatch.Operations.Length; i++)
+                    {
+                        var apolloLookup = apolloBatch.Lookups[i];
+
+                        if (!TryAddBatchLookup(
+                            writers,
+                            lookups,
+                            apolloBatch.Operations[i],
+                            apolloLookup.Operation,
+                            apolloLookup.EntityTypeName,
+                            apolloLookup.RepresentationShape,
+                            node.Id))
                         {
-                            if (!TryGetPathKey(targets[i], out var key))
-                            {
-                                return null;
-                            }
-
-                            if (!TryAddWriters(writers, key, definition.SourceText, definition.Source, node.Id))
-                            {
-                                return null;
-                            }
-
-                            targetKeys[i] = key;
+                            return null;
                         }
-
-                        lookups.Add(new Lookup(
-                            definition.Id,
-                            definition.Dependencies.ToArray(),
-                            definition.LookupTypeName,
-                            definition.ResultSelectionSet,
-                            definition.Requirements.ToArray(),
-                            definition.ForwardedVariables.Length,
-                            definition.Conditions.Length,
-                            targetKeys));
                     }
                     break;
 
@@ -205,6 +227,14 @@ internal sealed class EntityReuseCandidateMap
             }
 
             requirementFields[i] = fieldName;
+        }
+
+        // Apollo lookups match entities by their representation, so the representation must
+        // consist of exactly the requirement fields that the producers are checked for.
+        if (!lookup.RepresentationShape.IsDefault
+            && !IsFlatRepresentationShape(lookup.RepresentationShape, requirementFields))
+        {
+            return null;
         }
 
         // Every target must select the lookup fields so we know which field and arguments they stand for.
@@ -327,6 +357,32 @@ internal sealed class EntityReuseCandidateMap
         return true;
     }
 
+    private static bool IsFlatRepresentationShape(
+        ImmutableArray<RepresentationShapeNode> shape,
+        string[] requirementFields)
+    {
+        if (shape.Length != requirementFields.Length)
+        {
+            return false;
+        }
+
+        foreach (var node in shape)
+        {
+            if (!node.Nodes.IsDefault
+                || node.IsList
+                || !node.LhsPath.IsEmpty
+                || node.ParentTypeCondition is not null
+                || node.TypeCondition is not null
+                || (uint)node.RequirementIndex >= (uint)requirementFields.Length
+                || !node.ResponseName.Equals(requirementFields[node.RequirementIndex], StringComparison.Ordinal))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private static bool IsWrittenOnlyBy(
         Dictionary<(string Path, string ResponseName), HashSet<int>> writers,
         string path,
@@ -386,19 +442,57 @@ internal sealed class EntityReuseCandidateMap
                 stack.Push(next);
             }
 
-            if (node is OperationBatchExecutionNode batch)
+            foreach (var operation in GetBatchOperations(node))
             {
-                foreach (var operation in batch.Operations)
+                foreach (var next in operation.Dependencies)
                 {
-                    foreach (var next in operation.Dependencies)
-                    {
-                        stack.Push(next);
-                    }
+                    stack.Push(next);
                 }
             }
         }
 
         return visited;
+    }
+
+    // Records the writers of an operation definition in a batch and adds it as a lookup.
+    private static bool TryAddBatchLookup(
+        Dictionary<(string Path, string ResponseName), HashSet<int>> writers,
+        List<Lookup> lookups,
+        OperationDefinition definition,
+        OperationSourceText sourceText,
+        string? lookupTypeName,
+        ImmutableArray<RepresentationShapeNode> representationShape,
+        int nodeId)
+    {
+        if (GetTargets(definition) is not { } targets)
+        {
+            return false;
+        }
+
+        var targetKeys = new string[targets.Length];
+
+        for (var i = 0; i < targets.Length; i++)
+        {
+            if (!TryGetPathKey(targets[i], out var key)
+                || !TryAddWriters(writers, key, sourceText, definition.Source, nodeId))
+            {
+                return false;
+            }
+
+            targetKeys[i] = key;
+        }
+
+        lookups.Add(new Lookup(
+            definition.Id,
+            definition.Dependencies.ToArray(),
+            lookupTypeName,
+            definition.ResultSelectionSet,
+            definition.Requirements.ToArray(),
+            definition.ForwardedVariables.Length,
+            definition.Conditions.Length,
+            targetKeys,
+            representationShape));
+        return true;
     }
 
     // Records the result fields a node writes: the selection set of its source schema operation
@@ -575,6 +669,14 @@ internal sealed class EntityReuseCandidateMap
         return true;
     }
 
+    private static ReadOnlySpan<OperationDefinition> GetBatchOperations(ExecutionNode node)
+        => node switch
+        {
+            OperationBatchExecutionNode batch => batch.Operations,
+            ApolloOperationBatchExecutionNode apolloBatch => apolloBatch.Operations,
+            _ => []
+        };
+
     private static SelectionPath[]? GetTargets(OperationDefinition definition)
         => definition switch
         {
@@ -598,6 +700,8 @@ internal sealed class EntityReuseCandidateMap
         return builder.Build();
     }
 
+    // RepresentationShape is default for a lookup that sends variable value sets, and holds the
+    // representation shape of an Apollo Federation entity lookup.
     private readonly record struct Lookup(
         int Id,
         IOperationPlanNode[] Dependencies,
@@ -606,5 +710,6 @@ internal sealed class EntityReuseCandidateMap
         OperationRequirement[] Requirements,
         int ForwardedVariableCount,
         int ConditionCount,
-        string[] TargetKeys);
+        string[] TargetKeys,
+        ImmutableArray<RepresentationShapeNode> RepresentationShape);
 }

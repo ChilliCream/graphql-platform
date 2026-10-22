@@ -614,6 +614,44 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
             entityTypeName);
     }
 
+    /// <summary>
+    /// Creates the representations variable of an entity lookup and fills the targets whose entity
+    /// the result already holds. <paramref name="reusedCount"/> is the number of entities that were filled.
+    /// </summary>
+    internal RepresentationValue CreateRepresentationVariableValue(
+        ReadOnlySpan<SelectionPath> selectionSets,
+        ReadOnlySpan<string> forwardedVariables,
+        ReadOnlySpan<OperationRequirement> requirements,
+        ImmutableArray<RepresentationShapeNode> requiredShape,
+        string entityTypeName,
+        EntityReuseCandidateList? candidates,
+        out int reusedCount)
+    {
+        reusedCount = 0;
+
+        if (candidates is null
+            || requirements.Length == 0
+            || forwardedVariables.Length > 0
+            || CountImportedRequirementKeys(requirements) > 0)
+        {
+            return CreateRepresentationVariableValue(
+                selectionSets,
+                forwardedVariables,
+                requirements,
+                requiredShape,
+                entityTypeName);
+        }
+
+        return _resultStore.CreateRepresentationVariableValue(
+            selectionSets,
+            GetPathThroughVariables(forwardedVariables),
+            requirements,
+            requiredShape,
+            entityTypeName,
+            candidates,
+            out reusedCount);
+    }
+
     private InvalidOperationException CreateMixedScopeException(
         ReadOnlySpan<OperationRequirement> requirements)
     {

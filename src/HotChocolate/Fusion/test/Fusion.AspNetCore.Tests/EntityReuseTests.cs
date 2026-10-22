@@ -1,6 +1,7 @@
 using System.Text.Json;
 using HotChocolate.Resolvers;
 using HotChocolate.Transport.Http;
+using HotChocolate.Types;
 using HotChocolate.Types.Composite;
 using HotChocolate.Types.Relay;
 using Microsoft.AspNetCore.TestHost;
@@ -344,6 +345,184 @@ public sealed class EntityReuseTests : FusionTestBase
             """);
     }
 
+    [Fact]
+    public async Task Execute_BatchLookup_Should_RunDependentLookup_When_OneOperationIsReused()
+    {
+        // arrange
+        using var accountsApi = CreateAccountsApi();
+        using var inventoryApi = CreateInventoryApi();
+        using var productsApi = CreateProductsApi();
+        using var reviewsApi = CreateReviewsApi();
+        using var gateway = await CreateGatewayAsync(accountsApi, inventoryApi, productsApi, reviewsApi);
+        using var gatewayWithoutReuse = await CreateGatewayAsync(
+            accountsApi,
+            inventoryApi,
+            productsApi,
+            reviewsApi,
+            enableEntityReuse: false);
+
+        // The products batch reuses the price and weight lookup that a lookup in the inventory batch requires.
+        const string query =
+            """
+            {
+              topProducts(first: 1) {
+                upc price weight
+                reviews { product { price weight shippingEstimate } }
+              }
+              me { reviews { product { name inStock shippingEstimate } } }
+            }
+            """;
+
+        // act
+        var data = await ExecuteAsync(gateway, query);
+        var dataWithoutReuse = await ExecuteAsync(gatewayWithoutReuse, query);
+
+        // assert
+        Assert.Equal(dataWithoutReuse, data);
+        Assert.Equal(
+            "accounts-api: 1, inventory-api: 1, products-api: 2, reviews-api: 1",
+            CountRequests(gateway));
+        data.MatchInlineSnapshot(
+            """
+            {"topProducts":[{"upc":"1","price":899,"weight":100,"reviews":[{"product":{"price":899,"weight":100,"shippingEstimate":50}},{"product":{"price":899,"weight":100,"shippingEstimate":50}},{"product":{"price":899,"weight":100,"shippingEstimate":50}},{"product":{"price":899,"weight":100,"shippingEstimate":50}}]}],"me":{"reviews":[{"product":{"name":"Table","inStock":true,"shippingEstimate":50}},{"product":{"name":"Table","inStock":true,"shippingEstimate":50}}]}}
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_BatchLookup_Should_SendNoRequest_When_EveryOperationIsReused()
+    {
+        // arrange
+        using var accountsApi = CreateAccountsApi();
+        using var inventoryApi = CreateInventoryApi();
+        using var productsApi = CreateProductsApi();
+        using var reviewsApi = CreateReviewsApi();
+        using var gateway = await CreateGatewayAsync(accountsApi, inventoryApi, productsApi, reviewsApi);
+        using var gatewayWithoutReuse = await CreateGatewayAsync(
+            accountsApi,
+            inventoryApi,
+            productsApi,
+            reviewsApi,
+            enableEntityReuse: false);
+
+        // Both lookups of the products batch are reused from topProducts.
+        const string query =
+            """
+            {
+              topProducts(first: 1) {
+                upc name price weight
+                reviews { product { price weight shippingEstimate } }
+              }
+              me { reviews { product { name } } }
+            }
+            """;
+
+        // act
+        var data = await ExecuteAsync(gateway, query);
+        var dataWithoutReuse = await ExecuteAsync(gatewayWithoutReuse, query);
+
+        // assert
+        Assert.Equal(dataWithoutReuse, data);
+        Assert.Equal(
+            "accounts-api: 1, inventory-api: 1, products-api: 1, reviews-api: 1",
+            CountRequests(gateway));
+        data.MatchInlineSnapshot(
+            """
+            {"topProducts":[{"upc":"1","name":"Table","price":899,"weight":100,"reviews":[{"product":{"price":899,"weight":100,"shippingEstimate":50}},{"product":{"price":899,"weight":100,"shippingEstimate":50}},{"product":{"price":899,"weight":100,"shippingEstimate":50}},{"product":{"price":899,"weight":100,"shippingEstimate":50}}]}],"me":{"reviews":[{"product":{"name":"Table"}},{"product":{"name":"Table"}}]}}
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_Mutation_Should_FetchChangedEntity_When_EarlierMutationFieldHoldsIt()
+    {
+        // arrange
+        using var accountsApi = CreateSourceSchema(
+            "accounts-api",
+            builder => builder
+                .AddQueryType<MutationAccountsQuery>(d => d.Name("Query"))
+                .AddMutationType<MutationAccountsMutation>(d => d.Name("Mutation")),
+            configureServices: services => services.AddSingleton(new MutationAccountsData()));
+        using var reviewsApi = CreateSourceSchema(
+            "reviews-api",
+            builder => builder.AddQueryType<MutationReviewsQuery>(d => d.Name("Query")));
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("accounts-api", accountsApi), ("reviews-api", reviewsApi)]);
+
+        // Both fields rename user 1, so the author must be fetched after the second rename.
+        const string mutation =
+            """
+            mutation {
+              first: renameUser(id: "1", name: "First") { id name }
+              second: renameUser(id: "1", name: "Second") { id reviews { author { name } } }
+            }
+            """;
+
+        // act
+        var data = await ExecuteAsync(gateway, mutation);
+
+        // assert
+        Assert.Equal("accounts-api: 3, reviews-api: 1", CountRequests(gateway));
+        data.MatchInlineSnapshot(
+            """
+            {"first":{"id":"1","name":"First"},"second":{"id":"1","reviews":[{"author":{"name":"Second"}}]}}
+            """);
+    }
+
+    [Fact]
+    public async Task Subscribe_Lookup_Should_FetchEntityForEachEvent_When_EventsHoldSameEntity()
+    {
+        // arrange
+        using var eventsApi = CreateSourceSchema(
+            "events-api",
+            builder => builder
+                .AddQueryType<EventsQuery>(d => d.Name("Query"))
+                .AddSubscriptionType<EventsSubscription>(d => d.Name("Subscription")));
+        using var productsApi = CreateSourceSchema(
+            "products-api",
+            builder => builder.AddQueryType<CountingProductsQuery>(d => d.Name("Query")),
+            configureServices: services => services.AddSingleton(new NameCounter()));
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("events-api", eventsApi), ("products-api", productsApi)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        // Every event holds product 1, and products returns a new name for every lookup.
+        const string subscription =
+            """
+            subscription {
+              onProductChanged { upc name }
+            }
+            """;
+
+        // act
+        using var response = await client.PostAsync(
+            subscription,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+        var events = new List<string>();
+
+        await foreach (var result in response.ReadAsResultStreamAsync()
+            .WithCancellation(TestContext.Current.CancellationToken))
+        {
+            using (result)
+            {
+                events.Add(result.Data.GetRawText());
+            }
+        }
+
+        // assert
+        events.MatchInlineSnapshots(
+            [
+                """
+                {"onProductChanged":{"upc":"1","name":"Name 1"}}
+                """,
+                """
+                {"onProductChanged":{"upc":"1","name":"Name 2"}}
+                """,
+                """
+                {"onProductChanged":{"upc":"1","name":"Name 3"}}
+                """
+            ]);
+    }
+
     private const string CompositeKeyQuery =
         """
         {
@@ -499,6 +678,110 @@ public sealed class EntityReuseTests : FusionTestBase
         public required string AuthorId { get; init; }
 
         public AliasReviewUser GetAuthor() => AliasReviewUser.ById(AuthorId);
+    }
+
+    public sealed class EventsQuery
+    {
+        public string Foo() => "Foo";
+    }
+
+    public sealed class EventsSubscription
+    {
+        public async IAsyncEnumerable<EventsProduct> OnProductChangedStream()
+        {
+            for (var i = 0; i < 3; i++)
+            {
+                await Task.Yield();
+                yield return new EventsProduct("1");
+            }
+        }
+
+        [Subscribe(With = nameof(OnProductChangedStream))]
+        public EventsProduct OnProductChanged([EventMessage] EventsProduct product) => product;
+    }
+
+    [GraphQLName("Product")]
+    [EntityKey("upc")]
+    public sealed record EventsProduct(string Upc);
+
+    // The number of times a product name was resolved.
+    public sealed class NameCounter
+    {
+        private int _count;
+
+        public int Next() => Interlocked.Increment(ref _count);
+    }
+
+    public sealed class CountingProductsQuery
+    {
+        [Lookup, Internal]
+        public CountingProduct? GetProductByUpc(string upc) => new() { Upc = upc };
+    }
+
+    [GraphQLName("Product")]
+    public sealed class CountingProduct
+    {
+        public required string Upc { get; init; }
+
+        public string GetName([Service] NameCounter counter) => $"Name {counter.Next()}";
+    }
+
+    public sealed class MutationAccountsData
+    {
+        public Dictionary<string, string> NameById { get; } = new() { ["1"] = "Alice" };
+    }
+
+    public sealed class MutationAccountsQuery
+    {
+        [Lookup]
+        public MutationAccountUser? GetUser([ID] string id, [Service] MutationAccountsData data)
+            => data.NameById.TryGetValue(id, out var name) ? new MutationAccountUser { Id = id, Name = name } : null;
+    }
+
+    public sealed class MutationAccountsMutation
+    {
+        public MutationAccountUser RenameUser([ID] string id, string name, [Service] MutationAccountsData data)
+        {
+            data.NameById[id] = name;
+            return new MutationAccountUser { Id = id, Name = name };
+        }
+    }
+
+    [GraphQLName("User")]
+    public sealed class MutationAccountUser
+    {
+        [ID]
+        public required string Id { get; init; }
+
+        public required string Name { get; init; }
+    }
+
+    public sealed class MutationReviewsQuery
+    {
+        [Lookup, Internal]
+        public MutationReviewUser? GetUserById([ID] string id) => new() { Id = id };
+    }
+
+    [GraphQLName("User")]
+    public sealed class MutationReviewUser
+    {
+        [ID]
+        [Shareable]
+        public required string Id { get; init; }
+
+        public IEnumerable<MutationReview> GetReviews() => [new MutationReview { Id = "1", AuthorId = Id }];
+    }
+
+    [GraphQLName("Review")]
+    public sealed class MutationReview
+    {
+        [ID]
+        public required string Id { get; init; }
+
+        [GraphQLIgnore]
+        public required string AuthorId { get; init; }
+
+        public MutationReviewUser GetAuthor() => new() { Id = AuthorId };
     }
 
     public sealed class ErrorAccountsQuery

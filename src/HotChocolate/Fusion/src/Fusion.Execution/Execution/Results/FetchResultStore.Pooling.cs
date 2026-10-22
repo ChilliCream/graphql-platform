@@ -166,6 +166,7 @@ internal sealed partial class FetchResultStore
         TrimOrClearBuffer(ref _collectTargetA, maxCollectTargetRetainLength);
         TrimOrClearBuffer(ref _collectTargetB, maxCollectTargetRetainLength);
         TrimOrClearBuffer(ref _collectTargetCombined, maxCollectTargetRetainLength);
+        TrimOrClearBuffer(ref _collectProducerCombined, maxCollectTargetRetainLength);
 
         // drop dedup tables that a lookup with many targets made grow
         _variableDedupTable.Trim(maxCollectTargetRetainLength * 4);

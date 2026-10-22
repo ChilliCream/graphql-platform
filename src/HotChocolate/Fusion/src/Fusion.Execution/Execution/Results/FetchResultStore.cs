@@ -67,6 +67,7 @@ internal sealed partial class FetchResultStore : IDisposable
     private CompositeResultElement[] _collectTargetA = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private CompositeResultElement[] _collectTargetB = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private CompositeResultElement[] _collectTargetCombined = ArrayPool<CompositeResultElement>.Shared.Rent(64);
+    private CompositeResultElement[] _collectProducerCombined = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private SourceResultElement[] _dataElementStaging = [];
     private LeafValue[] _leafValues = [];
     private PathSegmentLocalPool _pathPool = default!;
@@ -218,7 +219,7 @@ internal sealed partial class FetchResultStore : IDisposable
                 }
                 finally
                 {
-                    ReturnPathSegments(results);
+                    ReturnPathSegmentsUnsafe(results);
                 }
             }
         }
@@ -347,7 +348,7 @@ internal sealed partial class FetchResultStore : IDisposable
                 }
                 finally
                 {
-                    ReturnPathSegments(results);
+                    ReturnPathSegmentsUnsafe(results);
                 }
             }
         }
@@ -433,7 +434,7 @@ internal sealed partial class FetchResultStore : IDisposable
             }
             finally
             {
-                ReturnPathSegments(result);
+                ReturnPathSegmentsUnsafe(result);
             }
         }
     }
@@ -461,7 +462,7 @@ internal sealed partial class FetchResultStore : IDisposable
             }
             finally
             {
-                ReturnPathSegments(result);
+                ReturnPathSegmentsUnsafe(result);
             }
         }
     }
@@ -523,7 +524,7 @@ internal sealed partial class FetchResultStore : IDisposable
                     return false;
                 }
 
-                var element = path.IsRoot ? resultData : GetStartObjectResult(path);
+                var element = path.IsRoot ? resultData : GetStartObjectResultUnsafe(path);
                 if (element.IsNullOrInvalidated)
                 {
                     goto AddErrors_Next;
@@ -567,7 +568,7 @@ AddErrors_Next:
                     return false;
                 }
 
-                var element = path.IsRoot ? resultData : GetStartObjectResult(path);
+                var element = path.IsRoot ? resultData : GetStartObjectResultUnsafe(path);
                 if (element.IsNullOrInvalidated)
                 {
                     goto AddErrors_Next;
@@ -977,14 +978,14 @@ AddErrors_Next:
 
         lock (_lock)
         {
-            var elements = CollectTargetElements(selectionSet);
+            var elements = CollectTargetElementsUnsafe(selectionSet);
 
             if (elements.IsEmpty)
             {
                 return [];
             }
 
-            return BuildVariableValueSets(elements, requestVariables, requiredData);
+            return BuildVariableValueSetsUnsafe(elements, requestVariables, requiredData);
         }
     }
 
@@ -1011,29 +1012,14 @@ AddErrors_Next:
 
         lock (_lock)
         {
-            var combinedCount = 0;
-
-            foreach (var selectionSet in selectionSets)
-            {
-                var elements = CollectTargetElements(selectionSet);
-
-                if (!elements.IsEmpty)
-                {
-                    EnsureCapacity(
-                        ref _collectTargetCombined,
-                        combinedCount + elements.Length,
-                        combinedCount);
-                    elements.CopyTo(_collectTargetCombined.AsSpan(combinedCount));
-                    combinedCount += elements.Length;
-                }
-            }
+            var combinedCount = CollectCombinedElementsUnsafe(selectionSets, ref _collectTargetCombined);
 
             if (combinedCount == 0)
             {
                 return [];
             }
 
-            return BuildVariableValueSets(
+            return BuildVariableValueSetsUnsafe(
                 _collectTargetCombined.AsSpan(0, combinedCount),
                 requestVariables,
                 requiredData);
@@ -1069,14 +1055,14 @@ AddErrors_Next:
 
         lock (_lock)
         {
-            var targetCount = CollectCombinedElements(selectionSets);
+            var targetCount = CollectCombinedElementsUnsafe(selectionSets, ref _collectTargetCombined);
 
             if (targetCount == 0)
             {
                 return [];
             }
 
-            var variableValueSets = BuildVariableValueSets(
+            var variableValueSets = BuildVariableValueSetsUnsafe(
                 _collectTargetCombined.AsSpan(0, targetCount),
                 requestVariables,
                 requiredData);
@@ -1089,51 +1075,39 @@ AddErrors_Next:
                 return variableValueSets;
             }
 
-            var producerCount = CollectCombinedElements(candidates.Paths);
-            var producers = _collectTargetCombined.AsSpan(0, producerCount);
-            var holdingCount = 0;
+            var producerCount = CollectEntityReuseProducersUnsafe(candidates);
 
-            // Only entities that hold a leaf value for every reused field and a key that is not
-            // all null can produce.
-            for (var i = 0; i < producers.Length; i++)
-            {
-                if (HoldsLeafValues(producers[i], candidates.ResponseNames)
-                    && HasNonNullKeyValue(producers[i], candidates.KeyResponseNames))
-                {
-                    producers[holdingCount++] = producers[i];
-                }
-            }
-
-            if (holdingCount == 0)
+            if (producerCount == 0)
             {
                 return variableValueSets;
             }
 
-            var producerValueSets = BuildVariableValueSets(
-                producers[..holdingCount],
+            var producerValueSets = BuildVariableValueSetsUnsafe(
+                _collectProducerCombined.AsSpan(0, producerCount),
                 requestVariables,
                 requiredData);
 
-            return ReuseEntities(variableValueSets, producerValueSets, candidates.ResponseNames, out reusedCount);
+            return ReuseEntitiesUnsafe(variableValueSets, producerValueSets, candidates.ResponseNames, out reusedCount);
         }
     }
 
-    // Caller must hold _lock.
-    private int CollectCombinedElements(ReadOnlySpan<SelectionPath> selectionSets)
+    private int CollectCombinedElementsUnsafe(
+        ReadOnlySpan<SelectionPath> selectionSets,
+        ref CompositeResultElement[] buffer)
     {
         var combinedCount = 0;
 
         foreach (var selectionSet in selectionSets)
         {
-            var elements = CollectTargetElements(selectionSet);
+            var elements = CollectTargetElementsUnsafe(selectionSet);
 
             if (!elements.IsEmpty)
             {
                 EnsureCapacity(
-                    ref _collectTargetCombined,
+                    ref buffer,
                     combinedCount + elements.Length,
                     combinedCount);
-                elements.CopyTo(_collectTargetCombined.AsSpan(combinedCount));
+                elements.CopyTo(buffer.AsSpan(combinedCount));
                 combinedCount += elements.Length;
             }
         }
@@ -1141,8 +1115,25 @@ AddErrors_Next:
         return combinedCount;
     }
 
-    // Caller must hold _lock.
-    private ImmutableArray<VariableValues> ReuseEntities(
+    private int CollectEntityReuseProducersUnsafe(EntityReuseCandidateList candidates)
+    {
+        var candidateCount = CollectCombinedElementsUnsafe(candidates.Paths, ref _collectProducerCombined);
+        var producers = _collectProducerCombined.AsSpan(0, candidateCount);
+        var producerCount = 0;
+
+        for (var i = 0; i < producers.Length; i++)
+        {
+            if (HoldsLeafValuesUnsafe(producers[i], candidates.ResponseNames)
+                && HasNonNullKeyValueUnsafe(producers[i], candidates.KeyResponseNames))
+            {
+                producers[producerCount++] = producers[i];
+            }
+        }
+
+        return producerCount;
+    }
+
+    private ImmutableArray<VariableValues> ReuseEntitiesUnsafe(
         ImmutableArray<VariableValues> variableValueSets,
         ImmutableArray<VariableValues> producerValueSets,
         ReadOnlySpan<string> responseNames,
@@ -1161,8 +1152,8 @@ AddErrors_Next:
         {
             var variableValues = variableValueSets[i];
 
-            if (TryFindProducer(producerValueSets, variableValues.Values, out var producerPath)
-                && TryFillTargets(variableValues, GetStartResult(producerPath), responseNames))
+            if (TryFindProducerUnsafe(producerValueSets, variableValues.Values, out var producerPath)
+                && TryFillTargetsUnsafe(variableValues, GetStartResult(producerPath), responseNames))
             {
                 if (remaining is null)
                 {
@@ -1184,8 +1175,8 @@ AddErrors_Next:
         return remaining is null ? variableValueSets : remaining.ToImmutable();
     }
 
-    // Caller must hold _lock and pass the value sets of the last build, which the dedup table indexes.
-    private bool TryFindProducer(
+    // Caller must pass the value sets of the last build, which the dedup table indexes.
+    private bool TryFindProducerUnsafe(
         ImmutableArray<VariableValues> producerValueSets,
         JsonSegment values,
         out CompactPath producerPath)
@@ -1211,13 +1202,12 @@ AddErrors_Next:
         return false;
     }
 
-    // Caller must hold _lock.
-    private bool TryFillTargets(
+    private bool TryFillTargetsUnsafe(
         VariableValues variableValues,
         CompositeResultElement producer,
         ReadOnlySpan<string> responseNames)
     {
-        if (!TryFillTarget(GetStartResult(variableValues.Path), producer, responseNames))
+        if (!TryFillTargetUnsafe(GetStartResult(variableValues.Path), producer, responseNames))
         {
             return false;
         }
@@ -1226,7 +1216,7 @@ AddErrors_Next:
 
         for (var i = 0; i < additionalTargets.Length; i++)
         {
-            if (!TryFillTarget(additionalTargets[i], producer, responseNames))
+            if (!TryFillTargetUnsafe(additionalTargets[i], producer, responseNames))
             {
                 return false;
             }
@@ -1235,7 +1225,7 @@ AddErrors_Next:
         return true;
     }
 
-    private static bool TryFillTarget(
+    private static bool TryFillTargetUnsafe(
         CompositeResultElement target,
         CompositeResultElement producer,
         ReadOnlySpan<string> responseNames)
@@ -1258,7 +1248,7 @@ AddErrors_Next:
         return true;
     }
 
-    private static bool HoldsLeafValues(CompositeResultElement element, ReadOnlySpan<string> responseNames)
+    private static bool HoldsLeafValuesUnsafe(CompositeResultElement element, ReadOnlySpan<string> responseNames)
     {
         if (element.IsNullOrInvalidated)
         {
@@ -1281,7 +1271,7 @@ AddErrors_Next:
         return true;
     }
 
-    private static bool HasNonNullKeyValue(CompositeResultElement element, ReadOnlySpan<string> keyResponseNames)
+    private static bool HasNonNullKeyValueUnsafe(CompositeResultElement element, ReadOnlySpan<string> keyResponseNames)
     {
         foreach (var responseName in keyResponseNames)
         {
@@ -1328,12 +1318,11 @@ AddErrors_Next:
 
         lock (_lock)
         {
-            return BuildVariableValueSetsFromSnapshot(importedEntries, requestVariables, requiredData);
+            return BuildVariableValueSetsFromSnapshotUnsafe(importedEntries, requestVariables, requiredData);
         }
     }
 
-    // Caller must hold _lock for reading.
-    private ReadOnlySpan<CompositeResultElement> CollectTargetElements(SelectionPath selectionSet)
+    private ReadOnlySpan<CompositeResultElement> CollectTargetElementsUnsafe(SelectionPath selectionSet)
     {
         var current = _collectTargetA;
         var currentCount = 0;
@@ -1398,7 +1387,7 @@ AddErrors_Next:
 
                     if (valueKind is JsonValueKind.Array)
                     {
-                        AppendUnrolledLists(value, ref next, ref nextCount);
+                        AppendUnrolledListsUnsafe(value, ref next, ref nextCount);
                         continue;
                     }
 
@@ -1445,7 +1434,7 @@ AddErrors_Next:
                 return [CompactPath.Root];
             }
 
-            var elements = CollectTargetElements(selectionSet);
+            var elements = CollectTargetElementsUnsafe(selectionSet);
 
             if (elements.IsEmpty)
             {
@@ -1463,7 +1452,7 @@ AddErrors_Next:
         }
     }
 
-    private ImmutableArray<VariableValues> BuildVariableValueSetsFromSnapshot(
+    private ImmutableArray<VariableValues> BuildVariableValueSetsFromSnapshotUnsafe(
         ImmutableArray<VariableValues> importedEntries,
         IReadOnlyList<ObjectFieldNode> requestVariables,
         ReadOnlySpan<OperationRequirement> requiredData)
@@ -1473,7 +1462,7 @@ AddErrors_Next:
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator(importedEntries.Length);
         var nextIndex = 0;
-        var forwardedVariables = SerializeForwardedVariables(requestVariables, importedEntries.Length);
+        var forwardedVariables = SerializeForwardedVariablesUnsafe(requestVariables, importedEntries.Length);
 
         foreach (var importedEntry in importedEntries)
         {
@@ -1485,9 +1474,9 @@ AddErrors_Next:
             _jsonWriter.Reset(GetVariableWriter());
             var startPosition = _variableWriter.Position;
             _jsonWriter.WriteStartObject();
-            WriteForwardedVariables(requestVariables, forwardedVariables);
+            WriteForwardedVariablesUnsafe(requestVariables, forwardedVariables);
 
-            if (!TryWriteRequestedRequirementValues(importedEntry.Values, requiredData))
+            if (!TryWriteRequestedRequirementValuesUnsafe(importedEntry.Values, requiredData))
             {
                 _variableWriter.ResetTo(startPosition);
                 continue;
@@ -1495,7 +1484,7 @@ AddErrors_Next:
 
             _jsonWriter.WriteEndObject();
 
-            var entry = TryCreateVariableValues(
+            var entry = TryCreateVariableValuesUnsafe(
                 importedEntry.Path,
                 startPosition,
                 ref additionalPaths,
@@ -1514,10 +1503,10 @@ AddErrors_Next:
             nextIndex++;
         }
 
-        return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
+        return FinalizeVariableValueSetsUnsafe(variableValueSets, ref additionalPaths, nextIndex);
     }
 
-    private ImmutableArray<VariableValues> BuildVariableValueSets(
+    private ImmutableArray<VariableValues> BuildVariableValueSetsUnsafe(
         ReadOnlySpan<CompositeResultElement> elements,
         IReadOnlyList<ObjectFieldNode> requestVariables,
         ReadOnlySpan<OperationRequirement> requiredData)
@@ -1529,16 +1518,16 @@ AddErrors_Next:
         {
             var fastPathResult = requiredData.Length switch
             {
-                1 => BuildVariableValueSetsSingleRequirement(
+                1 => BuildVariableValueSetsSingleRequirementUnsafe(
                     elements,
                     requiredData[0]),
 
-                2 => BuildVariableValueSetsTwoRequirements(
+                2 => BuildVariableValueSetsTwoRequirementsUnsafe(
                     elements,
                     requiredData[0],
                     requiredData[1]),
 
-                3 => BuildVariableValueSetsThreeRequirements(
+                3 => BuildVariableValueSetsThreeRequirementsUnsafe(
                     elements,
                     requiredData[0],
                     requiredData[1],
@@ -1563,7 +1552,7 @@ AddErrors_Next:
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator(elements.Length);
         var nextIndex = 0;
-        var forwardedVariables = SerializeForwardedVariables(requestVariables, elements.Length);
+        var forwardedVariables = SerializeForwardedVariablesUnsafe(requestVariables, elements.Length);
 
         foreach (var result in elements)
         {
@@ -1572,7 +1561,7 @@ AddErrors_Next:
             _jsonWriter.Reset(GetVariableWriter());
             var startPosition = _variableWriter.Position;
             _jsonWriter.WriteStartObject();
-            WriteForwardedVariables(requestVariables, forwardedVariables);
+            WriteForwardedVariablesUnsafe(requestVariables, forwardedVariables);
 
             // Write requirement fields.
             var failed = false;
@@ -1603,7 +1592,7 @@ AddErrors_Next:
 
             _jsonWriter.WriteEndObject();
 
-            var entry = TryCreateVariableValues(
+            var entry = TryCreateVariableValuesUnsafe(
                 result, startPosition, ref additionalPaths, nextIndex);
 
             if (entry is null)
@@ -1622,10 +1611,10 @@ AddErrors_Next:
             }
         }
 
-        return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
+        return FinalizeVariableValueSetsUnsafe(variableValueSets, ref additionalPaths, nextIndex);
     }
 
-    private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirement(
+    private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirementUnsafe(
         ReadOnlySpan<CompositeResultElement> elements,
         OperationRequirement requirement)
     {
@@ -1635,18 +1624,18 @@ AddErrors_Next:
         if (TryGetSimpleRequirementFieldName(requirement, out var fieldName)
             && !requirement.Type.IsListType())
         {
-            return BuildVariableValueSetsSingleRequirementFastPath(elements, requirement, fieldName);
+            return BuildVariableValueSetsSingleRequirementFastPathUnsafe(elements, requirement, fieldName);
         }
 
-        return BuildVariableValueSetsSingleRequirementSlowPath(elements, requirement);
+        return BuildVariableValueSetsSingleRequirementSlowPathUnsafe(elements, requirement);
     }
 
-    private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirementFastPath(
+    private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirementFastPathUnsafe(
         ReadOnlySpan<CompositeResultElement> elements,
         OperationRequirement requirement,
         string fieldName)
     {
-        ResetLeafKeys(elements.Length);
+        ResetLeafKeysUnsafe(elements.Length);
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator(elements.Length);
         var nextIndex = 0;
@@ -1677,10 +1666,10 @@ AddErrors_Next:
 
             variableValueSets ??= s_variableValuePool.Rent(elements.Length);
 
-            var leafKey = StartLeafKey();
+            var leafKey = StartLeafKeyUnsafe();
 
-            if (TryAppendLeafKey(ref leafKey, value)
-                && TryGetLeafKeyDuplicate(ref leafKey, out var duplicateIndex))
+            if (TryAppendLeafKeyUnsafe(ref leafKey, value)
+                && TryGetLeafKeyDuplicateUnsafe(ref leafKey, out var duplicateIndex))
             {
                 additionalPaths.Add(duplicateIndex, result);
                 continue;
@@ -1692,18 +1681,18 @@ AddErrors_Next:
             // Write variable JSON: {"key":rawValue}
             _jsonWriter.WriteStartObject();
             _jsonWriter.WritePropertyName(requirement.Key);
-            WriteCompositeResultValue(value);
+            WriteCompositeResultValueUnsafe(value);
             _jsonWriter.WriteEndObject();
 
             // we try to create a VariableValues object,
             // if that fails the variables already were created and we move on.
-            var entry = TryCreateVariableValues(
+            var entry = TryCreateVariableValuesUnsafe(
                 result,
                 startPosition,
                 ref additionalPaths,
                 nextIndex,
                 out var dedupIndex);
-            AddLeafKey(ref leafKey, dedupIndex);
+            AddLeafKeyUnsafe(ref leafKey, dedupIndex);
 
             if (entry is null)
             {
@@ -1713,10 +1702,10 @@ AddErrors_Next:
             variableValueSets[nextIndex++] = entry.Value;
         }
 
-        return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
+        return FinalizeVariableValueSetsUnsafe(variableValueSets, ref additionalPaths, nextIndex);
     }
 
-    private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirementSlowPath(
+    private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirementSlowPathUnsafe(
         ReadOnlySpan<CompositeResultElement> elements,
         OperationRequirement requirement)
     {
@@ -1748,7 +1737,7 @@ AddErrors_Next:
 
             _jsonWriter.WriteEndObject();
 
-            var entry = TryCreateVariableValues(
+            var entry = TryCreateVariableValuesUnsafe(
                 result, startPosition, ref additionalPaths, nextIndex);
 
             if (entry is null)
@@ -1759,10 +1748,10 @@ AddErrors_Next:
             variableValueSets[nextIndex++] = entry.Value;
         }
 
-        return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
+        return FinalizeVariableValueSetsUnsafe(variableValueSets, ref additionalPaths, nextIndex);
     }
 
-    private ImmutableArray<VariableValues> BuildVariableValueSetsTwoRequirements(
+    private ImmutableArray<VariableValues> BuildVariableValueSetsTwoRequirementsUnsafe(
         ReadOnlySpan<CompositeResultElement> elements,
         OperationRequirement requirement1,
         OperationRequirement requirement2)
@@ -1775,7 +1764,7 @@ AddErrors_Next:
             && TryGetSimpleRequirementFieldName(requirement2, out var fieldName2)
             && !requirement2.Type.IsListType())
         {
-            return BuildVariableValueSetsTwoRequirementsFastPath(
+            return BuildVariableValueSetsTwoRequirementsFastPathUnsafe(
                 elements,
                 requirement1,
                 fieldName1,
@@ -1783,20 +1772,20 @@ AddErrors_Next:
                 fieldName2);
         }
 
-        return BuildVariableValueSetsTwoRequirementsSlowPath(
+        return BuildVariableValueSetsTwoRequirementsSlowPathUnsafe(
             elements,
             requirement1,
             requirement2);
     }
 
-    private ImmutableArray<VariableValues> BuildVariableValueSetsTwoRequirementsFastPath(
+    private ImmutableArray<VariableValues> BuildVariableValueSetsTwoRequirementsFastPathUnsafe(
         ReadOnlySpan<CompositeResultElement> elements,
         OperationRequirement requirement1,
         string fieldName1,
         OperationRequirement requirement2,
         string fieldName2)
     {
-        ResetLeafKeys(elements.Length);
+        ResetLeafKeysUnsafe(elements.Length);
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator(elements.Length);
         var nextIndex = 0;
@@ -1825,11 +1814,11 @@ AddErrors_Next:
 
             variableValueSets ??= s_variableValuePool.Rent(elements.Length);
 
-            var leafKey = StartLeafKey();
+            var leafKey = StartLeafKeyUnsafe();
 
-            if (TryAppendLeafKey(ref leafKey, value1)
-                && TryAppendLeafKey(ref leafKey, value2)
-                && TryGetLeafKeyDuplicate(ref leafKey, out var duplicateIndex))
+            if (TryAppendLeafKeyUnsafe(ref leafKey, value1)
+                && TryAppendLeafKeyUnsafe(ref leafKey, value2)
+                && TryGetLeafKeyDuplicateUnsafe(ref leafKey, out var duplicateIndex))
             {
                 additionalPaths.Add(duplicateIndex, result);
                 continue;
@@ -1839,14 +1828,14 @@ AddErrors_Next:
             var startPosition = _variableWriter.Position;
             _jsonWriter.WriteStartObject();
             _jsonWriter.WritePropertyName(requirement1.Key);
-            WriteCompositeResultValue(value1);
+            WriteCompositeResultValueUnsafe(value1);
             _jsonWriter.WritePropertyName(requirement2.Key);
-            WriteCompositeResultValue(value2);
+            WriteCompositeResultValueUnsafe(value2);
             _jsonWriter.WriteEndObject();
 
-            var entry = TryCreateVariableValues(
+            var entry = TryCreateVariableValuesUnsafe(
                 result, startPosition, ref additionalPaths, nextIndex, out var dedupIndex);
-            AddLeafKey(ref leafKey, dedupIndex);
+            AddLeafKeyUnsafe(ref leafKey, dedupIndex);
 
             if (entry is null)
             {
@@ -1856,10 +1845,10 @@ AddErrors_Next:
             variableValueSets[nextIndex++] = entry.Value;
         }
 
-        return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
+        return FinalizeVariableValueSetsUnsafe(variableValueSets, ref additionalPaths, nextIndex);
     }
 
-    private ImmutableArray<VariableValues> BuildVariableValueSetsTwoRequirementsSlowPath(
+    private ImmutableArray<VariableValues> BuildVariableValueSetsTwoRequirementsSlowPathUnsafe(
         ReadOnlySpan<CompositeResultElement> elements,
         OperationRequirement requirement1,
         OperationRequirement requirement2)
@@ -1908,7 +1897,7 @@ AddErrors_Next:
 
             _jsonWriter.WriteEndObject();
 
-            var entry = TryCreateVariableValues(result, startPosition, ref additionalPaths, nextIndex);
+            var entry = TryCreateVariableValuesUnsafe(result, startPosition, ref additionalPaths, nextIndex);
 
             if (entry is null)
             {
@@ -1918,10 +1907,10 @@ AddErrors_Next:
             variableValueSets[nextIndex++] = entry.Value;
         }
 
-        return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
+        return FinalizeVariableValueSetsUnsafe(variableValueSets, ref additionalPaths, nextIndex);
     }
 
-    private ImmutableArray<VariableValues> BuildVariableValueSetsThreeRequirements(
+    private ImmutableArray<VariableValues> BuildVariableValueSetsThreeRequirementsUnsafe(
         ReadOnlySpan<CompositeResultElement> elements,
         OperationRequirement requirement1,
         OperationRequirement requirement2,
@@ -1937,7 +1926,7 @@ AddErrors_Next:
             && TryGetSimpleRequirementFieldName(requirement3, out var fieldName3)
             && !requirement3.Type.IsListType())
         {
-            return BuildVariableValueSetsThreeRequirementsFastPath(
+            return BuildVariableValueSetsThreeRequirementsFastPathUnsafe(
                 elements,
                 requirement1,
                 fieldName1,
@@ -1947,14 +1936,14 @@ AddErrors_Next:
                 fieldName3);
         }
 
-        return BuildVariableValueSetsThreeRequirementsSlowPath(
+        return BuildVariableValueSetsThreeRequirementsSlowPathUnsafe(
             elements,
             requirement1,
             requirement2,
             requirement3);
     }
 
-    private ImmutableArray<VariableValues> BuildVariableValueSetsThreeRequirementsFastPath(
+    private ImmutableArray<VariableValues> BuildVariableValueSetsThreeRequirementsFastPathUnsafe(
         ReadOnlySpan<CompositeResultElement> elements,
         OperationRequirement requirement1,
         string fieldName1,
@@ -1963,7 +1952,7 @@ AddErrors_Next:
         OperationRequirement requirement3,
         string fieldName3)
     {
-        ResetLeafKeys(elements.Length);
+        ResetLeafKeysUnsafe(elements.Length);
         VariableValues[]? variableValueSets = null;
         var additionalPaths = new AdditionalPathAccumulator(elements.Length);
         var nextIndex = 0;
@@ -2002,12 +1991,12 @@ AddErrors_Next:
 
             variableValueSets ??= s_variableValuePool.Rent(elements.Length);
 
-            var leafKey = StartLeafKey();
+            var leafKey = StartLeafKeyUnsafe();
 
-            if (TryAppendLeafKey(ref leafKey, value1)
-                && TryAppendLeafKey(ref leafKey, value2)
-                && TryAppendLeafKey(ref leafKey, value3)
-                && TryGetLeafKeyDuplicate(ref leafKey, out var duplicateIndex))
+            if (TryAppendLeafKeyUnsafe(ref leafKey, value1)
+                && TryAppendLeafKeyUnsafe(ref leafKey, value2)
+                && TryAppendLeafKeyUnsafe(ref leafKey, value3)
+                && TryGetLeafKeyDuplicateUnsafe(ref leafKey, out var duplicateIndex))
             {
                 additionalPaths.Add(duplicateIndex, result);
                 continue;
@@ -2017,16 +2006,16 @@ AddErrors_Next:
             var startPosition = _variableWriter.Position;
             _jsonWriter.WriteStartObject();
             _jsonWriter.WritePropertyName(requirement1.Key);
-            WriteCompositeResultValue(value1);
+            WriteCompositeResultValueUnsafe(value1);
             _jsonWriter.WritePropertyName(requirement2.Key);
-            WriteCompositeResultValue(value2);
+            WriteCompositeResultValueUnsafe(value2);
             _jsonWriter.WritePropertyName(requirement3.Key);
-            WriteCompositeResultValue(value3);
+            WriteCompositeResultValueUnsafe(value3);
             _jsonWriter.WriteEndObject();
 
-            var entry = TryCreateVariableValues(
+            var entry = TryCreateVariableValuesUnsafe(
                 result, startPosition, ref additionalPaths, nextIndex, out var dedupIndex);
-            AddLeafKey(ref leafKey, dedupIndex);
+            AddLeafKeyUnsafe(ref leafKey, dedupIndex);
 
             if (entry is null)
             {
@@ -2036,10 +2025,10 @@ AddErrors_Next:
             variableValueSets[nextIndex++] = entry.Value;
         }
 
-        return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
+        return FinalizeVariableValueSetsUnsafe(variableValueSets, ref additionalPaths, nextIndex);
     }
 
-    private ImmutableArray<VariableValues> BuildVariableValueSetsThreeRequirementsSlowPath(
+    private ImmutableArray<VariableValues> BuildVariableValueSetsThreeRequirementsSlowPathUnsafe(
         ReadOnlySpan<CompositeResultElement> elements,
         OperationRequirement requirement1,
         OperationRequirement requirement2,
@@ -2104,7 +2093,7 @@ AddErrors_Next:
 
             _jsonWriter.WriteEndObject();
 
-            var entry = TryCreateVariableValues(result, startPosition, ref additionalPaths, nextIndex);
+            var entry = TryCreateVariableValuesUnsafe(result, startPosition, ref additionalPaths, nextIndex);
 
             if (entry is null)
             {
@@ -2114,7 +2103,7 @@ AddErrors_Next:
             variableValueSets[nextIndex++] = entry.Value;
         }
 
-        return FinalizeVariableValueSets(variableValueSets, ref additionalPaths, nextIndex);
+        return FinalizeVariableValueSetsUnsafe(variableValueSets, ref additionalPaths, nextIndex);
     }
 
     /// <summary>
@@ -2135,7 +2124,7 @@ AddErrors_Next:
     /// Clears the leaf keys of the previous lookup and sizes the key table for
     /// <paramref name="capacity"/> targets. The keys are written to the memory arena of the request.
     /// </summary>
-    private void ResetLeafKeys(int capacity)
+    private void ResetLeafKeysUnsafe(int capacity)
     {
         if (_leafKeyWriter is null || _leafKeyDedupTable is null)
         {
@@ -2155,7 +2144,7 @@ AddErrors_Next:
         _leafKeyDedupTable.Initialize(capacity);
     }
 
-    private LeafKey StartLeafKey()
+    private LeafKey StartLeafKeyUnsafe()
     {
         Debug.Assert(_leafKeyWriter is not null && _leafKeyDedupTable is not null);
         return new LeafKey(_leafKeyWriter, _leafKeyDedupTable, _leafKeyWriter.Position);
@@ -2165,11 +2154,11 @@ AddErrors_Next:
     /// Appends the kind marker, length and raw bytes of a leaf value to the key.
     /// Discards the key and returns <c>false</c> when the value is not a non-null leaf.
     /// </summary>
-    private static bool TryAppendLeafKey(ref LeafKey key, CompositeResultElement value)
+    private static bool TryAppendLeafKeyUnsafe(ref LeafKey key, CompositeResultElement value)
     {
         if (!value.TryGetLeafValueKey(out var kind, out var raw))
         {
-            DiscardLeafKey(ref key);
+            DiscardLeafKeyUnsafe(ref key);
             return false;
         }
 
@@ -2186,9 +2175,9 @@ AddErrors_Next:
 
     /// <summary>
     /// Returns the variable set index of an earlier target with the same key and discards the key,
-    /// or keeps the key so it can be registered with <see cref="AddLeafKey"/>.
+    /// or keeps the key so it can be registered with <see cref="AddLeafKeyUnsafe"/>.
     /// </summary>
-    private static bool TryGetLeafKeyDuplicate(ref LeafKey key, out int index)
+    private static bool TryGetLeafKeyDuplicateUnsafe(ref LeafKey key, out int index)
     {
         var length = key.Writer.Position - key.Start;
         key.Hash = key.Hasher.ToHashCode();
@@ -2196,7 +2185,7 @@ AddErrors_Next:
 
         if (key.Table.TryGet(key.Writer, key.Hash, key.Start, length, out index))
         {
-            DiscardLeafKey(ref key);
+            DiscardLeafKeyUnsafe(ref key);
             return true;
         }
 
@@ -2206,13 +2195,13 @@ AddErrors_Next:
     /// <summary>
     /// Removes the bytes of the key from the writer and marks the key as invalid.
     /// </summary>
-    private static void DiscardLeafKey(ref LeafKey key)
+    private static void DiscardLeafKeyUnsafe(ref LeafKey key)
     {
         key.Writer.ResetTo(key.Start);
         key.IsValid = false;
     }
 
-    private static void AddLeafKey(ref LeafKey key, int index)
+    private static void AddLeafKeyUnsafe(ref LeafKey key, int index)
     {
         if (key.IsValid)
         {
@@ -2269,14 +2258,14 @@ AddErrors_Next:
         }
     }
 
-    private VariableValues? TryCreateVariableValues(
+    private VariableValues? TryCreateVariableValuesUnsafe(
         CompositeResultElement target,
         int startPosition,
         ref AdditionalPathAccumulator additionalPaths,
         int nextIndex)
-        => TryCreateVariableValues(target, startPosition, ref additionalPaths, nextIndex, out _);
+        => TryCreateVariableValuesUnsafe(target, startPosition, ref additionalPaths, nextIndex, out _);
 
-    private VariableValues? TryCreateVariableValues(
+    private VariableValues? TryCreateVariableValuesUnsafe(
         CompositeResultElement target,
         int startPosition,
         ref AdditionalPathAccumulator additionalPaths,
@@ -2303,7 +2292,7 @@ AddErrors_Next:
             JsonSegment.Create(_variableWriter.GetSequence(startPosition, length)));
     }
 
-    private VariableValues? TryCreateVariableValues(
+    private VariableValues? TryCreateVariableValuesUnsafe(
         CompactPath path,
         int startPosition,
         ref AdditionalPathAccumulator additionalPaths,
@@ -2330,7 +2319,7 @@ AddErrors_Next:
         return new VariableValues(path, JsonSegment.Create(_variableWriter.GetSequence(startPosition, length)));
     }
 
-    private bool TryWriteRequestedRequirementValues(
+    private bool TryWriteRequestedRequirementValuesUnsafe(
         JsonSegment values,
         ReadOnlySpan<OperationRequirement> requiredData)
     {
@@ -2343,7 +2332,7 @@ AddErrors_Next:
 
         foreach (var requirement in requiredData)
         {
-            if (!TryWriteRequirementValue(sequence, requirement.Key))
+            if (!TryWriteRequirementValueUnsafe(sequence, requirement.Key))
             {
                 return false;
             }
@@ -2352,7 +2341,7 @@ AddErrors_Next:
         return true;
     }
 
-    private bool TryWriteRequirementValue(ReadOnlySequence<byte> values, string key)
+    private bool TryWriteRequirementValueUnsafe(ReadOnlySequence<byte> values, string key)
     {
         var reader = new Utf8JsonReader(values);
 
@@ -2406,7 +2395,7 @@ AddErrors_Next:
         _jsonWriter.WriteRawValue(value.ToArray());
     }
 
-    private ReadOnlySpan<byte> SerializeForwardedVariables(
+    private ReadOnlySpan<byte> SerializeForwardedVariablesUnsafe(
         IReadOnlyList<ObjectFieldNode> requestVariables,
         int entityCount)
     {
@@ -2433,7 +2422,7 @@ AddErrors_Next:
         return writer.WrittenSpan[1..^1];
     }
 
-    private void WriteForwardedVariables(
+    private void WriteForwardedVariablesUnsafe(
         IReadOnlyList<ObjectFieldNode> requestVariables,
         ReadOnlySpan<byte> serialized)
     {
@@ -2504,7 +2493,7 @@ AddErrors_Next:
         }
     }
 
-    private void WriteCompositeResultValue(CompositeResultElement value)
+    private void WriteCompositeResultValueUnsafe(CompositeResultElement value)
         => value.WriteTo(_jsonWriter);
 
     internal VariableValues CreateVariableValueSets(
@@ -2574,7 +2563,7 @@ AddErrors_Next:
         {
             foreach (var entry in source)
             {
-                builder.Add(ImportVariableValuesEntry(entry));
+                builder.Add(ImportVariableValuesEntryUnsafe(entry));
             }
 
             imported = builder.MoveToImmutable();
@@ -2585,10 +2574,10 @@ AddErrors_Next:
         return imported;
     }
 
-    private VariableValues ImportVariableValuesEntry(VariableValues source)
+    private VariableValues ImportVariableValuesEntryUnsafe(VariableValues source)
     {
         var path = ImportPath(source.Path);
-        var values = ImportJsonSegment(source.Values);
+        var values = ImportJsonSegmentUnsafe(source.Values);
         var additionalPaths = ImportAdditionalPaths(source.AdditionalPaths);
 
         return new VariableValues(path, values)
@@ -2597,7 +2586,7 @@ AddErrors_Next:
         };
     }
 
-    private JsonSegment ImportJsonSegment(JsonSegment source)
+    private JsonSegment ImportJsonSegmentUnsafe(JsonSegment source)
     {
         if (source.IsEmpty)
         {
@@ -2648,7 +2637,7 @@ AddErrors_Next:
         return new CompactPathSegment(copy, 0, copy.Length);
     }
 
-    private static void AppendUnrolledLists(
+    private static void AppendUnrolledListsUnsafe(
         CompositeResultElement list,
         ref CompositeResultElement[] destination,
         ref int destinationCount)
@@ -2664,7 +2653,7 @@ AddErrors_Next:
 
             if (elementValueKind is JsonValueKind.Array)
             {
-                AppendUnrolledLists(element, ref destination, ref destinationCount);
+                AppendUnrolledListsUnsafe(element, ref destination, ref destinationCount);
             }
             else
             {
@@ -2931,14 +2920,14 @@ AddErrors_Next:
         return current;
     }
 
-    private CompositeResultElement GetStartObjectResult(Path path)
+    private CompositeResultElement GetStartObjectResultUnsafe(Path path)
     {
         var result = GetStartResult(path);
         Debug.Assert(result.ValueKind is JsonValueKind.Object or JsonValueKind.Null or JsonValueKind.Undefined);
         return result.ValueKind is JsonValueKind.Object or JsonValueKind.Null ? result : default;
     }
 
-    private CompositeResultElement GetStartObjectResult(CompactPath path)
+    private CompositeResultElement GetStartObjectResultUnsafe(CompactPath path)
     {
         var result = GetStartResult(path);
         Debug.Assert(result.ValueKind is JsonValueKind.Object or JsonValueKind.Null or JsonValueKind.Undefined);
@@ -3028,10 +3017,10 @@ AddErrors_Next:
 
             foreach (var entry in importedValues)
             {
-                TrackListContainer(entry.Path, ref containers);
+                TrackListContainerUnsafe(entry.Path, ref containers);
                 foreach (var additional in entry.AdditionalPaths.AsSpan())
                 {
-                    TrackListContainer(additional, ref containers);
+                    TrackListContainerUnsafe(additional, ref containers);
                 }
             }
 
@@ -3063,7 +3052,7 @@ AddErrors_Next:
         }
     }
 
-    private void TrackListContainer(
+    private void TrackListContainerUnsafe(
         CompactPath path,
         ref Dictionary<int, (CompositeResultElement Container, int MaxIndex)>? containers)
     {
@@ -3095,7 +3084,7 @@ AddErrors_Next:
                         return;
                     }
 
-                    InitializeIntermediateObject(element);
+                    InitializeIntermediateObjectUnsafe(element);
                 }
 
                 if (element.ValueKind is not JsonValueKind.Object)
@@ -3150,7 +3139,7 @@ AddErrors_Next:
         return false;
     }
 
-    private void InitializeIntermediateObject(CompositeResultElement element)
+    private void InitializeIntermediateObjectUnsafe(CompositeResultElement element)
     {
         var selection = element.Selection
             ?? throw new InvalidOperationException(
@@ -3183,6 +3172,7 @@ AddErrors_Next:
         ArrayPool<CompositeResultElement>.Shared.Return(_collectTargetA, clearArray: true);
         ArrayPool<CompositeResultElement>.Shared.Return(_collectTargetB, clearArray: true);
         ArrayPool<CompositeResultElement>.Shared.Return(_collectTargetCombined, clearArray: true);
+        ArrayPool<CompositeResultElement>.Shared.Return(_collectProducerCombined, clearArray: true);
 
         foreach (var memory in _memory)
         {
@@ -3199,25 +3189,25 @@ AddErrors_Next:
         _pathPool?.Dispose();
     }
 
-    private void ReturnPathSegments(ReadOnlySpan<SourceSchemaResult> results)
+    private void ReturnPathSegmentsUnsafe(ReadOnlySpan<SourceSchemaResult> results)
     {
         for (var i = 0; i < results.Length; i++)
         {
-            ReturnPathSegments(results[i], _seenPaths);
+            ReturnPathSegmentsUnsafe(results[i], _seenPaths);
         }
 
         _seenPaths.Clear();
     }
 
-    private void ReturnPathSegments(SourceSchemaResult result)
+    private void ReturnPathSegmentsUnsafe(SourceSchemaResult result)
     {
-        ReturnPathSegments(result, _seenPaths);
+        ReturnPathSegmentsUnsafe(result, _seenPaths);
         _seenPaths.Clear();
     }
 
-    private void ReturnPathSegments(SourceSchemaResult result, HashSet<int[]> seen)
+    private void ReturnPathSegmentsUnsafe(SourceSchemaResult result, HashSet<int[]> seen)
     {
-        ReturnPathSegments(result.Path, seen);
+        ReturnPathSegmentsUnsafe(result.Path, seen);
 
         // Paths created on first access are not rented from the path pool, so they are not returned.
         if (result.AdditionalPaths.Source is not null)
@@ -3227,11 +3217,11 @@ AddErrors_Next:
 
         foreach (var additionalPath in result.AdditionalPaths)
         {
-            ReturnPathSegments(additionalPath, seen);
+            ReturnPathSegmentsUnsafe(additionalPath, seen);
         }
     }
 
-    private void ReturnPathSegments(CompactPath path, HashSet<int[]> seen)
+    private void ReturnPathSegmentsUnsafe(CompactPath path, HashSet<int[]> seen)
     {
         var array = path.UnsafeGetBackingArray();
 
@@ -3241,7 +3231,7 @@ AddErrors_Next:
         }
     }
 
-    private ImmutableArray<VariableValues> FinalizeVariableValueSets(
+    private ImmutableArray<VariableValues> FinalizeVariableValueSetsUnsafe(
         VariableValues[]? variableValueSets,
         ref AdditionalPathAccumulator additionalPaths,
         int nextIndex)
