@@ -1,6 +1,5 @@
 using System.Text;
 using HotChocolate.Buffers;
-using HotChocolate.Execution;
 using HotChocolate.Execution.Errors;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
