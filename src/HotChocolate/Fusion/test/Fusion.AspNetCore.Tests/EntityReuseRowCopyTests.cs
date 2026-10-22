@@ -280,6 +280,82 @@ public sealed class EntityReuseRowCopyTests : FusionTestBase
         }.MatchMarkdownSnapshot();
     }
 
+    [Theory]
+    [InlineData("first opaque third")]
+    [InlineData("first third opaque")]
+    [InlineData("opaque first third")]
+    [InlineData("third opaque first")]
+    public async Task Execute_Lookup_Should_CopyLeafValues_When_DuplicateTargetsMixObjectAndInterfaceSelectionSets(
+        string order)
+    {
+        // arrange
+        using var concreteApi = CreateSourceSchema(
+            "concrete-api",
+            """
+            type Query {
+              mediaById(id: ID!): Media @lookup
+            }
+
+            interface Media {
+              id: ID!
+            }
+
+            type Book implements Media @key(fields: "id") {
+              id: ID!
+            }
+            """);
+        using var opaqueApi = CreateSourceSchema(
+            "opaque-api",
+            """
+            type Query {
+              bookById(id: ID!): Book
+              opaqueById(id: ID!): Media
+            }
+
+            type Media @interfaceObject @key(fields: "id") {
+              id: ID!
+            }
+
+            type Book @key(fields: "id") {
+              id: ID!
+            }
+            """);
+        using var namesApi = CreateSourceSchema(
+            "names-api",
+            """
+            type Query {
+              mediaById(id: ID!): Media @lookup @internal
+            }
+
+            type Media @interfaceObject @key(fields: "id") {
+              id: ID!
+              name: String
+            }
+            """);
+        (string, TestServer)[] sourceSchemas =
+            [("concrete-api", concreteApi), ("opaque-api", opaqueApi), ("names-api", namesApi)];
+        using var gateway = await CreateGatewayAsync(sourceSchemas, enableEntityReuse: true);
+        using var gatewayWithoutReuse = await CreateGatewayAsync(sourceSchemas, enableEntityReuse: false);
+
+        // The same media is looked up for targets with object and interface selection sets.
+        var fields = order.Split(' ');
+        var query = "{ " + string.Join(" ", fields.Select(CreateMediaField)) + " }";
+        var expected = "{" + string.Join(",", fields.Select(f => $"\"{f}\":{{\"name\":\"Media: 1\"}}")) + "}";
+
+        // act
+        var data = await ExecuteAsync(gateway, query);
+        var dataWithoutReuse = await ExecuteAsync(gatewayWithoutReuse, query);
+
+        // assert
+        Assert.Equal(expected, data);
+        Assert.Equal(expected, dataWithoutReuse);
+
+        static string CreateMediaField(string alias)
+            => alias == "opaque"
+                ? "opaque: opaqueById(id: \"1\") { name }"
+                : alias + ": bookById(id: \"1\") { name }";
+    }
+
     [Fact]
     public async Task Execute_ApolloLookup_Should_ReuseEntities_When_EveryTargetHasAProducer()
     {
