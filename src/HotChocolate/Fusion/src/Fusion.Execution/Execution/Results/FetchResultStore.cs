@@ -1075,7 +1075,7 @@ AddErrors_Next:
                 return variableValueSets;
             }
 
-            var producerCount = CollectEntityReuseProducers(candidates);
+            var producerCount = CollectEntityReuseProducersUnsafe(candidates);
 
             if (producerCount == 0)
             {
@@ -1116,9 +1116,7 @@ AddErrors_Next:
         return combinedCount;
     }
 
-    // Caller must hold _lock. Collects the candidate entities that hold a leaf value for every
-    // reused field and a key that is not all null into _collectProducerCombined.
-    private int CollectEntityReuseProducers(EntityReuseCandidateList candidates)
+    private int CollectEntityReuseProducersUnsafe(EntityReuseCandidateList candidates)
     {
         var candidateCount = CollectCombinedElements(candidates.Paths, ref _collectProducerCombined);
         var producers = _collectProducerCombined.AsSpan(0, candidateCount);
