@@ -1751,7 +1751,7 @@ public sealed partial class OperationPlanner
             }
         }
 
-        foreach (var (_, memberDependencies) in perOperationDependencies)
+        foreach (var (batchNode, memberDependencies) in perOperationDependencies)
         {
             foreach (var (operationId, dependencyIds) in memberDependencies)
             {
@@ -1762,7 +1762,15 @@ public sealed partial class OperationPlanner
                     {
                         if (planNodeById.TryGetValue(dependencyId, out var dependencyNode))
                         {
-                            operationDefinition.AddDependency(dependencyNode);
+                            if (batchNode is OperationBatchExecutionNode
+                                && IsEntityReuseOrderingDependency(operationDefinition, dependencyNode))
+                            {
+                                operationDefinition.AddOptionalDependency(dependencyNode);
+                            }
+                            else
+                            {
+                                operationDefinition.AddDependency(dependencyNode);
+                            }
                         }
                     }
                 }
@@ -2105,7 +2113,15 @@ public sealed partial class OperationPlanner
                 }
 
                 childEntry.AddDependent(entry);
-                entry.AddDependency(childEntry);
+
+                if (IsEntityReuseOrderingDependency(entry, childEntry))
+                {
+                    entry.AddOptionalDependency(childEntry);
+                }
+                else
+                {
+                    entry.AddDependency(childEntry);
+                }
             }
         }
     }
@@ -2317,13 +2333,105 @@ public sealed partial class OperationPlanner
     }
 
     private static string ComputeCanonicalSignature(OperationExecutionNode node)
-    {
-        var replacements = BuildPrefixReplacements(node.Requirements);
-        var bodyText = FormatCanonicalSelectionSet(node.OperationDocument, replacements);
-        var conditions = FormatCanonicalConditions(node.Conditions);
+        => ComputeCanonicalSignature(
+            node.SchemaName,
+            node.Source,
+            node.OperationDocument,
+            node.Requirements,
+            node.Conditions);
 
-        return $"{node.SchemaName}|{node.Source}|{conditions}|{bodyText}";
+    private static string ComputeCanonicalSignature(
+        string? schemaName,
+        SelectionPath source,
+        Utf8OperationDocument document,
+        ReadOnlySpan<OperationRequirement> requirements,
+        ReadOnlySpan<ExecutionNodeCondition> conditions)
+    {
+        var replacements = BuildPrefixReplacements(requirements);
+        var bodyText = FormatCanonicalSelectionSet(document, replacements);
+        var formattedConditions = FormatCanonicalConditions(conditions);
+
+        return $"{schemaName}|{source}|{formattedConditions}|{bodyText}";
     }
+
+    /// <summary>
+    /// Determines whether <paramref name="dependent"/> runs after <paramref name="dependency"/>
+    /// only so that entity reuse can serve it. That is the case when the dependency is, or
+    /// contains, the same lookup that only selects leaf fields, so it cannot supply any data
+    /// the dependent needs.
+    /// </summary>
+    internal static bool IsEntityReuseOrderingDependency(
+        IOperationPlanNode dependent,
+        IOperationPlanNode dependency)
+    {
+        if (dependency is OperationBatchExecutionNode batch)
+        {
+            foreach (var operation in batch.Operations)
+            {
+                if (IsEntityReuseOrderingDependency(dependent, operation))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        return TryGetLookupKey(dependent, out var schemaName, out var lookupTypeName)
+            && TryGetLookupKey(dependency, out var dependencySchemaName, out var dependencyLookupTypeName)
+            && string.Equals(schemaName, dependencySchemaName, StringComparison.Ordinal)
+            && string.Equals(lookupTypeName, dependencyLookupTypeName, StringComparison.Ordinal)
+            && SelectsOnlyReusableFields(dependent)
+            && ComputeLookupSignature(dependent).Equals(ComputeLookupSignature(dependency), StringComparison.Ordinal);
+    }
+
+    private static bool TryGetLookupKey(
+        IOperationPlanNode node,
+        out string? schemaName,
+        [NotNullWhen(true)] out string? lookupTypeName)
+    {
+        (schemaName, lookupTypeName) = node switch
+        {
+            OperationExecutionNode operation => (operation.SchemaName, operation.LookupTypeName),
+            OperationDefinition operation => (operation.SchemaName, operation.LookupTypeName),
+            _ => (null, null)
+        };
+
+        return lookupTypeName is not null;
+    }
+
+    private static bool SelectsOnlyReusableFields(IOperationPlanNode node)
+        => node switch
+        {
+            OperationExecutionNode operation => EntityReuseCandidateMap.TryGetReusableFields(
+                operation.ResultSelectionSet,
+                operation.Requirements,
+                operation.ForwardedVariables.Length,
+                operation.Conditions.Length,
+                out _,
+                out _),
+            OperationDefinition operation => EntityReuseCandidateMap.TryGetReusableFields(
+                operation.ResultSelectionSet,
+                operation.Requirements,
+                operation.ForwardedVariables.Length,
+                operation.Conditions.Length,
+                out _,
+                out _),
+            _ => false
+        };
+
+    private static string ComputeLookupSignature(IOperationPlanNode node)
+        => node switch
+        {
+            OperationExecutionNode operation => ComputeCanonicalSignature(operation),
+            OperationDefinition operation => ComputeCanonicalSignature(
+                operation.SchemaName,
+                operation.Source,
+                operation.Document,
+                operation.Requirements,
+                operation.Conditions),
+            _ => throw new ArgumentOutOfRangeException(nameof(node))
+        };
 
     /// <summary>
     /// Computes a signature that is equal for two Apollo entity lookups exactly when

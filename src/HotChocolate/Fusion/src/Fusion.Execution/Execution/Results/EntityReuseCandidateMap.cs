@@ -87,7 +87,7 @@ internal sealed class EntityReuseCandidateMap
 
                     lookups.Add(new Lookup(
                         operation.Id,
-                        operation.Dependencies.ToArray(),
+                        [.. operation.Dependencies, .. operation.OptionalDependencies],
                         operation.LookupTypeName,
                         operation.ResultSelectionSet,
                         operation.Requirements.ToArray(),
@@ -545,7 +545,7 @@ internal sealed class EntityReuseCandidateMap
     }
 
     // Collects the execution nodes that complete before a lookup executes, or returns null
-    // when a dependency is not part of the plan.
+    // when a dependency is not part of the plan. Optional dependencies complete first as well.
     private static HashSet<int>? CollectTransitiveDependencies(
         Dictionary<int, ExecutionNode> nodesById,
         IOperationPlanNode[] dependencies)
@@ -570,9 +570,19 @@ internal sealed class EntityReuseCandidateMap
                 stack.Push(next);
             }
 
+            foreach (var next in node.OptionalDependencies)
+            {
+                stack.Push(next);
+            }
+
             foreach (var operation in GetBatchOperations(node))
             {
                 foreach (var next in operation.Dependencies)
+                {
+                    stack.Push(next);
+                }
+
+                foreach (var next in operation.OptionalDependencies)
                 {
                     stack.Push(next);
                 }
@@ -612,7 +622,7 @@ internal sealed class EntityReuseCandidateMap
 
         lookups.Add(new Lookup(
             definition.Id,
-            definition.Dependencies.ToArray(),
+            [.. definition.Dependencies, .. definition.OptionalDependencies],
             lookupTypeName,
             definition.ResultSelectionSet,
             definition.Requirements.ToArray(),

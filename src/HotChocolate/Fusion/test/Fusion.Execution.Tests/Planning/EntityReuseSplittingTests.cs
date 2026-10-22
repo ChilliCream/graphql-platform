@@ -1,7 +1,10 @@
 using System.Text;
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Types;
+using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -19,7 +22,32 @@ public class EntityReuseSplittingTests : FusionTestBase
         // assert
         DescribeLookups(plan, "d").MatchInlineSnapshot(
             """
-            4: $.warehouse.shelf.item depends on [3, 5]
+            4: $.warehouse.shelf.item depends on [3] runs after [5]
+            5: $.product depends on [1]
+            """);
+    }
+
+    [Fact]
+    public void Parse_Should_RestoreOrderingDependency_When_SplitPlanIsFormatted()
+    {
+        // arrange
+        var schema = CreateSchema();
+        var plan = PlanOperation(schema, Query);
+        using var buffer = new PooledArrayWriter();
+        new JsonOperationPlanFormatter().Format(buffer, plan);
+        var parser = new JsonOperationPlanParser(
+            new OperationCompiler(
+                schema,
+                new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+                    new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>())));
+
+        // act
+        var parsedPlan = parser.Parse(buffer.WrittenMemory);
+
+        // assert
+        DescribeLookups(parsedPlan, "d").MatchInlineSnapshot(
+            """
+            4: $.warehouse.shelf.item depends on [3] runs after [5]
             5: $.product depends on [1]
             """);
     }
@@ -99,7 +127,12 @@ public class EntityReuseSplittingTests : FusionTestBase
             switch (node)
             {
                 case OperationExecutionNode operation when operation.SchemaName == schemaName:
-                    Describe(description, operation.Id, [operation.Target], operation.Dependencies);
+                    Describe(
+                        description,
+                        operation.Id,
+                        [operation.Target],
+                        operation.Dependencies,
+                        operation.OptionalDependencies);
                     break;
 
                 case OperationBatchExecutionNode batch when batch.SchemaName == schemaName:
@@ -112,7 +145,12 @@ public class EntityReuseSplittingTests : FusionTestBase
                             _ => []
                         };
 
-                        Describe(description, definition.Id, targets, definition.Dependencies);
+                        Describe(
+                            description,
+                            definition.Id,
+                            targets,
+                            definition.Dependencies,
+                            definition.OptionalDependencies);
                     }
                     break;
             }
@@ -125,18 +163,31 @@ public class EntityReuseSplittingTests : FusionTestBase
         StringBuilder description,
         int id,
         SelectionPath[] targets,
-        ReadOnlySpan<IOperationPlanNode> dependencies)
+        ReadOnlySpan<IOperationPlanNode> dependencies,
+        ReadOnlySpan<IOperationPlanNode> optionalDependencies)
     {
-        var dependencyIds = new List<int>();
+        description.Append(
+            $"{id}: {string.Join(", ", targets.Select(t => t.ToString()))}"
+            + $" depends on [{FormatIds(dependencies)}]");
 
-        foreach (var dependency in dependencies)
+        if (optionalDependencies.Length > 0)
         {
-            dependencyIds.Add(dependency.Id);
+            description.Append($" runs after [{FormatIds(optionalDependencies)}]");
         }
 
-        description.AppendLine(
-            $"{id}: {string.Join(", ", targets.Select(t => t.ToString()))}"
-            + $" depends on [{string.Join(", ", dependencyIds.Order())}]");
+        description.AppendLine();
+    }
+
+    private static string FormatIds(ReadOnlySpan<IOperationPlanNode> nodes)
+    {
+        var ids = new List<int>();
+
+        foreach (var node in nodes)
+        {
+            ids.Add(node.Id);
+        }
+
+        return string.Join(", ", ids.Order());
     }
 
     private static FusionSchemaDefinition CreateSchema()

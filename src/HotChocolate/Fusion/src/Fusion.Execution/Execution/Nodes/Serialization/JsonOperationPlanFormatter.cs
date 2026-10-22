@@ -425,15 +425,14 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             jsonWriter.WriteBooleanValue(true);
         }
 
-        if (node.Dependencies.Length > 0 || node.ParentDependencies.Length > 0)
+        if (node.Dependencies.Length > 0
+            || node.OptionalDependencies.Length > 0
+            || node.ParentDependencies.Length > 0)
         {
             jsonWriter.WritePropertyName("dependencies");
             jsonWriter.WriteStartArray();
 
-            foreach (var dependency in node.Dependencies)
-            {
-                jsonWriter.WriteNumberValue(dependency.Id);
-            }
+            WriteDependencyIds(jsonWriter, node.Dependencies, node.OptionalDependencies);
 
             foreach (var parentStepId in node.ParentDependencies)
             {
@@ -526,15 +525,14 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
         jsonWriter.WriteEndObject();
 
-        if (node.Dependencies.Length > 0 || node.ParentDependencies.Length > 0)
+        if (node.Dependencies.Length > 0
+            || node.OptionalDependencies.Length > 0
+            || node.ParentDependencies.Length > 0)
         {
             jsonWriter.WritePropertyName("dependencies");
             jsonWriter.WriteStartArray();
 
-            foreach (var dependency in node.Dependencies)
-            {
-                jsonWriter.WriteNumberValue(dependency.Id);
-            }
+            WriteDependencyIds(jsonWriter, node.Dependencies, node.OptionalDependencies);
 
             foreach (var parentStepId in node.ParentDependencies)
             {
@@ -547,6 +545,30 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         TryWriteNodeTrace(jsonWriter, operation, trace);
 
         jsonWriter.WriteEndObject();
+    }
+
+    // Optional dependencies are written with the required ones, ordered by id, because the
+    // parser infers which of them are optional.
+    private static void WriteDependencyIds(
+        JsonWriter jsonWriter,
+        ReadOnlySpan<IOperationPlanNode> dependencies,
+        ReadOnlySpan<IOperationPlanNode> optionalDependencies)
+    {
+        var i = 0;
+        var j = 0;
+
+        while (i < dependencies.Length || j < optionalDependencies.Length)
+        {
+            if (j == optionalDependencies.Length
+                || (i < dependencies.Length && dependencies[i].Id < optionalDependencies[j].Id))
+            {
+                jsonWriter.WriteNumberValue(dependencies[i++].Id);
+            }
+            else
+            {
+                jsonWriter.WriteNumberValue(optionalDependencies[j++].Id);
+            }
+        }
     }
 
     private static void WriteParentDependency(JsonWriter jsonWriter, int parentStepId)
@@ -671,15 +693,14 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             jsonWriter.WriteBooleanValue(true);
         }
 
-        if (operationDef.Dependencies.Length > 0 || operationDef.ParentDependencies.Length > 0)
+        if (operationDef.Dependencies.Length > 0
+            || operationDef.OptionalDependencies.Length > 0
+            || operationDef.ParentDependencies.Length > 0)
         {
             jsonWriter.WritePropertyName("dependencies");
             jsonWriter.WriteStartArray();
 
-            foreach (var dependency in operationDef.Dependencies)
-            {
-                jsonWriter.WriteNumberValue(dependency.Id);
-            }
+            WriteDependencyIds(jsonWriter, operationDef.Dependencies, operationDef.OptionalDependencies);
 
             foreach (var parentStepId in operationDef.ParentDependencies)
             {
@@ -789,15 +810,14 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             jsonWriter.WriteBooleanValue(true);
         }
 
-        if (operationDef.Dependencies.Length > 0 || operationDef.ParentDependencies.Length > 0)
+        if (operationDef.Dependencies.Length > 0
+            || operationDef.OptionalDependencies.Length > 0
+            || operationDef.ParentDependencies.Length > 0)
         {
             jsonWriter.WritePropertyName("dependencies");
             jsonWriter.WriteStartArray();
 
-            foreach (var dependency in operationDef.Dependencies)
-            {
-                jsonWriter.WriteNumberValue(dependency.Id);
-            }
+            WriteDependencyIds(jsonWriter, operationDef.Dependencies, operationDef.OptionalDependencies);
 
             foreach (var parentStepId in operationDef.ParentDependencies)
             {

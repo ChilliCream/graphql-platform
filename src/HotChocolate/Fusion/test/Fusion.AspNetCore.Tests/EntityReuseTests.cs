@@ -1,4 +1,8 @@
+using System.Net;
+using System.Text;
 using System.Text.Json;
+using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Resolvers;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types;
@@ -11,6 +15,35 @@ namespace HotChocolate.Fusion;
 
 public sealed class EntityReuseTests : FusionTestBase
 {
+    private const string SplitLookupQuery = "{ product { rating } warehouse { shelf { item { rating } } } }";
+
+    private const string SplitLookupRootSchema =
+        """
+        type Query { product: Product warehouse: Warehouse }
+        type Product @key(fields: "id") { id: ID! }
+        type Warehouse @key(fields: "id") { id: ID! }
+        """;
+
+    private const string SplitLookupWarehouseSchema =
+        """
+        type Query { warehouseById(id: ID! @is(field: "id")): Warehouse @lookup @internal }
+        type Warehouse @key(fields: "id") { id: ID! shelf: Shelf }
+        type Shelf @key(fields: "id") { id: ID! }
+        """;
+
+    private const string SplitLookupShelfSchema =
+        """
+        type Query { shelfById(id: ID! @is(field: "id")): Shelf @lookup @internal }
+        type Shelf @key(fields: "id") { id: ID! item: Product }
+        type Product @key(fields: "id") { id: ID! }
+        """;
+
+    private const string SplitLookupRatingSchema =
+        """
+        type Query { productById(id: ID! @is(field: "id")): Product @lookup @internal }
+        type Product @key(fields: "id") { id: ID! rating: Int! }
+        """;
+
     [Fact]
     public async Task Execute_K6Query_Should_ReturnSameData_When_EntityReuseIsEnabled()
     {
@@ -540,6 +573,111 @@ public sealed class EntityReuseTests : FusionTestBase
         => CreateSourceSchema(
             "reviews-api",
             builder => builder.AddQueryType<CompositeKeyReviewsQuery>(d => d.Name("Query")));
+
+    [Theory]
+    [InlineData(OperationMergePolicy.Aggressive, false)]
+    [InlineData(OperationMergePolicy.Aggressive, true)]
+    [InlineData(OperationMergePolicy.Balanced, false)]
+    [InlineData(OperationMergePolicy.Balanced, true)]
+    [InlineData(OperationMergePolicy.Conservative, false)]
+    [InlineData(OperationMergePolicy.Conservative, true)]
+    public async Task Execute_SplitLookup_Should_FetchDeeperEntity_When_ShallowTargetIsNull(
+        OperationMergePolicy mergePolicy,
+        bool enableRequestGrouping)
+    {
+        // arrange
+        using var rootApi = CreateSourceSchema(
+            "root-api",
+            SplitLookupRootSchema.Replace("product: Product", "product: Product @null"));
+        using var warehouseApi = CreateSourceSchema("warehouse-api", SplitLookupWarehouseSchema);
+        using var shelfApi = CreateSourceSchema("shelf-api", SplitLookupShelfSchema);
+        using var ratingApi = CreateSourceSchema(
+            "rating-api",
+            SplitLookupRatingSchema,
+            capabilities: SourceSchemaClientCapabilities.None,
+            mockHttpResponse: _ => Task.FromResult(CreateJsonResponse("""{"data":{"productById":{"rating":5}}}""")));
+        using var gateway = await CreateSplitLookupGatewayAsync(
+            rootApi,
+            warehouseApi,
+            shelfApi,
+            ratingApi,
+            mergePolicy,
+            enableRequestGrouping);
+
+        // act
+        var result = await ExecuteAsync(gateway, SplitLookupQuery);
+
+        // assert
+        Assert.Equal("""{"product":null,"warehouse":{"shelf":{"item":{"rating":5}}}}""", result);
+    }
+
+    [Theory]
+    [InlineData(OperationMergePolicy.Aggressive)]
+    [InlineData(OperationMergePolicy.Conservative)]
+    public async Task Execute_SplitLookup_Should_FetchDeeperEntity_When_ShallowRequestFails(
+        OperationMergePolicy mergePolicy)
+    {
+        // arrange
+        using var rootApi = CreateSourceSchema("root-api", SplitLookupRootSchema);
+        using var warehouseApi = CreateSourceSchema("warehouse-api", SplitLookupWarehouseSchema);
+        using var shelfApi = CreateSourceSchema(
+            "shelf-api",
+            SplitLookupShelfSchema,
+            mockHttpResponse: _ => Task.FromResult(CreateJsonResponse("""{"data":{"shelfById":{"item":{"id":"2"}}}}""")));
+        using var ratingApi = CreateSourceSchema(
+            "rating-api",
+            SplitLookupRatingSchema,
+            capabilities: SourceSchemaClientCapabilities.None,
+            mockHttpResponse: async request =>
+            {
+                // Only the deeper item with the key 2 can be fetched.
+                var body = await request.Content!.ReadAsStringAsync();
+                return body.Contains("\"2\"", StringComparison.Ordinal)
+                    ? CreateJsonResponse("""{"data":{"productById":{"rating":5}}}""")
+                    : new HttpResponseMessage(HttpStatusCode.InternalServerError);
+            });
+        using var gateway = await CreateSplitLookupGatewayAsync(
+            rootApi,
+            warehouseApi,
+            shelfApi,
+            ratingApi,
+            mergePolicy,
+            enableRequestGrouping: true);
+
+        // act
+        var result = await ExecuteAsync(gateway, SplitLookupQuery);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {"product":null,"warehouse":{"shelf":{"item":{"rating":5}}}}[{"message":"Unexpected Execution Error","path":["product","rating"]}]
+            """);
+    }
+
+    private Task<Gateway> CreateSplitLookupGatewayAsync(
+        TestServer rootApi,
+        TestServer warehouseApi,
+        TestServer shelfApi,
+        TestServer ratingApi,
+        OperationMergePolicy mergePolicy,
+        bool enableRequestGrouping)
+        => CreateCompositeSchemaAsync(
+            [
+                ("root-api", rootApi),
+                ("warehouse-api", warehouseApi),
+                ("shelf-api", shelfApi),
+                ("rating-api", ratingApi)
+            ],
+            configureGatewayBuilder: builder => builder
+                .ModifyOptions(options => options.EnableEntityReuse = true)
+                .ModifyPlannerOptions(options =>
+                {
+                    options.MergePolicy = mergePolicy;
+                    options.EnableRequestGrouping = enableRequestGrouping;
+                }));
+
+    private static HttpResponseMessage CreateJsonResponse(string json)
+        => new(HttpStatusCode.OK) { Content = new StringContent(json, Encoding.UTF8, "application/json") };
 
     private Task<Gateway> CreateGatewayAsync(
         TestServer accountsApi,
