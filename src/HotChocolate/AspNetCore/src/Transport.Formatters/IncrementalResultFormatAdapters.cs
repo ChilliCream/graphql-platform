@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
@@ -205,23 +206,36 @@ internal static class IncrementalRfc1ResultFormatAdapter
             return false;
         }
 
-        if (!TryGetRelativePathSegments(selectionPath, path, selection, out var rootPath, out var relativePath))
+        if (!TryGetMergeRoot(selectionPath, path, out var rootPath))
         {
             return false;
         }
 
-        using var wrappedPatchDocument = relativePath.Count > 0
-            ? WrapPatchToSelectionPath(patchDocument.RootElement, relativePath)
-            : null;
-        var patchRoot = wrappedPatchDocument?.RootElement ?? patchDocument.RootElement;
+        JsonDocument? wrappedPatchDocument = null;
 
-        var cacheBuffer = context.CacheBuffer;
-        var start = cacheBuffer.Length;
-        var mergedWriter = new JsonWriter(cacheBuffer, s_jsonWriterOptions);
-        WriteMergedObject(mergedWriter, context, rootPath, patchRoot, selection);
-        mergedData = cacheBuffer.GetWrittenMemorySegment(start, cacheBuffer.Length - start);
-        mergedPath = rootPath;
-        return true;
+        if (!ReferenceEquals(rootPath, path)
+            && !TryWrapPatchToMergeRoot(
+                patchDocument.RootElement,
+                rootPath,
+                path,
+                selection,
+                out wrappedPatchDocument))
+        {
+            return false;
+        }
+
+        using (wrappedPatchDocument)
+        {
+            var patchRoot = wrappedPatchDocument?.RootElement ?? patchDocument.RootElement;
+
+            var cacheBuffer = context.CacheBuffer;
+            var start = cacheBuffer.Length;
+            var mergedWriter = new JsonWriter(cacheBuffer, s_jsonWriterOptions);
+            WriteMergedObject(mergedWriter, context, rootPath, patchRoot, selection);
+            mergedData = cacheBuffer.GetWrittenMemorySegment(start, cacheBuffer.Length - start);
+            mergedPath = rootPath;
+            return true;
+        }
     }
 
     private static bool TryResolveSelectionRoot(
@@ -247,140 +261,133 @@ internal static class IncrementalRfc1ResultFormatAdapter
         return false;
     }
 
-    private static bool TryGetRelativePathSegments(
-        Path selectionPath,
-        Path path,
-        DeferSelectionTree selection,
-        out Path rootPath,
-        out IReadOnlyList<object> relativePath)
+    /// <summary>
+    /// Gets the ancestor of <paramref name="path"/> that the deferred fragment at
+    /// <paramref name="selectionPath"/> applies to, including the list indices that follow it.
+    /// </summary>
+    private static bool TryGetMergeRoot(Path selectionPath, Path path, out Path rootPath)
     {
-        if (selectionPath.Equals(path))
+        var selectionDepth = CountFieldNames(selectionPath);
+        var remaining = CountFieldNames(path);
+        rootPath = path;
+
+        while (remaining > selectionDepth)
         {
-            rootPath = path;
-            relativePath = [];
-            return true;
-        }
-
-        var selectionSegments = selectionPath.ToList();
-        var pathSegments = path.ToList();
-        var position = 0;
-        rootPath = Path.Root;
-
-        // The selection path comes from the operation document and has no list indices,
-        // so the list indices of the result path are carried over into the root path.
-        for (var i = 0; i < selectionSegments.Count; i++)
-        {
-            position = AppendListIndices(pathSegments, position, ref rootPath);
-
-            if (position == pathSegments.Count
-                || pathSegments[position] is not string fieldName
-                || !Equals(selectionSegments[i], fieldName))
+            if (rootPath is NamePathSegment)
             {
-                relativePath = [];
-                return false;
+                remaining--;
             }
 
-            rootPath = rootPath.Append(fieldName);
-            position++;
+            rootPath = rootPath.Parent;
         }
 
-        // A deferred fragment inside a list field applies to each list item.
-        position = AppendListIndices(pathSegments, position, ref rootPath);
-
-        var segments = new List<object>(pathSegments.Count - position);
-
-        for (var i = position; i < pathSegments.Count; i++)
-        {
-            var segment = pathSegments[i];
-
-            switch (segment)
-            {
-                case string fieldName when selection.TryGetField(fieldName, out var childSelection):
-                    segments.Add(fieldName);
-                    selection = childSelection;
-                    break;
-
-                case int index:
-                    segments.Add(index);
-                    continue;
-
-                default:
-                    relativePath = [];
-                    return false;
-            }
-        }
-
-        relativePath = segments;
-        return true;
-
-        static int AppendListIndices(IReadOnlyList<object> pathSegments, int position, ref Path rootPath)
-        {
-            while (position < pathSegments.Count && pathSegments[position] is int index)
-            {
-                rootPath = rootPath.Append(index);
-                position++;
-            }
-
-            return position;
-        }
+        return remaining == selectionDepth
+            && FieldNamePathComparer.Instance.Equals(rootPath, selectionPath);
     }
 
-    private static JsonDocument WrapPatchToSelectionPath(
-        JsonElement patchObject,
-        IReadOnlyList<object> relativePath)
+    private static int CountFieldNames(Path path)
     {
+        var count = 0;
+
+        for (var current = path; !current.IsRoot; current = current.Parent)
+        {
+            if (current is NamePathSegment)
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    private static bool TryWrapPatchToMergeRoot(
+        JsonElement patchObject,
+        Path rootPath,
+        Path path,
+        DeferSelectionTree selection,
+        [NotNullWhen(true)] out JsonDocument? wrappedPatchDocument)
+    {
+        wrappedPatchDocument = null;
+
         // We write into a separate temporary buffer so the main cacheBuffer is not
         // polluted with data we only need for a single read.
         using var tempBuffer = new PooledArrayWriter();
 
         using (var writer = new Utf8JsonWriter(tempBuffer))
         {
-            WriteWrappedPatch(writer, patchObject, relativePath, 0);
+            if (!TryWriteWrapperStart(writer, rootPath, path, ref selection))
+            {
+                return false;
+            }
+
+            patchObject.WriteTo(writer);
+            WriteWrapperEnd(writer, rootPath, path);
             writer.Flush();
         }
 
         // Next, we parse from the span so JsonDocument makes an internal copy,
         // keeping it independent of tempBuffer's lifetime.
         var reader = new Utf8JsonReader(tempBuffer.WrittenSpan);
-        return JsonDocument.ParseValue(ref reader);
+        wrappedPatchDocument = JsonDocument.ParseValue(ref reader);
+        return true;
     }
 
-    private static void WriteWrappedPatch(
+    /// <summary>
+    /// Opens an object or array for every segment between <paramref name="rootPath"/> and
+    /// <paramref name="path"/>, outermost first.
+    /// Fails if a field is not part of the deferred selection.
+    /// </summary>
+    private static bool TryWriteWrapperStart(
         Utf8JsonWriter writer,
-        JsonElement patch,
-        IReadOnlyList<object> relativePath,
-        int index)
+        Path rootPath,
+        Path path,
+        ref DeferSelectionTree selection)
     {
-        if (index >= relativePath.Count)
+        if (ReferenceEquals(path, rootPath))
         {
-            patch.WriteTo(writer);
-            return;
+            return true;
         }
 
-        switch (relativePath[index])
+        if (!TryWriteWrapperStart(writer, rootPath, path.Parent, ref selection))
         {
-            case string fieldName:
-                writer.WriteStartObject();
-                writer.WritePropertyName(fieldName);
-                WriteWrappedPatch(writer, patch, relativePath, index + 1);
-                writer.WriteEndObject();
-                break;
+            return false;
+        }
 
-            case int listIndex when listIndex >= 0:
+        switch (path)
+        {
+            case NamePathSegment field when selection.TryGetField(field.Name, out var childSelection):
+                writer.WriteStartObject();
+                writer.WritePropertyName(field.Name);
+                selection = childSelection;
+                return true;
+
+            case IndexerPathSegment indexer:
                 writer.WriteStartArray();
 
-                for (var i = 0; i < listIndex; i++)
+                for (var i = 0; i < indexer.Index; i++)
                 {
                     writer.WriteNullValue();
                 }
 
-                WriteWrappedPatch(writer, patch, relativePath, index + 1);
-                writer.WriteEndArray();
-                break;
+                return true;
 
             default:
-                throw new InvalidOperationException(
-                    "Patch path contains an unsupported segment for legacy merge.");
+                return false;
+        }
+    }
+
+    private static void WriteWrapperEnd(Utf8JsonWriter writer, Path rootPath, Path path)
+    {
+        for (var current = path; !ReferenceEquals(current, rootPath); current = current.Parent)
+        {
+            if (current is NamePathSegment)
+            {
+                writer.WriteEndObject();
+            }
+            else
+            {
+                writer.WriteEndArray();
+            }
         }
     }
 
@@ -818,7 +825,8 @@ internal sealed class DeferSelectionLookup
         ArgumentNullException.ThrowIfNull(document);
 
         var selectionsByLabel = new Dictionary<string, DeferredSelection>(StringComparer.Ordinal);
-        var selectionsByPath = new Dictionary<Path, List<DeferredSelection>>();
+        // The selections are indexed by their path in the operation document, which has no list indices.
+        var selectionsByPath = new Dictionary<Path, List<DeferredSelection>>(FieldNamePathComparer.Instance);
 
         for (var i = 0; i < document.Definitions.Count; i++)
         {
@@ -847,8 +855,7 @@ internal sealed class DeferSelectionLookup
             return true;
         }
 
-        // The selections are indexed by their path in the operation document, which has no list indices.
-        if (_selectionsByPath.TryGetValue(RemoveListIndices(path), out var selections))
+        if (_selectionsByPath.TryGetValue(path, out var selections))
         {
             if (!string.IsNullOrEmpty(label))
             {
@@ -890,22 +897,6 @@ internal sealed class DeferSelectionLookup
         selectionPath = Path.Root;
         selection = default!;
         return false;
-    }
-
-    private static Path RemoveListIndices(Path path)
-    {
-        var segments = path.ToList();
-        var documentPath = Path.Root;
-
-        for (var i = 0; i < segments.Count; i++)
-        {
-            if (segments[i] is string fieldName)
-            {
-                documentPath = documentPath.Append(fieldName);
-            }
-        }
-
-        return documentPath;
     }
 
     private static void CollectDeferredSelections(
@@ -1058,3 +1049,65 @@ internal sealed class DeferSelectionTree
 }
 
 internal readonly record struct DeferSelectionField(string Name, DeferSelectionTree Selection);
+
+/// <summary>
+/// Compares paths by their field names only, so a path from the operation document
+/// matches every result path that differs from it only by list indices.
+/// </summary>
+internal sealed class FieldNamePathComparer : IEqualityComparer<Path>
+{
+    private FieldNamePathComparer()
+    {
+    }
+
+    public static FieldNamePathComparer Instance { get; } = new();
+
+    public bool Equals(Path? x, Path? y)
+    {
+        if (x is null || y is null)
+        {
+            return ReferenceEquals(x, y);
+        }
+
+        x = SkipListIndices(x);
+        y = SkipListIndices(y);
+
+        while (x is NamePathSegment xField && y is NamePathSegment yField)
+        {
+            if (!xField.Name.Equals(yField.Name, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            x = SkipListIndices(xField.Parent);
+            y = SkipListIndices(yField.Parent);
+        }
+
+        return x.IsRoot && y.IsRoot;
+    }
+
+    public int GetHashCode(Path path)
+    {
+        var hashCode = new HashCode();
+
+        for (var current = path; !current.IsRoot; current = current.Parent)
+        {
+            if (current is NamePathSegment field)
+            {
+                hashCode.Add(field.Name, StringComparer.Ordinal);
+            }
+        }
+
+        return hashCode.ToHashCode();
+    }
+
+    private static Path SkipListIndices(Path path)
+    {
+        while (path is IndexerPathSegment)
+        {
+            path = path.Parent;
+        }
+
+        return path;
+    }
+}
