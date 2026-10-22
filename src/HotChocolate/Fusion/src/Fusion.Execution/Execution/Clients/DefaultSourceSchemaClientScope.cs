@@ -17,7 +17,6 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
     private readonly ISourceSchemaClientFactory[] _clientFactories;
     private readonly FusionSchemaDefinition _schemaDefinition;
     private readonly SourceSchemaClientConfigurations _configurations;
-    private List<ISourceSchemaClient>? _retiredClients;
     private long _nextExpiration = long.MaxValue;
     private bool _disposed;
 
@@ -69,20 +68,14 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
     private ClientEntry CreateClient(ISourceSchemaClientConfiguration configuration)
     {
         var factory = GetFactory(configuration);
-        var client = factory.CreateClient(_schemaDefinition, configuration);
-        var expiresAt = 0L;
 
-        if (factory is IReusableSourceSchemaClientFactory reusableFactory)
+        if (factory is ISharedSourceSchemaClientFactory sharedFactory
+            && sharedFactory.TryGetSharedClient(_schemaDefinition, configuration, out var client, out var expiresAt))
         {
-            var maxAge = reusableFactory.GetMaxClientAge(configuration);
-
-            if (maxAge > TimeSpan.Zero)
-            {
-                expiresAt = Stopwatch.GetTimestamp() + (long)(maxAge.TotalSeconds * Stopwatch.Frequency);
-            }
+            return new ClientEntry(client, expiresAt, IsShared: true);
         }
 
-        return new ClientEntry(client, expiresAt);
+        return new ClientEntry(factory.CreateClient(_schemaDefinition, configuration), ExpiresAt: 0, IsShared: false);
     }
 
     private ISourceSchemaClientFactory GetFactory(ISourceSchemaClientConfiguration configuration)
@@ -125,74 +118,23 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
     }
 
     /// <summary>
-    /// Removes the clients that reached their maximum age so that the next request creates new ones.
-    /// The removed clients are disposed by the next <see cref="ResetAsync"/>.
-    /// </summary>
-    internal void RetireExpiredClients()
-    {
-        if (_clients.IsEmpty)
-        {
-            return;
-        }
-
-        var now = Stopwatch.GetTimestamp();
-
-        if (now < _nextExpiration)
-        {
-            return;
-        }
-
-        var nextExpiration = long.MaxValue;
-
-        foreach (var (key, entry) in _clients)
-        {
-            if (entry.ExpiresAt <= now)
-            {
-                _clients.TryRemove(key, out _);
-                (_retiredClients ??= []).Add(entry.Client);
-            }
-            else if (entry.ExpiresAt < nextExpiration)
-            {
-                nextExpiration = entry.ExpiresAt;
-            }
-        }
-
-        _nextExpiration = nextExpiration;
-    }
-
-    /// <summary>
-    /// Ends the current request so the scope can serve the next one. Clients of reusable
-    /// factories are kept until they reach their maximum age; all other clients are disposed.
+    /// Ends the current request so the scope can serve the next one. Shared clients are kept
+    /// until they expire; all other clients are disposed.
     /// </summary>
     internal ValueTask ResetAsync()
     {
-        if (_disposed)
-        {
-            return ValueTask.CompletedTask;
-        }
-
         var now = Stopwatch.GetTimestamp();
 
-        if (now < _nextExpiration && _retiredClients is not { Count: > 0 })
+        if (_disposed || now < _nextExpiration)
         {
             return ValueTask.CompletedTask;
         }
 
-        return DisposeExpiredClientsAsync(now);
+        return ReleaseClientsAsync(now);
     }
 
-    private async ValueTask DisposeExpiredClientsAsync(long now)
+    private async ValueTask ReleaseClientsAsync(long now)
     {
-        if (_retiredClients is { Count: > 0 } retiredClients)
-        {
-            foreach (var client in retiredClients)
-            {
-                await client.DisposeAsync().ConfigureAwait(false);
-            }
-
-            retiredClients.Clear();
-        }
-
         var nextExpiration = long.MaxValue;
 
         foreach (var (key, entry) in _clients)
@@ -200,7 +142,12 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
             if (entry.ExpiresAt <= now)
             {
                 _clients.TryRemove(key, out _);
-                await entry.Client.DisposeAsync().ConfigureAwait(false);
+
+                // Shared clients may still be in use by other requests, so they are only released.
+                if (!entry.IsShared)
+                {
+                    await entry.Client.DisposeAsync().ConfigureAwait(false);
+                }
             }
             else if (entry.ExpiresAt < nextExpiration)
             {
@@ -219,8 +166,8 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
         }
 
         _disposed = true;
-        await DisposeExpiredClientsAsync(long.MaxValue).ConfigureAwait(false);
+        await ReleaseClientsAsync(long.MaxValue).ConfigureAwait(false);
     }
 
-    private readonly record struct ClientEntry(ISourceSchemaClient Client, long ExpiresAt);
+    private readonly record struct ClientEntry(ISourceSchemaClient Client, long ExpiresAt, bool IsShared);
 }

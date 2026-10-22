@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -68,10 +69,30 @@ public sealed class DefaultSourceSchemaClientScopeTests : FusionTestBase
     }
 
     [Fact]
-    public async Task ResetAsync_Should_KeepClient_When_FactoryIsReusableAndMaxAgeIsNotReached()
+    public async Task GetClient_Should_ReturnSameHttpClient_When_ScopesShareFactory()
     {
         // arrange
-        var factory = new TestClientFactory(TimeSpan.FromMinutes(1));
+        var services = new ServiceCollection();
+        services.AddHttpClient("fusion");
+        await using var provider = services.BuildServiceProvider();
+        var factory = CreateHttpClientFactory(provider);
+        var schema = CreateSchema();
+        await using var firstScope = new DefaultSourceSchemaClientScope(schema, [factory]);
+        await using var secondScope = new DefaultSourceSchemaClientScope(schema, [factory]);
+
+        // act
+        var first = firstScope.GetClient("A", OperationType.Query);
+        var second = secondScope.GetClient("A", OperationType.Query);
+
+        // assert
+        Assert.Same(first, second);
+    }
+
+    [Fact]
+    public async Task ResetAsync_Should_KeepClient_When_SharedClientHasNotExpired()
+    {
+        // arrange
+        var factory = new TestClientFactory(shareClients: true);
         await using var scope = CreateScope(factory);
         var first = scope.GetClient("A", OperationType.Query);
 
@@ -85,10 +106,10 @@ public sealed class DefaultSourceSchemaClientScopeTests : FusionTestBase
     }
 
     [Fact]
-    public async Task ResetAsync_Should_DisposeClient_When_FactoryIsNotReusable()
+    public async Task ResetAsync_Should_DisposeClient_When_FactoryDoesNotShareClients()
     {
         // arrange
-        var factory = new TestClientFactory(maxClientAge: null);
+        var factory = new TestClientFactory(shareClients: false);
         await using var scope = CreateScope(factory);
         var first = scope.GetClient("A", OperationType.Query);
 
@@ -102,13 +123,13 @@ public sealed class DefaultSourceSchemaClientScopeTests : FusionTestBase
     }
 
     [Fact]
-    public async Task ResetAsync_Should_DisposeClient_When_MaxAgeIsReached()
+    public async Task ResetAsync_Should_ReleaseClientWithoutDisposingIt_When_SharedClientHasExpired()
     {
         // arrange
-        var factory = new TestClientFactory(TimeSpan.FromTicks(1));
+        var factory = new TestClientFactory(shareClients: true) { SharedClientExpiresAt = 0 };
         await using var scope = CreateScope(factory);
         var first = scope.GetClient("A", OperationType.Query);
-        await Task.Delay(10, TestContext.Current.CancellationToken);
+        factory.ReplaceSharedClient();
 
         // act
         await scope.ResetAsync();
@@ -116,44 +137,25 @@ public sealed class DefaultSourceSchemaClientScopeTests : FusionTestBase
 
         // assert
         Assert.NotSame(first, second);
-        Assert.True(((TestClient)first).IsDisposed);
+        Assert.False(((TestClient)first).IsDisposed);
     }
 
     [Fact]
-    public async Task RetireExpiredClients_Should_ReplaceClientAndDisposeItOnReset_When_MaxAgeIsReached()
+    public async Task DisposeAsync_Should_DisposeOnlyOwnClients_When_ScopeIsDisposed()
     {
         // arrange
-        var factory = new TestClientFactory(TimeSpan.FromTicks(1));
-        await using var scope = CreateScope(factory);
-        var first = (TestClient)scope.GetClient("A", OperationType.Query);
-        await Task.Delay(10, TestContext.Current.CancellationToken);
+        var sharedScope = CreateScope(new TestClientFactory(shareClients: true));
+        var ownScope = CreateScope(new TestClientFactory(shareClients: false));
+        var sharedClient = sharedScope.GetClient("A", OperationType.Query);
+        var ownClient = ownScope.GetClient("A", OperationType.Query);
 
         // act
-        scope.RetireExpiredClients();
-        var second = scope.GetClient("A", OperationType.Query);
-        var disposedBeforeReset = first.IsDisposed;
-        await scope.ResetAsync();
+        await sharedScope.DisposeAsync();
+        await ownScope.DisposeAsync();
 
         // assert
-        Assert.NotSame(first, second);
-        Assert.False(disposedBeforeReset);
-        Assert.True(first.IsDisposed);
-    }
-
-    [Fact]
-    public async Task DisposeAsync_Should_DisposeRetainedClients_When_ScopeIsDisposed()
-    {
-        // arrange
-        var factory = new TestClientFactory(TimeSpan.FromMinutes(1));
-        var scope = CreateScope(factory);
-        var client = scope.GetClient("A", OperationType.Query);
-        await scope.ResetAsync();
-
-        // act
-        await scope.DisposeAsync();
-
-        // assert
-        Assert.True(((TestClient)client).IsDisposed);
+        Assert.False(((TestClient)sharedClient).IsDisposed);
+        Assert.True(((TestClient)ownClient).IsDisposed);
     }
 
     [Fact]
@@ -191,14 +193,16 @@ public sealed class DefaultSourceSchemaClientScopeTests : FusionTestBase
         => CreateScope(CreateHttpClientFactory(services));
 
     private static DefaultSourceSchemaClientScope CreateScope(ISourceSchemaClientFactory factory)
+        => new(CreateSchema(), [factory]);
+
+    private static FusionSchemaDefinition CreateSchema()
     {
         var features = new FeatureCollection();
         features.Set(new FusionRequestOptions());
         features.Set(new SourceSchemaClientConfigurations([CreateConfiguration("A", "fusion")]));
-        var schema = FusionSchemaDefinition.Create(
+        return FusionSchemaDefinition.Create(
             Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql")),
             features: features);
-        return new DefaultSourceSchemaClientScope(schema, [factory]);
     }
 
     private static HttpSourceSchemaClientConfiguration CreateConfiguration(string name, string httpClientName)
@@ -209,10 +213,14 @@ public sealed class DefaultSourceSchemaClientScopeTests : FusionTestBase
         public HttpClient CreateClient(string name) => new();
     }
 
-    private sealed class TestClientFactory(TimeSpan? maxClientAge)
+    private sealed class TestClientFactory(bool shareClients)
         : ISourceSchemaClientFactory
-        , IReusableSourceSchemaClientFactory
+        , ISharedSourceSchemaClientFactory
     {
+        private TestClient _sharedClient = new();
+
+        public long SharedClientExpiresAt { get; set; } = long.MaxValue;
+
         public bool CanHandle(ISourceSchemaClientConfiguration configuration) => true;
 
         public ISourceSchemaClient CreateClient(
@@ -220,8 +228,22 @@ public sealed class DefaultSourceSchemaClientScopeTests : FusionTestBase
             ISourceSchemaClientConfiguration configuration)
             => new TestClient();
 
-        public TimeSpan GetMaxClientAge(ISourceSchemaClientConfiguration configuration)
-            => maxClientAge ?? TimeSpan.Zero;
+        public bool TryGetSharedClient(
+            FusionSchemaDefinition schema,
+            ISourceSchemaClientConfiguration configuration,
+            [NotNullWhen(true)] out ISourceSchemaClient? client,
+            out long expiresAt)
+        {
+            client = shareClients ? _sharedClient : null;
+            expiresAt = SharedClientExpiresAt;
+            return shareClients;
+        }
+
+        public void ReplaceSharedClient()
+        {
+            _sharedClient = new TestClient();
+            SharedClientExpiresAt = long.MaxValue;
+        }
     }
 
     private sealed class TestClient : ISourceSchemaClient

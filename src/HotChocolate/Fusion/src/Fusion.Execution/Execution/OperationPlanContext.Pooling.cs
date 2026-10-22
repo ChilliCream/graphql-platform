@@ -8,7 +8,6 @@ using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Fusion.Types;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -78,11 +77,6 @@ public sealed partial class OperationPlanContext
         _collectTelemetry = requestContext.CollectOperationPlanTelemetry();
         _clientScope ??= requestContext.CreateClientScope();
         _clientScopeCreatedAt = Stopwatch.GetTimestamp();
-
-        if (_clientScope is DefaultSourceSchemaClientScope pooledClientScope)
-        {
-            pooledClientScope.RetireExpiredClients();
-        }
 
         _resultStore.Initialize(
             Memory,
@@ -206,12 +200,6 @@ public sealed partial class OperationPlanContext
         _resultStore.Dispose();
         _executionState.Destroy();
         _engineCancellationSource.Dispose();
-
-        if (_clientScope is DefaultSourceSchemaClientScope clientScope)
-        {
-            _clientScope = default!;
-            clientScope.DisposeAsync().FireAndForget();
-        }
     }
 
     public async ValueTask DisposeAsync()
