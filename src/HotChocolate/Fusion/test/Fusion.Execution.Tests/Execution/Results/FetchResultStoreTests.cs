@@ -1531,7 +1531,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
         malformedWriter.Advance(malformedJson.Length);
         var malformed = new VariableValues(
             Path(2),
-            JsonSegment.Create(malformedWriter, 0, malformedJson.Length));
+            JsonSegment.Create(malformedWriter.GetSequence(0, malformedJson.Length)));
 
         Assert.ThrowsAny<JsonException>(
             () => target.CreateVariableValueSetsFromSnapshot(

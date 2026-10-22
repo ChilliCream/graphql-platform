@@ -502,7 +502,7 @@ internal sealed partial class FetchResultStore
         additionalPaths.Dispose();
 
         var length = _variableWriter.Position - startPosition;
-        var value = JsonSegment.Create(_variableWriter, startPosition, length);
+        var value = JsonSegment.Create(_variableWriter.GetSequence(startPosition, length));
         var resultPathSpan = resultPaths.AsSpan(0, count);
         var resultPathArray = resultPathSpan.ToArray();
 
@@ -658,7 +658,7 @@ internal sealed partial class FetchResultStore
         if (writeResult is RepresentationWriteResult.Written)
         {
             var length = representationWriter.Position - startPosition;
-            JsonSegment.Create(representationWriter, startPosition, length).WriteTo(_jsonWriter);
+            JsonSegment.Create(representationWriter.GetSequence(startPosition, length)).WriteTo(_jsonWriter);
         }
 
         return writeResult;

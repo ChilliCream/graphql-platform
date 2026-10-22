@@ -79,16 +79,9 @@ internal sealed partial class FetchResultStore
             pending.Dispose();
         }
 
-        // variable values written before this event stay readable in the arena they were
-        // written to, so the event writes its variables with a new writer
-        if (_variableWriterHasArena)
-        {
-            _variableWriter.Dispose();
-            _variableWriter = new ArenaBufferWriter();
-            _variableWriterHasArena = false;
-        }
-
-        // the leaf key writer moves to the new arena on its next use
+        // the variable and leaf key writers move to the new arena on their next use
+        _variableWriter.Release();
+        _variableWriterHasArena = false;
         _leafKeyWriter?.Release();
         _leafKeyWriterHasArena = false;
         _arena = arena;

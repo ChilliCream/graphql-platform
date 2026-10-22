@@ -321,9 +321,10 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
 
         // The paths of these variable value sets wrap pooled segment arrays that the
         // result store reclaims once the node's results are merged, after which a later
-        // node rents and overwrites them, and the values live in the pooled variable writer
-        // of the result store. The trace outlives both, so it must own detached copies of
-        // the paths and values.
+        // node rents and overwrites them, and the values live in memory that the variable
+        // writer of the result store may write again. The trace outlives both, so it must
+        // own detached copies of the paths and values.
+        var memory = Memory;
         var detached = new VariableValues[variableValueSets.Length];
 
         for (var i = 0; i < variableValueSets.Length; i++)
@@ -333,7 +334,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
             {
                 Path = variableValueSet.Path.Detach(),
                 AdditionalPaths = variableValueSet.AdditionalPaths.Detach(),
-                Values = variableValueSet.Values.Detach()
+                Values = variableValueSet.Values.Detach(memory)
             };
         }
 

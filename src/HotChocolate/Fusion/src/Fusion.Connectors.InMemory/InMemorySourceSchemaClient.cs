@@ -432,7 +432,7 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
 
         writer.WriteEndArray();
 
-        var variables = JsonSegment.Create(buffer, startPosition, buffer.Position - startPosition);
+        var variables = JsonSegment.Create(buffer.GetSequence(startPosition, buffer.Position - startPosition));
 
         var variableSequence = request.RequiresFileUpload
             ? StripFileMarkers(buffer, variables.AsSequence()).AsSequence()
@@ -539,7 +539,7 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
             }
         }
 
-        return JsonSegment.Create(buffer, startPosition, buffer.Position - startPosition);
+        return JsonSegment.Create(buffer.GetSequence(startPosition, buffer.Position - startPosition));
     }
 
     // a token that spans memory segments is copied into one span

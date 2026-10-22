@@ -48,7 +48,7 @@ internal sealed partial class FetchResultStore : IDisposable
     private readonly object _lock = new();
 #endif
     private readonly List<IDisposable> _memory = [];
-    private ArenaBufferWriter _variableWriter = new();
+    private readonly ArenaBufferWriter _variableWriter = new();
     private bool _variableWriterHasArena;
     private PooledArrayWriter? _forwardedVariableWriter;
     private readonly JsonWriter _jsonWriter;
@@ -1201,15 +1201,10 @@ AddErrors_Next:
                 }
             }
         }
-        else
+        else if (_variableDedupTable.TryGet(producerValueSets, values, out var index))
         {
-            var hash = _variableWriter.GetHashCode(values.Location, values.Length);
-
-            if (_variableDedupTable.TryGet(_variableWriter, hash, values.Location, values.Length, out var index))
-            {
-                producerPath = producerValueSets[index].Path;
-                return true;
-            }
+            producerPath = producerValueSets[index].Path;
+            return true;
         }
 
         producerPath = default;
@@ -2303,7 +2298,9 @@ AddErrors_Next:
 
         dedupIndex = nextIndex;
         _variableDedupTable.Add(hash, nextIndex, startPosition, length);
-        return new VariableValues(target.CompactPath, JsonSegment.Create(_variableWriter, startPosition, length));
+        return new VariableValues(
+            target.CompactPath,
+            JsonSegment.Create(_variableWriter.GetSequence(startPosition, length)));
     }
 
     private VariableValues? TryCreateVariableValues(
@@ -2330,7 +2327,7 @@ AddErrors_Next:
 
         dedupIndex = nextIndex;
         _variableDedupTable.Add(hash, nextIndex, startPosition, length);
-        return new VariableValues(path, JsonSegment.Create(_variableWriter, startPosition, length));
+        return new VariableValues(path, JsonSegment.Create(_variableWriter.GetSequence(startPosition, length)));
     }
 
     private bool TryWriteRequestedRequirementValues(
@@ -2533,7 +2530,7 @@ AddErrors_Next:
 
         _jsonWriter.WriteEndObject();
         var length = _variableWriter.Position - startPosition;
-        return new VariableValues(path, JsonSegment.Create(_variableWriter, startPosition, length));
+        return new VariableValues(path, JsonSegment.Create(_variableWriter.GetSequence(startPosition, length)));
     }
 
     internal VariableValues CreateVariableValueSets(
@@ -2553,7 +2550,7 @@ AddErrors_Next:
 
         _jsonWriter.WriteEndObject();
         var length = _variableWriter.Position - startPosition;
-        return new VariableValues(path, JsonSegment.Create(_variableWriter, startPosition, length));
+        return new VariableValues(path, JsonSegment.Create(_variableWriter.GetSequence(startPosition, length)));
     }
 
     /// <summary>
@@ -2617,7 +2614,7 @@ AddErrors_Next:
         }
 
         var length = writer.Position - startPosition;
-        return JsonSegment.Create(writer, startPosition, length);
+        return JsonSegment.Create(writer.GetSequence(startPosition, length));
     }
 
     private static CompactPath ImportPath(CompactPath source)
@@ -3411,6 +3408,44 @@ AddErrors_Next:
                 if (entry.Hash == hash
                     && entry.Length == length
                     && writer.SequenceEqual(entry.Location, location, length))
+                {
+                    existingIndex = entry.Index - 1;
+                    return true;
+                }
+            }
+
+            existingIndex = -1;
+            return false;
+        }
+
+        /// <summary>
+        /// Gets the index of an entry whose variable value set in <paramref name="valueSets"/>
+        /// has <paramref name="values"/>.
+        /// </summary>
+        public bool TryGet(
+            ImmutableArray<VariableValues> valueSets,
+            JsonSegment values,
+            out int existingIndex)
+        {
+            var hash = values.GetHashCode();
+            var length = values.Length;
+            var bucket = hash & 0x7FFFFFFF & (_bucketCount - 1);
+            var start = bucket * _bucketSize;
+            var end = start + _bucketSize;
+
+            for (var s = start; s < end; s++)
+            {
+                ref var entry = ref _table[s];
+
+                if (entry.Index == 0)
+                {
+                    existingIndex = -1;
+                    return false;
+                }
+
+                if (entry.Hash == hash
+                    && entry.Length == length
+                    && valueSets[entry.Index - 1].Values.Equals(values))
                 {
                     existingIndex = entry.Index - 1;
                     return true;

@@ -83,7 +83,7 @@ public class FileEntryBuilderTests
         var bytes = Encoding.UTF8.GetBytes(json);
         bytes.CopyTo(writer.GetSpan(bytes.Length));
         writer.Advance(bytes.Length);
-        return JsonSegment.Create(writer, startPosition, writer.Position - startPosition);
+        return JsonSegment.Create(writer.GetSequence(startPosition, writer.Position - startPosition));
     }
 
     private static JsonSegment CreateSegment(ChunkedArrayWriter writer, string json)
@@ -93,7 +93,7 @@ public class FileEntryBuilderTests
         var span = writer.GetSpan(bytes.Length);
         bytes.CopyTo(span);
         writer.Advance(bytes.Length);
-        return JsonSegment.Create(writer, startPosition, writer.Position - startPosition);
+        return JsonSegment.Create(writer.GetSequence(startPosition, writer.Position - startPosition));
     }
 
     private sealed class StubFileLookup(string key) : IFileLookup

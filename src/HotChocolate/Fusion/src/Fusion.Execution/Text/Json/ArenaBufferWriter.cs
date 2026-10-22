@@ -311,6 +311,31 @@ internal sealed class ArenaBufferWriter : IBufferWriter<byte>, IDisposable
     }
 
     /// <summary>
+    /// Gets <paramref name="length"/> written bytes at <paramref name="start"/> as a sequence over
+    /// the segments that hold them.
+    /// </summary>
+    public ReadOnlySequence<byte> GetSequence(int start, int length)
+    {
+        var first = ReadMemory(ref start, ref length);
+
+        if (length == 0)
+        {
+            return new ReadOnlySequence<byte>(first);
+        }
+
+        var firstSegment = new MemorySequenceSegment(first);
+        var lastSegment = firstSegment;
+
+        do
+        {
+            lastSegment = lastSegment.Append(ReadMemory(ref start, ref length));
+        }
+        while (length > 0);
+
+        return new ReadOnlySequence<byte>(firstSegment, 0, lastSegment, lastSegment.Memory.Length);
+    }
+
+    /// <summary>
     /// Computes the hash code of <paramref name="length"/> written bytes at
     /// <paramref name="location"/>. Equal bytes have equal hash codes.
     /// </summary>

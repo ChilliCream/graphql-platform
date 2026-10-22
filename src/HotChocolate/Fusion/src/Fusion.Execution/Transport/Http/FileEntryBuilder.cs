@@ -118,7 +118,7 @@ internal static class FileEntryBuilder
             return variables;
         }
 
-        return JsonSegment.Create(writer, startPosition, writer.Position - startPosition);
+        return JsonSegment.Create(writer.GetSequence(startPosition, writer.Position - startPosition));
     }
 
     // a token that spans memory segments is copied into one span

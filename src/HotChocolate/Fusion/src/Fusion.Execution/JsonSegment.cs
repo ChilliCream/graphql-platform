@@ -1,208 +1,147 @@
 using System.Buffers;
 using HotChocolate.Buffers;
-using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Text.Json;
 
 namespace HotChocolate.Fusion;
 
 public readonly struct JsonSegment : IEquatable<JsonSegment>
 {
-    // a ChunkedArrayWriter, an ArenaBufferWriter or a byte array
-    private readonly object? _memory;
-    private readonly int _location;
-    private readonly int _length;
+    private readonly ReadOnlySequence<byte> _sequence;
 
-    private JsonSegment(object memory, int location, int length)
+    private JsonSegment(ReadOnlySequence<byte> sequence)
     {
-        _memory = memory;
-        _location = location;
-        _length = length;
+        _sequence = sequence;
     }
 
-    public bool IsEmpty => _memory is null;
+    public bool IsEmpty => _sequence.IsEmpty;
 
-    internal int Location => _location;
-
-    internal int Length => _length;
+    internal int Length => (int)_sequence.Length;
 
     /// <summary>
     /// Returns the bytes of this segment as a sequence over the memory that holds them. The
     /// sequence reads that memory and is valid for as long as it lives.
     /// </summary>
-    public ReadOnlySequence<byte> AsSequence()
-    {
-        if (IsEmpty)
-        {
-            return ReadOnlySequence<byte>.Empty;
-        }
-
-        var start = _location;
-        var length = _length;
-        var first = ReadMemory(ref start, ref length);
-
-        if (length == 0)
-        {
-            // Single chunk — common case, no allocation for segment chain.
-            return new ReadOnlySequence<byte>(first);
-        }
-
-        // Multi-chunk — build a ReadOnlySequence from linked segments.
-        var firstSegment = new MemorySegment(first);
-        var lastSegment = firstSegment;
-
-        do
-        {
-            lastSegment = lastSegment.Append(ReadMemory(ref start, ref length));
-        }
-        while (length > 0);
-
-        return new ReadOnlySequence<byte>(firstSegment, 0, lastSegment, lastSegment.Memory.Length);
-    }
+    public ReadOnlySequence<byte> AsSequence() => _sequence;
 
     public void WriteTo(JsonWriter writer)
     {
-        if (IsEmpty)
+        if (_sequence.IsSingleSegment)
         {
+            if (!_sequence.IsEmpty)
+            {
+                writer.WriteRawValue(_sequence.FirstSpan);
+            }
+
             return;
         }
 
-        var start = _location;
-        var length = _length;
-        var first = Read(ref start, ref length);
+        var position = _sequence.Start;
+        _sequence.TryGet(ref position, out var first);
+        writer.WriteRawValueStart(first.Span);
 
-        if (length == 0)
+        while (_sequence.TryGet(ref position, out var memory))
         {
-            // Single chunk — common case.
-            writer.WriteRawValue(first);
-            return;
+            writer.WriteRawValueContinuation(memory.Span);
         }
-
-        // Multi-chunk — write start, continuations, then set separator flag.
-        writer.WriteRawValueStart(first);
-
-        do
-        {
-            writer.WriteRawValueContinuation(Read(ref start, ref length));
-        }
-        while (length > 0);
 
         writer.WriteRawValueEnd();
     }
 
     public bool Equals(JsonSegment other)
     {
-        if (IsEmpty)
-        {
-            return other.IsEmpty;
-        }
+        var sequence = _sequence;
+        var otherSequence = other._sequence;
 
-        if (other.IsEmpty || !ReferenceEquals(_memory, other._memory))
+        if (sequence.Length != otherSequence.Length)
         {
             return false;
         }
 
-        switch (_memory)
+        if (sequence.IsSingleSegment && otherSequence.IsSingleSegment)
         {
-            case ArenaBufferWriter arena:
-                return arena.SequenceEqual(_location, other._location, _length);
-
-            case ChunkedArrayWriter chunked:
-                return chunked.SequenceEqual(_location, other._location, _length);
-
-            default:
-                var bytes = (byte[])_memory!;
-                return bytes.AsSpan(_location, _length).SequenceEqual(bytes.AsSpan(other._location, _length));
+            return sequence.FirstSpan.SequenceEqual(otherSequence.FirstSpan);
         }
+
+        var reader = new SequenceReader<byte>(otherSequence);
+
+        foreach (var memory in sequence)
+        {
+            if (!reader.IsNext(memory.Span, advancePast: true))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public override bool Equals(object? obj)
         => obj is JsonSegment other && Equals(other);
 
     public override int GetHashCode()
-        => _memory switch
+    {
+        uint hash;
+
+        if (_sequence.IsSingleSegment)
         {
-            null => 0,
-            ArenaBufferWriter arena => arena.GetHashCode(_location, _length),
-            ChunkedArrayWriter chunked => chunked.GetHashCode(_location, _length),
-            _ => (int)(ChunkedArrayWriter.ComputeHashCore(0u, ((byte[])_memory).AsSpan(_location, _length))
-                & 0x7FFFFFFF)
-        };
+            hash = ChunkedArrayWriter.ComputeHashCore(0u, _sequence.FirstSpan);
+        }
+        else
+        {
+            hash = 0u;
+
+            foreach (var memory in _sequence)
+            {
+                hash = ChunkedArrayWriter.ComputeHashCore(hash, memory.Span);
+            }
+        }
+
+        return (int)(hash & 0x7FFFFFFF);
+    }
 
     /// <summary>
-    /// Copies the bytes of this segment into memory that only the returned segment reads, so the
-    /// returned segment stays valid when the memory of this segment is reused.
+    /// Copies the bytes of this segment into memory rented from <paramref name="arena"/>, so the
+    /// returned segment stays valid when the memory of this segment is written again.
     /// </summary>
-    internal JsonSegment Detach()
+    internal JsonSegment Detach(IMemoryArena arena)
     {
         if (IsEmpty)
         {
             return this;
         }
 
-        var bytes = new byte[_length];
-        var destination = bytes.AsSpan();
-        var start = _location;
-        var length = _length;
+        var remaining = _sequence;
+        var first = CopyPiece(arena, ref remaining);
 
-        while (length > 0)
+        if (remaining.IsEmpty)
         {
-            var source = Read(ref start, ref length);
-            source.CopyTo(destination);
-            destination = destination[source.Length..];
+            return new JsonSegment(new ReadOnlySequence<byte>(first));
         }
 
-        return new JsonSegment(bytes, 0, bytes.Length);
+        var firstSegment = new MemorySequenceSegment(first);
+        var lastSegment = firstSegment;
+
+        do
+        {
+            lastSegment = lastSegment.Append(CopyPiece(arena, ref remaining));
+        }
+        while (!remaining.IsEmpty);
+
+        return new JsonSegment(
+            new ReadOnlySequence<byte>(firstSegment, 0, lastSegment, lastSegment.Memory.Length));
     }
 
     public static JsonSegment Empty => default;
 
-    internal static JsonSegment Create(ChunkedArrayWriter memory, int location, int length)
-        => new(memory, location, length);
+    internal static JsonSegment Create(ReadOnlySequence<byte> sequence) => new(sequence);
 
-    internal static JsonSegment Create(ArenaBufferWriter memory, int location, int length)
-        => new(memory, location, length);
-
-    private ReadOnlySpan<byte> Read(ref int start, ref int length)
-        => _memory switch
-        {
-            ArenaBufferWriter arena => arena.Read(ref start, ref length),
-            ChunkedArrayWriter chunked => chunked.Read(ref start, ref length),
-            _ => ReadMemory(ref start, ref length).Span
-        };
-
-    private ReadOnlyMemory<byte> ReadMemory(ref int start, ref int length)
+    // copies as many bytes as the arena hands out at once and moves remaining past them
+    private static ReadOnlyMemory<byte> CopyPiece(IMemoryArena arena, ref ReadOnlySequence<byte> remaining)
     {
-        switch (_memory)
-        {
-            case ArenaBufferWriter arena:
-                return arena.ReadMemory(ref start, ref length);
-
-            case ChunkedArrayWriter chunked:
-                return chunked.ReadMemory(ref start, ref length);
-
-            default:
-                var bytes = ((byte[])_memory!).AsMemory(start, length);
-                start += length;
-                length = 0;
-                return bytes;
-        }
-    }
-
-    private sealed class MemorySegment : ReadOnlySequenceSegment<byte>
-    {
-        public MemorySegment(ReadOnlyMemory<byte> memory)
-        {
-            Memory = memory;
-        }
-
-        public MemorySegment Append(ReadOnlyMemory<byte> data)
-        {
-            var next = new MemorySegment(data)
-            {
-                RunningIndex = RunningIndex + Memory.Length
-            };
-            Next = next;
-            return next;
-        }
+        var length = (int)Math.Min(remaining.Length, JsonMemory.BufferSize);
+        var memory = arena.Rent(length).Memory;
+        remaining.Slice(0, length).CopyTo(memory.Span);
+        remaining = remaining.Slice(length);
+        return memory;
     }
 }
