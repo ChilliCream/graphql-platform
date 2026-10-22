@@ -55,7 +55,7 @@ internal sealed partial class FetchResultStore
                 {
                     if (hasSourceErrors)
                     {
-                        return SaveRepresentationSourceErrors(
+                        return SaveRepresentationSourceErrorsUnsafe(
                             _result.Data,
                             errors!,
                             errorTrie,
@@ -63,7 +63,7 @@ internal sealed partial class FetchResultStore
                             resultSelectionSet);
                     }
 
-                    return SaveRepresentationProtocolError(
+                    return SaveRepresentationProtocolErrorUnsafe(
                         _result.Data,
                         ThrowHelper.InvalidRepresentationResultKind(sourcePath, dataElement.ValueKind),
                         resultPaths,
@@ -74,7 +74,7 @@ internal sealed partial class FetchResultStore
                 if (resultPaths.IsEmpty || resultCount != resultPaths.Length)
                 {
                     if (hasSourceErrors
-                        && !SaveRepresentationSourceErrors(
+                        && !SaveRepresentationSourceErrorsUnsafe(
                             _result.Data,
                             errors!,
                             errorTrie,
@@ -84,7 +84,7 @@ internal sealed partial class FetchResultStore
                         return false;
                     }
 
-                    return SaveRepresentationProtocolError(
+                    return SaveRepresentationProtocolErrorUnsafe(
                         _result.Data,
                         ThrowHelper.RepresentationResultCountMismatch(
                             sourcePath,
@@ -104,7 +104,7 @@ internal sealed partial class FetchResultStore
                     }
                 }
 
-                return SaveRepresentationResult(
+                return SaveRepresentationResultUnsafe(
                     _result.Data,
                     dataElement,
                     errorTrie,
@@ -113,8 +113,8 @@ internal sealed partial class FetchResultStore
             }
             finally
             {
-                ReturnRepresentationPathSegments(representation);
-                ReturnPathSegments(result);
+                ReturnRepresentationPathSegmentsUnsafe(representation);
+                ReturnPathSegmentsUnsafe(result);
             }
         }
     }
@@ -137,14 +137,14 @@ internal sealed partial class FetchResultStore
 
         lock (_lock)
         {
-            var elements = CollectTargetElements(selectionSet);
+            var elements = CollectTargetElementsUnsafe(selectionSet);
 
             if (elements.IsEmpty)
             {
                 return RepresentationValue.Empty;
             }
 
-            return BuildRepresentationValue(
+            return BuildRepresentationValueUnsafe(
                 elements,
                 requestVariables,
                 requiredShape,
@@ -173,14 +173,14 @@ internal sealed partial class FetchResultStore
 
         lock (_lock)
         {
-            var combinedCount = CollectCombinedElements(selectionSets, ref _collectTargetCombined);
+            var combinedCount = CollectCombinedElementsUnsafe(selectionSets, ref _collectTargetCombined);
 
             if (combinedCount == 0)
             {
                 return RepresentationValue.Empty;
             }
 
-            return BuildRepresentationValue(
+            return BuildRepresentationValueUnsafe(
                 _collectTargetCombined.AsSpan(0, combinedCount),
                 requestVariables,
                 requiredShape,
@@ -217,7 +217,7 @@ internal sealed partial class FetchResultStore
 
         lock (_lock)
         {
-            var targetCount = CollectCombinedElements(selectionSets, ref _collectTargetCombined);
+            var targetCount = CollectCombinedElementsUnsafe(selectionSets, ref _collectTargetCombined);
 
             if (targetCount == 0)
             {
@@ -229,7 +229,7 @@ internal sealed partial class FetchResultStore
                 ? 0
                 : CollectEntityReuseProducersUnsafe(candidates);
 
-            return BuildRepresentationValue(
+            return BuildRepresentationValueUnsafe(
                 _collectTargetCombined.AsSpan(0, targetCount),
                 requestVariables,
                 requiredShape,
@@ -268,7 +268,7 @@ internal sealed partial class FetchResultStore
 
         lock (_lock)
         {
-            return BuildRepresentationValueFromSnapshot(
+            return BuildRepresentationValueFromSnapshotUnsafe(
                 importedEntries,
                 requestVariables,
                 requiredData,
@@ -277,7 +277,7 @@ internal sealed partial class FetchResultStore
         }
     }
 
-    private RepresentationValue BuildRepresentationValueFromSnapshot(
+    private RepresentationValue BuildRepresentationValueFromSnapshotUnsafe(
         ImmutableArray<VariableValues> importedEntries,
         IReadOnlyList<ObjectFieldNode> requestVariables,
         ReadOnlySpan<OperationRequirement> requiredData,
@@ -295,7 +295,7 @@ internal sealed partial class FetchResultStore
         var resultPaths = s_entityResultPathPool.Rent(importedEntries.Length);
         var additionalPaths = new AdditionalPathAccumulator(importedEntries.Length);
         var completed = false;
-        var variableStartPosition = StartRepresentationVariableValue();
+        var variableStartPosition = StartRepresentationVariableValueUnsafe();
         var nextIndex = 0;
 
         dedupTable.Initialize(importedEntries.Length);
@@ -309,7 +309,7 @@ internal sealed partial class FetchResultStore
                     continue;
                 }
 
-                var writeResult = TryWriteRepresentation(
+                var writeResult = TryWriteRepresentationUnsafe(
                     importedEntry.Values,
                     requiredData,
                     requiredShape,
@@ -339,7 +339,7 @@ internal sealed partial class FetchResultStore
                 }
             }
 
-            var value = CompleteRepresentationVariableValue(
+            var value = CompleteRepresentationVariableValueUnsafe(
                 variableStartPosition,
                 requestVariables,
                 resultPaths,
@@ -364,12 +364,12 @@ internal sealed partial class FetchResultStore
         }
     }
 
-    private RepresentationValue BuildRepresentationValue(
+    private RepresentationValue BuildRepresentationValueUnsafe(
         ReadOnlySpan<CompositeResultElement> elements,
         IReadOnlyList<ObjectFieldNode> requestVariables,
         ImmutableArray<RepresentationShapeNode> requiredShape,
         string entityTypeName)
-        => BuildRepresentationValue(
+        => BuildRepresentationValueUnsafe(
             elements,
             requestVariables,
             requiredShape,
@@ -378,9 +378,9 @@ internal sealed partial class FetchResultStore
             reusedResponseNames: [],
             out _);
 
-    // Caller must hold _lock. An element whose representation equals the representation of a
-    // producer takes the reused fields from that producer and is not written.
-    private RepresentationValue BuildRepresentationValue(
+    // An element whose representation equals the representation of a producer takes the reused
+    // fields from that producer and is not written.
+    private RepresentationValue BuildRepresentationValueUnsafe(
         ReadOnlySpan<CompositeResultElement> elements,
         IReadOnlyList<ObjectFieldNode> requestVariables,
         ImmutableArray<RepresentationShapeNode> requiredShape,
@@ -398,7 +398,7 @@ internal sealed partial class FetchResultStore
         var resultPaths = s_entityResultPathPool.Rent(elements.Length);
         var additionalPaths = new AdditionalPathAccumulator(elements.Length);
         var completed = false;
-        var variableStartPosition = StartRepresentationVariableValue();
+        var variableStartPosition = StartRepresentationVariableValueUnsafe();
         var nextIndex = 0;
         var hasLeafShape = IsLeafShape(requiredShape);
 
@@ -407,14 +407,14 @@ internal sealed partial class FetchResultStore
 
         if (hasLeafShape)
         {
-            ResetLeafKeys(elements.Length);
+            ResetLeafKeysUnsafe(elements.Length);
         }
 
         try
         {
             if (producerTable is not null)
             {
-                BufferProducerRepresentations(
+                BufferProducerRepresentationsUnsafe(
                     producers,
                     requiredShape,
                     entityTypeName,
@@ -425,17 +425,17 @@ internal sealed partial class FetchResultStore
 
             foreach (var result in elements)
             {
-                var leafKey = hasLeafShape ? StartLeafKey() : default;
+                var leafKey = hasLeafShape ? StartLeafKeyUnsafe() : default;
 
                 if (hasLeafShape
-                    && TryAppendShapeLeafKey(ref leafKey, result, requiredShape)
-                    && TryGetLeafKeyDuplicate(ref leafKey, out var duplicateIndex))
+                    && TryAppendShapeLeafKeyUnsafe(ref leafKey, result, requiredShape)
+                    && TryGetLeafKeyDuplicateUnsafe(ref leafKey, out var duplicateIndex))
                 {
                     additionalPaths.Add(duplicateIndex, result);
                     continue;
                 }
 
-                if (!TryBufferRepresentation(
+                if (!TryBufferRepresentationUnsafe(
                     result,
                     requiredShape,
                     entityTypeName,
@@ -447,7 +447,7 @@ internal sealed partial class FetchResultStore
                 }
 
                 if (producerTable is not null
-                    && TryReuseEntity(
+                    && TryReuseEntityUnsafe(
                         result,
                         producers,
                         reusedResponseNames,
@@ -459,7 +459,7 @@ internal sealed partial class FetchResultStore
                     continue;
                 }
 
-                var writeResult = TryAppendRepresentation(
+                var writeResult = TryAppendRepresentationUnsafe(
                     representationWriter,
                     startPosition,
                     dedupTable,
@@ -469,19 +469,19 @@ internal sealed partial class FetchResultStore
                 switch (writeResult)
                 {
                     case RepresentationWriteResult.Duplicate:
-                        AddLeafKey(ref leafKey, index);
+                        AddLeafKeyUnsafe(ref leafKey, index);
                         additionalPaths.Add(index, result);
                         break;
 
                     case RepresentationWriteResult.Written:
-                        AddLeafKey(ref leafKey, index);
+                        AddLeafKeyUnsafe(ref leafKey, index);
                         resultPaths[nextIndex] = new EntityResultPath(result.CompactPath, default);
                         nextIndex++;
                         break;
                 }
             }
 
-            var value = CompleteRepresentationVariableValue(
+            var value = CompleteRepresentationVariableValueUnsafe(
                 variableStartPosition,
                 requestVariables,
                 resultPaths,
@@ -524,7 +524,7 @@ internal sealed partial class FetchResultStore
         return true;
     }
 
-    private static bool TryAppendShapeLeafKey(
+    private static bool TryAppendShapeLeafKeyUnsafe(
         ref LeafKey key,
         CompositeResultElement element,
         ImmutableArray<RepresentationShapeNode> shape)
@@ -533,11 +533,11 @@ internal sealed partial class FetchResultStore
         {
             if (!element.TryGetProperty(node.ResponseNameUtf8, out var value))
             {
-                DiscardLeafKey(ref key);
+                DiscardLeafKeyUnsafe(ref key);
                 return false;
             }
 
-            if (!TryAppendLeafKey(ref key, value))
+            if (!TryAppendLeafKeyUnsafe(ref key, value))
             {
                 return false;
             }
@@ -546,7 +546,7 @@ internal sealed partial class FetchResultStore
         return true;
     }
 
-    private void WriteRequestVariableProperties(IReadOnlyList<ObjectFieldNode> requestVariables)
+    private void WriteRequestVariablePropertiesUnsafe(IReadOnlyList<ObjectFieldNode> requestVariables)
     {
         for (var i = 0; i < requestVariables.Count; i++)
         {
@@ -556,7 +556,7 @@ internal sealed partial class FetchResultStore
         }
     }
 
-    private int StartRepresentationVariableValue()
+    private int StartRepresentationVariableValueUnsafe()
     {
         _jsonWriter.Reset(GetVariableWriter());
         var startPosition = _variableWriter.Position;
@@ -566,7 +566,7 @@ internal sealed partial class FetchResultStore
         return startPosition;
     }
 
-    private RepresentationValue CompleteRepresentationVariableValue(
+    private RepresentationValue CompleteRepresentationVariableValueUnsafe(
         int startPosition,
         IReadOnlyList<ObjectFieldNode> requestVariables,
         EntityResultPath[] resultPaths,
@@ -582,7 +582,7 @@ internal sealed partial class FetchResultStore
         }
 
         _jsonWriter.WriteEndArray();
-        WriteRequestVariableProperties(requestVariables);
+        WriteRequestVariablePropertiesUnsafe(requestVariables);
         _jsonWriter.WriteEndObject();
 
         additionalPaths.ApplyTo(resultPaths, count, this, _result);
@@ -603,7 +603,7 @@ internal sealed partial class FetchResultStore
 
     // Buffers the representation of every producer. A producer whose representation equals the
     // representation of an earlier producer is dropped.
-    private void BufferProducerRepresentations(
+    private void BufferProducerRepresentationsUnsafe(
         ReadOnlySpan<CompositeResultElement> producers,
         ImmutableArray<RepresentationShapeNode> requiredShape,
         string entityTypeName,
@@ -615,7 +615,7 @@ internal sealed partial class FetchResultStore
 
         for (var i = 0; i < producers.Length; i++)
         {
-            if (TryBufferRepresentation(
+            if (TryBufferRepresentationUnsafe(
                 producers[i],
                 requiredShape,
                 entityTypeName,
@@ -628,9 +628,9 @@ internal sealed partial class FetchResultStore
         }
     }
 
-    // Caller must hold _lock. Fills the target from the producer whose representation equals the
-    // representation buffered at startPosition and drops the buffered representation.
-    private static bool TryReuseEntity(
+    // Fills the target from the producer whose representation equals the representation buffered
+    // at startPosition and drops the buffered representation.
+    private static bool TryReuseEntityUnsafe(
         CompositeResultElement target,
         ReadOnlySpan<CompositeResultElement> producers,
         ReadOnlySpan<string> reusedResponseNames,
@@ -642,7 +642,7 @@ internal sealed partial class FetchResultStore
         var hash = representationWriter.GetHashCode(startPosition, length);
 
         if (!producerTable.TryGet(representationWriter, hash, startPosition, length, out var producerIndex)
-            || !TryFillTarget(target, producers[producerIndex], reusedResponseNames))
+            || !TryFillTargetUnsafe(target, producers[producerIndex], reusedResponseNames))
         {
             return false;
         }
@@ -651,7 +651,7 @@ internal sealed partial class FetchResultStore
         return true;
     }
 
-    private bool TryBufferRepresentation(
+    private bool TryBufferRepresentationUnsafe(
         CompositeResultElement result,
         ImmutableArray<RepresentationShapeNode> requiredShape,
         string entityTypeName,
@@ -675,7 +675,7 @@ internal sealed partial class FetchResultStore
         return true;
     }
 
-    private RepresentationWriteResult TryWriteRepresentation(
+    private RepresentationWriteResult TryWriteRepresentationUnsafe(
         JsonSegment values,
         ReadOnlySpan<OperationRequirement> requiredData,
         ImmutableArray<RepresentationShapeNode> requiredShape,
@@ -687,7 +687,7 @@ internal sealed partial class FetchResultStore
         int nextIndex,
         out int index)
     {
-        if (!TryBufferRepresentationFromSnapshot(
+        if (!TryBufferRepresentationFromSnapshotUnsafe(
             values,
             requiredData,
             requiredShape,
@@ -701,7 +701,7 @@ internal sealed partial class FetchResultStore
             return RepresentationWriteResult.Skipped;
         }
 
-        return TryAppendRepresentation(
+        return TryAppendRepresentationUnsafe(
             representationWriter,
             startPosition,
             dedupTable,
@@ -709,7 +709,7 @@ internal sealed partial class FetchResultStore
             out index);
     }
 
-    private bool TryBufferRepresentationFromSnapshot(
+    private bool TryBufferRepresentationFromSnapshotUnsafe(
         JsonSegment values,
         ReadOnlySpan<OperationRequirement> requiredData,
         ImmutableArray<RepresentationShapeNode> requiredShape,
@@ -748,7 +748,7 @@ internal sealed partial class FetchResultStore
         return true;
     }
 
-    private RepresentationWriteResult TryAppendRepresentation(
+    private RepresentationWriteResult TryAppendRepresentationUnsafe(
         ChunkedArrayWriter representationWriter,
         int startPosition,
         VariableDedupTable dedupTable,
@@ -1658,7 +1658,7 @@ internal sealed partial class FetchResultStore
         writer.WriteRawValue(value.ToArray());
     }
 
-    private bool SaveRepresentationResult(
+    private bool SaveRepresentationResultUnsafe(
         CompositeResultElement resultData,
         SourceResultElement dataElement,
         ErrorTrie? errorTrie,
@@ -1712,7 +1712,7 @@ internal sealed partial class FetchResultStore
         return true;
     }
 
-    private bool SaveRepresentationSourceErrors(
+    private bool SaveRepresentationSourceErrorsUnsafe(
         CompositeResultElement resultData,
         SourceSchemaErrors errors,
         ErrorTrie? errorTrie,
@@ -1728,7 +1728,7 @@ internal sealed partial class FetchResultStore
                 _errors.Add(_errorHandler.Handle(rootError));
             }
 
-            if (!CompleteRepresentationErrorTargets(
+            if (!CompleteRepresentationErrorTargetsUnsafe(
                     resultData,
                     resultPaths,
                     resultSelectionSet))
@@ -1738,10 +1738,10 @@ internal sealed partial class FetchResultStore
         }
 
         return errorTrie is null
-            || AddRepresentationErrors(resultData, errorTrie, resultPaths);
+            || AddRepresentationErrorsUnsafe(resultData, errorTrie, resultPaths);
     }
 
-    private bool CompleteRepresentationErrorTargets(
+    private bool CompleteRepresentationErrorTargetsUnsafe(
         CompositeResultElement resultData,
         ReadOnlySpan<EntityResultPath> resultPaths,
         ResultSelectionSet resultSelectionSet)
@@ -1773,20 +1773,20 @@ internal sealed partial class FetchResultStore
                 return false;
             }
 
-            var target = targetPath.IsRoot ? resultData : GetStartObjectResult(targetPath);
+            var target = targetPath.IsRoot ? resultData : GetStartObjectResultUnsafe(targetPath);
             return target.IsNullOrInvalidated
                 || _valueCompletion.CompleteErrorResult(target, resultSelectionSet);
         }
     }
 
-    private bool AddRepresentationErrors(
+    private bool AddRepresentationErrorsUnsafe(
         CompositeResultElement resultData,
         ErrorTrie errorTrie,
         ReadOnlySpan<EntityResultPath> resultPaths)
     {
         if (resultPaths.IsEmpty)
         {
-            AddOriginalRepresentationErrors(errorTrie);
+            AddOriginalRepresentationErrorsUnsafe(errorTrie);
             return true;
         }
 
@@ -1794,7 +1794,7 @@ internal sealed partial class FetchResultStore
         {
             for (var i = 0; i < resultPaths.Length; i++)
             {
-                if (!AddRepresentationError(resultData, rootError, resultPaths[i], null, null))
+                if (!AddRepresentationErrorUnsafe(resultData, rootError, resultPaths[i], null, null))
                 {
                     return false;
                 }
@@ -1805,7 +1805,7 @@ internal sealed partial class FetchResultStore
         {
             if (segment is int index && (uint)index < (uint)resultPaths.Length)
             {
-                if (!AddRepresentationError(resultData, null, resultPaths[index], null, childTrie))
+                if (!AddRepresentationErrorUnsafe(resultData, null, resultPaths[index], null, childTrie))
                 {
                     return false;
                 }
@@ -1814,13 +1814,13 @@ internal sealed partial class FetchResultStore
 
             if (segment is int)
             {
-                AddOriginalRepresentationErrors(childTrie);
+                AddOriginalRepresentationErrorsUnsafe(childTrie);
                 continue;
             }
 
             for (var i = 0; i < resultPaths.Length; i++)
             {
-                if (!AddRepresentationError(resultData, null, resultPaths[i], segment, childTrie))
+                if (!AddRepresentationErrorUnsafe(resultData, null, resultPaths[i], segment, childTrie))
                 {
                     return false;
                 }
@@ -1830,7 +1830,7 @@ internal sealed partial class FetchResultStore
         return true;
     }
 
-    private void AddOriginalRepresentationErrors(ErrorTrie errorTrie)
+    private void AddOriginalRepresentationErrorsUnsafe(ErrorTrie errorTrie)
     {
         if (errorTrie.Error is { } error)
         {
@@ -1840,11 +1840,11 @@ internal sealed partial class FetchResultStore
 
         foreach (var childTrie in errorTrie.Values)
         {
-            AddOriginalRepresentationErrors(childTrie);
+            AddOriginalRepresentationErrorsUnsafe(childTrie);
         }
     }
 
-    private bool AddRepresentationError(
+    private bool AddRepresentationErrorUnsafe(
         CompositeResultElement resultData,
         IError? error,
         EntityResultPath resultPath,
@@ -1857,7 +1857,7 @@ internal sealed partial class FetchResultStore
             path = AppendPathSegment(path, segment);
         }
 
-        if (!AddRepresentationError(error, suffixTrie, path))
+        if (!AddRepresentationErrorUnsafe(error, suffixTrie, path))
         {
             return false;
         }
@@ -1870,7 +1870,7 @@ internal sealed partial class FetchResultStore
                 path = AppendPathSegment(path, segment);
             }
 
-            if (!AddRepresentationError(error, suffixTrie, path))
+            if (!AddRepresentationErrorUnsafe(error, suffixTrie, path))
             {
                 return false;
             }
@@ -1879,7 +1879,7 @@ internal sealed partial class FetchResultStore
         return true;
     }
 
-    private bool AddRepresentationError(IError? error, ErrorTrie? errorTrie, Path path)
+    private bool AddRepresentationErrorUnsafe(IError? error, ErrorTrie? errorTrie, Path path)
     {
         if (error is not null && !_valueCompletion.BuildErrorResult(path, error))
         {
@@ -1899,7 +1899,7 @@ internal sealed partial class FetchResultStore
 
         foreach (var (segment, childTrie) in errorTrie)
         {
-            if (!AddRepresentationError(null, childTrie, AppendPathSegment(path, segment)))
+            if (!AddRepresentationErrorUnsafe(null, childTrie, AppendPathSegment(path, segment)))
             {
                 return false;
             }
@@ -1908,7 +1908,7 @@ internal sealed partial class FetchResultStore
         return true;
     }
 
-    private bool SaveRepresentationError(
+    private bool SaveRepresentationErrorUnsafe(
         CompositeResultElement resultData,
         IError error,
         ReadOnlySpan<EntityResultPath> resultPaths,
@@ -1925,7 +1925,7 @@ internal sealed partial class FetchResultStore
         {
             ref readonly var resultPath = ref resultPaths[i];
 
-            if (!SaveRepresentationError(
+            if (!SaveRepresentationErrorUnsafe(
                     resultData,
                     resultPath.Path,
                     resultPath.AdditionalPaths.AsSpan(),
@@ -1939,7 +1939,7 @@ internal sealed partial class FetchResultStore
         return true;
     }
 
-    private bool SaveRepresentationProtocolError(
+    private bool SaveRepresentationProtocolErrorUnsafe(
         CompositeResultElement resultData,
         Exception exception,
         ReadOnlySpan<EntityResultPath> resultPaths,
@@ -1961,7 +1961,7 @@ internal sealed partial class FetchResultStore
         {
             ref readonly var resultPath = ref resultPaths[i];
 
-            if (!SaveRepresentationError(
+            if (!SaveRepresentationErrorUnsafe(
                     resultData,
                     resultPath.Path,
                     resultPath.AdditionalPaths.AsSpan(),
@@ -1975,7 +1975,7 @@ internal sealed partial class FetchResultStore
         return true;
     }
 
-    private bool SaveRepresentationError(
+    private bool SaveRepresentationErrorUnsafe(
         CompositeResultElement resultData,
         CompactPath path,
         ReadOnlySpan<CompactPath> additionalPaths,
@@ -2004,7 +2004,7 @@ internal sealed partial class FetchResultStore
                 return false;
             }
 
-            var target = targetPath.IsRoot ? resultData : GetStartObjectResult(targetPath);
+            var target = targetPath.IsRoot ? resultData : GetStartObjectResultUnsafe(targetPath);
             if (target.IsNullOrInvalidated)
             {
                 return true;
@@ -2032,7 +2032,7 @@ internal sealed partial class FetchResultStore
             _ => throw new UnreachableException()
         };
 
-    private void ReturnRepresentationPathSegments(RepresentationValue representation)
+    private void ReturnRepresentationPathSegmentsUnsafe(RepresentationValue representation)
     {
         if (representation.ResultPaths.IsDefaultOrEmpty)
         {
@@ -2041,7 +2041,7 @@ internal sealed partial class FetchResultStore
 
         foreach (var resultPath in representation.ResultPaths)
         {
-            ReturnPathSegments(resultPath.Path, _seenPaths);
+            ReturnPathSegmentsUnsafe(resultPath.Path, _seenPaths);
 
             if (resultPath.AdditionalPaths.Source is not null)
             {
@@ -2050,7 +2050,7 @@ internal sealed partial class FetchResultStore
 
             foreach (var additionalPath in resultPath.AdditionalPaths)
             {
-                ReturnPathSegments(additionalPath, _seenPaths);
+                ReturnPathSegmentsUnsafe(additionalPath, _seenPaths);
             }
         }
 
