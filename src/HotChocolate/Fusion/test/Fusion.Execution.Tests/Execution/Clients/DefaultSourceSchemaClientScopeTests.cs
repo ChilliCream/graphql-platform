@@ -157,7 +157,7 @@ public sealed class DefaultSourceSchemaClientScopeTests : FusionTestBase
     }
 
     [Fact]
-    public void GetMaxClientAge_Should_StayBelowHandlerLifetime_When_HttpClientIsConfigured()
+    public void GetMaxClientAge_Should_NotExceedHandlerLifetime_When_HttpClientIsConfigured()
     {
         // arrange
         var services = new ServiceCollection();
@@ -175,9 +175,9 @@ public sealed class DefaultSourceSchemaClientScopeTests : FusionTestBase
         // assert
         maxAges.MatchInlineSnapshots(
         [
-            "default: 00:00:30",
-            "short: 00:00:05",
-            "infinite: 00:00:30",
+            "default: 00:02:00",
+            "short: 00:00:20",
+            "infinite: 00:02:00",
             "callback: 00:00:00"
         ]);
     }

@@ -10,7 +10,7 @@ internal sealed class HttpSourceSchemaClientFactory
     : SourceSchemaClientFactory<HttpSourceSchemaClientConfiguration>
     , IReusableSourceSchemaClientFactory
 {
-    private static readonly TimeSpan s_maxClientAge = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan s_maxClientAge = TimeSpan.FromMinutes(2);
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IOptionsMonitor<HttpClientFactoryOptions>? _httpClientFactoryOptions;
     private readonly bool _isDefaultHttpClientFactory;
@@ -58,13 +58,12 @@ internal sealed class HttpSourceSchemaClientFactory
 
         var handlerLifetime = options.HandlerLifetime;
 
-        // A reused client is replaced after a quarter of the handler lifetime, at most after 30 seconds.
-        if (handlerLifetime == Timeout.InfiniteTimeSpan)
+        // A reused client is replaced after the handler lifetime, at most after 2 minutes.
+        if (handlerLifetime == Timeout.InfiniteTimeSpan || handlerLifetime > s_maxClientAge)
         {
             return s_maxClientAge;
         }
 
-        var maxAge = handlerLifetime / 4;
-        return maxAge < s_maxClientAge ? maxAge : s_maxClientAge;
+        return handlerLifetime;
     }
 }
