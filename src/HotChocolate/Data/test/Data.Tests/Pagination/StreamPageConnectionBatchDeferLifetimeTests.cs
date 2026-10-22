@@ -92,7 +92,7 @@ public class StreamPageConnectionBatchDeferLifetimeTests(PostgreSqlResource reso
             .AddGraphQL()
             .AddDiagnosticEventListener(_ => listener)
             .AddQueryType<BatchQueryType>()
-            .AddType<ItemConnectionType>()
+            .AddType<StreamPageConnectionLifetimeTests.ItemConnectionType>()
             .AddPagingArguments()
             .ModifyOptions(o => o.EnableDefer = true)
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
@@ -147,7 +147,7 @@ public class StreamPageConnectionBatchDeferLifetimeTests(PostgreSqlResource reso
             => descriptor
                 .Field(t => t.GetItems(default!, default!, default!, default))
                 .AddPagingArguments()
-                .Type<NonNullType<ItemConnectionType>>();
+                .Type<NonNullType<StreamPageConnectionLifetimeTests.ItemConnectionType>>();
     }
 
     public sealed class LifetimeTracker
