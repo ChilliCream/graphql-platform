@@ -11,7 +11,10 @@ namespace HotChocolate.Fusion.Text.Json;
 /// </summary>
 internal ref struct MinimizedJsonEmitter
 {
-    private const int MinimumSpanSize = 256;
+    /// <summary>
+    /// The minimum size hint of every span requested from the buffer writer.
+    /// </summary>
+    private const int MinimumSpanSize = 2 * 1024;
 
     private readonly IBufferWriter<byte> _output;
     private readonly int _maxDepth;

@@ -112,6 +112,9 @@ internal sealed class AzureHttpResponse : HttpResponse
     public override void Redirect(string location, bool permanent)
         => throw new NotSupportedException();
 
+    public override Task StartAsync(CancellationToken cancellationToken = default)
+        => Task.CompletedTask;
+
     public override async Task CompleteAsync()
     {
         if (_writer is not null)
