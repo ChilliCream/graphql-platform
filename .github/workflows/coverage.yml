@@ -17,7 +17,7 @@ permissions:
 jobs:
   configure:
     name: Generate Test Matrix
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
 
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -34,7 +34,7 @@ jobs:
 
   library-tests:
     name: Run ${{ matrix.name }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: configure
     env:
       DOCKER_CONFIG: ${{ github.workspace }}/.docker
