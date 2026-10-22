@@ -17,7 +17,7 @@ internal sealed class ChunkedPipeBufferWriter : PipeWriter, IDisposable
     /// <summary>
     /// The size hint from which a write bypasses the buffer and goes to the pipe.
     /// </summary>
-    internal const int DirectWriteThreshold = 4 * 1024;
+    internal const int DirectWriteThreshold = 2 * 1024;
 
     [ThreadStatic]
     private static ChunkedPipeBufferWriter? s_cached;

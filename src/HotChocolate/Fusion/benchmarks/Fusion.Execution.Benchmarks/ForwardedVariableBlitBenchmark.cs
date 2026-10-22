@@ -484,7 +484,7 @@ public class ForwardedVariableBlitBenchmark
 
         dedupIndex = nextIndex;
         dedupTable.Add(hash, nextIndex, startPosition, length);
-        return new VariableValues(path, JsonSegment.Create(variableWriter, startPosition, length));
+        return new VariableValues(path, JsonSegment.Create(variableWriter.GetSequence(startPosition, length)));
     }
 
     // Byte-faithful copy of FetchResultStore.TryWriteRequestedRequirementValues
