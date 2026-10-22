@@ -1415,6 +1415,49 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
             """);
     }
 
+    [Fact]
+    public async Task Post_Should_MergeOverlappingFields_When_LegacyDeferIsUnlabeledInsideList()
+    {
+        // arrange
+        using var server = CreateDeferServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/graphql");
+        request.Content = JsonContent.Create(new
+        {
+            query = """
+                {
+                    products {
+                        name
+                        ... @defer {
+                            name
+                            description
+                        }
+                    }
+                }
+                """
+        });
+        request.Headers.Add("Accept", "application/jsonl; incrementalSpec=v0.1");
+
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+        content.MatchInlineSnapshot(
+            """
+            {"data":{"products":[{"name":"Abc"}]},"hasNext":true}
+            {"incremental":[{"data":{"name":"Abc","description":"Abc desc"},"path":["products",0]}],"hasNext":false}
+
+            """);
+    }
+
     private TestServer CreateDeferServer(
         HttpTransportVersion serverTransportVersion = HttpTransportVersion.Latest)
     {
