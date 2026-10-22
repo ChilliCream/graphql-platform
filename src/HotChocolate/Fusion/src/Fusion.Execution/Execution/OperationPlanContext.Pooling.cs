@@ -8,6 +8,7 @@ using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Fusion.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -206,16 +207,10 @@ public sealed partial class OperationPlanContext
         _executionState.Destroy();
         _engineCancellationSource.Dispose();
 
-        // Pooled scopes retain only clients of reusable factories, whose disposal completes synchronously.
         if (_clientScope is DefaultSourceSchemaClientScope clientScope)
         {
             _clientScope = default!;
-            var disposeTask = clientScope.DisposeAsync();
-
-            if (!disposeTask.IsCompletedSuccessfully)
-            {
-                disposeTask.AsTask().GetAwaiter().GetResult();
-            }
+            clientScope.DisposeAsync().FireAndForget();
         }
     }
 
