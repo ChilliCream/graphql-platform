@@ -57,13 +57,13 @@ In large first-party GraphQL APIs, a common approach used by companies such as N
 With trusted documents in place, persisted-operation routes become short and stable.
 
 ```http
-GET /graphql/persisted/GetProducts/123456789
+GET /graphql/persisted/123456789/GetProducts
 ```
 
 Variables can then be sent as query parameters.
 
 ```http
-GET /graphql/persisted/GetProducts/123456789?variables={"first":5}
+GET /graphql/persisted/123456789/GetProducts?variables={"first":5}
 ```
 
 In order to use persisted-operation routes you need to add the middleware `MapGraphQLPersistedOperations`.
