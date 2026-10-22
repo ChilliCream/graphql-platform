@@ -563,6 +563,116 @@ public class PersistedOperationTests : FusionTestBase
             await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
     }
 
+    [Theory]
+    [InlineData(HttpTransportVersion.Draft20250508, HttpStatusCode.NotFound, new string[0])]
+    [InlineData(
+        HttpTransportVersion.Draft20260903,
+        HttpStatusCode.MethodNotAllowed,
+        new[] { "GET", "OPTIONS", "POST" })]
+    public async Task Put_Should_ReturnMethodNotAllowed_When_PersistedRoutesAreMappedAlone(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string[] expectedAllow)
+    {
+        // arrange
+        var storage = new OperationStorage();
+        storage.AddOperation("getField", "query GetField { field }");
+
+        var server = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                field: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureApplication: app =>
+            {
+                app.UseRouting();
+                app.UseEndpoints(endpoints => endpoints.MapGraphQLPersistedOperations());
+            },
+            configureGatewayBuilder: b => b
+                .ConfigureSchemaServices(
+                    (_, s) => s.AddSingleton<IOperationDocumentStorage>(storage))
+                .UsePersistedOperationPipeline()
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        HttpTransportVersion = transportVersion
+                    }),
+            includeOperationPlan: false);
+
+        using var client = gateway.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Put,
+            "http://localhost:5000/graphql/persisted/getField/GetField");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedAllow, response.Content.Headers.Allow);
+    }
+
+    [Theory]
+    [InlineData(HttpTransportVersion.Draft20250508, HttpStatusCode.NotFound, new string[0])]
+    [InlineData(
+        HttpTransportVersion.Draft20260903,
+        HttpStatusCode.NoContent,
+        new[] { "GET", "OPTIONS", "POST" })]
+    public async Task Options_Should_ReturnAllowedMethods_When_PersistedRoutesAreMappedAlone(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string[] expectedAllow)
+    {
+        // arrange
+        var storage = new OperationStorage();
+        storage.AddOperation("getField", "query GetField { field }");
+
+        var server = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                field: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureApplication: app =>
+            {
+                app.UseRouting();
+                app.UseEndpoints(endpoints => endpoints.MapGraphQLPersistedOperations());
+            },
+            configureGatewayBuilder: b => b
+                .ConfigureSchemaServices(
+                    (_, s) => s.AddSingleton<IOperationDocumentStorage>(storage))
+                .UsePersistedOperationPipeline()
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        HttpTransportVersion = transportVersion
+                    }),
+            includeOperationPlan: false);
+
+        using var client = gateway.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Options,
+            "http://localhost:5000/graphql/persisted/getField/GetField");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedAllow, response.Content.Headers.Allow);
+    }
+
     private static OperationRequest CreateApolloStyleRequest(
         string hashName,
         string id)
