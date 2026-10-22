@@ -16,7 +16,7 @@ Good cache rules help you:
 
 To make caching work safely and predictably, you need two things:
 
-1. A deterministic GET route so caches get a stable cache key.
+1. A deterministic GET route, or a QUERY request, so caches get a stable cache key.
 2. Correct Cache-Control (and Vary) headers so caches know where and how long a response may be reused.
 
 # Why GraphQL Needs Extra Care
@@ -73,6 +73,29 @@ var app = builder.Build();
 
 app.MapGraphQLPersistedOperations();
 ```
+
+# QUERY Requests
+
+Query operations can also be sent over HTTP QUERY, which carries the same JSON body as a POST request. QUERY requests are disabled by default. Enable them with `EnableQueryRequests`:
+
+```csharp
+builder
+    .AddGraphQL()
+    .ModifyServerOptions(o => o.EnableQueryRequests = true);
+```
+
+```http
+QUERY /graphql
+Content-Type: application/json
+Accept: application/graphql-response+json
+
+{
+  "query": "query GetProducts($first: Int!) { products(first: $first) { nodes { name } } }",
+  "variables": { "first": 5 }
+}
+```
+
+[RFC 10008](https://www.rfc-editor.org/rfc/rfc10008.html#section-2.7) makes the response to a QUERY request cacheable, and a cache that stores it includes the request body in the cache key. A QUERY response carries the same `Cache-Control` and `Vary` headers as a GET response. Support for caching QUERY responses varies between CDNs and proxies, so GET routes and persisted-operation GET routes are the portable choice. See [QUERY Requests](./http-transport.md#query-requests) for the full request rules.
 
 # `@cacheControl` in GraphQL
 
