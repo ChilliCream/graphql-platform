@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -17,7 +16,8 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
     private readonly ISourceSchemaClientFactory[] _clientFactories;
     private readonly FusionSchemaDefinition _schemaDefinition;
     private readonly SourceSchemaClientConfigurations _configurations;
-    private long _nextExpiration = long.MaxValue;
+    private long _requestTimestamp;
+    private int _ownedClientCount;
     private bool _disposed;
 
     public DefaultSourceSchemaClientScope(
@@ -38,26 +38,27 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
 
         var key = (name, operationType);
 
-        if (_clients.TryGetValue(key, out var entry))
+        if (_clients.TryGetValue(key, out var entry) && entry.IsValid(_requestTimestamp))
         {
             return entry.Client;
         }
 
         lock (_sync)
         {
-            if (!_clients.TryGetValue(key, out entry))
+            if (!_clients.TryGetValue(key, out entry) || !entry.IsValid(_requestTimestamp))
             {
                 if (!_configurations.TryGet(name, operationType, out var config))
                 {
                     throw ThrowHelper.ClientConfigurationNotFound(name, operationType);
                 }
 
+                // A shared client that is no longer valid is replaced, not disposed.
                 entry = CreateClient(config);
-                _clients.TryAdd(key, entry);
+                _clients[key] = entry;
 
-                if (entry.ExpiresAt < _nextExpiration)
+                if (entry.SharedClient is null)
                 {
-                    _nextExpiration = entry.ExpiresAt;
+                    _ownedClientCount++;
                 }
             }
         }
@@ -65,17 +66,23 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
         return entry.Client;
     }
 
+    /// <summary>
+    /// Starts a request that takes shared clients which are valid at the given
+    /// <see cref="System.Diagnostics.Stopwatch"/> timestamp.
+    /// </summary>
+    internal void BeginRequest(long timestamp) => _requestTimestamp = timestamp;
+
     private ClientEntry CreateClient(ISourceSchemaClientConfiguration configuration)
     {
         var factory = GetFactory(configuration);
 
         if (factory is ISharedSourceSchemaClientFactory sharedFactory
-            && sharedFactory.TryGetSharedClient(_schemaDefinition, configuration, out var client, out var expiresAt))
+            && sharedFactory.TryGetSharedClient(_schemaDefinition, configuration, out var sharedClient))
         {
-            return new ClientEntry(client, expiresAt, IsShared: true);
+            return new ClientEntry(sharedClient.Client, sharedClient);
         }
 
-        return new ClientEntry(factory.CreateClient(_schemaDefinition, configuration), ExpiresAt: 0, IsShared: false);
+        return new ClientEntry(factory.CreateClient(_schemaDefinition, configuration), SharedClient: null);
     }
 
     private ISourceSchemaClientFactory GetFactory(ISourceSchemaClientConfiguration configuration)
@@ -118,44 +125,32 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
     }
 
     /// <summary>
-    /// Ends the current request so the scope can serve the next one. Shared clients are kept
-    /// until they expire; all other clients are disposed.
+    /// Ends the current request so the scope can serve the next one. Shared clients are kept;
+    /// all other clients are disposed.
     /// </summary>
     internal ValueTask ResetAsync()
     {
-        var now = Stopwatch.GetTimestamp();
-
-        if (_disposed || now < _nextExpiration)
+        if (_disposed || _ownedClientCount == 0)
         {
             return ValueTask.CompletedTask;
         }
 
-        return ReleaseClientsAsync(now);
+        return DisposeOwnedClientsAsync();
     }
 
-    private async ValueTask ReleaseClientsAsync(long now)
+    private async ValueTask DisposeOwnedClientsAsync()
     {
-        var nextExpiration = long.MaxValue;
-
         foreach (var (key, entry) in _clients)
         {
-            if (entry.ExpiresAt <= now)
+            // Shared clients may still be in use by other requests, so they are never disposed.
+            if (entry.SharedClient is null)
             {
                 _clients.TryRemove(key, out _);
-
-                // Shared clients may still be in use by other requests, so they are only released.
-                if (!entry.IsShared)
-                {
-                    await entry.Client.DisposeAsync().ConfigureAwait(false);
-                }
-            }
-            else if (entry.ExpiresAt < nextExpiration)
-            {
-                nextExpiration = entry.ExpiresAt;
+                await entry.Client.DisposeAsync().ConfigureAwait(false);
             }
         }
 
-        _nextExpiration = nextExpiration;
+        _ownedClientCount = 0;
     }
 
     public async ValueTask DisposeAsync()
@@ -166,8 +161,13 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
         }
 
         _disposed = true;
-        await ReleaseClientsAsync(long.MaxValue).ConfigureAwait(false);
+        await DisposeOwnedClientsAsync().ConfigureAwait(false);
+        _clients.Clear();
     }
 
-    private readonly record struct ClientEntry(ISourceSchemaClient Client, long ExpiresAt, bool IsShared);
+    private readonly record struct ClientEntry(ISourceSchemaClient Client, SharedSourceSchemaClient? SharedClient)
+    {
+        public bool IsValid(long requestTimestamp)
+            => SharedClient is null || SharedClient.IsValid(requestTimestamp);
+    }
 }

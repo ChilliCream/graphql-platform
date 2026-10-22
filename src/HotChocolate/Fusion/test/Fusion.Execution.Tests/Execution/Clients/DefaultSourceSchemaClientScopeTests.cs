@@ -123,16 +123,35 @@ public sealed class DefaultSourceSchemaClientScopeTests : FusionTestBase
     }
 
     [Fact]
-    public async Task ResetAsync_Should_ReleaseClientWithoutDisposingIt_When_SharedClientHasExpired()
+    public async Task GetClient_Should_ReplaceClientWithoutDisposingIt_When_SharedClientExpiredBeforeRequest()
     {
         // arrange
-        var factory = new TestClientFactory(shareClients: true) { SharedClientExpiresAt = 0 };
+        var factory = new TestClientFactory(shareClients: true, sharedClientExpiresAt: 100);
         await using var scope = CreateScope(factory);
+        scope.BeginRequest(50);
         var first = scope.GetClient("A", OperationType.Query);
-        factory.ReplaceSharedClient();
+        await scope.ResetAsync();
+        factory.ReplaceSharedClient(sharedClientExpiresAt: 200);
 
         // act
-        await scope.ResetAsync();
+        scope.BeginRequest(100);
+        var second = scope.GetClient("A", OperationType.Query);
+
+        // assert
+        Assert.NotSame(first, second);
+        Assert.False(((TestClient)first).IsDisposed);
+    }
+
+    [Fact]
+    public async Task GetClient_Should_ReplaceClientWithoutDisposingIt_When_SharedClientIsInvalidated()
+    {
+        // arrange
+        var factory = new TestClientFactory(shareClients: true);
+        await using var scope = CreateScope(factory);
+        var first = scope.GetClient("A", OperationType.Query);
+        factory.InvalidateSharedClient();
+
+        // act
         var second = scope.GetClient("A", OperationType.Query);
 
         // assert
@@ -213,13 +232,11 @@ public sealed class DefaultSourceSchemaClientScopeTests : FusionTestBase
         public HttpClient CreateClient(string name) => new();
     }
 
-    private sealed class TestClientFactory(bool shareClients)
+    private sealed class TestClientFactory(bool shareClients, long sharedClientExpiresAt = long.MaxValue)
         : ISourceSchemaClientFactory
         , ISharedSourceSchemaClientFactory
     {
-        private TestClient _sharedClient = new();
-
-        public long SharedClientExpiresAt { get; set; } = long.MaxValue;
+        private SharedSourceSchemaClient _sharedClient = new(new TestClient(), sharedClientExpiresAt);
 
         public bool CanHandle(ISourceSchemaClientConfiguration configuration) => true;
 
@@ -231,18 +248,19 @@ public sealed class DefaultSourceSchemaClientScopeTests : FusionTestBase
         public bool TryGetSharedClient(
             FusionSchemaDefinition schema,
             ISourceSchemaClientConfiguration configuration,
-            [NotNullWhen(true)] out ISourceSchemaClient? client,
-            out long expiresAt)
+            [NotNullWhen(true)] out SharedSourceSchemaClient? client)
         {
             client = shareClients ? _sharedClient : null;
-            expiresAt = SharedClientExpiresAt;
             return shareClients;
         }
 
-        public void ReplaceSharedClient()
+        public void ReplaceSharedClient(long sharedClientExpiresAt)
+            => _sharedClient = new SharedSourceSchemaClient(new TestClient(), sharedClientExpiresAt);
+
+        public void InvalidateSharedClient()
         {
-            _sharedClient = new TestClient();
-            SharedClientExpiresAt = long.MaxValue;
+            _sharedClient.Invalidate();
+            ReplaceSharedClient(long.MaxValue);
         }
     }
 

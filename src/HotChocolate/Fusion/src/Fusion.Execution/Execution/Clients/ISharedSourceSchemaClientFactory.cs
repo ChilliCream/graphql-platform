@@ -5,7 +5,7 @@ namespace HotChocolate.Fusion.Execution.Clients;
 
 /// <summary>
 /// A source schema client factory that hands out one client per configuration to all
-/// requests until the client expires. Shared clients are never disposed by their users.
+/// requests until the client expires or is invalidated.
 /// </summary>
 internal interface ISharedSourceSchemaClientFactory
 {
@@ -15,16 +15,11 @@ internal interface ISharedSourceSchemaClientFactory
     /// <param name="schema">The schema the client is used for.</param>
     /// <param name="configuration">The client configuration.</param>
     /// <param name="client">The shared client.</param>
-    /// <param name="expiresAt">
-    /// The <see cref="System.Diagnostics.Stopwatch"/> timestamp after which the client must
-    /// no longer be handed to new requests.
-    /// </param>
     /// <returns>
     /// <c>false</c> if clients of the given configuration are not shared.
     /// </returns>
     bool TryGetSharedClient(
         FusionSchemaDefinition schema,
         ISourceSchemaClientConfiguration configuration,
-        [NotNullWhen(true)] out ISourceSchemaClient? client,
-        out long expiresAt);
+        [NotNullWhen(true)] out SharedSourceSchemaClient? client);
 }

@@ -78,6 +78,11 @@ public sealed partial class OperationPlanContext
         _clientScope ??= requestContext.CreateClientScope();
         _clientScopeCreatedAt = Stopwatch.GetTimestamp();
 
+        if (_clientScope is DefaultSourceSchemaClientScope clientScope)
+        {
+            clientScope.BeginRequest(_clientScopeCreatedAt);
+        }
+
         _resultStore.Initialize(
             Memory,
             (FusionSchemaDefinition)requestContext.Schema,

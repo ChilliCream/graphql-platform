@@ -12,6 +12,7 @@ namespace HotChocolate.Fusion.Execution.Clients;
 internal sealed class HttpSourceSchemaClientFactory
     : SourceSchemaClientFactory<HttpSourceSchemaClientConfiguration>
     , ISharedSourceSchemaClientFactory
+    , IDisposable
 {
     private static readonly TimeSpan s_maxClientAge = TimeSpan.FromMinutes(2);
 #if NET9_0_OR_GREATER
@@ -19,9 +20,10 @@ internal sealed class HttpSourceSchemaClientFactory
 #else
     private readonly object _sync = new();
 #endif
-    private readonly ConditionalWeakTable<HttpSourceSchemaClientConfiguration, SharedClient> _sharedClients = [];
+    private readonly ConditionalWeakTable<HttpSourceSchemaClientConfiguration, SharedClientEntry> _sharedClients = [];
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IOptionsMonitor<HttpClientFactoryOptions>? _httpClientFactoryOptions;
+    private readonly IDisposable? _optionsChangeRegistration;
     private readonly bool _isDefaultHttpClientFactory;
 
     public HttpSourceSchemaClientFactory(
@@ -33,6 +35,7 @@ internal sealed class HttpSourceSchemaClientFactory
         _httpClientFactoryOptions = httpClientFactoryOptions;
         _isDefaultHttpClientFactory =
             httpClientFactory.GetType().FullName == "Microsoft.Extensions.Http.DefaultHttpClientFactory";
+        _optionsChangeRegistration = httpClientFactoryOptions?.OnChange((_, _) => InvalidateSharedClients());
     }
 
     protected override ISourceSchemaClient CreateClient(
@@ -51,8 +54,7 @@ internal sealed class HttpSourceSchemaClientFactory
     public bool TryGetSharedClient(
         FusionSchemaDefinition schema,
         ISourceSchemaClientConfiguration configuration,
-        [NotNullWhen(true)] out ISourceSchemaClient? client,
-        out long expiresAt)
+        [NotNullWhen(true)] out SharedSourceSchemaClient? client)
     {
         // Only clients of the default IHttpClientFactory are shared.
         if (!_isDefaultHttpClientFactory
@@ -60,33 +62,31 @@ internal sealed class HttpSourceSchemaClientFactory
             || configuration is not HttpSourceSchemaClientConfiguration httpConfiguration)
         {
             client = null;
-            expiresAt = 0;
             return false;
         }
 
         var annotateOperationKind = schema.GetRequestOptions().AnnotateOperationKind;
         var now = Stopwatch.GetTimestamp();
 
-        if (!_sharedClients.TryGetValue(httpConfiguration, out var sharedClient)
-            || !sharedClient.CanServe(annotateOperationKind, now))
+        if (!_sharedClients.TryGetValue(httpConfiguration, out var entry)
+            || !entry.CanServe(annotateOperationKind, now))
         {
             lock (_sync)
             {
-                if (!_sharedClients.TryGetValue(httpConfiguration, out sharedClient)
-                    || !sharedClient.CanServe(annotateOperationKind, now))
+                if (!_sharedClients.TryGetValue(httpConfiguration, out entry)
+                    || !entry.CanServe(annotateOperationKind, now))
                 {
-                    sharedClient = CreateSharedClient(schema, httpConfiguration, annotateOperationKind, now);
-                    _sharedClients.AddOrUpdate(httpConfiguration, sharedClient);
+                    entry = CreateSharedClientEntry(schema, httpConfiguration, annotateOperationKind, now);
+                    _sharedClients.AddOrUpdate(httpConfiguration, entry);
                 }
             }
         }
 
-        client = sharedClient.Client;
-        expiresAt = sharedClient.ExpiresAt;
+        client = entry.Client;
         return client is not null;
     }
 
-    private SharedClient CreateSharedClient(
+    private SharedClientEntry CreateSharedClientEntry(
         FusionSchemaDefinition schema,
         HttpSourceSchemaClientConfiguration configuration,
         bool annotateOperationKind,
@@ -96,7 +96,7 @@ internal sealed class HttpSourceSchemaClientFactory
 
         if (maxAge == TimeSpan.Zero)
         {
-            return new SharedClient(null, annotateOperationKind, long.MaxValue);
+            return new SharedClientEntry(null, annotateOperationKind);
         }
 
         // The client this one replaces is never disposed, because requests that took it before it
@@ -104,7 +104,23 @@ internal sealed class HttpSourceSchemaClientFactory
         // belongs to the IHttpClientFactory, so the garbage collector reclaims the replaced client.
         var client = CreateClient(schema, configuration);
         var expiresAt = now + (long)(maxAge.TotalSeconds * Stopwatch.Frequency);
-        return new SharedClient(client, annotateOperationKind, expiresAt);
+        return new SharedClientEntry(new SharedSourceSchemaClient(client, expiresAt), annotateOperationKind);
+    }
+
+    private void InvalidateSharedClients()
+    {
+        // Named HttpClient options decide whether and how long clients are shared.
+        lock (_sync)
+        {
+            IEnumerable<KeyValuePair<HttpSourceSchemaClientConfiguration, SharedClientEntry>> entries = _sharedClients;
+
+            foreach (var (_, entry) in entries)
+            {
+                entry.Client?.Invalidate();
+            }
+
+            _sharedClients.Clear();
+        }
     }
 
     internal TimeSpan GetMaxClientAge(HttpSourceSchemaClientConfiguration configuration)
@@ -128,9 +144,11 @@ internal sealed class HttpSourceSchemaClientFactory
         return handlerLifetime;
     }
 
-    private sealed record SharedClient(ISourceSchemaClient? Client, bool AnnotateOperationKind, long ExpiresAt)
+    public void Dispose() => _optionsChangeRegistration?.Dispose();
+
+    private sealed record SharedClientEntry(SharedSourceSchemaClient? Client, bool AnnotateOperationKind)
     {
         public bool CanServe(bool annotateOperationKind, long now)
-            => AnnotateOperationKind == annotateOperationKind && now < ExpiresAt;
+            => AnnotateOperationKind == annotateOperationKind && (Client is null || Client.IsValid(now));
     }
 }
