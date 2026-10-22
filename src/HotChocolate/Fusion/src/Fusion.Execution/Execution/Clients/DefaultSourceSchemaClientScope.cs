@@ -50,8 +50,7 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
             {
                 if (!_configurations.TryGet(name, operationType, out var config))
                 {
-                    throw new InvalidOperationException(
-                        $"No client configuration found for schema '{name}' and operation type {operationType}.");
+                    throw ThrowHelper.ClientConfigurationNotFound(name, operationType);
                 }
 
                 entry = CreateClient(config);
