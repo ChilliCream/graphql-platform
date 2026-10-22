@@ -205,7 +205,7 @@ internal static class IncrementalRfc1ResultFormatAdapter
             return false;
         }
 
-        if (!TryGetRelativePathSegments(selectionPath, path, selection, out var relativePath))
+        if (!TryGetRelativePathSegments(selectionPath, path, selection, out var rootPath, out var relativePath))
         {
             return false;
         }
@@ -218,9 +218,9 @@ internal static class IncrementalRfc1ResultFormatAdapter
         var cacheBuffer = context.CacheBuffer;
         var start = cacheBuffer.Length;
         var mergedWriter = new JsonWriter(cacheBuffer, s_jsonWriterOptions);
-        WriteMergedObject(mergedWriter, context, selectionPath, patchRoot, selection);
+        WriteMergedObject(mergedWriter, context, rootPath, patchRoot, selection);
         mergedData = cacheBuffer.GetWrittenMemorySegment(start, cacheBuffer.Length - start);
-        mergedPath = selectionPath;
+        mergedPath = rootPath;
         return true;
     }
 
@@ -251,35 +251,45 @@ internal static class IncrementalRfc1ResultFormatAdapter
         Path selectionPath,
         Path path,
         DeferSelectionTree selection,
+        out Path rootPath,
         out IReadOnlyList<object> relativePath)
     {
         if (selectionPath.Equals(path))
         {
+            rootPath = path;
             relativePath = [];
             return true;
         }
 
         var selectionSegments = selectionPath.ToList();
         var pathSegments = path.ToList();
+        var position = 0;
+        rootPath = Path.Root;
 
-        if (pathSegments.Count < selectionSegments.Count)
-        {
-            relativePath = [];
-            return false;
-        }
-
+        // The selection path comes from the operation document and has no list indices,
+        // so the list indices of the result path are carried over into the root path.
         for (var i = 0; i < selectionSegments.Count; i++)
         {
-            if (!Equals(selectionSegments[i], pathSegments[i]))
+            position = AppendListIndices(pathSegments, position, ref rootPath);
+
+            if (position == pathSegments.Count
+                || pathSegments[position] is not string fieldName
+                || !Equals(selectionSegments[i], fieldName))
             {
                 relativePath = [];
                 return false;
             }
+
+            rootPath = rootPath.Append(fieldName);
+            position++;
         }
 
-        var segments = new List<object>(pathSegments.Count - selectionSegments.Count);
+        // A deferred fragment inside a list field applies to each list item.
+        position = AppendListIndices(pathSegments, position, ref rootPath);
 
-        for (var i = selectionSegments.Count; i < pathSegments.Count; i++)
+        var segments = new List<object>(pathSegments.Count - position);
+
+        for (var i = position; i < pathSegments.Count; i++)
         {
             var segment = pathSegments[i];
 
@@ -302,6 +312,17 @@ internal static class IncrementalRfc1ResultFormatAdapter
 
         relativePath = segments;
         return true;
+
+        static int AppendListIndices(IReadOnlyList<object> pathSegments, int position, ref Path rootPath)
+        {
+            while (position < pathSegments.Count && pathSegments[position] is int index)
+            {
+                rootPath = rootPath.Append(index);
+                position++;
+            }
+
+            return position;
+        }
     }
 
     private static JsonDocument WrapPatchToSelectionPath(
