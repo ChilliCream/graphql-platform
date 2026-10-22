@@ -1,3 +1,4 @@
+using System.Buffers;
 using HotChocolate.Buffers;
 
 namespace HotChocolate.Utilities;
@@ -193,6 +194,25 @@ public class ChunkedArrayWriterTests
         // Assert
         Assert.Equal(expected, actual);
         Assert.Null(exception);
+    }
+
+    [Fact]
+    public void GetSequence_Should_ReturnWrittenBytes_When_RangeSpansChunks()
+    {
+        // Arrange
+        using var writer = new ChunkedArrayWriter();
+        writer.GetSpan(JsonMemory.BufferSize - 4);
+        writer.Advance(JsonMemory.BufferSize - 4);
+        var start = writer.Position;
+        "abcdefghij"u8.CopyTo(writer.GetSpan(10));
+        writer.Advance(10);
+
+        // Act
+        var sequence = writer.GetSequence(start, 10);
+
+        // Assert
+        Assert.False(sequence.IsSingleSegment);
+        Assert.Equal("abcdefghij"u8.ToArray(), sequence.ToArray());
     }
 
     private static void WritePattern(Span<byte> span, int seed)

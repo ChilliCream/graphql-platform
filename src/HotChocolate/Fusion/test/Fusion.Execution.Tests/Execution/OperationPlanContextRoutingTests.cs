@@ -3,7 +3,6 @@ using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
-using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Transport.Http;
@@ -386,7 +385,6 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
         private readonly OperationPlan _operationPlan;
         private readonly IVariableValueCollection _variables;
         private readonly List<OperationPlanContext> _rentedContexts = [];
-        private readonly List<FetchResultStore> _stores = [];
         private readonly List<CancellationTokenSource> _ctsList = [];
         private readonly List<(ObjectPool<PooledRequestContext> Pool, PooledRequestContext Context)> _requestContexts = [];
 
@@ -492,10 +490,9 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
             HashSet<string> keys,
             params ObjectFieldNode[] fields)
         {
-            var sourceStore = new FetchResultStore();
-            _stores.Add(sourceStore);
-
-            var entry = sourceStore.CreateVariableValueSets(CompactPath.Root, fields);
+            // the requirement values come from the result store of a parent context
+            var parentStore = CreateContext().GetResultStoreForChildDefer();
+            var entry = parentStore.CreateVariableValueSets(CompactPath.Root, fields);
             context.SetRequirements([entry], keys);
         }
 
@@ -509,11 +506,6 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
             foreach (var (pool, context) in _requestContexts)
             {
                 pool.Return(context);
-            }
-
-            foreach (var store in _stores)
-            {
-                store.Dispose();
             }
 
             foreach (var cts in _ctsList)

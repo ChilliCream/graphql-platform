@@ -153,7 +153,8 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
                 // An operation batch consists of a single GraphQL request document that
                 // contains multiple operations. The batch operation query parameter
                 // defines the order in which the operations shall be executed.
-                case 1 when context.Request.Query.ContainsKey(BatchOperations):
+                case 1 when context.Request.QueryString.HasValue
+                    && context.Request.Query.ContainsKey(BatchOperations):
                 {
                     string? operationNames = context.Request.Query[BatchOperations];
 

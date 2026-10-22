@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Security.Cryptography;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
+using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -41,6 +42,11 @@ public sealed partial record OperationPlan : IOperationPlan
         MaxNodeId = _nodesById.Length > 0 ? _nodesById.Length - 1 : 0;
         UsesDynamicSchemaNames = usesDynamicSchemaNames;
         UsesBatchNodes = usesBatchNodes;
+
+        if (EntityReuseCandidateMap.Create(this) is { } entityReuseCandidateMap)
+        {
+            operation.Features.Set(entityReuseCandidateMap);
+        }
     }
 
     /// <summary>

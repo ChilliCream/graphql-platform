@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Text;
 using HotChocolate.Fusion.Types;
@@ -18,7 +19,6 @@ public sealed class Selection : ISelection
     private readonly ulong[] _includeFlags;
     private readonly ulong[]? _wideIncludeFlags;
     private readonly int _wideIncludeFlagsStride;
-    private readonly byte[] _utf8ResponseName;
     private readonly byte[] _utf8JsonPropertyName;
     private readonly ulong _deferMask;
     private readonly ulong[]? _wideDeferMask;
@@ -139,7 +139,6 @@ public sealed class Selection : ISelection
             _listElementKind = listElementKind;
         }
 
-        _utf8ResponseName = Utf8StringCache.GetUtf8String(responseName);
         _utf8JsonPropertyName = Utf8StringCache.GetJsonPropertyName(responseName);
     }
 
@@ -149,7 +148,10 @@ public sealed class Selection : ISelection
     /// <inheritdoc />
     public string ResponseName { get; }
 
-    internal ReadOnlySpan<byte> Utf8ResponseName => _utf8ResponseName;
+    internal ReadOnlySpan<byte> Utf8ResponseName
+        => MemoryMarshal.CreateReadOnlySpan(
+            ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(_utf8JsonPropertyName), 1),
+            _utf8JsonPropertyName.Length - 3);
 
     /// <summary>
     /// Gets the response name as a minimized JSON property name token: the quoted

@@ -26,6 +26,9 @@ internal static class ThrowHelper
     public static InvalidOperationException DeferredPlanNotFound(SelectionPath path)
         => new($"No plan was found for the @defer fragment at path '{path}'.");
 
+    public static InvalidOperationException LookupTargetPathsReleased()
+        => new("The paths of lookup targets can only be created while their result document is in use.");
+
     public static OperationPlannerGuardrailException PlanningGuardrailExceeded(
         string operationId,
         OperationPlannerGuardrailReason reason,
@@ -81,6 +84,15 @@ internal static class ThrowHelper
 
     public static InvalidOperationException OperationPlanTaskCompletedWithoutResult()
         => new("The operation plan task completed without a result.");
+
+    public static InvalidOperationException ApolloLookupOperationMissing(int stepId)
+        => new($"The original Apollo lookup operation for execution step {stepId} is missing.");
+
+    public static InvalidOperationException ApolloEntityFetchProducedMultipleResults()
+        => new("Apollo entity fetches must produce a single source schema result.");
+
+    public static InvalidOperationException UnknownOperationDefinition(Type definitionType)
+        => new($"Unknown operation definition type: {definitionType.Name}");
 
     public static ArgumentOutOfRangeException InvalidCostOptionValue(
         string optionName,

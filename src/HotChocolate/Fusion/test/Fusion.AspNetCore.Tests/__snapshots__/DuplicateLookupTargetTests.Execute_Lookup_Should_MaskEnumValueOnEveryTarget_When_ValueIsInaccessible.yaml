@@ -1,0 +1,329 @@
+title: Execute_Lookup_Should_MaskEnumValueOnEveryTarget_When_ValueIsInaccessible
+request:
+  document: |
+    {
+      listings {
+        id
+        product {
+          name
+          status
+        }
+      }
+      featured {
+        id
+        product {
+          name
+          status
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "listings": [
+          {
+            "id": "1",
+            "product": {
+              "name": "Table",
+              "status": "AVAILABLE"
+            }
+          },
+          {
+            "id": "2",
+            "product": {
+              "name": "Table",
+              "status": "AVAILABLE"
+            }
+          },
+          {
+            "id": "3",
+            "product": {
+              "name": "Couch",
+              "status": null
+            }
+          },
+          {
+            "id": "4",
+            "product": {
+              "name": "Glass",
+              "status": "DISCONTINUED"
+            }
+          },
+          {
+            "id": "5",
+            "product": {
+              "name": "Table",
+              "status": "AVAILABLE"
+            }
+          },
+          {
+            "id": "6",
+            "product": {
+              "name": "Glass",
+              "status": "DISCONTINUED"
+            }
+          }
+        ],
+        "featured": [
+          {
+            "id": "7",
+            "product": {
+              "name": "Couch",
+              "status": null
+            }
+          },
+          {
+            "id": "8",
+            "product": {
+              "name": "Table",
+              "status": "AVAILABLE"
+            }
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: listings-api
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        listings: [Listing!]!
+        featured: [Listing!]!
+        productByUpc(upc: ID!): Product @lookup @internal
+      }
+
+      type Listing {
+        product: Product!
+        id: String!
+        productUpc: String!
+      }
+
+      type Product @key(fields: "upc") {
+        upc: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_d73ca491_1 {
+              listings {
+                id
+                product {
+                  upc
+                }
+              }
+              featured {
+                id
+                product {
+                  upc
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "listings": [
+                    {
+                      "id": "1",
+                      "product": {
+                        "upc": "1"
+                      }
+                    },
+                    {
+                      "id": "2",
+                      "product": {
+                        "upc": "1"
+                      }
+                    },
+                    {
+                      "id": "3",
+                      "product": {
+                        "upc": "2"
+                      }
+                    },
+                    {
+                      "id": "4",
+                      "product": {
+                        "upc": "3"
+                      }
+                    },
+                    {
+                      "id": "5",
+                      "product": {
+                        "upc": "1"
+                      }
+                    },
+                    {
+                      "id": "6",
+                      "product": {
+                        "upc": "3"
+                      }
+                    }
+                  ],
+                  "featured": [
+                    {
+                      "id": "7",
+                      "product": {
+                        "upc": "2"
+                      }
+                    },
+                    {
+                      "id": "8",
+                      "product": {
+                        "upc": "1"
+                      }
+                    }
+                  ]
+                }
+              }
+  - name: catalog-api
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        productByUpc(upc: ID!): Product @lookup
+      }
+
+      type Dimensions {
+        width: Int!
+        height: Int!
+      }
+
+      type Product @key(fields: "upc") {
+        warranty: String
+        upc: ID!
+        name: String!
+        price: Int!
+        status: ProductStatus
+        dimensions: Dimensions!
+      }
+
+      enum ProductStatus {
+        AVAILABLE
+        DISCONTINUED
+        HIDDEN @inaccessible
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_d73ca491_2($__fusion_1_upc: ID!) {
+              productByUpc(upc: $__fusion_1_upc) {
+                name
+                status
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_upc": "2"
+              },
+              {
+                "__fusion_1_upc": "1"
+              },
+              {
+                "__fusion_1_upc": "3"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "productByUpc": {
+                    "name": "Couch",
+                    "status": "HIDDEN"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productByUpc": {
+                    "name": "Table",
+                    "status": "AVAILABLE"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productByUpc": {
+                    "name": "Glass",
+                    "status": "DISCONTINUED"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          listings {
+            id
+            product {
+              name
+              status
+              upc @fusion__requirement
+            }
+          }
+          featured {
+            id
+            product {
+              name
+              status
+              upc @fusion__requirement
+            }
+          }
+        }
+      hash: c863198cb45f2b1f98e0b31eccdbb226
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: listings-api
+      operation: |
+        query Op_d73ca491_1 {
+          listings {
+            id
+            product {
+              upc
+            }
+          }
+          featured {
+            id
+            product {
+              upc
+            }
+          }
+        }
+    - id: 2
+      type: OperationBatch
+      schema: catalog-api
+      operation: |
+        query Op_d73ca491_2($__fusion_1_upc: ID!) {
+          productByUpc(upc: $__fusion_1_upc) {
+            name
+            status
+          }
+        }
+      source: $.productByUpc
+      targets:
+        - $.featured.product
+        - $.listings.product
+      batchingGroupId: 4
+      requirements:
+        - name: __fusion_1_upc
+          selectionMap: >-
+            upc
+      dependencies:
+        - id: 1
