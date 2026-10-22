@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using HotChocolate.Fusion.Text;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -15,5 +17,8 @@ internal readonly struct SourceResponseNameMapping(
 
     public string ResponseName { get; } = responseName;
 
-    public ReadOnlySpan<byte> ResponseNameUtf8 => _utf8JsonPropertyName.AsSpan(1..^2);
+    public ReadOnlySpan<byte> ResponseNameUtf8
+        => MemoryMarshal.CreateReadOnlySpan(
+            ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(_utf8JsonPropertyName), 1),
+            _utf8JsonPropertyName.Length - 3);
 }

@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Text;
 using HotChocolate.Fusion.Types;
@@ -147,7 +148,10 @@ public sealed class Selection : ISelection
     /// <inheritdoc />
     public string ResponseName { get; }
 
-    internal ReadOnlySpan<byte> Utf8ResponseName => _utf8JsonPropertyName.AsSpan(1..^2);
+    internal ReadOnlySpan<byte> Utf8ResponseName
+        => MemoryMarshal.CreateReadOnlySpan(
+            ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(_utf8JsonPropertyName), 1),
+            _utf8JsonPropertyName.Length - 3);
 
     /// <summary>
     /// Gets the response name as a minimized JSON property name token: the quoted
