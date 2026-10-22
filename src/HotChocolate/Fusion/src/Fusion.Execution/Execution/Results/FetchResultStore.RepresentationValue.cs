@@ -224,17 +224,28 @@ internal sealed partial class FetchResultStore
                 return RepresentationValue.Empty;
             }
 
+            var targets = _collectTargetCombined.AsSpan(0, targetCount);
+
             // Entities are only reused while the result has no errors.
-            var producerCount = _errors is { Count: > 0 } || _pocketedErrors is { Count: > 0 }
+            var candidateCount = _errors is { Count: > 0 } || _pocketedErrors is { Count: > 0 }
                 ? 0
-                : CollectEntityReuseProducersUnsafe(candidates);
+                : CollectCombinedElementsUnsafe(candidates.Paths, ref _collectProducerCombined);
+            var producers = _collectProducerCombined.AsSpan(0, candidateCount);
+
+            if (requestVariables.Count == 0
+                && TryReuseAllEntitiesUnsafe(targets, producers, requiredData, candidates, out reusedCount))
+            {
+                return RepresentationValue.Empty;
+            }
+
+            var producerCount = FilterEntityReuseProducersUnsafe(producers, candidates);
 
             return BuildRepresentationValueUnsafe(
-                _collectTargetCombined.AsSpan(0, targetCount),
+                targets,
                 requestVariables,
                 requiredShape,
                 entityTypeName,
-                _collectProducerCombined.AsSpan(0, producerCount),
+                producers[..producerCount],
                 candidates.ResponseNames,
                 out reusedCount);
         }

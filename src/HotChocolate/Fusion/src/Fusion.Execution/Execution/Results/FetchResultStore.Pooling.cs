@@ -168,6 +168,16 @@ internal sealed partial class FetchResultStore
         TrimOrClearBuffer(ref _collectTargetCombined, maxCollectTargetRetainLength);
         TrimOrClearBuffer(ref _collectProducerCombined, maxCollectTargetRetainLength);
 
+        // clear the entity reuse buffers to unroot the result document and the plan;
+        // drop them if a wide lookup made them grow.
+        TrimOrClearPooled(ref _reuseProducers, maxCollectTargetRetainLength);
+        TrimOrClearPooled(ref _reuseTargetObjects, maxCollectTargetRetainLength);
+        TrimOrClearPooled(ref _reuseMatches, maxCollectTargetRetainLength);
+        TrimOrClearPooled(ref _reuseProducerHits, maxCollectTargetRetainLength);
+        TrimOrClearPooled(ref _leafRowOffsets, maxCollectTargetRetainLength);
+        TrimOrClearPooled(ref _leafRowOffsetEntries, maxCollectTargetRetainLength);
+        _leafRowOffsetEntryCount = 0;
+
         // drop dedup tables that a lookup with many targets made grow
         _variableDedupTable.Trim(maxCollectTargetRetainLength * 4);
         _leafKeyDedupTable?.Trim(maxCollectTargetRetainLength * 4);
@@ -198,6 +208,24 @@ internal sealed partial class FetchResultStore
         {
             ArrayPool<CompositeResultElement>.Shared.Return(buffer, clearArray: true);
             buffer = ArrayPool<CompositeResultElement>.Shared.Rent(64);
+        }
+        else
+        {
+            buffer.AsSpan().Clear();
+        }
+    }
+
+    private static void TrimOrClearPooled<T>(ref T[] buffer, int maxRetainLength)
+    {
+        if (buffer.Length == 0)
+        {
+            return;
+        }
+
+        if (buffer.Length > maxRetainLength)
+        {
+            ArrayPool<T>.Shared.Return(buffer, clearArray: true);
+            buffer = [];
         }
         else
         {

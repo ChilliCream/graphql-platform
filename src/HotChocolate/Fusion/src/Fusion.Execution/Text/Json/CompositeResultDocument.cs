@@ -647,27 +647,134 @@ public sealed partial class CompositeResultDocument : IDisposable
     /// otherwise, <c>false</c> and the target is unchanged.
     /// </returns>
     internal bool TryAssignLeafValue(CompositeResultElement target, CompositeResultElement source)
-    {
-        var row = _metaDb.Get(source.Cursor);
+        => TryAssignLeafValue(target.Cursor, source.Cursor);
 
-        if (row.TokenType is not (ElementTokenType.String
-            or ElementTokenType.Number
-            or ElementTokenType.True
-            or ElementTokenType.False)
-            || (row.Flags & ElementFlags.Invalidated) == ElementFlags.Invalidated)
+    /// <summary>
+    /// Assigns the leaf value at <paramref name="source"/> to the slot at <paramref name="target"/>
+    /// without copying the value data.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c> if the source holds a non-null leaf value that was assigned;
+    /// otherwise, <c>false</c> and the target is unchanged.
+    /// </returns>
+    internal bool TryAssignLeafValue(Cursor target, Cursor source)
+    {
+        var row = _metaDb.Get(source);
+
+        if (!IsAssignableLeafValue(row))
         {
             return false;
         }
 
-        TrackValueReplacement(target.Cursor);
+        TrackValueReplacement(target);
         _metaDb.ReplacePreserveParent(
-            cursor: target.Cursor,
+            cursor: target,
             tokenType: row.TokenType,
             location: row.Location,
             sizeOrLength: row.SizeOrLength,
             sourceDocumentId: row.SourceDocumentId,
             flags: row.Flags);
         return true;
+    }
+
+    /// <summary>
+    /// Classifies the slot at <paramref name="cursor"/> for
+    /// <see cref="TryAssignLeafValue(Cursor, Cursor)"/>.
+    /// </summary>
+    internal LeafValueState GetLeafValueState(Cursor cursor)
+    {
+        var row = _metaDb.Get(cursor);
+
+        if (IsAssignableLeafValue(row))
+        {
+            return LeafValueState.Assignable;
+        }
+
+        return row.TokenType is ElementTokenType.Null
+            or ElementTokenType.None
+            or ElementTokenType.StartObject
+            or ElementTokenType.StartArray
+            ? LeafValueState.NotALeaf
+            : LeafValueState.Unsupported;
+    }
+
+    private static bool IsAssignableLeafValue(DbRow row)
+        => (row.TokenType is ElementTokenType.String
+                or ElementTokenType.Number
+                or ElementTokenType.True
+                or ElementTokenType.False)
+            && (row.Flags & ElementFlags.Invalidated) != ElementFlags.Invalidated;
+
+    /// <summary>
+    /// Reads the token type and raw bytes of the value at <paramref name="cursor"/> for a key
+    /// comparison. Only values that serialize as their raw bytes are readable: source result
+    /// strings and numbers, booleans, null and an unset slot (<see cref="ElementTokenType.None"/>).
+    /// </summary>
+    /// <returns>
+    /// <c>true</c> if the value is readable; otherwise, <c>false</c>.
+    /// </returns>
+    internal bool TryGetRawLeafValue(Cursor cursor, out ElementTokenType tokenType, out ReadOnlySpan<byte> value)
+    {
+        var row = _metaDb.Get(cursor);
+        tokenType = row.TokenType;
+
+        switch (tokenType)
+        {
+            case ElementTokenType.String or ElementTokenType.Number
+                when (row.Flags & ElementFlags.SourceResult) == ElementFlags.SourceResult:
+                value = _sources[row.SourceDocumentId].ReadRawValue(row.Location, row.SizeOrLength);
+                return true;
+
+            case ElementTokenType.True
+                or ElementTokenType.False
+                or ElementTokenType.Null
+                or ElementTokenType.None:
+                value = default;
+                return true;
+
+            default:
+                value = default;
+                return false;
+        }
+    }
+
+    /// <summary>
+    /// Resolves the object at <paramref name="cursor"/> to the first row of an object that a
+    /// selection set describes.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c> if the cursor refers to an object with a selection set; otherwise, <c>false</c>.
+    /// </returns>
+    internal bool TryGetSelectionSetObject(
+        Cursor cursor,
+        out Cursor startCursor,
+        out int selectionSetId,
+        out int numberOfRows)
+    {
+        startCursor = cursor;
+        var row = _metaDb.GetValue(ref startCursor);
+
+        if (row.TokenType is not ElementTokenType.StartObject
+            || row.OperationReferenceType is not OperationReferenceType.SelectionSet)
+        {
+            selectionSetId = 0;
+            numberOfRows = 0;
+            return false;
+        }
+
+        selectionSetId = row.OperationReferenceId;
+        numberOfRows = row.NumberOfRows;
+        return true;
+    }
+
+    /// <summary>
+    /// Gets the row offset of the value slot of <paramref name="selection"/> from the first row
+    /// of an object that <paramref name="selectionSet"/> describes.
+    /// </summary>
+    internal static int GetValueRowOffset(SelectionSet selectionSet, Selection selection)
+    {
+        Debug.Assert(selection.Id > selectionSet.Id);
+        return ((selection.Id - selectionSet.Id - 1) * 2) + 2;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
