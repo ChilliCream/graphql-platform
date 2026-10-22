@@ -109,6 +109,15 @@ Send mutations over POST, or set `AllowedGetOperations` to `AllowedGetOperations
 
 These responses are HTTP 400, or 413 under the `Draft20260903` transport version; under the `Legacy` transport version, an `application/json` response stays HTTP 200.
 
+## Persisted operation routes answer methods they do not map
+
+A request to a `MapGraphQLPersistedOperations` route with a method the route does not map, such as `PUT` or `OPTIONS`, has a `404` status code. Under the `Draft20260903` [transport version](../../hotchocolate/server/http-transport.md#draft20260903), it has a `405` status code with an `Allow` header, or `204` for `OPTIONS`.
+
+In 16.6, the answer depended on the gateway's other routes:
+
+- With the default paths, `MapGraphQL()` covers `/graphql/persisted`, and the request had a `404` status code.
+- With the persisted routes mapped without `MapGraphQL()`, as in the [first-party API setup](../guides/first-party-api.md) in production, or at their own path such as `/api/operations`, ASP.NET Core routing answered with a `405` status code and `Allow: GET, POST`.
+
 # Deprecations
 
 ## Raw condition masks replaced by ConditionFlags

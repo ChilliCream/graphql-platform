@@ -297,6 +297,15 @@ app.MapGraphQL();
 
 In Azure Functions, which serves the embedded Nitro, a request whose `Accept` header contains `text/html` without preferring it, such as `text/html;q=0`, is not served the Nitro page: it has a `404` status code, or a `405` status code when GET requests are disabled under the `Draft20260903` transport version.
 
+## Persisted operation routes answer methods they do not map
+
+A request to a `MapGraphQLPersistedOperations` route with a method the route does not map, such as `PUT` or `OPTIONS`, has a `404` status code, as on the GraphQL endpoint. Under the `Draft20260903` transport version, it has a `405` status code with an `Allow` header, or `204` for `OPTIONS`, see [Transport Versions](../server/http-transport.md#draft20260903).
+
+In 16.6, the answer depended on the application's other routes:
+
+- With the default paths, `MapGraphQL()` covers `/graphql/persisted`, and the request had a `404` status code.
+- With the persisted routes mapped without `MapGraphQL()`, or at their own path such as `/api/operations`, ASP.NET Core routing answered with a `405` status code and `Allow: GET, POST`.
+
 # Noteworthy changes
 
 ## New cost options
