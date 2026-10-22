@@ -227,10 +227,10 @@ internal sealed partial class FetchResultStore
             var targets = _collectTargetCombined.AsSpan(0, targetCount);
 
             // Entities are only reused while the result has no errors.
-            var producerCount = _errors is { Count: > 0 } || _pocketedErrors is { Count: > 0 }
+            var candidateCount = _errors is { Count: > 0 } || _pocketedErrors is { Count: > 0 }
                 ? 0
                 : CollectCombinedElements(candidates.Paths, ref _collectProducerCombined);
-            var producers = _collectProducerCombined.AsSpan(0, producerCount);
+            var producers = _collectProducerCombined.AsSpan(0, candidateCount);
 
             if (requestVariables.Count == 0
                 && TryReuseAllEntities(targets, producers, requiredData, candidates, out reusedCount))
@@ -238,14 +238,14 @@ internal sealed partial class FetchResultStore
                 return RepresentationValue.Empty;
             }
 
-            var holdingCount = FilterHoldingProducers(producers, candidates);
+            var producerCount = FilterEntityReuseProducers(producers, candidates);
 
             return BuildRepresentationValue(
                 targets,
                 requestVariables,
                 requiredShape,
                 entityTypeName,
-                producers[..holdingCount],
+                producers[..producerCount],
                 candidates.ResponseNames,
                 out reusedCount);
         }

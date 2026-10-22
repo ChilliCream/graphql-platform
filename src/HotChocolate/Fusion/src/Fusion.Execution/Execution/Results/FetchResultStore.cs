@@ -1186,8 +1186,8 @@ AddErrors_Next:
             }
 
             var targets = _collectTargetCombined.AsSpan(0, targetCount);
-            var producerCount = CollectCombinedElements(candidates.Paths, ref _collectProducerCombined);
-            var producers = _collectProducerCombined.AsSpan(0, producerCount);
+            var candidateCount = CollectCombinedElements(candidates.Paths, ref _collectProducerCombined);
+            var producers = _collectProducerCombined.AsSpan(0, candidateCount);
 
             if (requestVariables.Count == 0
                 && TryReuseAllEntities(targets, producers, requiredData, candidates, out reusedCount))
@@ -1202,15 +1202,15 @@ AddErrors_Next:
                 return variableValueSets;
             }
 
-            var holdingCount = FilterHoldingProducers(producers, candidates);
+            var producerCount = FilterEntityReuseProducers(producers, candidates);
 
-            if (holdingCount == 0)
+            if (producerCount == 0)
             {
                 return variableValueSets;
             }
 
             var producerValueSets = BuildVariableValueSets(
-                producers[..holdingCount],
+                producers[..producerCount],
                 requestVariables,
                 requiredData);
 
@@ -1245,22 +1245,22 @@ AddErrors_Next:
 
     // Caller must hold _lock. Moves the candidate entities that hold a leaf value for every
     // reused field and a key that is not all null to the front of the producers.
-    private static int FilterHoldingProducers(
+    private static int FilterEntityReuseProducers(
         Span<CompositeResultElement> producers,
         EntityReuseCandidateList candidates)
     {
-        var holdingCount = 0;
+        var producerCount = 0;
 
         for (var i = 0; i < producers.Length; i++)
         {
             if (HoldsLeafValues(producers[i], candidates.ResponseNames)
                 && HasNonNullKeyValue(producers[i], candidates.KeyResponseNames))
             {
-                producers[holdingCount++] = producers[i];
+                producers[producerCount++] = producers[i];
             }
         }
 
-        return holdingCount;
+        return producerCount;
     }
 
     /// <summary>
