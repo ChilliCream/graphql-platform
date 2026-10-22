@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Language;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Directives;
 using HotChocolate.Language;
@@ -440,6 +441,10 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                         {
                             node.AddOptionalDependency(dependencyNode);
                         }
+                        else if (OperationPlanner.IsEntityReuseOrderingDependency(node, dependencyNode))
+                        {
+                            node.AddOptionalDependency(dependencyNode);
+                        }
                         else
                         {
                             node.AddDependency(dependencyNode);
@@ -548,7 +553,15 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                         {
                             if (planNodeMap.TryGetValue(depId, out var depNode))
                             {
-                                opDef.AddDependency(depNode);
+                                if (groupNode is OperationBatchExecutionNode
+                                    && OperationPlanner.IsEntityReuseOrderingDependency(opDef, depNode))
+                                {
+                                    opDef.AddOptionalDependency(depNode);
+                                }
+                                else
+                                {
+                                    opDef.AddDependency(depNode);
+                                }
                             }
                         }
                     }

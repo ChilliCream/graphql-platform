@@ -970,9 +970,11 @@ AddErrors_Next:
         var canCopy = selectionSet.Type.Kind is TypeKind.Object;
         var offsetStart = entryCount * leafValues.Length;
 
+        // Every entry, rejected or not, owns the offset segment at its index.
+        EnsureLength(ref _leafRowOffsets, offsetStart + leafValues.Length, offsetStart);
+
         if (canCopy)
         {
-            EnsureLength(ref _leafRowOffsets, offsetStart + leafValues.Length, offsetStart);
             var resolved = _leafRowOffsets.AsSpan(offsetStart, leafValues.Length);
 
             for (var i = 0; i < leafValues.Length; i++)

@@ -4,6 +4,7 @@ using System.Text;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
@@ -63,7 +64,16 @@ public sealed partial class OperationPlanner
         planSteps = TransformPlanSteps(planSteps, operationDefinition);
         IndexDependencies(planSteps, ctx);
         BuildExecutionNodes(planSteps, ctx, _schema, hasVariables, cancellationToken);
-        MergeAndBatchOperations(ctx, _options.EnableRequestGrouping, _options.MergePolicy, _schema);
+        var splitForEntityReuse = _options.EnableEntityReuseSplitting
+            && operationDefinition.Operation is OperationType.Query
+            && deliveryGroups.IsDefaultOrEmpty
+            && incrementalPlans.IsDefaultOrEmpty;
+        MergeAndBatchOperations(
+            ctx,
+            _options.EnableRequestGrouping,
+            _options.MergePolicy,
+            splitForEntityReuse,
+            _schema);
         WireExecutionDependencies(ctx);
 
         var rootNodes = planSteps
@@ -989,10 +999,16 @@ public sealed partial class OperationPlanner
         ExecutionPlanBuildContext ctx,
         bool enableRequestGrouping,
         OperationMergePolicy mergePolicy,
+        bool splitForEntityReuse,
         FusionSchemaDefinition schema)
     {
         var nodeFieldBoundCache = new Dictionary<int, bool>();
-        var mergeResults = MergeStructurallyIdenticalOperations(ctx, nodeFieldBoundCache, mergePolicy);
+        var mergeResults = MergeStructurallyIdenticalOperations(
+            ctx,
+            nodeFieldBoundCache,
+            mergePolicy,
+            splitForEntityReuse,
+            schema);
         var apolloMergeResults = MergeStructurallyIdenticalApolloLookups(ctx, nodeFieldBoundCache, mergePolicy);
 
         // Capture each node's dependency identifiers now, because the batching
@@ -1021,11 +1037,16 @@ public sealed partial class OperationPlanner
     /// Finds query operations that are structurally identical and merges
     /// them into a single <see cref="BatchOperationDefinition"/>. This
     /// reduces the number of network requests the executor has to send.
+    /// When <paramref name="splitForEntityReuse"/> is set, identical lookups at
+    /// different dependency depths stay apart and each deeper lookup depends on
+    /// the next shallower one, so that entity reuse can serve it.
     /// </summary>
     private static Dictionary<int, MergeResult> MergeStructurallyIdenticalOperations(
         ExecutionPlanBuildContext ctx,
         Dictionary<int, bool> nodeFieldBoundCache,
-        OperationMergePolicy mergePolicy)
+        OperationMergePolicy mergePolicy,
+        bool splitForEntityReuse,
+        FusionSchemaDefinition schema)
     {
         if (mergePolicy is OperationMergePolicy.None)
         {
@@ -1066,29 +1087,38 @@ public sealed partial class OperationPlanner
                 continue;
             }
 
+            if (splitForEntityReuse && IsReusableLookup(equivalentNodes[0], schema))
+            {
+                List<int> shallowerIds = [];
+
+                foreach (var level in GroupByDependencyDepth(equivalentNodes, ctx.DependenciesByStepId))
+                {
+                    List<int> levelIds = [];
+
+                    foreach (var group in PartitionIntoMergeableGroups(
+                        level, ctx.DependenciesByStepId, mergePolicy))
+                    {
+                        levelIds.Add(MergeGroup(ctx, group, mergeResults));
+                    }
+
+                    foreach (var levelId in levelIds)
+                    {
+                        foreach (var shallowerId in shallowerIds)
+                        {
+                            AddDependency(ctx, levelId, shallowerId);
+                        }
+                    }
+
+                    shallowerIds = levelIds;
+                }
+
+                continue;
+            }
+
             foreach (var group in PartitionIntoMergeableGroups(
                 equivalentNodes, ctx.DependenciesByStepId, mergePolicy))
             {
-                if (group.Count <= 1)
-                {
-                    continue;
-                }
-
-                group.Sort((a, b) => a.Id.CompareTo(b.Id));
-
-                var primary = group[0];
-                var (canonicalOp, canonicalRequirements) = CanonicalizeOperation(primary);
-                var targets = new SelectionPath[group.Count];
-
-                for (var i = 0; i < group.Count; i++)
-                {
-                    targets[i] = group[i].Target;
-                }
-
-                mergeResults[primary.Id] = new MergeResult(
-                    targets, canonicalOp, canonicalRequirements, primary);
-
-                AbsorbMergedNodes(ctx, primary.Id, group);
+                MergeGroup(ctx, group, mergeResults);
             }
         }
 
@@ -1295,6 +1325,105 @@ public sealed partial class OperationPlanner
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Merges a group of structurally identical operations into its primary node
+    /// and returns the id of the node that represents the group.
+    /// </summary>
+    private static int MergeGroup(
+        ExecutionPlanBuildContext ctx,
+        List<OperationExecutionNode> group,
+        Dictionary<int, MergeResult> mergeResults)
+    {
+        if (group.Count <= 1)
+        {
+            return group[0].Id;
+        }
+
+        group.Sort((a, b) => a.Id.CompareTo(b.Id));
+
+        var primary = group[0];
+        var (canonicalOp, canonicalRequirements) = CanonicalizeOperation(primary);
+        var targets = new SelectionPath[group.Count];
+
+        for (var i = 0; i < group.Count; i++)
+        {
+            targets[i] = group[i].Target;
+        }
+
+        mergeResults[primary.Id] = new MergeResult(
+            targets, canonicalOp, canonicalRequirements, primary);
+
+        AbsorbMergedNodes(ctx, primary.Id, group);
+
+        return primary.Id;
+    }
+
+    private static bool IsReusableLookup(OperationExecutionNode node, FusionSchemaDefinition schema)
+    {
+        if (node.LookupTypeName is null
+            || !schema.Types.TryGetType<FusionComplexTypeDefinition>(node.LookupTypeName, out var lookupType)
+            || !EntityReuseCandidateMap.TryGetReusableFields(
+                node.ResultSelectionSet,
+                node.Requirements,
+                node.ForwardedVariables.Length,
+                node.Conditions.Length,
+                out var responseNames,
+                out _))
+        {
+            return false;
+        }
+
+        // Entity reuse only takes leaf values.
+        foreach (var responseName in responseNames)
+        {
+            if (!lookupType.Fields.TryGetField(responseName, out var field)
+                || !field.Type.NamedType().IsLeafType())
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Groups nodes by their dependency depth, ordered from the shallowest to the deepest level.
+    /// </summary>
+    private static List<List<OperationExecutionNode>> GroupByDependencyDepth(
+        List<OperationExecutionNode> nodes,
+        Dictionary<int, HashSet<int>> dependenciesByStepId)
+    {
+        var depthLookup = new Dictionary<int, int>();
+        var recursionStack = new HashSet<int>();
+        var levels = new SortedDictionary<int, List<OperationExecutionNode>>();
+
+        foreach (var node in nodes)
+        {
+            var depth = GetDependencyDepth(node.Id, dependenciesByStepId, depthLookup, recursionStack);
+
+            if (!levels.TryGetValue(depth, out var level))
+            {
+                level = [];
+                levels[depth] = level;
+            }
+
+            level.Add(node);
+        }
+
+        return [.. levels.Values];
+    }
+
+    private static void AddDependency(ExecutionPlanBuildContext ctx, int nodeId, int dependencyId)
+    {
+        if (!ctx.DependenciesByStepId.TryGetValue(nodeId, out var dependencies))
+        {
+            dependencies = [];
+            ctx.DependenciesByStepId[nodeId] = dependencies;
+        }
+
+        dependencies.Add(dependencyId);
     }
 
     /// <summary>
@@ -1622,7 +1751,7 @@ public sealed partial class OperationPlanner
             }
         }
 
-        foreach (var (_, memberDependencies) in perOperationDependencies)
+        foreach (var (batchNode, memberDependencies) in perOperationDependencies)
         {
             foreach (var (operationId, dependencyIds) in memberDependencies)
             {
@@ -1633,7 +1762,15 @@ public sealed partial class OperationPlanner
                     {
                         if (planNodeById.TryGetValue(dependencyId, out var dependencyNode))
                         {
-                            operationDefinition.AddDependency(dependencyNode);
+                            if (batchNode is OperationBatchExecutionNode
+                                && IsEntityReuseOrderingDependency(operationDefinition, dependencyNode))
+                            {
+                                operationDefinition.AddOptionalDependency(dependencyNode);
+                            }
+                            else
+                            {
+                                operationDefinition.AddDependency(dependencyNode);
+                            }
                         }
                     }
                 }
@@ -1976,7 +2113,15 @@ public sealed partial class OperationPlanner
                 }
 
                 childEntry.AddDependent(entry);
-                entry.AddDependency(childEntry);
+
+                if (IsEntityReuseOrderingDependency(entry, childEntry))
+                {
+                    entry.AddOptionalDependency(childEntry);
+                }
+                else
+                {
+                    entry.AddDependency(childEntry);
+                }
             }
         }
     }
@@ -2188,13 +2333,105 @@ public sealed partial class OperationPlanner
     }
 
     private static string ComputeCanonicalSignature(OperationExecutionNode node)
-    {
-        var replacements = BuildPrefixReplacements(node.Requirements);
-        var bodyText = FormatCanonicalSelectionSet(node.OperationDocument, replacements);
-        var conditions = FormatCanonicalConditions(node.Conditions);
+        => ComputeCanonicalSignature(
+            node.SchemaName,
+            node.Source,
+            node.OperationDocument,
+            node.Requirements,
+            node.Conditions);
 
-        return $"{node.SchemaName}|{node.Source}|{conditions}|{bodyText}";
+    private static string ComputeCanonicalSignature(
+        string? schemaName,
+        SelectionPath source,
+        Utf8OperationDocument document,
+        ReadOnlySpan<OperationRequirement> requirements,
+        ReadOnlySpan<ExecutionNodeCondition> conditions)
+    {
+        var replacements = BuildPrefixReplacements(requirements);
+        var bodyText = FormatCanonicalSelectionSet(document, replacements);
+        var formattedConditions = FormatCanonicalConditions(conditions);
+
+        return $"{schemaName}|{source}|{formattedConditions}|{bodyText}";
     }
+
+    /// <summary>
+    /// Determines whether <paramref name="dependent"/> runs after <paramref name="dependency"/>
+    /// only so that entity reuse can serve it. That is the case when the dependency is, or
+    /// contains, the same lookup that only selects leaf fields, so it cannot supply any data
+    /// the dependent needs.
+    /// </summary>
+    internal static bool IsEntityReuseOrderingDependency(
+        IOperationPlanNode dependent,
+        IOperationPlanNode dependency)
+    {
+        if (dependency is OperationBatchExecutionNode batch)
+        {
+            foreach (var operation in batch.Operations)
+            {
+                if (IsEntityReuseOrderingDependency(dependent, operation))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        return TryGetLookupKey(dependent, out var schemaName, out var lookupTypeName)
+            && TryGetLookupKey(dependency, out var dependencySchemaName, out var dependencyLookupTypeName)
+            && string.Equals(schemaName, dependencySchemaName, StringComparison.Ordinal)
+            && string.Equals(lookupTypeName, dependencyLookupTypeName, StringComparison.Ordinal)
+            && SelectsOnlyReusableFields(dependent)
+            && ComputeLookupSignature(dependent).Equals(ComputeLookupSignature(dependency), StringComparison.Ordinal);
+    }
+
+    private static bool TryGetLookupKey(
+        IOperationPlanNode node,
+        out string? schemaName,
+        [NotNullWhen(true)] out string? lookupTypeName)
+    {
+        (schemaName, lookupTypeName) = node switch
+        {
+            OperationExecutionNode operation => (operation.SchemaName, operation.LookupTypeName),
+            OperationDefinition operation => (operation.SchemaName, operation.LookupTypeName),
+            _ => (null, null)
+        };
+
+        return lookupTypeName is not null;
+    }
+
+    private static bool SelectsOnlyReusableFields(IOperationPlanNode node)
+        => node switch
+        {
+            OperationExecutionNode operation => EntityReuseCandidateMap.TryGetReusableFields(
+                operation.ResultSelectionSet,
+                operation.Requirements,
+                operation.ForwardedVariables.Length,
+                operation.Conditions.Length,
+                out _,
+                out _),
+            OperationDefinition operation => EntityReuseCandidateMap.TryGetReusableFields(
+                operation.ResultSelectionSet,
+                operation.Requirements,
+                operation.ForwardedVariables.Length,
+                operation.Conditions.Length,
+                out _,
+                out _),
+            _ => false
+        };
+
+    private static string ComputeLookupSignature(IOperationPlanNode node)
+        => node switch
+        {
+            OperationExecutionNode operation => ComputeCanonicalSignature(operation),
+            OperationDefinition operation => ComputeCanonicalSignature(
+                operation.SchemaName,
+                operation.Source,
+                operation.Document,
+                operation.Requirements,
+                operation.Conditions),
+            _ => throw new ArgumentOutOfRangeException(nameof(node))
+        };
 
     /// <summary>
     /// Computes a signature that is equal for two Apollo entity lookups exactly when

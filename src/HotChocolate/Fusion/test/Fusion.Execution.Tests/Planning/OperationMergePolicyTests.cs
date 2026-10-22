@@ -223,7 +223,8 @@ public class OperationMergePolicyTests : FusionTestBase
             compiler,
             new OperationPlannerOptions
             {
-                MergePolicy = mergePolicy
+                MergePolicy = mergePolicy,
+                EnableEntityReuseSplitting = false
             });
         const string id = "123456789101112";
         return planner.CreatePlan(id, id, id, operation);
@@ -829,7 +830,8 @@ public class OperationMergePolicyTests : FusionTestBase
             new OperationPlannerOptions
             {
                 MergePolicy = OperationMergePolicy.Balanced,
-                EnableRequestGrouping = enableRequestGrouping
+                EnableRequestGrouping = enableRequestGrouping,
+                EnableEntityReuseSplitting = false
             });
 
         // assert
@@ -890,7 +892,8 @@ public class OperationMergePolicyTests : FusionTestBase
             new OperationPlannerOptions
             {
                 MergePolicy = OperationMergePolicy.Aggressive,
-                EnableRequestGrouping = enableRequestGrouping
+                EnableRequestGrouping = enableRequestGrouping,
+                EnableEntityReuseSplitting = false
             });
 
         // assert
@@ -922,7 +925,8 @@ public class OperationMergePolicyTests : FusionTestBase
             new OperationPlannerOptions
             {
                 MergePolicy = OperationMergePolicy.Aggressive,
-                EnableRequestGrouping = enableRequestGrouping
+                EnableRequestGrouping = enableRequestGrouping,
+                EnableEntityReuseSplitting = false
             });
 
         // assert
@@ -957,7 +961,8 @@ public class OperationMergePolicyTests : FusionTestBase
             new OperationPlannerOptions
             {
                 MergePolicy = OperationMergePolicy.Balanced,
-                EnableRequestGrouping = enableRequestGrouping
+                EnableRequestGrouping = enableRequestGrouping,
+                EnableEntityReuseSplitting = false
             });
 
         // assert

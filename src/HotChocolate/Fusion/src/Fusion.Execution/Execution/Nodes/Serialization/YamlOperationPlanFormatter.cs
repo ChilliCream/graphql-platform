@@ -295,22 +295,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.WriteLine("requiresFileUpload: true");
         }
 
-        if (node.Dependencies.Length > 0 || node.ParentDependencies.Length > 0)
-        {
-            writer.WriteLine("dependencies:");
-            writer.Indent();
-            foreach (var dependency in node.Dependencies)
-            {
-                writer.WriteLine("- id: {0}", dependency.Id);
-            }
-
-            foreach (var parentStepId in node.ParentDependencies)
-            {
-                writer.WriteLine("- parentNodeId: {0}", parentStepId);
-            }
-
-            writer.Unindent();
-        }
+        WriteDependencies(node.Dependencies, node.OptionalDependencies, node.ParentDependencies, writer);
 
         TryWriteNodeTrace(writer, trace);
 
@@ -377,7 +362,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         writer.Unindent();
 
-        WriteDependencies(node.Dependencies, node.ParentDependencies, writer);
+        WriteDependencies(node.Dependencies, node.OptionalDependencies, node.ParentDependencies, writer);
         TryWriteNodeTrace(writer, trace);
 
         writer.Unindent();
@@ -448,7 +433,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.WriteLine("requiresFileUpload: true");
         }
 
-        WriteDependencies(opDef.Dependencies, opDef.ParentDependencies, writer);
+        WriteDependencies(opDef.Dependencies, opDef.OptionalDependencies, opDef.ParentDependencies, writer);
         TryWriteNodeTrace(writer, trace);
 
         writer.Unindent();
@@ -508,7 +493,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.WriteLine("requiresFileUpload: true");
         }
 
-        WriteDependencies(opDef.Dependencies, opDef.ParentDependencies, writer);
+        WriteDependencies(opDef.Dependencies, opDef.OptionalDependencies, opDef.ParentDependencies, writer);
         TryWriteNodeTrace(writer, trace);
 
         writer.Unindent();
@@ -559,7 +544,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.WriteLine("requiresFileUpload: true");
         }
 
-        WriteDependencies(node.Dependencies, node.ParentDependencies, writer);
+        WriteDependencies(node.Dependencies, node.OptionalDependencies, node.ParentDependencies, writer);
         TryWriteNodeTrace(writer, trace);
 
         writer.Unindent();
@@ -645,7 +630,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.WriteLine("requiresFileUpload: true");
         }
 
-        WriteDependencies(opDef.Dependencies, opDef.ParentDependencies, writer);
+        WriteDependencies(opDef.Dependencies, opDef.OptionalDependencies, opDef.ParentDependencies, writer);
         TryWriteNodeTrace(writer, trace);
 
         writer.Unindent();
@@ -721,10 +706,11 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
     private static void WriteDependencies(
         ReadOnlySpan<IOperationPlanNode> dependencies,
+        ReadOnlySpan<IOperationPlanNode> optionalDependencies,
         ReadOnlySpan<int> parentDependencies,
         CodeWriter writer)
     {
-        if (dependencies.Length == 0 && parentDependencies.Length == 0)
+        if (dependencies.Length == 0 && optionalDependencies.Length == 0 && parentDependencies.Length == 0)
         {
             return;
         }
@@ -732,9 +718,20 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         writer.WriteLine("dependencies:");
         writer.Indent();
 
-        foreach (var dependency in dependencies)
+        var i = 0;
+        var j = 0;
+
+        while (i < dependencies.Length || j < optionalDependencies.Length)
         {
-            writer.WriteLine("- id: {0}", dependency.Id);
+            if (j == optionalDependencies.Length
+                || (i < dependencies.Length && dependencies[i].Id < optionalDependencies[j].Id))
+            {
+                writer.WriteLine("- id: {0}", dependencies[i++].Id);
+            }
+            else
+            {
+                writer.WriteLine("- id: {0}", optionalDependencies[j++].Id);
+            }
         }
 
         foreach (var parentStepId in parentDependencies)

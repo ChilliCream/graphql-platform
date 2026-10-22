@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.ApolloFederation;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -86,7 +87,7 @@ internal sealed class EntityReuseCandidateMap
 
                     lookups.Add(new Lookup(
                         operation.Id,
-                        operation.Dependencies.ToArray(),
+                        [.. operation.Dependencies, .. operation.OptionalDependencies],
                         operation.LookupTypeName,
                         operation.ResultSelectionSet,
                         operation.Requirements.ToArray(),
@@ -180,6 +181,67 @@ internal sealed class EntityReuseCandidateMap
         return candidatesById is null ? null : new EntityReuseCandidateMap(candidatesById);
     }
 
+    /// <summary>
+    /// Gets the response names of the leaf fields a lookup selects and of its key fields.
+    /// </summary>
+    /// <returns>
+    /// <c>false</c> if the lookup can never take its entities from the composite result.
+    /// </returns>
+    internal static bool TryGetReusableFields(
+        ResultSelectionSet resultSelectionSet,
+        ReadOnlySpan<OperationRequirement> requirements,
+        int forwardedVariableCount,
+        int conditionCount,
+        [NotNullWhen(true)] out string[]? responseNames,
+        [NotNullWhen(true)] out string[]? keyResponseNames)
+    {
+        responseNames = null;
+        keyResponseNames = null;
+
+        if (requirements.Length == 0
+            || forwardedVariableCount > 0
+            || conditionCount > 0
+            || resultSelectionSet.HasSourceResponseNameMappings
+            || resultSelectionSet.ProducesOpaqueElements
+            || resultSelectionSet.Fragments.Length > 0)
+        {
+            return false;
+        }
+
+        var leafNames = new string[resultSelectionSet.Selections.Length];
+
+        for (var i = 0; i < leafNames.Length; i++)
+        {
+            var selection = resultSelectionSet.Selections[i];
+
+            if (selection.Child is not null)
+            {
+                return false;
+            }
+
+            leafNames[i] = selection.ResponseName;
+        }
+
+        var keyNames = new string[requirements.Length];
+
+        for (var i = 0; i < keyNames.Length; i++)
+        {
+            var requirement = requirements[i];
+
+            if (requirement.InternalAlias is not null
+                || !FetchResultStore.TryGetSimpleRequirementFieldName(requirement, out var fieldName))
+            {
+                return false;
+            }
+
+            keyNames[i] = fieldName;
+        }
+
+        responseNames = leafNames;
+        keyResponseNames = keyNames;
+        return true;
+    }
+
     private static EntityReuseCandidateList? TryCreateCandidates(
         Dictionary<int, ExecutionNode> nodesById,
         Lookup lookup,
@@ -187,47 +249,17 @@ internal sealed class EntityReuseCandidateMap
         Dictionary<string, SelectionSet> selectionSets,
         Dictionary<string, List<string>> pathsByType)
     {
-        var resultSelectionSet = lookup.ResultSelectionSet;
-
         if (lookup.LookupTypeName is null
-            || lookup.Requirements.Length == 0
-            || lookup.ForwardedVariableCount > 0
-            || lookup.ConditionCount > 0
-            || resultSelectionSet.HasSourceResponseNameMappings
-            || resultSelectionSet.ProducesOpaqueElements
-            || resultSelectionSet.Fragments.Length > 0
+            || !TryGetReusableFields(
+                lookup.ResultSelectionSet,
+                lookup.Requirements,
+                lookup.ForwardedVariableCount,
+                lookup.ConditionCount,
+                out var responseNames,
+                out var requirementFields)
             || !pathsByType.TryGetValue(lookup.LookupTypeName, out var candidatePaths))
         {
             return null;
-        }
-
-        var responseNames = new string[resultSelectionSet.Selections.Length];
-
-        for (var i = 0; i < responseNames.Length; i++)
-        {
-            var selection = resultSelectionSet.Selections[i];
-
-            if (selection.Child is not null)
-            {
-                return null;
-            }
-
-            responseNames[i] = selection.ResponseName;
-        }
-
-        var requirementFields = new string[lookup.Requirements.Length];
-
-        for (var i = 0; i < requirementFields.Length; i++)
-        {
-            var requirement = lookup.Requirements[i];
-
-            if (requirement.InternalAlias is not null
-                || !FetchResultStore.TryGetSimpleRequirementFieldName(requirement, out var fieldName))
-            {
-                return null;
-            }
-
-            requirementFields[i] = fieldName;
         }
 
         // Apollo lookups match entities by their representation, so the representation must
@@ -513,7 +545,7 @@ internal sealed class EntityReuseCandidateMap
     }
 
     // Collects the execution nodes that complete before a lookup executes, or returns null
-    // when a dependency is not part of the plan.
+    // when a dependency is not part of the plan. Optional dependencies complete first as well.
     private static HashSet<int>? CollectTransitiveDependencies(
         Dictionary<int, ExecutionNode> nodesById,
         IOperationPlanNode[] dependencies)
@@ -538,9 +570,19 @@ internal sealed class EntityReuseCandidateMap
                 stack.Push(next);
             }
 
+            foreach (var next in node.OptionalDependencies)
+            {
+                stack.Push(next);
+            }
+
             foreach (var operation in GetBatchOperations(node))
             {
                 foreach (var next in operation.Dependencies)
+                {
+                    stack.Push(next);
+                }
+
+                foreach (var next in operation.OptionalDependencies)
                 {
                     stack.Push(next);
                 }
@@ -580,7 +622,7 @@ internal sealed class EntityReuseCandidateMap
 
         lookups.Add(new Lookup(
             definition.Id,
-            definition.Dependencies.ToArray(),
+            [.. definition.Dependencies, .. definition.OptionalDependencies],
             lookupTypeName,
             definition.ResultSelectionSet,
             definition.Requirements.ToArray(),
