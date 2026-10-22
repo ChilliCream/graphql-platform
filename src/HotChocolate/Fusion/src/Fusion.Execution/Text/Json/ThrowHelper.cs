@@ -41,6 +41,10 @@ internal static class ThrowHelper
     }
 
     [DoesNotReturn]
+    public static void ThrowInvalidOperationException_MaxDepthExceeded()
+        => throw new InvalidOperationException("The JSON depth is exceeds the max allowed depth.");
+
+    [DoesNotReturn]
     public static void ThrowInvalidOperationException_ReadInvalidUTF16(int charAsInt)
     {
         throw new InvalidOperationException(string.Format(
