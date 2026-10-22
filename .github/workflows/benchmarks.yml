@@ -11,7 +11,7 @@ jobs:
   setup:
     name: "Initialize Benchmark Report"
     if: github.event.action != 'closed' && github.event_name == 'pull_request' && github.event.pull_request.draft == false
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       pull-requests: write
     steps:
@@ -344,7 +344,7 @@ jobs:
     name: "Final Performance Report"
     needs: [setup, benchmark]
     if: "!cancelled() && github.event.action != 'closed' && github.event_name == 'pull_request'"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       pull-requests: write
 
@@ -531,7 +531,7 @@ jobs:
     name: "Store Baseline Results"
     needs: benchmark
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: write
 
