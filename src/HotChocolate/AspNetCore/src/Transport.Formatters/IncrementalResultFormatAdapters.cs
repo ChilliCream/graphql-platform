@@ -920,10 +920,14 @@ internal sealed class DeferSelectionLookup
                 case InlineFragmentNode inlineFragmentNode:
                     if (TryGetDeferLabel(inlineFragmentNode, out var label))
                     {
-                        var selection = new DeferSelectionTree();
+                        var selection = label is null
+                            ? GetUnlabeledSelection(currentPath, selectionsByPath)
+                            : null;
+                        var isNewSelection = selection is null;
+                        selection ??= new DeferSelectionTree();
                         CollectFields(inlineFragmentNode.SelectionSet, selection);
 
-                        if (selection.HasFields)
+                        if (isNewSelection && selection.HasFields)
                         {
                             if (!string.IsNullOrEmpty(label))
                             {
@@ -948,6 +952,24 @@ internal sealed class DeferSelectionLookup
                     break;
             }
         }
+    }
+
+    private static DeferSelectionTree? GetUnlabeledSelection(
+        Path path,
+        Dictionary<Path, List<DeferredSelection>> selectionsByPath)
+    {
+        if (selectionsByPath.TryGetValue(path, out var selections))
+        {
+            for (var i = 0; i < selections.Count; i++)
+            {
+                if (selections[i].Label is null)
+                {
+                    return selections[i].Selection;
+                }
+            }
+        }
+
+        return null;
     }
 
     private static void CollectFields(SelectionSetNode selectionSet, DeferSelectionTree selection)
