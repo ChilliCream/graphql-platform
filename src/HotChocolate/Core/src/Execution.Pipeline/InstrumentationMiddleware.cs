@@ -30,6 +30,13 @@ internal sealed class InstrumentationMiddleware
             (core, next) =>
             {
                 var diagnosticEvents = core.SchemaServices.GetRequiredService<ICoreExecutionDiagnosticEvents>();
+
+                if (diagnosticEvents is INoopExecutionDiagnosticEvents)
+                {
+                    // No listener observes the request scope, so the middleware is skipped.
+                    return next;
+                }
+
                 var middleware = new InstrumentationMiddleware(next, diagnosticEvents);
                 return context => middleware.InvokeAsync(context);
             },

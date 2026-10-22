@@ -1,4 +1,3 @@
-using System.Buffers;
 using System.Diagnostics;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Rewriters;
@@ -19,7 +18,6 @@ public sealed class OperationCompiler
     private readonly TypeNameField _typeNameField;
     private readonly int _maxAllowedIncludeConditions;
     private readonly int _maxAllowedDeferConditions;
-    private static readonly ArrayPool<object> s_objectArrayPool = ArrayPool<object>.Shared;
 
     public OperationCompiler(
         FusionSchemaDefinition schema,
@@ -83,7 +81,7 @@ public sealed class OperationCompiler
 
         var fields = _fieldsPool.Get();
 
-        var compilationContext = new CompilationContext(s_objectArrayPool.Rent(128));
+        var compilationContext = new CompilationContext(new object[128]);
 
         try
         {
@@ -803,10 +801,8 @@ public sealed class OperationCompiler
         {
             if (id >= _elementsById.Length)
             {
-                var newArray = s_objectArrayPool.Rent(_elementsById.Length * 2);
-                _elementsById.AsSpan().CopyTo(newArray);
-                s_objectArrayPool.Return(_elementsById);
-                _elementsById = newArray;
+                // Existing readers may continue using the previous array.
+                Array.Resize(ref _elementsById, Math.Max(_elementsById.Length * 2, id + 1));
             }
 
             _elementsById[id] = element;

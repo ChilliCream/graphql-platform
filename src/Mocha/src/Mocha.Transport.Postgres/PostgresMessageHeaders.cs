@@ -61,6 +61,11 @@ internal static class PostgresMessageHeaders
     public static ReadOnlySpan<byte> EnclosedMessageTypes => "enclosedMessageTypes"u8;
 
     /// <summary>
+    /// Header key for the time the original publication was created.
+    /// </summary>
+    public static ReadOnlySpan<byte> SentAt => "sentAt"u8;
+
+    /// <summary>
     /// Header key for the deadline by which the message must be delivered and processed.
     /// </summary>
     public static ReadOnlySpan<byte> DeliverBy => "deliverBy"u8;

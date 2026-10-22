@@ -1,0 +1,293 @@
+title: Execute_Lookup_Should_ReportErrorOnEveryTarget_When_SharedEntityHasFieldError
+request:
+  document: |
+    {
+      listings {
+        id
+        product {
+          upc
+          warranty
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "listings": [
+          {
+            "id": "1",
+            "product": {
+              "upc": "1",
+              "warranty": "2 years"
+            }
+          },
+          {
+            "id": "2",
+            "product": {
+              "upc": "1",
+              "warranty": "2 years"
+            }
+          },
+          {
+            "id": "3",
+            "product": {
+              "upc": "2",
+              "warranty": "2 years"
+            }
+          },
+          {
+            "id": "4",
+            "product": {
+              "upc": "3",
+              "warranty": null
+            }
+          },
+          {
+            "id": "5",
+            "product": {
+              "upc": "1",
+              "warranty": "2 years"
+            }
+          },
+          {
+            "id": "6",
+            "product": {
+              "upc": "3",
+              "warranty": null
+            }
+          }
+        ]
+      },
+      "errors": [
+        {
+          "message": "WARRANTY_UNAVAILABLE",
+          "path": [
+            "listings",
+            3,
+            "product",
+            "warranty"
+          ]
+        },
+        {
+          "message": "WARRANTY_UNAVAILABLE",
+          "path": [
+            "listings",
+            5,
+            "product",
+            "warranty"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: listings-api
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        listings: [Listing!]!
+        featured: [Listing!]!
+        productByUpc(upc: ID!): Product @lookup @internal
+      }
+
+      type Listing {
+        product: Product!
+        id: String!
+        productUpc: String!
+      }
+
+      type Product @key(fields: "upc") {
+        upc: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_9ac68903_1 {
+              listings {
+                id
+                product {
+                  upc
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "listings": [
+                    {
+                      "id": "1",
+                      "product": {
+                        "upc": "1"
+                      }
+                    },
+                    {
+                      "id": "2",
+                      "product": {
+                        "upc": "1"
+                      }
+                    },
+                    {
+                      "id": "3",
+                      "product": {
+                        "upc": "2"
+                      }
+                    },
+                    {
+                      "id": "4",
+                      "product": {
+                        "upc": "3"
+                      }
+                    },
+                    {
+                      "id": "5",
+                      "product": {
+                        "upc": "1"
+                      }
+                    },
+                    {
+                      "id": "6",
+                      "product": {
+                        "upc": "3"
+                      }
+                    }
+                  ]
+                }
+              }
+  - name: catalog-api
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        productByUpc(upc: ID!): Product @lookup
+      }
+
+      type Dimensions {
+        width: Int!
+        height: Int!
+      }
+
+      type Product @key(fields: "upc") {
+        warranty: String
+        upc: ID!
+        name: String!
+        price: Int!
+        status: ProductStatus
+        dimensions: Dimensions!
+      }
+
+      enum ProductStatus {
+        AVAILABLE
+        DISCONTINUED
+        HIDDEN @inaccessible
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_9ac68903_2($__fusion_1_upc: ID!) {
+              productByUpc(upc: $__fusion_1_upc) {
+                warranty
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_upc": "1"
+              },
+              {
+                "__fusion_1_upc": "2"
+              },
+              {
+                "__fusion_1_upc": "3"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "productByUpc": {
+                    "warranty": "2 years"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productByUpc": {
+                    "warranty": "2 years"
+                  }
+                }
+              }
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "WARRANTY_UNAVAILABLE",
+                    "path": [
+                      "productByUpc",
+                      "warranty"
+                    ]
+                  }
+                ],
+                "data": {
+                  "productByUpc": {
+                    "warranty": null
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          listings {
+            id
+            product {
+              upc
+              upc @fusion__requirement
+              warranty
+            }
+          }
+        }
+      hash: c8d7ca1cf4986d43c4ae2cc599fe0243
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: listings-api
+      operation: |
+        query Op_9ac68903_1 {
+          listings {
+            id
+            product {
+              upc
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: catalog-api
+      operation: |
+        query Op_9ac68903_2($__fusion_1_upc: ID!) {
+          productByUpc(upc: $__fusion_1_upc) {
+            warranty
+          }
+        }
+      source: $.productByUpc
+      target: $.listings.product
+      requirements:
+        - name: __fusion_1_upc
+          selectionMap: >-
+            upc
+      dependencies:
+        - id: 1

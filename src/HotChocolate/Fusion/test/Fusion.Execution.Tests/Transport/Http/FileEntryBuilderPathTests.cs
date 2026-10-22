@@ -135,7 +135,7 @@ public sealed class FileEntryBuilderPathTests
         var bytes = Encoding.UTF8.GetBytes(json);
         bytes.CopyTo(writer.GetSpan(bytes.Length));
         writer.Advance(bytes.Length);
-        return JsonSegment.Create(writer, start, writer.Position - start);
+        return JsonSegment.Create(writer.GetSequence(start, writer.Position - start));
     }
 
     private sealed class FileLookup : IFileLookup

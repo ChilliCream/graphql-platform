@@ -57,6 +57,16 @@ internal sealed class ResultSelectionSet
     /// </summary>
     public ReadOnlySpan<string> ResponseNames => _allResponseNames;
 
+    /// <summary>
+    /// Gets the direct field selections at this level, excluding inline fragments.
+    /// </summary>
+    internal ReadOnlySpan<ResultSelection> Selections => _selections;
+
+    /// <summary>
+    /// Gets the inline fragments at this level.
+    /// </summary>
+    internal ReadOnlySpan<ResultFragment> Fragments => _fragments;
+
     public bool HasSourceResponseNameMappings { get; }
 
     /// <summary>

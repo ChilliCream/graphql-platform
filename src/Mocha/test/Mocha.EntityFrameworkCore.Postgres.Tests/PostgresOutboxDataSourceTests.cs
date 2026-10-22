@@ -132,7 +132,7 @@ public sealed class PostgresOutboxDataSourceTests(PasswordPostgresResource postg
             options.ConfigureWarnings(w => w.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning));
         });
         services.AddMessageBus()
-            .AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox())
+            .AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox(o => o.RequireTransaction = false))
             .AddEventHandler<AuthenticationEventHandler>()
             .AddInMemory();
 

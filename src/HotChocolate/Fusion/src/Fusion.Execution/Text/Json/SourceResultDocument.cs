@@ -22,12 +22,11 @@ public sealed partial class SourceResultDocument : IDisposable
         _parsedData = parsedData;
         _segments = segments;
         _usedChunks = usedChunks;
-        Root = new SourceResultElement(this, Cursor.Zero);
     }
 
     internal int Id { get; set; } = -1;
 
-    public SourceResultElement Root { get; private set; }
+    public SourceResultElement Root => new(this, Cursor.Zero);
 
     // A data location packs the chunk index in the high 12 bits and the byte offset within the
     // chunk in the low 17 bits. The chunk size follows the same geometric schedule as the metadb,

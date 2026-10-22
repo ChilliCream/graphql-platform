@@ -24,7 +24,7 @@ export default defineConfig({
     toHaveScreenshot: {
       // Animations are frozen by Playwright; this absorbs anti-aliasing noise.
       // Baselines are generated in the devcontainer (Debian) while CI runs on
-      // ubuntu-latest, and the two distros' font rendering differs by up to ~2%
+      // ubuntu-26.04, and the two distros' font rendering differs by up to ~2%
       // on large, text-heavy screenshots. The threshold has to clear that gap so
       // one baseline passes in both environments, while still catching real
       // visual regressions (which move far more than a few percent of pixels).

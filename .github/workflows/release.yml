@@ -84,9 +84,20 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if gh release view "$GIT_TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
-            echo "Release for $GIT_TAG already exists; leaving it untouched."
+          # Empty when no release exists for the tag yet.
+          is_draft=$(gh release view "$GIT_TAG" \
+            --repo "${{ github.repository }}" \
+            --json isDraft \
+            --jq .isDraft 2>/dev/null || true)
+
+          if [[ "$is_draft" == "true" ]]; then
+            echo "Draft release for $GIT_TAG already exists; leaving it untouched."
             exit 0
+          fi
+
+          if [[ "$is_draft" == "false" ]]; then
+            echo "::error::Release $GIT_TAG is already published; create releases by pushing a tag."
+            exit 1
           fi
 
           prerelease_flag=()
@@ -175,6 +186,8 @@ jobs:
       matrix:
         include:
           # Linux
+          # linux-x64 and linux-arm64 build on the oldest Ubuntu LTS runner GitHub supports,
+          # because the binary runs only on systems with the build host's glibc or newer.
           - os: ubuntu-22.04
             rid: linux-x64
           - os: ubuntu-26.04
@@ -354,7 +367,7 @@ jobs:
 
   pack-npm:
     name: 🧱 Pack Nitro CLI npm tarballs
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: [compute-release-context, build-nitro-cli]
     permissions:
       contents: read
@@ -433,7 +446,7 @@ jobs:
   publish-nuget:
     name: 🚀 Publish NuGet packages
     runs-on: ubuntu-26.04
-    needs: [compute-release-context, pack-nuget, pack-npm, publish-nitro-ops, publish-aspire-nitro-ops]
+    needs: [compute-release-context, create-draft, pack-nuget, pack-npm, publish-nitro-ops, publish-aspire-nitro-ops]
     permissions:
       contents: read
       id-token: write
@@ -470,8 +483,8 @@ jobs:
 
   publish-npm:
     name: 🚀 Publish Nitro CLI to npm
-    runs-on: ubuntu-latest
-    needs: [compute-release-context, pack-nuget, pack-npm, publish-nitro-ops]
+    runs-on: ubuntu-26.04
+    needs: [compute-release-context, create-draft, pack-nuget, pack-npm, publish-nitro-ops]
     permissions:
       contents: read
       id-token: write
@@ -555,7 +568,7 @@ jobs:
   publish-nitro-ops:
     name: 🚀 Publish Nitro CLI operations
     runs-on: ubuntu-26.04
-    needs: [compute-release-context, pack-nuget, pack-npm]
+    needs: [compute-release-context, create-draft, pack-nuget, pack-npm]
     permissions:
       contents: read
     env:
@@ -594,7 +607,7 @@ jobs:
   publish-aspire-nitro-ops:
     name: 🚀 Publish Fusion Aspire Nitro operations
     runs-on: ubuntu-26.04
-    needs: [compute-release-context, pack-nuget]
+    needs: [compute-release-context, create-draft, pack-nuget]
     permissions:
       contents: read
     env:
@@ -698,7 +711,7 @@ jobs:
 
   update-homebrew:
     name: 🍺 Update Homebrew Tap
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: [compute-release-context, publish-release]
     # Serialize across release runs, so each run compares against the formulas of the previous release.
     concurrency:
@@ -731,7 +744,7 @@ jobs:
 
   update-github-actions:
     name: 🔄 Update GitHub Actions
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: [compute-release-context, publish-release]
     # Serialize per action repository across release runs, so each run computes the floating
     # tags (vX, vX.Y) against the tags of the previous release.
@@ -785,7 +798,7 @@ jobs:
 
   update-cloud-platform:
     name: 🔄 Update Cloud Platform Version
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: [compute-release-context, publish-release]
 
     steps:
@@ -817,7 +830,7 @@ jobs:
 
   update-azure-pipelines-extension:
     name: 🔄 Update Azure Pipelines Extension
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: [compute-release-context, publish-release]
     if: needs.compute-release-context.outputs.is_stable == 'true'
     # Serialize across release runs and branches, so each run gates against the tags of the previous

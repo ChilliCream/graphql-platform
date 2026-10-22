@@ -993,6 +993,7 @@ public sealed partial class OperationPlanner
     {
         var nodeFieldBoundCache = new Dictionary<int, bool>();
         var mergeResults = MergeStructurallyIdenticalOperations(ctx, nodeFieldBoundCache, mergePolicy);
+        var apolloMergeResults = MergeStructurallyIdenticalApolloLookups(ctx, nodeFieldBoundCache, mergePolicy);
 
         // Capture each node's dependency identifiers now, because the batching
         // step below will rewrite the dependency lookup as it merges nodes.
@@ -1007,7 +1008,7 @@ public sealed partial class OperationPlanner
             ctx, nodeFieldBoundCache, mergeResults, originalDependencies, enableRequestGrouping);
 
         foreach (var (batchNode, memberDependencies) in GroupApolloLookupsIntoBatches(
-            ctx, nodeFieldBoundCache, originalDependencies, enableRequestGrouping, schema))
+            ctx, nodeFieldBoundCache, apolloMergeResults, originalDependencies, enableRequestGrouping, schema))
         {
             perOperationDependencies.Add(batchNode, memberDependencies);
         }
@@ -1026,6 +1027,11 @@ public sealed partial class OperationPlanner
         Dictionary<int, bool> nodeFieldBoundCache,
         OperationMergePolicy mergePolicy)
     {
+        if (mergePolicy is OperationMergePolicy.None)
+        {
+            return [];
+        }
+
         var candidates = new Dictionary<string, List<OperationExecutionNode>>(StringComparer.Ordinal);
 
         foreach (var node in ctx.ExecutionNodes.Values.OfType<OperationExecutionNode>())
@@ -1090,13 +1096,215 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
+    /// Merges Apollo Federation entity lookups that are structurally identical and share
+    /// a source schema into one lookup with a target per merged node, subject to the merge policy.
+    /// Cross-depth merges require the shallower lookup to have no dependents and the deeper
+    /// lookup to already wait for all of its dependencies.
+    /// </summary>
+    private static Dictionary<int, ApolloOperationExecutionNode[]> MergeStructurallyIdenticalApolloLookups(
+        ExecutionPlanBuildContext ctx,
+        Dictionary<int, bool> nodeFieldBoundCache,
+        OperationMergePolicy mergePolicy)
+    {
+        if (mergePolicy is OperationMergePolicy.None)
+        {
+            return [];
+        }
+
+        var mergeResults = new Dictionary<int, ApolloOperationExecutionNode[]>();
+
+        var lookupNodes = ctx.ExecutionNodes.Values
+            .OfType<ApolloOperationExecutionNode>()
+            .Where(n => n.Operation.Type == OperationType.Query)
+            .Where(n => !IsNodeFieldBound(n.Id, ctx, nodeFieldBoundCache))
+            .ToList();
+
+        if (lookupNodes.Count < 2)
+        {
+            return mergeResults;
+        }
+
+        var depthLookup = new Dictionary<int, int>();
+        var recursionStack = new HashSet<int>();
+
+        foreach (var node in lookupNodes)
+        {
+            GetDependencyDepth(node.Id, ctx.DependenciesByStepId, depthLookup, recursionStack);
+        }
+
+        var groupsBySignature = new Dictionary<string, List<ApolloLookupGroup>>(StringComparer.Ordinal);
+
+        foreach (var node in lookupNodes)
+        {
+            var depth = depthLookup.TryGetValue(node.Id, out var d) ? d : 0;
+            var signature = ComputeApolloCanonicalSignature(ctx, node);
+
+            if (!groupsBySignature.TryGetValue(signature, out var groups))
+            {
+                groups = [];
+                groupsBySignature[signature] = groups;
+            }
+
+            var group = groups.Find(g => g.Depth == depth);
+
+            if (group is null)
+            {
+                group = new ApolloLookupGroup(depth);
+                groups.Add(group);
+            }
+
+            group.Nodes.Add(node);
+        }
+
+        foreach (var groups in groupsBySignature.Values)
+        {
+            foreach (var group in groups)
+            {
+                if (group.Nodes.Count > 1)
+                {
+                    group.Nodes.Sort((a, b) => a.Id.CompareTo(b.Id));
+                    AbsorbMergedNodes(ctx, group.Nodes[0].Id, group.Nodes);
+                }
+            }
+        }
+
+        // Folding runs after all same-depth merges, so the dependency graph
+        // it inspects already references the merged lookups.
+        foreach (var groups in groupsBySignature.Values)
+        {
+            if (groups.Count > 1 && mergePolicy is not OperationMergePolicy.Conservative)
+            {
+                FoldLeafApolloLookupGroups(ctx, groups, mergePolicy);
+            }
+
+            foreach (var group in groups)
+            {
+                if (group.Nodes.Count > 1)
+                {
+                    mergeResults[group.Nodes[0].Id] = [.. group.Nodes];
+                }
+            }
+        }
+
+        return mergeResults;
+    }
+
+    /// <summary>
+    /// Folds every group in <paramref name="groups"/> that no node depends on into the nearest
+    /// deeper group whose transitive dependencies contain all direct dependencies of the folded
+    /// group. Folded groups are removed from <paramref name="groups"/>.
+    /// </summary>
+    private static void FoldLeafApolloLookupGroups(
+        ExecutionPlanBuildContext ctx,
+        List<ApolloLookupGroup> groups,
+        OperationMergePolicy mergePolicy)
+    {
+        groups.Sort((a, b) => a.Depth.CompareTo(b.Depth));
+
+        var visited = new HashSet<int>();
+        var i = 0;
+
+        while (i < groups.Count - 1)
+        {
+            var leaf = groups[i];
+            var leafPrimary = leaf.Nodes[0];
+            ApolloLookupGroup? target = null;
+
+            if (!HasDependents(ctx.DependenciesByStepId, leafPrimary.Id))
+            {
+                for (var j = i + 1; j < groups.Count; j++)
+                {
+                    if (mergePolicy is OperationMergePolicy.Balanced
+                        && groups[j].Depth - leaf.MinDepth > 1)
+                    {
+                        break;
+                    }
+
+                    if (AreTransitiveDependencies(
+                        ctx.DependenciesByStepId,
+                        leafPrimary.Id,
+                        groups[j].Nodes[0].Id,
+                        visited))
+                    {
+                        target = groups[j];
+                        break;
+                    }
+                }
+            }
+
+            if (target is null)
+            {
+                i++;
+                continue;
+            }
+
+            var targetPrimary = target.Nodes[0];
+
+            if (leafPrimary.Id < targetPrimary.Id)
+            {
+                AbsorbMergedNodes(ctx, leafPrimary.Id, [leafPrimary, targetPrimary]);
+            }
+            else
+            {
+                AbsorbMergedNodes(ctx, targetPrimary.Id, [targetPrimary, leafPrimary]);
+            }
+
+            target.MinDepth = Math.Min(target.MinDepth, leaf.MinDepth);
+            target.Nodes.AddRange(leaf.Nodes);
+            target.Nodes.Sort((a, b) => a.Id.CompareTo(b.Id));
+            groups.RemoveAt(i);
+        }
+    }
+
+    private static bool HasDependents(Dictionary<int, HashSet<int>> dependenciesByStepId, int nodeId)
+    {
+        foreach (var dependencies in dependenciesByStepId.Values)
+        {
+            if (dependencies.Contains(nodeId))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Checks whether every direct dependency of <paramref name="nodeId"/> is also a
+    /// transitive dependency of <paramref name="otherNodeId"/>.
+    /// </summary>
+    private static bool AreTransitiveDependencies(
+        Dictionary<int, HashSet<int>> dependenciesByStepId,
+        int nodeId,
+        int otherNodeId,
+        HashSet<int> visited)
+    {
+        if (!dependenciesByStepId.TryGetValue(nodeId, out var dependencies))
+        {
+            return true;
+        }
+
+        foreach (var dependency in dependencies)
+        {
+            visited.Clear();
+
+            if (!IsTransitivelyReachable(otherNodeId, dependency, dependenciesByStepId, visited))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
     /// Removes merged nodes from the execution graph and folds their
     /// dependencies into the primary node that represents them all.
     /// </summary>
     private static void AbsorbMergedNodes(
         ExecutionPlanBuildContext ctx,
         int primaryId,
-        List<OperationExecutionNode> group)
+        IReadOnlyList<ExecutionNode> group)
     {
         var absorbedIds = new HashSet<int>(group.Count - 1);
 
@@ -1258,21 +1466,18 @@ public sealed partial class OperationPlanner
     private static Dictionary<ExecutionNode, Dictionary<int, int[]>> GroupApolloLookupsIntoBatches(
         ExecutionPlanBuildContext ctx,
         Dictionary<int, bool> nodeFieldBoundCache,
+        Dictionary<int, ApolloOperationExecutionNode[]> mergeResults,
         Dictionary<int, int[]> originalDependencies,
         bool enableRequestGrouping,
         FusionSchemaDefinition schema)
     {
         var perOperationDependencies = new Dictionary<ExecutionNode, Dictionary<int, int[]>>();
 
-        if (!enableRequestGrouping)
-        {
-            return perOperationDependencies;
-        }
-
         var lookupNodes = ctx.ExecutionNodes.Values
             .OfType<ApolloOperationExecutionNode>()
             .Where(n => n.Operation.Type == OperationType.Query)
             .Where(n => !IsNodeFieldBound(n.Id, ctx, nodeFieldBoundCache))
+            .Where(n => enableRequestGrouping || mergeResults.ContainsKey(n.Id))
             .ToList();
 
         var depthLookup = new Dictionary<int, int>();
@@ -1283,14 +1488,14 @@ public sealed partial class OperationPlanner
             GetDependencyDepth(node.Id, ctx.DependenciesByStepId, depthLookup, recursionStack);
         }
 
-        var batchGroups = new Dictionary<(string schema, int depth), List<ApolloOperationExecutionNode>>();
+        var batchGroups = new Dictionary<(string schema, int depth, int operationId), List<ApolloOperationExecutionNode>>();
 
         foreach (var node in lookupNodes)
         {
             // Apollo lookup nodes always carry a concrete schema name because
             // the routing in CreateOperationExecutionNode rejects dynamic ones.
             var depth = depthLookup.TryGetValue(node.Id, out var d) ? d : 0;
-            var key = (node.SchemaName, depth);
+            var key = (node.SchemaName, depth, enableRequestGrouping ? 0 : node.Id);
 
             if (!batchGroups.TryGetValue(key, out var group))
             {
@@ -1314,16 +1519,21 @@ public sealed partial class OperationPlanner
             .OrderBy(t => t.Key.depth)
             .ThenBy(t => t.Value[0].Id))
         {
-            if (groupMembers.Count <= 1)
+            // A merged lookup runs through the batch node even when it is alone,
+            // because only the batch node executes multi-target lookups.
+            if (groupMembers.Count <= 1 && !mergeResults.ContainsKey(groupMembers[0].Id))
             {
                 continue;
             }
 
-            var operations = new SingleOperationDefinition[groupMembers.Count];
+            var operations = new OperationDefinition[groupMembers.Count];
 
             for (var i = 0; i < groupMembers.Count; i++)
             {
-                operations[i] = CreateApolloSingleOperationDefinition(ctx, groupMembers[i]);
+                var member = groupMembers[i];
+                operations[i] = mergeResults.TryGetValue(member.Id, out var mergedNodes)
+                    ? CreateApolloBatchOperationDefinition(ctx, mergedNodes)
+                    : CreateApolloSingleOperationDefinition(ctx, member);
             }
 
             var batchNodeId = ctx.NextId();
@@ -1542,8 +1752,7 @@ public sealed partial class OperationPlanner
     {
         if (!ctx.ApolloLookupOperationsByStepId.TryGetValue(member.Id, out var lookupOperation))
         {
-            throw new InvalidOperationException(
-                $"The original Apollo lookup operation for execution step {member.Id} is missing.");
+            throw ThrowHelper.ApolloLookupOperationMissing(member.Id);
         }
 
         var definition = new SingleOperationDefinition(
@@ -1562,6 +1771,53 @@ public sealed partial class OperationPlanner
         foreach (var parentDependency in member.BufferedParentDependencies)
         {
             definition.AddParentDependency(parentDependency);
+        }
+
+        return definition;
+    }
+
+    private static BatchOperationDefinition CreateApolloBatchOperationDefinition(
+        ExecutionPlanBuildContext ctx,
+        ApolloOperationExecutionNode[] mergedNodes)
+    {
+        var primary = mergedNodes[0];
+
+        if (!ctx.ApolloLookupOperationsByStepId.TryGetValue(primary.Id, out var lookupOperation))
+        {
+            throw ThrowHelper.ApolloLookupOperationMissing(primary.Id);
+        }
+
+        var targets = new SelectionPath[mergedNodes.Length];
+
+        for (var i = 0; i < mergedNodes.Length; i++)
+        {
+            targets[i] = mergedNodes[i].Target;
+        }
+
+        var definition = new BatchOperationDefinition(
+            primary.Id,
+            lookupOperation,
+            lookupTypeName: null,
+            primary.SchemaName,
+            targets,
+            primary.Source,
+            primary.Requirements.ToArray(),
+            primary.ForwardedVariables.ToArray(),
+            primary.ResultSelectionSet,
+            primary.Conditions.ToArray(),
+            primary.RequiresFileUpload);
+
+        var parentDependencies = new HashSet<int>();
+
+        foreach (var mergedNode in mergedNodes)
+        {
+            foreach (var parentDependency in mergedNode.BufferedParentDependencies)
+            {
+                if (parentDependencies.Add(parentDependency))
+                {
+                    definition.AddParentDependency(parentDependency);
+                }
+            }
         }
 
         return definition;
@@ -1697,7 +1953,8 @@ public sealed partial class OperationPlanner
             {
                 WireBatchNodeDependencies(
                     apolloBatchEntry,
-                    apolloBatchEntry.Operations.Length > 1,
+                    apolloBatchEntry.Operations.Length > 1
+                        || apolloBatchEntry.Operations[0] is BatchOperationDefinition,
                     stepDependencies,
                     executionNodeById);
                 continue;
@@ -1932,7 +2189,51 @@ public sealed partial class OperationPlanner
 
     private static string ComputeCanonicalSignature(OperationExecutionNode node)
     {
-        var operations = node.OperationDocument.GetOperations().GetEnumerator();
+        var replacements = BuildPrefixReplacements(node.Requirements);
+        var bodyText = FormatCanonicalSelectionSet(node.OperationDocument, replacements);
+        var conditions = FormatCanonicalConditions(node.Conditions);
+
+        return $"{node.SchemaName}|{node.Source}|{conditions}|{bodyText}";
+    }
+
+    /// <summary>
+    /// Computes a signature that is equal for two Apollo entity lookups exactly when
+    /// one lookup can fetch and complete the entities of the other lookup's target.
+    /// </summary>
+    private static string ComputeApolloCanonicalSignature(
+        ExecutionPlanBuildContext ctx,
+        ApolloOperationExecutionNode node)
+    {
+        if (!ctx.ApolloLookupOperationsByStepId.TryGetValue(node.Id, out var lookupOperation))
+        {
+            throw ThrowHelper.ApolloLookupOperationMissing(node.Id);
+        }
+
+        var replacements = BuildPrefixReplacements(node.Requirements);
+        var lookupDocument = Utf8GraphQLOperationParser.Parse(lookupOperation.Value, ParserOptions.Trusted);
+        var bodyText = FormatCanonicalSelectionSet(lookupDocument, replacements);
+        var conditions = FormatCanonicalConditions(node.Conditions);
+        var requirements = string.Join(
+            ",",
+            node.Requirements.ToArray()
+                .Select(r =>
+                    $"{ApplyPrefixReplacements(r.Key, replacements)}:{r.Type}:"
+                    + $"{r.Path.RelativeTo(node.Target)}:{r.InternalAlias}:{r.Map}")
+                .Order(StringComparer.Ordinal));
+        var forwardedVariables = string.Join(
+            ",",
+            node.ForwardedVariables.ToArray().Order(StringComparer.Ordinal));
+        var resultSelectionSet = node.ResultSelectionSet.ToString(indented: false);
+
+        return $"{node.SchemaName}|{node.Lookup.EntityTypeName}|{conditions}|{forwardedVariables}"
+            + $"|{requirements}|{resultSelectionSet}|{bodyText}";
+    }
+
+    private static string FormatCanonicalSelectionSet(
+        Utf8OperationDocument document,
+        ReadOnlySpan<(byte[] Original, byte[] Canonical)> replacements)
+    {
+        var operations = document.GetOperations().GetEnumerator();
 
         if (!operations.MoveNext())
         {
@@ -1942,16 +2243,19 @@ public sealed partial class OperationPlanner
         using var buffer = new PooledArrayWriter();
         operations.Current.SelectionSet.Format(buffer, indented: true);
 
-        var replacements = BuildPrefixReplacements(node.Requirements);
         var normalized = ApplyPrefixReplacements(buffer.WrittenSpan, replacements);
-        var bodyText = Encoding.UTF8.GetString(normalized);
+        return Encoding.UTF8.GetString(normalized);
+    }
 
-        var conditions = string.Join(",", node.Conditions.ToArray()
+    private static string FormatCanonicalConditions(ReadOnlySpan<ExecutionNodeCondition> conditions)
+        => string.Join(",", conditions.ToArray()
             .OrderBy(c => c.VariableName)
             .Select(c => $"{c.VariableName}:{c.PassingValue}"));
 
-        return $"{node.SchemaName}|{node.Source}|{conditions}|{bodyText}";
-    }
+    private static string ApplyPrefixReplacements(
+        string text,
+        ReadOnlySpan<(byte[] Original, byte[] Canonical)> replacements)
+        => Encoding.UTF8.GetString(ApplyPrefixReplacements(Encoding.UTF8.GetBytes(text), replacements));
 
     private static (OperationSourceText operation, OperationRequirement[] requirements) CanonicalizeOperation(
         OperationExecutionNode node)
@@ -3020,6 +3324,19 @@ public sealed partial class OperationPlanner
         OperationSourceText CanonicalOp,
         OperationRequirement[] CanonicalRequirements,
         OperationExecutionNode Primary);
+
+    /// <summary>
+    /// Structurally identical Apollo lookups that merge into one lookup. The node with the
+    /// lowest identifier is the primary node that represents the group in the plan.
+    /// </summary>
+    private sealed class ApolloLookupGroup(int depth)
+    {
+        public int Depth { get; } = depth;
+
+        public int MinDepth { get; set; } = depth;
+
+        public List<ApolloOperationExecutionNode> Nodes { get; } = [];
+    }
 }
 
 file static class Extensions

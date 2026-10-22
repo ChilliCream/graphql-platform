@@ -47,7 +47,8 @@ public class FusionOptionsTests : FusionTestBase
             EvictionTimeout = TimeSpan.FromSeconds(90),
             OperationDocumentCacheSize = 1024,
             EnableDefer = false,
-            EnableObjectDeprecation = true
+            EnableObjectDeprecation = true,
+            EnableEntityReuse = false
         };
 
         // act
@@ -62,6 +63,7 @@ public class FusionOptionsTests : FusionTestBase
               "OperationExecutionPlanCacheDiagnostics": null,
               "OperationDocumentCacheSize": 1024,
               "PathSegmentLocalPoolCapacity": 64,
+              "EnableEntityReuse": false,
               "LazyInitialization": false,
               "NodeIdSerializerFormat": "Base64",
               "ApplySerializeAsToScalars": false,

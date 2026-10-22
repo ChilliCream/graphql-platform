@@ -19,6 +19,7 @@ public sealed class PostgresOutboxProcessor
     private readonly IOutboxSignal _signal;
     private readonly ObjectPool<DispatchContext> _contextPool;
     private readonly PostgresMessageOutboxOptions _options;
+    private readonly TimeProvider _timeProvider;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PostgresOutboxProcessor"/> class.
@@ -55,6 +56,7 @@ public sealed class PostgresOutboxProcessor
         _signal = signal;
         _contextPool = pools.DispatchContext;
         _options = options;
+        _timeProvider = services.GetService<TimeProvider>() ?? TimeProvider.System;
     }
 
     /// <summary>
@@ -167,6 +169,14 @@ public sealed class PostgresOutboxProcessor
                         _logger.CouldNotDeserializeMessageBody(id);
                         LogIfExhausted(id, timesSent);
 
+                        return true;
+                    }
+
+                    if (envelope.DeliverBy is { } deadline && deadline <= _timeProvider.GetUtcNow())
+                    {
+                        await reader.CloseAsync();
+                        await DeleteEventAsync(connection, id, transaction, cancellationToken);
+                        _logger.OutboxMessageExpired(id);
                         return true;
                     }
 
@@ -397,6 +407,9 @@ internal static partial class Logs
         LogLevel.Critical,
         "Message with ID {Id} exhausted all {MaxAttempts} attempts and will not be retried.")]
     public static partial void OutboxMessageExhausted(this ILogger logger, Guid id, int maxAttempts);
+
+    [LoggerMessage(8, LogLevel.Information, "Expired outbox message with ID {Id} was discarded.")]
+    public static partial void OutboxMessageExpired(this ILogger logger, Guid id);
 }
 
 file static class Serializer

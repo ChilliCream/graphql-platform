@@ -25,5 +25,8 @@
     <ProjectReference Include="..\..\src\Fusion.Execution\HotChocolate.Fusion.Execution.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="LookupFanOut\*.graphqls" />
+  </ItemGroup>
 
 </Project>

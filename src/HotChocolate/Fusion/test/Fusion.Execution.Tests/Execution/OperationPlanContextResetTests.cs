@@ -1,7 +1,9 @@
 using System.Collections.Immutable;
+using System.Text;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -162,6 +164,28 @@ public sealed class OperationPlanContextResetTests : FusionTestBase
         Assert.Equal("application/graphql-response+json", secondTransport.ContentType);
     }
 
+    [Fact]
+    public async Task TrackVariableValueSets_Should_KeepValues_When_TheirMemoryIsWrittenAgain()
+    {
+        // arrange
+        await using var fixture = await ResetFixture.CreateAsync();
+        var context = fixture.Context;
+        using var arena = new MemoryArena();
+        using var writer = new ArenaBufferWriter(arena);
+        Write(writer, """{"id":"1"}"""u8);
+        var values = JsonSegment.Create(writer.GetSequence(0, writer.Position));
+        context.Begin();
+
+        // act
+        context.TrackVariableValueSets(fixture.DynamicNode, [new VariableValues(CompactPath.Root, values)]);
+        writer.Reset();
+        Write(writer, """{"id":"2"}"""u8);
+
+        // assert
+        var tracked = context.GetVariableValueSets(fixture.DynamicNode)[0].Values;
+        Encoding.UTF8.GetString(tracked.AsSequence()).MatchInlineSnapshot("""{"id":"1"}""");
+    }
+
     private static void AssertCapabilities(
         Operation operation,
         ImmutableArray<ExecutionNode> nodes,
@@ -191,6 +215,12 @@ public sealed class OperationPlanContextResetTests : FusionTestBase
         Assert.Equal(usesBatchNodes, plan.UsesBatchNodes);
         Assert.Equal(usesDynamicSchemaNames, incrementalPlan.UsesDynamicSchemaNames);
         Assert.Equal(usesBatchNodes, incrementalPlan.UsesBatchNodes);
+    }
+
+    private static void Write(ArenaBufferWriter writer, ReadOnlySpan<byte> bytes)
+    {
+        bytes.CopyTo(writer.GetSpan(bytes.Length));
+        writer.Advance(bytes.Length);
     }
 
     private static OperationBatchExecutionNode GetOperationBatch(OperationPlan plan)

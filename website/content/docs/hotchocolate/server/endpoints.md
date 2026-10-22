@@ -336,7 +336,7 @@ The default path is `/graphql/persisted`. The endpoint supports two URL patterns
 | `/{operationId}`                 | `/graphql/persisted/abc123`         | Execute a persisted operation by its ID                        |
 | `/{operationId}/{operationName}` | `/graphql/persisted/abc123/GetUser` | Execute a specific named operation within a persisted document |
 
-GET and POST requests are supported, and QUERY requests when `EnableQueryRequests` is `true` at the time the endpoint is mapped. With POST and QUERY requests, you can pass variables and extensions in the request body. A QUERY request executes query operations only.
+GET and POST requests are supported, and QUERY requests when `EnableQueryRequests` is `true` at the time the endpoint is mapped. With POST and QUERY requests, you can pass variables and extensions in a JSON request body, sent with `Content-Type: application/json`. A QUERY request executes query operations only. A request with any other method has a `404` status code. Under the [`Draft20260903` transport version](./http-transport.md#draft20260903), it has a `405` status code, or `204` for `OPTIONS`.
 
 ## Custom Path
 
@@ -410,7 +410,7 @@ The full set of properties available on `GraphQLServerOptions` is listed below. 
 | `EnableMultipartRequests`                 | `bool`                 | `true`             | Controls whether multipart form requests (file uploads) are accepted.                                                           |
 | `EnableSchemaRequests`                    | `bool`                 | `true`             | Controls whether the schema SDL can be downloaded via `?sdl`.                                                                   |
 | `EnableSchemaFileSupport`                 | `bool`                 | `true`             | Controls whether the schema SDL is served as a downloadable file.                                                               |
-| `EnforceGetRequestsPreflightHeader`       | `bool`                 | `false`            | When `true`, GET requests must include a CSRF preflight header.                                                                 |
+| `EnforceGetRequestsPreflightHeader`       | `bool`                 | `false`            | When `true`, GET requests must include a CSRF preflight header or an `application/json` `Content-Type`.                         |
 | `EnforceMultipartRequestsPreflightHeader` | `bool`                 | `true`             | When `true`, multipart requests must include a CSRF preflight header.                                                           |
 | `Batching`                                | `AllowedBatching`      | `VariableBatching` | Which batching modes are allowed. Request batching must be enabled explicitly.                                                  |
 | `MaxBatchSize`                            | `int`                  | `1024`             | Maximum number of operations in a single batch. `0` means unlimited.                                                            |
