@@ -847,7 +847,8 @@ internal sealed class DeferSelectionLookup
             return true;
         }
 
-        if (_selectionsByPath.TryGetValue(path, out var selections))
+        // The selections are indexed by their path in the operation document, which has no list indices.
+        if (_selectionsByPath.TryGetValue(RemoveListIndices(path), out var selections))
         {
             if (!string.IsNullOrEmpty(label))
             {
@@ -889,6 +890,22 @@ internal sealed class DeferSelectionLookup
         selectionPath = Path.Root;
         selection = default!;
         return false;
+    }
+
+    private static Path RemoveListIndices(Path path)
+    {
+        var segments = path.ToList();
+        var documentPath = Path.Root;
+
+        for (var i = 0; i < segments.Count; i++)
+        {
+            if (segments[i] is string fieldName)
+            {
+                documentPath = documentPath.Append(fieldName);
+            }
+        }
+
+        return documentPath;
     }
 
     private static void CollectDeferredSelections(
