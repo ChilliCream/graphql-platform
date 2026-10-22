@@ -707,7 +707,7 @@ public class AppDbContext : DbContext
 }
 ```
 
-`OutboxMessage` has four columns: `Id` (Guid), `Envelope` (string stored as JSON), `TimesSent` (int), and `CreatedAt` (DateTime). EF Core discovers the table name, schema, and column mappings from your model.
+`OutboxMessage` has four columns: `Id` (Guid), `Envelope` (JsonDocument stored as JSON), `TimesSent` (int), and `CreatedAt` (DateTime). EF Core discovers the table name, schema, and column mappings from your model.
 
 **3. Register the outbox and transaction middleware.**
 
@@ -731,9 +731,9 @@ builder.Services
 
 **4. Publish inside a transaction.**
 
-With the outbox enabled, calls to `PublishAsync`, `SendAsync`, and `ReplyAsync` inside a handler persist the message envelope to the outbox table within the same database transaction. The outbox dispatch middleware intercepts these calls and writes to `IMessageOutbox` instead of the transport.
+With the outbox enabled, calls to `PublishAsync`, `SendAsync`, and `ReplyAsync` inside a handler persist the message envelope to the outbox table within the same database transaction. After application dispatch middleware reaches the end of the pipeline, Mocha serializes the message and writes it to `IMessageOutbox`.
 
-Application dispatch middleware runs before serialization and outbox persistence, including middleware registered with `after: "Serialization"`, `after: "Scheduling"`, or `after: "Outbox"`. For ordinary bus dispatch, change message data and headers before calling `next(context)`. Only `db.Outbox` waits for all application middleware to complete before serialization and staging.
+Serialization and outbox persistence are fixed dispatch stages, not configurable middleware ordering keys. For ordinary bus dispatch, change message data and headers before calling `next(context)`. Only `db.Outbox` waits for all application middleware to complete before serialization and staging, including changes made after `await next(context)`.
 
 ```csharp
 public class OrderPlacedHandler(AppDbContext db, IMessageBus bus)
@@ -937,7 +937,7 @@ The processor restores each stored message's payload, identifiers, addresses, he
 
 `TimesSent` tracks dispatch attempts, with exponential retry delays and a maximum of ten attempts. Messages are deleted after successful transport dispatch.
 
-The outbox middleware intercepts messages of kind `Publish`, `Send`, `Reply`, or `Fault`. Other message kinds pass through without outbox persistence. An explicit `db.Outbox` publication uses its attached staging provider.
+Outbox persistence applies to messages of kind `Publish`, `Send`, `Reply`, or `Fault`. Other message kinds pass through without outbox persistence. An explicit `db.Outbox` publication uses its attached staging provider.
 
 # Deduplicate messages with the transactional inbox
 

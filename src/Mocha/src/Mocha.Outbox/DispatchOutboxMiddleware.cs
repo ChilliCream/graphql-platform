@@ -38,21 +38,4 @@ public sealed class DispatchOutboxMiddleware
             }
         }
     }
-
-    /// <summary>
-    /// Creates the middleware configuration that wires the outbox middleware into the dispatch pipeline.
-    /// </summary>
-    /// <returns>A <see cref="DispatchMiddlewareConfiguration"/> named "Outbox" for pipeline registration.</returns>
-    public static DispatchMiddlewareConfiguration Create()
-        => new(
-            static (_, next) =>
-            {
-                var middleware = new DispatchOutboxMiddleware();
-                return ctx => middleware.InvokeAsync(ctx, next);
-            },
-            "Outbox")
-        {
-            RunsDuringPreparation = false,
-            IsTerminal = true
-        };
 }

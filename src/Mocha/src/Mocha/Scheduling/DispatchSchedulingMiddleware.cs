@@ -52,25 +52,11 @@ public sealed class DispatchSchedulingMiddleware
         context.Features.Configure<ScheduledMessageFeature>(f => f.Token = token);
     }
 
-    /// <summary>
-    /// Creates the middleware configuration that wires the scheduling middleware into the dispatch
-    /// pipeline.
-    /// </summary>
-    /// <returns>
-    /// A <see cref="DispatchMiddlewareConfiguration"/> named "Scheduling" for pipeline registration.
-    /// </returns>
-    public static DispatchMiddlewareConfiguration Create()
-        => new(
-            static (_, next) =>
-            {
-                var middleware = new DispatchSchedulingMiddleware();
-                return ctx => middleware.InvokeAsync(ctx, next);
-            },
-            "Scheduling")
-        {
-            RunsDuringPreparation = false,
-            IsTerminal = true
-        };
+    internal static DispatchDelegate Create(DispatchDelegate next)
+    {
+        var middleware = new DispatchSchedulingMiddleware();
+        return context => middleware.InvokeAsync(context, next);
+    }
 }
 
 file static class Extensions

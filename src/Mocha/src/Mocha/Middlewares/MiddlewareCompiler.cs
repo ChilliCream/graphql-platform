@@ -6,13 +6,6 @@ namespace Mocha;
 /// Compiles ordered middleware configurations into executable delegates for dispatch, receive, and
 /// consume pipelines.
 /// </summary>
-/// <remarks>
-/// Middleware lists are materialized, modified, reversed, and then folded right-to-left so
-/// registration order remains intuitive while execution follows the standard nested middleware
-/// pattern.
-/// Without this compile step, each receive/dispatch would need repeated per-message composition and
-/// ordering could drift when modifiers are applied.
-/// </remarks>
 internal static class MiddlewareCompiler
 {
     private static List<DispatchMiddlewareConfiguration>? s_dispatchMiddlewares;
@@ -46,40 +39,19 @@ internal static class MiddlewareCompiler
         // Reverse before fold so first configured middleware becomes outermost in execution.
         middlewares.Reverse();
 
-        var pipeline = Compile(context, dispatch, middlewares, preparation: false);
-        var preparation = Compile(context, prepare, middlewares, preparation: true);
+        var pipeline = dispatch;
+        var preparation = prepare;
+        foreach (var middleware in middlewares)
+        {
+            pipeline = middleware.Middleware(context, pipeline);
+            preparation = middleware.Middleware(context, preparation);
+        }
 
         middlewares.Clear();
 
         Interlocked.CompareExchange(ref s_dispatchMiddlewares, middlewares, null);
 
         return (pipeline, preparation);
-    }
-
-    private static DispatchDelegate Compile(
-        DispatchMiddlewareFactoryContext context,
-        DispatchDelegate terminal,
-        List<DispatchMiddlewareConfiguration> middlewares,
-        bool preparation)
-    {
-        var pipeline = terminal;
-        foreach (var middleware in middlewares)
-        {
-            if (middleware.IsTerminal && (!preparation || middleware.RunsDuringPreparation))
-            {
-                pipeline = middleware.Middleware(context, pipeline);
-            }
-        }
-
-        foreach (var middleware in middlewares)
-        {
-            if (!middleware.IsTerminal && (!preparation || middleware.RunsDuringPreparation))
-            {
-                pipeline = middleware.Middleware(context, pipeline);
-            }
-        }
-
-        return pipeline;
     }
 
     public static ReceiveDelegate CompileReceive(

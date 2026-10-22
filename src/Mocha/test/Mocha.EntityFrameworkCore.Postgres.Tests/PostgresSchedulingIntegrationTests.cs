@@ -45,8 +45,8 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         var connectionString = await fixture.CreateDatabaseAsync();
         var recorder = new MessageRecorder();
         var time = new FakeTimeProvider(new DateTimeOffset(2050, 1, 1, 12, 0, 0, TimeSpan.Zero));
-        var beforeSerialization = 0;
-        var afterScheduling = 0;
+        var preparationCalls = 0;
+        var observationCalls = 0;
         var received = new TaskCompletionSource<MessageEnvelope>(TaskCreationOptions.RunContinuationsAsynchronously);
         var services = new ServiceCollection();
         services.AddSingleton(recorder);
@@ -62,19 +62,19 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
             bus.UseDispatch(new DispatchMiddlewareConfiguration(
                 (_, next) => context =>
                 {
-                    beforeSerialization++;
+                    preparationCalls++;
                     context.Message = new TestEvent { Payload = "prepared" };
                     context.Headers.Set("prepared-header", "stored");
                     return next(context);
                 },
-                "PrepareScheduledMessage"), before: "Serialization");
+                "PrepareScheduledMessage"));
             bus.UseDispatch(new DispatchMiddlewareConfiguration(
                 (_, next) => context =>
                 {
-                    afterScheduling++;
+                    observationCalls++;
                     return next(context);
                 },
-                "ObserveScheduledMessage"), after: "Scheduling");
+                "ObserveScheduledMessage"), after: "PrepareScheduledMessage");
             bus.UseReceive(new ReceiveMiddlewareConfiguration(
                 (_, next) => async context =>
                 {
@@ -97,7 +97,7 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
             new TestEvent { Payload = "original" },
             DateTimeOffset.UtcNow.AddSeconds(-1),
             TestContext.Current.CancellationToken);
-        var invocationCounts = (beforeSerialization, afterScheduling);
+        var invocationCounts = (preparationCalls, observationCalls);
         var json = await db.Set<ScheduledMessage>()
             .Select(message => message.Envelope)
             .SingleAsync(TestContext.Current.CancellationToken);
@@ -108,7 +108,7 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
 
         // assert
         Assert.Equal((1, 1), invocationCounts);
-        Assert.Equal((1, 1), (beforeSerialization, afterScheduling));
+        Assert.Equal((1, 1), (preparationCalls, observationCalls));
         Assert.Null(stored.SentAt);
         Assert.Equal(
             ("prepared", "stored", "prepared", "stored"),
@@ -539,7 +539,7 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
                     context.DestinationAddress = new Uri("memory://localhost/q/missing");
                     return next(context);
                 },
-                "InvalidReplyDestination"), before: "Serialization"));
+                "InvalidReplyDestination")));
     }
 
     [Fact]

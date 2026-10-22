@@ -11,11 +11,8 @@ namespace Mocha.Tests.Infrastructure;
 
 public class MessagePreparationTests(ITestOutputHelper output)
 {
-    [Theory]
-    [InlineData("Serialization")]
-    [InlineData("Scheduling")]
-    [InlineData("Outbox")]
-    public async Task PublishAsync_Should_SerializeMiddlewareChanges_When_MiddlewareIsRegisteredAfterTerminal(string after)
+    [Fact]
+    public async Task PublishAsync_Should_PersistMiddlewareChanges_When_ApplicationMiddlewareRuns()
     {
         // arrange
         var middlewareCalls = 0;
@@ -29,8 +26,7 @@ public class MessagePreparationTests(ITestOutputHelper output)
                         context.Headers.Set("durable-header", "prepared-once");
                         return next(context);
                     },
-                    "ChangeMessage"),
-                after: after)));
+                    "ChangeMessage"))));
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
@@ -57,6 +53,257 @@ public class MessagePreparationTests(ITestOutputHelper output)
     }
 
     [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PublishAsync_Should_FinalizeBeforeMiddlewareUnwinds_When_MessageIsDispatched(bool outbox)
+    {
+        // arrange
+        string? observed = null;
+        await using var provider = await CreateProviderAsync(outbox, builder =>
+            builder.ConfigureMessageBus(bus => bus.UseDispatch(new DispatchMiddlewareConfiguration(
+                (_, next) => async context =>
+                {
+                    await next(context);
+                    var envelopes = outbox
+                        ? context.Services.GetRequiredService<CapturingOutbox>().Envelopes
+                        : context.Services.GetRequiredService<TransportCounter>().Envelopes;
+                    observed = Deserialize(envelopes.Single()).Value;
+                    context.Message = new TargetMessage("after-next");
+                },
+                "ObserveFinalization"))));
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        await bus.PublishAsync(new TargetMessage("before-next"), CancellationToken.None);
+
+        // assert
+        var envelopes = outbox
+            ? provider.GetRequiredService<CapturingOutbox>().Envelopes
+            : provider.GetRequiredService<TransportCounter>().Envelopes;
+        new
+        {
+            ObservedAfterNext = observed,
+            Finalized = envelopes.Select(envelope => Deserialize(envelope).Value)
+        }.MatchInlineSnapshot(
+            """
+            {
+              "ObservedAfterNext": "before-next",
+              "Finalized": [
+                "before-next"
+              ]
+            }
+            """);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PublishAsync_Should_AllowMiddlewareToCatchFailure_When_FinalizationFails(bool serialization)
+    {
+        // arrange
+        Exception? caught = null;
+        await using var provider = await CreateProviderAsync(outbox: true, builder =>
+            builder.ConfigureMessageBus(bus => bus.UseDispatch(new DispatchMiddlewareConfiguration(
+                (_, next) => async context =>
+                {
+                    if (serialization)
+                    {
+                        context.ContentType = new MessageContentType("application/unsupported");
+                    }
+
+                    try
+                    {
+                        await next(context);
+                    }
+                    catch (InvalidOperationException exception)
+                    {
+                        caught = exception;
+                    }
+                },
+                "CatchFinalizationFailure"))));
+        var outbox = provider.GetRequiredService<CapturingOutbox>();
+        outbox.Failure = new InvalidOperationException("Persistence failed.");
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        await bus.PublishAsync(new TargetMessage("failed"), CancellationToken.None);
+
+        // assert
+        new
+        {
+            Caught = caught?.GetType().Name,
+            Persisted = outbox.Envelopes.Count,
+            TransportCalls = provider.GetRequiredService<TransportCounter>().Calls
+        }.MatchInlineSnapshot(
+            """
+            {
+              "Caught": "InvalidOperationException",
+              "Persisted": 0,
+              "TransportCalls": 0
+            }
+            """);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task DispatchAsync_Should_PreserveConfiguredOrder_When_MiddlewareUsesBeforeAndAfter(bool prepare)
+    {
+        // arrange
+        var events = new List<string>();
+        await using var provider = await CreateProviderAsync(outbox: true, builder =>
+            builder.ConfigureMessageBus(bus =>
+            {
+                bus.UseDispatch(CreateMiddleware("middle"));
+                bus.UseDispatch(CreateMiddleware("last"), after: "middle");
+                bus.UseDispatch(CreateMiddleware("first"), before: "middle");
+            }));
+        provider.GetRequiredService<CapturingOutbox>().OnPersist = () => events.Add("persist");
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        if (prepare)
+        {
+            await PrepareAsync(bus, new TargetMessage("prepared"), send: false, (_, _) => events.Add("stage"));
+        }
+        else
+        {
+            await bus.PublishAsync(new TargetMessage("published"), CancellationToken.None);
+        }
+
+        // assert
+        if (prepare)
+        {
+            events.MatchInlineSnapshot(
+                """
+                [
+                  "first:before",
+                  "middle:before",
+                  "last:before",
+                  "last:after",
+                  "middle:after",
+                  "first:after",
+                  "stage"
+                ]
+                """);
+        }
+        else
+        {
+            events.MatchInlineSnapshot(
+                """
+                [
+                  "first:before",
+                  "middle:before",
+                  "last:before",
+                  "persist",
+                  "last:after",
+                  "middle:after",
+                  "first:after"
+                ]
+                """);
+        }
+
+        DispatchMiddlewareConfiguration CreateMiddleware(string name)
+            => new((_, next) => async context =>
+            {
+                events.Add($"{name}:before");
+                await next(context);
+                events.Add($"{name}:after");
+            }, name);
+    }
+
+    [Theory]
+    [InlineData("Instrumentation", false)]
+    [InlineData("Instrumentation", true)]
+    [InlineData("Serialization", false)]
+    [InlineData("Serialization", true)]
+    [InlineData("Scheduling", false)]
+    [InlineData("Scheduling", true)]
+    [InlineData("Outbox", false)]
+    [InlineData("Outbox", true)]
+    public async Task Configure_Should_RejectMissingAnchor_When_MiddlewareReferencesBuiltInStage(string key, bool before)
+    {
+        // arrange
+        var middleware = new DispatchMiddlewareConfiguration(static (_, next) => next, "ApplicationMiddleware");
+
+        // act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+        {
+            await using var provider = await CreateProviderAsync(outbox: true, builder =>
+                builder.ConfigureMessageBus(bus => bus.UseDispatch(
+                    middleware,
+                    before: before ? key : null,
+                    after: before ? null : key)));
+        });
+
+        // assert
+        Assert.Equal($"Middleware with key {key} not found", exception.Message);
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task DispatchAsync_Should_ReportOneDiagnosticScope_When_SerializationSucceedsOrFails(
+        bool prepare,
+        bool failSerialization)
+    {
+        // arrange
+        var diagnostics = new RecordingDiagnostics();
+        var callbackCalled = false;
+        await using var provider = await CreateProviderAsync(outbox: true, builder =>
+        {
+            builder.Services.AddSingleton<IMessagingDiagnosticEventListener>(diagnostics);
+            builder.ConfigureMessageBus(bus => bus.UseDispatch(new DispatchMiddlewareConfiguration(
+                (_, next) => context =>
+                {
+                    if (failSerialization)
+                    {
+                        context.ContentType = new MessageContentType("application/unsupported");
+                    }
+
+                    return next(context);
+                },
+                "ChooseSerializer")));
+        });
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        if (failSerialization)
+        {
+            await Assert.ThrowsAsync<InvalidOperationException>(DispatchAsync);
+        }
+        else
+        {
+            await DispatchAsync();
+        }
+
+        // assert
+        Assert.Equal(failSerialization ? ["begin", "error", "end"] : ["begin", "end"], diagnostics.Events);
+        Assert.Equal(prepare && !failSerialization, callbackCalled);
+        Assert.Equal(
+            prepare || failSerialization ? 0 : 1,
+            provider.GetRequiredService<CapturingOutbox>().Envelopes.Count);
+
+        async Task DispatchAsync()
+        {
+            if (prepare)
+            {
+                await PrepareAsync(bus, new TargetMessage("prepared"), send: false, (_, _) => callbackCalled = true);
+            }
+            else
+            {
+                await bus.PublishAsync(new TargetMessage("published"), CancellationToken.None);
+            }
+        }
+    }
+
+    [Theory]
     [InlineData(false, false)]
     [InlineData(false, true)]
     [InlineData(true, false)]
@@ -75,8 +322,7 @@ public class MessagePreparationTests(ITestOutputHelper output)
                         context.Headers.Set("scope", context.Services.GetRequiredService<ScopedState>().Value);
                         await next(context);
                     },
-                    "ScopedHeader"),
-                before: "Serialization"));
+                    "ScopedHeader")));
         });
         using var scope = provider.CreateScope();
         scope.ServiceProvider.GetRequiredService<ScopedState>().Value = "caller";
@@ -113,13 +359,9 @@ public class MessagePreparationTests(ITestOutputHelper output)
     }
 
     [Theory]
-    [InlineData(false, "Serialization")]
-    [InlineData(false, "Scheduling")]
-    [InlineData(false, "Outbox")]
-    [InlineData(true, "Serialization")]
-    [InlineData(true, "Scheduling")]
-    [InlineData(true, "Outbox")]
-    public async Task PrepareAsync_Should_SerializeFinalState_When_MiddlewareRunsAfterTerminal(bool send, string after)
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PrepareAsync_Should_SerializeFinalState_When_MiddlewareChangesMessageAfterNext(bool send)
     {
         // arrange
         var time = new DateTimeOffset(2030, 1, 1, 0, 0, 0, TimeSpan.Zero);
@@ -135,8 +377,7 @@ public class MessagePreparationTests(ITestOutputHelper output)
                         context.DeliverBy = time.AddMinutes(5);
                         context.Headers.Set("final-header", "after-next");
                     },
-                    "MutateAfterNext"),
-                after: after)));
+                    "MutateAfterNext"))));
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
@@ -177,6 +418,7 @@ public class MessagePreparationTests(ITestOutputHelper output)
         // arrange
         var pool = new TrackingContextPool();
         var fail = true;
+        var callbackCalled = false;
         await using var provider = await CreateProviderAsync(outbox: true, builder =>
         {
             builder.Services.AddSingleton<ObjectPool<DispatchContext>>(pool);
@@ -194,23 +436,37 @@ public class MessagePreparationTests(ITestOutputHelper output)
                             throw new InvalidOperationException("preparation failed");
                         }
                     },
-                    "Failure"),
-                before: "Serialization"));
+                    "Failure")));
         });
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            await PrepareAsync(bus, new TargetMessage("failed"), send, static (_, _) => { }));
+            await PrepareAsync(bus, new TargetMessage("failed"), send, (_, _) => callbackCalled = true));
         fail = false;
         await bus.PublishAsync(new TargetMessage("ordinary"), CancellationToken.None);
 
         // assert
-        Assert.Equal("preparation failed", exception.Message);
-        var ordinary = Assert.Single(provider.GetRequiredService<CapturingOutbox>().Envelopes);
-        Assert.Equal("ordinary", Deserialize(ordinary).Value);
-        Assert.Equal((1, 2), (pool.ContextCount, pool.ReturnCount));
+        new
+        {
+            Error = exception.Message,
+            CallbackCalled = callbackCalled,
+            Persisted = provider.GetRequiredService<CapturingOutbox>().Envelopes.Select(envelope => Deserialize(envelope).Value),
+            pool.ContextCount,
+            pool.ReturnCount
+        }.MatchInlineSnapshot(
+            """
+            {
+              "Error": "preparation failed",
+              "CallbackCalled": false,
+              "Persisted": [
+                "ordinary"
+              ],
+              "ContextCount": 1,
+              "ReturnCount": 2
+            }
+            """);
     }
 
     [Theory]
@@ -400,8 +656,7 @@ public class MessagePreparationTests(ITestOutputHelper output)
                             await next(context);
                             context.ScheduledTime = scheduledTime;
                         },
-                        "ScheduleMessage"),
-                    before: "Scheduling"));
+                        "ScheduleMessage")));
             }
         });
         using var scope = provider.CreateScope();
@@ -443,8 +698,7 @@ public class MessagePreparationTests(ITestOutputHelper output)
                         await bothEntered.Task.WaitAsync(TimeSpan.FromSeconds(10), context.CancellationToken);
                         await next(context);
                     },
-                    "Overlap"),
-                before: "Serialization")));
+                    "Overlap"))));
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
@@ -474,6 +728,7 @@ public class MessagePreparationTests(ITestOutputHelper output)
         var plainBus = plainScope.ServiceProvider.GetRequiredService<IMessageBus>();
         var outboxBus = outboxScope.ServiceProvider.GetRequiredService<IMessageBus>();
         var message = new TargetMessage("allocation-probe");
+        plainProvider.GetRequiredService<TransportCounter>().CaptureEnvelopes = false;
 
         // act
         var plainBytes = MeasureAllocations(plainBus, message, prepare: false);
@@ -550,43 +805,71 @@ public class MessagePreparationTests(ITestOutputHelper output)
         services.AddSingleton(counter);
         services.AddSingleton<IMessageOutbox>(sp => sp.GetRequiredService<CapturingOutbox>());
         var builder = services.AddMessageBus();
-        builder.AddRequestHandler<TargetMessageHandler>();
         if (outbox)
         {
             builder.UseOutboxCore();
         }
 
-        builder.ConfigureMessageBus(b =>
-        {
-            b.AddTransport(new InMemoryMessagingTransport(static _ => { }));
-            b.UseDispatch(
-                new DispatchMiddlewareConfiguration(
-                    (_, _) =>
-                    {
-                        return _ =>
-                        {
-                            counter.Calls++;
-                            return default;
-                        };
-                    },
-                    "TestTerminal")
-                {
-                    RunsDuringPreparation = false,
-                    IsTerminal = true
-                },
-                after: outbox ? "Outbox" : "Scheduling");
-        });
+        builder.AddInMemory(transport => transport.DeclareQueue("target"));
         configure(builder);
         var provider = services.BuildServiceProvider();
-        await ((MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>()).StartAsync(CancellationToken.None);
-        return provider;
+        try
+        {
+            var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+            await runtime.StartAsync(CancellationToken.None);
+            var transport = runtime.Transports.Single();
+            var endpoint = new CapturingDispatchEndpoint(transport, counter);
+            endpoint.Initialize(runtime, new DispatchEndpointConfiguration { Name = "target" });
+            endpoint.Complete(runtime);
+            foreach (var kind in new[] { OutboundRouteKind.Publish, OutboundRouteKind.Send })
+            {
+                var route = new OutboundRoute();
+                route.Initialize(runtime, new OutboundRouteConfiguration
+                {
+                    RuntimeType = typeof(TargetMessage),
+                    Kind = kind
+                });
+                route.ConnectEndpoint(runtime, endpoint);
+                route.Complete(runtime);
+            }
+
+            return provider;
+        }
+        catch
+        {
+            await provider.DisposeAsync();
+            throw;
+        }
     }
 
     public sealed record TargetMessage(string Value) : IEventRequest;
 
-    public sealed class TargetMessageHandler : IEventRequestHandler<TargetMessage>
+    private sealed class CapturingDispatchEndpoint(MessagingTransport transport, TransportCounter counter)
+        : DispatchEndpoint(transport)
     {
-        public ValueTask HandleAsync(TargetMessage message, CancellationToken cancellationToken) => default;
+        protected override void OnInitialize(
+            IMessagingConfigurationContext context,
+            DispatchEndpointConfiguration configuration)
+        { }
+
+        protected override void OnComplete(
+            IMessagingConfigurationContext context,
+            DispatchEndpointConfiguration configuration)
+        {
+            Destination = ((InMemoryMessagingTopology)Transport.Topology).GetQueue("target")!;
+            Address = Destination.Address;
+        }
+
+        protected override ValueTask DispatchAsync(IDispatchContext context)
+        {
+            counter.Calls++;
+            if (counter.CaptureEnvelopes)
+            {
+                counter.Envelopes.Add(MessageEnvelope.CopyWithOwnedBody(context.Envelope!));
+            }
+
+            return default;
+        }
     }
 
     private sealed class ScopedState
@@ -594,18 +877,51 @@ public class MessagePreparationTests(ITestOutputHelper output)
         public string Value { get; set; } = "unassigned";
     }
 
+    private sealed class RecordingDiagnostics : MessagingDiagnosticEventListener
+    {
+        public List<string> Events { get; } = [];
+
+        public override IDisposable Dispatch(IDispatchContext context)
+        {
+            Events.Add("begin");
+            return new RecordingScope(Events);
+        }
+
+        public override void DispatchError(IDispatchContext context, Exception exception)
+            => Events.Add("error");
+
+        private sealed class RecordingScope(List<string> events) : IDisposable
+        {
+            public void Dispose() => events.Add("end");
+        }
+    }
+
     private sealed class TransportCounter
     {
         public int Calls { get; set; }
+
+        public bool CaptureEnvelopes { get; set; } = true;
+
+        public List<MessageEnvelope> Envelopes { get; } = [];
     }
 
     private sealed class CapturingOutbox : IMessageOutbox
     {
         public List<MessageEnvelope> Envelopes { get; } = [];
 
+        public Exception? Failure { get; set; }
+
+        public Action? OnPersist { get; set; }
+
         public ValueTask PersistAsync(MessageEnvelope envelope, CancellationToken cancellationToken)
         {
+            if (Failure is { } failure)
+            {
+                throw failure;
+            }
+
             Envelopes.Add(MessageEnvelope.CopyWithOwnedBody(envelope));
+            OnPersist?.Invoke();
             return default;
         }
     }
@@ -633,8 +949,6 @@ public class MessagePreparationTests(ITestOutputHelper output)
 
         public int ReturnCount { get; private set; }
 
-        public DispatchContext? Returned { get; private set; }
-
         public override DispatchContext Get()
         {
             var context = _inner.Get();
@@ -646,7 +960,6 @@ public class MessagePreparationTests(ITestOutputHelper output)
         {
             _inner.Return(obj);
             ReturnCount++;
-            Returned = obj;
         }
     }
 }

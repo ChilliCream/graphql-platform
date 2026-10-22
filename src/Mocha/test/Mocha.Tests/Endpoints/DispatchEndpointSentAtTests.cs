@@ -193,7 +193,7 @@ public class DispatchEndpointSentAtTests
         });
         if (middleware is not null)
         {
-            builder.ConfigureMessageBus(b => b.UseDispatch(middleware, after: "Serialization"));
+            builder.ConfigureMessageBus(b => b.UseDispatch(middleware));
         }
 
         return services.BuildServiceProvider();

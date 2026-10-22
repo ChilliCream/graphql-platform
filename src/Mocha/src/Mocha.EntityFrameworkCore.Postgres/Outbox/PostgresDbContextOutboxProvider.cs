@@ -18,21 +18,22 @@ internal sealed class PostgresDbContextOutboxProvider(
     private DbConnection? _validatedConnection;
     private string? _validatedConnectionString;
     private IModel? _validatedModel;
-    private DbContextId _validatedLease;
+    private PostgresMessageOutboxOptions? _validatedOptions;
 
     public void Validate(DbContext context)
     {
+        var options = getOptions();
         var connection = context.Database.GetDbConnection();
         var connectionString = connection.ConnectionString;
         if (ReferenceEquals(_validatedConnection, connection)
             && _validatedConnectionString == connectionString
             && ReferenceEquals(_validatedModel, context.Model)
-            && _validatedLease == context.ContextId)
+            && ReferenceEquals(_validatedOptions, options))
         {
             return;
         }
 
-        if (!getOptions().MatchesDestination(context))
+        if (!options.MatchesDestination(context))
         {
             throw Mocha.EntityFrameworkCore.Postgres.ThrowHelper.OutboxDestinationNotRegistered(context.GetType());
         }
@@ -40,7 +41,7 @@ internal sealed class PostgresDbContextOutboxProvider(
         _validatedConnection = connection;
         _validatedConnectionString = connectionString;
         _validatedModel = context.Model;
-        _validatedLease = context.ContextId;
+        _validatedOptions = options;
     }
 
     public void Stage(DbContext context, MessageEnvelope envelope, CancellationToken cancellationToken)

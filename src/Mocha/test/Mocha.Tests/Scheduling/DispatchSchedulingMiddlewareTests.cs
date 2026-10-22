@@ -10,23 +10,22 @@ namespace Mocha.Tests.Scheduling;
 public class DispatchSchedulingMiddlewareTests
 {
     [Fact]
-    public void Create_Should_ReturnMiddleware()
+    public async Task Create_Should_CallNext_When_MessageIsNotScheduled()
     {
         // arrange
-        DispatchDelegate next = _ => ValueTask.CompletedTask;
-        var config = DispatchSchedulingMiddleware.Create();
-        var factoryContext = new DispatchMiddlewareFactoryContext
+        var nextCalled = false;
+        DispatchDelegate next = _ =>
         {
-            Services = new ServiceCollection().BuildServiceProvider(),
-            Endpoint = null!,
-            Transport = new StubTransport()
+            nextCalled = true;
+            return ValueTask.CompletedTask;
         };
 
         // act
-        var result = config.Middleware(factoryContext, next);
+        var pipeline = DispatchSchedulingMiddleware.Create(next);
+        await pipeline(new DispatchContext());
 
         // assert
-        Assert.NotSame(next, result);
+        Assert.True(nextCalled);
     }
 
     [Fact]

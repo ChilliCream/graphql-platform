@@ -57,8 +57,8 @@ public class InMemorySchedulingTests
         // arrange
         var recorder = new MessageRecorder();
         var time = new FakeTimeProvider(s_start);
-        var beforeSerialization = 0;
-        var afterScheduling = 0;
+        var preparationCalls = 0;
+        var observationCalls = 0;
         var received = new TaskCompletionSource<MessageEnvelope>(TaskCreationOptions.RunContinuationsAsynchronously);
         await using var env = await CreateBusAsync(recorder, time, builder =>
         {
@@ -68,19 +68,19 @@ public class InMemorySchedulingTests
                 bus.UseDispatch(new DispatchMiddlewareConfiguration(
                     (_, next) => context =>
                     {
-                        beforeSerialization++;
+                        preparationCalls++;
                         context.Message = new ScheduledPing { Text = "prepared" };
                         context.Headers.Set("prepared-header", "stored");
                         return next(context);
                     },
-                    "PrepareScheduledMessage"), before: "Serialization");
+                    "PrepareScheduledMessage"));
                 bus.UseDispatch(new DispatchMiddlewareConfiguration(
                     (_, next) => context =>
                     {
-                        afterScheduling++;
+                        observationCalls++;
                         return next(context);
                     },
-                    "ObserveScheduledMessage"), after: "Scheduling");
+                    "ObserveScheduledMessage"), after: "PrepareScheduledMessage");
                 bus.UseReceive(new ReceiveMiddlewareConfiguration(
                     (_, next) => async context =>
                     {
@@ -110,7 +110,7 @@ public class InMemorySchedulingTests
                 TestContext.Current.CancellationToken);
         }
 
-        var atInvocation = new { BeforeSerialization = beforeSerialization, AfterScheduling = afterScheduling };
+        var atInvocation = new { PreparationCalls = preparationCalls, ObservationCalls = observationCalls };
         time.Advance(TimeSpan.FromMinutes(11));
         var delivered = await received.Task.WaitAsync(s_deliveryTimeout, TestContext.Current.CancellationToken);
 
@@ -118,7 +118,7 @@ public class InMemorySchedulingTests
         new
         {
             AtInvocation = atInvocation,
-            AtDelivery = new { BeforeSerialization = beforeSerialization, AfterScheduling = afterScheduling },
+            AtDelivery = new { PreparationCalls = preparationCalls, ObservationCalls = observationCalls },
             Body = System.Text.Encoding.UTF8.GetString(delivered.Body.Span),
             Header = delivered.Headers?.GetValue("prepared-header"),
             SentAt = delivered.SentAt?.ToString("O"),
@@ -127,12 +127,12 @@ public class InMemorySchedulingTests
             """
             {
               "AtInvocation": {
-                "BeforeSerialization": 1,
-                "AfterScheduling": 1
+                "PreparationCalls": 1,
+                "ObservationCalls": 1
               },
               "AtDelivery": {
-                "BeforeSerialization": 1,
-                "AfterScheduling": 1
+                "PreparationCalls": 1,
+                "ObservationCalls": 1
               },
               "Body": "{\"Text\":\"prepared\"}",
               "Header": "stored",
@@ -304,7 +304,7 @@ public class InMemorySchedulingTests
 
                     return next(context);
                 },
-                "InvalidReplyDestination"), before: "Serialization"));
+                "InvalidReplyDestination")));
     }
 
     public sealed class ScheduledPing

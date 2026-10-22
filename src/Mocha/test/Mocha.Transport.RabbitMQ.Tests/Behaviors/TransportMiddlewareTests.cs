@@ -202,16 +202,18 @@ public class TransportMiddlewareTests
             .AddRequestHandler<PaymentHandler>()
             .AddRabbitMQ(t =>
             {
+                t.UseDispatch(CreateDispatchAnchor(tracker));
                 t.UseDispatch(
                     new DispatchMiddlewareConfiguration(
                         (ctx, next) =>
                             async context =>
                             {
-                                tracker.Add("transport-append-dispatch");
+                                tracker.Add("transport-append-dispatch:before");
                                 await next(context);
+                                tracker.Add("transport-append-dispatch:after");
                             },
                         "test-transport-append-dispatch"),
-                    after: "Instrumentation");
+                    after: "DispatchAnchor");
             })
             .BuildTestBusAsync();
 
@@ -223,7 +225,9 @@ public class TransportMiddlewareTests
 
         // assert
         Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the message within timeout");
-        Assert.Contains("transport-append-dispatch", tracker.Invocations);
+        Assert.Equal(
+            ["anchor:before", "transport-append-dispatch:before", "transport-append-dispatch:after", "anchor:after"],
+            tracker.Invocations);
     }
 
     [Fact]
@@ -241,16 +245,18 @@ public class TransportMiddlewareTests
             .AddRequestHandler<PaymentHandler>()
             .AddRabbitMQ(t =>
             {
+                t.UseDispatch(CreateDispatchAnchor(tracker));
                 t.UseDispatch(
                     new DispatchMiddlewareConfiguration(
                         (ctx, next) =>
                             async context =>
                             {
-                                tracker.Add("transport-prepend-dispatch");
+                                tracker.Add("transport-prepend-dispatch:before");
                                 await next(context);
+                                tracker.Add("transport-prepend-dispatch:after");
                             },
                         "test-transport-prepend-dispatch"),
-                    before: "Instrumentation");
+                    before: "DispatchAnchor");
             })
             .BuildTestBusAsync();
 
@@ -262,14 +268,26 @@ public class TransportMiddlewareTests
 
         // assert
         Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the message within timeout");
-        Assert.Contains("transport-prepend-dispatch", tracker.Invocations);
+        Assert.Equal(
+            ["transport-prepend-dispatch:before", "anchor:before", "anchor:after", "transport-prepend-dispatch:after"],
+            tracker.Invocations);
     }
+
+    private static DispatchMiddlewareConfiguration CreateDispatchAnchor(MiddlewareTracker tracker)
+        => new(
+            (_, next) => async context =>
+            {
+                tracker.Add("anchor:before");
+                await next(context);
+                tracker.Add("anchor:after");
+            },
+            "DispatchAnchor");
 
     public sealed class MiddlewareTracker
     {
-        public ConcurrentBag<string> Invocations { get; } = [];
+        public ConcurrentQueue<string> Invocations { get; } = new();
 
-        public void Add(string name) => Invocations.Add(name);
+        public void Add(string name) => Invocations.Enqueue(name);
     }
 
     public sealed class SpyConsumer(MessageRecorder recorder) : IConsumer<OrderCreated>

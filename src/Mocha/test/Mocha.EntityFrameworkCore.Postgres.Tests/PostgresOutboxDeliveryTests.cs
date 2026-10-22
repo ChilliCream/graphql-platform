@@ -149,7 +149,7 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
                     context.ContentType = new MessageContentType("application/unsupported");
                 }
             },
-            "PrepareOriginalMessage"), before: "Serialization"));
+            "PrepareOriginalMessage")));
 
         var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();

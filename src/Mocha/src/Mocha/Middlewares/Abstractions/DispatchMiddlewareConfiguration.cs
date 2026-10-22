@@ -5,9 +5,4 @@ namespace Mocha;
 /// </summary>
 /// <param name="Middleware">The dispatch middleware factory delegate.</param>
 /// <param name="Key">An optional key for identifying this middleware in the pipeline.</param>
-public sealed record DispatchMiddlewareConfiguration(DispatchMiddleware Middleware, string? Key = null)
-{
-    internal bool RunsDuringPreparation { get; init; } = true;
-
-    internal bool IsTerminal { get; init; }
-}
+public sealed record DispatchMiddlewareConfiguration(DispatchMiddleware Middleware, string? Key = null);
