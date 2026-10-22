@@ -7,7 +7,7 @@ internal readonly struct SourceResponseNameMapping(
     string sourceResponseName,
     string responseName)
 {
-    private readonly byte[] _responseNameUtf8 = Utf8StringCache.GetUtf8String(responseName);
+    private readonly byte[] _utf8JsonPropertyName = Utf8StringCache.GetJsonPropertyName(responseName);
 
     public string FieldName { get; } = fieldName;
 
@@ -15,5 +15,6 @@ internal readonly struct SourceResponseNameMapping(
 
     public string ResponseName { get; } = responseName;
 
-    public ReadOnlySpan<byte> ResponseNameUtf8 => _responseNameUtf8;
+    public ReadOnlySpan<byte> ResponseNameUtf8
+        => _utf8JsonPropertyName is null ? default : _utf8JsonPropertyName.AsSpan(1..^2);
 }
