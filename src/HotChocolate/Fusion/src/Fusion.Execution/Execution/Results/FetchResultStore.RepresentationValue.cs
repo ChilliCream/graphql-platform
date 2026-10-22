@@ -227,7 +227,7 @@ internal sealed partial class FetchResultStore
             // Entities are only reused while the result has no errors.
             var producerCount = _errors is { Count: > 0 } || _pocketedErrors is { Count: > 0 }
                 ? 0
-                : CollectHoldingProducers(candidates);
+                : CollectEntityReuseProducers(candidates);
 
             return BuildRepresentationValue(
                 _collectTargetCombined.AsSpan(0, targetCount),

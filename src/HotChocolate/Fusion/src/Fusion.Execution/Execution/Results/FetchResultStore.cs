@@ -1075,15 +1075,15 @@ AddErrors_Next:
                 return variableValueSets;
             }
 
-            var holdingCount = CollectHoldingProducers(candidates);
+            var producerCount = CollectEntityReuseProducers(candidates);
 
-            if (holdingCount == 0)
+            if (producerCount == 0)
             {
                 return variableValueSets;
             }
 
             var producerValueSets = BuildVariableValueSets(
-                _collectProducerCombined.AsSpan(0, holdingCount),
+                _collectProducerCombined.AsSpan(0, producerCount),
                 requestVariables,
                 requiredData);
 
@@ -1118,22 +1118,22 @@ AddErrors_Next:
 
     // Caller must hold _lock. Collects the candidate entities that hold a leaf value for every
     // reused field and a key that is not all null into _collectProducerCombined.
-    private int CollectHoldingProducers(EntityReuseCandidateList candidates)
+    private int CollectEntityReuseProducers(EntityReuseCandidateList candidates)
     {
-        var producerCount = CollectCombinedElements(candidates.Paths, ref _collectProducerCombined);
-        var producers = _collectProducerCombined.AsSpan(0, producerCount);
-        var holdingCount = 0;
+        var candidateCount = CollectCombinedElements(candidates.Paths, ref _collectProducerCombined);
+        var producers = _collectProducerCombined.AsSpan(0, candidateCount);
+        var producerCount = 0;
 
         for (var i = 0; i < producers.Length; i++)
         {
             if (HoldsLeafValues(producers[i], candidates.ResponseNames)
                 && HasNonNullKeyValue(producers[i], candidates.KeyResponseNames))
             {
-                producers[holdingCount++] = producers[i];
+                producers[producerCount++] = producers[i];
             }
         }
 
-        return holdingCount;
+        return producerCount;
     }
 
     // Caller must hold _lock.
