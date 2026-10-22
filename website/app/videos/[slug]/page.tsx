@@ -152,7 +152,7 @@ export default async function VideoPage({ params }: PageProps) {
                   className="gap-2 border border-transparent"
                 >
                   <BranchIcon />
-                  Example source
+                  Source code
                 </SolidButton>
               ) : null}
               <OutlineButton

@@ -27,7 +27,8 @@ type YouTubeVideoProps = {
  * Embeds a YouTube video as a click-to-load facade. Resolves the self-hosted,
  * optimized poster (AVIF/WebP) for the id at build time, renders it here, and
  * hands it to the client <VideoFacade>, which only loads the player iframe once
- * clicked (or, with `autoload`, once marketing consent is given).
+ * the visitor has given marketing consent (on click, or with `autoload`
+ * without a click).
  */
 export function YouTubeVideo({
   videoId,
