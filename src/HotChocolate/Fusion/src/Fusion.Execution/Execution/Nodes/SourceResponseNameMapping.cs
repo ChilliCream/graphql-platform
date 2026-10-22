@@ -15,6 +15,5 @@ internal readonly struct SourceResponseNameMapping(
 
     public string ResponseName { get; } = responseName;
 
-    public ReadOnlySpan<byte> ResponseNameUtf8
-        => _utf8JsonPropertyName is null ? default : _utf8JsonPropertyName.AsSpan(1..^2);
+    public ReadOnlySpan<byte> ResponseNameUtf8 => _utf8JsonPropertyName.AsSpan(1..^2);
 }
