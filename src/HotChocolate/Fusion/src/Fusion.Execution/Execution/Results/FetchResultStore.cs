@@ -37,6 +37,12 @@ internal sealed partial class FetchResultStore : IDisposable
     private const int MaxStackAllocPathSegments = 32;
     private const int MaxLinearProducerScanLength = 4;
 
+    /// <summary>
+    /// The largest number of requirements whose values are compared as raw bytes when
+    /// entities are reused.
+    /// </summary>
+    internal const int MaxRawKeyRequirements = 3;
+
     private static readonly ArrayPool<VariableValues> s_variableValuePool = ArrayPool<VariableValues>.Shared;
     private static readonly ArrayPool<object> s_objectPool = ArrayPool<object>.Shared;
     private static readonly ArrayPool<byte> s_bytePool = ArrayPool<byte>.Shared;
@@ -68,6 +74,13 @@ internal sealed partial class FetchResultStore : IDisposable
     private CompositeResultElement[] _collectTargetB = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private CompositeResultElement[] _collectTargetCombined = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private CompositeResultElement[] _collectProducerCombined = ArrayPool<CompositeResultElement>.Shared.Rent(64);
+    private ReuseObject[] _reuseProducers = [];
+    private ReuseObject[] _reuseTargetObjects = [];
+    private int[] _reuseMatches = [];
+    private bool[] _reuseProducerHits = [];
+    private int[] _leafRowOffsets = [];
+    private LeafRowOffsetEntry[] _leafRowOffsetEntries = [];
+    private int _leafRowOffsetEntryCount;
     private SourceResultElement[] _dataElementStaging = [];
     private LeafValue[] _leafValues = [];
     private PathSegmentLocalPool _pathPool = default!;
@@ -767,12 +780,14 @@ AddErrors_Next:
         }
 
         var leafCount = 0;
+        SelectionSet? primarySelectionSet = null;
+        _leafRowOffsetEntryCount = 0;
 
         try
         {
             var canCopy = errorCount == (_errors?.Count ?? 0)
                 && !HasPocketedErrors
-                && TryCollectLeafValues(primary, dataElement, resultSelectionSet, ref leafCount);
+                && TryCollectLeafValues(primary, dataElement, resultSelectionSet, ref leafCount, out primarySelectionSet);
             var leafValues = _leafValues.AsSpan(0, leafCount);
 
             for (var i = 0; i < additionalTargets.Length; i++)
@@ -785,7 +800,7 @@ AddErrors_Next:
                     continue;
                 }
 
-                if (canCopy && TryAssignLeafValues(target, leafValues))
+                if (canCopy && TryAssignLeafValues(target, primarySelectionSet!, leafValues))
                 {
                     continue;
                 }
@@ -818,16 +833,21 @@ AddErrors_Next:
         CompositeResultElement primary,
         SourceResultElement dataElement,
         ResultSelectionSet resultSelectionSet,
-        ref int count)
+        ref int count,
+        out SelectionSet? primarySelectionSet)
     {
+        primarySelectionSet = null;
+
         if (resultSelectionSet.HasSourceResponseNameMappings
             || dataElement.ValueKind is not JsonValueKind.Object
             || primary.IsNullOrInvalidated
             || !primary.TryGetObjectContext(out var context)
-            || context.SelectionSet is not { Type.Kind: TypeKind.Object })
+            || context.SelectionSet is not { Type.Kind: TypeKind.Object } selectionSet)
         {
             return false;
         }
+
+        primarySelectionSet = selectionSet;
 
         foreach (var property in dataElement.EnumerateObject())
         {
@@ -864,27 +884,53 @@ AddErrors_Next:
     /// same response names. Returns <c>false</c> when a value cannot be assigned; the target may
     /// then hold some of the values and must be completed from the source data.
     /// </summary>
-    private static bool TryAssignLeafValues(
+    private bool TryAssignLeafValues(
         CompositeResultElement target,
+        SelectionSet primarySelectionSet,
         ReadOnlySpan<LeafValue> leafValues)
     {
-        if (!target.TryGetObjectContext(out var context)
-            || context.SelectionSet is not { Type.Kind: TypeKind.Object })
+        if (!_result.TryGetSelectionSetObject(
+            target.Cursor,
+            out var startCursor,
+            out var selectionSetId,
+            out var numberOfRows))
         {
             return false;
         }
 
-        foreach (var leafValue in leafValues)
+        if (selectionSetId == primarySelectionSet.Id)
         {
-            if (!context.TryGetProperty(leafValue.Selection.Utf8ResponseName, out var value, out var selection))
+            foreach (var leafValue in leafValues)
+            {
+                var offset = CompositeResultDocument.GetValueRowOffset(primarySelectionSet, leafValue.Selection);
+                Debug.Assert(offset < numberOfRows);
+
+                if (!_result.TryAssignLeafValue(startCursor + offset, leafValue.Value.Cursor))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        if (!TryGetLeafRowOffsets(selectionSetId, leafValues, out var offsets))
+        {
+            return false;
+        }
+
+        for (var i = 0; i < offsets.Length; i++)
+        {
+            var offset = offsets[i];
+
+            if (offset < 0)
             {
                 continue;
             }
 
-            // A completed enum value is only assigned to a field of the same enum type.
-            if (selection.IsEnumValue != leafValue.Selection.IsEnumValue
-                || (selection.IsEnumValue && !ReferenceEquals(selection.NamedType, leafValue.Selection.NamedType))
-                || !value.TrySetLeafValue(leafValue.Value))
+            Debug.Assert(offset < numberOfRows);
+
+            if (!_result.TryAssignLeafValue(startCursor + offset, leafValues[i].Value.Cursor))
             {
                 return false;
             }
@@ -892,6 +938,74 @@ AddErrors_Next:
 
         return true;
     }
+
+    /// <summary>
+    /// Resolves the row offsets of the collected leaf values in the selection set with the given
+    /// id, once per selection set and merge call. An offset of <c>-1</c> marks a leaf the selection
+    /// set does not select.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c> if the selection set is a concrete object type whose leaves have the enum types
+    /// of the collected leaves; otherwise, <c>false</c>.
+    /// </returns>
+    private bool TryGetLeafRowOffsets(
+        int selectionSetId,
+        ReadOnlySpan<LeafValue> leafValues,
+        out ReadOnlySpan<int> offsets)
+    {
+        var entryCount = _leafRowOffsetEntryCount;
+
+        for (var i = 0; i < entryCount; i++)
+        {
+            ref readonly var entry = ref _leafRowOffsetEntries[i];
+
+            if (entry.SelectionSetId == selectionSetId)
+            {
+                offsets = entry.CanCopy ? _leafRowOffsets.AsSpan(entry.Offset, leafValues.Length) : default;
+                return entry.CanCopy;
+            }
+        }
+
+        var selectionSet = _operation.GetSelectionSetById(selectionSetId);
+        var canCopy = selectionSet.Type.Kind is TypeKind.Object;
+        var offsetStart = entryCount * leafValues.Length;
+
+        if (canCopy)
+        {
+            EnsureLength(ref _leafRowOffsets, offsetStart + leafValues.Length, offsetStart);
+            var resolved = _leafRowOffsets.AsSpan(offsetStart, leafValues.Length);
+
+            for (var i = 0; i < leafValues.Length; i++)
+            {
+                var leafSelection = leafValues[i].Selection;
+
+                if (!selectionSet.TryGetSelection(leafSelection.Utf8ResponseName, out var selection))
+                {
+                    resolved[i] = -1;
+                    continue;
+                }
+
+                // A completed enum value is only assigned to a field of the same enum type.
+                if (selection.IsEnumValue != leafSelection.IsEnumValue
+                    || (selection.IsEnumValue && !ReferenceEquals(selection.NamedType, leafSelection.NamedType)))
+                {
+                    canCopy = false;
+                    break;
+                }
+
+                resolved[i] = CompositeResultDocument.GetValueRowOffset(selectionSet, selection);
+            }
+        }
+
+        EnsureLength(ref _leafRowOffsetEntries, entryCount + 1, entryCount);
+        _leafRowOffsetEntries[entryCount] = new LeafRowOffsetEntry(selectionSetId, offsetStart, canCopy);
+        _leafRowOffsetEntryCount = entryCount + 1;
+
+        offsets = canCopy ? _leafRowOffsets.AsSpan(offsetStart, leafValues.Length) : default;
+        return canCopy;
+    }
+
+    private readonly record struct LeafRowOffsetEntry(int SelectionSetId, int Offset, bool CanCopy);
 
     private bool SaveSafeResult(
         CompositeResultElement resultData,
@@ -1062,20 +1176,33 @@ AddErrors_Next:
                 return [];
             }
 
-            var variableValueSets = BuildVariableValueSetsUnsafe(
-                _collectTargetCombined.AsSpan(0, targetCount),
-                requestVariables,
-                requiredData);
-
             // Entities are only reused while the result has no errors.
-            if (variableValueSets.IsEmpty
-                || _errors is { Count: > 0 }
-                || _pocketedErrors is { Count: > 0 })
+            if (_errors is { Count: > 0 } || _pocketedErrors is { Count: > 0 })
+            {
+                return BuildVariableValueSetsUnsafe(
+                    _collectTargetCombined.AsSpan(0, targetCount),
+                    requestVariables,
+                    requiredData);
+            }
+
+            var targets = _collectTargetCombined.AsSpan(0, targetCount);
+            var candidateCount = CollectCombinedElementsUnsafe(candidates.Paths, ref _collectProducerCombined);
+            var producers = _collectProducerCombined.AsSpan(0, candidateCount);
+
+            if (requestVariables.Count == 0
+                && TryReuseAllEntitiesUnsafe(targets, producers, requiredData, candidates, out reusedCount))
+            {
+                return [];
+            }
+
+            var variableValueSets = BuildVariableValueSetsUnsafe(targets, requestVariables, requiredData);
+
+            if (variableValueSets.IsEmpty)
             {
                 return variableValueSets;
             }
 
-            var producerCount = CollectEntityReuseProducersUnsafe(candidates);
+            var producerCount = FilterEntityReuseProducersUnsafe(producers, candidates);
 
             if (producerCount == 0)
             {
@@ -1083,7 +1210,7 @@ AddErrors_Next:
             }
 
             var producerValueSets = BuildVariableValueSetsUnsafe(
-                _collectProducerCombined.AsSpan(0, producerCount),
+                producers[..producerCount],
                 requestVariables,
                 requiredData);
 
@@ -1115,10 +1242,12 @@ AddErrors_Next:
         return combinedCount;
     }
 
-    private int CollectEntityReuseProducersUnsafe(EntityReuseCandidateList candidates)
+    // Moves the candidate entities that hold a leaf value for every reused field and a key that is
+    // not all null to the front of the producers.
+    private static int FilterEntityReuseProducersUnsafe(
+        Span<CompositeResultElement> producers,
+        EntityReuseCandidateList candidates)
     {
-        var candidateCount = CollectCombinedElementsUnsafe(candidates.Paths, ref _collectProducerCombined);
-        var producers = _collectProducerCombined.AsSpan(0, candidateCount);
         var producerCount = 0;
 
         for (var i = 0; i < producers.Length; i++)
@@ -1132,6 +1261,302 @@ AddErrors_Next:
 
         return producerCount;
     }
+
+    /// <summary>
+    /// Fills every target that has a key from the producer with the same raw key values.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c> if every target was filled or has no key; otherwise, <c>false</c> and the
+    /// result is unchanged.
+    /// </returns>
+    private bool TryReuseAllEntitiesUnsafe(
+        ReadOnlySpan<CompositeResultElement> targets,
+        ReadOnlySpan<CompositeResultElement> producers,
+        ReadOnlySpan<OperationRequirement> requiredData,
+        EntityReuseCandidateList candidates,
+        out int reusedCount)
+    {
+        reusedCount = 0;
+        var layouts = candidates.Layouts;
+
+        if (producers.IsEmpty || layouts.IsEmpty || requiredData.Length > MaxRawKeyRequirements)
+        {
+            return false;
+        }
+
+        Span<bool> nonNullKeys = stackalloc bool[MaxRawKeyRequirements];
+
+        for (var i = 0; i < requiredData.Length; i++)
+        {
+            nonNullKeys[i] = requiredData[i].Type.Kind is SyntaxKind.NonNullType;
+        }
+
+        nonNullKeys = nonNullKeys[..requiredData.Length];
+
+        var startPosition = GetVariableWriter().Position;
+
+        try
+        {
+            _variableDedupTable.Initialize(producers.Length);
+            EnsureLength(ref _reuseProducers, producers.Length);
+            var producerCount = 0;
+
+            // Only entities that hold a leaf value for every reused field and a key that is not
+            // all null can produce. The first producer of a key wins.
+            foreach (var producer in producers)
+            {
+                if (producer.IsNullOrInvalidated)
+                {
+                    continue;
+                }
+
+                if (!TryGetReuseObjectUnsafe(producer, layouts, out var producerObject))
+                {
+                    return false;
+                }
+
+                switch (GetLeafValuesStateUnsafe(producerObject))
+                {
+                    case LeafValueState.NotALeaf:
+                        continue;
+
+                    case LeafValueState.Unsupported:
+                        return false;
+                }
+
+                var keyStart = _variableWriter.Position;
+
+                if (!TryWriteRawKeyUnsafe(producerObject, nonNullKeys, out var hasKey, out var hasNonNullKeyValue))
+                {
+                    return false;
+                }
+
+                if (!hasKey || !hasNonNullKeyValue)
+                {
+                    _variableWriter.ResetTo(keyStart);
+                    continue;
+                }
+
+                var keyLength = _variableWriter.Position - keyStart;
+                var hash = _variableWriter.GetHashCode(keyStart, keyLength);
+
+                if (_variableDedupTable.TryGet(_variableWriter, hash, keyStart, keyLength, out _))
+                {
+                    _variableWriter.ResetTo(keyStart);
+                    continue;
+                }
+
+                _variableDedupTable.Add(hash, producerCount, keyStart, keyLength);
+                _reuseProducers[producerCount++] = producerObject;
+            }
+
+            if (producerCount == 0)
+            {
+                return false;
+            }
+
+            EnsureLength(ref _reuseTargetObjects, targets.Length);
+            EnsureLength(ref _reuseMatches, targets.Length);
+
+            // Every target with a key must have a producer before anything is written.
+            for (var i = 0; i < targets.Length; i++)
+            {
+                if (!TryGetReuseObjectUnsafe(targets[i], layouts, out var targetObject))
+                {
+                    return false;
+                }
+
+                var keyStart = _variableWriter.Position;
+
+                if (!TryWriteRawKeyUnsafe(targetObject, nonNullKeys, out var hasKey, out _))
+                {
+                    return false;
+                }
+
+                if (!hasKey)
+                {
+                    _variableWriter.ResetTo(keyStart);
+                    _reuseMatches[i] = -1;
+                    continue;
+                }
+
+                var keyLength = _variableWriter.Position - keyStart;
+                var hash = _variableWriter.GetHashCode(keyStart, keyLength);
+
+                if (!_variableDedupTable.TryGet(_variableWriter, hash, keyStart, keyLength, out var producerIndex))
+                {
+                    return false;
+                }
+
+                _variableWriter.ResetTo(keyStart);
+                _reuseMatches[i] = producerIndex;
+                _reuseTargetObjects[i] = targetObject;
+            }
+
+            EnsureLength(ref _reuseProducerHits, producerCount);
+            _reuseProducerHits.AsSpan(0, producerCount).Clear();
+
+            for (var i = 0; i < targets.Length; i++)
+            {
+                var producerIndex = _reuseMatches[i];
+
+                if (producerIndex < 0)
+                {
+                    continue;
+                }
+
+                if (!_reuseProducerHits[producerIndex])
+                {
+                    _reuseProducerHits[producerIndex] = true;
+                    reusedCount++;
+                }
+
+                if (targets[i].IsNullOrInvalidated)
+                {
+                    continue;
+                }
+
+                var producerObject = _reuseProducers[producerIndex];
+                var targetObject = _reuseTargetObjects[i];
+                var producerOffsets = producerObject.Layout.FieldRowOffsets;
+                var targetOffsets = targetObject.Layout.FieldRowOffsets;
+
+                for (var j = 0; j < targetOffsets.Length; j++)
+                {
+                    var assigned = _result.TryAssignLeafValue(
+                        targetObject.StartCursor + targetOffsets[j],
+                        producerObject.StartCursor + producerOffsets[j]);
+                    Debug.Assert(assigned, "The producer rows were verified to hold leaf values.");
+                }
+            }
+
+            return true;
+        }
+        finally
+        {
+            _variableWriter.ResetTo(startPosition);
+        }
+    }
+
+    // Resolves an entity to the first row of its object and the layout of its selection set.
+    private bool TryGetReuseObjectUnsafe(
+        CompositeResultElement element,
+        ReadOnlySpan<EntityReuseLayout> layouts,
+        out ReuseObject reuseObject)
+    {
+        if (_result.TryGetSelectionSetObject(
+            element.Cursor,
+            out var startCursor,
+            out var selectionSetId,
+            out var numberOfRows))
+        {
+            foreach (var layout in layouts)
+            {
+                if (layout.SelectionSetId == selectionSetId)
+                {
+                    Debug.Assert(numberOfRows > layout.MaxRowOffset);
+                    reuseObject = new ReuseObject(startCursor, layout);
+                    return true;
+                }
+            }
+        }
+
+        reuseObject = default;
+        return false;
+    }
+
+    // Classifies the reused fields of an entity: the state of the first field that cannot be
+    // assigned, or Assignable when every field can.
+    private LeafValueState GetLeafValuesStateUnsafe(in ReuseObject reuseObject)
+    {
+        foreach (var offset in reuseObject.Layout.FieldRowOffsets)
+        {
+            var state = _result.GetLeafValueState(reuseObject.StartCursor + offset);
+
+            if (state is not LeafValueState.Assignable)
+            {
+                return state;
+            }
+        }
+
+        return LeafValueState.Assignable;
+    }
+
+    /// <summary>
+    /// Writes the token type and raw bytes of every key value of <paramref name="reuseObject"/>.
+    /// <paramref name="hasKey"/> is <c>false</c> when a key value is unset, or null for a non-null
+    /// requirement; <paramref name="hasNonNullKeyValue"/> is <c>true</c> when at least one key
+    /// value is neither unset nor null.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c> if every key value can be compared by its raw bytes; otherwise, <c>false</c>.
+    /// </returns>
+    private bool TryWriteRawKeyUnsafe(
+        in ReuseObject reuseObject,
+        ReadOnlySpan<bool> nonNullKeys,
+        out bool hasKey,
+        out bool hasNonNullKeyValue)
+    {
+        const int prefixLength = sizeof(byte) + sizeof(int);
+        var offsets = reuseObject.Layout.KeyRowOffsets;
+        hasKey = true;
+        hasNonNullKeyValue = false;
+
+        for (var i = 0; i < offsets.Length; i++)
+        {
+            if (!_result.TryGetRawLeafValue(reuseObject.StartCursor + offsets[i], out var tokenType, out var value))
+            {
+                return false;
+            }
+
+            if (tokenType is ElementTokenType.None || (tokenType is ElementTokenType.Null && nonNullKeys[i]))
+            {
+                hasKey = false;
+                return true;
+            }
+
+            hasNonNullKeyValue |= tokenType is not ElementTokenType.Null;
+
+            var span = _variableWriter.GetSpan(prefixLength + value.Length);
+            span[0] = (byte)tokenType;
+            BinaryPrimitives.WriteInt32LittleEndian(span[sizeof(byte)..], value.Length);
+            value.CopyTo(span[prefixLength..]);
+            _variableWriter.Advance(prefixLength + value.Length);
+        }
+
+        return true;
+    }
+
+    private static void EnsureLength<T>(ref T[] buffer, int required)
+    {
+        if (required > buffer.Length)
+        {
+            ReturnPooled(ref buffer);
+            buffer = ArrayPool<T>.Shared.Rent(required);
+        }
+    }
+
+    private static void EnsureLength<T>(ref T[] buffer, int required, int preservedCount)
+    {
+        if (required > buffer.Length)
+        {
+            var grown = ArrayPool<T>.Shared.Rent(required);
+            buffer.AsSpan(0, preservedCount).CopyTo(grown);
+            ReturnPooled(ref buffer);
+            buffer = grown;
+        }
+    }
+
+    private static void ReturnPooled<T>(ref T[] buffer)
+    {
+        if (buffer.Length > 0)
+        {
+            ArrayPool<T>.Shared.Return(buffer, clearArray: true);
+            buffer = [];
+        }
+    }
+
+    private readonly record struct ReuseObject(CompositeResultDocument.Cursor StartCursor, EntityReuseLayout Layout);
 
     private ImmutableArray<VariableValues> ReuseEntitiesUnsafe(
         ImmutableArray<VariableValues> variableValueSets,
@@ -3173,6 +3598,12 @@ AddErrors_Next:
         ArrayPool<CompositeResultElement>.Shared.Return(_collectTargetB, clearArray: true);
         ArrayPool<CompositeResultElement>.Shared.Return(_collectTargetCombined, clearArray: true);
         ArrayPool<CompositeResultElement>.Shared.Return(_collectProducerCombined, clearArray: true);
+        ReturnPooled(ref _reuseProducers);
+        ReturnPooled(ref _reuseTargetObjects);
+        ReturnPooled(ref _reuseMatches);
+        ReturnPooled(ref _reuseProducerHits);
+        ReturnPooled(ref _leafRowOffsets);
+        ReturnPooled(ref _leafRowOffsetEntries);
 
         foreach (var memory in _memory)
         {

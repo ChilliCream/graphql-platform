@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.ApolloFederation;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -266,6 +267,7 @@ internal sealed class EntityReuseCandidateMap
         }
 
         List<SelectionPath>? producerPaths = null;
+        List<SelectionSet>? producerSelectionSets = null;
 
         foreach (var candidatePath in candidatePaths)
         {
@@ -290,11 +292,105 @@ internal sealed class EntityReuseCandidateMap
 
             producerPaths ??= [];
             producerPaths.Add(ToSelectionPath(candidatePath));
+            producerSelectionSets ??= [];
+            producerSelectionSets.Add(producerSelectionSet);
         }
 
-        return producerPaths is null
-            ? null
-            : new EntityReuseCandidateList([.. producerPaths], responseNames, requirementFields);
+        if (producerPaths is null || producerSelectionSets is null)
+        {
+            return null;
+        }
+
+        var layouts = CreateLayouts(
+            lookup.Requirements,
+            responseNames,
+            requirementFields,
+            targetSelectionSets,
+            producerSelectionSets);
+
+        return new EntityReuseCandidateList([.. producerPaths], responseNames, requirementFields, layouts);
+    }
+
+    // Creates the row layouts of the target and producer selection sets, or returns an empty
+    // array when the entities cannot be matched on the raw bytes of their key values.
+    private static EntityReuseLayout[] CreateLayouts(
+        OperationRequirement[] requirements,
+        string[] responseNames,
+        string[] requirementFields,
+        SelectionSet[] targetSelectionSets,
+        List<SelectionSet> producerSelectionSets)
+    {
+        // The raw key comparison mirrors the variable value fast paths, which cover up to three
+        // requirements with values that serialize as their raw bytes.
+        if (requirements.Length > FetchResultStore.MaxRawKeyRequirements)
+        {
+            return [];
+        }
+
+        foreach (var requirement in requirements)
+        {
+            if (requirement.Type.IsListType())
+            {
+                return [];
+            }
+        }
+
+        var layouts = new List<EntityReuseLayout>();
+        var reference = targetSelectionSets[0];
+
+        foreach (var selectionSet in targetSelectionSets.Concat(producerSelectionSets))
+        {
+            if (layouts.Any(t => t.SelectionSetId == selectionSet.Id))
+            {
+                continue;
+            }
+
+            if (TryCreateLayout(selectionSet, reference, responseNames, requirementFields) is not { } layout)
+            {
+                return [];
+            }
+
+            layouts.Add(layout);
+        }
+
+        return [.. layouts];
+    }
+
+    private static EntityReuseLayout? TryCreateLayout(
+        SelectionSet selectionSet,
+        SelectionSet reference,
+        string[] responseNames,
+        string[] requirementFields)
+    {
+        var keyRowOffsets = new int[requirementFields.Length];
+
+        for (var i = 0; i < requirementFields.Length; i++)
+        {
+            if (!selectionSet.TryGetSelection(requirementFields[i], out var selection))
+            {
+                return null;
+            }
+
+            keyRowOffsets[i] = CompositeResultDocument.GetValueRowOffset(selectionSet, selection);
+        }
+
+        var fieldRowOffsets = new int[responseNames.Length];
+
+        for (var i = 0; i < responseNames.Length; i++)
+        {
+            // A leaf value is only assigned between fields of the same enum type.
+            if (!selectionSet.TryGetSelection(responseNames[i], out var selection)
+                || !reference.TryGetSelection(responseNames[i], out var referenceSelection)
+                || selection.IsEnumValue != referenceSelection.IsEnumValue
+                || (selection.IsEnumValue && !ReferenceEquals(selection.NamedType, referenceSelection.NamedType)))
+            {
+                return null;
+            }
+
+            fieldRowOffsets[i] = CompositeResultDocument.GetValueRowOffset(selectionSet, selection);
+        }
+
+        return new EntityReuseLayout(selectionSet.Id, keyRowOffsets, fieldRowOffsets);
     }
 
     private static bool IsProducer(
