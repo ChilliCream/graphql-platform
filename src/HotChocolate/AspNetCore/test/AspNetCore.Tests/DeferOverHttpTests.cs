@@ -1373,6 +1373,48 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
             "Expected both labeled deferred payloads to include product.name.");
     }
 
+    [Fact]
+    public async Task Post_Should_WriteListItemPath_When_LegacyDeferIsLabeledInsideList()
+    {
+        // arrange
+        using var server = CreateDeferServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/graphql");
+        request.Content = JsonContent.Create(new
+        {
+            query = """
+                {
+                    products {
+                        name
+                        ... @defer(label: "productDescription") {
+                            description
+                        }
+                    }
+                }
+                """
+        });
+        request.Headers.Add("Accept", "application/jsonl; incrementalSpec=v0.1");
+
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+        content.MatchInlineSnapshot(
+            """
+            {"data":{"products":[{"name":"Abc"}]},"hasNext":true}
+            {"incremental":[{"data":{"description":"Abc desc"},"path":["products",0],"label":"productDescription"}],"hasNext":false}
+
+            """);
+    }
+
     private TestServer CreateDeferServer(
         HttpTransportVersion serverTransportVersion = HttpTransportVersion.Latest)
     {
@@ -1403,6 +1445,9 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
     {
         public Product GetProduct()
             => new("Abc");
+
+        public Product[] GetProducts()
+            => [new("Abc")];
 
         public ICharacter GetHero()
             => new Droid { Name = "R2-D2" };

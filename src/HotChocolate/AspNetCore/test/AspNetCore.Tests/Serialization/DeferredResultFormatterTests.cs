@@ -608,6 +608,70 @@ public sealed class DeferredResultFormatterTests
             lines);
     }
 
+    [Fact]
+    public async Task FormatAsync_Should_WriteListItemPaths_When_LegacyDeferIsLabeledInsideList()
+    {
+        // arrange
+        var document = ParseDocument(
+            """
+            {
+                products {
+                    nodes {
+                        id
+                        ... @defer(label: "details") {
+                            productNumber
+                        }
+                    }
+                }
+            }
+            """);
+
+        var initial = CreateInitialResult(
+            document,
+            new Dictionary<string, object?>
+            {
+                ["products"] = new Dictionary<string, object?>
+                {
+                    ["nodes"] = new[]
+                    {
+                        new Dictionary<string, object?> { ["id"] = "1" },
+                        new Dictionary<string, object?> { ["id"] = "2" }
+                    }
+                }
+            },
+            hasNext: true,
+            new PendingResult(2, Path.Root.Append("products").Append("nodes").Append(0), "details"),
+            new PendingResult(3, Path.Root.Append("products").Append("nodes").Append(1), "details"));
+
+        var first = CreateIncrementalEnvelope(
+            document,
+            new IncrementalObjectResult(
+                2,
+                data: CreateData(new Dictionary<string, object?> { ["productNumber"] = 1001 })),
+            hasNext: true,
+            completedId: 2);
+
+        var second = CreateIncrementalEnvelope(
+            document,
+            new IncrementalObjectResult(
+                3,
+                data: CreateData(new Dictionary<string, object?> { ["productNumber"] = 1002 })),
+            hasNext: false,
+            completedId: 3);
+
+        // act
+        var lines = await FormatLegacyJsonLinesAsync(initial, first, second);
+
+        // assert
+        Assert.Equal(
+            [
+                """{"data":{"products":{"nodes":[{"id":"1"},{"id":"2"}]}},"hasNext":true}""",
+                """{"incremental":[{"data":{"productNumber":1001},"path":["products","nodes",0],"label":"details"}],"hasNext":true}""",
+                """{"incremental":[{"data":{"productNumber":1002},"path":["products","nodes",1],"label":"details"}],"hasNext":false}"""
+            ],
+            lines);
+    }
+
     private static async Task<string> FormatAsync(
         IExecutionResultFormatter formatter,
         ExecutionResultFormatFlags flags)
