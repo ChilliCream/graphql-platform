@@ -252,6 +252,7 @@ Retval
 Rewriters
 Rgba
 Rhai
+rhysd
 Roslynator
 roundtrips
 rovo

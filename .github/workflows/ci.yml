@@ -16,7 +16,7 @@ permissions:
 jobs:
   check-changes:
     name: Check for Changes
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     outputs:
       website_changes: ${{ steps.check-website.outputs.website_changes }}
       docs_changes: ${{ steps.check-docs.outputs.docs_changes }}
@@ -99,7 +99,7 @@ jobs:
 
   spellcheck:
     name: "Spellcheck Documentation"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: check-changes
     if: needs.check-changes.outputs.website_changes == 'true' || needs.check-changes.outputs.docs_changes == 'true'
     steps:
@@ -121,7 +121,7 @@ jobs:
 
   linting:
     name: "Markdown linting"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         name: Check out the code
@@ -140,7 +140,7 @@ jobs:
     name: "Website Tests"
     needs: check-changes
     if: needs.check-changes.outputs.website_changes == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - name: Checkout Repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -201,7 +201,7 @@ jobs:
 
   configure:
     name: Generate Test Matrix
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: check-changes
     if: needs.check-changes.outputs.library_changes == 'true'
 
@@ -220,7 +220,7 @@ jobs:
 
   library-tests:
     name: Run ${{ matrix.name }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: [configure, check-changes]
     if: needs.check-changes.outputs.library_changes == 'true'
     env:
@@ -298,7 +298,7 @@ jobs:
 
   cost-analysis-benchmark-build:
     name: Build Cost Analysis Benchmarks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: check-changes
     if: needs.check-changes.outputs.library_changes == 'true'
     steps:
@@ -315,7 +315,7 @@ jobs:
 
   patch-coverage:
     name: Patch Coverage
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: [check-changes, library-tests]
     if: needs.check-changes.outputs.library_changes == 'true'
     permissions:
@@ -389,7 +389,7 @@ jobs:
 
   verify-aspire-nitro-operations:
     name: Verify Fusion Aspire Nitro Operations
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: check-changes
     if: needs.check-changes.outputs.aspire_nitro_client_changes == 'true'
     steps:
@@ -412,7 +412,7 @@ jobs:
 
   validate-aspire-nitro-client:
     name: Validate Fusion Aspire Nitro Client
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: [check-changes, verify-aspire-nitro-operations]
     if: >-
       needs.check-changes.outputs.aspire_nitro_client_changes == 'true' &&
@@ -449,7 +449,7 @@ jobs:
 
   validate-nitro-client:
     name: Validate Nitro Client
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: check-changes
     if: >-
       needs.check-changes.outputs.nitro_client_changes == 'true' &&
@@ -474,7 +474,7 @@ jobs:
 
   verify-nitro-npm-package:
     name: Verify Nitro npm package
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: check-changes
     if: needs.check-changes.outputs.src_changes == 'true'
     steps:
@@ -530,7 +530,7 @@ jobs:
         verify-nitro-npm-package,
       ]
     if: always()
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - name: Check if Library Tests or Website Tests failed
         run: exit 1
