@@ -42,6 +42,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     private readonly INodeIdParser _nodeIdParser;
     private readonly IErrorHandler _errorHandler;
     private bool _collectTelemetry;
+    private EntityReuseCandidateMap? _entityReuseCandidateMap;
     private bool _usesDynamicSchemaNames;
     private bool _usesBatchNodes;
 #pragma warning disable IDE0370 // Remove unnecessary suppression
@@ -320,8 +321,10 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
 
         // The paths of these variable value sets wrap pooled segment arrays that the
         // result store reclaims once the node's results are merged, after which a later
-        // node rents and overwrites them. The trace outlives that merge, so it must own
-        // detached copies of the paths.
+        // node rents and overwrites them, and the values live in memory that the variable
+        // writer of the result store may write again. The trace outlives both, so it must
+        // own detached copies of the paths and values.
+        var memory = Memory;
         var detached = new VariableValues[variableValueSets.Length];
 
         for (var i = 0; i < variableValueSets.Length; i++)
@@ -330,7 +333,8 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
             detached[i] = variableValueSet with
             {
                 Path = variableValueSet.Path.Detach(),
-                AdditionalPaths = variableValueSet.AdditionalPaths.Detach()
+                AdditionalPaths = variableValueSet.AdditionalPaths.Detach(),
+                Values = variableValueSet.Values.Detach(memory)
             };
         }
 
@@ -429,6 +433,42 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         }
     }
 
+    /// <summary>
+    /// Gets the reuse candidates of a lookup in the executing plan, or <c>null</c> if the
+    /// lookup always fetches its entities.
+    /// </summary>
+    internal EntityReuseCandidateList? GetEntityReuseCandidates(int lookupId)
+        => _entityReuseCandidateMap?.GetCandidates(lookupId);
+
+    /// <summary>
+    /// Creates the variable value sets of a lookup and fills the targets whose entity the result
+    /// already holds. <paramref name="reusedCount"/> is the number of entities that were filled.
+    /// </summary>
+    internal ImmutableArray<VariableValues> CreateVariableValueSets(
+        ReadOnlySpan<SelectionPath> selectionSets,
+        ReadOnlySpan<string> forwardedVariables,
+        ReadOnlySpan<OperationRequirement> requiredData,
+        EntityReuseCandidateList? candidates,
+        out int reusedCount)
+    {
+        reusedCount = 0;
+
+        if (candidates is null
+            || requiredData.Length == 0
+            || forwardedVariables.Length > 0
+            || CountImportedRequirementKeys(requiredData) > 0)
+        {
+            return CreateVariableValueSets(selectionSets, forwardedVariables, requiredData);
+        }
+
+        return _resultStore.CreateVariableValueSets(
+            selectionSets,
+            GetPathThroughVariables(forwardedVariables),
+            requiredData,
+            candidates,
+            out reusedCount);
+    }
+
     internal ImmutableArray<VariableValues> CreateVariableValueSets(
         ReadOnlySpan<SelectionPath> selectionSets,
         ReadOnlySpan<string> forwardedVariables,
@@ -520,6 +560,47 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
             // the union of every parent-dependent node's full requirement list, so a single
             // node's requirements are either all imported or none imported. A partial overlap
             // means the planner produced a shape this routing layer is not built to handle.
+            throw CreateMixedScopeException(requirements);
+        }
+
+        var variableValuesFromSnapshot = GetPathThroughVariables(forwardedVariables);
+        return _resultStore.CreateRepresentationVariableValueFromSnapshot(
+            _requirementValues,
+            _requirementKeys!,
+            variableValuesFromSnapshot,
+            requirements,
+            requiredShape,
+            entityTypeName);
+    }
+
+    internal RepresentationValue CreateRepresentationVariableValue(
+        ReadOnlySpan<SelectionPath> selectionSets,
+        ReadOnlySpan<string> forwardedVariables,
+        ReadOnlySpan<OperationRequirement> requirements,
+        ImmutableArray<RepresentationShapeNode> requiredShape,
+        string entityTypeName)
+    {
+        if (requirements.Length == 0)
+        {
+            return RepresentationValue.Empty;
+        }
+
+        var importedMatchCount = CountImportedRequirementKeys(requirements);
+
+        if (importedMatchCount == 0)
+        {
+            var variableValues = GetPathThroughVariables(forwardedVariables);
+            return _resultStore.CreateRepresentationVariableValue(
+                selectionSets,
+                variableValues,
+                requirements,
+                requiredShape,
+                entityTypeName);
+        }
+
+        if (importedMatchCount != requirements.Length)
+        {
+            // Planner-invariant guard, see the single-target overload.
             throw CreateMixedScopeException(requirements);
         }
 

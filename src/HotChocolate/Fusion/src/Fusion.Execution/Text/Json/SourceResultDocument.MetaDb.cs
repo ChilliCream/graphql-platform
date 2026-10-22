@@ -15,6 +15,8 @@ public sealed partial class SourceResultDocument
         private MemorySegment[] _chunks;
         private Cursor _cursor;
         private int _rowsInCurrentChunk;
+        private byte[] _currentBuffer;
+        private int _currentOffset;
         private bool _disposed;
 
         // The chunk schedule ramps from Size1K up to Size128K over chunks 0..RampChunks-1; from there
@@ -52,7 +54,7 @@ public sealed partial class SourceResultDocument
 
             // Rent the first chunk now to avoid branching on first append. The document always
             // starts at chunk 0 (Size1K) and ramps up as it grows.
-            chunks[0] = arena.Rent(1 << (10 + (int)Cursor.ChunkSizeFor(0)));
+            var first = chunks[0] = arena.Rent(1 << (10 + (int)Cursor.ChunkSizeFor(0)));
             log.ChunkAllocated(1, 0);
 
             return new MetaDb
@@ -60,7 +62,9 @@ public sealed partial class SourceResultDocument
                 _arena = arena,
                 _chunks = chunks,
                 _cursor = Cursor.Zero,
-                _rowsInCurrentChunk = Cursor.RowsPerChunkFor(0)
+                _rowsInCurrentChunk = Cursor.RowsPerChunkFor(0),
+                _currentBuffer = first.Buffer,
+                _currentOffset = first.Offset
             };
         }
 
@@ -103,11 +107,11 @@ public sealed partial class SourceResultDocument
             int numberOfRows = 1,
             bool hasComplexChildren = false)
         {
-            var (cursor, chunk, byteOffset) = AcquireSlot();
+            var (cursor, buffer, byteOffset) = AcquireSlot();
 
             var row = new DbRow(tokenType, startLocation, length, numberOfRows, hasComplexChildren);
-            ref var dest = ref MemoryMarshal.GetArrayDataReference(chunk.Buffer);
-            Unsafe.WriteUnaligned(ref Unsafe.Add(ref dest, chunk.Offset + byteOffset), row);
+            ref var dest = ref MemoryMarshal.GetArrayDataReference(buffer);
+            Unsafe.WriteUnaligned(ref Unsafe.Add(ref dest, byteOffset), row);
 
             return cursor;
         }
@@ -134,44 +138,48 @@ public sealed partial class SourceResultDocument
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private (Cursor cursor, MemorySegment chunk, int byteOffset) AcquireSlot()
+        private (Cursor cursor, byte[] buffer, int byteOffset) AcquireSlot()
         {
-            var log = Log;
             var cursor = _cursor;
-            var chunks = _chunks.AsSpan();
-            var chunksLength = chunks.Length;
 
-            // If current chunk is full, move to next chunk row 0 and refresh the cached row capacity
-            // for that chunk (the only place the capacity changes).
-            if (cursor.Row >= _rowsInCurrentChunk)
+            if (cursor.Row < _rowsInCurrentChunk)
             {
-                cursor = Cursor.FromByteOffset(cursor.Chunk + 1, 0);
-                _rowsInCurrentChunk = Cursor.RowsPerChunkFor(cursor.Chunk);
+                _cursor = Cursor.From(cursor.Chunk, cursor.Row + 1);
+                return (cursor, _currentBuffer, _currentOffset + cursor.ByteOffset);
             }
 
+            return AcquireSlotInNextChunk();
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private (Cursor cursor, byte[] buffer, int byteOffset) AcquireSlotInNextChunk()
+        {
+            var cursor = Cursor.FromByteOffset(_cursor.Chunk + 1, 0);
             var chunkIndex = cursor.Chunk;
+            _rowsInCurrentChunk = Cursor.RowsPerChunkFor(chunkIndex);
 
             // make sure we have enough space for the chunk referenced by the chunkIndex.
-            if (chunkIndex >= chunksLength)
+            if (chunkIndex >= _chunks.Length)
             {
                 // if we do not have enough space we will double the size we have for
                 // chunks of memory.
-                GrowChunks(chunks.Length);
-                chunks = _chunks.AsSpan();
+                GrowChunks(_chunks.Length);
             }
 
-            var chunk = chunks[chunkIndex];
+            var chunk = _chunks[chunkIndex];
 
             // if the chunk has no backing buffer we did not yet rent any memory for it
             if (chunk.Buffer is null)
             {
                 var chunkBytes = 1 << (10 + (int)Cursor.ChunkSizeFor(chunkIndex));
-                chunk = chunks[chunkIndex] = _arena.Rent(chunkBytes);
-                log.ChunkAllocated(1, chunkIndex);
+                chunk = _chunks[chunkIndex] = _arena.Rent(chunkBytes);
+                Log.ChunkAllocated(1, chunkIndex);
             }
 
-            _cursor = Cursor.From(cursor.Chunk, cursor.Row + 1);
-            return (cursor, chunk, cursor.ByteOffset);
+            _currentBuffer = chunk.Buffer;
+            _currentOffset = chunk.Offset;
+            _cursor = Cursor.From(chunkIndex, 1);
+            return (cursor, chunk.Buffer, chunk.Offset);
         }
 
         private void GrowChunks(int currentLength)
@@ -252,6 +260,7 @@ public sealed partial class SourceResultDocument
                 // The arena owns the chunk memory and the chunk table, and frees both as a whole
                 // when it is disposed, so neither is returned here.
                 _chunks = [];
+                _currentBuffer = null!;
                 _arena = null!;
                 _disposed = true;
             }

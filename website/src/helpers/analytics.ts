@@ -5,6 +5,7 @@ declare global {
     Cookiebot?: {
       readonly consent?: {
         readonly statistics?: boolean;
+        readonly marketing?: boolean;
       };
     };
     __gtmLoaded?: boolean;

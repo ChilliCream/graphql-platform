@@ -415,12 +415,12 @@ public sealed class AbstractLookupFanoutPlanningTests : FusionTestBase
     }
 
     [Fact]
-    public void Plan_Should_Attribute_Nested_Apollo_Lookup_Dependencies_Per_Sibling_When_Sibling_Asset_Selections_Differ()
+    public void Plan_Should_Merge_Nested_Apollo_Lookups_Across_Union_Members_When_Sibling_Asset_Selections_Differ()
     {
         // arrange
-        // The Apollo Federation twin of the union sibling scenario: Apollo entity lookups never
-        // merge into multi-target operations, so each nested MeterType and Category lookup must
-        // depend only on the sibling asset lookup that feeds its own target path.
+        // The Apollo Federation twin of the union sibling scenario: the nested MeterType and
+        // Category lookups each merge into one multi-target lookup that fans in on every sibling
+        // asset lookup.
         var schema = CreateApolloUnionSiblingAssetSchema();
 
         // act
@@ -463,10 +463,10 @@ public sealed class AbstractLookupFanoutPlanningTests : FusionTestBase
     }
 
     [Fact]
-    public void Plan_Should_Attribute_Nested_Apollo_Lookup_Dependencies_Per_Sibling_Without_Request_Grouping()
+    public void Plan_Should_Attribute_Nested_Apollo_Lookup_Dependencies_Per_Sibling_Without_Merging_Or_Request_Grouping()
     {
         // arrange
-        // Without request grouping every Apollo entity lookup stays an individual execution
+        // With merging and request grouping disabled, every Apollo lookup stays an individual execution
         // node, so the node-level dependency wiring must also keep each nested MeterType and
         // Category lookup tied to the sibling asset lookup that feeds its own target path.
         var schema = CreateApolloUnionSiblingAssetSchema();
@@ -507,7 +507,8 @@ public sealed class AbstractLookupFanoutPlanningTests : FusionTestBase
             """,
             new OperationPlannerOptions
             {
-                EnableRequestGrouping = false
+                EnableRequestGrouping = false,
+                MergePolicy = OperationMergePolicy.None
             });
 
         // assert

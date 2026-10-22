@@ -2221,6 +2221,99 @@ public class DeferTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result, stableStream: true);
     }
 
+    [Fact]
+    public async Task Defer_Should_ResolveNestedLookupInDeferredPayload_When_DeferredFieldTraversesSubgraphs()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<NestedLookupSourceA.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<NestedLookupSourceB.Query>());
+
+        using var server3 = CreateSourceSchema(
+            "C",
+            b => b.AddQueryType<NestedLookupSourceC.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2),
+            ("C", server3)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+                products {
+                    name
+                    ... @defer(label: "deeper") {
+                        related {
+                            name
+                        }
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    private static class NestedLookupSourceA
+    {
+        public class Query
+        {
+            public Product[] GetProducts() => [new(1), new(2)];
+
+            [Lookup]
+            [Internal]
+            public Product? GetProductById([ID] int id) => new(id);
+        }
+
+        public record Product([property: ID] int Id);
+    }
+
+    private static class NestedLookupSourceB
+    {
+        public class Query
+        {
+            [Lookup]
+            [Internal]
+            public Product? GetProductById([ID] int id) => new(id);
+        }
+
+        public record Product([property: ID] int Id)
+        {
+            public Product Related => new(Id + 10);
+        }
+    }
+
+    private static class NestedLookupSourceC
+    {
+        public class Query
+        {
+            [Lookup]
+            [Internal]
+            public Product? GetProductById([ID] int id) => new(id);
+        }
+
+        public record Product([property: ID] int Id)
+        {
+            public string Name => $"Product {Id}";
+        }
+    }
+
     private static class MixedRequirementSourceA
     {
         public class Query

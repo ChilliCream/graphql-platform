@@ -1,4 +1,6 @@
+using System.Buffers;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using HotChocolate.Execution.Internal;
 using HotChocolate.Language;
@@ -6,6 +8,7 @@ using HotChocolate.StarWars;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using EmptyServiceProvider = HotChocolate.Utilities.EmptyServiceProvider;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -2057,6 +2060,145 @@ public class OperationCompilerTests
         result.MatchSnapshot();
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task GetSelectionById_Should_ReturnSelection_When_ElementStorageGrows(bool lazy)
+    {
+        // arrange
+        var schema = await CreateFooBarSchemaAsync();
+        var fields = string.Join(
+            " ",
+            Enumerable.Range(0, 160).Select(i => lazy ? $"f{i}: bar" : $"f{i}: __typename"));
+        var document = Utf8GraphQLParser.Parse(lazy ? $"{{ foo {{ {fields} }} }}" : $"{{ {fields} }}");
+        var operation = OperationCompiler.Compile("opid", document, schema);
+        var rootSelection = operation.RootSelectionSet.Selections[0];
+
+        // act
+        var selections = lazy
+            ? operation.GetSelectionSet(rootSelection).Selections
+            : operation.RootSelectionSet.Selections;
+
+        // assert
+        Assert.Equal(160, selections.Length);
+        Assert.Same(rootSelection, operation.GetSelectionById(rootSelection.Id));
+        Assert.Same(selections[^1], operation.GetSelectionById(selections[^1].Id));
+    }
+
+    [Fact]
+    public async Task GetSelectionSet_Should_KeepPreviousElementStorage_When_StorageGrows()
+    {
+        // arrange
+        var schema = await CreateFooBarSchemaAsync();
+        var fields = string.Join(" ", Enumerable.Range(0, 160).Select(i => $"f{i}: bar"));
+        var document = Utf8GraphQLParser.Parse($"{{ foo {{ {fields} }} }}");
+        var operation = OperationCompiler.Compile("opid", document, schema);
+        var rootSelection = operation.RootSelectionSet.Selections[0];
+        var previousStorage = GetElementsById(operation);
+
+        // act
+        operation.GetSelectionSet(rootSelection);
+        OverwritePooledArray(previousStorage.Length);
+
+        // assert
+        Assert.NotSame(previousStorage, GetElementsById(operation));
+        Assert.Same(rootSelection, previousStorage[rootSelection.Id]);
+    }
+
+    [Fact]
+    public void GetSelectionSet_Should_CompileSelectionSet_When_PreviousCompilationFailed()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType(
+                d =>
+                {
+                    d.Name("Query");
+                    d.Field("failing").Resolve(new Foo()).UseOptimizer(new ThrowingOptimizer());
+                    d.Field("foo").Resolve(new Foo());
+                })
+            .Create();
+        var fields = string.Join(" ", Enumerable.Range(0, 300).Select(i => $"f{i}: bar {{ text }}"));
+        var document = Utf8GraphQLParser.Parse($"{{ failing {{ {fields} }} foo {{ bar {{ text }} }} }}");
+        var operation = OperationCompiler.Compile("opid", document, schema);
+        var failing = operation.RootSelectionSet.Selections[0];
+        var foo = operation.RootSelectionSet.Selections[1];
+
+        // act
+        var failure = Record.Exception(() => operation.GetSelectionSet(failing));
+        var selectionSet = operation.GetSelectionSet(foo);
+
+        // assert
+        Assert.IsType<InvalidOperationException>(failure);
+        var selection = Assert.Single(selectionSet.Selections.ToArray());
+        Assert.Same(selection, operation.GetSelectionById(selection.Id));
+    }
+
+    [Fact]
+    public void Compile_Should_ReleasePreviousSchema_When_SchemaIsReplaced()
+    {
+        // arrange
+        var previousSchema = CompileLargeOperationWithDiscardedSchema();
+        var document = Utf8GraphQLParser.Parse("{ foo }");
+
+        // act
+        var operation = OperationCompiler.Compile("current", document, CreateFooSchema());
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+
+        // assert
+        Assert.False(previousSchema.IsAlive);
+        GC.KeepAlive(operation);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static WeakReference CompileLargeOperationWithDiscardedSchema()
+    {
+        var schema = CreateFooSchema();
+        var fields = string.Join(" ", Enumerable.Range(0, 160).Select(i => $"f{i}: foo"));
+        var document = Utf8GraphQLParser.Parse($"{{ {fields} }}");
+        OperationCompiler.Compile("previous", document, schema);
+        return new WeakReference(schema);
+    }
+
+    private static void OverwritePooledArray(int length)
+    {
+        var array = ArrayPool<object>.Shared.Rent(length);
+        Array.Fill(array, new object());
+        ArrayPool<object>.Shared.Return(array, clearArray: true);
+    }
+
+    [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_elementsById")]
+    private static extern ref object[] GetElementsById(Operation operation);
+
+    private static async Task<Schema> CreateFooBarSchemaAsync()
+        => await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddDocumentFromString(
+                """
+                type Query {
+                  foo: Foo
+                }
+
+                type Foo {
+                  bar: String
+                }
+                """)
+            .UseField(next => next)
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+    private static Schema CreateFooSchema()
+        => SchemaBuilder.New()
+            .AddServices(EmptyServiceProvider.Instance)
+            .AddQueryType(
+                c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolve("foo"))
+            .Create();
+
     private static void MatchSnapshot(DocumentNode original, IOperation compiled)
     {
         var sb = new StringBuilder();
@@ -2083,6 +2225,12 @@ public class OperationCompilerTests
     public class Baz
     {
         public string Text => "Baz";
+    }
+
+    public class ThrowingOptimizer : ISelectionSetOptimizer
+    {
+        public void OptimizeSelectionSet(SelectionSetOptimizerContext context)
+            => throw new InvalidOperationException();
     }
 
     public class SimpleOptimizer : ISelectionSetOptimizer
