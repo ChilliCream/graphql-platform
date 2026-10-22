@@ -26,6 +26,8 @@ internal sealed partial class FetchResultStore
         ArgumentNullException.ThrowIfNull(operation);
 
         _arena = arena;
+        _variableWriterHasArena = false;
+        _leafKeyWriterHasArena = false;
         _schema = schema;
         _errorHandler = errorHandler;
         _operation = operation;
@@ -77,6 +79,11 @@ internal sealed partial class FetchResultStore
             pending.Dispose();
         }
 
+        // the variable and leaf key writers move to the new arena on their next use
+        _variableWriter.Release();
+        _variableWriterHasArena = false;
+        _leafKeyWriter?.Release();
+        _leafKeyWriterHasArena = false;
         _arena = arena;
 
         _result = new CompositeResultDocument(
@@ -141,8 +148,11 @@ internal sealed partial class FetchResultStore
         _errors?.Clear();
         _pocketedErrors?.Clear();
 
-        // reset variable writer (returns excess chunks, keeps the first)
-        _variableWriter.Clean();
+        // drop the arena memory of the variable and leaf key writers
+        _variableWriter.Release();
+        _variableWriterHasArena = false;
+        _leafKeyWriter?.Release();
+        _leafKeyWriterHasArena = false;
 
         // release the forwarded variable buffer if a large input made it grow
         if (_forwardedVariableWriter is { Capacity: > MaxRetainedForwardedVariableCapacity })
@@ -156,6 +166,10 @@ internal sealed partial class FetchResultStore
         TrimOrClearBuffer(ref _collectTargetA, maxCollectTargetRetainLength);
         TrimOrClearBuffer(ref _collectTargetB, maxCollectTargetRetainLength);
         TrimOrClearBuffer(ref _collectTargetCombined, maxCollectTargetRetainLength);
+
+        // drop dedup tables that a lookup with many targets made grow
+        _variableDedupTable.Trim(maxCollectTargetRetainLength * 4);
+        _leafKeyDedupTable?.Trim(maxCollectTargetRetainLength * 4);
 
         // drop the leaf value buffer if a wide lookup selection made it grow
         if (_leafValues.Length > maxCollectTargetRetainLength)

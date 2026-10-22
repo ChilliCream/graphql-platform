@@ -251,7 +251,7 @@ internal sealed partial class FetchResultStore
             ? stackalloc (long, long)[requiredData.Length]
             : new (long, long)[requiredData.Length];
         using var representationWriter = new ChunkedArrayWriter();
-        using var dedupTable = new VariableDedupTable(representationWriter);
+        using var dedupTable = new VariableDedupTable();
         var representationJsonWriter = new JsonWriter(
             representationWriter,
             new JsonWriterOptions { Indented = false });
@@ -334,7 +334,7 @@ internal sealed partial class FetchResultStore
         string entityTypeName)
     {
         using var representationWriter = new ChunkedArrayWriter();
-        using var dedupTable = new VariableDedupTable(representationWriter);
+        using var dedupTable = new VariableDedupTable();
         var representationJsonWriter = new JsonWriter(
             representationWriter,
             new JsonWriterOptions { Indented = false });
@@ -343,13 +343,29 @@ internal sealed partial class FetchResultStore
         var completed = false;
         var variableStartPosition = StartRepresentationVariableValue();
         var nextIndex = 0;
+        var hasLeafShape = IsLeafShape(requiredShape);
 
         dedupTable.Initialize(elements.Length);
+
+        if (hasLeafShape)
+        {
+            ResetLeafKeys(elements.Length);
+        }
 
         try
         {
             foreach (var result in elements)
             {
+                var leafKey = hasLeafShape ? StartLeafKey() : default;
+
+                if (hasLeafShape
+                    && TryAppendShapeLeafKey(ref leafKey, result, requiredShape)
+                    && TryGetLeafKeyDuplicate(ref leafKey, out var duplicateIndex))
+                {
+                    additionalPaths.Add(duplicateIndex, result);
+                    continue;
+                }
+
                 var writeResult = TryWriteRepresentation(
                     result,
                     requiredShape,
@@ -366,10 +382,12 @@ internal sealed partial class FetchResultStore
                         break;
 
                     case RepresentationWriteResult.Duplicate:
+                        AddLeafKey(ref leafKey, index);
                         additionalPaths.Add(index, result);
                         break;
 
                     case RepresentationWriteResult.Written:
+                        AddLeafKey(ref leafKey, index);
                         resultPaths[nextIndex] = new EntityResultPath(result.CompactPath, default);
                         nextIndex++;
                         break;
@@ -401,6 +419,46 @@ internal sealed partial class FetchResultStore
         }
     }
 
+    /// <summary>
+    /// Returns <c>true</c> when every node of the shape is a leaf field without type conditions.
+    /// </summary>
+    private static bool IsLeafShape(ImmutableArray<RepresentationShapeNode> shape)
+    {
+        foreach (var node in shape)
+        {
+            if (node.ParentTypeCondition is not null
+                || node.TypeCondition is not null
+                || !node.Nodes.IsDefault)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool TryAppendShapeLeafKey(
+        ref LeafKey key,
+        CompositeResultElement element,
+        ImmutableArray<RepresentationShapeNode> shape)
+    {
+        foreach (var node in shape)
+        {
+            if (!element.TryGetProperty(node.ResponseNameUtf8, out var value))
+            {
+                DiscardLeafKey(ref key);
+                return false;
+            }
+
+            if (!TryAppendLeafKey(ref key, value))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private void WriteRequestVariableProperties(IReadOnlyList<ObjectFieldNode> requestVariables)
     {
         for (var i = 0; i < requestVariables.Count; i++)
@@ -413,7 +471,7 @@ internal sealed partial class FetchResultStore
 
     private int StartRepresentationVariableValue()
     {
-        _jsonWriter.Reset(_variableWriter);
+        _jsonWriter.Reset(GetVariableWriter());
         var startPosition = _variableWriter.Position;
         _jsonWriter.WriteStartObject();
         _jsonWriter.WritePropertyName(RepresentationsVariableName);
@@ -444,7 +502,7 @@ internal sealed partial class FetchResultStore
         additionalPaths.Dispose();
 
         var length = _variableWriter.Position - startPosition;
-        var value = JsonSegment.Create(_variableWriter, startPosition, length);
+        var value = JsonSegment.Create(_variableWriter.GetSequence(startPosition, length));
         var resultPathSpan = resultPaths.AsSpan(0, count);
         var resultPathArray = resultPathSpan.ToArray();
 
@@ -600,7 +658,7 @@ internal sealed partial class FetchResultStore
         if (writeResult is RepresentationWriteResult.Written)
         {
             var length = representationWriter.Position - startPosition;
-            JsonSegment.Create(representationWriter, startPosition, length).WriteTo(_jsonWriter);
+            JsonSegment.Create(representationWriter.GetSequence(startPosition, length)).WriteTo(_jsonWriter);
         }
 
         return writeResult;
@@ -616,7 +674,7 @@ internal sealed partial class FetchResultStore
         var length = representationWriter.Position - startPosition;
         var hash = representationWriter.GetHashCode(startPosition, length);
 
-        if (dedupTable.TryGet(hash, startPosition, length, out var existingIndex))
+        if (dedupTable.TryGet(representationWriter, hash, startPosition, length, out var existingIndex))
         {
             representationWriter.ResetTo(startPosition);
             index = existingIndex;

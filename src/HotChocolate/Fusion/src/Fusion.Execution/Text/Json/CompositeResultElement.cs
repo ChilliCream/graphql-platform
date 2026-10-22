@@ -896,6 +896,17 @@ public readonly partial struct CompositeResultElement
     }
 
     /// <summary>
+    /// Gets a kind marker and the raw bytes of this element when it is a non-null leaf value.
+    /// Two leaf values with equal kind markers and equal raw bytes serialize to the same JSON.
+    /// </summary>
+    internal bool TryGetLeafValueKey(out byte kind, out ReadOnlySpan<byte> value)
+    {
+        CheckValidInstance();
+
+        return _parent.TryGetLeafValueKey(_cursor, out kind, out value);
+    }
+
+    /// <summary>
     /// Compares the text of this element to the specified string.
     /// </summary>
     /// <param name="text">The text to compare against.</param>
