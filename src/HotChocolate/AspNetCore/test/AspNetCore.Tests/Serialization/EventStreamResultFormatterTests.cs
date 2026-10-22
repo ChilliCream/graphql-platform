@@ -27,18 +27,18 @@ public sealed class EventStreamResultFormatterTests
         ]);
 
         // act
-        await new EventStreamResultFormatter(default).FormatAsync(
-            batch,
-            writer,
-            ExecutionResultFormatFlags.None,
-            TestContext.Current.CancellationToken);
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            async () => await new EventStreamResultFormatter(default).FormatAsync(
+                batch,
+                writer,
+                ExecutionResultFormatFlags.None,
+                TestContext.Current.CancellationToken));
         await writer.CompleteAsync();
 
         // assert
+        Assert.Equal("boom", exception.Message);
         Assert.Equal(
-            "event: next\ndata: {\"data\":{\"a\":1}}\n\n"
-            + "event: next\ndata: {\"data\":{\"c\":3}}\n\n"
-            + "event: complete\ndata:\n\n",
+            "event: next\ndata: {\"data\":{\"a\":1}}\n\n",
             Encoding.UTF8.GetString(output.ToArray()));
     }
 

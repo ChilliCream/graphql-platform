@@ -401,6 +401,13 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
                 OnWriteResponseHeaders(operationResult, format, response.Headers);
 
+                // A JSON body is written into the started response, so a formatter
+                // exception aborts the response instead of turning it into a 500.
+                if (format.Kind is ResponseContentType.GraphQLResponse or ResponseContentType.Json)
+                {
+                    await response.StartAsync(cancellationToken);
+                }
+
                 await format.Formatter.FormatAsync(
                     result,
                     response.BodyWriter,

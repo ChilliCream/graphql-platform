@@ -128,6 +128,7 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
                         {
                             scope?.AddError(ex);
                             writer.Discard();
+                            throw;
                         }
                         finally
                         {

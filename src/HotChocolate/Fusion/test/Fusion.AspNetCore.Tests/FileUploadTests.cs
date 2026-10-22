@@ -59,6 +59,51 @@ public class FileUploadTests : FusionTestBase
     }
 
     [Fact]
+    public async Task Upload_Single_File_Should_KeepText_When_TextSpansArenaSegments()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema2.Query>().AddUploadType());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        // the text does not fit the first memory segment of the variables
+        var text = new string('x', 1500);
+
+        var operation = new OperationRequest(
+            """
+            query ($file: Upload!, $text: String!) {
+              uploadWithText(file: $file, text: $text)
+            }
+            """,
+            variables: new Dictionary<string, object?>
+            {
+                ["file"] = new FileReference(() => new MemoryStream("abc"u8.ToArray()), "test.txt", "text/plain"),
+                ["text"] = text
+            });
+
+        var request = new GraphQLHttpRequest(operation, new Uri("http://localhost:5000/graphql"))
+        {
+            Method = GraphQLHttpMethod.Post,
+            EnableFileUploads = true
+        };
+
+        // act
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        using var result = await response.ReadAsResultAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(JsonValueKind.Undefined, result.Errors.ValueKind);
+        Assert.Equal("test.txt:" + text, result.Data.GetProperty("uploadWithText").GetString());
+    }
+
+    [Fact]
     public async Task Upload_Single_File_Should_Forward_Parameterized_ContentType()
     {
         // arrange
@@ -752,5 +797,13 @@ public class FileUploadTests : FusionTestBase
         }
 
         public record FileUploadResult(string FileName, string? ContentType, string Content);
+    }
+
+    public static class SourceSchema2
+    {
+        public class Query
+        {
+            public string UploadWithText(IFile file, string text) => file.Name + ":" + text;
+        }
     }
 }

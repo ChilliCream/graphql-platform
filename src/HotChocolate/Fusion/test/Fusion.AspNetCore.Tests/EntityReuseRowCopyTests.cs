@@ -654,24 +654,24 @@ public sealed class EntityReuseRowCopyTests : FusionTestBase
 
     public sealed class ApolloAccountsQuery
     {
-        public IEnumerable<ApolloAccountUser> GetUsers() => ApolloAccountUser.All.Take(3);
+        public IEnumerable<ApolloAccountUser> GetUsers() => ApolloAccountUser.s_all.Take(3);
     }
 
     public sealed class ApolloPartialAccountsQuery
     {
-        public IEnumerable<ApolloAccountUser> GetUsers() => ApolloAccountUser.All.Take(2);
+        public IEnumerable<ApolloAccountUser> GetUsers() => ApolloAccountUser.s_all.Take(2);
     }
 
     public sealed class ApolloDisjointAccountsQuery
     {
-        public IEnumerable<ApolloAccountUser> GetUsers() => ApolloAccountUser.All.Skip(3).Take(2);
+        public IEnumerable<ApolloAccountUser> GetUsers() => ApolloAccountUser.s_all.Skip(3).Take(2);
     }
 
     [GraphQLName("User")]
     [Key("id")]
     public sealed class ApolloAccountUser
     {
-        internal static readonly List<ApolloAccountUser> All =
+        internal static readonly List<ApolloAccountUser> s_all =
         [
             new() { Id = "1", Name = "Alice" },
             new() { Id = "2", Name = "Bob" },
@@ -688,7 +688,7 @@ public sealed class EntityReuseRowCopyTests : FusionTestBase
 
         [ReferenceResolver]
         public static ApolloAccountUser? ResolveReference(string id)
-            => All.FirstOrDefault(t => t.Id == id);
+            => s_all.FirstOrDefault(t => t.Id == id);
     }
 
     public sealed class ApolloReviewsQuery;
