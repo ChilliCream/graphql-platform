@@ -84,9 +84,20 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if gh release view "$GIT_TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
-            echo "Release for $GIT_TAG already exists; leaving it untouched."
+          # Empty when no release exists for the tag yet.
+          is_draft=$(gh release view "$GIT_TAG" \
+            --repo "${{ github.repository }}" \
+            --json isDraft \
+            --jq .isDraft 2>/dev/null || true)
+
+          if [[ "$is_draft" == "true" ]]; then
+            echo "Draft release for $GIT_TAG already exists; leaving it untouched."
             exit 0
+          fi
+
+          if [[ "$is_draft" == "false" ]]; then
+            echo "::error::Release $GIT_TAG is already published; create releases by pushing a tag."
+            exit 1
           fi
 
           prerelease_flag=()
@@ -433,7 +444,7 @@ jobs:
   publish-nuget:
     name: 🚀 Publish NuGet packages
     runs-on: ubuntu-26.04
-    needs: [compute-release-context, pack-nuget, pack-npm, publish-nitro-ops, publish-aspire-nitro-ops]
+    needs: [compute-release-context, create-draft, pack-nuget, pack-npm, publish-nitro-ops, publish-aspire-nitro-ops]
     permissions:
       contents: read
       id-token: write
@@ -471,7 +482,7 @@ jobs:
   publish-npm:
     name: 🚀 Publish Nitro CLI to npm
     runs-on: ubuntu-latest
-    needs: [compute-release-context, pack-nuget, pack-npm, publish-nitro-ops]
+    needs: [compute-release-context, create-draft, pack-nuget, pack-npm, publish-nitro-ops]
     permissions:
       contents: read
       id-token: write
@@ -555,7 +566,7 @@ jobs:
   publish-nitro-ops:
     name: 🚀 Publish Nitro CLI operations
     runs-on: ubuntu-26.04
-    needs: [compute-release-context, pack-nuget, pack-npm]
+    needs: [compute-release-context, create-draft, pack-nuget, pack-npm]
     permissions:
       contents: read
     env:
@@ -594,7 +605,7 @@ jobs:
   publish-aspire-nitro-ops:
     name: 🚀 Publish Fusion Aspire Nitro operations
     runs-on: ubuntu-26.04
-    needs: [compute-release-context, pack-nuget]
+    needs: [compute-release-context, create-draft, pack-nuget]
     permissions:
       contents: read
     env:
