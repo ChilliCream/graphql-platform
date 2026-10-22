@@ -1458,6 +1458,49 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
             """);
     }
 
+    [Fact]
+    public async Task Post_Should_PreserveAllFields_When_ListItemHasMultipleUnlabeledDefers()
+    {
+        // arrange
+        using var server = CreateDeferServer();
+        using var client = server.CreateClient();
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/graphql");
+        request.Content = JsonContent.Create(new
+        {
+            query = """
+                {
+                    products {
+                        name
+                        ... @defer {
+                            description
+                        }
+                        ... @defer {
+                            reviews {
+                                rating
+                            }
+                        }
+                    }
+                }
+                """
+        });
+        request.Headers.Add("Accept", "application/jsonl; incrementalSpec=v0.1");
+
+        // act
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
+        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        content.MatchInlineSnapshot(
+            """
+            {"data":{"products":[{"name":"Abc"}]},"hasNext":true}
+            {"incremental":[{"data":{"description":"Abc desc","reviews":[{"rating":5}]},"path":["products",0]}],"hasNext":false}
+
+            """);
+    }
+
     private TestServer CreateDeferServer(
         HttpTransportVersion serverTransportVersion = HttpTransportVersion.Latest)
     {
