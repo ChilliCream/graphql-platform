@@ -1,4 +1,3 @@
-using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -15,7 +14,6 @@ namespace HotChocolate.Execution.Processing;
 
 public sealed partial class OperationCompiler
 {
-    private static readonly ArrayPool<object> s_objectArrayPool = ArrayPool<object>.Shared;
     private readonly Schema _schema;
     private readonly ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> _fieldsPool;
     private readonly OperationCompilerOptimizers _optimizers;
@@ -123,7 +121,7 @@ public sealed partial class OperationCompiler
         DeferConditionVisitor.Instance.Visit(operationDefinition, deferConditions);
         var fields = _fieldsPool.Get();
 
-        var compilationContext = new CompilationContext(s_objectArrayPool.Rent(128));
+        var compilationContext = new CompilationContext(new object[128]);
 
         try
         {
@@ -880,10 +878,8 @@ public sealed partial class OperationCompiler
         {
             if (id >= _elementsById.Length)
             {
-                var newArray = s_objectArrayPool.Rent(_elementsById.Length * 2);
-                _elementsById.AsSpan().CopyTo(newArray);
-                s_objectArrayPool.Return(_elementsById);
-                _elementsById = newArray;
+                // Existing readers may continue using the previous array.
+                Array.Resize(ref _elementsById, Math.Max(_elementsById.Length * 2, id + 1));
             }
 
             _elementsById[id] = element;

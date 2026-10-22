@@ -140,11 +140,9 @@ public sealed class DispatchContext : IDispatchContext
 
     /// <summary>
     /// Gets or sets the timestamp indicating when the message was sent.
+    /// If null, it is set immediately before transport dispatch.
     /// </summary>
-    /// <remarks>
-    /// Refreshed to <see cref="DateTimeOffset.UtcNow"/> during <see cref="Initialize"/> and <see cref="Reset"/>.
-    /// </remarks>
-    public DateTimeOffset SentAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset? SentAt { get; set; }
 
     /// <summary>
     /// Gets or sets an optional deadline by which the message must be delivered.
@@ -193,7 +191,7 @@ public sealed class DispatchContext : IDispatchContext
         DestinationAddress = null;
         ResponseAddress = null!;
         FaultAddress = null!;
-        SentAt = DateTimeOffset.UtcNow;
+        SentAt = null;
         DeliverBy = null;
         ScheduledTime = null;
         Host = null!;
@@ -230,7 +228,6 @@ public sealed class DispatchContext : IDispatchContext
         Transport = endpoint.Transport;
         Host = runtime.Host;
         CancellationToken = cancellationToken;
-        SentAt = DateTimeOffset.UtcNow;
         MessageType = messageType;
         ContentType ??= endpoint.Transport.Options.DefaultContentType ?? runtime.Options.DefaultContentType;
         DestinationAddress ??= endpoint.Address;

@@ -29,6 +29,7 @@ internal sealed class PostgresMessageEnvelopeParser
         string? faultAddress = null;
         string? contentType = null;
         string? messageType = null;
+        DateTimeOffset? sentAt = null;
         DateTimeOffset? deliverBy = null;
         DateTimeOffset? scheduledTime = null;
         ImmutableArray<string>? enclosedMessageTypes = null;
@@ -117,6 +118,20 @@ internal sealed class PostgresMessageEnvelopeParser
                                 reader.Skip();
                             }
                         }
+                        else if (reader.ValueTextEquals(PostgresMessageHeaders.SentAt))
+                        {
+                            reader.Read();
+
+                            if (reader.TokenType == JsonTokenType.String
+                                && reader.TryGetDateTimeOffset(out var parsed))
+                            {
+                                sentAt = parsed;
+                            }
+                            else
+                            {
+                                reader.Skip();
+                            }
+                        }
                         else if (reader.ValueTextEquals(PostgresMessageHeaders.DeliverBy))
                         {
                             reader.Read();
@@ -186,7 +201,7 @@ internal sealed class PostgresMessageEnvelopeParser
             MessageType = messageType,
             EnclosedMessageTypes = enclosedMessageTypes,
             Headers = customHeaders ?? Headers.Empty(),
-            SentAt = new DateTimeOffset(messageItem.SentTime, TimeSpan.Zero),
+            SentAt = sentAt ?? new DateTimeOffset(messageItem.SentTime, TimeSpan.Zero),
             DeliverBy = deliverBy,
             ScheduledTime = scheduledTime,
             DeliveryCount = messageItem.DeliveryCount,
