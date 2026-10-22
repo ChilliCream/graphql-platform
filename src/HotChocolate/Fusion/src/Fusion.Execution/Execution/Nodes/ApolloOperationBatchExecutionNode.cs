@@ -302,6 +302,7 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
         var variablesByIndex = ArrayPool<ImmutableArray<VariableValues>>.Shared.Rent(_operations.Length);
         var receivedResults = ArrayPool<bool>.Shared.Rent(_operations.Length);
         var operationCount = 0;
+        var reusedOperationCount = 0;
 
         try
         {
@@ -312,12 +313,12 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
                 operationByIndex,
                 representationByIndex,
                 variablesByIndex,
-                out var hasReusedEntities);
+                out reusedOperationCount);
 
             if (operationCount == 0)
             {
                 // When every entity was taken from the result, the node completed its work.
-                return hasReusedEntities ? ExecutionStatus.Success : ExecutionStatus.Skipped;
+                return reusedOperationCount > 0 ? ExecutionStatus.Success : ExecutionStatus.Skipped;
             }
 
             var requests = requestBuilder.DrainToImmutable();
@@ -425,7 +426,8 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
 
             if (missingCount > 0)
             {
-                overallStatus = missingCount == operationCount
+                // Operations whose entities were all taken from the result succeeded without a request.
+                overallStatus = missingCount == operationCount && reusedOperationCount == 0
                     ? ExecutionStatus.Failed
                     : ExecutionStatus.PartialSuccess;
             }
@@ -447,7 +449,7 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
                 context.AddErrors(exception, variablesByIndex[i], operationByIndex[i].ResultSelectionSet);
             }
 
-            return ExecutionStatus.Failed;
+            return reusedOperationCount > 0 ? ExecutionStatus.PartialSuccess : ExecutionStatus.Failed;
         }
         finally
         {
@@ -468,10 +470,10 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
         OperationDefinition[] operationByIndex,
         RepresentationValue[] representationByIndex,
         ImmutableArray<VariableValues>[] variablesByIndex,
-        out bool hasReusedEntities)
+        out int reusedOperationCount)
     {
         var operationCount = 0;
-        hasReusedEntities = false;
+        reusedOperationCount = 0;
 
         for (var i = 0; i < _operations.Length; i++)
         {
@@ -492,15 +494,14 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
 
             var representation = CreateRepresentationVariableValue(context, operation, lookup, out var reusedCount);
 
-            if (reusedCount > 0)
-            {
-                hasReusedEntities = true;
-            }
-
             if (representation.IsEmpty)
             {
                 // An operation whose entities were all taken from the result is not skipped.
-                if (reusedCount == 0)
+                if (reusedCount > 0)
+                {
+                    reusedOperationCount++;
+                }
+                else
                 {
                     context.TrackSkippedDefinition(this, operation);
                 }

@@ -1,15 +1,19 @@
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using HotChocolate.ApolloFederation.Resolvers;
 using HotChocolate.ApolloFederation.Types;
+using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Resolvers;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion;
 
-public sealed class ApolloEntityReuseTests : FusionTestBase
+public sealed partial class ApolloEntityReuseTests : FusionTestBase
 {
     [Fact]
     public async Task Execute_K6Query_Should_ReturnSameData_When_ApolloEntityReuseIsEnabled()
@@ -277,6 +281,50 @@ public sealed class ApolloEntityReuseTests : FusionTestBase
             """
             {"topProducts":[{"upc":"1","name":"Table","price":899,"weight":100,"reviews":[{"product":{"price":899,"weight":100,"shippingEstimate":50}},{"product":{"price":899,"weight":100,"shippingEstimate":50}},{"product":{"price":899,"weight":100,"shippingEstimate":50}},{"product":{"price":899,"weight":100,"shippingEstimate":50}}]},{"upc":"2","name":"Couch","price":1299,"weight":1000,"reviews":[{"product":{"price":1299,"weight":1000,"shippingEstimate":0}},{"product":{"price":1299,"weight":1000,"shippingEstimate":0}}]}],"users":[{"reviews":[{"product":{"name":"Table"}},{"product":{"name":"Couch"}}]}]}
             """);
+    }
+
+    [Theory]
+    [InlineData(SourceSchemaClientCapabilities.None)]
+    [InlineData(SourceSchemaClientCapabilities.Default)]
+    public async Task Execute_ApolloBatchLookup_Should_RunDependentLookup_When_OtherOperationRequestFails(
+        SourceSchemaClientCapabilities capabilities)
+    {
+        // arrange
+        using var accountsApi = CreateAccountsApi();
+        using var inventoryApi = CreateInventoryApi();
+        using var productsApi = CreateProductsApiFailingNameLookups(capabilities);
+        using var reviewsApi = CreateReviewsApi();
+        using var gateway = await CreateGatewayAsync(accountsApi, inventoryApi, productsApi, reviewsApi);
+
+        // The products batch reuses the price and weight lookup that the inventory lookup requires
+        // and sends only the name lookup, which fails.
+        const string query =
+            """
+            {
+              topProducts(first: 1) {
+                upc price weight
+                reviews { product { price weight shippingEstimate } }
+              }
+              users { reviews { product { name } } }
+            }
+            """;
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        using var result = await client.PostAsync(
+            query,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        var shippingEstimates = response.Data
+            .GetProperty("topProducts")[0]
+            .GetProperty("reviews")
+            .EnumerateArray()
+            .Select(review => review.GetProperty("product").GetProperty("shippingEstimate").GetRawText());
+        Assert.Equal(["50", "50", "50", "50"], shippingEstimates);
+        Assert.Single(gateway.Interactions["inventory-api"]);
     }
 
     [Fact]
@@ -607,6 +655,39 @@ public sealed class ApolloEntityReuseTests : FusionTestBase
                 .AddQueryType<ProductsQuery>(d => d.Name("Query"))
                 .AddType<ProductsProduct>());
 
+    // A products source schema that answers every _entities request selecting the product name with HTTP 500.
+    private TestServer CreateProductsApiFailingNameLookups(SourceSchemaClientCapabilities capabilities)
+        => CreateSourceSchema(
+            "products-api",
+            builder => builder
+                .AddApolloFederation()
+                .AddQueryType<NullableNameProductsQuery>(d => d.Name("Query"))
+                .AddType<NullableNameProduct>(),
+            configureApplication: app =>
+            {
+                app.Use(async (context, next) =>
+                {
+                    context.Request.EnableBuffering();
+                    using var reader = new StreamReader(context.Request.Body, leaveOpen: true);
+                    var body = await reader.ReadToEndAsync(context.RequestAborted);
+                    context.Request.Body.Position = 0;
+
+                    if (body.Contains("_entities", StringComparison.Ordinal) && NameField().IsMatch(body))
+                    {
+                        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                        return;
+                    }
+
+                    await next(context);
+                });
+                app.UseRouting();
+                app.UseEndpoints(endpoints => endpoints.MapGraphQL(schemaName: "products-api"));
+            },
+            capabilities: capabilities);
+
+    [GeneratedRegex(@"\bname\b")]
+    private static partial Regex NameField();
+
     private TestServer CreateReviewsApi()
         => CreateSourceSchema(
             "reviews-api",
@@ -807,6 +888,34 @@ public sealed class ApolloEntityReuseTests : FusionTestBase
         [ReferenceResolver]
         public static ProductsProduct? ResolveReference(string upc)
             => ProductsQuery.s_products.FirstOrDefault(p => p.Upc == upc);
+    }
+
+    public sealed class NullableNameProductsQuery
+    {
+        public IEnumerable<NullableNameProduct> GetTopProducts(int first = 5)
+            => ProductsQuery.s_products.Take(first).Select(NullableNameProduct.From);
+    }
+
+    [GraphQLName("Product")]
+    [Key("upc")]
+    public sealed class NullableNameProduct
+    {
+        public required string Upc { get; init; }
+
+        public string? Name { get; init; }
+
+        public int Price { get; init; }
+
+        public int Weight { get; init; }
+
+        [ReferenceResolver]
+        public static NullableNameProduct? ResolveReference(string upc)
+            => ProductsQuery.s_products.FirstOrDefault(p => p.Upc == upc) is { } product
+                ? From(product)
+                : null;
+
+        internal static NullableNameProduct From(ProductsProduct product)
+            => new() { Upc = product.Upc, Name = product.Name, Price = product.Price, Weight = product.Weight };
     }
 
     public sealed class InventoryQuery;
