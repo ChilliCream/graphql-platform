@@ -18,6 +18,11 @@ function isoDuration(seconds: number): string {
   return `PT${hours}H${minutes}M${seconds % 60}S`;
 }
 
+/** The privacy-enhanced YouTube player URL for the video. */
+function videoEmbedUrl(video: VideoSummary): string {
+  return `https://www.youtube-nocookie.com/embed/${video.youtubeId}`;
+}
+
 export function videoObjectId(video: VideoSummary): string {
   return schemaId(video.href, "video");
 }
@@ -33,7 +38,7 @@ export function createVideoObjectNode(video: VideoSummary): JsonLdNode {
     thumbnailUrl: [toAbsoluteUrl(videoPosterUrl(video.youtubeId))],
     uploadDate: video.uploadDate,
     duration: isoDuration(video.duration),
-    embedUrl: `https://www.youtube-nocookie.com/embed/${video.youtubeId}`,
+    embedUrl: videoEmbedUrl(video),
     publisher: schemaRef(ORGANIZATION_ID),
     ...(video.author
       ? { author: schemaRef(authorPersonId(video.author)) }
@@ -68,6 +73,7 @@ export function createVideoItemListNode(
         thumbnailUrl: [toAbsoluteUrl(videoPosterUrl(video.youtubeId))],
         uploadDate: video.uploadDate,
         duration: isoDuration(video.duration),
+        embedUrl: videoEmbedUrl(video),
       },
     })),
   };
