@@ -517,7 +517,7 @@ public class OperationMergePolicyTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -544,7 +544,7 @@ public class OperationMergePolicyTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -576,7 +576,7 @@ public class OperationMergePolicyTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -608,7 +608,7 @@ public class OperationMergePolicyTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -640,7 +640,7 @@ public class OperationMergePolicyTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -670,7 +670,7 @@ public class OperationMergePolicyTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -703,7 +703,7 @@ public class OperationMergePolicyTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -732,7 +732,7 @@ public class OperationMergePolicyTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -761,7 +761,7 @@ public class OperationMergePolicyTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -790,7 +790,7 @@ public class OperationMergePolicyTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -819,7 +819,7 @@ public class OperationMergePolicyTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -852,7 +852,7 @@ public class OperationMergePolicyTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -881,7 +881,7 @@ public class OperationMergePolicyTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -914,7 +914,7 @@ public class OperationMergePolicyTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -947,7 +947,7 @@ public class OperationMergePolicyTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {

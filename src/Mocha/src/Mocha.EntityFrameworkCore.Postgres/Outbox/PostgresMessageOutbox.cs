@@ -75,7 +75,7 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
     /// </summary>
     /// <remarks>
     /// With an active database transaction, the signal is deferred to the transaction commit interceptor.
-    /// With an ambient <see cref="System.Transactions.Transaction"/>, it is raised when that transaction completes.
+    /// With an ambient <see cref="Transaction"/>, it is raised when that transaction completes.
     /// Otherwise, it is raised immediately.
     /// </remarks>
     /// <param name="envelope">The message envelope to persist in the outbox.</param>
