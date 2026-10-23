@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics;
 using HotChocolate.Fusion.Collections;
 using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Extensions;
@@ -26,6 +27,11 @@ internal sealed partial class SatisfiabilityValidator
     private readonly SatisfiabilityFacts _facts;
     private readonly MutableSchemaDefinition _schema;
     private readonly ICompositionLog _log;
+    private readonly Dictionary<(ITypeDefinition, string), MutableObjectTypeDefinition[]> _possibleTypes = [];
+    private readonly HashSet<(MutableObjectTypeDefinition, MutableOutputFieldDefinition, string?, bool)>
+        _dispatchedNodeFields = [];
+    private readonly HashSet<(MutableObjectTypeDefinition, MutableOutputFieldDefinition, string?)>
+        _reportedFields = [];
 
     public SatisfiabilityValidator(
         MutableSchemaDefinition schema,
@@ -54,8 +60,11 @@ internal sealed partial class SatisfiabilityValidator
 
     public CompositionResult Validate()
     {
-        var visited = new HashSet<(MutableObjectTypeDefinition, string?)>();
+        var enqueued = new HashSet<VisitKey>();
         var worklist = new Queue<WorkItem>();
+        _dispatchedNodeFields.Clear();
+        _reportedFields.Clear();
+        InitializeViewerFallback();
 
         MutableObjectTypeDefinition?[] rootTypes =
             [_schema.QueryType, _schema.MutationType, _schema.SubscriptionType];
@@ -64,21 +73,14 @@ internal sealed partial class SatisfiabilityValidator
         {
             if (rootType is not null)
             {
-                worklist.Enqueue(new WorkItem(rootType, null));
+                Enqueue(new WorkItem(CreateRootVisitKey(rootType), null), worklist, enqueued);
             }
         }
 
         while (worklist.Count > 0)
         {
             var work = worklist.Dequeue();
-            var prevSchema = work.Path?.Item.SchemaName;
-
-            if (!visited.Add((work.ObjectType, prevSchema)))
-            {
-                continue;
-            }
-
-            VisitObjectType(work.ObjectType, work.Path, worklist, visited);
+            VisitObjectType(work, worklist, enqueued);
         }
 
         ValidateInterfaceObjectBindings();
@@ -88,12 +90,25 @@ internal sealed partial class SatisfiabilityValidator
             : CompositionResult.Success();
     }
 
-    private void VisitObjectType(
-        MutableObjectTypeDefinition objectType,
-        PathNode? path,
-        Queue<WorkItem> worklist,
-        HashSet<(MutableObjectTypeDefinition, string?)> visited)
+    /// <summary>
+    /// Enqueues <paramref name="work"/> unless a work item with an equal key was enqueued before.
+    /// </summary>
+    private static void Enqueue(in WorkItem work, Queue<WorkItem> worklist, HashSet<VisitKey> enqueued)
     {
+        if (enqueued.Add(work.Key))
+        {
+            worklist.Enqueue(work);
+        }
+    }
+
+    private void VisitObjectType(
+        in WorkItem work,
+        Queue<WorkItem> worklist,
+        HashSet<VisitKey> enqueued)
+    {
+        var objectType = work.Key.ObjectType;
+        bool? canReenterWithLookup = null;
+
         foreach (var field in objectType.Fields)
         {
             if (field.HasFusionInaccessibleDirective())
@@ -109,23 +124,30 @@ internal sealed partial class SatisfiabilityValidator
             {
                 if (field.Type.NamedType() is IInterfaceTypeDefinition { Name: WellKnownTypeNames.Node } nodeType)
                 {
-                    VisitNodeField(objectType, field, nodeType, path, worklist);
+                    VisitNodeField(objectType, field, nodeType, work, worklist, enqueued);
                 }
 
                 continue;
             }
 
-            VisitOutputField(field, objectType, path, worklist, visited);
+            VisitOutputField(field, work, ref canReenterWithLookup, worklist, enqueued);
         }
     }
 
+    /// <summary>
+    /// Validates the access of <paramref name="field"/> on the object of <paramref name="work"/>.
+    /// <paramref name="canReenterWithLookup"/> caches, for the visit, whether the object can be
+    /// re-entered in its schema through a lookup, or is <c>null</c> until first needed.
+    /// </summary>
     private void VisitOutputField(
         MutableOutputFieldDefinition field,
-        MutableObjectTypeDefinition type,
-        PathNode? path,
+        in WorkItem work,
+        ref bool? canReenterWithLookup,
         Queue<WorkItem> worklist,
-        HashSet<(MutableObjectTypeDefinition, string?)> visited)
+        HashSet<VisitKey> enqueued)
     {
+        var type = work.Key.ObjectType;
+        var path = work.Path;
         var previousSchemaName = path?.Item.SchemaName;
         var schemaNames = field.GetSchemaNames(first: previousSchemaName);
         var eventStreamSchemaNames = field.GetFusionEventStreamSchemaNames();
@@ -146,6 +168,8 @@ internal sealed partial class SatisfiabilityValidator
         {
             SelectionSetNode? providedSelectionSet = null;
 
+            // A field the provided selection set omits is resolved by re-entering the schema
+            // through a lookup whose key the provided data satisfies.
             if (path?.Item.ProvidedSelectionSet is not null
                 && previousSchemaName == schemaName
                 && !path.Item.TryGetProvidedSelectionSet(
@@ -153,7 +177,9 @@ internal sealed partial class SatisfiabilityValidator
                     type,
                     schemaName,
                     _schema,
-                    out providedSelectionSet))
+                    out providedSelectionSet)
+                && !(canReenterWithLookup ??=
+                    HasSatisfiableLookup(type, schemaName, path.Item, excludeSchemaName: null)))
             {
                 continue;
             }
@@ -176,27 +202,32 @@ internal sealed partial class SatisfiabilityValidator
                 ProvidedByEventStream = eventStreamMessage is not null
             };
 
-            // Validate that we are not in a cycle by checking if this path item
-            // already appears in the ancestor chain.
-            if (path.ContainsItem(pathItem))
+            // A field that returns this object type and repeats the field holding this object
+            // (relatedProduct.relatedProduct) is an option without being visited again.
+            if (path is not null
+                && path.Item.ProvidedSelectionSet is null
+                && fieldType is MutableObjectTypeDefinition
+                && path.Item == pathItem)
             {
                 cycle = true;
                 continue;
             }
 
-            // Validate transition between source schemas. The fixpoint answers the direct-lookup
-            // route in O(1); only when it cannot confirm the transition do we fall back to the full
-            // recursion, which also covers the parent-call and one-to-one routes and builds the error.
-            // A provided selection set (event stream message or @provides) narrows the context in a
-            // way the fixpoint does not model, so we always defer to the recursion in that case.
+            // The fixpoint confirms direct lookups in O(1); otherwise the reach of the visit key
+            // holds the outcome of every transition route, and the path is only walked to explain
+            // a failure.
             if (previousSchemaName is not null
                 && previousSchemaName != schemaName
                 && (path?.Item.ProvidedSelectionSet is not null
                     || !_facts.CanTransition(type, schemaName, previousSchemaName)))
             {
-                var transitionErrors = ValidateSourceSchemaTransition(type, path, schemaName);
+                var canTransition = _schemaSets.Contains(work.Key.Reach, schemaName);
 
-                if (transitionErrors.Any())
+                Debug.Assert(
+                    canTransition == ValidateSourceSchemaTransition(type, path, schemaName).IsEmpty,
+                    "The reach of the visit key disagrees with the source schema transition helper.");
+
+                if (!canTransition)
                 {
                     errors.Add(
                         new SatisfiabilityError(
@@ -205,7 +236,7 @@ internal sealed partial class SatisfiabilityValidator
                                 previousSchemaName,
                                 schemaName,
                                 pathItem),
-                            transitionErrors));
+                            ValidateSourceSchemaTransition(type, path, schemaName)));
 
                     continue;
                 }
@@ -264,7 +295,7 @@ internal sealed partial class SatisfiabilityValidator
             if (fieldType is MutableComplexTypeDefinition or MutableUnionTypeDefinition)
             {
                 var fieldPath = new PathNode(pathItem, path);
-                var possibleTypes = fieldType.GetPossibleTypes(schemaName, _schema);
+                var possibleTypes = GetPossibleTypes(fieldType, schemaName);
 
                 if (pathItem.ProvidedSelectionSet is { } pathItemProvidedSelectionSet)
                 {
@@ -275,10 +306,10 @@ internal sealed partial class SatisfiabilityValidator
 
                 foreach (var possibleType in possibleTypes)
                 {
-                    if (!visited.Contains((possibleType, schemaName)))
-                    {
-                        worklist.Enqueue(new WorkItem(possibleType, fieldPath));
-                    }
+                    Enqueue(
+                        new WorkItem(CreateVisitKey(possibleType, pathItem, work), fieldPath),
+                        worklist,
+                        enqueued);
                 }
             }
 
@@ -289,9 +320,9 @@ internal sealed partial class SatisfiabilityValidator
             }
         }
 
-        // Log an error if there are no options for accessing the field, and there is no cycle
-        // (which would imply an option for accessing the same field repeatedly).
-        // (f.e. relatedProduct.relatedProduct.relatedProduct)
+        // Log an error if there are no options for accessing the field and the field does not
+        // repeat the field holding this object (f.e. relatedProduct.relatedProduct). The error is
+        // logged once for each field and schema holding the object.
         if (optionCount == 0 && !cycle)
         {
             if (CanReportAtRuntimeForNonResolvableInterfaceObject(type, field))
@@ -303,6 +334,11 @@ internal sealed partial class SatisfiabilityValidator
 
             if (_options.IgnoredNonAccessibleFields.TryGetValue(qualifiedFieldName, out var ignoredPaths)
                 && ignoredPaths.Contains(path.ToPathString()))
+            {
+                return;
+            }
+
+            if (!_reportedFields.Add((type, field, previousSchemaName)))
             {
                 return;
             }
@@ -390,14 +426,24 @@ internal sealed partial class SatisfiabilityValidator
         MutableObjectTypeDefinition queryType,
         MutableOutputFieldDefinition nodeField,
         IInterfaceTypeDefinition nodeType,
-        PathNode? path,
-        Queue<WorkItem> worklist)
+        in WorkItem work,
+        Queue<WorkItem> worklist,
+        HashSet<VisitKey> enqueued)
     {
-        if (_nodeResolution is NodeResolution.SourceSchema)
+        // Node lookups depend on the path only through the schema holding the query type and the
+        // viewer fallback, so they are dispatched once for each combination.
+        if (!_dispatchedNodeFields.Add((queryType, nodeField, work.Key.SchemaName, work.Key.ViewerFallback)))
         {
-            VisitSourceSchemaNodeField(queryType, nodeField, nodeType, path, worklist);
             return;
         }
+
+        if (_nodeResolution is NodeResolution.SourceSchema)
+        {
+            VisitSourceSchemaNodeField(queryType, nodeField, nodeType, work, worklist, enqueued);
+            return;
+        }
+
+        var path = work.Path;
 
         foreach (var possibleType in _schema.GetPossibleTypes(nodeType))
         {
@@ -432,7 +478,10 @@ internal sealed partial class SatisfiabilityValidator
                 var lookupPathItem = new SatisfiabilityPathItem(lookupField, queryType, schemaName);
                 var lookupPath = new PathNode(lookupPathItem, nodePath);
 
-                worklist.Enqueue(new WorkItem(possibleType, lookupPath));
+                Enqueue(
+                    new WorkItem(CreateNodeVisitKey(possibleType, lookupPathItem, work), lookupPath),
+                    worklist,
+                    enqueued);
             }
 
             if (!hasNodeLookup)
@@ -455,8 +504,9 @@ internal sealed partial class SatisfiabilityValidator
         MutableObjectTypeDefinition queryType,
         MutableOutputFieldDefinition nodeField,
         IInterfaceTypeDefinition nodeType,
-        PathNode? path,
-        Queue<WorkItem> worklist)
+        in WorkItem work,
+        Queue<WorkItem> worklist,
+        HashSet<VisitKey> enqueued)
     {
         var sourceNodeLookups = new List<(string SchemaName, MutableOutputFieldDefinition Field)>();
 
@@ -492,7 +542,7 @@ internal sealed partial class SatisfiabilityValidator
 
         var coveredTypes = new HashSet<MutableObjectTypeDefinition>();
         var nodePathItem = new SatisfiabilityPathItem(nodeField, queryType, "*");
-        var nodePath = new PathNode(nodePathItem, path);
+        var nodePath = new PathNode(nodePathItem, work.Path);
 
         foreach (var (schemaName, lookupField) in sourceNodeLookups)
         {
@@ -504,7 +554,10 @@ internal sealed partial class SatisfiabilityValidator
             foreach (var possibleType in nodeType.GetPossibleTypes(schemaName, _schema))
             {
                 coveredTypes.Add(possibleType);
-                worklist.Enqueue(new WorkItem(possibleType, lookupPath));
+                Enqueue(
+                    new WorkItem(CreateNodeVisitKey(possibleType, lookupPathItem, work), lookupPath),
+                    worklist,
+                    enqueued);
             }
         }
 
@@ -567,11 +620,13 @@ internal sealed partial class SatisfiabilityValidator
         PathNode? path,
         string transitionToSchemaName)
     {
+        SatisfiabilityPathItem[] pathFromLeaf = [.. path.EnumerateFromLeaf()];
+
         return SourceSchemaTransitionHelper.ValidateSourceSchemaTransition(
             _lookupCache,
             type,
             transitionToSchemaName,
-            [.. path.EnumerateFromLeaf()],
+            pathFromLeaf,
             (contextType, parentPathItem, lookupRequirements) =>
                 _requirementsValidator.Validate(
                     lookupRequirements,
@@ -579,11 +634,28 @@ internal sealed partial class SatisfiabilityValidator
                     parentPathItem,
                     excludeSchemaName: transitionToSchemaName),
             SatisfiabilityValidator_NoLookupsFoundForType,
-            SatisfiabilityValidator_UnableToSatisfyRequirementForLookup);
+            SatisfiabilityValidator_UnableToSatisfyRequirementForLookup,
+            GetQueryViewerField(pathFromLeaf));
     }
 
-    private IEnumerable<MutableObjectTypeDefinition> FilterPossibleTypesByProvidedSelectionSet(
-        IEnumerable<MutableObjectTypeDefinition> possibleTypes,
+    /// <summary>
+    /// Gets the object types that <paramref name="type"/> can resolve to in <paramref name="schemaName"/>.
+    /// </summary>
+    private MutableObjectTypeDefinition[] GetPossibleTypes(ITypeDefinition type, string schemaName)
+    {
+        if (!_possibleTypes.TryGetValue((type, schemaName), out var possibleTypes))
+        {
+            possibleTypes = type is MutableObjectTypeDefinition objectType
+                ? [objectType]
+                : [.. type.GetPossibleTypes(schemaName, _schema)];
+            _possibleTypes.Add((type, schemaName), possibleTypes);
+        }
+
+        return possibleTypes;
+    }
+
+    private MutableObjectTypeDefinition[] FilterPossibleTypesByProvidedSelectionSet(
+        MutableObjectTypeDefinition[] possibleTypes,
         SelectionSetNode selectionSet)
     {
         HashSet<string>? providedTypeNames = null;
@@ -595,7 +667,7 @@ internal sealed partial class SatisfiabilityValidator
             return possibleTypes;
         }
 
-        return possibleTypes.Where(t => providedTypeNames.Contains(t.Name));
+        return [.. possibleTypes.Where(t => providedTypeNames.Contains(t.Name))];
     }
 
     private void CollectRootTypeConditions(

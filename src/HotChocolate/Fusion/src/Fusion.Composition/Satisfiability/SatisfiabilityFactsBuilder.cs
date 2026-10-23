@@ -2,7 +2,6 @@ using HotChocolate.Fusion.Extensions;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
-using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
 
 namespace HotChocolate.Fusion.Satisfiability;
 
@@ -15,7 +14,6 @@ internal sealed class SatisfiabilityFactsBuilder
     private readonly HashSet<SatisfiabilityFacts.CanTransitionFactKey> _canTransitionFacts = [];
     private readonly HashSet<SatisfiabilityFacts.FieldAccessibleFactKey> _fieldAccessibleFacts = [];
     private readonly HashSet<ExpandedFieldAccessKey> _expandedFieldAccesses = [];
-    private readonly Dictionary<IDirective, SelectionSetNode> _lookupKeySelectionSets = [];
     private readonly Dictionary<MutableObjectTypeDefinition, string[]> _candidateTargetsByType = [];
 
     /// <summary>
@@ -124,7 +122,7 @@ internal sealed class SatisfiabilityFactsBuilder
         foreach (var lookup in _lookupCache.GetPossibleFusionLookupDirectives(type, schemaName))
         {
             if (CanResolveSelectionSet(
-                GetLookupKeySelectionSet(lookup),
+                _lookupCache.GetLookupKey(lookup),
                 type,
                 fromSchema: schemaName,
                 excludeSchema: null,
@@ -155,7 +153,7 @@ internal sealed class SatisfiabilityFactsBuilder
 
             foreach (var lookup in _lookupCache.GetPossibleFusionLookupDirectives(type, targetSchema))
             {
-                var keySelectionSet = GetLookupKeySelectionSet(lookup);
+                var keySelectionSet = _lookupCache.GetLookupKey(lookup);
 
                 if (!CanResolveSelectionSet(
                     keySelectionSet,
@@ -409,18 +407,6 @@ internal sealed class SatisfiabilityFactsBuilder
 
             yield return schemaName;
         }
-    }
-
-    private SelectionSetNode GetLookupKeySelectionSet(IDirective lookup)
-    {
-        if (!_lookupKeySelectionSets.TryGetValue(lookup, out var selectionSet))
-        {
-            var lookupKey = (string)lookup.Arguments[WellKnownArgumentNames.Key].Value!;
-            selectionSet = ParseSelectionSet($"{{ {lookupKey} }}");
-            _lookupKeySelectionSets.Add(lookup, selectionSet);
-        }
-
-        return selectionSet;
     }
 
     private void SeedRootPositions()
