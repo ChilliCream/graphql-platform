@@ -7,21 +7,20 @@ namespace Mocha.EntityFrameworkCore;
 
 /// <summary>
 /// Prepares messages for persistence in the same transaction as the owning DbContext's next save.
+/// The outbox must not be used after the context is disposed or returned to its pool.
 /// </summary>
-public sealed class DbContextOutbox
+public sealed class DbContextOutbox : IResettableService, IDisposable
 {
     private readonly DbContext _context;
-    private readonly DbContextId _lease;
-    private readonly DbContextOutboxScope _scope;
     private readonly Action<MessageEnvelope, CancellationToken> _stage;
+    private IServiceProvider? _services;
+    private IMessageBus? _bus;
     private IDbContextOutboxProvider? _provider;
     private int _preparing;
 
-    internal DbContextOutbox(DbContext context, DbContextOutboxScope scope)
+    internal DbContextOutbox(DbContext context)
     {
         _context = context;
-        _lease = context.ContextId;
-        _scope = scope;
         _stage = Stage;
     }
 
@@ -50,9 +49,20 @@ public sealed class DbContextOutbox
             throw ThrowHelper.ScheduledOutboxMessage(nameof(options));
         }
 
-        var dispatcher = Begin(cancellationToken);
+        if (Interlocked.CompareExchange(ref _preparing, 1, 0) != 0)
+        {
+            throw ThrowHelper.ConcurrentOutboxOperation();
+        }
+
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var bus = GetBus();
+            var dispatcher = GetDispatcher(bus);
+            var provider = _provider ??= GetProvider();
+            provider.Validate(_context);
+
             await dispatcher.PreparePublishAsync(message, options, _stage, cancellationToken);
         }
         finally
@@ -84,9 +94,20 @@ public sealed class DbContextOutbox
             throw ThrowHelper.ScheduledOutboxMessage(nameof(options));
         }
 
-        var dispatcher = Begin(cancellationToken);
+        if (Interlocked.CompareExchange(ref _preparing, 1, 0) != 0)
+        {
+            throw ThrowHelper.ConcurrentOutboxOperation();
+        }
+
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var bus = GetBus();
+            var dispatcher = GetDispatcher(bus);
+            var provider = _provider ??= GetProvider();
+            provider.Validate(_context);
+
             await dispatcher.PrepareSendAsync(message, options, _stage, cancellationToken);
         }
         finally
@@ -95,61 +116,71 @@ public sealed class DbContextOutbox
         }
     }
 
+    void IResettableService.ResetState() => Reset();
+
+    Task IResettableService.ResetStateAsync(CancellationToken cancellationToken)
+    {
+        Reset();
+        return Task.CompletedTask;
+    }
+
+    void IDisposable.Dispose() => Reset();
+
+    internal void Attach(IServiceProvider services)
+    {
+        if ((_services is not null && !ReferenceEquals(_services, services))
+            || (_bus is not null && !ReferenceEquals(_bus, services.GetRequiredService<IMessageBus>())))
+        {
+            throw ThrowHelper.OutboxAlreadyAttached();
+        }
+
+        _services = services;
+    }
+
     internal void Attach(IMessageBus bus)
     {
-        EnsureCurrentLease();
-        _ = GetProvider();
-        _ = GetDispatcher(bus);
-        _scope.Attach(bus);
-    }
-
-    private IMessageDispatcher Begin(CancellationToken cancellationToken)
-    {
-        if (Interlocked.CompareExchange(ref _preparing, 1, 0) != 0)
+        if (bus is not IMessageDispatcher)
         {
-            throw ThrowHelper.ConcurrentOutboxOperation();
+            throw ThrowHelper.OutboxBusNotSupported(bus.GetType());
         }
 
-        try
+        var current = _bus ?? _services?.GetRequiredService<IMessageBus>();
+        if (current is not null && !ReferenceEquals(current, bus))
         {
-            EnsureCurrentLease();
-            cancellationToken.ThrowIfCancellationRequested();
-            var dispatcher = GetDispatcher(_scope.GetBus(_context));
-            GetProvider().Validate(_context);
-            return dispatcher;
+            throw ThrowHelper.OutboxAlreadyAttached();
         }
-        catch
-        {
-            _preparing = 0;
-            throw;
-        }
+
+        _provider ??= GetProvider();
+        _bus = bus;
     }
+
+    internal IMessageBus GetBus()
+        => _bus ??= _services?.GetRequiredService<IMessageBus>()
+            ?? throw ThrowHelper.OutboxNotAttached(_context.GetType());
 
     private void Stage(MessageEnvelope envelope, CancellationToken cancellationToken)
     {
-        EnsureCurrentLease();
         cancellationToken.ThrowIfCancellationRequested();
         if (envelope.ScheduledTime is not null)
         {
             throw ThrowHelper.ScheduledOutboxMessage(nameof(envelope));
         }
 
-        var provider = GetProvider();
+        var provider = _provider ??= GetProvider();
         provider.Validate(_context);
         provider.Stage(_context, envelope, cancellationToken);
     }
 
-    private void EnsureCurrentLease()
+    private void Reset()
     {
-        _ = _context.GetInfrastructure();
-        if (_context.ContextId != _lease)
-        {
-            throw ThrowHelper.OutboxLeaseExpired();
-        }
+        _services = null;
+        _bus = null;
+        _provider = null;
+        _preparing = 0;
     }
 
     private IDbContextOutboxProvider GetProvider()
-        => _provider ??= _context.GetInfrastructure().GetService<IDbContextOutboxProvider>()
+        => _context.GetInfrastructure().GetService<IDbContextOutboxProvider>()
             ?? throw ThrowHelper.OutboxProviderNotSupported(_context.GetType());
 
     private static IMessageDispatcher GetDispatcher(IMessageBus bus)

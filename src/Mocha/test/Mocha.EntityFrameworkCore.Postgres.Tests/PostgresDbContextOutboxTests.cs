@@ -402,35 +402,6 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async Task OutboxPublishAsync_Should_Throw_When_OwningContextIsDisposed(bool pooled)
-    {
-        // arrange
-        var connectionString = await CreateDatabaseAsync();
-        var recorder = new ScopeRecorder();
-        await using var provider = await CreateProviderAsync(
-            connectionString,
-            new StubOutboxSignal(),
-            pooled: pooled,
-            useFactory: true,
-            scopeRecorder: recorder);
-        await EnsureCreatedAsync(provider);
-        var factory = provider.GetRequiredService<IDbContextFactory<UnitOfWorkDbContext>>();
-        var db = await factory.CreateDbContextAsync(TestToken);
-        var outbox = db.Outbox;
-        await db.DisposeAsync();
-
-        // act
-        await Assert.ThrowsAsync<ObjectDisposedException>(async () =>
-            await outbox.PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken));
-
-        // assert
-        Assert.Empty(recorder.Created);
-        Assert.Equal(0, await CountOutboxRowsAsync(connectionString));
-    }
-
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
     public async Task OutboxPublishAsync_Should_ReuseCallerScope_When_PublicationIsRetried(bool pooled)
     {
         // arrange
@@ -562,6 +533,50 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         Assert.Equal(
             Enumerable.Repeat(("handler", 1), 2),
             messages.Select(message => (message.Scope.Name, message.Scope.DisposeCount)));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task OutboxDispatch_Should_AllowNextOperation_When_PreviousOperationWasAlreadyCancelled(bool send)
+    {
+        // arrange
+        var connectionString = await CreateDatabaseAsync();
+        await using var provider = await CreateProviderAsync(connectionString, new StubOutboxSignal());
+        await EnsureCreatedAsync(provider);
+        await using var scope = provider.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
+        var cancelledToken = new CancellationToken(canceled: true);
+
+        // act
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+        {
+            if (send)
+            {
+                await db.Outbox.SendAsync(new FulfillOrder(1), cancelledToken);
+            }
+            else
+            {
+                await db.Outbox.PublishAsync(new OrderPlaced { OrderId = 1 }, cancelledToken);
+            }
+        });
+
+        if (send)
+        {
+            await db.Outbox.SendAsync(new FulfillOrder(2), TestToken);
+        }
+        else
+        {
+            await db.Outbox.PublishAsync(new OrderPlaced { OrderId = 2 }, TestToken);
+        }
+
+        await db.SaveChangesAsync(TestToken);
+        using var envelope = await db.Set<OutboxMessage>().Select(x => x.Envelope).SingleAsync(TestToken);
+        var body = envelope.RootElement.GetProperty("body");
+        var orderId = send ? body.Deserialize<FulfillOrder>()!.OrderId : body.Deserialize<OrderPlaced>()!.OrderId;
+
+        // assert
+        Assert.Equal(2, orderId);
     }
 
     [Theory]
@@ -976,8 +991,10 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         Assert.Equal(0, await CountOutboxRowsAsync(connectionString));
     }
 
-    [Fact]
-    public async Task OutboxPublishAsync_Should_RejectStaleOutbox_When_PooledContextIsLeasedAgain()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task UseOutbox_Should_RequireAttachment_When_PooledContextIsReused(bool asynchronous)
     {
         // arrange
         var connectionString = await CreateDatabaseAsync();
@@ -989,19 +1006,30 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         var factory = provider.GetRequiredService<IDbContextFactory<UnitOfWorkDbContext>>();
         var first = await factory.CreateDbContextAsync(TestToken);
         first.UseOutbox(bus);
-        var stale = first.Outbox;
-        await first.DisposeAsync();
-        await using var second = await factory.CreateDbContextAsync(TestToken);
-        second.UseOutbox(bus);
 
         // act
-        await Assert.ThrowsAsync<ObjectDisposedException>(async () =>
-            await stale.PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken));
+        if (asynchronous)
+        {
+            await first.DisposeAsync();
+        }
+        else
+        {
+            first.Dispose();
+        }
+
+        await using var second = await factory.CreateDbContextAsync(TestToken);
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await second.Outbox.PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken));
+        second.UseOutbox(bus);
         await second.Outbox.PublishAsync(new OrderPlaced { OrderId = 2 }, TestToken);
         await second.SaveChangesAsync(TestToken);
 
         // assert
         Assert.Same(first, second);
+        Assert.Equal(
+            "The outbox for 'UnitOfWorkDbContext' is not attached to a messaging scope. "
+            + "Call db.UseOutbox(bus) before publishing.",
+            exception.Message);
         Assert.Equal(1, await CountOutboxRowsAsync(connectionString));
     }
 
@@ -1335,7 +1363,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         await db.SaveChangesAsync(TestToken);
 
         // assert
-        Assert.Equal("This DbContext lease is already attached to a different messaging scope.", exception.Message);
+        Assert.Equal("This DbContext is already attached to a different messaging scope.", exception.Message);
         Assert.Equal(1, await CountOutboxRowsAsync(connectionString));
     }
 

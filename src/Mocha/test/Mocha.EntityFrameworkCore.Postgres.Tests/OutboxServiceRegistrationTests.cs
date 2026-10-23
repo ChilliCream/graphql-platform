@@ -114,9 +114,9 @@ public sealed class OutboxServiceRegistrationTests
         Assert.Same(
             factoryDescriptor,
             services.SingleOrDefault(s => s.ServiceType == typeof(IDbContextFactory<TestDbContext>)));
-        Assert.Same(context.GetService<DbContextOutboxScope>().GetOutbox(context), context.Outbox);
+        Assert.Same(context.GetService<DbContextOutbox>(), context.Outbox);
         Assert.Equal(ConnectionString, connection.ConnectionString);
-        Assert.Same(scope.ServiceProvider.GetRequiredService<IMessageBus>(), context.GetService<DbContextOutboxScope>().GetBus(context));
+        Assert.Same(scope.ServiceProvider.GetRequiredService<IMessageBus>(), context.Outbox.GetBus());
     }
 
     [Theory]
@@ -151,7 +151,7 @@ public sealed class OutboxServiceRegistrationTests
         Assert.Equal(ConnectionString, context.Database.GetConnectionString());
         Assert.Same(
             scope.ServiceProvider.GetRequiredService<IMessageBus>(),
-            context.GetService<DbContextOutboxScope>().GetBus(context));
+            context.Outbox.GetBus());
     }
 
     [Theory]
@@ -186,15 +186,14 @@ public sealed class OutboxServiceRegistrationTests
         await using var context = await factory.CreateDbContextAsync(TestContext.Current.CancellationToken);
 
         // act
-        var exception = Assert.Throws<InvalidOperationException>(() =>
-            context.GetService<DbContextOutboxScope>().GetBus(context));
+        var exception = Assert.Throws<InvalidOperationException>(context.Outbox.GetBus);
         context.UseOutbox(bus);
 
         // assert
         Assert.Equal(
             "The outbox for 'TestDbContext' is not attached to a messaging scope. Call db.UseOutbox(bus) before publishing.",
             exception.Message);
-        Assert.Same(bus, context.GetService<DbContextOutboxScope>().GetBus(context));
+        Assert.Same(bus, context.Outbox.GetBus());
     }
 
     [Theory]
@@ -215,13 +214,13 @@ public sealed class OutboxServiceRegistrationTests
         await using (var firstScope = provider.CreateAsyncScope())
         {
             firstContext = firstScope.ServiceProvider.GetRequiredService<TestDbContext>();
-            firstBus = firstContext.GetService<DbContextOutboxScope>().GetBus(firstContext);
+            firstBus = firstContext.Outbox.GetBus();
         }
 
         // act
         await using var secondScope = provider.CreateAsyncScope();
         var secondContext = secondScope.ServiceProvider.GetRequiredService<TestDbContext>();
-        var secondBus = secondContext.GetService<DbContextOutboxScope>().GetBus(secondContext);
+        var secondBus = secondContext.Outbox.GetBus();
 
         // assert
         Assert.Same(firstContext, secondContext);
@@ -280,7 +279,7 @@ public sealed class OutboxServiceRegistrationTests
             // assert
             Assert.Same(
                 scope.ServiceProvider.GetRequiredService<IMessageBus>(),
-                context.GetService<DbContextOutboxScope>().GetBus(context));
+                context.Outbox.GetBus());
         }
         else
         {
@@ -288,7 +287,7 @@ public sealed class OutboxServiceRegistrationTests
                 scope.ServiceProvider.GetRequiredService<AttachedDbContext>);
 
             // assert
-            Assert.Equal("This DbContext lease is already attached to a different messaging scope.", exception.Message);
+            Assert.Equal("This DbContext is already attached to a different messaging scope.", exception.Message);
             Assert.Equal(1, createdContext.DisposeCount);
             Assert.Same(otherBus, otherScope.ServiceProvider.GetRequiredService<IMessageBus>());
         }
@@ -473,7 +472,7 @@ public sealed class OutboxServiceRegistrationTests
         Assert.NotSame(
             context.GetService<IDbContextOutboxProvider>(),
             otherContext.GetService<IDbContextOutboxProvider>());
-        Assert.Same(otherContext.GetService<DbContextOutboxScope>().GetOutbox(otherContext), otherContext.Outbox);
+        Assert.Same(otherContext.GetService<DbContextOutbox>(), otherContext.Outbox);
     }
 
     [Fact]
@@ -553,7 +552,7 @@ public sealed class OutboxServiceRegistrationTests
         var otherContext = scope.ServiceProvider.GetRequiredService<OtherDbContext>();
 
         // assert
-        Assert.Same(context.GetService<DbContextOutboxScope>().GetOutbox(context), context.Outbox);
+        Assert.Same(context.GetService<DbContextOutbox>(), context.Outbox);
         Assert.Empty(otherContext.GetInfrastructure().GetServices<IInterceptor>());
     }
 
@@ -582,7 +581,7 @@ public sealed class OutboxServiceRegistrationTests
         Assert.Same(factoryDescriptor, services.Single(s => s.ServiceType == typeof(IDbContextFactory<TestDbContext>)));
         Assert.Equal(contextDescriptor.Lifetime, services.Single(s => s.ServiceType == typeof(TestDbContext)).Lifetime);
         Assert.Equal(factoryLifetime != ServiceLifetime.Transient, ReferenceEquals(factory, secondFactory));
-        Assert.Same(context.GetService<DbContextOutboxScope>().GetOutbox(context), context.Outbox);
+        Assert.Same(context.GetService<DbContextOutbox>(), context.Outbox);
     }
 
     [Fact]

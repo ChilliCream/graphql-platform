@@ -12,7 +12,7 @@ public static class DbContextOutboxExtensions
     extension(DbContext context)
     {
         /// <summary>
-        /// Attaches the caller's messaging scope to this DbContext lease.
+        /// Attaches the caller's messaging scope to this DbContext.
         /// </summary>
         public void UseOutbox(IMessageBus bus)
         {
@@ -28,7 +28,7 @@ public static class DbContextOutboxExtensions
         /// The DbContext is not registered with an outbox through <c>AddEntityFramework</c>.
         /// </exception>
         public DbContextOutbox Outbox
-            => context.GetInfrastructure().GetService<DbContextOutboxScope>()?.GetOutbox(context)
+            => context.GetInfrastructure().GetService<DbContextOutbox>()
                 ?? throw ThrowHelper.OutboxNotConfigured(context.GetType());
     }
 }

@@ -865,7 +865,7 @@ The same API works with `AddDbContextFactory<TContext>()` and manually construct
 
 Multiple DbContext types can each register their own outbox. Messages belong to the exact instance used through `db.Outbox`; this API does not need a default context. Each registered context type has its own relay and options. Publishing through a factory context that targets an unregistered database or outbox mapping throws before message preparation. Repeating registration for the same type is idempotent.
 
-Contexts resolved from scoped DI attach automatically to that scope. Factory-created contexts use the bus passed to `UseOutbox`; middleware and correlation use the caller's messaging services. Mocha does not create or own another application scope. Complete publications and saves before disposing the context or caller scope. Returning a pooled context clears its attachment, and an outbox reference retained from a previous lease throws on use.
+Contexts resolved from scoped DI attach automatically to that scope. Factory-created contexts use the bus passed to `UseOutbox`; middleware and correlation use the caller's messaging services. Mocha does not create or own another application scope. Complete publications and saves before disposing the context or caller scope. Returning a pooled context clears its attachment. Use the context and its outbox only until the context is disposed or returned to the pool.
 
 The attached bus propagates the active consumer's conversation and causation identifiers. Scoped middleware can resolve request-specific services, and explicit message metadata can be supplied through `PublishOptions.Headers`:
 

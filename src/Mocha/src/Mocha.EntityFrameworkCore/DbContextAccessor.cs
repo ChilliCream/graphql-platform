@@ -25,7 +25,7 @@ internal sealed class DbContextAccessor(DbContext context, bool ownsContext) : I
             {
                 if (services.GetServices<OutboxDbContextRegistration>().Any(r => r.ContextType == typeof(TContext)))
                 {
-                    createdContext.GetService<DbContextOutboxScope>().Attach(services);
+                    createdContext.GetService<DbContextOutbox>().Attach(services);
                 }
 
                 return new DbContextAccessor(createdContext, true);

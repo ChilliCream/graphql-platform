@@ -31,8 +31,8 @@ public static class OutboxEntityFrameworkCorePersistenceBuilderExtensions
             var signal = sp.GetRequiredService<IOutboxSignal>();
             services.AddSingleton<IInterceptor>(new OutboxDbTransactionInterceptor(signal));
             services.AddSingleton<IInterceptor>(new OutboxSaveChangesInterceptor(signal));
-            services.AddScoped<DbContextOutboxScope>();
-            services.AddScoped<IResettableService>(s => s.GetRequiredService<DbContextOutboxScope>());
+            services.AddScoped(static s => new DbContextOutbox(s.GetRequiredService<ICurrentDbContext>().Context));
+            services.AddScoped<IResettableService>(static s => s.GetRequiredService<DbContextOutbox>());
         });
         return builder;
     }

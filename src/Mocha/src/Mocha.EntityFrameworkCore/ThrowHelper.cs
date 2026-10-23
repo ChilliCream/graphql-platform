@@ -12,7 +12,7 @@ internal static partial class ThrowHelper
             + "Call db.UseOutbox(bus) before publishing.");
 
     public static InvalidOperationException OutboxAlreadyAttached()
-        => new("This DbContext lease is already attached to a different messaging scope.");
+        => new("This DbContext is already attached to a different messaging scope.");
 
     public static InvalidOperationException OutboxProviderNotSupported(Type type)
         => new($"The outbox provider for '{type.Name}' does not support DbContext staging. "
@@ -27,7 +27,4 @@ internal static partial class ThrowHelper
 
     public static ArgumentException ScheduledOutboxMessage(string parameterName)
         => new("DbContext.Outbox does not support scheduled messages.", parameterName);
-
-    public static ObjectDisposedException OutboxLeaseExpired()
-        => new(nameof(DbContextOutbox), "This outbox belongs to an expired DbContext lease.");
 }

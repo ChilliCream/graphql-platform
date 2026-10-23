@@ -66,7 +66,7 @@ internal static class OutboxDbContextServiceCollectionExtensions
 
                 try
                 {
-                    context.GetService<DbContextOutboxScope>().Attach(serviceProvider);
+                    context.GetService<DbContextOutbox>().Attach(serviceProvider);
                     return context;
                 }
                 catch
