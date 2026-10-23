@@ -2,6 +2,7 @@ using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Properties;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -129,6 +130,16 @@ internal static class ThrowHelper
                 .AddLocation(variableDefinition)
                 .Build());
     }
+
+    public static GraphQLException DeferIfVariableIsNull(string variableName)
+        => new(ErrorBuilder.New()
+            .SetMessage(
+                "The variable `{0}` is null, but the `if` argument of the `@defer` directive must not be null.",
+                variableName)
+            .SetCode(ErrorCodes.Execution.NonNullViolation)
+            .SetExtension("variable", variableName)
+            .SetExtension("directive", DirectiveNames.Defer.Name)
+            .Build());
 
     public static GraphQLException VariableIsNotAnInputType(
         VariableDefinitionNode variableDefinition)

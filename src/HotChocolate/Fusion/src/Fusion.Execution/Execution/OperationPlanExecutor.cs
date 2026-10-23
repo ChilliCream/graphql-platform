@@ -71,6 +71,8 @@ internal static partial class OperationPlanExecutor
         OperationPlan operationPlan,
         CancellationToken cancellationToken)
     {
+        EnsureDeferIfVariablesAreNotNull(variables, operationPlan);
+
         // Execute the main (non-deferred) plan nodes first.
         var executionCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         OperationPlanContext? rootContext = null;
@@ -644,6 +646,20 @@ internal static partial class OperationPlanExecutor
             if (seen.Add(requirement.Key))
             {
                 collected.Add(requirement);
+            }
+        }
+    }
+
+    private static void EnsureDeferIfVariablesAreNotNull(
+        IVariableValueCollection variables,
+        OperationPlan operationPlan)
+    {
+        foreach (var deliveryGroup in operationPlan.DeliveryGroups)
+        {
+            if (deliveryGroup.IfVariable is { } name
+                && variables.TryGetValue<NullValueNode>(name, out _))
+            {
+                throw ThrowHelper.DeferIfVariableIsNull(name);
             }
         }
     }

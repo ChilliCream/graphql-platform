@@ -180,7 +180,7 @@ internal static class CompositeSchemaBuilder
                         null,
                         new HotChocolate.Language.NameNode(Defer.Arguments.If),
                         null,
-                        new NamedTypeNode("Boolean"),
+                        new NonNullTypeNode(new NamedTypeNode("Boolean")),
                         new BooleanValueNode(true),
                         []),
                     new InputValueDefinitionNode(

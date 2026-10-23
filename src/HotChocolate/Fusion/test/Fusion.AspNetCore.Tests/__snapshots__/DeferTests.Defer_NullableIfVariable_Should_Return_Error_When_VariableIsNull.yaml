@@ -1,0 +1,66 @@
+title: Defer_NullableIfVariable_Should_Return_Error_When_VariableIsNull
+request:
+  document: |
+    query GetUser($shouldDefer: Boolean) {
+      user(id: "1") {
+        name
+        ... @defer(if: $shouldDefer, label: "reviews") {
+          reviews {
+            title
+            body
+          }
+        }
+      }
+    }
+  variables: |
+    {
+      "shouldDefer": null
+    }
+stableResponseStream: |
+  {
+    "errors": [
+      {
+        "extensions": {
+          "code": "HC0018",
+          "directive": "defer",
+          "variable": "shouldDefer"
+        },
+        "message": "The variable `shouldDefer` is null, but the `if` argument of the `@defer` directive must not be null."
+      }
+    ]
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        user(id: ID!): User @lookup
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        name: String!
+        email: String!
+      }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        userById(id: ID!): User @lookup
+      }
+
+      type Review {
+        title: String!
+        body: String!
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        reviews: [Review!]!
+      }
