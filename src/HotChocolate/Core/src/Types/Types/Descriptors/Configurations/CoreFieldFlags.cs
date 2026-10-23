@@ -64,5 +64,10 @@ internal enum CoreFieldFlags : long
     /// <summary>
     /// The field exists on the schema only when relative cursors are enabled globally or on at least one field.
     /// </summary>
-    RelativeCursorField = 1L << 42
+    RelativeCursorField = 1L << 42,
+
+    /// <summary>
+    /// The field registers an <c>ISelectionSetHandler</c> in its features.
+    /// </summary>
+    HasSelectionSetHandler = 1L << 43
 }

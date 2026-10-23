@@ -463,6 +463,15 @@ public sealed class Selection : ISelection, IFeatureProvider
     /// </summary>
     internal bool HasDeferUsage => _deferUsage.Length > 0;
 
+    /// <summary>
+    /// Determines whether this selection is included and deferred under exactly the same
+    /// conditions as the <paramref name="other"/> selection.
+    /// </summary>
+    internal bool HasSameConditions(Selection other)
+        => _includeFlags.AsSpan().SequenceEqual(other._includeFlags)
+            && _wideIncludeFlags.AsSpan().SequenceEqual(other._wideIncludeFlags)
+            && _deferUsage.AsSpan().SequenceEqual(other._deferUsage);
+
     /// <inheritdoc />
     [Obsolete("Use IsDeferred(ConditionFlags) instead. This overload throws for operations with more than 64 conditions.")]
     public bool IsDeferred(ulong deferFlags)

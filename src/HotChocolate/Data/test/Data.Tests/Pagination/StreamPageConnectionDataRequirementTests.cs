@@ -502,6 +502,112 @@ public class StreamPageConnectionDataRequirementTests(PostgreSqlResource resourc
             """);
     }
 
+    [Fact]
+    public async Task Execute_Should_NotReadAfterTheResolverReturns_When_TheSameDocumentRunsWithOtherIncludeVariables()
+    {
+        // arrange
+        var store = await Store.CreateAsync(resource, authorCount: 1, itemsPerAuthor: 5);
+        var executor = await CreateExecutorAsync(store);
+        const string document =
+            """
+            query($nodes: Boolean!, $count: Boolean!) {
+              items(first: 2) {
+                nodes @include(if: $nodes) { id }
+                totalCount @include(if: $count)
+              }
+            }
+            """;
+
+        // act
+        await using var countOnly = await executor.ExecuteAsync(
+            CreateRequest(document, ("nodes", false), ("count", true)),
+            TestContext.Current.CancellationToken);
+        await using var nodesOnly = await executor.ExecuteAsync(
+            CreateRequest(document, ("nodes", true), ("count", false)),
+            TestContext.Current.CancellationToken);
+        var json = nodesOnly.ToJson();
+        await nodesOnly.DisposeAsync();
+
+        // assert
+        json.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "items": {
+                  "nodes": [
+                    {
+                      "id": 1
+                    },
+                    {
+                      "id": 2
+                    }
+                  ]
+                }
+              }
+            }
+            """);
+        store.Summarize().MatchInlineSnapshot(
+            """
+            {
+              "RowsWereRead": true,
+              "ReadAfterResolver": false
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_Should_NotReadAfterTheResolverReturns_When_TheSameDocumentRunsWithOtherStreamVariables()
+    {
+        // arrange
+        var store = await Store.CreateAsync(resource, authorCount: 1, itemsPerAuthor: 5);
+        var executor = await CreateExecutorAsync(store);
+        const string document =
+            """
+            query($stream: Boolean!) {
+              items(first: 2) {
+                nodes @stream(if: $stream, initialCount: 1) { id }
+              }
+            }
+            """;
+
+        // act
+        await using var streamed = await executor.ExecuteAsync(
+            CreateRequest(document, ("stream", true)),
+            TestContext.Current.CancellationToken);
+        await streamed.DisposeAsync();
+        await using var loaded = await executor.ExecuteAsync(
+            CreateRequest(document, ("stream", false)),
+            TestContext.Current.CancellationToken);
+        var json = loaded.ToJson();
+        await loaded.DisposeAsync();
+
+        // assert
+        json.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "items": {
+                  "nodes": [
+                    {
+                      "id": 1
+                    },
+                    {
+                      "id": 2
+                    }
+                  ]
+                }
+              }
+            }
+            """);
+        store.Summarize().MatchInlineSnapshot(
+            """
+            {
+              "RowsWereRead": true,
+              "ReadAfterResolver": false
+            }
+            """);
+    }
+
     [Theory]
     [InlineData("items(first: 2) { nodes { id } }")]
     [InlineData("items(first: 2) { edges { cursor node { id } } nodes { id } }")]
@@ -600,6 +706,12 @@ public class StreamPageConnectionDataRequirementTests(PostgreSqlResource resourc
         Assert.Equal(1, releasedBefore);
         Assert.Equal(1, releasedAfter);
     }
+
+    private static IOperationRequest CreateRequest(string document, params (string Name, bool Value)[] variables)
+        => OperationRequestBuilder.New()
+            .SetDocument(document)
+            .SetVariableValues(variables.ToDictionary(t => t.Name, t => (object?)t.Value))
+            .Build();
 
     private static async Task<IRequestExecutor> CreateExecutorAsync(Store store)
         => await new ServiceCollection()

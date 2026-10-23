@@ -9,6 +9,7 @@ using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors.Configurations;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing;
@@ -257,6 +258,13 @@ public sealed partial class OperationCompiler
             compilationContext.Register(selectionSet, selectionSet.Id);
             elementsById = compilationContext.ElementsById;
             selectionSet.Complete(operation);
+
+            if ((selection.Field.Flags & CoreFieldFlags.HasSelectionSetHandler) != 0
+                && selection.Field.Features.TryGet<ISelectionSetHandler>(out var handler))
+            {
+                handler.OnSelectionSetCompiled(selection, selectionSet);
+            }
+
             return selectionSet;
         }
         finally

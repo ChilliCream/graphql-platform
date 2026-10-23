@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
@@ -153,6 +154,9 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
 
             if (ReturnsStreamPageConnection(context, definition))
             {
+                definition.Flags |= CoreFieldFlags.HasSelectionSetHandler;
+                definition.Features.Set<ISelectionSetHandler>(StreamPageDataRequirementPrecomputer.Instance);
+
                 var index = definition.MiddlewareConfigurations.IndexOf(middleware);
 
                 if (index >= 0)

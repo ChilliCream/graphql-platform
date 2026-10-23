@@ -10,6 +10,29 @@ internal static class StreamPageDataRequirementAnalyzer
     private const string ForwardCursors = "forwardCursors";
     private const string BackwardCursors = "backwardCursors";
 
+    /// <summary>
+    /// Gets the requirements of a connection field other than <c>pageInfo</c>.
+    /// </summary>
+    public static StreamPageDataRequirements GetConnectionRequirements(string fieldName)
+        => fieldName switch
+        {
+            ConnectionType.Names.Edges or ConnectionType.Names.Nodes => StreamPageDataRequirements.AllRows,
+            ConnectionType.Names.TotalCount => StreamPageDataRequirements.TotalCount,
+            _ => StreamPageDataRequirements.None
+        };
+
+    /// <summary>
+    /// Gets the requirements of a <c>pageInfo</c> field.
+    /// </summary>
+    public static StreamPageDataRequirements GetPageInfoRequirements(string fieldName)
+        => fieldName switch
+        {
+            PageInfo.Names.HasPreviousPage or PageInfo.Names.StartCursor => StreamPageDataRequirements.FirstRow,
+            PageInfo.Names.HasNextPage or PageInfo.Names.EndCursor or ForwardCursors or BackwardCursors
+                => StreamPageDataRequirements.AllRows,
+            _ => StreamPageDataRequirements.None
+        };
+
     public static StreamPageDataRequirements Analyze(IResolverContext context)
     {
         var selection = context.Selection;
@@ -17,6 +40,19 @@ internal static class StreamPageDataRequirementAnalyzer
         if (selection.Type.NamedType() is not ObjectType connectionType)
         {
             return StreamPageDataRequirements.None;
+        }
+
+        if (selection.Features.TryGet<StreamPageDataRequirements>(out var precomputed))
+        {
+            return precomputed;
+        }
+
+        // The requirements of an unconditional selection are stored while its selection set is compiled.
+        selection.GetSelectionSet(connectionType);
+
+        if (selection.Features.TryGet(out precomputed))
+        {
+            return precomputed;
         }
 
         var deferFlags = context.Operation.CreateDeferConditionFlags(context.Variables);
@@ -30,21 +66,9 @@ internal static class StreamPageDataRequirementAnalyzer
                 continue;
             }
 
-            switch (child.Field.Name)
-            {
-                case ConnectionType.Names.Edges:
-                case ConnectionType.Names.Nodes:
-                    requirements |= StreamPageDataRequirements.AllRows;
-                    break;
-
-                case ConnectionType.Names.TotalCount:
-                    requirements |= StreamPageDataRequirements.TotalCount;
-                    break;
-
-                case ConnectionType.Names.PageInfo:
-                    requirements |= AnalyzePageInfo(context, child, deferFlags, connectionDeferUsage);
-                    break;
-            }
+            requirements |= child.Field.Name.Equals(ConnectionType.Names.PageInfo, StringComparison.Ordinal)
+                ? AnalyzePageInfo(context, child, deferFlags, connectionDeferUsage)
+                : GetConnectionRequirements(child.Field.Name);
         }
 
         return requirements;
@@ -70,20 +94,7 @@ internal static class StreamPageDataRequirementAnalyzer
                 continue;
             }
 
-            switch (child.Field.Name)
-            {
-                case PageInfo.Names.HasPreviousPage:
-                case PageInfo.Names.StartCursor:
-                    requirements |= StreamPageDataRequirements.FirstRow;
-                    break;
-
-                case PageInfo.Names.HasNextPage:
-                case PageInfo.Names.EndCursor:
-                case ForwardCursors:
-                case BackwardCursors:
-                    requirements |= StreamPageDataRequirements.AllRows;
-                    break;
-            }
+            requirements |= GetPageInfoRequirements(child.Field.Name);
         }
 
         return requirements;
