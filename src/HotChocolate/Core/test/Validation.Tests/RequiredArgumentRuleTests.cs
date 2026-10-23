@@ -454,4 +454,72 @@ public class RequiredArgumentRuleTests
             """,
             FragmentArgumentParserOptions);
     }
+
+    [Fact]
+    public void Validate_Should_Report_When_DeferIfIsNull()
+    {
+        ExpectErrors(
+            """
+            {
+              dog {
+                ... @defer(if: null) {
+                  name
+                }
+              }
+            }
+            """,
+            t => Assert.Equal(
+                "The specified argument value does not match the argument type.", t.Message));
+    }
+
+    [Fact]
+    public void Validate_Should_Report_When_StreamIfIsNull()
+    {
+        ExpectErrors(
+            """
+            {
+              dog {
+                name @stream(if: null)
+              }
+            }
+            """,
+            t => Assert.Equal(
+                "The specified argument value does not match the argument type.", t.Message));
+    }
+
+    [Fact]
+    public void Validate_Should_Report_When_StreamInitialCountIsNull()
+    {
+        ExpectErrors(
+            """
+            {
+              dog {
+                name @stream(initialCount: null)
+              }
+            }
+            """,
+            t => Assert.Equal(
+                "The specified argument value does not match the argument type.", t.Message));
+    }
+
+    [Fact]
+    public void Validate_Should_BeValid_When_DeferAndStreamIfAreOmittedOrBoolean()
+    {
+        ExpectValid(
+            """
+            query ($defer: Boolean) {
+              dog {
+                ... @defer {
+                  name
+                }
+                ... @defer(if: true) {
+                  nickname
+                }
+                ... @defer(if: $defer) {
+                  barkVolume
+                }
+              }
+            }
+            """);
+    }
 }

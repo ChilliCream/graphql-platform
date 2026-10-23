@@ -165,6 +165,21 @@
   <data name="ThrowHelper_NonNullVariableIsNull_Message" xml:space="preserve">
     <value>Variable `{0}` is required.</value>
   </data>
+  <data name="ThrowHelper_DirectiveIfVariableIsNull_Message" xml:space="preserve">
+    <value>The variable `{0}` is null, but the `if` argument of the `@{1}` directive must not be null.</value>
+  </data>
+  <data name="ThrowHelper_DirectiveIfVariableNotProvided_Message" xml:space="preserve">
+    <value>The variable `{0}` was not provided, but the `if` argument of the `@{1}` directive requires a value.</value>
+  </data>
+  <data name="ThrowHelper_DirectiveIfVariableInvalidValue_Message" xml:space="preserve">
+    <value>The variable `{0}` has a value that is not a Boolean, but the `if` argument of the `@{1}` directive must be a Boolean.</value>
+  </data>
+  <data name="ThrowHelper_DirectiveIfValueMissing_Message" xml:space="preserve">
+    <value>The `if` argument of the `@{0}` directive requires a value.</value>
+  </data>
+  <data name="ThrowHelper_DirectiveIfValueInvalid_Message" xml:space="preserve">
+    <value>The `if` argument of the `@{0}` directive must be a Boolean.</value>
+  </data>
   <data name="ThrowHelper_VariableValueInvalidType_Message" xml:space="preserve">
     <value>Variable `{0}` got an invalid value.</value>
   </data>

@@ -282,6 +282,181 @@ public class DeferTests
     }
 
     [Fact]
+    public async Task InlineFragment_Should_Defer_When_IfIsTrue()
+    {
+        // arrange
+        var executor = await DeferAndStreamTestSchema.CreateAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                ... @defer(if: true) {
+                    person(id: "UGVyc29uOjE=") {
+                        id
+                    }
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task InlineFragment_Should_Defer_When_IfVariableIsTrue()
+    {
+        // arrange
+        var executor = await DeferAndStreamTestSchema.CreateAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(
+                    """
+                    query ($defer: Boolean!) {
+                        ... @defer(if: $defer) {
+                            person(id: "UGVyc29uOjE=") {
+                                id
+                            }
+                        }
+                    }
+                    """)
+                .SetVariableValues(new Dictionary<string, object?> { { "defer", true } })
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task InlineFragment_Should_Defer_When_NullableIfVariableIsNotProvided()
+    {
+        // arrange
+        var executor = await DeferAndStreamTestSchema.CreateAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            query ($defer: Boolean) {
+                ... @defer(if: $defer) {
+                    person(id: "UGVyc29uOjE=") {
+                        id
+                    }
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task InlineFragment_Should_BeRejected_When_IfIsNull()
+    {
+        // arrange
+        var executor = await DeferAndStreamTestSchema.CreateAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                ... @defer(if: null) {
+                    person(id: "UGVyc29uOjE=") {
+                        id
+                    }
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.IsType<OperationResult>(result).MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task InlineFragment_Should_BeRejected_When_NullableIfVariableIsNull()
+    {
+        // arrange
+        var executor = await DeferAndStreamTestSchema.CreateAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(
+                    """
+                    query ($defer: Boolean) {
+                        ... @defer(if: $defer) {
+                            person(id: "UGVyc29uOjE=") {
+                                id
+                            }
+                        }
+                    }
+                    """)
+                .SetVariableValues(new Dictionary<string, object?> { { "defer", null } })
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.IsType<OperationResult>(result).MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task FragmentSpread_Should_Defer_When_IfIsTrue()
+    {
+        // arrange
+        var executor = await DeferAndStreamTestSchema.CreateAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                ... Foo @defer(if: true)
+            }
+
+            fragment Foo on Query {
+                person(id: "UGVyc29uOjE=") {
+                    id
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task FragmentSpread_Should_BeRejected_When_IfIsNull()
+    {
+        // arrange
+        var executor = await DeferAndStreamTestSchema.CreateAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                ... Foo @defer(if: null)
+            }
+
+            fragment Foo on Query {
+                person(id: "UGVyc29uOjE=") {
+                    id
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.IsType<OperationResult>(result).MatchMarkdownSnapshot();
+    }
+
+    [Fact]
     public async Task FragmentSpread_Defer()
     {
         // arrange

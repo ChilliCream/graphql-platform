@@ -100,6 +100,61 @@ internal static class ThrowHelper
                 type.FullName ?? string.Empty)
             .Build());
 
+    public static GraphQLException DirectiveIfVariableIsNull(
+        string directiveName,
+        string variableName) =>
+        new(ErrorBuilder.New()
+            .SetMessage(
+                ThrowHelper_DirectiveIfVariableIsNull_Message,
+                variableName,
+                directiveName)
+            .SetCode(ErrorCodes.Execution.NonNullViolation)
+            .SetExtension("variable", variableName)
+            .SetExtension("directive", directiveName)
+            .Build());
+
+    public static GraphQLException DirectiveIfVariableNotProvided(
+        string directiveName,
+        string variableName) =>
+        new(ErrorBuilder.New()
+            .SetMessage(
+                ThrowHelper_DirectiveIfVariableNotProvided_Message,
+                variableName,
+                directiveName)
+            .SetExtension("variable", variableName)
+            .SetExtension("directive", directiveName)
+            .Build());
+
+    public static GraphQLException DirectiveIfVariableInvalidValue(
+        string directiveName,
+        string variableName) =>
+        new(ErrorBuilder.New()
+            .SetMessage(
+                ThrowHelper_DirectiveIfVariableInvalidValue_Message,
+                variableName,
+                directiveName)
+            .SetExtension("variable", variableName)
+            .SetExtension("directive", directiveName)
+            .Build());
+
+    public static GraphQLException DirectiveIfValueMissing(
+        string directiveName) =>
+        new(ErrorBuilder.New()
+            .SetMessage(
+                ThrowHelper_DirectiveIfValueMissing_Message,
+                directiveName)
+            .SetExtension("directive", directiveName)
+            .Build());
+
+    public static GraphQLException DirectiveIfValueInvalid(
+        string directiveName) =>
+        new(ErrorBuilder.New()
+            .SetMessage(
+                ThrowHelper_DirectiveIfValueInvalid_Message,
+                directiveName)
+            .SetExtension("directive", directiveName)
+            .Build());
+
     public static GraphQLException RootTypeNotSupported(
         OperationType operationType) =>
         new(ErrorBuilder.New()

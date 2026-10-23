@@ -210,15 +210,25 @@ internal sealed class ArgumentVisitor()
                 }
 
                 if (arg.Type.IsNonNullType()
-                    && arg.DefaultValue.IsNull()
                     && argument.Value.IsNull())
                 {
-                    context.ReportError(
-                        context.ArgumentRequired(
-                            argument,
-                            argument.Name.Value,
-                            field,
-                            directive));
+                    if (arg.DefaultValue.IsNull())
+                    {
+                        context.ReportError(
+                            context.ArgumentRequired(
+                                argument,
+                                argument.Name.Value,
+                                field,
+                                directive));
+                    }
+                    else if (directive is not null)
+                    {
+                        context.ReportError(
+                            context.ArgumentValueIsNotCompatible(
+                                argument,
+                                arg.Type,
+                                argument.Value));
+                    }
                 }
             }
             else

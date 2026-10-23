@@ -169,6 +169,51 @@ public class StreamTests
     }
 
     [Fact]
+    public async Task Stream_Should_BeRejected_When_IfIsNull()
+    {
+        // arrange
+        var executor = await DeferAndStreamTestSchema.CreateAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                persons @stream(if: null) {
+                    id
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.IsType<OperationResult>(result).MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The specified argument value does not match the argument type.",
+                  "locations": [
+                    {
+                      "line": 2,
+                      "column": 25
+                    }
+                  ],
+                  "path": [
+                    "persons"
+                  ],
+                  "extensions": {
+                    "argument": "if",
+                    "argumentValue": "null",
+                    "locationType": "Boolean!",
+                    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Values-of-Correct-Type"
+                  }
+                }
+              ]
+            }
+            """);
+    }
+
+    [Fact]
     public async Task AsyncEnumerable_Result()
     {
         // arrange

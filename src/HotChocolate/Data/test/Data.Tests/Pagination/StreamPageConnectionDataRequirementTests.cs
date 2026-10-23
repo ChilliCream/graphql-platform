@@ -365,6 +365,143 @@ public class StreamPageConnectionDataRequirementTests(PostgreSqlResource resourc
         Assert.Equal(expectedReadAfterResolver, store.Summarize().ReadAfterResolver);
     }
 
+    [Fact]
+    public async Task Execute_Should_LeaveStreamedMembersToTheStream_When_StreamConditionIsTrueLiteral()
+    {
+        // arrange
+        var store = await Store.CreateAsync(resource, authorCount: 1, itemsPerAuthor: 5);
+        var executor = await CreateExecutorAsync(store);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            "{ items(first: 2) { nodes @stream(if: true, initialCount: 1) { id } } }",
+            TestContext.Current.CancellationToken);
+        await result.DisposeAsync();
+
+        // assert
+        store.Summarize().MatchInlineSnapshot(
+            """
+            {
+              "RowsWereRead": true,
+              "ReadAfterResolver": true
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_Should_LeaveStreamedMembersToTheStream_When_NullableConditionVariableIsNotProvided()
+    {
+        // arrange
+        var store = await Store.CreateAsync(resource, authorCount: 1, itemsPerAuthor: 5);
+        var executor = await CreateExecutorAsync(store);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            query($s: Boolean) {
+              items(first: 2) {
+                nodes @stream(if: $s, initialCount: 1) { id }
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+        await result.DisposeAsync();
+
+        // assert
+        store.Summarize().MatchInlineSnapshot(
+            """
+            {
+              "RowsWereRead": true,
+              "ReadAfterResolver": true
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_Should_ReportAnError_When_NullableConditionVariableIsNull()
+    {
+        // arrange
+        var store = await Store.CreateAsync(resource, authorCount: 1, itemsPerAuthor: 5);
+        var executor = await CreateExecutorAsync(store);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    """
+                    query($s: Boolean) {
+                      items(first: 2) {
+                        nodes @stream(if: $s, initialCount: 1) { id }
+                      }
+                    }
+                    """)
+                .SetVariableValues(new Dictionary<string, object?> { ["s"] = null })
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The variable `s` is null, but the `if` argument of the `@stream` directive must not be null.",
+                  "path": [
+                    "items"
+                  ],
+                  "extensions": {
+                    "code": "HC0018",
+                    "variable": "s",
+                    "directive": "stream"
+                  }
+                }
+              ],
+              "data": null
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_Should_RejectTheOperation_When_StreamConditionIsNullLiteral()
+    {
+        // arrange
+        var store = await Store.CreateAsync(resource, authorCount: 1, itemsPerAuthor: 5);
+        var executor = await CreateExecutorAsync(store);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            "{ items(first: 2) { nodes @stream(if: null, initialCount: 1) { id } } }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The specified argument value does not match the argument type.",
+                  "locations": [
+                    {
+                      "line": 1,
+                      "column": 39
+                    }
+                  ],
+                  "path": [
+                    "items",
+                    "nodes"
+                  ],
+                  "extensions": {
+                    "argument": "if",
+                    "argumentValue": "null",
+                    "locationType": "Boolean!",
+                    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Values-of-Correct-Type"
+                  }
+                }
+              ]
+            }
+            """);
+    }
+
     [Theory]
     [InlineData("items(first: 2) { nodes { id } }")]
     [InlineData("items(first: 2) { edges { cursor node { id } } nodes { id } }")]

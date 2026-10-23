@@ -115,17 +115,10 @@ internal static class StreamPageDataRequirementAnalyzer
         return false;
     }
 
-    private static bool IsStreamEnabled(DirectiveNode directive, IVariableValueCollection variables)
-    {
-        var value = directive.GetArgumentValue(DirectiveNames.Stream.Arguments.If);
-
-        return value switch
-        {
-            null => true,
-            BooleanValueNode literal => literal.Value,
-            VariableNode variable => !variables.TryGetValue<BooleanValueNode>(variable.Name.Value, out var coerced)
-                || coerced.Value,
-            _ => true
-        };
-    }
+    internal static bool IsStreamEnabled(DirectiveNode directive, IVariableValueCollection variables)
+        => DirectiveIfCondition.IsEnabled(
+            DirectiveNames.Stream.Name,
+            directive.GetArgumentValue(DirectiveNames.Stream.Arguments.If),
+            variables,
+            defaultValue: true);
 }
