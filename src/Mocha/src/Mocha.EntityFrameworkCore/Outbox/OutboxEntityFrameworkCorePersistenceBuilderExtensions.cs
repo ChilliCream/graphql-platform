@@ -25,12 +25,10 @@ public static class OutboxEntityFrameworkCorePersistenceBuilderExtensions
         }
 
         builder.HostBuilder.UseOutboxCore();
-        var contextType = builder.ContextType;
-        builder.Services.AddOutboxSignal(contextType);
 
         builder.ConfigureEntityFrameworkServices((sp, services) =>
         {
-            var signal = sp.GetRequiredKeyedService<IOutboxSignal>(contextType);
+            var signal = sp.GetRequiredService<IOutboxSignal>();
             services.AddSingleton<IInterceptor>(new OutboxDbTransactionInterceptor(signal));
             services.AddSingleton<IInterceptor>(new OutboxSaveChangesInterceptor(signal));
             services.AddScoped<DbContextOutboxScope>();

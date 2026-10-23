@@ -1,8 +1,12 @@
 using System.Collections.Concurrent;
+using System.Data;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
+using Mocha.Middlewares;
 using Mocha.Outbox;
 using Mocha.Transport.InMemory;
 
@@ -11,6 +15,71 @@ namespace Mocha.EntityFrameworkCore.Postgres.Tests;
 public sealed class PostgresMultipleContextOutboxTests(PostgresFixture fixture) : IClassFixture<PostgresFixture>
 {
     private static CancellationToken TestToken => TestContext.Current.CancellationToken;
+
+    [Fact]
+    public async Task Set_Should_WakeEveryOutboxProcessor_When_MultipleContextsAreIdle()
+    {
+        // arrange
+        var firstConnection = await fixture.CreateDatabaseAsync();
+        var secondConnection = await fixture.CreateDatabaseAsync();
+
+        // Initialize the schemas without outbox interceptors.
+        await using (var first = new FirstDbContext(new DbContextOptionsBuilder<FirstDbContext>()
+            .UseTestNpgsql(firstConnection).Options))
+        {
+            await first.Database.EnsureCreatedAsync(TestToken);
+        }
+
+        await using (var second = new SecondDbContext(new DbContextOptionsBuilder<SecondDbContext>()
+            .UseTestNpgsql(secondConnection).Options))
+        {
+            await second.Database.EnsureCreatedAsync(TestToken);
+        }
+
+        await using var provider = await CreateProviderAsync(firstConnection, secondConnection, false);
+        var firstIdle = ObserveFirstPollCompletion<FirstDbContext>(provider);
+        var secondIdle = ObserveFirstPollCompletion<SecondDbContext>(provider);
+        var signal = provider.GetRequiredService<IOutboxSignal>();
+        var runtime = provider.GetRequiredService<IMessagingRuntime>();
+        var type = runtime.GetMessageType(typeof(ContextEvent));
+        var endpoint = runtime.GetPublishEndpoint(type);
+        var workers = provider.GetServices<IHostedService>().OfType<PostgresMessageBusOutboxWorker>().ToArray();
+        foreach (var worker in workers)
+        {
+            await worker.StartAsync(TestToken);
+        }
+
+        try
+        {
+            await Task.WhenAll(firstIdle, secondIdle).WaitAsync(TimeSpan.FromSeconds(30), TestToken);
+            foreach (var (connection, context) in new[] { (firstConnection, "first"), (secondConnection, "second") })
+            {
+                await MessageRows.InsertOutboxAsync(connection, new MessageEnvelope
+                {
+                    MessageId = Guid.NewGuid().ToString(),
+                    MessageType = type.Identity,
+                    ContentType = MessageContentType.Json.Value,
+                    DestinationAddress = endpoint.Address.ToString(),
+                    Body = JsonSerializer.SerializeToUtf8Bytes(new ContextEvent(context))
+                }, TestToken);
+            }
+
+            // act
+            signal.Set();
+            var recorder = provider.GetRequiredService<MessageRecorder>();
+            await recorder.Completed.Task.WaitAsync(TimeSpan.FromSeconds(30), TestToken);
+
+            // assert
+            Assert.Equal(["first", "second"], recorder.Messages.Order().ToArray());
+        }
+        finally
+        {
+            foreach (var worker in workers)
+            {
+                await worker.StopAsync(TestToken);
+            }
+        }
+    }
 
     [Fact]
     public async Task OutboxPublishAsync_Should_SaveAndDeliverIndependently_When_ContextsUseDifferentDatabases()
@@ -114,6 +183,28 @@ public sealed class PostgresMultipleContextOutboxTests(PostgresFixture fixture) 
             exception.Message);
         Assert.Equal((0, 0), rowCounts);
         Assert.Empty(context.ChangeTracker.Entries<OutboxMessage>());
+    }
+
+    private static Task ObserveFirstPollCompletion<TContext>(ServiceProvider provider)
+        where TContext : DbContext
+    {
+        var completed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var options = provider.GetRequiredService<IOptionsMonitor<PostgresMessageOutboxOptions>>()
+            .Get(typeof(TContext).FullName);
+        var createConnection = options.CreateConnection;
+        options.CreateConnection = services =>
+        {
+            var connection = createConnection(services);
+            connection.StateChange += (_, args) =>
+            {
+                if (args.CurrentState == ConnectionState.Closed)
+                {
+                    completed.TrySetResult();
+                }
+            };
+            return connection;
+        };
+        return completed.Task;
     }
 
     private static async Task<(int First, int Second)> CountRowsAsync(ServiceProvider provider)

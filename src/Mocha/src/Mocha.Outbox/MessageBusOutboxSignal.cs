@@ -4,7 +4,7 @@ namespace Mocha.Outbox;
 
 internal sealed class MessageBusOutboxSignal : IDisposable, IOutboxSignal
 {
-    private readonly AsyncAutoResetEvent _resetEvent = new(true);
+    private readonly AsyncAutoResetEvent _resetEvent = new(releaseAllOnSet: true);
 
     public void Set() => _resetEvent.Set();
 

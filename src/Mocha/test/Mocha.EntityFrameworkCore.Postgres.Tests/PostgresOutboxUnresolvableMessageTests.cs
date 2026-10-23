@@ -29,7 +29,7 @@ public sealed class PostgresOutboxUnresolvableMessageTests(PostgresFixture fixtu
             TestContext.Current.CancellationToken);
 
         // act
-        host.Services.GetRequiredKeyedService<IOutboxSignal>(typeof(TestDbContext)).Set();
+        host.Services.GetRequiredService<IOutboxSignal>().Set();
 
         // assert
         var timesSent = await MessageRows.WaitForOutboxRetryAsync(
@@ -61,7 +61,7 @@ public sealed class PostgresOutboxUnresolvableMessageTests(PostgresFixture fixtu
             TestContext.Current.CancellationToken);
 
         // act
-        host.Services.GetRequiredKeyedService<IOutboxSignal>(typeof(TestDbContext)).Set();
+        host.Services.GetRequiredService<IOutboxSignal>().Set();
 
         // assert
         var timesSent = await MessageRows.WaitForOutboxRetryAsync(

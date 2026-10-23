@@ -151,7 +151,7 @@ public static class OutboxServiceCollectionExtensions
                 sp,
                 sp.GetRequiredService<IMessagingRuntime>(),
                 sp.GetRequiredService<IMessagingPools>(),
-                sp.GetRequiredKeyedService<IOutboxSignal>(contextType),
+                sp.GetRequiredService<IOutboxSignal>(),
                 options);
         });
 

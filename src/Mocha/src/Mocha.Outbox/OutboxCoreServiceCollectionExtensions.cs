@@ -37,27 +37,5 @@ public static class OutboxCoreServiceCollectionExtensions
         return builder;
     }
 
-    /// <summary>
-    /// Registers a signal for an independently processed outbox identified by its service key.
-    /// </summary>
-    public static IServiceCollection AddOutboxSignal(this IServiceCollection services, object serviceKey)
-    {
-        services.TryAddKeyedSingleton<IOutboxSignal>(serviceKey, static (provider, _) =>
-        {
-            var shared = provider.GetRequiredService<IOutboxSignal>();
-            return shared is MessageBusOutboxSignal
-                ? new MessageBusOutboxSignal()
-                : new SharedOutboxSignal(shared);
-        });
-        return services;
-    }
-
     private sealed class OutboxCoreRegistration;
-
-    private sealed class SharedOutboxSignal(IOutboxSignal signal) : IOutboxSignal
-    {
-        public void Set() => signal.Set();
-
-        public Task WaitAsync(CancellationToken cancellationToken) => signal.WaitAsync(cancellationToken);
-    }
 }
