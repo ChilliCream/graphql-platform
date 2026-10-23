@@ -157,7 +157,7 @@ The following methods can be overridden:
 | CompileOperation             | Called when starting to compile the GraphQL operation from the syntax tree.                                                                        |
 | ExecuteOperation             | Called when starting to execute the GraphQL operation and its resolvers.                                                                           |
 | StartProcessing              | Called when the execution engine starts or resumes running execution tasks.                                                                        |
-| StopProcessing               | Called if the execution engine has to wait for resolvers to complete.                                                                              |
+| StopProcessing               | Called if the execution engine pauses while execution tasks, such as resolvers, are still running.                                                 |
 | RunTask                      | Scope that encloses the execution of an execution task, such as a deferred fragment. Field resolvers raise `ResolveFieldValue` instead. (\*)       |
 | TaskError                    | Called if an execution task produced an error.                                                                                                     |
 | ResolveFieldValue            | Scope that encloses the execution of a specific field resolver. (\*)                                                                               |
