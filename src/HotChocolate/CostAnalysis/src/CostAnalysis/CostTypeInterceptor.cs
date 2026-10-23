@@ -88,10 +88,12 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
                         slicingArgs.Length > 0
                             && (options.RequirePagingBoundaries ?? false);
 
+                    // The paging handlers cap the default page size at the max page size.
                     int? slicingArgumentDefaultValue = null;
                     if (_options.ApplySlicingArgumentDefaultValue)
                     {
-                        slicingArgumentDefaultValue = options.DefaultPageSize ?? DefaultPageSize;
+                        slicingArgumentDefaultValue =
+                            Math.Min(options.DefaultPageSize ?? DefaultPageSize, assumedSize);
                     }
 
                     fieldDef.AddDirective(
