@@ -297,10 +297,9 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
 
     /// <summary>
     /// How many messages addressed to the actor are unread and not
-    /// archived, as of the last refresh. Drives a hosting tab's unread
-    /// badge.
+    /// archived, as of the last refresh. Shown as the hosting tab's badge.
     /// </summary>
-    public int UnreadCount { get; private set; }
+    public int TabBadgeCount { get; private set; }
 
     /// <inheritdoc />
     public KeyMap? KeyMap => null;
@@ -1522,7 +1521,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     private void RefreshBlocking()
     {
         _state.RefreshAsync(CancellationToken.None).GetAwaiter().GetResult();
-        UnreadCount = _state.Actor is null
+        TabBadgeCount = _state.Actor is null
             ? 0
             : _store.CountUnreadAsync(_state.Actor, CancellationToken.None).GetAwaiter().GetResult();
 

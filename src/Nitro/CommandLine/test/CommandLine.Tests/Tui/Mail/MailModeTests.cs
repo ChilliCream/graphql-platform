@@ -108,7 +108,7 @@ public sealed class MailModeTests
         // assert
         Assert.Equal(MailMailbox.Workspace, mode.State.Mailbox);
         Assert.Equal(2, mode.State.Messages.Count);
-        Assert.Equal(0, mode.UnreadCount);
+        Assert.Equal(0, mode.TabBadgeCount);
     }
 
     [Fact]
