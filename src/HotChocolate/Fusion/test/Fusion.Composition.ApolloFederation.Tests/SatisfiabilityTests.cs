@@ -1,5 +1,7 @@
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
+using HotChocolate.Fusion.Results;
+using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.ApolloFederation;
 
@@ -69,4 +71,369 @@ public sealed class SatisfiabilityTests
                     No lookups found for type 'Object' in schema 'B'.
                 """);
     }
+
+    [Theory]
+    [InlineData("A", "B")]
+    [InlineData("B", "A")]
+    public void Compose_Should_Succeed_When_SchemaLeavesThroughNonResolvableKey(
+        string reviewsSchemaName,
+        string productsSchemaName)
+    {
+        // arrange
+        const string reviews =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+            type Query {
+                reviews: [Review!]!
+            }
+
+            type Review {
+                id: ID!
+                body: String!
+                product: Product!
+            }
+
+            type Product @key(fields: "id", resolvable: false) {
+                id: ID!
+            }
+            """;
+
+        const string products =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+            type Query {
+                products: [Product!]!
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """;
+
+        // act
+        var (result, log) = Compose(
+            new SourceSchemaText(reviewsSchemaName, reviews),
+            new SourceSchemaText(productsSchemaName, products));
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_FieldRequiresEnteringSchemaThroughNonResolvableKey()
+    {
+        // arrange
+        const string a =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+            type Query {
+                reviews: [Review!]!
+            }
+
+            type Review {
+                id: ID!
+                body: String!
+                product: Product!
+            }
+
+            type Product @key(fields: "id", resolvable: false) {
+                id: ID!
+                reviewCount: Int!
+            }
+            """;
+
+        const string b =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+            type Query {
+                products: [Product!]!
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """;
+
+        // act
+        var (result, log) = Compose(
+            new SourceSchemaText("A", a),
+            new SourceSchemaText("B", b));
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'Product.reviewCount' on path 'B:Query.products<Product>'.
+              Unable to transition between schemas 'B' and 'A' for access to field 'A:Product.reviewCount<Int>'.
+                No lookups found for type 'Product' in schema 'A'.
+            """);
+    }
+
+    [Theory]
+    [InlineData("A", "B")]
+    [InlineData("B", "A")]
+    public void Compose_Should_Succeed_When_ImplicitEntitiesHoldKeyFieldsInBothDirections(
+        string productsSchemaName,
+        string sellersSchemaName)
+    {
+        // arrange
+        const string products =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+            type Query {
+                products: [Product!]!
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                name: String!
+                seller: Seller!
+            }
+
+            type Seller {
+                id: ID!
+            }
+            """;
+
+        const string sellers =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+            type Query {
+                sellers: [Seller!]!
+            }
+
+            type Seller @key(fields: "id") {
+                id: ID!
+                rating: Int!
+                topProduct: Product!
+            }
+
+            type Product {
+                id: ID!
+            }
+            """;
+
+        // act
+        var (result, log) = Compose(
+            new SourceSchemaText(productsSchemaName, products),
+            new SourceSchemaText(sellersSchemaName, sellers));
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_ImplicitEntityLacksKeyFields()
+    {
+        // arrange
+        const string a =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@shareable"])
+
+            type Query {
+                products: [Product!]!
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                name: String! @shareable
+            }
+            """;
+
+        const string b =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@shareable"])
+
+            type Query {
+                sellers: [Seller!]!
+            }
+
+            type Seller @key(fields: "id") {
+                id: ID!
+                topProduct: Product!
+            }
+
+            type Product {
+                name: String! @shareable
+            }
+            """;
+
+        // act
+        var (result, log) = Compose(
+            new SourceSchemaText("A", a),
+            new SourceSchemaText("B", b));
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'Product.id' on path 'B:Query.sellers<Seller> -> B:Seller.topProduct<Product>'.
+              Unable to transition between schemas 'B' and 'A' for access to field 'A:Product.id<ID>'.
+                Unable to satisfy the requirement '{ id }' for lookup 'fusion__lookup_productById' in schema 'A'.
+                  Unable to satisfy the requirement 'id'.
+                    Unable to access the required field 'Product.id' on path 'B:Seller.topProduct<Product>'.
+                      No other schemas contain the field 'Product.id'.
+            """);
+    }
+
+    [Theory]
+    [InlineData("extend type Product @key(fields: \"upc\")")]
+    [InlineData("type Product @key(fields: \"upc\") @extends")]
+    public void Compose_Should_Succeed_When_FederationV1StubAndV2SchemaContributeToSameEntity(
+        string productStub)
+    {
+        // arrange
+        const string products =
+            """
+            type Query {
+                topProducts: [Product!]!
+            }
+
+            type Product @key(fields: "upc") {
+                upc: String!
+                name: String!
+            }
+            """;
+
+        var reviews =
+            $$"""
+            extend type Query {
+                latestReviews: [Review!]!
+            }
+
+            type Review {
+                body: String!
+                product: Product!
+            }
+
+            {{productStub}} {
+                upc: String! @external
+                reviews: [Review!]!
+            }
+            """;
+
+        const string inventory =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+            type Product @key(fields: "upc") {
+                upc: String!
+                inStock: Boolean!
+            }
+            """;
+
+        var log = new CompositionLog();
+        var options = CreateOptions();
+        options.SourceSchemas["Products"] = new SourceSchemaOptions { IsApolloFederationV1 = true };
+        options.SourceSchemas["Reviews"] = new SourceSchemaOptions { IsApolloFederationV1 = true };
+        var composer = new SchemaComposer(
+            [
+                new SourceSchemaText("Products", products),
+                new SourceSchemaText("Reviews", reviews),
+                new SourceSchemaText("Inventory", inventory)
+            ],
+            options,
+            log);
+
+        // act
+        var result = composer.Compose();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Theory]
+    [InlineData("A", "B")]
+    [InlineData("B", "A")]
+    public void Compose_Should_Succeed_When_OneSchemaServesEverySelectionBelowSharedMutationField(
+        string fullOrderSchemaName,
+        string partialOrderSchemaName)
+    {
+        // arrange
+        const string fullOrder =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@shareable"])
+
+            type Query {
+                orderCount: Int
+            }
+
+            type Mutation {
+                placeOrder(sku: String!): Order! @shareable
+            }
+
+            type Order @shareable {
+                id: ID!
+                total: Int!
+                status: String!
+                lines: [OrderLine!]!
+            }
+
+            type OrderLine {
+                sku: String!
+                quantity: Int!
+            }
+            """;
+
+        const string partialOrder =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@shareable"])
+
+            type Mutation {
+                placeOrder(sku: String!): Order! @shareable
+            }
+
+            type Order @shareable {
+                id: ID!
+                total: Int!
+            }
+            """;
+
+        // act
+        var (result, log) = Compose(
+            new SourceSchemaText(fullOrderSchemaName, fullOrder),
+            new SourceSchemaText(partialOrderSchemaName, partialOrder));
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    private static (CompositionResult<MutableSchemaDefinition> Result, CompositionLog Log) Compose(
+        params SourceSchemaText[] sourceSchemas)
+    {
+        var log = new CompositionLog();
+        var composer = new SchemaComposer(sourceSchemas, CreateOptions(), log);
+        return (composer.Compose(), log);
+    }
+
+    private static SchemaComposerOptions CreateOptions()
+        => new()
+        {
+            Satisfiability = new SatisfiabilityOptions { IncludeSatisfiabilityPaths = true }
+        };
 }
