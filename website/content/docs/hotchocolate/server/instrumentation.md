@@ -144,36 +144,36 @@ public class MyExecutionEventListener : ExecutionDiagnosticEventListener
 
 The following methods can be overridden:
 
-| Method name                  | Description                                                                                                                                      |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| ExecuteRequest               | Scope that encloses the entire GraphQL request execution. Also the first diagnostic event raised during a request.                               |
-| RequestError                 | Called if an exception aborts the request or the document cannot be parsed. Called immediately before the scope of `ExecuteRequest` is disposed. |
-| ParseDocument                | Scope that encloses the parsing of a document.                                                                                                   |
-| ValidateDocument             | Scope that encloses the validation of a document.                                                                                                |
-| ValidationErrors             | Called if errors occurred during document validation.                                                                                            |
-| CoerceVariables              | Called when starting to coerce variables for a request.                                                                                          |
-| AnalyzeOperationCost         | Scope that encloses the cost analysis of an operation.                                                                                           |
-| OperationCost                | Called within the `AnalyzeOperationCost` scope, reports the field cost and type cost of the operation.                                           |
-| CompileOperation             | Called when starting to compile the GraphQL operation from the syntax tree.                                                                      |
-| ExecuteOperation             | Called when starting to execute the GraphQL operation and its resolvers.                                                                         |
-| StartProcessing              | Called when the execution engine starts or resumes running execution tasks.                                                                      |
-| StopProcessing               | Called if the execution engine has to wait for resolvers to complete.                                                                            |
-| RunTask                      | Scope that encloses the execution of an execution task, such as a deferred fragment. Field resolvers raise `ResolveFieldValue` instead. (\*)     |
-| TaskError                    | Called if an execution task produced an error.                                                                                                   |
-| ResolveFieldValue            | Scope that encloses the execution of a specific field resolver. (\*)                                                                             |
-| ResolverError                | Called if a specific field resolver produces an error.                                                                                           |
-| ExecuteSubscription          | Scope that encloses the execution of a subscription query. Created when a client subscribes and disposed when the subscription ends.             |
-| OnSubscriptionEvent          | Scope that encloses the computation of a subscription result once the event stream yields a new payload.                                         |
-| SubscriptionEventError       | Called if the computation of the subscription result produced an error.                                                                          |
-| AddedDocumentToCache         | Called once a document has been added to `DocumentCache`.                                                                                        |
-| RetrievedDocumentFromCache   | Called once a document has been retrieved from the `DocumentCache`.                                                                              |
-| AddedOperationToCache        | Called once an operation has been added to the `OperationCache`.                                                                                 |
-| RetrievedOperationFromCache  | Called once an operation has been retrieved from the `OperationCache`.                                                                           |
-| RetrievedDocumentFromStorage | Called once a document has been retrieved from an operation document storage.                                                                    |
-| DocumentNotFoundInStorage    | Called if the document of a persisted operation cannot be found in the operation document storage.                                               |
-| UntrustedDocumentRejected    | Called if a request is rejected because it carries a document that is not a persisted operation while only persisted operations are allowed.     |
-| ExecutorCreated              | Called once a request executor has been created. Executors are created once per schema during the first request.                                 |
-| ExecutorEvicted              | Called once a request executor is evicted, which can happen if the schema or executor configuration changes.                                     |
+| Method name                  | Description                                                                                                                                        |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ExecuteRequest               | Scope that encloses the entire GraphQL request execution. Also the first diagnostic event raised during a request.                                 |
+| RequestError                 | Called within the `ExecuteRequest` scope if an exception aborts the request, or within the `ParseDocument` scope if the document cannot be parsed. |
+| ParseDocument                | Scope that encloses the parsing of a document.                                                                                                     |
+| ValidateDocument             | Scope that encloses the validation of a document.                                                                                                  |
+| ValidationErrors             | Called if errors occurred during document validation.                                                                                              |
+| CoerceVariables              | Called when starting to coerce variables for a request.                                                                                            |
+| AnalyzeOperationCost         | Scope that encloses the cost analysis of an operation.                                                                                             |
+| OperationCost                | Called within the `AnalyzeOperationCost` scope, reports the field cost and type cost of the operation.                                             |
+| CompileOperation             | Called when starting to compile the GraphQL operation from the syntax tree.                                                                        |
+| ExecuteOperation             | Called when starting to execute the GraphQL operation and its resolvers.                                                                           |
+| StartProcessing              | Called when the execution engine starts or resumes running execution tasks.                                                                        |
+| StopProcessing               | Called if the execution engine has to wait for resolvers to complete.                                                                              |
+| RunTask                      | Scope that encloses the execution of an execution task, such as a deferred fragment. Field resolvers raise `ResolveFieldValue` instead. (\*)       |
+| TaskError                    | Called if an execution task produced an error.                                                                                                     |
+| ResolveFieldValue            | Scope that encloses the execution of a specific field resolver. (\*)                                                                               |
+| ResolverError                | Called if a specific field resolver produces an error.                                                                                             |
+| ExecuteSubscription          | Scope that encloses the execution of a subscription query. Created when a client subscribes and disposed when the subscription ends.               |
+| OnSubscriptionEvent          | Scope that encloses the computation of a subscription result once the event stream yields a new payload.                                           |
+| SubscriptionEventError       | Called if the computation of the subscription result produced an error.                                                                            |
+| AddedDocumentToCache         | Called once a document has been added to `DocumentCache`.                                                                                          |
+| RetrievedDocumentFromCache   | Called once a document has been retrieved from the `DocumentCache`.                                                                                |
+| AddedOperationToCache        | Called once an operation has been added to the `OperationCache`.                                                                                   |
+| RetrievedOperationFromCache  | Called once an operation has been retrieved from the `OperationCache`.                                                                             |
+| RetrievedDocumentFromStorage | Called once a document has been retrieved from an operation document storage.                                                                      |
+| DocumentNotFoundInStorage    | Called if the document of a persisted operation cannot be found in the operation document storage.                                                 |
+| UntrustedDocumentRejected    | Called if a request is rejected because it carries a document that is not a persisted operation while only persisted operations are allowed.       |
+| ExecutorCreated              | Called once a request executor has been created. Executors are created once per schema during the first request.                                   |
+| ExecutorEvicted              | Called once a request executor is evicted, which can happen if the schema or executor configuration changes.                                       |
 
 (\*): The `ResolveFieldValue` and `RunTask` events are not invoked by default because they would add too much overhead for each resolver and task in a query. Override the `EnableResolveFieldValue` property to enable them:
 
