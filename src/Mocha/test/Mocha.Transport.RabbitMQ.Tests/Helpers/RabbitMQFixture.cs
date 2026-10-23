@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using CookieCrumble.Resources;
 using RabbitMQ.Client;
 
@@ -92,6 +93,36 @@ public sealed class RabbitMQFixture : IAsyncLifetime
         });
     }
 
+    /// <summary>
+    /// Lowers the largest message the broker accepts, for channels opened until the returned handle is disposed.
+    /// </summary>
+    internal async Task<IAsyncDisposable> SetMaxMessageSizeAsync(int bytes)
+    {
+        // The broker reads the limit when a channel opens, so the bus must start after this call.
+        await EvalAsync($"application:set_env(rabbit, max_message_size, {bytes}).");
+
+        return new AsyncDisposable(() => EvalAsync("application:set_env(rabbit, max_message_size, 134217728)."));
+    }
+
+    /// <summary>
+    /// Puts the node into maintenance mode, which closes every client connection and refuses new ones until the
+    /// returned handle is disposed.
+    /// </summary>
+    internal async Task<IAsyncDisposable> DrainNodeAsync()
+    {
+        try
+        {
+            await _resource.InvokeCommandAsync(["rabbitmq-upgrade", "drain"]);
+        }
+        catch (InvalidOperationException)
+        {
+            // The command fails when a connection exits while the node closes it, and the node is in maintenance
+            // mode anyway, so the returned handle must still revive it.
+        }
+
+        return new AsyncDisposable(() => _resource.InvokeCommandAsync(["rabbitmq-upgrade", "revive"]));
+    }
+
     internal Task<string> EvalAsync(string expression)
         => _resource.InvokeCommandAsync(["rabbitmqctl", "eval", expression]);
 
@@ -102,7 +133,7 @@ public sealed class RabbitMQFixture : IAsyncLifetime
     }
 }
 
-public sealed class VhostContext : IAsyncDisposable
+public sealed partial class VhostContext : IAsyncDisposable
 {
     private readonly RabbitMQFixture _fixture;
 
@@ -275,7 +306,95 @@ public sealed class VhostContext : IAsyncDisposable
             ["rabbitmqctl", "set_permissions", "-p", VhostName, "guest", ".*", ".*", ".*"]));
     }
 
+    /// <summary>
+    /// Creates a user with full permissions on the vhost, and deletes it when the returned handle is disposed.
+    /// </summary>
+    public async Task<IAsyncDisposable> AddUserAsync(string userName, string password)
+    {
+        await _fixture.InvokeCommandAsync(["rabbitmqctl", "add_user", userName, password]);
+        await SetPermissionsAsync(userName, ".*", ".*", ".*");
+
+        return new AsyncDisposable(async () =>
+        {
+            try
+            {
+                await DeleteUserAsync(userName);
+            }
+            catch (InvalidOperationException)
+            {
+                // The test deleted the user already.
+            }
+        });
+    }
+
+    /// <summary>
+    /// Deletes a user the way an operator would, which closes every connection of the user.
+    /// </summary>
+    public Task DeleteUserAsync(string userName)
+        => _fixture.InvokeCommandAsync(["rabbitmqctl", "delete_user", userName]);
+
+    /// <summary>
+    /// Changes the password of a user. Open connections of the user stay open.
+    /// </summary>
+    public Task ChangePasswordAsync(string userName, string password)
+        => _fixture.InvokeCommandAsync(["rabbitmqctl", "change_password", userName, password]);
+
+    /// <summary>
+    /// Sets the configure, write and read permissions of a user on the vhost, each a regular expression of
+    /// resource names.
+    /// </summary>
+    public Task SetPermissionsAsync(string userName, string configure, string write, string read)
+        => _fixture.InvokeCommandAsync(
+            ["rabbitmqctl", "set_permissions", "-p", VhostName, userName, configure, write, read]);
+
+    /// <summary>
+    /// Gets the prefetch count of the consumer on each queue of the vhost.
+    /// </summary>
+    public async Task<IReadOnlyDictionary<string, int>> GetConsumerPrefetchAsync()
+    {
+        var output = await _fixture.InvokeCommandAsync(
+            ["rabbitmqctl", "list_consumers", "-p", VhostName, "queue_name", "prefetch_count", "--quiet", "--no-table-headers"]);
+
+        return ParseRows(output).ToDictionary(row => row[0], row => int.Parse(row[1]));
+    }
+
+    /// <summary>
+    /// Gets the client-provided names of the connections to the vhost.
+    /// </summary>
+    public async Task<IReadOnlyList<string>> GetConnectionNamesAsync()
+    {
+        var output = await _fixture.InvokeCommandAsync(
+            ["rabbitmqctl", "list_connections", "vhost", "client_properties", "--quiet", "--no-table-headers"]);
+
+        return ParseRows(output)
+            .Where(row => row[0] == VhostName)
+            .Select(row => ConnectionNameProperty().Match(row[1]))
+            .Where(match => match.Success)
+            .Select(match => match.Groups["name"].Value)
+            .Order(StringComparer.Ordinal)
+            .ToList();
+    }
+
+    /// <summary>
+    /// Force-closes the connection that consumes <paramref name="queueName"/>, and leaves the others open.
+    /// </summary>
+    public async Task CloseConnectionOfConsumerAsync(string queueName)
+    {
+        var consumers = await _fixture.InvokeCommandAsync(
+            ["rabbitmqctl", "list_consumers", "-p", VhostName, "queue_name", "channel_pid", "--quiet", "--no-table-headers"]);
+        var channelPid = ParseRows(consumers).Single(row => row[0] == queueName)[1];
+
+        var channels = await _fixture.InvokeCommandAsync(
+            ["rabbitmqctl", "list_channels", "pid", "connection", "--quiet", "--no-table-headers"]);
+        var connectionPid = ParseRows(channels).Single(row => row[0] == channelPid)[1];
+
+        await _fixture.InvokeCommandAsync(["rabbitmqctl", "close_connection", connectionPid, "test"]);
+    }
+
     public async ValueTask DisposeAsync() => await _fixture.DeleteVhostAsync(VhostName);
+
+    [GeneratedRegex("\\{\"connection_name\",\"(?<name>[^\"]*)\"\\}")]
+    private static partial Regex ConnectionNameProperty();
 
     private static IEnumerable<string[]> ParseRows(string output)
         => output

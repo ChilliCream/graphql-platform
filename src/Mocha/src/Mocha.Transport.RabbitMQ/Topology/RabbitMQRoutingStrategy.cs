@@ -8,6 +8,8 @@ namespace Mocha.Transport.RabbitMQ;
 /// </summary>
 public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingTransport>
 {
+    private static readonly TimeSpan s_replyQueueExpiration = TimeSpan.FromMinutes(1);
+
     private RabbitMQMessagingTopology _topology =>
         field ??= (RabbitMQMessagingTopology)Transport.Topology;
 
@@ -213,17 +215,25 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             EnsureNoDurableQueueConflict(rabbitConfiguration);
         }
 
+        // The reply queue expires instead of being deleted with its last consumer, so that a reply sent while
+        // the consumer re-attaches is not dropped. Its name is unique per instance, so no other declaration differs.
+        var isReplyQueue = rabbitConfiguration.IsTemporary && rabbitEndpoint.Kind == ReceiveEndpointKind.Reply;
+
         var queue = _topology.GetOrAddQueue(
             rabbitConfiguration.QueueName,
             _ => new RabbitMQQueueConfiguration
             {
                 Durable = rabbitConfiguration.IsTemporary ? false : null,
-                AutoDelete = rabbitConfiguration.IsTemporary,
+                AutoDelete = rabbitConfiguration.IsTemporary && !isReplyQueue,
                 AutoProvision = rabbitConfiguration.AutoProvision,
                 Origin = TopologyOrigin.Endpoint
             });
 
-        if (rabbitConfiguration.IsTemporary && queue.Origin is not TopologyOrigin.Declared)
+        if (isReplyQueue && queue.Origin is not TopologyOrigin.Declared)
+        {
+            queue.MarkExpiring(s_replyQueueExpiration);
+        }
+        else if (rabbitConfiguration.IsTemporary && queue.Origin is not TopologyOrigin.Declared)
         {
             queue.MarkTemporary();
         }

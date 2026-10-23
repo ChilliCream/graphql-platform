@@ -1,5 +1,8 @@
+using System.Net.Sockets;
 using Mocha.Middlewares;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
 using static System.StringSplitOptions;
 
 namespace Mocha.Transport.RabbitMQ;
@@ -12,6 +15,9 @@ namespace Mocha.Transport.RabbitMQ;
 public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transport)
     : DispatchEndpoint<RabbitMQDispatchEndpointConfiguration>(transport)
 {
+    private static readonly TimeSpan s_initialRetryDelay = TimeSpan.FromMilliseconds(250);
+    private static readonly TimeSpan s_maxRetryDelay = TimeSpan.FromSeconds(5);
+
     /// <summary>
     /// Gets the target queue for this endpoint, or <c>null</c> if the endpoint targets an exchange.
     /// </summary>
@@ -32,20 +38,81 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
         var dispatcher = transport.Dispatcher;
         var cancellationToken = context.CancellationToken;
         var timeProvider = context.Services.GetTimeProvider();
-        var channel = await dispatcher.RentChannelAsync(cancellationToken);
-        try
+        var attempt = 0;
+
+        while (true)
         {
-            await EnsureProvisionedAsync(channel, cancellationToken);
-            await DispatchAsync(channel, envelope, timeProvider, cancellationToken);
+            IChannel? channel = null;
+            try
+            {
+                channel = await dispatcher.RentChannelAsync(cancellationToken);
+                await EnsureProvisionedAsync(channel, cancellationToken);
+                await DispatchAsync(channel, envelope, timeProvider, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                if (channel is not null)
+                {
+                    dispatcher.DiscardChannel(channel);
+                }
+
+                if (!IsConnectionLoss(ex, dispatcher, cancellationToken))
+                {
+                    throw;
+                }
+
+                // The message may have reached the broker before the connection was lost, so a retry can deliver
+                // it twice.
+                attempt++;
+                var delay = RabbitMQBackoff.GetDelay(attempt, s_initialRetryDelay, s_maxRetryDelay);
+                dispatcher.LogPublishRetry(ex, attempt, delay);
+                await Task.Delay(delay, cancellationToken);
+                continue;
+            }
+
+            await dispatcher.ReturnChannelAsync(channel);
+            return;
         }
-        catch
+    }
+
+    private static bool IsConnectionLoss(
+        Exception exception,
+        RabbitMQDispatcher dispatcher,
+        CancellationToken cancellationToken)
+    {
+        if (cancellationToken.IsCancellationRequested || dispatcher.IsShutDown)
         {
-            dispatcher.DiscardChannel(channel);
-            throw;
+            return false;
         }
 
-        await dispatcher.ReturnChannelAsync(channel);
+        return exception switch
+        {
+            // The broker rejected the message, and publishing it again fails the same way.
+            PublishException => false,
+
+            // A cancellation the caller did not request comes from a timed out operation on a broken connection.
+            OperationCanceledException or ObjectDisposedException => true,
+            BrokerUnreachableException { InnerException: AuthenticationFailureException } => false,
+            BrokerUnreachableException or ConnectFailureException => true,
+            OperationInterruptedException { ShutdownReason: var reason } => IsConnectionLoss(reason),
+            IOException or SocketException => true,
+            _ => false
+        };
     }
+
+    private static bool IsConnectionLoss(ShutdownEventArgs? reason)
+        => reason is null
+            || reason.Initiator != ShutdownInitiator.Peer
+            || reason.ReplyCode
+                is Constants.ConnectionForced
+                or Constants.FrameError
+                or Constants.SyntaxError
+                or Constants.CommandInvalid
+                or Constants.ChannelError
+                or Constants.UnexpectedFrame
+                or Constants.ResourceError
+                or Constants.NotImplemented
+                or Constants.InternalError;
 
     private async ValueTask DispatchAsync(
         IChannel channel,
@@ -128,7 +195,37 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
 
         var properties = RabbitMQMessageEnvelopeFormatter.Format(envelope, timeProvider);
 
-        await channel.BasicPublishAsync(exchangeName, routingKey, false, properties, envelope.Body, cancellationToken);
+        // A message sent to a missing queue is confirmed and dropped unless the broker is asked to return it.
+        // A reply whose requester is gone has no queue, and is dropped.
+        var mandatory = Queue is not null && Kind != DispatchEndpointKind.Reply;
+
+        try
+        {
+            await channel.BasicPublishAsync(exchangeName, routingKey, mandatory, properties, envelope.Body, cancellationToken);
+        }
+        catch (PublishException ex) when (ex.IsReturn && Queue is not null)
+        {
+            var autoProvision = ((RabbitMQMessagingTopology)transport.Topology).AutoProvision;
+
+            // An exclusive queue belongs to the consumer connection, which declares it again when it re-attaches.
+            if (Queue.Exclusive || !(Queue.AutoProvision ?? autoProvision))
+            {
+                throw ThrowHelper.MessageReturned(Queue.Name, ex);
+            }
+
+            // The queue was deleted after it was declared, for example by an operator or because it expired.
+            await Queue.ProvisionAsync(channel, cancellationToken);
+            transport.Dispatcher.LogReturnedQueueRedeclared(Queue.Name);
+
+            try
+            {
+                await channel.BasicPublishAsync(exchangeName, routingKey, mandatory, properties, envelope.Body, cancellationToken);
+            }
+            catch (PublishException again) when (again.IsReturn)
+            {
+                throw ThrowHelper.MessageReturned(Queue.Name, again);
+            }
+        }
     }
 
     private bool _isProvisioned;
@@ -142,7 +239,8 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
 
         var autoProvision = ((RabbitMQMessagingTopology)transport.Topology).AutoProvision;
 
-        if (Queue is not null && (Queue.AutoProvision ?? autoProvision))
+        // An exclusive queue belongs to the connection that declares it, which must be the consumer's.
+        if (Queue is { Exclusive: false } && (Queue.AutoProvision ?? autoProvision))
         {
             await Queue.ProvisionAsync(channel, cancellationToken);
         }

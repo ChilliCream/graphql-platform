@@ -1,3 +1,4 @@
+using CookieCrumble;
 using System.Text;
 using Microsoft.Extensions.Logging.Abstractions;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
@@ -129,6 +130,10 @@ public class RabbitMQConsumerManagerRecoveryTests
         // assert
         Assert.Equal("A", await received.NextAsync());
         Assert.Equal("B", await received.NextAsync());
+
+        // the abandoned handler keeps running until the consumer is disposed, which cancels it
+        Assert.False(abandonedHandlerCancelled.Task.IsCompleted);
+        await registration.DisposeAsync();
         await abandonedHandlerCancelled.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
     }
 
@@ -236,6 +241,55 @@ public class RabbitMQConsumerManagerRecoveryTests
         Assert.IsType<OperationInterruptedException>(exception);
         Assert.True(reattached);
         Assert.False(zombie);
+    }
+
+    [Fact]
+    public async Task Consumers_Should_AllReattach_When_ConnectionClosedWithManyQueues()
+    {
+        // arrange
+        const int count = 50;
+        await using var vhost = await _fixture.CreateVhostAsync();
+        await using (var admin = await AdminChannel.CreateAsync(vhost))
+        {
+            for (var i = 0; i < count; i++)
+            {
+                await admin.Channel.QueueDeclareAsync(
+                    $"many-{i}",
+                    durable: true,
+                    exclusive: false,
+                    autoDelete: false,
+                    cancellationToken: TestContext.Current.CancellationToken);
+            }
+        }
+
+        await using var manager = await CreateManagerAsync(vhost);
+        var received = new DeliveryRecorder();
+        for (var i = 0; i < count; i++)
+        {
+            await manager.RegisterConsumerAsync(
+                $"many-{i}",
+                received.HandleAsync,
+                prefetchCount: 1,
+                consumerDispatchConcurrency: 1,
+                CancellationToken.None);
+        }
+
+        // act
+        await _fixture.CloseAllConnectionsAsync();
+        var reattached = await Condition.WaitAsync(
+            async () => (await vhost.GetConsumerCountsAsync()).Count(queue => queue.Value == 1) == count,
+            TimeSpan.FromSeconds(20));
+        var state = await vhost.GetStateAsync();
+
+        // assert
+        new { Reattached = reattached, state.Connections, state.ConsumerChannels }.MatchInlineSnapshot(
+            """
+            {
+              "Reattached": true,
+              "Connections": 1,
+              "ConsumerChannels": 50
+            }
+            """);
     }
 
     private static async Task<RabbitMQConsumerManager> CreateManagerAsync(VhostContext vhost)

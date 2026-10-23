@@ -100,14 +100,14 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     {
         var logger = context.Services.GetRequiredService<ILogger<RabbitMQConsumerManager>>();
 
-        return new RabbitMQConsumerManager(logger, Connection.CreateAsync);
+        return new RabbitMQConsumerManager(logger, CreateConnectionFactory(context, "consumer"));
     }
 
     private RabbitMQDispatcher CreateDispatcher(IMessagingSetupContext context)
     {
         var logger = context.Services.GetRequiredService<ILogger<RabbitMQDispatcher>>();
 
-        return new RabbitMQDispatcher(logger, Connection.CreateAsync, ProvisionTopologyAsync);
+        return new RabbitMQDispatcher(logger, CreateConnectionFactory(context, "dispatcher"), ProvisionTopologyAsync);
 
         async Task ProvisionTopologyAsync(IConnection connection, CancellationToken ct)
         {
@@ -122,9 +122,11 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
                 }
             }
 
+            // An exclusive queue belongs to the connection that declares it, so only its consumer declares it and
+            // the bindings that target it.
             foreach (var queue in _topology.Queues)
             {
-                if (queue.AutoProvision ?? autoProvision)
+                if (!queue.Exclusive && (queue.AutoProvision ?? autoProvision))
                 {
                     await queue.ProvisionAsync(channel, ct);
                 }
@@ -132,12 +134,50 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
 
             foreach (var binding in _topology.Bindings)
             {
+                if (binding is RabbitMQQueueBinding { Destination.Exclusive: true })
+                {
+                    continue;
+                }
+
                 if (binding.AutoProvision ?? autoProvision)
                 {
                     await binding.ProvisionAsync(channel, ct);
                 }
             }
         }
+    }
+
+    private Func<CancellationToken, ValueTask<IConnection>> CreateConnectionFactory(
+        IMessagingSetupContext context,
+        string role)
+    {
+        if (Connection is not ConnectionFactoryRabbitMQConnectionProvider provider)
+        {
+            return Connection.CreateAsync;
+        }
+
+        // Each connection is named after the service and its role, so the two can be told apart on the broker.
+        var clientProvidedName = $"{context.Host.ServiceName ?? context.Host.ProcessName} {role}";
+        return cancellationToken => provider.CreateAsync(clientProvidedName, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public override TransportHealth GetHealth()
+    {
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+        if (ConsumerManager is null || Dispatcher is null)
+        {
+            return TransportHealth.Healthy;
+        }
+
+        List<TransportHealthEntry> entries =
+        [
+            ConsumerManager.GetConnectionHealth("connection:consumer"),
+            Dispatcher.GetConnectionHealth("connection:dispatcher"),
+            .. ConsumerManager.GetConsumerHealth()
+        ];
+
+        return new TransportHealth(entries);
     }
 
     /// <inheritdoc />
