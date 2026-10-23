@@ -875,71 +875,6 @@ public class DeferTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Defer_Two_Siblings_With_Overlapping_Fields_Should_Deduplicate()
-    {
-        // arrange
-        using var server1 = CreateSourceSchema(
-            "A",
-            """
-            type Query {
-                user(id: ID!): User @lookup
-            }
-
-            type User @key(fields: "id") {
-                id: ID!
-                name: String!
-            }
-            """);
-
-        using var server2 = CreateSourceSchema(
-            "B",
-            """
-            type Query {
-                userById(id: ID!): User @lookup
-            }
-
-            type User @key(fields: "id") {
-                id: ID!
-                email: String!
-                address: String!
-            }
-            """);
-
-        using var gateway = await CreateCompositeSchemaAsync(
-        [
-            ("A", server1),
-            ("B", server2)
-        ]);
-
-        // act
-        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-
-        var request = new OperationRequest(
-            """
-            query {
-                user(id: "1") {
-                    name
-                    ... @defer(label: "contact") {
-                        email
-                    }
-                    ... @defer(label: "location") {
-                        email
-                        address
-                    }
-                }
-            }
-            """);
-
-        using var result = await client.PostAsync(
-            request,
-            new Uri("http://localhost:5000/graphql"),
-            TestContext.Current.CancellationToken);
-
-        // assert
-        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
-    }
-
-    [Fact]
     public async Task Defer_Two_Siblings_Sharing_Field_Emit_One_Incremental_That_Completes_Both_Groups()
     {
         // arrange
@@ -1004,7 +939,10 @@ public class DeferTests : FusionTestBase
         // The stable-stream snapshot lays out the per-frame timeline (pending /
         // incremental / completed) so the shared incremental plan emitting once under the
         // best delivery-group id while still completing both groups is visible
-        // as a single block.
+        // as a single block. The shared email is fetched once, address is fetched by its own
+        // request, so B receives two requests.
+        var requestCounts = await GetRequestCountsAsync(gateway, result);
+        requestCounts.MatchInlineSnapshot("A: 1, B: 2");
         await MatchSnapshotAsync(gateway, request, result, stableStream: true);
     }
 
@@ -2381,5 +2319,541 @@ public class DeferTests : FusionTestBase
         // assert
         // The incremental payload carries both birthdate and reviewCount, with birthdate non-null.
         await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_SendOneSubgraphRequestPerGroup_When_SiblingsSelectDisjointFields()
+    {
+        // arrange
+        using var gateway = await CreateUserGatewayAsync();
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "contact") {
+                        email
+                    }
+                    ... @defer(label: "location") {
+                        address
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // Baseline without sharing: each delivery group owns one incremental plan and B receives one request per plan.
+        var requestCounts = await GetRequestCountsAsync(gateway, result);
+        requestCounts.MatchInlineSnapshot("A: 1, B: 2");
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_SendOneSubgraphRequestPerGroupSet_When_SiblingsOverlapPartially()
+    {
+        // arrange
+        using var gateway = await CreateUserGatewayAsync();
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "first") {
+                        email
+                    }
+                    ... @defer(label: "second") {
+                        email
+                        address
+                    }
+                    ... @defer(label: "third") {
+                        address
+                        phone
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // The delivery-group sets {first, second}, {second, third} and {third} give three B requests.
+        // email and address are each fetched once.
+        var requestCounts = await GetRequestCountsAsync(gateway, result);
+        requestCounts.MatchInlineSnapshot("A: 1, B: 3");
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_NotRefetchField_When_FieldIsInInitialSelectionAndDeferredFragment()
+    {
+        // arrange
+        using var gateway = await CreateUserGatewayAsync();
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    name
+                    email
+                    ... @defer(label: "more") {
+                        email
+                        address
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // email is fetched by the initial B request only. The deferred plan fetches address by a second B request.
+        var requestCounts = await GetRequestCountsAsync(gateway, result);
+        requestCounts.MatchInlineSnapshot("A: 1, B: 2");
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_NotRefetchField_When_FieldIsInInitialSelectionAndSiblingFragments()
+    {
+        // arrange
+        using var gateway = await CreateUserGatewayAsync();
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    name
+                    email
+                    ... @defer(label: "contact") {
+                        email
+                        phone
+                    }
+                    ... @defer(label: "location") {
+                        email
+                        address
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // email is fetched by the initial B request only. Each deferred plan fetches its own field by
+        // one more B request.
+        var requestCounts = await GetRequestCountsAsync(gateway, result);
+        requestCounts.MatchInlineSnapshot("A: 1, B: 3");
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_NotRefetchField_When_NestedFragmentsShareField()
+    {
+        // arrange
+        using var gateway = await CreateUserGatewayAsync();
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "outer") {
+                        email
+                        ... @defer(label: "inner") {
+                            email
+                            address
+                        }
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // email belongs to the outer group only and is fetched once. The outer plan also sends a second
+        // A request for the user id that the inner plan depends on, although the initial A request
+        // already returned it.
+        var requestCounts = await GetRequestCountsAsync(gateway, result);
+        requestCounts.MatchInlineSnapshot("A: 2, B: 2");
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_NotRefetchField_When_SiblingAndNestedFragmentsShareField()
+    {
+        // arrange
+        using var gateway = await CreateUserGatewayAsync();
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "contact") {
+                        email
+                    }
+                    ... @defer(label: "location") {
+                        address
+                        ... @defer(label: "details") {
+                            email
+                            phone
+                        }
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // email is shared by the contact group and the nested details group and is fetched once. address
+        // and phone are fetched by their own B requests.
+        var requestCounts = await GetRequestCountsAsync(gateway, result);
+        requestCounts.MatchInlineSnapshot("A: 2, B: 3");
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact(Skip = "Planner drops a root subgraph field that is shared by sibling defer groups.")]
+    public async Task Defer_Should_DeliverRootSubgraphField_When_SiblingsShareIt()
+    {
+        // arrange
+        using var gateway = await CreateUserGatewayAsync();
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    id
+                    ... @defer(label: "contact") {
+                        name
+                        email
+                    }
+                    ... @defer(label: "location") {
+                        name
+                        address
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // The plan for the group set {contact, location} has no nodes, so name is never fetched and the
+        // non-null field is missing from the final data without an error. Once fixed, snapshot the request
+        // counts per subgraph.
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_FetchSharedField_Once_When_SiblingsReachItThroughLookupOnSecondSubgraph()
+    {
+        // arrange
+        using var gateway = await CreateUserAccountGatewayAsync();
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "contact") {
+                        email
+                        score
+                    }
+                    ... @defer(label: "location") {
+                        score
+                        address
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // score lives on C only and is fetched by one C request for the group set {contact, location}.
+        // email and address are fetched by one B request each.
+        var requestCounts = await GetRequestCountsAsync(gateway, result);
+        requestCounts.MatchInlineSnapshot("A: 1, B: 2, C: 1");
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
+    public async Task Defer_Should_NotRefetchNestedField_When_InitialAndDeferredSelectionUseLookupChain()
+    {
+        // arrange
+        using var gateway = await CreateUserAccountGatewayAsync();
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    name
+                    account {
+                        balance
+                    }
+                    ... @defer(label: "contact") {
+                        email
+                        account {
+                            balance
+                        }
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // balance is fetched from C by the initial plan only. The deferred plan fetches email from B and
+        // does not call C.
+        var requestCounts = await GetRequestCountsAsync(gateway, result);
+        requestCounts.MatchInlineSnapshot("A: 1, B: 2, C: 1");
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact(Skip = "Planner rejects a nested field with a lookup requirement that is shared by sibling defer groups.")]
+    public async Task Defer_Should_FetchSharedNestedField_Once_When_SiblingsReachItThroughLookupChain()
+    {
+        // arrange
+        using var gateway = await CreateUserAccountGatewayAsync();
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "contact") {
+                        email
+                        account {
+                            balance
+                        }
+                    }
+                    ... @defer(label: "location") {
+                        address
+                        account {
+                            balance
+                        }
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // Planning fails with "The deferred incremental plan's requirement '__fusion_2_id' at path
+        // '$.user.account' could not be resolved from the parent plan". Once fixed, snapshot the request
+        // counts per subgraph.
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact(Skip = "Executor throws when a defer group has no fields of its own and only wraps a nested defer.")]
+    public async Task Defer_Should_DeliverNestedGroup_When_ParentGroupHasNoOwnFields()
+    {
+        // arrange
+        using var gateway = await CreateUserGatewayAsync();
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "outer") {
+                        ... @defer(label: "inner") {
+                            address
+                        }
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // Execution fails with "The given key '0' was not present in the dictionary" in
+        // OperationPlanExecutor.ExecuteWithDeferAsync. Once fixed, snapshot the request counts per
+        // subgraph.
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    private async Task<Gateway> CreateUserGatewayAsync()
+    {
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+                address: String!
+                phone: String!
+            }
+            """);
+
+        return await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+    }
+
+    private async Task<Gateway> CreateUserAccountGatewayAsync()
+    {
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+                address: String!
+                account: Account!
+            }
+
+            type Account @key(fields: "id") {
+                id: ID!
+            }
+            """);
+
+        var server3 = CreateSourceSchema(
+            "C",
+            """
+            type Query {
+                scoredUserById(id: ID!): User @lookup
+                accountById(id: ID!): Account @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                score: Int!
+            }
+
+            type Account @key(fields: "id") {
+                id: ID!
+                balance: Int!
+            }
+            """);
+
+        return await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2),
+            ("C", server3)
+        ]);
+    }
+
+    private static async Task<string> GetRequestCountsAsync(Gateway gateway, GraphQLHttpResponse response)
+    {
+        await response.HttpResponseMessage.Content.LoadIntoBufferAsync();
+
+        return string.Join(
+            ", ",
+            gateway.Interactions
+                .OrderBy(t => t.Key, StringComparer.Ordinal)
+                .Select(t => $"{t.Key}: {t.Value.Count}"));
     }
 }
