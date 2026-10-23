@@ -54,6 +54,9 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
         Source = Queue;
     }
 
+    private const int CompletedDeliveriesCapacity = 1000;
+
+    private readonly RabbitMQCompletedDeliveries _completedDeliveries = new(CompletedDeliveriesCapacity);
     private RabbitMQConsumerManager.RegisteredConsumer? _consumer;
 
     protected override async ValueTask OnStartAsync(
@@ -112,8 +115,9 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
                     var feature = context.Features.GetOrSet<RabbitMQReceiveFeature>();
                     feature.Channel = state.channel;
                     feature.EventArgs = state.eventArgs;
+                    feature.CompletedDeliveries = state.completedDeliveries;
                 },
-                (channel, eventArgs),
+                (channel, eventArgs, completedDeliveries: _completedDeliveries),
                 cancellationToken);
         }
         catch (Exception) when (cancellationToken.IsCancellationRequested)
@@ -132,5 +136,11 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
         }
 
         _consumer = null;
+
+        // A reply queue expires instead of being deleted with its last consumer, so a graceful stop deletes it.
+        if (Kind == ReceiveEndpointKind.Reply && Transport is RabbitMQMessagingTransport rabbitMQMessagingTransport)
+        {
+            await rabbitMQMessagingTransport.ConsumerManager.DeleteQueueAsync(Queue.Name, cancellationToken);
+        }
     }
 }

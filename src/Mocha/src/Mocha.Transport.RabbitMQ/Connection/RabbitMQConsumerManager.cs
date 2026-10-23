@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
@@ -25,6 +26,11 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
     public RabbitMQConsumerManager(
         ILogger<RabbitMQConsumerManager> logger,
         Func<CancellationToken, ValueTask<IConnection>> connectionFactory) : base(logger, connectionFactory) { }
+
+    /// <summary>
+    /// Gets or sets how long one attempt to attach a consumer may take before it is abandoned and retried.
+    /// </summary>
+    internal TimeSpan AttachTimeout { get; set; } = TimeSpan.FromSeconds(60);
 
     /// <summary>
     /// Registers a new consumer for the specified queue, creating a dedicated channel with the given prefetch count.
@@ -94,9 +100,13 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
             {
                 await registration.ConnectAsync(connection, cancellationToken);
             }
-            catch when (!connection.IsOpen && !cancellationToken.IsCancellationRequested)
+            catch (Exception ex)
+                when (!cancellationToken.IsCancellationRequested
+                    && (!connection.IsOpen || ex is TimeoutException or OperationCanceledException))
             {
-                // The connection was lost, and the new connection attaches every registered consumer.
+                // The connection was lost or the broker did not answer in time. A new connection attaches every
+                // registered consumer, and an open connection is retried by the consumer itself.
+                registration.EnsureAttached();
             }
             catch
             {
@@ -109,6 +119,40 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
         Logger.RegisteredConsumerForQueue(queueName);
 
         return registration;
+    }
+
+    /// <summary>
+    /// Deletes a queue on the current connection, and does nothing when there is no open connection.
+    /// </summary>
+    /// <param name="queueName">The name of the queue to delete.</param>
+    /// <param name="cancellationToken">A token to cancel the deletion.</param>
+    internal async Task DeleteQueueAsync(string queueName, CancellationToken cancellationToken)
+    {
+        if (CurrentConnection is not { IsOpen: true } connection || cancellationToken.IsCancellationRequested)
+        {
+            return;
+        }
+
+        try
+        {
+            await using var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken);
+            await channel.QueueDeleteAsync(queueName, cancellationToken: cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            Logger.FailedToDeleteQueue(ex, queueName);
+        }
+    }
+
+    /// <summary>
+    /// Gets the health of every registered consumer, which is degraded while the consumer is not attached.
+    /// </summary>
+    internal IEnumerable<TransportHealthEntry> GetConsumerHealth()
+    {
+        foreach (var consumer in _registeredConsumers)
+        {
+            yield return consumer.GetHealth();
+        }
     }
 
     /// <summary>
@@ -158,17 +202,30 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
 
         Logger.ReconnectConsumersAsync(consumers.Length);
 
-        foreach (var consumer in consumers)
+        // Consumers attach independently, so one that does not get an answer does not hold back the others.
+        await Task.WhenAll(consumers.Select(consumer => ReconnectConsumerAsync(consumer, connection, cancellationToken)));
+    }
+
+    private async Task ReconnectConsumerAsync(
+        RegisteredConsumer consumer,
+        IConnection connection,
+        CancellationToken cancellationToken)
+    {
+        try
         {
-            try
-            {
-                await consumer.ConnectAsync(connection, cancellationToken);
-                Logger.ReconnectConsumerForQueue(consumer.QueueName);
-            }
-            catch (Exception ex)
-            {
-                Logger.FailedToReconnectConsumerForQueue(ex, consumer.QueueName);
-            }
+            await consumer.ConnectAsync(connection, cancellationToken);
+            Logger.ReconnectConsumerForQueue(consumer.QueueName);
+        }
+        catch (ObjectDisposedException) when (consumer.IsDisposed)
+        {
+            // The consumer was stopped while the connection was established.
+        }
+        catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
+        {
+            Logger.FailedToReconnectConsumerForQueue(ex, consumer.QueueName);
+
+            // The consumer retries with backoff instead of waiting for the next health check.
+            consumer.EnsureAttached();
         }
     }
 
@@ -277,9 +334,14 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
 
         private readonly CancellationTokenSource _consumerCts = new();
         private readonly SemaphoreSlim _gate = new(1, 1);
+        private readonly object _healthLock = new();
+        private readonly ConcurrentDictionary<ChannelConsumer, byte> _replacedConsumers = new();
         private ChannelConsumer? _consumer;
         private int _isReattaching;
         private bool _isDisposed;
+        private DateTimeOffset? _detachedSince = TimeProvider.System.GetUtcNow();
+        private string? _detachReason = "Not attached yet";
+        private Exception? _lastAttachError;
 
         /// <summary>
         /// Gets the owning consumer manager responsible for connection lifecycle.
@@ -329,12 +391,17 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
         public IChannel? Channel { get; set; }
 
         /// <summary>
+        /// Gets a value indicating whether the consumer was stopped or disposed.
+        /// </summary>
+        public bool IsDisposed => _isDisposed;
+
+        /// <summary>
         /// Gets a value indicating whether the consumer is attached to an open channel and still consuming.
         /// </summary>
         public bool IsAttached
             => ConsumerTag is not null
                 && Channel is { IsOpen: true }
-                && _consumer is { IsRunning: true, IsLost: false };
+                && _consumer is { IsLost: false };
 
         /// <summary>
         /// Establishes a new channel on the given connection, configures QoS prefetch, and starts consuming messages from the queue.
@@ -357,6 +424,9 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
             {
                 _gate.Release();
             }
+
+            // A loss that arrived while the consumer started is recovered by the re-attach loop.
+            EnsureAttached();
         }
 
         /// <summary>
@@ -370,10 +440,44 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
             }
         }
 
+        /// <summary>
+        /// Gets the health of the consumer, which is degraded while it is not attached.
+        /// </summary>
+        public TransportHealthEntry GetHealth()
+        {
+            var name = $"consumer:{QueueName}";
+
+            if (IsAttached)
+            {
+                return new TransportHealthEntry
+                {
+                    Name = name,
+                    Status = TransportHealthStatus.Healthy,
+                    Description = "Attached"
+                };
+            }
+
+            lock (_healthLock)
+            {
+                return new TransportHealthEntry
+                {
+                    Name = name,
+                    Status = TransportHealthStatus.Degraded,
+                    Description = $"Not attached: {_detachReason ?? "The consumer is re-attaching"}",
+                    Since = _detachedSince ?? TimeProvider.System.GetUtcNow(),
+                    Exception = _lastAttachError
+                };
+            }
+        }
+
         private async Task ConnectCoreAsync(IConnection connection, CancellationToken cancellationToken)
         {
-            // Handlers of the replaced channel are abandoned, as their deliveries can no longer be settled.
-            await DisconnectCoreAsync(s_abandonHandlers, cancellationToken);
+            await DetachAsync(cancellationToken);
+
+            var attachTimeout = Manager.AttachTimeout;
+            using var attachCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            attachCts.CancelAfter(attachTimeout);
+            var attachToken = attachCts.Token;
 
             IChannel? channel = null;
             ChannelConsumer? consumer = null;
@@ -384,47 +488,77 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
                     publisherConfirmationsEnabled: false,
                     publisherConfirmationTrackingEnabled: false,
                     consumerDispatchConcurrency: 1);
-                channel = await connection.CreateChannelAsync(channelOptions, cancellationToken);
-                consumer = new ChannelConsumer(this, channel, _consumerCts.Token, ConsumerDispatchConcurrency);
+                channel = await connection.CreateChannelAsync(channelOptions, attachToken);
+                consumer = new ChannelConsumer(this, channel, ConsumerDispatchConcurrency);
                 channel.ChannelShutdownAsync += consumer.OnChannelShutdownAsync;
 
                 // An auto-delete queue is gone once its last consumer is, and an operator can delete any queue.
                 if (ProvisionAsync is not null)
                 {
-                    await ProvisionAsync(channel, cancellationToken);
+                    await ProvisionAsync(channel, attachToken);
                 }
 
                 await channel.BasicQosAsync(
                     prefetchSize: 0,
-                    prefetchCount: PrefetchCount, //100
+                    prefetchCount: PrefetchCount,
                     global: false,
-                    cancellationToken: cancellationToken);
+                    cancellationToken: attachToken);
 
                 var tag = await channel.BasicConsumeAsync(
                     queue: QueueName,
                     autoAck: false,
                     consumer: consumer,
-                    cancellationToken: cancellationToken);
+                    cancellationToken: attachToken);
 
                 ConsumerTag = tag;
                 Channel = channel;
                 _consumer = consumer;
             }
-            catch
+            catch (OperationCanceledException)
+                when (attachToken.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
             {
-                if (channel is not null)
+                await DiscardAttemptAsync(channel, consumer);
+                var timeout = ThrowHelper.ConsumerAttachTimedOut(QueueName, attachTimeout);
+                RecordDetached(timeout.Message, timeout);
+                throw timeout;
+            }
+            catch (Exception ex)
+            {
+                await DiscardAttemptAsync(channel, consumer);
+                RecordDetached(ex.Message, ex);
+                throw;
+            }
+
+            // The broker can take the channel or the consumer away before the consumer was recorded above.
+            if (consumer.TryHandlePendingLoss())
+            {
+                HandleLoss(consumer);
+                return;
+            }
+
+            RecordAttached();
+        }
+
+        private async Task DiscardAttemptAsync(IChannel? channel, ChannelConsumer? consumer)
+        {
+            consumer?.Dispose();
+            ConsumerTag = null;
+            Channel = null;
+
+            if (channel is not null)
+            {
+                try
                 {
                     await channel.DisposeAsync();
                 }
-
-                consumer?.Dispose();
-                ConsumerTag = null;
-                Channel = null;
-                throw;
+                catch
+                {
+                    // Ignore
+                }
             }
         }
 
-        private async Task DisconnectCoreAsync(CancellationToken handlerWaitToken, CancellationToken cancellationToken)
+        private async Task DetachAsync(CancellationToken cancellationToken)
         {
             // The channel is detached first, so that its shutdown is not treated as a loss.
             var channel = Channel;
@@ -434,43 +568,52 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
             ConsumerTag = null;
             _consumer = null;
 
-            if (consumer is null)
+            if (consumer is not null)
             {
-                if (channel is not null)
+                if (!consumer.IsLost && consumerTag is not null && channel is { IsOpen: true })
                 {
-                    await CloseChannelAsync(channel, cancellationToken);
+                    try
+                    {
+                        await channel.BasicCancelAsync(consumerTag, cancellationToken: cancellationToken);
+                    }
+                    catch
+                    {
+                        // Ignore
+                    }
                 }
 
-                return;
-            }
-
-            await consumer.CancelHandlersAsync();
-
-            if (!consumer.IsLost && consumerTag is not null && channel is { IsOpen: true })
-            {
-                try
-                {
-                    await channel.BasicCancelAsync(consumerTag, cancellationToken: cancellationToken);
-                }
-                catch
-                {
-                    // Ignore
-                }
-            }
-
-            // Deliveries that no handler has started are left unsettled, so the broker requeues them on close.
-            consumer.Dispose();
-
-            if (!consumer.IsLost)
-            {
-                // Handlers that honor their cancellation can still settle their deliveries on the open channel.
-                await consumer.WaitForHandlersAsync(handlerWaitToken);
+                // Handlers that already run keep running. Their deliveries can no longer be settled, and the broker
+                // redelivers them.
+                consumer.StopAccepting();
+                TrackReplaced(consumer);
             }
 
             if (channel is not null)
             {
                 await CloseChannelAsync(channel, cancellationToken);
             }
+        }
+
+        private void TrackReplaced(ChannelConsumer consumer)
+        {
+            _replacedConsumers.TryAdd(consumer, 0);
+
+            consumer.Workers.ContinueWith(
+                static (_, state) =>
+                {
+                    var (owner, replaced) = ((RegisteredConsumer, ChannelConsumer))state!;
+                    owner.ForgetReplaced(replaced);
+                },
+                (this, consumer),
+                CancellationToken.None,
+                TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default);
+        }
+
+        private void ForgetReplaced(ChannelConsumer consumer)
+        {
+            _replacedConsumers.TryRemove(consumer, out _);
+            consumer.Dispose();
         }
 
         private static async Task CloseChannelAsync(IChannel channel, CancellationToken cancellationToken)
@@ -492,29 +635,43 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
 
         private void OnConsumerLost(ChannelConsumer consumer, ShutdownEventArgs? reason)
         {
-            if (_isDisposed || !ReferenceEquals(_consumer, consumer) || !consumer.MarkLost())
+            if (_isDisposed || !ReferenceEquals(_consumer, consumer))
+            {
+                // The consumer is not recorded yet or no longer recorded. A consumer that is about to be recorded
+                // finds the loss when its attach completes.
+                consumer.MarkLostPending(reason);
+                return;
+            }
+
+            if (!consumer.TryHandleLoss(reason))
             {
                 return;
             }
 
+            HandleLoss(consumer);
+
+            // Loss notifications are raised on the client's reader loop, which must not be blocked
+            // by opening a new channel.
+            _ = Task.Run(StartReattach);
+        }
+
+        private void HandleLoss(ChannelConsumer consumer)
+        {
+            var reason = consumer.LossReason;
             if (reason is null)
             {
                 Manager.Logger.ConsumerCancelledByBroker(QueueName);
+                RecordDetached("The broker cancelled the consumer", exception: null);
             }
             else
             {
                 Manager.Logger.ConsumerChannelLost(QueueName, reason.Initiator, reason.ReplyCode, reason.ReplyText);
+                RecordDetached($"The channel closed with {reason.ReplyCode} {reason.ReplyText}", reason.Exception);
             }
 
-            // Loss notifications are raised on the client's reader loop, which must not be blocked
-            // by cancelled handlers or by opening a new channel.
-            _ = Task.Run(async () =>
-            {
-                // A handler still running on the lost channel can no longer settle its delivery.
-                await consumer.CancelHandlersAsync();
-                consumer.StopAccepting();
-                StartReattach();
-            });
+            // Deliveries that no handler has started are left to the broker. Running handlers finish, but their
+            // deliveries can no longer be settled on the lost channel.
+            consumer.StopAccepting();
         }
 
         private void StartReattach()
@@ -529,7 +686,7 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
 
         private async Task ReattachAsync()
         {
-            var delay = s_initialReattachDelay;
+            var attempt = 0;
             var cancellationToken = _consumerCts.Token;
 
             try
@@ -543,6 +700,8 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
                         return;
                     }
 
+                    TimeSpan delay;
+
                     await _gate.WaitAsync(cancellationToken);
                     try
                     {
@@ -552,12 +711,29 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
                         }
 
                         await ConnectCoreAsync(connection, cancellationToken);
-                        Manager.Logger.ReattachedConsumerForQueue(QueueName);
-                        return;
+
+                        if (IsAttached)
+                        {
+                            Manager.Logger.ReattachedConsumerForQueue(QueueName);
+                            return;
+                        }
+
+                        attempt++;
+                        delay = RabbitMQBackoff.GetDelay(attempt, s_initialReattachDelay, s_maxReattachDelay);
                     }
                     catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
                     {
-                        Manager.Logger.FailedToReattachConsumerForQueue(ex, QueueName, delay);
+                        attempt++;
+                        delay = RabbitMQBackoff.GetDelay(attempt, s_initialReattachDelay, s_maxReattachDelay);
+
+                        if (attempt == 1)
+                        {
+                            Manager.Logger.FailedToReattachConsumerForQueue(ex, QueueName, delay);
+                        }
+                        else
+                        {
+                            Manager.Logger.FailedToReattachConsumerForQueueAgain(ex, QueueName, attempt, delay);
+                        }
                     }
                     finally
                     {
@@ -565,7 +741,6 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
                     }
 
                     await Task.Delay(delay, cancellationToken);
-                    delay = TimeSpan.FromTicks(Math.Min(delay.Ticks * 2, s_maxReattachDelay.Ticks));
                 }
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -580,15 +755,41 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
             {
                 Volatile.Write(ref _isReattaching, 0);
             }
+
+            // A loss that arrived while this loop was finishing did not start a new one.
+            if (!_isDisposed && !IsAttached && Manager.CurrentConnection is { IsOpen: true })
+            {
+                StartReattach();
+            }
+        }
+
+        private void RecordAttached()
+        {
+            lock (_healthLock)
+            {
+                _detachedSince = null;
+                _detachReason = null;
+                _lastAttachError = null;
+            }
+        }
+
+        private void RecordDetached(string reason, Exception? exception)
+        {
+            lock (_healthLock)
+            {
+                _detachedSince ??= TimeProvider.System.GetUtcNow();
+                _detachReason = reason;
+                _lastAttachError = exception ?? _lastAttachError;
+            }
         }
 
         /// <summary>
-        /// Stops consuming, cancels running handlers and waits for them to finish until
-        /// <paramref name="cancellationToken"/> is cancelled, then closes the channel and unregisters the consumer.
+        /// Stops consuming and waits for running handlers to finish until <paramref name="cancellationToken"/> is
+        /// cancelled, then cancels the handlers that still run, closes the channel and unregisters the consumer.
         /// </summary>
         /// <param name="cancellationToken">
-        /// A token that ends the wait for running handlers. Handlers still running afterwards are abandoned, and the
-        /// broker requeues their deliveries when the channel closes.
+        /// A token that ends the wait for running handlers. Handlers still running afterwards are cancelled and
+        /// abandoned, and the broker requeues their deliveries when the channel closes.
         /// </param>
         public async Task StopAsync(CancellationToken cancellationToken)
         {
@@ -599,7 +800,54 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
             await _gate.WaitAsync(CancellationToken.None);
             try
             {
-                await DisconnectCoreAsync(cancellationToken, CancellationToken.None);
+                var channel = Channel;
+                var consumerTag = ConsumerTag;
+                var consumer = _consumer;
+                Channel = null;
+                ConsumerTag = null;
+                _consumer = null;
+
+                if (consumer is not null)
+                {
+                    if (!consumer.IsLost && consumerTag is not null && channel is { IsOpen: true })
+                    {
+                        try
+                        {
+                            await channel.BasicCancelAsync(consumerTag, cancellationToken: cancellationToken);
+                        }
+                        catch
+                        {
+                            // Ignore
+                        }
+                    }
+
+                    // Deliveries that no handler has started are left unsettled, so the broker requeues them on close.
+                    consumer.StopAccepting();
+                }
+
+                ChannelConsumer[] running = consumer is null
+                    ? [.. _replacedConsumers.Keys]
+                    : [consumer, .. _replacedConsumers.Keys];
+
+                try
+                {
+                    // Running handlers finish, and settle their deliveries on the open channel.
+                    await Task.WhenAll(running.Select(c => c.Workers)).WaitAsync(cancellationToken);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    foreach (var abandoned in running)
+                    {
+                        await abandoned.CancelHandlersAsync();
+                    }
+                }
+
+                consumer?.Dispose();
+
+                if (channel is not null)
+                {
+                    await CloseChannelAsync(channel, CancellationToken.None);
+                }
             }
             finally
             {
@@ -621,22 +869,23 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
         /// </summary>
         private sealed class ChannelConsumer : AsyncDefaultBasicConsumer, IDisposable
         {
+            private const int NotLost = 0;
+            private const int LossPending = 1;
+            private const int LossHandled = 2;
+
             private readonly RegisteredConsumer _owner;
-            private readonly CancellationTokenSource _handlerCts;
+            private readonly CancellationTokenSource _handlerCts = new();
             private readonly CancellationToken _handlerToken;
             private readonly Channel<Delivery> _deliveries;
             private readonly Task _workers;
-            private int _isLost;
+            private volatile bool _isAccepting = true;
+            private int _lossState;
+            private ShutdownEventArgs? _lossReason;
 
-            public ChannelConsumer(
-                RegisteredConsumer owner,
-                IChannel channel,
-                CancellationToken consumerToken,
-                int concurrency)
+            public ChannelConsumer(RegisteredConsumer owner, IChannel channel, int concurrency)
                 : base(channel)
             {
                 _owner = owner;
-                _handlerCts = CancellationTokenSource.CreateLinkedTokenSource(consumerToken);
                 _handlerToken = _handlerCts.Token;
                 _deliveries = System.Threading.Channels.Channel.CreateUnbounded<Delivery>(
                     new UnboundedChannelOptions { SingleReader = concurrency == 1 });
@@ -650,9 +899,38 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
                 _workers = Task.WhenAll(workers);
             }
 
-            public bool IsLost => Volatile.Read(ref _isLost) == 1;
+            /// <summary>
+            /// Gets a task that completes once every worker has finished its last handler.
+            /// </summary>
+            public Task Workers => _workers;
 
-            public bool MarkLost() => Interlocked.Exchange(ref _isLost, 1) == 0;
+            public bool IsLost => Volatile.Read(ref _lossState) != NotLost;
+
+            public ShutdownEventArgs? LossReason => Volatile.Read(ref _lossReason);
+
+            /// <summary>
+            /// Records a loss that the owner handles once it records this consumer.
+            /// </summary>
+            public void MarkLostPending(ShutdownEventArgs? reason)
+            {
+                Interlocked.CompareExchange(ref _lossReason, reason, null);
+                Interlocked.CompareExchange(ref _lossState, LossPending, NotLost);
+            }
+
+            /// <summary>
+            /// Records a loss, and returns whether the caller is the first to handle it.
+            /// </summary>
+            public bool TryHandleLoss(ShutdownEventArgs? reason)
+            {
+                Interlocked.CompareExchange(ref _lossReason, reason, null);
+                return Interlocked.Exchange(ref _lossState, LossHandled) != LossHandled;
+            }
+
+            /// <summary>
+            /// Returns whether a loss was recorded before the owner recorded this consumer, and marks it handled.
+            /// </summary>
+            public bool TryHandlePendingLoss()
+                => Interlocked.CompareExchange(ref _lossState, LossHandled, LossPending) == LossPending;
 
             public async Task CancelHandlersAsync()
             {
@@ -662,25 +940,17 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
                 }
                 catch (ObjectDisposedException)
                 {
-                    // The handlers were already cancelled when the channel was detached.
+                    // The workers already finished.
                 }
             }
 
             /// <summary>
-            /// Rejects further deliveries and lets idle workers exit.
+            /// Rejects further deliveries and makes the workers skip the ones they have not started.
             /// </summary>
-            public void StopAccepting() => _deliveries.Writer.TryComplete();
-
-            public async Task WaitForHandlersAsync(CancellationToken cancellationToken)
+            public void StopAccepting()
             {
-                try
-                {
-                    await _workers.WaitAsync(cancellationToken);
-                }
-                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-                {
-                    // Handlers that ignore their cancellation are abandoned.
-                }
+                _isAccepting = false;
+                _deliveries.Writer.TryComplete();
             }
 
             public override Task HandleBasicDeliverAsync(
@@ -693,6 +963,12 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
                 ReadOnlyMemory<byte> body,
                 CancellationToken cancellationToken = default)
             {
+                if (!_isAccepting)
+                {
+                    // The channel is lost or stopping, so the broker requeues the delivery when the channel closes.
+                    return Task.CompletedTask;
+                }
+
                 // The client returns the body's buffer to its pool once this callback returns.
                 var buffer = ArrayPool<byte>.Shared.Rent(body.Length);
                 body.CopyTo(buffer);
@@ -709,7 +985,6 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
 
                 if (!_deliveries.Writer.TryWrite(new Delivery(eventArgs, buffer)))
                 {
-                    // The channel is lost or stopping, so the broker requeues the delivery when the channel closes.
                     ArrayPool<byte>.Shared.Return(buffer);
                 }
 
@@ -754,7 +1029,7 @@ public sealed class RabbitMQConsumerManager : RabbitMQConnectionManagerBase
                         try
                         {
                             // A delivery queued before the channel was lost or stopped is left to the broker.
-                            if (!_handlerToken.IsCancellationRequested)
+                            if (_isAccepting && !IsLost && !_handlerToken.IsCancellationRequested)
                             {
                                 await _owner.MessageHandler(Channel, delivery.EventArgs, _handlerToken);
                             }
@@ -941,4 +1216,26 @@ internal static partial class Logs
 
     [LoggerMessage(LogLevel.Error, "Error disposing consumer {ConsumerTag}")]
     public static partial void ErrorDisposingConsumer(this ILogger logger, Exception ex, string consumerTag);
+
+    [LoggerMessage(LogLevel.Warning, "Failed to delete queue {Queue}")]
+    public static partial void FailedToDeleteQueue(this ILogger logger, Exception ex, string queue);
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "Reconnection attempt {Attempt} failed again. Retrying in {Delay}")]
+    public static partial void ReconnectionAttemptFailedAgain(
+        this ILogger logger,
+        Exception ex,
+        int attempt,
+        TimeSpan delay);
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "Re-attaching the consumer for queue {Queue} failed again (attempt {Attempt}). Retrying in {Delay}")]
+    public static partial void FailedToReattachConsumerForQueueAgain(
+        this ILogger logger,
+        Exception ex,
+        string queue,
+        int attempt,
+        TimeSpan delay);
 }

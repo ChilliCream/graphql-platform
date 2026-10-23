@@ -292,12 +292,13 @@ public class RabbitMQDispatchProvisioningTests
             TestContext.Current.CancellationToken);
 
         // assert - the message is routed through the default exchange with the queue name as
-        // routing key, and the queue the sender does not own is never declared
+        // routing key and mandatory set, so that the broker returns it if the queue is missing,
+        // and the queue the sender does not own is never declared
         channelMock.Verify(
             c => c.BasicPublishAsync(
                 It.Is<CachedString>(exchange => exchange.Value == ""),
                 It.Is<CachedString>(routingKey => routingKey.Value == "reporting.events"),
-                false,
+                true,
                 It.IsAny<BasicProperties>(),
                 It.IsAny<ReadOnlyMemory<byte>>(),
                 It.IsAny<CancellationToken>()),

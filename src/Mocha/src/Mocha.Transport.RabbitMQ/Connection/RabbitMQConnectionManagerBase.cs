@@ -23,11 +23,18 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
     private readonly Func<CancellationToken, ValueTask<IConnection>> _connectionFactory;
     private readonly SemaphoreSlim _connectionLock = new(1, 1);
     private readonly CancellationTokenSource _disposeCts = new();
+    private readonly object _healthLock = new();
 
     private IConnection? _currentConnection;
+    private AsyncEventHandler<ShutdownEventArgs>? _currentShutdownHandler;
     private Task? _reconnectTask;
     private int _isReconnecting;
     private bool _isDisposed;
+    private DateTimeOffset? _unavailableSince;
+    private string? _unavailableReason;
+    private Exception? _lastConnectionError;
+    private DateTimeOffset? _blockedSince;
+    private string? _blockedReason;
 
     /// <summary>
     /// Creates a new connection manager base with the specified logger and connection factory.
@@ -133,6 +140,48 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
         }
     }
 
+    /// <summary>
+    /// Gets the health of the connection, which is degraded while the connection is lost or blocked by the broker.
+    /// </summary>
+    /// <param name="name">The name of the health entry.</param>
+    internal TransportHealthEntry GetConnectionHealth(string name)
+    {
+        lock (_healthLock)
+        {
+            if (_isDisposed)
+            {
+                return Healthy(name, "Stopped");
+            }
+
+            if (_currentConnection is { IsOpen: true })
+            {
+                return _blockedSince is { } blockedSince
+                    ? new TransportHealthEntry
+                    {
+                        Name = name,
+                        Status = TransportHealthStatus.Degraded,
+                        Description = $"Blocked by the broker: {_blockedReason}",
+                        Since = blockedSince
+                    }
+                    : Healthy(name, "Connected");
+            }
+
+            return _unavailableSince is { } since
+                ? new TransportHealthEntry
+                {
+                    Name = name,
+                    Status = TransportHealthStatus.Degraded,
+                    Description = $"Not connected: {_unavailableReason}",
+                    Since = since,
+                    Exception = _lastConnectionError
+                }
+                : Healthy(name, "Not connected");
+        }
+
+        static TransportHealthEntry Healthy(string name, string description)
+            => new() { Name = name, Status = TransportHealthStatus.Healthy, Description = description };
+    }
+
     private static bool IsConnectivityFailure(Exception exception)
     {
         for (var current = exception; current is not null; current = current.InnerException)
@@ -222,8 +271,16 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
                 catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
                 {
                     attempt++;
-                    delay = CalculateBackoffDelay(attempt);
-                    Logger.ReconnectionAttemptFailed(ex, attempt, delay);
+                    delay = RabbitMQBackoff.GetDelay(attempt, s_initialRetryDelay, s_maxBackoffDelay);
+
+                    if (attempt == 1)
+                    {
+                        Logger.ReconnectionAttemptFailed(ex, attempt, delay);
+                    }
+                    else
+                    {
+                        Logger.ReconnectionAttemptFailedAgain(ex, attempt, delay);
+                    }
                 }
                 finally
                 {
@@ -282,7 +339,7 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
                     throw;
                 }
 
-                var delay = CalculateBackoffDelay(attempt);
+                var delay = RabbitMQBackoff.GetDelay(attempt, s_initialRetryDelay, s_maxBackoffDelay);
                 Logger.FailedToCreateConnectionRetrying(ex, attempt, MaxConnectionAttempts, delay);
 
                 await Task.Delay(delay, cancellationToken);
@@ -301,7 +358,17 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
         await DisposeConnectionInternalAsync();
         await OnBeforeConnectionCreatedAsync(cancellationToken);
 
-        var connection = await _connectionFactory(cancellationToken);
+        IConnection connection;
+        try
+        {
+            connection = await _connectionFactory(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            RecordUnavailable(ex.Message, ex);
+            throw;
+        }
+
         WireConnectionEvents(connection);
         _currentConnection = connection;
 
@@ -312,29 +379,53 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
             // Declare exchanges, queues and bindings, then let derived classes attach to the connection.
             await OnConnectionEstablished(connection, cancellationToken);
             await OnAfterConnectionCreatedAsync(connection, cancellationToken);
+
+            // A connection that closed before its shutdown handler was subscribed raises no event.
+            if (!connection.IsOpen)
+            {
+                throw ThrowHelper.ConnectionClosedDuringSetup(connection.CloseReason);
+            }
         }
-        catch
+        catch (Exception ex)
         {
             // A connection without its topology must not be handed out, so the next attempt starts over.
+            RecordUnavailable(ex.Message, ex);
             await DisposeConnectionInternalAsync();
             throw;
+        }
+
+        lock (_healthLock)
+        {
+            _unavailableSince = null;
+            _unavailableReason = null;
+            _lastConnectionError = null;
+            _blockedSince = null;
+            _blockedReason = null;
         }
     }
 
     private void WireConnectionEvents(IConnection connection)
     {
+        AsyncEventHandler<ShutdownEventArgs> onShutdown = (_, e) => OnConnectionShutdownAsync(connection, e);
+        _currentShutdownHandler = onShutdown;
+
         connection.CallbackExceptionAsync += OnCallbackExceptionAsync;
-        connection.ConnectionShutdownAsync += OnConnectionShutdownAsync;
         connection.ConnectionBlockedAsync += OnConnectionBlockedAsync;
         connection.ConnectionUnblockedAsync += OnConnectionUnblockedAsync;
+        connection.ConnectionShutdownAsync += onShutdown;
     }
 
     private void UnwireConnectionEvents(IConnection connection)
     {
         connection.CallbackExceptionAsync -= OnCallbackExceptionAsync;
-        connection.ConnectionShutdownAsync -= OnConnectionShutdownAsync;
         connection.ConnectionBlockedAsync -= OnConnectionBlockedAsync;
         connection.ConnectionUnblockedAsync -= OnConnectionUnblockedAsync;
+
+        if (_currentShutdownHandler is not null)
+        {
+            connection.ConnectionShutdownAsync -= _currentShutdownHandler;
+            _currentShutdownHandler = null;
+        }
     }
 
     protected virtual Task OnConnectionEstablished(IConnection connection, CancellationToken cancellationToken)
@@ -347,7 +438,7 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
         return Task.CompletedTask;
     }
 
-    private Task OnConnectionShutdownAsync(object? sender, ShutdownEventArgs e)
+    private Task OnConnectionShutdownAsync(IConnection connection, ShutdownEventArgs e)
     {
         if (e.Initiator == ShutdownInitiator.Application)
         {
@@ -357,22 +448,33 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
 
         Logger.ConnectionShutdownDetected(e.Initiator, e.ReplyText);
 
+        if (ReferenceEquals(Volatile.Read(ref _currentConnection), connection))
+        {
+            RecordUnavailable($"{e.ReplyCode} {e.ReplyText}", e.Exception);
+        }
+
         // The client raises this event on its reader loop or heartbeat timer, which cannot process the
         // replies that closing a channel waits for, so the cleanup must not run inline.
-        _ = Task.Run(HandleConnectionLostAsync);
+        _ = Task.Run(() => HandleConnectionLostAsync(connection));
         return Task.CompletedTask;
     }
 
-    private async Task HandleConnectionLostAsync()
+    private async Task HandleConnectionLostAsync(IConnection connection)
     {
         try
         {
+            var isCurrent = false;
+
             await _connectionLock.WaitAsync(_disposeCts.Token);
             try
             {
-                // Disposing stops the client's automatic recovery, which would otherwise compete with this manager.
-                if (_currentConnection is { IsOpen: false })
+                // A late event from a connection that was already replaced must not disturb the current one.
+                if (ReferenceEquals(_currentConnection, connection))
                 {
+                    isCurrent = true;
+
+                    // Disposing stops the client's automatic recovery, and replaces a connection that the client
+                    // already recovered with consumers this manager no longer tracks.
                     await DisposeConnectionInternalAsync();
                 }
             }
@@ -381,7 +483,10 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
                 _connectionLock.Release();
             }
 
-            await OnConnectionLostAsync();
+            if (isCurrent)
+            {
+                await OnConnectionLostAsync();
+            }
         }
         catch (Exception) when (_isDisposed)
         {
@@ -396,19 +501,37 @@ public abstract class RabbitMQConnectionManagerBase : IAsyncDisposable
     private Task OnConnectionBlockedAsync(object? sender, ConnectionBlockedEventArgs e)
     {
         Logger.ConnectionBlocked(e.Reason);
+
+        lock (_healthLock)
+        {
+            _blockedSince ??= TimeProvider.System.GetUtcNow();
+            _blockedReason = e.Reason;
+        }
+
         return Task.CompletedTask;
     }
 
     private Task OnConnectionUnblockedAsync(object? sender, AsyncEventArgs e)
     {
         Logger.ConnectionUnblocked();
+
+        lock (_healthLock)
+        {
+            _blockedSince = null;
+            _blockedReason = null;
+        }
+
         return Task.CompletedTask;
     }
 
-    private static TimeSpan CalculateBackoffDelay(int attempt)
+    private void RecordUnavailable(string reason, Exception? exception)
     {
-        var delay = s_initialRetryDelay * Math.Pow(2, Math.Min(attempt - 1, 16));
-        return delay > s_maxBackoffDelay ? s_maxBackoffDelay : delay;
+        lock (_healthLock)
+        {
+            _unavailableSince ??= TimeProvider.System.GetUtcNow();
+            _unavailableReason = reason;
+            _lastConnectionError = exception;
+        }
     }
 
     private async Task DisposeConnectionInternalAsync()

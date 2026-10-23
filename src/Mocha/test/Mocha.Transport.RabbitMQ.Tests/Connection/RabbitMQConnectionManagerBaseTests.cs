@@ -1,7 +1,10 @@
+using CookieCrumble;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Mocha.Transport.RabbitMQ.Tests.Helpers;
 using Moq;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Connection;
 
@@ -152,6 +155,104 @@ public class RabbitMQConnectionManagerBaseTests
         Assert.Equal(1, manager.ConnectionEstablishedCount);
     }
 
+    [Fact]
+    public async Task ConnectionLost_Should_DisposeConnection_When_ClientRecoveryReopenedIt()
+    {
+        // arrange
+        var recovered = new StubConnection();
+        var replacement = new StubConnection();
+        var connections = new Queue<IConnection>([recovered.Object, replacement.Object]);
+        await using var manager = new TestConnectionManager(
+            NullLoggerFactory.Instance.CreateLogger<TestConnectionManager>(),
+            _ => new ValueTask<IConnection>(connections.Dequeue()));
+        await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
+
+        // act
+        // the client's automatic recovery reopened the connection before the manager handled the loss
+        await recovered.RaiseShutdownAsync(keepOpen: true);
+        var lost = await Condition.WaitAsync(() => manager.ConnectionLostCount == 1, TimeSpan.FromSeconds(5));
+        var current = await manager.GetConnectionAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        new
+        {
+            Lost = lost,
+            RecoveredDisposed = recovered.IsDisposed,
+            ReplacementUsed = ReferenceEquals(current, replacement.Object)
+        }.MatchInlineSnapshot(
+            """
+            {
+              "Lost": true,
+              "RecoveredDisposed": true,
+              "ReplacementUsed": true
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ConnectionLost_Should_BeIgnored_When_RaisedByReplacedConnection()
+    {
+        // arrange
+        var replaced = new StubConnection();
+        var current = new StubConnection();
+        var connections = new Queue<IConnection>([replaced.Object, current.Object]);
+        await using var manager = new TestConnectionManager(
+            NullLoggerFactory.Instance.CreateLogger<TestConnectionManager>(),
+            _ => new ValueTask<IConnection>(connections.Dequeue()));
+        await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
+        replaced.IsOpen = false;
+        await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
+
+        // act
+        // the client raises the shutdown of the replaced connection after the manager moved on
+        await replaced.RaiseShutdownAsync(keepOpen: false);
+        await Task.Delay(500, TestContext.Current.CancellationToken);
+
+        // assert
+        new
+        {
+            manager.ConnectionLostCount,
+            CurrentDisposed = current.IsDisposed,
+            manager.IsConnected
+        }.MatchInlineSnapshot(
+            """
+            {
+              "ConnectionLostCount": 0,
+              "CurrentDisposed": false,
+              "IsConnected": true
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task GetConnectionAsync_Should_Reconnect_When_ConnectionClosedBeforeEventsWired()
+    {
+        // arrange
+        // the broker closed the connection before the manager subscribed, so no shutdown event is raised
+        var closed = new StubConnection { IsOpen = false };
+        var open = new StubConnection();
+        var connections = new Queue<IConnection>([closed.Object, open.Object]);
+        await using var manager = new TestConnectionManager(
+            NullLoggerFactory.Instance.CreateLogger<TestConnectionManager>(),
+            _ => new ValueTask<IConnection>(connections.Dequeue()));
+
+        // act
+        var connection = await manager.GetConnectionAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        new
+        {
+            OpenConnectionReturned = ReferenceEquals(connection, open.Object),
+            ClosedDisposed = closed.IsDisposed
+        }.MatchInlineSnapshot(
+            """
+            {
+              "OpenConnectionReturned": true,
+              "ClosedDisposed": true
+            }
+            """);
+    }
+
     private static Mock<IConnection> CreateOpenConnection()
     {
         var connectionMock = new Mock<IConnection>();
@@ -165,6 +266,45 @@ public class RabbitMQConnectionManagerBaseTests
         return new TestConnectionManager(
             NullLoggerFactory.Instance.CreateLogger<TestConnectionManager>(),
             _ => new ValueTask<IConnection>(connection));
+    }
+
+    /// <summary>
+    /// A connection that records its disposal and lets a test raise its shutdown event.
+    /// </summary>
+    private sealed class StubConnection
+    {
+        private readonly List<AsyncEventHandler<ShutdownEventArgs>> _shutdownHandlers = [];
+        private readonly Mock<IConnection> _connection = new();
+
+        public StubConnection()
+        {
+            _connection.SetupGet(c => c.IsOpen).Returns(() => IsOpen);
+            _connection.SetupGet(c => c.ClientProvidedName).Returns("test-connection");
+            _connection
+                .SetupAdd(c => c.ConnectionShutdownAsync += It.IsAny<AsyncEventHandler<ShutdownEventArgs>>())
+                .Callback<AsyncEventHandler<ShutdownEventArgs>>(_shutdownHandlers.Add);
+            _connection
+                .Setup(c => c.DisposeAsync())
+                .Callback(() => IsDisposed = true)
+                .Returns(ValueTask.CompletedTask);
+        }
+
+        public IConnection Object => _connection.Object;
+
+        public bool IsOpen { get; set; } = true;
+
+        public bool IsDisposed { get; private set; }
+
+        public async Task RaiseShutdownAsync(bool keepOpen)
+        {
+            IsOpen = keepOpen;
+            var reason = new ShutdownEventArgs(ShutdownInitiator.Peer, 320, "CONNECTION_FORCED - test");
+
+            foreach (var handler in _shutdownHandlers)
+            {
+                await handler(_connection.Object, reason);
+            }
+        }
     }
 
     private sealed class TestConnectionManager : RabbitMQConnectionManagerBase
