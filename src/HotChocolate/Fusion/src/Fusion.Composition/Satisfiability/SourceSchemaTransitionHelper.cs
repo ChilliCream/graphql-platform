@@ -13,7 +13,8 @@ namespace HotChocolate.Fusion.Satisfiability;
 /// can move from one source schema to another in order to reach a field. The
 /// satisfiability and requirements validators both face this question and
 /// resolve it the same way: try a direct lookup on the target type, fall back
-/// to a parent entity call via an ancestor on the path, and otherwise check
+/// to a parent entity call via an ancestor on the path, re-root a viewer field
+/// at <c>Query.viewer</c> when a query viewer field is given, and otherwise check
 /// whether the current path can be traversed one-to-one in the target schema.
 /// </summary>
 internal static class SourceSchemaTransitionHelper
@@ -52,6 +53,11 @@ internal static class SourceSchemaTransitionHelper
     /// requirements could not be satisfied. The caller provides its own
     /// resource key.
     /// </param>
+    /// <param name="queryViewerField">
+    /// The <c>Query.viewer</c> field that a viewer field on the path, which is missing in
+    /// <paramref name="transitionToSchemaName"/>, is re-rooted at, or <c>null</c> when the path
+    /// cannot be re-rooted.
+    /// </param>
     /// <returns>
     /// An empty array if the transition is satisfiable; otherwise the
     /// accumulated errors describing every direct and parent-call lookup that
@@ -67,7 +73,8 @@ internal static class SourceSchemaTransitionHelper
             SelectionSetNode,
             ImmutableArray<SatisfiabilityError>> validateLookupRequirements,
         string noLookupsFoundForTypeMessageFormat,
-        string unableToSatisfyRequirementForLookupMessageFormat)
+        string unableToSatisfyRequirementForLookupMessageFormat,
+        MutableOutputFieldDefinition? queryViewerField)
     {
         var errors = new List<SatisfiabilityError>();
         var leafPathItem = pathFromLeaf.Count > 0 ? pathFromLeaf[0] : null;
@@ -110,7 +117,7 @@ internal static class SourceSchemaTransitionHelper
         // Known limitation: we do not explicitly replay the suffix fields
         // through the normal field-access rules (@require, @partial,
         // @provides). The main satisfiability loop covers most cases
-        // implicitly by visiting every reachable (type, schema) combination
+        // implicitly by visiting every reachable type on its access path
         // and running those checks there. The gap is when this parent-call
         // enables a (type, schema) combination that the forward-from-Query
         // traversal does not otherwise reach (e.g. a target schema whose only
@@ -127,6 +134,14 @@ internal static class SourceSchemaTransitionHelper
             // also blocked by the same missing field and we can stop here.
             if (!ancestor.Field.ExistsInSchema(transitionToSchemaName))
             {
+                // The suffix below a viewer field is re-traversed from Query.viewer in the target schema.
+                if (queryViewerField is not null
+                    && ancestor.Field.IsViewerFieldFor(queryViewerField)
+                    && queryViewerField.ExistsInSchema(transitionToSchemaName))
+                {
+                    return [];
+                }
+
                 pathIsTraversable = false;
                 break;
             }

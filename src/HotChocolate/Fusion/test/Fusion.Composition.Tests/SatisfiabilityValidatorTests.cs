@@ -323,6 +323,171 @@ public sealed class SatisfiabilityValidatorTests
     }
 
     [Fact]
+    public void Validate_Should_Fail_When_EventStreamMessageOmitsLookupKeyAndQueryReachesSameType()
+    {
+        // arrange
+        string[] sdl =
+        [
+            """
+            # Schema Events
+            type Query {
+                anyBook: Book
+            }
+
+            type Subscription {
+                bookChanged: Book
+                    @eventStream(topics: ["book.changed"], message: "{ __typename }")
+            }
+
+            type Book {
+                id: ID! @shareable
+            }
+            """,
+            """
+            # Schema Books
+            type Query {
+                bookById(id: ID!): Book @lookup
+            }
+
+            type Book {
+                id: ID! @shareable
+                title: String!
+            }
+            """
+        ];
+
+        // act
+        var (result, log) = ValidateSatisfiability(sdl);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'Book.id' on path 'A:Subscription.bookChanged<Book>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Book.id<ID>'.
+                Unable to satisfy the requirement '{ id }' for lookup 'bookById' in schema 'B'.
+                  Unable to satisfy the requirement 'id'.
+                    Unable to access the required field 'Book.id' on path 'A:Subscription.bookChanged<Book>'.
+                      No other schemas contain the field 'Book.id'.
+
+            Unable to access the field 'Book.title' on path 'A:Subscription.bookChanged<Book>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Book.title<String>'.
+                Unable to satisfy the requirement '{ id }' for lookup 'bookById' in schema 'B'.
+                  Unable to satisfy the requirement 'id'.
+                    Unable to access the required field 'Book.id' on path 'A:Subscription.bookChanged<Book>'.
+                      No other schemas contain the field 'Book.id'.
+            """);
+    }
+
+    [Fact]
+    public void Validate_Should_Succeed_When_EventStreamMessageOmitsFieldResolvableThroughLookupInSameSchema()
+    {
+        // arrange
+        string[] sdl =
+        [
+            """
+            # Schema A
+            type Query {
+                other: String
+                reviewById(id: ID!): Review @lookup @internal
+            }
+
+            type Subscription {
+                onCreateReview: ReviewCreated
+                    @eventStream(topics: ["review.created"], message: "{ review { id } }")
+            }
+
+            type ReviewCreated {
+                review: Review
+            }
+
+            type Review @key(fields: "id") {
+                id: ID!
+                body: String!
+            }
+            """
+        ];
+
+        // act
+        var (result, log) = ValidateSatisfiability(sdl);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_EventStreamMessageOmitsLookupKeyOfSameSchema()
+    {
+        // arrange
+        string[] sdl =
+        [
+            """
+            # Schema A
+            type Query {
+                other: String
+                reviewById(id: ID!): Review @lookup @internal
+            }
+
+            type Subscription {
+                onCreateReview: ReviewCreated
+                    @eventStream(topics: ["review.created"], message: "{ review { __typename } }")
+            }
+
+            type ReviewCreated {
+                review: Review
+            }
+
+            type Review @key(fields: "id") {
+                id: ID!
+                body: String!
+            }
+            """
+        ];
+
+        // act
+        var (result, log) = ValidateSatisfiability(sdl);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'Review.id' on path 'A:Subscription.onCreateReview<ReviewCreated> -> A:ReviewCreated.review<Review>'.
+
+            Unable to access the field 'Review.body' on path 'A:Subscription.onCreateReview<ReviewCreated> -> A:ReviewCreated.review<Review>'.
+            """);
+    }
+
+    [Fact]
+    public void Validate_Should_Succeed_When_EventStreamMessageSelectsItsOwnEventStreamField()
+    {
+        // arrange
+        string[] sdl =
+        [
+            """
+            # Schema A
+            type Query {
+                t: T
+            }
+
+            type T {
+                id: ID!
+                next: T @eventStream(topics: ["t.next"], message: "{ id next { id } }")
+            }
+            """
+        ];
+
+        // act
+        var (result, log) = ValidateSatisfiability(sdl);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
     public void Validate_Should_Succeed_When_EventStreamMessageProvidesLookupKey()
     {
         // arrange
@@ -717,6 +882,844 @@ public sealed class SatisfiabilityValidatorTests
             Unable to access the field 'Address.country' on path 'A:Query.userById<User> -> A:User.address<Address>'.
               Unable to transition between schemas 'A' and 'B' for access to field 'B:Address.country<String>'.
                 No lookups found for type 'Address' in schema 'B'.
+            """);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Validate_Should_Fail_When_ValueTypeFieldIsUnreachableThroughUnsharedRootField(
+        bool unsharedRootFieldFirst)
+    {
+        // arrange
+        var (firstRootField, secondRootField) = unsharedRootFieldFirst
+            ? ("objectUnShared: Object", "objectShared: Object @shareable")
+            : ("objectShared: Object @shareable", "objectUnShared: Object");
+
+        string[] sdl =
+        [
+            $$"""
+            # Schema A
+            type Query {
+                {{firstRootField}}
+                {{secondRootField}}
+            }
+
+            type Object {
+                a: ID
+            }
+            """,
+            """
+            # Schema B
+            type Query {
+                objectShared: Object @shareable
+            }
+
+            type Object {
+                b: ID
+            }
+            """
+        ];
+
+        // act
+        var (result, log) = ValidateSatisfiability(sdl);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'Object.b' on path 'A:Query.objectUnShared<Object>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Object.b<ID>'.
+                No lookups found for type 'Object' in schema 'B'.
+            """);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Validate_Should_Fail_When_ValueTypeFieldIsUnreachableThroughUnsharedRootFieldInSecondSchema(
+        bool unsharedRootFieldFirst)
+    {
+        // arrange
+        var (firstRootField, secondRootField) = unsharedRootFieldFirst
+            ? ("objectUnShared: Object", "objectShared: Object @shareable")
+            : ("objectShared: Object @shareable", "objectUnShared: Object");
+
+        string[] sdl =
+        [
+            """
+            # Schema A
+            type Query {
+                objectShared: Object @shareable
+            }
+
+            type Object {
+                a: ID
+            }
+            """,
+            $$"""
+            # Schema B
+            type Query {
+                {{firstRootField}}
+                {{secondRootField}}
+            }
+
+            type Object {
+                b: ID
+            }
+            """
+        ];
+
+        // act
+        var (result, log) = ValidateSatisfiability(sdl);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'Object.a' on path 'B:Query.objectUnShared<Object>'.
+              Unable to transition between schemas 'B' and 'A' for access to field 'A:Object.a<ID>'.
+                No lookups found for type 'Object' in schema 'A'.
+            """);
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_ValueTypeIsReachedThroughUnsharedNestedField()
+    {
+        // arrange
+        string[] sdl =
+        [
+            """
+            # Schema A
+            type Query {
+                objectShared: Object @shareable
+                holder: Holder
+            }
+
+            type Holder {
+                objectUnShared: Object
+            }
+
+            type Object {
+                a: ID
+            }
+            """,
+            """
+            # Schema B
+            type Query {
+                objectShared: Object @shareable
+            }
+
+            type Object {
+                b: ID
+            }
+            """
+        ];
+
+        // act
+        var (result, log) = ValidateSatisfiability(sdl);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'Object.b' on path 'A:Query.holder<Holder> -> A:Holder.objectUnShared<Object>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Object.b<ID>'.
+                No lookups found for type 'Object' in schema 'B'.
+            """);
+    }
+
+    [Fact]
+    public void Validate_Should_LogUnreachableFieldOncePerSchema_When_SeveralAccessPathsFail()
+    {
+        // arrange
+        string[] sdl =
+        [
+            """
+            # Schema A
+            type Query {
+                x: Object
+                y: Object @shareable
+            }
+
+            type Object {
+                a: ID
+            }
+            """,
+            """
+            # Schema B
+            type Query {
+                z: Object @shareable
+            }
+
+            type Object {
+                b: ID
+            }
+            """,
+            """
+            # Schema C
+            type Query {
+                y: Object @shareable
+            }
+
+            type Object {
+                c: ID
+            }
+            """
+        ];
+
+        // act
+        var (result, log) = ValidateSatisfiability(sdl);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'Object.b' on path 'A:Query.x<Object>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Object.b<ID>'.
+                No lookups found for type 'Object' in schema 'B'.
+
+            Unable to access the field 'Object.c' on path 'A:Query.x<Object>'.
+              Unable to transition between schemas 'A' and 'C' for access to field 'C:Object.c<ID>'.
+                No lookups found for type 'Object' in schema 'C'.
+
+            Unable to access the field 'Object.b' on path 'C:Query.y<Object>'.
+              Unable to transition between schemas 'C' and 'B' for access to field 'B:Object.b<ID>'.
+                No lookups found for type 'Object' in schema 'B'.
+
+            Unable to access the field 'Object.a' on path 'B:Query.z<Object>'.
+              Unable to transition between schemas 'B' and 'A' for access to field 'A:Object.a<ID>'.
+                No lookups found for type 'Object' in schema 'A'.
+
+            Unable to access the field 'Object.c' on path 'B:Query.z<Object>'.
+              Unable to transition between schemas 'B' and 'C' for access to field 'C:Object.c<ID>'.
+                No lookups found for type 'Object' in schema 'C'.
+            """);
+    }
+
+    [Fact]
+    public void Validate_Should_Succeed_When_ValueTypeIsReachedOnlyThroughSharedFields()
+    {
+        // arrange
+        string[] sdl =
+        [
+            """
+            # Schema A
+            type Query {
+                objectShared: Object @shareable
+                holder: Holder @shareable
+            }
+
+            type Holder {
+                object: Object @shareable
+            }
+
+            type Object {
+                a: ID
+            }
+            """,
+            """
+            # Schema B
+            type Query {
+                objectShared: Object @shareable
+                holder: Holder @shareable
+            }
+
+            type Holder {
+                object: Object @shareable
+            }
+
+            type Object {
+                b: ID
+            }
+            """
+        ];
+
+        // act
+        var (result, log) = ValidateSatisfiability(sdl);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Validate_Should_Succeed_When_MutationPayloadViewerFallsBackToQueryViewer()
+    {
+        // arrange
+        string[] sdl =
+        [
+            """
+            # Schema A
+            type Query {
+                viewer: Viewer @shareable
+            }
+
+            type Mutation {
+                doSomething: DoSomethingPayload
+            }
+
+            type DoSomethingPayload {
+                something: Int
+                viewer: Viewer
+            }
+
+            type Viewer {
+                a: String
+            }
+            """,
+            """
+            # Schema B
+            type Query {
+                viewer: Viewer @shareable
+            }
+
+            type Viewer {
+                b: String
+            }
+            """
+        ];
+
+        // act
+        var (result, log) = ValidateSatisfiability(sdl);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_QueryPathReachesPayloadViewerAlsoReachedFromMutation()
+    {
+        // arrange
+        string[] sdl =
+        [
+            """
+            # Schema A
+            type Query {
+                viewer: Viewer @shareable
+                wrapper: Wrapper
+            }
+
+            type Mutation {
+                doSomething: DoSomethingPayload
+            }
+
+            type Wrapper {
+                payload: DoSomethingPayload
+            }
+
+            type DoSomethingPayload {
+                something: Int
+                viewer: Viewer
+            }
+
+            type Viewer {
+                a: String
+            }
+            """,
+            """
+            # Schema B
+            type Query {
+                viewer: Viewer @shareable
+            }
+
+            type Viewer {
+                b: String
+            }
+            """
+        ];
+
+        // act
+        var (result, log) = ValidateSatisfiability(sdl);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'Viewer.b' on path 'A:Query.wrapper<Wrapper> -> A:Wrapper.payload<DoSomethingPayload> -> A:DoSomethingPayload.viewer<Viewer>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Viewer.b<String>'.
+                No lookups found for type 'Viewer' in schema 'B'.
+            """);
+    }
+
+    [Fact]
+    public void Validate_Should_Succeed_When_SubscriptionPayloadViewerFallsBackToQueryViewer()
+    {
+        // arrange
+        string[] sdl =
+        [
+            """
+            # Schema A
+            type Query {
+                viewer: Viewer @shareable
+            }
+
+            type Subscription {
+                onSomething: SomethingPayload
+            }
+
+            type SomethingPayload {
+                something: Int
+                viewer: Viewer
+            }
+
+            type Viewer {
+                a: String
+            }
+            """,
+            """
+            # Schema B
+            type Query {
+                viewer: Viewer @shareable
+            }
+
+            type Viewer {
+                b: String
+            }
+            """
+        ];
+
+        // act
+        var (result, log) = ValidateSatisfiability(sdl);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_PayloadViewerFieldHasArguments()
+    {
+        // arrange
+        string[] sdl =
+        [
+            """
+            # Schema A
+            type Query {
+                viewer: Viewer @shareable
+            }
+
+            type Mutation {
+                doSomething: DoSomethingPayload
+            }
+
+            type DoSomethingPayload {
+                something: Int
+                viewer(locale: String): Viewer
+            }
+
+            type Viewer {
+                a: String
+            }
+            """,
+            """
+            # Schema B
+            type Query {
+                viewer: Viewer @shareable
+            }
+
+            type Viewer {
+                b: String
+            }
+            """
+        ];
+
+        // act
+        var (result, log) = ValidateSatisfiability(sdl);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'Viewer.b' on path 'A:Mutation.doSomething<DoSomethingPayload> -> A:DoSomethingPayload.viewer<Viewer>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Viewer.b<String>'.
+                No lookups found for type 'Viewer' in schema 'B'.
+            """);
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_QueryViewerHasRequiredArguments()
+    {
+        // arrange
+        string[] sdl =
+        [
+            """
+            # Schema A
+            type Query {
+                viewer(token: String!): Viewer @shareable
+            }
+
+            type Mutation {
+                doSomething: DoSomethingPayload
+            }
+
+            type DoSomethingPayload {
+                something: Int
+                viewer: Viewer
+            }
+
+            type Viewer {
+                a: String
+            }
+            """,
+            """
+            # Schema B
+            type Query {
+                viewer(token: String!): Viewer @shareable
+            }
+
+            type Viewer {
+                b: String
+            }
+            """
+        ];
+
+        // act
+        var (result, log) = ValidateSatisfiability(sdl);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'Viewer.b' on path 'A:Mutation.doSomething<DoSomethingPayload> -> A:DoSomethingPayload.viewer<Viewer>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Viewer.b<String>'.
+                No lookups found for type 'Viewer' in schema 'B'.
+            """);
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_PayloadViewerTypeDiffersFromQueryViewerType()
+    {
+        // arrange
+        string[] sdl =
+        [
+            """
+            # Schema A
+            type Query {
+                something: Int
+            }
+
+            type Mutation {
+                doSomething: DoSomethingPayload
+            }
+
+            type DoSomethingPayload {
+                something: Int
+                viewer: PayloadViewer
+            }
+
+            type PayloadViewer {
+                a: String
+            }
+            """,
+            """
+            # Schema B
+            type Query {
+                viewer: Viewer
+            }
+
+            type Viewer {
+                c: String
+            }
+
+            type PayloadViewer {
+                b: String
+            }
+            """
+        ];
+
+        // act
+        var (result, log) = ValidateSatisfiability(sdl);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'PayloadViewer.b' on path 'A:Mutation.doSomething<DoSomethingPayload> -> A:DoSomethingPayload.viewer<PayloadViewer>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:PayloadViewer.b<String>'.
+                No lookups found for type 'PayloadViewer' in schema 'B'.
+            """);
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_RequirementIsUnreachableThroughUnsharedRootField()
+    {
+        // arrange
+        string[] sdl =
+        [
+            """
+            # Schema A
+            type Query {
+                viewerShared: Viewer @shareable
+                viewerUnShared: Viewer
+            }
+
+            type Viewer {
+                fullName(firstName: String! @require(field: "firstName")): String!
+            }
+            """,
+            """
+            # Schema B
+            type Query {
+                viewerShared: Viewer @shareable
+            }
+
+            type Viewer {
+                firstName: String!
+            }
+            """
+        ];
+
+        // act
+        var (result, log) = ValidateSatisfiability(sdl);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'Viewer.fullName' on path 'A:Query.viewerUnShared<Viewer>'.
+              Unable to satisfy the requirement '{ firstName }' on field 'A:Viewer.fullName<String>'.
+                Unable to satisfy the requirement 'firstName'.
+                  Unable to access the required field 'Viewer.firstName' on path 'A:Query.viewerUnShared<Viewer>'.
+                    Unable to transition between schemas 'A' and 'B' for access to required field 'B:Viewer.firstName<String>'.
+                      No lookups found for type 'Viewer' in schema 'B'.
+
+            Unable to access the field 'Viewer.firstName' on path 'A:Query.viewerUnShared<Viewer>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Viewer.firstName<String>'.
+                No lookups found for type 'Viewer' in schema 'B'.
+            """);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Validate_Should_Fail_When_OnlyOneParentAllowsParentEntityCall(bool entityParentFirst)
+    {
+        // arrange
+        var (firstRootField, secondRootField) = entityParentFirst
+            ? ("a: E", "b: F")
+            : ("b: F", "a: E");
+
+        string[] sdl =
+        [
+            $$"""
+            # Schema A
+            type Query {
+                {{firstRootField}}
+                {{secondRootField}}
+            }
+
+            type E {
+                id: ID! @shareable
+                t: T @shareable
+            }
+
+            type F {
+                t: T
+            }
+
+            type T {
+                o: Object @shareable
+            }
+
+            type Object {
+                x: ID
+            }
+            """,
+            """
+            # Schema B
+            type Query {
+                eById(id: ID!): E @lookup @inaccessible
+            }
+
+            type E {
+                id: ID! @shareable
+                t: T @shareable
+            }
+
+            type T {
+                o: Object @shareable
+            }
+
+            type Object {
+                y: ID
+            }
+            """
+        ];
+
+        // act
+        var (result, log) = ValidateSatisfiability(sdl);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'Object.y' on path 'A:Query.b<F> -> A:F.t<T> -> A:T.o<Object>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Object.y<ID>'.
+                No lookups found for type 'Object' in schema 'B'.
+            """);
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_RepeatedFieldIsUnreachableFromDeeperPositionAndSharedRootFieldIsFirst()
+    {
+        // arrange
+        var sdl = CreateRepeatedFieldSchemas(sharedRootFieldFirst: true);
+
+        // act
+        var (result, log) = ValidateSatisfiability(sdl);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'T.f' on path 'A:Query.t<T> -> B:T.f<V> -> A:V.g<T>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:T.f<V>'.
+                No lookups found for type 'T' in schema 'B'.
+            """);
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_RepeatedFieldIsUnreachableFromDeeperPositionAndDeepRootFieldIsFirst()
+    {
+        // arrange
+        var sdl = CreateRepeatedFieldSchemas(sharedRootFieldFirst: false);
+
+        // act
+        var (result, log) = ValidateSatisfiability(sdl);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'T.f' on path 'A:Query.deep<D1> -> A:D1.d2<D2> -> A:D2.t<T>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:T.f<V>'.
+                No lookups found for type 'T' in schema 'B'.
+            """);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Validate_Should_Fail_When_SelfReferencingFieldRequirementIsUnreachableFromOneHolder(
+        bool sharedRootFieldFirst)
+    {
+        // arrange
+        var (firstRootField, secondRootField) = sharedRootFieldFirst
+            ? ("t: T @shareable", "holder: Holder")
+            : ("holder: Holder", "t: T @shareable");
+
+        string[] sdl =
+        [
+            $$"""
+            # Schema A
+            type Query {
+                {{firstRootField}}
+                {{secondRootField}}
+            }
+
+            type Holder {
+                t: T
+            }
+
+            type T {
+                a: ID
+                f(x: String @require(field: "x")): T
+            }
+            """,
+            """
+            # Schema B
+            type Query {
+                t: T @shareable
+            }
+
+            type T {
+                x: String @inaccessible
+            }
+            """
+        ];
+
+        // act
+        var (result, log) = ValidateSatisfiability(sdl);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'T.f' on path 'A:Query.holder<Holder> -> A:Holder.t<T>'.
+              Unable to satisfy the requirement '{ x }' on field 'A:T.f<T>'.
+                Unable to satisfy the requirement 'x'.
+                  Unable to access the required field 'T.x' on path 'A:Holder.t<T>'.
+                    Unable to transition between schemas 'A' and 'B' for access to required field 'B:T.x<String>'.
+                      No lookups found for type 'T' in schema 'B'.
+            """);
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_AbstractSelfReferencingFieldRequirementIsUnreachable()
+    {
+        // arrange
+        string[] sdl =
+        [
+            """
+            # Schema A
+            type Query {
+                t: T @shareable
+            }
+
+            interface I {
+                a: ID
+            }
+
+            type T implements I {
+                a: ID
+                f(x: String @require(field: "x")): I
+            }
+
+            type U implements I {
+                a: ID
+            }
+            """,
+            """
+            # Schema B
+            type Query {
+                t: T @shareable
+            }
+
+            type T {
+                x: String @inaccessible
+            }
+            """
+        ];
+
+        // act
+        var (result, log) = ValidateSatisfiability(sdl);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'T.f' on path 'A:Query.t<T> -> A:T.f<I>'.
+              Unable to satisfy the requirement '{ x }' on field 'A:T.f<I>'.
+                Unable to satisfy the requirement 'x'.
+                  Unable to access the required field 'T.x' on path 'A:T.f<I>'.
+                    Unable to transition between schemas 'A' and 'B' for access to required field 'B:T.x<String>'.
+                      No lookups found for type 'T' in schema 'B'.
             """);
     }
 
@@ -4802,6 +5805,56 @@ public sealed class SatisfiabilityValidatorTests
         return (satisfiabilityValidator.Validate(), log);
     }
 
+    private static string[] CreateRepeatedFieldSchemas(bool sharedRootFieldFirst)
+    {
+        var (firstRootField, secondRootField) = sharedRootFieldFirst
+            ? ("t: T @shareable", "deep: D1")
+            : ("deep: D1", "t: T @shareable");
+
+        return
+        [
+            $$"""
+            # Schema A
+            type Query {
+                {{firstRootField}}
+                {{secondRootField}}
+                vById(id: ID!): V @lookup @inaccessible
+            }
+
+            type T {
+                x: ID
+            }
+
+            type V {
+                id: ID! @shareable
+                g: T
+            }
+
+            type D1 {
+                d2: D2
+            }
+
+            type D2 {
+                t: T
+            }
+            """,
+            """
+            # Schema B
+            type Query {
+                t: T @shareable
+            }
+
+            type T {
+                f: V
+            }
+
+            type V {
+                id: ID! @shareable
+            }
+            """
+        ];
+    }
+
     public static TheoryData<string[], bool, string?> GlobalObjectIdentificationExamplesData()
     {
         return new TheoryData<string[], bool, string?>
@@ -5098,6 +6151,84 @@ public sealed class SatisfiabilityValidatorTests
                     type Cat implements Node {
                         id: ID!
                         name: String!
+                    }
+                    """
+                ],
+                true,
+                null
+            },
+            // A type reached through a node lookup cannot transition to a schema without a lookup for it
+            {
+                [
+                    """
+                    # Schema A
+                    type Query {
+                        productShared: Product @shareable
+                        node(id: ID!): Node @lookup
+                    }
+
+                    interface Node {
+                        id: ID!
+                    }
+
+                    type Product implements Node {
+                        id: ID!
+                    }
+                    """,
+                    """
+                    # Schema B
+                    type Query {
+                        productShared: Product @shareable
+                    }
+
+                    type Product {
+                        id: ID!
+                        x: String
+                    }
+                    """
+                ],
+                false,
+                """
+                Unable to access the field 'Product.x' on path '*:Query.node<Node> -> A:Query.node<Node>'.
+                  Unable to transition between schemas 'A' and 'B' for access to field 'B:Product.x<String>'.
+                    No lookups found for type 'Product' in schema 'B'.
+                """
+            },
+            // A child of a type reached through a node lookup re-enters the lookup schema through the parent's lookup
+            {
+                [
+                    """
+                    # Schema A
+                    type Query {
+                        node(id: ID!): Node @lookup
+                    }
+
+                    interface Node {
+                        id: ID!
+                    }
+
+                    type Product implements Node {
+                        id: ID! @shareable
+                        details: Details @shareable
+                    }
+
+                    type Details {
+                        a: String
+                    }
+                    """,
+                    """
+                    # Schema B
+                    type Query {
+                        productById(id: ID!): Product @lookup
+                    }
+
+                    type Product {
+                        id: ID! @shareable
+                        details: Details @shareable
+                    }
+
+                    type Details {
+                        b: String
                     }
                     """
                 ],

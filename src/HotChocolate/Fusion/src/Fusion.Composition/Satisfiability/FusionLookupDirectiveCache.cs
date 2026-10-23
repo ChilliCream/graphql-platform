@@ -1,8 +1,10 @@
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
+using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
 using BooleanValueNode = HotChocolate.Language.BooleanValueNode;
 using ListValueNode = HotChocolate.Language.ListValueNode;
+using SelectionSetNode = HotChocolate.Language.SelectionSetNode;
 
 namespace HotChocolate.Fusion.Satisfiability;
 
@@ -15,6 +17,7 @@ internal sealed class FusionLookupDirectiveCache
     private readonly Dictionary<MutableComplexTypeDefinition, List<MutableUnionTypeDefinition>> _unionsByMember = [];
     private readonly Dictionary<(MutableComplexTypeDefinition Type, string? SchemaName), List<IDirective>> _lookups = [];
     private readonly Dictionary<(MutableComplexTypeDefinition Type, string? SchemaName), List<IDirective>> _lookupsById = [];
+    private readonly Dictionary<IDirective, SelectionSetNode> _keys = [];
 
     /// <summary>
     /// Initializes a new lookup directive cache for <paramref name="schema"/>.
@@ -103,6 +106,22 @@ internal sealed class FusionLookupDirectiveCache
         }
 
         return lookupsById;
+    }
+
+    /// <summary>
+    /// Gets the key selection set of the <c>@fusion__lookup</c> directive <paramref name="lookup"/>.
+    /// </summary>
+    /// <param name="lookup">The lookup directive.</param>
+    /// <returns>The key of the lookup as a selection set.</returns>
+    public SelectionSetNode GetLookupKey(IDirective lookup)
+    {
+        if (!_keys.TryGetValue(lookup, out var key))
+        {
+            key = ParseSelectionSet($"{{ {(string)lookup.Arguments[WellKnownArgumentNames.Key].Value!} }}");
+            _keys.Add(lookup, key);
+        }
+
+        return key;
     }
 
     private IReadOnlyList<MutableUnionTypeDefinition> GetUnionsContainingType(
