@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState } from "react";
+import { useBenchmarkPreferences } from "@/src/components/benchmarks/BenchmarkPreferences";
 
-/** A pinned series takes precedence over pointer and keyboard highlights. */
-export function useSeriesHighlight() {
+/** A pinned series takes precedence over pointer and keyboard highlights and stays pinned across scenarios that contain it. */
+export function useSeriesHighlight(seriesIds: readonly string[]) {
   const [hovered, setHovered] = useState<string>();
   const [focused, setFocused] = useState<string>();
-  const [pinned, setPinned] = useState<string>();
+  const { pinnedSeries, setPinnedSeries: setPinned } =
+    useBenchmarkPreferences();
+  const pinned =
+    pinnedSeries && seriesIds.includes(pinnedSeries) ? pinnedSeries : undefined;
   const hoverTimeout = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(hoverTimeout.current), []);
   return {

@@ -13,6 +13,8 @@ import type { BenchmarkFilters } from "@/src/components/benchmarks/benchmarkFilt
 const Preferences = createContext<{
   readonly filters: BenchmarkFilters;
   readonly setFilters: Dispatch<SetStateAction<BenchmarkFilters>>;
+  readonly pinnedSeries: string | undefined;
+  readonly setPinnedSeries: Dispatch<SetStateAction<string | undefined>>;
 } | null>(null);
 
 interface BenchmarkPreferencesProps {
@@ -24,8 +26,11 @@ export function BenchmarkPreferences({ children }: BenchmarkPreferencesProps) {
     technologies: [],
     showPreviews: true,
   });
+  const [pinnedSeries, setPinnedSeries] = useState<string>();
   return (
-    <Preferences.Provider value={{ filters, setFilters }}>
+    <Preferences.Provider
+      value={{ filters, setFilters, pinnedSeries, setPinnedSeries }}
+    >
       {children}
     </Preferences.Provider>
   );

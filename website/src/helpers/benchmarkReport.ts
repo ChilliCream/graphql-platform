@@ -3,35 +3,6 @@ export const BENCHMARK_REPOSITORY =
 
 export const BENCHMARK_FUSION_DOCS_URL = "/docs/fusion";
 
-const VARIANT_NAMES: Readonly<Record<string, string>> = {
-  fusion: "Fusion",
-  "fusion-nightly": "Fusion",
-  "fusion-nightly-net11": "Fusion",
-  "fusion-nightly-fed": "Fusion",
-  "hive-router": "Hive Router",
-  "hive-gateway": "Hive Gateway",
-  "hive-gateway-router-runtime": "Hive Gateway · Router Runtime",
-  "apollo-router": "Apollo Router",
-  "apollo-router-v3": "Apollo Router",
-  "apollo-gateway": "Apollo Gateway",
-  cosmo: "Cosmo Router",
-  grafbase: "Grafbase Gateway",
-  feddi: "feddi",
-  caliban: "Caliban",
-};
-
-const GATEWAY_LINKS: Readonly<Record<string, string>> = {
-  fusion: BENCHMARK_FUSION_DOCS_URL,
-  "hive-router": "https://github.com/graphql-hive/router",
-  "hive-gateway": "https://github.com/graphql-hive/gateway",
-  "apollo-router": "https://github.com/apollographql/router",
-  "apollo-gateway": "https://github.com/apollographql/federation",
-  cosmo: "https://github.com/wundergraph/cosmo",
-  grafbase: "https://github.com/grafbase/grafbase",
-  feddi: "https://github.com/feddi-dev/feddi-gateway",
-  caliban: "https://github.com/ghostdogpr/caliban",
-};
-
 const RUNTIME_TAGS: Readonly<Record<string, string>> = {
   "Node.js": "Node",
 };
@@ -680,18 +651,21 @@ export function benchmarkVariants(
   );
 }
 
-/** Returns the display name of a variant: its explicit label, otherwise the site name or gateway name. */
+/** Returns the display name of a variant: its explicit label, otherwise the gateway name, followed by its feature IDs in parentheses. */
 export function variantName({
   gateway,
   variant,
 }: BenchmarkCatalogEntry): string {
-  return variant.label ?? VARIANT_NAMES[variant.id] ?? gateway.name;
+  const name = variant.label ?? gateway.name;
+  return variant.features?.length
+    ? `${name} (${variant.features.map((feature) => feature.id).join(", ")})`
+    : name;
 }
 
-/** Returns the link for a gateway: the site link for known gateways, otherwise its HTTPS repository URL, or undefined. */
+/** Returns the link for a gateway: the Fusion docs for Fusion, otherwise its HTTPS repository URL, or undefined. */
 export function gatewayLink(gateway: BenchmarkGateway): string | undefined {
-  if (Object.hasOwn(GATEWAY_LINKS, gateway.id)) {
-    return GATEWAY_LINKS[gateway.id];
+  if (gateway.id === "fusion") {
+    return BENCHMARK_FUSION_DOCS_URL;
   }
   return gateway.repositoryUrl?.startsWith("https://")
     ? gateway.repositoryUrl

@@ -51,6 +51,7 @@ export function BenchmarkHistoryChart({
     observer.observe(plot);
     return () => observer.disconnect();
   }, [scenario, stableOnly]);
+  const series = historySeries(scenario, variants, stableOnly);
   const {
     active,
     pinned,
@@ -59,12 +60,11 @@ export function BenchmarkHistoryChart({
     togglePinned,
     clearPointerHighlight,
     clearHoverSoon,
-  } = useSeriesHighlight();
+  } = useSeriesHighlight(series.map((item) => item.id));
   const [selected, setSelected] = useState<{
     readonly seriesId: string;
     readonly point: HistoryPoint;
   }>();
-  const series = historySeries(scenario, variants, stableOnly);
   if (series.length === 0) {
     return null;
   }
