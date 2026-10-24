@@ -447,6 +447,271 @@ public class RequirementCrossEntityTests : FusionTestBase
         MatchSnapshot(plan);
     }
 
+    [Fact]
+    public void Plan_Should_Resolve_Root_Name_When_Apollo_Requires_External_Self_Reference()
+    {
+        // arrange
+        // a.name requires entity { age }, where entity and age are external in a and only b
+        // resolves them, so b fetches the requirement and a's entity lookup receives it.
+        var schema = CreateApolloSelfReferenceRequiresSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              entity {
+                name
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_Resolve_Nested_Name_When_Apollo_Requires_External_Self_Reference()
+    {
+        // arrange
+        var schema = CreateApolloSelfReferenceRequiresSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              entity {
+                entity {
+                  name
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_Resolve_Deeply_Nested_Name_When_Apollo_Requires_External_Self_Reference()
+    {
+        // arrange
+        var schema = CreateApolloSelfReferenceRequiresSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              entity {
+                entity {
+                  entity {
+                    name
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_Batch_Name_Lookups_At_Every_Depth_When_Apollo_Requires_External_Self_Reference()
+    {
+        // arrange
+        var schema = CreateApolloSelfReferenceRequiresSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              entity {
+                name
+                entity {
+                  name
+                  entity {
+                    name
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_Resolve_Root_Name_When_Require_Selects_Self_Reference_From_Other_Schema()
+    {
+        // arrange
+        // a.name requires entity.age, which only b resolves, so b fetches the requirement and
+        // a's entityById lookup receives it.
+        var schema = CreateSelfReferenceRequireSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              entity {
+                name
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_Resolve_Nested_Name_When_Require_Selects_Self_Reference_From_Other_Schema()
+    {
+        // arrange
+        var schema = CreateSelfReferenceRequireSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              entity {
+                entity {
+                  name
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_Resolve_Deeply_Nested_Name_When_Require_Selects_Self_Reference_From_Other_Schema()
+    {
+        // arrange
+        var schema = CreateSelfReferenceRequireSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              entity {
+                entity {
+                  entity {
+                    name
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_Batch_Name_Lookups_At_Every_Depth_When_Require_Selects_Self_Reference_From_Other_Schema()
+    {
+        // arrange
+        var schema = CreateSelfReferenceRequireSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              entity {
+                name
+                entity {
+                  name
+                  entity {
+                    name
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    private static FusionSchemaDefinition CreateApolloSelfReferenceRequiresSchema()
+    {
+        return ComposeSchema(
+            """
+            # name: a
+            extend schema
+              @link(
+                url: "https://specs.apollo.dev/federation/v2.11"
+                import: ["@external", "@key", "@shareable", "@requires"])
+
+            type Query {
+              entity: Entity! @shareable
+            }
+
+            type Entity @key(fields: "id") @shareable {
+              id: ID
+              age: Int! @external
+              name: String! @requires(fields: "entity { age }")
+              entity: Entity! @external
+            }
+            """,
+            """
+            # name: b
+            extend schema
+              @link(
+                url: "https://specs.apollo.dev/federation/v2.11"
+                import: ["@external", "@key", "@shareable"])
+
+            type Query {
+              entity: Entity @shareable
+            }
+
+            type Entity @shareable {
+              id: ID
+              age: Int!
+              entity: Entity!
+            }
+            """);
+    }
+
+    private static FusionSchemaDefinition CreateSelfReferenceRequireSchema()
+    {
+        return ComposeSchema(
+            """
+            # name: a
+            type Query {
+              entity: Entity! @shareable
+              entityById(id: ID!): Entity @lookup @internal
+            }
+
+            type Entity @key(fields: "id") @shareable {
+              id: ID
+              name(entityAge: Int! @require(field: "entity.age")): String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+              entity: Entity @shareable
+            }
+
+            type Entity @shareable {
+              id: ID
+              age: Int!
+              entity: Entity!
+            }
+            """);
+    }
+
     private static FusionSchemaDefinition CreateCircularCrossProviderSchema()
     {
         return ComposeSchema(
