@@ -1105,6 +1105,7 @@ public sealed partial class OperationPlanner
         backlog = backlog.PushRequirements(
             fieldsWithRequirements,
             new StepConsumer(stepId),
+            workItem.Dependents,
             stepDepth,
             workItem.SourceSchemaNodePolicy is null
                 ? null
@@ -1350,6 +1351,7 @@ public sealed partial class OperationPlanner
                 backlog = backlog.PushRequirements(
                     fieldsWithRequirements,
                     new StepConsumer(step.Id),
+                    [lookupStepId],
                     GetOperationStepDepth(current, step.Id),
                     descendantPolicy);
 
@@ -1407,6 +1409,7 @@ public sealed partial class OperationPlanner
                 backlog = backlog.PushRequirements(
                     ancestorFieldsWithRequirements,
                     new StepConsumer(ancestorMatch.Step.Id),
+                    [lookupStepId],
                     GetOperationStepDepth(current, ancestorMatch.Step.Id),
                     descendantPolicy);
 
@@ -1662,6 +1665,7 @@ public sealed partial class OperationPlanner
                 stepConsumer.StepId,
                 workItem.EstimatedDepth,
                 workItem.Selection,
+                workItem.Dependents,
                 current,
                 index,
                 ref backlog,
@@ -1894,6 +1898,7 @@ public sealed partial class OperationPlanner
                 stepId,
                 stepDepth,
                 workItem.Selection,
+                workItem.Dependents,
                 current,
                 indexBuilder,
                 ref backlog,
@@ -1941,11 +1946,13 @@ public sealed partial class OperationPlanner
                 selectionSetNode);
             EnsureAllSelectionSetsRegistered(operation.SelectionSet, indexBuilder);
 
+            // The steps that need the field now depend on the step it is merged into.
             var updatedStep = refreshedExistingStep with
             {
                 Definition = operation,
                 SelectionSets = SelectionSetIndexer.CreateIdSet(operation.SelectionSet, indexBuilder),
-                Requirements = requirements
+                Requirements = requirements,
+                Dependents = refreshedExistingStep.Dependents.Union(workItem.Dependents)
             };
 
             steps = steps.SetItem(existingStepIndex, updatedStep);
@@ -2084,7 +2091,8 @@ public sealed partial class OperationPlanner
                 && candidate.Type.Name.Equals(
                     workItem.Selection.Field.DeclaringType.Name,
                     StringComparison.Ordinal)
-                && ConditionsEqual(candidate.Conditions, workItem.Conditions))
+                && ConditionsEqual(candidate.Conditions, workItem.Conditions)
+                && !IsOrDependsOnAny(candidate, workItem.Dependents, current.Steps))
             {
                 step = candidate;
                 stepIndex = i;
@@ -2094,6 +2102,28 @@ public sealed partial class OperationPlanner
 
         step = null!;
         stepIndex = -1;
+        return false;
+    }
+
+    /// <summary>
+    /// Determines whether <paramref name="step"/> is one of <paramref name="stepIds"/> or
+    /// depends on one of them.
+    /// </summary>
+    private static bool IsOrDependsOnAny(
+        OperationPlanStep step,
+        ImmutableHashSet<int> stepIds,
+        ImmutableList<PlanStep> steps)
+    {
+        foreach (var stepId in stepIds)
+        {
+            if (stepId == step.Id
+                || (steps.ById(stepId) is OperationPlanStep other
+                    && step.DependsOn(other, steps)))
+            {
+                return true;
+            }
+        }
+
         return false;
     }
 
@@ -2178,6 +2208,7 @@ public sealed partial class OperationPlanner
         backlog = backlog.PushRequirements(
             fieldsWithRequirements,
             new StepConsumer(stepId),
+            workItem.Dependents,
             stepDepth,
             descendantPolicy);
 
@@ -2613,6 +2644,7 @@ public sealed partial class OperationPlanner
         int stepId,
         int stepDepth,
         FieldSelection selection,
+        ImmutableHashSet<int> dependents,
         PlanNode current,
         SelectionSetIndexBuilder index,
         ref Backlog backlog,
@@ -2658,6 +2690,7 @@ public sealed partial class OperationPlanner
         backlog = backlog.PushRequirements(
             fieldsWithRequirements,
             new StepConsumer(stepId),
+            dependents,
             stepDepth,
             descendantPolicy);
         return resolvable;
@@ -2890,6 +2923,7 @@ public sealed partial class OperationPlanner
             backlog = backlog.PushRequirements(
                 nestedFieldsWithRequirements,
                 new StepConsumer(step.Id),
+                [dependentStepId],
                 GetOperationStepDepth(current, step.Id),
                 workItem.SourceSchemaNodePolicy is null
                     ? null
@@ -2974,6 +3008,7 @@ public sealed partial class OperationPlanner
                 backlog = backlog.PushRequirements(
                     nestedAncestorFieldsWithRequirements,
                     new StepConsumer(ancestorMatch.Step.Id),
+                    [dependentStepId],
                     GetOperationStepDepth(current, ancestorMatch.Step.Id),
                     workItem.SourceSchemaNodePolicy is null
                         ? null

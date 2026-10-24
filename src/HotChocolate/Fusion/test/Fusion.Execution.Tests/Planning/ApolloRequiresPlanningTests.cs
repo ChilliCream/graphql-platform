@@ -368,6 +368,145 @@ public class ApolloRequiresPlanningTests : FusionTestBase
             """);
     }
 
+    [Fact]
+    public void Plan_Should_MakeEstimateWaitForWeight_When_ClientSelectsWeightAndEstimate()
+    {
+        // arrange
+        var schema = CreateRequiresChainSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products {
+                id
+                name
+                dimensions
+                weight
+                estimate
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_MakeEstimateWaitForWeight_When_ClientSelectsWholeChain()
+    {
+        // arrange
+        var schema = CreateRequiresChainSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products {
+                id
+                name
+                dimensions
+                volume
+                weight
+                estimate
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_MakeEstimateAndTaxWaitForWeight_When_TwoFieldsRequireWeight()
+    {
+        // arrange
+        var schema = CreateRequiresChainSchema(
+            """
+            # name: tax
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@external", "@requires"])
+
+            type Product @key(fields: "id") {
+              id: ID!
+              weight: Int @external
+              tax: Int @requires(fields: "weight")
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products {
+                id
+                estimate
+                tax
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    private static FusionSchemaDefinition CreateRequiresChainSchema(params string[] additionalSchemas)
+        => ComposeSchema(
+        [
+            """
+            # name: products
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+            type Query {
+              products: [Product]
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              name: String
+              dimensions: [Int!]
+            }
+            """,
+            """
+            # name: geometry
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@external", "@requires"])
+
+            type Product @key(fields: "id") {
+              id: ID!
+              dimensions: [Int!] @external
+              volume: Int! @requires(fields: "dimensions")
+            }
+            """,
+            """
+            # name: metrics
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@external", "@requires"])
+
+            type Product @key(fields: "id") {
+              id: ID!
+              volume: Int! @external
+              weight: Int @requires(fields: "volume")
+            }
+            """,
+            """
+            # name: shipping
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@external", "@requires"])
+
+            type Product @key(fields: "id") {
+              id: ID!
+              weight: Int @external
+              estimate: Int @requires(fields: "weight")
+            }
+            """,
+            .. additionalSchemas
+        ]);
+
     private static FusionSchemaDefinition CreateSecondProviderSchema(string secondProvider)
         => ComposeSchema(
             """

@@ -1161,6 +1161,97 @@ public sealed class SatisfiabilityTests
         Assert.Empty(log);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Compose_Should_Succeed_When_RequiresFormsThreeHopChain(bool includeSecondRequiringSubgraph)
+    {
+        // arrange
+        const string products =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+            type Query {
+                products: [Product]
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                name: String
+                dimensions: [Int!]
+            }
+            """;
+
+        const string geometry =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@external", "@requires"])
+
+            type Product @key(fields: "id") {
+                id: ID!
+                dimensions: [Int!] @external
+                volume: Int! @requires(fields: "dimensions")
+            }
+            """;
+
+        const string metrics =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@external", "@requires"])
+
+            type Product @key(fields: "id") {
+                id: ID!
+                volume: Int! @external
+                weight: Int @requires(fields: "volume")
+            }
+            """;
+
+        const string shipping =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@external", "@requires"])
+
+            type Product @key(fields: "id") {
+                id: ID!
+                weight: Int @external
+                estimate: Int @requires(fields: "weight")
+            }
+            """;
+
+        const string tax =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@external", "@requires"])
+
+            type Product @key(fields: "id") {
+                id: ID!
+                weight: Int @external
+                tax: Int @requires(fields: "weight")
+            }
+            """;
+
+        var sourceSchemas = new List<SourceSchemaText>
+        {
+            new("products", products),
+            new("geometry", geometry),
+            new("metrics", metrics),
+            new("shipping", shipping)
+        };
+
+        if (includeSecondRequiringSubgraph)
+        {
+            sourceSchemas.Add(new SourceSchemaText("tax", tax));
+        }
+
+        // act
+        var (result, log) = Compose([.. sourceSchemas]);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
     private const string SecondProviderRequiringSchema =
         """
         extend schema

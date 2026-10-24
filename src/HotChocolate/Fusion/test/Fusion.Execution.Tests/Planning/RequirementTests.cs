@@ -410,4 +410,73 @@ public class RequirementTests : FusionTestBase
                   - id: 1
             """);
     }
+
+    [Fact]
+    public void Plan_Should_MakeEstimateWaitForWeight_When_ClientSelectsWeightOfThreeHopRequireChain()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: p
+            type Query {
+              products: [Product]
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              name: String
+              dimensions: [Int!]
+            }
+            """,
+            """
+            # name: g
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              volume(dimensions: [Int!] @require(field: "dimensions")): Int!
+            }
+            """,
+            """
+            # name: m
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              weight(volume: Int @require(field: "volume")): Int
+            }
+            """,
+            """
+            # name: s
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              estimate(weight: Int @require(field: "weight")): Int
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products {
+                id
+                weight
+                estimate
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
 }

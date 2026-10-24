@@ -4,6 +4,7 @@ using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion;
@@ -488,6 +489,188 @@ public sealed class ApolloRequiresTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
+    [Fact]
+    public async Task Execute_Should_ResolveEstimate_When_ClientSelectsWeightAndEstimateOfThreeHopChain()
+    {
+        // arrange
+        using var gateway = await CreateRequiresChainGatewayAsync(includeOperationPlan: true, includeTax: false);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+              products {
+                id
+                name
+                dimensions
+                weight
+                estimate
+              }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Execute_Should_ResolveEstimate_When_ClientSelectsWholeThreeHopChain()
+    {
+        // arrange
+        using var gateway = await CreateRequiresChainGatewayAsync(includeOperationPlan: false, includeTax: false);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+              products {
+                id
+                name
+                dimensions
+                volume
+                weight
+                estimate
+              }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
+        response.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "products": [
+                  {
+                    "id": "A",
+                    "name": "Amber",
+                    "dimensions": [
+                      1,
+                      2,
+                      3
+                    ],
+                    "volume": 6,
+                    "weight": 30,
+                    "estimate": 130
+                  },
+                  null,
+                  {
+                    "id": "C",
+                    "name": "Coral",
+                    "dimensions": [
+                      2,
+                      3,
+                      4
+                    ],
+                    "volume": 24,
+                    "weight": 120,
+                    "estimate": 220
+                  }
+                ]
+              },
+              "errors": [
+                {
+                  "message": "volume unavailable for product B",
+                  "path": [
+                    "products",
+                    1,
+                    "volume"
+                  ]
+                }
+              ]
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_Should_ResolveEstimateAndTax_When_TwoFieldsRequireWeightOfThreeHopChain()
+    {
+        // arrange
+        using var gateway = await CreateRequiresChainGatewayAsync(includeOperationPlan: true, includeTax: true);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+              products {
+                id
+                estimate
+                tax
+              }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    private Task<Gateway> CreateRequiresChainGatewayAsync(bool includeOperationPlan, bool includeTax)
+    {
+        var products = CreateSourceSchema(
+            "products",
+            builder => builder
+                .AddApolloFederation()
+                .AddQueryType<RequiresChainProducts.Query>(d => d.Name("Query")));
+        var geometry = CreateSourceSchema(
+            "geometry",
+            builder => builder
+                .AddApolloFederation()
+                .AddQueryType<RequiresChainGeometry.Query>(d => d.Name("Query"))
+                .AddType<RequiresChainGeometry.GeometryProduct>());
+        var metrics = CreateSourceSchema(
+            "metrics",
+            builder => builder
+                .AddApolloFederation()
+                .AddQueryType<RequiresChainMetrics.Query>(d => d.Name("Query"))
+                .AddType<RequiresChainMetrics.MetricsProduct>());
+        var shipping = CreateSourceSchema(
+            "shipping",
+            builder => builder
+                .AddApolloFederation()
+                .AddQueryType<RequiresChainShipping.Query>(d => d.Name("Query"))
+                .AddType<RequiresChainShipping.ShippingProduct>());
+
+        List<(string, TestServer)> sourceSchemas =
+        [
+            ("products", products),
+            ("geometry", geometry),
+            ("metrics", metrics),
+            ("shipping", shipping)
+        ];
+
+        if (includeTax)
+        {
+            sourceSchemas.Add(
+                ("tax",
+                    CreateSourceSchema(
+                        "tax",
+                        builder => builder
+                            .AddApolloFederation()
+                            .AddQueryType<RequiresChainTax.Query>(d => d.Name("Query"))
+                            .AddType<RequiresChainTax.TaxProduct>())));
+        }
+
+        return CreateCompositeSchemaAsync(
+            [.. sourceSchemas],
+            enableGlobalObjectIdentification: false,
+            includeOperationPlan: includeOperationPlan);
+    }
+
     private Task<Gateway> CreateSelfReferenceGatewayAsync(bool includeOperationPlan)
     {
         var schemaA = CreateSourceSchema(
@@ -904,6 +1087,150 @@ public sealed class ApolloRequiresTests : FusionTestBase
                     .Where(row => row.Id == id)
                     .Select(row => new AltProduct { Id = row.Id, Estimate = row.Weight * 2 })
                     .FirstOrDefault();
+        }
+    }
+
+    // The products A, B and C with their dimensions, shared by the requires chain sources.
+    private static readonly (string Id, string Name, int[] Dimensions)[] s_requiresChainRows =
+    [
+        ("A", "Amber", [1, 2, 3]),
+        ("B", "Blue", [2, 2, 2]),
+        ("C", "Coral", [2, 3, 4])
+    ];
+
+    // products owns the products with their dimensions.
+    public static class RequiresChainProducts
+    {
+        public sealed class Query
+        {
+            public IEnumerable<ChainProduct?> GetProducts()
+                => s_requiresChainRows.Select(
+                    row => new ChainProduct { Id = row.Id, Name = row.Name, Dimensions = row.Dimensions });
+        }
+
+        [GraphQLName("Product")]
+        [Key("id")]
+        public sealed class ChainProduct
+        {
+            [GraphQLType<NonNullType<IdType>>]
+            public required string Id { get; init; }
+
+            public string? Name { get; init; }
+
+            public int[]? Dimensions { get; init; }
+
+            [ReferenceResolver]
+            public static ChainProduct? ResolveReference(string id)
+                => s_requiresChainRows
+                    .Where(row => row.Id == id)
+                    .Select(row => new ChainProduct { Id = row.Id, Name = row.Name, Dimensions = row.Dimensions })
+                    .FirstOrDefault();
+        }
+    }
+
+    // geometry computes volume as the product of the dimensions and fails for product B.
+    public static class RequiresChainGeometry
+    {
+        public sealed class Query;
+
+        [GraphQLName("Product")]
+        [Key("id")]
+        public sealed class GeometryProduct
+        {
+            [GraphQLType<NonNullType<IdType>>]
+            public required string Id { get; init; }
+
+            [External]
+            public int[]? Dimensions { get; set; }
+
+            [Requires("dimensions")]
+            public int GetVolume()
+            {
+                if (Id == "B")
+                {
+                    throw new GraphQLException($"volume unavailable for product {Id}");
+                }
+
+                if (Dimensions is null)
+                {
+                    throw new GraphQLException($"representation for product {Id} carries no dimensions");
+                }
+
+                return Dimensions.Aggregate(1, (volume, side) => volume * side);
+            }
+
+            [ReferenceResolver]
+            public static GeometryProduct ResolveReference(string id) => new() { Id = id };
+        }
+    }
+
+    // metrics computes weight as five times the volume, and 77 for a volume that is null.
+    public static class RequiresChainMetrics
+    {
+        public sealed class Query;
+
+        [GraphQLName("Product")]
+        [Key("id")]
+        public sealed class MetricsProduct
+        {
+            [GraphQLType<NonNullType<IdType>>]
+            public required string Id { get; init; }
+
+            [External]
+            [GraphQLType<NonNullType<IntType>>]
+            public int? Volume { get; set; }
+
+            [Requires("volume")]
+            public int? GetWeight() => Volume is { } volume ? volume * 5 : 77;
+
+            [ReferenceResolver]
+            public static MetricsProduct ResolveReference(string id) => new() { Id = id };
+        }
+    }
+
+    // shipping computes estimate as the weight and 100 more, and 99 for a weight that is null.
+    public static class RequiresChainShipping
+    {
+        public sealed class Query;
+
+        [GraphQLName("Product")]
+        [Key("id")]
+        public sealed class ShippingProduct
+        {
+            [GraphQLType<NonNullType<IdType>>]
+            public required string Id { get; init; }
+
+            [External]
+            public int? Weight { get; set; }
+
+            [Requires("weight")]
+            public int? GetEstimate() => Weight is { } weight ? weight + 100 : 99;
+
+            [ReferenceResolver]
+            public static ShippingProduct ResolveReference(string id) => new() { Id = id };
+        }
+    }
+
+    // tax computes tax as a tenth of the weight, and 66 for a weight that is null.
+    public static class RequiresChainTax
+    {
+        public sealed class Query;
+
+        [GraphQLName("Product")]
+        [Key("id")]
+        public sealed class TaxProduct
+        {
+            [GraphQLType<NonNullType<IdType>>]
+            public required string Id { get; init; }
+
+            [External]
+            public int? Weight { get; set; }
+
+            [Requires("weight")]
+            public int? GetTax() => Weight is { } weight ? weight / 10 : 66;
+
+            [ReferenceResolver]
+            public static TaxProduct ResolveReference(string id) => new() { Id = id };
         }
     }
 }
