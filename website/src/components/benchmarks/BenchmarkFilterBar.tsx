@@ -221,23 +221,27 @@ function FilterSwitch({
 }: FilterSwitchProps) {
   const id = useId();
   return (
-    <label
-      htmlFor={id}
-      className="text-cc-heading flex min-h-11 cursor-pointer items-center justify-between gap-3 text-sm"
-    >
-      <span>
+    <div className="text-cc-heading relative flex min-h-11 items-center justify-between gap-3 text-sm">
+      <label
+        htmlFor={id}
+        aria-hidden="true"
+        className="absolute inset-0 cursor-pointer"
+      />
+      <span className="pointer-events-none relative">
         {label}
-        <BenchmarkColumnHint label={label}>{hint}</BenchmarkColumnHint>
+        <span className="pointer-events-auto">
+          <BenchmarkColumnHint label={label}>{hint}</BenchmarkColumnHint>
+        </span>
       </span>
       <input
         id={id}
         type="checkbox"
         role="switch"
         aria-label={label}
-        className={`accent-cc-accent cursor-pointer ${size}`}
+        className={`accent-cc-accent relative cursor-pointer ${size}`}
         checked={checked}
         onChange={(event) => onChange(event.target.checked)}
       />
-    </label>
+    </div>
   );
 }
