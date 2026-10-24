@@ -130,58 +130,40 @@ internal ref struct JsonVariableCoercion
                 return true;
             }
 
-            var buffer = ArrayPool<IValueNode>.Shared.Rent(64);
-            var count = 0;
+            var length = element.GetArrayLength();
+            var items = length == 0 ? [] : new IValueNode[length];
+            var index = 0;
 
-            try
+            foreach (var item in element.EnumerateArray())
             {
-                var index = 0;
-                foreach (var item in element.EnumerateArray())
+                PushPathSegment(index);
+
+                try
                 {
-                    if (count == buffer.Length)
+                    if (!TryParseAndValidate(
+                        elementType,
+                        item,
+                        depth + 1,
+                        out var itemValue,
+                        out error))
                     {
-                        var temp = buffer;
-                        var tempSpan = temp.AsSpan();
-                        buffer = ArrayPool<IValueNode>.Shared.Rent(count * 2);
-                        tempSpan.CopyTo(buffer);
-                        tempSpan.Clear();
-                        ArrayPool<IValueNode>.Shared.Return(temp);
+                        value = null;
+                        return false;
                     }
 
-                    PushPathSegment(index);
-
-                    try
-                    {
-                        if (!TryParseAndValidate(
-                            elementType,
-                            item,
-                            depth + 1,
-                            out var itemValue,
-                            out error))
-                        {
-                            value = null;
-                            return false;
-                        }
-
-                        buffer[count++] = itemValue;
-                    }
-                    finally
-                    {
-                        PopPathSegment();
-                    }
-
-                    index++;
+                    items[index] = itemValue;
+                }
+                finally
+                {
+                    PopPathSegment();
                 }
 
-                value = new ListValueNode(buffer.AsSpan(0, count).ToArray());
-                error = null;
-                return true;
+                index++;
             }
-            finally
-            {
-                buffer.AsSpan(0, count).Clear();
-                ArrayPool<IValueNode>.Shared.Return(buffer);
-            }
+
+            value = new ListValueNode(items);
+            error = null;
+            return true;
         }
 
         // Handle InputObject types
