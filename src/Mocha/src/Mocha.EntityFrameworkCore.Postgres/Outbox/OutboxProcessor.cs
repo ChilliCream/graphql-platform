@@ -56,7 +56,7 @@ public sealed class PostgresOutboxProcessor
         _signal = signal;
         _contextPool = pools.DispatchContext;
         _options = options;
-        _timeProvider = services.GetService<TimeProvider>() ?? TimeProvider.System;
+        _timeProvider = services.GetTimeProvider();
     }
 
     /// <summary>
@@ -80,7 +80,7 @@ public sealed class PostgresOutboxProcessor
                 {
                     _logger.OutboxProcessorSleeping(nextPollingInterval.Value);
 
-                    await Task.WhenAny(Task.Delay(nextPollingInterval.Value, cancellationToken), signaled);
+                    await Task.WhenAny(Task.Delay(nextPollingInterval.Value, _timeProvider, cancellationToken), signaled);
                 }
                 else
                 {
@@ -131,7 +131,7 @@ public sealed class PostgresOutboxProcessor
 
         var result = await command.ExecuteScalarAsync(cancellationToken);
 
-        return result is not null and not DBNull ? ((DateTime)result - DateTimeOffset.UtcNow).Duration() : null;
+        return result is not null and not DBNull ? ((DateTime)result - _timeProvider.GetUtcNow()).Duration() : null;
     }
 
     private async Task<bool> ProcessEventAsync(NpgsqlConnection connection, CancellationToken cancellationToken)

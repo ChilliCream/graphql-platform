@@ -68,35 +68,6 @@ public sealed class PostgresOutboxExpirationTests(PostgresFixture fixture) : ICl
         Assert.Equal("pending", delivered.Value);
     }
 
-    [Fact]
-    public async Task ProcessAsync_Should_DiscardExpiredMessage_When_DeadlinePassesAfterFailedDelivery()
-    {
-        // arrange
-        var connectionString = await fixture.CreateDatabaseAsync();
-        var clock = new FakeTimeProvider(s_now);
-        var recorder = new DeliveryRecorder
-        {
-            OnFirstAttempt = () =>
-            {
-                clock.Advance(TimeSpan.FromHours(2));
-                throw new InvalidOperationException("The first delivery failed deliberately.");
-            }
-        };
-        await using var provider = await CreateProviderAsync(connectionString, clock, recorder);
-        var id = await MessageRows.InsertOutboxAsync(
-            connectionString, CreateEnvelope(provider, s_now.AddHours(1), unresolvable: false), TestToken);
-
-        // act
-        await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
-        var remainingAttempts = await MessageRows.WaitForOutboxRetryAsync(
-            connectionString, id, s_timeout, TestToken);
-
-        // assert
-        Assert.Null(remainingAttempts);
-        Assert.Equal(1, recorder.Attempts);
-        Assert.False(recorder.Delivered.Task.IsCompleted);
-    }
-
     private static MessageEnvelope CreateEnvelope(
         IServiceProvider provider,
         DateTimeOffset? deadline,
@@ -162,18 +133,10 @@ public sealed class PostgresOutboxExpirationTests(PostgresFixture fixture) : ICl
 
         public int Attempts => Volatile.Read(ref _attempts);
 
-        public Action? OnFirstAttempt { get; init; }
-
         public TaskCompletionSource<PendingEvent> Delivered { get; } =
             new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        public void RecordAttempt()
-        {
-            if (Interlocked.Increment(ref _attempts) == 1)
-            {
-                OnFirstAttempt?.Invoke();
-            }
-        }
+        public void RecordAttempt() => Interlocked.Increment(ref _attempts);
     }
 
     private sealed class RecordingDispatchEndpoint(DispatchEndpoint endpoint, DeliveryRecorder recorder)

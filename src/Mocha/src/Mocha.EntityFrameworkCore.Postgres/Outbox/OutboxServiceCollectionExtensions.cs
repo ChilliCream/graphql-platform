@@ -173,7 +173,8 @@ public static class OutboxServiceCollectionExtensions
             services.AddScoped<IDbContextOutboxProvider>(sp => new PostgresDbContextOutboxProvider(
                 sp.GetRequiredService<PostgresOutboxTracker>(),
                 () => applicationServices.GetRequiredService<IOptionsMonitor<PostgresMessageOutboxOptions>>()
-                    .Get(builder.Name)));
+                    .Get(builder.Name),
+                applicationServices.GetTimeProvider()));
         });
 
         return builder;

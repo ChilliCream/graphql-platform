@@ -10,7 +10,8 @@ namespace Mocha.Outbox;
 
 internal sealed class PostgresDbContextOutboxProvider(
     PostgresOutboxTracker tracker,
-    Func<PostgresMessageOutboxOptions> getOptions)
+    Func<PostgresMessageOutboxOptions> getOptions,
+    TimeProvider timeProvider)
     : IDbContextOutboxProvider, IDisposable
 {
     private PooledArrayWriter? _arrayWriter;
@@ -65,7 +66,7 @@ internal sealed class PostgresDbContextOutboxProvider(
 #else
             var id = Guid.NewGuid();
 #endif
-            tracker.Track(context, new OutboxMessage(id, document));
+            tracker.Track(context, new OutboxMessage(id, document, timeProvider.GetUtcNow().UtcDateTime));
             document = null;
         }
         finally

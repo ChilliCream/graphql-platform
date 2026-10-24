@@ -2067,7 +2067,10 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         {
             cancellationToken.ThrowIfCancellationRequested();
             var body = JsonSerializer.Deserialize<OrderPlaced>(envelope.Body.Span);
-            var message = new OutboxMessage(Guid.NewGuid(), JsonSerializer.SerializeToDocument(body));
+            var message = new OutboxMessage(
+                Guid.NewGuid(),
+                JsonSerializer.SerializeToDocument(body),
+                TimeProvider.System.GetUtcNow().UtcDateTime);
             _messages.Add(message);
             context.Add(message);
         }

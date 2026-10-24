@@ -7,7 +7,8 @@ namespace Mocha.Outbox;
 /// </summary>
 /// <param name="id">The unique identifier for this outbox message.</param>
 /// <param name="envelope">The serialized message envelope owned by this entity.</param>
-public sealed class OutboxMessage(Guid id, JsonDocument envelope) : IDisposable
+/// <param name="createdAt">The UTC timestamp when this outbox message was created.</param>
+public sealed class OutboxMessage(Guid id, JsonDocument envelope, DateTime createdAt) : IDisposable
 {
     /// <summary>
     /// Gets the unique identifier for this outbox message.
@@ -28,7 +29,7 @@ public sealed class OutboxMessage(Guid id, JsonDocument envelope) : IDisposable
     /// <summary>
     /// Gets the UTC timestamp when this outbox message was created.
     /// </summary>
-    public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; private set; } = createdAt;
 
     /// <summary>
     /// Releases the serialized envelope owned by this message.

@@ -50,9 +50,7 @@ internal sealed class PostgresMessageOutboxQueries
 
             NextPollingInterval = $"""
                 SELECT MIN(
-                    CASE WHEN "{t.TimesSent}" = 0 THEN NOW()
-                        ELSE "{t.CreatedAt}" + INTERVAL '1 seconds' * POWER(2, "{t.TimesSent}")
-                    END
+                    "{t.CreatedAt}" + INTERVAL '1 seconds' * POWER(2, "{t.TimesSent}")
                 ) AS "NextWakeUpTime"
                 FROM {t.QualifiedTableName}
                 WHERE "{t.TimesSent}" < {MaxAttempts};
@@ -64,8 +62,7 @@ internal sealed class PostgresMessageOutboxQueries
                     "{t.CreatedAt}" = NOW() + INTERVAL '1 second' * POWER(2, "{t.TimesSent}")
                 WHERE "{t.Id}" = (
                     SELECT "{t.Id}" FROM {t.QualifiedTableName}
-                    WHERE "{t.TimesSent}" < {MaxAttempts}
-                        AND ("{t.TimesSent}" = 0 OR "{t.CreatedAt}" <= NOW())
+                    WHERE "{t.TimesSent}" < {MaxAttempts} AND "{t.CreatedAt}" <= NOW()
                     ORDER BY "{t.CreatedAt}"
                     FOR UPDATE SKIP LOCKED
                     LIMIT 1
