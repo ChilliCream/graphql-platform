@@ -195,7 +195,7 @@ internal static class ExactCasesTraversal
         TraversalCache cache,
         SizedFieldContext? parentSizeContext)
     {
-        cursor = cursor.Normalize(representative, assignment);
+        cursor = cursor.Normalize(representative, assignment, reuseDeferredBranches: resolveVariables);
 
         if (!cursor.TryPickCanonicalVariable(representative, assignment, cache, out var variable))
         {
@@ -801,7 +801,8 @@ internal static class ExactCasesTraversal
 
         public CaseCursor Normalize(
             int representative,
-            BooleanAssignment assignment)
+            BooleanAssignment assignment,
+            bool reuseDeferredBranches)
         {
             var selected = _selected;
             var pending = _pending;
@@ -811,6 +812,7 @@ internal static class ExactCasesTraversal
             while (!pending.IsEmpty || deferred is not null)
             {
                 Branch branch;
+                DeferredBranch? reusable = null;
 
                 if (!pending.IsEmpty)
                 {
@@ -819,8 +821,13 @@ internal static class ExactCasesTraversal
                 }
                 else
                 {
-                    branch = deferred!.Branch;
-                    deferred = deferred.Next;
+                    var current = deferred!;
+                    branch = current.Branch;
+                    deferred = current.Next;
+                    if (reuseDeferredBranches)
+                    {
+                        reusable = current;
+                    }
                 }
 
                 if (selected.Contains(branch.TargetNodeId))
@@ -850,7 +857,15 @@ internal static class ExactCasesTraversal
                     continue;
                 }
 
-                unresolved = new DeferredBranch(branch, unresolved);
+                if (reusable is null)
+                {
+                    unresolved = new DeferredBranch(branch, unresolved);
+                }
+                else
+                {
+                    reusable.Next = unresolved;
+                    unresolved = reusable;
+                }
             }
 
             return new CaseCursor(_tree, selected, default, unresolved);
@@ -979,7 +994,7 @@ internal static class ExactCasesTraversal
     {
         public Branch Branch { get; } = branch;
 
-        public DeferredBranch? Next { get; } = next;
+        public DeferredBranch? Next { get; set; } = next;
     }
 
     private sealed class SelectedNode(int nodeId, SelectedNode? previous)
