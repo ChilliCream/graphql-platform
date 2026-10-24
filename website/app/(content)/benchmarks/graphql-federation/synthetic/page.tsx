@@ -1,10 +1,9 @@
 import { BenchmarkPage } from "@/src/components/benchmarks/BenchmarkPage";
-import { BENCHMARK_PAGE } from "@/src/components/benchmarks/benchmarkRoutes";
-import { pageMetadata } from "@/src/helpers/pageMetadata";
+import { benchmarkMetadata } from "@/src/components/benchmarks/benchmarkMetadata";
 
 export const dynamic = "force-static";
 export const metadata = {
-  ...pageMetadata(BENCHMARK_PAGE),
+  ...benchmarkMetadata(),
   robots: { index: false, follow: true },
 };
 

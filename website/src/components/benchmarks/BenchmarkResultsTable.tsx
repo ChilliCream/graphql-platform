@@ -8,6 +8,7 @@ import {
   formatMemory,
   formatNumber,
   formatReliability,
+  isMeasured,
   isReliable,
   isWinner,
   type ResultsGroup,
@@ -33,15 +34,19 @@ const theme = {
   row: "border-cc-card-border border-b",
   winnerRow:
     "border-cc-accent/40 bg-cc-accent/10 border-b [&>th]:shadow-[inset_3px_0_0_0_var(--color-cc-accent)]",
+  failedRow:
+    "border-cc-card-border bg-cc-danger/5 border-b [&>th]:shadow-[inset_3px_0_0_0_var(--color-cc-danger)]",
   name: "text-cc-heading font-semibold",
   nameLink:
     "text-cc-heading hover:text-cc-accent font-semibold underline-offset-4 hover:underline",
   tag: "border-cc-card-border text-cc-ink-dim rounded border px-1.5 font-mono text-[11px] leading-5 whitespace-nowrap",
   rps: "text-cc-heading font-mono font-semibold",
   winnerRps: "text-cc-accent font-mono font-semibold",
+  failedRps: "text-cc-danger font-mono font-semibold",
   barTrack: "bg-cc-white/5 h-1 rounded-full",
   bar: "bg-cc-ink-dim/40 rounded-full",
   winnerBar: "bg-cc-accent rounded-full",
+  failedBar: "bg-cc-danger/60 rounded-full",
   value: "font-mono text-xs",
   unit: "text-cc-ink-dim",
   danger: "text-cc-danger",
@@ -172,22 +177,35 @@ export function BenchmarkResultsTable({
           <tbody>
             {group.rows.map((row) => {
               const entry = variants.get(row.variant)!;
-              const runs = measuredRuns ?? row.throughput?.runsRps?.length;
+              const runs = row.throughput?.runsRps?.length ?? measuredRuns;
               const winner = isWinner(row, group);
+              const failed = row.status === "failed";
               const value = `${theme.cell} ${theme.value} text-right whitespace-nowrap tabular-nums`;
               return (
                 <tr
                   key={row.variant}
                   data-benchmark-scroll-anchor={`row-${id}-${row.variant}`}
-                  className={winner ? theme.winnerRow : theme.row}
+                  className={
+                    winner
+                      ? theme.winnerRow
+                      : failed
+                        ? theme.failedRow
+                        : theme.row
+                  }
                 >
                   <th
                     scope="row"
                     className={`${theme.cell} ${pad(0)} font-normal`}
                   >
                     <RouterIdentity entry={entry} />
+                    {failed && isMeasured(row) && (
+                      <BenchmarkFailureBadge
+                        completedRuns={row.throughput.runsRps?.length}
+                        measuredRuns={measuredRuns}
+                      />
+                    )}
                   </th>
-                  {row.status === "failed" ? (
+                  {!isMeasured(row) ? (
                     <td
                       colSpan={COLUMNS.length - 1}
                       className="px-4 py-4 text-center text-sm"
@@ -199,7 +217,7 @@ export function BenchmarkResultsTable({
                       <td className={`${theme.cell} ${pad(1)}`}>
                         <div className="flex items-center gap-3">
                           <span
-                            className={`w-12 shrink-0 text-right tabular-nums ${winner ? theme.winnerRps : theme.rps}`}
+                            className={`w-12 shrink-0 text-right tabular-nums ${winner ? theme.winnerRps : failed ? theme.failedRps : theme.rps}`}
                           >
                             {formatNumber(row.throughput.medianRps)}
                             {winner && (
@@ -213,7 +231,7 @@ export function BenchmarkResultsTable({
                             aria-hidden="true"
                           >
                             <div
-                              className={`h-full ${winner ? theme.winnerBar : theme.bar}`}
+                              className={`h-full ${winner ? theme.winnerBar : failed ? theme.failedBar : theme.bar}`}
                               style={{
                                 width: `${group.maxRps === 0 ? 0 : (row.throughput.medianRps / group.maxRps) * 100}%`,
                               }}
@@ -336,6 +354,34 @@ function BenchmarkFailure() {
   );
 }
 
+interface BenchmarkFailureBadgeProps {
+  readonly completedRuns: number | undefined;
+  readonly measuredRuns: number | undefined;
+}
+
+function BenchmarkFailureBadge({
+  completedRuns,
+  measuredRuns,
+}: BenchmarkFailureBadgeProps) {
+  return (
+    <div className="text-cc-danger mt-1 flex items-center gap-1 text-xs leading-5 [&_button]:ml-0 [&_button]:translate-y-0">
+      <WarningIcon className="size-3.5 shrink-0" />
+      <span>
+        {completedRuns !== undefined &&
+        measuredRuns !== undefined &&
+        completedRuns < measuredRuns
+          ? `Failed: ${completedRuns} of ${measuredRuns} runs completed`
+          : "Failed"}
+      </span>
+      <BenchmarkColumnHint label="benchmark failure">
+        The benchmark failed for this router, so its results are partial and not
+        ranked. This could be due to benchmark misconfiguration and does not
+        mean that the router is faulty.
+      </BenchmarkColumnHint>
+    </div>
+  );
+}
+
 interface BenchmarkMobileResultsProps {
   readonly group: ResultsGroup;
   readonly variants: ReadonlyMap<string, BenchmarkCatalogEntry>;
@@ -366,40 +412,47 @@ function BenchmarkMobileResults({
         {group.rows.map((row) => {
           const entry = variants.get(row.variant)!;
           const winner = isWinner(row, group);
-          const runs = measuredRuns ?? row.throughput?.runsRps?.length;
-          const metrics =
-            row.status === "complete"
-              ? [
-                  row.latencyMs
-                    ? `${formatLatency(row.latencyMs.p95)} ms`
-                    : "—",
-                  row.latencyMs
-                    ? `${formatLatency(row.latencyMs.p99_9)} ms`
-                    : "—",
-                  row.memory
-                    ? `${formatMemory(row.memory.peakRssKiB)} MiB`
-                    : "—",
-                  row.cpu
-                    ? `${row.cpu.avgUtilizationPercent.toFixed(2)}%`
-                    : "—",
-                  formatReliability(
-                    row.requests.successful,
-                    row.requests.total,
-                  ),
-                  runs === 1 ? "—" : `±${row.throughput.cvPercent.toFixed(1)}%`,
-                ]
-              : [];
+          const failed = row.status === "failed";
+          const runs = row.throughput?.runsRps?.length ?? measuredRuns;
+          const metrics = isMeasured(row)
+            ? [
+                row.latencyMs ? `${formatLatency(row.latencyMs.p95)} ms` : "—",
+                row.latencyMs
+                  ? `${formatLatency(row.latencyMs.p99_9)} ms`
+                  : "—",
+                row.memory ? `${formatMemory(row.memory.peakRssKiB)} MiB` : "—",
+                row.cpu ? `${row.cpu.avgUtilizationPercent.toFixed(2)}%` : "—",
+                formatReliability(row.requests.successful, row.requests.total),
+                runs === 1 ? "—" : `±${row.throughput.cvPercent.toFixed(1)}%`,
+              ]
+            : [];
           return (
             <li
               key={row.variant}
               data-benchmark-scroll-anchor={`mobile-row-${headingId}-${row.variant}`}
-              className={`border-cc-card-border border-b px-3 py-4 ${winner ? "bg-cc-accent/10 shadow-[inset_3px_0_0_0_var(--color-cc-accent)]" : ""}`}
+              className={`border-cc-card-border border-b px-3 py-4 ${winner ? "bg-cc-accent/10 shadow-[inset_3px_0_0_0_var(--color-cc-accent)]" : failed ? "bg-cc-danger/5 shadow-[inset_3px_0_0_0_var(--color-cc-danger)]" : ""}`}
             >
               <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 text-sm">
-                <RouterIdentity entry={entry} />
-                {row.status === "complete" && (
+                <div>
+                  <RouterIdentity entry={entry} />
+                  {failed && isMeasured(row) && (
+                    <BenchmarkFailureBadge
+                      completedRuns={row.throughput.runsRps?.length}
+                      measuredRuns={measuredRuns}
+                    />
+                  )}
+                </div>
+                {isMeasured(row) && (
                   <div className="min-w-20 text-right">
-                    <p className={winner ? theme.winnerRps : theme.rps}>
+                    <p
+                      className={
+                        winner
+                          ? theme.winnerRps
+                          : failed
+                            ? theme.failedRps
+                            : theme.rps
+                      }
+                    >
                       {formatNumber(row.throughput.medianRps)}
                       {winner && (
                         <span className="sr-only">, highest reported</span>
@@ -410,7 +463,7 @@ function BenchmarkMobileResults({
                       aria-hidden="true"
                     >
                       <div
-                        className={`h-full ${winner ? theme.winnerBar : theme.bar}`}
+                        className={`h-full ${winner ? theme.winnerBar : failed ? theme.failedBar : theme.bar}`}
                         style={{
                           width: `${group.maxRps === 0 ? 0 : (row.throughput.medianRps / group.maxRps) * 100}%`,
                         }}
@@ -419,7 +472,7 @@ function BenchmarkMobileResults({
                   </div>
                 )}
               </div>
-              {row.status === "failed" ? (
+              {!isMeasured(row) ? (
                 <div className="mt-3 text-left text-sm">
                   <BenchmarkFailure />
                 </div>

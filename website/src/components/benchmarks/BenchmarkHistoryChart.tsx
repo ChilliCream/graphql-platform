@@ -11,10 +11,13 @@ import {
   type HistoryPoint,
   historyScale,
   historySeries,
+  latestCompletedPoint,
   seriesChange,
   type HistorySeries,
 } from "@/src/components/benchmarks/benchmarkView";
+import { BenchmarkPreviewBadge } from "@/src/components/benchmarks/BenchmarkPreviewBadge";
 import { useSeriesHighlight } from "@/src/components/benchmarks/useSeriesHighlight";
+import { WarningIcon } from "@/src/icons/Warning";
 import type {
   BenchmarkCatalogEntry,
   BenchmarkHistoryScenario,
@@ -203,7 +206,7 @@ export function BenchmarkHistoryChart({
                 <button
                   key={`${item.id}-${point.runNumber}`}
                   type="button"
-                  aria-label={`${item.name}, ${dateLabel(point.timestamp)}, ${point.runtime}, ${COMPOSITION_GROUPS.find((group) => group.id === item.composition)?.name}, version ${point.version}, ${formatNumber(point.rps)} requests/s`}
+                  aria-label={`${item.name}, ${dateLabel(point.timestamp)}, ${point.runtime}, ${COMPOSITION_GROUPS.find((group) => group.id === item.composition)?.name}, version ${point.version}, ${formatNumber(point.rps)} requests/s${point.failed ? ", failed" : ""}`}
                   className={`focus-visible:outline-cc-accent absolute flex size-5 -translate-1/2 cursor-pointer items-center justify-center rounded-full focus-visible:outline-2 ${item.id === active ? "z-[2]" : ""}`}
                   style={{
                     width: `clamp(3px, ${100 / maxPoints}%, 20px)`,
@@ -242,15 +245,22 @@ export function BenchmarkHistoryChart({
                   <span
                     className={`flex shrink-0 rounded-full ${active && item.id !== active ? "opacity-20" : "bg-cc-bg ring-cc-bg ring-2"}`}
                   >
-                    <span
-                      className={`block ${maxPoints > 60 ? "size-0.75" : "size-1.25"} rounded-full border`}
-                      style={{
-                        borderColor: item.color,
-                        backgroundColor: item.dashed
-                          ? "var(--color-cc-bg)"
-                          : item.color,
-                      }}
-                    />
+                    {point.failed ? (
+                      <span
+                        className={`ring-cc-danger block ${maxPoints > 60 ? "size-1.5" : "size-2"} rounded-full ring-2`}
+                        style={{ backgroundColor: "var(--color-cc-danger)" }}
+                      />
+                    ) : (
+                      <span
+                        className={`block ${maxPoints > 60 ? "size-0.75" : "size-1.25"} rounded-full border`}
+                        style={{
+                          borderColor: item.color,
+                          backgroundColor: item.dashed
+                            ? "var(--color-cc-bg)"
+                            : item.color,
+                        }}
+                      />
+                    )}
                   </span>
                 </button>
               )),
@@ -275,6 +285,11 @@ export function BenchmarkHistoryChart({
                   )}
                   <div>Version {point.version}</div>
                   <div>{formatNumber(point.rps)} requests/s</div>
+                  {point.failed && (
+                    <div className="text-cc-danger font-semibold">
+                      Failed, partial results
+                    </div>
+                  )}
                 </div>
               </>
             )}
@@ -358,7 +373,7 @@ export function BenchmarkHistoryChart({
                 {item.points
                   .map(
                     (point) =>
-                      `${new Date(point.timestamp).toISOString()}: ${point.version}, ${formatNumber(point.rps)} requests/s`,
+                      `${new Date(point.timestamp).toISOString()}: ${point.version}, ${formatNumber(point.rps)} requests/s${point.failed ? ", failed" : ""}`,
                   )
                   .join(", ")}
               </td>
@@ -390,7 +405,8 @@ function LegendButton({
   onToggle,
 }: LegendButtonProps) {
   const isActive = series.id === active;
-  const newest = series.points.at(-1)!;
+  const latest = series.points.at(-1)!;
+  const newest = latestCompletedPoint(series) ?? latest;
   const change = seriesChange(series);
 
   return (
@@ -441,6 +457,7 @@ function LegendButton({
         </svg>
         <span className="min-w-0">
           <span className="flex items-center gap-1">
+            {series.preview && <BenchmarkPreviewBadge />}
             <span className="text-cc-heading truncate" title={series.name}>
               {series.name}
             </span>
@@ -456,11 +473,20 @@ function LegendButton({
             {change !== undefined && (
               <span
                 className={change >= 0 ? "text-cc-success" : "text-cc-danger"}
-                title={`Change from ${series.points[0].version} to ${newest.version}`}
+                title={`Change from ${series.points.find((point) => !point.failed)!.version} to ${newest.version}`}
               >
                 <span aria-hidden="true">{change >= 0 ? "▲" : "▼"}</span>{" "}
                 <span className="sr-only">{change >= 0 ? "up" : "down"}</span>
                 {formatChange(change)}
+              </span>
+            )}
+            {latest.failed && (
+              <span
+                className="text-cc-danger self-center"
+                title="Latest run failed"
+              >
+                <WarningIcon className="size-3.5" />
+                <span className="sr-only">Latest run failed</span>
               </span>
             )}
           </span>

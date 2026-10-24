@@ -17,6 +17,8 @@ export type Composition = keyof typeof COMPOSITIONS;
 
 export interface BenchmarkFeature {
   readonly id: string;
+  /** A short human readable name, such as "AOT". */
+  readonly name: string;
   readonly description?: string;
 }
 
@@ -150,6 +152,8 @@ export type BenchmarkHistoryVersion = Omit<
   "variant" | "status"
 > & {
   readonly version: string;
+  /** "failed" when the execution failed but recorded measurements; absent for a completed execution. */
+  readonly status?: "failed";
   readonly run: BenchmarkHistoryRun & {
     readonly startedAt?: string | null;
     readonly completedAt?: string | null;
@@ -296,8 +300,9 @@ function dateTime(value: unknown): number {
 
 function features(value: unknown): void {
   for (const item of list(value)) {
-    const feature = record(item, ["id"]);
+    const feature = record(item, ["id", "name"]);
     text(feature.id);
+    text(feature.name);
     optional(feature.description, text);
   }
 }
@@ -548,7 +553,10 @@ export function parseBenchmarkReport(json: string): BenchmarkReport {
           throw new Error("Benchmark result variant is not in its gateway.");
         }
         unique(resultVariants, variant.variant);
-        measurement(variant, measuredRuns);
+        measurement(
+          variant,
+          variant.status === "complete" ? measuredRuns : undefined,
+        );
       }
     }
   }
@@ -602,6 +610,7 @@ export function parseBenchmarkHistory(json: string): BenchmarkHistory {
           "requests",
         ]);
         text(version.version);
+        optional(version.status, (value) => member(value, ["failed"]));
         historyRun(version.run);
         const run = record(version.run, ["number"]);
         const startedAt =
@@ -626,7 +635,10 @@ export function parseBenchmarkHistory(json: string): BenchmarkHistory {
         const throughput = record(version.throughput, ["runsRps"]);
         list(throughput.runsRps, 1);
         platform(version.platform);
-        measurement(version, measuredRuns);
+        measurement(
+          version,
+          version.status === "failed" ? undefined : measuredRuns,
+        );
       }
     }
   }
@@ -651,14 +663,14 @@ export function benchmarkVariants(
   );
 }
 
-/** Returns the display name of a variant: its explicit label, otherwise the gateway name, followed by its feature IDs in parentheses. */
+/** Returns the display name of a variant: its explicit label, otherwise the gateway name, followed by its feature names in parentheses. */
 export function variantName({
   gateway,
   variant,
 }: BenchmarkCatalogEntry): string {
   const name = variant.label ?? gateway.name;
   return variant.features?.length
-    ? `${name} (${variant.features.map((feature) => feature.id).join(", ")})`
+    ? `${name} (${variant.features.map((feature) => feature.name).join(", ")})`
     : name;
 }
 
