@@ -15,40 +15,65 @@ public sealed class RabbitMQDispatcher(
 {
     private const int MaxPooledChannels = 10;
 
+    // A publish holds its channel until the broker confirms it, so a burst of concurrent publishes would otherwise
+    // open a channel each and exhaust the broker's channel limit of the connection.
+    private const int MaxRentedChannels = 100;
+
+    // Every publish waits for the broker's confirm, so a rejected or lost message surfaces as an exception.
+    private static readonly CreateChannelOptions s_publishChannelOptions = new(
+        publisherConfirmationsEnabled: true,
+        publisherConfirmationTrackingEnabled: true,
+        outstandingPublisherConfirmationsRateLimiter: null);
+
     private readonly ConcurrentQueue<IChannel> _channelPool = new();
+    private readonly SemaphoreSlim _channelSlots = new(MaxRentedChannels);
     private int _pooledChannelCount;
 
     /// <summary>
-    /// Rents a channel from the pool or creates a new one.
-    /// The caller is responsible for returning the channel via ReturnChannelAsync.
+    /// Gets a value indicating whether the dispatcher was disposed, after which no publish can succeed.
+    /// </summary>
+    internal bool IsShutDown => IsDisposed;
+
+    /// <summary>
+    /// Rents a channel from the pool or creates a new one, waiting while the maximum number of channels is rented.
+    /// The caller is responsible for returning the channel via ReturnChannelAsync or DiscardChannel.
     /// </summary>
     public async ValueTask<IChannel> RentChannelAsync(CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
 
-        // Try to get a channel from the pool
-        while (_channelPool.TryDequeue(out var pooledChannel))
+        await _channelSlots.WaitAsync(cancellationToken);
+        try
         {
-            Interlocked.Decrement(ref _pooledChannelCount);
-
-            if (pooledChannel.IsOpen)
+            // Try to get a channel from the pool
+            while (_channelPool.TryDequeue(out var pooledChannel))
             {
-                Logger.RentedChannelFromPool();
+                Interlocked.Decrement(ref _pooledChannelCount);
 
-                return pooledChannel;
+                if (pooledChannel.IsOpen)
+                {
+                    Logger.RentedChannelFromPool();
+
+                    return pooledChannel;
+                }
+
+                // Channel is closed, dispose it
+                await DisposeChannelSafelyAsync(pooledChannel);
             }
 
-            // Channel is closed, dispose it
-            await DisposeChannelSafelyAsync(pooledChannel);
+            // No valid pooled channel, create a new one
+            var connection = await GetConnectionAsync(cancellationToken);
+            var channel = await connection.CreateChannelAsync(s_publishChannelOptions, cancellationToken);
+
+            Logger.CreatedNewChannel();
+
+            return channel;
         }
-
-        // No valid pooled channel, create a new one
-        var connection = await GetConnectionAsync(cancellationToken);
-        var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken);
-
-        Logger.CreatedNewChannel();
-
-        return channel;
+        catch
+        {
+            _channelSlots.Release();
+            throw;
+        }
     }
 
     /// <summary>
@@ -57,6 +82,8 @@ public sealed class RabbitMQDispatcher(
     /// </summary>
     public async ValueTask ReturnChannelAsync(IChannel channel)
     {
+        _channelSlots.Release();
+
         if (IsDisposed || !channel.IsOpen)
         {
             await DisposeChannelSafelyAsync(channel);
@@ -82,6 +109,26 @@ public sealed class RabbitMQDispatcher(
         }
     }
 
+    /// <summary>
+    /// Disposes a rented channel in the background instead of returning it to the pool, after an operation on it
+    /// failed.
+    /// </summary>
+    /// <remarks>
+    /// A failed channel can be closing, or can still wait for the reply or confirm of a cancelled operation. Closing
+    /// it waits for the broker, which does not read from a blocked connection.
+    /// </remarks>
+    internal void DiscardChannel(IChannel channel)
+    {
+        _channelSlots.Release();
+        _ = DisposeChannelSafelyAsync(channel).AsTask();
+    }
+
+    internal void LogPublishRetry(Exception exception, int attempt, TimeSpan delay)
+        => Logger.PublishFailedRetrying(exception, attempt, delay);
+
+    internal void LogReturnedQueueRedeclared(string queueName)
+        => Logger.RedeclaredQueueOfReturnedMessage(queueName);
+
     protected override async Task OnConnectionEstablished(IConnection connection, CancellationToken cancellationToken)
     {
         await onConnectionEstablished(connection, cancellationToken);
@@ -95,11 +142,7 @@ public sealed class RabbitMQDispatcher(
     protected override async Task OnConnectionLostAsync()
     {
         await ClearChannelPoolAsync();
-    }
-
-    protected override async Task OnConnectionRecoveredAsync(CancellationToken cancellationToken)
-    {
-        await ClearChannelPoolAsync();
+        StartReconnecting();
     }
 
     private async Task ClearChannelPoolAsync()
@@ -121,12 +164,21 @@ public sealed class RabbitMQDispatcher(
             {
                 await channel.CloseAsync();
             }
-
-            await channel.DisposeAsync();
         }
         catch
         {
-            // Ignore disposal errors
+            // Ignore close errors
+        }
+        finally
+        {
+            try
+            {
+                await channel.DisposeAsync();
+            }
+            catch
+            {
+                // Ignore disposal errors
+            }
         }
     }
 
@@ -156,4 +208,14 @@ internal static partial class Logs
 
     [LoggerMessage(LogLevel.Information, "RabbitMQ Dispatcher disposed")]
     public static partial void DispatcherDisposed(this ILogger logger);
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "Publish attempt {Attempt} failed because the connection to the broker was lost. Retrying in {Delay}")]
+    public static partial void PublishFailedRetrying(this ILogger logger, Exception ex, int attempt, TimeSpan delay);
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "The broker returned a message because queue {Queue} does not exist. The queue was declared again")]
+    public static partial void RedeclaredQueueOfReturnedMessage(this ILogger logger, string queue);
 }

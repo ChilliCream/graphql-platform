@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Mocha.Hosting;
@@ -38,6 +39,35 @@ public static class MessageBusHealthCheckExtensions
         }
 
         builder.AddCheck<MessageBusHealthCheck>("MessageBus", HealthStatus.Unhealthy, ["ready", "live"]);
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds a health check, tagged with "ready" and "live", that reports the health of every transport's connections
+    /// and receive endpoints.
+    /// </summary>
+    /// <remarks>
+    /// The check is degraded while a transport recovers, for example while a consumer re-attaches or a connection is
+    /// blocked, and unhealthy once a component has been degraded for longer than <paramref name="unhealthyAfter"/>.
+    /// </remarks>
+    /// <param name="builder">The health checks builder to extend.</param>
+    /// <param name="unhealthyAfter">
+    /// How long a component may stay degraded before the check reports it as unhealthy, or <c>null</c> for two minutes.
+    /// </param>
+    /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
+    public static IHealthChecksBuilder AddMessageBusTransports(
+        this IHealthChecksBuilder builder,
+        TimeSpan? unhealthyAfter = null)
+    {
+        builder.Services.TryAddSingleton(TimeProvider.System);
+        builder.Services.Configure<MessageBusTransportsHealthCheckOptions>(o =>
+            o.UnhealthyAfter = unhealthyAfter ?? MessageBusTransportsHealthCheckOptions.DefaultUnhealthyAfter);
+
+        builder.AddCheck<MessageBusTransportsHealthCheck>(
+            "MessageBusTransports",
+            HealthStatus.Unhealthy,
+            ["ready", "live"]);
 
         return builder;
     }

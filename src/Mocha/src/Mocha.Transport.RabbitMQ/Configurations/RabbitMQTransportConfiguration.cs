@@ -115,4 +115,15 @@ public sealed class ConnectionFactoryRabbitMQConnectionProvider(IConnectionFacto
         var connection = await factory.CreateConnectionAsync(cancellationToken);
         return connection;
     }
+
+    /// <summary>
+    /// Creates a new connection, named <paramref name="clientProvidedName"/> unless the factory sets a name.
+    /// </summary>
+    internal async ValueTask<IConnection> CreateAsync(string clientProvidedName, CancellationToken cancellationToken)
+    {
+        var connection = await factory.CreateConnectionAsync(
+            factory.ClientProvidedName ?? clientProvidedName,
+            cancellationToken);
+        return connection;
+    }
 }

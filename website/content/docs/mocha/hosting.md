@@ -76,6 +76,26 @@ app.MapHealthChecks("/health/live", new()
 });
 ```
 
+## Report transport health
+
+Use the `AddMessageBusTransports()` extension on `IHealthChecksBuilder` to register a health check that reports the health of every transport's connections and receive endpoints:
+
+```csharp
+builder.Services
+    .AddHealthChecks()
+    .AddMessageBusTransports(); // Reports connections and consumers of every transport
+```
+
+The check reports `Degraded` while a transport recovers, for example while a consumer re-attaches to its queue or while the broker blocks a connection. A component that stays degraded for longer than two minutes is reported as `Unhealthy`. Pass a different threshold to change it:
+
+```csharp
+builder.Services
+    .AddHealthChecks()
+    .AddMessageBusTransports(unhealthyAfter: TimeSpan.FromMinutes(5));
+```
+
+The check data lists each component as `<transport>:<component>` with its state, for example `rabbitmq:consumer:orders`. The check is registered with the `"ready"` and `"live"` tags.
+
 # Next steps
 
 - [Observability](./observability.md) - Add OpenTelemetry tracing and metrics to the bus.
