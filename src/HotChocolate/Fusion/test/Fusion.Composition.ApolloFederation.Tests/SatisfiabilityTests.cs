@@ -181,6 +181,191 @@ public sealed class SatisfiabilityTests
             """);
     }
 
+    [Fact]
+    public void Compose_Should_Fail_When_RequiresFieldSchemaHasOnlyNonResolvableKey()
+    {
+        // arrange
+        const string req =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@external", "@requires"])
+
+            type Query {
+                products: [Product]
+            }
+
+            type Product @key(fields: "id", resolvable: false) {
+                id: ID!
+                weight: Int @external
+                estimate: Int @requires(fields: "weight")
+            }
+            """;
+
+        const string sup =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+            type Product @key(fields: "id") {
+                id: ID!
+                name: String
+                weight: Int
+            }
+            """;
+
+        // act
+        var (result, log) = Compose(
+            new SourceSchemaText("req", req),
+            new SourceSchemaText("sup", sup));
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'Product.estimate' on path 'REQ:Query.products<Product>'.
+              Unable to satisfy the requirement '{ weight }' on field 'REQ:Product.estimate<Int>'.
+                The field 'Product.estimate' in schema 'REQ' requires data from another schema, but schema 'REQ' has no lookup for type 'Product' that could resolve the field once the required data has been fetched.
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_RequiresFieldSchemaHasOnlyNonResolvableKeyBesideResolvableEntity()
+    {
+        // arrange
+        const string req =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@external", "@requires"])
+
+            type Query {
+                products: [Product]
+            }
+
+            type Product @key(fields: "id", resolvable: false) {
+                id: ID!
+                weight: Int @external
+                estimate: Int @requires(fields: "weight")
+            }
+
+            type Store @key(fields: "id") {
+                id: ID!
+                name: String
+            }
+            """;
+
+        const string sup =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+            type Product @key(fields: "id") {
+                id: ID!
+                name: String
+                weight: Int
+                store: Store
+            }
+
+            type Store @key(fields: "id", resolvable: false) {
+                id: ID!
+            }
+            """;
+
+        // act
+        var (result, log) = Compose(
+            new SourceSchemaText("req", req),
+            new SourceSchemaText("sup", sup));
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'Product.estimate' on path 'REQ:Query.products<Product>'.
+              Unable to satisfy the requirement '{ weight }' on field 'REQ:Product.estimate<Int>'.
+                The field 'Product.estimate' in schema 'REQ' requires data from another schema, but schema 'REQ' has no lookup for type 'Product' that could resolve the field once the required data has been fetched.
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_OnlyOtherProviderOfRequiresFieldHasNonResolvableKey()
+    {
+        // arrange
+        const string req =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@external", "@requires", "@shareable"])
+
+            type Query {
+                products: [Product]
+            }
+
+            type Product @key(fields: "id", resolvable: false) {
+                id: ID!
+                weight: Int @external
+                estimate: Int @requires(fields: "weight") @shareable
+                quote: Int @requires(fields: "weight") @shareable
+            }
+            """;
+
+        const string sup =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+            type Product @key(fields: "id") {
+                id: ID!
+                name: String
+                weight: Int
+            }
+            """;
+
+        const string alt =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@shareable"])
+
+            type Product @key(fields: "id") {
+                id: ID!
+                estimate: Int @shareable
+            }
+            """;
+
+        const string far =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@shareable"])
+
+            type Product @key(fields: "id", resolvable: false) {
+                id: ID!
+                quote: Int @shareable
+            }
+            """;
+
+        // act
+        var (result, log) = Compose(
+            new SourceSchemaText("req", req),
+            new SourceSchemaText("sup", sup),
+            new SourceSchemaText("alt", alt),
+            new SourceSchemaText("far", far));
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'Product.quote' on path 'REQ:Query.products<Product>'.
+              Unable to satisfy the requirement '{ weight }' on field 'REQ:Product.quote<Int>'.
+                The field 'Product.quote' in schema 'REQ' requires data from another schema, but schema 'REQ' has no lookup for type 'Product' that could resolve the field once the required data has been fetched.
+            """
+        ]);
+    }
+
     [Theory]
     [InlineData("A", "B")]
     [InlineData("B", "A")]
