@@ -263,7 +263,7 @@ internal sealed partial class SatisfiabilityValidator
                         path?.Item,
                         ancestors,
                         excludeSchemaName: schemaName,
-                        allowIntermediatesFromExcludedSchema: true);
+                        allowNestedFieldsFromExcludedSchema: true);
 
                 // The requirement data is fetched from other schemas, so the schema must be able
                 // to resolve the field afterwards, either without its own data or by re-entering

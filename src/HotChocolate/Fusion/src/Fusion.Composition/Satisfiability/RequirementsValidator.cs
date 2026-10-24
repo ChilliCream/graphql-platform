@@ -30,10 +30,10 @@ internal sealed class RequirementsValidator(
     /// empty list when no path based transition may continue above it.
     /// </param>
     /// <param name="excludeSchemaName">
-    /// The schema the requirement leaves must not be resolved from, or null to allow every schema.
+    /// The schema that must not resolve the requirement, or null to allow every schema.
     /// </param>
-    /// <param name="allowIntermediatesFromExcludedSchema">
-    /// Whether intermediate fields of the requirement may be resolved from the excluded schema.
+    /// <param name="allowNestedFieldsFromExcludedSchema">
+    /// Whether the excluded schema may resolve the fields below the first level of the requirement.
     /// </param>
     /// <param name="cycleDetectionPath">The shared cycle detection path, or null to start a new one.</param>
     /// <param name="unavailableSchemaNames">
@@ -47,7 +47,7 @@ internal sealed class RequirementsValidator(
         SatisfiabilityPathItem? parentPathItem,
         IReadOnlyList<SatisfiabilityPathItem> ancestors,
         string? excludeSchemaName,
-        bool allowIntermediatesFromExcludedSchema = false,
+        bool allowNestedFieldsFromExcludedSchema = false,
         SatisfiabilityPath? cycleDetectionPath = null,
         ImmutableHashSet<string>? unavailableSchemaNames = null)
     {
@@ -56,7 +56,7 @@ internal sealed class RequirementsValidator(
             parentPathItem,
             ancestors,
             excludeSchemaName,
-            allowIntermediatesFromExcludedSchema,
+            allowNestedFieldsFromExcludedSchema,
             cycleDetectionPath,
             unavailableSchemaNames ?? []);
 
@@ -157,24 +157,22 @@ internal sealed class RequirementsValidator(
 
         var previousPathItem = context.Path.TryPeek(out var item) ? item : null;
         var previousSchemaName = previousPathItem?.SchemaName;
-        var cacheKey = new FieldAccessCacheKey(field, type, previousSchemaName);
+
+        // The excluded schema never resolves a first-level field of the requirement, and resolves a
+        // nested field only when the context allows it.
+        var excludeSchemaName =
+            context.Depth == 0 || !context.AllowNestedFieldsFromExcludedSchema
+                ? context.ExcludeSchemaName
+                : null;
+        var cacheKey = new FieldAccessCacheKey(field, type, previousSchemaName, excludeSchemaName);
 
         if (context.FieldAccessCache.Contains(cacheKey))
         {
             return [];
         }
 
-        // Leaf fields in the requirement must be sourced from outside the
-        // excluded schema. Intermediate fields (with a sub-selection) may also
-        // be sourced from the excluded schema when validating a field-level
-        // @require: those intermediates are navigation steps the gateway can
-        // resolve locally in the requiring schema as part of executing the
-        // requiring field. For lookup-key validation the excluded schema has
-        // not been entered yet, so intermediates must also come from outside
-        // it (default behavior).
         var schemaNames = field.GetSchemaNames();
-        if (context.ExcludeSchemaName is { } excludeSchemaName
-            && (fieldNode.SelectionSet is null || !context.AllowIntermediatesFromExcludedSchema))
+        if (excludeSchemaName is not null)
         {
             schemaNames = schemaNames.Remove(excludeSchemaName);
         }
@@ -283,7 +281,7 @@ internal sealed class RequirementsValidator(
                         previousPathItem,
                         ancestors,
                         excludeSchemaName: schemaName,
-                        allowIntermediatesFromExcludedSchema: true,
+                        allowNestedFieldsFromExcludedSchema: true,
                         cycleDetectionPath: context.CycleDetectionPath,
                         unavailableSchemaNames: context.UnavailableSchemaNames);
 
@@ -334,6 +332,8 @@ internal sealed class RequirementsValidator(
             var possibleTypes = fieldType.GetPossibleTypes(schemaName, schema);
             var childErrors = new List<SatisfiabilityError>();
 
+            context.Depth++;
+
             foreach (var possibleType in possibleTypes)
             {
                 context.TypeContext.Push(possibleType);
@@ -350,6 +350,8 @@ internal sealed class RequirementsValidator(
 
                 context.TypeContext.Pop();
             }
+
+            context.Depth--;
 
             if (childErrors.Count == 0)
             {
@@ -529,7 +531,7 @@ internal sealed class RequirementsValidatorContext
         SatisfiabilityPathItem? parentPathItem,
         IReadOnlyList<SatisfiabilityPathItem> ancestors,
         string? excludeSchemaName,
-        bool allowIntermediatesFromExcludedSchema,
+        bool allowNestedFieldsFromExcludedSchema,
         SatisfiabilityPath? cycleDetectionPath,
         ImmutableHashSet<string> unavailableSchemaNames)
     {
@@ -542,7 +544,7 @@ internal sealed class RequirementsValidatorContext
 
         Ancestors = ancestors;
         ExcludeSchemaName = excludeSchemaName;
-        AllowIntermediatesFromExcludedSchema = allowIntermediatesFromExcludedSchema;
+        AllowNestedFieldsFromExcludedSchema = allowNestedFieldsFromExcludedSchema;
         CycleDetectionPath = cycleDetectionPath ?? [];
         UnavailableSchemaNames = unavailableSchemaNames;
     }
@@ -557,12 +559,21 @@ internal sealed class RequirementsValidatorContext
     public IReadOnlyList<SatisfiabilityPathItem> Ancestors { get; }
 
     /// <summary>
-    /// Gets the schema the requirement leaves must not be resolved from, or null when every
-    /// schema is allowed.
+    /// Gets the schema that must not resolve the requirement, or null when every schema is allowed.
     /// </summary>
     public string? ExcludeSchemaName { get; }
 
-    public bool AllowIntermediatesFromExcludedSchema { get; }
+    /// <summary>
+    /// Gets a value indicating whether the excluded schema may resolve the fields below the first
+    /// level of the requirement.
+    /// </summary>
+    public bool AllowNestedFieldsFromExcludedSchema { get; }
+
+    /// <summary>
+    /// Gets or sets the number of requirement fields above the field being visited, which is zero
+    /// for a first-level field.
+    /// </summary>
+    public int Depth { get; set; }
 
     public SatisfiabilityPath CycleDetectionPath { get; }
 

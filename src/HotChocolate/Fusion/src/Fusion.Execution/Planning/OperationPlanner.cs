@@ -56,7 +56,7 @@ public sealed partial class OperationPlanner
         _options = options;
     }
 
-    public static Version Version { get; } = new(2, 6, 0);
+    public static Version Version { get; } = new(2, 7, 0);
 
     internal OperationPlannerOptions Options => _options;
 
@@ -4957,6 +4957,23 @@ internal static class PlannerExtensions
                         currentSelectionSetNode,
                         f => f.TypeCondition?.Name.Value == segment.Name,
                         items);
+
+                    // A concrete type segment below an abstract type without a matching fragment
+                    // narrows the selection set of the abstract type itself.
+                    if (inlineFragmentSelection is null
+                        && currentType.IsAbstractType()
+                        && compositeSchema.Types.TryGetType<FusionObjectTypeDefinition>(
+                            segment.Name,
+                            allowInaccessibleFields: true,
+                            out var segmentType)
+                        && compositeSchema.GetPossibleTypes(currentType, includeInaccessible: true).Contains(segmentType))
+                    {
+                        inlineFragmentSelection = new InlineFragmentNode(
+                            null,
+                            new NamedTypeNode(segment.Name),
+                            [],
+                            currentSelectionSetNode);
+                    }
 
                     if (inlineFragmentSelection is null)
                     {

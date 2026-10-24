@@ -644,6 +644,186 @@ public class RequirementCrossEntityTests : FusionTestBase
         MatchSnapshot(plan);
     }
 
+    [Fact]
+    public void Plan_Should_Reenter_Requiring_Schema_When_Nested_Required_Field_Follows_Remote_First_Level()
+    {
+        // arrange
+        // a.price requires customer.discount; customer is only served by b and discount by a, so
+        // the requirement leaves a for customer and re-enters it through customerById.
+        var schema = CreateNestedReentryRequireSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              orders {
+                id
+                price
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_Reenter_Requiring_Schema_When_Client_Selects_Remote_First_Level_Next_To_Requiring_Field()
+    {
+        // arrange
+        var schema = CreateNestedReentryRequireSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              orders {
+                id
+                customer {
+                  id
+                }
+                price
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_Reenter_Requiring_Schema_When_Abstract_First_Level_Has_No_Type_Condition()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+              orderById(id: ID!): Order @lookup @internal
+              customerById(id: ID!): Customer @lookup @internal
+            }
+
+            interface Person {
+              id: ID!
+              discount: Int
+            }
+
+            type Order {
+              id: ID! @shareable
+              price(discount: Int @require(field: "customer.discount")): Int
+            }
+
+            type Customer implements Person {
+              id: ID! @shareable
+              discount: Int
+            }
+            """,
+            """
+            # name: b
+            type Query {
+              orders: [Order]
+            }
+
+            interface Person {
+              id: ID!
+            }
+
+            type Order {
+              id: ID! @shareable
+              customer: Person
+            }
+
+            type Customer implements Person {
+              id: ID! @shareable
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              orders {
+                id
+                price
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_Resolve_Nested_Required_Field_From_Third_Schema_When_Abstract_First_Level_Has_No_Type_Condition()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+              orderById(id: ID!): Order @lookup @internal
+            }
+
+            type Order {
+              id: ID! @shareable
+              price(discount: Int @require(field: "customer.discount")): Int
+            }
+            """,
+            """
+            # name: b
+            type Query {
+              orders: [Order]
+            }
+
+            interface Person {
+              id: ID!
+            }
+
+            type Order {
+              id: ID! @shareable
+              customer: Person
+            }
+
+            type Customer implements Person {
+              id: ID! @shareable
+            }
+            """,
+            """
+            # name: c
+            type Query {
+              customerById(id: ID!): Customer @lookup @internal
+            }
+
+            interface Person {
+              id: ID!
+              discount: Int
+            }
+
+            type Customer implements Person {
+              id: ID! @shareable
+              discount: Int
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              orders {
+                id
+                price
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
     private static FusionSchemaDefinition CreateApolloSelfReferenceRequiresSchema()
     {
         return ComposeSchema(
@@ -709,6 +889,43 @@ public class RequirementCrossEntityTests : FusionTestBase
               id: ID
               age: Int!
               entity: Entity!
+            }
+            """);
+    }
+
+    private static FusionSchemaDefinition CreateNestedReentryRequireSchema()
+    {
+        return ComposeSchema(
+            """
+            # name: a
+            type Query {
+              orderById(id: ID!): Order @lookup @internal
+              customerById(id: ID!): Customer @lookup @internal
+            }
+
+            type Order {
+              id: ID! @shareable
+              price(discount: Int @require(field: "customer.discount")): Int
+            }
+
+            type Customer {
+              id: ID! @shareable
+              discount: Int
+            }
+            """,
+            """
+            # name: b
+            type Query {
+              orders: [Order]
+            }
+
+            type Order {
+              id: ID! @shareable
+              customer: Customer
+            }
+
+            type Customer {
+              id: ID! @shareable
             }
             """);
     }
