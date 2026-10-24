@@ -417,13 +417,18 @@ function BenchmarkFailureBadge({
         {completedRuns !== undefined &&
         measuredRuns !== undefined &&
         completedRuns < measuredRuns
-          ? `Failed: ${completedRuns} of ${measuredRuns} runs completed`
+          ? `Only ${completedRuns} of ${measuredRuns} runs completed`
           : "Failed"}
       </span>
       <BenchmarkColumnHint label="benchmark failure">
-        The benchmark failed for this router, so its results are partial and not
-        ranked. This could be due to benchmark misconfiguration and does not
-        mean that the router is faulty.
+        <span className="block">
+          Some benchmark runs failed for this router, so its results are partial
+          and not ranked.
+        </span>
+        <span className="block">
+          This could be due to benchmark misconfiguration and does not mean that
+          the router is faulty.
+        </span>
       </BenchmarkColumnHint>
     </div>
   );

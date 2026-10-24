@@ -175,17 +175,30 @@ export function BenchmarkHistoryChart({
             >
               {ordered.map((item) => (
                 <g key={item.id}>
-                  <polyline
-                    points={item.points
-                      .map((point) => `${x(point.timestamp)},${y(point.rps)}`)
-                      .join(" ")}
-                    fill="none"
-                    stroke={item.color}
-                    strokeWidth={item.id === active ? 2 : 1.5}
-                    strokeOpacity={active && item.id !== active ? 0.12 : 0.8}
-                    strokeDasharray={item.dashed ? "4 4" : undefined}
-                    vectorEffect="non-scaling-stroke"
-                  />
+                  {item.points.slice(1).map((point, index) => {
+                    const previous = item.points[index];
+                    return (
+                      <line
+                        key={point.runNumber}
+                        x1={x(previous.timestamp)}
+                        y1={y(previous.rps)}
+                        x2={x(point.timestamp)}
+                        y2={y(point.rps)}
+                        stroke={item.color}
+                        strokeWidth={item.id === active ? 2 : 1.5}
+                        strokeOpacity={
+                          active && item.id !== active ? 0.12 : 0.8
+                        }
+                        strokeLinecap="round"
+                        strokeDasharray={
+                          item.dashed || previous.failed || point.failed
+                            ? "4 4"
+                            : undefined
+                        }
+                        vectorEffect="non-scaling-stroke"
+                      />
+                    );
+                  })}
                 </g>
               ))}
             </svg>
@@ -234,9 +247,9 @@ export function BenchmarkHistoryChart({
                     className={`flex shrink-0 rounded-full ${active && item.id !== active ? "opacity-20" : "bg-cc-bg ring-cc-bg ring-2"}`}
                   >
                     {point.failed ? (
-                      <span
-                        className={`ring-cc-danger block ${maxPoints > 60 ? "size-1.5" : "size-2"} rounded-full ring-2`}
-                        style={{ backgroundColor: "var(--color-cc-danger)" }}
+                      <WarningIcon
+                        className={`text-cc-danger block ${maxPoints > 60 ? "size-2.5" : "size-3"}`}
+                        strokeWidth={2.5}
                       />
                     ) : (
                       <span
@@ -276,9 +289,12 @@ export function BenchmarkHistoryChart({
                   </div>
                   <div className="text-cc-ink-dim">{compositionName}</div>
                   {point.failed && (
-                    <div className="text-cc-danger mt-1.5 flex items-center gap-1 font-semibold">
-                      <WarningIcon className="size-3.5 shrink-0" />
-                      Failed, partial results
+                    <div className="text-cc-danger border-cc-card-border mt-2 flex items-center gap-1 border-t pt-2 text-[11px]">
+                      <WarningIcon className="size-3 shrink-0" />
+                      {scenario.config.measuredRuns !== undefined &&
+                      point.completedRuns < scenario.config.measuredRuns
+                        ? `Only ${point.completedRuns} of ${scenario.config.measuredRuns} runs completed`
+                        : "Failed"}
                     </div>
                   )}
                 </div>

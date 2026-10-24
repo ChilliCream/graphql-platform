@@ -112,6 +112,8 @@ export interface HistoryPoint {
   readonly rps: number;
   /** Whether the run's execution failed. */
   readonly failed: boolean;
+  /** The number of measured runs that completed. */
+  readonly completedRuns: number;
 }
 
 /** One variant's line in the history chart. */
@@ -186,6 +188,7 @@ export function historySeries(
         version: version.version,
         rps: version.throughput.medianRps,
         failed: version.status === "failed",
+        completedRuns: version.throughput.runsRps!.length,
       })),
     };
   });
