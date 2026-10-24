@@ -67,12 +67,33 @@ public sealed class OperationDocumentInfo : RequestFeature
         {
             if (_operationCount is not { } count)
             {
-                count = Document?.Definitions.Count(d => d.Kind == SyntaxKind.OperationDefinition) ?? 0;
+                count = CountOperations(Document);
                 _operationCount = count;
             }
 
             return count;
         }
+    }
+
+    private static int CountOperations(DocumentNode? document)
+    {
+        if (document is null)
+        {
+            return 0;
+        }
+
+        var definitions = document.Definitions;
+        var count = 0;
+
+        for (var i = 0; i < definitions.Count; i++)
+        {
+            if (definitions[i].Kind == SyntaxKind.OperationDefinition)
+            {
+                count++;
+            }
+        }
+
+        return count;
     }
 
     /// <summary>
