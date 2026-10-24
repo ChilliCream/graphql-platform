@@ -50,6 +50,36 @@ public sealed class ErrorTrie : Dictionary<object, ErrorTrie>
     /// </remarks>
     public IError? Error { get; set; }
 
+    internal bool TryGetIndex(int index, out ErrorTrie? errorTrie)
+    {
+        if (Count == 0)
+        {
+            errorTrie = null;
+            return false;
+        }
+
+        if (Count == 1 && EnsureCapacity(0) <= 3)
+        {
+            using var entries = GetEnumerator();
+            entries.MoveNext();
+            var entry = entries.Current;
+
+            if (entry.Key is int existingIndex)
+            {
+                if (existingIndex == index)
+                {
+                    errorTrie = entry.Value;
+                    return true;
+                }
+
+                errorTrie = null;
+                return false;
+            }
+        }
+
+        return TryGetValue(index, out errorTrie);
+    }
+
     /// <summary>
     /// Finds and returns the first error encountered in the trie using depth-first traversal.
     /// </summary>
