@@ -81,6 +81,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             nodes,
             deliveryGroups,
             incrementalPlans,
+            policies: null,
             searchSpace,
             expandedNodes);
     }

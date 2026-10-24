@@ -166,6 +166,7 @@ public sealed class OperationPlanContextPoolingTests : FusionTestBase
             [nodeField, fallback, batch],
             deliveryGroups: [],
             incrementalPlans: [],
+            policies: null,
             searchSpace: 0,
             expandedNodes: 0);
 
@@ -184,6 +185,7 @@ public sealed class OperationPlanContextPoolingTests : FusionTestBase
             [node, dependent],
             deliveryGroups: [],
             incrementalPlans: [],
+            policies: null,
             searchSpace: 0,
             expandedNodes: 0);
 
@@ -200,6 +202,7 @@ public sealed class OperationPlanContextPoolingTests : FusionTestBase
             [node],
             deliveryGroups: [],
             incrementalPlans: [],
+            policies: null,
             searchSpace: 0,
             expandedNodes: 0);
     }
@@ -322,6 +325,7 @@ public sealed class OperationPlanContextPoolingTests : FusionTestBase
             => Context.Initialize(
                 requestContext,
                 variables ?? VariableValueCollection.Empty,
+                null,
                 plan,
                 cancellationTokenSource,
                 memory);

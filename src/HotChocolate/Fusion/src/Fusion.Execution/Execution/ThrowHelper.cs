@@ -10,6 +10,25 @@ internal static class ThrowHelper
     public static InvalidOperationException PolicyEntryNotPartOfContext()
         => new(FusionExecutionResources.PolicyEvaluationContext_EntryNotPartOfContext);
 
+    public static InvalidOperationException PolicyEntryAlreadyAnswered(
+        string fieldCoordinate,
+        string policy)
+        => new(string.Format(
+            FusionExecutionResources.PolicyEvaluationContext_EntryAlreadyAnswered,
+            fieldCoordinate,
+            policy));
+
+    public static InvalidOperationException OperationPolicyRequiresPlan()
+        => new(FusionExecutionResources.OperationPolicy_OperationPlanMissing);
+
+    public static InvalidOperationException OperationPolicyRequiresBooleanType()
+        => new(FusionExecutionResources.OperationPolicy_BooleanTypeMissing);
+
+    public static InvalidOperationException VariableAlreadyExists(string variableName)
+        => new(string.Format(
+            FusionExecutionResources.VariableValueCollection_VariableAlreadyExists,
+            variableName));
+
     public static InvalidOperationException AuthorizationOptionsAreReadOnly()
         => new(FusionExecutionResources.FusionAuthorizationOptions_ReadOnly);
 
@@ -37,14 +56,16 @@ internal static class ThrowHelper
     public static InvalidOperationException AuthenticationSchemesWithoutLookup()
         => new(FusionExecutionResources.AuthorizationValidation_SchemesWithoutLookup);
 
+    public static InvalidOperationException InvalidDeferIfVariable(string variableName)
+        => new(string.Format(
+            FusionExecutionResources.DeliveryGroup_InvalidIfVariable,
+            variableName));
+
     public static InvalidOperationException PolicyNotResolved(string directiveName, string? policyName)
         => new(string.Format(
             FusionExecutionResources.PolicyResolver_PolicyNotResolved,
             policyName ?? string.Empty,
             directiveName));
-
-    public static InvalidOperationException OperationAuthorizationAlreadySet()
-        => new(FusionExecutionResources.Operation_AuthorizationAlreadySet);
 
     public static InvalidOperationException MissingBooleanVariable(string variableName)
         => new(string.Format(

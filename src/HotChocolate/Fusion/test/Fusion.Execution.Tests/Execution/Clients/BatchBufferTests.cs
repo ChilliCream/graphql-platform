@@ -222,7 +222,7 @@ public sealed class BatchBufferTests : FusionTestBase
                 requestServices: _services,
                 requestAborted: CancellationToken.None);
 
-            context.Initialize(requestContext, VariableValueCollection.Empty, _operationPlan, cts, new MemoryArena());
+            context.Initialize(requestContext, VariableValueCollection.Empty, null, _operationPlan, cts, new MemoryArena());
 
             _ctsList.Add(cts);
             _requestContexts.Add((requestContextPool, requestContext));

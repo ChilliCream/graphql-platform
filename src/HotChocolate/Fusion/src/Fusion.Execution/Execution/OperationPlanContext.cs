@@ -12,6 +12,7 @@ using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Execution.Results;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -73,6 +74,12 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
 #pragma warning disable IDE0370 // Remove unnecessary suppression
     public IVariableValueCollection Variables { get; private set; } = default!;
 #pragma warning restore IDE0370 // Remove unnecessary suppression
+
+    /// <summary>
+    /// Gets the policy decisions of the variable set being executed, or <c>null</c> if the
+    /// operation is not protected or every selection is allowed.
+    /// </summary>
+    internal PolicyDecisions? PolicyDecisions { get; private set; }
 
     /// <summary>
     /// Gets the schema definition associated with this execution.
@@ -782,6 +789,11 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     internal OperationResult Complete(bool reusable = false, bool retainMemoryForDefer = false)
     {
         _resultStore.FinalizePocketedErrors();
+
+        if (PolicyDecisions is { RequiresFinalization: true } policyDecisions)
+        {
+            _resultStore.FinalizeDeniedSelections(policyDecisions);
+        }
 
         var environment = Schema.TryGetEnvironment();
 

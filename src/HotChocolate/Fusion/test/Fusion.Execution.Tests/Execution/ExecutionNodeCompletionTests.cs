@@ -354,6 +354,7 @@ public sealed class ExecutionNodeCompletionTests : FusionTestBase
                 [.. nodes],
                 deliveryGroups: [],
                 incrementalPlans: [],
+                policies: null,
                 searchSpace: 0,
                 expandedNodes: 0);
             var contextPool = executor.Schema.Services.GetRequiredService<OperationPlanContextPool>();
@@ -376,6 +377,7 @@ public sealed class ExecutionNodeCompletionTests : FusionTestBase
             context.Initialize(
                 requestContext,
                 VariableValueCollection.Empty,
+                null,
                 plan,
                 cts,
                 new MemoryArena());

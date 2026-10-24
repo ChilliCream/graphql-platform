@@ -1,9 +1,9 @@
 using HotChocolate.Execution;
 using HotChocolate.Features;
-using HotChocolate.Fusion.Authorization;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
 

@@ -3,8 +3,8 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using HotChocolate.Execution;
-using HotChocolate.Fusion.Authorization;
 using HotChocolate.Fusion.Configuration;
+using HotChocolate.Fusion.Policies;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion;

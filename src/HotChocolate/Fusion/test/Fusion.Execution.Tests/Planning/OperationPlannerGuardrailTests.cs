@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Fusion.Authorization;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using Microsoft.Extensions.ObjectPool;

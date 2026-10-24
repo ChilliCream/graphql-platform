@@ -315,12 +315,6 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
 
-        internal static string Operation_AuthorizationAlreadySet {
-            get {
-                return ResourceManager.GetString("Operation_AuthorizationAlreadySet", resourceCulture);
-            }
-        }
-
         internal static string FusionAuthorizationOptions_ReadOnly {
             get {
                 return ResourceManager.GetString("FusionAuthorizationOptions_ReadOnly", resourceCulture);
@@ -360,6 +354,60 @@ namespace HotChocolate.Fusion.Properties {
         internal static string AuthorizationValidation_SchemesWithoutLookup {
             get {
                 return ResourceManager.GetString("AuthorizationValidation_SchemesWithoutLookup", resourceCulture);
+            }
+        }
+
+        internal static string PolicyEvaluationContext_EntryAlreadyAnswered {
+            get {
+                return ResourceManager.GetString("PolicyEvaluationContext_EntryAlreadyAnswered", resourceCulture);
+            }
+        }
+
+        internal static string OperationPolicy_OperationPlanMissing {
+            get {
+                return ResourceManager.GetString("OperationPolicy_OperationPlanMissing", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_NotAuthenticated {
+            get {
+                return ResourceManager.GetString("ErrorHelper_NotAuthenticated", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_NotAuthorized {
+            get {
+                return ResourceManager.GetString("ErrorHelper_NotAuthorized", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_NonNullViolation {
+            get {
+                return ResourceManager.GetString("ErrorHelper_NonNullViolation", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_AuthorizationFailed {
+            get {
+                return ResourceManager.GetString("ErrorHelper_AuthorizationFailed", resourceCulture);
+            }
+        }
+
+        internal static string OperationPolicy_BooleanTypeMissing {
+            get {
+                return ResourceManager.GetString("OperationPolicy_BooleanTypeMissing", resourceCulture);
+            }
+        }
+
+        internal static string VariableValueCollection_VariableAlreadyExists {
+            get {
+                return ResourceManager.GetString("VariableValueCollection_VariableAlreadyExists", resourceCulture);
+            }
+        }
+
+        internal static string DeliveryGroup_InvalidIfVariable {
+            get {
+                return ResourceManager.GetString("DeliveryGroup_InvalidIfVariable", resourceCulture);
             }
         }
     }

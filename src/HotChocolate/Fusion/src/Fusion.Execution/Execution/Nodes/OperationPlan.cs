@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Security.Cryptography;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -22,6 +23,7 @@ public sealed record OperationPlan : IOperationPlan
         ImmutableArray<ExecutionNode> allNodes,
         ImmutableArray<DeliveryGroup> deliveryGroups,
         ImmutableArray<IncrementalPlan> incrementalPlans,
+        PolicyPlan? policies,
         int searchSpace,
         int expandedNodes)
     {
@@ -40,6 +42,7 @@ public sealed record OperationPlan : IOperationPlan
         MaxNodeId = _nodesById.Length > 0 ? _nodesById.Length - 1 : 0;
         UsesDynamicSchemaNames = usesDynamicSchemaNames;
         UsesBatchNodes = usesBatchNodes;
+        Policies = policies;
     }
 
     /// <summary>
@@ -110,6 +113,12 @@ public sealed record OperationPlan : IOperationPlan
     internal bool UsesBatchNodes { get; }
 
     /// <summary>
+    /// Gets the policy requirements of the operation and its incremental plans,
+    /// or <c>null</c> if nothing is protected.
+    /// </summary>
+    public PolicyPlan? Policies { get; }
+
+    /// <summary>
     /// Retrieves the execution node associated with a plan node identifier.
     /// </summary>
     /// <param name="id">
@@ -168,6 +177,9 @@ public sealed record OperationPlan : IOperationPlan
     /// Each plan carries its delivery group set on
     /// <see cref="IncrementalPlan.DeliveryGroups"/>.
     /// </param>
+    /// <param name="policies">
+    /// The policy requirements of the operation and its incremental plans, or <c>null</c> if nothing is protected.
+    /// </param>
     /// <param name="searchSpace">A number specifying how many possible plans were considered during planning.</param>
     /// <param name="expandedNodes">The number of expanded nodes during planner search.</param>
     /// <returns>A new <see cref="OperationPlan"/> instance.</returns>
@@ -181,6 +193,7 @@ public sealed record OperationPlan : IOperationPlan
         ImmutableArray<ExecutionNode> allNodes,
         ImmutableArray<DeliveryGroup> deliveryGroups,
         ImmutableArray<IncrementalPlan> incrementalPlans,
+        PolicyPlan? policies,
         int searchSpace,
         int expandedNodes)
     {
@@ -190,7 +203,7 @@ public sealed record OperationPlan : IOperationPlan
         ArgumentOutOfRangeException.ThrowIfLessThan(allNodes.Length, 0);
 
         return new OperationPlan(
-            id, operation, rootNodes, allNodes, deliveryGroups, incrementalPlans, searchSpace, expandedNodes);
+            id, operation, rootNodes, allNodes, deliveryGroups, incrementalPlans, policies, searchSpace, expandedNodes);
     }
 
     /// <summary>
@@ -209,6 +222,9 @@ public sealed record OperationPlan : IOperationPlan
     /// Each plan carries its delivery group set on
     /// <see cref="IncrementalPlan.DeliveryGroups"/>.
     /// </param>
+    /// <param name="policies">
+    /// The policy requirements of the operation and its incremental plans, or <c>null</c> if nothing is protected.
+    /// </param>
     /// <param name="searchSpace">A number specifying how many possible plans were considered during planning.</param>
     /// <param name="expandedNodes">The number of expanded nodes during planner search.</param>
     /// <returns>A new <see cref="OperationPlan"/> instance with a content-based identifier.</returns>
@@ -220,6 +236,7 @@ public sealed record OperationPlan : IOperationPlan
         ImmutableArray<ExecutionNode> allNodes,
         ImmutableArray<DeliveryGroup> deliveryGroups,
         ImmutableArray<IncrementalPlan> incrementalPlans,
+        PolicyPlan? policies,
         int searchSpace,
         int expandedNodes)
     {
@@ -250,6 +267,7 @@ public sealed record OperationPlan : IOperationPlan
             allNodes,
             deliveryGroups,
             incrementalPlans,
+            policies,
             searchSpace,
             expandedNodes);
     }

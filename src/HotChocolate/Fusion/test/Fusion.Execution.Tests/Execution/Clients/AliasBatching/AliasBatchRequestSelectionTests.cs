@@ -352,7 +352,7 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
 
         public async Task<string> SendAsync(
             SourceSchemaClientRequest request,
-            VariableValueCollection variables)
+            IVariableValueCollection variables)
         {
             var context = CreateContext(variables);
 
@@ -394,7 +394,7 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
         /// </summary>
         public async Task<List<int>> SendBatchAsync(
             ImmutableArray<SourceSchemaClientRequest> requests,
-            VariableValueCollection variables)
+            IVariableValueCollection variables)
         {
             var context = CreateContext(variables);
             var requestIndices = new List<int>();
@@ -411,7 +411,7 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
             return requestIndices;
         }
 
-        private OperationPlanContext CreateContext(VariableValueCollection variables)
+        private OperationPlanContext CreateContext(IVariableValueCollection variables)
         {
             var contextPool = _executor.Schema.Services.GetRequiredService<OperationPlanContextPool>();
             var context = contextPool.Rent();
@@ -431,6 +431,7 @@ public sealed class AliasBatchRequestSelectionTests : FusionTestBase
             context.Initialize(
                 requestContext,
                 variables,
+                null,
                 _operationPlan,
                 cts,
                 new MemoryArena());

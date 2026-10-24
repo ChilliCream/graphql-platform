@@ -91,7 +91,7 @@ public sealed class Selection : ISelection
 
         if (field is FusionOutputFieldDefinition { HasAuthorization: true })
         {
-            _flags |= Flags.HasAuthorization;
+            _flags |= Flags.HasPolicies;
         }
 
         var type = field.Type;
@@ -184,9 +184,9 @@ public sealed class Selection : ISelection
     internal bool IsNonNull => (_flags & Flags.NonNull) == Flags.NonNull;
 
     /// <summary>
-    /// Gets a value indicating whether the field of this selection carries an authorization requirement.
+    /// Gets a value indicating whether the field of this selection carries a policy requirement.
     /// </summary>
-    internal bool HasAuthorization => (_flags & Flags.HasAuthorization) == Flags.HasAuthorization;
+    internal bool HasPolicies => (_flags & Flags.HasPolicies) == Flags.HasPolicies;
 
     /// <summary>
     /// Gets the selection's field type with its non-null wrapper removed.
@@ -780,6 +780,6 @@ nextItem:
         NonNullListElement = 64,
         RequiresWideIncludeFlags = 128,
         RequiresWideDeferFlags = 256,
-        HasAuthorization = 512
+        HasPolicies = 512
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Execution;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -149,6 +150,109 @@ public sealed class IncrementalPlan : IOperationPlan
         }
 
         throw ThrowHelper.NodeNotFound(planNode.Id);
+    }
+
+    /// <summary>
+    /// Determines which incremental plans run for the variable set, indexed like
+    /// <paramref name="incrementalPlans"/>. A plan runs when one of its delivery groups is active
+    /// and the plan owning the parent delivery group, if any, also runs.
+    /// </summary>
+    internal static bool[] GetRunningPlans(
+        ImmutableArray<IncrementalPlan> incrementalPlans,
+        IVariableValueCollection variables)
+    {
+        if (incrementalPlans.IsEmpty)
+        {
+            return [];
+        }
+
+        var running = new bool[incrementalPlans.Length];
+        var changed = true;
+
+        while (changed)
+        {
+            changed = false;
+
+            for (var i = 0; i < incrementalPlans.Length; i++)
+            {
+                if (!running[i]
+                    && IsAnyDeliveryGroupActive(incrementalPlans[i], variables)
+                    && IsParentRunning(incrementalPlans[i], incrementalPlans, running))
+                {
+                    running[i] = true;
+                    changed = true;
+                }
+            }
+        }
+
+        return running;
+    }
+
+    /// <summary>
+    /// Collects the operations of the incremental plans that do not run for the variable set.
+    /// </summary>
+    internal static HashSet<Operation> GetOperationsThatDoNotRun(
+        ImmutableArray<IncrementalPlan> incrementalPlans,
+        IVariableValueCollection variables)
+    {
+        var running = GetRunningPlans(incrementalPlans, variables);
+        var operations = new HashSet<Operation>();
+
+        for (var i = 0; i < incrementalPlans.Length; i++)
+        {
+            if (!running[i])
+            {
+                operations.Add(incrementalPlans[i].Operation);
+            }
+        }
+
+        return operations;
+    }
+
+    private static bool IsAnyDeliveryGroupActive(
+        IncrementalPlan incrementalPlan,
+        IVariableValueCollection variables)
+    {
+        foreach (var deliveryGroup in incrementalPlan.DeliveryGroups)
+        {
+            if (deliveryGroup.IsActive(variables))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool IsParentRunning(
+        IncrementalPlan incrementalPlan,
+        ImmutableArray<IncrementalPlan> incrementalPlans,
+        bool[] running)
+    {
+        var parent = incrementalPlan.DeliveryGroups[0].Parent;
+
+        if (parent is null)
+        {
+            return true;
+        }
+
+        for (var i = 0; i < incrementalPlans.Length; i++)
+        {
+            if (!running[i])
+            {
+                continue;
+            }
+
+            foreach (var deliveryGroup in incrementalPlans[i].DeliveryGroups)
+            {
+                if (ReferenceEquals(deliveryGroup, parent))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private static ExecutionNode?[] CreateNodeLookup(

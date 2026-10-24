@@ -122,7 +122,7 @@ public sealed partial class OperationPlanner
         string shortHash,
         ImmutableArray<DeferRoutingState> routingStates,
         PlanContextGraph contextGraph,
-        AuthorizationPlanContext? authorization,
+        PolicyPlanContext? policyContext,
         CancellationToken cancellationToken)
     {
         if (routingStates.IsDefaultOrEmpty)
@@ -152,9 +152,9 @@ public sealed partial class OperationPlanner
                 shortHash,
                 compiledOp);
 
-            var marker = authorization is null
+            var marker = policyContext is null
                 ? null
-                : AuthorizationMarker.TryCreate(_schema, authorization, deferredOperation);
+                : PolicyMarker.TryCreate(_schema, policyContext, deferredOperation);
 
             var (rootNodes, allNodes) = BuildDeferredExecutionNodes(
                 registeredInternalOp,
@@ -162,7 +162,10 @@ public sealed partial class OperationPlanner
                 finalSteps.NextId(),
                 marker);
 
-            deferredOperation.SetAuthorization(marker?.CreateAuthorization());
+            if (policyContext is not null && marker is not null)
+            {
+                policyContext.AddIncremental(marker);
+            }
 
             var planScopeRequirements = descriptor.Requirements.Count == 0
                 ? ImmutableArray<OperationRequirement>.Empty
@@ -2144,7 +2147,7 @@ public sealed partial class OperationPlanner
         OperationDefinitionNode deferredOperation,
         ImmutableList<PlanStep> planSteps,
         int nextNodeId,
-        AuthorizationMarker? marker)
+        PolicyMarker? marker)
     {
         if (planSteps.Count == 0)
         {

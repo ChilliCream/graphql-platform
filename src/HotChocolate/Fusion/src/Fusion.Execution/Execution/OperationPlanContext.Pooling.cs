@@ -7,6 +7,7 @@ using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Results;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Types;
 
 namespace HotChocolate.Fusion.Execution;
@@ -30,6 +31,7 @@ public sealed partial class OperationPlanContext
     internal void Initialize(
         RequestContext requestContext,
         IVariableValueCollection variables,
+        PolicyDecisions? policyDecisions,
         IOperationPlan operationPlan,
         CancellationTokenSource cancellationTokenSource,
         MemoryArena? memory = null)
@@ -54,6 +56,8 @@ public sealed partial class OperationPlanContext
 
         Variables = variables;
         OperationPlan = operationPlan;
+
+        PolicyDecisions = policyDecisions;
 
         switch (operationPlan)
         {
@@ -166,6 +170,7 @@ public sealed partial class OperationPlanContext
         _currentMemorySource = null!;
         Variables = default!;
         OperationPlan = default!;
+        PolicyDecisions = null;
         IncludeConditionFlags = default;
         DeferConditionFlags = default;
         // if a custom scope is used we cannot reuse it and have to null it.

@@ -3,11 +3,11 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution;
-using HotChocolate.Fusion.Authorization;
 using HotChocolate.Fusion.Converters;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Planning.Partitioners;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Directives;
 using HotChocolate.Fusion.Types.Metadata;
@@ -137,9 +137,9 @@ public sealed partial class OperationPlanner
 
         try
         {
-            var authorization = _protectedFieldNames is null
+            var policyContext = _protectedFieldNames is null
                 ? null
-                : new AuthorizationPlanContext(_policyResolver, _protectedFieldNames, operationDefinition);
+                : new PolicyPlanContext(_policyResolver, _protectedFieldNames, operationDefinition);
 
             // Interface fields whose ownership diverges across concrete types (for example after an
             // @override) are expanded into per-concrete inline fragments up front. This runs before
@@ -336,7 +336,7 @@ public sealed partial class OperationPlanner
                     shortHash,
                     deferRoutingStates,
                     deferContextGraph,
-                    authorization,
+                    policyContext,
                     cancellationToken);
             }
 
@@ -349,7 +349,7 @@ public sealed partial class OperationPlanner
                 searchSpace,
                 expandedNodes,
                 planSteps.NextId(),
-                authorization,
+                policyContext,
                 cancellationToken);
 
             if (eventSourceEnabled)

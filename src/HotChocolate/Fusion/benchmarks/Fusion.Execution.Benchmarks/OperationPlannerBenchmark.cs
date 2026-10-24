@@ -1,9 +1,9 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
-using HotChocolate.Fusion.Authorization;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Language;
 using Microsoft.Extensions.ObjectPool;
 

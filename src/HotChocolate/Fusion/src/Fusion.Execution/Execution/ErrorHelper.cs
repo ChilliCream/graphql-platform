@@ -4,6 +4,7 @@ using HotChocolate.Collections.Immutable;
 using HotChocolate.CostAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.CostAnalysis;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Properties;
 
 namespace HotChocolate.Fusion.Execution;
@@ -143,6 +144,104 @@ internal static class ErrorHelper
         var result = OperationResult.FromError(error);
         result.ContextData = s_validationError;
         return result;
+    }
+
+    public static IError DeniedField(
+        AuthorizationDenialKind kind,
+        Path path,
+        PolicyDescriptor? attribution)
+    {
+        var builder = CreateDenialBuilder(kind).SetPath(path);
+
+        if (attribution is not null)
+        {
+            AddAttribution(builder, attribution);
+        }
+
+        return builder.Build();
+    }
+
+    public static IError DeniedNonNullField(Path path)
+        => ErrorBuilder.New()
+            .SetMessage(FusionExecutionResources.ErrorHelper_NonNullViolation)
+            .SetCode(ErrorCodes.Execution.NonNullViolation)
+            .SetPath(path)
+            .Build();
+
+    public static OperationResult AuthorizationRejected(
+        SelectionDenial denial,
+        bool isAttributed,
+        string? challenge)
+    {
+        var builder = CreateDenialBuilder(denial.Kind);
+
+        if (isAttributed)
+        {
+            builder.SetExtension("coordinate", denial.Selection.Field.Coordinate.ToString());
+            AddAttribution(builder, denial.Descriptor);
+        }
+
+        var result = OperationResult.FromError(builder.Build());
+
+        if (denial.Kind is AuthorizationDenialKind.Unauthenticated)
+        {
+            result.ContextData = result.ContextData.Add(
+                ExecutionContextData.HttpStatusCode,
+                HttpStatusCode.Unauthorized);
+
+            if (challenge is not null)
+            {
+                result.ContextData = result.ContextData.Add(
+                    ExecutionContextData.WwwAuthenticateHeaderValue,
+                    challenge);
+            }
+        }
+        else
+        {
+            result.ContextData = result.ContextData.Add(
+                ExecutionContextData.HttpStatusCode,
+                HttpStatusCode.Forbidden);
+        }
+
+        return result;
+    }
+
+    public static OperationResult AuthorizationFailed()
+    {
+        var result = OperationResult.FromError(
+            ErrorBuilder.New()
+                .SetMessage(FusionExecutionResources.ErrorHelper_AuthorizationFailed)
+                .Build());
+
+        result.ContextData = result.ContextData.Add(
+            ExecutionContextData.HttpStatusCode,
+            HttpStatusCode.InternalServerError);
+
+        return result;
+    }
+
+    private static ErrorBuilder CreateDenialBuilder(AuthorizationDenialKind kind)
+        => kind is AuthorizationDenialKind.Unauthenticated
+            ? ErrorBuilder.New()
+                .SetMessage(FusionExecutionResources.ErrorHelper_NotAuthenticated)
+                .SetCode(ErrorCodes.Authentication.NotAuthenticated)
+            : ErrorBuilder.New()
+                .SetMessage(FusionExecutionResources.ErrorHelper_NotAuthorized)
+                .SetCode(ErrorCodes.Authentication.NotAuthorized);
+
+    private static void AddAttribution(ErrorBuilder builder, PolicyDescriptor descriptor)
+    {
+        builder.SetExtension("directive", descriptor.DirectiveName);
+
+        if (descriptor.PolicyName is not null)
+        {
+            builder.SetExtension("policy", descriptor.PolicyName);
+        }
+
+        if (!descriptor.Scopes.IsEmpty)
+        {
+            builder.SetExtension("requiredScopes", descriptor.Scopes);
+        }
     }
 
     public static IError InvalidNodeIdFormat(string originalValue)

@@ -1,4 +1,5 @@
 using HotChocolate.Execution;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -41,4 +42,23 @@ public sealed record DeliveryGroup(
     /// together with <see cref="DeferConditionIndex"/>.
     /// </summary>
     public string? IfVariable { get; init; }
+
+    /// <summary>
+    /// Determines whether this delivery group is active for the variable set, which holds when
+    /// it is unconditional or its <c>if</c> variable is <c>true</c>.
+    /// </summary>
+    internal bool IsActive(IVariableValueCollection variables)
+    {
+        if (IfVariable is null)
+        {
+            return true;
+        }
+
+        if (!variables.TryGetValue<BooleanValueNode>(IfVariable, out var value))
+        {
+            throw ThrowHelper.InvalidDeferIfVariable(IfVariable);
+        }
+
+        return value.Value;
+    }
 }

@@ -178,6 +178,7 @@ public sealed class OperationPlanContextResetTests : FusionTestBase
             nodes,
             deliveryGroups: [],
             incrementalPlans: [],
+            policies: null,
             searchSpace: 0,
             expandedNodes: 0);
         var incrementalPlan = new IncrementalPlan(
@@ -281,6 +282,7 @@ public sealed class OperationPlanContextResetTests : FusionTestBase
                 allNodes,
                 deliveryGroups: [],
                 incrementalPlans: [],
+                policies: null,
                 searchSpace: 0,
                 expandedNodes: 0);
             var contextPool = executor.Schema.Services.GetRequiredService<OperationPlanContextPool>();
@@ -304,6 +306,7 @@ public sealed class OperationPlanContextResetTests : FusionTestBase
             context.Initialize(
                 requestContext,
                 VariableValueCollection.Empty,
+                null,
                 plan,
                 cancellationTokenSource,
                 memory);

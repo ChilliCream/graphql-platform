@@ -1,5 +1,5 @@
 using System.Collections.Immutable;
-using HotChocolate.Fusion.Authorization;
+using HotChocolate.Fusion.Policies;
 using Microsoft.AspNetCore.Authentication;
 
 namespace HotChocolate.Fusion.AspNetCore;

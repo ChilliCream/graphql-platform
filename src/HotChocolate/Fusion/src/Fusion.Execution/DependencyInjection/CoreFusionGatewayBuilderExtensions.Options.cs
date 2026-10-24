@@ -1,7 +1,7 @@
-using HotChocolate.Fusion.Authorization;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Policies;
 
 namespace Microsoft.Extensions.DependencyInjection;
 

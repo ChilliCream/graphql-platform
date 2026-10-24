@@ -7,9 +7,11 @@ using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Policies;
+using HotChocolate.Fusion.Properties;
+using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Collections;
-using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -469,6 +471,98 @@ internal sealed class ValueCompletion
         }
     }
 
+    public void FinalizeDeniedSelections(
+        CompositeResultElement resultData,
+        PolicyDecisions decisions)
+        => VisitDeniedSelections(resultData, decisions);
+
+    /// <summary>
+    /// Applies the denial of every denied selection below <paramref name="current"/>.
+    /// </summary>
+    /// <returns>
+    /// <c>false</c>, if the null propagation reached the root and the walk must stop.
+    /// </returns>
+    private bool VisitDeniedSelections(
+        CompositeResultElement current,
+        PolicyDecisions decisions)
+    {
+        if (current.IsNullOrInvalidated || current.IsNullMarker)
+        {
+            return true;
+        }
+
+        switch (current.ValueKind)
+        {
+            case JsonValueKind.Object:
+                if (current.SelectionSet is null)
+                {
+                    return true;
+                }
+
+                foreach (var property in current.EnumerateObject())
+                {
+                    var field = property.Value;
+
+                    if (field.IsInternal || property.Selection is not { } selection)
+                    {
+                        continue;
+                    }
+
+                    var canExecutionContinue = selection.HasPolicies && decisions.IsDenied(selection)
+                        ? ApplyDenial(field, selection, decisions)
+                        : VisitDeniedSelections(field, decisions);
+
+                    if (!canExecutionContinue)
+                    {
+                        return false;
+                    }
+
+                    if (current.IsNullOrInvalidated)
+                    {
+                        return true;
+                    }
+                }
+
+                return true;
+
+            case JsonValueKind.Array:
+                foreach (var element in current.EnumerateArray())
+                {
+                    if (!VisitDeniedSelections(element, decisions))
+                    {
+                        return false;
+                    }
+
+                    if (current.IsNullOrInvalidated)
+                    {
+                        return true;
+                    }
+                }
+
+                return true;
+
+            default:
+                return true;
+        }
+    }
+
+    private bool ApplyDenial(
+        CompositeResultElement field,
+        Selection selection,
+        PolicyDecisions decisions)
+    {
+        var path = field.Path;
+        var error = decisions.CreateError(selection, path);
+
+        // A propagated null invalidates the field and its parents instead of nulling the field.
+        if (_errorHandlingMode is not ErrorHandlingMode.Propagate || !selection.IsNonNull)
+        {
+            field.SetNullValue();
+        }
+
+        return error is null || ApplyFieldError(field, selection, error, path);
+    }
+
     private static void SetNullMarker(CompositeResultElement result)
     {
         var current = result;
@@ -822,7 +916,7 @@ internal sealed class ValueCompletion
             {
                 var path = target.CompactPath.ToPath(target.Operation);
                 error = ErrorBuilder.New()
-                    .SetMessage("Cannot return null for non-nullable field.")
+                    .SetMessage(FusionExecutionResources.ErrorHelper_NonNullViolation)
                     .SetCode(ErrorCodes.Execution.NonNullViolation)
                     .SetPath(path)
                     .Build();
