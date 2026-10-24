@@ -44,7 +44,8 @@ public abstract partial class FusionTestBase : IDisposable
         bool disableDefaultSecurity = false,
         bool enableGlobalObjectIdentification = true,
         int? defaultListSize = 1,
-        bool includeOperationPlan = true)
+        bool includeOperationPlan = true,
+        Action<SchemaComposerOptions>? configureComposerOptions = null)
     {
         var sourceSchemas = new List<SourceSchemaText>();
         var gatewayServices = new ServiceCollection();
@@ -147,6 +148,7 @@ public abstract partial class FusionTestBase : IDisposable
                 DefaultListSize = defaultListSize
             }
         };
+        configureComposerOptions?.Invoke(composerOptions);
         var composer = new SchemaComposer(sourceSchemas, composerOptions, compositionLog);
         var result = composer.Compose();
 
