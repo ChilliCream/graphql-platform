@@ -1,3 +1,4 @@
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Middlewares;
 using Mocha.Transport.RabbitMQ.Middlewares;
@@ -102,6 +103,58 @@ public class RabbitMQRoutingKeyTests
 
         // assert
         Assert.Equal("ORD-999", capturedRoutingKey);
+    }
+
+    [Fact]
+    public async Task PrepareAsync_Should_PreserveBusMiddlewareRoutingKey_When_ExtractorIsConfigured()
+    {
+        // arrange
+        string? extractedRoutingKey = null;
+        await using var runtime = CreateRuntime(builder =>
+        {
+            builder.AddMessage<OrderCreated>(message =>
+            {
+                message.UseRabbitMQRoutingKey<OrderCreated>(order => order.OrderId);
+                message.Publish(route => route.ToRabbitMQExchange("orders"));
+            });
+            builder.ConfigureMessageBus(bus => bus.UseDispatch(new DispatchMiddlewareConfiguration(
+                (_, next) => context =>
+                {
+                    extractedRoutingKey = context.Headers.Get(RabbitMQMessageHeaders.RoutingKey);
+                    context.Headers.Set(RabbitMQMessageHeaders.RoutingKey, "from-middleware");
+                    return next(context);
+                },
+                "OverrideRoutingKey")));
+        });
+        var messageType = runtime.GetMessageType(typeof(OrderCreated));
+        var endpoint = runtime.GetPublishEndpoint(messageType);
+        var context = new DispatchContext { Message = new OrderCreated { OrderId = "ORD-123" } };
+        context.Initialize(runtime.Services, endpoint, runtime, messageType, CancellationToken.None);
+        object? preparedRoutingKey;
+
+        // act
+        try
+        {
+            await endpoint.PrepareAsync(context);
+            preparedRoutingKey = context.Envelope!.Headers!.GetValue(RabbitMQMessageHeaders.RoutingKey.Key);
+        }
+        finally
+        {
+            context.Reset();
+        }
+
+        // assert
+        new
+        {
+            ExtractedBeforeOverride = extractedRoutingKey,
+            PreparedRoutingKey = preparedRoutingKey
+        }.MatchInlineSnapshot(
+            """
+            {
+              "ExtractedBeforeOverride": "ORD-123",
+              "PreparedRoutingKey": "from-middleware"
+            }
+            """);
     }
 
     [Fact]

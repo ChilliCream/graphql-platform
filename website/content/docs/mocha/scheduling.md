@@ -16,6 +16,8 @@ var result = await bus.SchedulePublishAsync(
 
 The call returns immediately with a `SchedulingResult`. The message is persisted and delivered when the scheduled time arrives. If you need to revoke the message before delivery, pass the token to `CancelScheduledMessageAsync`.
 
+Dispatch middleware runs when you call `SchedulePublishAsync`, `ScheduleSendAsync`, or publish or send with a `ScheduledTime`. Set message data and headers before calling `next(context)`; serialization and scheduling follow application middleware. Background workers deliver the stored envelope directly through the transport without running dispatch middleware again.
+
 # Schedule a message
 
 Mocha provides scheduling methods on `IMessageBus` for scheduling with an absolute `DateTimeOffset`.
@@ -211,7 +213,7 @@ builder.Services
 | `UsePostgresScheduling()`        | Registers everything needed for durable scheduling with Postgres, including the background worker and EF Core interceptors. |
 | `AddPostgresScheduledMessages()` | Adds the `ScheduledMessage` entity configuration to the EF Core model.                                                      |
 
-`UsePostgresScheduling()` sets up everything needed to persist scheduled messages in Postgres and dispatch them at the right time. Outgoing messages with a `ScheduledTime` are intercepted and written to the `scheduled_messages` table instead of being sent to the transport. A background worker continuously polls for due messages and dispatches them through the bus. EF Core interceptors signal the worker when `SaveChanges` or a transaction commit occurs, enabling low-latency wake-up.
+`UsePostgresScheduling()` sets up everything needed to persist scheduled messages in Postgres and dispatch them at the right time. Outgoing messages with a `ScheduledTime` are intercepted and written to the `scheduled_messages` table instead of being sent to the transport. A background worker continuously polls for due messages and sends their stored envelopes directly through the transport. EF Core interceptors signal the worker when `SaveChanges` or a transaction commit occurs, enabling low-latency wake-up.
 
 When `UsePostgresScheduling()` is configured, `SchedulePublishAsync` and `ScheduleSendAsync` return cancellable results with tokens you can pass to `CancelScheduledMessageAsync`.
 
@@ -255,7 +257,9 @@ When multiple instances of your service are running, each scheduled message is p
 
 ## Outbox integration
 
-When both the transactional outbox and scheduling are configured, scheduled messages participate in the transaction correctly. Messages with a `ScheduledTime` are intercepted by the scheduler and never reach the outbox. Messages dispatched by the background worker skip both the scheduler and the outbox, going directly to the transport. See [Reliability](./reliability.md) for outbox configuration.
+Messages published or sent through `IMessageBus` with a `ScheduledTime` are intercepted by the scheduler before reaching the outbox. The `UsePostgresScheduling()` store participates in the configured DbContext's current database transaction. Messages dispatched by the background worker skip both the scheduler and the outbox, going directly to the transport.
+
+`DbContext.Outbox` does not support scheduled messages. Setting `ScheduledTime` on its publish or send options throws an `ArgumentException`. See [Reliability](./reliability.md) for outbox configuration.
 
 # Schedule messages in sagas
 

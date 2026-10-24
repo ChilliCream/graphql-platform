@@ -214,6 +214,13 @@ internal static class ThrowHelper
             + $"'{transportType.FullName}'. Register a transport-specific scheduled "
             + "message store or configure a fallback scheduler.");
 
+    public static Exception ScheduledPreparationUnsupported()
+        => new NotSupportedException(
+            "Scheduled messages cannot be prepared for an outbox.");
+
+    public static InvalidOperationException MessagePreparationIncomplete()
+        => new("The message preparation pipeline must complete before a message can be staged.");
+
     public static Exception ScheduledStoreTokenPrefixEmpty()
         => new InvalidOperationException(
             "Scheduled message store registrations must define a non-empty token prefix.");

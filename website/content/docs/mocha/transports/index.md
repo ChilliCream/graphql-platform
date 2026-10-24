@@ -94,18 +94,20 @@ builder.Services
     .AddRabbitMQ(transport =>
     {
         // Add dispatch middleware scoped to this transport
-        transport.UseDispatch(myDispatchMiddleware);
+        transport.UseDispatch(TenantDispatchMiddleware.Create("acme"));
 
         // Add receive middleware scoped to this transport
         transport.UseReceive(myReceiveMiddleware);
 
         // Insert middleware relative to existing ones
         transport.UseReceive(myMiddleware, after: "ConcurrencyLimiter");
-        transport.UseDispatch(myMiddleware, before: "Serialization");
+        transport.UseDispatch(myDispatchMiddleware, after: "TenantDispatch");
     });
 ```
 
-This scoping model lets you run different middleware configurations per transport without affecting other transports in a multi-transport setup.
+`TenantDispatchMiddleware` is defined in [Middleware and Pipelines](../middleware-and-pipelines.md#dispatch-middleware). Dispatch ordering keys refer to registered middleware; serialization, scheduling, and outbox persistence run as fixed stages after the application middleware reaches the end of the pipeline.
+
+Transport middleware applies only to endpoints on that transport.
 
 # Customize queues and binding
 

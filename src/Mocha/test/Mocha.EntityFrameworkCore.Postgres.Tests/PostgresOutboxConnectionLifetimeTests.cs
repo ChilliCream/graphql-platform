@@ -16,6 +16,7 @@ public sealed class PostgresOutboxConnectionLifetimeTests(PostgresFixture fixtur
     private string _connectionString = null!;
     private NpgsqlDataSource _dataSource = null!;
     private ConnectionLifetimeDbContext _context = null!;
+    private ServiceProvider _services = null!;
     private PostgresMessageOutbox _outbox = null!;
 
     private static CancellationToken TestToken => TestContext.Current.CancellationToken;
@@ -25,7 +26,8 @@ public sealed class PostgresOutboxConnectionLifetimeTests(PostgresFixture fixtur
         _connectionString = await fixture.CreateDatabaseAsync();
         _dataSource = NpgsqlDataSource.Create(_connectionString);
         _context = CreateContext(_dataSource);
-        _outbox = CreateOutbox(_context);
+        _services = new ServiceCollection().AddSingleton<DbContext>(_context).BuildServiceProvider();
+        _outbox = CreateOutbox(_services);
         await _context.Database.EnsureCreatedAsync(TestToken);
         await using var command = _dataSource.CreateCommand("SHOW max_prepared_transactions");
         var maxPreparedTransactions = await command.ExecuteScalarAsync(TestToken);
@@ -35,6 +37,7 @@ public sealed class PostgresOutboxConnectionLifetimeTests(PostgresFixture fixtur
     public async ValueTask DisposeAsync()
     {
         _outbox.Dispose();
+        await _services.DisposeAsync();
         await _context.DisposeAsync();
         await _dataSource.DisposeAsync();
     }
@@ -193,7 +196,11 @@ public sealed class PostgresOutboxConnectionLifetimeTests(PostgresFixture fixtur
 
         var queries = PostgresMessageOutboxQueries.From(new OutboxTableInfo { Table = "missing_outbox" });
         using var outbox = new PostgresMessageOutbox(
-            _context, new StubOutboxSignal(), queries.InsertEnvelope, requireTransaction: false);
+            _services,
+            typeof(DbContext),
+            new StubOutboxSignal(),
+            queries.InsertEnvelope,
+            requireTransaction: false);
 
         // act
         var exception = await Assert.ThrowsAsync<PostgresException>(
@@ -281,7 +288,8 @@ public sealed class PostgresOutboxConnectionLifetimeTests(PostgresFixture fixtur
         var settings = new NpgsqlConnectionStringBuilder(_connectionString) { Database = $"missing_{Guid.NewGuid():N}" };
         await using var dataSource = NpgsqlDataSource.Create(settings.ConnectionString);
         await using var context = CreateContext(dataSource);
-        using var outbox = CreateOutbox(context);
+        await using var services = new ServiceCollection().AddSingleton<DbContext>(context).BuildServiceProvider();
+        using var outbox = CreateOutbox(services);
         var results = new List<(string SqlState, ConnectionState State)>();
 
         // act
@@ -303,7 +311,8 @@ public sealed class PostgresOutboxConnectionLifetimeTests(PostgresFixture fixtur
         var settings = new NpgsqlConnectionStringBuilder(_connectionString) { MaxPoolSize = 1 };
         await using var dataSource = NpgsqlDataSource.Create(settings.ConnectionString);
         await using var context = CreateContext(dataSource);
-        using var outbox = CreateOutbox(context);
+        await using var services = new ServiceCollection().AddSingleton<DbContext>(context).BuildServiceProvider();
+        using var outbox = CreateOutbox(services);
         await using var blocker = await dataSource.OpenConnectionAsync(TestToken);
         using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestToken);
 
@@ -351,9 +360,13 @@ public sealed class PostgresOutboxConnectionLifetimeTests(PostgresFixture fixtur
             .ConfigureWarnings(w => w.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning))
             .Options);
 
-    private static PostgresMessageOutbox CreateOutbox(DbContext context)
-        => new(context, new StubOutboxSignal(),
-            PostgresMessageOutboxQueries.From(new OutboxTableInfo()).InsertEnvelope, requireTransaction: false);
+    private static PostgresMessageOutbox CreateOutbox(IServiceProvider services)
+        => new(
+            services,
+            typeof(DbContext),
+            new StubOutboxSignal(),
+            PostgresMessageOutboxQueries.From(new OutboxTableInfo()).InsertEnvelope,
+            requireTransaction: false);
 
     private static ServiceProvider CreateProvider(NpgsqlDataSource dataSource, bool pooled)
     {

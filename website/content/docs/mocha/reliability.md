@@ -700,12 +700,14 @@ public class AppDbContext : DbContext
 {
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
-    // Your existing DbSets
     public DbSet<Order> Orders => Set<Order>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+        => modelBuilder.AddPostgresOutbox();
 }
 ```
 
-`OutboxMessage` has four columns: `Id` (Guid), `Envelope` (JsonDocument), `TimesSent` (int), and `CreatedAt` (DateTime). EF Core discovers the table name, schema, and column mappings from your model automatically.
+`OutboxMessage` has four columns: `Id` (Guid), `Envelope` (JsonDocument stored as JSON), `TimesSent` (int), and `CreatedAt` (DateTime). EF Core discovers the table name, schema, and column mappings from your model.
 
 **3. Register the outbox and transaction middleware.**
 
@@ -729,7 +731,9 @@ builder.Services
 
 **4. Publish inside a transaction.**
 
-With the outbox enabled, calls to `PublishAsync`, `SendAsync`, and `ReplyAsync` inside a handler persist the message envelope to the outbox table within the same database transaction. The outbox dispatch middleware intercepts these calls and writes to `IMessageOutbox` instead of the transport.
+With the outbox enabled, calls to `PublishAsync`, `SendAsync`, and `ReplyAsync` inside a handler persist the message envelope to the outbox table within the same database transaction. After application dispatch middleware reaches the end of the pipeline, Mocha serializes the message and writes it to `IMessageOutbox`.
+
+Serialization and outbox persistence are fixed dispatch stages, not configurable middleware ordering keys. For ordinary bus dispatch, change message data and headers before calling `next(context)`. Only `db.Outbox` waits for all application middleware to complete before serialization and staging, including changes made after `await next(context)`.
 
 ```csharp
 public class OrderPlacedHandler(AppDbContext db, IMessageBus bus)
@@ -757,9 +761,9 @@ After the transaction commits, the outbox processor detects the new message (via
 
 ## Transaction requirements
 
-By default, the outbox requires a transaction for `PublishAsync` and `SendAsync`. Without an open database transaction on the DbContext or an ambient `TransactionScope`, these calls throw an `InvalidOperationException` and no message is written. Replies and faults are written without a transaction.
+By default, the outbox requires a transaction for `PublishAsync` and `SendAsync`. Without an open database transaction on the DbContext or an ambient `TransactionScope`, these calls throw an `InvalidOperationException` and no message is written. Replies and faults are written without a transaction. Messages from [`DbContext.Outbox.PublishAsync`](#publish-with-savechanges) are written by `SaveChanges` and do not require a transaction.
 
-Direct bus publishes use the first DbContext registered with `UsePostgresOutbox()`. A transaction on another DbContext does not satisfy this requirement.
+Direct bus publishes use the only registered outbox context, or the context selected with `UseDefaultOutbox<TContext>()`. With multiple outbox contexts and no selected default, direct bus publication throws. A transaction on another DbContext does not satisfy this requirement.
 
 Inside a transaction, the message is written to the outbox table as part of that transaction. Consumers get a transaction from `UseTransaction()`, and mediator handlers from `UseEntityFrameworkTransactions<TContext>()`. In other code, open one on the DbContext:
 
@@ -797,6 +801,112 @@ builder.Services.Configure<PostgresOutboxOptions>(
     options => options.RequireTransaction = false);
 ```
 
+## Publish with SaveChanges
+
+`DbContext.Outbox.PublishAsync` prepares a message for the next `SaveChanges` or `SaveChangesAsync` of that DbContext. The save writes the message in the same database transaction as your entity changes; the message becomes available for dispatch after that transaction commits. This works with or without an open transaction and does not require changes to your DbContext class.
+
+```csharp
+using Mocha.EntityFrameworkCore;
+
+app.MapPost("/products/{id:guid}/price", async (
+    Guid id,
+    decimal price,
+    AppDbContext db,
+    CancellationToken cancellationToken) =>
+{
+    var product = await db.Products.FindAsync([id], cancellationToken);
+    product!.Price = price;
+
+    await db.Outbox.PublishAsync(
+        new ProductChanged { ProductId = id },
+        cancellationToken);
+
+    // Writes the product and the outbox message in one transaction
+    await db.SaveChangesAsync(cancellationToken);
+    return Results.NoContent();
+});
+```
+
+Await `Outbox.PublishAsync` before saving. The call runs application dispatch middleware in the attached caller's scope, then serializes the prepared message into an independent snapshot and attaches it to EF. Changes made by middleware after `await next(context)` are included; changes made after `PublishAsync` returns do not affect the stored message.
+
+`OutboxMessage.Envelope` is a `JsonDocument`. Staged documents remain valid through failed saves and `SaveChanges(false)`. The outbox releases them after an accepted save, when a subsequent save cleans up detached or cleared messages, or when the context is disposed or returned to its pool. Dispose outbox entities or documents loaded by your own queries after use.
+
+During preparation, `context.Envelope` is unset unless middleware supplies one. Read and change the message and metadata through the dispatch context. Cancellation or a middleware exception leaves no new staged message. You can call synchronous `SaveChanges` after the awaited publish. Saving while a publication is still being prepared throws.
+
+Use `db.Outbox.SendAsync(message, cancellationToken)` for a message routed to one destination. It supports `SendOptions` and the same attachment and save semantics as `PublishAsync`.
+
+Messages always belong to the DbContext instance used to publish them, whether the context is resolved from DI or created through `IDbContextFactory<TContext>`. Register the context or its factory before or after `AddEntityFramework<TContext>()`; factory lifetimes are unchanged.
+
+For example, register a pooled factory and create a context directly:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddEntityFramework<AppDbContext>(p => p.UsePostgresOutbox());
+
+builder.Services.AddPooledDbContextFactory<AppDbContext>(options =>
+    options.UseNpgsql(connectionString));
+```
+
+```csharp
+await using var db = await factory.CreateDbContextAsync(cancellationToken);
+db.UseOutbox(bus);
+
+db.Products.Add(product);
+
+await db.Outbox.PublishAsync(
+    new ProductChanged { ProductId = product.Id },
+    cancellationToken);
+
+await db.SaveChangesAsync(cancellationToken);
+```
+
+The same API works with `AddDbContextFactory<TContext>()` and manually constructed contexts configured with Mocha EF services. Call `db.UseOutbox(bus)` once for each created context or pooled lease. If attachment is missing, `PublishAsync` and `SendAsync` throw before preparing or writing a message. Reattaching the same bus is allowed; switching to another bus within the same lease throws.
+
+Multiple DbContext types can each register their own outbox. Messages belong to the exact instance used through `db.Outbox`; this API does not need a default context. Each registered context type has its own relay and options. Publishing through a factory context that targets an unregistered database or outbox mapping throws before message preparation. Repeating registration for the same type is idempotent.
+
+Contexts resolved from scoped DI attach automatically to that scope. Factory-created contexts use the bus passed to `UseOutbox`; middleware and correlation use the caller's messaging services. Mocha does not create or own another application scope. Complete publications and saves before disposing the context or caller scope. Returning a pooled context clears its attachment. Use the context and its outbox only until the context is disposed or returned to the pool.
+
+The attached bus propagates the active consumer's conversation and causation identifiers. Scoped middleware can resolve request-specific services, and explicit message metadata can be supplied through `PublishOptions.Headers`:
+
+```csharp
+await db.Outbox.PublishAsync(
+    message,
+    new PublishOptions
+    {
+        Headers = new() { ["x-tenant"] = tenantId }
+    },
+    cancellationToken);
+```
+
+`PublishOptions` and `SendOptions` can set an expiration time. Setting `ScheduledTime` throws an `ArgumentException`; `DbContext.Outbox` does not support scheduled messages.
+
+Multiple contexts have independent save and transaction boundaries, including inside a handler. `UseTransaction()` manages the configured context in the handler scope. Additional factory-created contexts do not automatically join that transaction. If one commits and the handler later fails, that commit remains; a handler retry can repeat the work. Make such work idempotent, or explicitly enlist the contexts in a shared transaction.
+
+A `SaveChangesAsync` override can await `Outbox.PublishAsync` before calling `base.SaveChangesAsync`. A `SavingChangesAsync` interceptor registered with `AddInterceptors` can also await it to include messages in the current save.
+
+A failed save keeps staged messages and their identifiers available for another save. Calling `Outbox.PublishAsync` again stages a separate message, even for the same event object. Disabling automatic transactions with `AutoTransactionBehavior.Never` requires an explicit or ambient transaction when staging or saving messages.
+
+When publishing domain events from an override or interceptor, remove each event from its pending queue only after `Outbox.PublishAsync` completes successfully:
+
+```csharp
+while (pendingEvents.TryPeek(out var domainEvent))
+{
+    await db.Outbox.PublishAsync(domainEvent, cancellationToken);
+    pendingEvents.Dequeue();
+}
+```
+
+`SaveChanges(acceptAllChangesOnSuccess: false)` and its asynchronous equivalent leave saved messages in the `Added` state until `ChangeTracker.AcceptAllChanges()` is called. Saving again before acceptance attempts to insert those messages again.
+
+Rolling back an outer transaction after an accepted save does not restore entity or outbox tracking state. Use a new unit of work to retry, or save with `acceptAllChangesOnSuccess: false` and call `ChangeTracker.AcceptAllChanges()` only after the transaction commits.
+
+Messages published from a `SavedChangesAsync` interceptor are written by a subsequent save.
+
+Messages that are never followed by a save are not sent. `ChangeTracker.Clear()`, context disposal, and returning a pooled context discard unsaved messages.
+
+`DbContext.Outbox` throws an `InvalidOperationException` when the DbContext has no outbox registered through `AddEntityFramework<TContext>()`. Custom providers must register `IDbContextOutboxProvider` in the context's messaging services. Implementing `IMessageOutbox` alone supports immediate persistence and does not enable staging; using it through `db.Outbox` throws before dispatch.
+
 > [!NOTE]
 > The outbox guarantees at-least-once delivery. Your handlers may be invoked more than once for the same message if the outbox dispatches successfully but the transport acknowledgment is lost before the message is deleted from the outbox table. You can handle this in two ways: design handlers to be idempotent manually (see the [Idempotent Consumer](https://microservices.io/patterns/communication-style/idempotent-consumer.html) pattern), or enable the [inbox](#deduplicate-messages-with-the-transactional-inbox) on the receiving side to let Mocha deduplicate automatically.
 
@@ -821,15 +931,13 @@ builder.Services
 
 ## How the outbox processor works
 
-The outbox processor is a background hosted service (`IHostedService`). When the EF Core interceptors detect a `SaveChanges` or transaction commit, they signal the processor through `IOutboxSignal`. Inside an ambient `TransactionScope`, the signal is raised when the ambient transaction completes. The processor reads pending `OutboxMessage` rows, deserializes the envelope, and dispatches each message through the bus's dispatch pipeline.
+The outbox processor is a background hosted service (`IHostedService`). When the EF Core interceptors detect a `SaveChanges` or transaction commit, they signal the processor through `IOutboxSignal`. Messages added through `DbContext.Outbox` are signaled the same way after the save. Inside an ambient `TransactionScope`, the signal is raised when the ambient transaction completes.
 
-The `TimesSent` column tracks dispatch attempts. If dispatch fails, the processor retries on the next signal. Messages are deleted from the outbox table after successful dispatch.
+The processor restores each stored message's payload, identifiers, addresses, headers, and timestamps, then sends it directly through the transport. Dispatch middleware runs when the message is published or sent and is not repeated during delivery or retries. If `SentAt` is unset, it is assigned immediately before transport dispatch.
 
-## Skip the outbox for specific dispatches
+`TimesSent` tracks dispatch attempts, with exponential retry delays and a maximum of ten attempts. Messages are deleted after successful transport dispatch.
 
-Some messages - like internal system events or replies that do not need durability - can bypass the outbox. The outbox middleware checks for an `OutboxMiddlewareFeature` on the dispatch context. Messages with `SkipOutbox = true` pass straight through to the transport.
-
-The outbox middleware also only intercepts messages of kind `Publish`, `Send`, `Reply`, or `Fault`. Other message kinds pass through without outbox persistence.
+Outbox persistence applies to messages of kind `Publish`, `Send`, `Reply`, or `Fault`. Other message kinds pass through without outbox persistence. An explicit `db.Outbox` publication uses its attached staging provider.
 
 # Deduplicate messages with the transactional inbox
 

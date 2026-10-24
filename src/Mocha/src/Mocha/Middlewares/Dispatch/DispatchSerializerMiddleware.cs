@@ -15,6 +15,12 @@ internal sealed class DispatchSerializerMiddleware()
 {
     public async ValueTask InvokeAsync(IDispatchContext context, DispatchDelegate next)
     {
+        Serialize(context);
+        await next(context);
+    }
+
+    internal static void Serialize(IDispatchContext context)
+    {
         // If the body is empty, we need to serialize the message
         if (context.Envelope is null)
         {
@@ -45,18 +51,13 @@ internal sealed class DispatchSerializerMiddleware()
             // Envelope is materialized after serialization so body metadata reflects final bytes.
             context.Envelope = context.CreateEnvelope();
         }
-
-        await next(context);
     }
 
-    public static DispatchMiddlewareConfiguration Create()
-        => new(
-            static (_, next) =>
-            {
-                var middleware = new DispatchSerializerMiddleware();
-                return ctx => middleware.InvokeAsync(ctx, next);
-            },
-            "Serialization");
+    public static DispatchDelegate Create(DispatchDelegate next)
+    {
+        var middleware = new DispatchSerializerMiddleware();
+        return context => middleware.InvokeAsync(context, next);
+    }
 }
 
 /// <summary>

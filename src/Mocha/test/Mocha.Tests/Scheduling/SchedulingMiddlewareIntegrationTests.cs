@@ -82,45 +82,6 @@ public class SchedulingMiddlewareIntegrationTests
     }
 
     [Fact]
-    public async Task Scheduling_Should_PassThrough_When_SkipSchedulerSet()
-    {
-        var timeProvider = new FakeTimeProvider();
-        var store = new InMemoryScheduledMessageStore();
-        var recorder = new MessageRecorder();
-        await using var provider = await CreateBusWithSchedulingAsync(
-            store,
-            b =>
-            {
-                b.Services.AddSingleton(recorder);
-                b.AddEventHandler<SchedulingTestEventHandler>();
-
-                b.ConfigureMessageBus(h =>
-                    h.UseDispatch(
-                        new DispatchMiddlewareConfiguration(
-                            static (_, next) =>
-                                ctx =>
-                                {
-                                    ctx.SkipScheduler();
-                                    return next(ctx);
-                                },
-                            "SkipSchedulerCheck"),
-                        before: "Scheduling"));
-            },
-            timeProvider);
-
-        using var scope = provider.CreateScope();
-        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-
-        await bus.PublishAsync(
-            new SchedulingTestEvent { Payload = "skip-scheduler" },
-            new PublishOptions { ScheduledTime = timeProvider.GetUtcNow().AddSeconds(-1) },
-            CancellationToken.None);
-
-        Assert.True(await recorder.WaitAsync(s_timeout), "Message should be delivered to handler");
-        Assert.Empty(store.Entries);
-    }
-
-    [Fact]
     public async Task SchedulePublishAsync_Should_ReturnCancellableResult_When_StoreRegistered()
     {
         var timeProvider = new FakeTimeProvider();

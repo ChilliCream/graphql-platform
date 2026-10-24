@@ -43,10 +43,6 @@ public static class MessageBusBuilderExtensions
         builder.UseReceive(ReceiveMiddlewares.MessageTypeSelection);
         builder.UseReceive(ReceiveMiddlewares.Routing);
 
-        builder.UseDispatch(DispatchMiddlewares.Instrumentation);
-        builder.UseDispatch(DispatchMiddlewares.Serialization);
-        builder.UseDispatch(DispatchMiddlewares.Scheduling, after: "Serialization");
-
         builder.AddConcurrencyLimiter(o => o.MaxConcurrency = Environment.ProcessorCount * 2);
 
         builder.AddMessage<NotAcknowledgedEvent>(x =>

@@ -6,22 +6,16 @@ namespace Mocha;
 /// Compiles ordered middleware configurations into executable delegates for dispatch, receive, and
 /// consume pipelines.
 /// </summary>
-/// <remarks>
-/// Middleware lists are materialized, modified, reversed, and then folded right-to-left so
-/// registration order remains intuitive while execution follows the standard nested middleware
-/// pattern.
-/// Without this compile step, each receive/dispatch would need repeated per-message composition and
-/// ordering could drift when modifiers are applied.
-/// </remarks>
 internal static class MiddlewareCompiler
 {
     private static List<DispatchMiddlewareConfiguration>? s_dispatchMiddlewares;
     private static List<ReceiveMiddlewareConfiguration>? s_receiveMiddlewares;
     private static List<ConsumerMiddlewareConfiguration>? s_handlerMiddlewares;
 
-    public static DispatchDelegate CompileDispatch(
+    public static (DispatchDelegate Dispatch, DispatchDelegate Preparation) CompileDispatch(
         DispatchMiddlewareFactoryContext context,
         DispatchDelegate dispatch,
+        DispatchDelegate prepare,
         ReadOnlySpan<IReadOnlyList<DispatchMiddlewareConfiguration>> middlewareConfigurations,
         ReadOnlySpan<IReadOnlyList<Action<List<DispatchMiddlewareConfiguration>>>> pipelineModifiers)
     {
@@ -46,18 +40,18 @@ internal static class MiddlewareCompiler
         middlewares.Reverse();
 
         var pipeline = dispatch;
-
+        var preparation = prepare;
         foreach (var middleware in middlewares)
         {
-            var next = pipeline;
-            pipeline = middleware.Middleware(context, next);
+            pipeline = middleware.Middleware(context, pipeline);
+            preparation = middleware.Middleware(context, preparation);
         }
 
         middlewares.Clear();
 
         Interlocked.CompareExchange(ref s_dispatchMiddlewares, middlewares, null);
 
-        return pipeline;
+        return (pipeline, preparation);
     }
 
     public static ReceiveDelegate CompileReceive(

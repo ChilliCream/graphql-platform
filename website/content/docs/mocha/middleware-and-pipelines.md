@@ -39,10 +39,11 @@ PublishAsync / SendAsync / RequestAsync
         │
         ▼
 ┌─────────────────────────┐
-│   Dispatch Pipeline      │
-│  Instrumentation         │
+│   Dispatch operation     │
+│  Diagnostics             │
+│  Application middleware  │
 │  Serialization           │
-│  → Transport sends       │
+│  Schedule / Outbox / Send │
 └─────────────────────────┘
         │
         ▼  (wire / InMemory)
@@ -212,6 +213,10 @@ builder.Services
 
 Dispatch middleware wraps the outbound path. Use it for concerns on every outgoing message: adding headers, enforcing message schemas, or enriching with correlation context.
 
+Dispatch diagnostics wrap the application middleware. When the application middleware reaches the end of the pipeline, Mocha serializes the message and either schedules it, persists it to the outbox, or sends it through the transport. Change message data and headers before calling `next(context)`.
+
+`DbContext.Outbox.PublishAsync` and `SendAsync` run the application middleware to completion before serialization and staging, including changes made after `await next(context)`. Scheduled delivery and outbox delivery send the stored envelope directly through the transport without running application dispatch middleware again.
+
 ```csharp
 internal sealed class TenantDispatchMiddleware
 {
@@ -243,15 +248,13 @@ internal sealed class TenantDispatchMiddleware
 }
 ```
 
-Register before all other dispatch middleware so every outgoing message carries the header:
+Register the middleware on the bus to add the header to outgoing messages:
 
 ```csharp
 builder.Services
     .AddMessageBus(bus =>
     {
-        bus.UseDispatch(
-            TenantDispatchMiddleware.Create("acme"),
-            before: "Instrumentation");
+        bus.UseDispatch(TenantDispatchMiddleware.Create("acme"));
     })
     .AddEventHandler<OrderPlacedHandler>()
     .AddInMemory();
@@ -299,7 +302,9 @@ Each pipeline type has a single registration method with optional `before` and `
 | `UseConsume(config, before: "key")`  | Consumer | Insert before the middleware with the given key |
 | `UseConsume(config, after: "key")`   | Consumer | Insert after the middleware with the given key  |
 
-Only one of `before` or `after` can be specified at the same time. If neither is specified, the middleware is appended after the built-in defaults.
+Only one of `before` or `after` can be specified at the same time. If neither is specified, the middleware is appended to the configured middleware list.
+
+Dispatch ordering keys identify registered application or transport middleware. For example, `UseDispatch(config, after: "TenantDispatch")` places middleware after the example above. Diagnostics, serialization, scheduling, and outbox persistence are fixed dispatch stages, so `"Instrumentation"`, `"Serialization"`, `"Scheduling"`, and `"Outbox"` are not built-in dispatch ordering keys. Referencing a key that has not been registered throws during bus initialization.
 
 Middleware is compiled once at startup into a single delegate chain. Register all middleware during bus configuration, before the service provider is built. Middleware added after the bus starts has no effect.
 

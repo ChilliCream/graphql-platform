@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Outbox;
 
@@ -18,17 +19,20 @@ public static class OutboxEntityFrameworkCorePersistenceBuilderExtensions
     /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
     public static IEntityFrameworkCoreBuilder UseOutboxCore(this IEntityFrameworkCoreBuilder builder)
     {
+        if (!builder.Services.AddOutboxDbContext(builder.ContextType))
+        {
+            return builder;
+        }
+
         builder.HostBuilder.UseOutboxCore();
 
         builder.ConfigureEntityFrameworkServices((sp, services) =>
         {
-            var signal = sp.GetService<IOutboxSignal>();
-
-            if (signal is not null)
-            {
-                services.AddSingleton<IInterceptor>(new OutboxDbTransactionInterceptor(signal));
-                services.AddSingleton<IInterceptor>(new OutboxSaveChangesInterceptor(signal));
-            }
+            var signal = sp.GetRequiredService<IOutboxSignal>();
+            services.AddSingleton<IInterceptor>(new OutboxDbTransactionInterceptor(signal));
+            services.AddSingleton<IInterceptor>(new OutboxSaveChangesInterceptor(signal));
+            services.AddScoped(static s => new DbContextOutbox(s.GetRequiredService<ICurrentDbContext>().Context));
+            services.AddScoped<IResettableService>(static s => s.GetRequiredService<DbContextOutbox>());
         });
         return builder;
     }

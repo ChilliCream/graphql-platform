@@ -1,7 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Runtime.ExceptionServices;
 
 namespace Mocha.EntityFrameworkCore;
@@ -20,7 +22,8 @@ public static class MessageBusHostBuilderExtensions
     /// <param name="builder">The message bus host builder to configure.</param>
     /// <param name="configure">A delegate that configures Entity Framework Core features on the builder.</param>
     /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
-    public static IMessageBusHostBuilder AddEntityFramework<TContext>(
+    public static IMessageBusHostBuilder AddEntityFramework<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TContext>(
         this IMessageBusHostBuilder builder,
         Action<IEntityFrameworkCoreBuilder> configure)
         where TContext : DbContext
@@ -35,18 +38,20 @@ public static class MessageBusHostBuilderExtensions
 
         configure(persistenceBuilder);
 
+        builder.Services.AttachOutboxDbContext<TContext>();
+
+        builder.Services.TryAddKeyedScoped<DbContextAccessor>(
+            typeof(TContext),
+            static (services, _) => DbContextAccessor.Create<TContext>(services));
+
         builder
             .Services.AddOptions<MessagingDbContextOptions>(persistenceBuilder.Name)
             .Configure<IServiceProvider>((options, serviceProvider) => options.ServiceProvider = serviceProvider);
 
-        builder.Services.AddSingleton<
+        builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<
             IDbContextOptionsConfiguration<TContext>,
             MessagingDbContextOptionsConfiguration<TContext>
-        >();
-
-        builder.ConfigureMessageBus(x =>
-            x.ConfigureFeature(f => f.Set(new EntityFrameworkConfigurationFeature { ContextType = typeof(TContext) }))
-        );
+        >());
 
         return builder;
     }
@@ -85,15 +90,10 @@ public static class EntityFrameworkCoreBuilderExtensions
     public static IEntityFrameworkCoreBuilder UseTransaction(this IEntityFrameworkCoreBuilder builder)
     {
         builder.HostBuilder.ConfigureMessageBus(x =>
-            x.UseConsume(EntityFrameworkTransactionConsumeMiddleware.Create())
+            x.UseConsume(EntityFrameworkTransactionConsumeMiddleware.Create(builder.ContextType))
         );
         return builder;
     }
-}
-
-internal sealed class EntityFrameworkConfigurationFeature
-{
-    public Type? ContextType { get; set; }
 }
 
 internal sealed class EntityFrameworkConsumerExecutionStrategy(Type contextType) : IConsumerExecutionStrategy
@@ -101,7 +101,7 @@ internal sealed class EntityFrameworkConsumerExecutionStrategy(Type contextType)
     public async ValueTask ExecuteAsync(IConsumeContext context, Func<CancellationToken, ValueTask> executeAttempt)
     {
         await using var scope = context.Services.CreateAsyncScope();
-        var dbContext = (DbContext)scope.ServiceProvider.GetRequiredService(contextType);
+        var dbContext = scope.ServiceProvider.GetRequiredKeyedService<DbContextAccessor>(contextType).Context;
         var strategy = dbContext.Database.CreateExecutionStrategy();
 
         if (!strategy.RetriesOnFailure)
@@ -128,7 +128,7 @@ internal sealed class EntityFrameworkTransactionConsumeMiddleware(Type contextTy
 {
     public async ValueTask InvokeAsync(IConsumeContext context, ConsumerDelegate next)
     {
-        var dbContext = (DbContext)context.Services.GetRequiredService(contextType);
+        var dbContext = context.Services.GetRequiredKeyedService<DbContextAccessor>(contextType).Context;
 
         await using var transaction = await dbContext.Database.BeginTransactionAsync(context.CancellationToken);
 
@@ -145,20 +145,10 @@ internal sealed class EntityFrameworkTransactionConsumeMiddleware(Type contextTy
         }
     }
 
-    public static ConsumerMiddlewareConfiguration Create()
+    public static ConsumerMiddlewareConfiguration Create(Type contextType)
         => new(
-            static (context, next) =>
+            (_, next) =>
             {
-                var contextType =
-                    context
-                        .Services.GetRequiredService<IFeatureCollection>()
-                        .Get<EntityFrameworkConfigurationFeature>()
-                        ?.ContextType
-                    ?? throw new InvalidOperationException(
-                        "No Entity Framework Core DbContext type has been configured. "
-                        + "Call AddEntityFramework<TContext>() on the message bus host builder "
-                        + "before using UseTransaction().");
-
                 var middleware = new EntityFrameworkTransactionConsumeMiddleware(contextType);
                 return ctx => middleware.InvokeAsync(ctx, next);
             },
