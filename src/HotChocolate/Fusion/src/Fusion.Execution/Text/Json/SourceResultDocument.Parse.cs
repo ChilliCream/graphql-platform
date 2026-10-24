@@ -225,7 +225,7 @@ public sealed partial class SourceResultDocument
         out int usedChunks,
         out int lastLength)
     {
-        var segments = arena.RentSegmentTable(64);
+        var segments = arena.RentSegmentTable(16);
         var totalLength = input.Length;
 
         if (totalLength == 0)

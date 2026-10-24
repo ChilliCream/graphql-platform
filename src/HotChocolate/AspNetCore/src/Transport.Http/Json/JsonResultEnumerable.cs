@@ -55,7 +55,7 @@ internal sealed class JsonResultEnumerable(HttpResponseMessage message, string? 
         // The array siblings of a JSON array body share segments, so the whole body is structurally
         // one arena: acquire it once before filling.
         var arena = arenaSource.GetNextArena();
-        var chunks = arena.RentSegmentTable(64);
+        var chunks = arena.RentSegmentTable(16);
         var chunkIndex = 0;
         var chunkSize = SourceResultDocument.GetDataChunkSize(chunkIndex);
         var current = chunks[chunkIndex] = arena.Rent(chunkSize);
