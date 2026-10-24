@@ -608,6 +608,269 @@ public sealed class DeferredResultFormatterTests
             lines);
     }
 
+    [Fact]
+    public async Task FormatAsync_Should_WriteListItemPaths_When_LegacyDeferIsLabeledInsideList()
+    {
+        // arrange
+        var document = ParseDocument(
+            """
+            {
+                products {
+                    nodes {
+                        id
+                        ... @defer(label: "details") {
+                            productNumber
+                        }
+                    }
+                }
+            }
+            """);
+
+        var initial = CreateInitialResult(
+            document,
+            new Dictionary<string, object?>
+            {
+                ["products"] = new Dictionary<string, object?>
+                {
+                    ["nodes"] = new[]
+                    {
+                        new Dictionary<string, object?> { ["id"] = "1" },
+                        new Dictionary<string, object?> { ["id"] = "2" }
+                    }
+                }
+            },
+            hasNext: true,
+            new PendingResult(2, Path.Root.Append("products").Append("nodes").Append(0), "details"),
+            new PendingResult(3, Path.Root.Append("products").Append("nodes").Append(1), "details"));
+
+        var first = CreateIncrementalEnvelope(
+            document,
+            new IncrementalObjectResult(
+                2,
+                data: CreateData(new Dictionary<string, object?> { ["productNumber"] = 1001 })),
+            hasNext: true,
+            completedId: 2);
+
+        var second = CreateIncrementalEnvelope(
+            document,
+            new IncrementalObjectResult(
+                3,
+                data: CreateData(new Dictionary<string, object?> { ["productNumber"] = 1002 })),
+            hasNext: false,
+            completedId: 3);
+
+        // act
+        var lines = await FormatLegacyJsonLinesAsync(initial, first, second);
+
+        // assert
+        Assert.Equal(
+            [
+                """{"data":{"products":{"nodes":[{"id":"1"},{"id":"2"}]}},"hasNext":true}""",
+                """{"incremental":[{"data":{"productNumber":1001},"path":["products","nodes",0],"label":"details"}],"hasNext":true}""",
+                """{"incremental":[{"data":{"productNumber":1002},"path":["products","nodes",1],"label":"details"}],"hasNext":false}"""
+            ],
+            lines);
+    }
+
+    [Fact]
+    public async Task FormatAsync_Should_MergeOverlappingFields_When_LegacyDeferIsUnlabeledInsideList()
+    {
+        // arrange
+        var document = ParseDocument(
+            """
+            {
+                products {
+                    nodes {
+                        id
+                        ... @defer {
+                            id
+                            productNumber
+                        }
+                    }
+                }
+            }
+            """);
+
+        var initial = CreateInitialResult(
+            document,
+            new Dictionary<string, object?>
+            {
+                ["products"] = new Dictionary<string, object?>
+                {
+                    ["nodes"] = new[]
+                    {
+                        new Dictionary<string, object?> { ["id"] = "1" },
+                        new Dictionary<string, object?> { ["id"] = "2" }
+                    }
+                }
+            },
+            hasNext: true,
+            new PendingResult(2, Path.Root.Append("products").Append("nodes").Append(0)),
+            new PendingResult(3, Path.Root.Append("products").Append("nodes").Append(1)));
+
+        var first = CreateIncrementalEnvelope(
+            document,
+            new IncrementalObjectResult(
+                2,
+                data: CreateData(new Dictionary<string, object?> { ["productNumber"] = 1001 })),
+            hasNext: true,
+            completedId: 2);
+
+        var second = CreateIncrementalEnvelope(
+            document,
+            new IncrementalObjectResult(
+                3,
+                data: CreateData(new Dictionary<string, object?> { ["productNumber"] = 1002 })),
+            hasNext: false,
+            completedId: 3);
+
+        // act
+        var lines = await FormatLegacyJsonLinesAsync(initial, first, second);
+
+        // assert
+        Assert.Equal(
+            [
+                """{"data":{"products":{"nodes":[{"id":"1"},{"id":"2"}]}},"hasNext":true}""",
+                """{"incremental":[{"data":{"id":"1","productNumber":1001},"path":["products","nodes",0]}],"hasNext":true}""",
+                """{"incremental":[{"data":{"id":"2","productNumber":1002},"path":["products","nodes",1]}],"hasNext":false}"""
+            ],
+            lines);
+    }
+
+    [Fact]
+    public async Task FormatAsync_Should_MergeAllUnlabeledSelections_When_PatchHasSubPathInsideList()
+    {
+        // arrange
+        var document = ParseDocument(
+            """
+            {
+                products {
+                    id
+                    details {
+                        sku
+                    }
+                    ... @defer {
+                        details {
+                            weight
+                        }
+                    }
+                    ... @defer {
+                        id
+                        details {
+                            sku
+                            price
+                        }
+                    }
+                }
+            }
+            """);
+
+        var initial = CreateInitialResult(
+            document,
+            new Dictionary<string, object?>
+            {
+                ["products"] = new[]
+                {
+                    new Dictionary<string, object?>
+                    {
+                        ["id"] = "1",
+                        ["details"] = new Dictionary<string, object?> { ["sku"] = "SKU-1" }
+                    }
+                }
+            },
+            hasNext: true,
+            new PendingResult(2, Path.Root.Append("products").Append(0)));
+
+        var incremental = CreateIncrementalEnvelope(
+            document,
+            new IncrementalObjectResult(
+                2,
+                subPath: Path.Root.Append("details"),
+                data: CreateData(new Dictionary<string, object?> { ["weight"] = 10, ["price"] = 20 })),
+            hasNext: false,
+            completedId: 2);
+
+        // act
+        var lines = await FormatLegacyJsonLinesAsync(initial, incremental);
+
+        // assert
+        lines.MatchInlineSnapshots(
+            [
+                """{"data":{"products":[{"id":"1","details":{"sku":"SKU-1"}}]},"hasNext":true}""",
+                """{"incremental":[{"data":{"details":{"weight":10,"sku":"SKU-1","price":20},"id":"1"},"path":["products",0]}],"hasNext":false}"""
+            ]);
+    }
+
+    [Fact]
+    public async Task FormatAsync_Should_KeepLabeledFieldsSeparate_When_UnlabeledSelectionsShareListItemPath()
+    {
+        // arrange
+        var document = ParseDocument(
+            """
+            {
+                products {
+                    id
+                    name
+                    description
+                    ... @defer(label: "description") {
+                        description
+                    }
+                    ... @defer {
+                        id
+                        productNumber
+                    }
+                    ... @defer {
+                        name
+                        price
+                    }
+                }
+            }
+            """);
+
+        var path = Path.Root.Append("products").Append(0);
+        var initial = CreateInitialResult(
+            document,
+            new Dictionary<string, object?>
+            {
+                ["products"] = new[]
+                {
+                    new Dictionary<string, object?>
+                    {
+                        ["id"] = "1",
+                        ["name"] = "Abc",
+                        ["description"] = "Abc desc"
+                    }
+                }
+            },
+            hasNext: true,
+            new PendingResult(2, path),
+            new PendingResult(3, path, "description"));
+
+        var unlabeled = CreateIncrementalEnvelope(
+            document,
+            new IncrementalObjectResult(
+                2,
+                data: CreateData(new Dictionary<string, object?> { ["productNumber"] = 1001, ["price"] = 20 })),
+            hasNext: true,
+            completedId: 2);
+        var labeled = CreateIncrementalEnvelope(
+            document,
+            new IncrementalObjectResult(3, data: CreateData(new Dictionary<string, object?>())),
+            hasNext: false,
+            completedId: 3);
+
+        // act
+        var lines = await FormatLegacyJsonLinesAsync(initial, unlabeled, labeled);
+
+        // assert
+        lines.MatchInlineSnapshots(
+            [
+                """{"data":{"products":[{"id":"1","name":"Abc","description":"Abc desc"}]},"hasNext":true}""",
+                """{"incremental":[{"data":{"id":"1","productNumber":1001,"name":"Abc","price":20},"path":["products",0]}],"hasNext":true}""",
+                """{"incremental":[{"data":{"description":"Abc desc"},"path":["products",0],"label":"description"}],"hasNext":false}"""
+            ]);
+    }
+
     private static async Task<string> FormatAsync(
         IExecutionResultFormatter formatter,
         ExecutionResultFormatFlags flags)
