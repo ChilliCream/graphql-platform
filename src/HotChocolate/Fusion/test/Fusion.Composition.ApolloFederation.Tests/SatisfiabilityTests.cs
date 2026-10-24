@@ -424,9 +424,14 @@ public sealed class SatisfiabilityTests
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void Compose_Should_Succeed_When_RequiresReadsKeylessSubgraphAlongSharedPath(bool importRequires)
+    [InlineData(false, "a", "b")]
+    [InlineData(true, "a", "b")]
+    [InlineData(false, "A", "B")]
+    [InlineData(true, "A", "B")]
+    public void Compose_Should_Succeed_When_RequiresReadsKeylessSubgraphAlongSharedPath(
+        bool importRequires,
+        string requiringSchemaName,
+        string otherSchemaName)
     {
         // arrange
         var imports = importRequires
@@ -468,8 +473,8 @@ public sealed class SatisfiabilityTests
 
         // act
         var (result, log) = Compose(
-            new SourceSchemaText("a", a),
-            new SourceSchemaText("b", b));
+            new SourceSchemaText(requiringSchemaName, a),
+            new SourceSchemaText(otherSchemaName, b));
 
         // assert
         Assert.True(result.IsSuccess);
@@ -647,6 +652,289 @@ public sealed class SatisfiabilityTests
                 No lookups found for type 'Entity' in schema 'A'.
             """
         ]);
+    }
+
+    [Theory]
+    [InlineData("a", "b")]
+    [InlineData("A", "B")]
+    public void Compose_Should_Succeed_When_RequiresSelectsExternalKeyField(
+        string requiringSchemaName,
+        string otherSchemaName)
+    {
+        // arrange
+        const string requiring =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.11", import: ["@key", "@external", "@requires"])
+
+            type Account @key(fields: "id") {
+                id: ID! @external
+                displayName: String! @requires(fields: "id")
+            }
+            """;
+
+        const string other =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.11", import: ["@key"])
+
+            type Query {
+                accounts: [Account]
+            }
+
+            type Account @key(fields: "id") {
+                id: ID!
+            }
+            """;
+
+        // act
+        var (result, log) = Compose(
+            new SourceSchemaText(requiringSchemaName, requiring),
+            new SourceSchemaText(otherSchemaName, other));
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_RequiresSelectsParentFieldServedByRequiringSubgraph()
+    {
+        // arrange
+        const string a =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.11", import: ["@key", "@external", "@requires"])
+
+            type Query {
+                orders: [Order]
+            }
+
+            type Order @key(fields: "id") {
+                id: ID!
+                customer: Customer
+                price: Int @requires(fields: "customer { discount }")
+            }
+
+            type Customer @key(fields: "id") {
+                id: ID!
+                discount: Int @external
+            }
+            """;
+
+        const string b =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.11", import: ["@key"])
+
+            type Customer @key(fields: "id") {
+                id: ID!
+                discount: Int
+            }
+            """;
+
+        // act
+        var (result, log) = Compose(
+            new SourceSchemaText("a", a),
+            new SourceSchemaText("b", b));
+
+        // assert
+        Assert.True(result.IsFailure);
+        log.Select(e => e.ToString()).MatchInlineSnapshots(
+        [
+            """
+            {
+                "message": "The @require directive on argument 'Order.price(customer:)' in schema 'a' specifies an invalid field selection against the composed schema.",
+                "code": "REQUIRE_INVALID_FIELDS",
+                "severity": "Error",
+                "coordinate": "Order.price(customer:)",
+                "member": "require",
+                "schema": "a",
+                "extensions": {
+                    "errors": [
+                        "The required field 'Order.customer' must not be served by the requiring source schema 'a'."
+                    ]
+                }
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Compose_Should_Succeed_When_RequiresSelectsExternalParentFieldServedByOtherSubgraph()
+    {
+        // arrange
+        const string a =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.11", import: ["@key", "@external", "@requires"])
+
+            type Query {
+                orders: [Order]
+            }
+
+            type Order @key(fields: "id") {
+                id: ID!
+                customer: Customer @external
+                price: Int @requires(fields: "customer { discount }")
+            }
+
+            type Customer @key(fields: "id") {
+                id: ID!
+                discount: Int @external
+            }
+            """;
+
+        const string b =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.11", import: ["@key"])
+
+            type Order @key(fields: "id") {
+                id: ID!
+                customer: Customer
+            }
+
+            type Customer @key(fields: "id") {
+                id: ID!
+                discount: Int
+            }
+            """;
+
+        // act
+        var (result, log) = Compose(
+            new SourceSchemaText("a", a),
+            new SourceSchemaText("b", b));
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Compose_Should_Succeed_When_CircularRequirementReadsParentFromThirdSubgraph()
+    {
+        // arrange
+        const string a =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.11", import: ["@key", "@external", "@requires"])
+
+            type Query {
+                feed: [Post]
+            }
+
+            type Post @key(fields: "id") {
+                id: ID!
+                byNovice: Boolean! @external
+                byExpert: Boolean! @requires(fields: "byNovice")
+            }
+
+            type Author @key(fields: "id") {
+                id: ID!
+                name: String!
+                yearsOfExperience: Int!
+            }
+            """;
+
+        const string b =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.11", import: ["@key"])
+
+            type Post @key(fields: "id") {
+                id: ID!
+                author: Author!
+            }
+
+            type Author @key(fields: "id") {
+                id: ID!
+            }
+            """;
+
+        const string c =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.11", import: ["@key", "@external", "@requires"])
+
+            type Post @key(fields: "id") {
+                id: ID!
+                author: Author! @external
+                byNovice: Boolean! @requires(fields: "author { yearsOfExperience }")
+            }
+
+            type Author @key(fields: "id") {
+                id: ID!
+                yearsOfExperience: Int! @external
+            }
+            """;
+
+        // act
+        var (result, log) = Compose(
+            new SourceSchemaText("a", a),
+            new SourceSchemaText("b", b),
+            new SourceSchemaText("c", c));
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Compose_Should_Succeed_When_RequiredFieldWithArgumentIsServedByOtherSubgraph()
+    {
+        // arrange
+        const string c =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.11", import: ["@key"])
+
+            type Query {
+                feed: [Post]
+            }
+
+            type Post @key(fields: "id") {
+                id: ID!
+                comments(limit: Int!): [Comment]
+            }
+
+            type Comment @key(fields: "id") {
+                id: ID!
+                authorId: ID
+                body: String
+            }
+            """;
+
+        const string d =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.11", import: ["@key", "@external", "@requires"])
+
+            type Post @key(fields: "id") {
+                id: ID!
+                comments(limit: Int!): [Comment] @external
+                author: Author @requires(fields: "comments(limit: 3) { authorId }")
+            }
+
+            type Comment @key(fields: "id") {
+                id: ID!
+                authorId: ID @external
+            }
+
+            type Author {
+                id: ID!
+                name: String
+            }
+            """;
+
+        // act
+        var (result, log) = Compose(
+            new SourceSchemaText("c", c),
+            new SourceSchemaText("d", d));
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
     }
 
     private static (CompositionResult<MutableSchemaDefinition> Result, CompositionLog Log) Compose(

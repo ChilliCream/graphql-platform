@@ -20,10 +20,15 @@ public class RequireCrossProviderTests : FusionTestBase
             "b",
             b => b.AddQueryType<CircularCrossProvider.SchemaB.Query>());
 
+        using var server3 = CreateSourceSchema(
+            "c",
+            b => b.AddQueryType<CircularCrossProvider.SchemaC.Query>());
+
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("a", server1),
-            ("b", server2)
+            ("b", server2),
+            ("c", server3)
         ],
         configureGatewayBuilder: b => b.ModifyRequestOptions(o => o.AllowOperationPlanRequests = false));
 
@@ -106,10 +111,15 @@ public class RequireCrossProviderTests : FusionTestBase
             "d",
             b => b.AddQueryType<ListCrossProvider.SchemaD.Query>());
 
+        using var server3 = CreateSourceSchema(
+            "e",
+            b => b.AddQueryType<ListCrossProvider.SchemaE.Query>());
+
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("c", server1),
-            ("d", server2)
+            ("d", server2),
+            ("e", server3)
         ],
         configureGatewayBuilder: b => b.ModifyRequestOptions(o => o.AllowOperationPlanRequests = false));
 
@@ -289,7 +299,7 @@ public class RequireCrossProviderTests : FusionTestBase
             includeOperationPlan: includeOperationPlan);
     }
 
-    // Two-hop object require crossing Post.author into Author.
+    // Two-hop object require from c crossing b's Post.author into a's Author.
     public static class CircularCrossProvider
     {
         public static class SchemaA
@@ -322,14 +332,27 @@ public class RequireCrossProviderTests : FusionTestBase
             public record Post([property: ID] int Id)
             {
                 public Author GetAuthor() => new(10);
-
-                public bool GetByNovice(
-                    [Require("author.yearsOfExperience")] int yearsOfExperience)
-                    => yearsOfExperience >= 3;
             }
 
             [EntityKey("id")]
             public record Author([property: ID] int Id);
+        }
+
+        public static class SchemaC
+        {
+            public class Query
+            {
+                [Lookup]
+                [Internal]
+                public Post? GetPostById([ID] int id) => new Post(id);
+            }
+
+            public record Post([property: ID] int Id)
+            {
+                public bool GetByNovice(
+                    [Require("author.yearsOfExperience")] int yearsOfExperience)
+                    => yearsOfExperience >= 3;
+            }
         }
     }
 
@@ -366,7 +389,7 @@ public class RequireCrossProviderTests : FusionTestBase
         }
     }
 
-    // List require crossing Post.comments into Comment.authorId.
+    // List require from e crossing d's Post.comments into c's Comment.authorId.
     public static class ListCrossProvider
     {
         public static class SchemaC
@@ -400,14 +423,27 @@ public class RequireCrossProviderTests : FusionTestBase
             {
                 public IEnumerable<Comment> GetComments(int? limit)
                     => [new Comment(100), new Comment(101)];
-
-                public Author GetAuthor(
-                    [Require("comments[authorId]")][ID] IReadOnlyList<int> commentAuthorIds)
-                    => new(string.Join("_", commentAuthorIds));
             }
 
             [EntityKey("id")]
             public record Comment([property: ID] int Id);
+        }
+
+        public static class SchemaE
+        {
+            public class Query
+            {
+                [Lookup]
+                [Internal]
+                public Post? GetPostById([ID] int id) => new Post(id);
+            }
+
+            public record Post([property: ID] int Id)
+            {
+                public Author GetAuthor(
+                    [Require("comments[authorId]")][ID] IReadOnlyList<int> commentAuthorIds)
+                    => new(string.Join("_", commentAuthorIds));
+            }
 
             public record Author(string Id);
         }

@@ -717,8 +717,22 @@ public class ProvidesPlannerTests : FusionTestBase
 
             type Item @key(fields: "sku") {
               sku: String!
-              weight: Int
               shippingCost(weight: Int @require(field: "weight")): Float
+            }
+            """,
+            """
+            # name: inventory
+            schema {
+              query: Query
+            }
+
+            type Query {
+              itemBySku(sku: String! @is(field: "sku")): Item @lookup @internal
+            }
+
+            type Item @key(fields: "sku") {
+              sku: String!
+              weight: Int
             }
             """);
     }
