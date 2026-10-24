@@ -1603,6 +1603,13 @@ public sealed partial class OperationPlanner
             return;
         }
 
+        // The field can only be inlined into the step that holds it while planning in that
+        // step's schema.
+        if (!string.Equals(currentStep.SchemaName, current.SchemaName, StringComparison.Ordinal))
+        {
+            return;
+        }
+
         // next we try to inline the requirements into non-dependant siblings or parents.
         var steps = current.Steps;
         var index = current.SelectionSetIndex.ToBuilder();
@@ -1790,17 +1797,31 @@ public sealed partial class OperationPlanner
         var indexBuilder = current.SelectionSetIndex.ToBuilder();
         var lastRequirementId = current.LastRequirementId + 1;
         var requirementKey = $"__fusion_{lastRequirementId}";
+        var compositeField = workItem.Selection.Field;
 
-        var leftoverRequirements =
-            TryInlineFieldRequirements(
-                workItem,
-                stepId,
-                ref current,
-                mergeWithExistingStep ? existingStep : currentStep,
-                indexBuilder,
-                ref backlog,
-                ref steps,
-                out var requirementAliases);
+        // The work item can branch into a schema that serves the field without requirements,
+        // in which case only the lookup key has to be resolved.
+        var fieldRequirements = compositeField.Sources[current.SchemaName].Requirements;
+        SelectionSetNode? leftoverRequirements = null;
+        RequirementAliasContext requirementAliases;
+
+        if (fieldRequirements is null)
+        {
+            requirementAliases = new RequirementAliasContext([], current.RequirementAliases);
+        }
+        else
+        {
+            leftoverRequirements =
+                TryInlineFieldRequirements(
+                    workItem,
+                    stepId,
+                    ref current,
+                    mergeWithExistingStep ? existingStep : currentStep,
+                    indexBuilder,
+                    ref backlog,
+                    ref steps,
+                    out requirementAliases);
+        }
 
         // if we have requirements that we could not inline into existing nodes of the
         // operation plan we will put them on the backlog to be planned as another lookup.
@@ -1822,8 +1843,6 @@ public sealed partial class OperationPlanner
                 workItem.SourceSchemaNodePolicy);
         }
 
-        var compositeField = workItem.Selection.Field;
-        var sourceField = compositeField.Sources[current.SchemaName];
         var requirements = mergeWithExistingStep
             ? existingStep.Requirements
 #if NET10_0_OR_GREATER
@@ -1832,11 +1851,12 @@ public sealed partial class OperationPlanner
             : ImmutableDictionary<string, OperationRequirement>.Empty;
 #endif
         var arguments = new List<ArgumentNode>(workItem.Selection.Node.Arguments);
+        var requirementArguments = fieldRequirements?.Arguments ?? [];
 
-        for (var i = 0; i < sourceField.Requirements!.Arguments.Length; i++)
+        for (var i = 0; i < requirementArguments.Length; i++)
         {
-            var argument = sourceField.Requirements.Arguments[i];
-            var fieldSelectionMap = sourceField.Requirements.Fields[i];
+            var argument = requirementArguments[i];
+            var fieldSelectionMap = fieldRequirements!.Fields[i];
 
             if (fieldSelectionMap is null)
             {
@@ -1854,7 +1874,7 @@ public sealed partial class OperationPlanner
             requirements = requirements.Add(argumentRequirementKey, operationRequirement);
         }
 
-        foreach (var argument in sourceField.Requirements!.Arguments)
+        foreach (var argument in requirementArguments)
         {
             // arguments that are exposed on the composite schema
             // are not requirements, and we can skip them.
@@ -2004,7 +2024,9 @@ public sealed partial class OperationPlanner
             RootSelectionSetId = index.GetId(selectionSetNode),
             SelectionSets = SelectionSetIndexer.CreateIdSet(definition.SelectionSet, indexBuilder),
             Requirements = requirements,
-            Dependents = currentStep.Dependents,
+            // The consumer step can supply the lookup key when the lookup enters another
+            // schema, which makes the new step one of its dependents already.
+            Dependents = currentStep.Dependents.Remove(stepId),
             Conditions = workItem.Conditions,
             Target = workItem.Selection.Path,
             Source = source,

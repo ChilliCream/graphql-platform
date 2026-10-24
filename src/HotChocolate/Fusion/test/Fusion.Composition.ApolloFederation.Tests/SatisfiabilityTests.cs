@@ -937,6 +937,260 @@ public sealed class SatisfiabilityTests
         Assert.Empty(log);
     }
 
+    [Fact]
+    public void Compose_Should_Succeed_When_OtherSubgraphServesRequiresFieldWithoutRequirements()
+    {
+        // arrange
+        const string alt =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@shareable"])
+
+            type Product @key(fields: "id") {
+                id: ID!
+                estimate: Int @shareable
+            }
+            """;
+
+        // act
+        var (result, log) = Compose(
+            new SourceSchemaText("req", SecondProviderRequiringSchema),
+            new SourceSchemaText("sup", SecondProviderSupplyingSchema),
+            new SourceSchemaText("alt", alt));
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Compose_Should_Succeed_When_OtherSubgraphAlsoRequiresDataForRequiresField()
+    {
+        // arrange
+        const string alt =
+            """
+            extend schema
+              @link(
+                url: "https://specs.apollo.dev/federation/v2.3"
+                import: ["@key", "@external", "@requires", "@shareable"])
+
+            type Product @key(fields: "id") {
+                id: ID!
+                weight: Int @external
+                estimate: Int @requires(fields: "weight") @shareable
+            }
+            """;
+
+        // act
+        var (result, log) = Compose(
+            new SourceSchemaText("req", SecondProviderRequiringSchema),
+            new SourceSchemaText("sup", SecondProviderSupplyingSchema),
+            new SourceSchemaText("alt", alt));
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Compose_Should_Succeed_When_OtherSubgraphsServeEachRequiresFieldUnderNonResolvableKey()
+    {
+        // arrange
+        const string req =
+            """
+            extend schema
+              @link(
+                url: "https://specs.apollo.dev/federation/v2.3"
+                import: ["@key", "@external", "@requires", "@shareable"])
+
+            type Query {
+                products: [Product]
+            }
+
+            type Product @key(fields: "id", resolvable: false) {
+                id: ID!
+                weight: Int @external
+                estimate: Int @requires(fields: "weight") @shareable
+                quote: Int @requires(fields: "weight") @shareable
+            }
+            """;
+
+        const string alt =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@shareable"])
+
+            type Product @key(fields: "id") {
+                id: ID!
+                estimate: Int @shareable
+            }
+            """;
+
+        const string far =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@shareable"])
+
+            type Product @key(fields: "id") {
+                id: ID!
+                quote: Int @shareable
+            }
+            """;
+
+        // act
+        var (result, log) = Compose(
+            new SourceSchemaText("req", req),
+            new SourceSchemaText("sup", SecondProviderSupplyingSchema),
+            new SourceSchemaText("alt", alt),
+            new SourceSchemaText("far", far));
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Compose_Should_Succeed_When_OtherSubgraphServesRequiresFieldBesideResolvableEntity()
+    {
+        // arrange
+        const string req =
+            """
+            extend schema
+              @link(
+                url: "https://specs.apollo.dev/federation/v2.3"
+                import: ["@key", "@external", "@requires", "@shareable"])
+
+            type Query {
+                products: [Product]
+            }
+
+            type Product @key(fields: "id", resolvable: false) {
+                id: ID!
+                weight: Int @external
+                estimate: Int @requires(fields: "weight") @shareable
+            }
+
+            type Store @key(fields: "id") {
+                id: ID!
+                name: String
+            }
+            """;
+
+        const string sup =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+            type Product @key(fields: "id") {
+                id: ID!
+                name: String
+                weight: Int
+                store: Store
+            }
+
+            type Store @key(fields: "id", resolvable: false) {
+                id: ID!
+            }
+            """;
+
+        const string alt =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@shareable"])
+
+            type Product @key(fields: "id") {
+                id: ID!
+                estimate: Int @shareable
+            }
+            """;
+
+        // act
+        var (result, log) = Compose(
+            new SourceSchemaText("req", req),
+            new SourceSchemaText("sup", sup),
+            new SourceSchemaText("alt", alt));
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Compose_Should_Succeed_When_OtherSubgraphServesTwoRequiresFieldsWithoutRequirements()
+    {
+        // arrange
+        const string req =
+            """
+            extend schema
+              @link(
+                url: "https://specs.apollo.dev/federation/v2.3"
+                import: ["@key", "@external", "@requires", "@shareable"])
+
+            type Query {
+                products: [Product]
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                weight: Int @external
+                estimate: Int @requires(fields: "weight") @shareable
+                quote: Int @requires(fields: "weight") @shareable
+            }
+            """;
+
+        const string alt =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@shareable"])
+
+            type Product @key(fields: "id") {
+                id: ID!
+                estimate: Int @shareable
+                quote: Int @shareable
+            }
+            """;
+
+        // act
+        var (result, log) = Compose(
+            new SourceSchemaText("req", req),
+            new SourceSchemaText("sup", SecondProviderSupplyingSchema),
+            new SourceSchemaText("alt", alt));
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    private const string SecondProviderRequiringSchema =
+        """
+        extend schema
+          @link(
+            url: "https://specs.apollo.dev/federation/v2.3"
+            import: ["@key", "@external", "@requires", "@shareable"])
+
+        type Query {
+            products: [Product]
+        }
+
+        type Product @key(fields: "id", resolvable: false) {
+            id: ID!
+            weight: Int @external
+            estimate: Int @requires(fields: "weight") @shareable
+        }
+        """;
+
+    private const string SecondProviderSupplyingSchema =
+        """
+        extend schema
+          @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+        type Product @key(fields: "id") {
+            id: ID!
+            name: String
+            weight: Int
+        }
+        """;
+
     private static (CompositionResult<MutableSchemaDefinition> Result, CompositionLog Log) Compose(
         params SourceSchemaText[] sourceSchemas)
     {
