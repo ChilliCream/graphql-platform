@@ -122,20 +122,11 @@ internal sealed class RequirementsValidator(
                     }
 
                     var fragmentType = schema.Types[inlineFragmentNode.TypeCondition.Name.Value];
-                    var fragmentPossibleTypes = schema.GetPossibleTypes(fragmentType);
 
-                    foreach (var possibleType in fragmentPossibleTypes)
+                    // The fragment only applies when the current type is one of its possible types.
+                    if (schema.GetPossibleTypes(fragmentType).Contains(context.TypeContext.Peek()))
                     {
-                        context.TypeContext.Push(possibleType);
-
-                        var requirementErrors = Visit(inlineFragmentNode.SelectionSet, context);
-
-                        if (requirementErrors.Any())
-                        {
-                            errors.AddRange(requirementErrors);
-                        }
-
-                        context.TypeContext.Pop();
+                        errors.AddRange(Visit(inlineFragmentNode.SelectionSet, context));
                     }
 
                     break;
@@ -377,7 +368,11 @@ internal sealed class RequirementsValidator(
             }
         }
 
-        context.FieldAccessCache.Add(cacheKey);
+        // Only a successful access is reused; a failed access is validated again where it recurs.
+        if (optionCount > 0 && errors.Count == 0)
+        {
+            context.FieldAccessCache.Add(cacheKey);
+        }
 
         if (schemaNames.Length == 0
             || (optionCount == 0 && errors.Count == 0 && skippedDueToProvidedSelectionSet))
