@@ -2374,6 +2374,54 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void CreateVariableValueSets_Should_CollectNestedTargetFromParentTarget_When_TargetPathsSharePrefix()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+              child: Foo
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id child { id } } }",
+            """{"data":{"foos":[{"id":"1","child":{"id":"1"}},{"id":"2","child":{"id":"3"}}]}}""",
+            resultArena,
+            sourceArena);
+        var foos = SelectionPath.Root.AppendField("foos");
+
+        // act
+        var result = store.CreateVariableValueSets(
+            [foos, foos.AppendField("child")],
+            [],
+            [Requirement(schema, "__fusion_1_id", "id", new NamedTypeNode("ID"))]);
+
+        // assert
+        RenderVariableValueSets(store, result).MatchInlineSnapshot(
+            """
+            Path: foos[0]
+            Additional paths: [foos[0].child]
+            Variables: {"__fusion_1_id":"1"}
+            Path: foos[1]
+            Additional paths: []
+            Variables: {"__fusion_1_id":"2"}
+            Path: foos[1].child
+            Additional paths: []
+            Variables: {"__fusion_1_id":"3"}
+            """);
+    }
+
+    [Fact]
     public void CreateVariableValueSets_Should_KeepKeysApart_When_StringAndNumberHaveSameText()
     {
         // arrange
