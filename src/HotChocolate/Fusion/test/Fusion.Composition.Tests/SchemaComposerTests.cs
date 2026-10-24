@@ -1,6 +1,7 @@
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Language;
+using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion;
 
@@ -1258,5 +1259,489 @@ public sealed class SchemaComposerTests
             "Invalid GraphQL in source schema. Exception message: "
             + "The query root type 'Query' is not defined..",
             entry.Message);
+    }
+
+    [Fact]
+    public void Compose_Should_KeepClientDirective_When_EveryApolloSubgraphDefinesIt()
+    {
+        // arrange
+        var schemaComposer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "catalog",
+                    """
+                    extend schema @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+                    directive @marker(note: String!) on FIELD
+
+                    type Product @key(fields: "id") {
+                      id: ID!
+                      name: String
+                    }
+
+                    type Query {
+                      products: [Product]
+                    }
+                    """),
+                new SourceSchemaText(
+                    "pricing",
+                    """
+                    extend schema @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+                    directive @marker(note: String!) on FIELD
+
+                    type Product @key(fields: "id") {
+                      id: ID!
+                      price: Int
+                    }
+                    """)
+            ],
+            new SchemaComposerOptions(),
+            new CompositionLog());
+
+        // act
+        var result = schemaComposer.Compose();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        var clientDirectives = new DocumentNode(
+            result.Value.ToSyntaxNode().Definitions
+                .OfType<DirectiveDefinitionNode>()
+                .Where(definition => !definition.Name.Value.StartsWith("fusion__", StringComparison.Ordinal))
+                .ToArray());
+
+        clientDirectives.ToString().MatchInlineSnapshot(
+            """
+            directive @marker(note: String!) on FIELD
+            """);
+    }
+
+    [Fact]
+    public void Compose_Should_KeepClientDirectiveArgumentTypes_When_OnlyTheDirectiveReferencesThem()
+    {
+        // arrange
+        var schemaComposer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "a",
+                    """
+                    directive @marker(level: Level!, options: MarkerOptions) on FIELD | VARIABLE_DEFINITION
+
+                    enum Level {
+                      LOW
+                      HIGH
+                    }
+
+                    input MarkerOptions {
+                      note: String
+                    }
+
+                    type Query {
+                      a: String
+                    }
+                    """),
+                new SourceSchemaText(
+                    "b",
+                    """
+                    directive @marker(level: Level!, options: MarkerOptions) on FIELD | VARIABLE_DEFINITION
+
+                    enum Level {
+                      LOW
+                      HIGH
+                    }
+
+                    input MarkerOptions {
+                      note: String
+                    }
+
+                    type Query {
+                      b: String
+                    }
+                    """)
+            ],
+            new SchemaComposerOptions(),
+            new CompositionLog());
+
+        // act
+        var result = schemaComposer.Compose();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        var clientDirectiveDefinitions = new DocumentNode(
+            result.Value.ToSyntaxNode().Definitions
+                .Where(definition => definition
+                    is DirectiveDefinitionNode { Name.Value: "marker" }
+                    or EnumTypeDefinitionNode { Name.Value: "Level" }
+                    or InputObjectTypeDefinitionNode { Name.Value: "MarkerOptions" })
+                .ToArray());
+
+        clientDirectiveDefinitions.ToString().MatchInlineSnapshot(
+            """
+            input MarkerOptions @fusion__type(schema: A) @fusion__type(schema: B) {
+              note: String @fusion__inputField(schema: A) @fusion__inputField(schema: B)
+            }
+
+            enum Level @fusion__type(schema: A) @fusion__type(schema: B) {
+              LOW @fusion__enumValue(schema: A) @fusion__enumValue(schema: B)
+              HIGH @fusion__enumValue(schema: A) @fusion__enumValue(schema: B)
+            }
+
+            directive @marker(level: Level!, options: MarkerOptions) on
+              | FIELD
+              | VARIABLE_DEFINITION
+            """);
+    }
+
+    [Fact]
+    public void Compose_Should_PruneClientDirectiveArgumentTypes_When_ASourceDoesNotDefineTheDirective()
+    {
+        // arrange
+        var schemaComposer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "a",
+                    """
+                    directive @marker(level: Level) on FIELD
+
+                    enum Level {
+                      LOW
+                      HIGH
+                    }
+
+                    type Query {
+                      a: String
+                    }
+                    """),
+                new SourceSchemaText(
+                    "b",
+                    """
+                    enum Level {
+                      LOW
+                      MEDIUM
+                    }
+
+                    type Query {
+                      b: Level
+                    }
+                    """)
+            ],
+            new SchemaComposerOptions(),
+            new CompositionLog());
+
+        // act
+        var result = schemaComposer.Compose();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        var definitions = new DocumentNode(
+            result.Value.ToSyntaxNode().Definitions
+                .Where(definition => definition
+                    is DirectiveDefinitionNode { Name.Value: "marker" }
+                    or EnumTypeDefinitionNode { Name.Value: "Level" })
+                .ToArray());
+
+        definitions.ToString().MatchInlineSnapshot(
+            """
+            enum Level @fusion__type(schema: B) {
+              LOW @fusion__enumValue(schema: B)
+              MEDIUM @fusion__enumValue(schema: B)
+            }
+            """);
+    }
+
+    [Fact]
+    public void Compose_Should_Succeed_When_OneSidedClientDirectiveArgumentTypeSharesANameWithAnObjectType()
+    {
+        // arrange
+        var schemaComposer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "a",
+                    """
+                    directive @marker(level: Level) on FIELD
+
+                    enum Level {
+                      LOW
+                      HIGH
+                    }
+
+                    type Query {
+                      a: String
+                    }
+                    """),
+                new SourceSchemaText(
+                    "b",
+                    """
+                    type Level {
+                      name: String
+                    }
+
+                    type Query {
+                      b: Level
+                    }
+                    """)
+            ],
+            new SchemaComposerOptions(),
+            new CompositionLog());
+
+        // act
+        var result = schemaComposer.Compose();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        var definitions = new DocumentNode(
+            result.Value.ToSyntaxNode().Definitions
+                .Where(definition => definition
+                    is DirectiveDefinitionNode { Name.Value: "marker" }
+                    or ObjectTypeDefinitionNode { Name.Value: "Level" }
+                    or EnumTypeDefinitionNode { Name.Value: "Level" })
+                .ToArray());
+
+        definitions.ToString().MatchInlineSnapshot(
+            """
+            type Level @fusion__type(schema: B) {
+              name: String @fusion__field(schema: B)
+            }
+            """);
+    }
+
+    [Fact]
+    public void Compose_Should_DropClientDirective_When_ArgumentEnumValuesDiffer()
+    {
+        // arrange
+        var schemaComposer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "a",
+                    """
+                    directive @format(style: Style) on FIELD
+
+                    directive @marker(note: String) on FIELD
+
+                    enum Style {
+                      A
+                      B
+                    }
+
+                    type Query {
+                      a: String
+                    }
+                    """),
+                new SourceSchemaText(
+                    "b",
+                    """
+                    directive @format(style: Style) on FIELD
+
+                    directive @marker(note: String) on FIELD
+
+                    enum Style {
+                      A
+                      B
+                      C
+                    }
+
+                    type Query {
+                      b: String
+                    }
+                    """)
+            ],
+            new SchemaComposerOptions(),
+            new CompositionLog());
+
+        // act
+        var result = schemaComposer.Compose();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        PrintClientDirectivesAndTypes(result.Value, "Style").MatchInlineSnapshot(
+            """
+            directive @marker(note: String) on FIELD
+            """);
+    }
+
+    [Fact]
+    public void Compose_Should_DropClientDirective_When_NestedArgumentInputTypesDiffer()
+    {
+        // arrange
+        var schemaComposer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "a",
+                    """
+                    directive @format(options: FormatOptions) on FIELD
+
+                    directive @marker(note: String) on FIELD
+
+                    input FormatOptions {
+                      inner: InnerOptions
+                    }
+
+                    input InnerOptions {
+                      x: String!
+                    }
+
+                    type Query {
+                      a: String
+                    }
+                    """),
+                new SourceSchemaText(
+                    "b",
+                    """
+                    directive @format(options: FormatOptions) on FIELD
+
+                    directive @marker(note: String) on FIELD
+
+                    input FormatOptions {
+                      inner: InnerOptions
+                    }
+
+                    input InnerOptions {
+                      y: String
+                    }
+
+                    type Query {
+                      b: String
+                    }
+                    """)
+            ],
+            new SchemaComposerOptions(),
+            new CompositionLog());
+
+        // act
+        var result = schemaComposer.Compose();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        PrintClientDirectivesAndTypes(result.Value, "FormatOptions", "InnerOptions").MatchInlineSnapshot(
+            """
+            directive @marker(note: String) on FIELD
+            """);
+    }
+
+    [Fact]
+    public void Compose_Should_DropClientDirective_When_ArgumentTypeHasInaccessibleField()
+    {
+        // arrange
+        var schemaComposer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "a",
+                    """
+                    directive @format(options: FormatOptions) on FIELD
+
+                    directive @marker(note: String) on FIELD
+
+                    input FormatOptions {
+                      secret: String! @inaccessible
+                      note: String
+                    }
+
+                    type Query {
+                      a: String
+                    }
+                    """),
+                new SourceSchemaText(
+                    "b",
+                    """
+                    directive @format(options: FormatOptions) on FIELD
+
+                    directive @marker(note: String) on FIELD
+
+                    input FormatOptions {
+                      secret: String! @inaccessible
+                      note: String
+                    }
+
+                    type Query {
+                      b: String
+                    }
+                    """)
+            ],
+            new SchemaComposerOptions(),
+            new CompositionLog());
+
+        // act
+        var result = schemaComposer.Compose();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        PrintClientDirectivesAndTypes(result.Value, "FormatOptions").MatchInlineSnapshot(
+            """
+            directive @marker(note: String) on FIELD
+            """);
+    }
+
+    [Fact]
+    public void Compose_Should_MergeOutputEnumByUnion_When_ClientDirectiveArgumentEnumValuesDiffer()
+    {
+        // arrange
+        var schemaComposer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "a",
+                    """
+                    extend schema @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+                    directive @marker(level: Level) on FIELD
+
+                    enum Level {
+                      LOW
+                      HIGH
+                    }
+
+                    type Query {
+                      levelA: Level
+                    }
+                    """),
+                new SourceSchemaText(
+                    "b",
+                    """
+                    extend schema @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+                    directive @marker(level: Level) on FIELD
+
+                    enum Level {
+                      LOW
+                      MEDIUM
+                    }
+
+                    type Query {
+                      levelB: Level
+                    }
+                    """)
+            ],
+            new SchemaComposerOptions(),
+            new CompositionLog());
+
+        // act
+        var result = schemaComposer.Compose();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        PrintClientDirectivesAndTypes(result.Value, "Level").MatchInlineSnapshot(
+            """
+            enum Level @fusion__type(schema: A) @fusion__type(schema: B) {
+              LOW @fusion__enumValue(schema: A) @fusion__enumValue(schema: B)
+              HIGH @fusion__enumValue(schema: A)
+              MEDIUM @fusion__enumValue(schema: B)
+            }
+            """);
+    }
+
+    private static string PrintClientDirectivesAndTypes(
+        MutableSchemaDefinition schema,
+        params string[] typeNames)
+    {
+        var definitions = schema.ToSyntaxNode().Definitions
+            .Where(definition => definition switch
+            {
+                DirectiveDefinitionNode directiveDefinition
+                    => !directiveDefinition.Name.Value.StartsWith("fusion__", StringComparison.Ordinal),
+                INamedSyntaxNode namedType => typeNames.Contains(namedType.Name.Value),
+                _ => false
+            })
+            .ToArray();
+
+        return new DocumentNode(definitions).ToString();
     }
 }

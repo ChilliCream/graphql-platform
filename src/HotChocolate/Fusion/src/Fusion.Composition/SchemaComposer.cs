@@ -147,10 +147,14 @@ internal sealed class SchemaComposer
         if (_schemaComposerOptions.Merger.RemoveUnreferencedDefinitions)
         {
             var preservedTypeNames = MutableSchemaDefinitionExtensions.GetPreservedTypeNames(schemas);
+            var preservedDirectiveNames = MutableSchemaDefinitionExtensions.GetPreservedDirectiveNames(schemas);
 
             foreach (var schema in schemas)
             {
-                schema.RemoveUnreferencedDefinitions(preservedTypeNames, seedUnionsAsRoots: true);
+                schema.RemoveUnreferencedDefinitions(
+                    preservedTypeNames,
+                    preservedDirectiveNames,
+                    seedUnionsAsRoots: true);
             }
         }
 

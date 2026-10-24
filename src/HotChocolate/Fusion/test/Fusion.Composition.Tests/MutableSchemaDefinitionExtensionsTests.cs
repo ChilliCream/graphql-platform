@@ -33,7 +33,7 @@ public sealed class MutableSchemaDefinitionExtensionsTests
             """);
 
         // act
-        schema.RemoveUnreferencedDefinitions(new HashSet<string>(), seedUnionsAsRoots: true);
+        schema.RemoveUnreferencedDefinitions(new HashSet<string>(), new HashSet<string>(), seedUnionsAsRoots: true);
 
         // assert
         Assert.False(schema.Types.ContainsName("Carrier"));
@@ -68,7 +68,7 @@ public sealed class MutableSchemaDefinitionExtensionsTests
             """);
 
         // act
-        schema.RemoveUnreferencedDefinitions(new HashSet<string>(), seedUnionsAsRoots: true);
+        schema.RemoveUnreferencedDefinitions(new HashSet<string>(), new HashSet<string>(), seedUnionsAsRoots: true);
 
         // assert
         Assert.True(schema.Types.ContainsName("Carrier"));
@@ -83,7 +83,7 @@ public sealed class MutableSchemaDefinitionExtensionsTests
         var schema = CreateSchemaWithUnreferencedUnion();
 
         // act
-        schema.RemoveUnreferencedDefinitions(new HashSet<string>(), seedUnionsAsRoots: true);
+        schema.RemoveUnreferencedDefinitions(new HashSet<string>(), new HashSet<string>(), seedUnionsAsRoots: true);
 
         // assert
         Assert.True(schema.Types.ContainsName("Media"));
@@ -97,7 +97,7 @@ public sealed class MutableSchemaDefinitionExtensionsTests
         var schema = CreateSchemaWithUnreferencedUnion();
 
         // act
-        schema.RemoveUnreferencedDefinitions(new HashSet<string>(), seedUnionsAsRoots: false);
+        schema.RemoveUnreferencedDefinitions(new HashSet<string>(), new HashSet<string>(), seedUnionsAsRoots: false);
 
         // assert
         Assert.False(schema.Types.ContainsName("Media"));
