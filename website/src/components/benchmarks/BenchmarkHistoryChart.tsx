@@ -11,10 +11,13 @@ import {
   type HistoryPoint,
   historyScale,
   historySeries,
+  latestCompletedPoint,
   seriesChange,
   type HistorySeries,
 } from "@/src/components/benchmarks/benchmarkView";
+import { BenchmarkPreviewBadge } from "@/src/components/benchmarks/BenchmarkPreviewBadge";
 import { useSeriesHighlight } from "@/src/components/benchmarks/useSeriesHighlight";
+import { WarningIcon } from "@/src/icons/Warning";
 import type {
   BenchmarkCatalogEntry,
   BenchmarkHistoryScenario,
@@ -90,21 +93,9 @@ export function BenchmarkHistoryChart({
       point === selected?.point ||
       point.runNumber === selected?.point.runNumber,
   );
-  const showRuntime =
-    point &&
-    series.some(
-      (item) =>
-        item.name === selectedSeries?.name &&
-        item.points.some((other) => other.runtime !== point.runtime),
-    );
   const compositionName = COMPOSITION_GROUPS.find(
     (group) => group.id === selectedSeries?.composition,
   )?.name;
-  const showComposition = series.some(
-    (item) =>
-      item.name === selectedSeries?.name &&
-      item.composition !== selectedSeries?.composition,
-  );
   const align = (position: number) =>
     position > 85 ? "-100%" : position < 15 ? "0" : "-50%";
   const ordered = series.toSorted(
@@ -184,17 +175,30 @@ export function BenchmarkHistoryChart({
             >
               {ordered.map((item) => (
                 <g key={item.id}>
-                  <polyline
-                    points={item.points
-                      .map((point) => `${x(point.timestamp)},${y(point.rps)}`)
-                      .join(" ")}
-                    fill="none"
-                    stroke={item.color}
-                    strokeWidth={item.id === active ? 2 : 1.5}
-                    strokeOpacity={active && item.id !== active ? 0.12 : 0.8}
-                    strokeDasharray={item.dashed ? "4 4" : undefined}
-                    vectorEffect="non-scaling-stroke"
-                  />
+                  {item.points.slice(1).map((point, index) => {
+                    const previous = item.points[index];
+                    return (
+                      <line
+                        key={point.runNumber}
+                        x1={x(previous.timestamp)}
+                        y1={y(previous.rps)}
+                        x2={x(point.timestamp)}
+                        y2={y(point.rps)}
+                        stroke={item.color}
+                        strokeWidth={item.id === active ? 2 : 1.5}
+                        strokeOpacity={
+                          active && item.id !== active ? 0.12 : 0.8
+                        }
+                        strokeLinecap="round"
+                        strokeDasharray={
+                          item.dashed || previous.failed || point.failed
+                            ? "4 4"
+                            : undefined
+                        }
+                        vectorEffect="non-scaling-stroke"
+                      />
+                    );
+                  })}
                 </g>
               ))}
             </svg>
@@ -203,7 +207,7 @@ export function BenchmarkHistoryChart({
                 <button
                   key={`${item.id}-${point.runNumber}`}
                   type="button"
-                  aria-label={`${item.name}, ${dateLabel(point.timestamp)}, ${point.runtime}, ${COMPOSITION_GROUPS.find((group) => group.id === item.composition)?.name}, version ${point.version}, ${formatNumber(point.rps)} requests/s`}
+                  aria-label={`${item.name}, ${dateLabel(point.timestamp)}, ${point.runtime}, ${COMPOSITION_GROUPS.find((group) => group.id === item.composition)?.name}, version ${point.version}, ${formatNumber(point.rps)} requests/s${point.failed ? ", failed" : ""}`}
                   className={`focus-visible:outline-cc-accent absolute flex size-5 -translate-1/2 cursor-pointer items-center justify-center rounded-full focus-visible:outline-2 ${item.id === active ? "z-[2]" : ""}`}
                   style={{
                     width: `clamp(3px, ${100 / maxPoints}%, 20px)`,
@@ -242,15 +246,22 @@ export function BenchmarkHistoryChart({
                   <span
                     className={`flex shrink-0 rounded-full ${active && item.id !== active ? "opacity-20" : "bg-cc-bg ring-cc-bg ring-2"}`}
                   >
-                    <span
-                      className={`block ${maxPoints > 60 ? "size-0.75" : "size-1.25"} rounded-full border`}
-                      style={{
-                        borderColor: item.color,
-                        backgroundColor: item.dashed
-                          ? "var(--color-cc-bg)"
-                          : item.color,
-                      }}
-                    />
+                    {point.failed ? (
+                      <WarningIcon
+                        className={`text-cc-danger block ${maxPoints > 60 ? "size-2.5" : "size-3"}`}
+                        strokeWidth={2.5}
+                      />
+                    ) : (
+                      <span
+                        className={`block ${maxPoints > 60 ? "size-0.75" : "size-1.25"} rounded-full border`}
+                        style={{
+                          borderColor: item.color,
+                          backgroundColor: item.dashed
+                            ? "var(--color-cc-bg)"
+                            : item.color,
+                        }}
+                      />
+                    )}
                   </span>
                 </button>
               )),
@@ -267,14 +278,25 @@ export function BenchmarkHistoryChart({
                   }}
                 >
                   <div className="font-semibold">
-                    {selectedSeries?.name}
-                    {showRuntime ? ` (${point.runtime})` : ""}
+                    {selectedSeries?.name} ({selectedSeries?.runtime})
                   </div>
-                  {showComposition && (
-                    <div className="text-cc-ink-dim">{compositionName}</div>
-                  )}
-                  <div>Version {point.version}</div>
                   <div>{formatNumber(point.rps)} requests/s</div>
+                  <div className="text-cc-ink-dim mt-1">
+                    Version {point.version}
+                    {point.runtime !== selectedSeries?.runtime
+                      ? ` on ${point.runtime}`
+                      : ""}
+                  </div>
+                  <div className="text-cc-ink-dim">{compositionName}</div>
+                  {point.failed && (
+                    <div className="text-cc-danger border-cc-card-border mt-2 flex items-center gap-1 border-t pt-2 text-[11px]">
+                      <WarningIcon className="size-3 shrink-0" />
+                      {scenario.config.measuredRuns !== undefined &&
+                      point.completedRuns < scenario.config.measuredRuns
+                        ? `Only ${point.completedRuns} of ${scenario.config.measuredRuns} runs completed`
+                        : "Failed"}
+                    </div>
+                  )}
                 </div>
               </>
             )}
@@ -358,7 +380,7 @@ export function BenchmarkHistoryChart({
                 {item.points
                   .map(
                     (point) =>
-                      `${new Date(point.timestamp).toISOString()}: ${point.version}, ${formatNumber(point.rps)} requests/s`,
+                      `${new Date(point.timestamp).toISOString()}: ${point.version}, ${formatNumber(point.rps)} requests/s${point.failed ? ", failed" : ""}`,
                   )
                   .join(", ")}
               </td>
@@ -390,7 +412,8 @@ function LegendButton({
   onToggle,
 }: LegendButtonProps) {
   const isActive = series.id === active;
-  const newest = series.points.at(-1)!;
+  const latest = series.points.at(-1)!;
+  const newest = latestCompletedPoint(series) ?? latest;
   const change = seriesChange(series);
 
   return (
@@ -409,7 +432,7 @@ function LegendButton({
         onClick={() => onToggle(series.id)}
         className={`focus-visible:outline-cc-accent flex w-full cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors focus-visible:outline-2 ${
           pinned
-            ? "bg-cc-accent/10 ring-cc-accent ring-1 ring-inset"
+            ? "bg-cc-white/5 rounded-l-none shadow-[inset_3px_0_0_0_var(--color-cc-accent)]"
             : isActive
               ? "bg-cc-hover"
               : "hover:bg-cc-hover"
@@ -439,12 +462,19 @@ function LegendButton({
             fill={series.dashed ? "var(--color-cc-bg)" : series.color}
           />
         </svg>
-        <span className="min-w-0">
-          <span className="flex items-center gap-1">
-            <span className="text-cc-heading truncate" title={series.name}>
+        <span className="min-w-0 flex-1">
+          <span className="flex min-w-0 items-center gap-1">
+            {series.preview && <BenchmarkPreviewBadge />}
+            <span
+              className="text-cc-heading min-w-0 truncate"
+              title={series.name}
+            >
               {series.name}
             </span>
-            <span className="border-cc-card-border text-cc-ink-dim shrink-0 rounded border px-1.5 font-mono text-[11px] leading-5 whitespace-nowrap">
+            <span
+              className="border-cc-card-border text-cc-ink-dim max-w-1/2 min-w-0 shrink-0 truncate rounded border px-1.5 font-mono text-[11px] leading-5"
+              title={series.runtime}
+            >
               {series.runtime}
             </span>
           </span>
@@ -456,11 +486,20 @@ function LegendButton({
             {change !== undefined && (
               <span
                 className={change >= 0 ? "text-cc-success" : "text-cc-danger"}
-                title={`Change from ${series.points[0].version} to ${newest.version}`}
+                title={`Change from ${series.points.find((point) => !point.failed)!.version} to ${newest.version}`}
               >
                 <span aria-hidden="true">{change >= 0 ? "▲" : "▼"}</span>{" "}
                 <span className="sr-only">{change >= 0 ? "up" : "down"}</span>
                 {formatChange(change)}
+              </span>
+            )}
+            {latest.failed && (
+              <span
+                className="text-cc-danger self-center"
+                title="Latest run failed"
+              >
+                <WarningIcon className="size-3.5" />
+                <span className="sr-only">Latest run failed</span>
               </span>
             )}
           </span>

@@ -1,3 +1,4 @@
+import { useBenchmarkPreferences } from "@/src/components/benchmarks/BenchmarkPreferences";
 import { BenchmarkResultsTable } from "@/src/components/benchmarks/BenchmarkResultsTable";
 import {
   scenarioGroups,
@@ -15,6 +16,7 @@ interface BenchmarkScenarioResultsProps {
   readonly scenario: BenchmarkScenario;
   readonly variants: ReadonlyMap<string, BenchmarkCatalogEntry>;
   readonly stableOnly: boolean;
+  readonly bestOnly: boolean;
 }
 
 /** The GraphQL Federation specification and Apollo Federation tables of one scenario, with single-run notices. */
@@ -23,8 +25,15 @@ export function BenchmarkScenarioResults({
   scenario,
   variants,
   stableOnly,
+  bestOnly,
 }: BenchmarkScenarioResultsProps) {
-  const groups = scenarioGroups(scenario, variants, stableOnly);
+  const groups = scenarioGroups(scenario, variants, stableOnly, bestOnly);
+  const { pinnedSeries } = useBenchmarkPreferences();
+  const selected = groups.some((group) =>
+    group.rows.some((row) => row.variant === pinnedSeries),
+  )
+    ? pinnedSeries
+    : undefined;
   const { config } = scenario;
 
   if (groups.length === 0) {
@@ -50,6 +59,7 @@ export function BenchmarkScenarioResults({
           caption={tableCaption(scenario, group, report)}
           group={group}
           variants={variants}
+          selected={selected}
           measuredRuns={config.measuredRuns}
           gatewayThreads={config.cpuAllocation?.gateway?.hardwareThreads}
           throughputNote={throughputNote(scenario)}

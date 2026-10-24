@@ -3,6 +3,7 @@ import {
   defaultScenarioId,
   orderedScenarios,
   scenarioGroups,
+  supersededVariants,
 } from "@/src/components/benchmarks/benchmarkView";
 import {
   benchmarkTechnology,
@@ -113,13 +114,22 @@ export function useBenchmarkControls(
       const scenario = history?.scenarios.find(
         (scenario) => scenario.id === id,
       );
+      const reportScenario = filteredReport.scenarios.find(
+        (scenario) => scenario.id === id,
+      );
+      const superseded =
+        filters.bestVersionOnly && reportScenario
+          ? supersededVariants(reportScenario, variants, !filters.showPreviews)
+          : new Set<string>();
       return (
         scenario && {
           ...scenario,
           variants: scenario.variants.filter((item) => {
             const entry = historyVariants?.get(item.variant);
             return (
-              entry && matchesBenchmarkTechnology(entry, filters.technologies)
+              entry &&
+              matchesBenchmarkTechnology(entry, filters.technologies) &&
+              !superseded.has(item.variant)
             );
           }),
         }
@@ -127,9 +137,15 @@ export function useBenchmarkControls(
     },
     selected,
     stableOnly: !filters.showPreviews,
+    bestOnly: filters.bestVersionOnly,
     hasResults: scenarios.some(
       (scenario) =>
-        scenarioGroups(scenario, variants, !filters.showPreviews).length > 0,
+        scenarioGroups(
+          scenario,
+          variants,
+          !filters.showPreviews,
+          filters.bestVersionOnly,
+        ).length > 0,
     ),
   };
 }

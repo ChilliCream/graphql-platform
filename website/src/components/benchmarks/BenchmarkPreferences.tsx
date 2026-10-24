@@ -25,6 +25,7 @@ export function BenchmarkPreferences({ children }: BenchmarkPreferencesProps) {
   const [filters, setFilters] = useState<BenchmarkFilters>({
     technologies: [],
     showPreviews: true,
+    bestVersionOnly: true,
   });
   const [pinnedSeries, setPinnedSeries] = useState<string>();
   return (

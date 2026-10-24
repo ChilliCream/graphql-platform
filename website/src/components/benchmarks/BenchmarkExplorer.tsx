@@ -33,7 +33,8 @@ export function BenchmarkExplorer({
   initialScenario,
 }: BenchmarkExplorerProps) {
   const controls = useBenchmarkControls(report, history, initialScenario);
-  const { scenarios, variants, historyVariants, stableOnly } = controls;
+  const { scenarios, variants, historyVariants, stableOnly, bestOnly } =
+    controls;
 
   return (
     <div className="relative [overflow-anchor:none]">
@@ -131,11 +132,12 @@ export function BenchmarkExplorer({
                 scenario={scenario}
                 variants={variants}
                 stableOnly={stableOnly}
+                bestOnly={bestOnly}
               />
               {scenarioHistory && historyVariants ? (
                 <div className="mt-16">
                   <BenchmarkHistoryChart
-                    key={`${stableOnly}:${controls.filters.technologies.join(",")}`}
+                    key={`${stableOnly}:${bestOnly}:${controls.filters.technologies.join(",")}`}
                     id={`benchmark-${scenario.id}`}
                     scenario={scenarioHistory}
                     variants={historyVariants}

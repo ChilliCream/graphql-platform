@@ -1,6 +1,10 @@
+"use client";
+
 import Link from "next/link";
+import type { MouseEvent } from "react";
 import { ChevronDownIcon } from "@/src/icons/ChevronDown";
 import { WarningIcon } from "@/src/icons/Warning";
+import { useBenchmarkPreferences } from "@/src/components/benchmarks/BenchmarkPreferences";
 import { BenchmarkColumnHint } from "@/src/components/benchmarks/BenchmarkColumnHint";
 import { BenchmarkPreviewBadge } from "@/src/components/benchmarks/BenchmarkPreviewBadge";
 import {
@@ -8,16 +12,19 @@ import {
   formatMemory,
   formatNumber,
   formatReliability,
+  isMeasured,
   isReliable,
   isWinner,
   type ResultsGroup,
 } from "@/src/components/benchmarks/benchmarkView";
 import {
-  formatRuntimeTag,
+  decisiveFeatures,
+  formatPlatformTag,
   gatewayLink,
   isPreview,
   variantName,
   type BenchmarkCatalogEntry,
+  type BenchmarkFeature,
 } from "@/src/helpers/benchmarkReport";
 
 const theme = {
@@ -33,19 +40,59 @@ const theme = {
   row: "border-cc-card-border border-b",
   winnerRow:
     "border-cc-accent/40 bg-cc-accent/10 border-b [&>th]:shadow-[inset_3px_0_0_0_var(--color-cc-accent)]",
+  failedRow:
+    "border-cc-card-border bg-cc-danger/5 border-b [&>th]:shadow-[inset_3px_0_0_0_var(--color-cc-danger)]",
   name: "text-cc-heading font-semibold",
   nameLink:
     "text-cc-heading hover:text-cc-accent font-semibold underline-offset-4 hover:underline",
   tag: "border-cc-card-border text-cc-ink-dim rounded border px-1.5 font-mono text-[11px] leading-5 whitespace-nowrap",
   rps: "text-cc-heading font-mono font-semibold",
   winnerRps: "text-cc-accent font-mono font-semibold",
+  failedRps: "text-cc-danger font-mono font-semibold",
   barTrack: "bg-cc-white/5 h-1 rounded-full",
   bar: "bg-cc-ink-dim/40 rounded-full",
   winnerBar: "bg-cc-accent rounded-full",
+  failedBar: "bg-cc-danger/60 rounded-full",
   value: "font-mono text-xs",
   unit: "text-cc-ink-dim",
   danger: "text-cc-danger",
+  faded: "opacity-40 transition-opacity hover:opacity-70",
+  selectedRow:
+    "border-cc-card-border bg-cc-white/5 border-b [&>th]:shadow-[inset_3px_0_0_0_var(--color-cc-accent)]",
 } as const;
+
+/** Toggles the selected series for a click on a result row, ignoring clicks on its links and controls. */
+function useRowSelection() {
+  const { setPinnedSeries } = useBenchmarkPreferences();
+  return (event: MouseEvent<HTMLElement>, id: string) => {
+    if ((event.target as HTMLElement).closest("a, button, summary")) {
+      return;
+    }
+    setPinnedSeries((current) => (current === id ? undefined : id));
+  };
+}
+
+/** Returns the row style: the winner and failure styles without a selection, otherwise an accent bar on the selected row while the others fade. */
+const rowClass = (
+  selected: string | undefined,
+  id: string,
+  winner: boolean,
+  failed: boolean,
+) =>
+  selected === id
+    ? theme.selectedRow
+    : `${failed ? theme.failedRow : winner && selected === undefined ? theme.winnerRow : theme.row} ${selected === undefined ? "" : theme.faded}`;
+
+/** Returns the mobile counterpart of {@link rowClass} for a result list item. */
+const mobileRowClass = (
+  selected: string | undefined,
+  id: string,
+  winner: boolean,
+  failed: boolean,
+) =>
+  selected === id
+    ? "bg-cc-white/5 shadow-[inset_3px_0_0_0_var(--color-cc-accent)]"
+    : `${failed ? "bg-cc-danger/5 shadow-[inset_3px_0_0_0_var(--color-cc-danger)]" : winner && selected === undefined ? "bg-cc-accent/10 shadow-[inset_3px_0_0_0_var(--color-cc-accent)]" : ""} ${selected === undefined ? "" : theme.faded}`;
 
 interface BenchmarkResultsTableProps {
   readonly id: string;
@@ -53,6 +100,8 @@ interface BenchmarkResultsTableProps {
   readonly caption: string;
   readonly group: ResultsGroup;
   readonly variants: ReadonlyMap<string, BenchmarkCatalogEntry>;
+  /** The selected variant shown in this scenario, or undefined when none is selected. */
+  readonly selected: string | undefined;
   readonly measuredRuns: number | undefined;
   readonly gatewayThreads: number | undefined;
   /** A sentence appended to the requests per second explanation, or undefined for none. */
@@ -91,11 +140,14 @@ export function BenchmarkResultsTable({
   caption,
   group,
   variants,
+  selected,
   measuredRuns,
   gatewayThreads,
   throughputNote,
 }: BenchmarkResultsTableProps) {
   const hints = columnHints(gatewayThreads, throughputNote);
+  const features = decisiveFeatures(variants);
+  const onRowClick = useRowSelection();
   const headingId = `group-${id}`;
   const notReported = (
     <span className={`${theme.unit} font-sans`} title="Not reported">
@@ -132,6 +184,7 @@ export function BenchmarkResultsTable({
       <BenchmarkMobileResults
         group={group}
         variants={variants}
+        selected={selected}
         measuredRuns={measuredRuns}
         hints={hints}
         headingId={headingId}
@@ -172,22 +225,33 @@ export function BenchmarkResultsTable({
           <tbody>
             {group.rows.map((row) => {
               const entry = variants.get(row.variant)!;
-              const runs = measuredRuns ?? row.throughput?.runsRps?.length;
+              const runs = row.throughput?.runsRps?.length ?? measuredRuns;
               const winner = isWinner(row, group);
+              const failed = row.status === "failed";
               const value = `${theme.cell} ${theme.value} text-right whitespace-nowrap tabular-nums`;
               return (
                 <tr
                   key={row.variant}
                   data-benchmark-scroll-anchor={`row-${id}-${row.variant}`}
-                  className={winner ? theme.winnerRow : theme.row}
+                  className={`cursor-pointer ${rowClass(selected, row.variant, winner, failed)}`}
+                  onClick={(event) => onRowClick(event, row.variant)}
                 >
                   <th
                     scope="row"
                     className={`${theme.cell} ${pad(0)} font-normal`}
                   >
-                    <RouterIdentity entry={entry} />
+                    <RouterIdentity
+                      entry={entry}
+                      features={features.get(row.variant)!}
+                    />
+                    {failed && isMeasured(row) && (
+                      <BenchmarkFailureBadge
+                        completedRuns={row.throughput.runsRps?.length}
+                        measuredRuns={measuredRuns}
+                      />
+                    )}
                   </th>
-                  {row.status === "failed" ? (
+                  {!isMeasured(row) ? (
                     <td
                       colSpan={COLUMNS.length - 1}
                       className="px-4 py-4 text-center text-sm"
@@ -199,7 +263,7 @@ export function BenchmarkResultsTable({
                       <td className={`${theme.cell} ${pad(1)}`}>
                         <div className="flex items-center gap-3">
                           <span
-                            className={`w-12 shrink-0 text-right tabular-nums ${winner ? theme.winnerRps : theme.rps}`}
+                            className={`w-12 shrink-0 text-right tabular-nums ${winner ? theme.winnerRps : failed ? theme.failedRps : theme.rps}`}
                           >
                             {formatNumber(row.throughput.medianRps)}
                             {winner && (
@@ -213,7 +277,7 @@ export function BenchmarkResultsTable({
                             aria-hidden="true"
                           >
                             <div
-                              className={`h-full ${winner ? theme.winnerBar : theme.bar}`}
+                              className={`h-full ${winner ? theme.winnerBar : failed ? theme.failedBar : theme.bar}`}
                               style={{
                                 width: `${group.maxRps === 0 ? 0 : (row.throughput.medianRps / group.maxRps) * 100}%`,
                               }}
@@ -292,9 +356,10 @@ export function BenchmarkResultsTable({
 
 interface RouterIdentityProps {
   readonly entry: BenchmarkCatalogEntry;
+  readonly features: readonly BenchmarkFeature[];
 }
 
-function RouterIdentity({ entry }: RouterIdentityProps) {
+function RouterIdentity({ entry, features }: RouterIdentityProps) {
   const name = variantName(entry);
   const link = gatewayLink(entry.gateway);
   return (
@@ -317,7 +382,7 @@ function RouterIdentity({ entry }: RouterIdentityProps) {
         <span className={theme.tag}>{entry.variant.version}</span>
       )}
       <span className={theme.tag}>
-        {formatRuntimeTag(entry.variant.platform)}
+        {formatPlatformTag(entry.variant.platform, features)}
       </span>
     </div>
   );
@@ -336,9 +401,44 @@ function BenchmarkFailure() {
   );
 }
 
+interface BenchmarkFailureBadgeProps {
+  readonly completedRuns: number | undefined;
+  readonly measuredRuns: number | undefined;
+}
+
+function BenchmarkFailureBadge({
+  completedRuns,
+  measuredRuns,
+}: BenchmarkFailureBadgeProps) {
+  return (
+    <div className="text-cc-danger mt-1 flex items-center gap-1 text-xs leading-5 [&_button]:ml-0 [&_button]:translate-y-0">
+      <WarningIcon className="size-3.5 shrink-0" />
+      <span>
+        {completedRuns !== undefined &&
+        measuredRuns !== undefined &&
+        completedRuns < measuredRuns
+          ? `Only ${completedRuns} of ${measuredRuns} runs completed`
+          : "Failed"}
+      </span>
+      <BenchmarkColumnHint label="benchmark failure">
+        <span className="block">
+          Some benchmark runs failed for this router, so its results are partial
+          and not ranked.
+        </span>
+        <span className="block">
+          This could be due to benchmark misconfiguration and does not mean that
+          the router is faulty.
+        </span>
+      </BenchmarkColumnHint>
+    </div>
+  );
+}
+
 interface BenchmarkMobileResultsProps {
   readonly group: ResultsGroup;
   readonly variants: ReadonlyMap<string, BenchmarkCatalogEntry>;
+  /** The selected variant shown in this scenario, or undefined when none is selected. */
+  readonly selected: string | undefined;
   readonly measuredRuns: number | undefined;
   readonly hints: readonly (string | undefined)[];
   readonly headingId: string;
@@ -347,10 +447,13 @@ interface BenchmarkMobileResultsProps {
 function BenchmarkMobileResults({
   group,
   variants,
+  selected,
   measuredRuns,
   hints,
   headingId,
 }: BenchmarkMobileResultsProps) {
+  const features = decisiveFeatures(variants);
+  const onRowClick = useRowSelection();
   return (
     <div className="md:hidden">
       <div className="border-cc-heading/60 text-cc-ink-dim flex items-center justify-between gap-3 border-b px-3 py-2.5 text-xs">
@@ -366,40 +469,51 @@ function BenchmarkMobileResults({
         {group.rows.map((row) => {
           const entry = variants.get(row.variant)!;
           const winner = isWinner(row, group);
-          const runs = measuredRuns ?? row.throughput?.runsRps?.length;
-          const metrics =
-            row.status === "complete"
-              ? [
-                  row.latencyMs
-                    ? `${formatLatency(row.latencyMs.p95)} ms`
-                    : "—",
-                  row.latencyMs
-                    ? `${formatLatency(row.latencyMs.p99_9)} ms`
-                    : "—",
-                  row.memory
-                    ? `${formatMemory(row.memory.peakRssKiB)} MiB`
-                    : "—",
-                  row.cpu
-                    ? `${row.cpu.avgUtilizationPercent.toFixed(2)}%`
-                    : "—",
-                  formatReliability(
-                    row.requests.successful,
-                    row.requests.total,
-                  ),
-                  runs === 1 ? "—" : `±${row.throughput.cvPercent.toFixed(1)}%`,
-                ]
-              : [];
+          const failed = row.status === "failed";
+          const runs = row.throughput?.runsRps?.length ?? measuredRuns;
+          const metrics = isMeasured(row)
+            ? [
+                row.latencyMs ? `${formatLatency(row.latencyMs.p95)} ms` : "—",
+                row.latencyMs
+                  ? `${formatLatency(row.latencyMs.p99_9)} ms`
+                  : "—",
+                row.memory ? `${formatMemory(row.memory.peakRssKiB)} MiB` : "—",
+                row.cpu ? `${row.cpu.avgUtilizationPercent.toFixed(2)}%` : "—",
+                formatReliability(row.requests.successful, row.requests.total),
+                runs === 1 ? "—" : `±${row.throughput.cvPercent.toFixed(1)}%`,
+              ]
+            : [];
           return (
             <li
               key={row.variant}
               data-benchmark-scroll-anchor={`mobile-row-${headingId}-${row.variant}`}
-              className={`border-cc-card-border border-b px-3 py-4 ${winner ? "bg-cc-accent/10 shadow-[inset_3px_0_0_0_var(--color-cc-accent)]" : ""}`}
+              className={`border-cc-card-border cursor-pointer border-b px-3 py-4 ${mobileRowClass(selected, row.variant, winner, failed)}`}
+              onClick={(event) => onRowClick(event, row.variant)}
             >
               <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 text-sm">
-                <RouterIdentity entry={entry} />
-                {row.status === "complete" && (
+                <div>
+                  <RouterIdentity
+                    entry={entry}
+                    features={features.get(row.variant)!}
+                  />
+                  {failed && isMeasured(row) && (
+                    <BenchmarkFailureBadge
+                      completedRuns={row.throughput.runsRps?.length}
+                      measuredRuns={measuredRuns}
+                    />
+                  )}
+                </div>
+                {isMeasured(row) && (
                   <div className="min-w-20 text-right">
-                    <p className={winner ? theme.winnerRps : theme.rps}>
+                    <p
+                      className={
+                        winner
+                          ? theme.winnerRps
+                          : failed
+                            ? theme.failedRps
+                            : theme.rps
+                      }
+                    >
                       {formatNumber(row.throughput.medianRps)}
                       {winner && (
                         <span className="sr-only">, highest reported</span>
@@ -410,7 +524,7 @@ function BenchmarkMobileResults({
                       aria-hidden="true"
                     >
                       <div
-                        className={`h-full ${winner ? theme.winnerBar : theme.bar}`}
+                        className={`h-full ${winner ? theme.winnerBar : failed ? theme.failedBar : theme.bar}`}
                         style={{
                           width: `${group.maxRps === 0 ? 0 : (row.throughput.medianRps / group.maxRps) * 100}%`,
                         }}
@@ -419,7 +533,7 @@ function BenchmarkMobileResults({
                   </div>
                 )}
               </div>
-              {row.status === "failed" ? (
+              {!isMeasured(row) ? (
                 <div className="mt-3 text-left text-sm">
                   <BenchmarkFailure />
                 </div>

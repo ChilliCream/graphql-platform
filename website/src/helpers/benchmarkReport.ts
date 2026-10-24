@@ -17,6 +17,8 @@ export type Composition = keyof typeof COMPOSITIONS;
 
 export interface BenchmarkFeature {
   readonly id: string;
+  /** A short human readable name, such as "AOT". */
+  readonly name: string;
   readonly description?: string;
 }
 
@@ -150,6 +152,8 @@ export type BenchmarkHistoryVersion = Omit<
   "variant" | "status"
 > & {
   readonly version: string;
+  /** "failed" when the execution failed but recorded measurements; absent for a completed execution. */
+  readonly status?: "failed";
   readonly run: BenchmarkHistoryRun & {
     readonly startedAt?: string | null;
     readonly completedAt?: string | null;
@@ -296,8 +300,9 @@ function dateTime(value: unknown): number {
 
 function features(value: unknown): void {
   for (const item of list(value)) {
-    const feature = record(item, ["id"]);
+    const feature = record(item, ["id", "name"]);
     text(feature.id);
+    text(feature.name);
     optional(feature.description, text);
   }
 }
@@ -548,7 +553,10 @@ export function parseBenchmarkReport(json: string): BenchmarkReport {
           throw new Error("Benchmark result variant is not in its gateway.");
         }
         unique(resultVariants, variant.variant);
-        measurement(variant, measuredRuns);
+        measurement(
+          variant,
+          variant.status === "complete" ? measuredRuns : undefined,
+        );
       }
     }
   }
@@ -602,6 +610,7 @@ export function parseBenchmarkHistory(json: string): BenchmarkHistory {
           "requests",
         ]);
         text(version.version);
+        optional(version.status, (value) => member(value, ["failed"]));
         historyRun(version.run);
         const run = record(version.run, ["number"]);
         const startedAt =
@@ -626,7 +635,10 @@ export function parseBenchmarkHistory(json: string): BenchmarkHistory {
         const throughput = record(version.throughput, ["runsRps"]);
         list(throughput.runsRps, 1);
         platform(version.platform);
-        measurement(version, measuredRuns);
+        measurement(
+          version,
+          version.status === "failed" ? undefined : measuredRuns,
+        );
       }
     }
   }
@@ -651,14 +663,14 @@ export function benchmarkVariants(
   );
 }
 
-/** Returns the display name of a variant: its explicit label, otherwise the gateway name, followed by its feature IDs in parentheses. */
+/** Returns the display name of a variant: its explicit label, otherwise the gateway name, followed by its feature names in parentheses. */
 export function variantName({
   gateway,
   variant,
 }: BenchmarkCatalogEntry): string {
   const name = variant.label ?? gateway.name;
   return variant.features?.length
-    ? `${name} (${variant.features.map((feature) => feature.id).join(", ")})`
+    ? `${name} (${variant.features.map((feature) => feature.name).join(", ")})`
     : name;
 }
 
@@ -699,6 +711,46 @@ export function formatRuntimeTag(platform: BenchmarkPlatform): string {
   }
   const [major, minor] = platform.runtime.version.split(/[.+-]/);
   return `${name} ${Number(major) < 2 && minor ? `${major}.${minor}` : major}`;
+}
+
+/** Formats a platform as its runtime tag followed by the given feature names, such as ".NET 11 AOT". */
+export function formatPlatformTag(
+  platform: BenchmarkPlatform,
+  features: readonly BenchmarkFeature[],
+): string {
+  return [
+    formatRuntimeTag(platform),
+    ...features.map((feature) => feature.name),
+  ].join(" ");
+}
+
+/** Returns each catalog variant's platform features that another variant of the same gateway, composition and runtime lacks. */
+export function decisiveFeatures(
+  variants: ReadonlyMap<string, BenchmarkCatalogEntry>,
+): ReadonlyMap<string, readonly BenchmarkFeature[]> {
+  const entries = [...variants.values()];
+  return new Map(
+    entries.map(({ gateway, variant }) => {
+      const siblings = entries.filter(
+        (other) =>
+          other.gateway.id === gateway.id &&
+          other.variant.composition === variant.composition &&
+          formatRuntimeTag(other.variant.platform) ===
+            formatRuntimeTag(variant.platform),
+      );
+      return [
+        variant.id,
+        (variant.platform.features ?? []).filter((feature) =>
+          siblings.some(
+            (other) =>
+              !other.variant.platform.features?.some(
+                (item) => item.id === feature.id,
+              ),
+          ),
+        ),
+      ];
+    }),
+  );
 }
 
 /** Formats a platform as its runtime name and version, or its language when it has no runtime. */

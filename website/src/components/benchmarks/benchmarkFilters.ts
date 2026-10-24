@@ -3,6 +3,8 @@ import type { BenchmarkCatalogEntry } from "@/src/helpers/benchmarkReport";
 export interface BenchmarkFilters {
   readonly technologies: readonly string[];
   readonly showPreviews: boolean;
+  /** Whether each gateway shows only its best preview and best non-preview variant per composition. */
+  readonly bestVersionOnly: boolean;
 }
 
 /** The runtime family, or language for platforms without a runtime. */
