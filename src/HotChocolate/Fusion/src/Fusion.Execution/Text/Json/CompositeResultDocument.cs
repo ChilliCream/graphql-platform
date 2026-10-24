@@ -470,19 +470,93 @@ public sealed partial class CompositeResultDocument : IDisposable
         var template = selectionSet.ObjectTemplate;
         Debug.Assert(template.Rows.Length > 0, "The selection set is in an invalid state.");
 
-        // The template rows are canonical: they never carry IsExcluded. Each document evaluates
-        // its own skip/include and defer state and hands the block-relative property row offsets
-        // of the selections it excludes to the block append, which stamps the flag alongside the
-        // parent pointers.
         var conditionalSelections = template.ConditionalSelections;
         var excludedRowOffsets = conditionalSelections.Length <= 256
             ? stackalloc int[conditionalSelections.Length]
             : new int[conditionalSelections.Length];
+        var excluded = GetExcludedRowOffsets(selectionSet, excludedRowOffsets);
+
+        var startObjectCursor = _metaDb.AppendObjectBlock(
+            template.Rows,
+            parent.Value,
+            excluded);
+
+        objectContext = new CompositeObjectContext(
+            this,
+            startObjectCursor,
+            selectionSet,
+            (selectionSet.Selections.Length * 2) + 1);
+
+        return new CompositeResultElement(this, startObjectCursor);
+    }
+
+    /// <summary>
+    /// Creates an array of <paramref name="length"/> objects of <paramref name="selectionSet"/>:
+    /// the array, one object per element and the element rows that reference the objects.
+    /// The object of element <c>i</c> starts <c>i * blockRows</c> rows after
+    /// <paramref name="firstObject"/>.
+    /// </summary>
+    internal CompositeResultElement CreateObjectArray(
+        Cursor parent,
+        int length,
+        SelectionSet selectionSet,
+        out Cursor firstObject,
+        out int blockRows)
+    {
+        var template = selectionSet.ObjectTemplate;
+        Debug.Assert(template.Rows.Length > 0, "The selection set is in an invalid state.");
+
+        var arrayCursor = WriteStartArray(parent, length);
+        _metaDb.AppendNullRange(arrayCursor.Value, length);
+        WriteEndArray();
+
+        var conditionalSelections = template.ConditionalSelections;
+        var excludedRowOffsets = conditionalSelections.Length <= 256
+            ? stackalloc int[conditionalSelections.Length]
+            : new int[conditionalSelections.Length];
+        var excluded = GetExcludedRowOffsets(selectionSet, excludedRowOffsets);
+
+        blockRows = template.Rows.Length / DbRow.Size;
+        firstObject = default;
+        var elementCursor = arrayCursor + 1;
+
+        for (var i = 0; i < length; i++)
+        {
+            var objectCursor = _metaDb.AppendObjectBlock(template.Rows, elementCursor.Value, excluded);
+
+            if (i == 0)
+            {
+                firstObject = objectCursor;
+            }
+
+            _metaDb.ReplacePreserveParent(
+                cursor: elementCursor,
+                tokenType: ElementTokenType.Reference,
+                location: objectCursor.Value);
+            elementCursor += 1;
+        }
+
+        return new CompositeResultElement(this, arrayCursor);
+    }
+
+    /// <summary>
+    /// Evaluates the skip, include and defer state of the conditional selections of
+    /// <paramref name="selectionSet"/> and returns the block-relative property row offsets of
+    /// the excluded ones in ascending order.
+    /// </summary>
+    private ReadOnlySpan<int> GetExcludedRowOffsets(SelectionSet selectionSet, Span<int> excludedRowOffsets)
+    {
+        // The template rows are canonical: they never carry IsExcluded. Each document evaluates
+        // its own skip/include and defer state and hands the block-relative property row offsets
+        // of the selections it excludes to the block append, which stamps the flag alongside the
+        // parent pointers.
+        var conditionalSelections = selectionSet.ObjectTemplate.ConditionalSelections;
         var excludedCount = 0;
-        var selections = selectionSet.Selections;
 
         if (conditionalSelections.Length > 0)
         {
+            var selections = selectionSet.Selections;
+
             if (_wideIncludeFlags is null && _wideDeferFlags is null)
             {
                 foreach (var index in conditionalSelections)
@@ -507,18 +581,7 @@ public sealed partial class CompositeResultDocument : IDisposable
             }
         }
 
-        var startObjectCursor = _metaDb.AppendObjectBlock(
-            template.Rows,
-            parent.Value,
-            excludedRowOffsets[..excludedCount]);
-
-        objectContext = new CompositeObjectContext(
-            this,
-            startObjectCursor,
-            selectionSet,
-            (selections.Length * 2) + 1);
-
-        return new CompositeResultElement(this, startObjectCursor);
+        return excludedRowOffsets[..excludedCount];
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -627,6 +690,19 @@ public sealed partial class CompositeResultDocument : IDisposable
             sizeOrLength: sourceRow.SizeOrLength,
             sourceDocumentId: parent.Id,
             flags: ElementFlags.SourceResult);
+    }
+
+    /// <summary>
+    /// Empties the slot at <paramref name="target"/>, which then holds no value, as before
+    /// its first assignment.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal void ClearValue(Cursor target)
+    {
+        TrackValueReplacement(target);
+        _metaDb.ReplacePreserveParent(
+            cursor: target,
+            tokenType: ElementTokenType.None);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

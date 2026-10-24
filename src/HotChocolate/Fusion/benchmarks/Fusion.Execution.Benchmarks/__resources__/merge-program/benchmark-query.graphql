@@ -1,0 +1,58 @@
+fragment User on User {
+  id
+  username
+  name
+}
+
+fragment Review on Review {
+  id
+  body
+}
+
+fragment Product on Product {
+  inStock
+  name
+  price
+  shippingEstimate
+  upc
+  weight
+}
+
+query TestQuery {
+  users {
+    ...User
+    reviews {
+      ...Review
+      product {
+        ...Product
+        reviews {
+          ...Review
+          author {
+            ...User
+            reviews {
+              ...Review
+              product {
+                ...Product
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  topProducts {
+    ...Product
+    reviews {
+      ...Review
+      author {
+        ...User
+        reviews {
+          ...Review
+          product {
+            ...Product
+          }
+        }
+      }
+    }
+  }
+}

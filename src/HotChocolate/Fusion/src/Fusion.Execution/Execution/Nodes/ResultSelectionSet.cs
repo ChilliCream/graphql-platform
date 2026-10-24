@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
@@ -19,6 +21,8 @@ internal sealed class ResultSelectionSet
     private readonly string[] _allResponseNames;
     private readonly SourceResponseNameMapping[]? _sourceResponseNameMappings;
     private readonly Dictionary<string, ResultSelectionSet?>? _childLookup;
+    private MergeProgramTemplate? _mergeTemplate;
+    private MergeProgram[] _mergePrograms = [];
 
     private ResultSelectionSet(
         ResultSelection[] selections,
@@ -84,6 +88,76 @@ internal sealed class ResultSelectionSet
     /// and benchmarks that assert the lookup strategy per selection set shape.
     /// </summary>
     internal bool UsesDictionaryLookup => _childLookup is not null;
+
+    /// <summary>
+    /// Gets the source response order of the fields this selection set is completed from, or
+    /// <c>null</c> when every object is completed by name.
+    /// </summary>
+    internal MergeProgramTemplate? MergeTemplate => _mergeTemplate;
+
+    internal void SetMergeTemplate(MergeProgramTemplate? mergeTemplate)
+        => _mergeTemplate = mergeTemplate;
+
+    /// <summary>
+    /// Gets the merge program that completes objects of <paramref name="selectionSet"/> from a
+    /// source result in source response order. Returns <c>false</c> when the objects are
+    /// completed by name.
+    /// </summary>
+    internal bool TryGetMergeProgram(SelectionSet selectionSet, [NotNullWhen(true)] out MergeProgram? program)
+    {
+        var template = _mergeTemplate;
+
+        if (template is null || HasSourceResponseNameMappings)
+        {
+            program = null;
+            return false;
+        }
+
+        if (TryFindMergeProgram(_mergePrograms, selectionSet.Id, out program))
+        {
+            return true;
+        }
+
+        program = MergeProgram.Create(template, selectionSet, this, isRoot: true);
+
+        while (true)
+        {
+            var current = _mergePrograms;
+
+            if (TryFindMergeProgram(current, selectionSet.Id, out var published))
+            {
+                program = published;
+                return true;
+            }
+
+            var next = new MergeProgram[current.Length + 1];
+            current.CopyTo(next, 0);
+            next[current.Length] = program;
+
+            if (ReferenceEquals(Interlocked.CompareExchange(ref _mergePrograms, next, current), current))
+            {
+                return true;
+            }
+        }
+    }
+
+    private static bool TryFindMergeProgram(
+        MergeProgram[] programs,
+        int selectionSetId,
+        [NotNullWhen(true)] out MergeProgram? program)
+    {
+        foreach (var candidate in programs)
+        {
+            if (candidate.SelectionSet.Id == selectionSetId)
+            {
+                program = candidate;
+                return true;
+            }
+        }
+
+        program = null;
+        return false;
+    }
 
     /// <summary>
     /// Gets the child selection set for a given response name (type-unaware).
