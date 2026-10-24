@@ -133,16 +133,21 @@ internal static class CostResultHelper
 
     private static ImmutableOrderedDictionary<string, object?> CreateCost(CostEstimate estimate)
     {
-        var builder = ImmutableOrderedDictionary.CreateBuilder<string, object?>();
-        builder.Add("fieldCost", FormatValue(estimate.FieldCost));
-        builder.Add("typeCost", FormatValue(estimate.TypeCost));
-
         if (estimate.MaxResponseSize is { } maxResponseSize)
         {
-            builder.Add("maxResponseSize", FormatValue(maxResponseSize));
+            return ImmutableOrderedDictionary.Create<string, object?>(
+            [
+                new("fieldCost", FormatValue(estimate.FieldCost)),
+                new("typeCost", FormatValue(estimate.TypeCost)),
+                new("maxResponseSize", FormatValue(maxResponseSize))
+            ]);
         }
 
-        return builder.ToImmutable();
+        return ImmutableOrderedDictionary.Create<string, object?>(
+        [
+            new("fieldCost", FormatValue(estimate.FieldCost)),
+            new("typeCost", FormatValue(estimate.TypeCost))
+        ]);
     }
 
     internal static object FormatValue(double value)
