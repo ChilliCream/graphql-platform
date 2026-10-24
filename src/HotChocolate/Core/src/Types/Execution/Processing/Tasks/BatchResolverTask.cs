@@ -471,8 +471,10 @@ internal sealed class BatchResolverTask : IResolverTask
         Status = ExecutionTaskStatus.WaitingToRun;
         IsSerial = false;
         IsRegistered = false;
+#pragma warning disable CS0618
         Next = null;
         Previous = null;
+#pragma warning restore CS0618
         State = null;
         return true;
     }

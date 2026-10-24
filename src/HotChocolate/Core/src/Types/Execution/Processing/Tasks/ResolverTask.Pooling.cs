@@ -41,8 +41,10 @@ internal sealed partial class ResolverTask
         BranchId = int.MinValue;
         DeferUsage = null;
         IsRegistered = false;
+#pragma warning disable CS0618
         Next = null;
         Previous = null;
+#pragma warning restore CS0618
         State = null;
         _taskBuffer.Clear();
         _args.Clear();
