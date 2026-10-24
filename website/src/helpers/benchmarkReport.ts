@@ -713,6 +713,46 @@ export function formatRuntimeTag(platform: BenchmarkPlatform): string {
   return `${name} ${Number(major) < 2 && minor ? `${major}.${minor}` : major}`;
 }
 
+/** Formats a platform as its runtime tag followed by the given feature names, such as ".NET 11 AOT". */
+export function formatPlatformTag(
+  platform: BenchmarkPlatform,
+  features: readonly BenchmarkFeature[],
+): string {
+  return [
+    formatRuntimeTag(platform),
+    ...features.map((feature) => feature.name),
+  ].join(" ");
+}
+
+/** Returns each catalog variant's platform features that another variant of the same gateway, composition and runtime lacks. */
+export function decisiveFeatures(
+  variants: ReadonlyMap<string, BenchmarkCatalogEntry>,
+): ReadonlyMap<string, readonly BenchmarkFeature[]> {
+  const entries = [...variants.values()];
+  return new Map(
+    entries.map(({ gateway, variant }) => {
+      const siblings = entries.filter(
+        (other) =>
+          other.gateway.id === gateway.id &&
+          other.variant.composition === variant.composition &&
+          formatRuntimeTag(other.variant.platform) ===
+            formatRuntimeTag(variant.platform),
+      );
+      return [
+        variant.id,
+        (variant.platform.features ?? []).filter((feature) =>
+          siblings.some(
+            (other) =>
+              !other.variant.platform.features?.some(
+                (item) => item.id === feature.id,
+              ),
+          ),
+        ),
+      ];
+    }),
+  );
+}
+
 /** Formats a platform as its runtime name and version, or its language when it has no runtime. */
 export function formatPlatform(platform: BenchmarkPlatform): string {
   if (!platform.runtime) {

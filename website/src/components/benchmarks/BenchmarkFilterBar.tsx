@@ -1,8 +1,19 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import { BenchmarkColumnHint } from "@/src/components/benchmarks/BenchmarkColumnHint";
 import { FilterIcon } from "@/src/icons/FilterIcon";
 import type { BenchmarkFilters as Filters } from "@/src/components/benchmarks/benchmarkFilters";
+
+const PREVIEWS = {
+  label: "Include previews",
+  hint: "Shows preview releases, such as nightly builds, prerelease versions and variants on a prerelease runtime, alongside stable releases.",
+};
+
+const BEST_VERSION = {
+  label: "Best version only",
+  hint: "Shows only the fastest preview and the fastest non-preview variant of each gateway in each table and hides its other variants.",
+};
 
 interface BenchmarkFilterBarProps {
   readonly technologies: readonly string[];
@@ -97,18 +108,24 @@ export function BenchmarkFilterBar({
         </summary>
         <div className="border-cc-card-border bg-cc-bg absolute top-full right-0 z-10 mt-2 w-72 rounded-lg border p-5 shadow-xl">
           {choices(filters, onChange)}
-          <label className="border-cc-card-border text-cc-heading mt-4 flex min-h-11 cursor-pointer items-center justify-between gap-3 border-t pt-3 text-sm">
-            Include previews
-            <input
-              type="checkbox"
-              role="switch"
-              className="accent-cc-accent size-4"
+          <div className="border-cc-card-border mt-4 border-t pt-3">
+            <FilterSwitch
+              {...PREVIEWS}
               checked={filters.showPreviews}
-              onChange={(event) =>
-                onChange({ ...filters, showPreviews: event.target.checked })
+              size="size-4"
+              onChange={(checked) =>
+                onChange({ ...filters, showPreviews: checked })
               }
             />
-          </label>
+            <FilterSwitch
+              {...BEST_VERSION}
+              checked={filters.bestVersionOnly}
+              size="size-4"
+              onChange={(checked) =>
+                onChange({ ...filters, bestVersionOnly: checked })
+              }
+            />
+          </div>
         </div>
       </details>
       <button
@@ -149,18 +166,25 @@ export function BenchmarkFilterBar({
           {choices(draft, setDraft)}
           <fieldset className="border-cc-card-border mt-5 border-t pt-5">
             <legend className="sr-only">Preview releases</legend>
-            <label className="flex min-h-11 cursor-pointer items-center justify-between gap-4 text-sm">
-              Include previews
-              <input
-                type="checkbox"
-                role="switch"
-                className="accent-cc-accent size-5"
-                checked={draft.showPreviews}
-                onChange={(event) =>
-                  setDraft({ ...draft, showPreviews: event.target.checked })
-                }
-              />
-            </label>
+            <FilterSwitch
+              {...PREVIEWS}
+              checked={draft.showPreviews}
+              size="size-5"
+              onChange={(checked) =>
+                setDraft({ ...draft, showPreviews: checked })
+              }
+            />
+          </fieldset>
+          <fieldset className="border-cc-card-border mt-5 border-t pt-5">
+            <legend className="sr-only">Variants</legend>
+            <FilterSwitch
+              {...BEST_VERSION}
+              checked={draft.bestVersionOnly}
+              size="size-5"
+              onChange={(checked) =>
+                setDraft({ ...draft, bestVersionOnly: checked })
+              }
+            />
           </fieldset>
         </div>
         <div className="border-cc-card-border bg-cc-bg sticky bottom-0 mt-5 border-t px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
@@ -177,5 +201,43 @@ export function BenchmarkFilterBar({
         </div>
       </dialog>
     </div>
+  );
+}
+
+interface FilterSwitchProps {
+  readonly label: string;
+  readonly hint: string;
+  readonly checked: boolean;
+  readonly size: "size-4" | "size-5";
+  readonly onChange: (checked: boolean) => void;
+}
+
+function FilterSwitch({
+  label,
+  hint,
+  checked,
+  size,
+  onChange,
+}: FilterSwitchProps) {
+  const id = useId();
+  return (
+    <label
+      htmlFor={id}
+      className="text-cc-heading flex min-h-11 cursor-pointer items-center justify-between gap-3 text-sm"
+    >
+      <span>
+        {label}
+        <BenchmarkColumnHint label={label}>{hint}</BenchmarkColumnHint>
+      </span>
+      <input
+        id={id}
+        type="checkbox"
+        role="switch"
+        aria-label={label}
+        className={`accent-cc-accent cursor-pointer ${size}`}
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+      />
+    </label>
   );
 }

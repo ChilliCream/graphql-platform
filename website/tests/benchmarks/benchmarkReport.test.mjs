@@ -5,7 +5,9 @@ import {
   benchmarkRunId,
   parseBenchmarkHistory,
   benchmarkVariants,
+  decisiveFeatures,
   formatPlatform,
+  formatPlatformTag,
   formatRuntimeTag,
   gatewayLink,
   parseBenchmarkReport,
@@ -347,6 +349,36 @@ test("formats runtime tags with the major version", () => {
       "fusion-nightly-fed": ".NET 10",
       feddi: "JVM 25",
     },
+  );
+});
+
+test("lists only the platform features that tell sibling variants apart", () => {
+  const dotnet11 = (id, features) => ({
+    gateway: { id: "fusion" },
+    variant: {
+      id,
+      composition: "composite-schema",
+      platform: {
+        language: { name: "C#" },
+        runtime: { name: ".NET", version: "11.0.0" },
+        features,
+      },
+    },
+  });
+  const runtimeAsync = { id: "runtime-async", name: "Runtime Async" };
+  const aot = { id: "aot", name: "AOT" };
+  const variants = new Map(
+    [
+      dotnet11("fusion-net-11", [runtimeAsync]),
+      dotnet11("fusion-aot-11", [runtimeAsync, aot]),
+    ].map((entry) => [entry.variant.id, entry]),
+  );
+  const features = decisiveFeatures(variants);
+  assert.deepEqual(
+    [...variants.values()].map(({ variant }) =>
+      formatPlatformTag(variant.platform, features.get(variant.id)),
+    ),
+    [".NET 11", ".NET 11 AOT"],
   );
 });
 

@@ -1,6 +1,10 @@
+"use client";
+
 import Link from "next/link";
+import type { MouseEvent } from "react";
 import { ChevronDownIcon } from "@/src/icons/ChevronDown";
 import { WarningIcon } from "@/src/icons/Warning";
+import { useBenchmarkPreferences } from "@/src/components/benchmarks/BenchmarkPreferences";
 import { BenchmarkColumnHint } from "@/src/components/benchmarks/BenchmarkColumnHint";
 import { BenchmarkPreviewBadge } from "@/src/components/benchmarks/BenchmarkPreviewBadge";
 import {
@@ -14,11 +18,13 @@ import {
   type ResultsGroup,
 } from "@/src/components/benchmarks/benchmarkView";
 import {
-  formatRuntimeTag,
+  decisiveFeatures,
+  formatPlatformTag,
   gatewayLink,
   isPreview,
   variantName,
   type BenchmarkCatalogEntry,
+  type BenchmarkFeature,
 } from "@/src/helpers/benchmarkReport";
 
 const theme = {
@@ -50,7 +56,43 @@ const theme = {
   value: "font-mono text-xs",
   unit: "text-cc-ink-dim",
   danger: "text-cc-danger",
+  faded: "opacity-40 transition-opacity hover:opacity-70",
+  selectedRow:
+    "border-cc-card-border bg-cc-white/5 border-b [&>th]:shadow-[inset_3px_0_0_0_var(--color-cc-accent)]",
 } as const;
+
+/** Toggles the selected series for a click on a result row, ignoring clicks on its links and controls. */
+function useRowSelection() {
+  const { setPinnedSeries } = useBenchmarkPreferences();
+  return (event: MouseEvent<HTMLElement>, id: string) => {
+    if ((event.target as HTMLElement).closest("a, button, summary")) {
+      return;
+    }
+    setPinnedSeries((current) => (current === id ? undefined : id));
+  };
+}
+
+/** Returns the row style: the winner and failure styles without a selection, otherwise an accent bar on the selected row while the others fade. */
+const rowClass = (
+  selected: string | undefined,
+  id: string,
+  winner: boolean,
+  failed: boolean,
+) =>
+  selected === id
+    ? theme.selectedRow
+    : `${failed ? theme.failedRow : winner && selected === undefined ? theme.winnerRow : theme.row} ${selected === undefined ? "" : theme.faded}`;
+
+/** Returns the mobile counterpart of {@link rowClass} for a result list item. */
+const mobileRowClass = (
+  selected: string | undefined,
+  id: string,
+  winner: boolean,
+  failed: boolean,
+) =>
+  selected === id
+    ? "bg-cc-white/5 shadow-[inset_3px_0_0_0_var(--color-cc-accent)]"
+    : `${failed ? "bg-cc-danger/5 shadow-[inset_3px_0_0_0_var(--color-cc-danger)]" : winner && selected === undefined ? "bg-cc-accent/10 shadow-[inset_3px_0_0_0_var(--color-cc-accent)]" : ""} ${selected === undefined ? "" : theme.faded}`;
 
 interface BenchmarkResultsTableProps {
   readonly id: string;
@@ -58,6 +100,8 @@ interface BenchmarkResultsTableProps {
   readonly caption: string;
   readonly group: ResultsGroup;
   readonly variants: ReadonlyMap<string, BenchmarkCatalogEntry>;
+  /** The selected variant shown in this scenario, or undefined when none is selected. */
+  readonly selected: string | undefined;
   readonly measuredRuns: number | undefined;
   readonly gatewayThreads: number | undefined;
   /** A sentence appended to the requests per second explanation, or undefined for none. */
@@ -96,11 +140,14 @@ export function BenchmarkResultsTable({
   caption,
   group,
   variants,
+  selected,
   measuredRuns,
   gatewayThreads,
   throughputNote,
 }: BenchmarkResultsTableProps) {
   const hints = columnHints(gatewayThreads, throughputNote);
+  const features = decisiveFeatures(variants);
+  const onRowClick = useRowSelection();
   const headingId = `group-${id}`;
   const notReported = (
     <span className={`${theme.unit} font-sans`} title="Not reported">
@@ -137,6 +184,7 @@ export function BenchmarkResultsTable({
       <BenchmarkMobileResults
         group={group}
         variants={variants}
+        selected={selected}
         measuredRuns={measuredRuns}
         hints={hints}
         headingId={headingId}
@@ -185,19 +233,17 @@ export function BenchmarkResultsTable({
                 <tr
                   key={row.variant}
                   data-benchmark-scroll-anchor={`row-${id}-${row.variant}`}
-                  className={
-                    winner
-                      ? theme.winnerRow
-                      : failed
-                        ? theme.failedRow
-                        : theme.row
-                  }
+                  className={`cursor-pointer ${rowClass(selected, row.variant, winner, failed)}`}
+                  onClick={(event) => onRowClick(event, row.variant)}
                 >
                   <th
                     scope="row"
                     className={`${theme.cell} ${pad(0)} font-normal`}
                   >
-                    <RouterIdentity entry={entry} />
+                    <RouterIdentity
+                      entry={entry}
+                      features={features.get(row.variant)!}
+                    />
                     {failed && isMeasured(row) && (
                       <BenchmarkFailureBadge
                         completedRuns={row.throughput.runsRps?.length}
@@ -310,9 +356,10 @@ export function BenchmarkResultsTable({
 
 interface RouterIdentityProps {
   readonly entry: BenchmarkCatalogEntry;
+  readonly features: readonly BenchmarkFeature[];
 }
 
-function RouterIdentity({ entry }: RouterIdentityProps) {
+function RouterIdentity({ entry, features }: RouterIdentityProps) {
   const name = variantName(entry);
   const link = gatewayLink(entry.gateway);
   return (
@@ -335,7 +382,7 @@ function RouterIdentity({ entry }: RouterIdentityProps) {
         <span className={theme.tag}>{entry.variant.version}</span>
       )}
       <span className={theme.tag}>
-        {formatRuntimeTag(entry.variant.platform)}
+        {formatPlatformTag(entry.variant.platform, features)}
       </span>
     </div>
   );
@@ -385,6 +432,8 @@ function BenchmarkFailureBadge({
 interface BenchmarkMobileResultsProps {
   readonly group: ResultsGroup;
   readonly variants: ReadonlyMap<string, BenchmarkCatalogEntry>;
+  /** The selected variant shown in this scenario, or undefined when none is selected. */
+  readonly selected: string | undefined;
   readonly measuredRuns: number | undefined;
   readonly hints: readonly (string | undefined)[];
   readonly headingId: string;
@@ -393,10 +442,13 @@ interface BenchmarkMobileResultsProps {
 function BenchmarkMobileResults({
   group,
   variants,
+  selected,
   measuredRuns,
   hints,
   headingId,
 }: BenchmarkMobileResultsProps) {
+  const features = decisiveFeatures(variants);
+  const onRowClick = useRowSelection();
   return (
     <div className="md:hidden">
       <div className="border-cc-heading/60 text-cc-ink-dim flex items-center justify-between gap-3 border-b px-3 py-2.5 text-xs">
@@ -430,11 +482,15 @@ function BenchmarkMobileResults({
             <li
               key={row.variant}
               data-benchmark-scroll-anchor={`mobile-row-${headingId}-${row.variant}`}
-              className={`border-cc-card-border border-b px-3 py-4 ${winner ? "bg-cc-accent/10 shadow-[inset_3px_0_0_0_var(--color-cc-accent)]" : failed ? "bg-cc-danger/5 shadow-[inset_3px_0_0_0_var(--color-cc-danger)]" : ""}`}
+              className={`border-cc-card-border cursor-pointer border-b px-3 py-4 ${mobileRowClass(selected, row.variant, winner, failed)}`}
+              onClick={(event) => onRowClick(event, row.variant)}
             >
               <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 text-sm">
                 <div>
-                  <RouterIdentity entry={entry} />
+                  <RouterIdentity
+                    entry={entry}
+                    features={features.get(row.variant)!}
+                  />
                   {failed && isMeasured(row) && (
                     <BenchmarkFailureBadge
                       completedRuns={row.throughput.runsRps?.length}

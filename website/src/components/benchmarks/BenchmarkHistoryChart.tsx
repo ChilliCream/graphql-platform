@@ -93,21 +93,9 @@ export function BenchmarkHistoryChart({
       point === selected?.point ||
       point.runNumber === selected?.point.runNumber,
   );
-  const showRuntime =
-    point &&
-    series.some(
-      (item) =>
-        item.name === selectedSeries?.name &&
-        item.points.some((other) => other.runtime !== point.runtime),
-    );
   const compositionName = COMPOSITION_GROUPS.find(
     (group) => group.id === selectedSeries?.composition,
   )?.name;
-  const showComposition = series.some(
-    (item) =>
-      item.name === selectedSeries?.name &&
-      item.composition !== selectedSeries?.composition,
-  );
   const align = (position: number) =>
     position > 85 ? "-100%" : position < 15 ? "0" : "-50%";
   const ordered = series.toSorted(
@@ -277,16 +265,19 @@ export function BenchmarkHistoryChart({
                   }}
                 >
                   <div className="font-semibold">
-                    {selectedSeries?.name}
-                    {showRuntime ? ` (${point.runtime})` : ""}
+                    {selectedSeries?.name} ({selectedSeries?.runtime})
                   </div>
-                  {showComposition && (
-                    <div className="text-cc-ink-dim">{compositionName}</div>
-                  )}
-                  <div>Version {point.version}</div>
                   <div>{formatNumber(point.rps)} requests/s</div>
+                  <div className="text-cc-ink-dim mt-1">
+                    Version {point.version}
+                    {point.runtime !== selectedSeries?.runtime
+                      ? ` on ${point.runtime}`
+                      : ""}
+                  </div>
+                  <div className="text-cc-ink-dim">{compositionName}</div>
                   {point.failed && (
-                    <div className="text-cc-danger font-semibold">
+                    <div className="text-cc-danger mt-1.5 flex items-center gap-1 font-semibold">
+                      <WarningIcon className="size-3.5 shrink-0" />
                       Failed, partial results
                     </div>
                   )}
@@ -425,7 +416,7 @@ function LegendButton({
         onClick={() => onToggle(series.id)}
         className={`focus-visible:outline-cc-accent flex w-full cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors focus-visible:outline-2 ${
           pinned
-            ? "bg-cc-accent/10 ring-cc-accent ring-1 ring-inset"
+            ? "bg-cc-white/5 rounded-l-none shadow-[inset_3px_0_0_0_var(--color-cc-accent)]"
             : isActive
               ? "bg-cc-hover"
               : "hover:bg-cc-hover"
@@ -455,13 +446,19 @@ function LegendButton({
             fill={series.dashed ? "var(--color-cc-bg)" : series.color}
           />
         </svg>
-        <span className="min-w-0">
-          <span className="flex items-center gap-1">
+        <span className="min-w-0 flex-1">
+          <span className="flex min-w-0 items-center gap-1">
             {series.preview && <BenchmarkPreviewBadge />}
-            <span className="text-cc-heading truncate" title={series.name}>
+            <span
+              className="text-cc-heading min-w-0 truncate"
+              title={series.name}
+            >
               {series.name}
             </span>
-            <span className="border-cc-card-border text-cc-ink-dim shrink-0 rounded border px-1.5 font-mono text-[11px] leading-5 whitespace-nowrap">
+            <span
+              className="border-cc-card-border text-cc-ink-dim max-w-1/2 min-w-0 shrink-0 truncate rounded border px-1.5 font-mono text-[11px] leading-5"
+              title={series.runtime}
+            >
               {series.runtime}
             </span>
           </span>

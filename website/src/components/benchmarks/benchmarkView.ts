@@ -3,7 +3,8 @@ import {
   BENCHMARK_FUSION_DOCS_URL,
   benchmarkRunId,
   formatPlatform,
-  formatRuntimeTag,
+  decisiveFeatures,
+  formatPlatformTag,
   isPreview,
   variantName,
   type BenchmarkCatalogEntry,
@@ -46,7 +47,7 @@ export const throughputNote = (scenario: BenchmarkScenario) =>
 /** The composition families, in table order. */
 export const COMPOSITION_GROUPS = [
   { id: "composite-schema", name: "GraphQL Federation specification" },
-  { id: "apollo-federation", name: "Apollo Federation v2" },
+  { id: "apollo-federation", name: "Apollo Federation" },
 ] as const satisfies readonly { id: Composition; name: string }[];
 
 /** Returns the report scenarios in page order. */
@@ -136,8 +137,10 @@ export function historySeries(
   colors: readonly string[] = SERIES_COLORS,
 ): readonly HistorySeries[] {
   const catalogOrder = [...variants.keys()];
+  const decisive = decisiveFeatures(variants);
   const series = scenario.variants.flatMap((history) => {
     const entry = variants.get(history.variant)!;
+    const features = decisive.get(history.variant)!;
     const versions = history.results
       .filter(
         (version) =>
@@ -165,7 +168,7 @@ export function historySeries(
     return {
       id: history.variant,
       name: variantName(entry),
-      runtime: formatRuntimeTag(versions.at(-1)!.platform),
+      runtime: formatPlatformTag(versions.at(-1)!.platform, features),
       composition: entry.variant.composition,
       preview: isPreview(
         versions.at(-1)!.version,
@@ -179,7 +182,7 @@ export function historySeries(
           version.run.completedAt ?? version.run.startedAt!,
         ),
         runNumber: version.run.number,
-        runtime: formatRuntimeTag(version.platform),
+        runtime: formatPlatformTag(version.platform, features),
         version: version.version,
         rps: version.throughput.medianRps,
         failed: version.status === "failed",
@@ -319,13 +322,12 @@ export interface ResultsGroup {
 export const isWinner = (row: BenchmarkVariantResult, group: ResultsGroup) =>
   isReliable(row) && row.throughput.medianRps === group.winnerRps;
 
-/** Returns the non-empty composition tables of a scenario, rows sorted by median throughput. */
-export function scenarioGroups(
-  scenario: BenchmarkScenario,
+const visibleRows = (
+  scenario: Pick<BenchmarkScenario, "results">,
   variants: ReadonlyMap<string, BenchmarkCatalogEntry>,
   stableOnly: boolean,
-): readonly ResultsGroup[] {
-  const rows = scenario.results
+) =>
+  scenario.results
     .flatMap((result) => result.variants)
     .filter((row) => {
       const { variant } = variants.get(row.variant)!;
@@ -333,7 +335,65 @@ export function scenarioGroups(
         !stableOnly ||
         !isPreview(variant.version, variant.platform, variant.preview)
       );
-    })
+    });
+
+/** Returns the group a variant competes in for the best version: its gateway and composition, split into preview and non-preview variants. */
+export const versionGroupKey = ({ gateway, variant }: BenchmarkCatalogEntry) =>
+  [
+    gateway.id,
+    variant.composition,
+    isPreview(variant.version, variant.platform, variant.preview),
+  ].join("\u0000");
+
+const resultRank = (row: BenchmarkVariantResult) =>
+  row.status === "complete"
+    ? isReliable(row)
+      ? 3
+      : 2
+    : isMeasured(row)
+      ? 1
+      : 0;
+
+const compareResults = (a: BenchmarkVariantResult, b: BenchmarkVariantResult) =>
+  resultRank(a) - resultRank(b) ||
+  (a.throughput?.medianRps ?? 0) - (b.throughput?.medianRps ?? 0);
+
+/** Returns the variants of a scenario whose result a better variant of the same version group replaces, skipping previews when `stableOnly` is set. */
+export function supersededVariants(
+  scenario: Pick<BenchmarkScenario, "results">,
+  variants: ReadonlyMap<string, BenchmarkCatalogEntry>,
+  stableOnly: boolean,
+): ReadonlySet<string> {
+  const rows = visibleRows(scenario, variants, stableOnly);
+  const best = new Map<string, BenchmarkVariantResult>();
+  for (const row of rows) {
+    const key = versionGroupKey(variants.get(row.variant)!);
+    const current = best.get(key);
+    if (!current || compareResults(row, current) > 0) {
+      best.set(key, row);
+    }
+  }
+  return new Set(
+    rows
+      .filter(
+        (row) => best.get(versionGroupKey(variants.get(row.variant)!)) !== row,
+      )
+      .map((row) => row.variant),
+  );
+}
+
+/** Returns the non-empty composition tables of a scenario, rows sorted by median throughput, keeping only the best variant of each version group when `bestOnly` is set. */
+export function scenarioGroups(
+  scenario: BenchmarkScenario,
+  variants: ReadonlyMap<string, BenchmarkCatalogEntry>,
+  stableOnly: boolean,
+  bestOnly: boolean,
+): readonly ResultsGroup[] {
+  const superseded = bestOnly
+    ? supersededVariants(scenario, variants, stableOnly)
+    : new Set<string>();
+  const rows = visibleRows(scenario, variants, stableOnly)
+    .filter((row) => !superseded.has(row.variant))
     .toSorted(
       (a, b) =>
         (b.status === "complete" ? b.throughput.medianRps : -1) -
@@ -543,7 +603,7 @@ export function scenarioVerdict(
   variants: ReadonlyMap<string, BenchmarkCatalogEntry>,
   stableOnly: boolean,
 ): ScenarioVerdict | undefined {
-  const ranked = scenarioGroups(scenario, variants, stableOnly)
+  const ranked = scenarioGroups(scenario, variants, stableOnly, false)
     .flatMap((group) => group.rows)
     .filter(isReliable)
     .toSorted((a, b) => b.throughput.medianRps - a.throughput.medianRps);

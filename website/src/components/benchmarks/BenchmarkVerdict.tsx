@@ -10,7 +10,8 @@ import { Link } from "@/src/design-system/Link";
 import {
   BENCHMARK_FUSION_DOCS_URL,
   benchmarkVariants,
-  formatRuntimeTag,
+  decisiveFeatures,
+  formatPlatformTag,
   gatewayLink,
   variantName,
   type BenchmarkCatalogEntry,
@@ -79,8 +80,9 @@ function routerName(
   const entry = variants.get(row.variant)!;
   const label = (item: BenchmarkCatalogEntry) =>
     [variantName(item), item.variant.version].filter(Boolean).join(" ");
+  const features = decisiveFeatures(variants);
   const runtime = (item: BenchmarkCatalogEntry) =>
-    formatRuntimeTag(item.variant.platform);
+    formatPlatformTag(item.variant.platform, features.get(item.variant.id)!);
   const shared = [...variants.values()].some(
     (item) => item !== entry && label(item) === label(entry),
   );
