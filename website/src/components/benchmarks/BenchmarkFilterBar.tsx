@@ -10,9 +10,6 @@ interface BenchmarkFilterBarProps {
   readonly onChange: (filters: Filters) => void;
 }
 
-const button =
-  "border-cc-card-border text-cc-heading focus-visible:outline-cc-accent hover:bg-cc-white/5 inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-md border px-3 text-sm focus-visible:outline-2";
-
 export function BenchmarkFilterBar({
   technologies,
   filters,
@@ -143,18 +140,12 @@ export function BenchmarkFilterBar({
         }}
       >
         <div className="px-5 pt-5">
-          <div className="mb-5 flex items-center justify-between gap-3">
-            <h2 id="benchmark-filter-title" className="text-h6 font-semibold">
-              Filter results
-            </h2>
-            <button
-              type="button"
-              className={button}
-              onClick={() => dialog.current?.close()}
-            >
-              Cancel
-            </button>
-          </div>
+          <h2
+            id="benchmark-filter-title"
+            className="text-h6 mb-5 font-semibold"
+          >
+            Filter results
+          </h2>
           {choices(draft, setDraft)}
           <fieldset className="border-cc-card-border mt-5 border-t pt-5">
             <legend className="sr-only">Preview releases</legend>

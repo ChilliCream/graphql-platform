@@ -210,30 +210,14 @@ export function BenchmarkVerdictSummary({
         "in every scenario with successful results",
       )
     : summarySentence(overall, report.run.number);
-  const lines = scenarios.map(({ scenario, verdict }) => {
-    const displayed =
-      verdict?.tied &&
-      verdict.runnerUp &&
-      variants
-        .get(verdict.leader.variant)!
-        .gateway.name.localeCompare(
-          variants.get(verdict.runnerUp.variant)!.gateway.name,
-          "en",
-          { sensitivity: "base" },
-        ) > 0
-        ? { ...verdict, leader: verdict.runnerUp, runnerUp: verdict.leader }
-        : verdict;
-    return {
-      id: scenario.id,
-      name: SCENARIO_INFO[scenario.id].name,
-      text: scenarioSentence(nameVerdict(displayed, variants)),
-      verdict: displayed,
-      gateway: displayed && variants.get(displayed.leader.variant)!.gateway,
-      rival:
-        displayed?.runnerUp &&
-        variants.get(displayed.runnerUp.variant)!.gateway,
-    };
-  });
+  const lines = scenarios.map(({ scenario, verdict }) => ({
+    id: scenario.id,
+    name: SCENARIO_INFO[scenario.id].name,
+    text: scenarioSentence(nameVerdict(verdict, variants)),
+    verdict,
+    gateway: verdict && variants.get(verdict.leader.variant)!.gateway,
+    rival: verdict?.runnerUp && variants.get(verdict.runnerUp.variant)!.gateway,
+  }));
   const commonWinner =
     lines.length > 0 &&
     lines.every(
