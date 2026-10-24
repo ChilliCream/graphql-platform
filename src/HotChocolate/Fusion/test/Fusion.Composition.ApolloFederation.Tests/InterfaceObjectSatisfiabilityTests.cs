@@ -360,6 +360,115 @@ public sealed class InterfaceObjectSatisfiabilityTests
     }
 
     [Fact]
+    public void Compose_Should_Succeed_When_InterfaceObjectInterfaceHasInaccessibleImplementor()
+    {
+        // arrange
+        const string catalog =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@inaccessible"])
+
+            interface Item @key(fields: "id") {
+                id: ID!
+                common: String
+            }
+
+            type Visible implements Item @key(fields: "id") {
+                id: ID!
+                common: String
+            }
+
+            type Private implements Item @key(fields: "id") @inaccessible {
+                id: ID!
+                common: String
+            }
+
+            type Query {
+                items: [Item]
+                alive: String
+            }
+            """;
+
+        const string extra =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@interfaceObject"])
+
+            type Item @key(fields: "id") @interfaceObject {
+                id: ID!
+                extra: String
+            }
+
+            type Query {
+                extraItems: [Item]
+            }
+            """;
+
+        // act
+        var (result, log) = Compose(
+            new SourceSchemaText("catalog", catalog),
+            new SourceSchemaText("extra", extra));
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Compose_Should_Succeed_When_OnlyOtherImplementorOfInterfaceObjectInterfaceIsInaccessible()
+    {
+        // arrange
+        const string accounts =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@inaccessible"])
+
+            interface Account @key(fields: "id") {
+                id: ID!
+                name: String
+            }
+
+            type Personal implements Account @key(fields: "id") {
+                id: ID!
+                name: String
+            }
+
+            type Internal implements Account @key(fields: "id") @inaccessible {
+                id: ID!
+                name: String
+            }
+            """;
+
+        const string ledger =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key", "@interfaceObject"])
+
+            type Query {
+                rows: [Row]
+            }
+
+            type Row {
+                account: Account
+            }
+
+            type Account @key(fields: "id") @interfaceObject {
+                id: ID!
+                balance: Int
+            }
+            """;
+
+        // act
+        var (result, log) = Compose(
+            new SourceSchemaText("accounts", accounts),
+            new SourceSchemaText("ledger", ledger));
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
     public void Compose_Should_Fail_When_InterfaceHasNoKeyForInterfaceObject()
     {
         // arrange
