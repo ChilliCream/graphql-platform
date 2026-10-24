@@ -86,6 +86,7 @@ public sealed class RequirementsValidatorTests
                 selectionSet,
                 (MutableObjectTypeDefinition)productByIdField.Type,
                 parentPathItem,
+                ancestors: [],
                 excludeSchemaName: "A");
 
         // assert

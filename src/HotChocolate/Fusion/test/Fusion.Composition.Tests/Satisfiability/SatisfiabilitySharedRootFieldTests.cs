@@ -339,6 +339,225 @@ public sealed class SatisfiabilitySharedRootFieldTests
         Assert.Empty(log);
     }
 
+    [Fact]
+    public void Validate_Should_Succeed_When_RequirementIsServedBySchemaSharingWholePath()
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    wrapper: Wrapper @shareable
+                }
+
+                type Wrapper {
+                    entity: Entity @shareable
+                }
+
+                type Entity {
+                    id: ID @shareable
+                    name(age: Int @require(field: "age")): String
+                }
+                """),
+            new SourceSchemaText(
+                "B",
+                """
+                type Query {
+                    wrapper: Wrapper @shareable
+                }
+
+                type Wrapper {
+                    entity: Entity @shareable
+                }
+
+                type Entity {
+                    id: ID @shareable
+                    age: Int
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_RequirementIsOnlyServedBySchemaWithoutRootFieldOfPath()
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    wrapper: Wrapper
+                    otherWrapper: Wrapper @shareable
+                }
+
+                type Wrapper {
+                    entity: Entity @shareable
+                }
+
+                type Entity {
+                    id: ID @shareable
+                    name(age: Int @require(field: "entity.age")): String
+                }
+                """),
+            new SourceSchemaText(
+                "B",
+                """
+                type Query {
+                    otherWrapper: Wrapper @shareable
+                }
+
+                type Wrapper {
+                    entity: Entity @shareable
+                }
+
+                type Entity {
+                    id: ID @shareable
+                    age: Int @inaccessible
+                    entity: Entity @inaccessible
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'Entity.name' on path 'A:Query.wrapper<Wrapper> -> A:Wrapper.entity<Entity>'.
+              Unable to satisfy the requirement '{ entity { age } }' on field 'A:Entity.name<String>'.
+                Unable to satisfy the requirement 'entity { age }'.
+                  Unable to access the required field 'Entity.entity' on path 'A:Wrapper.entity<Entity>'.
+                    Unable to transition between schemas 'A' and 'B' for access to required field 'B:Entity.entity<Entity>'.
+                      No lookups found for type 'Entity' in schema 'B'.
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Validate_Should_Succeed_When_ExternalFieldOnSharedPathIsProvidedByRootField()
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    topOrders: [Order] @shareable @provides(fields: "customer { id }")
+                }
+
+                type Order {
+                    id: ID! @shareable
+                    customer: Customer @external
+                }
+
+                type Customer {
+                    id: ID! @external
+                    name: String
+                }
+                """),
+            new SourceSchemaText(
+                "B",
+                """
+                type Query {
+                    topOrders: [Order] @shareable
+                }
+
+                type Order {
+                    id: ID! @shareable
+                    customer: Customer
+                }
+
+                type Customer {
+                    id: ID! @shareable
+                    email: String
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_ExternalFieldOnSharedPathIsOnlyProvidedByOtherRootField()
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    topOrders: [Order] @shareable
+                    otherOrders: [Order] @provides(fields: "customer { id }")
+                }
+
+                type Order {
+                    id: ID! @shareable
+                    customer: Customer @external
+                }
+
+                type Customer {
+                    id: ID! @external
+                    name: String
+                }
+                """),
+            new SourceSchemaText(
+                "B",
+                """
+                type Query {
+                    topOrders: [Order] @shareable
+                    orderById(id: ID!): Order @lookup @internal
+                }
+
+                type Order {
+                    id: ID! @shareable
+                    customer: Customer
+                }
+
+                type Customer {
+                    id: ID! @shareable
+                    email: String
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'Customer.name' on path 'A:Query.topOrders<Order> -> B:Order.customer<Customer>'.
+              Unable to transition between schemas 'B' and 'A' for access to field 'A:Customer.name<String>'.
+                No lookups found for type 'Customer' in schema 'A'.
+            """
+        ]);
+    }
+
     private static SourceSchemaText[] CreateUnionMemberOutsideSharedPathSchemas(
         string imageSchemaName,
         string linkSchemaName,

@@ -423,6 +423,232 @@ public sealed class SatisfiabilityTests
         Assert.Empty(log);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Compose_Should_Succeed_When_RequiresReadsKeylessSubgraphAlongSharedPath(bool importRequires)
+    {
+        // arrange
+        var imports = importRequires
+            ? "\"@key\", \"@shareable\", \"@external\", \"@requires\""
+            : "\"@key\", \"@shareable\", \"@external\"";
+
+        var a =
+            $$"""
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.11", import: [{{imports}}])
+
+            type Query {
+                entity: Entity! @shareable
+            }
+
+            type Entity @key(fields: "id") @shareable {
+                id: ID
+                age: Int! @external
+                name: String! @requires(fields: "entity { age }")
+                entity: Entity! @external
+            }
+            """;
+
+        const string b =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.11", import: ["@shareable"])
+
+            type Query {
+                entity: Entity @shareable
+            }
+
+            type Entity @shareable {
+                id: ID
+                age: Int!
+                entity: Entity!
+            }
+            """;
+
+        // act
+        var (result, log) = Compose(
+            new SourceSchemaText("a", a),
+            new SourceSchemaText("b", b));
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_TypeIsOnlyReachableThroughFieldThatIsExternalInTargetSubgraph()
+    {
+        // arrange
+        const string a =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.11", import: ["@key", "@shareable", "@external", "@requires"])
+
+            type Query {
+                e: E @shareable
+            }
+
+            type E @key(fields: "id") @shareable {
+                id: ID!
+                next: T @external
+                r: String @requires(fields: "next { x }")
+            }
+
+            type T @shareable {
+                x: String @external
+                y: String
+            }
+            """;
+
+        const string b =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.11", import: ["@shareable"])
+
+            type Query {
+                e: E @shareable
+            }
+
+            type E @shareable {
+                id: ID!
+                next: T
+            }
+
+            type T @shareable {
+                x: String
+            }
+            """;
+
+        // act
+        var (result, log) = Compose(
+            new SourceSchemaText("a", a),
+            new SourceSchemaText("b", b));
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'T.y' on path 'A:Query.e<E> -> B:E.next<T>'.
+              Unable to transition between schemas 'B' and 'A' for access to field 'A:T.y<String>'.
+                No lookups found for type 'T' in schema 'A'.
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Compose_Should_Succeed_When_TypeBelowExternalFieldHasKeyInRequiringSubgraph()
+    {
+        // arrange
+        const string a =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.11", import: ["@key", "@shareable", "@external", "@requires"])
+
+            type Query {
+                e: E @shareable
+            }
+
+            type E @key(fields: "id") @shareable {
+                id: ID!
+                next: T @external
+                r: String @requires(fields: "next { x }")
+            }
+
+            type T @key(fields: "id") @shareable {
+                id: ID!
+                x: String @external
+                y: String
+            }
+            """;
+
+        const string b =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.11", import: ["@shareable"])
+
+            type Query {
+                e: E @shareable
+            }
+
+            type E @shareable {
+                id: ID!
+                next: T
+            }
+
+            type T @shareable {
+                id: ID!
+                x: String
+            }
+            """;
+
+        // act
+        var (result, log) = Compose(
+            new SourceSchemaText("a", a),
+            new SourceSchemaText("b", b));
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_KeylessEntityIsOnlyReachableThroughFieldThatIsExternalInTargetSubgraph()
+    {
+        // arrange
+        const string a =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.11", import: ["@shareable", "@external", "@requires"])
+
+            type Query {
+                entity: Entity! @shareable
+            }
+
+            type Entity @shareable {
+                id: ID
+                age: Int! @external
+                name: String! @requires(fields: "entity { age }")
+                entity: Entity! @external
+            }
+            """;
+
+        const string b =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.11", import: ["@shareable"])
+
+            type Query {
+                entity: Entity @shareable
+            }
+
+            type Entity @shareable {
+                id: ID
+                age: Int!
+                entity: Entity!
+            }
+            """;
+
+        // act
+        var (result, log) = Compose(
+            new SourceSchemaText("a", a),
+            new SourceSchemaText("b", b));
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'Entity.name' on path 'A:Query.entity<Entity> -> B:Entity.entity<Entity>'.
+              Unable to transition between schemas 'B' and 'A' for access to field 'A:Entity.name<String>'.
+                No lookups found for type 'Entity' in schema 'A'.
+            """
+        ]);
+    }
+
     private static (CompositionResult<MutableSchemaDefinition> Result, CompositionLog Log) Compose(
         params SourceSchemaText[] sourceSchemas)
     {

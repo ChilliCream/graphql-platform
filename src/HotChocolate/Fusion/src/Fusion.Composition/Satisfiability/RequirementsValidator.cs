@@ -25,6 +25,10 @@ internal sealed class RequirementsValidator(
     /// <param name="requirements">The requirement selection set.</param>
     /// <param name="contextType">The object type the requirements are selected on.</param>
     /// <param name="parentPathItem">The path item holding the type, or null at a root type.</param>
+    /// <param name="ancestors">
+    /// The path items above <paramref name="parentPathItem"/>, from the nearest to the root, or an
+    /// empty list when no path based transition may continue above it.
+    /// </param>
     /// <param name="excludeSchemaName">
     /// The schema the requirement leaves must not be resolved from, or null to allow every schema.
     /// </param>
@@ -41,6 +45,7 @@ internal sealed class RequirementsValidator(
         SelectionSetNode requirements,
         MutableObjectTypeDefinition contextType,
         SatisfiabilityPathItem? parentPathItem,
+        IReadOnlyList<SatisfiabilityPathItem> ancestors,
         string? excludeSchemaName,
         bool allowIntermediatesFromExcludedSchema = false,
         SatisfiabilityPath? cycleDetectionPath = null,
@@ -49,6 +54,7 @@ internal sealed class RequirementsValidator(
         var context = new RequirementsValidatorContext(
             contextType,
             parentPathItem,
+            ancestors,
             excludeSchemaName,
             allowIntermediatesFromExcludedSchema,
             cycleDetectionPath,
@@ -274,11 +280,17 @@ internal sealed class RequirementsValidator(
                     || !canUseFacts
                     || !_facts.IsFieldResolvableOn(type, field, schemaName)))
             {
+                // The path above the requiring field is the requirement path followed by the path
+                // above the context.
+                IReadOnlyList<SatisfiabilityPathItem> ancestors =
+                    [.. context.Path.Skip(1), .. context.Ancestors];
+
                 var requirementErrors =
                     Validate(
                         requirements,
                         type,
                         previousPathItem,
+                        ancestors,
                         excludeSchemaName: schemaName,
                         allowIntermediatesFromExcludedSchema: true,
                         cycleDetectionPath: context.CycleDetectionPath,
@@ -293,6 +305,7 @@ internal sealed class RequirementsValidator(
                             field,
                             schemaName,
                             previousPathItem,
+                            ancestors,
                             RequirementsValidator_NoLookupForRequiringField,
                             RequirementsValidator_UnableToSatisfyRequirementForLookup,
                             cycleDetectionPath: context.CycleDetectionPath,
@@ -386,15 +399,17 @@ internal sealed class RequirementsValidator(
         string transitionToSchemaName)
     {
         return SourceSchemaTransitionHelper.ValidateSourceSchemaTransition(
+            schema,
             _lookupCache,
             type,
             transitionToSchemaName,
-            [.. context.Path],
-            (contextType, parentPathItem, lookupRequirements) =>
+            [.. context.Path, .. context.Ancestors],
+            (contextType, pathFromParent, lookupRequirements) =>
                 Validate(
                     lookupRequirements,
                     contextType,
-                    parentPathItem,
+                    pathFromParent.Count > 0 ? pathFromParent[0] : null,
+                    pathFromParent.Count > 1 ? [.. pathFromParent.Skip(1)] : [],
                     excludeSchemaName: transitionToSchemaName,
                     cycleDetectionPath: context.CycleDetectionPath,
                     unavailableSchemaNames: context.UnavailableSchemaNames),
@@ -414,6 +429,9 @@ internal sealed class RequirementsValidator(
     /// <param name="field">The field with requirements.</param>
     /// <param name="schemaName">The schema resolving the field.</param>
     /// <param name="parentPathItem">The path item holding the type, or null at a root type.</param>
+    /// <param name="ancestors">
+    /// The path items above <paramref name="parentPathItem"/>, from the nearest to the root.
+    /// </param>
     /// <param name="noLookupMessageFormat">The message format used when the schema cannot be re-entered.</param>
     /// <param name="unableToSatisfyRequirementForLookupMessageFormat">
     /// The message format used when a lookup key cannot be satisfied.
@@ -429,6 +447,7 @@ internal sealed class RequirementsValidator(
         MutableOutputFieldDefinition field,
         string schemaName,
         SatisfiabilityPathItem? parentPathItem,
+        IReadOnlyList<SatisfiabilityPathItem> ancestors,
         string noLookupMessageFormat,
         string unableToSatisfyRequirementForLookupMessageFormat,
         SatisfiabilityPath? cycleDetectionPath = null,
@@ -457,6 +476,7 @@ internal sealed class RequirementsValidator(
                     lookupRequirements,
                     type,
                     parentPathItem,
+                    ancestors,
                     excludeSchemaName: null,
                     cycleDetectionPath: cycleDetectionPath,
                     unavailableSchemaNames: unavailableSchemaNames);
@@ -488,6 +508,7 @@ internal sealed class RequirementsValidator(
                 requirements,
                 type,
                 parentPathItem,
+                ancestors,
                 excludeSchemaName: schemaName,
                 cycleDetectionPath: cycleDetectionPath,
                 unavailableSchemaNames: unavailableSchemaNames.Add(schemaName));
@@ -511,6 +532,7 @@ internal sealed class RequirementsValidatorContext
     public RequirementsValidatorContext(
         MutableObjectTypeDefinition contextType,
         SatisfiabilityPathItem? parentPathItem,
+        IReadOnlyList<SatisfiabilityPathItem> ancestors,
         string? excludeSchemaName,
         bool allowIntermediatesFromExcludedSchema,
         SatisfiabilityPath? cycleDetectionPath,
@@ -523,6 +545,7 @@ internal sealed class RequirementsValidatorContext
             Path.Push(parentPathItem);
         }
 
+        Ancestors = ancestors;
         ExcludeSchemaName = excludeSchemaName;
         AllowIntermediatesFromExcludedSchema = allowIntermediatesFromExcludedSchema;
         CycleDetectionPath = cycleDetectionPath ?? [];
@@ -532,6 +555,11 @@ internal sealed class RequirementsValidatorContext
     public Stack<MutableObjectTypeDefinition> TypeContext { get; } = [];
 
     public SatisfiabilityPath Path { get; } = [];
+
+    /// <summary>
+    /// Gets the path items above the first item of <see cref="Path"/>, from the nearest to the root.
+    /// </summary>
+    public IReadOnlyList<SatisfiabilityPathItem> Ancestors { get; }
 
     /// <summary>
     /// Gets the schema the requirement leaves must not be resolved from, or null when every
