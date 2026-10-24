@@ -2,6 +2,10 @@ using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reactive.Disposables;
+#if NET9_0_OR_GREATER
+using System.Runtime.InteropServices;
+using System.Text.Unicode;
+#endif
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -682,6 +686,14 @@ public sealed class EventStreamExecutionNode : ExecutionNode
 
         private static void WriteRawJsonValue(JsonWriter writer, JsonElement element)
         {
+#if NET9_0_OR_GREATER
+            var rawValue = JsonMarshal.GetRawUtf8Value(element);
+            if (Utf8.IsValid(rawValue))
+            {
+                writer.WriteRawValue(rawValue);
+                return;
+            }
+#endif
             var rawText = element.GetRawText();
             var byteCount = Encoding.UTF8.GetByteCount(rawText);
             byte[]? rented = null;
