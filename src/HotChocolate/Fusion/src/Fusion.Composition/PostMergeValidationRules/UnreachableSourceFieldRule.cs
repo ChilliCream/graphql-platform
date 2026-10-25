@@ -2,6 +2,7 @@ using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Features;
+using HotChocolate.Fusion.Options;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
@@ -13,10 +14,16 @@ namespace HotChocolate.Fusion.PostMergeValidationRules;
 /// <summary>
 /// A field declared on a type that its source schema cannot reach from its root types must be
 /// resolved by another source schema whenever clients can reach the type in the composite schema.
-/// Otherwise, composition fails with an <c>UNREACHABLE_SOURCE_FIELD</c> error.
+/// Otherwise, composition fails with an <c>UNREACHABLE_SOURCE_FIELD</c> error, unless the field
+/// coordinate is listed in <see cref="SatisfiabilityOptions.IgnoredNonAccessibleFields"/>.
 /// </summary>
-internal sealed class UnreachableSourceFieldRule : IEventHandler<SchemaEvent>
+internal sealed class UnreachableSourceFieldRule(
+    IReadOnlyDictionary<string, List<string>> ignoredNonAccessibleFields)
+    : IEventHandler<SchemaEvent>
 {
+    private readonly IReadOnlyDictionary<string, List<string>> _ignoredNonAccessibleFields =
+        ignoredNonAccessibleFields;
+
     public void Handle(SchemaEvent @event, CompositionContext context)
     {
         var mergedSchema = @event.Schema;
@@ -61,6 +68,12 @@ internal sealed class UnreachableSourceFieldRule : IEventHandler<SchemaEvent>
                     // A field of an interface is resolved through the implementations of the interface.
                     if (mergedType is MutableInterfaceTypeDefinition mergedInterfaceType
                         && accessibleTypes.IsResolvedByEveryImplementation(mergedInterfaceType, field.Name))
+                    {
+                        continue;
+                    }
+
+                    // An ignored non-accessible field is exempt whatever paths are listed for it.
+                    if (_ignoredNonAccessibleFields.ContainsKey($"{type.Name}.{field.Name}"))
                     {
                         continue;
                     }

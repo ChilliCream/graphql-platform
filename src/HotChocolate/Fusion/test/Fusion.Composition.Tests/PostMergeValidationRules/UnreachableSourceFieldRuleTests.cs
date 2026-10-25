@@ -415,6 +415,171 @@ public sealed class UnreachableSourceFieldRuleTests
     }
 
     [Fact]
+    public void Compose_Should_Succeed_When_UnreachableFieldIsIgnored()
+    {
+        // arrange
+        var log = new CompositionLog();
+        var composer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "A",
+                    """
+                    type Query {
+                        productById(id: ID!): Product @lookup
+                    }
+
+                    type Product {
+                        id: ID!
+                        category: Category
+                    }
+
+                    type Category @key(fields: "id") {
+                        id: ID!
+                    }
+
+                    type Tag @key(fields: "id") {
+                        id: ID!
+                        name: String!
+                    }
+                    """),
+                new SourceSchemaText(
+                    "B",
+                    """
+                    type Query {
+                        tagById(id: ID!): Tag @lookup
+                    }
+
+                    type Product @key(fields: "id") {
+                        id: ID!
+                    }
+
+                    type Category @key(fields: "id") {
+                        id: ID!
+                        name: String!
+                    }
+
+                    type Tag {
+                        id: ID!
+                    }
+                    """)
+            ],
+            new SchemaComposerOptions
+            {
+                Merger = { AddFusionDefinitions = false },
+                Satisfiability =
+                {
+                    IgnoredNonAccessibleFields =
+                    {
+                        ["Tag.name"] = ["B:Query.tagById<Tag>"],
+                        ["Category.name"] = ["A:Query.productById<Product> -> A:Product.category<Category>"]
+                    }
+                }
+            },
+            log);
+
+        // act
+        var result = composer.Compose();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_OnlyUnrelatedFieldIsIgnored()
+    {
+        // arrange
+        var log = new CompositionLog();
+        var composer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "A",
+                    """
+                    type Query {
+                        productById(id: ID!): Product @lookup
+                    }
+
+                    type Product {
+                        id: ID!
+                        category: Category
+                    }
+
+                    type Category @key(fields: "id") {
+                        id: ID!
+                    }
+
+                    type Tag @key(fields: "id") {
+                        id: ID!
+                        name: String!
+                    }
+                    """),
+                new SourceSchemaText(
+                    "B",
+                    """
+                    type Query {
+                        tagById(id: ID!): Tag @lookup
+                    }
+
+                    type Product @key(fields: "id") {
+                        id: ID!
+                    }
+
+                    type Category @key(fields: "id") {
+                        id: ID!
+                        name: String!
+                    }
+
+                    type Tag {
+                        id: ID!
+                    }
+                    """)
+            ],
+            new SchemaComposerOptions
+            {
+                Merger = { AddFusionDefinitions = false },
+                Satisfiability =
+                {
+                    IgnoredNonAccessibleFields =
+                    {
+                        ["Category.id"] = ["A:Query.productById<Product> -> A:Product.category<Category>"]
+                    }
+                }
+            },
+            log);
+
+        // act
+        var result = composer.Compose();
+
+        // assert
+        Assert.True(result.IsFailure);
+        log.Select(e => e.ToString()).MatchInlineSnapshots(
+        [
+            """
+            {
+                "message": "The field 'Tag.name' in schema 'A' cannot be resolved, because the type 'Tag' is not reachable from the root types of schema 'A' and no other schema resolves the field.",
+                "code": "UNREACHABLE_SOURCE_FIELD",
+                "severity": "Error",
+                "coordinate": "Tag.name",
+                "member": "name",
+                "schema": "A",
+                "extensions": {}
+            }
+            """,
+            """
+            {
+                "message": "The field 'Category.name' in schema 'B' cannot be resolved, because the type 'Category' is not reachable from the root types of schema 'B' and no other schema resolves the field.",
+                "code": "UNREACHABLE_SOURCE_FIELD",
+                "severity": "Error",
+                "coordinate": "Category.name",
+                "member": "name",
+                "schema": "B",
+                "extensions": {}
+            }
+            """
+        ]);
+    }
+
+    [Fact]
     public void Compose_Should_Succeed_When_UnreachableTypeIsAlsoUnreachableInCompositeSchema()
     {
         // arrange
