@@ -13,7 +13,7 @@ const hooks = registerHooks({
     );
   },
 });
-const { scenarioGroups } =
+const { benchmarkPageDescription, releasedGateways, scenarioGroups } =
   await import("../../src/components/benchmarks/benchmarkView.ts");
 hooks.deregister();
 
@@ -60,24 +60,21 @@ const result = (variant, medianRps, failed = 0) => ({
   throughput: { medianRps, cvPercent: 1 },
   requests: { total: 100, successful: 100 - failed, failed },
 });
-const shown = (rows, bestOnly) =>
-  scenarioGroups({ results: [{ variants: rows }] }, variants, false, bestOnly)
+const shown = (rows) =>
+  scenarioGroups({ results: [{ variants: rows }] }, variants)
     .flatMap((group) => group.rows)
     .map((row) => row.variant);
 
 test("keeps the best preview and non-preview variant of each gateway per composition", () => {
   assert.deepEqual(
-    shown(
-      [
-        result("fusion-net-10", 1000),
-        result("fusion-aot-11", 1200),
-        result("fusion-nightly-net-10", 1100),
-        result("fusion-fed-net-10", 900),
-        result("hive-gateway", 400),
-        result("hive-gateway-router-runtime", 500),
-      ],
-      true,
-    ),
+    shown([
+      result("fusion-net-10", 1000),
+      result("fusion-aot-11", 1200),
+      result("fusion-nightly-net-10", 1100),
+      result("fusion-fed-net-10", 900),
+      result("hive-gateway", 400),
+      result("hive-gateway-router-runtime", 500),
+    ]),
     [
       "fusion-aot-11",
       "fusion-net-10",
@@ -88,34 +85,66 @@ test("keeps the best preview and non-preview variant of each gateway per composi
 });
 test("prefers a result without failed requests over a faster one with failures", () => {
   assert.deepEqual(
-    shown(
-      [
-        result("hive-gateway", 400),
-        result("hive-gateway-router-runtime", 500, 5),
-      ],
-      true,
-    ),
+    shown([
+      result("hive-gateway", 400),
+      result("hive-gateway-router-runtime", 500, 5),
+    ]),
     ["hive-gateway"],
   );
 });
 test("prefers a failed result with measurements over one without", () => {
   assert.deepEqual(
-    shown(
-      [
-        { variant: "hive-gateway", status: "failed" },
-        { ...result("hive-gateway-router-runtime", 300), status: "failed" },
-      ],
-      true,
-    ),
+    shown([
+      { variant: "hive-gateway", status: "failed" },
+      { ...result("hive-gateway-router-runtime", 300), status: "failed" },
+    ]),
     ["hive-gateway-router-runtime"],
   );
 });
-test("shows every variant when only the best version is not selected", () => {
+
+const catalog = (gateways) => ({
+  gateways: gateways.map(([id, name, versions]) => ({
+    id,
+    name,
+    variants: versions.map((version, index) => ({
+      id: `${id}-${index}`,
+      version,
+      platform: { language: { name: "Test" } },
+    })),
+  })),
+});
+test("counts a gateway as released when any of its variants is not a preview", () => {
+  const report = catalog([
+    ["router-a", "Router A", ["16.7.0-p.39", "16.6.9"]],
+    ["router-b", "Router B", ["0.4.0-rc.1"]],
+  ]);
   assert.deepEqual(
-    shown(
-      [result("hive-gateway", 400), result("hive-gateway-router-runtime", 500)],
-      false,
+    [
+      ...releasedGateways(
+        new Map(
+          report.gateways.flatMap((gateway) =>
+            gateway.variants.map((variant) => [
+              variant.id,
+              { gateway, variant },
+            ]),
+          ),
+        ),
+      ),
+    ],
+    ["router-a"],
+  );
+});
+test("describes the page with released gateways, Fusion first and without generic suffixes", () => {
+  assert.equal(
+    benchmarkPageDescription(
+      catalog([
+        ["apollo-gateway", "Apollo Gateway", ["2.14.4"]],
+        ["apollo-router", "Apollo Router", ["2.18.0"]],
+        ["hive-router", "Hive Router", ["0.3.5"]],
+        ["router-b", "Router B", ["0.4.0-rc.1"]],
+        ["fusion", "Fusion", ["16.6.9"]],
+      ]),
     ),
-    ["hive-gateway-router-runtime", "hive-gateway"],
+    "Compare GraphQL federation router performance: throughput, latency, memory and CPU for Fusion, Apollo, and Hive, benchmarked daily under identical conditions.",
   );
 });

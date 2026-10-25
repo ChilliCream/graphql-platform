@@ -1,4 +1,7 @@
-import { benchmarkFacts } from "@/src/components/benchmarks/benchmarkView";
+import {
+  benchmarkFacts,
+  releasedGatewayNames,
+} from "@/src/components/benchmarks/benchmarkView";
 import { Link } from "@/src/design-system/Link";
 import type { BenchmarkReport } from "@/src/helpers/benchmarkReport";
 
@@ -12,13 +15,13 @@ export function BenchmarkHeader({ report }: BenchmarkHeaderProps) {
     <header className="grid gap-8 pt-10 sm:pt-16 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-end lg:gap-16">
       <div>
         <h1 className="font-heading text-h4 sm:text-h3 lg:text-h2 text-cc-heading font-semibold">
-          GraphQL Federation Benchmark
+          GraphQL Federation Router Benchmark
         </h1>
         <p className="text-h6 text-cc-prose mt-5 max-w-3xl font-normal">
-          An open benchmark of GraphQL federation routers/gateways. Each router
-          is evaluated under the same conditions, on the same machine with the
-          same subgraphs and the same GraphQL operation, so you can compare
-          throughput, latency, memory and CPU on equal terms.
+          Which GraphQL federation router is fastest? This open benchmark runs{" "}
+          {routerList(report)} on the same machine, with the same subgraphs and
+          the same GraphQL operation, so you can compare throughput, latency,
+          memory and CPU on equal terms.
           <br />
           New results are published every day from a public workflow that anyone
           can inspect or rerun on their own hardware.
@@ -66,4 +69,13 @@ function RunPanel({ report }: RunPanelProps) {
       </dl>
     </div>
   );
+}
+
+/** Lists the gateways that have had a stable release, followed by "others" when the report contains more. */
+function routerList(report: BenchmarkReport) {
+  const { names, others } = releasedGatewayNames(report);
+  return new Intl.ListFormat("en", { type: "conjunction" }).format([
+    ...names,
+    ...(others ? ["others"] : []),
+  ]);
 }

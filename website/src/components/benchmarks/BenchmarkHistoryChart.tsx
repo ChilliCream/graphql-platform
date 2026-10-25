@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import {
   COMPOSITION_GROUPS,
   formatChange,
@@ -16,6 +16,7 @@ import {
   type HistorySeries,
 } from "@/src/components/benchmarks/benchmarkView";
 import { BenchmarkPreviewBadge } from "@/src/components/benchmarks/BenchmarkPreviewBadge";
+import { SUBSECTION_HEADING } from "@/src/components/benchmarks/benchmarkHeadings";
 import { useSeriesHighlight } from "@/src/components/benchmarks/useSeriesHighlight";
 import { WarningIcon } from "@/src/icons/Warning";
 import type {
@@ -27,7 +28,6 @@ interface BenchmarkHistoryChartProps {
   readonly id: string;
   readonly scenario: BenchmarkHistoryScenario;
   readonly variants: ReadonlyMap<string, BenchmarkCatalogEntry>;
-  readonly stableOnly: boolean;
 }
 
 const compact = new Intl.NumberFormat("en-US", {
@@ -39,8 +39,8 @@ export function BenchmarkHistoryChart({
   id,
   scenario,
   variants,
-  stableOnly,
 }: BenchmarkHistoryChartProps) {
+  const figureRef = useRef<HTMLElement>(null);
   const plotRef = useRef<HTMLDivElement>(null);
   const [plotWidth, setPlotWidth] = useState(0);
   useEffect(() => {
@@ -53,8 +53,8 @@ export function BenchmarkHistoryChart({
     });
     observer.observe(plot);
     return () => observer.disconnect();
-  }, [scenario, stableOnly]);
-  const series = historySeries(scenario, variants, stableOnly);
+  }, [scenario]);
+  const series = historySeries(scenario, variants);
   const {
     active,
     pinned,
@@ -67,7 +67,40 @@ export function BenchmarkHistoryChart({
   const [selected, setSelected] = useState<{
     readonly seriesId: string;
     readonly point: HistoryPoint;
+    /** Whether the pointer selected the point, as opposed to keyboard focus. */
+    readonly pointer: boolean;
   }>();
+  const clearPointerSelection = useEffectEvent((target: Node | null) => {
+    if (!target || !plotRef.current?.contains(target)) {
+      setSelected(undefined);
+    }
+    if (!target || !figureRef.current?.contains(target)) {
+      clearPointerHighlight();
+    }
+  });
+  const pointerSelection = selected?.pointer === true;
+  // Hides a pointer tooltip whose leave event was missed, so it never outlives the pointer.
+  useEffect(() => {
+    if (!pointerSelection) {
+      return;
+    }
+    const onMove = (event: PointerEvent) =>
+      clearPointerSelection(event.target as Node);
+    const onOut = (event: PointerEvent) => {
+      if (!event.relatedTarget) {
+        clearPointerSelection(null);
+      }
+    };
+    const onBlur = () => clearPointerSelection(null);
+    document.addEventListener("pointermove", onMove, { passive: true });
+    document.addEventListener("pointerout", onOut);
+    window.addEventListener("blur", onBlur);
+    return () => {
+      document.removeEventListener("pointermove", onMove);
+      document.removeEventListener("pointerout", onOut);
+      window.removeEventListener("blur", onBlur);
+    };
+  }, [pointerSelection]);
   if (series.length === 0) {
     return null;
   }
@@ -103,6 +136,7 @@ export function BenchmarkHistoryChart({
   );
   return (
     <figure
+      ref={figureRef}
       data-benchmark-scroll-anchor={`chart-${id}`}
       className="border-cc-card-border relative rounded-lg border"
       aria-labelledby={`${id}-history`}
@@ -112,10 +146,7 @@ export function BenchmarkHistoryChart({
       }}
     >
       <figcaption className="border-cc-card-border border-b px-5 py-4">
-        <h3
-          id={`${id}-history`}
-          className="font-heading text-h6 text-cc-heading font-semibold"
-        >
+        <h3 id={`${id}-history`} className={SUBSECTION_HEADING}>
           Throughput over time
         </h3>
         <p className="text-caption text-cc-ink-dim mt-1">
@@ -202,7 +233,7 @@ export function BenchmarkHistoryChart({
                 </g>
               ))}
             </svg>
-            {ordered.flatMap((item) =>
+            {series.flatMap((item) =>
               item.points.map((point) => (
                 <button
                   key={`${item.id}-${point.runNumber}`}
@@ -219,7 +250,7 @@ export function BenchmarkHistoryChart({
                       return;
                     }
                     setHovered(item.id);
-                    setSelected({ seriesId: item.id, point });
+                    setSelected({ seriesId: item.id, point, pointer: true });
                   }}
                   onMouseLeave={() => {
                     setHovered(undefined);
@@ -231,7 +262,7 @@ export function BenchmarkHistoryChart({
                       event.currentTarget.matches(":focus-visible")
                     ) {
                       setFocused(item.id);
-                      setSelected({ seriesId: item.id, point });
+                      setSelected({ seriesId: item.id, point, pointer: false });
                     }
                   }}
                   onBlur={() => {
@@ -240,7 +271,7 @@ export function BenchmarkHistoryChart({
                   }}
                   onClick={() => {
                     togglePinned(item.id);
-                    setSelected({ seriesId: item.id, point });
+                    setSelected({ seriesId: item.id, point, pointer: true });
                   }}
                 >
                   <span
@@ -462,7 +493,10 @@ function LegendButton({
             fill={series.dashed ? "var(--color-cc-bg)" : series.color}
           />
         </svg>
-        <span className="min-w-0 flex-1">
+        <span
+          className="min-w-0 flex-1"
+          data-nosnippet={series.preview ? "" : undefined}
+        >
           <span className="flex min-w-0 items-center gap-1">
             {series.preview && <BenchmarkPreviewBadge />}
             <span

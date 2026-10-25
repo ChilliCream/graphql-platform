@@ -2,8 +2,6 @@ import type { ScenarioId } from "@/src/helpers/benchmarkReport";
 
 export const BENCHMARK_PAGE = {
   title: "GraphQL Federation Benchmarks",
-  description:
-    "Compare GraphQL federation router and gateway performance for Fusion, Apollo, Hive, Cosmo, Grafbase, Caliban, and feddi. See throughput, latency, memory and CPU usage, and hardware.",
   path: "/benchmarks/graphql-federation",
 } as const;
 

@@ -13,6 +13,8 @@ import {
 import { useBenchmarkPreferences } from "@/src/components/benchmarks/BenchmarkPreferences";
 import {
   benchmarkVariants,
+  isPreview,
+  type BenchmarkCatalogEntry,
   type BenchmarkHistory,
   type BenchmarkReport,
   type ScenarioId,
@@ -63,23 +65,31 @@ export function useBenchmarkControls(
       ),
     ),
   ].sort();
-  const allowed = new Set(
-    [...variants]
-      .filter(([, entry]) =>
-        matchesBenchmarkTechnology(entry, filters.technologies),
-      )
-      .map(([id]) => id),
-  );
-  const filteredReport = {
+  const shown = (keep: (entry: BenchmarkCatalogEntry) => boolean) => ({
     ...report,
     scenarios: report.scenarios.map((scenario) => ({
       ...scenario,
       results: scenario.results.map((result) => ({
         ...result,
-        variants: result.variants.filter((row) => allowed.has(row.variant)),
+        variants: result.variants.filter((row) =>
+          keep(variants.get(row.variant)!),
+        ),
       })),
     })),
-  };
+  });
+  const released = (entry: BenchmarkCatalogEntry) =>
+    filters.showPreviews ||
+    !isPreview(
+      entry.variant.version,
+      entry.variant.platform,
+      entry.variant.preview,
+    );
+  const summaryReport = shown(released);
+  const filteredReport = shown(
+    (entry) =>
+      released(entry) &&
+      matchesBenchmarkTechnology(entry, filters.technologies),
+  );
   const scenarios = orderedScenarios(filteredReport);
   const selected =
     scenarios.find((scenario) => scenario.id === initialScenario)?.id ??
@@ -104,6 +114,8 @@ export function useBenchmarkControls(
   };
   return {
     scenarios,
+    /** The report behind the results summary, which follows the preview filter but not the technology filter. */
+    summaryReport,
     report: filteredReport,
     variants,
     historyVariants,
@@ -117,35 +129,52 @@ export function useBenchmarkControls(
       const reportScenario = filteredReport.scenarios.find(
         (scenario) => scenario.id === id,
       );
-      const superseded =
-        filters.bestVersionOnly && reportScenario
-          ? supersededVariants(reportScenario, variants, !filters.showPreviews)
-          : new Set<string>();
+      const superseded = reportScenario
+        ? supersededVariants(reportScenario, variants)
+        : new Set<string>();
       return (
         scenario && {
           ...scenario,
-          variants: scenario.variants.filter((item) => {
+          variants: scenario.variants.flatMap((item) => {
             const entry = historyVariants?.get(item.variant);
-            return (
-              entry &&
-              matchesBenchmarkTechnology(entry, filters.technologies) &&
-              !superseded.has(item.variant)
-            );
+            if (
+              !entry ||
+              !matchesBenchmarkTechnology(entry, filters.technologies) ||
+              superseded.has(item.variant)
+            ) {
+              return [];
+            }
+            const results = filters.showPreviews
+              ? item.results
+              : item.results.filter(
+                  (result) =>
+                    !isPreview(
+                      result.version,
+                      result.platform,
+                      entry.variant.preview,
+                    ),
+                );
+            return results.length > 0 ? [{ ...item, results }] : [];
           }),
         }
       );
     },
     selected,
-    stableOnly: !filters.showPreviews,
-    bestOnly: filters.bestVersionOnly,
+    /** The variants shown in the tables of each scenario. */
+    visibleRows: new Map(
+      scenarios.map((scenario) => [
+        scenario.id,
+        new Set(
+          scenarioGroups(scenario, variants).flatMap((group) =>
+            group.rows.map((row) => row.variant),
+          ),
+        ),
+      ]),
+    ),
     hasResults: scenarios.some(
-      (scenario) =>
-        scenarioGroups(
-          scenario,
-          variants,
-          !filters.showPreviews,
-          filters.bestVersionOnly,
-        ).length > 0,
+      (scenario) => scenarioGroups(scenario, variants).length > 0,
     ),
   };
 }
+
+export type BenchmarkControls = ReturnType<typeof useBenchmarkControls>;

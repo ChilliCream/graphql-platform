@@ -100,7 +100,7 @@ test("retains repeated versions and all runs sorted by completion time", () => {
       completedAt: `2026-10-0${5 - index}T12:00:00Z`,
     },
   }));
-  const series = historySeries(scenario, benchmarkVariants(history), false)[0];
+  const series = historySeries(scenario, benchmarkVariants(history))[0];
   assert.deepEqual(
     series.points.map((point) => [point.runNumber, point.version]),
     [5, 4, 3, 2, 1].map((number) => [number, base.version]),
@@ -113,11 +113,7 @@ test("allows empty result lists and start-time fallback", () => {
   result.run.startedAt = result.run.completedAt;
   result.run.completedAt = null;
   const parsed = parseBenchmarkHistory(JSON.stringify(history));
-  const series = historySeries(
-    parsed.scenarios[0],
-    benchmarkVariants(parsed),
-    false,
-  );
+  const series = historySeries(parsed.scenarios[0], benchmarkVariants(parsed));
   assert.equal(series[0].points[0].timestamp, Date.parse(result.run.startedAt));
 });
 test("rejects malformed dates and missing subgraph metadata", () => {
@@ -160,8 +156,7 @@ test("distributes six-month samples evenly without a short final interval", () =
       completedAt: new Date(start + index * day).toISOString(),
     },
   }));
-  const points = historySeries(scenario, benchmarkVariants(history), false)[0]
-    .points;
+  const points = historySeries(scenario, benchmarkVariants(history))[0].points;
   const gaps = points
     .slice(1)
     .map((point, index) => (point.timestamp - points[index].timestamp) / day);
@@ -185,8 +180,7 @@ test("keeps failed runs that fall between samples", () => {
       completedAt: new Date(start + index * day).toISOString(),
     },
   }));
-  const points = historySeries(scenario, benchmarkVariants(history), false)[0]
-    .points;
+  const points = historySeries(scenario, benchmarkVariants(history))[0].points;
   assert.deepEqual(
     [
       points.filter((point) => point.failed).map((point) => point.runNumber),
@@ -206,7 +200,7 @@ test("excludes failed runs from the change and latest completed point", () => {
     run: { number: index + 1, completedAt: `2026-10-0${index + 1}T12:00:00Z` },
     throughput: { ...base.throughput, medianRps: rps },
   }));
-  const series = historySeries(scenario, benchmarkVariants(history), false)[0];
+  const series = historySeries(scenario, benchmarkVariants(history))[0];
   assert.deepEqual(
     [seriesChange(series), latestCompletedPoint(series).runNumber],
     [(110 - 100) / 100, 2],

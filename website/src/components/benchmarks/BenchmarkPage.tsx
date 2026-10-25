@@ -7,6 +7,7 @@ import {
   federationBenchmarks as report,
 } from "@/src/data/federationBenchmarks";
 import { BENCHMARK_PAGE as PAGE } from "@/src/components/benchmarks/benchmarkRoutes";
+import { benchmarkPageDescription } from "@/src/components/benchmarks/benchmarkView";
 import type { ScenarioId } from "@/src/helpers/benchmarkReport";
 import {
   BENCHMARK_DATASET_ID,
@@ -23,6 +24,7 @@ export function BenchmarkPage({ initialScenario }: BenchmarkPageProps) {
     <>
       <PageStructuredData
         {...PAGE}
+        description={benchmarkPageDescription(report)}
         dateModified={
           report.run.completedAt ?? report.run.startedAt ?? undefined
         }
@@ -42,7 +44,7 @@ export function BenchmarkPage({ initialScenario }: BenchmarkPageProps) {
             initialScenario={initialScenario}
           />
         </div>
-        <BenchmarkTestSetup report={report} />
+        <BenchmarkTestSetup report={report} history={history} />
       </article>
     </>
   );
