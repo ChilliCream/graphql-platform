@@ -2,7 +2,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Formatters;
-using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Transport.Formatters;
@@ -212,6 +211,9 @@ public static partial class AspNetCoreFusionGatewayBuilderExtensions
         IncrementalDeliveryFormat incrementalDeliveryFormat = IncrementalDeliveryFormat.Version_0_2)
     {
         ArgumentNullException.ThrowIfNull(builder);
+        DefaultHttpResponseFormatter.EnsureTransportVersionIsSupported(
+            options.HttpTransportVersion,
+            nameof(options));
 
         return builder.ConfigureSchemaServices(
             (_, s) =>

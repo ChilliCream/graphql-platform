@@ -3,9 +3,8 @@ using System.Text;
 namespace ChilliCream.Nitro.CommandLine.Services.Memory;
 
 /// <summary>
-/// Renders curated memories into the canonical prompt-ready text the
-/// <c>context</c> command's character budget is measured against: one block
-/// per entry, joined by <see cref="Separator"/>.
+/// Renders curated memories as text blocks joined by <see cref="Separator"/>.
+/// Each block contains the id, type, any tags, and the body.
 /// </summary>
 internal static class MemoryContextRenderer
 {

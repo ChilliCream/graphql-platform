@@ -81,7 +81,7 @@ function isDetailArticle(url) {
   const pathname = new URL(url).pathname;
   return (
     pathname.startsWith("/docs/") ||
-    /^\/blog\/\d{4}-\d{2}-\d{2}-/.test(pathname) ||
+    datedContent(pathname) !== null ||
     COMPARISON_ARTICLE_PATH.test(pathname)
   );
 }
@@ -336,8 +336,10 @@ function productForPage(page) {
   return segments[0] === "docs" && segments.length > 1 ? segments[1] : null;
 }
 
-function blogDate(pathname) {
-  return pathname.match(/^\/blog\/(\d{4}-\d{2}-\d{2})-/)?.[1] ?? "";
+/** The section and publish date of a dated blog post or video page. */
+function datedContent(pathname) {
+  const match = pathname.match(/^\/(blog|videos)\/(\d{4}-\d{2}-\d{2})-/);
+  return match ? { section: match[1], date: match[2] } : null;
 }
 
 function comparePages(left, right) {
@@ -347,12 +349,15 @@ function comparePages(left, right) {
   if (leftPath === "/") return -1;
   if (rightPath === "/") return 1;
 
-  const leftBlogDate = blogDate(leftPath);
-  const rightBlogDate = blogDate(rightPath);
-  if (leftBlogDate || rightBlogDate) {
-    if (!leftBlogDate) return -1;
-    if (!rightBlogDate) return 1;
-    return rightBlogDate.localeCompare(leftBlogDate);
+  const leftDated = datedContent(leftPath);
+  const rightDated = datedContent(rightPath);
+  if (leftDated || rightDated) {
+    if (!leftDated) return -1;
+    if (!rightDated) return 1;
+    if (leftDated.section !== rightDated.section) {
+      return leftDated.section.localeCompare(rightDated.section);
+    }
+    return rightDated.date.localeCompare(leftDated.date);
   }
 
   const leftProduct = productForPage(left);
@@ -433,6 +438,7 @@ function scopeLinks(origin) {
     `- [Documentation context](${origin}/docs/llms-full.txt): All product documentation.`,
     `- [Blog context](${origin}/blog/llms-full.txt): All public ChilliCream blog posts.`,
     `- [Comparison context](${origin}/comparison/llms-full.txt): All public ChilliCream comparison articles.`,
+    `- [Videos context](${origin}/videos/llms-full.txt): All ChilliCream TV video pages.`,
   ];
 }
 
@@ -476,6 +482,7 @@ export async function generateLlmsFiles() {
   const docs = pagesUnder(pages, "/docs");
   const blog = pagesUnder(pages, "/blog");
   const comparison = pagesUnder(pages, "/comparison");
+  const videos = pagesUnder(pages, "/videos");
   const products = pagesUnder(pages, "/products");
   // Un-indexed prototype routes (compared concepts for the federation page)
   // never belong in the llms export, even if one ever slipped past the
@@ -497,6 +504,7 @@ export async function generateLlmsFiles() {
       ...docs,
       ...blog,
       ...comparison,
+      ...videos,
       ...products,
       ...platform,
       ...services,
@@ -525,6 +533,12 @@ export async function generateLlmsFiles() {
       "ChilliCream comparisons",
       "Side-by-side comparisons of GraphQL Federation with the other ways teams get data out of more than one service, and when each is the better fit.",
       comparison,
+    ),
+    writeScopedFiles(
+      "videos",
+      "ChilliCream videos",
+      "ChilliCream TV episodes on Hot Chocolate, DataLoader, and GraphQL in .NET, newest first, each linking to its example source code.",
+      videos,
     ),
     writeScopedFiles(
       "products",
@@ -616,6 +630,12 @@ export async function generateLlmsFiles() {
         title: "Comparisons",
         items: [
           `- [Comparison catalog](${origin}/comparison/llms.txt): Every public comparison article.`,
+        ],
+      },
+      {
+        title: "Videos",
+        items: [
+          `- [Videos catalog](${origin}/videos/llms.txt): Every ChilliCream TV video page, newest first.`,
         ],
       },
       {

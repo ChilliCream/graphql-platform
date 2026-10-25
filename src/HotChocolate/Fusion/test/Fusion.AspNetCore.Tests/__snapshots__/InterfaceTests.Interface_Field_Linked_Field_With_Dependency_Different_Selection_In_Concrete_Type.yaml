@@ -20,9 +20,9 @@ response:
       "data": {
         "authorable": {
           "author": {
-            "id": "QXV0aG9yOjI=",
-            "displayName": "Author: QXV0aG9yOjI=",
-            "email": "Author: QXV0aG9yOjI="
+            "id": "QXV0aG9yOjEyMjYzNTY2OQ==",
+            "displayName": "Author: QXV0aG9yOjEyMjYzNTY2OQ==",
+            "email": "Author: QXV0aG9yOjEyMjYzNTY2OQ=="
           }
         }
       }
@@ -78,7 +78,7 @@ sourceSchemas:
                   "authorable": {
                     "__typename": "Discussion",
                     "author": {
-                      "id": "QXV0aG9yOjI="
+                      "id": "QXV0aG9yOjEyMjYzNTY2OQ=="
                     }
                   }
                 }
@@ -111,7 +111,7 @@ sourceSchemas:
                 }
               variables: |
                 {
-                  "__fusion_1_id": "QXV0aG9yOjI="
+                  "__fusion_1_id": "QXV0aG9yOjEyMjYzNTY2OQ=="
                 }
             - document: |
                 query testQuery_1703e95b_3($__fusion_2_id: ID!) {
@@ -121,7 +121,7 @@ sourceSchemas:
                 }
               variables: |
                 {
-                  "__fusion_2_id": "QXV0aG9yOjI="
+                  "__fusion_2_id": "QXV0aG9yOjEyMjYzNTY2OQ=="
                 }
         response:
           contentType: application/jsonl; charset=utf-8
@@ -130,7 +130,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "email": "Author: QXV0aG9yOjI="
+                    "email": "Author: QXV0aG9yOjEyMjYzNTY2OQ=="
                   }
                 }
               }
@@ -138,7 +138,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "displayName": "Author: QXV0aG9yOjI="
+                    "displayName": "Author: QXV0aG9yOjEyMjYzNTY2OQ=="
                   }
                 }
               }
@@ -162,7 +162,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 1703e95bc9cba85c083d641b7c36486a
+      hash: 0cd0ad382a7a1c2245eaf8d5c2546ee8
       searchSpace: 1
       expandedNodes: 2
   nodes:

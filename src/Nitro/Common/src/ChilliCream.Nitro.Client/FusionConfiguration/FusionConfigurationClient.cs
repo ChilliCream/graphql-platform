@@ -122,6 +122,48 @@ internal sealed class FusionConfigurationClient(
         return OperationResultHelper.EnsureData(result).ValidateFusionConfigurationComposition;
     }
 
+    public async Task<IValidateFusionConfiguration_ValidateFusionConfiguration> StartFusionConfigurationValidationAsync(
+        string apiId,
+        string stageName,
+        Stream archive,
+        SourceMetadata? source,
+        CancellationToken cancellationToken)
+    {
+        var input = new ValidateFusionConfigurationInput
+        {
+            ApiId = apiId,
+            Stage = stageName,
+            Configuration = new Upload(archive, "gateway.far"),
+            Source = SourceMetadataMapper.Map(source)
+        };
+
+        var result = await apiClient.ValidateFusionConfiguration.ExecuteAsync(input, cancellationToken);
+
+        return OperationResultHelper.EnsureData(result).ValidateFusionConfiguration;
+    }
+
+    public async IAsyncEnumerable<IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate>
+        SubscribeToFusionConfigurationValidationAsync(
+            string requestId,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        using var stopSignal = new ReplaySubject<Unit>(1);
+        await using var _ = cancellationToken.Register(stopSignal);
+
+        var subscription = apiClient.OnFusionConfigurationValidationUpdated
+            .Watch(requestId, ExecutionStrategy.NetworkOnly)
+            .TakeUntil(stopSignal);
+
+        // The cancellation token is intentionally not passed to ToAsyncEnumerable() to avoid
+        // an OperationCanceledException. Cancellation is handled via the stop signal above,
+        // which completes the sequence cleanly.
+        await foreach (var @event in subscription.ToAsyncEnumerable())
+        {
+            var data = OperationResultHelper.EnsureData(@event);
+            yield return data.OnFusionConfigurationValidationUpdate;
+        }
+    }
+
     public async Task<IUploadFusionSubgraph_UploadFusionSubgraph> UploadFusionSubgraphAsync(
         string apiId,
         string tag,

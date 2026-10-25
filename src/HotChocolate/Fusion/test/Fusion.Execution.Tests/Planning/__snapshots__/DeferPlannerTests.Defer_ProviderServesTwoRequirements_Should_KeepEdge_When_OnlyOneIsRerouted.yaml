@@ -1,0 +1,92 @@
+operation:
+  - document: |
+      {
+        user(id: "1") {
+          name
+          id @fusion__requirement
+          currencyCode @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 1
+nodes:
+  - id: 1
+    type: Operation
+    schema: accounts
+    operation: |
+      query Op_123456789101112_1 {
+        user(id: "1") {
+          name
+          id
+          currencyCode
+        }
+      }
+deliveryGroups:
+  - id: 0
+    path: $.user
+incrementalPlans:
+  - deliveryGroupIds:
+      - 0
+    parentNodeId: 1
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+      - name: __fusion_3_region
+        selectionMap: >-
+          regionCode
+      - name: __fusion_4_currency
+        selectionMap: >-
+          currencyCode
+    nodes:
+      - id: 1
+        type: Operation
+        schema: profile
+        operation: |
+          query Op_defer_1($__fusion_1_id: ID!) {
+            userById(id: $__fusion_1_id) {
+              bio
+              regionCode
+            }
+          }
+        source: $.userById
+        target: $.user
+        requirements:
+          - name: __fusion_1_id
+            selectionMap: >-
+              id
+        dependencies:
+          - parentNodeId: 1
+      - id: 2
+        type: Operation
+        schema: pricing
+        operation: |
+          query Op_defer_2(
+            $__fusion_2_id: ID!
+            $__fusion_3_region: String!
+            $__fusion_4_currency: String!
+          ) {
+            userById(id: $__fusion_2_id) {
+              shippingFee(region: $__fusion_3_region)
+              totalSpent(currency: $__fusion_4_currency)
+            }
+          }
+        source: $.userById
+        target: $.user
+        requirements:
+          - name: __fusion_2_id
+            selectionMap: >-
+              id
+          - name: __fusion_3_region
+            selectionMap: >-
+              regionCode
+          - name: __fusion_4_currency
+            selectionMap: >-
+              currencyCode
+        dependencies:
+          - id: 1
+          - parentNodeId: 1

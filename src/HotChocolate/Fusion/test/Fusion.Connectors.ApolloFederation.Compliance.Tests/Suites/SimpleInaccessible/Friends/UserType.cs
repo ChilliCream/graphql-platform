@@ -43,7 +43,7 @@ public sealed class UserType : ObjectType<User>
                 if (parent.Id is null
                     || !FriendsData.FriendsByUserId.TryGetValue(parent.Id, out var friendIds))
                 {
-                    return Array.Empty<User>();
+                    return [];
                 }
 
                 return friendIds

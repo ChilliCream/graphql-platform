@@ -6,6 +6,7 @@ using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Operations;
 using static Microsoft.CodeAnalysis.SymbolDisplayFormat;
 using static Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions;
 
@@ -851,11 +852,12 @@ public static class SymbolExtensions
         {
             if (attributeData.AttributeClass?.ToDisplayString() == WellKnownAttributes.ServiceAttribute)
             {
-                if (attributeData.ConstructorArguments.Length == 1
-                    && attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive
-                    && attributeData.ConstructorArguments[0].Value is string keyValue)
+                if (attributeData.ConstructorArguments.Length == 1)
                 {
-                    key = keyValue;
+                    var serviceKey = attributeData.ConstructorArguments[0];
+                    key = serviceKey.IsNull
+                        ? null
+                        : CSharpLiteralFormatter.FormatTypedConstant(serviceKey);
                     return true;
                 }
 
@@ -874,6 +876,457 @@ public static class SymbolExtensions
         }
 
         return false;
+    }
+
+    public static ServiceAttributeInfo GetServiceAttributeInfo(
+        this IParameterSymbol parameter,
+        Compilation compilation)
+    {
+        var hasServiceAttribute = false;
+        TypedConstant? serviceKey = null;
+        SourceDerivedServiceKey? sourceDerivedServiceKey = null;
+        var isServiceKeyUndeterminable = false;
+        var hasFromKeyedServicesAttribute = false;
+        TypedConstant? fromKeyedServicesKey = null;
+
+        foreach (var attributeData in parameter.GetAttributes())
+        {
+            if (attributeData.AttributeClass.IsOrInheritsFrom(WellKnownAttributes.ServiceAttribute))
+            {
+                hasServiceAttribute = true;
+
+                if (attributeData.AttributeClass?.ToDisplayString() == WellKnownAttributes.ServiceAttribute)
+                {
+                    serviceKey = GetAttributeKey(attributeData);
+                }
+                else
+                {
+                    var extraction = attributeData.GetDerivedServiceKey(compilation, out sourceDerivedServiceKey);
+                    isServiceKeyUndeterminable = extraction == ServiceKeyExtractionResult.Undeterminable;
+                }
+            }
+
+            if (attributeData.AttributeClass?.ToDisplayString() == WellKnownAttributes.FromKeyedServicesAttribute)
+            {
+                hasFromKeyedServicesAttribute = true;
+                fromKeyedServicesKey = GetAttributeKey(attributeData);
+            }
+        }
+
+        return new ServiceAttributeInfo(
+            hasServiceAttribute,
+            serviceKey,
+            sourceDerivedServiceKey?.Value,
+            sourceDerivedServiceKey?.Type,
+            isServiceKeyUndeterminable,
+            hasFromKeyedServicesAttribute,
+            fromKeyedServicesKey);
+    }
+
+    private static TypedConstant? GetAttributeKey(AttributeData attributeData)
+        => attributeData.ConstructorArguments.Length == 1
+            ? attributeData.ConstructorArguments[0]
+            : null;
+
+    internal static ServiceKeyExtractionResult GetDerivedServiceKey(
+        this AttributeData attributeData,
+        Compilation compilation,
+        out SourceDerivedServiceKey? key)
+    {
+        key = null;
+
+        if (attributeData.AttributeConstructor is null)
+        {
+            return ServiceKeyExtractionResult.Undeterminable;
+        }
+
+        return TryGetDerivedServiceKey(
+            attributeData.AttributeConstructor,
+            compilation,
+            CreateInitialParameterValues(attributeData),
+            ImmutableHashSet<IMethodSymbol>.Empty.WithComparer(SymbolEqualityComparer.Default),
+            out key);
+    }
+
+    private static ServiceKeyExtractionResult TryGetDerivedServiceKey(
+        IMethodSymbol constructor,
+        Compilation compilation,
+        ImmutableDictionary<IParameterSymbol, object?> arguments,
+        ImmutableHashSet<IMethodSymbol> visited,
+        out SourceDerivedServiceKey? key)
+    {
+        key = null;
+
+        if (visited.Contains(constructor))
+        {
+            return ServiceKeyExtractionResult.Undeterminable;
+        }
+
+        if (!TryGetConstructorInvocation(constructor, compilation, out var invocation))
+        {
+            if (!TryGetImplicitSourceBaseConstructor(
+                constructor,
+                compilation,
+                out var baseConstructor,
+                out var implicitArguments))
+            {
+                return ServiceKeyExtractionResult.Undeterminable;
+            }
+
+            if (baseConstructor.ContainingType.ToDisplayString() == WellKnownAttributes.ServiceAttribute)
+            {
+                if (baseConstructor.Parameters.Length == 0)
+                {
+                    return ServiceKeyExtractionResult.NoKey;
+                }
+
+                if (baseConstructor.Parameters.Length == 1
+                    && implicitArguments.TryGetValue(baseConstructor.Parameters[0], out var value))
+                {
+                    key = value is null
+                        ? null
+                        : new SourceDerivedServiceKey(value, baseConstructor.Parameters[0].Type);
+                    return value is null
+                        ? ServiceKeyExtractionResult.NoKey
+                        : ServiceKeyExtractionResult.Key;
+                }
+
+                return ServiceKeyExtractionResult.Undeterminable;
+            }
+
+            return TryGetDerivedServiceKey(
+                baseConstructor,
+                compilation,
+                implicitArguments,
+                visited.Add(constructor),
+                out key);
+        }
+
+        if (!TryCreateParameterValues(invocation, compilation, arguments, out var nextArguments))
+        {
+            return ServiceKeyExtractionResult.Undeterminable;
+        }
+
+        if (invocation.TargetMethod.ContainingType.ToDisplayString() == WellKnownAttributes.ServiceAttribute)
+        {
+            if (invocation.TargetMethod.Parameters.Length == 0)
+            {
+                return ServiceKeyExtractionResult.NoKey;
+            }
+
+            if (invocation.TargetMethod.Parameters.Length == 1
+                && invocation.Arguments.FirstOrDefault(t => SymbolEqualityComparer.Default.Equals(
+                    t.Parameter,
+                    invocation.TargetMethod.Parameters[0])) is { } sourceArgument)
+            {
+                var semanticModel = compilation.GetSemanticModel(sourceArgument.Value.Syntax.SyntaxTree);
+                if (semanticModel.GetConstantValue(sourceArgument.Value.Syntax) is { HasValue: true } constantValue)
+                {
+                    key = constantValue.Value is null
+                        ? null
+                        : new SourceDerivedServiceKey(
+                            constantValue.Value,
+                            semanticModel.GetTypeInfo(sourceArgument.Value.Syntax).Type);
+                    return key is null
+                        ? ServiceKeyExtractionResult.NoKey
+                        : ServiceKeyExtractionResult.Key;
+                }
+            }
+            if (invocation.TargetMethod.Parameters.Length != 1
+                || invocation.Arguments.FirstOrDefault(t => SymbolEqualityComparer.Default.Equals(
+                    t.Parameter,
+                    invocation.TargetMethod.Parameters[0])) is not { } argument
+                || !TryGetKnownValue(
+                    argument.Value,
+                    arguments,
+                    compilation,
+                    out var value,
+                    out var type))
+            {
+                return ServiceKeyExtractionResult.Undeterminable;
+            }
+
+            key = value is null ? null : new SourceDerivedServiceKey(value, type);
+            return value is null
+                ? ServiceKeyExtractionResult.NoKey
+                : ServiceKeyExtractionResult.Key;
+        }
+
+        return TryGetDerivedServiceKey(
+            invocation.TargetMethod,
+            compilation,
+            nextArguments,
+            visited.Add(constructor),
+            out key);
+    }
+
+    private static ImmutableDictionary<IParameterSymbol, object?> CreateInitialParameterValues(
+        AttributeData attributeData)
+    {
+        var arguments = ImmutableDictionary.CreateBuilder<IParameterSymbol, object?>(SymbolEqualityComparer.Default);
+        var constructor = attributeData.AttributeConstructor;
+
+        if (constructor is null)
+        {
+            return arguments.ToImmutable();
+        }
+
+        for (var i = 0; i < constructor.Parameters.Length; i++)
+        {
+            var parameter = constructor.Parameters[i];
+
+            if (i < attributeData.ConstructorArguments.Length
+                && TryGetTypedConstantValue(attributeData.ConstructorArguments[i], out var value))
+            {
+                arguments.Add(parameter, value);
+            }
+            else if (parameter.HasExplicitDefaultValue)
+            {
+                arguments.Add(parameter, parameter.ExplicitDefaultValue);
+            }
+        }
+
+        return arguments.ToImmutable();
+    }
+
+    private static bool TryGetConstructorInvocation(
+        IMethodSymbol constructor,
+        Compilation compilation,
+        [NotNullWhen(true)] out IInvocationOperation? invocation)
+    {
+        foreach (var syntaxReference in constructor.DeclaringSyntaxReferences)
+        {
+            var syntax = syntaxReference.GetSyntax();
+            var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
+
+            if (syntax is ConstructorDeclarationSyntax { Initializer: { } initializer }
+                && semanticModel.GetOperation(initializer) is IInvocationOperation initializerInvocation)
+            {
+                invocation = initializerInvocation;
+                return true;
+            }
+
+            if (syntax is TypeDeclarationSyntax { BaseList: { } baseList })
+            {
+                foreach (var baseType in baseList.Types)
+                {
+                    if (semanticModel.GetOperation(baseType) is IInvocationOperation baseInvocation)
+                    {
+                        invocation = baseInvocation;
+                        return true;
+                    }
+                }
+            }
+
+            if (semanticModel.GetOperation(syntax) is IConstructorBodyOperation
+                {
+                    Initializer: IInvocationOperation implicitInvocation
+                })
+            {
+                invocation = implicitInvocation;
+                return true;
+            }
+        }
+
+        invocation = null;
+        return false;
+    }
+
+    private static bool TryGetImplicitSourceBaseConstructor(
+        IMethodSymbol constructor,
+        Compilation compilation,
+        [NotNullWhen(true)] out IMethodSymbol? baseConstructor,
+        out ImmutableDictionary<IParameterSymbol, object?> arguments)
+    {
+        baseConstructor = null;
+        arguments = default!;
+
+        if (constructor.ContainingType.DeclaringSyntaxReferences.Length == 0)
+        {
+            return false;
+        }
+
+        foreach (var syntaxReference in constructor.ContainingType.DeclaringSyntaxReferences)
+        {
+            if (syntaxReference.GetSyntax() is TypeDeclarationSyntax { BaseList: { } baseList }
+                && baseList.Types.Any(t => t.ChildNodes().OfType<ArgumentListSyntax>().Any()))
+            {
+                return false;
+            }
+        }
+
+        var baseType = constructor.ContainingType.BaseType;
+
+        if (baseType is null)
+        {
+            return false;
+        }
+
+        var candidates = baseType.InstanceConstructors
+            .Where(t => compilation.IsSymbolAccessibleWithin(t, constructor.ContainingType))
+            .Where(t => t.Parameters.All(p => p.IsOptional || p.IsParams))
+            .ToImmutableArray();
+
+        if (candidates.Length == 0)
+        {
+            return false;
+        }
+
+        var normalFormCandidates = candidates
+            .Where(t => t.Parameters.All(p => p.IsOptional && !p.IsParams))
+            .ToImmutableArray();
+        var applicableCandidates = normalFormCandidates.Length > 0
+            ? normalFormCandidates
+            : candidates;
+
+        if (applicableCandidates.Length != 1)
+        {
+            return false;
+        }
+
+        baseConstructor = applicableCandidates[0];
+        return TryCreateOmittedParameterValues(baseConstructor, out arguments);
+    }
+
+    private static bool TryCreateParameterValues(
+        IInvocationOperation invocation,
+        Compilation compilation,
+        ImmutableDictionary<IParameterSymbol, object?> sourceArguments,
+        out ImmutableDictionary<IParameterSymbol, object?> targetArguments)
+    {
+        var values = ImmutableDictionary.CreateBuilder<IParameterSymbol, object?>(SymbolEqualityComparer.Default);
+
+        foreach (var parameter in invocation.TargetMethod.Parameters)
+        {
+            var argument = invocation.Arguments.FirstOrDefault(t =>
+                SymbolEqualityComparer.Default.Equals(t.Parameter, parameter));
+
+            if (argument is not null)
+            {
+                if (!TryGetKnownValue(argument.Value, sourceArguments, compilation, out var value, out _))
+                {
+                    targetArguments = default!;
+                    return false;
+                }
+
+                values.Add(parameter, value);
+            }
+            else if (parameter.HasExplicitDefaultValue)
+            {
+                values.Add(parameter, parameter.ExplicitDefaultValue);
+            }
+            else if (parameter.IsParams)
+            {
+                values.Add(parameter, Array.Empty<object?>());
+            }
+            else
+            {
+                targetArguments = default!;
+                return false;
+            }
+        }
+
+        targetArguments = values.ToImmutable();
+        return true;
+    }
+
+    private static bool TryCreateOmittedParameterValues(
+        IMethodSymbol constructor,
+        out ImmutableDictionary<IParameterSymbol, object?> arguments)
+    {
+        var values = ImmutableDictionary.CreateBuilder<IParameterSymbol, object?>(SymbolEqualityComparer.Default);
+
+        foreach (var parameter in constructor.Parameters)
+        {
+            if (parameter.HasExplicitDefaultValue)
+            {
+                values.Add(parameter, parameter.ExplicitDefaultValue);
+            }
+            else if (parameter.IsParams)
+            {
+                values.Add(parameter, Array.Empty<object?>());
+            }
+            else
+            {
+                arguments = default!;
+                return false;
+            }
+        }
+
+        arguments = values.ToImmutable();
+        return true;
+    }
+
+    private static bool TryGetKnownValue(
+        IOperation operation,
+        ImmutableDictionary<IParameterSymbol, object?> arguments,
+        Compilation compilation,
+        out object? value,
+        out ITypeSymbol? type)
+    {
+        type = null;
+
+        while (operation is IConversionOperation conversion)
+        {
+            if (conversion.ConstantValue.HasValue)
+            {
+                value = conversion.ConstantValue.Value;
+                type = conversion.IsImplicit ? conversion.Operand.Type : conversion.Type;
+                return true;
+            }
+
+            if (!conversion.IsImplicit)
+            {
+                type = conversion.Type;
+            }
+
+            operation = conversion.Operand;
+        }
+
+        if (operation is IParameterReferenceOperation parameterReference
+            && arguments.TryGetValue(parameterReference.Parameter, out value))
+        {
+            type ??= parameterReference.Type;
+            return true;
+        }
+
+        if (operation.ConstantValue.HasValue)
+        {
+            value = operation.ConstantValue.Value;
+            type ??= operation.Type;
+            return true;
+        }
+
+        value = null;
+        var constantValue = compilation.GetSemanticModel(operation.Syntax.SyntaxTree)
+            .GetConstantValue(operation.Syntax);
+        if (constantValue.HasValue)
+        {
+            value = constantValue.Value;
+            type ??= compilation.GetSemanticModel(operation.Syntax.SyntaxTree)
+                .GetTypeInfo(operation.Syntax).Type;
+            return true;
+        }
+        return false;
+    }
+
+    private static bool TryGetTypedConstantValue(TypedConstant constant, out object? value)
+    {
+        if (constant.Kind is TypedConstantKind.Error or TypedConstantKind.Array)
+        {
+            value = null;
+            return false;
+        }
+
+        value = constant.Value;
+        return true;
+    }
+
+    internal enum ServiceKeyExtractionResult
+    {
+        NoKey,
+        Key,
+        Undeterminable
     }
 
     private static bool TryGetStateKey(

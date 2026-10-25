@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Features;
-using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -39,6 +38,8 @@ internal partial class MiddlewareContext : IMiddlewareContext
     public IVariableValueCollection Variables => _operationContext.Variables;
 
     public ulong IncludeFlags => _operationContext.IncludeFlags;
+
+    public ConditionFlags IncludeConditionFlags => _operationContext.IncludeConditionFlags;
 
     public CancellationToken RequestAborted { get; private set; }
 
@@ -124,14 +125,14 @@ internal partial class MiddlewareContext : IMiddlewareContext
             {
                 foreach (var ie in ar.Errors)
                 {
-                    var errorWithPath = EnsurePathAndLocation(ie, _selection.SyntaxNodes[0].Node, Path);
+                    var errorWithPath = EnsurePath(ie, Path);
                     _operationContext.Result.AddError(errorWithPath);
                     diagnosticEvents.ResolverError(this, errorWithPath);
                 }
             }
             else
             {
-                var errorWithPath = EnsurePathAndLocation(handled, _selection.SyntaxNodes[0].Node, Path);
+                var errorWithPath = EnsurePath(handled, Path);
                 _operationContext.Result.AddError(errorWithPath);
                 diagnosticEvents.ResolverError(this, errorWithPath);
             }
@@ -139,16 +140,11 @@ internal partial class MiddlewareContext : IMiddlewareContext
             HasErrors = true;
         }
 
-        static IError EnsurePathAndLocation(IError error, ISyntaxNode node, Path path)
+        static IError EnsurePath(IError error, Path path)
         {
             if (error.Path is null)
             {
                 error = error.WithPath(path);
-            }
-
-            if (error.Locations is not { Count: > 0 } && node.Location is not null)
-            {
-                error = error.WithLocations([new Location(node.Location.Line, node.Location.Column)]);
             }
 
             return error;

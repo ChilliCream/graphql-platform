@@ -31,7 +31,7 @@ The table below maps Apollo Federation concepts to their Fusion equivalents. Som
 | GraphOS managed federation                       | Nitro cloud or local CI/CD composition            | Build-time composition. Works fully offline.                                                           |
 | Supergraph schema (SDL)                          | Composed schema + `.far` archive                  | Binary archive containing the composed schema and subgraph metadata.                                   |
 | Federation subgraph library (`@apollo/subgraph`) | No equivalent needed                              | Subgraphs are standard HotChocolate servers. No Apollo Federation library.                             |
-| `_service { sdl }` introspection                 | `dotnet run -- schema export`                     | Schema export is a CLI command, not a runtime introspection field.                                     |
+| `#!graphql _service { sdl }` introspection       | `#!shell dotnet run -- schema export`             | Schema export is a CLI command, not a runtime introspection field.                                     |
 
 # What Fusion Does Not Need
 
@@ -43,9 +43,9 @@ Several things from Apollo's model have no Fusion equivalent because the archite
 
 **No Apollo Federation subgraph library.** Apollo Federation subgraphs require `@apollo/subgraph` (or the equivalent in your language) to add Apollo Federation-specific fields and middleware. Fusion subgraphs are standard HotChocolate servers. You add a few attributes (`[Lookup]`, `[Shareable]`, etc.) and export the schema. There is no special Apollo Federation runtime.
 
-**No `_service` introspection.** Apollo Federation subgraphs expose their SDL via `_service { sdl }`. Fusion subgraphs export their schema as a `.graphqls` file using the command `dotnet run -- schema export`. The schema file and its companion `schema-settings.json` are what composition reads.
+**No `_service` introspection.** Apollo Federation subgraphs expose their SDL via `#!graphql _service { sdl }`. Fusion subgraphs export their schema as a `.graphqls` file using the command `#!shell dotnet run -- schema export`. The schema file and its companion `schema-settings.json` are what composition reads.
 
-**No `@key` directive.** In Apollo Federation, `@key(fields: "id")` tells the gateway which fields identify an entity. In Fusion, the gateway infers entity keys from the arguments of your `[Lookup]` fields. If your lookup is `GetProductById(int id)`, the gateway knows that `id` is the key for `Product`. You can use `[EntityKey("id")]` for explicit key declaration when needed, but it is rarely necessary.
+**No `@key` directive.** In Apollo Federation, `#!sdl @key(fields: "id")` tells the gateway which fields identify an entity. In Fusion, the gateway infers entity keys from the arguments of your `[Lookup]` fields. If your lookup is `GetProductById(int id)`, the gateway knows that `id` is the key for `Product`. You can use `#!csharp [EntityKey("id")]` for explicit key declaration when needed, but it is rarely necessary.
 
 # Behavioral Differences in Depth
 
@@ -55,7 +55,7 @@ Beyond naming, several concepts work fundamentally differently in Fusion. Unders
 
 This is the most significant architectural difference between Apollo Federation and the GraphQL Federation protocol.
 
-**Apollo Federation approach:** The gateway sends a batch request to the `_entities` field, passing an array of typed representations (like `{ __typename: "Product", id: "1" }`). Each subgraph's `__resolveReference` function handles these representations.
+**Apollo Federation approach:** The gateway sends a batch request to the `_entities` field, passing an array of typed representations (like `#!graphql { __typename: "Product", id: "1" }`). Each subgraph's `__resolveReference` function handles these representations.
 
 ```graphql
 # Apollo: hidden _entities query (you never write this yourself)
@@ -178,7 +178,7 @@ public sealed record Product([property: ID<Product>] int Id)
 }
 ```
 
-In the composed schema, clients see `deliveryEstimate(zip: String!)`. The `dimension` parameter is invisible. The gateway resolves `weight` and `dimension { length width height }` from the owning subgraph and passes them to the Shipping subgraph automatically.
+In the composed schema, clients see `#!sdl deliveryEstimate(zip: String!)`. The `dimension` parameter is invisible. The gateway resolves `weight` and `#!graphql dimension { length width height }` from the owning subgraph and passes them to the Shipping subgraph automatically.
 
 This changes how you design resolvers. In Apollo, the required data is available on `this` (the entity object). In Fusion, it arrives as a typed argument, which makes the dependency explicit and testable.
 
@@ -222,7 +222,7 @@ In the Apollo Federation workflow, composition typically happens in GraphOS clou
 
 In Fusion, composition is a local build step you run on your machine or in CI:
 
-```bash
+```shell
 nitro fusion compose \
   --source-schema-file ./products/schema.graphqls \
   --source-schema-file ./reviews/schema.graphqls \
@@ -305,7 +305,7 @@ app.MapGraphQL();
 app.RunWithGraphQLCommands(args);
 ```
 
-The call to `RunWithGraphQLCommands(args)` enables `dotnet run -- schema export`, which is how Fusion exports the subgraph schema for composition.
+The call to `RunWithGraphQLCommands(args)` enables `#!shell dotnet run -- schema export`, which is how Fusion exports the subgraph schema for composition.
 
 ### Step 2: Convert Entity Resolution to Lookups
 
@@ -514,7 +514,7 @@ Place this file next to your project. The `name` field must be unique across all
 
 Run the schema export command:
 
-```bash
+```shell
 dotnet run -- schema export
 ```
 
@@ -526,7 +526,7 @@ Replace Apollo Router with a Fusion gateway ASP.NET Core project.
 
 ### Step 1: Create the Gateway Project
 
-```bash
+```shell
 dotnet new web -n Gateway
 cd Gateway
 dotnet add package HotChocolate.Fusion.AspNetCore
@@ -601,7 +601,7 @@ app.Run();
 
 Compose your subgraph schemas into a gateway archive:
 
-```bash
+```shell
 nitro fusion compose \
   --source-schema-file ./products/schema.graphqls \
   --source-schema-file ./reviews/schema.graphqls \
@@ -610,7 +610,7 @@ nitro fusion compose \
 
 Then start the gateway:
 
-```bash
+```shell
 cd Gateway
 dotnet run
 ```
@@ -633,7 +633,7 @@ In the Apollo workflow, publishing a subgraph triggers server-side composition. 
 
 **Apollo:**
 
-```bash
+```shell
 rover subgraph publish my-graph@production \
   --name products \
   --schema ./schema.graphqls \
@@ -642,7 +642,7 @@ rover subgraph publish my-graph@production \
 
 **Fusion:**
 
-```bash
+```shell
 # Step 1: Upload the source schema
 nitro fusion upload \
   --source-schema-file ./schema.graphqls \
@@ -662,7 +662,7 @@ nitro fusion publish \
 
 **Apollo:**
 
-```bash
+```shell
 rover subgraph check my-graph@production \
   --name products \
   --schema ./schema.graphqls
@@ -670,7 +670,7 @@ rover subgraph check my-graph@production \
 
 **Fusion:**
 
-```bash
+```shell
 nitro fusion validate \
   --source-schema-file ./schema.graphqls \
   --stage production \
@@ -682,13 +682,13 @@ nitro fusion validate \
 
 **Apollo:**
 
-```bash
+```shell
 rover supergraph compose --config ./supergraph-config.yaml --output supergraph.graphql
 ```
 
 **Fusion:**
 
-```bash
+```shell
 nitro fusion compose \
   --source-schema-file ./products/schema.graphqls \
   --source-schema-file ./reviews/schema.graphqls \
@@ -748,7 +748,7 @@ If you have spent significant time with Apollo Federation, some habits need adju
 
 ## Entity Resolution Is Explicit and Testable
 
-In Apollo Federation, entity resolution happens through a hidden protocol (`_entities` + `__resolveReference`). You cannot easily call `_entities` from a GraphQL client to debug resolution issues. In Fusion, entity resolution is a regular query field. You can open your IDE, call `productById(id: 1)`, and see exactly what your lookup returns. This makes debugging straightforward.
+In Apollo Federation, entity resolution happens through a hidden protocol (`_entities` + `__resolveReference`). You cannot easily call `_entities` from a GraphQL client to debug resolution issues. In Fusion, entity resolution is a regular query field. You can open your IDE, call `#!graphql productById(id: 1)`, and see exactly what your lookup returns. This makes debugging straightforward.
 
 ## You Don't Need to Think About Entity Ownership the Same Way
 
@@ -758,7 +758,7 @@ Apollo Federation has a strong concept of entity "ownership": one subgraph is th
 
 In the Apollo workflow, composition typically happens in GraphOS when you publish a subgraph. In Fusion, composition is a command you run locally or in CI:
 
-```bash
+```shell
 nitro fusion compose --archive gateway.far
 ```
 

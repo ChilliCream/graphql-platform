@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Sdk Name="Aspire.AppHost.Sdk" Version="13.1.2" />
+  <Sdk Name="Aspire.AppHost.Sdk" Version="13.6.1" />
   <PropertyGroup>
+    <AspireUseCliBundle>true</AspireUseCliBundle>
     <OutputType>Exe</OutputType>
     <AssemblyName>HotChocolate.Demo.AppHost</AssemblyName>
     <RootNamespace>HotChocolate.Demo.AppHost</RootNamespace>
@@ -9,6 +10,8 @@
     <PackageReference Include="Aspire.Hosting.AppHost" />
     <PackageReference Include="Aspire.Hosting.RabbitMQ" />
     <PackageReference Include="Aspire.Hosting.PostgreSQL" />
+    <!-- Dependency of Aspire.Hosting.AppHost. Pinned to secure version. -->
+    <PackageReference Include="MessagePack" VersionOverride="2.5.307" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Demo.Catalog\Demo.Catalog.csproj" />

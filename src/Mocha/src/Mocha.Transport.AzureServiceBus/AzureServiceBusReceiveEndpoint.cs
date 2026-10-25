@@ -1,7 +1,6 @@
 using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Mocha.Features;
 using Mocha.Transport.AzureServiceBus.Features;
 
 namespace Mocha.Transport.AzureServiceBus;
@@ -198,12 +197,20 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
     }
 
     /// <summary>
-    /// Handles an error reported by either Azure Service Bus processor. Transient errors are logged
-    /// as warnings and other errors as failures. Processor retry and connection recovery remain the
+    /// Handles an error reported by either Azure Service Bus processor. A handler cancelled because
+    /// the processor is stopping is expected and not logged. Transient errors are logged as warnings
+    /// and other errors as failures. Processor retry and connection recovery remain the
     /// responsibility of the Azure Service Bus SDK.
     /// </summary>
     private Task OnProcessorError(ProcessErrorEventArgs args)
     {
+        // The SDK reports a handler that threw because the processor is stopping. The pipeline has
+        // already abandoned the message, or the SDK abandons it after this handler returns.
+        if (args.Exception is OperationCanceledException && args.CancellationToken.IsCancellationRequested)
+        {
+            return Task.CompletedTask;
+        }
+
         // Transient/recoverable conditions are surfaced as warnings; only unknown faults escalate to error.
         if (IsTransientProcessorError(args.Exception))
         {
@@ -218,9 +225,10 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
     }
 
     /// <summary>
-    /// Stops when the messaging runtime deactivates this endpoint, then disposes the processor and
-    /// heartbeat resources. For a temporary endpoint, also removes the Mocha-owned, auto-provisioned
-    /// forwarding subscriptions that route to this endpoint's queue.
+    /// Stops when the messaging runtime deactivates this endpoint, then disposes the heartbeat and
+    /// processor resources. Disposal is best-effort: a failure while releasing either resource is
+    /// logged as a warning and does not fail the stop. For a temporary endpoint, also removes the
+    /// Mocha-owned, auto-provisioned forwarding subscriptions that route to this endpoint's queue.
     /// </summary>
     protected override async ValueTask OnStopAsync(
         IMessagingRuntimeContext context,
@@ -242,13 +250,29 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
         {
             if (_heartbeat is not null)
             {
-                await _heartbeat.DisposeAsync();
+                try
+                {
+                    await _heartbeat.DisposeAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.HeartbeatDisposeFailed(ex, Queue.Name);
+                }
+
                 _heartbeat = null;
             }
 
             if (_processor is not null)
             {
-                await _processor.DisposeAsync();
+                try
+                {
+                    await _processor.DisposeAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.ProcessorDisposeFailed(ex, Queue.Name);
+                }
+
                 _processor = null;
             }
         }
@@ -374,6 +398,22 @@ internal static partial class Logs
 
     [LoggerMessage(LogLevel.Warning, "Failed to delete temporary Azure Service Bus queue '{QueueName}'")]
     public static partial void TemporaryQueueCleanupFailed(
+        this ILogger logger,
+        Exception exception,
+        string queueName);
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "Failed to dispose the keep-alive heartbeat for Azure Service Bus queue '{QueueName}'")]
+    public static partial void HeartbeatDisposeFailed(
+        this ILogger logger,
+        Exception exception,
+        string queueName);
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "Failed to dispose the Azure Service Bus processor for queue '{QueueName}'")]
+    public static partial void ProcessorDisposeFailed(
         this ILogger logger,
         Exception exception,
         string queueName);

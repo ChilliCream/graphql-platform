@@ -17,14 +17,20 @@ public sealed class TuiShellQuitGateTests
     private static ConsoleKeyInfo KeyInfo(char keyChar, ConsoleKey key) =>
         new(keyChar, key, shift: false, alt: false, control: false);
 
-    private static readonly TuiEvent.KeyEvent QuitKey = new(KeyInfo('q', ConsoleKey.Q));
-    private static readonly TuiEvent.KeyEvent YesKey = new(KeyInfo('y', ConsoleKey.Y));
-    private static readonly TuiEvent.KeyEvent NoKey = new(KeyInfo('n', ConsoleKey.N));
+    private static readonly TuiEvent.KeyEvent s_quitKey = new(KeyInfo('q', ConsoleKey.Q));
+    private static readonly TuiEvent.KeyEvent s_yesKey = new(KeyInfo('y', ConsoleKey.Y));
+    private static readonly TuiEvent.KeyEvent s_noKey = new(KeyInfo('n', ConsoleKey.N));
 
-    private static readonly TimeSpan ShortDrainBound = TimeSpan.FromMilliseconds(200);
+    private static readonly TimeSpan s_shortDrainBound = TimeSpan.FromMilliseconds(200);
 
     private static TuiShell CreateShell(FakeTuiMode mode, params TuiQuitGate[] quitGates) =>
-        new(new KeyDispatcher(KeyMap.CreateDefaultGlobal()), mode, 80, 24, quitGates: quitGates);
+        new(
+            new KeyDispatcher(KeyMap.CreateDefaultGlobal()),
+            mode,
+            80,
+            24,
+            agentStore: new Agents.FakeAgentStore(TimeProvider.System),
+            quitGates: quitGates);
 
     private static TuiShell CreateShell(FakeTuiMode mode, TimeSpan quitGateDrainBound, params TuiQuitGate[] quitGates) =>
         new(
@@ -32,6 +38,7 @@ public sealed class TuiShellQuitGateTests
             mode,
             80,
             24,
+            agentStore: new Agents.FakeAgentStore(TimeProvider.System),
             quitGates: quitGates,
             quitGateDrainBound: quitGateDrainBound);
 
@@ -64,10 +71,10 @@ public sealed class TuiShellQuitGateTests
         var shell = CreateShell(new FakeTuiMode(), FixedGate(TuiQuitGateReport.Clear));
         var confirmed = false;
         shell.QuitConfirmed += () => confirmed = true;
-        shell.Handle(QuitKey);
+        shell.Handle(s_quitKey);
 
         // act
-        var dirty = shell.Handle(YesKey);
+        var dirty = shell.Handle(s_yesKey);
 
         // assert
         Assert.True(dirty);
@@ -82,10 +89,10 @@ public sealed class TuiShellQuitGateTests
         var shell = CreateShell(new FakeTuiMode(), FixedGate(report));
         var confirmed = false;
         shell.QuitConfirmed += () => confirmed = true;
-        shell.Handle(QuitKey);
+        shell.Handle(s_quitKey);
 
         // act
-        var dirty = shell.Handle(YesKey);
+        var dirty = shell.Handle(s_yesKey);
 
         // assert
         Assert.True(dirty);
@@ -103,10 +110,10 @@ public sealed class TuiShellQuitGateTests
         var shell = CreateShell(new FakeTuiMode(), FixedGate(report));
         var confirmed = false;
         shell.QuitConfirmed += () => confirmed = true;
-        shell.Handle(QuitKey);
+        shell.Handle(s_quitKey);
 
         // act
-        shell.Handle(YesKey);
+        shell.Handle(s_yesKey);
 
         // assert
         Assert.False(confirmed);
@@ -122,11 +129,11 @@ public sealed class TuiShellQuitGateTests
         var shell = CreateShell(new FakeTuiMode(), FixedGate(report, invocations));
         var confirmed = false;
         shell.QuitConfirmed += () => confirmed = true;
-        shell.Handle(QuitKey);
-        shell.Handle(YesKey);
+        shell.Handle(s_quitKey);
+        shell.Handle(s_yesKey);
 
         // act
-        var dirty = shell.Handle(YesKey);
+        var dirty = shell.Handle(s_yesKey);
 
         // assert
         Assert.True(dirty);
@@ -144,11 +151,11 @@ public sealed class TuiShellQuitGateTests
         var shell = CreateShell(new FakeTuiMode(), FixedGate(report));
         var confirmed = false;
         shell.QuitConfirmed += () => confirmed = true;
-        shell.Handle(QuitKey);
-        shell.Handle(YesKey);
+        shell.Handle(s_quitKey);
+        shell.Handle(s_yesKey);
 
         // act
-        var dirty = shell.Handle(NoKey);
+        var dirty = shell.Handle(s_noKey);
 
         // assert
         Assert.True(dirty);
@@ -166,11 +173,11 @@ public sealed class TuiShellQuitGateTests
         var quitCancelledCount = 0;
         shell.QuitConfirmed += () => quitConfirmed = true;
         shell.QuitCancelled += () => quitCancelledCount++;
-        shell.Handle(QuitKey);
-        shell.Handle(YesKey);
+        shell.Handle(s_quitKey);
+        shell.Handle(s_yesKey);
 
         // act
-        var dirty = shell.Handle(NoKey);
+        var dirty = shell.Handle(s_noKey);
 
         // assert
         Assert.True(dirty);
@@ -185,10 +192,10 @@ public sealed class TuiShellQuitGateTests
         var shell = CreateShell(new FakeTuiMode());
         var quitCancelledCount = 0;
         shell.QuitCancelled += () => quitCancelledCount++;
-        shell.Handle(QuitKey);
+        shell.Handle(s_quitKey);
 
         // act
-        var dirty = shell.Handle(NoKey);
+        var dirty = shell.Handle(s_noKey);
 
         // assert
         Assert.True(dirty);
@@ -198,48 +205,56 @@ public sealed class TuiShellQuitGateTests
     [Fact]
     public async Task Handle_Should_ConfirmQuit_When_QueuedEffectCompletesDuringTheGate()
     {
-        // Exercises a real TuiEffectQueue wired into the shell as a TuiQuitGate, with
-        // the effect resolving DURING the gate's bounded drain.
-        // arrange
+        // arrange: a real TuiEffectQueue wired in as a gate, with the effect resolving during the drain
         var testToken = TestContext.Current.CancellationToken;
         var queue = new TuiEffectQueue<string>();
+        var effectEntered = new TaskCompletionSource();
         var release = new TaskCompletionSource();
+        var gateEntered = new TaskCompletionSource();
+        IReadOnlyList<TuiEffectCompletion<string>> completions = [];
 
         async Task<string> Effect(TuiOperationId id, CancellationToken ct)
         {
+            effectEntered.SetResult();
             await release.Task.WaitAsync(TimeSpan.FromSeconds(5), ct);
             return "done";
         }
 
-        queue.TrySubmit("compose", Effect, testToken, out _);
+        TuiQuitGate gate = async (bound, ct) =>
+        {
+            queue.StopAccepting();
+            gateEntered.SetResult();
+            await queue.DrainPendingAsync(bound, ct);
+            completions = queue.DrainCompletions();
+            var outcomeUnknownCount = completions.Count(
+                completion => completion is TuiEffectCompletion<string>.Faulted or TuiEffectCompletion<string>.Cancelled);
+            return new TuiQuitGateReport(queue.PendingCount, outcomeUnknownCount, queue.PendingOperationIds);
+        };
 
-        var shell = CreateShell(new FakeTuiMode(), QueueGate(queue));
+        queue.TrySubmit("compose", Effect, testToken, out _);
+        await effectEntered.Task.WaitAsync(testToken);
+
+        var shell = CreateShell(new FakeTuiMode(), gate);
         var confirmed = false;
         shell.QuitConfirmed += () => confirmed = true;
-        shell.Handle(QuitKey);
-
-        _ = Task.Run(
-            async () =>
-            {
-                await Task.Delay(50, testToken);
-                release.SetResult();
-            },
-            testToken);
+        shell.Handle(s_quitKey);
 
         // act
-        var dirty = shell.Handle(YesKey);
+        var handleTask = Task.Run(() => shell.Handle(s_yesKey), testToken);
+        await gateEntered.Task.WaitAsync(testToken);
+        release.SetResult();
+        var dirty = await handleTask;
 
         // assert
         Assert.True(dirty);
         Assert.True(confirmed);
-        Assert.DoesNotContain("stored-but-pending", RenderToText(shell));
+        var completed = Assert.IsType<TuiEffectCompletion<string>.Completed>(Assert.Single(completions));
+        Assert.Equal("done", completed.Result);
     }
 
     [Fact]
     public async Task Handle_Should_ShowSecondConfirmation_When_QueuedEffectOutlivesTheGate()
     {
-        // Exercises a real TuiEffectQueue wired into the shell as a TuiQuitGate, with
-        // the effect still running AFTER the gate's bounded drain expires.
         // arrange
         var testToken = TestContext.Current.CancellationToken;
         var queue = new TuiEffectQueue<string>();
@@ -253,13 +268,13 @@ public sealed class TuiShellQuitGateTests
 
         queue.TrySubmit("compose", NeverCooperatesWithTheBound, testToken, out _);
 
-        var shell = CreateShell(new FakeTuiMode(), ShortDrainBound, QueueGate(queue));
+        var shell = CreateShell(new FakeTuiMode(), s_shortDrainBound, QueueGate(queue));
         var confirmed = false;
         shell.QuitConfirmed += () => confirmed = true;
-        shell.Handle(QuitKey);
+        shell.Handle(s_quitKey);
 
         // act
-        var dirty = shell.Handle(YesKey);
+        var dirty = shell.Handle(s_yesKey);
 
         // assert
         Assert.True(dirty);
@@ -276,13 +291,13 @@ public sealed class TuiShellQuitGateTests
     {
         // arrange
         TuiQuitGate ignoringGate = (_, _) => new TaskCompletionSource<TuiQuitGateReport>().Task;
-        var shell = CreateShell(new FakeTuiMode(), ShortDrainBound, ignoringGate);
+        var shell = CreateShell(new FakeTuiMode(), s_shortDrainBound, ignoringGate);
         var confirmed = false;
         shell.QuitConfirmed += () => confirmed = true;
-        shell.Handle(QuitKey);
+        shell.Handle(s_quitKey);
 
         // act
-        var dirty = shell.Handle(YesKey);
+        var dirty = shell.Handle(s_yesKey);
 
         // assert
         Assert.True(dirty);
@@ -298,10 +313,10 @@ public sealed class TuiShellQuitGateTests
         var shell = CreateShell(new FakeTuiMode(), gate);
         var confirmed = false;
         shell.QuitConfirmed += () => confirmed = true;
-        shell.Handle(QuitKey);
+        shell.Handle(s_quitKey);
 
         // act
-        var dirty = shell.Handle(YesKey);
+        var dirty = shell.Handle(s_yesKey);
 
         // assert
         Assert.True(dirty);
@@ -317,10 +332,10 @@ public sealed class TuiShellQuitGateTests
         var shell = CreateShell(new FakeTuiMode(), gate);
         var confirmed = false;
         shell.QuitConfirmed += () => confirmed = true;
-        shell.Handle(QuitKey);
+        shell.Handle(s_quitKey);
 
         // act
-        var dirty = shell.Handle(YesKey);
+        var dirty = shell.Handle(s_yesKey);
 
         // assert
         Assert.True(dirty);
@@ -335,10 +350,10 @@ public sealed class TuiShellQuitGateTests
         var healthy = new TuiQuitGateReport(1, 0, [TuiOperationId.New()]);
         TuiQuitGate faulting = (_, _) => throw new InvalidOperationException("boom");
         var shell = CreateShell(new FakeTuiMode(), FixedGate(healthy), faulting);
-        shell.Handle(QuitKey);
+        shell.Handle(s_quitKey);
 
         // act
-        shell.Handle(YesKey);
+        shell.Handle(s_yesKey);
 
         // assert
         var text = RenderToText(shell);
@@ -349,8 +364,6 @@ public sealed class TuiShellQuitGateTests
     [Fact]
     public async Task Handle_Should_ConfirmQuit_When_QueuedEffectCompletedBeforeTheGate()
     {
-        // Exercises a real TuiEffectQueue wired into the shell as a TuiQuitGate, with
-        // the effect already resolved BEFORE the gate ever runs.
         // arrange
         var testToken = TestContext.Current.CancellationToken;
         var queue = new TuiEffectQueue<string>();
@@ -363,10 +376,10 @@ public sealed class TuiShellQuitGateTests
         var shell = CreateShell(new FakeTuiMode(), QueueGate(queue));
         var confirmed = false;
         shell.QuitConfirmed += () => confirmed = true;
-        shell.Handle(QuitKey);
+        shell.Handle(s_quitKey);
 
         // act
-        var dirty = shell.Handle(YesKey);
+        var dirty = shell.Handle(s_yesKey);
 
         // assert
         Assert.True(dirty);
@@ -381,10 +394,10 @@ public sealed class TuiShellQuitGateTests
         var first = new TuiQuitGateReport(1, 0, [TuiOperationId.New()]);
         var second = new TuiQuitGateReport(0, 2, [TuiOperationId.New(), TuiOperationId.New()]);
         var shell = CreateShell(new FakeTuiMode(), FixedGate(first), FixedGate(second));
-        shell.Handle(QuitKey);
+        shell.Handle(s_quitKey);
 
         // act
-        shell.Handle(YesKey);
+        shell.Handle(s_yesKey);
 
         // assert
         var text = RenderToText(shell);

@@ -1,3 +1,4 @@
+using CookieCrumble.Resources;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -7,11 +8,10 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
-using Squadron;
 
 namespace HotChocolate.Data.MongoDb.Filters;
 
-public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
+public class MongoDbAggregateFluentTests
 {
     private static readonly Foo[] s_fooEntities =
     [

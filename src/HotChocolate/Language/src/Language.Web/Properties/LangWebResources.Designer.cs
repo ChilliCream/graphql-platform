@@ -75,12 +75,6 @@ namespace HotChocolate.Language.Properties {
             }
         }
         
-        internal static string ThrowHelper_UnknownRequestProperty {
-            get {
-                return ResourceManager.GetString("ThrowHelper_UnknownRequestProperty", resourceCulture);
-            }
-        }
-        
         internal static string ThrowHelper_InvalidQueryValue {
             get {
                 return ResourceManager.GetString("ThrowHelper_InvalidQueryValue", resourceCulture);

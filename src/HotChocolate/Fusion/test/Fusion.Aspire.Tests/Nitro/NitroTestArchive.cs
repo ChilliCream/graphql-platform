@@ -22,7 +22,7 @@ internal static class NitroTestArchive
                 new ArchiveMetadata
                 {
                     SupportedGatewayFormats = [WellKnownVersions.LatestGatewayFormatVersion],
-                    SourceSchemas = [..sourceSchemaNames]
+                    SourceSchemas = [.. sourceSchemaNames]
                 },
                 cancellationToken);
 
@@ -48,7 +48,7 @@ internal static class NitroTestArchive
                 new ArchiveMetadata
                 {
                     SupportedGatewayFormats = [WellKnownVersions.LatestGatewayFormatVersion],
-                    SourceSchemas = [..sourceSchemas.Select(sourceSchema => sourceSchema.Name)]
+                    SourceSchemas = [.. sourceSchemas.Select(sourceSchema => sourceSchema.Name)]
                 },
                 cancellationToken);
 
@@ -76,7 +76,7 @@ internal static class NitroTestArchive
         using var archive = FusionArchive.Open(archivePath);
         var names = await archive.GetSourceSchemaNamesAsync(cancellationToken);
 
-        return [..names];
+        return [.. names];
     }
 }
 

@@ -8,9 +8,11 @@ namespace HotChocolate.Adapters.Mcp.Handlers;
 
 internal static class ReadResourceHandler
 {
-    public static ReadResourceResult Handle(RequestContext<ReadResourceRequestParams> context)
+    public static ReadResourceResult Handle(
+        RequestContext<ReadResourceRequestParams> context,
+        IServiceProvider schemaServices)
     {
-        var registry = context.Services!.GetRequiredService<McpFeatureRegistry>();
+        var registry = schemaServices.GetRequiredService<McpFeatureRegistry>();
 
         if (!registry.TryGetToolByViewResourceUri(context.Params!.Uri, out var tool))
         {

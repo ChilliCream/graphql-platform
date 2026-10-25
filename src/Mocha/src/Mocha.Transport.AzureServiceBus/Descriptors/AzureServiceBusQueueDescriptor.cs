@@ -193,6 +193,13 @@ internal sealed class AzureServiceBusQueueDescriptor
         return this;
     }
 
+    public void Configure(Action<IReceiveMiddlewareProvider> configure)
+    {
+        ArgumentNullException.ThrowIfNull(configure);
+
+        Configuration.ConfigureReceiveEndpoint.Add(configure);
+    }
+
     public IAzureServiceBusQueueDescriptor FaultEndpoint(Uri address)
     {
         EnsureAbsoluteAddress(address);
@@ -260,7 +267,15 @@ internal sealed class AzureServiceBusQueueDescriptor
     public IAzureServiceBusQueueDescriptor BindFrom(Uri source)
     {
         ArgumentNullException.ThrowIfNull(source);
-        Configuration.SourceTopics.Add(source);
+        Configuration.SourceTopics.Add(new AzureServiceBusQueueSourceTopicConfiguration { Source = source });
+        return this;
+    }
+
+    public IAzureServiceBusQueueDescriptor BindFrom(Uri source, bool autoProvision)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        Configuration.SourceTopics.Add(
+            new AzureServiceBusQueueSourceTopicConfiguration { Source = source, AutoProvision = autoProvision });
         return this;
     }
 

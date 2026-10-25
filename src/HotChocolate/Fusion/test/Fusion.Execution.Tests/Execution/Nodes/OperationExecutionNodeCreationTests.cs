@@ -144,7 +144,7 @@ public sealed class OperationExecutionNodeCreationTests : FusionTestBase
 
         var builder = services
             .AddGraphQLGateway()
-            .AddInMemoryConfiguration(ComposeSchemaDocument(SourceSchemaA, SourceSchemaB));
+            .AddInMemoryConfiguration(ComposeSchemaDocument(defaultListSize: 1, SourceSchemaA, SourceSchemaB));
 
         builder.Services.AddSingleton<ISourceSchemaClientFactory>(new RecordingClientFactory(client));
 

@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>HotChocolate.CostAnalysis.Fuzz</AssemblyName>
+    <RootNamespace>HotChocolate.CostAnalysis.Fuzz</RootNamespace>
+    <TargetFrameworks>net11.0</TargetFrameworks>
+    <IsPackable>false</IsPackable>
+    <NoWarn>HC8002;$(NoWarn)</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\..\src\CostAnalysis\HotChocolate.CostAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\..\Core\src\Types.OffsetPagination\HotChocolate.Types.OffsetPagination.csproj" />
+    <ProjectReference Include="..\..\..\..\Data\src\Data\HotChocolate.Data.csproj" />
+    <ProjectReference Include="..\..\..\..\Mutable\src\Types.Mutable\HotChocolate.Types.Mutable.csproj" />
+  </ItemGroup>
+
+</Project>

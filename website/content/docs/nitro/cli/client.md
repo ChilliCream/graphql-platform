@@ -42,6 +42,8 @@ nitro client create --name "<name>" --api-id "<api-id>"
 
 # `nitro client upload`
 
+Nitro: 10.6.0
+
 Upload a new client version with the operations the client sends. The version is identified by a tag and is not yet published to any stage.
 
 ```shell
@@ -71,6 +73,8 @@ nitro client upload \
 ```
 
 # `nitro client publish`
+
+Nitro: 10.6.0
 
 Publish a previously uploaded client version to a stage. The version is identified by its tag.
 
@@ -114,6 +118,8 @@ nitro client publish \
 
 # `nitro client validate`
 
+Nitro: 10.6.0
+
 Validate a new client version against a stage without publishing it. Run this in your pull request validation workflow to catch breaking operations before they are merged.
 
 ```shell
@@ -144,6 +150,8 @@ nitro client validate \
 
 # `nitro client unpublish`
 
+Nitro: 10.6.0
+
 Unpublish one or more client version tags from a stage. The version is not deleted, only removed from the stage.
 
 ```shell
@@ -155,11 +163,12 @@ nitro client unpublish \
 
 ## Options
 
-| Option                    | Env               | Description                                                                                      |
-| ------------------------- | ----------------- | ------------------------------------------------------------------------------------------------ |
-| `--client-id <client-id>` | `NITRO_CLIENT_ID` | ID of the client. Required.                                                                      |
-| `--stage <stage>`         | `NITRO_STAGE`     | Name of the stage to unpublish from. Required.                                                   |
-| `--tag <tag>`             | `NITRO_TAG`       | Tag of the client version to unpublish. Pass multiple times to unpublish several tags. Required. |
+| Option                    | Env               | Description                                                                                                                           |
+| ------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `--client-id <client-id>` | `NITRO_CLIENT_ID` | ID of the client. Required.                                                                                                           |
+| `--stage <stage>`         | `NITRO_STAGE`     | Name of the stage to unpublish from. Required.                                                                                        |
+| `--tag <tag>`             | `NITRO_TAG`       | Tag of the client version to unpublish. Pass multiple times to unpublish several tags. Required.                                      |
+| `--force`                 |                   | Unpublish the version even when the client's unpublish protection rules (minimum age, newest versions, or recent traffic) protect it. |
 
 ## Examples
 
@@ -180,6 +189,16 @@ nitro client unpublish \
   --stage "dev" \
   --tag "v1" \
   --tag "v2"
+```
+
+Unpublish a protected version:
+
+```shell
+nitro client unpublish \
+  --client-id "<client-id>" \
+  --stage "dev" \
+  --tag "<tag>" \
+  --force
 ```
 
 # `nitro client download`

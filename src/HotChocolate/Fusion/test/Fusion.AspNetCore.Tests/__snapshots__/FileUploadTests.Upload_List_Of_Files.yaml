@@ -104,7 +104,7 @@ sourceSchemas:
             Content-Type: application/json; charset=utf-8
             Content-Disposition: form-data; name=operations
 
-            {"query":"query Op_c3581bf2_1($files: [Upload!]!) {\n  multiUpload(files: $files) {\n    fileName\n    contentType\n    content\n  }\n}","variables":{"files":[null,null]}}
+            {"query":"query Op_c3581bf2_1($files: [Upload!]!) { multiUpload(files: $files) { fileName contentType content } }","variables":{"files":[null,null]}}
             --f56524ab-5626-4955-b296-234a097b44f6
             Content-Type: application/json; charset=utf-8
             Content-Disposition: form-data; name=map
@@ -150,7 +150,7 @@ operationPlan:
             content
           }
         }
-      hash: c3581bf2cf7060a7017061aeff52e0e0
+      hash: be970cff8388ba4a3531bbb57997ab00
       searchSpace: 1
       expandedNodes: 1
   nodes:

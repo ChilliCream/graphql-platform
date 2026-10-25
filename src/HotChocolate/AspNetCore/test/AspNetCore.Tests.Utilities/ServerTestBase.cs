@@ -12,7 +12,9 @@ using Moq;
 
 namespace HotChocolate.AspNetCore.Tests.Utilities;
 
-public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFixture<TestServerFactory>
+public abstract class ServerTestBase(TestServerFactory serverFactory)
+    : IClassFixture<TestServerFactory>
+    , IAsyncDisposable
 {
     protected TestServerFactory ServerFactory { get; } = serverFactory;
 
@@ -36,6 +38,7 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                     .AddSingleton(mockHostEnvironment.Object)
                     .AddRouting()
                     .AddGraphQLServer()
+                    .ModifyCostOptions(o => o.DefaultListSize = 1)
                     .AddHttpResponseFormatter()
                     .AddStarWarsTypes()
                     .AddTypeExtension<QueryExtension>()
@@ -59,7 +62,7 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                     .UseDocumentParser()
                     .UseDocumentValidation()
                     .UseOperationCache()
-                    .UseOperationResolver()
+                    .UseOperationCompiler()
                     .UseOperationVariableCoercion()
                     .UseOperationExecution()
                     .ConfigureSchemaServices(
@@ -71,6 +74,7 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                             o.EnableStream = true;
                         })
                     .AddGraphQLServer("StarWars")
+                    .ModifyCostOptions(o => o.DefaultListSize = 1)
                     .AddStarWarsTypes()
                     .AddGraphQLServer("evict")
                     .AddQueryType(d => d.Name("Query"))
@@ -144,6 +148,7 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
             services => services
                 .AddRouting()
                 .AddGraphQLServer()
+                .ModifyCostOptions(o => o.DefaultListSize = 1)
                 .AddHttpResponseFormatter()
                 .AddStarWarsTypes()
                 .AddTypeExtension<QueryExtension>()
@@ -159,6 +164,16 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                 .UseWebSockets()
                 .UseRouting()
                 .UseEndpoints(endpoints => configureConventions?.Invoke(endpoints)));
+    }
+
+    /// <summary>
+    /// Disposes the servers the current test created.
+    /// </summary>
+    public virtual ValueTask DisposeAsync()
+    {
+        ServerFactory.DisposeServers();
+
+        return ValueTask.CompletedTask;
     }
 
     [DirectiveType(DirectiveLocation.Subscription)]

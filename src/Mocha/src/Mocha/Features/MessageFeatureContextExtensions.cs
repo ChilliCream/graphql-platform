@@ -1,5 +1,3 @@
-using Mocha.Features;
-
 namespace Mocha;
 
 /// <summary>

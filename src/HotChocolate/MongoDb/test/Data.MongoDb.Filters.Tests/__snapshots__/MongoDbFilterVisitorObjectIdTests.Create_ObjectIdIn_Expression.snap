@@ -25,12 +25,6 @@ band6124e80f3f5fc839830c1f6b
   "errors": [
     {
       "message": "The provided value for filter `in` of type ObjectIdOperationFilterInput is invalid. Null values are not supported.",
-      "locations": [
-        {
-          "line": 2,
-          "column": 35
-        }
-      ],
       "path": [
         "root"
       ],
@@ -53,12 +47,6 @@ nullAnd6124e80f3f5fc839830c1f6b
   "errors": [
     {
       "message": "The provided value for filter `in` of type ObjectIdOperationFilterInput is invalid. Null values are not supported.",
-      "locations": [
-        {
-          "line": 2,
-          "column": 35
-        }
-      ],
       "path": [
         "root"
       ],

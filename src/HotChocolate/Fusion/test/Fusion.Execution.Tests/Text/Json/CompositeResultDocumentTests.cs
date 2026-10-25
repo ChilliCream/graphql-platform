@@ -1451,4 +1451,39 @@ public class CompositeResultDocumentTests : FusionTestBase
         var json = Encoding.UTF8.GetString(memoryStream.ToArray());
         json.MatchSnapshot();
     }
+
+    [Fact]
+    public void CreateCompactPath_Should_AllocatePath_When_PathPoolWasDetached()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                productBySlug(slug: "1") {
+                    id
+                }
+            }
+            """);
+
+        using var pool = new PathSegmentLocalPool(capacity: 64);
+        var compositeResult = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0, pathPool: pool);
+        var productBySlug = compositeResult.Data.GetProperty("productBySlug");
+        var pooledPath = productBySlug.CompactPath;
+        var freeBeforeDetach = pool.FreeCount;
+        compositeResult.DetachPathPool();
+
+        // act
+        var allocatedPath = productBySlug.CompactPath;
+
+        // assert
+        Assert.Equal(31, freeBeforeDetach);
+        Assert.Equal(31, pool.FreeCount);
+        // an allocated path is exact sized, a pooled one has the segment array size
+        Assert.Equal(2, allocatedPath.UnsafeGetBackingArray()!.Length);
+        Assert.NotSame(pooledPath.UnsafeGetBackingArray(), allocatedPath.UnsafeGetBackingArray());
+        Assert.Equal(pooledPath, allocatedPath);
+    }
 }

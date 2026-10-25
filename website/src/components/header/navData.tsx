@@ -25,6 +25,7 @@ import {
   STRAWBERRY_SHAKE_ARTWORK,
   StrawberryShake,
 } from "@/src/icons/StrawberryShake";
+import { VideoIcon } from "@/src/icons/Video";
 import { XIcon } from "@/src/icons/X";
 import { YouTubeIcon } from "@/src/icons/YouTube";
 import type { ComponentType, SVGProps } from "react";
@@ -32,6 +33,7 @@ import type { ComponentType, SVGProps } from "react";
 export const TOOLS = {
   blog: "/blog",
   comparison: "/comparison",
+  videos: "/videos",
   github: GITHUB_REPO_URL,
   linkedIn: "https://www.linkedin.com/company/chillicream",
   nitro: "https://nitro.chillicream.com",
@@ -223,6 +225,7 @@ export const NAV_ITEMS: NavItem[] = [
         title: "Additional Resources",
         links: [
           { href: TOOLS.blog, label: "Blog", icon: BlogIcon },
+          { href: TOOLS.videos, label: "Videos", icon: VideoIcon },
           {
             href: TOOLS.comparison,
             label: "Comparison",

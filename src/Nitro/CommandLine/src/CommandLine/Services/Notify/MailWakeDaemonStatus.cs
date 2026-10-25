@@ -1,17 +1,15 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 
 /// <summary>
-/// One <see cref="IMailWakeDaemonCoordinator"/> instance's current, in-memory
-/// view of its own leadership. <see cref="OwnerId"/> and <see cref="Epoch"/>
-/// are both null outside <see cref="MailWakeDaemonState.Ready"/>.
+/// The coordinator's latest leadership snapshot, with an owner token that may
+/// remain set during stopping or degradation until the next standby observation.
 /// </summary>
 internal sealed record MailWakeDaemonStatus(
     MailWakeDaemonState State,
-    string? OwnerId,
-    long? Epoch,
+    string? OwnerToken,
     DateTimeOffset? LeaseExpiresAt,
     string? LastError)
 {
     public static readonly MailWakeDaemonStatus Initial =
-        new(MailWakeDaemonState.Standby, null, null, null, null);
+        new(MailWakeDaemonState.Standby, null, null, null);
 }

@@ -193,4 +193,80 @@ public class ResultTypeGeneratorTests
                 ",
             "extend schema @key(fields: \"id\")");
     }
+
+    [Fact]
+    public void Generate_Should_TypeFieldPerImplementation_When_CovariantMergingEnabled()
+    {
+        AssertResult(
+            new AssertSettings { StrictValidation = true, EnableCovariantFieldMerging = true },
+            """
+            query GetLocations {
+                location {
+                    ... on Port {
+                        countryCode
+                    }
+                    ... on Warehouse {
+                        countryCode
+                    }
+                }
+            }
+            """,
+            """
+            interface Location {
+                countryCode: String
+            }
+
+            type Port implements Location {
+                countryCode: String!
+            }
+
+            type Warehouse implements Location {
+                countryCode: String
+            }
+
+            type Query {
+                location: Location
+                port: Port
+            }
+            """,
+            "extend schema @key(fields: \"id\")");
+    }
+
+    [Fact]
+    public void Generate_Should_KeepInterfaceFragmentNullable_When_CovariantMergingEnabled()
+    {
+        AssertResult(
+            new AssertSettings { StrictValidation = true, EnableCovariantFieldMerging = true },
+            """
+            query GetPort {
+                port {
+                    ...LocationFields
+                    countryCode
+                }
+            }
+
+            fragment LocationFields on Location {
+                countryCode
+            }
+            """,
+            """
+            interface Location {
+                countryCode: String
+            }
+
+            type Port implements Location {
+                countryCode: String!
+            }
+
+            type Warehouse implements Location {
+                countryCode: String
+            }
+
+            type Query {
+                location: Location
+                port: Port
+            }
+            """,
+            "extend schema @key(fields: \"id\")");
+    }
 }

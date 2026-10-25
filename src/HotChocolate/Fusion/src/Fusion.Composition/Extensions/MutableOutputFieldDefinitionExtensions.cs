@@ -55,6 +55,14 @@ internal static class MutableOutputFieldDefinitionExtensions
                     && (string)d.Arguments[ArgumentNames.Schema].Value! == schemaName);
         }
 
+        /// <summary>
+        /// Determines whether the field is a <c>viewer</c> field without arguments that returns the
+        /// type of <paramref name="queryViewerField"/>.
+        /// </summary>
+        public bool IsViewerFieldFor(MutableOutputFieldDefinition queryViewerField)
+            => field is { Name: WellKnownFieldNames.Viewer, Arguments.Count: 0 }
+                && ReferenceEquals(field.Type.NamedType(), queryViewerField.Type.NamedType());
+
         public string? GetFusionFieldProvides(string schemaName)
         {
             var fusionFieldDirective =

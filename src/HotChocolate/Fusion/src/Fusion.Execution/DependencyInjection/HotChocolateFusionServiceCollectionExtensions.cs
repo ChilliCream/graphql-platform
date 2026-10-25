@@ -6,6 +6,7 @@ using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Http;
 using Microsoft.Extensions.ObjectPool;
 using Microsoft.Extensions.Options;
 
@@ -77,7 +78,8 @@ public static class HotChocolateFusionServiceCollectionExtensions
     {
         services.AddSingleton<ISourceSchemaClientFactory>(
             static sp => new HttpSourceSchemaClientFactory(
-                sp.GetRequiredService<IHttpClientFactory>()));
+                sp.GetRequiredService<IHttpClientFactory>(),
+                sp.GetService<IOptionsMonitor<HttpClientFactoryOptions>>()));
 
         services.TryAddSingleton<ISourceSchemaClientScopeFactory>(
             static sp => new DefaultSourceSchemaClientScopeFactory(
@@ -133,12 +135,11 @@ public static class HotChocolateFusionServiceCollectionExtensions
                 return new DefaultDocumentCache(options.OperationDocumentCacheSize);
             });
 
+        var schemaName = builder.Name;
+
+        // The document cache is registered as an instance so that the schema service provider never disposes it.
         return builder.ConfigureSchemaServices(
-            static (applicationServices, s) =>
-                s.AddSingleton(schemaServices =>
-                {
-                    var schemaName = schemaServices.GetRequiredService<ISchemaDefinition>().Name;
-                    return applicationServices.GetRequiredKeyedService<IDocumentCache>(schemaName);
-                }));
+            (applicationServices, s) =>
+                s.AddSingleton(applicationServices.GetRequiredKeyedService<IDocumentCache>(schemaName)));
     }
 }

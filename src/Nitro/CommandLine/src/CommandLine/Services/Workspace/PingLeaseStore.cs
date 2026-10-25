@@ -10,12 +10,7 @@ internal sealed class PingLeaseStore(IFileSystem fileSystem, AgentDatabase datab
         await using var connection = await ConnectAsync(cancellationToken);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
-        // Stealing an expired lease's slot happens by simply deleting it
-        // before looking for a free slot: every caller's hard timeout
-        // bounds its own attempt's digest and transport work against an
-        // absolute deadline fixed once at lease acquisition, keeping a
-        // margin under the lease duration it acquired, so a lease past its
-        // own `expires_at` is expected to already be released.
+        // Expired leases no longer occupy a slot.
         await using (var expireCommand = connection.CreateCommand())
         {
             expireCommand.Transaction = (SqliteTransaction)transaction;
@@ -47,8 +42,6 @@ internal sealed class PingLeaseStore(IFileSystem fileSystem, AgentDatabase datab
 
         if (freeSlot is null)
         {
-            // Every slot is held by an unexpired lease: capacity-dropped,
-            // the caller's job to record.
             await transaction.CommitAsync(cancellationToken);
             return null;
         }

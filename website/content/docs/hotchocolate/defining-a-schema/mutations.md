@@ -295,7 +295,7 @@ There are three ways to map an exception to a schema error:
 
 **Map the exception directly.** Annotate `[Error(typeof(MyException))]`. The exception's `Message` property becomes the error message. This is the quickest approach.
 
-**Map with a factory method.** Create an error class with a `public static CreateErrorFrom(MyException ex)` method. This lets you control the error shape and hide internal details.
+**Map with a factory method.** Create an error class with a `#!csharp public static CreateErrorFrom(MyException ex)` method. This lets you control the error shape and hide internal details.
 
 ```csharp
 public class UserNameTakenError

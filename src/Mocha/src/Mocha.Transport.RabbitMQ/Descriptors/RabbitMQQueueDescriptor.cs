@@ -165,6 +165,14 @@ internal sealed class RabbitMQQueueDescriptor
     }
 
     /// <inheritdoc />
+    public void Configure(Action<IReceiveMiddlewareProvider> configure)
+    {
+        ArgumentNullException.ThrowIfNull(configure);
+
+        Configuration.ConfigureReceiveEndpoint.Add(configure);
+    }
+
+    /// <inheritdoc />
     public IRabbitMQQueueDescriptor FaultEndpoint(Uri address)
     {
         ArgumentNullException.ThrowIfNull(address);
@@ -218,6 +226,20 @@ internal sealed class RabbitMQQueueDescriptor
         ArgumentNullException.ThrowIfNull(source);
         Configuration.SourceBindings.Add(
             new RabbitMQQueueSourceBindingConfiguration { Source = source, RoutingKey = routingKey });
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IRabbitMQQueueDescriptor BindFrom(Uri source, string? routingKey, bool autoProvision)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        Configuration.SourceBindings.Add(
+            new RabbitMQQueueSourceBindingConfiguration
+            {
+                Source = source,
+                RoutingKey = routingKey,
+                AutoProvision = autoProvision
+            });
         return this;
     }
 

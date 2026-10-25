@@ -15,17 +15,17 @@ response:
         "trendingMedia": [
           {
             "__typename": "Book",
-            "id": "TWVkaWE6MQ==",
+            "id": "TWVkaWE6MzYwMDExMzk5Mg==",
             "views": 123
           },
           {
             "__typename": "Book",
-            "id": "TWVkaWE6Mg==",
+            "id": "TWVkaWE6Mzg1ODYyNDc0NA==",
             "views": 123
           },
           {
             "__typename": "Book",
-            "id": "TWVkaWE6Mw==",
+            "id": "TWVkaWE6MTQ5MDg3Nzcy",
             "views": 123
           }
         ]
@@ -70,13 +70,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "TWVkaWE6MQ=="
+                "__fusion_1_id": "TWVkaWE6MzYwMDExMzk5Mg=="
               },
               {
-                "__fusion_1_id": "TWVkaWE6Mg=="
+                "__fusion_1_id": "TWVkaWE6Mzg1ODYyNDc0NA=="
               },
               {
-                "__fusion_1_id": "TWVkaWE6Mw=="
+                "__fusion_1_id": "TWVkaWE6MTQ5MDg3Nzcy"
               }
             ]
         response:
@@ -138,15 +138,15 @@ sourceSchemas:
                 "data": {
                   "trendingMedia": [
                     {
-                      "id": "TWVkaWE6MQ==",
+                      "id": "TWVkaWE6MzYwMDExMzk5Mg==",
                       "views": 123
                     },
                     {
-                      "id": "TWVkaWE6Mg==",
+                      "id": "TWVkaWE6Mzg1ODYyNDc0NA==",
                       "views": 123
                     },
                     {
-                      "id": "TWVkaWE6Mw==",
+                      "id": "TWVkaWE6MTQ5MDg3Nzcy",
                       "views": 123
                     }
                   ]
@@ -164,7 +164,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: c56715340e963d08d0911cbe2073e28b
+      hash: 00cb81fc064440fba262229bbb083182
       searchSpace: 1
       expandedNodes: 2
   nodes:

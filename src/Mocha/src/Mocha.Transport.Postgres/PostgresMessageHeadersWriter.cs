@@ -73,6 +73,11 @@ internal static class PostgresMessageHeadersWriter
             writer.WriteEndArray();
         }
 
+        if (envelope.SentAt is { } sentAt)
+        {
+            writer.WriteString(PostgresMessageHeaders.SentAt, sentAt);
+        }
+
         if (envelope.DeliverBy is { } deliverBy)
         {
             writer.WriteString(PostgresMessageHeaders.DeliverBy, deliverBy.ToString("O"));
@@ -87,7 +92,7 @@ internal static class PostgresMessageHeadersWriter
         {
             foreach (var header in envelope.Headers)
             {
-                if (header.Value is not null)
+                if (header.Value is not null && header.Key != "sentAt")
                 {
                     writer.WritePropertyName(header.Key);
                     JsonSerializer.Serialize(writer, header.Value, header.Value.GetType());

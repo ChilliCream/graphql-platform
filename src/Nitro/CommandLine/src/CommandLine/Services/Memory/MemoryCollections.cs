@@ -2,8 +2,7 @@ namespace ChilliCream.Nitro.CommandLine.Services.Memory;
 
 /// <summary>
 /// The memory collections a read can target: the curated store, the journal,
-/// or both. The journal collection is always empty until the journal
-/// capture slice lands.
+/// or both.
 /// </summary>
 internal static class MemoryCollections
 {

@@ -18,5 +18,9 @@ public sealed class SortCostOptions
     /// <summary>
     /// Gets or sets multiplier when a variable is used for the sort argument.
     /// </summary>
+    [Obsolete(
+        "The variable multiplier is retired. The cost analyzer evaluates coerced "
+        + "variable values directly and no longer needs a compensating multiplier.",
+        error: true)]
     public int? VariableMultiplier { get; set; } = 5;
 }

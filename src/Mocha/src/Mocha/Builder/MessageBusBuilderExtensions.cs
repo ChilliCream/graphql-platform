@@ -1,5 +1,4 @@
 using Mocha.Events;
-using Mocha.Features;
 
 namespace Mocha;
 

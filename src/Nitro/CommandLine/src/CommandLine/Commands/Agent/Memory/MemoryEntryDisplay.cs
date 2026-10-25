@@ -1,11 +1,10 @@
-using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Memory;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Memory;
 
 /// <summary>
 /// Renders a <see cref="MemoryEntryResult"/> the same way in <c>search</c>
-/// and <c>recent</c>, whichever collection it came from.
+/// and <c>recent</c>.
 /// </summary>
 internal static class MemoryEntryDisplay
 {

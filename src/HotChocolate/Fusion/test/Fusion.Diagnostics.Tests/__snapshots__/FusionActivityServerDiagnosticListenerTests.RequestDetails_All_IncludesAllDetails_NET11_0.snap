@@ -259,7 +259,7 @@
                         },
                         {
                           "Key": "graphql.operation.step.plan.id",
-                          "Value": "466a33f19f251992b1c039991522ac203713e6455df2875d5f47474800631435"
+                          "Value": "0050fcccafcaf6804dc3be9b2f9f619349c96948d6ae235de5094c4c465d410c"
                         },
                         {
                           "Key": "graphql.source_schema.name",
@@ -271,7 +271,7 @@
                         },
                         {
                           "Key": "graphql.source_schema.operation.hash",
-                          "Value": "sha256:107e4091ec962487f26df0844464aa76452bc9039d604d80523fc66325c088bc"
+                          "Value": "sha256:540ddceefd00d90c12f44f13ab15cfc5400a4cc70fa8aa93480b964678a55663"
                         }
                       ],
                       "event": [],
@@ -351,6 +351,27 @@
                       ]
                     }
                   ]
+                },
+                {
+                  "OperationName": "GraphQL Complexity Analysis",
+                  "DisplayName": "GraphQL Complexity Analysis",
+                  "Kind": "Internal",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:111e40f921c6c6a35bc7eb0e3873630e"
+                    },
+                    {
+                      "Key": "graphql.operation.fieldCost",
+                      "Value": 0.0
+                    },
+                    {
+                      "Key": "graphql.operation.typeCost",
+                      "Value": 1.0
+                    }
+                  ],
+                  "event": []
                 }
               ]
             },

@@ -186,7 +186,8 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             return;
         }
 
-        if (mutation.Member is not null)
+        if (mutation.Member is not null
+            && (mutation.Flags & CoreFieldFlags.SourceGenerator) != CoreFieldFlags.SourceGenerator)
         {
             var argumentNameMap = TypeMemHelper.RentArgumentNameMap();
 

@@ -27,7 +27,7 @@ internal sealed class ReceiveDeadLetterMiddleware(
         {
             await next(context);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!context.CancellationToken.IsCancellationRequested)
         {
             logger.ExceptionOccurred(ex);
         }

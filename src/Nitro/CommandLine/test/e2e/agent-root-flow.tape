@@ -42,7 +42,7 @@ Type `nitro agent` Enter
 # Initial frame: same sentinel as board-flow.tape's first Wait+Screen (the
 # Tasks tab's board, focus on "Blocked", selection on acme-a1b), now with
 # the tab strip rendered above it.
-Wait+Screen@30s /> ○ \[B\] P0 acme-a1b Checkout crashes on Safari/
+Wait+Screen@30s /> ○ +bug +P0 +acme-a1b +Checkout crashes on Safari/
 
 # 'q' requests quit; the shell renders the "Quit? (y/n)" confirmation dialog.
 Type "q"
@@ -54,7 +54,9 @@ Type "y"
 Sleep 500ms
 Type `echo "agent-root-flow: back at the shell"` Enter
 
-Wait+Screen@30s /agent-root-flow: back at the shell/
+# The typed command line itself contains the sentinel, so the wait requires
+# a second occurrence: the echo's own output line.
+Wait+Screen@30s /agent-root-flow: back at the shell[\s\S]*agent-root-flow/
 Sleep 1500ms
 Screenshot agent-root-flow-final.png
 Sleep 500ms

@@ -1,3 +1,4 @@
+using CookieCrumble.Resources;
 using GreenDonut;
 using HotChocolate.Data.Data;
 using HotChocolate.Data.Migrations;
@@ -11,7 +12,6 @@ using HotChocolate.Types.Relay;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
@@ -805,6 +805,7 @@ public sealed partial class IntegrationTests(PostgreSqlResource resource)
 
         services
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddCustomTypes()
             .AddGlobalObjectIdentification()
             .AddPagingArguments()

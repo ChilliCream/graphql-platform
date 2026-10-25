@@ -1,20 +1,3 @@
-## Running commands
-
-Website dependencies and tooling run only inside the frontend container.
-`yarn install` on the host is blocked by design. Run commands through the
-wrapper. The paths below are relative to the repository root, not to
-`website/`:
-
-```bash
-website/scripts/frontend-container.sh up
-website/scripts/frontend-container.sh exec -- yarn lint
-website/scripts/frontend-container.sh exec -- yarn format
-website/scripts/frontend-container.sh exec -- yarn format:check
-```
-
-The dev server is at <http://localhost:3031>. VS Code users can instead open
-the `ChilliCream Frontend` devcontainer, which uses the same image.
-
 <!-- BEGIN:nextjs-agent-rules -->
 
 # This is NOT the Next.js you know
@@ -29,6 +12,9 @@ When creating or editing content under `content/docs/` or `content/blog/`, follo
 the conventions in [README.md → Authoring Markdown Content](./README.md#authoring-markdown-content).
 It covers frontmatter, `structure.yaml` sidebars, links, images, YouTube videos,
 admonitions, Mermaid diagrams, and MDX gotchas.
+
+When creating or editing a video under `content/videos/`, also follow
+[README.md → Videos](./README.md#videos) for the file name and frontmatter.
 
 # Components
 
@@ -90,9 +76,7 @@ helper classes. Avoid ad-hoc `text-4xl`-style sizes for display headings.
 
 ## Before you finish
 
-- Verify visually against the running dev server
-  (`website/scripts/frontend-container.sh dev`, at <http://localhost:3031>).
-- `website/scripts/frontend-container.sh exec -- yarn lint` must pass.
-- `website/scripts/frontend-container.sh exec -- yarn format` must be run and
-  `website/scripts/frontend-container.sh exec -- yarn format:check` must pass
-  (Prettier formatting, including Tailwind class sorting, is enforced in CI).
+- Verify visually against the running dev server (`npm run dev`).
+- `npx eslint <changed files>` must pass.
+- `npm run format` must be run and `npm run format:check` must pass (Prettier
+  formatting, including Tailwind class sorting, is enforced in CI).

@@ -61,6 +61,33 @@ internal sealed class BatchCollector<TEvent> : IAsyncDisposable
         return entry;
     }
 
+    /// <summary>
+    /// Removes an entry that has not been emitted in a batch yet.
+    /// </summary>
+    /// <returns><c>true</c> if the entry was removed; <c>false</c> if it was already emitted.</returns>
+    public bool TryRemove(BufferedEntry<TEvent> entry)
+    {
+        lock (_sync)
+        {
+            for (var i = 0; i < _buffer.Count; i++)
+            {
+                if (_buffer[i].Task == entry.Task)
+                {
+                    _buffer.RemoveAt(i);
+
+                    if (_buffer.Count == 0)
+                    {
+                        _delay.Cancel();
+                    }
+
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     private async ValueTask OnDelayElapsed()
     {
         MessageBatch<TEvent>? batch;

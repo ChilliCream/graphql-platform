@@ -24,7 +24,7 @@ public class QueryableStringContainsHandler : QueryableStringOperationHandler
 
         if (parsedValue is null)
         {
-            throw new GraphQLException(ErrorHelper.CreateNonNullError(field, value, context));
+            throw new GraphQLException(ErrorHelper.CreateNonNullError(field, context));
         }
 
         return FilterExpressionBuilder.Contains(property, parsedValue);

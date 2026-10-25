@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.AspNetCore.Formatters;
+using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
 using HotChocolate.Text.Json;
@@ -18,13 +19,16 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
 {
     private readonly ISocketSessionInterceptor _interceptor;
     private readonly IWebSocketPayloadFormatter _formatter;
+    private readonly IServerDiagnosticEvents _diagnosticEvents;
 
     public ApolloSubscriptionProtocolHandler(
         ISocketSessionInterceptor interceptor,
-        IWebSocketPayloadFormatter formatter)
+        IWebSocketPayloadFormatter formatter,
+        IServerDiagnosticEvents diagnosticEvents)
     {
         _interceptor = interceptor;
         _formatter = formatter;
+        _diagnosticEvents = diagnosticEvents;
     }
 
     public string Name => GraphQL_WS;
@@ -113,6 +117,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
             if (connectionStatus.Accepted)
             {
                 ((WebSocketConnection)connection).IsConnected = true;
+                _diagnosticEvents.WebSocketConnectionInitialized(session, operationMessageObj);
                 await SendConnectionAcceptMessage(
                     session,
                     connectionStatus.Extensions,

@@ -11,7 +11,7 @@ Here is what you are building:
 
 # Create the project
 
-```bash
+```shell
 dotnet new web -n MochaQuickStart
 cd MochaQuickStart
 ```
@@ -20,7 +20,7 @@ cd MochaQuickStart
 
 You need two packages: the core bus and the InMemory transport.
 
-```bash
+```shell
 dotnet add package Mocha
 dotnet add package Mocha.Transport.InMemory
 ```
@@ -116,13 +116,13 @@ Each registration line has a single responsibility:
 
 Run the app:
 
-```bash
+```shell
 dotnet run
 ```
 
 Check your console output for the actual URL. ASP.NET Core's default port may differ depending on your SDK version and launch settings. Then, in another terminal, send a POST request using that URL:
 
-```bash
+```shell
 curl -X POST http://localhost:5000/orders
 ```
 

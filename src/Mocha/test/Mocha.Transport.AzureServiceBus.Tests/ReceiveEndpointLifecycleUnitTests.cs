@@ -1,6 +1,7 @@
 using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Mocha.Transport.AzureServiceBus.Tests.Helpers;
 
 namespace Mocha.Transport.AzureServiceBus.Tests;
@@ -170,7 +171,7 @@ public sealed class ReceiveEndpointLifecycleUnitTests
                 MaxConcurrentSessions: 6,
                 MaxConcurrentCallsPerSession: 1,
                 MaxAutoLockRenewalDuration: TimeSpan.FromMinutes(5),
-                SessionIdleTimeout: (TimeSpan?)null,
+                SessionIdleTimeout: null,
                 ReceiveMode: ServiceBusReceiveMode.PeekLock,
                 AutoCompleteMessages: false),
             (created.Options.PrefetchCount,
@@ -267,6 +268,83 @@ public sealed class ReceiveEndpointLifecycleUnitTests
     }
 
     [Fact]
+    public async Task OnStopAsync_Should_CompleteStopAndLogWarning_When_ProcessorDisposeFails()
+    {
+        // arrange
+        var loggerProvider = CapturingLoggerProvider.For<AzureServiceBusReceiveEndpoint>();
+        var client = new FakeServiceBusClient(_ => null);
+        var services = new ServiceCollection();
+        services.AddSingleton<ServiceBusClient>(client);
+        services.AddSingleton<ServiceBusAdministrationClient>(new FakeServiceBusAdministrationClient());
+        services.AddLogging(b => b.AddProvider(loggerProvider));
+        var builder = services
+            .AddMessageBus()
+            .AddConsumer<NoOpConsumer>()
+            .AddAzureServiceBus(t =>
+            {
+                t.AutoProvision(false);
+                t.Endpoint("dispose-failure-ep").Consumer<NoOpConsumer>().Queue("dispose-failure");
+            });
+        await using var bus = await builder.BuildTestBusAsync();
+
+        var runtime = (MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>();
+        var transport = runtime.Transports.OfType<AzureServiceBusMessagingTransport>().Single();
+        var endpoint = transport.ReceiveEndpoints.Single(e => e != transport.ReplyReceiveEndpoint);
+        var failure = new TimeoutException("link drain timed out");
+        var created = client.CreatedProcessors.Single(p => p.QueueName == "dispose-failure");
+        created.Processor.CloseFailure = failure;
+
+        // act - releasing the processor is best-effort cleanup; a failure while closing the
+        // underlying AMQP link must not fail the stop
+        await endpoint.StopAsync(runtime, Xunit.TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.False(endpoint.IsStarted);
+        var entry = Assert.Single(loggerProvider.Entries, e => e.Exception is not null);
+        Assert.Equal(LogLevel.Warning, entry.Level);
+        Assert.Same(failure, entry.Exception);
+    }
+
+    [Fact]
+    public async Task OnStopAsync_Should_DisposeProcessor_When_HeartbeatDisposeFails()
+    {
+        // arrange
+        var loggerProvider = CapturingLoggerProvider.For<AzureServiceBusReceiveEndpoint>();
+        var client = new FakeServiceBusClient(_ => null);
+        var services = new ServiceCollection();
+        services.AddSingleton<ServiceBusClient>(client);
+        services.AddSingleton<ServiceBusAdministrationClient>(new FakeServiceBusAdministrationClient());
+        services.AddLogging(b => b.AddProvider(loggerProvider));
+        var builder = services
+            .AddMessageBus()
+            .AddRequestHandler<GetOrderStatusHandler>()
+            .AddAzureServiceBus(t => t.AutoProvision(false));
+        await using var bus = await builder.BuildTestBusAsync();
+
+        var runtime = (MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>();
+        var transport = runtime.Transports.OfType<AzureServiceBusMessagingTransport>().Single();
+        var replyEndpoint = (AzureServiceBusReceiveEndpoint)(transport.ReplyReceiveEndpoint
+            ?? throw new InvalidOperationException("Expected a reply receive endpoint to be configured."));
+
+        // the request-handler endpoint also creates a processor, so the reply endpoint under
+        // test is singled out by its own queue name
+        var processor = client.CreatedProcessors.Single(p => p.QueueName == replyEndpoint.Queue.Name).Processor;
+        var receiver = client.CreatedReceivers.Single();
+        var failure = new TimeoutException("receiver close timed out");
+        receiver.OnDisposing = () => throw failure;
+
+        // act
+        await replyEndpoint.StopAsync(runtime, Xunit.TestContext.Current.CancellationToken);
+
+        // assert - the heartbeat's failure is logged and the processor is still disposed
+        Assert.False(replyEndpoint.IsStarted);
+        Assert.True(processor.IsClosed);
+        var entry = Assert.Single(loggerProvider.Entries, e => e.Exception is not null);
+        Assert.Equal(LogLevel.Warning, entry.Level);
+        Assert.Same(failure, entry.Exception);
+    }
+
+    [Fact]
     public async Task OnProcessorError_Should_NotResurrectEndpoint_When_RaisedAfterStop()
     {
         // arrange
@@ -306,8 +384,117 @@ public sealed class ReceiveEndpointLifecycleUnitTests
         Assert.False(endpoint.IsStarted);
     }
 
+    [Fact]
+    public async Task StopAsync_Should_StopRemainingEndpoints_When_AnEndpointFailsToStop()
+    {
+        // arrange
+        var client = new FakeServiceBusClient(_ => null);
+        var services = new ServiceCollection();
+        services.AddSingleton<ServiceBusClient>(client);
+        services.AddSingleton<ServiceBusAdministrationClient>(new FakeServiceBusAdministrationClient());
+        var builder = services
+            .AddMessageBus()
+            .AddConsumer<NoOpConsumer>()
+            .AddAzureServiceBus(t =>
+            {
+                t.AutoProvision(false);
+                t.Endpoint("first-ep").Consumer<NoOpConsumer>().Queue("first");
+                t.Endpoint("second-ep").Consumer<NoOpConsumer>().Queue("second");
+            });
+        await using var bus = await builder.BuildTestBusAsync();
+
+        var runtime = (MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>();
+        var transport = runtime.Transports.OfType<AzureServiceBusMessagingTransport>().Single();
+        // the endpoint that is stopped first fails, so every later endpoint depends on the stop continuing
+        var failing = (AzureServiceBusReceiveEndpoint)transport.ReceiveEndpoints.First();
+        var failure = new TimeoutException("stop processing timed out");
+        client.CreatedProcessors.Single(p => p.QueueName == failing.Queue.Name).Processor.OnStopProcessing =
+            () => throw failure;
+
+        // act
+        var exception = await Assert.ThrowsAsync<TimeoutException>(
+            () => runtime.StopAsync(Xunit.TestContext.Current.CancellationToken).AsTask());
+
+        // assert
+        Assert.Same(failure, exception);
+        Assert.All(transport.ReceiveEndpoints.Where(e => e != failing), e => Assert.False(e.IsStarted));
+        Assert.True(transport.IsStarted);
+        Assert.False(runtime.IsStarted);
+    }
+
+    [Fact]
+    public async Task ProcessMessageAsync_Should_ThrowOperationCanceled_When_ProcessorCancelledProcessing()
+    {
+        // arrange
+        var client = new FakeServiceBusClient(_ => null);
+        var services = new ServiceCollection();
+        services.AddSingleton<ServiceBusClient>(client);
+        services.AddSingleton<ServiceBusAdministrationClient>(new FakeServiceBusAdministrationClient());
+        var builder = services
+            .AddMessageBus()
+            .AddConsumer<NoOpConsumer>()
+            .AddAzureServiceBus(t =>
+            {
+                t.AutoProvision(false);
+                t.Endpoint("cancelled-ep").Consumer<NoOpConsumer>().Queue("cancelled");
+            });
+        await using var bus = await builder.BuildTestBusAsync();
+        var processor = client.CreatedProcessors.Single(p => p.QueueName == "cancelled").Processor;
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync();
+        var args = new ProcessMessageEventArgs(
+            ServiceBusModelFactory.ServiceBusReceivedMessage(messageId: "m-1"),
+            new FakeServiceBusReceiver(),
+            cts.Token);
+
+        // act
+        // the SDK abandons an unsettled message only when the handler throws, so cancellation must bubble
+        var exception = await Record.ExceptionAsync(() => processor.RaiseProcessMessageAsync(args));
+
+        // assert
+        Assert.IsType<OperationCanceledException>(exception);
+    }
+
+    [Fact]
+    public async Task ProcessMessageAsync_Should_ThrowOperationCanceled_When_SessionProcessorCancelledProcessing()
+    {
+        // arrange
+        var client = new FakeServiceBusClient(_ => null);
+        var services = new ServiceCollection();
+        services.AddSingleton<ServiceBusClient>(client);
+        services.AddSingleton<ServiceBusAdministrationClient>(new FakeServiceBusAdministrationClient());
+        var builder = services
+            .AddMessageBus()
+            .AddConsumer<NoOpConsumer>()
+            .AddAzureServiceBus(t =>
+            {
+                t.AutoProvision(false);
+                t.DeclareQueue("cancelled-session").RequiresSession();
+                t.Endpoint("cancelled-session-ep").Consumer<NoOpConsumer>().Queue("cancelled-session");
+            });
+        await using var bus = await builder.BuildTestBusAsync();
+        var processor = Assert.Single(client.CreatedSessionProcessors).Processor;
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync();
+        var args = new ProcessSessionMessageEventArgs(
+            ServiceBusModelFactory.ServiceBusReceivedMessage(messageId: "m-1", sessionId: "s-1"),
+            new StubSessionReceiver(),
+            cts.Token);
+
+        // act
+        var exception = await Record.ExceptionAsync(() => processor.RaiseProcessMessageAsync(args));
+
+        // assert
+        Assert.IsType<OperationCanceledException>(exception);
+    }
+
     public sealed class NoOpConsumer : IConsumer<OrderCreated>
     {
         public ValueTask ConsumeAsync(IConsumeContext<OrderCreated> context) => default;
     }
+
+    /// <summary>
+    /// A session receiver for message event args whose handler never settles the message.
+    /// </summary>
+    private sealed class StubSessionReceiver : ServiceBusSessionReceiver;
 }

@@ -146,6 +146,13 @@ public sealed class PostgresMessagingTransportDescriptor
         return this;
     }
 
+    /// <inheritdoc />
+    public IPostgresMessagingTransportDescriptor AutoMigrate(bool autoMigrate)
+    {
+        Configuration.AutoMigrate = autoMigrate;
+        return this;
+    }
+
     /// <inheritdoc  />
     public IPostgresMessagingTransportDescriptor ConnectionString(string connectionString)
     {
@@ -288,14 +295,17 @@ public sealed class PostgresMessagingTransportDescriptor
         var schema = Configuration.Schema ?? PostgresTransportConfiguration.DefaultSchema;
         foreach (var source in configuration.SourceBindings)
         {
-            if (!PostgresDestinations.TryResolveSourceTopic(schema, source, out var topicName))
+            if (!PostgresDestinations.TryResolveSourceTopic(schema, source.Source, out var topicName))
             {
                 throw new InvalidOperationException(
-                    $"BindFrom source '{source}' could not be resolved to a PostgreSQL topic name.");
+                    $"BindFrom source '{source.Source}' could not be resolved to a PostgreSQL topic name.");
             }
 
             DeclareTopic(topicName);
-            DeclareSubscription(topicName, configuration.Name!);
+            var subscriptionConfiguration = DeclareSubscription(topicName, configuration.Name!).Extend().Configuration;
+
+            // Keep AutoProvision if DeclareSubscription set it, otherwise take it from BindFrom, then from the queue.
+            subscriptionConfiguration.AutoProvision ??= source.AutoProvision ?? configuration.Queue.AutoProvision;
         }
     }
 
@@ -330,6 +340,11 @@ public sealed class PostgresMessagingTransportDescriptor
         target.ReceivePipelineModifiers.AddRange(configuration.ReceivePipelineModifiers);
         CopyFaultEndpointFeature(configuration, target);
         CopySkippedEndpointFeature(configuration, target);
+
+        foreach (var configure in configuration.ConfigureReceiveEndpoint)
+        {
+            configure(endpoint);
+        }
     }
 
     private static void CopyFaultEndpointFeature(

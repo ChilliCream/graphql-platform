@@ -73,15 +73,15 @@ sourceSchemas:
                   "abstractTypes": [
                     {
                       "__typename": "Discussion",
-                      "id": "RGlzY3Vzc2lvbjox"
+                      "id": "RGlzY3Vzc2lvbjo4NDU0NzcwNDE="
                     },
                     {
                       "__typename": "Author",
-                      "id": "QXV0aG9yOjI="
+                      "id": "QXV0aG9yOjI0NTA2NDI1Nw=="
                     },
                     {
                       "__typename": "Discussion",
-                      "id": "RGlzY3Vzc2lvbjoz"
+                      "id": "RGlzY3Vzc2lvbjoyOTQ5OTQ1OTg1"
                     }
                   ]
                 }
@@ -126,10 +126,10 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "RGlzY3Vzc2lvbjox"
+                "__fusion_1_id": "RGlzY3Vzc2lvbjo4NDU0NzcwNDE="
               },
               {
-                "__fusion_1_id": "RGlzY3Vzc2lvbjoz"
+                "__fusion_1_id": "RGlzY3Vzc2lvbjoyOTQ5OTQ1OTg1"
               }
             ]
         response:
@@ -188,7 +188,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_2_id": "QXV0aG9yOjI="
+              "__fusion_2_id": "QXV0aG9yOjI0NTA2NDI1Nw=="
             }
         response:
           results:
@@ -213,7 +213,7 @@ operationPlan:
             }
           }
         }
-      hash: 3902e3a186739fe80e8ac3851d657af5
+      hash: 7028707ab1fc36d5df264f08e38deb99
       searchSpace: 1
       expandedNodes: 2
   nodes:

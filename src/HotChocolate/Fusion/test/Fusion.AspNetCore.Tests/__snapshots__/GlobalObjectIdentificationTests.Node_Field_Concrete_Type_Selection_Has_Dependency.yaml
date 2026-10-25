@@ -24,7 +24,7 @@ response:
           "id": "RGlzY3Vzc2lvbjox",
           "viewerRating": 123.456,
           "product": {
-            "name": "Product: UHJvZHVjdDox"
+            "name": "Product: UHJvZHVjdDo4OTEyMTMyMzc="
           }
         }
       }
@@ -82,7 +82,7 @@ sourceSchemas:
                     "id": "RGlzY3Vzc2lvbjox",
                     "viewerRating": 123.456,
                     "product": {
-                      "id": "UHJvZHVjdDox"
+                      "id": "UHJvZHVjdDo4OTEyMTMyMzc="
                     }
                   }
                 }
@@ -119,7 +119,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_id": "UHJvZHVjdDox"
+              "__fusion_1_id": "UHJvZHVjdDo4OTEyMTMyMzc="
             }
         response:
           results:
@@ -128,7 +128,7 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "Product",
-                    "name": "Product: UHJvZHVjdDox"
+                    "name": "Product: UHJvZHVjdDo4OTEyMTMyMzc="
                   }
                 }
               }
@@ -149,7 +149,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 163be4ff29c153b6f235a2c4f2f1b2ad
+      hash: 4a17fb2d30420cec2ec0addc85b06e92
       searchSpace: 1
       expandedNodes: 3
   nodes:

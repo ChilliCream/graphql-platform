@@ -58,7 +58,16 @@ public abstract class FilterVisitorBase<TContext, T>
 
         if (context.Operations.Peek() is IFilterField field and not IOrField and not IAndField)
         {
-            return OnFieldEnter(context, field, node);
+            var action = OnFieldEnter(context, field, node);
+
+            // a skipped field is never left, so the operation and type pushed on entering it are
+            // popped here.
+            if (action.Kind is SyntaxVisitorActionKind.Skip)
+            {
+                base.Leave(node, context);
+            }
+
+            return action;
         }
 
         return Continue;

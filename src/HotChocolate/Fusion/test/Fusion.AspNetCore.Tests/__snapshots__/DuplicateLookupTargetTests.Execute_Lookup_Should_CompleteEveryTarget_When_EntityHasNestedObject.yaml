@@ -1,0 +1,303 @@
+title: Execute_Lookup_Should_CompleteEveryTarget_When_EntityHasNestedObject
+request:
+  document: |
+    {
+      listings {
+        id
+        product {
+          upc
+          dimensions {
+            width
+            height
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "listings": [
+          {
+            "id": "1",
+            "product": {
+              "upc": "1",
+              "dimensions": {
+                "width": 120,
+                "height": 75
+              }
+            }
+          },
+          {
+            "id": "2",
+            "product": {
+              "upc": "1",
+              "dimensions": {
+                "width": 120,
+                "height": 75
+              }
+            }
+          },
+          {
+            "id": "3",
+            "product": {
+              "upc": "2",
+              "dimensions": {
+                "width": 210,
+                "height": 90
+              }
+            }
+          },
+          {
+            "id": "4",
+            "product": {
+              "upc": "3",
+              "dimensions": {
+                "width": 8,
+                "height": 12
+              }
+            }
+          },
+          {
+            "id": "5",
+            "product": {
+              "upc": "1",
+              "dimensions": {
+                "width": 120,
+                "height": 75
+              }
+            }
+          },
+          {
+            "id": "6",
+            "product": {
+              "upc": "3",
+              "dimensions": {
+                "width": 8,
+                "height": 12
+              }
+            }
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: listings-api
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        listings: [Listing!]!
+        featured: [Listing!]!
+        productByUpc(upc: ID!): Product @lookup @internal
+      }
+
+      type Listing {
+        product: Product!
+        id: String!
+        productUpc: String!
+      }
+
+      type Product @key(fields: "upc") {
+        upc: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_cfa23c89_1 {
+              listings {
+                id
+                product {
+                  upc
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "listings": [
+                    {
+                      "id": "1",
+                      "product": {
+                        "upc": "1"
+                      }
+                    },
+                    {
+                      "id": "2",
+                      "product": {
+                        "upc": "1"
+                      }
+                    },
+                    {
+                      "id": "3",
+                      "product": {
+                        "upc": "2"
+                      }
+                    },
+                    {
+                      "id": "4",
+                      "product": {
+                        "upc": "3"
+                      }
+                    },
+                    {
+                      "id": "5",
+                      "product": {
+                        "upc": "1"
+                      }
+                    },
+                    {
+                      "id": "6",
+                      "product": {
+                        "upc": "3"
+                      }
+                    }
+                  ]
+                }
+              }
+  - name: catalog-api
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        productByUpc(upc: ID!): Product @lookup
+      }
+
+      type Dimensions {
+        width: Int!
+        height: Int!
+      }
+
+      type Product @key(fields: "upc") {
+        warranty: String
+        upc: ID!
+        name: String!
+        price: Int!
+        status: ProductStatus
+        dimensions: Dimensions!
+      }
+
+      enum ProductStatus {
+        AVAILABLE
+        DISCONTINUED
+        HIDDEN @inaccessible
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_cfa23c89_2($__fusion_1_upc: ID!) {
+              productByUpc(upc: $__fusion_1_upc) {
+                dimensions {
+                  width
+                  height
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_upc": "1"
+              },
+              {
+                "__fusion_1_upc": "2"
+              },
+              {
+                "__fusion_1_upc": "3"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "productByUpc": {
+                    "dimensions": {
+                      "width": 120,
+                      "height": 75
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productByUpc": {
+                    "dimensions": {
+                      "width": 210,
+                      "height": 90
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productByUpc": {
+                    "dimensions": {
+                      "width": 8,
+                      "height": 12
+                    }
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          listings {
+            id
+            product {
+              upc
+              upc @fusion__requirement
+              dimensions {
+                width
+                height
+              }
+            }
+          }
+        }
+      hash: 680de8b17a00d7d3ef7b883394a5ccd5
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: listings-api
+      operation: |
+        query Op_cfa23c89_1 {
+          listings {
+            id
+            product {
+              upc
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: catalog-api
+      operation: |
+        query Op_cfa23c89_2($__fusion_1_upc: ID!) {
+          productByUpc(upc: $__fusion_1_upc) {
+            dimensions {
+              width
+              height
+            }
+          }
+        }
+      source: $.productByUpc
+      target: $.listings.product
+      requirements:
+        - name: __fusion_1_upc
+          selectionMap: >-
+            upc
+      dependencies:
+        - id: 1

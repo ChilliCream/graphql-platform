@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HotChocolate.Adapters.Mcp.Configuration;
 using HotChocolate.Adapters.Mcp.Diagnostics;
 using HotChocolate.Adapters.Mcp.Storage;
 using HotChocolate.Execution.Configuration;
@@ -57,6 +58,48 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task MapGraphQLMcp_Should_ResolveSchemaName_When_SingleNamedSchemaHasPostConfiguredStorage()
+    {
+        // arrange
+        var storage = new TestMcpStorage();
+        await storage.AddOrUpdateToolAsync(
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse("query GetBooks { books { title } }")),
+            TestContext.Current.CancellationToken);
+        var builder = new WebHostBuilder()
+            .ConfigureServices(
+                services =>
+                {
+                    services
+                        .AddRouting()
+                        .AddGraphQL("NamedSchema")
+                        .AddAuthorization()
+                        .AddQueryType<TestSchema.Query>()
+                        .AddMutationType<TestSchema.Mutation>()
+                        .AddInterfaceType<TestSchema.IPet>()
+                        .AddUnionType<TestSchema.IPet>()
+                        .AddObjectType<TestSchema.Cat>()
+                        .AddObjectType<TestSchema.Dog>()
+                        .AddMcp();
+                    services
+                        .AddOptions<McpSetup>("NamedSchema")
+                        .PostConfigure(setup => setup.StorageFactory = _ => storage);
+                })
+            .Configure(
+                app => app
+                    .UseRouting()
+                    .UseEndpoints(endpoints => endpoints.MapGraphQLMcp()));
+        using var server = new TestServer(builder);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal("get_books", Assert.Single(tools).Name);
+    }
+
+    [Fact]
     public void MapGraphQLMcp_Should_Throw_When_AddMcpNotCalled()
     {
         // arrange
@@ -78,6 +121,44 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
         Assert.Equal(
             "Call `AddMcp()` when configuring the GraphQL server.",
             exception.Message);
+    }
+
+    [Fact]
+    public void MapGraphQLMcp_Should_NotBuildSchema_When_Mapping()
+    {
+        // arrange
+        var schemaBuilt = false;
+        var schemaBuiltWhileMapping = false;
+        var builder = new WebHostBuilder()
+            .ConfigureServices(
+                services => services
+                    .AddRouting()
+                    .AddGraphQLServer()
+                    .ConfigureSchemaServices(_ => schemaBuilt = true)
+                    .AddAuthorization()
+                    .AddQueryType<TestSchema.Query>()
+                    .AddMutationType<TestSchema.Mutation>()
+                    .AddInterfaceType<TestSchema.IPet>()
+                    .AddUnionType<TestSchema.IPet>()
+                    .AddObjectType<TestSchema.Cat>()
+                    .AddObjectType<TestSchema.Dog>()
+                    .AddMcp()
+                    .AddMcpStorage(new TestMcpStorage()))
+            .Configure(
+                app => app
+                    .UseRouting()
+                    .UseEndpoints(
+                        endpoints =>
+                        {
+                            endpoints.MapGraphQLMcp();
+                            schemaBuiltWhileMapping = schemaBuilt;
+                        }));
+
+        // act
+        _ = new TestServer(builder);
+
+        // assert
+        Assert.False(schemaBuiltWhileMapping);
     }
 
     [Fact]
@@ -186,6 +267,7 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
                     var builder =
                         services
                             .AddGraphQLServer()
+                            .ModifyCostOptions(o => o.DefaultListSize = 1)
                             .AddAuthorization()
                             .AddMcp(configureMcpServerOptions, configureMcpServer)
                             .AddMcpStorage(storage)

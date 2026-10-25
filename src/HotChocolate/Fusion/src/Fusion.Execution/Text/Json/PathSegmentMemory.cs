@@ -31,6 +31,15 @@ internal static class PathSegmentMemory
 
     public static int SegmentArraySize => s_pool._segmentArraySize;
 
+    /// <summary>
+    /// Gets the shared pool that currently serves rentals.
+    /// </summary>
+    internal static PathSegmentPool Current => s_pool;
+
+    /// <summary>
+    /// Replaces the shared pool and disposes the previous one. Arrays of the previous pool
+    /// are not accepted by the replacement.
+    /// </summary>
     public static void Reconfigure(Func<PathSegmentPool> factory)
     {
         ArgumentNullException.ThrowIfNull(factory);
@@ -41,8 +50,4 @@ internal static class PathSegmentMemory
                 "The factory must create a valid pool."));
         oldPool.Dispose();
     }
-
-    public static int[] Rent() => s_pool.Rent();
-
-    public static void Return(int[] array) => s_pool.Return(array);
 }

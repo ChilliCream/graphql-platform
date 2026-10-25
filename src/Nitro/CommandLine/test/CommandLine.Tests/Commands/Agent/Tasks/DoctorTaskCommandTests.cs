@@ -62,9 +62,6 @@ public sealed class DoctorTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
         var a = await CreateTaskAsync("Task A");
         var b = await CreateTaskAsync("Task B");
-
-        // task dep add now rejects a cycle before commit, so the edges are
-        // seeded directly, as if they reached the database another way.
         await InsertDependencyAsync(a, b);
         await InsertDependencyAsync(b, a);
 
@@ -210,8 +207,7 @@ public sealed class DoctorTaskCommandTests(NitroCommandFixture fixture)
     }
 
     /// <summary>
-    /// Removes a task row directly, bypassing tombstoning, so its labels and
-    /// comments become orphans for the doctor checks to find.
+    /// Deletes the task row while retaining its dependent rows, including labels and comments.
     /// </summary>
     private async Task DeleteTaskRowAsync(string taskId, CancellationToken cancellationToken)
     {

@@ -11,6 +11,10 @@ namespace HotChocolate.Fusion.Planning.Partitioners;
 
 internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
 {
+    // An active entry-key scope whose coverage node carries no sub-selection: nothing
+    // underneath is covered, but the scope itself stays active.
+    private static readonly SelectionSetNode s_emptyEntryKeyCoverage = new([]);
+
     public SelectionSetPartitionerResult Partition(
         SelectionSetPartitionerInput input)
     {
@@ -39,7 +43,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 providerSchemas: schema.ShareableFieldRuntimeTypeRouting
                     is ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes
                         ? ImmutableHashSet.Create(StringComparer.Ordinal, input.SchemaName)
-                        : null);
+                        : null,
+                entryKeyCoverage: input.EntryKeyCoverage);
 
         return new SelectionSetPartitionerResult(
             resolvable,
@@ -87,7 +92,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         ProvidedCoverage coverage,
         FusionObjectTypeDefinition? narrowedSourceType = null,
         ImmutableHashSet<string>? providerSchemas = null,
-        ImmutableHashSet<string>? allowedRuntimeTypes = null)
+        ImmutableHashSet<string>? allowedRuntimeTypes = null,
+        SelectionSetNode? entryKeyCoverage = null)
     {
         var complexType = type as FusionComplexTypeDefinition;
         List<ISelectionNode>? resolvableSelections = null;
@@ -150,7 +156,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                                 fieldNode,
                                 GetProvidedField(fieldNode, providedSelectionSetNode),
                                 coverage,
-                                providerSchemas);
+                                providerSchemas,
+                                entryKeyCoverage);
 
                         context.PopConditions(savedCount);
 
@@ -174,7 +181,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                                 coverage,
                                 narrowedSourceType,
                                 providerSchemas,
-                                allowedRuntimeTypes);
+                                allowedRuntimeTypes,
+                                entryKeyCoverage);
 
                         CompleteSelection(inlineFragmentNode, resolvable, unresolvable, i);
                     }
@@ -495,21 +503,33 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         FieldNode fieldNode,
         FieldNode? providedFieldNode,
         ProvidedCoverage coverage,
-        ImmutableHashSet<string>? providerSchemas)
+        ImmutableHashSet<string>? providerSchemas,
+        SelectionSetNode? entryKeyCoverage)
     {
         var field = complexType.Fields.GetField(fieldNode.Name.Value, allowInaccessibleFields: true);
         field.Sources.TryGetMember(context.SchemaName, out var source);
+
+        var entryKeyCoverageField =
+            entryKeyCoverage is not null && source is { IsSourceExternal: true }
+                ? FindEntryKeyCoverageField(entryKeyCoverage, fieldNode.Name.Value)
+                : null;
 
         // With complete coverage (an event stream message shape), the provided set is all the
         // data we already have here, so a field is only resolvable when the set covers it.
         // Native ownership is ignored, which spills selections the message does not carry.
         // With partial coverage (a @provides scope), the provided set only adds fields, so an
         // uncovered field falls back to native ownership and a non-external source resolves it.
+        // A sourceExternal field (an Apollo @external key field promoted by composition) at a
+        // lookup entry root can only echo the representation the lookup was entered with, so
+        // under an active entry-key scope it additionally needs the key to cover it.
         var isResolvable = providedFieldNode is not null
             || (coverage is ProvidedCoverage.Partial
                 && source is { IsExternal: false }
                 && (!context.TreatSourceExternalAsUnresolvable
-                    || !source.IsSourceExternal));
+                    || !source.IsSourceExternal)
+                && (entryKeyCoverage is null
+                    || !source.IsSourceExternal
+                    || entryKeyCoverageField is not null));
 
         if (!isResolvable)
         {
@@ -622,6 +642,18 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 }
             }
 
+            // A field this schema resolves natively (or through @provides) legitimises nested
+            // echo underneath it, so the entry-key scope ends there. A covered sourceExternal
+            // field narrows the scope to the matching key sub-selection instead.
+            SelectionSetNode? childEntryKeyCoverage = null;
+
+            if (entryKeyCoverage is not null
+                && providedFieldNode is null
+                && source is { IsSourceExternal: true })
+            {
+                childEntryKeyCoverage = entryKeyCoverageField?.SelectionSet ?? s_emptyEntryKeyCoverage;
+            }
+
             context.Nodes.Push(fieldNode);
 
             var (resolvable, unresolvable) = RewriteSelectionSet(
@@ -639,7 +671,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                     : ProvidedCoverage.Partial,
                 narrowedSourceType,
                 childProviderSchemas,
-                allowedRuntimeTypes);
+                allowedRuntimeTypes,
+                childEntryKeyCoverage);
 
             context.Nodes.Pop();
 
@@ -721,6 +754,29 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         return new SelectionSetNode(merged);
     }
 
+    // Key selections carry no aliases, so matching is by field name, looking through
+    // inline fragments on the coverage side.
+    private static FieldNode? FindEntryKeyCoverageField(
+        SelectionSetNode entryKeyCoverage,
+        string fieldName)
+    {
+        foreach (var selection in entryKeyCoverage.Selections)
+        {
+            switch (selection)
+            {
+                case FieldNode field
+                    when field.Name.Value.Equals(fieldName, StringComparison.Ordinal):
+                    return field;
+
+                case InlineFragmentNode fragment
+                    when FindEntryKeyCoverageField(fragment.SelectionSet, fieldName) is { } nested:
+                    return nested;
+            }
+        }
+
+        return null;
+    }
+
     private (InlineFragmentNode?, InlineFragmentNode?) RewriteFragmentNode(
         Context context,
         ITypeDefinition type,
@@ -729,7 +785,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         ProvidedCoverage coverage,
         FusionObjectTypeDefinition? narrowedSourceType,
         ImmutableHashSet<string>? providerSchemas,
-        ImmutableHashSet<string>? allowedRuntimeTypes)
+        ImmutableHashSet<string>? allowedRuntimeTypes,
+        SelectionSetNode? entryKeyCoverage)
     {
         var typeCondition = type;
 
@@ -786,7 +843,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 providedFieldNode,
                 coverage,
                 narrowedSourceType,
-                providerSchemas);
+                providerSchemas,
+                entryKeyCoverage);
         }
 
         if (!typeConditionExistsInSource)
@@ -805,7 +863,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 coverage,
                 narrowedSourceType,
                 providerSchemas,
-                allowedRuntimeTypes);
+                allowedRuntimeTypes,
+                entryKeyCoverage);
 
         context.Nodes.Pop();
 
@@ -828,7 +887,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         SelectionSetNode? providedFieldNode,
         ProvidedCoverage coverage,
         FusionObjectTypeDefinition? narrowedSourceType,
-        ImmutableHashSet<string>? providerSchemas)
+        ImmutableHashSet<string>? providerSchemas,
+        SelectionSetNode? entryKeyCoverage)
     {
         if (possibleTypes.Count == 0)
         {
@@ -862,7 +922,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                     providedFieldNode,
                     coverage,
                     narrowedSourceType ?? possibleType,
-                    providerSchemas);
+                    providerSchemas,
+                    entryKeyCoverage: entryKeyCoverage);
 
             context.Nodes.Pop();
 

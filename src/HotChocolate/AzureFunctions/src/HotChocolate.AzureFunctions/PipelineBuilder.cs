@@ -14,6 +14,31 @@ internal sealed class PipelineBuilder
         return this;
     }
 
+    public PipelineBuilder UseWhen(
+        Func<HttpContext, bool> predicate,
+        Action<PipelineBuilder> configuration)
+    {
+        ArgumentNullException.ThrowIfNull(predicate);
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        var branch = new PipelineBuilder();
+        configuration(branch);
+
+        return Use(next =>
+        {
+            var branchNext = next;
+
+            // Builds the branch over this pipeline's next middleware, last component first, so a
+            // request the branch passes on continues with the rest of the pipeline.
+            for (var i = branch._components.Count - 1; i >= 0; i--)
+            {
+                branchNext = branch._components[i].Invoke(branchNext);
+            }
+
+            return context => predicate(context) ? branchNext(context) : next(context);
+        });
+    }
+
     public RequestDelegate Compile(IServiceProvider services)
     {
         ArgumentNullException.ThrowIfNull(services);

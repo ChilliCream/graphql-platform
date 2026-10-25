@@ -22,7 +22,7 @@ The api needs to be from type "Api Service" or "Api Gateway".
 
 To install the Nitro services, run the following commands in your project's root directory:
 
-```bash
+```shell
 dotnet add package ChilliCream.Nitro
 dotnet add package ChilliCream.Nitro.HotChocolate
 dotnet add package ChilliCream.Nitro.OpenTelemetry

@@ -1,7 +1,6 @@
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using NetTopologySuite.Geometries;
-using Squadron;
 using static CookieCrumble.TestEnvironment;
 
 namespace HotChocolate.Data.Spatial.Filters;
@@ -36,7 +35,7 @@ public class QueryableFilterVisitorDistanceTests
         new() { Id = 2, Bar = s_falsePolygon }
     ];
 
-    public QueryableFilterVisitorDistanceTests(PostgreSqlResource<PostgisConfig> resource)
+    public QueryableFilterVisitorDistanceTests(PostgisResource resource)
         : base(resource)
     {
     }
@@ -96,6 +95,59 @@ public class QueryableFilterVisitorDistanceTests
             .Create(Postfix([NET8_0, NET9_0], [NET10_0]))
             .AddResult(res1, "2")
             .AddResult(res2, "1")
+            .MatchAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_ApplyNoCondition_When_DistanceHasNoComparison()
+    {
+        // arrange
+        var tester = await CreateSchemaAsync<Foo, FooFilterType>(s_fooEntities);
+
+        // act
+        var res1 = await tester.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    """
+                    {
+                        root(where: {
+                            bar: {
+                                distance: {
+                                    geometry: { type: Point, coordinates: [1, 1] }
+                                }
+                            }
+                        }) {
+                            id
+                        }
+                    }
+                    """)
+                .Build(),
+            TestContext.Current.CancellationToken);
+        var res2 = await tester.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    """
+                    {
+                        root(where: {
+                            bar: {
+                                distance: {
+                                    geometry: { type: Point, coordinates: [1, 1] }
+                                    buffer: 1
+                                }
+                            }
+                        }) {
+                            id
+                        }
+                    }
+                    """)
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1, "geometry")
+            .AddResult(res2, "geometry and buffer")
             .MatchAsync(TestContext.Current.CancellationToken);
     }
 

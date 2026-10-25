@@ -13,9 +13,11 @@ internal abstract class OperationDefinition : IOperationPlanNode
     private int[] _parentDependencies = [];
     private IOperationPlanNode[] _dependents = [];
     private IOperationPlanNode[] _dependencies = [];
+    private IOperationPlanNode[] _optionalDependencies = [];
     private int _parentDependencyCount;
     private int _dependentCount;
     private int _dependencyCount;
+    private int _optionalDependencyCount;
 
     protected OperationDefinition(
         int id,
@@ -131,10 +133,10 @@ internal abstract class OperationDefinition : IOperationPlanNode
     public ReadOnlySpan<IOperationPlanNode> Dependencies => _dependencies.AsSpan(0, _dependencyCount);
 
     /// <summary>
-    /// Operation definitions never have optional dependencies, so this always
-    /// returns an empty span.
+    /// Gets the nodes this operation definition runs after without requiring them to succeed.
     /// </summary>
-    public ReadOnlySpan<IOperationPlanNode> OptionalDependencies => [];
+    public ReadOnlySpan<IOperationPlanNode> OptionalDependencies
+        => _optionalDependencies.AsSpan(0, _optionalDependencyCount);
 
     internal void AddDependency(IOperationPlanNode node)
     {
@@ -149,6 +151,21 @@ internal abstract class OperationDefinition : IOperationPlanNode
         }
 
         _dependencies[_dependencyCount++] = node;
+    }
+
+    internal void AddOptionalDependency(IOperationPlanNode node)
+    {
+        if (_optionalDependencies.Length == 0)
+        {
+            _optionalDependencies = new IOperationPlanNode[4];
+        }
+
+        if (_optionalDependencyCount == _optionalDependencies.Length)
+        {
+            Array.Resize(ref _optionalDependencies, _optionalDependencyCount * 2);
+        }
+
+        _optionalDependencies[_optionalDependencyCount++] = node;
     }
 
     internal void AddParentDependency(int parentNodeId)
@@ -193,6 +210,11 @@ internal abstract class OperationDefinition : IOperationPlanNode
             Array.Resize(ref _dependents, _dependentCount);
         }
 
+        if (_optionalDependencies.Length > _optionalDependencyCount)
+        {
+            Array.Resize(ref _optionalDependencies, _optionalDependencyCount);
+        }
+
         if (_parentDependencies.Length > _parentDependencyCount)
         {
             Array.Resize(ref _parentDependencies, _parentDependencyCount);
@@ -200,6 +222,7 @@ internal abstract class OperationDefinition : IOperationPlanNode
 
         Array.Sort(_dependencies, static (a, b) => a.Id.CompareTo(b.Id));
         Array.Sort(_dependents, static (a, b) => a.Id.CompareTo(b.Id));
+        Array.Sort(_optionalDependencies, static (a, b) => a.Id.CompareTo(b.Id));
         Array.Sort(_parentDependencies, static (a, b) => a.CompareTo(b));
     }
 }

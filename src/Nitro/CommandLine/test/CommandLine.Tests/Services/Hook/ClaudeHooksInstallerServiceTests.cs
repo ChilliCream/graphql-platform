@@ -13,7 +13,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 /// </summary>
 public sealed class ClaudeHooksInstallerServiceTests : IDisposable
 {
-    private static readonly LaunchDescriptor Descriptor = new("/home/agent/.dotnet/tools/nitro", []);
+    private static readonly LaunchDescriptor s_descriptor = new("/home/agent/.dotnet/tools/nitro", []);
 
     private readonly DirectoryInfo _tempRoot;
     private readonly string _settingsPath;
@@ -145,27 +145,22 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
         var serviceB = new ClaudeHooksInstallerService(
             _fileSystem,
             new FixedClaudeSettingsPathResolver(settingsPathB),
-            new FixedLaunchDescriptorResolver(Descriptor),
+            new FixedLaunchDescriptorResolver(s_descriptor),
             new ClaudeHooksSidecarStore(_fileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
-            _timeProvider);
+            _timeProvider,
+            ClaudeHooksTemplate.Claude);
 
-        // Simulates a second, fully concurrent 'nitro agent hooks claude
-        // install' (project scope) landing in the window between this
-        // install's own sidecar read and its pre-write re-check: the SECOND
-        // ReadAllTextAsync call for the sidecar runs B's install to
-        // completion first, then reads the sidecar it left behind - exactly
-        // what this install's own re-read would observe. B's install only
-        // ever triggers on the first attempt's re-check read, so the retry
-        // then observes a stable sidecar and succeeds.
-        var injectingFileSystem = new RunOnSecondReadFileSystem(
+        // Complete serviceB's install after serviceA reads the sidecar, but before it writes.
+        var injectingFileSystem = new RunOnFirstReadFileSystem(
             _fileSystem, sidecarPath, () => serviceB.InstallAsync(HookInstallScopes.User, ct));
 
         var serviceA = new ClaudeHooksInstallerService(
             injectingFileSystem,
             new FixedClaudeSettingsPathResolver(settingsPathA),
-            new FixedLaunchDescriptorResolver(Descriptor),
+            new FixedLaunchDescriptorResolver(s_descriptor),
             new ClaudeHooksSidecarStore(injectingFileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
-            _timeProvider);
+            _timeProvider,
+            ClaudeHooksTemplate.Claude);
 
         await serviceA.InstallAsync(HookInstallScopes.User, ct);
 
@@ -186,32 +181,31 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
         var preInstallService = new ClaudeHooksInstallerService(
             _fileSystem,
             new FixedClaudeSettingsPathResolver(settingsPathA),
-            new FixedLaunchDescriptorResolver(Descriptor),
+            new FixedLaunchDescriptorResolver(s_descriptor),
             new ClaudeHooksSidecarStore(_fileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
-            _timeProvider);
+            _timeProvider,
+            ClaudeHooksTemplate.Claude);
         await preInstallService.InstallAsync(HookInstallScopes.User, ct);
 
         var serviceB = new ClaudeHooksInstallerService(
             _fileSystem,
             new FixedClaudeSettingsPathResolver(settingsPathB),
-            new FixedLaunchDescriptorResolver(Descriptor),
+            new FixedLaunchDescriptorResolver(s_descriptor),
             new ClaudeHooksSidecarStore(_fileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
-            _timeProvider);
+            _timeProvider,
+            ClaudeHooksTemplate.Claude);
 
-        // Simulates a second, fully concurrent install landing in the window
-        // between this uninstall's own sidecar read and its pre-write
-        // re-check: the SECOND ReadAllTextAsync call for the sidecar runs
-        // B's install to completion first, then reads the sidecar it left
-        // behind - exactly what this uninstall's own re-read would observe.
-        var injectingFileSystem = new RunOnSecondReadFileSystem(
+        // Complete serviceB's install after serviceA reads the sidecar, but before it writes.
+        var injectingFileSystem = new RunOnFirstReadFileSystem(
             _fileSystem, sidecarPath, () => serviceB.InstallAsync(HookInstallScopes.User, ct));
 
         var serviceA = new ClaudeHooksInstallerService(
             injectingFileSystem,
             new FixedClaudeSettingsPathResolver(settingsPathA),
-            new FixedLaunchDescriptorResolver(Descriptor),
+            new FixedLaunchDescriptorResolver(s_descriptor),
             new ClaudeHooksSidecarStore(injectingFileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
-            _timeProvider);
+            _timeProvider,
+            ClaudeHooksTemplate.Claude);
 
         await serviceA.UninstallAsync(HookInstallScopes.User, ct);
 
@@ -226,13 +220,16 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
     private ClaudeHooksInstallerService CreateService(IFileSystem fileSystem) => new(
         fileSystem,
         new FixedClaudeSettingsPathResolver(_settingsPath),
-        new FixedLaunchDescriptorResolver(Descriptor),
+        new FixedLaunchDescriptorResolver(s_descriptor),
         new ClaudeHooksSidecarStore(fileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
-        _timeProvider);
+        _timeProvider,
+        ClaudeHooksTemplate.Claude);
 
     private sealed class FixedClaudeSettingsPathResolver(string path) : IClaudeSettingsPathResolver
     {
         public string Resolve(string scope) => path;
+
+        public IReadOnlyList<string> ResolveForCurrentDirectory() => [path];
     }
 
     private sealed class FixedLaunchDescriptorResolver(LaunchDescriptor descriptor) : ILaunchDescriptorResolver
@@ -247,11 +244,8 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
     }
 
     /// <summary>
-    /// Simulates a foreign process editing the settings file in the window
-    /// between the installer's initial read and its pre-write re-check: the
-    /// SECOND <see cref="ReadAllTextAsync"/> call for the watched path
-    /// writes <paramref name="editedContent"/> first, then reads it back -
-    /// exactly what the installer's own re-read would observe.
+    /// Replaces the watched file with <paramref name="editedContent"/> before its
+    /// second <see cref="ReadAllTextAsync"/> call reads the content. Delegates all other operations.
     /// </summary>
     private sealed class InjectEditOnSecondReadFileSystem(
         IFileSystem inner, string watchedPath, string editedContent) : IFileSystem
@@ -311,14 +305,12 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
     }
 
     /// <summary>
-    /// Simulates a second, fully concurrent install landing in the window
-    /// between an in-flight install's own read of <paramref name="watchedPath"/>
-    /// and its pre-write re-check: the SECOND <see cref="ReadAllTextAsync"/>
-    /// call for that path runs <paramref name="onSecondRead"/> to completion
-    /// first, then reads whatever it left behind.
+    /// Runs <paramref name="onFirstRead"/> before the first
+    /// <see cref="ReadAllTextAsync"/> call for <paramref name="watchedPath"/> returns.
+    /// Delegates all other operations.
     /// </summary>
-    private sealed class RunOnSecondReadFileSystem(
-        IFileSystem inner, string watchedPath, Func<Task> onSecondRead) : IFileSystem
+    private sealed class RunOnFirstReadFileSystem(
+        IFileSystem inner, string watchedPath, Func<Task> onFirstRead) : IFileSystem
     {
         private int _readCount;
 
@@ -330,12 +322,14 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
 
         public async Task<string> ReadAllTextAsync(string path, CancellationToken ct)
         {
-            if (string.Equals(path, watchedPath, StringComparison.Ordinal) && Interlocked.Increment(ref _readCount) == 2)
+            var text = await inner.ReadAllTextAsync(path, ct);
+
+            if (string.Equals(path, watchedPath, StringComparison.Ordinal) && Interlocked.Increment(ref _readCount) == 1)
             {
-                await onSecondRead();
+                await onFirstRead();
             }
 
-            return await inner.ReadAllTextAsync(path, ct);
+            return text;
         }
 
         public Stream CreateFile(string path) => inner.CreateFile(path);

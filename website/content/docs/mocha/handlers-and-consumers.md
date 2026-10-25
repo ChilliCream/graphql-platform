@@ -341,7 +341,7 @@ builder.Services
     .AddRabbitMQ();
 ```
 
-The source generator registers the batch handler, but you can chain `.AddBatchHandler<T>(opts => ...)` after `AddMyApp()` to override batch configuration options. Without explicit configuration, Mocha uses the defaults: 100 messages per batch, 1-second timeout.
+The source generator registers the batch handler, but you can chain `#!csharp .AddBatchHandler<T>(opts => ...)` after `AddMyApp()` to override batch configuration options. Without explicit configuration, Mocha uses the defaults: 100 messages per batch, 1-second timeout.
 
 ## Publish events as normal
 

@@ -2,8 +2,11 @@ namespace Mocha.Transport.RabbitMQ;
 
 /// <summary>
 /// Fluent descriptor for configuring a RabbitMQ queue and its receive endpoint.
+/// Receive configuration callbacks apply to the queue's receive endpoint.
 /// </summary>
-public interface IRabbitMQQueueDescriptor : IMessagingDescriptor<RabbitMQQueueDescriptorConfiguration>
+public interface IRabbitMQQueueDescriptor
+    : IMessagingDescriptor<RabbitMQQueueDescriptorConfiguration>
+    , IConfigurable<IReceiveMiddlewareProvider>
 {
     /// <summary>
     /// Sets whether the backing queue survives broker restarts.
@@ -164,4 +167,14 @@ public interface IRabbitMQQueueDescriptor : IMessagingDescriptor<RabbitMQQueueDe
     /// <param name="routingKey">An optional routing key for the binding.</param>
     /// <returns>The descriptor for method chaining.</returns>
     IRabbitMQQueueDescriptor BindFrom(Uri source, string? routingKey = null);
+
+    /// <summary>
+    /// Declares a binding from the source exchange to this queue with an explicit provisioning
+    /// opt-in or opt-out for the binding, overriding the queue's setting.
+    /// </summary>
+    /// <param name="source">The source exchange address.</param>
+    /// <param name="routingKey">The optional routing key, or <c>null</c> for none.</param>
+    /// <param name="autoProvision">Whether the binding is provisioned on the broker.</param>
+    /// <returns>The queue descriptor for chaining.</returns>
+    IRabbitMQQueueDescriptor BindFrom(Uri source, string? routingKey, bool autoProvision);
 }

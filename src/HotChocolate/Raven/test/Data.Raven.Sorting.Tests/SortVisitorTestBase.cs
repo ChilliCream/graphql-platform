@@ -1,3 +1,4 @@
+using CookieCrumble.Resources;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
@@ -6,13 +7,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Raven.Client.Documents;
 using Raven.Client.Documents.Linq;
 using Raven.Client.Documents.Session;
-using Squadron;
 
 namespace HotChocolate.Data.Sorting;
 
 public class SortVisitorTestBase : IAsyncLifetime
 {
-    protected RavenDBResource<CustomRavenDBDefaultOptions> Resource { get; } = new();
+    protected RavenDBResource Resource { get; } = new();
 
     public ValueTask InitializeAsync() => Resource.InitializeAsync();
 

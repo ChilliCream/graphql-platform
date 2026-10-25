@@ -1,4 +1,6 @@
+#if NET9_0_OR_GREATER
 using System.Buffers;
+#endif
 using System.Collections;
 using System.Collections.Frozen;
 using System.Diagnostics;
@@ -12,7 +14,9 @@ namespace HotChocolate.Fusion.Types.Collections;
 public sealed class FusionTypeDefinitionCollection
     : IReadOnlyTypeDefinitionCollection
 {
+#if NET9_0_OR_GREATER
     private const int CharStackallocThreshold = 128;
+#endif
 
     private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
 

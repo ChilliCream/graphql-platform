@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.ApolloFederation;
@@ -194,16 +193,27 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
         CancellationToken cancellationToken = default)
     {
         var diagnosticEvents = context.DiagnosticEvents;
-        var representation = context.CreateRepresentationVariableValue(
-            _target,
-            _forwardedVariables,
-            _requirements,
-            _lookup.RepresentationShape,
-            _lookup.EntityTypeName);
+        var reusedCount = 0;
+        var representation = context.GetEntityReuseCandidates(Id) is { } candidates
+            ? context.CreateRepresentationVariableValue(
+                [_target],
+                _forwardedVariables,
+                _requirements,
+                _lookup.RepresentationShape,
+                _lookup.EntityTypeName,
+                candidates,
+                out reusedCount)
+            : context.CreateRepresentationVariableValue(
+                _target,
+                _forwardedVariables,
+                _requirements,
+                _lookup.RepresentationShape,
+                _lookup.EntityTypeName);
 
         if (representation.IsEmpty)
         {
-            return ExecutionStatus.Skipped;
+            // When every entity was taken from the result, the node completed its work.
+            return reusedCount > 0 ? ExecutionStatus.Success : ExecutionStatus.Skipped;
         }
 
         var variables = representation.ToVariableValues();
@@ -241,8 +251,7 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
                 if (result is not null)
                 {
                     current.Dispose();
-                    throw new InvalidOperationException(
-                        "Apollo entity fetches must produce a single source schema result.");
+                    throw ThrowHelper.ApolloEntityFetchProducedMultipleResults();
                 }
 
                 result = current;
@@ -258,6 +267,7 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
             // If the execution of the node was cancelled, either the entire request was cancelled
             // or the execution was halted. In both cases we do not want to produce any errors
             // and just exit the node as quickly as possible.
+            result?.Dispose();
             return ExecutionStatus.Failed;
         }
         catch (Exception exception)

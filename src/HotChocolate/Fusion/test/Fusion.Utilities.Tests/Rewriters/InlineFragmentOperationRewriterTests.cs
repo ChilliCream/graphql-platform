@@ -932,4 +932,139 @@ public class InlineFragmentOperationRewriterTests
         // assert
         Assert.True(result.HasIncrementalParts);
     }
+
+    [Fact]
+    public void Stream_Not_Reported_When_Field_Is_Statically_Excluded()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                productById(id: 1) {
+                    id
+                    reviews @stream @include(if: false) {
+                        nodes {
+                            body
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        var rewriter = new InlineFragmentOperationRewriter(
+            schemaDefinition,
+            removeStaticallyExcludedSelections: true);
+        var result = rewriter.RewriteDocument(doc);
+
+        // assert
+        Assert.False(result.HasIncrementalParts);
+        result.Document.MatchInlineSnapshot(
+            """
+            {
+              productById(id: 1) {
+                id
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Defer_Not_Reported_When_Inline_Fragment_Is_Statically_Excluded()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                productById(id: 1) {
+                    id
+                    ... @defer @include(if: false) {
+                        name
+                    }
+                }
+            }
+            """);
+
+        // act
+        var rewriter = new InlineFragmentOperationRewriter(
+            schemaDefinition,
+            removeStaticallyExcludedSelections: true);
+        var result = rewriter.RewriteDocument(doc);
+
+        // assert
+        Assert.False(result.HasIncrementalParts);
+        result.Document.MatchInlineSnapshot(
+            """
+            {
+              productById(id: 1) {
+                id
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Literal_If_False_On_Defer_Or_Stream_Does_Not_Report_Incremental_Parts()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                productById(id: 1) {
+                    id
+                    ... @defer(if: false) {
+                        name
+                    }
+                    reviews @stream(if: false) {
+                        nodes {
+                            body
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        var rewriter = new InlineFragmentOperationRewriter(schemaDefinition);
+        var result = rewriter.RewriteDocument(doc);
+
+        // assert
+        Assert.False(result.HasIncrementalParts);
+    }
+
+    [Fact]
+    public void Defer_With_Variable_If_Still_Counts_As_Incremental()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($shouldDefer: Boolean!) {
+                productById(id: 1) {
+                    id
+                    ... @defer(if: $shouldDefer) {
+                        name
+                    }
+                }
+            }
+            """);
+
+        // act
+        var rewriter = new InlineFragmentOperationRewriter(schemaDefinition);
+        var result = rewriter.RewriteDocument(doc);
+
+        // assert
+        Assert.True(result.HasIncrementalParts);
+    }
 }

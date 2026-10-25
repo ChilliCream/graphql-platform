@@ -44,6 +44,14 @@ type Query {
   formatAnimalKinds(kinds: AnimalKind!): String!
   formatNullableAnimalKinds(kinds: AnimalKind): String!
   formatAnimalKindList(kinds: [AnimalKind]!): String!
+  serviceKeyedValue: String
+  derivedServiceKeyedValue: String
+  enumKeyedValue: String
+  optionalKeyedValue: String
+  originalScopeKeyedValue: String
+  handWrittenKeyedValue: String
+  resolverEnumKeyedValue: String!
+  escapedResolverKeyedValue: String!
   isSelectedTest: IsSelectedNode!
   isSelectedPatternTest: IsSelectedNode!
   """
@@ -113,6 +121,7 @@ type Mutation {
   saveShapes(shapes: [ShapeInput!]!): Boolean!
   setOptionalValue(value: String): String!
   createExport(currentUser: CurrentUserInput!, name: String!): String!
+  renameShape(name: String!): RenameShapePayload!
 }
 
 type Subscription {
@@ -290,6 +299,10 @@ type PublisherEdge {
 
 type renamed_DescriptorAttributeProbe {
   name: String!
+}
+
+type RenameShapePayload {
+  result: String!
 }
 
 type Shape {

@@ -3,7 +3,15 @@ namespace Mocha;
 /// <summary>
 /// Marker interface for descriptors that can contribute receive-pipeline middleware to a transport.
 /// </summary>
-public interface IReceiveMiddlewareProvider : IMessagingDescriptor;
+public interface IReceiveMiddlewareProvider : IMessagingDescriptor, IConfigurable<IReceiveMiddlewareProvider>
+{
+    void IConfigurable<IReceiveMiddlewareProvider>.Configure(Action<IReceiveMiddlewareProvider> configure)
+    {
+        ArgumentNullException.ThrowIfNull(configure);
+
+        configure(this);
+    }
+}
 
 /// <summary>
 /// Marker interface for descriptors that can contribute dispatch-pipeline middleware to a transport.

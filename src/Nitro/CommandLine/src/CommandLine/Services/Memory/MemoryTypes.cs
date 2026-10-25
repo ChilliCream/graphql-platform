@@ -1,8 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Memory;
 
 /// <summary>
-/// The well-known memory types. Custom normalized values are also accepted,
-/// mirroring <c>TaskTypes</c>.
+/// Well-known memory types and normalization and validation for custom types.
 /// </summary>
 internal static class MemoryTypes
 {

@@ -7,42 +7,14 @@ The ChilliCream website and documentation, built on Next.js (MDX-based docs).
 > and file structure may differ. Read the relevant guide in
 > `node_modules/next/dist/docs/` before writing app/build code.
 
-## Development environment
+## Development
 
-Website dependencies and tooling run only inside the frontend container.
-`yarn install` on the host is blocked by design. The Docker daemon (OrbStack
-on macOS) must be running. The wrapper paths below are relative to the
-repository root, not to `website/`.
+Use npm:
 
 ```bash
-website/scripts/frontend-container.sh up
-website/scripts/frontend-container.sh dev
+npm ci
+npm run dev
 ```
-
-The dev server is at http://localhost:3031. VS Code users can instead open
-the `ChilliCream Frontend` devcontainer, which uses the same image.
-
-Other commands run through the wrapper the same way, for example:
-
-```bash
-website/scripts/frontend-container.sh exec -- yarn lint
-website/scripts/frontend-container.sh exec -- yarn format
-website/scripts/frontend-container.sh exec -- yarn format:check
-```
-
-Stop the container with `website/scripts/frontend-container.sh down`. Add
-`--purge` to also remove its `node_modules`/`.next` volumes, or `--all` to
-stop every checkout's container.
-
-Yarn's package cache lives in `hc-0-frontend-yarn-cache`, a volume shared by
-every checkout's container. `down --purge` keeps it. Remove it with
-`docker volume rm hc-0-frontend-yarn-cache`.
-
-The container mounts only `website/` (read-write), the
-`../src/Mocha/src/mocha-visualizer` dependency, root `.editorconfig`, and the
-checkout's `.git`, the last three read-only. It can still modify website
-sources because Prettier and ESLint need write access, so review diffs
-before committing.
 
 ## Authoring Markdown Content
 
@@ -201,6 +173,23 @@ Use GitHub-style alert blockquotes. Supported kinds: `NOTE`, `TIP`, `WARNING`,
 > This action cannot be undone.
 ```
 
+### Code blocks
+
+Use `shell` for command-line snippets. It is highlighted like Bash but renders
+without a language label.
+
+Use `sdl` for GraphQL type-system definitions and `graphql` for operations.
+
+### Inline code highlighting
+
+Inline code is not highlighted by default. Start it with a `#!lang` prefix
+followed by a space to highlight it like a fenced block in the same language.
+The prefix is removed from the rendered code.
+
+```markdown
+Declare it with `#!sdl directive @oneOf on INPUT_OBJECT`.
+```
+
 ### Diagrams (Mermaid)
 
 Prefer Mermaid over a static image for diagrams (flowcharts, sequence diagrams).
@@ -239,3 +228,48 @@ it preserves headings, prose, links, lists, admonitions, tables, and code while
 excluding frontmatter, navigation, buttons, forms, SVG/canvas diagrams, and
 elements marked with `data-llms-ignore`. Interactive MDX components contribute
 their rendered textual content; purely visual components are omitted.
+
+## Videos
+
+The `/videos` section lists ChilliCream TV episodes. Each video is one Markdown
+file in `content/videos/`, named `YYYY-MM-DD-slug.md`. The date prefix is the
+publish date and the file name is the URL slug (`/videos/YYYY-MM-DD-slug`). The
+slug is lowercase and hyphenated.
+
+```markdown
+---
+title: "How to Use State in DataLoader for Context-Aware Fetching"
+description: "One sentence shown on the video card and used for SEO."
+youtubeId: "4Mw2A548OGM"
+duration: "15:51"
+uploadDate: "2025-05-01T02:55:26-07:00"
+example: "https://github.com/<org>/<repo>/tree/main/<folder>"
+author: "michael-staib"
+tags:
+  - dataloader
+  - hotchocolate
+---
+
+In this episode, we explore how to make your DataLoaders stateful.
+
+Hot Chocolate version used in this video: [15.1.4](https://www.nuget.org/packages/HotChocolate/15.1.4)
+```
+
+| Field         | Required | Meaning                                                                                                                  |
+| ------------- | -------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `title`       | yes      | Page title and card heading.                                                                                             |
+| `description` | yes      | One sentence for the card, meta description, and Open Graph.                                                             |
+| `youtubeId`   | yes      | The 11-character YouTube video id. Quote it, so YAML always reads a string.                                              |
+| `duration`    | yes      | Running time as YouTube shows it, e.g. `"12:18"` or `"1:02:03"`.                                                         |
+| `uploadDate`  | yes      | The `uploadDate` from the YouTube watch page's HTML (`<meta itemprop="uploadDate">`). Its date must match the file name. |
+| `example`     | no       | `https://` link to the example source code. Adds the **Example source** button.                                          |
+| `author`      | no       | Slug of a presenter in `src/data/authors.ts`.                                                                            |
+| `tags`        | no       | Lowercase, hyphenated topics. They become the filter chips on `/videos`.                                                 |
+
+- The body is the video description, rendered below the player. It follows the
+  same Markdown rules as docs and blog posts (links, images, admonitions, MDX
+  gotchas).
+- The poster image is the YouTube thumbnail. `npm run optimize-images`
+  self-hosts it.
+- An invalid file name or frontmatter fails the build with a message naming the
+  file.

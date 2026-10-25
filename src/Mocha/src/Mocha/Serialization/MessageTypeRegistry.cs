@@ -43,6 +43,15 @@ public sealed class MessageTypeRegistry(
     {
         lock (_lock)
         {
+            if (_messageTypesByIdentity.TryGetValue(messageType.Identity, out var existing)
+                && existing.RuntimeType != messageType.RuntimeType)
+            {
+                throw ThrowHelper.DuplicateMessageIdentity(
+                    messageType.Identity,
+                    messageType.RuntimeType,
+                    existing.RuntimeType);
+            }
+
             if (_messageTypes.Add(messageType))
             {
                 _messageTypesByType.Add(messageType.RuntimeType, messageType);
@@ -61,10 +70,7 @@ public sealed class MessageTypeRegistry(
 
         if (options.IsAotCompatible)
         {
-            throw new InvalidOperationException(
-                $"Message type '{type.FullName}' was not registered at startup. "
-                    + "Register it via the source generator or AddMessage<T>(). "
-                    + "Set IsAotCompatible = false to allow runtime type registration.");
+            throw ThrowHelper.MessageTypeNotRegistered(type);
         }
 
         lock (_lock)

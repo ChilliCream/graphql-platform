@@ -68,7 +68,12 @@ public sealed class PostgresQueueDescriptorConfiguration : MessagingConfiguratio
     public List<Action<List<ReceiveMiddlewareConfiguration>>> ReceivePipelineModifiers { get; } = [];
 
     /// <summary>
+    /// Gets the configuration callbacks applied to this queue's receive endpoint, in registration order.
+    /// </summary>
+    public List<Action<IReceiveMiddlewareProvider>> ConfigureReceiveEndpoint { get; } = [];
+
+    /// <summary>
     /// Gets the source topic bindings declared from this queue descriptor.
     /// </summary>
-    public List<Uri> SourceBindings { get; } = [];
+    public List<PostgresQueueSourceBindingConfiguration> SourceBindings { get; } = [];
 }

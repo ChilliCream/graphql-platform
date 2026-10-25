@@ -1,0 +1,15 @@
+{
+  "id": "nested_undefined_uses_default_but_explicit_null_suppresses_it",
+  "source": "rust-unit",
+  "sdl": "directive @cost(weight: String!) on ARGUMENT_DEFINITION | ENUM | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | OBJECT | SCALAR\ndirective @listSize(\n  assumedSize: Int\n  slicingArguments: [String!]\n  sizedFields: [String!]\n  requireOneSlicingArgument: Boolean = true\n) on FIELD_DEFINITION\n\ninput DefaultedNestedFilter {\n  approx: Boolean = true @cost(weight: \"-12\")\n}\ninput DefaultedFilter {\n  nested: DefaultedNestedFilter = {} @cost(weight: \"4\")\n}\ntype Query {\n  search(filter: DefaultedFilter = {} @cost(weight: \"15\")): Int\n    @cost(weight: \"5\")\n}\n",
+  "operation": "{ search(filter: { nested: null }) }",
+  "operationName": null,
+  "variables": {},
+  "defaultListSize": 10,
+  "backend": "exact-case",
+  "expected": {
+    "typeCost": 1,
+    "fieldCost": 24
+  },
+  "notes": "Port of estimator.rs test `nested_undefined_uses_default_but_explicit_null_suppresses_it` at line 1124, commit fec57fd7a980b5399637fa464a9bdce0781d91dd. Selected source assertion at lines 1130-1140: explicit nested null suppresses its schema default, producing Cost { type_cost: 1.0, field_cost: 24.0 }."
+}

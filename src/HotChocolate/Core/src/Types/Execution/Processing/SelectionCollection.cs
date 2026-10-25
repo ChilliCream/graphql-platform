@@ -15,13 +15,13 @@ internal sealed class SelectionCollection : ISelectionCollection
     private readonly Schema _schema;
     private readonly Operation _operation;
     private readonly Selection[] _selections;
-    private readonly ulong _includeFlags;
+    private readonly ConditionFlags _includeFlags;
 
     public SelectionCollection(
         Schema schema,
         Operation operation,
         Selection[] selections,
-        ulong includeFlags)
+        ConditionFlags includeFlags)
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(operation);
@@ -50,6 +50,7 @@ internal sealed class SelectionCollection : ISelectionCollection
 
         var selections = new Selection[size];
         buffer.AsSpan()[..size].CopyTo(selections);
+        buffer.AsSpan()[..size].Clear();
         ArrayPool<Selection>.Shared.Return(buffer);
         return new SelectionCollection(_schema, _operation, selections, _includeFlags);
     }
@@ -63,6 +64,7 @@ internal sealed class SelectionCollection : ISelectionCollection
 
         var selections = new Selection[size];
         buffer.AsSpan()[..size].CopyTo(selections);
+        buffer.AsSpan()[..size].Clear();
         ArrayPool<Selection>.Shared.Return(buffer);
         return new SelectionCollection(_schema, _operation, selections, _includeFlags);
     }
@@ -78,6 +80,7 @@ internal sealed class SelectionCollection : ISelectionCollection
 
         var selections = new Selection[size];
         buffer.AsSpan()[..size].CopyTo(selections);
+        buffer.AsSpan()[..size].Clear();
         ArrayPool<Selection>.Shared.Return(buffer);
         return new SelectionCollection(_schema, _operation, selections, _includeFlags);
     }
@@ -133,7 +136,7 @@ internal sealed class SelectionCollection : ISelectionCollection
 
         static bool IsChildSelected(
             Operation operation,
-            ulong includeFlags,
+            ConditionFlags includeFlags,
             ObjectType objectType,
             Selection parent,
             string fieldName)
@@ -208,7 +211,7 @@ internal sealed class SelectionCollection : ISelectionCollection
 
         static bool IsChildSelected(
             Operation operation,
-            ulong includeFlags,
+            ConditionFlags includeFlags,
             ObjectType objectType,
             Selection parent,
             string fieldName1,
@@ -289,7 +292,7 @@ internal sealed class SelectionCollection : ISelectionCollection
 
         static bool IsChildSelected(
             Operation operation,
-            ulong includeFlags,
+            ConditionFlags includeFlags,
             ObjectType objectType,
             Selection parent,
             string fieldName1,
@@ -361,7 +364,7 @@ internal sealed class SelectionCollection : ISelectionCollection
 
         static bool IsChildSelected(
             Operation operation,
-            ulong includeFlags,
+            ConditionFlags includeFlags,
             ObjectType objectType,
             Selection parent,
             ISet<string> fieldNames)
@@ -393,6 +396,7 @@ internal sealed class SelectionCollection : ISelectionCollection
         fieldNamesSpan[0] = fieldName;
 
         var result = CollectSelections(fieldNamesSpan, out buffer, out size);
+        fieldNamesSpan.Clear();
         ArrayPool<string>.Shared.Return(fieldNames);
         return result;
     }
@@ -473,7 +477,7 @@ internal sealed class SelectionCollection : ISelectionCollection
 
     private static void CollectFields(
         ReadOnlySpan<string> fieldNames,
-        ulong includeFlags,
+        ConditionFlags includeFlags,
         ref Selection[] buffer,
         SelectionSet selectionSet,
         int index,
@@ -501,20 +505,15 @@ internal sealed class SelectionCollection : ISelectionCollection
 
     private static void EnsureCapacity(ref Selection[] buffer, int index, int requiredSpace)
     {
-        var capacity = buffer.Length - index;
-
-        if (capacity >= requiredSpace)
+        if (buffer.Length - index >= requiredSpace)
         {
             return;
         }
 
-        while (capacity < requiredSpace)
-        {
-            capacity *= 2;
-        }
-
+        var capacity = Math.Max(buffer.Length * 2, index + requiredSpace);
         var newBuffer = ArrayPool<Selection>.Shared.Rent(capacity);
         buffer.AsSpan()[..index].CopyTo(newBuffer);
+        buffer.AsSpan()[..index].Clear();
         ArrayPool<Selection>.Shared.Return(buffer);
         buffer = newBuffer;
     }

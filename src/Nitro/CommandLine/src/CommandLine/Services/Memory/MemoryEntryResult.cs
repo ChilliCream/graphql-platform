@@ -1,11 +1,8 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Memory;
 
 /// <summary>
-/// One curated or journal entry, as returned by the structured (JSON) list
-/// output of <c>search</c> and <c>recent</c>, which can mix both
-/// collections. <see cref="Type"/>, <see cref="Tags"/>, and
-/// <see cref="UpdatedAt"/> are only ever populated for a curated entry: a
-/// journal entry has none of them until it is promoted.
+/// A curated or journal entry summary. Journal summaries have null type, modification
+/// time, and promotion source, with an empty tag list.
 /// </summary>
 internal sealed record MemoryEntryResult
 {

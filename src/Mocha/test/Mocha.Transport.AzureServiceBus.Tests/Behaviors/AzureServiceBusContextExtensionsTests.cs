@@ -11,7 +11,7 @@ public class AzureServiceBusContextExtensionsTests
         var context = new ReceiveContext();
 
         // act & assert
-        var ex = Assert.Throws<InvalidOperationException>(() => context.GetAzureServiceBusEventArgs());
+        var ex = Assert.Throws<InvalidOperationException>(context.GetAzureServiceBusEventArgs);
         Assert.Contains("Azure Service Bus", ex.Message);
     }
 }

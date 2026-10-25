@@ -1,5 +1,5 @@
+using CookieCrumble.Resources;
 using GreenDonut.Data.TestContext;
-using Squadron;
 using Record = GreenDonut.Data.TestContext.Record;
 
 namespace GreenDonut.Data;

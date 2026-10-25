@@ -133,27 +133,6 @@
                   "event": []
                 },
                 {
-                  "OperationName": "GraphQL Complexity Analysis",
-                  "DisplayName": "GraphQL Complexity Analysis",
-                  "Kind": "Internal",
-                  "Status": "Ok",
-                  "tags": [
-                    {
-                      "Key": "graphql.document.hash",
-                      "Value": "md5:f2e6099a9e9d8a7f69c688a88962f100"
-                    },
-                    {
-                      "Key": "graphql.operation.fieldCost",
-                      "Value": 10.0
-                    },
-                    {
-                      "Key": "graphql.operation.typeCost",
-                      "Value": 1.0
-                    }
-                  ],
-                  "event": []
-                },
-                {
                   "OperationName": "GraphQL Operation Planning",
                   "DisplayName": "GraphQL Operation Planning",
                   "Kind": "Internal",
@@ -170,6 +149,27 @@
                     {
                       "Key": "graphql.operation.type",
                       "Value": "query"
+                    }
+                  ],
+                  "event": []
+                },
+                {
+                  "OperationName": "GraphQL Complexity Analysis",
+                  "DisplayName": "GraphQL Complexity Analysis",
+                  "Kind": "Internal",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:f2e6099a9e9d8a7f69c688a88962f100"
+                    },
+                    {
+                      "Key": "graphql.operation.fieldCost",
+                      "Value": 10.0
+                    },
+                    {
+                      "Key": "graphql.operation.typeCost",
+                      "Value": 1.0
                     }
                   ],
                   "event": []
