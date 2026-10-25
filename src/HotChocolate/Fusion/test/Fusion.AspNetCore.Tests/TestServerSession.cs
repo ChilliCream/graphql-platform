@@ -6,7 +6,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace HotChocolate.Fusion;
 
-internal sealed class TestServerSession : IDisposable
+internal sealed class TestServerSession : IAsyncDisposable
 {
     private readonly Channel<WebApplication> _cleanupPipeline = Channel.CreateUnbounded<WebApplication>();
     private bool _disposed;
@@ -16,7 +16,7 @@ internal sealed class TestServerSession : IDisposable
         Action<IApplicationBuilder> configureApplication,
         string? environmentName = null)
     {
-        var builder = WebApplication.CreateSlimBuilder(
+        var builder = WebApplication.CreateEmptyBuilder(
             new WebApplicationOptions { EnvironmentName = environmentName });
         builder.WebHost.UseTestServer();
         configureServices(builder.Services);
@@ -36,7 +36,7 @@ internal sealed class TestServerSession : IDisposable
         return app.GetTestServer();
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         if (_disposed)
         {
@@ -49,7 +49,8 @@ internal sealed class TestServerSession : IDisposable
 
         while (_cleanupPipeline.Reader.TryRead(out var app))
         {
-            ((IHost)app).Dispose();
+            await app.StopAsync();
+            await app.DisposeAsync();
         }
     }
 }

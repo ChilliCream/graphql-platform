@@ -5,7 +5,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace HotChocolate.AspNetCore.Tests.Utilities;
 
-public class TestServerFactory : IDisposable
+public class TestServerFactory : IAsyncDisposable
 {
     private readonly List<WebApplication> _instances = [];
 
@@ -13,7 +13,7 @@ public class TestServerFactory : IDisposable
         Action<IServiceCollection> configureServices,
         Action<IApplicationBuilder> configureApplication)
     {
-        var builder = WebApplication.CreateSlimBuilder();
+        var builder = WebApplication.CreateEmptyBuilder(new WebApplicationOptions());
         builder.WebHost.UseTestServer();
         builder.Services.AddHttpContextAccessor();
         configureServices(builder.Services);
@@ -26,16 +26,17 @@ public class TestServerFactory : IDisposable
         return app.GetTestServer();
     }
 
-    public void Dispose() => DisposeServers();
+    public ValueTask DisposeAsync() => DisposeServersAsync();
 
     /// <summary>
-    /// Disposes and releases every server this factory has created so far.
+    /// Stops, disposes, and releases every server this factory has created so far.
     /// </summary>
-    public void DisposeServers()
+    public async ValueTask DisposeServersAsync()
     {
         foreach (var app in _instances)
         {
-            ((IHost)app).Dispose();
+            await app.StopAsync();
+            await app.DisposeAsync();
         }
 
         _instances.Clear();

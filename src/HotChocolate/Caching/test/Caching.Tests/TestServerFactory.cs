@@ -5,7 +5,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace HotChocolate.Caching.Http.Tests;
 
-public class TestServerFactory : IDisposable
+public class TestServerFactory : IAsyncDisposable
 {
     private readonly List<WebApplication> _instances = [];
 
@@ -13,7 +13,7 @@ public class TestServerFactory : IDisposable
         Action<IServiceCollection> configureServices,
         Action<IApplicationBuilder> configureApplication)
     {
-        var builder = WebApplication.CreateSlimBuilder();
+        var builder = WebApplication.CreateEmptyBuilder(new WebApplicationOptions());
         builder.WebHost.UseTestServer();
         configureServices(builder.Services);
 
@@ -25,11 +25,12 @@ public class TestServerFactory : IDisposable
         return app.GetTestServer();
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         foreach (var app in _instances)
         {
-            ((IHost)app).Dispose();
+            await app.StopAsync();
+            await app.DisposeAsync();
         }
     }
 }

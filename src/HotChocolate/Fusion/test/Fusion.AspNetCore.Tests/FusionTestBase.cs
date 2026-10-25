@@ -28,7 +28,7 @@ using Xunit.Sdk;
 
 namespace HotChocolate.Fusion;
 
-public abstract partial class FusionTestBase : IDisposable
+public abstract partial class FusionTestBase : IAsyncDisposable
 {
     private readonly TestServerSession _testServerSession = new();
     private bool _disposed;
@@ -265,7 +265,7 @@ public abstract partial class FusionTestBase : IDisposable
         }
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         if (_disposed)
         {
@@ -273,16 +273,8 @@ public abstract partial class FusionTestBase : IDisposable
         }
 
         _disposed = true;
-        Dispose(true);
+        await _testServerSession.DisposeAsync();
         GC.SuppressFinalize(this);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            _testServerSession.Dispose();
-        }
     }
 
     protected class Gateway : IDisposable

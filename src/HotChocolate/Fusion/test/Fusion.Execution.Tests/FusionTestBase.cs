@@ -19,7 +19,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Fusion;
 
-public abstract class FusionTestBase : IDisposable
+public abstract class FusionTestBase : IAsyncDisposable
 {
     private readonly TestServerSession _testServerSession = new();
     private bool _disposed;
@@ -545,7 +545,7 @@ public abstract class FusionTestBase : IDisposable
         actual.MatchSnapshot(extension: ".yaml");
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         if (_disposed)
         {
@@ -553,16 +553,8 @@ public abstract class FusionTestBase : IDisposable
         }
 
         _disposed = true;
-        Dispose(true);
+        await _testServerSession.DisposeAsync();
         GC.SuppressFinalize(this);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            _testServerSession.Dispose();
-        }
     }
 
     private static List<SourceSchemaText> CreateSourceSchemaTexts(IEnumerable<string> schemas)

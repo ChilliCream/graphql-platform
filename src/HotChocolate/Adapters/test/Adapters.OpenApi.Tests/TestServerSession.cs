@@ -6,7 +6,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace HotChocolate.Adapters.OpenApi;
 
-public sealed class TestServerSession : IDisposable
+public sealed class TestServerSession : IAsyncDisposable
 {
     private readonly Channel<WebApplication> _cleanupPipeline = Channel.CreateUnbounded<WebApplication>();
     private bool _disposed;
@@ -19,7 +19,7 @@ public sealed class TestServerSession : IDisposable
         {
             ApplicationName = typeof(TestServerSession).Assembly.GetName().Name!
         };
-        var builder = WebApplication.CreateSlimBuilder(options);
+        var builder = WebApplication.CreateEmptyBuilder(options);
         builder.WebHost.UseTestServer();
         configureServices(builder.Services);
 
@@ -38,7 +38,7 @@ public sealed class TestServerSession : IDisposable
         return app.GetTestServer();
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         if (_disposed)
         {
@@ -51,7 +51,8 @@ public sealed class TestServerSession : IDisposable
 
         while (_cleanupPipeline.Reader.TryRead(out var app))
         {
-            ((IHost)app).Dispose();
+            await app.StopAsync();
+            await app.DisposeAsync();
         }
     }
 }

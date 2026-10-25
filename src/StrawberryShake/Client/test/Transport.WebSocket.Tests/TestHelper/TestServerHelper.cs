@@ -18,8 +18,8 @@ public static class TestServerHelper
         {
             try
             {
-                var builder = WebApplication.CreateSlimBuilder();
-                builder.WebHost.UseKestrel();
+                var builder = WebApplication.CreateEmptyBuilder(new WebApplicationOptions());
+                builder.WebHost.UseKestrelCore();
                 builder.WebHost.UseUrls($"http://localhost:{port}");
 
                 var gqlBuilder = builder.Services
