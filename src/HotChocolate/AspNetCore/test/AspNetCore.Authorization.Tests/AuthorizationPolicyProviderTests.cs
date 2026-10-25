@@ -130,7 +130,7 @@ public class AuthorizationPolicyProviderTests(TestServerFactory serverFactory) :
 
         public Task<AuthorizationPolicy> GetDefaultPolicyAsync() => throw new NotImplementedException();
 
-        public Task<AuthorizationPolicy?> GetFallbackPolicyAsync() => throw new NotImplementedException();
+        public Task<AuthorizationPolicy?> GetFallbackPolicyAsync() => Task.FromResult<AuthorizationPolicy?>(null);
 
         public virtual bool AllowsCachingPolicies => allowsCaching;
     }
