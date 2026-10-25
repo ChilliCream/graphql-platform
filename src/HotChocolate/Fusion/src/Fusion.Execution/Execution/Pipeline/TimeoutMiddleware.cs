@@ -12,6 +12,7 @@ internal sealed class TimeoutMiddleware
     private readonly RequestDelegate _next;
     private readonly FusionSchemaDefinition _schema;
     private readonly TimeSpan _timeout;
+    private readonly bool _setsDeadline;
 
     private TimeoutMiddleware(
         RequestDelegate next,
@@ -25,6 +26,7 @@ internal sealed class TimeoutMiddleware
         _next = next;
         _schema = schema;
         _timeout = options.ExecutionTimeout;
+        _setsDeadline = _timeout <= ExecutionDeadline.MaxTimeout;
     }
 
     public async ValueTask InvokeAsync(RequestContext context)
@@ -41,6 +43,7 @@ internal sealed class TimeoutMiddleware
         // We do not dispose the combined token in this middleware at all times.
         // The `Dispose` is handled in the finally block.
         var combined = CreateLinkedTokenSource(context.RequestAborted, timeout.Token, _schema.GetCancellationToken());
+        ExecutionDeadline? deadline = null;
 
         try
         {
@@ -48,6 +51,13 @@ internal sealed class TimeoutMiddleware
             // token. That now tracks our request timeout as well as the outer request
             // cancellation token.
             context.RequestAborted = combined.Token;
+
+            // The combined token has the timeout as its deadline until this middleware returns.
+            if (_setsDeadline)
+            {
+                deadline = context.Features.GetOrSet<ExecutionDeadline>();
+                deadline.Set(combined.Token);
+            }
 
             await _next(context).ConfigureAwait(false);
 
@@ -68,6 +78,8 @@ internal sealed class TimeoutMiddleware
         }
         finally
         {
+            deadline?.Clear();
+
             // If we return a stream we want to keep the combined token alive until
             // the stream is completed. By doing so we allow the initial cancellation token
             // to still signal to resolvers that the request was canceled.

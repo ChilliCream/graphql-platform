@@ -102,9 +102,29 @@ internal sealed class HttpSourceSchemaClientFactory
         // The client this one replaces is never disposed, because requests that took it before it
         // expired may still be sending with it, and disposing it would cancel them. Its handler
         // belongs to the IHttpClientFactory, so the garbage collector reclaims the replaced client.
-        var client = CreateClient(schema, configuration);
+        var client = CreateSharedClient(schema, configuration);
         var expiresAt = now + (long)(maxAge.TotalSeconds * Stopwatch.Frequency);
         return new SharedClientEntry(new SharedSourceSchemaClient(client, expiresAt), annotateOperationKind);
+    }
+
+    private ISourceSchemaClient CreateSharedClient(
+        FusionSchemaDefinition schema,
+        HttpSourceSchemaClientConfiguration configuration)
+    {
+        if (_httpClientFactory is not IHttpMessageHandlerFactory handlerFactory)
+        {
+            return CreateClient(schema, configuration);
+        }
+
+        // A shared client has no HttpClient configuration callbacks, so this is the client that the
+        // IHttpClientFactory creates.
+        var handler = handlerFactory.CreateHandler(configuration.HttpClientName);
+        var httpClient = new HttpClient(handler, disposeHandler: false) { BaseAddress = configuration.BaseAddress };
+
+        return new HttpSourceSchemaClient(
+            new DefaultGraphQLHttpClient(httpClient, handler),
+            configuration,
+            schema.GetRequestOptions().AnnotateOperationKind);
     }
 
     private void InvalidateSharedClients()

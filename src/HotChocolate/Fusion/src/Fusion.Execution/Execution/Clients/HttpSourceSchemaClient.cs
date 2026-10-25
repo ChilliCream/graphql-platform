@@ -538,6 +538,8 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
         }
 
         httpRequest.OperationKind = GetOperationKindHint(originalRequest.OperationType);
+        httpRequest.HasDeadline =
+            context.HasExecutionDeadline && originalRequest.OperationType is not OperationType.Subscription;
         return httpRequest;
     }
 
@@ -619,7 +621,8 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
                 Uri = _configuration.BaseAddress,
                 AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue,
                 EnableFileUploads = true,
-                OperationKind = GetOperationKindHint(originalRequests[0].OperationType)
+                OperationKind = GetOperationKindHint(originalRequests[0].OperationType),
+                HasDeadline = context.HasExecutionDeadline
             };
         }
         else
@@ -675,7 +678,8 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
             {
                 Uri = _configuration.BaseAddress,
                 AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue,
-                OperationKind = GetOperationKindHint(originalRequests[0].OperationType)
+                OperationKind = GetOperationKindHint(originalRequests[0].OperationType),
+                HasDeadline = context.HasExecutionDeadline
             };
         }
     }

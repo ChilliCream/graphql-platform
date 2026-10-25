@@ -165,6 +165,7 @@ public sealed partial class OperationPlanContext
         _activeNodeSlotCount = 0;
         _usesDynamicSchemaNames = true;
         _usesBatchNodes = true;
+        HasExecutionDeadline = false;
 
         _resultStore.Clean(256, 256);
         _executionState.Clean();
