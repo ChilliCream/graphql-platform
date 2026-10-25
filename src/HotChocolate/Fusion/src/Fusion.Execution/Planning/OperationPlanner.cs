@@ -1105,6 +1105,7 @@ public sealed partial class OperationPlanner
         backlog = backlog.PushRequirements(
             fieldsWithRequirements,
             new StepConsumer(stepId),
+            workItem.Dependents,
             stepDepth,
             workItem.SourceSchemaNodePolicy is null
                 ? null
@@ -1282,7 +1283,9 @@ public sealed partial class OperationPlanner
             }
 
             if (!processed.Add(schemaName)
-                || (!allowSourceSchemaReentry && lookup.SchemaName.Equals(schemaName)))
+                || (!allowSourceSchemaReentry
+                    && lookup.SchemaName.Equals(schemaName)
+                    && !CanProvideRequirementLookupKey(step, consumerStep, steps)))
             {
                 continue;
             }
@@ -1350,6 +1353,7 @@ public sealed partial class OperationPlanner
                 backlog = backlog.PushRequirements(
                     fieldsWithRequirements,
                     new StepConsumer(step.Id),
+                    [lookupStepId],
                     GetOperationStepDepth(current, step.Id),
                     descendantPolicy);
 
@@ -1389,7 +1393,9 @@ public sealed partial class OperationPlanner
                 workItemSelectionSet.Path) is { } ancestorMatch
             && (consumerStep is null || !ancestorMatch.Step.DependsOn(consumerStep, steps))
             && processed.Add(ancestorMatch.Step.SchemaName!)
-            && (allowSourceSchemaReentry || !lookup.SchemaName.Equals(ancestorMatch.Step.SchemaName)))
+            && (allowSourceSchemaReentry
+                || !lookup.SchemaName.Equals(ancestorMatch.Step.SchemaName)
+                || CanProvideRequirementLookupKey(ancestorMatch.Step, consumerStep, steps)))
         {
             if (TryInlineIntoAncestorStep(
                 ancestorMatch,
@@ -1407,6 +1413,7 @@ public sealed partial class OperationPlanner
                 backlog = backlog.PushRequirements(
                     ancestorFieldsWithRequirements,
                     new StepConsumer(ancestorMatch.Step.Id),
+                    [lookupStepId],
                     GetOperationStepDepth(current, ancestorMatch.Step.Id),
                     descendantPolicy);
 
@@ -1465,6 +1472,40 @@ public sealed partial class OperationPlanner
             SelectionSetIndex = index,
             InternalOperationDefinition = internalOperation
         };
+    }
+
+    /// <summary>
+    /// Determines whether <paramref name="step"/> can provide the key of a lookup into its own
+    /// source schema that resolves a field with requirements of <paramref name="consumerStep"/>,
+    /// which holds when <paramref name="step"/> is a node field branch.
+    /// </summary>
+    private static bool CanProvideRequirementLookupKey(
+        OperationPlanStep step,
+        OperationPlanStep? consumerStep,
+        ImmutableList<PlanStep> steps)
+    {
+        if (consumerStep is null)
+        {
+            return false;
+        }
+
+        // A node field branch is entered with the client's id argument, so no parent selection
+        // can be fetched again to provide the key.
+        foreach (var planStep in steps)
+        {
+            if (planStep is NodeFieldPlanStep nodeStep)
+            {
+                foreach (var branch in nodeStep.Branches.Values)
+                {
+                    if (branch.Id == step.Id)
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     internal static bool ContainsSelectionsAtPath(
@@ -1603,6 +1644,13 @@ public sealed partial class OperationPlanner
             return;
         }
 
+        // The field can only be inlined into the step that holds it while planning in that
+        // step's schema.
+        if (!string.Equals(currentStep.SchemaName, current.SchemaName, StringComparison.Ordinal))
+        {
+            return;
+        }
+
         // next we try to inline the requirements into non-dependant siblings or parents.
         var steps = current.Steps;
         var index = current.SelectionSetIndex.ToBuilder();
@@ -1655,6 +1703,7 @@ public sealed partial class OperationPlanner
                 stepConsumer.StepId,
                 workItem.EstimatedDepth,
                 workItem.Selection,
+                workItem.Dependents,
                 current,
                 index,
                 ref backlog,
@@ -1790,17 +1839,31 @@ public sealed partial class OperationPlanner
         var indexBuilder = current.SelectionSetIndex.ToBuilder();
         var lastRequirementId = current.LastRequirementId + 1;
         var requirementKey = $"__fusion_{lastRequirementId}";
+        var compositeField = workItem.Selection.Field;
 
-        var leftoverRequirements =
-            TryInlineFieldRequirements(
-                workItem,
-                stepId,
-                ref current,
-                mergeWithExistingStep ? existingStep : currentStep,
-                indexBuilder,
-                ref backlog,
-                ref steps,
-                out var requirementAliases);
+        // The work item can branch into a schema that serves the field without requirements,
+        // in which case only the lookup key has to be resolved.
+        var fieldRequirements = compositeField.Sources[current.SchemaName].Requirements;
+        SelectionSetNode? leftoverRequirements = null;
+        RequirementAliasContext requirementAliases;
+
+        if (fieldRequirements is null)
+        {
+            requirementAliases = new RequirementAliasContext([], current.RequirementAliases);
+        }
+        else
+        {
+            leftoverRequirements =
+                TryInlineFieldRequirements(
+                    workItem,
+                    stepId,
+                    ref current,
+                    mergeWithExistingStep ? existingStep : currentStep,
+                    indexBuilder,
+                    ref backlog,
+                    ref steps,
+                    out requirementAliases);
+        }
 
         // if we have requirements that we could not inline into existing nodes of the
         // operation plan we will put them on the backlog to be planned as another lookup.
@@ -1822,8 +1885,6 @@ public sealed partial class OperationPlanner
                 workItem.SourceSchemaNodePolicy);
         }
 
-        var compositeField = workItem.Selection.Field;
-        var sourceField = compositeField.Sources[current.SchemaName];
         var requirements = mergeWithExistingStep
             ? existingStep.Requirements
 #if NET10_0_OR_GREATER
@@ -1832,11 +1893,12 @@ public sealed partial class OperationPlanner
             : ImmutableDictionary<string, OperationRequirement>.Empty;
 #endif
         var arguments = new List<ArgumentNode>(workItem.Selection.Node.Arguments);
+        var requirementArguments = fieldRequirements?.Arguments ?? [];
 
-        for (var i = 0; i < sourceField.Requirements!.Arguments.Length; i++)
+        for (var i = 0; i < requirementArguments.Length; i++)
         {
-            var argument = sourceField.Requirements.Arguments[i];
-            var fieldSelectionMap = sourceField.Requirements.Fields[i];
+            var argument = requirementArguments[i];
+            var fieldSelectionMap = fieldRequirements!.Fields[i];
 
             if (fieldSelectionMap is null)
             {
@@ -1854,7 +1916,7 @@ public sealed partial class OperationPlanner
             requirements = requirements.Add(argumentRequirementKey, operationRequirement);
         }
 
-        foreach (var argument in sourceField.Requirements!.Arguments)
+        foreach (var argument in requirementArguments)
         {
             // arguments that are exposed on the composite schema
             // are not requirements, and we can skip them.
@@ -1874,6 +1936,7 @@ public sealed partial class OperationPlanner
                 stepId,
                 stepDepth,
                 workItem.Selection,
+                workItem.Dependents,
                 current,
                 indexBuilder,
                 ref backlog,
@@ -1921,11 +1984,13 @@ public sealed partial class OperationPlanner
                 selectionSetNode);
             EnsureAllSelectionSetsRegistered(operation.SelectionSet, indexBuilder);
 
+            // The steps that need the field now depend on the step it is merged into.
             var updatedStep = refreshedExistingStep with
             {
                 Definition = operation,
                 SelectionSets = SelectionSetIndexer.CreateIdSet(operation.SelectionSet, indexBuilder),
-                Requirements = requirements
+                Requirements = requirements,
+                Dependents = refreshedExistingStep.Dependents.Union(workItem.Dependents)
             };
 
             steps = steps.SetItem(existingStepIndex, updatedStep);
@@ -2004,7 +2069,8 @@ public sealed partial class OperationPlanner
             RootSelectionSetId = index.GetId(selectionSetNode),
             SelectionSets = SelectionSetIndexer.CreateIdSet(definition.SelectionSet, indexBuilder),
             Requirements = requirements,
-            Dependents = currentStep.Dependents,
+            // The consumer step lists this lookup as a dependent when it provides the lookup key.
+            Dependents = currentStep.Dependents.Remove(stepId),
             Conditions = workItem.Conditions,
             Target = workItem.Selection.Path,
             Source = source,
@@ -2062,7 +2128,8 @@ public sealed partial class OperationPlanner
                 && candidate.Type.Name.Equals(
                     workItem.Selection.Field.DeclaringType.Name,
                     StringComparison.Ordinal)
-                && ConditionsEqual(candidate.Conditions, workItem.Conditions))
+                && ConditionsEqual(candidate.Conditions, workItem.Conditions)
+                && !IsOrDependsOnAny(candidate, workItem.Dependents, current.Steps))
             {
                 step = candidate;
                 stepIndex = i;
@@ -2072,6 +2139,28 @@ public sealed partial class OperationPlanner
 
         step = null!;
         stepIndex = -1;
+        return false;
+    }
+
+    /// <summary>
+    /// Determines whether <paramref name="step"/> is one of <paramref name="stepIds"/> or
+    /// depends on one of them.
+    /// </summary>
+    private static bool IsOrDependsOnAny(
+        OperationPlanStep step,
+        ImmutableHashSet<int> stepIds,
+        ImmutableList<PlanStep> steps)
+    {
+        foreach (var stepId in stepIds)
+        {
+            if (stepId == step.Id
+                || (steps.ById(stepId) is OperationPlanStep other
+                    && step.DependsOn(other, steps)))
+            {
+                return true;
+            }
+        }
+
         return false;
     }
 
@@ -2121,11 +2210,9 @@ public sealed partial class OperationPlanner
             && workItem.SourceSchemaNodePolicy is { } sourceSchemaNodePolicy)
         {
             if (!CanSeedSourceSchemaNodeBranch(
-                current.SchemaName,
                 fieldsWithRequirements,
                 unresolvable,
-                sourceSchemaNodePolicy,
-                index))
+                sourceSchemaNodePolicy))
             {
                 return;
             }
@@ -2156,6 +2243,7 @@ public sealed partial class OperationPlanner
         backlog = backlog.PushRequirements(
             fieldsWithRequirements,
             new StepConsumer(stepId),
+            workItem.Dependents,
             stepDepth,
             descendantPolicy);
 
@@ -2256,60 +2344,17 @@ public sealed partial class OperationPlanner
         possiblePlans.EnqueueBranches(next);
     }
 
-    private bool CanSeedSourceSchemaNodeBranch(
-        string schemaName,
+    /// <summary>
+    /// Determines whether a source schema node branch issues its node lookup although its schema
+    /// resolves no selection directly, so that the branch step provides the entity for the fields
+    /// with requirements or for the unresolvable selections.
+    /// </summary>
+    private static bool CanSeedSourceSchemaNodeBranch(
         ImmutableStack<ConditionedFieldSelection> fieldsWithRequirements,
         ImmutableStack<ConditionedSelectionSet> unresolvable,
-        SourceSchemaNodePlanningPolicy policy,
-        ISelectionSetIndex index)
-    {
-        if (!fieldsWithRequirements.IsEmpty)
-        {
-            foreach (var entry in fieldsWithRequirements)
-            {
-                var selection = entry.FieldSelection;
-                if (!selection.Field.Sources.TryGetMember(schemaName, out var sourceField)
-                    || sourceField.Requirements is not { } sourceRequirements)
-                {
-                    return false;
-                }
-
-                var requirementIndex = index.ToBuilder();
-                requirementIndex.Register(
-                    selection.SelectionSetId,
-                    sourceRequirements.Requirements);
-                RegisterRequirementSelectionSets(
-                    sourceRequirements.Requirements,
-                    requirementIndex);
-
-                var input = new SelectionSetPartitionerInput
-                {
-                    SchemaName = schemaName,
-                    SelectionSet = new SelectionSet(
-                        selection.SelectionSetId,
-                        sourceRequirements.Requirements,
-                        selection.Field.DeclaringType,
-                        selection.Path),
-                    SelectionSetIndex = requirementIndex,
-                    TreatSourceExternalAsUnresolvable = true
-                };
-
-                var (resolvable, requirementUnresolvable, nestedRequirements, _) =
-                    _partitioner.Partition(input);
-
-                if (resolvable is not { Selections.Count: > 0 }
-                    || !requirementUnresolvable.IsEmpty
-                    || !nestedRequirements.IsEmpty)
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        return policy.CandidateGroupId is null && !unresolvable.IsEmpty;
-    }
+        SourceSchemaNodePlanningPolicy policy)
+        => !fieldsWithRequirements.IsEmpty
+            || (policy.CandidateGroupId is null && !unresolvable.IsEmpty);
 
     private void PlanNode(
         NodeFieldWorkItem workItem,
@@ -2591,6 +2636,7 @@ public sealed partial class OperationPlanner
         int stepId,
         int stepDepth,
         FieldSelection selection,
+        ImmutableHashSet<int> dependents,
         PlanNode current,
         SelectionSetIndexBuilder index,
         ref Backlog backlog,
@@ -2636,6 +2682,7 @@ public sealed partial class OperationPlanner
         backlog = backlog.PushRequirements(
             fieldsWithRequirements,
             new StepConsumer(stepId),
+            dependents,
             stepDepth,
             descendantPolicy);
         return resolvable;
@@ -2868,6 +2915,7 @@ public sealed partial class OperationPlanner
             backlog = backlog.PushRequirements(
                 nestedFieldsWithRequirements,
                 new StepConsumer(step.Id),
+                [dependentStepId],
                 GetOperationStepDepth(current, step.Id),
                 workItem.SourceSchemaNodePolicy is null
                     ? null
@@ -2952,6 +3000,7 @@ public sealed partial class OperationPlanner
                 backlog = backlog.PushRequirements(
                     nestedAncestorFieldsWithRequirements,
                     new StepConsumer(ancestorMatch.Step.Id),
+                    [dependentStepId],
                     GetOperationStepDepth(current, ancestorMatch.Step.Id),
                     workItem.SourceSchemaNodePolicy is null
                         ? null
