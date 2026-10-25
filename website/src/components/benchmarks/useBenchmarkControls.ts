@@ -1,9 +1,9 @@
 import { useLayoutEffect, useRef } from "react";
 import {
   defaultScenarioId,
+  isShownVariant,
   orderedScenarios,
   scenarioGroups,
-  supersededVariants,
 } from "@/src/components/benchmarks/benchmarkView";
 import {
   benchmarkTechnology,
@@ -13,15 +13,16 @@ import {
 import { useBenchmarkPreferences } from "@/src/components/benchmarks/BenchmarkPreferences";
 import {
   benchmarkVariants,
-  type BenchmarkHistory,
+  isPreview,
+  type BenchmarkCatalogEntry,
   type BenchmarkReport,
   type ScenarioId,
 } from "@/src/helpers/benchmarkReport";
 
-/** In-memory filters and the scenario selected by the static route. */
+/** In-memory filters and the scenario selected by the static route. `historyTechnologies` are the technologies of the history variants, which the filters offer next to those of the report. */
 export function useBenchmarkControls(
   report: BenchmarkReport,
-  history: BenchmarkHistory | undefined,
+  historyTechnologies: readonly string[],
   initialScenario: ScenarioId,
 ) {
   const { filters, setFilters: updateFilters } = useBenchmarkPreferences();
@@ -55,31 +56,33 @@ export function useBenchmarkControls(
     window.scrollTo({ top: position.y, behavior: "instant" });
   }, [filters]);
   const variants = benchmarkVariants(report);
-  const historyVariants = history && benchmarkVariants(history);
   const technologies = [
-    ...new Set(
-      [...variants.values(), ...(historyVariants?.values() ?? [])].map(
-        benchmarkTechnology,
-      ),
-    ),
+    ...new Set([
+      ...[...variants.values()].map(benchmarkTechnology),
+      ...historyTechnologies,
+    ]),
   ].sort();
-  const allowed = new Set(
-    [...variants]
-      .filter(([, entry]) =>
-        matchesBenchmarkTechnology(entry, filters.technologies),
-      )
-      .map(([id]) => id),
-  );
-  const filteredReport = {
+  const shown = (keep: (entry: BenchmarkCatalogEntry) => boolean) => ({
     ...report,
     scenarios: report.scenarios.map((scenario) => ({
       ...scenario,
       results: scenario.results.map((result) => ({
         ...result,
-        variants: result.variants.filter((row) => allowed.has(row.variant)),
+        variants: result.variants.filter((row) =>
+          keep(variants.get(row.variant)!),
+        ),
       })),
     })),
-  };
+  });
+  const released = (entry: BenchmarkCatalogEntry) =>
+    isShownVariant(entry) &&
+    (filters.showPreviews || !isPreview(entry.variant));
+  const summaryReport = shown(released);
+  const filteredReport = shown(
+    (entry) =>
+      released(entry) &&
+      matchesBenchmarkTechnology(entry, filters.technologies),
+  );
   const scenarios = orderedScenarios(filteredReport);
   const selected =
     scenarios.find((scenario) => scenario.id === initialScenario)?.id ??
@@ -104,48 +107,18 @@ export function useBenchmarkControls(
   };
   return {
     scenarios,
+    /** The report behind the results summary, which follows the preview filter but not the technology filter. */
+    summaryReport,
     report: filteredReport,
     variants,
-    historyVariants,
     technologies,
     filters,
     setFilters,
-    historyOf: (id: ScenarioId) => {
-      const scenario = history?.scenarios.find(
-        (scenario) => scenario.id === id,
-      );
-      const reportScenario = filteredReport.scenarios.find(
-        (scenario) => scenario.id === id,
-      );
-      const superseded =
-        filters.bestVersionOnly && reportScenario
-          ? supersededVariants(reportScenario, variants, !filters.showPreviews)
-          : new Set<string>();
-      return (
-        scenario && {
-          ...scenario,
-          variants: scenario.variants.filter((item) => {
-            const entry = historyVariants?.get(item.variant);
-            return (
-              entry &&
-              matchesBenchmarkTechnology(entry, filters.technologies) &&
-              !superseded.has(item.variant)
-            );
-          }),
-        }
-      );
-    },
     selected,
-    stableOnly: !filters.showPreviews,
-    bestOnly: filters.bestVersionOnly,
     hasResults: scenarios.some(
-      (scenario) =>
-        scenarioGroups(
-          scenario,
-          variants,
-          !filters.showPreviews,
-          filters.bestVersionOnly,
-        ).length > 0,
+      (scenario) => scenarioGroups(scenario, variants).length > 0,
     ),
   };
 }
+
+export type BenchmarkControls = ReturnType<typeof useBenchmarkControls>;
