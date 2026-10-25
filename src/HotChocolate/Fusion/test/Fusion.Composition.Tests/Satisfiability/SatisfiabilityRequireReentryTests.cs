@@ -233,4 +233,66 @@ public sealed class SatisfiabilityRequireReentryTests
             """
         ]);
     }
+
+    [Theory]
+    [InlineData(NodeResolution.Gateway)]
+    [InlineData(NodeResolution.SourceSchema)]
+    public void Compose_Should_Succeed_When_NodeBranchRequirementReentersRequiringSchema(
+        NodeResolution nodeResolution)
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "a",
+                """
+                type Query {
+                    node(id: ID!): Node @lookup @shareable
+                }
+
+                interface Node {
+                    id: ID!
+                }
+
+                type Chat implements Node @key(fields: "id") {
+                    id: ID!
+                    title: String
+                    summary(text: String @require(field: "text")): String
+                }
+                """),
+            new SourceSchemaText(
+                "b",
+                """
+                type Query {
+                    chatById(id: ID!): Chat @lookup @internal
+                }
+
+                type Chat @key(fields: "id") {
+                    id: ID! @external
+                    text: String!
+                }
+                """)
+        ];
+
+        var log = new CompositionLog();
+        var composer = new SchemaComposer(
+            sourceSchemas,
+            new SchemaComposerOptions
+            {
+                Merger =
+                {
+                    EnableGlobalObjectIdentification = true,
+                    NodeResolution = nodeResolution
+                },
+                Satisfiability = { IncludeSatisfiabilityPaths = true }
+            },
+            log);
+
+        // act
+        var result = composer.Compose();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
 }

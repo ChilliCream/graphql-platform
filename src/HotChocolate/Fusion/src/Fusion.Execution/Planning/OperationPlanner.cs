@@ -1283,7 +1283,9 @@ public sealed partial class OperationPlanner
             }
 
             if (!processed.Add(schemaName)
-                || (!allowSourceSchemaReentry && lookup.SchemaName.Equals(schemaName)))
+                || (!allowSourceSchemaReentry
+                    && lookup.SchemaName.Equals(schemaName)
+                    && !CanProvideRequirementLookupKey(step, consumerStep, steps)))
             {
                 continue;
             }
@@ -1391,7 +1393,9 @@ public sealed partial class OperationPlanner
                 workItemSelectionSet.Path) is { } ancestorMatch
             && (consumerStep is null || !ancestorMatch.Step.DependsOn(consumerStep, steps))
             && processed.Add(ancestorMatch.Step.SchemaName!)
-            && (allowSourceSchemaReentry || !lookup.SchemaName.Equals(ancestorMatch.Step.SchemaName)))
+            && (allowSourceSchemaReentry
+                || !lookup.SchemaName.Equals(ancestorMatch.Step.SchemaName)
+                || CanProvideRequirementLookupKey(ancestorMatch.Step, consumerStep, steps)))
         {
             if (TryInlineIntoAncestorStep(
                 ancestorMatch,
@@ -1468,6 +1472,40 @@ public sealed partial class OperationPlanner
             SelectionSetIndex = index,
             InternalOperationDefinition = internalOperation
         };
+    }
+
+    /// <summary>
+    /// Determines whether <paramref name="step"/> can provide the key of a lookup into its own
+    /// source schema that resolves a field with requirements of <paramref name="consumerStep"/>,
+    /// which holds when <paramref name="step"/> is a node field branch.
+    /// </summary>
+    private static bool CanProvideRequirementLookupKey(
+        OperationPlanStep step,
+        OperationPlanStep? consumerStep,
+        ImmutableList<PlanStep> steps)
+    {
+        if (consumerStep is null)
+        {
+            return false;
+        }
+
+        // A node field branch is entered with the client's id argument, so no parent selection
+        // can be fetched again to provide the key.
+        foreach (var planStep in steps)
+        {
+            if (planStep is NodeFieldPlanStep nodeStep)
+            {
+                foreach (var branch in nodeStep.Branches.Values)
+                {
+                    if (branch.Id == step.Id)
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     internal static bool ContainsSelectionsAtPath(
@@ -2031,8 +2069,7 @@ public sealed partial class OperationPlanner
             RootSelectionSetId = index.GetId(selectionSetNode),
             SelectionSets = SelectionSetIndexer.CreateIdSet(definition.SelectionSet, indexBuilder),
             Requirements = requirements,
-            // The consumer step can supply the lookup key when the lookup enters another
-            // schema, which makes the new step one of its dependents already.
+            // The consumer step lists this lookup as a dependent when it provides the lookup key.
             Dependents = currentStep.Dependents.Remove(stepId),
             Conditions = workItem.Conditions,
             Target = workItem.Selection.Path,
@@ -2173,11 +2210,9 @@ public sealed partial class OperationPlanner
             && workItem.SourceSchemaNodePolicy is { } sourceSchemaNodePolicy)
         {
             if (!CanSeedSourceSchemaNodeBranch(
-                current.SchemaName,
                 fieldsWithRequirements,
                 unresolvable,
-                sourceSchemaNodePolicy,
-                index))
+                sourceSchemaNodePolicy))
             {
                 return;
             }
@@ -2309,60 +2344,17 @@ public sealed partial class OperationPlanner
         possiblePlans.EnqueueBranches(next);
     }
 
-    private bool CanSeedSourceSchemaNodeBranch(
-        string schemaName,
+    /// <summary>
+    /// Determines whether a source schema node branch issues its node lookup although its schema
+    /// resolves no selection directly, so that the branch step provides the entity for the fields
+    /// with requirements or for the unresolvable selections.
+    /// </summary>
+    private static bool CanSeedSourceSchemaNodeBranch(
         ImmutableStack<ConditionedFieldSelection> fieldsWithRequirements,
         ImmutableStack<ConditionedSelectionSet> unresolvable,
-        SourceSchemaNodePlanningPolicy policy,
-        ISelectionSetIndex index)
-    {
-        if (!fieldsWithRequirements.IsEmpty)
-        {
-            foreach (var entry in fieldsWithRequirements)
-            {
-                var selection = entry.FieldSelection;
-                if (!selection.Field.Sources.TryGetMember(schemaName, out var sourceField)
-                    || sourceField.Requirements is not { } sourceRequirements)
-                {
-                    return false;
-                }
-
-                var requirementIndex = index.ToBuilder();
-                requirementIndex.Register(
-                    selection.SelectionSetId,
-                    sourceRequirements.Requirements);
-                RegisterRequirementSelectionSets(
-                    sourceRequirements.Requirements,
-                    requirementIndex);
-
-                var input = new SelectionSetPartitionerInput
-                {
-                    SchemaName = schemaName,
-                    SelectionSet = new SelectionSet(
-                        selection.SelectionSetId,
-                        sourceRequirements.Requirements,
-                        selection.Field.DeclaringType,
-                        selection.Path),
-                    SelectionSetIndex = requirementIndex,
-                    TreatSourceExternalAsUnresolvable = true
-                };
-
-                var (resolvable, requirementUnresolvable, nestedRequirements, _) =
-                    _partitioner.Partition(input);
-
-                if (resolvable is not { Selections.Count: > 0 }
-                    || !requirementUnresolvable.IsEmpty
-                    || !nestedRequirements.IsEmpty)
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        return policy.CandidateGroupId is null && !unresolvable.IsEmpty;
-    }
+        SourceSchemaNodePlanningPolicy policy)
+        => !fieldsWithRequirements.IsEmpty
+            || (policy.CandidateGroupId is null && !unresolvable.IsEmpty);
 
     private void PlanNode(
         NodeFieldWorkItem workItem,
