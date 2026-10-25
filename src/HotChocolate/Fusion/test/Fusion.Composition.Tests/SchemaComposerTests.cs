@@ -1192,7 +1192,9 @@ public sealed class SchemaComposerTests
     public void PostMergeRules_Should_ContainTheRegisteredRuleSet()
     {
         // act
-        var rules = SchemaComposer.PostMergeRules.Select(r => r.GetType().Name);
+        var rules = SchemaComposer
+            .CreatePostMergeRules(new SchemaComposerOptions())
+            .Select(r => r.GetType().Name);
 
         // assert
         Assert.Equal(

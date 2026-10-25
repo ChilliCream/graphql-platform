@@ -203,7 +203,8 @@ internal sealed class SchemaComposer
 
         // Post Merge Validation
         var postMergeValidationResult =
-            new PostMergeValidator(mergedSchema, PostMergeRules, schemas, _log).Validate();
+            new PostMergeValidator(mergedSchema, CreatePostMergeRules(_schemaComposerOptions), schemas, _log)
+                .Validate();
 
         if (postMergeValidationResult.IsFailure)
         {
@@ -339,9 +340,10 @@ internal sealed class SchemaComposer
     ];
 
     /// <summary>
-    /// Gets the rules that run against the merged schema, in the order they are applied.
+    /// Creates the rules that run against the merged schema, in the order they are applied,
+    /// configured from the given options.
     /// </summary>
-    internal static ImmutableArray<object> PostMergeRules { get; } =
+    internal static ImmutableArray<object> CreatePostMergeRules(SchemaComposerOptions options) =>
     [
         new EmptyMergedEnumTypeRule(),
         new EmptyMergedInputObjectTypeRule(),
@@ -363,6 +365,6 @@ internal sealed class SchemaComposer
         new ReferenceToInaccessibleTypeRule(),
         new ReferenceToInternalTypeRule(),
         new RequireInvalidFieldsRule(),
-        new UnreachableSourceFieldRule()
+        new UnreachableSourceFieldRule(options.Satisfiability.IgnoredNonAccessibleFields)
     ];
 }
