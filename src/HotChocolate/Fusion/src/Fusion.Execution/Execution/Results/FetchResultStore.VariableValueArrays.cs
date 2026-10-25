@@ -67,6 +67,7 @@ internal sealed partial class FetchResultStore
         if (_setupVariableValueArrayCount < 0)
         {
             _setupVariableValueArrayCount = _leasedVariableValueArrays.Count;
+            TrimFreeVariableValueArrays();
             return;
         }
 
@@ -93,18 +94,22 @@ internal sealed partial class FetchResultStore
     {
         var leased = _leasedVariableValueArrays;
 
-        if (leased.Count == start)
+        if (leased.Count > start)
         {
-            return;
+            for (var i = start; i < leased.Count; i++)
+            {
+                AddFreeVariableValueArray(leased[i]);
+            }
+
+            leased.RemoveRange(start, leased.Count - start);
         }
 
-        for (var i = start; i < leased.Count; i++)
-        {
-            AddFreeVariableValueArray(leased[i]);
-        }
+        // the free list also holds the arrays returned during the request or event
+        TrimFreeVariableValueArrays();
+    }
 
-        leased.RemoveRange(start, leased.Count - start);
-
+    private void TrimFreeVariableValueArrays()
+    {
         // keep the most recently freed arrays that fit into the retention limits
         var free = _freeVariableValueArrays;
         var retainedEntries = 0;

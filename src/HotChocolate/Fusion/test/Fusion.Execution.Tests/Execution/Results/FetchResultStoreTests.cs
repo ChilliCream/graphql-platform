@@ -2008,6 +2008,82 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void Clean_Should_TrimReturnedValueSetArrays_When_EveryLeasedArrayWasReturned()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+              bars: [Foo]
+            }
+
+            type Foo {
+              key: String
+              name: String
+            }
+            """);
+        var plan = PlanOperation(schema, "{ foos { key name } bars { key name } }");
+        var node = (OperationExecutionNode)plan.RootNodes.Single();
+        var requirement = Requirement(schema, "__fusion_1_key", "key", new NamedTypeNode("String"));
+        var foos = SelectionPath.Root.AppendField("foos");
+        var bars = SelectionPath.Root.AppendField("bars");
+        var candidates = new EntityReuseCandidateList([bars], ["name"], ["key"], []);
+
+        // every foo has a bar with the same key, so the lookup for the foos returns both of its
+        // value set arrays, which hold 300 entries together
+        var foosJson = string.Join(",", Enumerable.Range(0, 100).Select(i => $$"""{"key":"{{i}}","name":"foo"}"""));
+        var barsJson = string.Join(",", Enumerable.Range(0, 200).Select(i => $$"""{"key":"{{i}}","name":"bar"}"""));
+        var payload = Encoding.UTF8.GetBytes($$$"""{"data":{"foos":[{{{foosJson}}}],"bars":[{{{barsJson}}}]}}""");
+
+        using var sourceArena = new MemoryArena();
+        using var firstArena = new MemoryArena();
+        using var secondArena = new MemoryArena();
+        using var thirdArena = new MemoryArena();
+        using var store = new FetchResultStore();
+
+        // the first request retains the array that the producers of the lookup rent next
+        Initialize(firstArena);
+        var producerArray = ImmutableCollectionsMarshal.AsArray(store.CreateVariableValueSets(bars, [], [requirement]));
+        store.Clean(maxCollectTargetRetainLength: 256, maxDictionaryRetainCapacity: 256);
+
+        Initialize(secondArena);
+        var remaining = store.CreateVariableValueSets([foos], [], [requirement], candidates, out var reusedCount);
+
+        // act
+        store.Clean(maxCollectTargetRetainLength: 256, maxDictionaryRetainCapacity: 256);
+        Initialize(thirdArena);
+        var nextProducers = store.CreateVariableValueSets(bars, [], [requirement]);
+
+        // assert
+        Assert.Empty(remaining);
+        Assert.Equal(100, reusedCount);
+        Assert.NotSame(producerArray, ImmutableCollectionsMarshal.AsArray(nextProducers));
+        Assert.Equal(200, nextProducers.Length);
+
+        void Initialize(MemoryArena resultArena)
+        {
+            store.Initialize(
+                resultArena,
+                schema,
+                DefaultErrorHandler.Default,
+                plan.Operation,
+                ErrorHandlingMode.Propagate,
+                includeFlags: default,
+                deferFlags: default,
+                pathSegmentLocalPoolCapacity: 16);
+
+            var document = SourceResultDocument.Parse(sourceArena, payload, payload.Length);
+            store.AddPartialResults(
+                SelectionPath.Root,
+                [new SourceSchemaResult(CompactPath.Root, document)],
+                node.ResultSelectionSet,
+                containsErrors: false);
+        }
+    }
+
+    [Fact]
     public void Initialize_Should_ApplyErrorHandlingMode_When_StoreIsReusedAfterClean()
     {
         // arrange
