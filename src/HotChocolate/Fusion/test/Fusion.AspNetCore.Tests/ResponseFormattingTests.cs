@@ -184,6 +184,187 @@ public sealed class ResponseFormattingTests : FusionTestBase
         Assert.Equal(expected.WrittenCount - 9, writer.BytesWrittenToLargeSpans);
     }
 
+    [Fact]
+    public async Task FormatAsync_Should_WriteLargeResultInFewPipeSegments_When_ResultIsMinimized()
+    {
+        // arrange
+        using var accountsApi = CreateSourceSchema(
+            "accounts-api",
+            builder => builder.AddQueryType<K6ExecutionTests.AccountsQuery>(d => d.Name("Query")));
+
+        using var inventoryApi = CreateSourceSchema(
+            "inventory-api",
+            builder => builder.AddQueryType<K6ExecutionTests.InventoryQuery>(d => d.Name("Query")));
+
+        using var productsApi = CreateSourceSchema(
+            "products-api",
+            builder => builder.AddQueryType<K6ExecutionTests.ProductsQuery>(d => d.Name("Query")));
+
+        using var reviewsApi = CreateSourceSchema(
+            "reviews-api",
+            builder => builder.AddQueryType<K6ExecutionTests.ReviewsQuery>(d => d.Name("Query")));
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("accounts-api", accountsApi),
+                ("inventory-api", inventoryApi),
+                ("products-api", productsApi),
+                ("reviews-api", reviewsApi)
+            ]);
+
+        var executor = await gateway.Services.GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        await using var result = await executor.ExecuteAsync(
+            """
+            query TestQuery {
+              a: users { ...UserReviews }
+              b: users { ...UserReviews }
+              c: users { ...UserReviews }
+              d: users { ...UserReviews }
+            }
+
+            fragment UserReviews on User {
+              id
+              username
+              name
+              reviews {
+                id
+                body
+                product {
+                  inStock
+                  name
+                  price
+                  shippingEstimate
+                  upc
+                  weight
+                  reviews {
+                    id
+                    body
+                    author {
+                      id
+                      username
+                      name
+                      reviews {
+                        id
+                        body
+                        product { inStock name price shippingEstimate upc weight }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+        var operationResult = Assert.IsType<OperationResult>(result);
+
+        var expected = new ArrayBufferWriter<byte>();
+        JsonResultFormatter.Default.Format(operationResult, expected);
+
+        var pipe = new Pipe(new PipeOptions(pauseWriterThreshold: 0, resumeWriterThreshold: 0));
+
+        // act
+        await JsonResultFormatter.Default.FormatAsync(
+            operationResult,
+            pipe.Writer,
+            TestContext.Current.CancellationToken);
+        await pipe.Writer.CompleteAsync();
+
+        // assert
+        var read = await pipe.Reader.ReadAsync(TestContext.Current.CancellationToken);
+        var actual = Encoding.UTF8.GetString(read.Buffer);
+        var segments = CountSegments(read.Buffer);
+        pipe.Reader.AdvanceTo(read.Buffer.End);
+        Assert.Equal(Encoding.UTF8.GetString(expected.WrittenSpan), actual);
+        Assert.Equal(77_502, expected.WrittenCount);
+        Assert.Equal(7, segments);
+    }
+
+    [Theory]
+    [InlineData("multipart")]
+    [InlineData("event-stream")]
+    public async Task FormatAsync_Should_ForwardEmitterSizeHints_When_SingleResultIsWrittenAsMessage(
+        string format)
+    {
+        // arrange
+        using var accountsApi = CreateSourceSchema(
+            "accounts-api",
+            builder => builder.AddQueryType<K6ExecutionTests.AccountsQuery>(d => d.Name("Query")));
+
+        using var inventoryApi = CreateSourceSchema(
+            "inventory-api",
+            builder => builder.AddQueryType<K6ExecutionTests.InventoryQuery>(d => d.Name("Query")));
+
+        using var productsApi = CreateSourceSchema(
+            "products-api",
+            builder => builder.AddQueryType<K6ExecutionTests.ProductsQuery>(d => d.Name("Query")));
+
+        using var reviewsApi = CreateSourceSchema(
+            "reviews-api",
+            builder => builder.AddQueryType<K6ExecutionTests.ReviewsQuery>(d => d.Name("Query")));
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("accounts-api", accountsApi),
+                ("inventory-api", inventoryApi),
+                ("products-api", productsApi),
+                ("reviews-api", reviewsApi)
+            ]);
+
+        var executor = await gateway.Services.GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        await using var result = await executor.ExecuteAsync(
+            """
+            query TestQuery {
+              a: users { ...UserReviews }
+              b: users { ...UserReviews }
+            }
+
+            fragment UserReviews on User {
+              id
+              username
+              name
+              reviews {
+                id
+                body
+                product {
+                  inStock
+                  name
+                  price
+                  shippingEstimate
+                  upc
+                  weight
+                  reviews { id body author { id username name } }
+                }
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+        var operationResult = Assert.IsType<OperationResult>(result);
+
+        var expected = new ArrayBufferWriter<byte>();
+        JsonResultFormatter.Default.Format(operationResult, expected);
+
+        IExecutionResultFormatter formatter = format switch
+        {
+            "multipart" => new MultiPartResultFormatter(),
+            _ => new EventStreamResultFormatter(new JsonResultFormatterOptions())
+        };
+        var writer = new SizeHintRecordingPipeWriter(PipeWriter.Create(Stream.Null));
+
+        // act
+        await formatter.FormatAsync(
+            operationResult,
+            writer,
+            ExecutionResultFormatFlags.None,
+            TestContext.Current.CancellationToken);
+        await writer.CompleteAsync();
+
+        // assert
+        Assert.Equal(expected.WrittenCount - 9, writer.BytesWrittenToLargeSpans);
+        Assert.Equal(2048, writer.MaxSizeHint);
+    }
+
     private static async Task<(string Expected, string Actual)> FormatWithBothFormattersAsync(
         Gateway gateway,
         string query)
@@ -208,15 +389,30 @@ public sealed class ResponseFormattingTests : FusionTestBase
         return (Encoding.UTF8.GetString(expected.WrittenSpan), Encoding.UTF8.GetString(actual.WrittenSpan));
     }
 
+    private static int CountSegments(ReadOnlySequence<byte> buffer)
+    {
+        var segments = 0;
+        var position = buffer.Start;
+
+        while (buffer.TryGet(ref position, out _))
+        {
+            segments++;
+        }
+
+        return segments;
+    }
+
     /// <summary>
     /// A pipe writer that counts the bytes written into spans requested with a size hint of
-    /// at least 2 KB.
+    /// at least 2 KB and records the largest size hint it receives.
     /// </summary>
     private sealed class SizeHintRecordingPipeWriter(PipeWriter inner) : PipeWriter
     {
         private bool _largeSpan;
 
         public long BytesWrittenToLargeSpans { get; private set; }
+
+        public int MaxSizeHint { get; private set; }
 
         public override void Advance(int bytes)
         {
@@ -231,12 +427,14 @@ public sealed class ResponseFormattingTests : FusionTestBase
         public override Memory<byte> GetMemory(int sizeHint = 0)
         {
             _largeSpan = sizeHint >= 2048;
+            MaxSizeHint = Math.Max(MaxSizeHint, sizeHint);
             return inner.GetMemory(sizeHint);
         }
 
         public override Span<byte> GetSpan(int sizeHint = 0)
         {
             _largeSpan = sizeHint >= 2048;
+            MaxSizeHint = Math.Max(MaxSizeHint, sizeHint);
             return inner.GetSpan(sizeHint);
         }
 
