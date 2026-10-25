@@ -74,6 +74,70 @@ public class DocumentCacheMiddlewareTests : FusionTestBase
             .MatchMarkdownSnapshot();
     }
 
+    [Fact]
+    public async Task InvokeAsync_Should_UseCachedDocument_When_SourceTextWasValidatedBefore()
+    {
+        // arrange
+        var listener = new DocumentCacheListener();
+        var documentInfos = new List<object>();
+        var documentIds = new List<string?>();
+        var executor = await new ServiceCollection()
+            .AddHttpClient()
+            .AddGraphQLGateway()
+            .AddDiagnosticEventListener(_ => listener)
+            .UseRequest(
+                (_, next) => context =>
+                {
+                    var documentInfo = context.OperationDocumentInfo;
+                    documentInfos.Add(
+                        new
+                        {
+                            HasDocument = documentInfo.Document is not null,
+                            documentInfo.IsCached,
+                            documentInfo.IsValidated
+                        });
+                    return next(context);
+                },
+                after: WellKnownRequestMiddleware.DocumentCacheMiddleware,
+                allowMultiple: true)
+            .UseRequest(
+                (_, next) => context =>
+                {
+                    documentIds.Add(context.OperationDocumentInfo.Id.Value);
+                    return next(context);
+                },
+                after: WellKnownRequestMiddleware.DocumentValidationMiddleware,
+                allowMultiple: true)
+            .AddInMemoryConfiguration(
+                ComposeSchemaDocument(
+                    """
+                    type Query {
+                      field: String
+                    }
+                    """))
+            .Services
+            .BuildServiceProvider()
+            .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        await executor.ExecuteAsync("{ __typename }", TestContext.Current.CancellationToken);
+        var result = await executor.ExecuteAsync("{ __typename }", TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot.Create()
+            .Add(result, "Result")
+            .Add(
+                new
+                {
+                    listener.AddedToCache,
+                    listener.RetrievedFromCache,
+                    DocumentInfoAfterCache = documentInfos,
+                    DocumentIdAfterValidation = documentIds
+                },
+                "Document Cache")
+            .MatchMarkdownSnapshot();
+    }
+
     private sealed class DocumentCacheListener : FusionExecutionDiagnosticEventListener
     {
         private int _addedToCache;
