@@ -1,6 +1,7 @@
 ---
-title: "GraphQL Federation vs BFF (backend for frontend)"
-description: "A backend for frontend hand-aggregates services for one client. GraphQL Federation composes one schema for all of them. When each is the better buy."
+title: "GraphQL Federation vs. Backend for Frontend (BFF)"
+metaTitle: "GraphQL Federation vs BFF: Differences & When to Use Each"
+description: "Compare GraphQL Federation and the Backend for Frontend (BFF) pattern. Learn how they differ, when to use each, and how they work together."
 date: "2026-09-08"
 tags: ["graphql-federation", "comparison", "bff"]
 author: Rafael Staib
@@ -8,50 +9,121 @@ authorUrl: https://github.com/rstaib
 authorImageUrl: https://avatars0.githubusercontent.com/u/4325318?s=100&v=4
 ---
 
-Both approaches exist because clients rarely want data in the shape the services hold it. A backend for frontend solves that once per client, in a service that team writes; GraphQL Federation solves it once for every client, in a schema the teams that own the data publish.
+GraphQL Federation and the Backend for Frontend (BFF) pattern both help applications work with data distributed across multiple services. However, they approach API architecture from different directions.
 
-The question is not which is better in the abstract. It is how many clients need the same data assembled, and who you want doing the assembling.
+A BFF provides an API tailored to the needs of a particular client, such as a web application or mobile app. GraphQL Federation brings independently developed services together into one unified graph that multiple clients can query.
 
-# What a backend for frontend is
+**The fundamental difference is where you establish your architectural boundaries: around clients or around business domains.**
 
-A backend for frontend is a service one client team builds and owns. Its only job is to call the services that team needs, join what comes back, and shape it for that client's screens: one response per screen, in the shape the screen wants, over one round trip. Nothing else calls it, so it can be exactly as opinionated as its client is.
+Understanding this distinction helps determine when to use either approach and why they often work well together.
 
-That focus is the point, and it is why the pattern works. A backend for frontend is the right answer when one client's needs are unusual enough that no other client would want the same aggregation, and it is easiest to justify when a single team owns both the client and the backend. The two ship together, the contract between them never has to be negotiated with anyone, and the work the screens need that no schema should do — holding a session, calling a payment provider, driving a multi-step flow — lives in a place that belongs to that team alone.
+# What is a Backend for Frontend?
 
-# What it costs once there are more clients
+The Backend for Frontend pattern introduces a dedicated backend for a particular client or user experience.
 
-The bill arrives with the second and third client. Each one gets a backend of its own to build, secure, monitor, and keep on a supported runtime, and each of those backends re-implements the same joins over the same services. When a service changes a field, every backend for frontend that reads it changes too — and the client teams, not the team that owns the data, do that work.
+For example, a web application and a mobile application might have different requirements. The web application may need detailed product information, while the mobile application prioritizes smaller responses and fewer network requests.
 
-Because the aggregation logic is duplicated rather than shared, it also drifts. Two clients that ought to compute a total, resolve a permission, or page a list the same way end up doing it slightly differently, and the difference surfaces as a bug report against the data rather than against the client that got it wrong.
+With the BFF pattern, each client can have a backend responsible for retrieving data, orchestrating services, and exposing an API optimized for its needs.
 
-# How GraphQL Federation changes the picture
+This gives frontend teams control over how their applications interact with backend systems. They can evolve their APIs alongside their clients without coordinating every change through a shared API team.
 
-GraphQL Federation moves the assembly behind one API instead of repeating it per client. Each team publishes a source schema for the service it owns; composition merges those source schemas into one composite schema before deploy, and fails the build when two teams describe the same field in incompatible ways; the gateway's distributed executor plans each incoming query across the subgraphs it needs, fetches from each of them, and assembles one response.
+BFFs are particularly useful when clients require specialized workflows, authentication handling, or orchestration that doesn't belong in the underlying services.
 
-Per-client shaping does not disappear. It moves into the query: a mobile screen and a web screen ask the same composite schema for different fields, so the thing that used to justify a backend per client is now a selection set rather than a service. The joins each backend for frontend used to hand-write are described once, in the schemas themselves — a type with a key (`@key`) declared in one subgraph is referenced from another, and the gateway resolves it through a lookup (`@lookup`).
+# Where BFF architectures become challenging
 
-Nothing about this asks a client team to change stacks. Any GraphQL server, in any language, can be a subgraph, so the teams that own the data keep the servers they already run and add the keys and lookups that let their types be referenced from elsewhere.
+As applications grow, multiple BFFs may begin consuming the same backend services.
 
-# Using both
+A web BFF, mobile BFF, and partner BFF might all need to retrieve product information, customer details, and order histories.
 
-The two are not exclusive, and the hybrid is common. A backend for frontend can sit in front of the gateway: it keeps everything it does that a schema should not do — the session, the call out to a payment provider, the legacy endpoint — and gets its data from one composite schema instead of from six services. The joins leave the backend for frontend; the client-specific work stays.
+If each BFF independently implements the relationships between these services, the same aggregation logic can end up being maintained in several places.
 
-A backend for frontend can also become a subgraph. When it has grown data or behavior that other clients want, it publishes a source schema like any other service and its types join the composite schema, which is usually the shortest way out of a client backend that quietly turned into a second product backend. Teams arrive here from the other direction too: build a backend for frontend for the first client, and add the gateway when the second and third client ask for the same data.
+This introduces additional work:
 
-In practice: [running a gateway over your source schemas](/docs/fusion).
+- Changes to underlying services may affect multiple BFFs.
+- Shared relationships and data-fetching logic can become duplicated.
+- Different clients may implement the same behavior inconsistently.
+- Every additional BFF introduces another service to maintain and operate.
 
-# When to pick which
+These problems aren't inherent to the BFF pattern. Shared libraries, dedicated aggregation services, and other architectural approaches can address them.
 
-## Pick GraphQL Federation when
+However, when many clients need access to the same connected data, it may make sense to establish that shared data model independently of individual applications.
 
-- Several clients need the same data assembled, and every backend for frontend would re-implement the same joins over the same services.
-- The teams that own the data should own how it is exposed, instead of client teams tracking every upstream change.
-- Clients differ in what they need but not in where it comes from: one composite schema, and each client asks for its own fields.
-- A new client should not mean one more backend to build, secure, monitor, and keep on a supported runtime.
+# How GraphQL Federation approaches the problem
 
-## Pick a backend for frontend when
+GraphQL Federation organizes an API around independently owned services rather than individual clients.
 
-- One or two clients have needs no other client shares, so the aggregation would never be reused anyway.
-- One team owns the client and its backend, ships them together, and gains nothing from negotiating a shared contract.
-- The screens need work that does not belong in a schema: session handling, third-party calls, a multi-step flow with its own state.
-- A gateway to run and a composition pipeline to own is a price the team is not ready to pay yet.
+Each service contributes part of a unified GraphQL schema. These services, called subgraphs, can represent different business domains and evolve independently.
+
+A process called schema composition combines their definitions into one composite schema, while a GraphQL gateway executes queries across the services behind it.
+
+Instead of implementing relationships between services separately in every BFF, those relationships become part of the shared graph.
+
+For example, a product catalog can expose products while an inventory service contributes availability information to the same product type.
+
+Clients can query both through one GraphQL API:
+
+```graphql
+query {
+  productById(id: "123") {
+    name
+    price
+    availability {
+      inStock
+    }
+  }
+}
+```
+
+The gateway coordinates the necessary requests across the catalog and inventory subgraphs and returns one response.
+
+A web application might request additional product details, while a mobile application asks for fewer fields. Both use the same graph without requiring separate aggregation implementations.
+
+This is one of GraphQL Federation's main advantages: **the relationships between business domains are defined once and can be reused by every client.**
+
+# GraphQL Federation and BFFs can work together
+
+Choosing GraphQL Federation doesn't mean abandoning the Backend for Frontend pattern.
+
+A BFF can sit between a client and a federated GraphQL API, providing client-specific functionality while relying on the shared graph for data access.
+
+For example, a mobile BFF might manage sessions, coordinate a client-specific workflow, or integrate with an external service. Instead of independently aggregating data from several backend services, it queries the federated graph.
+
+This creates a clear separation of responsibilities:
+
+- **GraphQL Federation** provides a unified API organized around business domains.
+- **Backend for Frontend** handles the requirements specific to an individual client.
+
+The result is an architecture where domain relationships are shared, while frontend teams retain the flexibility to build experiences tailored to their applications.
+
+In some cases, GraphQL Federation can eliminate the need for a BFF entirely. In others, the two approaches complement each other.
+
+# GraphQL Federation vs. BFF at a glance
+
+|                    | GraphQL Federation                               | Backend for Frontend                    |
+| ------------------ | ------------------------------------------------ | --------------------------------------- |
+| Primary focus      | Business domains and shared data                 | Individual clients                      |
+| API structure      | Unified GraphQL schema                           | Client-specific API                     |
+| Ownership          | Domain and service teams                         | Typically frontend teams                |
+| Data aggregation   | Shared through the graph                         | Implemented or orchestrated per BFF     |
+| Client flexibility | Clients select the fields they need              | Backend tailored to client requirements |
+| Best suited for    | Shared data across multiple services and clients | Client-specific behavior and workflows  |
+
+# When should you use GraphQL Federation or a BFF?
+
+**Choose GraphQL Federation** when multiple applications need access to the same connected data, and you want service teams to own their domains independently. Federation provides a shared API without requiring every client team to implement relationships between backend services.
+
+**Choose a Backend for Frontend** when applications have distinct requirements that benefit from dedicated backend logic, such as specialized workflows, session management, or integrations.
+
+**Use both** when you want a shared domain model across your organization while preserving client-specific backend functionality.
+
+The decision isn't necessarily between GraphQL Federation and BFFs. It's about identifying which responsibilities belong to your business domains and which belong to individual clients.
+
+# Build a unified API with Fusion
+
+Fusion is a high-performance GraphQL gateway that brings GraphQL, REST, and gRPC services together into one unified graph.
+
+It supports both the GraphQL Federation specification and Apollo Federation, allowing teams to expose their existing services through a shared API without requiring a coordinated migration.
+
+Whether your clients access the graph directly or through dedicated BFFs, Fusion provides a common foundation for querying data across your organization.
+
+[Explore Fusion](/products/fusion) | [Learn about GraphQL Federation](/platform/graphql-federation)
