@@ -8,7 +8,9 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Rewriters;
 
-public sealed class DocumentRewriter(FusionSchemaDefinition schema, bool removeStaticallyExcludedSelections = false)
+public sealed partial class DocumentRewriter(
+    FusionSchemaDefinition schema,
+    bool removeStaticallyExcludedSelections = false)
 {
     private static readonly FieldNode s_typeNameField =
         new(
@@ -25,10 +27,9 @@ public sealed class DocumentRewriter(FusionSchemaDefinition schema, bool removeS
         var operationType = schema.GetOperationType(operation.Operation);
         var fragmentLookup = CreateFragmentLookup(document);
 
-        var newSelectionSet = RewriteSelectionSet(
-            operation.SelectionSet,
-            operationType,
-            fragmentLookup);
+        var newSelectionSet = operation.Operation is OperationType.Mutation
+            ? RewriteMutationSelectionSet(operation.SelectionSet, operationType, fragmentLookup)
+            : RewriteSelectionSet(operation.SelectionSet, operationType, fragmentLookup);
 
         var newOperation = new OperationDefinitionNode(
             null,
