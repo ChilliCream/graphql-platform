@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Text.Json;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Properties;
 using HotChocolate.Fusion.Text.Json;
@@ -20,9 +19,6 @@ namespace HotChocolate.Fusion.Execution.Clients;
 /// </summary>
 public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
 {
-    private static ReadOnlySpan<byte> VariableIndex => "variableIndex"u8;
-    private static ReadOnlySpan<byte> RequestIndex => "requestIndex"u8;
-
     private readonly GraphQLHttpClient _client;
     private readonly HttpSourceSchemaClientConfiguration _configuration;
     private readonly ErrorHandlingMode? _onError;
@@ -112,7 +108,7 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
 
             try
             {
-                var httpRequest = CreateHttpRequest(context, request, ref buffer);
+                var httpRequest = CreateHttpRequest(context, in request, ref buffer);
                 SourceSchemaCallbackHelper.ConfigureCallbacks(
                     httpRequest,
                     context,
@@ -237,7 +233,7 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
 
         try
         {
-            var httpRequest = CreateHttpRequest(context, request, ref buffer);
+            var httpRequest = CreateHttpRequest(context, in request, ref buffer);
             SourceSchemaCallbackHelper.ConfigureCallbacks(httpRequest, context, request.Node, _configuration);
 
             httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
@@ -338,120 +334,20 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
     {
         var arenaSource = context.MemorySource;
         GraphQLHttpResponse? httpResponse = null;
-        bool? didFirstResultHaveRequestIndex = null;
-        var currentRequestIndex = 0;
-        var currentVariableIndex = 0;
 
         try
         {
             httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
-            context.TrackTransport(requests[0].Node, httpRequest.Uri, httpResponse.RawContentType);
+            context.TrackTransport(requests.ItemRef(0).Node, httpRequest.Uri, httpResponse.RawContentType);
+
+            var mapper = new BatchResultMapper(requests, _supportsVariableBatching);
 
             await foreach (var result in httpResponse.ReadAsResultStreamAsync(arenaSource).WithCancellation(cancellationToken))
             {
-                // Check if the first result has a requestIndex.
-                // If it does we can assume all others will have one as well and we know we need to check for it.
-                // If it doesn't we can assume there won't be one and we can just simple counters.
-                didFirstResultHaveRequestIndex ??= result.Root.TryGetProperty(RequestIndex, out _);
+                mapper.Begin(result);
 
-                // If we don't support variable batching, requests with multiple variables
-                // might have been flattened to multiple requests.
-                if (!_supportsVariableBatching)
+                while (mapper.TryGetNext(out var requestIndex, out var sourceSchemaResult))
                 {
-                    int requestIndex, variableIndex;
-
-                    if (didFirstResultHaveRequestIndex.Value)
-                    {
-                        if (!result.Root.TryGetProperty(RequestIndex, out var flatRequestIndexElem))
-                        {
-                            throw new InvalidOperationException(
-                                "Expected requestIndex in batch response but it was missing.");
-                        }
-
-                        ResolveFlattenedIndex(requests, flatRequestIndexElem.GetInt32(), out requestIndex, out variableIndex);
-                    }
-                    else
-                    {
-                        requestIndex = currentRequestIndex;
-                        variableIndex = currentVariableIndex;
-
-                        if (++currentVariableIndex >= Math.Max(1, requests[currentRequestIndex].Variables.Length))
-                        {
-                            currentRequestIndex++;
-                            currentVariableIndex = 0;
-                        }
-                    }
-
-                    if (TryGetResultPath(requests[requestIndex], variableIndex, out var p, out var ap))
-                    {
-                        var ssr = ap.IsDefaultOrEmpty
-                            ? new SourceSchemaResult(p, result)
-                            : new SourceSchemaResult(p, result, additionalPaths: ap);
-
-                        yield return new SourceSchemaBatchResult(requestIndex, ssr);
-                    }
-                }
-                else
-                {
-                    var requestIndex = ResolveRequestIndex(requests, result);
-
-                    if (requestIndex == -1)
-                    {
-                        for (var i = 0; i < requests.Length; i++)
-                        {
-                            var req = requests[i];
-
-                            if (!TryGetResultPath(req, variableIndex: 0, out var p, out var ap))
-                            {
-                                continue;
-                            }
-
-                            var ssr = ap.IsDefaultOrEmpty
-                                ? new SourceSchemaResult(p, result)
-                                : new SourceSchemaResult(p, result, additionalPaths: ap);
-
-                            yield return new SourceSchemaBatchResult(i, ssr);
-                        }
-
-                        continue;
-                    }
-
-                    var request = requests[requestIndex];
-                    var variableIndex = ResolveVariableIndex(request, result);
-
-                    if (variableIndex == -1)
-                    {
-                        for (var vi = 0; vi < request.Variables.Length; vi++)
-                        {
-                            if (!TryGetResultPath(request, vi, out var vp, out var vap))
-                            {
-                                continue;
-                            }
-
-                            var vssr = vap.IsDefaultOrEmpty
-                                ? new SourceSchemaResult(vp, result)
-                                : new SourceSchemaResult(vp, result, additionalPaths: vap);
-
-                            yield return new SourceSchemaBatchResult(requestIndex, vssr);
-                        }
-
-                        continue;
-                    }
-
-                    if (!TryGetResultPath(request, variableIndex, out var path, out var additionalPaths))
-                    {
-                        result.Dispose();
-                        throw new InvalidOperationException(
-                            string.Format(
-                                FusionExecutionResources.HttpSourceSchemaClient_InvalidVariableIndex,
-                                variableIndex,
-                                request.Node.Id));
-                    }
-
-                    var sourceSchemaResult = additionalPaths.IsDefaultOrEmpty
-                        ? new SourceSchemaResult(path, result)
-                        : new SourceSchemaResult(path, result, additionalPaths: additionalPaths);
-
                     yield return new SourceSchemaBatchResult(requestIndex, sourceSchemaResult);
                 }
             }
@@ -472,7 +368,7 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
     {
         await foreach (var batchResult in results.WithCancellation(cancellationToken))
         {
-            onSourceSchemaResult(context, requests[batchResult.RequestIndex].Node, batchResult.Result);
+            onSourceSchemaResult(context, requests.ItemRef(batchResult.RequestIndex).Node, batchResult.Result);
             yield return batchResult;
         }
     }
@@ -484,7 +380,7 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
     /// </summary>
     private GraphQLHttpRequest CreateHttpRequest(
         OperationPlanContext context,
-        SourceSchemaClientRequest originalRequest,
+        in SourceSchemaClientRequest originalRequest,
         ref ChunkedArrayWriter? buffer)
     {
         var defaultAcceptHeader = originalRequest.OperationType is OperationType.Subscription
@@ -497,7 +393,7 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
         switch (originalRequest.Variables.Length)
         {
             case 0:
-                httpRequest = new GraphQLHttpRequest(CreateSingleRequest(context, originalRequest, _onError, ref buffer))
+                httpRequest = new GraphQLHttpRequest(CreateSingleRequest(context, in originalRequest, _onError, ref buffer))
                 {
                     Uri = _configuration.BaseAddress,
                     AcceptHeaderValue = defaultAcceptHeader
@@ -505,7 +401,7 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
                 break;
 
             case 1:
-                httpRequest = new GraphQLHttpRequest(CreateSingleRequest(context, originalRequest, _onError, ref buffer))
+                httpRequest = new GraphQLHttpRequest(CreateSingleRequest(context, in originalRequest, _onError, ref buffer))
                 {
                     Uri = _configuration.BaseAddress,
                     AcceptHeaderValue = defaultAcceptHeader,
@@ -517,7 +413,7 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
                 if (!originalRequest.RequiresFileUpload && _supportsVariableBatching)
                 {
                     httpRequest =
-                        new GraphQLHttpRequest(CreateVariableBatchRequest(operationSourceText, originalRequest, _onError))
+                        new GraphQLHttpRequest(CreateVariableBatchRequest(operationSourceText, in originalRequest, _onError))
                         {
                             Uri = _configuration.BaseAddress,
                             AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue
@@ -526,7 +422,7 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
                 else
                 {
                     httpRequest =
-                        new GraphQLHttpRequest(CreateOperationBatchRequest(context, originalRequest, _onError, ref buffer))
+                        new GraphQLHttpRequest(CreateOperationBatchRequest(context, in originalRequest, _onError, ref buffer))
                         {
                             Uri = _configuration.BaseAddress,
                             AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue,
@@ -685,7 +581,7 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
 
     private static OperationRequest CreateSingleRequest(
         OperationPlanContext context,
-        SourceSchemaClientRequest originalRequest,
+        in SourceSchemaClientRequest originalRequest,
         ErrorHandlingMode? onError,
         ref ChunkedArrayWriter? writer)
     {
@@ -719,7 +615,7 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
     }
 
     private static OperationRequest CreateBatchUploadRequest(
-        SourceSchemaClientRequest originalRequest,
+        in SourceSchemaClientRequest originalRequest,
         VariableValues variables,
         ErrorHandlingMode? onError,
         ChunkedArrayWriter writer,
@@ -740,7 +636,7 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
 
     private static OperationBatchRequest CreateOperationBatchRequest(
         OperationPlanContext context,
-        SourceSchemaClientRequest originalRequest,
+        in SourceSchemaClientRequest originalRequest,
         ErrorHandlingMode? onError,
         ref ChunkedArrayWriter? writer)
     {
@@ -788,7 +684,7 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
 
     private static VariableBatchRequest CreateVariableBatchRequest(
         ReadOnlyMemory<byte> operationSourceText,
-        SourceSchemaClientRequest originalRequest,
+        in SourceSchemaClientRequest originalRequest,
         ErrorHandlingMode? onError)
     {
         return new VariableBatchRequest(
@@ -798,108 +694,6 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
             onError: onError,
             variables: originalRequest.Variables,
             extensions: JsonSegment.Empty);
-    }
-
-    private static int ResolveRequestIndex(
-        ImmutableArray<SourceSchemaClientRequest> requests,
-        SourceResultDocument result)
-    {
-        if (requests.Length == 1)
-        {
-            return 0;
-        }
-
-        if (!result.Root.TryGetProperty(RequestIndex, out var requestIndexElement))
-        {
-            return -1;
-        }
-
-        var requestIndex = requestIndexElement.GetInt32();
-
-        if ((uint)requestIndex < (uint)requests.Length)
-        {
-            return requestIndex;
-        }
-
-        throw ThrowHelper.RequestIndexOutOfRange(requestIndex);
-    }
-
-    private static int ResolveVariableIndex(
-        SourceSchemaClientRequest request,
-        SourceResultDocument result)
-    {
-        var variableCount = request.Variables.Length;
-
-        if (variableCount <= 1)
-        {
-            return 0;
-        }
-
-        if (!result.Root.TryGetProperty(VariableIndex, out var variableIndexElement))
-        {
-            return -1;
-        }
-
-        var variableIndex = variableIndexElement.GetInt32();
-
-        if ((uint)variableIndex < (uint)variableCount)
-        {
-            return variableIndex;
-        }
-
-        throw ThrowHelper.VariableIndexOutOfRange(variableIndex);
-    }
-
-    private static void ResolveFlattenedIndex(
-        ImmutableArray<SourceSchemaClientRequest> requests,
-        int flattenedIndex,
-        out int requestIndex,
-        out int variableIndex)
-    {
-        var remaining = flattenedIndex;
-
-        for (var i = 0; i < requests.Length; i++)
-        {
-            var varCount = Math.Max(1, requests[i].Variables.Length);
-
-            if (remaining < varCount)
-            {
-                requestIndex = i;
-                variableIndex = remaining;
-                return;
-            }
-
-            remaining -= varCount;
-        }
-
-        throw new InvalidOperationException(
-            $"Flattened index {flattenedIndex} is out of range.");
-    }
-
-    private static bool TryGetResultPath(
-        SourceSchemaClientRequest request,
-        int variableIndex,
-        out CompactPath path,
-        out CompactPathSegment additionalPaths)
-    {
-        if (request.Variables.Length == 0)
-        {
-            path = CompactPath.Root;
-            additionalPaths = default;
-            return true;
-        }
-
-        if ((uint)variableIndex >= (uint)request.Variables.Length)
-        {
-            path = CompactPath.Root;
-            additionalPaths = default;
-            return false;
-        }
-
-        var variable = request.Variables[variableIndex];
-        path = variable.Path;
-        additionalPaths = variable.AdditionalPaths;
-        return true;
     }
 
     /// <inheritdoc />
@@ -917,11 +711,11 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
     }
 
     private static bool ContainsSubscriptionRequest(
-        IReadOnlyList<SourceSchemaClientRequest> requests)
+        ImmutableArray<SourceSchemaClientRequest> requests)
     {
-        for (var i = 0; i < requests.Count; i++)
+        for (var i = 0; i < requests.Length; i++)
         {
-            if (requests[i].OperationType is OperationType.Subscription)
+            if (requests.ItemRef(i).OperationType is OperationType.Subscription)
             {
                 return true;
             }
@@ -936,89 +730,29 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
         GraphQLHttpResponse response,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        switch (variables.Length)
+        if (variables.Length <= 1)
         {
-            case 0:
+            var document = await response.ReadAsResultAsync(context.Memory, cancellationToken);
+            yield return CreateSingleResult(variables, document);
+            yield break;
+        }
+
+        var mapper = new VariableBatchResultMapper(variables, _supportsVariableBatching);
+
+        await foreach (var document in response.ReadAsResultStreamAsync(context.MemorySource)
+            .WithCancellation(cancellationToken))
+        {
+            if (!mapper.TryMap(document, out var result))
             {
-                var result = await response.ReadAsResultAsync(context.Memory, cancellationToken);
-                yield return new SourceSchemaResult(CompactPath.Root, result);
                 break;
             }
 
-            case 1:
-            {
-                var result = await response.ReadAsResultAsync(context.Memory, cancellationToken);
-                var variable = variables[0];
-                yield return new SourceSchemaResult(
-                    variable.Path,
-                    result,
-                    additionalPaths: variable.AdditionalPaths);
-                break;
-            }
+            yield return result;
+        }
 
-            default:
-            {
-                SourceSchemaResult? errorResult = null;
-
-                if (_supportsVariableBatching)
-                {
-                    await foreach (var result in response.ReadAsResultStreamAsync(context.MemorySource)
-                        .WithCancellation(cancellationToken))
-                    {
-                        if (!result.Root.TryGetProperty(VariableIndex, out var variableIndex)
-                            || variableIndex.ValueKind is not JsonValueKind.Number)
-                        {
-                            // if we do not get a variable index we have a protocol error
-                            // and must terminate the request.
-                            errorResult = new SourceSchemaResult(variables[0].Path, result);
-                            break;
-                        }
-
-                        var index = variableIndex.GetInt32();
-                        if ((uint)index >= (uint)variables.Length)
-                        {
-                            // if the variable index is larger than the amount of variable sets we have
-                            // we also have a protocol issue and must terminate the request.
-                            errorResult = new SourceSchemaResult(variables[0].Path, result);
-                            break;
-                        }
-
-                        var variable = variables[index];
-                        yield return new SourceSchemaResult(
-                            variable.Path, result, additionalPaths: variable.AdditionalPaths);
-                    }
-                }
-                else
-                {
-                    var requestIndex = 0;
-                    await foreach (var result in response.ReadAsResultStreamAsync(context.MemorySource)
-                        .WithCancellation(cancellationToken))
-                    {
-                        if ((uint)requestIndex >= (uint)variables.Length)
-                        {
-                            errorResult = new SourceSchemaResult(variables[0].Path, result);
-                            break;
-                        }
-
-                        var variable = variables[requestIndex];
-                        yield return new SourceSchemaResult(
-                            variable.Path, result, additionalPaths: variable.AdditionalPaths);
-
-                        requestIndex++;
-                    }
-                }
-
-                if (errorResult is not null)
-                {
-                    for (var i = 0; i < variables.Length; i++)
-                    {
-                        var variable = variables[i];
-                        yield return errorResult.WithPath(variable.Path, variable.AdditionalPaths);
-                    }
-                }
-
-                break;
-            }
+        for (var i = 0; i < mapper.ErrorResultCount; i++)
+        {
+            yield return mapper.CreateErrorResult(i);
         }
     }
 
