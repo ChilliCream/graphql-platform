@@ -12,7 +12,7 @@ namespace StrawberryShake.Transport.WebSockets;
 
 public static class TestServerHelper
 {
-    public static WebApplication CreateServer(Action<IRequestExecutorBuilder> configure, out int port)
+    public static WebApplication StartApp(Action<IRequestExecutorBuilder> configure, out int port)
     {
         for (port = 5500; port < 6000; port++)
         {

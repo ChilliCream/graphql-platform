@@ -14,7 +14,7 @@ public class StarWarsGetFriendsDeferredTest : ServerTestBase
     {
         // arrange
         CancellationToken ct = new CancellationTokenSource(20_000).Token;
-        using var host = TestServerHelper.CreateServer(
+        using var app = TestServerHelper.StartApp(
             _ => { },
             out var port);
         var serviceCollection = new ServiceCollection();

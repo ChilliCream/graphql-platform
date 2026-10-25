@@ -15,7 +15,7 @@ public class StarWarsIntrospectionTest : ServerTestBase
     {
         // arrange
         var ct = new CancellationTokenSource(20_000).Token;
-        await using var host = TestServerHelper.CreateServer(
+        await using var app = TestServerHelper.StartApp(
             _ => { },
             out var port);
         var serviceCollection = new ServiceCollection();

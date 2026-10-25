@@ -19,7 +19,7 @@ public class StarWarsOnReviewSubGraphQLSSETest : ServerTestBase
         // arrange
         using var cts = new CancellationTokenSource(20_000);
         var ct = cts.Token;
-        await using var host = TestServerHelper.CreateServer(
+        await using var app = TestServerHelper.StartApp(
             _ => { },
             out var port);
         var serviceCollection = new ServiceCollection();
@@ -34,7 +34,7 @@ public class StarWarsOnReviewSubGraphQLSSETest : ServerTestBase
         var client = services.GetRequiredService<StarWarsOnReviewSubGraphQLSSEClient>();
 
         // act
-        var topicEventSender = host.Services.GetRequiredService<ITopicEventSender>();
+        var topicEventSender = app.Services.GetRequiredService<ITopicEventSender>();
         const Episode topic = Episode.NewHope;
 
         var connectCompletionSource = new TaskCompletionSource();
