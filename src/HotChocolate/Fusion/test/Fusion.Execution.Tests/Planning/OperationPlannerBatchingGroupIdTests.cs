@@ -221,7 +221,7 @@ public class OperationPlannerBatchingGroupIdTests : FusionTestBase
 
         var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
             new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
-        var parser = new JsonOperationPlanParser(new OperationCompiler(schema, pool));
+        var parser = new JsonOperationPlanParser(new OperationCompiler(schema, pool), TestPolicyResolver.Create());
         plan = parser.Parse(
             Encoding.UTF8.GetBytes(
                 jsonDocument.ToJsonString(

@@ -3,6 +3,7 @@ using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -304,7 +305,7 @@ public class WideConditionMaskTests : FusionTestBase
 
         // act
         var compiler = new OperationCompiler(schema, _fieldMapPool);
-        var parser = new JsonOperationPlanParser(compiler);
+        var parser = new JsonOperationPlanParser(compiler, TestPolicyResolver.Create());
         var parsedPlan = parser.Parse(buffer.WrittenMemory);
 
         // assert: the recompiled operation is wide and evaluates overflow bits.

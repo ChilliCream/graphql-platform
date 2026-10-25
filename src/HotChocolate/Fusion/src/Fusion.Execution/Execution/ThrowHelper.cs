@@ -68,6 +68,25 @@ internal static class ThrowHelper
             policyName ?? string.Empty,
             directiveName));
 
+    public static InvalidOperationException PolicyPlanSelectionNotInPlan()
+        => new(FusionExecutionResources.PolicyPlan_SelectionNotInPlan);
+
+    public static InvalidOperationException PolicyPlanIncrementalPlanNotFound(int index)
+        => new(string.Format(
+            FusionExecutionResources.PolicyPlan_IncrementalPlanNotFound,
+            index));
+
+    public static InvalidOperationException PolicyPlanSelectionNotFound(string path)
+        => new(string.Format(
+            FusionExecutionResources.PolicyPlan_SelectionNotFound,
+            path));
+
+    public static InvalidOperationException PolicyPlanOperandNotFound(string variableName, string operandName)
+        => new(string.Format(
+            FusionExecutionResources.PolicyPlan_OperandNotFound,
+            variableName,
+            operandName));
+
     public static InvalidOperationException MissingBooleanVariable(string variableName)
         => new(string.Format(
             FusionExecutionResources.ExecutionNode_MissingBooleanVariable,

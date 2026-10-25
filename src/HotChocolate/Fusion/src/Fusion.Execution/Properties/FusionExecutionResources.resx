@@ -201,4 +201,16 @@
   <data name="DeliveryGroup_InvalidIfVariable" xml:space="preserve">
     <value>The variable {0} has an invalid value.</value>
   </data>
+  <data name="PolicyPlan_SelectionNotInPlan" xml:space="preserve">
+    <value>The policy plan refers to a selection that belongs neither to the operation of the plan nor to one of its incremental plans.</value>
+  </data>
+  <data name="PolicyPlan_IncrementalPlanNotFound" xml:space="preserve">
+    <value>The policy plan refers to the incremental plan {0}, which the operation plan does not contain.</value>
+  </data>
+  <data name="PolicyPlan_SelectionNotFound" xml:space="preserve">
+    <value>The policy plan refers to the selection '{0}', which the operation does not contain.</value>
+  </data>
+  <data name="PolicyPlan_OperandNotFound" xml:space="preserve">
+    <value>The policy variable '{0}' combines the variable '{1}', which is not defined before it.</value>
+  </data>
 </root>

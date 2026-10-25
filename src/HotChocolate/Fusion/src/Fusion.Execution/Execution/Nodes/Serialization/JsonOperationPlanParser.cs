@@ -4,6 +4,7 @@ using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Directives;
 using HotChocolate.Language;
@@ -15,12 +16,13 @@ namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
 
 /// <summary>
 /// Turns a JSON-encoded operation plan back into a living <see cref="OperationPlan"/>
-/// object, including the original GraphQL operation, every execution node, and the
-/// dependency graph that connects them.
+/// object, including the original GraphQL operation, every execution node, the
+/// dependency graph that connects them, and the policy plan.
 /// </summary>
 public sealed class JsonOperationPlanParser : OperationPlanParser
 {
     private readonly OperationCompiler _operationCompiler;
+    private readonly IPolicyResolver _policyResolver;
 
     /// <summary>
     /// Initializes a new instance of <see cref="JsonOperationPlanParser"/>.
@@ -28,11 +30,16 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     /// <param name="operationCompiler">
     /// The compiler used to compile parsed operation definitions.
     /// </param>
-    public JsonOperationPlanParser(OperationCompiler operationCompiler)
+    /// <param name="policyResolver">
+    /// The resolver that looks up the policies of the policy plan by directive and policy name.
+    /// </param>
+    public JsonOperationPlanParser(OperationCompiler operationCompiler, IPolicyResolver policyResolver)
     {
         ArgumentNullException.ThrowIfNull(operationCompiler);
+        ArgumentNullException.ThrowIfNull(policyResolver);
 
         _operationCompiler = operationCompiler;
+        _policyResolver = policyResolver;
     }
 
     /// <inheritdoc />
@@ -72,6 +79,13 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             incrementalPlans = ParseIncrementalPlans(incrementalPlansElement, deliveryGroupMap);
         }
 
+        PolicyPlan? policies = null;
+
+        if (rootElement.TryGetProperty("policies", out var policiesElement))
+        {
+            policies = ParsePolicies(policiesElement, operation, incrementalPlans);
+        }
+
         // Root nodes are the entry points of the execution plan. A node is a
         // root when it has no dependencies at all, meaning the executor can
         // start it immediately without waiting for other nodes to finish.
@@ -82,9 +96,169 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             nodes,
             deliveryGroups,
             incrementalPlans,
-            policies: null,
+            policies,
             searchSpace,
             expandedNodes);
+    }
+
+    private PolicyPlan ParsePolicies(
+        JsonElement policiesElement,
+        Operation operation,
+        ImmutableArray<IncrementalPlan> incrementalPlans)
+    {
+        var policiesByName = new Dictionary<(string DirectiveName, string? PolicyName), IPolicy>();
+        var descriptors = ImmutableArray.CreateBuilder<PolicyDescriptor>();
+
+        foreach (var descriptorElement in policiesElement.GetProperty("descriptors").EnumerateArray())
+        {
+            var directiveName = descriptorElement.GetProperty("directiveName").GetString()!;
+            var policyName = descriptorElement.TryGetProperty("policyName", out var policyNameElement)
+                ? policyNameElement.GetString()
+                : null;
+
+            var scopes = ImmutableArray<ImmutableArray<string>>.Empty;
+
+            if (descriptorElement.TryGetProperty("scopes", out var scopesElement))
+            {
+                var scopesBuilder = ImmutableArray.CreateBuilder<ImmutableArray<string>>();
+
+                foreach (var groupElement in scopesElement.EnumerateArray())
+                {
+                    scopesBuilder.Add([.. groupElement.EnumerateArray().Select(e => e.GetString()!)]);
+                }
+
+                scopes = scopesBuilder.ToImmutable();
+            }
+
+            // Policies are shared per directive and policy name, as at planning time.
+            if (!policiesByName.TryGetValue((directiveName, policyName), out var policy))
+            {
+                policy = _policyResolver.Resolve(policyName ?? string.Empty, directiveName)
+                    ?? new UnresolvedPolicy(directiveName, policyName);
+                policiesByName.Add((directiveName, policyName), policy);
+            }
+
+            var selection = ResolveSelection(
+                descriptorElement.GetProperty("selection"),
+                operation,
+                incrementalPlans);
+
+            descriptors.Add(new PolicyDescriptor(directiveName, policyName, scopes, selection, policy));
+        }
+
+        var variables = ImmutableArray.CreateBuilder<PolicyVariable>();
+        var variablesByName = new Dictionary<string, PolicyVariable>(StringComparer.Ordinal);
+
+        foreach (var variableElement in policiesElement.GetProperty("variables").EnumerateArray())
+        {
+            var name = variableElement.GetProperty("name").GetString()!;
+            var selections = ImmutableArray<Selection>.Empty;
+            var operands = ImmutableArray<PolicyVariable>.Empty;
+
+            if (variableElement.TryGetProperty("selections", out var selectionsElement))
+            {
+                var selectionsBuilder = ImmutableArray.CreateBuilder<Selection>();
+
+                foreach (var selectionElement in selectionsElement.EnumerateArray())
+                {
+                    selectionsBuilder.Add(ResolveSelection(selectionElement, operation, incrementalPlans));
+                }
+
+                selections = selectionsBuilder.ToImmutable();
+            }
+
+            if (variableElement.TryGetProperty("operands", out var operandsElement))
+            {
+                var operandsBuilder = ImmutableArray.CreateBuilder<PolicyVariable>();
+
+                foreach (var operandElement in operandsElement.EnumerateArray())
+                {
+                    var operandName = operandElement.GetString()!;
+
+                    if (!variablesByName.TryGetValue(operandName, out var operand))
+                    {
+                        throw ThrowHelper.PolicyPlanOperandNotFound(name, operandName);
+                    }
+
+                    operandsBuilder.Add(operand);
+                }
+
+                operands = operandsBuilder.ToImmutable();
+            }
+
+            var variable = new PolicyVariable(name, selections, operands);
+            variables.Add(variable);
+            variablesByName[name] = variable;
+        }
+
+        return new PolicyPlan(descriptors.ToImmutable(), variables.ToImmutable());
+    }
+
+    private Selection ResolveSelection(
+        JsonElement referenceElement,
+        Operation rootOperation,
+        ImmutableArray<IncrementalPlan> incrementalPlans)
+    {
+        var operation = rootOperation;
+
+        if (referenceElement.TryGetProperty("incrementalPlan", out var incrementalPlanElement))
+        {
+            var index = incrementalPlanElement.GetInt32();
+
+            if ((uint)index >= (uint)incrementalPlans.Length)
+            {
+                throw ThrowHelper.PolicyPlanIncrementalPlanNotFound(index);
+            }
+
+            operation = incrementalPlans[index].Operation;
+        }
+
+        var pathText = referenceElement.GetProperty("path").GetString()!;
+        var path = SelectionPath.Parse(pathText);
+
+        // The path is walked from the root selection set through the selection sets it names.
+        Selection? selection = null;
+        var selectionSet = (SelectionSet?)operation.RootSelectionSet;
+
+        for (var i = 0; i < path.Length; i++)
+        {
+            var segment = path[i];
+
+            if (segment.Kind is SelectionPathSegmentKind.Field)
+            {
+                if (selectionSet is null && selection is { NamedType: IObjectTypeDefinition })
+                {
+                    selectionSet = selection.GetSelectionSet();
+                }
+
+                if (selectionSet is null || !selectionSet.TryGetSelection(segment.Name, out selection))
+                {
+                    throw ThrowHelper.PolicyPlanSelectionNotFound(pathText);
+                }
+
+                selectionSet = null;
+            }
+            else
+            {
+                if (selection is null
+                    || selectionSet is not null
+                    || !_operationCompiler.Schema.Types.TryGetType(segment.Name, allowInaccessibleFields: true, out var type)
+                    || type is not IComplexTypeDefinition complexType
+                    || selection.GetSelectionSet(complexType) is not { } typeSelectionSet)
+                {
+                    throw ThrowHelper.PolicyPlanSelectionNotFound(pathText);
+                }
+
+                selectionSet = typeSelectionSet;
+            }
+        }
+
+        if (selection is null || selectionSet is not null)
+        {
+            throw ThrowHelper.PolicyPlanSelectionNotFound(pathText);
+        }
+
+        return selection;
     }
 
     private static ImmutableArray<DeliveryGroup> ParseDeliveryGroups(

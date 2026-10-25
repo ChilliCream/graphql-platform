@@ -410,5 +410,29 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("DeliveryGroup_InvalidIfVariable", resourceCulture);
             }
         }
+
+        internal static string PolicyPlan_SelectionNotInPlan {
+            get {
+                return ResourceManager.GetString("PolicyPlan_SelectionNotInPlan", resourceCulture);
+            }
+        }
+
+        internal static string PolicyPlan_IncrementalPlanNotFound {
+            get {
+                return ResourceManager.GetString("PolicyPlan_IncrementalPlanNotFound", resourceCulture);
+            }
+        }
+
+        internal static string PolicyPlan_SelectionNotFound {
+            get {
+                return ResourceManager.GetString("PolicyPlan_SelectionNotFound", resourceCulture);
+            }
+        }
+
+        internal static string PolicyPlan_OperandNotFound {
+            get {
+                return ResourceManager.GetString("PolicyPlan_OperandNotFound", resourceCulture);
+            }
+        }
     }
 }
