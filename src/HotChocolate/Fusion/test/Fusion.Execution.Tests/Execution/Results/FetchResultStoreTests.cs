@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -3051,6 +3052,228 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void GetResultPaths_Should_ContinueFromEarlierPath_When_PathExtendsCollectedPath()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+              bar: Bar
+            }
+
+            type Bar {
+              id: ID!
+              bazs: [Baz]
+            }
+
+            type Baz {
+              id: ID!
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id bar { id bazs { id } } } }",
+            """
+            {"data":{"foos":[
+              {"id":"1","bar":{"id":"b1","bazs":[{"id":"z1"},null,{"id":"z2"}]}},
+              {"id":"2","bar":null},
+              {"id":"3","bar":{"id":"b3","bazs":[]}}]}}
+            """,
+            resultArena,
+            sourceArena);
+        var foos = SelectionPath.Root.AppendField("foos");
+        var bars = foos.AppendField("bar");
+        var bazs = bars.AppendField("bazs");
+
+        // act
+        var collected = new[]
+        {
+            store.GetResultPaths(bars),
+            store.GetResultPaths(bazs),
+            store.GetResultPaths(SelectionPath.Parse("$.foos")),
+            store.GetResultPaths(SelectionPath.Parse("$.foos.bar.bazs"))
+        };
+
+        // assert
+        RenderResultPaths(store, collected).MatchInlineSnapshot(
+            """
+            [foos[0].bar, foos[2].bar]
+            [foos[0].bar.bazs[0], foos[0].bar.bazs[2]]
+            [foos[0], foos[1], foos[2]]
+            [foos[0].bar.bazs[0], foos[0].bar.bazs[2]]
+            """);
+    }
+
+    [Fact]
+    public void GetResultPaths_Should_ReturnObjectsAddedByMerge_When_PathWasCollectedBefore()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+              bar: Bar
+            }
+
+            type Bar {
+              id: ID!
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id bar { id } } }",
+            """{"data":{"foos":[{"id":"1"},{"id":"2"}]}}""",
+            resultArena,
+            sourceArena);
+        var foos = SelectionPath.Root.AppendField("foos");
+        var bars = foos.AppendField("bar");
+        var before = store.GetResultPaths(bars);
+        var resultSelectionSet = ResultSelectionSet.Create(
+            Utf8GraphQLParser.Parse("{ bar { id } }")
+                .Definitions
+                .OfType<OperationDefinitionNode>()
+                .Single()
+                .SelectionSet,
+            schema);
+        var payload = """{"data":{"bar":{"id":"b2"}}}"""u8.ToArray();
+        var document = SourceResultDocument.Parse(sourceArena, payload, payload.Length);
+        store.AddPartialResult(
+            SelectionPath.Root,
+            new SourceSchemaResult(store.GetResultPaths(foos)[1], document),
+            resultSelectionSet,
+            containsErrors: false);
+
+        // act
+        var after = store.GetResultPaths(bars);
+
+        // assert
+        RenderResultPaths(store, [before, after]).MatchInlineSnapshot(
+            """
+            []
+            [foos[1].bar]
+            """);
+    }
+
+    [Fact]
+    public void GetResultPaths_Should_ReturnNewElements_When_ListWasReplacedAfterCollection()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id } }",
+            """{"data":{"foos":[{"id":"1"},{"id":"2"},{"id":"3"}]}}""",
+            resultArena,
+            sourceArena);
+        var path = SelectionPath.Root.AppendField("foos");
+        var before = store.GetResultPaths(path);
+
+        var foos = store.Result.Data.GetProperty("foos");
+        Assert.True(foos[0].TryGetObjectContext(out var context));
+        foos.SetArrayValue(2);
+        store.Result.Data.GetProperty("foos")[1].SetObjectValue(context.SelectionSet!);
+
+        // act
+        var after = store.GetResultPaths(path);
+
+        // assert
+        RenderResultPaths(store, [before, after]).MatchInlineSnapshot(
+            """
+            [foos[0], foos[1], foos[2]]
+            [foos[1]]
+            """);
+    }
+
+    [Fact]
+    public void GetResultPaths_Should_MatchTypeCondition_When_PrefixWasCollectedBefore()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              items: [Item]
+            }
+
+            interface Item {
+              id: ID!
+            }
+
+            type A implements Item {
+              id: ID!
+              inner: Inner
+            }
+
+            type B implements Item {
+              id: ID!
+            }
+
+            type Inner {
+              id: ID!
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ items { __typename id ... on A { inner { id } } } }",
+            """
+            {"data":{"items":[
+              {"__typename":"A","id":"1","inner":{"id":"i1"}},
+              {"__typename":"B","id":"2"},
+              {"__typename":"A","id":"3","inner":{"id":"i3"}}]}}
+            """,
+            resultArena,
+            sourceArena);
+        var items = SelectionPath.Root.AppendField("items");
+
+        // act
+        var collected = new[]
+        {
+            store.GetResultPaths(items),
+            store.GetResultPaths(items.AppendFragment("A").AppendField("inner"))
+        };
+
+        // assert
+        RenderResultPaths(store, collected).MatchInlineSnapshot(
+            """
+            [items[0], items[1], items[2]]
+            [items[0].inner, items[2].inner]
+            """);
+    }
+
+    [Fact]
     public void AdditionalPaths_Should_Throw_When_StoreWasCleaned()
     {
         // arrange
@@ -3748,6 +3971,23 @@ public sealed class FetchResultStoreTests : FusionTestBase
             output.AppendLine("]");
             output.Append("Variables: ");
             output.AppendLine(Normalize(entry.Values));
+        }
+
+        return output.ToString().TrimEnd();
+    }
+
+    private static string RenderResultPaths(
+        FetchResultStore store,
+        IEnumerable<ImmutableArray<CompactPath>> collected)
+    {
+        var operation = store.Result.Data.Operation;
+        var output = new StringBuilder();
+
+        foreach (var paths in collected)
+        {
+            output.Append('[');
+            output.AppendJoin(", ", paths.Select(path => path.ToPath(operation).Print()));
+            output.AppendLine("]");
         }
 
         return output.ToString().TrimEnd();
