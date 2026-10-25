@@ -7,6 +7,7 @@ using Duende.IdentityModel.OidcClient.Browser;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Hosting;
 using static ChilliCream.Nitro.CommandLine.Helpers.OidcConfiguration;
 
 namespace ChilliCream.Nitro.CommandLine.Helpers;
@@ -122,18 +123,18 @@ file sealed class LoopbackHttpListener : IAsyncDisposable
 {
     private const int DefaultTimeout = 60 * 10; // 10 mins (in seconds)
 
-    private readonly IWebHost _host;
+    private readonly WebApplication _app;
     private readonly TaskCompletionSource<string> _source = new();
 
     public LoopbackHttpListener(int port, string? path = null)
     {
-        _host = new WebHostBuilder()
-            .UseKestrel()
-            .UseUrls(new UriBuilder("http", "localhost", port, path).ToString())
-            .Configure(app => app.Run(Execute))
-            .Build();
+        var builder = WebApplication.CreateEmptyBuilder(new WebApplicationOptions());
+        builder.WebHost.UseKestrelCore();
+        builder.WebHost.UseUrls(new UriBuilder("http", "localhost", port, path).ToString());
 
-        _host.Start();
+        _app = builder.Build();
+        _app.Run(Execute);
+        _app.Start();
     }
 
     public async ValueTask DisposeAsync()
@@ -145,7 +146,7 @@ file sealed class LoopbackHttpListener : IAsyncDisposable
         }
 
         _source.Task.Dispose();
-        _host.Dispose();
+        await _app.DisposeAsync();
     }
 
     private async Task Execute(HttpContext ctx)
