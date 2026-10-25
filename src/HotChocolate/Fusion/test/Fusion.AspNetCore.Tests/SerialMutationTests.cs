@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using HotChocolate.ApolloFederation.Resolvers;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Transport;
@@ -106,6 +107,223 @@ public sealed class SerialMutationTests : FusionTestBase
                 "ledger: bump(serial, 10)",
                 "reader: value(serial) = 11"
             ]);
+    }
+
+    [Theory]
+    [InlineData(
+        true,
+        """
+        {
+          "data": {
+            "a": {
+              "value": 1
+            },
+            "b": {
+              "value": 11
+            }
+          }
+        }
+        """,
+        new[]
+        {
+            "ledger: bump(included, 1)",
+            "reader: value(included) = 1",
+            "ledger: bump(included, 10)",
+            "reader: value(included) = 11"
+        })]
+    [InlineData(
+        false,
+        """
+        {
+          "data": {
+            "a": {
+              "value": 11
+            },
+            "b": {
+              "value": 10
+            }
+          }
+        }
+        """,
+        new[]
+        {
+            "ledger: bump(included, 10)",
+            "reader: value(included) = 10",
+            "ledger: bump(included, 1)",
+            "reader: value(included) = 11"
+        })]
+    public async Task Execute_Should_RunMergedRootOnceInFirstIncludedOrder_When_EarlierOccurrenceIsConditioned(
+        bool x,
+        string expectedResponse,
+        string[] expectedEvents)
+    {
+        // arrange
+        var ledger = new CounterLedger();
+        using var gateway = await CreateApolloGatewayAsync(ledger);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            mutation Included($x: Boolean!) {
+              a: bump(counter: "included", by: 1) @include(if: $x) {
+                value
+              }
+              b: bump(counter: "included", by: 10) {
+                value
+              }
+              a: bump(counter: "included", by: 1) {
+                value
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["x"] = x });
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
+        response.MatchInlineSnapshot(expectedResponse);
+        ledger.Events.MatchInlineSnapshots(expectedEvents);
+    }
+
+    [Theory]
+    [InlineData(
+        true,
+        new[]
+        {
+            """{"data":{"a":{"id":"s"}},"pending":[{"id":"0","path":["a"],"label":"d"}],"hasNext":true}""",
+            """{"incremental":[{"id":"0","data":{"value":1}}],"completed":[{"id":"0"}],"hasNext":false}"""
+        },
+        new[] { "ledger: bump(s, 1)", "reader: value(s) = 1" })]
+    [InlineData(
+        false,
+        new[]
+        {
+            """{"data":{"a":{}},"pending":[{"id":"0","path":["a"],"label":"d"}],"hasNext":true}""",
+            """{"incremental":[{"id":"0","data":{"value":1}}],"completed":[{"id":"0"}],"hasNext":false}"""
+        },
+        new[] { "ledger: bump(s, 1)", "reader: value(s) = 1" })]
+    public async Task Execute_Should_DeliverDeferredFragmentOnce_When_LaterOccurrenceDefersUnderConditionedOne(
+        bool x,
+        string[] expectedPayloads,
+        string[] expectedEvents)
+    {
+        // arrange
+        var ledger = new CounterLedger();
+        using var gateway = await CreateCompositeGatewayAsync(ledger);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            mutation M($x: Boolean!) {
+              a: bump(counter: "s", by: 1) @include(if: $x) {
+                id
+              }
+              a: bump(counter: "s", by: 1) {
+                ... @defer(label: "d") {
+                  value
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["x"] = x });
+
+        // act
+        var payloads = await PostAndReadPayloadsAsync(client, request);
+
+        // assert
+        payloads.MatchInlineSnapshots(expectedPayloads);
+        ledger.Events.MatchInlineSnapshots(expectedEvents);
+    }
+
+    [Theory]
+    [InlineData(
+        true,
+        true,
+        new[]
+        {
+            """{"data":{"a":{"id":"s"}},"pending":[{"id":"0","path":["a"],"label":"d"}],"hasNext":true}""",
+            """{"incremental":[{"id":"0","data":{"value":1}}],"completed":[{"id":"0"}],"hasNext":false}"""
+        },
+        new[] { "ledger: bump(s, 1)", "reader: value(s) = 1" })]
+    [InlineData(
+        true,
+        false,
+        new[]
+        {
+            """{"data":{"a":{}},"pending":[{"id":"0","path":["a"],"label":"d"}],"hasNext":true}""",
+            """{"incremental":[{"id":"0","data":{"value":1}}],"completed":[{"id":"0"}],"hasNext":false}"""
+        },
+        new[] { "ledger: bump(s, 1)", "reader: value(s) = 1" })]
+    [InlineData(
+        false,
+        true,
+        new[]
+        {
+            """{"data":{"a":{}},"pending":[{"id":"0","path":["a"],"label":"d"}],"hasNext":true}""",
+            """{"incremental":[{"id":"0","data":{"value":1}}],"completed":[{"id":"0"}],"hasNext":false}"""
+        },
+        new[] { "ledger: bump(s, 1)", "reader: value(s) = 1" })]
+    [InlineData(
+        false,
+        false,
+        new[]
+        {
+            """{"data":{"a":{}},"pending":[{"id":"0","path":["a"],"label":"d"}],"hasNext":true}""",
+            """{"incremental":[{"id":"0","data":{"value":1}}],"completed":[{"id":"0"}],"hasNext":false}"""
+        },
+        new[] { "ledger: bump(s, 1)", "reader: value(s) = 1" })]
+    public async Task Execute_Should_DeliverDeferredFragmentOnce_When_EarlierOccurrenceHasTwoConditions(
+        bool x,
+        bool y,
+        string[] expectedPayloads,
+        string[] expectedEvents)
+    {
+        // arrange
+        var ledger = new CounterLedger();
+        using var gateway = await CreateCompositeGatewayAsync(ledger);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            mutation M($x: Boolean!, $y: Boolean!) {
+              ... @include(if: $x) {
+                a: bump(counter: "s", by: 1) @include(if: $y) {
+                  id
+                }
+              }
+              a: bump(counter: "s", by: 1) {
+                ... @defer(label: "d") {
+                  value
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["x"] = x, ["y"] = y });
+
+        // act
+        var payloads = await PostAndReadPayloadsAsync(client, request);
+
+        // assert
+        payloads.MatchInlineSnapshots(expectedPayloads);
+        ledger.Events.MatchInlineSnapshots(expectedEvents);
+    }
+
+    private static async Task<string[]> PostAndReadPayloadsAsync(
+        GraphQLHttpClient client,
+        OperationRequest request)
+    {
+        using var response = await client.SendAsync(
+            new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
+            {
+                Accept = [new MediaTypeWithQualityHeaderValue("application/jsonl")]
+            },
+            TestContext.Current.CancellationToken);
+        var body = await response.HttpResponseMessage.Content.ReadAsStringAsync(
+            TestContext.Current.CancellationToken);
+
+        return body.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
     }
 
     private Task<Gateway> CreateApolloGatewayAsync(CounterLedger ledger)

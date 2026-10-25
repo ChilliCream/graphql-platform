@@ -83,4 +83,74 @@ public sealed class MutationCompositionTests
             }
             """);
     }
+
+    [Fact]
+    public void Compose_Should_MergeMutationFields_When_TwoSchemasContributeRootMutations()
+    {
+        // arrange
+        const string catalog =
+            """
+            extend schema @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+            type Query {
+              items: [Item]
+            }
+
+            type Mutation {
+              bump(counter: ID!, by: Int!): Int
+            }
+
+            type Item @key(fields: "id") {
+              id: ID!
+              name: String
+            }
+            """;
+
+        const string details =
+            """
+            extend schema @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+            type Mutation {
+              add(counter: ID!, by: Int!): Int
+            }
+
+            type Item @key(fields: "id") {
+              id: ID!
+              detail: Detail
+            }
+
+            type Detail {
+              summary: String
+              rating: Int
+            }
+            """;
+
+        var log = new CompositionLog();
+        var composer = new SchemaComposer(
+            [new SourceSchemaText("catalog", catalog), new SourceSchemaText("details", details)],
+            new SchemaComposerOptions(),
+            log);
+
+        // act
+        var result = composer.Compose();
+
+        // assert
+        Assert.True(
+            result.IsSuccess,
+            result.IsSuccess ? null : string.Join("\n", result.Errors.Select(e => e.Message)));
+        Assert.Empty(log);
+        result.Value.Types["Mutation"].ToString().MatchInlineSnapshot(
+            """
+            type Mutation @fusion__type(schema: CATALOG) @fusion__type(schema: DETAILS) {
+              bump(
+                counter: ID! @fusion__inputField(schema: CATALOG)
+                by: Int! @fusion__inputField(schema: CATALOG)
+              ): Int @fusion__field(schema: CATALOG)
+              add(
+                counter: ID! @fusion__inputField(schema: DETAILS)
+                by: Int! @fusion__inputField(schema: DETAILS)
+              ): Int @fusion__field(schema: DETAILS)
+            }
+            """);
+    }
 }
