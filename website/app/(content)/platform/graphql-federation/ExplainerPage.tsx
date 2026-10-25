@@ -33,11 +33,10 @@ export function ExplainerPage() {
             data-hero-paragraph
             className="text-cc-ink mx-auto mt-7 max-w-2xl text-lg"
           >
-            Learn what GraphQL Federation is and whether it fits your setup, or
-            jump straight into Fusion. It speaks both standards, so you can
-            start where the ecosystem is today with Apollo Federation and move
-            with it as GraphQL Federation becomes the open standard at the
-            GraphQL Foundation.
+            GraphQL Federation brings independent GraphQL services together into
+            a single, unified API. It enables teams to develop, deploy, and
+            scale their services independently while giving clients one coherent
+            graph to query.
           </p>
           <div data-hero-cta>
             <ButtonRow className="mt-7">
