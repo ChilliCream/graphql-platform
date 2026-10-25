@@ -381,7 +381,11 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
         => RunTest(async ct =>
         {
             // arrange
-            using var testServer = CreateStarWarsServer();
+            var diagnostics = new SubscriptionTestDiagnostics();
+            using var testServer = CreateStarWarsServer(
+                configureServices: s => s
+                    .AddGraphQL()
+                    .AddDiagnosticEventListener(_ => diagnostics));
             var client = CreateWebSocketClient(testServer);
             var webSocket = await ConnectToServerAsync(client, ct);
 
@@ -393,6 +397,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
             const string subscriptionId = "abc";
 
             await webSocket.SendSubscriptionStartAsync(subscriptionId, request);
+            await diagnostics.WaitForSubscribedAsync(ct);
 
             await testServer.SendPostRequestAsync(new ClientQueryRequest
             {
@@ -416,6 +421,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
 
             // act
             await webSocket.SendSubscriptionStopAsync(subscriptionId, ct);
+            await diagnostics.WaitForUnsubscribeAsync(ct);
 
             await testServer.SendPostRequestAsync(new ClientQueryRequest
             {
