@@ -15,7 +15,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Results;
 
-internal sealed class ValueCompletion
+internal sealed partial class ValueCompletion
 {
     private readonly FetchResultStore _store;
     private readonly FusionSchemaDefinition _schema;
@@ -163,6 +163,12 @@ internal sealed class ValueCompletion
                     return ApplyPocketedErrors(target);
                 }
             }
+        }
+        else if (errorTrie is null
+            && objectContext.SelectionSet is { } targetSelectionSet
+            && resultSelectionSet.TryGetMergeProgram(targetSelectionSet, out var program))
+        {
+            return BuildResultWithProgram(source, sourceSnapshot._row, target, objectContext, program);
         }
         else
         {

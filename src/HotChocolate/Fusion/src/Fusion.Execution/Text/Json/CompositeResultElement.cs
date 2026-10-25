@@ -61,6 +61,8 @@ public readonly partial struct CompositeResultElement
     /// </summary>
     internal Cursor Cursor => _cursor;
 
+    internal CompositeResultDocument Document => _parent;
+
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private ElementTokenType TokenType => _parent?.GetElementTokenType(_cursor) ?? ElementTokenType.None;
 
@@ -1056,6 +1058,24 @@ public readonly partial struct CompositeResultElement
 
         var arr = _parent.CreateArray(_cursor, length);
         _parent.AssignCompositeValue(this, arr);
+    }
+
+    /// <summary>
+    /// Assigns an array of <paramref name="length"/> objects of <paramref name="selectionSet"/>
+    /// to this element. The object of element <c>i</c> starts <c>i * blockRows</c> rows after
+    /// <paramref name="firstObject"/>.
+    /// </summary>
+    internal CompositeResultElement SetObjectArrayValue(
+        int length,
+        SelectionSet selectionSet,
+        out CompositeResultDocument.Cursor firstObject,
+        out int blockRows)
+    {
+        CheckValidInstance();
+
+        var arr = _parent.CreateObjectArray(_cursor, length, selectionSet, out firstObject, out blockRows);
+        _parent.AssignCompositeValue(this, arr);
+        return arr;
     }
 
     internal void SetLeafValue(SourceResultElement source)

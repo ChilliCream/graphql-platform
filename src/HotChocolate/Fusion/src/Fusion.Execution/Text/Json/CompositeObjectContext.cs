@@ -32,6 +32,17 @@ internal readonly struct CompositeObjectContext
     /// </summary>
     public SelectionSet? SelectionSet => _selectionSet;
 
+    /// <summary>
+    /// Gets the value element of the property whose value row sits <paramref name="rowOffset"/>
+    /// rows after the object's start row.
+    /// </summary>
+    public CompositeResultElement GetPropertyAt(int rowOffset)
+    {
+        Debug.Assert(rowOffset > 0 && rowOffset < _numberOfRows);
+        Debug.Assert(_document._metaDb.GetElementTokenType(_objectStartCursor + (rowOffset - 1)) is ElementTokenType.PropertyName);
+        return new CompositeResultElement(_document, _objectStartCursor + rowOffset);
+    }
+
     public bool TryGetProperty(
         ReadOnlySpan<byte> propertyName,
         out CompositeResultElement value,

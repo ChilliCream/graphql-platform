@@ -902,6 +902,7 @@ public sealed partial class OperationPlanner
             operationStep.Type,
             operationStep.SchemaName,
             sourceRewrite.Aliases);
+        resultSelectionSet.SetMergeTemplate(MergeProgramTemplate.TryCreate(operation, operationStep.Source));
 
         // Only synthetic internal key lookups resolve through _entities. Real public
         // root-field lookups, for example the composed node field, stay native even
