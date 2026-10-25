@@ -347,22 +347,14 @@ internal sealed class JsonResultPatcher
         {
             foreach (var element in incremental.EnumerateArray())
             {
-                JsonElement basePath;
-
-                if (element.TryGetProperty(IdProp, out var idElement))
+                if (!element.TryGetProperty(IdProp, out var idElement))
                 {
-                    var id = idElement.GetString()!;
+                    continue;
+                }
 
-                    if (!_pendingPaths.TryGetValue(id, out basePath))
-                    {
-                        continue;
-                    }
-                }
-                else if (element.TryGetProperty(PathProp, out basePath))
-                {
-                    // legacy format uses "path" directly without "id"/"pending"
-                }
-                else
+                var id = idElement.GetString()!;
+
+                if (!_pendingPaths.TryGetValue(id, out var basePath))
                 {
                     continue;
                 }
