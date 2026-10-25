@@ -16,8 +16,8 @@ operation:
         }
       }
     hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 7
+    searchSpace: 3
+    expandedNodes: 10
 nodes:
   - id: 1
     type: Operation
@@ -30,14 +30,14 @@ nodes:
       }
   - id: 3
     type: Operation
-    schema: d
+    schema: e
     operation: |
       query Op_123456789101112_3(
-        $__fusion_2_comments: [CommentInput]
-        $__fusion_3_id: ID!
+        $__fusion_2_id: ID!
+        $__fusion_3_comments: [CommentInput]
       ) {
-        postById(id: $__fusion_3_id) {
-          author(comments: $__fusion_2_comments) {
+        postById(id: $__fusion_2_id) {
+          author(comments: $__fusion_3_comments) {
             id
           }
         }
@@ -45,18 +45,19 @@ nodes:
     source: $.postById
     target: $.feed
     requirements:
-      - name: __fusion_2_comments
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+      - name: __fusion_3_comments
         internalAlias: fusion__requirement_comments_0
         selectionMap: >-
           comments(limit: 3)[{
             authorId: authorId
           }]
-      - name: __fusion_3_id
-        selectionMap: >-
-          id
     dependencies:
       - id: 1
       - id: 4
+      - id: 6
   - id: 4
     type: Operation
     schema: c
@@ -82,6 +83,9 @@ nodes:
         postById(id: $__fusion_1_id) {
           comments(limit: 1) {
             id
+          }
+          fusion__requirement_comments_0: comments(limit: 3) {
+            __typename
           }
         }
       }

@@ -202,4 +202,62 @@ public sealed class SatisfiabilityEntityJumpTests
                       No other schemas contain the field 'Customer.email'.
             """);
     }
+
+    [Fact]
+    public void Validate_Should_Succeed_When_ExternalFieldBelowReenteredEntityIsProvided()
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    orderById(id: ID!): Order @lookup @internal
+                }
+
+                type Order {
+                    id: ID! @shareable
+                    item: Item @shareable @provides(fields: "customer { id }")
+                }
+
+                type Item {
+                    customer: Customer @external
+                }
+
+                type Customer {
+                    id: ID! @external
+                    name: String
+                }
+                """),
+            new SourceSchemaText(
+                "B",
+                """
+                type Query {
+                    orders: [Order]
+                }
+
+                type Order {
+                    id: ID! @shareable
+                    item: Item @shareable
+                }
+
+                type Item {
+                    customer: Customer @shareable
+                }
+
+                type Customer {
+                    id: ID! @shareable
+                    email: String
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
 }

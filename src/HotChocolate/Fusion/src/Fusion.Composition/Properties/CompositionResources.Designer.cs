@@ -1736,11 +1736,11 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to The required field &apos;{0}&apos; must not be defined in schema &apos;{1}&apos;..
+        ///   Looks up a localized string similar to The required field &apos;{0}&apos; must not be served by the requiring source schema &apos;{1}&apos;..
         /// </summary>
-        internal static string RequireInvalidFieldsRule_RequiredFieldMustNotBeDefinedInSameSchema {
+        internal static string RequireInvalidFieldsRule_RequiredFieldServedByRequiringSchema {
             get {
-                return ResourceManager.GetString("RequireInvalidFieldsRule_RequiredFieldMustNotBeDefinedInSameSchema", resourceCulture);
+                return ResourceManager.GetString("RequireInvalidFieldsRule_RequiredFieldServedByRequiringSchema", resourceCulture);
             }
         }
 

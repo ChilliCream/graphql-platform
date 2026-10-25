@@ -1,0 +1,230 @@
+title: Node_Should_ResolveRequiringField_When_OnlyRequiringSchemaOwnsKey
+request:
+  document: |
+    query GetChat($id: ID!) {
+      node(id: $id) {
+        ... on Chat {
+          summary
+        }
+      }
+    }
+  variables: |
+    {
+      "id": "Q2hhdDox"
+    }
+response:
+  body: |
+    {
+      "data": {
+        "node": {
+          "summary": "Chat: Q2hhdDox"
+        }
+      }
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+      }
+
+      type Chat implements Node @key(fields: "id") {
+        id: ID!
+        title: String
+        summary(text: String @require(field: "text")): String
+      }
+
+      interface Node {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query GetChat_6d1dcdf6_3($id: ID!) {
+              node(id: $id) {
+                __typename
+                ... on Chat {
+                  __typename
+                  id
+                }
+              }
+            }
+          variables: |
+            {
+              "id": "Q2hhdDox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Chat",
+                    "id": "Q2hhdDox"
+                  }
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query GetChat_6d1dcdf6_4($__fusion_1_text: String, $__fusion_2_id: ID!) {
+              node(id: $__fusion_2_id) {
+                __typename
+                ... on Chat {
+                  summary(text: $__fusion_1_text)
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_text": "Chat: Q2hhdDox",
+              "__fusion_2_id": "Q2hhdDox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Chat",
+                    "summary": "Chat: Q2hhdDox"
+                  }
+                }
+              }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        chatById(id: ID!): Chat @lookup @internal
+      }
+
+      type Chat @key(fields: "id") {
+        id: ID! @external
+        text: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query GetChat_6d1dcdf6_5($__fusion_3_id: ID!) {
+              chatById(id: $__fusion_3_id) {
+                text
+              }
+            }
+          variables: |
+            {
+              "__fusion_3_id": "Q2hhdDox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "chatById": {
+                    "text": "Chat: Q2hhdDox"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query GetChat($id: ID!) {
+          node(id: $id) {
+            __typename @fusion__requirement
+            ... on Chat {
+              summary
+              id @fusion__requirement
+              text @fusion__requirement
+            }
+          }
+        }
+      name: GetChat
+      hash: 0028e88673403aca82ec7d81c91792af
+      searchSpace: 2
+      expandedNodes: 6
+  nodes:
+    - id: 1
+      type: Node
+      idValue: $id
+      responseName: node
+      branches:
+        - Chat: 3
+      fallback: 2
+    - id: 2
+      type: Operation
+      operation: |
+        query GetChat_6d1dcdf6_2($id: ID!) {
+          node(id: $id) {
+            __typename
+          }
+        }
+      forwardedVariables:
+        - id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: a
+      operation: |
+        query GetChat_6d1dcdf6_3($id: ID!) {
+          node(id: $id) {
+            __typename
+            ... on Chat {
+              __typename
+              id
+            }
+          }
+        }
+      forwardedVariables:
+        - id
+      dependencies:
+        - id: 1
+    - id: 4
+      type: Operation
+      schema: a
+      operation: |
+        query GetChat_6d1dcdf6_4($__fusion_1_text: String, $__fusion_2_id: ID!) {
+          node(id: $__fusion_2_id) {
+            __typename
+            ... on Chat {
+              summary(text: $__fusion_1_text)
+            }
+          }
+        }
+      source: $.node<Chat>
+      target: $.node<Chat>
+      requirements:
+        - name: __fusion_1_text
+          selectionMap: >-
+            text
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 3
+        - id: 5
+    - id: 5
+      type: Operation
+      schema: b
+      operation: |
+        query GetChat_6d1dcdf6_5($__fusion_3_id: ID!) {
+          chatById(id: $__fusion_3_id) {
+            text
+          }
+        }
+      source: $.chatById
+      target: $.node<Chat>
+      requirements:
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 3
