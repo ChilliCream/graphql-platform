@@ -43,4 +43,22 @@ public class ReadOnlyFeatureCollectionTests
         // assert
         Assert.False(features.IsEmpty);
     }
+
+    [Fact]
+    public void ToReadOnly_Should_KeepDefaults_When_OwnFeaturesWereRemoved()
+    {
+        // arrange
+        var defaults = new FeatureCollection();
+        var thing = new Thing();
+        defaults.Set<IThing>(thing);
+        var features = new FeatureCollection(defaults);
+        features.Set(new object());
+        features.Set<object>(null);
+
+        // act
+        var readOnly = features.ToReadOnly();
+
+        // assert
+        Assert.Same(thing, readOnly.Get<IThing>());
+    }
 }
