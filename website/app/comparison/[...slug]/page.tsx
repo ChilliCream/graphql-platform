@@ -121,7 +121,7 @@ export async function generateMetadata({
   if (rel === null) {
     return {};
   }
-  const { title, description } = readFrontmatter(
+  const { title, metaTitle, description } = readFrontmatter(
     path.join(COMPARISON_ROOT, rel),
   );
 
@@ -133,7 +133,7 @@ export async function generateMetadata({
   const images = featuredImageAbs ? [featuredImageAbs] : undefined;
 
   return {
-    title,
+    title: metaTitle ? { absolute: metaTitle } : title,
     description,
     ...(summary?.author
       ? {
@@ -153,7 +153,7 @@ export async function generateMetadata({
     openGraph: {
       type: "article",
       siteName: SITE_NAME,
-      title,
+      title: metaTitle ?? title,
       description,
       images,
       url: summary?.href,
@@ -173,7 +173,7 @@ export async function generateMetadata({
     twitter: {
       card: "summary_large_image",
       site: TWITTER_HANDLE,
-      title,
+      title: metaTitle ?? title,
       description,
       images,
     },

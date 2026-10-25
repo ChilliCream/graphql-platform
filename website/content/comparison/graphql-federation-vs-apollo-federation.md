@@ -1,6 +1,7 @@
 ---
 title: "GraphQL Federation vs. Apollo Federation"
-description: "Apollo Federation and the GraphQL Federation specification describe one architecture in two vocabularies. What differs, and how one gateway runs both."
+metaTitle: "GraphQL Federation vs Apollo Federation: Key Differences"
+description: "Learn how GraphQL Federation evolves Apollo Federation into an open standard. Explore technical differences, backward compatibility, and Fusion support."
 date: "2026-09-08"
 tags: ["graphql-federation", "comparison", "apollo-federation"]
 author: Rafael Staib
