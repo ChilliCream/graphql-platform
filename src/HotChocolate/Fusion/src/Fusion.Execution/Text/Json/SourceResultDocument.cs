@@ -12,14 +12,18 @@ namespace HotChocolate.Fusion.Text.Json;
 public sealed partial class SourceResultDocument : IDisposable
 {
     private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
-    private MetaDb _parsedData;
+    private ParsedMetaDb _parsedData;
+
+    // the packed value of the cursor directly after the last parsed row
+    private readonly uint _parsedDataEnd;
     private readonly MemorySegment[] _segments;
     private readonly int _usedChunks;
     private int _disposed;
 
     private SourceResultDocument(MetaDb parsedData, MemorySegment[] segments, int usedChunks)
     {
-        _parsedData = parsedData;
+        _parsedData = parsedData.Freeze();
+        _parsedDataEnd = parsedData.EndCursor.Value;
         _segments = segments;
         _usedChunks = usedChunks;
     }
@@ -486,7 +490,10 @@ public sealed partial class SourceResultDocument : IDisposable
             return;
         }
 
-        _parsedData.Dispose();
+        // The arena owns the chunk memory, so the rows are only dropped here.
+        var end = Cursor.FromValue(_parsedDataEnd);
+        MetaDbEventSource.Log.MetaDbDisposed(1, end.Chunk + 1, end.Row);
+        _parsedData = default;
     }
 
     public override string ToString()

@@ -87,7 +87,7 @@ internal sealed partial class FetchResultStore : IDisposable
     private IMemoryArena _arena = default!;
     private HashSet<int[]> _seenPaths = new(ReferenceEqualityComparer.Instance);
     private CompositeResultDocument _result = default!;
-    private ValueCompletion _valueCompletion = default!;
+    private readonly ValueCompletion _valueCompletion;
     private List<IError>? _errors;
     private Dictionary<Path, IError>? _pocketedErrors;
     private bool _disposed;
@@ -95,6 +95,7 @@ internal sealed partial class FetchResultStore : IDisposable
     internal FetchResultStore()
     {
         _jsonWriter = new JsonWriter(_variableWriter, new JsonWriterOptions { Indented = false });
+        _valueCompletion = new ValueCompletion(this, maxDepth: 32);
     }
 
     public CompositeResultDocument Result => _result;
@@ -1573,33 +1574,42 @@ AddErrors_Next:
             return variableValueSets;
         }
 
-        ImmutableArray<VariableValues>.Builder? remaining = null;
+        // Both value set arrays were leased by this lookup and are not visible to any caller yet,
+        // so the remaining value sets are compacted in place.
+        var entries = ImmutableCollectionsMarshal.AsArray(variableValueSets)!;
+        var remainingCount = 0;
 
-        for (var i = 0; i < variableValueSets.Length; i++)
+        for (var i = 0; i < entries.Length; i++)
         {
-            var variableValues = variableValueSets[i];
+            var variableValues = entries[i];
 
             if (TryFindProducerUnsafe(producerValueSets, variableValues.Values, out var producerPath)
                 && TryFillTargetsUnsafe(variableValues, GetStartResult(producerPath), responseNames))
             {
-                if (remaining is null)
-                {
-                    remaining = ImmutableArray.CreateBuilder<VariableValues>(variableValueSets.Length - 1);
-
-                    for (var j = 0; j < i; j++)
-                    {
-                        remaining.Add(variableValueSets[j]);
-                    }
-                }
-
                 reusedCount++;
                 continue;
             }
 
-            remaining?.Add(variableValueSets[i]);
+            entries[remainingCount++] = variableValues;
         }
 
-        return remaining is null ? variableValueSets : remaining.ToImmutable();
+        ReturnVariableValueArrayUnsafe(ImmutableCollectionsMarshal.AsArray(producerValueSets)!);
+
+        if (reusedCount == 0)
+        {
+            return variableValueSets;
+        }
+
+        if (remainingCount == 0)
+        {
+            ReturnVariableValueArrayUnsafe(entries);
+            return [];
+        }
+
+        var remaining = RentVariableValueArrayUnsafe(remainingCount);
+        entries.AsSpan(0, remainingCount).CopyTo(remaining);
+        ReturnVariableValueArrayUnsafe(entries);
+        return ImmutableCollectionsMarshal.AsImmutableArray(remaining);
     }
 
     // Caller must pass the value sets of the last build, which the dedup table indexes.
@@ -3620,6 +3630,8 @@ AddErrors_Next:
         _leafKeyWriter?.Dispose();
         _forwardedVariableWriter?.Dispose();
         _pathPool?.Dispose();
+        ReleaseVariableValueArrays();
+        _valueCompletion.Clean();
     }
 
     private void ReturnPathSegmentsUnsafe(ReadOnlySpan<SourceSchemaResult> results)
@@ -3684,7 +3696,8 @@ AddErrors_Next:
         additionalPaths.Dispose();
 
         var span = variableValueSets.AsSpan(0, nextIndex);
-        var result = span.ToArray();
+        var result = RentVariableValueArrayUnsafe(nextIndex);
+        span.CopyTo(result);
         span.Clear();
         s_variableValuePool.Return(variableValueSets);
 

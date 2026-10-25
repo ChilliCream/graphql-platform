@@ -46,19 +46,16 @@ internal sealed partial class FetchResultStore
             deferFlags,
             _pathPool);
 
-        _valueCompletion = new ValueCompletion(
-            this,
-            _schema,
-            _errorHandler,
-            _errorHandlingMode,
-            maxDepth: 32);
+        _valueCompletion.Initialize(_schema, _errorHandler, _errorHandlingMode);
 
         _memory.Push(_result);
     }
 
     /// <summary>
     /// Resets the store for the next subscription event onto <paramref name="arena"/>.
-    /// This rebuilds the pending result document and clears accumulated errors.
+    /// This rebuilds the pending result document, clears accumulated errors and invalidates
+    /// the variable value sets created for the previous event, while the variable value sets
+    /// created before the first event stay valid until the store is cleaned.
     /// </summary>
     public void Reset(IMemoryArena arena)
     {
@@ -79,6 +76,9 @@ internal sealed partial class FetchResultStore
             pending.Dispose();
         }
 
+        // the variable value sets of the previous event are no longer referenced
+        RecycleEventVariableValueArrays();
+
         // the variable and leaf key writers move to the new arena on their next use
         _variableWriter.Release();
         _variableWriterHasArena = false;
@@ -96,12 +96,7 @@ internal sealed partial class FetchResultStore
         _errors?.Clear();
         _pocketedErrors?.Clear();
 
-        _valueCompletion = new ValueCompletion(
-            this,
-            _schema,
-            _errorHandler,
-            _errorHandlingMode,
-            maxDepth: 32);
+        _valueCompletion.Initialize(_schema, _errorHandler, _errorHandlingMode);
 
         // The arena is a disposable instance whose lifetime travels with the result it backs.
         _memory.Push((IDisposable)arena);
@@ -143,6 +138,9 @@ internal sealed partial class FetchResultStore
 
         // free this request's path segment arrays for the next request
         _pathPool?.Reset();
+
+        // free this request's variable value set arrays for the next request
+        RecycleRequestVariableValueArrays();
 
         // clear errors
         _errors?.Clear();
@@ -193,7 +191,7 @@ internal sealed partial class FetchResultStore
 
         // null out per-request references
         _result = default!;
-        _valueCompletion = default!;
+        _valueCompletion.Clean();
         _schema = default!;
         _errorHandler = default!;
         _operation = default!;
