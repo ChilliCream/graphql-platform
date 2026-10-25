@@ -251,13 +251,19 @@ internal sealed partial class SatisfiabilityValidator
                 && (path?.Item.ProvidedSelectionSet is not null
                     || !_facts.IsFieldResolvableOn(type, field, schemaName)))
             {
+                // Requirement data read along the path is resolved against the whole path above
+                // the holding item.
+                IReadOnlyList<SatisfiabilityPathItem> ancestors =
+                    path?.Parent is { } parentPath ? [.. parentPath.EnumerateFromLeaf()] : [];
+
                 var requirementErrors =
                     _requirementsValidator.Validate(
                         requirements,
                         type,
                         path?.Item,
+                        ancestors,
                         excludeSchemaName: schemaName,
-                        allowIntermediatesFromExcludedSchema: true);
+                        allowNestedFieldsFromExcludedSchema: true);
 
                 // The requirement data is fetched from other schemas, so the schema must be able
                 // to resolve the field afterwards, either without its own data or by re-entering
@@ -271,6 +277,7 @@ internal sealed partial class SatisfiabilityValidator
                             field,
                             schemaName,
                             path?.Item,
+                            ancestors,
                             SatisfiabilityValidator_NoLookupForRequiringField,
                             SatisfiabilityValidator_UnableToSatisfyRequirementForLookup);
                 }
@@ -623,15 +630,17 @@ internal sealed partial class SatisfiabilityValidator
         SatisfiabilityPathItem[] pathFromLeaf = [.. path.EnumerateFromLeaf()];
 
         return SourceSchemaTransitionHelper.ValidateSourceSchemaTransition(
+            _schema,
             _lookupCache,
             type,
             transitionToSchemaName,
             pathFromLeaf,
-            (contextType, parentPathItem, lookupRequirements) =>
+            (contextType, pathFromParent, lookupRequirements) =>
                 _requirementsValidator.Validate(
                     lookupRequirements,
                     contextType,
-                    parentPathItem,
+                    pathFromParent.Count > 0 ? pathFromParent[0] : null,
+                    ancestors: [],
                     excludeSchemaName: transitionToSchemaName),
             SatisfiabilityValidator_NoLookupsFoundForType,
             SatisfiabilityValidator_UnableToSatisfyRequirementForLookup,

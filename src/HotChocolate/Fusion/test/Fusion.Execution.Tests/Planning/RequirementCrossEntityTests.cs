@@ -11,7 +11,7 @@ public class RequirementCrossEntityTests : FusionTestBase
         var schema = CreateCircularCrossProviderSchema();
 
         // act
-        // b.byNovice requires author.yearsOfExperience; author is owned by b but
+        // c.byNovice requires author.yearsOfExperience; author is owned by b but
         // yearsOfExperience is owned by a, so the requirement crosses an entity boundary.
         var plan = PlanOperation(
             schema,
@@ -34,8 +34,8 @@ public class RequirementCrossEntityTests : FusionTestBase
         var schema = CreateCircularCrossProviderSchema();
 
         // act
-        // a.byExpert requires b.byNovice, which itself requires a.author.yearsOfExperience,
-        // chaining a circular requirement across the entity boundary.
+        // a.byExpert requires c.byNovice, which itself requires b.author with
+        // a.yearsOfExperience, chaining a circular requirement across the entity boundary.
         var plan = PlanOperation(
             schema,
             """
@@ -83,7 +83,7 @@ public class RequirementCrossEntityTests : FusionTestBase
         var schema = CreateWithArgumentCrossProviderSchema();
 
         // act
-        // d.author requires comments[authorId]; comments is owned by d but authorId is
+        // e.author requires comments[authorId]; comments is owned by d but authorId is
         // owned by c, so the list requirement crosses an entity boundary.
         var plan = PlanOperation(
             schema,
@@ -158,48 +158,31 @@ public class RequirementCrossEntityTests : FusionTestBase
     }
 
     [Fact]
-    public void Plan_Should_Resolve_Subtotal_When_Require_Traverses_Connection_With_Nested_Require()
-    {
-        // arrange
-        // cart owns items and subtotal; subtotal requires items(first: 50).nodes[product.discountedPrice].
-        // discountedPrice is owned by promotions and itself requires price, which is owned by products.
-        // The list element is not an entity, so the leaf is reached through the product lookup
-        // spawned from the cart lookup that fetches the list; subtotal must depend on that lookup.
-        var schema = CreateCartSchema(
-            """
-            items(first: Int, after: String): CartItemsConnection
-            subtotal(lines: [Float!] @require(field: "items(first: 50).nodes[product.discountedPrice]")): Float!
-            """);
-
-        // act
-        var plan = PlanOperation(
-            schema,
-            """
-            {
-              viewer {
-                cart {
-                  subtotal
-                }
-              }
-            }
-            """);
-
-        // assert
-        MatchSnapshot(plan);
-    }
-
-    [Fact]
     public void Plan_Should_Resolve_Subtotal_When_Require_Traverses_Connection_With_Input_Object_List_Form()
     {
         // arrange
-        // same topology, the requirement uses the input object list form.
+        // checkout owns subtotal, which requires items(first: 50).nodes[{ unitPrice: product.discountedPrice }]
+        // from cart in the input object list form; discountedPrice itself requires price from products.
         var schema = CreateCartSchema(
             """
             items(first: Int, after: String): CartItemsConnection
-            subtotal(lines: [CartLineInput] @require(field: "items(first: 50).nodes[{ unitPrice: product.discountedPrice }]")): Float!
             """,
-            cartTypes:
+            additionalSchemas:
             """
+            # name: checkout
+            schema {
+              query: Query
+            }
+
+            type Query {
+              cartById(id: ID! @is(field: "id")): Cart @lookup @internal
+            }
+
+            type Cart @key(fields: "id") {
+              id: ID!
+              subtotal(lines: [CartLineInput] @require(field: "items(first: 50).nodes[{ unitPrice: product.discountedPrice }]")): Float!
+            }
+
             input CartLineInput {
               unitPrice: Float!
             }
@@ -226,11 +209,27 @@ public class RequirementCrossEntityTests : FusionTestBase
     public void Plan_Should_Resolve_Subtotal_When_Connection_Leaf_Has_No_Nested_Require()
     {
         // arrange
-        // control: the leaf (price) is owned by products and has no requirement of its own.
+        // control: checkout owns subtotal, and the leaf (price) is owned by products and has no
+        // requirement of its own.
         var schema = CreateCartSchema(
             """
             items(first: Int, after: String): CartItemsConnection
-            subtotal(lines: [Float!] @require(field: "items(first: 50).nodes[product.price]")): Float!
+            """,
+            additionalSchemas:
+            """
+            # name: checkout
+            schema {
+              query: Query
+            }
+
+            type Query {
+              cartById(id: ID! @is(field: "id")): Cart @lookup @internal
+            }
+
+            type Cart @key(fields: "id") {
+              id: ID!
+              subtotal(lines: [Float!] @require(field: "items(first: 50).nodes[product.price]")): Float!
+            }
             """);
 
         // act
@@ -345,9 +344,10 @@ public class RequirementCrossEntityTests : FusionTestBase
     public void Plan_Should_Resolve_Nested_Require_When_Requiring_Field_Is_Selected_Twice_Next_To_Required_Parent()
     {
         // arrange
-        // unitPrice requires product.discountedPrice, which is owned by promotions, so the
-        // requirement crosses the entity boundary of product. Selecting unitPrice under two
-        // response names next to a client selection of product must plan like a single one.
+        // unitPrice requires product.discountedPrice; product is owned by catalog and
+        // discountedPrice by promotions, so the requirement crosses the entity boundary of product.
+        // Selecting unitPrice under two response names next to a client selection of product must
+        // plan like a single one.
         var schema = CreateNestedRequireSelectedTwiceSchema();
 
         // act
@@ -426,8 +426,9 @@ public class RequirementCrossEntityTests : FusionTestBase
     public void Plan_Should_Reenter_Requiring_Schema_When_Requiring_Type_Has_Lookup()
     {
         // arrange
-        // the Product key comes from cart itself, so once promotions has delivered discountedPrice
-        // the planner re-enters cart at CartItem through cartItemById to pass the value.
+        // the CartItem key comes from cart itself, so once catalog has delivered product and
+        // promotions its discountedPrice, the planner re-enters cart at CartItem through
+        // cartItemById to pass the value.
         var schema = CreateCartPricingSchema();
 
         // act
@@ -643,6 +644,186 @@ public class RequirementCrossEntityTests : FusionTestBase
         MatchSnapshot(plan);
     }
 
+    [Fact]
+    public void Plan_Should_Reenter_Requiring_Schema_When_Nested_Required_Field_Follows_Remote_First_Level()
+    {
+        // arrange
+        // a.price requires customer.discount; customer is only served by b and discount by a, so
+        // the requirement leaves a for customer and re-enters it through customerById.
+        var schema = CreateNestedReentryRequireSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              orders {
+                id
+                price
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_Reenter_Requiring_Schema_When_Client_Selects_Remote_First_Level_Next_To_Requiring_Field()
+    {
+        // arrange
+        var schema = CreateNestedReentryRequireSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              orders {
+                id
+                customer {
+                  id
+                }
+                price
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_Reenter_Requiring_Schema_When_Abstract_First_Level_Has_No_Type_Condition()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+              orderById(id: ID!): Order @lookup @internal
+              customerById(id: ID!): Customer @lookup @internal
+            }
+
+            interface Person {
+              id: ID!
+              discount: Int
+            }
+
+            type Order {
+              id: ID! @shareable
+              price(discount: Int @require(field: "customer.discount")): Int
+            }
+
+            type Customer implements Person {
+              id: ID! @shareable
+              discount: Int
+            }
+            """,
+            """
+            # name: b
+            type Query {
+              orders: [Order]
+            }
+
+            interface Person {
+              id: ID!
+            }
+
+            type Order {
+              id: ID! @shareable
+              customer: Person
+            }
+
+            type Customer implements Person {
+              id: ID! @shareable
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              orders {
+                id
+                price
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_Resolve_Nested_Required_Field_From_Third_Schema_When_Abstract_First_Level_Has_No_Type_Condition()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+              orderById(id: ID!): Order @lookup @internal
+            }
+
+            type Order {
+              id: ID! @shareable
+              price(discount: Int @require(field: "customer.discount")): Int
+            }
+            """,
+            """
+            # name: b
+            type Query {
+              orders: [Order]
+            }
+
+            interface Person {
+              id: ID!
+            }
+
+            type Order {
+              id: ID! @shareable
+              customer: Person
+            }
+
+            type Customer implements Person {
+              id: ID! @shareable
+            }
+            """,
+            """
+            # name: c
+            type Query {
+              customerById(id: ID!): Customer @lookup @internal
+            }
+
+            interface Person {
+              id: ID!
+              discount: Int
+            }
+
+            type Customer implements Person {
+              id: ID! @shareable
+              discount: Int
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              orders {
+                id
+                price
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
     private static FusionSchemaDefinition CreateApolloSelfReferenceRequiresSchema()
     {
         return ComposeSchema(
@@ -712,6 +893,43 @@ public class RequirementCrossEntityTests : FusionTestBase
             """);
     }
 
+    private static FusionSchemaDefinition CreateNestedReentryRequireSchema()
+    {
+        return ComposeSchema(
+            """
+            # name: a
+            type Query {
+              orderById(id: ID!): Order @lookup @internal
+              customerById(id: ID!): Customer @lookup @internal
+            }
+
+            type Order {
+              id: ID! @shareable
+              price(discount: Int @require(field: "customer.discount")): Int
+            }
+
+            type Customer {
+              id: ID! @shareable
+              discount: Int
+            }
+            """,
+            """
+            # name: b
+            type Query {
+              orders: [Order]
+            }
+
+            type Order {
+              id: ID! @shareable
+              customer: Customer
+            }
+
+            type Customer {
+              id: ID! @shareable
+            }
+            """);
+    }
+
     private static FusionSchemaDefinition CreateCircularCrossProviderSchema()
     {
         return ComposeSchema(
@@ -751,13 +969,27 @@ public class RequirementCrossEntityTests : FusionTestBase
             type Post @key(fields: "id") {
               id: ID!
               author: Author!
-              byNovice(
-                yearsOfExperience: Int!
-                  @require(field: "author.yearsOfExperience")): Boolean!
             }
 
             type Author @key(fields: "id") {
               id: ID!
+            }
+            """,
+            """
+            # name: c
+            schema {
+              query: Query
+            }
+
+            type Query {
+              postById(id: ID! @is(field: "id")): Post @lookup @internal
+            }
+
+            type Post @key(fields: "id") {
+              id: ID!
+              byNovice(
+                yearsOfExperience: Int!
+                  @require(field: "author.yearsOfExperience")): Boolean!
             }
             """);
     }
@@ -802,13 +1034,27 @@ public class RequirementCrossEntityTests : FusionTestBase
             type Post @key(fields: "id") {
               id: ID!
               author: Author!
-              byNovice(
-                yearsOfExperience: Int!
-                  @require(field: "author.yearsOfExperience")): Boolean!
             }
 
             type Author @key(fields: "id") {
               id: ID!
+            }
+            """,
+            """
+            # name: c
+            schema {
+              query: Query
+            }
+
+            type Query {
+              postById(id: ID! @is(field: "id")): Post @lookup @internal
+            }
+
+            type Post @key(fields: "id") {
+              id: ID!
+              byNovice(
+                yearsOfExperience: Int!
+                  @require(field: "author.yearsOfExperience")): Boolean!
             }
             """);
     }
@@ -851,13 +1097,27 @@ public class RequirementCrossEntityTests : FusionTestBase
             type Post @key(fields: "id") {
               id: ID!
               comments(limit: Int): [Comment]
-              author(
-                commentAuthorIds: [ID]
-                  @require(field: "comments[authorId]")): Author
             }
 
             type Comment @key(fields: "id") {
               id: ID!
+            }
+            """,
+            """
+            # name: e
+            schema {
+              query: Query
+            }
+
+            type Query {
+              postById(id: ID! @is(field: "id")): Post @lookup @internal
+            }
+
+            type Post @key(fields: "id") {
+              id: ID!
+              author(
+                commentAuthorIds: [ID]
+                  @require(field: "comments[authorId]")): Author
             }
 
             type Author {
@@ -905,13 +1165,27 @@ public class RequirementCrossEntityTests : FusionTestBase
             type Post @key(fields: "id") {
               id: ID!
               comments(limit: Int): [Comment]
-              author(
-                comments: [CommentInput]
-                  @require(field: "comments(limit: 3)[{ authorId: authorId }]")): Author
             }
 
             type Comment @key(fields: "id") {
               id: ID!
+            }
+            """,
+            """
+            # name: e
+            schema {
+              query: Query
+            }
+
+            type Query {
+              postById(id: ID! @is(field: "id")): Post @lookup @internal
+            }
+
+            type Post @key(fields: "id") {
+              id: ID!
+              author(
+                comments: [CommentInput]
+                  @require(field: "comments(limit: 3)[{ authorId: authorId }]")): Author
             }
 
             type Author {
@@ -1103,8 +1377,22 @@ public class RequirementCrossEntityTests : FusionTestBase
 
             type CartItem @key(fields: "id") {
               id: ID!
-              product: Product!
               unitPrice(price: Float! @require(field: "product.discountedPrice")): Float!
+            }
+            """,
+            """
+            # name: catalog
+            schema {
+              query: Query
+            }
+
+            type Query {
+              cartItemById(id: ID! @is(field: "id")): CartItem @lookup @internal
+            }
+
+            type CartItem @key(fields: "id") {
+              id: ID!
+              product: Product!
             }
 
             type Product @key(fields: "id") {
@@ -1140,7 +1428,6 @@ public class RequirementCrossEntityTests : FusionTestBase
             type Query {
               cart: Cart
               cartItemById(id: ID! @is(field: "id")): CartItem @lookup @internal
-              productById(id: ID! @is(field: "id")): Product @lookup @internal
             }
 
             type Cart {
@@ -1148,10 +1435,24 @@ public class RequirementCrossEntityTests : FusionTestBase
               items: [CartItem!]
             }
 
-            type CartItem {
+            type CartItem @key(fields: "id") {
+              id: ID!
+              unitPrice(price: Float! @require(field: "product.discountedPrice")): Float!
+            }
+            """,
+            """
+            # name: catalog
+            schema {
+              query: Query
+            }
+
+            type Query {
+              cartItemById(id: ID! @is(field: "id")): CartItem @lookup @internal
+            }
+
+            type CartItem @key(fields: "id") {
               id: ID!
               product: Product!
-              unitPrice(price: Float! @require(field: "product.discountedPrice")): Float!
             }
 
             type Product @key(fields: "id") {
@@ -1195,8 +1496,22 @@ public class RequirementCrossEntityTests : FusionTestBase
 
             type CartItem implements Item @key(fields: "id") {
               id: ID!
-              product: Product!
               unitPrice(price: Float! @require(field: "product.discountedPrice")): Float!
+            }
+            """,
+            """
+            # name: catalog
+            schema {
+              query: Query
+            }
+
+            type Query {
+              cartItemById(id: ID! @is(field: "id")): CartItem @lookup @internal
+            }
+
+            type CartItem @key(fields: "id") {
+              id: ID!
+              product: Product!
             }
 
             type Product @key(fields: "id") {

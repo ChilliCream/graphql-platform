@@ -1,0 +1,44 @@
+operation:
+  - document: |
+      {
+        accounts {
+          id
+          id @fusion__requirement
+          displayName
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: other
+    operation: |
+      query Op_123456789101112_1 {
+        accounts {
+          id
+        }
+      }
+  - id: 2
+    type: ApolloOperation
+    schema: requiring
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Account {
+            displayName
+          }
+        }
+      }
+    source: $._entities
+    target: $.accounts
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1

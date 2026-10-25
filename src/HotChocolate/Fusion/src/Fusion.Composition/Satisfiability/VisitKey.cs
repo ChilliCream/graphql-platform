@@ -12,6 +12,10 @@ namespace HotChocolate.Fusion.Satisfiability;
 /// The schemas, among those the visit and its children read, that the object can be entered in from
 /// its position through a lookup, a parent entity call, the viewer fallback or the one-to-one path.
 /// </param>
+/// <param name="ReachProvides">
+/// The selection sets that the schemas of <paramref name="Reach"/> provide for the object when they
+/// re-traverse its path, or <c>null</c> if none provides one.
+/// </param>
 /// <param name="Leaf">
 /// The path item holding the object when the visit reads more of it than its schema; otherwise <c>null</c>.
 /// </param>
@@ -24,5 +28,6 @@ internal sealed record VisitKey(
     MutableObjectTypeDefinition ObjectType,
     string? SchemaName,
     SchemaSet Reach,
+    SchemaSelectionSets? ReachProvides,
     VisitLeaf? Leaf,
     bool ViewerFallback);

@@ -122,6 +122,8 @@ The FieldSelectionMap inside `@require` tells the gateway how to populate the `P
 
 The fields referenced in the map do not all have to come from the same subgraph. The gateway resolves each field from whichever subgraph owns it. Your resolver declares what data it needs, not which services to call.
 
+Every field at the first level of the map must come from a subgraph other than the requiring one. A field that the requiring subgraph declares `@external` does not count as coming from it. Nested fields may come from the requiring subgraph. In `length: dimensions.length`, `dimensions` is at the first level and `length` is nested.
+
 **C# resolver**
 
 ```csharp
@@ -385,6 +387,24 @@ which does not exist on type "Product".
 ```
 
 The field path in `@require(field: "...")` points to a field that does not exist on the entity type after composition. Check that the field name matches exactly (GraphQL field names, not C# property names) and that the owning subgraph is included in composition.
+
+## `REQUIRE_INVALID_FIELDS`: Required field served by the requiring schema
+
+```text
+The @require directive on argument 'Product.shippingEstimate(weight:)' in schema 'Shipping' specifies an invalid field selection against the composed schema.
+- The required field 'Product.weight' must not be served by the requiring source schema 'Shipping'.
+```
+
+The requiring subgraph serves a field at the first level of the `@require` map. Declare the field `@external` in the requiring subgraph and let another subgraph serve it, or move the requiring field to a subgraph that does not serve the first-level field.
+
+```graphql
+# Shipping subgraph
+type Product {
+  id: ID!
+  weight: Float! @external
+  shippingEstimate(zip: String!, weight: Float! @require(field: "weight")): Int!
+}
+```
 
 ## `PROVIDES_INVALID_FIELDS`: Invalid field selection in `@provides`
 
