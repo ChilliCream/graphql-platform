@@ -34,7 +34,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse("query GetBooks { books { title } }")),
             TestContext.Current.CancellationToken);
-        var subgraph = CreateSubgraph([]);
+        await using var subgraph = StartSubgraph([]);
         var schemaDocument = await subgraph.Services.GetSchemaAsync(
             cancellationToken: TestContext.Current.CancellationToken);
         var schemaComposer =
@@ -53,11 +53,10 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
         webAppBuilder.Services
             .AddOptions<McpSetup>("NamedSchema")
             .PostConfigure(setup => setup.StorageFactory = _ => storage);
-        var webApp = webAppBuilder.Build();
+        await using var webApp = webAppBuilder.Build();
         webApp.MapGraphQLMcp();
         webApp.Start();
-        using var server = webApp.GetTestServer();
-        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+        var mcpClient = await CreateMcpClientAsync(webApp.GetTestClient());
 
         // act
         var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
@@ -78,7 +77,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
                         "__resources__/GetBooksWithTitle1.graphql",
                         TestContext.Current.CancellationToken))),
             TestContext.Current.CancellationToken);
-        var subgraph = CreateSubgraph([]);
+        await using var subgraph = StartSubgraph([]);
         var schemaDocument = await subgraph.Services.GetSchemaAsync(
             cancellationToken: TestContext.Current.CancellationToken);
         var schemaComposer =
@@ -101,12 +100,11 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
             .AddConfigurationProvider(_ => configProvider)
             .AddMcp()
             .AddMcpStorage(storage);
-        var webApp = webAppBuilder.Build();
+        await using var webApp = webAppBuilder.Build();
         webApp.MapGraphQLMcp();
         webApp.Start();
-        var server = webApp.GetTestServer();
-        var mcpClient1 = await CreateMcpClientAsync(server.CreateClient());
-        var mcpClient2 = await CreateMcpClientAsync(server.CreateClient());
+        var mcpClient1 = await CreateMcpClientAsync(webApp.GetTestClient());
+        var mcpClient2 = await CreateMcpClientAsync(webApp.GetTestClient());
         var listChangedResetEvent1 = new ManualResetEventSlim(false);
         var listChangedResetEvent2 = new ManualResetEventSlim(false);
         mcpClient1.RegisterNotificationHandler(
@@ -136,7 +134,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
 
         if (listChangedResetEvent1.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken))
         {
-            var mcpClient3 = await CreateMcpClientAsync(server.CreateClient());
+            var mcpClient3 = await CreateMcpClientAsync(webApp.GetTestClient());
             updatedTools = await mcpClient3.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
         }
 
@@ -170,7 +168,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
         Action<McpServerOptions>? configureMcpServerOptions = null,
         Action<IMcpServerBuilder>? configureMcpServer = null)
     {
-        var subgraph = CreateSubgraph(additionalTypes);
+        var subgraph = StartSubgraph(additionalTypes);
         var schemaDocument = await subgraph.Services.GetSchemaAsync();
         var schemaComposer =
             new SchemaComposer(
@@ -190,7 +188,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
         webAppBuilder.Services
             .AddHttpClient(schemaDocument.Name)
                 .AddHeaderPropagation()
-                .ConfigurePrimaryHttpMessageHandler(subgraph.CreateHandler);
+                .ConfigurePrimaryHttpMessageHandler(subgraph.GetTestServer().CreateHandler);
 
         var gatewayBuilder =
             webAppBuilder.Services
@@ -218,7 +216,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
         return app.GetTestServer();
     }
 
-    private static TestServer CreateSubgraph(ITypeDefinition[]? additionalTypes)
+    private static WebApplication StartSubgraph(ITypeDefinition[]? additionalTypes)
     {
         var webAppBuilder = WebApplication.CreateSlimBuilder();
         webAppBuilder.WebHost.UseTestServer();
@@ -259,7 +257,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
         app.MapGraphQL();
         app.Start();
 
-        return app.GetTestServer();
+        return app;
     }
 
     private sealed class TestFusionConfigurationProvider(FusionConfiguration initialConfig)
