@@ -6,17 +6,12 @@ This file provides guidance to coding agents when working with this repository.
 
 ### Website
 
-Website dependencies and tooling run only inside the frontend container.
-`yarn install` on the host is blocked by design.
+Use `yarn` instead of `npm`.
 
 ```bash
-website/scripts/frontend-container.sh up
-website/scripts/frontend-container.sh dev
+cd website
+yarn
 ```
-
-The dev server is at <http://localhost:3031>. The Docker daemon (OrbStack on
-macOS) must be running. See `website/README.md` for the full command
-reference.
 
 ### C# Source Code
 
