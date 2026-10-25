@@ -166,9 +166,9 @@ export function WhatIsSection() {
         title="What is GraphQL Federation?"
         body={
           <>
-            {FEDERATION_DEFINITION} A GraphQL API describes the data it offers
-            in a schema, a typed document, and answers one query with exactly
-            the fields the client asked for.
+            {FEDERATION_DEFINITION} Each subgraph contributes part of the
+            overall schema, while a GraphQL gateway provides a single entry
+            point for clients.
           </>
         }
         visual={
@@ -185,20 +185,17 @@ export function WhatIsSection() {
       >
         <div className="text-cc-ink mt-4 space-y-4 text-base">
           <p>
-            In a large organization, no single team owns all of that data.
-            Checkout, catalog, and accounts are separate services with separate
-            owners. Federation lets each team publish only the piece of the API
-            it owns, as a source schema. A build step called composition then
-            validates those schemas together and produces one composite schema.
-            Clients see one API and never know whether there is one API or many
-            behind the gateway.
+            Instead of maintaining one large GraphQL server, teams can own and
+            develop their services independently. Each team defines the types
+            and fields its service provides, and a process called schema
+            composition brings these definitions together into one coherent
+            graph.
           </p>
           <p>
-            The services themselves stay where they are. Each team keeps its own
-            codebase, its own database, and its own release schedule; a service
-            joins by describing what it owns in its schema. A client sends one
-            query to the gateway, and the gateway fetches from every subgraph
-            the query touches and returns one response.
+            When a client sends a query, the gateway determines which subgraphs
+            are needed, fetches the requested data, and assembles the results
+            into a single response. To the client, the entire system behaves
+            like one GraphQL API, regardless of how many services are involved.
           </p>
         </div>
       </FeatureRow>

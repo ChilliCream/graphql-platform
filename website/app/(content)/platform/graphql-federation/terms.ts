@@ -1,6 +1,6 @@
-/** The one-sentence definition shared by the hero copy and the structured data. */
+/** The one-sentence definition shared by the What is section and structured data. */
 export const FEDERATION_DEFINITION =
-  "GraphQL Federation is an architectural pattern that combines the schemas of independent GraphQL services (subgraphs), each owned by a different team, into one composite schema (also called a supergraph) that a gateway serves to clients as a single API.";
+  "GraphQL Federation is an architectural approach that combines multiple independent GraphQL services, called subgraphs, into a single unified GraphQL API.";
 
 export interface FederationTerm {
   readonly term: string;
