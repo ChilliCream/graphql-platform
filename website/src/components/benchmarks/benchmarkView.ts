@@ -10,6 +10,7 @@ import {
   variantName,
   type BenchmarkCatalogEntry,
   type BenchmarkHistoryScenario,
+  type BenchmarkHistoryVersion,
   type BenchmarkReport,
   type BenchmarkScenario,
   type BenchmarkVariantResult,
@@ -146,7 +147,7 @@ export interface HistorySeries {
   readonly color: string;
   /** Whether the line is dashed because the palette ran out of colors. */
   readonly dashed: boolean;
-  /** Sampled runs, oldest first, including the first and latest result and every failed run. */
+  /** Sampled runs, oldest first: the runs on dates sampled across every series, which include each series' first and latest run, and every failed run. */
   readonly points: readonly HistoryPoint[];
 }
 
@@ -158,25 +159,38 @@ export function historySeries(
 ): readonly HistorySeries[] {
   const catalogOrder = [...variants.keys()];
   const decisive = decisiveFeatures(variants);
-  const series = scenario.variants.flatMap((history) => {
+  const runDate = (version: BenchmarkHistoryVersion) =>
+    Date.parse(version.run.completedAt ?? version.run.startedAt!);
+  const histories = scenario.variants.map((history) => ({
+    history,
+    versions: history.results.toSorted((a, b) => runDate(a) - runDate(b)),
+  }));
+  const dates = [
+    ...new Set(histories.flatMap(({ versions }) => versions.map(runDate))),
+  ].toSorted((a, b) => a - b);
+  const stride = Math.max(1, Math.ceil((dates.length - 1) / 20));
+  const count = Math.ceil((dates.length - 1) / stride) + 1;
+  const sampledDates = new Set([
+    ...Array.from(
+      { length: count },
+      (_, sample) =>
+        dates[Math.round((sample * (dates.length - 1)) / (count - 1 || 1))],
+    ),
+    ...histories.flatMap(({ versions }) =>
+      versions.length > 0
+        ? [runDate(versions[0]), runDate(versions.at(-1)!)]
+        : [],
+    ),
+  ]);
+  const series = histories.flatMap(({ history, versions }) => {
     const entry = variants.get(history.variant)!;
     const features = decisive.get(history.variant)!;
-    const versions = history.results.toSorted(
-      (a, b) =>
-        Date.parse(a.run.completedAt ?? a.run.startedAt!) -
-        Date.parse(b.run.completedAt ?? b.run.startedAt!),
-    );
     if (versions.length === 0) {
       return [];
     }
-    const stride = Math.max(1, Math.ceil((versions.length - 1) / 20));
-    const count = Math.ceil((versions.length - 1) / stride) + 1;
     const sampled = versions.filter(
-      (version, index) =>
-        version.status === "failed" ||
-        Array.from({ length: count }, (_, sample) =>
-          Math.round((sample * (versions.length - 1)) / (count - 1 || 1)),
-        ).includes(index),
+      (version) =>
+        version.status === "failed" || sampledDates.has(runDate(version)),
     );
     const colorIndex = catalogOrder.indexOf(history.variant);
     return {
@@ -192,7 +206,12 @@ export function historySeries(
           version.run.completedAt ?? version.run.startedAt!,
         ),
         runNumber: version.run.number,
-        runtime: formatPlatformTag(version.platform, features),
+        runtime: formatPlatformTag(
+          version.platform,
+          features.filter((feature) =>
+            version.platform.features?.some((own) => own.id === feature.id),
+          ),
+        ),
         version: version.version,
         rps: version.throughput.medianRps,
         failed: version.status === "failed",

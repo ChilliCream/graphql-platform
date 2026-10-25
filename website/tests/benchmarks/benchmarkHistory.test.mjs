@@ -147,6 +147,7 @@ test("distributes six-month samples evenly without a short final interval", () =
   const history = parseBenchmarkHistory(fixture);
   const scenario = structuredClone(history.scenarios[0]);
   const variant = scenario.variants[0];
+  scenario.variants = [variant];
   const base = variant.results[0];
   const start = Date.parse("2026-04-17T12:00:00Z");
   variant.results = Array.from({ length: 184 }, (_, index) => ({
@@ -170,6 +171,7 @@ test("keeps failed runs that fall between samples", () => {
   const history = parseBenchmarkHistory(fixture);
   const scenario = structuredClone(history.scenarios[0]);
   const variant = scenario.variants[0];
+  scenario.variants = [variant];
   const base = variant.results[0];
   const start = Date.parse("2026-04-17T12:00:00Z");
   variant.results = Array.from({ length: 184 }, (_, index) => ({
@@ -223,5 +225,84 @@ test("rejects unknown history result statuses", () => {
   assert.throws(
     () => parseBenchmarkHistory(JSON.stringify(history)),
     /Unknown benchmark report value/,
+  );
+});
+test("labels each run with the platform features it ran with", () => {
+  const platform = (version, features) => ({
+    language: { name: "C#" },
+    runtime: { name: ".NET", version },
+    features,
+  });
+  const aot = [{ id: "aot", name: "AOT" }];
+  const entry = (id, features) => ({
+    gateway: { id: "fusion", name: "Fusion" },
+    variant: {
+      id,
+      version: "16.7.0",
+      composition: "composite-schema",
+      platform: platform("11.0.0", features),
+    },
+  });
+  const variants = new Map([
+    ["fusion-aot-11", entry("fusion-aot-11", aot)],
+    ["fusion-net-11", entry("fusion-net-11", [])],
+  ]);
+  const result = (number, runtime, features) => ({
+    version: "16.7.0",
+    run: {
+      number,
+      startedAt: `2026-10-0${number}T00:00:00Z`,
+      completedAt: `2026-10-0${number}T12:00:00Z`,
+    },
+    platform: platform(runtime, features),
+    throughput: { medianRps: 1000, runsRps: [1000] },
+  });
+  const [series] = historySeries(
+    {
+      variants: [
+        {
+          variant: "fusion-aot-11",
+          results: [result(1, "10.0.13", []), result(2, "11.0.0", aot)],
+        },
+      ],
+    },
+    variants,
+  );
+  assert.deepEqual(
+    series.points.map((point) => point.runtime),
+    [".NET 10", ".NET 11 AOT"],
+  );
+});
+test("samples the same run dates for every series", () => {
+  const history = parseBenchmarkHistory(fixture);
+  const scenario = structuredClone(history.scenarios[0]);
+  const [long, short] = scenario.variants;
+  const base = long.results[0];
+  const start = Date.parse("2026-07-01T12:00:00Z");
+  const runs = (from, to) =>
+    Array.from({ length: to - from + 1 }, (_, offset) => ({
+      ...base,
+      run: {
+        number: from + offset,
+        completedAt: new Date(start + (from + offset) * day).toISOString(),
+      },
+    }));
+  long.results = runs(0, 41);
+  short.results = runs(39, 41);
+  scenario.variants = [long, short];
+  const [longSeries, shortSeries] = historySeries(
+    scenario,
+    benchmarkVariants(history),
+  );
+  const longRuns = new Set(longSeries.points.map((point) => point.runNumber));
+  assert.deepEqual(
+    shortSeries.points.map((point) => [
+      point.runNumber,
+      longRuns.has(point.runNumber),
+    ]),
+    [
+      [39, true],
+      [41, true],
+    ],
   );
 });

@@ -309,14 +309,11 @@ export function BenchmarkHistoryChart({
                   }}
                 >
                   <div className="font-semibold">
-                    {selectedSeries?.name} ({selectedSeries?.runtime})
+                    {selectedSeries?.name} ({point.runtime})
                   </div>
                   <div>{formatNumber(point.rps)} requests/s</div>
                   <div className="text-cc-ink-dim mt-1">
                     Version {point.version}
-                    {point.runtime !== selectedSeries?.runtime
-                      ? ` on ${point.runtime}`
-                      : ""}
                   </div>
                   <div className="text-cc-ink-dim">{compositionName}</div>
                   {point.failed && (
