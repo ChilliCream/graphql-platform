@@ -59,7 +59,7 @@ public class BM25IndexTests
         var index = BM25Index.Build(documents);
 
         // act
-        var results = index.Search([]);
+        var results = index.Search([], TestContext.Current.CancellationToken);
 
         // assert
         Assert.Empty(results);
@@ -72,7 +72,7 @@ public class BM25IndexTests
         var index = BM25Index.Build([]);
 
         // act
-        var results = index.Search(["product"]);
+        var results = index.Search(["product"], TestContext.Current.CancellationToken);
 
         // assert
         Assert.Empty(results);
@@ -89,7 +89,7 @@ public class BM25IndexTests
         var index = BM25Index.Build(documents);
 
         // act
-        var results = index.Search(["nonexistent"]);
+        var results = index.Search(["nonexistent"], TestContext.Current.CancellationToken);
 
         // assert
         Assert.Empty(results);
@@ -107,7 +107,7 @@ public class BM25IndexTests
         var index = BM25Index.Build(documents);
 
         // act
-        var results = index.Search(["product"]);
+        var results = index.Search(["product"], TestContext.Current.CancellationToken);
 
         // assert
         Assert.Single(results);
@@ -128,7 +128,7 @@ public class BM25IndexTests
         var index = BM25Index.Build(documents);
 
         // act
-        var results = index.Search(["product"]);
+        var results = index.Search(["product"], TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(2, results.Count);
@@ -149,7 +149,7 @@ public class BM25IndexTests
         var index = BM25Index.Build(documents);
 
         // act
-        var results = index.Search(["common", "word"]);
+        var results = index.Search(["common", "word"], TestContext.Current.CancellationToken);
 
         // assert
         Assert.True(results.Count >= 1);
@@ -173,8 +173,8 @@ public class BM25IndexTests
         var index = BM25Index.Build(documents);
 
         // act
-        var rareResults = index.Search(["rare"]);
-        var commonResults = index.Search(["common"]);
+        var rareResults = index.Search(["rare"], TestContext.Current.CancellationToken);
+        var commonResults = index.Search(["common"], TestContext.Current.CancellationToken);
 
         // assert
         // "rare" has higher IDF, so a single match for "rare" should have higher
@@ -199,7 +199,7 @@ public class BM25IndexTests
         var index = BM25Index.Build(documents);
 
         // act
-        var results = index.Search(["product", "review"]);
+        var results = index.Search(["product", "review"], TestContext.Current.CancellationToken);
 
         // assert
         // The document matching both tokens should score highest.

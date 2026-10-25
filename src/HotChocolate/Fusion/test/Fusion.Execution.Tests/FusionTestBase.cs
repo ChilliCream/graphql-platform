@@ -6,10 +6,10 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
+using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Planning;
-using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Builder;
@@ -418,17 +418,19 @@ public abstract class FusionTestBase : IDisposable
 
     protected static FusionSchemaDefinition ComposeSchema(
         [StringSyntax("graphql")] params string[] schemas)
+        => ComposeSchema(
+            options => options.Merger.EnableGlobalObjectIdentification = true,
+            schemas);
+
+    protected static FusionSchemaDefinition ComposeSchema(
+        Action<SchemaComposerOptions> configure,
+        [StringSyntax("graphql")] params string[] schemas)
     {
         var sourceSchemas = CreateSourceSchemaTexts(schemas);
 
         var compositionLog = new CompositionLog();
-        var composerOptions = new SchemaComposerOptions
-        {
-            Merger =
-            {
-                EnableGlobalObjectIdentification = true
-            }
-        };
+        var composerOptions = new SchemaComposerOptions();
+        configure(composerOptions);
         var composer = new SchemaComposer(sourceSchemas, composerOptions, compositionLog);
         var result = composer.Compose();
 
@@ -446,6 +448,16 @@ public abstract class FusionTestBase : IDisposable
 
     protected static DocumentNode ComposeSchemaDocument(
         [StringSyntax("graphql")] params string[] schemas)
+        => ComposeSchemaDocument(defaultListSize: null, schemas);
+
+    /// <summary>
+    /// Composes a schema document, setting <c>@fusion__cost_options(defaultListSize:)</c> to
+    /// <paramref name="defaultListSize"/>, or omitting the directive when it is
+    /// <see langword="null"/>.
+    /// </summary>
+    protected static DocumentNode ComposeSchemaDocument(
+        int? defaultListSize,
+        [StringSyntax("graphql")] params string[] schemas)
     {
         var sourceSchemas = CreateSourceSchemaTexts(schemas);
 
@@ -454,7 +466,8 @@ public abstract class FusionTestBase : IDisposable
         {
             Merger =
             {
-                EnableGlobalObjectIdentification = false
+                EnableGlobalObjectIdentification = false,
+                DefaultListSize = defaultListSize
             }
         };
         var composer = new SchemaComposer(sourceSchemas, composerOptions, compositionLog);
@@ -495,7 +508,8 @@ public abstract class FusionTestBase : IDisposable
 
     protected static OperationPlan PlanOperation(
         FusionSchemaDefinition schema,
-        [StringSyntax("graphql")] string operationText)
+        [StringSyntax("graphql")] string operationText,
+        OperationPlannerOptions? options = null)
     {
         var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
             new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
@@ -507,7 +521,9 @@ public abstract class FusionTestBase : IDisposable
         var operation = rewritten.Definitions.OfType<OperationDefinitionNode>().First();
 
         var compiler = new OperationCompiler(schema, pool);
-        var planner = new OperationPlanner(schema, compiler);
+        var planner = options is null
+            ? new OperationPlanner(schema, compiler)
+            : new OperationPlanner(schema, compiler, options);
         const string id = "123456789101112";
         return planner.CreatePlan(id, id, id, operation);
     }

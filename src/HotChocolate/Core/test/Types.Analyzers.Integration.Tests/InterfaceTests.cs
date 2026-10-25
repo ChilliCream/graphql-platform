@@ -13,7 +13,7 @@ public class InterfaceTests
                 .AddGraphQLServer()
                 .AddIntegrationTestTypes()
                 .AddPagingArguments()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.True(
             schema.Types.GetType<ObjectType>("Book")

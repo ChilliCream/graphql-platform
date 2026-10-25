@@ -30,6 +30,11 @@ public sealed class KnownTypeSymbols
     private Resolved<INamedTypeSymbol?>? _saga;
     private Resolved<INamedTypeSymbol?>? _eventRequest;
     private Resolved<INamedTypeSymbol?>? _eventRequestOfT;
+    private Resolved<INamedTypeSymbol?>? _messageBus;
+    private Resolved<INamedTypeSymbol?>? _sender;
+    private Resolved<INamedTypeSymbol?>? _publisher;
+    private Resolved<INamedTypeSymbol?>? _messageBusHostBuilderExtensions;
+    private Resolved<INamedTypeSymbol?>? _messageBusBuilder;
 
     private KnownTypeSymbols(Compilation compilation)
     {
@@ -132,6 +137,38 @@ public sealed class KnownTypeSymbols
     /// </summary>
     public INamedTypeSymbol? IEventRequestOfT
         => Resolve(SyntaxConstants.IEventRequestOfT, ref _eventRequestOfT);
+
+    /// <summary>
+    /// Gets the symbol for the <c>IMessageBus</c> interface.
+    /// </summary>
+    public INamedTypeSymbol? IMessageBus
+        => Resolve(SyntaxConstants.IMessageBus, ref _messageBus);
+
+    /// <summary>
+    /// Gets the symbol for the <c>ISender</c> interface (Mediator).
+    /// </summary>
+    public INamedTypeSymbol? ISender
+        => Resolve(SyntaxConstants.ISender, ref _sender);
+
+    /// <summary>
+    /// Gets the symbol for the <c>IPublisher</c> interface (Mediator).
+    /// </summary>
+    public INamedTypeSymbol? IPublisher
+        => Resolve(SyntaxConstants.IPublisher, ref _publisher);
+
+    /// <summary>
+    /// Gets the symbol for the <c>MessageBusHostBuilderExtensions</c> class declaring
+    /// the <c>AddMessage&lt;TMessage&gt;</c> host builder registration methods.
+    /// </summary>
+    public INamedTypeSymbol? MessageBusHostBuilderExtensions
+        => Resolve(SyntaxConstants.MessageBusHostBuilderExtensions, ref _messageBusHostBuilderExtensions);
+
+    /// <summary>
+    /// Gets the symbol for the <c>IMessageBusBuilder</c> interface declaring
+    /// the <c>AddMessage&lt;TMessage&gt;</c> registration methods.
+    /// </summary>
+    public INamedTypeSymbol? IMessageBusBuilder
+        => Resolve(SyntaxConstants.IMessageBusBuilder, ref _messageBusBuilder);
 
     private INamedTypeSymbol? Resolve(string metadataName, ref Resolved<INamedTypeSymbol?>? field)
     {

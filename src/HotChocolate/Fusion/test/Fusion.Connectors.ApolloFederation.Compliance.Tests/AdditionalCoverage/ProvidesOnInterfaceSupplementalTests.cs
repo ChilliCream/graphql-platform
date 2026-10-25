@@ -1,0 +1,42 @@
+using HotChocolate.Execution;
+using HotChocolate.Fusion.Suites;
+using HotChocolate.Fusion.Suites.ProvidesOnInterface.SubgraphA;
+using HotChocolate.Fusion.Suites.ProvidesOnInterface.SubgraphB;
+using HotChocolate.Fusion.Suites.ProvidesOnInterface.SubgraphC;
+
+namespace HotChocolate.Fusion.AdditionalCoverage;
+
+public sealed class ProvidesOnInterfaceSupplementalTests
+{
+    [Fact]
+    [Trait("Category", "Supplemental")]
+    public async Task ProvidedInterfacePath_Should_RouteUnprovidedFieldToOwningSubgraph()
+    {
+        var capture = new SubgraphRequestCapture();
+        await using var gateway = await FusionGatewayBuilder
+            .ComposeOfficialV2Async<ProvidesOnInterfaceTests>(
+                capture,
+                (SubgraphASubgraph.Name, SubgraphASubgraph.BuildAsync),
+                (SubgraphBSubgraph.Name, SubgraphBSubgraph.BuildAsync),
+                (SubgraphCSubgraph.Name, SubgraphCSubgraph.BuildAsync));
+        var testCase = AuditFixture.GetOfficialV2Case<ProvidesOnInterfaceTests>(
+            "provides-on-interface/001");
+
+        await gateway.Executor.ExecuteAsync(
+            OperationRequestBuilder.New().SetDocument(testCase.Query).Build(),
+            TestContext.Current.CancellationToken);
+
+        string.Join(
+            "\n\n",
+            capture.Requests.Select(
+                static request => $"{request.SubgraphName}:\n{request.Body}"))
+            .MatchInlineSnapshot(
+                """
+                b:
+                {"query":"query Op_3e0174e7_1 { media { __typename id ... on Book { animals { __typename ... on Cat { id } ... on Dog { id } ... on Cat { name } ... on Dog { name } } } } }"}
+
+                c:
+                {"query":"query($representations: [_Any!]!) { _entities(representations: $representations) { ... on Cat { age } } }","variables":{"representations":[{"__typename":"Cat","id":"a2"}]}}
+                """);
+    }
+}

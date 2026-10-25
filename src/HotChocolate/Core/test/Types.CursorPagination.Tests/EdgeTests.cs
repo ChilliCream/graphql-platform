@@ -84,7 +84,7 @@ public class EdgeTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddTypeExtension<UsersEdgeExtensions>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -95,7 +95,9 @@ public class EdgeTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddTypeExtension<UsersEdgeExtensions>()
-            .ExecuteRequestAsync("{ users { edges { test } } }")
+            .ExecuteRequestAsync(
+                "{ users { edges { test } } }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 

@@ -34,8 +34,8 @@ public static class ValidationUtils
         string name,
         DirectiveLocation location,
         Func<IDirectiveTypeDescriptor, IDirectiveTypeDescriptor> configure) =>
-        builder.AddDirectiveType(new DirectiveType(x =>
-            configure(x.Name(name).Location(location))));
+        builder.AddDirectiveType(x =>
+            configure(x.Name(name).Location(location)));
 
     public static ISchemaDefinition CreateSchema()
         => SchemaBuilder.New()

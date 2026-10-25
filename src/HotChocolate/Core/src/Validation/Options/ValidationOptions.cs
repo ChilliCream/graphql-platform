@@ -9,6 +9,17 @@ public sealed class ValidationOptions
     , IIntrospectionOptionsAccessor
 {
     /// <summary>
+    /// Specifies whether fields whose return types differ only in nullability can be merged.
+    /// Defaults to <c>false</c>.
+    /// </summary>
+    public bool EnableCovariantFieldMerging { get; set; }
+
+    /// <summary>
+    /// Specifies whether empty selection sets are valid. Defaults to <c>false</c>.
+    /// </summary>
+    public bool EnableEmptySelectionSets { get; set; }
+
+    /// <summary>
     /// Gets the maximum allowed depth of a query. The default value is
     /// <see langword="null"/>. The minimum allowed value is <c>1</c>.
     /// </summary>

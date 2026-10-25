@@ -1,0 +1,541 @@
+title: Node_Selections_Should_Resolve_Independently_When_Concrete_Types_Require_Distinct_Lookups
+request:
+  document: |
+    {
+      account: node(id: "QWNjb3VudDox") {
+        displayName
+      }
+      chat: node(id: "Q2hhdDox") {
+        displayName
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "account": {
+          "displayName": "Account: QWNjb3VudDox"
+        },
+        "chat": {
+          "displayName": "Chat: Q2hhdDox"
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        accountById(id: ID! @is(field: "id")): Account @lookup @internal
+      }
+
+      type Account implements Node @key(fields: "id") {
+        id: ID!
+        accountRequirement: String! @external
+        displayName(requirement: String @require(field: "accountRequirement")): String!
+      }
+
+      type Chat implements Node @key(fields: "chatId") {
+        id: ID! @shareable
+        chatId: ID!
+        chatRequirement: String!
+        displayName(requirement: String): String! @external
+      }
+
+      interface Node {
+        id: ID!
+        displayName(requirement: String): String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_11d4fa47_5($__fusion_3_id: ID!) {
+              node(id: $__fusion_3_id) {
+                __typename
+                ... on Chat {
+                  chatRequirement
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_3_id": "Q2hhdDox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Chat",
+                    "chatRequirement": "Chat: Q2hhdDox"
+                  }
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_11d4fa47_14 {
+              account: node(id: "QWNjb3VudDox") {
+                __typename
+                ... on Account {
+                  __typename
+                  id
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "account": {
+                    "__typename": "Account",
+                    "id": "QWNjb3VudDox"
+                  }
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_11d4fa47_15($__fusion_10_requirement: String, $__fusion_11_id: ID!) {
+              node(id: $__fusion_11_id) {
+                __typename
+                ... on Account {
+                  displayName(requirement: $__fusion_10_requirement)
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_10_requirement": "Account: QWNjb3VudDox",
+              "__fusion_11_id": "QWNjb3VudDox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Account",
+                    "displayName": "Account: QWNjb3VudDox"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        chatById(chatId: ID! @is(field: "chatId")): Chat @lookup @internal
+      }
+
+      type Account implements Node @key(fields: "id") {
+        id: ID!
+        accountRequirement: String!
+        displayName(requirement: String): String! @external
+      }
+
+      type Chat implements Node @key(fields: "chatId") {
+        id: ID! @shareable
+        chatId: ID!
+        chatRequirement: String! @external
+        displayName(requirement: String @require(field: "chatRequirement")): String!
+      }
+
+      interface Node {
+        id: ID!
+        displayName(requirement: String): String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_11d4fa47_3 {
+              chat: node(id: "Q2hhdDox") {
+                __typename
+                ... on Chat {
+                  __typename
+                  id
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "chat": {
+                    "__typename": "Chat",
+                    "id": "Q2hhdDox"
+                  }
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_11d4fa47_4($__fusion_1_requirement: String, $__fusion_2_id: ID!) {
+              node(id: $__fusion_2_id) {
+                __typename
+                ... on Chat {
+                  displayName(requirement: $__fusion_1_requirement)
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_requirement": "Chat: Q2hhdDox",
+              "__fusion_2_id": "Q2hhdDox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Chat",
+                    "displayName": "Chat: Q2hhdDox"
+                  }
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_11d4fa47_16($__fusion_12_id: ID!) {
+              node(id: $__fusion_12_id) {
+                __typename
+                ... on Account {
+                  accountRequirement
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_12_id": "QWNjb3VudDox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Account",
+                    "accountRequirement": "Account: QWNjb3VudDox"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          account: node(id: "QWNjb3VudDox") {
+            __typename @fusion__requirement
+            ... on Account {
+              displayName
+              id @fusion__requirement
+              accountRequirement @fusion__requirement
+            }
+            ... on Chat {
+              displayName
+              id @fusion__requirement
+              chatRequirement @fusion__requirement
+            }
+          }
+          chat: node(id: "Q2hhdDox") {
+            __typename @fusion__requirement
+            ... on Account {
+              displayName
+              id @fusion__requirement
+              accountRequirement @fusion__requirement
+            }
+            ... on Chat {
+              displayName
+              id @fusion__requirement
+              chatRequirement @fusion__requirement
+            }
+          }
+        }
+      hash: 0712fe9e4cafd2decacfd095e0a4badc
+      searchSpace: 6
+      expandedNodes: 24
+  nodes:
+    - id: 1
+      type: Node
+      idValue: "Q2hhdDox"
+      responseName: chat
+      branches:
+        - Account: 6
+        - Chat: 3
+      fallback: 2
+    - id: 2
+      type: Operation
+      operation: |
+        query Op_11d4fa47_2 {
+          chat: node(id: "Q2hhdDox") {
+            __typename
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: B
+      operation: |
+        query Op_11d4fa47_3 {
+          chat: node(id: "Q2hhdDox") {
+            __typename
+            ... on Chat {
+              __typename
+              id
+            }
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 4
+      type: Operation
+      schema: B
+      operation: |
+        query Op_11d4fa47_4($__fusion_1_requirement: String, $__fusion_2_id: ID!) {
+          node(id: $__fusion_2_id) {
+            __typename
+            ... on Chat {
+              displayName(requirement: $__fusion_1_requirement)
+            }
+          }
+        }
+      source: $.node<Chat>
+      target: $.chat<Chat>
+      requirements:
+        - name: __fusion_1_requirement
+          selectionMap: >-
+            chatRequirement
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 3
+        - id: 5
+    - id: 5
+      type: Operation
+      schema: A
+      operation: |
+        query Op_11d4fa47_5($__fusion_3_id: ID!) {
+          node(id: $__fusion_3_id) {
+            __typename
+            ... on Chat {
+              chatRequirement
+            }
+          }
+        }
+      source: $.node<Chat>
+      target: $.chat<Chat>
+      requirements:
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 3
+    - id: 6
+      type: Operation
+      schema: A
+      operation: |
+        query Op_11d4fa47_6 {
+          chat: node(id: "Q2hhdDox") {
+            __typename
+            ... on Account {
+              __typename
+              id
+            }
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 7
+      type: Operation
+      schema: A
+      operation: |
+        query Op_11d4fa47_7($__fusion_4_requirement: String, $__fusion_5_id: ID!) {
+          node(id: $__fusion_5_id) {
+            __typename
+            ... on Account {
+              displayName(requirement: $__fusion_4_requirement)
+            }
+          }
+        }
+      source: $.node<Account>
+      target: $.chat<Account>
+      requirements:
+        - name: __fusion_4_requirement
+          selectionMap: >-
+            accountRequirement
+        - name: __fusion_5_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 6
+        - id: 8
+    - id: 8
+      type: Operation
+      schema: B
+      operation: |
+        query Op_11d4fa47_8($__fusion_6_id: ID!) {
+          node(id: $__fusion_6_id) {
+            __typename
+            ... on Account {
+              accountRequirement
+            }
+          }
+        }
+      source: $.node<Account>
+      target: $.chat<Account>
+      requirements:
+        - name: __fusion_6_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 6
+    - id: 9
+      type: Node
+      idValue: "QWNjb3VudDox"
+      responseName: account
+      branches:
+        - Account: 14
+        - Chat: 11
+      fallback: 10
+    - id: 10
+      type: Operation
+      operation: |
+        query Op_11d4fa47_10 {
+          account: node(id: "QWNjb3VudDox") {
+            __typename
+          }
+        }
+      dependencies:
+        - id: 9
+    - id: 11
+      type: Operation
+      schema: B
+      operation: |
+        query Op_11d4fa47_11 {
+          account: node(id: "QWNjb3VudDox") {
+            __typename
+            ... on Chat {
+              __typename
+              id
+            }
+          }
+        }
+      dependencies:
+        - id: 9
+    - id: 12
+      type: Operation
+      schema: B
+      operation: |
+        query Op_11d4fa47_12($__fusion_7_requirement: String, $__fusion_8_id: ID!) {
+          node(id: $__fusion_8_id) {
+            __typename
+            ... on Chat {
+              displayName(requirement: $__fusion_7_requirement)
+            }
+          }
+        }
+      source: $.node<Chat>
+      target: $.account<Chat>
+      requirements:
+        - name: __fusion_7_requirement
+          selectionMap: >-
+            chatRequirement
+        - name: __fusion_8_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 11
+        - id: 13
+    - id: 13
+      type: Operation
+      schema: A
+      operation: |
+        query Op_11d4fa47_13($__fusion_9_id: ID!) {
+          node(id: $__fusion_9_id) {
+            __typename
+            ... on Chat {
+              chatRequirement
+            }
+          }
+        }
+      source: $.node<Chat>
+      target: $.account<Chat>
+      requirements:
+        - name: __fusion_9_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 11
+    - id: 14
+      type: Operation
+      schema: A
+      operation: |
+        query Op_11d4fa47_14 {
+          account: node(id: "QWNjb3VudDox") {
+            __typename
+            ... on Account {
+              __typename
+              id
+            }
+          }
+        }
+      dependencies:
+        - id: 9
+    - id: 15
+      type: Operation
+      schema: A
+      operation: |
+        query Op_11d4fa47_15($__fusion_10_requirement: String, $__fusion_11_id: ID!) {
+          node(id: $__fusion_11_id) {
+            __typename
+            ... on Account {
+              displayName(requirement: $__fusion_10_requirement)
+            }
+          }
+        }
+      source: $.node<Account>
+      target: $.account<Account>
+      requirements:
+        - name: __fusion_10_requirement
+          selectionMap: >-
+            accountRequirement
+        - name: __fusion_11_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 14
+        - id: 16
+    - id: 16
+      type: Operation
+      schema: B
+      operation: |
+        query Op_11d4fa47_16($__fusion_12_id: ID!) {
+          node(id: $__fusion_12_id) {
+            __typename
+            ... on Account {
+              accountRequirement
+            }
+          }
+        }
+      source: $.node<Account>
+      target: $.account<Account>
+      requirements:
+        - name: __fusion_12_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 14

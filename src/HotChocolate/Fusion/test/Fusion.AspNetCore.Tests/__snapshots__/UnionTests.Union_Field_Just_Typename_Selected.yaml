@@ -22,6 +22,10 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        post: Post
+      }
+
       type Discussion {
         id: ID!
         title: String
@@ -30,10 +34,6 @@ sourceSchemas:
       type Photo {
         id: ID!
         imageUrl: String!
-      }
-
-      type Query {
-        post: Post
       }
 
       union Post = Photo | Discussion
@@ -65,7 +65,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: a239ceba1052d3ed2dc1551c0438c0c4
+      hash: be2cf8498b45ea364d459c2c961404f6
       searchSpace: 1
       expandedNodes: 1
   nodes:

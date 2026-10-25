@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>ChilliCream.Nitro.Adapters.Mcp</AssemblyName>
+    <RootNamespace>ChilliCream.Nitro.Adapters.Mcp</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\HotChocolate\Adapters\src\Adapters.Mcp.Core\HotChocolate.Adapters.Mcp.Core.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Language\src\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
+  </ItemGroup>
+
+</Project>

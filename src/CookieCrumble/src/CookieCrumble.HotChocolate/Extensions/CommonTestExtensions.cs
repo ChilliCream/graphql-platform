@@ -1,4 +1,5 @@
 using HotChocolate;
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Processing;
@@ -9,6 +10,11 @@ namespace CookieCrumble.HotChocolate;
 
 public static class CommonTestExtensions
 {
+    /// <summary>
+    /// Creates a memory arena that can back a result document in tests.
+    /// </summary>
+    public static IMemoryArena CreateArena() => new MemoryArena();
+
     public static ValueTask<IRequestExecutor> CreateExceptionExecutor(
         this IRequestExecutorBuilder builder)
     {

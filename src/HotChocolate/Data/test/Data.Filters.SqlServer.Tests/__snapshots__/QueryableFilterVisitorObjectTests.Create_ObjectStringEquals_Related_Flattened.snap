@@ -17,13 +17,13 @@ testatest Result:
 
 testatest SQL:
 ---------------
-.param set @__p_0 'testatest'
+.param set @p 'testatest'
 
 SELECT "d"."Id", "d"."BarId"
 FROM "Data" AS "d"
 INNER JOIN "Bar" AS "b" ON "d"."BarId" = "b"."Id"
 INNER JOIN "Foo" AS "f" ON "b"."FooId" = "f"."Id"
-WHERE "f"."BarString" = @__p_0
+WHERE "f"."BarString" = @p
 ---------------
 
 testbtest Result:
@@ -45,13 +45,13 @@ testbtest Result:
 
 testbtest SQL:
 ---------------
-.param set @__p_0 'testbtest'
+.param set @p 'testbtest'
 
 SELECT "d"."Id", "d"."BarId"
 FROM "Data" AS "d"
 INNER JOIN "Bar" AS "b" ON "d"."BarId" = "b"."Id"
 INNER JOIN "Foo" AS "f" ON "b"."FooId" = "f"."Id"
-WHERE "f"."BarString" = @__p_0
+WHERE "f"."BarString" = @p
 ---------------
 
 null Result:

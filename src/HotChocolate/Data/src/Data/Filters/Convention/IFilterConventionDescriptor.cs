@@ -95,6 +95,14 @@ public interface IFilterConventionDescriptor
     IFilterConventionDescriptor ArgumentName(string argumentName);
 
     /// <summary>
+    /// Defines the maximum number of filter operations allowed in a single filter argument.
+    /// </summary>
+    /// <param name="maxAllowedFilterOperations">
+    /// The maximum number of filter operations. If <c>null</c>, no limit is applied.
+    /// </param>
+    IFilterConventionDescriptor MaxAllowedFilterOperations(int? maxAllowedFilterOperations);
+
+    /// <summary>
     /// Adds an extension that is applied to <see cref="FilterProvider{TContext}"/>
     /// </summary>
     /// <typeparam name="TExtension">The filter provider extension type.</typeparam>

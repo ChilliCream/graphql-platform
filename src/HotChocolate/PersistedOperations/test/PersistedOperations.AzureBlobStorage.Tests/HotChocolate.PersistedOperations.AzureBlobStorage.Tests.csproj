@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
   <PropertyGroup>
     <AssemblyName>HotChocolate.PersistedOperations.AzureBlobStorage.Tests</AssemblyName>
     <RootNamespace>HotChocolate.PersistedOperations.AzureBlobStorage</RootNamespace>
@@ -8,10 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
     <ProjectReference Include="..\..\src\PersistedOperations.AzureBlobStorage\HotChocolate.PersistedOperations.AzureBlobStorage.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Squadron.AzureStorage" />
+    <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.Resources.AzureStorage\CookieCrumble.Resources.AzureStorage.csproj" />
   </ItemGroup>
 
   <ItemGroup>

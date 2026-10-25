@@ -16,7 +16,7 @@ public sealed class SagaServiceRegistrationTests
     public void Create_Should_ReturnSagaStore_When_ValidDependencies()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<TestDbContext>().UseNpgsql(ConnectionString).Options;
+        var options = new DbContextOptionsBuilder<TestDbContext>().UseTestNpgsql(ConnectionString).Options;
 
         using var context = new TestDbContext(options);
         var queries = PostgresSagaStoreQueries.From(new SagaStateTableInfo());
@@ -37,7 +37,6 @@ public sealed class SagaServiceRegistrationTests
 
         // Assert - verify all query strings are populated (non-null, non-empty).
         Assert.False(string.IsNullOrWhiteSpace(queries.SelectState));
-        Assert.False(string.IsNullOrWhiteSpace(queries.SelectVersion));
         Assert.False(string.IsNullOrWhiteSpace(queries.InsertState));
         Assert.False(string.IsNullOrWhiteSpace(queries.UpdateState));
         Assert.False(string.IsNullOrWhiteSpace(queries.DeleteState));
@@ -66,12 +65,11 @@ public sealed class SagaServiceRegistrationTests
 
         // Act
         var optionsMonitor = provider.GetRequiredService<IOptionsMonitor<PostgresSagaStoreOptions>>();
-        var contextName = typeof(TestDbContext).FullName!;
+        var contextName = typeof(TestDbContext).FullName;
         var options = optionsMonitor.Get(contextName);
 
         // Assert
         Assert.False(string.IsNullOrWhiteSpace(options.Queries.SelectState));
-        Assert.False(string.IsNullOrWhiteSpace(options.Queries.SelectVersion));
         Assert.False(string.IsNullOrWhiteSpace(options.Queries.InsertState));
         Assert.False(string.IsNullOrWhiteSpace(options.Queries.UpdateState));
         Assert.False(string.IsNullOrWhiteSpace(options.Queries.DeleteState));
@@ -86,7 +84,7 @@ public sealed class SagaServiceRegistrationTests
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddSingleton(TimeProvider.System);
-        services.AddDbContext<TestDbContext>(o => o.UseNpgsql(ConnectionString));
+        services.AddDbContext<TestDbContext>(o => o.UseTestNpgsql(ConnectionString));
 
         var builder = services.AddMessageBus();
         builder.AddEntityFramework<TestDbContext>(ef => ef.AddPostgresSagas());

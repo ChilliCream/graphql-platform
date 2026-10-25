@@ -8,6 +8,9 @@ internal static class InputValueDefinitionExtensions
 {
     extension(IInputValueDefinition inputValue)
     {
+        public bool HasEventCursorDirective
+            => inputValue.Features.GetRequired<SourceInputFieldMetadata>().HasEventCursorDirective;
+
         public bool HasIsDirective
             => inputValue.Features.GetRequired<SourceInputFieldMetadata>().HasIsDirective;
 

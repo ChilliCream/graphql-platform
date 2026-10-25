@@ -15,7 +15,7 @@ response:
       "data": {
         "productBySlug": {
           "author": {
-            "name": "Author: QXV0aG9yOjE=",
+            "name": "Author: QXV0aG9yOjQ3Nzk2Mzk3MQ==",
             "rating": 123
           }
         }
@@ -28,12 +28,12 @@ sourceSchemas:
         query: Query
       }
 
-      type Product @key(fields: "id") {
-        id: ID!
-      }
-
       type Query {
         productBySlug: Product
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
       }
     interactions:
       - request:
@@ -50,7 +50,7 @@ sourceSchemas:
               {
                 "data": {
                   "productBySlug": {
-                    "id": "UHJvZHVjdDox"
+                    "id": "UHJvZHVjdDoyNjYwODIxNjA4"
                   }
                 }
               }
@@ -58,6 +58,10 @@ sourceSchemas:
     schema: |
       schema {
         query: Query
+      }
+
+      type Query {
+        productById(id: ID!): Product @lookup @shareable
       }
 
       type Author {
@@ -68,14 +72,14 @@ sourceSchemas:
         id: ID!
         author: Author @shareable
       }
-
-      type Query {
-        productById(id: ID!): Product @lookup @shareable
-      }
   - name: C
     schema: |
       schema {
         query: Query
+      }
+
+      type Query {
+        productById(id: ID!): Product @lookup @shareable
       }
 
       type Author {
@@ -86,10 +90,6 @@ sourceSchemas:
       type Product {
         id: ID!
         author: Author @shareable
-      }
-
-      type Query {
-        productById(id: ID!): Product @lookup @shareable
       }
     interactions:
       - request:
@@ -105,7 +105,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_id": "UHJvZHVjdDox"
+              "__fusion_1_id": "UHJvZHVjdDoyNjYwODIxNjA4"
             }
         response:
           results:
@@ -114,7 +114,7 @@ sourceSchemas:
                 "data": {
                   "productById": {
                     "author": {
-                      "name": "Author: QXV0aG9yOjE=",
+                      "name": "Author: QXV0aG9yOjQ3Nzk2Mzk3MQ==",
                       "rating": 123
                     }
                   }
@@ -132,7 +132,7 @@ operationPlan:
             id @fusion__requirement
           }
         }
-      hash: 40bd37dfc9c3a0f05e5aebe75b3d61e4
+      hash: e76b221ab6de2409c833ec04a8cb317f
       searchSpace: 2
       expandedNodes: 3
   nodes:

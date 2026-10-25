@@ -21,39 +21,39 @@ response:
           {
             "posts": [
               {
-                "subgraph2": "Photo: UGhvdG86NA=="
+                "subgraph2": "Photo: UGhvdG86MzM1NDMxNDA0Mw=="
               },
               {
-                "subgraph1": "Discussion: RGlzY3Vzc2lvbjo1"
+                "subgraph1": "Discussion: RGlzY3Vzc2lvbjoyODYxMzQ0NDc="
               },
               {
-                "subgraph2": "Photo: UGhvdG86Ng=="
+                "subgraph2": "Photo: UGhvdG86MTAwNzk3OTUw"
               }
             ]
           },
           {
             "posts": [
               {
-                "subgraph2": "Photo: UGhvdG86Nw=="
+                "subgraph2": "Photo: UGhvdG86MzQwMjAzNjgzMg=="
               },
               {
-                "subgraph1": "Discussion: RGlzY3Vzc2lvbjo4"
+                "subgraph1": "Discussion: RGlzY3Vzc2lvbjozNzg0MTcwOTI1"
               },
               {
-                "subgraph2": "Photo: UGhvdG86OQ=="
+                "subgraph2": "Photo: UGhvdG86NTUwMzUzNzIz"
               }
             ]
           },
           {
             "posts": [
               {
-                "subgraph2": "Photo: UGhvdG86MTA="
+                "subgraph2": "Photo: UGhvdG86Mzc2NjA5NDU0NQ=="
               },
               {
-                "subgraph1": "Discussion: RGlzY3Vzc2lvbjoxMQ=="
+                "subgraph1": "Discussion: RGlzY3Vzc2lvbjoyODg2MjY3NDU5"
               },
               {
-                "subgraph2": "Photo: UGhvdG86MTI="
+                "subgraph2": "Photo: UGhvdG86MjM0NDg1NTYzMg=="
               }
             ]
           }
@@ -67,6 +67,10 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        users: [User]
+      }
+
       type Discussion {
         id: ID!
         subgraph1: String
@@ -74,10 +78,6 @@ sourceSchemas:
 
       type Photo @key(fields: "id") {
         id: ID!
-      }
-
-      type Query {
-        users: [User]
       }
 
       type User {
@@ -112,15 +112,15 @@ sourceSchemas:
                       "posts": [
                         {
                           "__typename": "Photo",
-                          "id": "UGhvdG86NA=="
+                          "id": "UGhvdG86MzM1NDMxNDA0Mw=="
                         },
                         {
                           "__typename": "Discussion",
-                          "subgraph1": "Discussion: RGlzY3Vzc2lvbjo1"
+                          "subgraph1": "Discussion: RGlzY3Vzc2lvbjoyODYxMzQ0NDc="
                         },
                         {
                           "__typename": "Photo",
-                          "id": "UGhvdG86Ng=="
+                          "id": "UGhvdG86MTAwNzk3OTUw"
                         }
                       ]
                     },
@@ -128,15 +128,15 @@ sourceSchemas:
                       "posts": [
                         {
                           "__typename": "Photo",
-                          "id": "UGhvdG86Nw=="
+                          "id": "UGhvdG86MzQwMjAzNjgzMg=="
                         },
                         {
                           "__typename": "Discussion",
-                          "subgraph1": "Discussion: RGlzY3Vzc2lvbjo4"
+                          "subgraph1": "Discussion: RGlzY3Vzc2lvbjozNzg0MTcwOTI1"
                         },
                         {
                           "__typename": "Photo",
-                          "id": "UGhvdG86OQ=="
+                          "id": "UGhvdG86NTUwMzUzNzIz"
                         }
                       ]
                     },
@@ -144,15 +144,15 @@ sourceSchemas:
                       "posts": [
                         {
                           "__typename": "Photo",
-                          "id": "UGhvdG86MTA="
+                          "id": "UGhvdG86Mzc2NjA5NDU0NQ=="
                         },
                         {
                           "__typename": "Discussion",
-                          "subgraph1": "Discussion: RGlzY3Vzc2lvbjoxMQ=="
+                          "subgraph1": "Discussion: RGlzY3Vzc2lvbjoyODg2MjY3NDU5"
                         },
                         {
                           "__typename": "Photo",
-                          "id": "UGhvdG86MTI="
+                          "id": "UGhvdG86MjM0NDg1NTYzMg=="
                         }
                       ]
                     }
@@ -165,13 +165,13 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        photoById(id: ID!): Photo @lookup
+      }
+
       type Photo {
         id: ID!
         subgraph2: String!
-      }
-
-      type Query {
-        photoById(id: ID!): Photo @lookup
       }
     interactions:
       - request:
@@ -185,22 +185,22 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "UGhvdG86NA=="
+                "__fusion_1_id": "UGhvdG86MzM1NDMxNDA0Mw=="
               },
               {
-                "__fusion_1_id": "UGhvdG86Ng=="
+                "__fusion_1_id": "UGhvdG86MTAwNzk3OTUw"
               },
               {
-                "__fusion_1_id": "UGhvdG86Nw=="
+                "__fusion_1_id": "UGhvdG86MzQwMjAzNjgzMg=="
               },
               {
-                "__fusion_1_id": "UGhvdG86OQ=="
+                "__fusion_1_id": "UGhvdG86NTUwMzUzNzIz"
               },
               {
-                "__fusion_1_id": "UGhvdG86MTA="
+                "__fusion_1_id": "UGhvdG86Mzc2NjA5NDU0NQ=="
               },
               {
-                "__fusion_1_id": "UGhvdG86MTI="
+                "__fusion_1_id": "UGhvdG86MjM0NDg1NTYzMg=="
               }
             ]
         response:
@@ -210,7 +210,7 @@ sourceSchemas:
               {
                 "data": {
                   "photoById": {
-                    "subgraph2": "Photo: UGhvdG86NA=="
+                    "subgraph2": "Photo: UGhvdG86MzM1NDMxNDA0Mw=="
                   }
                 }
               }
@@ -218,7 +218,7 @@ sourceSchemas:
               {
                 "data": {
                   "photoById": {
-                    "subgraph2": "Photo: UGhvdG86Ng=="
+                    "subgraph2": "Photo: UGhvdG86MTAwNzk3OTUw"
                   }
                 }
               }
@@ -226,7 +226,7 @@ sourceSchemas:
               {
                 "data": {
                   "photoById": {
-                    "subgraph2": "Photo: UGhvdG86Nw=="
+                    "subgraph2": "Photo: UGhvdG86MzQwMjAzNjgzMg=="
                   }
                 }
               }
@@ -234,7 +234,7 @@ sourceSchemas:
               {
                 "data": {
                   "photoById": {
-                    "subgraph2": "Photo: UGhvdG86OQ=="
+                    "subgraph2": "Photo: UGhvdG86NTUwMzUzNzIz"
                   }
                 }
               }
@@ -242,7 +242,7 @@ sourceSchemas:
               {
                 "data": {
                   "photoById": {
-                    "subgraph2": "Photo: UGhvdG86MTA="
+                    "subgraph2": "Photo: UGhvdG86Mzc2NjA5NDU0NQ=="
                   }
                 }
               }
@@ -250,7 +250,7 @@ sourceSchemas:
               {
                 "data": {
                   "photoById": {
-                    "subgraph2": "Photo: UGhvdG86MTI="
+                    "subgraph2": "Photo: UGhvdG86MjM0NDg1NTYzMg=="
                   }
                 }
               }
@@ -272,7 +272,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: e46e034a61084490859d3bc0946c71a4
+      hash: 4b9630b15b7f0114e6837dc89b64b3e6
       searchSpace: 1
       expandedNodes: 2
   nodes:

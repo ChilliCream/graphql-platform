@@ -1,0 +1,6 @@
+extend schema
+  @link(url: "https://specs.apollo.dev/federation/v2.3", import: ["@key"])
+
+type Mutation {
+  add(num: Int!, requestId: String!): Int!
+}

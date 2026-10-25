@@ -3,3 +3,5 @@ mocha-visualizer/*
 !mocha-visualizer/package.json
 !mocha-visualizer/README.md
 !mocha-visualizer/dist/
+
+Generated

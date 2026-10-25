@@ -22,6 +22,7 @@ public class DirectiveDefinitionNodeTests
                 description,
                 isRepeatable,
                 arguments,
+                [],
                 locations);
 
         // assert
@@ -51,6 +52,7 @@ public class DirectiveDefinitionNodeTests
                 description,
                 isRepeatable: true,
                 arguments,
+                [],
                 locations);
 
         // assert
@@ -79,6 +81,7 @@ public class DirectiveDefinitionNodeTests
                 description,
                 isRepeatable: true,
                 arguments,
+                [],
                 locations);
 
         // act
@@ -104,6 +107,7 @@ public class DirectiveDefinitionNodeTests
                 description,
                 isRepeatable: true,
                 arguments,
+                [],
                 locations);
 
         // act
@@ -124,7 +128,7 @@ public class DirectiveDefinitionNodeTests
 
         var directiveDefinition = new DirectiveDefinitionNode(
             null, name, description, true,
-            arguments, locations);
+            arguments, [], locations);
 
         // act
         directiveDefinition = directiveDefinition
@@ -156,7 +160,7 @@ public class DirectiveDefinitionNodeTests
 
         var directiveDefinition = new DirectiveDefinitionNode(
             null, name, description, true,
-            arguments, locations);
+            arguments, [], locations);
 
         // act
         directiveDefinition = directiveDefinition
@@ -182,6 +186,7 @@ public class DirectiveDefinitionNodeTests
                 description,
                 isRepeatable: true,
                 arguments,
+                [],
                 locations);
 
         // act
@@ -208,6 +213,7 @@ public class DirectiveDefinitionNodeTests
                 description,
                 isRepeatable: true,
                 arguments,
+                [],
                 locations);
 
         // act
@@ -233,6 +239,7 @@ public class DirectiveDefinitionNodeTests
                 description,
                 isRepeatable: false,
                 arguments,
+                [],
                 locations);
 
         // act
@@ -259,6 +266,7 @@ public class DirectiveDefinitionNodeTests
                 description,
                 isRepeatable: true,
                 arguments,
+                [],
                 locations);
 
         // assert
@@ -294,6 +302,7 @@ public class DirectiveDefinitionNodeTests
                 description,
                 isRepeatable: true,
                 arguments,
+                [],
                 locations);
 
         // assert
@@ -326,6 +335,7 @@ public class DirectiveDefinitionNodeTests
             null,
             true,
             arguments,
+            [],
             locations);
         var b = new DirectiveDefinitionNode(
             TestLocations.Location1,
@@ -333,6 +343,7 @@ public class DirectiveDefinitionNodeTests
             null,
             true,
             arguments,
+            [],
             locations);
         var c = new DirectiveDefinitionNode(
             TestLocations.Location1,
@@ -340,6 +351,7 @@ public class DirectiveDefinitionNodeTests
             null,
             true,
             arguments,
+            [],
             locations);
 
         // act
@@ -381,6 +393,7 @@ public class DirectiveDefinitionNodeTests
             null,
             true,
             arguments,
+            [],
             locations);
         var b = new DirectiveDefinitionNode(
             TestLocations.Location2,
@@ -388,6 +401,7 @@ public class DirectiveDefinitionNodeTests
             null,
             true,
             arguments,
+            [],
             locations);
         var c = new DirectiveDefinitionNode(
             TestLocations.Location1,
@@ -395,6 +409,7 @@ public class DirectiveDefinitionNodeTests
             null,
             true,
             arguments,
+            [],
             locations);
 
         // act
@@ -435,6 +450,7 @@ public class DirectiveDefinitionNodeTests
             null,
             true,
             arguments,
+            [],
             locations);
         var b = new DirectiveDefinitionNode(
             TestLocations.Location2,
@@ -442,6 +458,7 @@ public class DirectiveDefinitionNodeTests
             null,
             true,
             arguments,
+            [],
             locations);
         var c = new DirectiveDefinitionNode(
             TestLocations.Location1,
@@ -449,6 +466,7 @@ public class DirectiveDefinitionNodeTests
             null,
             true,
             arguments,
+            [],
             locations);
         var d = new DirectiveDefinitionNode(
             TestLocations.Location2,
@@ -456,6 +474,7 @@ public class DirectiveDefinitionNodeTests
             null,
             true,
             arguments,
+            [],
             locations);
 
         // act
@@ -469,5 +488,94 @@ public class DirectiveDefinitionNodeTests
         Assert.NotEqual(aHash, cHash);
         Assert.Equal(cHash, dHash);
         Assert.NotEqual(aHash, dHash);
+    }
+
+    [Fact]
+    public void CreateDirectiveDefinitionWithDirectives()
+    {
+        // arrange
+        var name = new NameNode("foo");
+        var directives = new List<DirectiveNode> { new DirectiveNode("tag") };
+        var locations = new List<NameNode> { new(DirectiveLocation.Object.ToString()) };
+
+        // act
+        var directiveDefinition =
+            new DirectiveDefinitionNode(
+                null,
+                name,
+                description: null,
+                isRepeatable: false,
+                arguments: [],
+                directives,
+                locations);
+
+        // assert
+        Assert.Equal(directives, directiveDefinition.Directives);
+        Assert.Contains(directives[0], directiveDefinition.GetNodes());
+    }
+
+    [Fact]
+    public void CreateDirectiveDefinitionWithoutDirectives()
+    {
+        // arrange
+        var name = new NameNode("foo");
+        var locations = new List<NameNode> { new(DirectiveLocation.Object.ToString()) };
+
+        // act
+        var directiveDefinition =
+            new DirectiveDefinitionNode(
+                null,
+                name,
+                description: null,
+                isRepeatable: false,
+                arguments: [],
+                locations);
+
+        // assert
+        Assert.Empty(directiveDefinition.Directives);
+    }
+
+    [Fact]
+    public void WithDirectives()
+    {
+        // arrange
+        var name = new NameNode("foo");
+        var locations = new List<NameNode> { new(DirectiveLocation.Object.ToString()) };
+        var directiveDefinition = new DirectiveDefinitionNode(
+            null, name, null, false, [], [], locations);
+
+        // act
+        directiveDefinition = directiveDefinition
+            .WithDirectives([new DirectiveNode("tag")]);
+
+        // assert
+        Assert.Equal("tag", Assert.Single(directiveDefinition.Directives).Name.Value);
+    }
+
+    [Fact]
+    public void Equals_With_Different_Directives()
+    {
+        // arrange
+        var locations = new List<NameNode> { new(DirectiveLocation.Field.ToString()) };
+        var a = new DirectiveDefinitionNode(
+            null, new("aa"), null, true, [], [new DirectiveNode("a")], locations);
+        var b = new DirectiveDefinitionNode(
+            null, new("aa"), null, true, [], [new DirectiveNode("a")], locations);
+        var c = new DirectiveDefinitionNode(
+            null, new("aa"), null, true, [], [new DirectiveNode("b")], locations);
+
+        // act
+        var abResult = SyntaxComparer.BySyntax.Equals(a, b);
+        var acResult = SyntaxComparer.BySyntax.Equals(a, c);
+        var abHashEqual =
+            SyntaxComparer.BySyntax.GetHashCode(a) == SyntaxComparer.BySyntax.GetHashCode(b);
+        var acHashEqual =
+            SyntaxComparer.BySyntax.GetHashCode(a) == SyntaxComparer.BySyntax.GetHashCode(c);
+
+        // assert
+        Assert.True(abResult);
+        Assert.False(acResult);
+        Assert.True(abHashEqual);
+        Assert.False(acHashEqual);
     }
 }

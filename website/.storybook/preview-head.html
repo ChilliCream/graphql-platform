@@ -1,0 +1,34 @@
+<!-- Inter and Josefin Sans, reached two different ways.
+
+     `app/globals.css` resolves `--font-heading` through `--font-josefin-sans`,
+     which `next/font` defines from `app/layout.tsx`. Storybook renders the
+     stylesheet without that layout, so the preview declares the variable and
+     loads the same variable font the site serves, covering weights 100-700.
+
+     The share cards (`src/og/`) name both families literally: Satori matches
+     `fontFamily` against the fonts it is handed and resolves no custom
+     properties. Their stories render in the browser, so Inter is declared here
+     from the static files Satori itself uses, which `staticDirs` serves at
+     `/og-fonts` (Satori reads TTF, OTF and WOFF, but not WOFF2). Inter is
+     reached only by name, and so needs no variable. -->
+<style>
+  @font-face {
+    font-family: "Josefin Sans";
+    font-style: normal;
+    font-weight: 100 700;
+    font-display: swap;
+    src: url("/fonts/josefin-sans-latin-wght-normal.woff2") format("woff2");
+  }
+
+  @font-face {
+    font-family: "Inter";
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url("/og-fonts/Inter-Bold.ttf") format("truetype");
+  }
+
+  :root {
+    --font-josefin-sans: "Josefin Sans";
+  }
+</style>

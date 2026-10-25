@@ -19,14 +19,16 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
     private const int BufferMask = BufferSize - 1;
     private const int BufferShift = 17; // log2(131072) = 17
     private const int DefaultScratchSize = 128;
+#if NET8_0_OR_GREATER
     private const int SimdThreshold = 64;
+#endif
 
     private readonly JsonMemoryKind _memoryKind;
     private byte[][] _chunks;
     private int _chunkCount;
     private int _currentChunk;
     private int _currentChunkOffset;
-    private byte[] _scratch;
+    private byte[] _scratch = [];
     private bool _advanceFromScratch;
     private bool _disposed;
 
@@ -36,7 +38,6 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
         _chunks = ArrayPool<byte[]>.Shared.Rent(4);
         _chunks[0] = JsonMemory.Rent(memoryKind);
         _chunkCount = 1;
-        _scratch = new byte[DefaultScratchSize];
     }
 
     /// <summary>
@@ -45,13 +46,59 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
     public int Position
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => (_currentChunk << BufferShift) | _currentChunkOffset;
+        get => (_currentChunk << BufferShift) + _currentChunkOffset;
     }
 
     /// <summary>
     /// Gets the total number of bytes written.
     /// </summary>
     public int Length => Position;
+
+    internal bool IsDisposed => _disposed;
+
+    /// <summary>
+    /// Overwrites an already advanced segment without changing the current write position.
+    /// Handles segments that span chunk boundaries.
+    /// </summary>
+    public void WriteAt(int location, ReadOnlySpan<byte> source)
+    {
+#if NETSTANDARD2_0
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(typeof(ChunkedArrayWriter).FullName);
+        }
+#else
+        ObjectDisposedException.ThrowIf(_disposed, this);
+#endif
+
+        if ((uint)location > (uint)Length)
+        {
+            throw new ArgumentOutOfRangeException(nameof(location));
+        }
+
+        if (source.Length > Length - location)
+        {
+            throw new ArgumentException(
+                "The source does not fit within the advanced range.",
+                nameof(source));
+        }
+
+        var remaining = source;
+        var chunkIndex = location >> BufferShift;
+        var offsetInChunk = location & BufferMask;
+
+        while (!remaining.IsEmpty)
+        {
+            var length = Math.Min(remaining.Length, BufferSize - offsetInChunk);
+#pragma warning disable IDE0057 // Use range operator -- Not available in netstandard2.0.
+            remaining.Slice(0, length).CopyTo(
+                _chunks[chunkIndex].AsSpan(offsetInChunk, length));
+            remaining = remaining.Slice(length);
+#pragma warning restore IDE0057 // Use range operator
+            chunkIndex++;
+            offsetInChunk = 0;
+        }
+    }
 
     /// <inheritdoc />
     public Span<byte> GetSpan(int sizeHint = 0)
@@ -77,11 +124,12 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
         // Return a scratch buffer; on Advance we copy into chunks.
         if (size > _scratch.Length)
         {
-            _scratch = new byte[size];
+            ReturnScratch();
+            _scratch = ArrayPool<byte>.Shared.Rent(size);
         }
 
         _advanceFromScratch = true;
-        return _scratch;
+        return _scratch.AsSpan(0, size);
     }
 
     /// <inheritdoc />
@@ -106,11 +154,12 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
 
         if (size > _scratch.Length)
         {
-            _scratch = new byte[size];
+            ReturnScratch();
+            _scratch = ArrayPool<byte>.Shared.Rent(size);
         }
 
         _advanceFromScratch = true;
-        return _scratch;
+        return _scratch.AsMemory(0, size);
     }
 
     /// <inheritdoc />
@@ -163,6 +212,54 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
         start = (chunkIndex + 1) << BufferShift;
         length -= available;
         return _chunks[chunkIndex].AsSpan(offsetInChunk, available);
+    }
+
+    /// <summary>
+    /// Reads as much data as possible from the chunk at the given location, mirroring
+    /// <see cref="Read"/> for callers that hand the data to an API that takes memory.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ReadOnlyMemory<byte> ReadMemory(ref int start, ref int length)
+    {
+        var chunkIndex = start >> BufferShift;
+        var offsetInChunk = start & BufferMask;
+        var available = BufferSize - offsetInChunk;
+
+        if (available >= length)
+        {
+            var memory = _chunks[chunkIndex].AsMemory(offsetInChunk, length);
+            length = 0;
+            return memory;
+        }
+
+        start = (chunkIndex + 1) << BufferShift;
+        length -= available;
+        return _chunks[chunkIndex].AsMemory(offsetInChunk, available);
+    }
+
+    /// <summary>
+    /// Gets <paramref name="length"/> written bytes at <paramref name="start"/> as a sequence over
+    /// the chunks that hold them.
+    /// </summary>
+    public ReadOnlySequence<byte> GetSequence(int start, int length)
+    {
+        var first = ReadMemory(ref start, ref length);
+
+        if (length == 0)
+        {
+            return new ReadOnlySequence<byte>(first);
+        }
+
+        var firstSegment = new MemorySequenceSegment(first);
+        var lastSegment = firstSegment;
+
+        do
+        {
+            lastSegment = lastSegment.Append(ReadMemory(ref start, ref length));
+        }
+        while (length > 0);
+
+        return new ReadOnlySequence<byte>(firstSegment, 0, lastSegment, lastSegment.Memory.Length);
     }
 
     /// <summary>
@@ -336,8 +433,12 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
         return (int)(hash & 0x7FFFFFFF);
     }
 
+    /// <summary>
+    /// Continues <paramref name="hash"/> with <paramref name="bytes"/> using <c>hash * 31 + b</c>,
+    /// so hashing a sequence piecewise gives the same result as hashing it at once.
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static uint ComputeHashCore(uint hash, ReadOnlySpan<byte> bytes)
+    internal static uint ComputeHashCore(uint hash, ReadOnlySpan<byte> bytes)
     {
 #if NET8_0_OR_GREATER
         if (bytes.Length >= SimdThreshold)
@@ -640,6 +741,8 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
         _chunkCount = 0;
         _currentChunk = 0;
         _currentChunkOffset = 0;
+        _advanceFromScratch = false;
+        ReturnScratch();
         _disposed = true;
 
         return (chunks, usedChunks, lastLength);
@@ -680,7 +783,18 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
             _chunkCount = 0;
             _currentChunk = 0;
             _currentChunkOffset = 0;
+            _advanceFromScratch = false;
+            ReturnScratch();
             _disposed = true;
+        }
+    }
+
+    private void ReturnScratch()
+    {
+        if (_scratch.Length > 0)
+        {
+            ArrayPool<byte>.Shared.Return(_scratch);
+            _scratch = [];
         }
     }
 

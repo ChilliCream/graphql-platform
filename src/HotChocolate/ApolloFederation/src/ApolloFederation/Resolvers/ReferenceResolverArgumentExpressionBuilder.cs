@@ -2,6 +2,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Resolvers.Expressions.Parameters;
 
 namespace HotChocolate.ApolloFederation.Resolvers;
@@ -44,12 +45,16 @@ internal sealed class ReferenceResolverArgumentExpressionBuilder :
             typeKey,
             context.ResolverContext,
             _targetType);
+        var schema = Expression.Property(
+            context.ResolverContext,
+            nameof(IResolverContext.Schema));
         var getValueMethod = _getValue.MakeGenericMethod(param.ParameterType);
         var getValue = Expression.Call(
             getValueMethod,
             value,
             objectType,
-            path);
+            path,
+            schema);
         return getValue;
     }
 

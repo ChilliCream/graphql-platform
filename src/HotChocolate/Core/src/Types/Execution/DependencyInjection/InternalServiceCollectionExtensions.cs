@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using GreenDonut;
 using GreenDonut.DependencyInjection;
 using HotChocolate.Execution;
@@ -136,7 +137,8 @@ internal static class InternalServiceCollectionExtensions
         this IServiceCollection services)
         => services.TryAddParameterExpressionBuilder<DataLoaderParameterExpressionBuilder>();
 
-    internal static IServiceCollection TryAddParameterExpressionBuilder<T>(
+    internal static IServiceCollection TryAddParameterExpressionBuilder<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IServiceCollection services)
         where T : class, IParameterExpressionBuilder
     {
@@ -174,6 +176,13 @@ internal static class InternalServiceCollectionExtensions
             if (!obj.IsInitialized)
             {
                 return true;
+            }
+
+            // a context with outstanding tasks must stay untouched, because those tasks still
+            // use it. It is discarded instead of reused.
+            if (obj.HasOutstandingTasks)
+            {
+                return false;
             }
 
             if (obj.IsSharedScheduler)

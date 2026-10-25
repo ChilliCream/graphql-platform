@@ -29,5 +29,5 @@ public class MongoDbProjectionScalarHandler
         return true;
     }
 
-    public static MongoDbProjectionScalarHandler Create(ProjectionProviderContext context) => new();
+    public static MongoDbProjectionScalarHandler Create(ProjectionProviderContext _) => new();
 }

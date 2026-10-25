@@ -28,8 +28,8 @@ public sealed class RevokePersonalAccessTokenCommandTests(NitroCommandFixture fi
 
             Options:
               --force                  Skip confirmation prompts for deletes and overwrites
-              --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>      The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>      The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>          The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help           Show help and usage information
 
@@ -57,7 +57,7 @@ public sealed class RevokePersonalAccessTokenCommandTests(NitroCommandFixture fi
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -74,7 +74,7 @@ public sealed class RevokePersonalAccessTokenCommandTests(NitroCommandFixture fi
 
         // act
         command.Confirm(false);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.StdErr.MatchInlineSnapshot(
@@ -98,7 +98,7 @@ public sealed class RevokePersonalAccessTokenCommandTests(NitroCommandFixture fi
 
         // act
         command.Confirm(true);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -205,6 +205,25 @@ public sealed class RevokePersonalAccessTokenCommandTests(NitroCommandFixture fi
     }
 
     [Fact]
+    public async Task TokenNotFound_ReturnsError()
+    {
+        // arrange
+        SetupRevokePersonalAccessTokenMutation(CreateRevokePersonalAccessTokenNotFoundError());
+
+        // act
+        var result = await ExecuteCommandAsync("pat", "revoke", PatId, "--force");
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            PAT not found
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task RevokePersonalAccessTokenThrows_ReturnsError()
     {
         // arrange
@@ -230,7 +249,6 @@ public sealed class RevokePersonalAccessTokenCommandTests(NitroCommandFixture fi
     public static TheoryData<IRevokePersonalAccessTokenCommandMutation_RevokePersonalAccessToken_Errors, string>
         GetRevokePersonalAccessTokenErrors() => new()
     {
-        { CreateRevokePersonalAccessTokenNotFoundError(), "PAT not found" },
         { CreateRevokePersonalAccessTokenUnauthorizedError(), "Unexpected mutation error: Not authorized" }
     };
 }

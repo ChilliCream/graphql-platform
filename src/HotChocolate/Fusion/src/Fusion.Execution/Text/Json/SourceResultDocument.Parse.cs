@@ -3,27 +3,63 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using HotChocolate.Buffers;
-using HotChocolate.Text.Json;
 
 namespace HotChocolate.Fusion.Text.Json;
 
 public sealed partial class SourceResultDocument
 {
-    private static readonly byte[][] s_emptyObject = ["{}"u8.ToArray()];
+    private static readonly byte[] s_emptyObject = "{}"u8.ToArray();
 
-    internal static SourceResultDocument CreateEmptyObject()
-        => Parse(s_emptyObject, 2, 1, pooledMemory: false);
+    internal static SourceResultDocument CreateEmptyObject(IMemoryArena arena)
+        => Parse(arena, s_emptyObject, 2);
 
     internal static SourceResultDocument Parse(
+        IMemoryArena arena,
         byte[] data,
         int size)
-        => Parse([data], size, usedChunks: 1, pooledMemory: true);
+    {
+        ArgumentNullException.ThrowIfNull(arena);
+
+        // A single foreign buffer that fits the 17-bit offset field is adopted as chunk 0 and
+        // parsed in place, so no bytes are copied. Token start positions are gap-free linear offsets
+        // that map directly to packed (0, offset) data locations.
+        if (size <= DataOffsetMask + 1)
+        {
+            var segments = arena.RentSegmentTable(1);
+            segments[0] = new MemorySegment(data, 0, size);
+
+            var estimatedTokens = Math.Max(size / 12, 100);
+            var metaDb = MetaDb.CreateForEstimatedRows(arena, estimatedTokens);
+            var document = default(SingleDocument);
+
+            try
+            {
+                ParseJson<SingleWindow, SingleDocument>(
+                    data.AsSpan(0, size),
+                    segments: null,
+                    size,
+                    singleChunk: true,
+                    ref metaDb,
+                    ref document,
+                    ArrayPool<byte>.Shared);
+            }
+            catch
+            {
+                metaDb.Dispose();
+                throw;
+            }
+
+            return new SourceResultDocument(metaDb, segments, usedChunks: 1);
+        }
+
+        return Parse(arena, new ReadOnlySequence<byte>(data, 0, size));
+    }
 
     internal static SourceResultDocument Parse(
+        IMemoryArena arena,
         byte[][] dataChunks,
         int lastLength,
-        int usedChunks,
-        bool pooledMemory)
+        int usedChunks)
     {
         Debug.Assert(dataChunks is not null, "dataChunks cannot be null.");
         Debug.Assert(dataChunks.Length >= usedChunks, "dataChunks length must be >= usedChunks.");
@@ -31,87 +67,242 @@ public sealed partial class SourceResultDocument
 
         if (usedChunks == 1)
         {
-            return ParseSingleSegment(dataChunks, lastLength, pooledMemory);
+            return Parse(arena, new ReadOnlySequence<byte>(dataChunks[0], 0, lastLength));
         }
 
-        return ParseMultipleSegments(dataChunks, lastLength, usedChunks, pooledMemory);
+        return Parse(arena, BuildSequence(dataChunks, lastLength, usedChunks));
     }
 
     internal static SourceResultDocument Parse(
-        ref Utf8JsonReader reader,
-        byte[][] dataChunks,
-        int usedChunks,
-        bool skipInitialRead,
-        bool pooledMemory)
+        IMemoryArena arena,
+        ReadOnlySequence<byte> input)
     {
-        var metaDb = MetaDb.CreateForEstimatedRows(1);
+        ArgumentNullException.ThrowIfNull(arena);
+
+        // Copy the raw payload into the document's own geometric arena chunks without gaps. The
+        // token locations are the same in the copy, so a contiguous input is parsed in place.
+        var segments = IngestToArena(arena, input, out var usedChunks, out var lastLength);
+
+        if (!input.IsSingleSegment)
+        {
+            return ParseFilled(arena, segments, usedChunks, lastLength);
+        }
+
+        var length = (int)input.Length;
+        var estimatedTokens = Math.Max(length / 12, 100);
+        var metaDb = MetaDb.CreateForEstimatedRows(arena, estimatedTokens);
+        var document = default(SingleDocument);
 
         try
         {
-            ParseJson(ref reader, ref metaDb, skipInitialRead);
+            ParseJson<SingleWindow, SingleDocument>(
+                input.FirstSpan,
+                segments: null,
+                length,
+                singleChunk: usedChunks == 1,
+                ref metaDb,
+                ref document,
+                ArrayPool<byte>.Shared);
         }
         catch
         {
             metaDb.Dispose();
-
             throw;
         }
 
-        return new SourceResultDocument(metaDb, dataChunks, usedChunks, pooledMemory);
+        return new SourceResultDocument(metaDb, segments, usedChunks);
     }
 
-    internal static SourceResultDocument ParseSingleSegment(
-        byte[][] dataChunks,
-        int lastLength,
-        bool pooledMemory)
-    {
-        var dataChunksSpan = dataChunks.AsSpan(0, 1);
-        var reader = new Utf8JsonReader(dataChunksSpan[0].AsSpan(0, lastLength));
+    /// <summary>
+    /// Parses a document whose payload has already been filled into the document's own gap-free
+    /// geometric arena chunks, recorded as <paramref name="segments"/>. The chunks must follow the
+    /// data chunk schedule (chunk i holds <see cref="GetDataChunkSize"/> bytes) so token positions map
+    /// to packed data locations, <paramref name="usedChunks"/> is the number of filled chunks, and
+    /// <paramref name="lastLength"/> is the number of bytes used in the final chunk.
+    /// </summary>
+    internal static SourceResultDocument ParseFilled(
+        IMemoryArena arena,
+        MemorySegment[] segments,
+        int usedChunks,
+        int lastLength)
+        => ParseFilled(arena, segments, usedChunks, lastLength, ArrayPool<byte>.Shared);
 
-        var totalBytes = CalculateTotalBytes(dataChunksSpan, lastLength);
-        var estimatedTokens = Math.Max(totalBytes / 12, 100);
-        var metaDb = MetaDb.CreateForEstimatedRows(estimatedTokens);
+    internal static SourceResultDocument ParseFilled(
+        IMemoryArena arena,
+        MemorySegment[] segments,
+        int usedChunks,
+        int lastLength,
+        ArrayPool<byte> bufferPool)
+    {
+        ArgumentNullException.ThrowIfNull(arena);
+        ArgumentNullException.ThrowIfNull(bufferPool);
+        Debug.Assert(usedChunks > 0, "data must contain at least one chunk.");
+
+        var length = GetFilledLength(segments, usedChunks, lastLength);
+        var estimatedTokens = Math.Max(length / 12, 100);
+        var metaDb = MetaDb.CreateForEstimatedRows(arena, estimatedTokens);
+        var document = default(SingleDocument);
 
         try
         {
-            ParseJson(ref reader, ref metaDb);
+            ParseJson(segments, usedChunks, length, ref metaDb, ref document, bufferPool);
         }
         catch
         {
             metaDb.Dispose();
+            throw;
+        }
 
-            if (pooledMemory && dataChunks.Length > 1)
+        return new SourceResultDocument(metaDb, segments, usedChunks);
+    }
+
+    /// <summary>
+    /// Parses each element of the JSON array in the filled data chunks <paramref name="segments"/> into
+    /// its own document over those chunks, with the chunk requirements of
+    /// <see cref="ParseFilled(IMemoryArena, MemorySegment[], int, int)"/>.
+    /// The input after the closing bracket of the array is not read.
+    /// </summary>
+    internal static List<SourceResultDocument> ParseFilledArrayElements(
+        IMemoryArena arena,
+        MemorySegment[] segments,
+        int usedChunks,
+        int lastLength)
+        => ParseFilledArrayElements(arena, segments, usedChunks, lastLength, ArrayPool<byte>.Shared);
+
+    internal static List<SourceResultDocument> ParseFilledArrayElements(
+        IMemoryArena arena,
+        MemorySegment[] segments,
+        int usedChunks,
+        int lastLength,
+        ArrayPool<byte> bufferPool)
+    {
+        ArgumentNullException.ThrowIfNull(arena);
+        ArgumentNullException.ThrowIfNull(bufferPool);
+        Debug.Assert(usedChunks > 0, "data must contain at least one chunk.");
+
+        var length = GetFilledLength(segments, usedChunks, lastLength);
+        var metaDb = default(MetaDb);
+        var documents = new ElementDocuments(arena, segments, usedChunks);
+
+        try
+        {
+            ParseJson(segments, usedChunks, length, ref metaDb, ref documents, bufferPool);
+        }
+        catch
+        {
+            documents.Dispose(ref metaDb);
+            throw;
+        }
+
+        return documents.Documents;
+    }
+
+    /// <summary>
+    /// Gets the filled span of the first segment, used to peek at the leading JSON token. Only the
+    /// last segment is partially filled, so the first segment is bounded by
+    /// <paramref name="lastLength"/> when it is also the last one.
+    /// </summary>
+    internal static ReadOnlySpan<byte> FirstSpan(MemorySegment[] segments, int usedChunks, int lastLength)
+    {
+        if (usedChunks == 0)
+        {
+            return default;
+        }
+
+        var seg = segments[0];
+        var length = usedChunks == 1 ? lastLength : seg.Length;
+        return seg.Buffer.AsSpan(seg.Offset, length);
+    }
+
+    /// <summary>
+    /// Copies the input payload into geometric arena chunks without gaps so the chunk schedule
+    /// matches the packed data-location encoding, and returns the rented segment table.
+    /// <paramref name="lastLength"/> is the number of bytes filled in the last used chunk.
+    /// </summary>
+    private static MemorySegment[] IngestToArena(
+        IMemoryArena arena,
+        ReadOnlySequence<byte> input,
+        out int usedChunks,
+        out int lastLength)
+    {
+        var segments = arena.RentSegmentTable(64);
+        var totalLength = input.Length;
+
+        if (totalLength == 0)
+        {
+            // An empty payload still needs a backing chunk so location 0 is addressable.
+            segments[0] = arena.Rent(GetDataChunkSize(0));
+            usedChunks = 1;
+            lastLength = 0;
+            return segments;
+        }
+
+        // The next chunk to allocate; the current fill chunk is segments[chunkIndex].
+        var nextChunkIndex = 0;
+        var chunkIndex = -1;
+        var current = default(MemorySegment);
+        var chunkSize = 0;
+        var offset = 0;
+
+        foreach (var inputSegment in input)
+        {
+            var source = inputSegment.Span;
+
+            while (source.Length > 0)
             {
-                foreach (var chunk in dataChunksSpan)
+                if (offset == chunkSize)
                 {
-                    JsonMemory.Return(JsonMemoryKind.Json, chunk);
+                    if (nextChunkIndex >= DataMaxChunks)
+                    {
+                        throw ThrowHelper.SourceResultDocumentTooLarge();
+                    }
+
+                    chunkSize = GetDataChunkSize(nextChunkIndex);
+                    chunkIndex++;
+
+                    if (chunkIndex >= segments.Length)
+                    {
+                        arena.GrowSegmentTable(ref segments);
+                    }
+
+                    current = segments[chunkIndex] = arena.Rent(chunkSize);
+                    nextChunkIndex++;
+                    offset = 0;
                 }
 
-                dataChunksSpan.Clear();
-                ArrayPool<byte[]>.Shared.Return(dataChunks);
+                var toCopy = Math.Min(source.Length, chunkSize - offset);
+                source[..toCopy].CopyTo(current.Span[offset..]);
+                source = source[toCopy..];
+                offset += toCopy;
             }
-
-            throw;
         }
 
-        return new SourceResultDocument(metaDb, dataChunks, 1, pooledMemory);
+        usedChunks = chunkIndex + 1;
+        lastLength = offset;
+        return segments;
     }
 
-    internal static SourceResultDocument ParseMultipleSegments(
-        byte[][] dataChunks,
-        int lastLength,
-        int usedChunks,
-        bool pooledMemory)
+    private static int GetFilledLength(MemorySegment[] segments, int usedChunks, int lastLength)
+    {
+        var length = lastLength;
+
+        for (var i = 0; i < usedChunks - 1; i++)
+        {
+            length += segments[i].Length;
+        }
+
+        return length;
+    }
+
+    private static ReadOnlySequence<byte> BuildSequence(byte[][] dataChunks, int lastLength, int usedChunks)
     {
         SequenceSegment? first = null;
         SequenceSegment? previous = null;
-        var dataChunksSpan = dataChunks.AsSpan(0, usedChunks);
 
-        for (var i = 0; i < dataChunksSpan.Length; i++)
+        for (var i = 0; i < usedChunks; i++)
         {
-            var chunk = dataChunksSpan[i];
-            var chunkDataLength = (i == dataChunksSpan.Length - 1) ? lastLength : JsonMemory.BufferSize;
-            var current = new SequenceSegment(chunk, chunkDataLength);
+            var chunkDataLength = i == usedChunks - 1 ? lastLength : dataChunks[i].Length;
+            var current = new SequenceSegment(dataChunks[i], chunkDataLength);
 
             first ??= current;
             previous?.SetNext(current);
@@ -123,166 +314,7 @@ public sealed partial class SourceResultDocument
             throw new InvalidOperationException("Sequence segments cannot be empty.");
         }
 
-        var sequence = new ReadOnlySequence<byte>(first, 0, previous, lastLength);
-        var reader = new Utf8JsonReader(sequence);
-
-        var totalBytes = CalculateTotalBytes(dataChunksSpan, lastLength);
-        var estimatedTokens = Math.Max(totalBytes / 12, 100);
-        var metaDb = MetaDb.CreateForEstimatedRows(estimatedTokens);
-
-        try
-        {
-            ParseJson(ref reader, ref metaDb);
-        }
-        catch
-        {
-            metaDb.Dispose();
-
-            if (pooledMemory && dataChunks.Length > 1)
-            {
-                foreach (var chunk in dataChunksSpan)
-                {
-                    JsonMemory.Return(JsonMemoryKind.Json, chunk);
-                }
-
-                dataChunksSpan.Clear();
-                ArrayPool<byte[]>.Shared.Return(dataChunks);
-            }
-
-            throw;
-        }
-
-        return new SourceResultDocument(metaDb, dataChunks, usedChunks, pooledMemory);
-    }
-
-    private static void ParseJson(ref Utf8JsonReader reader, ref MetaDb metaDb, bool skipInitialRead = false)
-    {
-        Span<Cursor> containerStart = stackalloc Cursor[64];
-        Span<int> containerStartLocation = stackalloc int[64];
-        Span<int> containerChildCount = stackalloc int[64];
-        var containerIsArrayBits = 0UL;
-        var containerHasComplexBits = 0UL;
-        var stackIndex = 0;
-
-        while (skipInitialRead || reader.Read())
-        {
-            skipInitialRead = false;
-            var tokenType = reader.TokenType;
-            var location = (int)reader.TokenStartIndex;
-            var tokenLength = (int)(reader.BytesConsumed - location);
-
-            if (tokenType == JsonTokenType.PropertyName)
-            {
-                // Remove the colon
-                tokenLength--;
-            }
-
-            // Count direct children incrementally.
-            if (stackIndex > 0)
-            {
-                if (tokenType == JsonTokenType.PropertyName)
-                {
-                    containerChildCount[stackIndex - 1]++;
-                }
-                else if ((containerIsArrayBits & (1UL << (stackIndex - 1))) != 0
-                    && tokenType is not (JsonTokenType.EndObject or JsonTokenType.EndArray))
-                {
-                    containerChildCount[stackIndex - 1]++;
-                }
-            }
-
-            switch (tokenType)
-            {
-                case JsonTokenType.StartObject:
-                    // The new container is a complex child of its parent.
-                    if (stackIndex > 0)
-                    {
-                        containerHasComplexBits |= 1UL << (stackIndex - 1);
-                    }
-
-                    containerStart[stackIndex] = metaDb.Reserve();
-                    containerStartLocation[stackIndex] = location;
-                    containerChildCount[stackIndex] = 0;
-                    containerIsArrayBits &= ~(1UL << stackIndex);
-                    containerHasComplexBits &= ~(1UL << stackIndex);
-                    stackIndex++;
-                    break;
-
-                case JsonTokenType.EndObject:
-                    --stackIndex;
-                    CloseContainer(
-                        ref metaDb,
-                        JsonTokenType.StartObject,
-                        JsonTokenType.EndObject,
-                        containerStart[stackIndex],
-                        containerStartLocation[stackIndex],
-                        location,
-                        containerChildCount[stackIndex],
-                        (containerHasComplexBits & (1UL << stackIndex)) != 0);
-
-                    if (stackIndex == 0)
-                    {
-                        return;
-                    }
-                    break;
-
-                case JsonTokenType.StartArray:
-                    if (stackIndex > 0)
-                    {
-                        containerHasComplexBits |= 1UL << (stackIndex - 1);
-                    }
-
-                    containerStart[stackIndex] = metaDb.Reserve();
-                    containerStartLocation[stackIndex] = location;
-                    containerChildCount[stackIndex] = 0;
-                    containerIsArrayBits |= 1UL << stackIndex;
-                    containerHasComplexBits &= ~(1UL << stackIndex);
-                    stackIndex++;
-                    break;
-
-                case JsonTokenType.EndArray:
-                    --stackIndex;
-                    CloseContainer(
-                        ref metaDb,
-                        JsonTokenType.StartArray,
-                        JsonTokenType.EndArray,
-                        containerStart[stackIndex],
-                        containerStartLocation[stackIndex],
-                        location,
-                        containerChildCount[stackIndex],
-                        (containerHasComplexBits & (1UL << stackIndex)) != 0);
-                    break;
-
-                case JsonTokenType.PropertyName:
-                case JsonTokenType.String:
-                    AppendStringToken(
-                        ref metaDb,
-                        tokenType,
-                        location,
-                        tokenLength,
-                        reader);
-                    break;
-
-                case JsonTokenType.Number:
-                    AppendNumberToken(
-                        ref metaDb,
-                        location,
-                        tokenLength,
-                        reader);
-                    break;
-
-                case JsonTokenType.True:
-                case JsonTokenType.False:
-                case JsonTokenType.Null:
-                    metaDb.Append(tokenType, location, tokenLength);
-                    break;
-
-                default:
-                    throw new JsonException($"Unexpected token type: {tokenType}");
-            }
-        }
-
-        Debug.Assert(stackIndex == 0, "Unclosed containers remain");
+        return new ReadOnlySequence<byte>(first, 0, previous, lastLength);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -314,80 +346,23 @@ public sealed partial class SourceResultDocument
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int CursorDistance(Cursor start, Cursor end)
-        => ((end.Chunk - start.Chunk) * Cursor.RowsPerChunk) + end.Row - start.Row + 1;
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void AppendStringToken(
-        ref MetaDb metaDb,
-        JsonTokenType tokenType,
-        int startLocation,
-        int tokenLength,
-        Utf8JsonReader reader)
     {
-        // For strings, skip the opening quote and reduce length to exclude both quotes
-        var adjustedLocation = startLocation + 1;
-        var adjustedLength = tokenLength - 2;
+        if (start.Chunk == end.Chunk)
+        {
+            return end.Row - start.Row + 1;
+        }
 
-        metaDb.Append(
-            tokenType,
-            adjustedLocation,
-            adjustedLength,
-            hasComplexChildren: ContainsEscapeSequences(reader));
+        return end.Index - start.Index + 1;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void AppendNumberToken(
         ref MetaDb metaDb,
         int startLocation,
-        int tokenLength,
-        Utf8JsonReader reader)
+        int tokenLength)
         => metaDb.Append(
             JsonTokenType.Number,
             startLocation,
             tokenLength,
-            hasComplexChildren: ContainsScientificNotation(reader.ValueSpan));
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool ContainsEscapeSequences(Utf8JsonReader reader)
-    {
-        if (reader.HasValueSequence)
-        {
-            foreach (var segment in reader.ValueSequence)
-            {
-                if (segment.Span.IndexOf(JsonConstants.BackSlash) >= 0)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        return reader.ValueSpan.IndexOf(JsonConstants.BackSlash) is not -1;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool ContainsScientificNotation(ReadOnlySpan<byte> value)
-        => value.IndexOfAny((byte)'e', (byte)'E') >= 0;
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int CalculateTotalBytes(Span<byte[]> dataChunks, int lastLength)
-    {
-        switch (dataChunks.Length)
-        {
-            case 0:
-                return 0;
-
-            case 1:
-                return lastLength;
-
-            default:
-                // calculate the size of all full chunks
-                var total = (dataChunks.Length - 1) * JsonMemory.BufferSize;
-
-                // plus the partial last chunk
-                total += lastLength;
-                return total;
-        }
-    }
+            hasComplexChildren: false);
 }

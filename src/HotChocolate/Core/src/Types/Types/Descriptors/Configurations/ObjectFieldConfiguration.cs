@@ -209,6 +209,27 @@ public class ObjectFieldConfiguration : OutputFieldConfiguration
     }
 
     /// <summary>
+    /// If this field is a mutation to which mutation conventions are applied,
+    /// this flag indicates that the field name should be reformatted in
+    /// V15 style which does not remove the underscores from the field name.
+    /// </summary>
+    public bool UseV15MutationFieldNameFormat
+    {
+        get => (Flags & CoreFieldFlags.UseV15MutationFieldNameFormat) == CoreFieldFlags.UseV15MutationFieldNameFormat;
+        set
+        {
+            if (value)
+            {
+                Flags |= CoreFieldFlags.UseV15MutationFieldNameFormat;
+            }
+            else
+            {
+                Flags &= ~CoreFieldFlags.UseV15MutationFieldNameFormat;
+            }
+        }
+    }
+
+    /// <summary>
     /// Defines in which DI scope this field is executed.
     /// </summary>
     public DependencyInjectionScope? DependencyInjectionScope { get; set; }

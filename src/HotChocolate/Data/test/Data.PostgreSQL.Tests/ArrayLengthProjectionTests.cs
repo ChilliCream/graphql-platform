@@ -1,8 +1,8 @@
+using CookieCrumble.Resources;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 
 namespace HotChocolate.Data;
 
@@ -19,6 +19,7 @@ public sealed class ArrayLengthProjectionTests(PostgreSqlResource resource)
         await using var services = new ServiceCollection()
             .AddDbContext<CardReaderContext>(c => c.UseNpgsql(connectionString))
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddType<CardReaderType>()
             .AddProjections()
@@ -27,15 +28,15 @@ public sealed class ArrayLengthProjectionTests(PostgreSqlResource resource)
 
         await using var scope = services.CreateAsyncScope();
         var context = scope.ServiceProvider.GetRequiredService<CardReaderContext>();
-        await context.Database.EnsureCreatedAsync();
+        await context.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
         context.CardReaders.AddRange(
             new CardReader { Id = 1, CardReaderUid = [1, 2, 3] },
             new CardReader { Id = 2, CardReaderUid = [7] });
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var executor = await services
             .GetRequiredService<IRequestExecutorProvider>()
-            .GetExecutorAsync();
+            .GetExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -45,7 +46,8 @@ public sealed class ArrayLengthProjectionTests(PostgreSqlResource resource)
                 cardReaderUidLength
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(

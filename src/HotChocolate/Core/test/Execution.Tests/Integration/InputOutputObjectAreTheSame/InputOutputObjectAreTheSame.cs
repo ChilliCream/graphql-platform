@@ -35,7 +35,8 @@ public class InputOutputObjectAreTheSame
                         firstName
                     }
                 }
-                """);
+                """,
+                TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();

@@ -21,7 +21,13 @@ public abstract class ExecutionResult : IExecutionResult
     /// <inheritdoc cref="IExecutionResult" />
     public ImmutableDictionary<string, object?> ContextData
     {
-        get => Features.Get<ImmutableDictionary<string, object?>>() ?? ImmutableDictionary<string, object?>.Empty;
+        get =>
+            Features.Get<ImmutableDictionary<string, object?>>()
+#if NET10_0_OR_GREATER
+                ?? [];
+#else
+                ?? ImmutableDictionary<string, object?>.Empty;
+#endif
         set => Features.Set(value);
     }
 

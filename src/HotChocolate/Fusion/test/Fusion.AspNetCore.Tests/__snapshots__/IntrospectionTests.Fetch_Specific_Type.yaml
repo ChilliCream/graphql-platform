@@ -22,11 +22,25 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        bookById(id: Int!): Book @lookup
+        books(
+          "Returns the first _n_ elements from the list."
+          first: Int
+          "Returns the elements in the list that come after the specified cursor."
+          after: String
+          "Returns the last _n_ elements from the list."
+          last: Int
+          "Returns the elements in the list that come before the specified cursor."
+          before: String
+        ): BooksConnection
+      }
+
       type Author @key(fields: "id") {
         id: Int!
       }
 
-      type Book {
+      type Book @key(fields: "id") {
         id: Int!
         title: String!
         author: Author! @shareable
@@ -61,10 +75,15 @@ sourceSchemas:
         "When paginating forwards, the cursor to continue."
         endCursor: String
       }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
 
       type Query {
-        bookById(id: Int!): Book @lookup
-        books(
+        authorById(id: Int!): Author @internal @lookup
+        authors(
           "Returns the first _n_ elements from the list."
           first: Int
           "Returns the elements in the list that come after the specified cursor."
@@ -73,15 +92,10 @@ sourceSchemas:
           last: Int
           "Returns the elements in the list that come before the specified cursor."
           before: String
-        ): BooksConnection
-      }
-  - name: B
-    schema: |
-      schema {
-        query: Query
+        ): AuthorsConnection
       }
 
-      type Author {
+      type Author @key(fields: "id") {
         books: [Book!]!
         id: Int!
         name: String!
@@ -121,20 +135,6 @@ sourceSchemas:
         "When paginating forwards, the cursor to continue."
         endCursor: String
       }
-
-      type Query {
-        authorById(id: Int!): Author @internal @lookup
-        authors(
-          "Returns the first _n_ elements from the list."
-          first: Int
-          "Returns the elements in the list that come after the specified cursor."
-          after: String
-          "Returns the last _n_ elements from the list."
-          last: Int
-          "Returns the elements in the list that come before the specified cursor."
-          before: String
-        ): AuthorsConnection
-      }
 operationPlan:
   operation:
     - document: |
@@ -143,7 +143,7 @@ operationPlan:
             name
           }
         }
-      hash: 5cddb45336fd254ecdaf2e7cb5e89de1
+      hash: 9223ffc3277e3c06f858e4b6429381be
       searchSpace: 1
       expandedNodes: 1
   nodes:

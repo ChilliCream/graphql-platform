@@ -86,12 +86,16 @@ type Viewer {
 }
 
 enum ScalarSerializationType {
-  BOOLEAN
-  FLOAT
-  INT
-  LIST
-  OBJECT
   STRING
+  BOOLEAN
+  INT
+  FLOAT
+  OBJECT
+  LIST
 }
 
 scalar Custom
+
+directive @defer(if: Boolean = true, label: String) on
+  | FRAGMENT_SPREAD
+  | INLINE_FRAGMENT

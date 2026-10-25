@@ -2,33 +2,6 @@ schema {
   query: QueryWithFieldResultAndPagingType
 }
 
-interface Error {
-  message: String!
-}
-
-type Address {
-  id: String!
-  street: String!
-  city: String!
-}
-
-type AddressNotFound implements Error {
-  id: String!
-  message: String!
-}
-
-"Information about pagination in a connection."
-type PageInfo {
-  "Indicates whether more edges exist following the set defined by the clients arguments."
-  hasNextPage: Boolean!
-  "Indicates whether more edges exist prior the set defined by the clients arguments."
-  hasPreviousPage: Boolean!
-  "When paginating backwards, the cursor to continue."
-  startCursor: String
-  "When paginating forwards, the cursor to continue."
-  endCursor: String
-}
-
 type QueryWithFieldResultAndPagingType {
   users(
     error: Boolean! = false
@@ -54,6 +27,29 @@ type QueryWithFieldResultAndPagingType {
     where: UserFilterInput
     order: [UserSortInput!]
   ): UsersWithFilterResult!
+}
+
+type Address {
+  id: String!
+  street: String!
+  city: String!
+}
+
+type AddressNotFound implements Error {
+  id: String!
+  message: String!
+}
+
+"Information about pagination in a connection."
+type PageInfo {
+  "Indicates whether more edges exist following the set defined by the clients arguments."
+  hasNextPage: Boolean!
+  "Indicates whether more edges exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean!
+  "When paginating backwards, the cursor to continue."
+  startCursor: String
+  "When paginating forwards, the cursor to continue."
+  endCursor: String
 }
 
 type User {
@@ -102,6 +98,10 @@ type UsersWithFilterEdge {
   cursor: String!
   "The item at the end of the edge."
   node: User
+}
+
+interface Error {
+  message: String!
 }
 
 union AddressResult = Address | AddressNotFound

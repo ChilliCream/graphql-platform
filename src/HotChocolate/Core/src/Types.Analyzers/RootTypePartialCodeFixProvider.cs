@@ -14,7 +14,7 @@ public sealed class RootTypePartialCodeFixProvider : CodeFixProvider
 {
     private const string Title = "Add partial keyword";
 
-    public override ImmutableArray<string> FixableDiagnosticIds { get; } = ["HC0089"];
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } = ["HC0091"];
 
     public override FixAllProvider GetFixAllProvider()
         => WellKnownFixAllProviders.BatchFixer;

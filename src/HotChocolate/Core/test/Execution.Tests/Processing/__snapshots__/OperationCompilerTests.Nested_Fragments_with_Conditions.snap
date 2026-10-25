@@ -1,14 +1,14 @@
 query($if: Boolean!) {
   human(id: "1000") {
-    ... Human1 @include(if: $if)
-    ... Human2 @skip(if: $if)
+    ...Human1 @include(if: $if)
+    ...Human2 @skip(if: $if)
   }
 }
 
 fragment Human1 on Human {
   friends {
     edges {
-      ... FriendEdge1
+      ...FriendEdge1
     }
   }
 }
@@ -19,7 +19,7 @@ fragment FriendEdge1 on FriendsEdge {
     friends {
       nodes {
         __typename
-        ... Human3
+        ...Human3
       }
     }
   }
@@ -30,7 +30,7 @@ fragment Human2 on Human {
     edges {
       node {
         __typename
-        ... Human3
+        ...Human3
       }
     }
   }

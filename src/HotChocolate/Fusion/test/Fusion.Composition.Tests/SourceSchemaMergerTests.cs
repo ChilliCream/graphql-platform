@@ -2,8 +2,8 @@ using System.Collections.Immutable;
 using HotChocolate.Fusion.Comparers;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
+using HotChocolate.Serialization;
 using HotChocolate.Types.Mutable;
-using HotChocolate.Types.Mutable.Serialization;
 using static HotChocolate.Fusion.CompositionTestHelper;
 using static HotChocolate.Fusion.WellKnownTypeNames;
 
@@ -266,6 +266,125 @@ public sealed class SourceSchemaMergerTests
         Assert.True(result.IsSuccess);
         Assert.True(result.Value.Types.ContainsName("ProductDimensionInput"));
         Assert.True(result.Value.Types.ContainsName("Position"));
+    }
+
+    [Fact]
+    public void Merge_Should_RetainListWrappedInputTypes_When_UsedByRequireAndLookupArguments()
+    {
+        // arrange
+        // The @require argument and the internal lookup are removed from the client-facing
+        // schema, so their list-wrapped input types are only referenced inside directive strings.
+        var schemas = CreateSchemaDefinitions(
+        [
+            """
+            type Query {
+                products: [Product]
+                productById(id: ID! @is(field: "id")): Product @lookup @internal
+                productByVariantPrices(
+                    prices: [VariantPriceInput!]! @is(field: "variants[{ price }]")
+                ): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                variants: [Variant]
+            }
+
+            type Variant {
+                price: Float!
+            }
+
+            input VariantPriceInput {
+                price: Float!
+            }
+            """,
+            """
+            type Query {
+                productById(id: ID! @is(field: "id")): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                discountedPrice(prices: [PriceInput!]! @require(field: "variants[{ price: price }]")): Float!
+            }
+
+            input PriceInput {
+                price: Float!
+            }
+            """
+        ]);
+        var options = new SourceSchemaMergerOptions
+        {
+            AddFusionDefinitions = false
+        };
+        var merger = new SourceSchemaMerger(schemas, options);
+
+        // act
+        var result = merger.Merge();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        SchemaFormatter.FormatAsString(result.Value).MatchInlineSnapshot(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              products: [Product] @fusion__field(schema: A)
+            }
+
+            type Product
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @fusion__lookup(
+                schema: A
+                key: "id"
+                field: "productById(id: ID!): Product"
+                map: ["id"]
+                path: null
+                internal: true
+              )
+              @fusion__lookup(
+                schema: A
+                key: "variants { price }"
+                field: "productByVariantPrices(prices: [VariantPriceInput!]!): Product"
+                map: ["variants[{ price }]"]
+                path: null
+                internal: true
+              )
+              @fusion__lookup(
+                schema: B
+                key: "id"
+                field: "productById(id: ID!): Product"
+                map: ["id"]
+                path: null
+                internal: true
+              ) {
+              discountedPrice: Float!
+                @fusion__field(schema: B)
+                @fusion__requires(
+                  schema: B
+                  requirements: "variants { price }"
+                  field: "discountedPrice(prices: [PriceInput!]!): Float!"
+                  map: ["variants[{ price: price }]"]
+                )
+              id: ID! @fusion__field(schema: A) @fusion__field(schema: B)
+              variants: [Variant] @fusion__field(schema: A)
+            }
+
+            type Variant @fusion__type(schema: A) {
+              price: Float! @fusion__field(schema: A)
+            }
+
+            input PriceInput @fusion__type(schema: B) {
+              price: Float! @fusion__inputField(schema: B)
+            }
+
+            input VariantPriceInput @fusion__type(schema: A) {
+              price: Float! @fusion__inputField(schema: A)
+            }
+            """);
     }
 
     [Fact]

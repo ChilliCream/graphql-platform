@@ -1,0 +1,15 @@
+extend schema
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.3"
+    import: ["@key", "@shareable"]
+  )
+
+type Post @key(fields: "id") {
+  id: ID!
+  createdAt: String! @shareable
+}
+
+type Query {
+  feed: [Post] @shareable
+  aFeed: [Post]
+}

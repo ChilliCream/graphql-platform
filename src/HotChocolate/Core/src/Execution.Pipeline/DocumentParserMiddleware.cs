@@ -1,3 +1,4 @@
+using System.Net;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,7 +33,7 @@ internal sealed class DocumentParserMiddleware
         _parserOptions = parserOptions;
     }
 
-    public async ValueTask InvokeAsync(RequestContext context)
+    public ValueTask InvokeAsync(RequestContext context)
     {
         var documentInfo = context.OperationDocumentInfo;
         if (documentInfo.Document is null && context.Request.Document is not null)
@@ -80,7 +81,14 @@ internal sealed class DocumentParserMiddleware
                                 .AddLocation(new Location(ex.Line, ex.Column))
                                 .Build());
 
-                        context.Result = OperationResult.FromError(error);
+                        // A document the server cannot parse is answered 400 under every
+                        // revision of the GraphQL over HTTP specification.
+                        var result = OperationResult.FromError(error);
+                        result.ContextData = result.ContextData.Add(
+                            ExecutionContextData.HttpStatusCode,
+                            HttpStatusCode.BadRequest);
+
+                        context.Result = result;
                         _diagnosticEvents.RequestError(context, ex);
                     }
                 }
@@ -90,15 +98,13 @@ internal sealed class DocumentParserMiddleware
                 throw ErrorHelper.QueryTypeNotSupported();
             }
 
-            if (success)
+            if (!success)
             {
-                await _next(context).ConfigureAwait(false);
+                return default;
             }
         }
-        else
-        {
-            await _next(context).ConfigureAwait(false);
-        }
+
+        return _next(context);
     }
 
     private OperationDocumentHash CreateDocumentHash(

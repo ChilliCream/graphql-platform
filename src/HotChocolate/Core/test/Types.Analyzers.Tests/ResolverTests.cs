@@ -22,7 +22,7 @@ public class ResolverTests
             }
 
             internal class Test;
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -45,7 +45,7 @@ public class ResolverTests
             }
 
             internal class Test;
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -68,7 +68,7 @@ public class ResolverTests
             }
 
             internal class Test;
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -99,7 +99,7 @@ public class ResolverTests
             }
 
             internal class Test;
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -134,7 +134,7 @@ public class ResolverTests
             }
 
             internal class Test;
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -158,7 +158,7 @@ public class ResolverTests
             }
 
             internal class Test;
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -182,7 +182,7 @@ public class ResolverTests
             }
 
             internal class Test;
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -206,7 +206,7 @@ public class ResolverTests
             }
 
             internal class Test;
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -233,7 +233,66 @@ public class ResolverTests
             internal class Test;
 
             internal class Entity;
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task GenerateSource_ResolverWithNativeImplicitParameters_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Security.Claims;
+            using System.Threading;
+            using HotChocolate.Execution;
+            using HotChocolate.Language;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Pagination;
+
+            namespace TestNamespace;
+
+            [ObjectType<Test>]
+            internal static partial class TestType
+            {
+                public static string GetTest(
+                    CancellationToken cancellationToken,
+                    ClaimsPrincipal claimsPrincipal,
+                    DocumentNode documentNode,
+                    FieldNode fieldNode,
+                    IOutputFieldDefinition outputField,
+                    ConnectionFlags connectionFlags,
+                    ISelection selection)
+                    => "test";
+            }
+
+            internal class Test;
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task GenerateSource_BatchResolverWithCustomParameterBinding_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public sealed class User;
+
+            public sealed class CurrentUser;
+
+            [ObjectType<User>]
+            public static partial class UserType
+            {
+                [BatchResolver]
+                public static List<string> GetGreeting(
+                    [Parent] List<User> users,
+                    CurrentUser currentUser)
+                    => default!;
+            }
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -269,7 +328,7 @@ public class ResolverTests
 
                 public string Name { get; set; }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -305,7 +364,7 @@ public class ResolverTests
 
                 public string Name { get; set; }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -334,7 +393,7 @@ public class ResolverTests
 
                 public string Name { get; set; }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -358,7 +417,7 @@ public class ResolverTests
             }
 
             internal class Test;
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -382,7 +441,7 @@ public class ResolverTests
             }
 
             internal class Test;
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -430,7 +489,7 @@ public class ResolverTests
                     => await dataLoader.LoadAsync(id, cancellationToken);
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -479,7 +538,7 @@ public class ResolverTests
                     => await dataLoader.LoadAsync(id, cancellationToken);
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -551,7 +610,7 @@ public class ResolverTests
                     => await dataLoader.LoadAsync(id, cancellationToken);
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -574,7 +633,7 @@ public class ResolverTests
             }
 
             internal class Test;
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -597,7 +656,7 @@ public class ResolverTests
             }
 
             internal class Test;
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -620,7 +679,7 @@ public class ResolverTests
             }
 
             internal class Test;
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -651,6 +710,6 @@ public class ResolverTests
 
                 public string Name { get; set; }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

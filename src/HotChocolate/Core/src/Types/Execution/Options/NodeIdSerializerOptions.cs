@@ -53,7 +53,7 @@ public struct NodeIdSerializerOptions
                 throw new ArgumentOutOfRangeException(
                     nameof(value),
                     value,
-                     "MaxIdLength must be at least 128.");
+                    "MaxIdLength must be at least 128.");
             }
 
             _maxIdLength = value;

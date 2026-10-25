@@ -1,4 +1,3 @@
-using Mocha.Features;
 using Mocha.Middlewares;
 using Mocha.Transport.RabbitMQ.Features;
 
@@ -20,22 +19,23 @@ internal sealed class RabbitMQAcknowledgementMiddleware
         var feature = context.Features.GetOrSet<RabbitMQReceiveFeature>();
         var channel = feature.Channel;
         var eventArgs = feature.EventArgs;
-        var cancellationToken = context.CancellationToken;
 
         try
         {
             await next(context);
 
+            // Once next returns the handler's work is committed, so the ack is sent without the
+            // shutdown token. A cancelled handler throws and is nacked with requeue instead.
             if (channel.IsOpen)
             {
-                await channel.BasicAckAsync(eventArgs.DeliveryTag, false, cancellationToken);
+                await channel.BasicAckAsync(eventArgs.DeliveryTag, false, CancellationToken.None);
             }
         }
         catch
         {
             if (channel.IsOpen)
             {
-                await channel.BasicNackAsync(eventArgs.DeliveryTag, false, true, cancellationToken);
+                await channel.BasicNackAsync(eventArgs.DeliveryTag, false, true, CancellationToken.None);
             }
 
             throw;
@@ -50,6 +50,6 @@ internal sealed class RabbitMQAcknowledgementMiddleware
     /// <returns>A middleware configuration keyed as "RabbitMQAcknowledgement".</returns>
     public static ReceiveMiddlewareConfiguration Create()
         => new(
-            static (context, next) => ctx => s_instance.InvokeAsync(ctx, next),
+            static (_, next) => ctx => s_instance.InvokeAsync(ctx, next),
             "RabbitMQAcknowledgement");
 }

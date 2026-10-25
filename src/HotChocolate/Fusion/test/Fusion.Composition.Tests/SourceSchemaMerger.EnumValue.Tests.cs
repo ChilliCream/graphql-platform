@@ -119,10 +119,10 @@ public sealed class SourceSchemaMergerEnumValueTests : SourceSchemaMergerTestBas
             """);
     }
 
-    // If an enum value is deprecated without a deprecation reason, a default reason is inserted to
-    // be compatible with the latest spec.
+    // If an enum value is deprecated without a deprecation reason, the merged schema prints
+    // @deprecated without arguments.
     [Fact]
-    public void Merge_DeprecatedEnumValuesWithoutReasonInsertsDefaultReason_MatchesSnapshot()
+    public void Merge_DeprecatedEnumValuesWithoutReason_MatchesSnapshot()
     {
         AssertMatches(
             [
@@ -141,10 +141,7 @@ public sealed class SourceSchemaMergerEnumValueTests : SourceSchemaMergerTestBas
             ],
             """
             enum Status @fusion__type(schema: A) @fusion__type(schema: B) {
-              ACTIVE
-                @fusion__enumValue(schema: A)
-                @fusion__enumValue(schema: B)
-                @deprecated(reason: "No longer supported.")
+              ACTIVE @fusion__enumValue(schema: A) @fusion__enumValue(schema: B) @deprecated
             }
             """);
     }

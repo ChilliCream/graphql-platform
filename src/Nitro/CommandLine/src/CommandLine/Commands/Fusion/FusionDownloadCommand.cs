@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 #endif
 
+using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
@@ -82,28 +83,33 @@ internal sealed class FusionDownloadCommand : Command
                 $"Specify the '.fgp' extension through the '{OutputFileOption.OptionName}' option, if you want to download a legacy Fusion archive.");
         }
 
-        var isFgp = version.Major == 1;
-
-        await using var stream = await fusionConfigurationClient.DownloadLatestFusionArchiveAsync(
-            apiId,
-            stageName,
-            isFgp ? legacyArchiveVersion : version.ToString(),
-            archiveFormat,
-            cancellationToken);
-
-        if (stream is null)
+        Stream stream;
+        try
         {
-            throw new ExitException("The API with the given ID does not exist or does not have a download URL.");
+            stream = await fusionConfigurationClient.DownloadLatestFusionArchiveAsync(
+                apiId,
+                stageName,
+                version.ToString(),
+                archiveFormat,
+                cancellationToken);
+        }
+        catch (NitroClientNotFoundException)
+        {
+            throw new ExitException(
+                $"The API with the given ID does not exist or there is no Fusion configuration that supports version '{version}'.");
         }
 
-        if (fileSystem.FileExists(outputFile))
+        await using (stream)
         {
-            fileSystem.DeleteFile(outputFile);
+            if (fileSystem.FileExists(outputFile))
+            {
+                fileSystem.DeleteFile(outputFile);
+            }
+
+            await using var fileStream = fileSystem.CreateFile(outputFile);
+
+            await stream.CopyToAsync(fileStream, cancellationToken);
         }
-
-        await using var fileStream = fileSystem.CreateFile(outputFile);
-
-        await stream.CopyToAsync(fileStream, cancellationToken);
 
         console.WriteLine($"Downloaded Fusion configuration to '{outputFile.EscapeMarkup()}'.");
 

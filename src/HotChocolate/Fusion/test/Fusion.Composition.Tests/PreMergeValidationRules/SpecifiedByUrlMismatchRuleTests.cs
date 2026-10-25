@@ -21,6 +21,24 @@ public sealed class SpecifiedByUrlMismatchRuleTests : RuleTestBase
         ]);
     }
 
+    // A non-URI specified-by value is valid SDL and must not crash the rule; identical values
+    // across schemas are equal, so no mismatch is reported.
+    [Fact]
+    public void Validate_SpecifiedByNonUriUrl_Succeeds()
+    {
+        AssertValid(
+        [
+            """
+            # Schema A
+            scalar Date @specifiedBy(url: "anonymous-string")
+            """,
+            """
+            # Schema B
+            scalar Date @specifiedBy(url: "anonymous-string")
+            """
+        ]);
+    }
+
     // The schemas have different specified-by URLs for the "Date" scalar type, which should trigger
     // warnings.
     [Fact]

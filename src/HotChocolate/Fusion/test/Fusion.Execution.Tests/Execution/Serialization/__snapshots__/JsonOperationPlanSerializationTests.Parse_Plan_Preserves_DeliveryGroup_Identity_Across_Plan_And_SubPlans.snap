@@ -1,0 +1,156 @@
+{
+  "id": "68c2a64a8c04735ef1b991eeca37e895e81946d427b3c305d68fd2a19d988d51",
+  "operation": {
+    "kind": "Query",
+    "document": "{\n  user(id: \"1\") {\n    name\n  }\n}",
+    "id": "123456789101112",
+    "hash": "123456789101112",
+    "shortHash": "12345678"
+  },
+  "searchSpace": 1,
+  "expandedNodes": 1,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "Operation",
+      "schema": "a",
+      "operation": {
+        "name": "Op_123456789101112_1",
+        "kind": "Query",
+        "document": "query Op_123456789101112_1 {\n  user(id: \"1\") {\n    name\n  }\n}",
+        "hash": "167b5bb497f34e9c7516ec2d4598ae6d7f0fd73a9a9a329156910e99e5db4ec3",
+        "shortHash": "167b5bb4"
+      },
+      "resultSelectionSet": "{ user }"
+    }
+  ],
+  "deliveryGroups": [
+    {
+      "id": 0,
+      "path": "$.user",
+      "label": "contact"
+    },
+    {
+      "id": 1,
+      "path": "$.user",
+      "label": "nested",
+      "parentId": 0
+    },
+    {
+      "id": 2,
+      "path": "$.user",
+      "label": "location"
+    }
+  ],
+  "deferredSubPlans": [
+    {
+      "deliveryGroupIds": [
+        0,
+        2
+      ],
+      "parentNodeId": 1,
+      "operation": {
+        "kind": "Query",
+        "document": "{\n  user(id: \"1\") {\n    email\n    id @fusion__requirement\n  }\n}",
+        "id": "123456789101112#defer_0",
+        "hash": "123456789101112#defer_0",
+        "shortHash": "12345678"
+      },
+      "nodes": [
+        {
+          "id": 1,
+          "type": "Operation",
+          "schema": "a",
+          "operation": {
+            "name": "Op_defer_1",
+            "kind": "Query",
+            "document": "query Op_defer_1 {\n  user(id: \"1\") {\n    id\n  }\n}",
+            "hash": "93841f3bbdb1c1bf3a949d7089b6713b11e6d33666aae10bdc8a885607465ca5",
+            "shortHash": "93841f3b"
+          },
+          "resultSelectionSet": "{ user }"
+        },
+        {
+          "id": 2,
+          "type": "Operation",
+          "schema": "b",
+          "operation": {
+            "name": "Op_defer_2",
+            "kind": "Query",
+            "document": "query Op_defer_2($__fusion_1_id: ID!) {\n  userById(id: $__fusion_1_id) {\n    email\n  }\n}",
+            "hash": "65dbc31ddfe32ceb540eaace9ebb429fdc84b5f7758a861ec21db29c098ce8ee",
+            "shortHash": "65dbc31d"
+          },
+          "resultSelectionSet": "{ email }",
+          "source": "$.userById",
+          "target": "$.user",
+          "requirements": [
+            {
+              "name": "__fusion_1_id",
+              "type": "ID!",
+              "path": "$.user",
+              "selectionMap": "id"
+            }
+          ],
+          "dependencies": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "deliveryGroupIds": [
+        1
+      ],
+      "parentNodeId": 2,
+      "operation": {
+        "kind": "Query",
+        "document": "{\n  user(id: \"1\") {\n    address\n    id @fusion__requirement\n  }\n}",
+        "id": "123456789101112#defer_1",
+        "hash": "123456789101112#defer_1",
+        "shortHash": "12345678"
+      },
+      "nodes": [
+        {
+          "id": 1,
+          "type": "Operation",
+          "schema": "a",
+          "operation": {
+            "name": "Op_defer_1",
+            "kind": "Query",
+            "document": "query Op_defer_1 {\n  user(id: \"1\") {\n    id\n  }\n}",
+            "hash": "93841f3bbdb1c1bf3a949d7089b6713b11e6d33666aae10bdc8a885607465ca5",
+            "shortHash": "93841f3b"
+          },
+          "resultSelectionSet": "{ user }"
+        },
+        {
+          "id": 2,
+          "type": "Operation",
+          "schema": "b",
+          "operation": {
+            "name": "Op_defer_2",
+            "kind": "Query",
+            "document": "query Op_defer_2($__fusion_1_id: ID!) {\n  userById(id: $__fusion_1_id) {\n    address\n  }\n}",
+            "hash": "1abf4c1bb273be32d1f61887253fa9843c5a15491e86d6962b34ecd01ad1cb01",
+            "shortHash": "1abf4c1b"
+          },
+          "resultSelectionSet": "{ address }",
+          "source": "$.userById",
+          "target": "$.user",
+          "requirements": [
+            {
+              "name": "__fusion_1_id",
+              "type": "ID!",
+              "path": "$.user",
+              "selectionMap": "id"
+            }
+          ],
+          "dependencies": [
+            1
+          ]
+        }
+      ]
+    }
+  ]
+}

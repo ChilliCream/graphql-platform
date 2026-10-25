@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
-using Xunit.Abstractions;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
@@ -156,14 +155,14 @@ public class BusDefaultsIntegrationTests
             .AddRabbitMQ(t =>
             {
                 t.ConfigureDefaults(d => d.Queue.QueueType = RabbitMQQueueType.Quorum);
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
 
                 // Explicitly declare a classic queue - should override the quorum default
                 t.DeclareExchange("order-ex");
                 t.DeclareQueue("classic-q").QueueType(RabbitMQQueueType.Classic);
                 t.DeclareBinding("order-ex", "classic-q");
 
-                t.Endpoint("classic-ep").Consumer<OrderSpyConsumer>().Queue("classic-q");
+                t.Queue("classic-q").Consumer<OrderSpyConsumer>();
                 t.DispatchEndpoint("order-dispatch").ToExchange("order-ex").Publish<OrderCreated>();
             })
             .BuildTestBusAsync();
@@ -190,13 +189,13 @@ public class BusDefaultsIntegrationTests
             .AddRabbitMQ(t =>
             {
                 t.ConfigureDefaults(d => d.Queue.QueueType = RabbitMQQueueType.Quorum);
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
 
                 t.DeclareExchange("order-ex");
                 t.DeclareQueue("override-q").QueueType(RabbitMQQueueType.Classic);
                 t.DeclareBinding("order-ex", "override-q");
 
-                t.Endpoint("override-ep").Consumer<OrderSpyConsumer>().Queue("override-q");
+                t.Queue("override-q").Consumer<OrderSpyConsumer>();
                 t.DispatchEndpoint("order-dispatch").ToExchange("order-ex").Publish<OrderCreated>();
             })
             .BuildTestBusAsync();

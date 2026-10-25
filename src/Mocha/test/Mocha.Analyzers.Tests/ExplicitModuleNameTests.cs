@@ -22,6 +22,6 @@ public class ExplicitModuleNameTests
                     => default;
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

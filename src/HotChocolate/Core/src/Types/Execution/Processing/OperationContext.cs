@@ -1,3 +1,4 @@
+using HotChocolate.Buffers;
 using HotChocolate.Features;
 
 namespace HotChocolate.Execution.Processing;
@@ -42,6 +43,18 @@ internal sealed partial class OperationContext : IFeatureProvider
         {
             AssertInitialized();
             return _requestContext.Features;
+        }
+    }
+
+    /// <summary>
+    /// Gets the memory arena that backs allocations for the current operation execution.
+    /// </summary>
+    internal MemoryArena Memory
+    {
+        get
+        {
+            AssertInitialized();
+            return _memory!;
         }
     }
 }

@@ -32,14 +32,15 @@ public class QueryableFilteringExtensionsTests
                     .Type(new ObjectType(x => x.Name("B").Field("bar").Resolve("a")))
                     .Resolve(new object());
             })
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var res1 = await executor.ExecuteAsync(
             OperationRequestBuilder
                 .New()
                 .SetDocument("{ shouldWork(where: {bar: {eq: true}}) { bar baz }}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         res1.MatchSnapshot();
@@ -53,14 +54,15 @@ public class QueryableFilteringExtensionsTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddFiltering()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var res1 = await executor.ExecuteAsync(
             OperationRequestBuilder
                 .New()
                 .SetDocument("{ shouldWork(where: {bar: {eq: true}}) { bar baz }}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         res1.MatchSnapshot();
@@ -81,13 +83,14 @@ public class QueryableFilteringExtensionsTests
             OperationRequestBuilder
                 .New()
                 .SetDocument("{ typeMismatch(where: {bar: {eq: true}}) { bar baz }}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -105,13 +108,14 @@ public class QueryableFilteringExtensionsTests
             OperationRequestBuilder
                 .New()
                 .SetDocument("{ missingMiddleware { bar baz }}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Query

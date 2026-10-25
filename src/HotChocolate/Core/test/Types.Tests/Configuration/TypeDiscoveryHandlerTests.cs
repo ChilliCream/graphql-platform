@@ -14,7 +14,7 @@ public class TypeDiscoveryHandlerTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .AddType<Foo>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchInlineSnapshot(
             """

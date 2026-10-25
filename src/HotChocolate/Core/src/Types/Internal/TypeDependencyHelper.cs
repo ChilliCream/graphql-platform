@@ -1,5 +1,7 @@
 using HotChocolate.Configuration;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
+using HotChocolate.Utilities;
 using static HotChocolate.Types.Descriptors.Configurations.TypeDependencyFulfilled;
 
 namespace HotChocolate.Internal;
@@ -136,6 +138,22 @@ public static class TypeDependencyHelper
             foreach (var dependency in definition.Dependencies)
             {
                 dependencies.Add(dependency);
+            }
+        }
+
+        if (definition.HasDirectives)
+        {
+            foreach (var directive in definition.Directives)
+            {
+                // A directive definition is always available to itself, so a
+                // self reference must not become a completion dependency.
+                if (directive.Type is NameDirectiveReference nameReference
+                    && nameReference.Name.EqualsOrdinal(definition.Name))
+                {
+                    continue;
+                }
+
+                dependencies.Add(new TypeDependency(directive.Type, Completed));
             }
         }
 

@@ -34,8 +34,10 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        productById(id: ID!): Product @lookup
+        productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
       }
 
       type Product implements Node {
@@ -52,10 +54,8 @@ sourceSchemas:
         subgraph1Only: String!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        productById(id: ID!): Product @lookup
-        productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
@@ -85,7 +85,7 @@ sourceSchemas:
                       "sharedLinked": {
                         "__typename": "ProductAvailabilityMail"
                       },
-                      "id": "UHJvZHVjdEF2YWlsYWJpbGl0eTox"
+                      "id": "UHJvZHVjdEF2YWlsYWJpbGl0eToyMTEyMTU3MDY0"
                     }
                   }
                 }
@@ -96,8 +96,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node("ID of the object." id: ID!): Node @lookup @shareable
+        productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
       }
 
       type ProductAvailability implements Node {
@@ -109,9 +110,8 @@ sourceSchemas:
         subgraph2Only: Boolean!
       }
 
-      type Query {
-        node("ID of the object." id: ID!): Node @lookup @shareable
-        productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
@@ -129,7 +129,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_id": "UHJvZHVjdEF2YWlsYWJpbGl0eTox"
+              "__fusion_1_id": "UHJvZHVjdEF2YWlsYWJpbGl0eToyMTEyMTU3MDY0"
             }
         response:
           results:
@@ -157,7 +157,7 @@ operationPlan:
             }
           }
         }
-      hash: 8e568844d197d7ba0b19ab92d5456732
+      hash: adc41fd5f1ca71b2c0444fd8f4aab9f5
       searchSpace: 2
       expandedNodes: 3
   nodes:

@@ -27,8 +27,8 @@ public sealed class DeleteApiCommandTests(NitroCommandFixture fixture) : ApisCom
 
             Options:
               --force                  Skip confirmation prompts for deletes and overwrites
-              --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>      The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>      The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>          The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help           Show help and usage information
 
@@ -57,7 +57,7 @@ public sealed class DeleteApiCommandTests(NitroCommandFixture fixture) : ApisCom
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -189,7 +189,7 @@ public sealed class DeleteApiCommandTests(NitroCommandFixture fixture) : ApisCom
 
         // act
         command.Confirm(false);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.StdErr.MatchInlineSnapshot(
@@ -215,7 +215,7 @@ public sealed class DeleteApiCommandTests(NitroCommandFixture fixture) : ApisCom
 
         // act
         command.Confirm(true);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -261,10 +261,6 @@ public sealed class DeleteApiCommandTests(NitroCommandFixture fixture) : ApisCom
     public static TheoryData<IDeleteApiCommandMutation_DeleteApiById_Errors, string>
         GetDeleteApiErrors() => new()
     {
-        {
-            new DeleteApiCommandMutation_DeleteApiById_Errors_ApiNotFoundError("API not found"),
-            "Unexpected mutation error: API not found"
-        },
         {
             new DeleteApiCommandMutation_DeleteApiById_Errors_UnauthorizedOperation("Not authorized"),
             "Unexpected mutation error: Not authorized"

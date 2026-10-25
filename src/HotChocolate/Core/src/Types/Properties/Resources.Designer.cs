@@ -111,15 +111,15 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string ErrorHelper_StateInvalidForOperationVariableCoercion_Message {
-            get {
-                return ResourceManager.GetString("ErrorHelper_StateInvalidForOperationVariableCoercion_Message", resourceCulture);
-            }
-        }
-        
         internal static string ErrorHelper_StateInvalidForOperationExecution_Message {
             get {
                 return ResourceManager.GetString("ErrorHelper_StateInvalidForOperationExecution_Message", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_EmptyVariableBatch_Message {
+            get {
+                return ResourceManager.GetString("ErrorHelper_EmptyVariableBatch_Message", resourceCulture);
             }
         }
         
@@ -420,6 +420,12 @@ namespace HotChocolate.Properties {
         internal static string VariableCoercionHelper_CoerceVariableValues_VariablesMustBeObject {
             get {
                 return ResourceManager.GetString("VariableCoercionHelper_CoerceVariableValues_VariablesMustBeObject", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_IncrementalDeliveryNotAcceptable {
+            get {
+                return ResourceManager.GetString("ErrorHelper_IncrementalDeliveryNotAcceptable", resourceCulture);
             }
         }
     }

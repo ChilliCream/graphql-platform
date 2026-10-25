@@ -193,7 +193,8 @@ public class GeoJsonPointInputTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ test(arg: { type: Point, coordinates:[9,10] })}");
+            "{ test(arg: { type: Point, coordinates:[9,10] })}",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();

@@ -170,6 +170,29 @@ public class SortInputTypeTests : SortTestBase
     }
 
     [Fact]
+    public void SortInputType_Should_PreserveConfiguredRuntimeType_When_FieldIsNamed()
+    {
+        // arrange
+        var schema = CreateSchema(
+            s => s.AddType(
+                new SortInputType<Foo>(
+                    d => d
+                        .Field("custom")
+                        .Type<StringType>()
+                        .Extend()
+                        .OnBeforeCreate(
+                            configuration =>
+                                configuration.Handler = new MatchAnyQueryableFieldHandler()))));
+
+        // act
+        var sortType = Assert.IsType<SortInputType<Foo>>(schema.Types["FooSortInput"]);
+
+        // assert
+        var field = Assert.IsType<SortField>(sortType.Fields["custom"]);
+        Assert.Equal(typeof(string), field.RuntimeType?.Source);
+    }
+
+    [Fact]
     public void SortInputType_Should_ThrowException_WhenNoConventionIsRegistered()
     {
         // arrange

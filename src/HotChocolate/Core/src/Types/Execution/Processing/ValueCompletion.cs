@@ -37,7 +37,7 @@ internal static partial class ValueCompletion
         switch (typeKind)
         {
             case TypeKind.Scalar or TypeKind.Enum:
-                CompleteLeafValue(context, selection, (ILeafType)type, resultValue, result);
+                CompleteLeafValue(context, (ILeafType)type, resultValue, result);
                 break;
 
             case TypeKind.List:
@@ -49,7 +49,7 @@ internal static partial class ValueCompletion
                 break;
 
             default:
-                var error = UnexpectedValueCompletionError(selection, resultValue.Path);
+                var error = UnexpectedValueCompletionError(resultValue.Path);
                 context.OperationContext.ReportError(error, context.ResolverContext);
                 break;
         }

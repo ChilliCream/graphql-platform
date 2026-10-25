@@ -21,7 +21,7 @@ response:
       "data": {
         "post": {
           "product": {
-            "subgraph2": "Product: UHJvZHVjdDoy"
+            "subgraph2": "Product: UHJvZHVjdDoxODk0NzA4MjAy"
           }
         }
       }
@@ -31,6 +31,10 @@ sourceSchemas:
     schema: |
       schema {
         query: Query
+      }
+
+      type Query {
+        post: Post
       }
 
       type Discussion {
@@ -45,10 +49,6 @@ sourceSchemas:
 
       type Product @key(fields: "id") {
         id: ID!
-      }
-
-      type Query {
-        post: Post
       }
 
       union Post = Photo | Discussion
@@ -79,7 +79,7 @@ sourceSchemas:
                   "post": {
                     "__typename": "Photo",
                     "product": {
-                      "id": "UHJvZHVjdDoy"
+                      "id": "UHJvZHVjdDoxODk0NzA4MjAy"
                     }
                   }
                 }
@@ -90,13 +90,13 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        productById(id: ID!): Product @lookup
+      }
+
       type Product {
         id: ID!
         subgraph2: String!
-      }
-
-      type Query {
-        productById(id: ID!): Product @lookup
       }
     interactions:
       - request:
@@ -109,7 +109,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_id": "UHJvZHVjdDoy"
+              "__fusion_1_id": "UHJvZHVjdDoxODk0NzA4MjAy"
             }
         response:
           results:
@@ -117,7 +117,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDoy"
+                    "subgraph2": "Product: UHJvZHVjdDoxODk0NzA4MjAy"
                   }
                 }
               }
@@ -142,7 +142,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 7d12de3b86fca2b5062c55ac7b8da6dc
+      hash: 50f82c047c07be09902b7dd603e6a756
       searchSpace: 1
       expandedNodes: 2
   nodes:
@@ -178,7 +178,7 @@ operationPlan:
       targets:
         - $.post<Discussion>.product
         - $.post<Photo>.product
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
           selectionMap: >-

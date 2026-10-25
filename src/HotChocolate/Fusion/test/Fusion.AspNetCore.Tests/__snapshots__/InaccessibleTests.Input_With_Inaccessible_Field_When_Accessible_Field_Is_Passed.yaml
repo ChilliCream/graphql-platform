@@ -18,20 +18,20 @@ sourceSchemas:
         query: Query
       }
 
-      type Author @key(fields: "id") {
-        id: Int! @inaccessible
-      }
-
-      type Book {
-        id: Int!
-        title: String!
-        author: Author!
-      }
-
       type Query {
         bookById(id: Int!): Book @lookup
         inaccessibleText(text: String! = "This is the default!" @inaccessible): String!
         books: [Book!]!
+      }
+
+      type Author @key(fields: "id") {
+        id: Int! @inaccessible
+      }
+
+      type Book @key(fields: "id") {
+        id: Int!
+        title: String!
+        author: Author!
       }
   - name: b
     schema: |
@@ -39,15 +39,15 @@ sourceSchemas:
         query: Query
       }
 
-      type Author {
-        id: Int!
-        name: String!
-      }
-
       type Query {
         authorById(id: Int!): Author @internal @lookup
         enumField(value: SomeEnum!): SomeEnum!
         shareable(input: SomeInput!): String!
+      }
+
+      type Author @key(fields: "id") {
+        id: Int!
+        name: String!
       }
 
       input SomeInput {
@@ -80,7 +80,7 @@ operationPlan:
         {
           shareable(input: { a: "Hello" })
         }
-      hash: 8f2de74d9defdb645d7a602b2dfeb0c2
+      hash: 8411fe2e81c109f0ba2dbccf04be2849
       searchSpace: 1
       expandedNodes: 1
   nodes:

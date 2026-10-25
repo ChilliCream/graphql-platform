@@ -339,4 +339,34 @@ public class ObjectTypeValidation : TypeValidationTestBase
                 }
             ");
     }
+
+    [Fact]
+    public void Non_Deprecated_Field_Returning_Deprecated_Object_Is_Not_Allowed()
+    {
+        ExpectError(
+            """
+            type Query {
+                foo: Foo
+            }
+
+            type Foo @deprecated(reason: "Use Bar.") {
+                id: ID
+            }
+            """);
+    }
+
+    [Fact]
+    public void Deprecated_Field_Returning_Deprecated_Object_Is_Allowed()
+    {
+        ExpectValid(
+            """
+            type Query {
+                foo: Foo @deprecated(reason: "Use bar.")
+            }
+
+            type Foo @deprecated(reason: "Use Bar.") {
+                id: ID
+            }
+            """);
+    }
 }

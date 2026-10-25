@@ -832,6 +832,86 @@ public class SchemaBuilderTests
     }
 
     [Fact]
+    public void BindRuntimeType_Should_BindNestedByteArraysAsScalar_When_ByteArrayIsBound()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType<QueryWithNestedByteArrayFields>()
+            .BindRuntimeType<byte[], Base64StringType>()
+            .Create();
+
+        // assert
+        schema.ToString().MatchInlineSnapshot(
+            """
+            schema {
+              query: QueryWithNestedByteArrayFields
+            }
+
+            type QueryWithNestedByteArrayFields {
+              echo(blobs: [Base64String!]!): Boolean!
+              blobs: [Base64String!]!
+              jagged: [Base64String!]
+              optionalBlobs: [Base64String]
+            }
+
+            "The `Base64String` scalar type represents an array of bytes encoded as a Base64 string."
+            scalar Base64String
+              @specifiedBy(
+                url: "https://scalars.graphql.org/chillicream/base64-string.html"
+              )
+            """);
+    }
+
+    [Fact]
+    public void BindRuntimeType_Should_BindNestedDictionaryAsScalar_When_DictionaryIsBound()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType<QueryWithDictionaryListArgument>()
+            .BindRuntimeType<IDictionary<string, object>, AnyType>()
+            .Create();
+
+        // assert
+        var queryType = schema.Types.GetType<ObjectType>("QueryWithDictionaryListArgument");
+        Assert.Equal("[Any!]!", queryType.Fields["foo"].Arguments["foo"].Type.Print());
+    }
+
+    [Fact]
+    public async Task Execute_Should_SerializeNestedByteArraysAsBase64_When_ByteArrayIsBound()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType<QueryWithNestedByteArrayFields>()
+            .BindRuntimeType<byte[], Base64StringType>()
+            .Create();
+        var executor = schema.MakeExecutable();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            "{ blobs jagged }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "blobs": [
+                  "AQID",
+                  "Bw=="
+                ],
+                "jagged": [
+                  "AQID",
+                  "Bw=="
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public void BindClrType_BuilderIsNull_ArgumentNullException()
     {
         // arrange
@@ -1037,7 +1117,7 @@ public class SchemaBuilderTests
 
         // act
         var result =
-            await executor.ExecuteAsync("{ foo { baz } }");
+            await executor.ExecuteAsync("{ foo { baz } }", TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -1880,7 +1960,7 @@ public class SchemaBuilderTests
                 .AddGraphQL()
                 .AddQueryType<RootQuery>()
                 .ModifyOptions(options => options.DefaultBindingBehavior = BindingBehavior.Explicit)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -1923,10 +2003,7 @@ public class SchemaBuilderTests
         {
             if (convention is MockConvention mockConvention)
             {
-                if (mockConvention.Configuration != null)
-                {
-                    mockConvention.Configuration.IsExtended = true;
-                }
+                mockConvention.Configuration?.IsExtended = true;
             }
         }
     }
@@ -2057,6 +2134,22 @@ public class SchemaBuilderTests
     public class QueryWithByteArrayField
     {
         public required byte[] Foo { get; set; }
+    }
+
+    public class QueryWithNestedByteArrayFields
+    {
+        public List<byte[]> Blobs => [[1, 2, 3], [7]];
+
+        public byte[][]? Jagged => [[1, 2, 3], [7]];
+
+        public List<byte[]?>? OptionalBlobs => null;
+
+        public bool Echo(List<byte[]> blobs) => true;
+    }
+
+    public class QueryWithDictionaryListArgument
+    {
+        public bool Foo(List<IDictionary<string, object>> foo) => true;
     }
 
     public abstract class AbstractQuery

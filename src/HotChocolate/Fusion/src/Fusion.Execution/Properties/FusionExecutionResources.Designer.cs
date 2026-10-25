@@ -9,21 +9,21 @@
 
 namespace HotChocolate.Fusion.Properties {
     using System;
-    
-    
+
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class FusionExecutionResources {
-        
+
         private static System.Resources.ResourceManager resourceMan;
-        
+
         private static System.Globalization.CultureInfo resourceCulture;
-        
+
         [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal FusionExecutionResources() {
         }
-        
+
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Resources.ResourceManager ResourceManager {
             get {
@@ -34,7 +34,7 @@ namespace HotChocolate.Fusion.Properties {
                 return resourceMan;
             }
         }
-        
+
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Globalization.CultureInfo Culture {
             get {
@@ -44,43 +44,43 @@ namespace HotChocolate.Fusion.Properties {
                 resourceCulture = value;
             }
         }
-        
+
         internal static string CompositeResultElement_GetBoolean_JsonElementHasWrongType {
             get {
                 return ResourceManager.GetString("CompositeResultElement_GetBoolean_JsonElementHasWrongType", resourceCulture);
             }
         }
-        
+
         internal static string SourceResultElement_GetBoolean_JsonElementHasWrongType {
             get {
                 return ResourceManager.GetString("SourceResultElement_GetBoolean_JsonElementHasWrongType", resourceCulture);
             }
         }
-        
+
         internal static string Rethrowable {
             get {
                 return ResourceManager.GetString("Rethrowable", resourceCulture);
             }
         }
-        
+
         internal static string JsonReaderHelper_TranscodeHelper_CannotTranscodeInvalidUtf8 {
             get {
                 return ResourceManager.GetString("JsonReaderHelper_TranscodeHelper_CannotTranscodeInvalidUtf8", resourceCulture);
             }
         }
-        
+
         internal static string ThrowHelper_ReadInvalidUTF16 {
             get {
                 return ResourceManager.GetString("ThrowHelper_ReadInvalidUTF16", resourceCulture);
             }
         }
-        
+
         internal static string ThrowHelper_ReadIncompleteUTF16 {
             get {
                 return ResourceManager.GetString("ThrowHelper_ReadIncompleteUTF16", resourceCulture);
             }
         }
-        
+
         internal static string FixedSizeArrayPool_Return_InvalidArraySize {
             get {
                 return ResourceManager.GetString("FixedSizeArrayPool_Return_InvalidArraySize", resourceCulture);
@@ -93,45 +93,81 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
 
+        internal static string DeferredMutationLookupRequiredException_NoLookupAvailable {
+            get {
+                return ResourceManager.GetString("DeferredMutationLookupRequiredException_NoLookupAvailable", resourceCulture);
+            }
+        }
+
         internal static string SourceSchemaRequestDispatcher_NodeNotRegisteredInGroup {
             get {
                 return ResourceManager.GetString("SourceSchemaRequestDispatcher_NodeNotRegisteredInGroup", resourceCulture);
             }
         }
 
-        internal static string SourceSchemaHttpClient_SubscriptionBatchNotSupported {
+        internal static string HttpSourceSchemaClient_SubscriptionBatchNotSupported {
             get {
-                return ResourceManager.GetString("SourceSchemaHttpClient_SubscriptionBatchNotSupported", resourceCulture);
+                return ResourceManager.GetString("HttpSourceSchemaClient_SubscriptionBatchNotSupported", resourceCulture);
             }
         }
 
-        internal static string SourceSchemaHttpClient_InvalidRequestIndex {
+        internal static string SourceSchemaClient_SubscriptionsNotSupportedByExecute {
             get {
-                return ResourceManager.GetString("SourceSchemaHttpClient_InvalidRequestIndex", resourceCulture);
+                return ResourceManager.GetString("SourceSchemaClient_SubscriptionsNotSupportedByExecute", resourceCulture);
             }
         }
 
-        internal static string SourceSchemaHttpClient_NoResponseChannelForNode {
+        internal static string SourceSchemaClient_SubscriptionsNotSupported {
             get {
-                return ResourceManager.GetString("SourceSchemaHttpClient_NoResponseChannelForNode", resourceCulture);
+                return ResourceManager.GetString("SourceSchemaClient_SubscriptionsNotSupported", resourceCulture);
             }
         }
 
-        internal static string SourceSchemaHttpClient_InvalidVariableIndex {
+        internal static string HttpSourceSchemaClient_InvalidAliasBatchResponse {
             get {
-                return ResourceManager.GetString("SourceSchemaHttpClient_InvalidVariableIndex", resourceCulture);
+                return ResourceManager.GetString("HttpSourceSchemaClient_InvalidAliasBatchResponse", resourceCulture);
             }
         }
 
-        internal static string SourceSchemaHttpClient_VariableIndexOutOfRange {
+        internal static string HttpSourceSchemaClient_InvalidRequestIndex {
             get {
-                return ResourceManager.GetString("SourceSchemaHttpClient_VariableIndexOutOfRange", resourceCulture);
+                return ResourceManager.GetString("HttpSourceSchemaClient_InvalidRequestIndex", resourceCulture);
             }
         }
 
-        internal static string SourceSchemaHttpClient_NoResultForNode {
+        internal static string HttpSourceSchemaClient_NoResponseChannelForNode {
             get {
-                return ResourceManager.GetString("SourceSchemaHttpClient_NoResultForNode", resourceCulture);
+                return ResourceManager.GetString("HttpSourceSchemaClient_NoResponseChannelForNode", resourceCulture);
+            }
+        }
+
+        internal static string HttpSourceSchemaClient_InvalidVariableIndex {
+            get {
+                return ResourceManager.GetString("HttpSourceSchemaClient_InvalidVariableIndex", resourceCulture);
+            }
+        }
+
+        internal static string HttpSourceSchemaClient_VariableIndexOutOfRange {
+            get {
+                return ResourceManager.GetString("HttpSourceSchemaClient_VariableIndexOutOfRange", resourceCulture);
+            }
+        }
+
+        internal static string HttpSourceSchemaClient_NoResultForNode {
+            get {
+                return ResourceManager.GetString("HttpSourceSchemaClient_NoResultForNode", resourceCulture);
+            }
+        }
+
+        internal static string FetchResultStore_InvalidRepresentationResultKind {
+            get {
+                return ResourceManager.GetString("FetchResultStore_InvalidRepresentationResultKind", resourceCulture);
+            }
+        }
+
+        internal static string FetchResultStore_RepresentationResultCountMismatch {
+            get {
+                return ResourceManager.GetString("FetchResultStore_RepresentationResultCountMismatch", resourceCulture);
             }
         }
 
@@ -153,15 +189,15 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
 
-        internal static string SourceSchemaRequestDispatcher_BatchResponseCountMismatch {
-            get {
-                return ResourceManager.GetString("SourceSchemaRequestDispatcher_BatchResponseCountMismatch", resourceCulture);
-            }
-        }
-
         internal static string OperationPlan_NodeNotFound {
             get {
                 return ResourceManager.GetString("OperationPlan_NodeNotFound", resourceCulture);
+            }
+        }
+
+        internal static string OperationPlan_IncrementalPlanParentNotFound {
+            get {
+                return ResourceManager.GetString("OperationPlan_IncrementalPlanParentNotFound", resourceCulture);
             }
         }
 
@@ -177,9 +213,99 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
 
+        internal static string PlanQueue_NodeLookupNotFound {
+            get {
+                return ResourceManager.GetString("PlanQueue_NodeLookupNotFound", resourceCulture);
+            }
+        }
+
         internal static string JsonOperationPlanParser_SingleOperationRequired {
             get {
                 return ResourceManager.GetString("JsonOperationPlanParser_SingleOperationRequired", resourceCulture);
+            }
+        }
+
+        internal static string NodeFieldExecutionNode_InvalidNodeIdFormat {
+            get {
+                return ResourceManager.GetString("NodeFieldExecutionNode_InvalidNodeIdFormat", resourceCulture);
+            }
+        }
+
+        internal static string FetchResultStore_InvalidTargetValueKind {
+            get {
+                return ResourceManager.GetString("FetchResultStore_InvalidTargetValueKind", resourceCulture);
+            }
+        }
+
+        internal static string DocumentRewriter_FieldDoesNotExistOnType {
+            get {
+                return ResourceManager.GetString("DocumentRewriter_FieldDoesNotExistOnType", resourceCulture);
+            }
+        }
+
+        internal static string DocumentRewriter_InvalidTypeConditionOnInlineFragment {
+            get {
+                return ResourceManager.GetString("DocumentRewriter_InvalidTypeConditionOnInlineFragment", resourceCulture);
+            }
+        }
+
+        internal static string DocumentRewriter_InvalidTypeConditionOnFragment {
+            get {
+                return ResourceManager.GetString("DocumentRewriter_InvalidTypeConditionOnFragment", resourceCulture);
+            }
+        }
+
+        internal static string DocumentRewriter_FragmentDoesNotExist {
+            get {
+                return ResourceManager.GetString("DocumentRewriter_FragmentDoesNotExist", resourceCulture);
+            }
+        }
+
+        internal static string DocumentRewriter_MutationFieldHasTooManyConditionVariants {
+            get {
+                return ResourceManager.GetString("DocumentRewriter_MutationFieldHasTooManyConditionVariants", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_MaxFieldCostReached {
+            get {
+                return ResourceManager.GetString("ErrorHelper_MaxFieldCostReached", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_MaxTypeCostReached {
+            get {
+                return ResourceManager.GetString("ErrorHelper_MaxTypeCostReached", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_MaxResponseSizeReached {
+            get {
+                return ResourceManager.GetString("ErrorHelper_MaxResponseSizeReached", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_ResponseSizeAnalysisNotEnabled {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ResponseSizeAnalysisNotEnabled", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_EmptyVariableBatch {
+            get {
+                return ResourceManager.GetString("ErrorHelper_EmptyVariableBatch", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_IncrementalDeliveryNotAcceptable {
+            get {
+                return ResourceManager.GetString("ErrorHelper_IncrementalDeliveryNotAcceptable", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_OperationKindNotAllowed {
+            get {
+                return ResourceManager.GetString("ErrorHelper_OperationKindNotAllowed", resourceCulture);
             }
         }
     }

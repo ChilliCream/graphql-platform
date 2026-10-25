@@ -1,0 +1,5 @@
+{
+  "message": "The directive extension `extend directive @unknown` targets an undefined directive.",
+  "code": "HC0116",
+  "extensions": {}
+}

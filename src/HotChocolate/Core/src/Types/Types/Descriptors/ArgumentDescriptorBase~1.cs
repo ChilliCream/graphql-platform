@@ -27,7 +27,7 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentCon
     /// <inheritdoc cref="IArgumentDescriptor.Deprecated(string)"/>
     protected void Deprecated(string? reason)
     {
-        if (string.IsNullOrEmpty(reason))
+        if (string.IsNullOrWhiteSpace(reason))
         {
             Deprecated();
         }

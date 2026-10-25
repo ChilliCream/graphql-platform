@@ -1,4 +1,5 @@
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Transport.Formatters;
 
 namespace HotChocolate.Fusion.Execution.Clients;
@@ -36,9 +37,10 @@ public sealed class InMemorySourceSchemaClientFactory
 
     /// <inheritdoc />
     protected override ISourceSchemaClient CreateClient(
+        FusionSchemaDefinition schema,
         InMemorySourceSchemaClientConfiguration configuration)
     {
         var proxy = new RequestExecutorProxy(_executorProvider, _executorEvents, configuration.Name);
-        return new InMemorySourceSchemaClient(proxy, _formatter);
+        return new InMemorySourceSchemaClient(proxy, _formatter, configuration.OnError);
     }
 }

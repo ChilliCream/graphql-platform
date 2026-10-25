@@ -21,6 +21,11 @@ public enum HttpRequestKind
     HttpGetSchema,
 
     /// <summary>
+    /// HTTP GET semantic non-null SDL request.
+    /// </summary>
+    HttpGetSemanticNonNullSchema,
+
+    /// <summary>
     /// HTTP POST GraphQL MultiPart Request.
     /// </summary>
     HttpMultiPart,
@@ -28,5 +33,10 @@ public enum HttpRequestKind
     /// <summary>
     /// HTTP POST GraphQL-SSE
     /// </summary>
-    HttpSse
+    HttpSse,
+
+    /// <summary>
+    /// HTTP QUERY GraphQL Request.
+    /// </summary>
+    HttpQuery
 }

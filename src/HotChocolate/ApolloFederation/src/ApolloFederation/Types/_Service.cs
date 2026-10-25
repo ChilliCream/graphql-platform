@@ -18,5 +18,5 @@ public sealed class _Service
 {
     [GraphQLName(WellKnownFieldNames.Sdl)]
     public string GetSdl(Schema schema)
-        => SchemaPrinter.Print(schema);
+        => schema.ToString();
 }

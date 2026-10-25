@@ -26,20 +26,20 @@ sourceSchemas:
         query: Query
       }
 
-      type Author @key(fields: "id") {
-        id: Int! @inaccessible
-      }
-
-      type Book {
-        id: Int!
-        title: String!
-        author: Author!
-      }
-
       type Query {
         bookById(id: Int!): Book @lookup
         inaccessibleText(text: String! = "This is the default!" @inaccessible): String!
         books: [Book!]!
+      }
+
+      type Author @key(fields: "id") {
+        id: Int! @inaccessible
+      }
+
+      type Book @key(fields: "id") {
+        id: Int!
+        title: String!
+        author: Author!
       }
     interactions:
       - request:
@@ -70,15 +70,15 @@ sourceSchemas:
         query: Query
       }
 
-      type Author {
-        id: Int!
-        name: String!
-      }
-
       type Query {
         authorById(id: Int!): Author @internal @lookup
         enumField(value: SomeEnum!): SomeEnum!
         shareable(input: SomeInput!): String!
+      }
+
+      type Author @key(fields: "id") {
+        id: Int!
+        name: String!
       }
 
       input SomeInput {
@@ -124,7 +124,7 @@ operationPlan:
             }
           }
         }
-      hash: 2f49c6c626f685fb744ca6d2c2d853a8
+      hash: 76b0e95680d5a604dcdc50c235d9f2b9
       searchSpace: 1
       expandedNodes: 2
   nodes:

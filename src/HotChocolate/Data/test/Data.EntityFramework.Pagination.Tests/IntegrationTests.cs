@@ -1,3 +1,4 @@
+using CookieCrumble.Resources;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
@@ -10,7 +11,7 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Pagination;
 using HotChocolate.Types.Pagination.Utilities;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
+using static CookieCrumble.TestEnvironment;
 
 namespace HotChocolate.Data;
 
@@ -29,10 +30,11 @@ public class IntegrationTests(PostgreSqlResource resource)
         var executor = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddDbContextCursorPagingProvider()
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(q => q
             .SetDocument(
@@ -48,12 +50,9 @@ public class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
                 """)
-            .SetGlobalState("printSQL", true));
+            .SetGlobalState("printSQL", true), Xunit.TestContext.Current.CancellationToken);
 
-        result.MatchMarkdownSnapshot(
-            postFix: TestEnvironment.TargetFramework == "NET10_0"
-                ? TestEnvironment.TargetFramework
-                : null);
+        result.MatchMarkdownSnapshot(Postfix([NET8_0, NET9_0], [NET10_0]));
     }
 
     [Fact]
@@ -65,10 +64,11 @@ public class IntegrationTests(PostgreSqlResource resource)
         var executor = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddSorting()
             .AddDbContextCursorPagingProvider()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(q => q
             .SetDocument(
@@ -84,12 +84,9 @@ public class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
                 """)
-            .SetGlobalState("printSQL", true));
+            .SetGlobalState("printSQL", true), Xunit.TestContext.Current.CancellationToken);
 
-        result.MatchMarkdownSnapshot(
-            postFix: TestEnvironment.TargetFramework == "NET10_0"
-                ? TestEnvironment.TargetFramework
-                : null);
+        result.MatchMarkdownSnapshot(Postfix([NET8_0, NET9_0], [NET10_0]));
     }
 
     [Fact]
@@ -101,10 +98,11 @@ public class IntegrationTests(PostgreSqlResource resource)
         var executor = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddDbContextCursorPagingProvider()
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(q => q
             .SetDocument(
@@ -121,12 +119,9 @@ public class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
                 """)
-            .SetGlobalState("printSQL", true));
+            .SetGlobalState("printSQL", true), Xunit.TestContext.Current.CancellationToken);
 
-        result.MatchMarkdownSnapshot(
-            postFix: TestEnvironment.TargetFramework == "NET10_0"
-                ? TestEnvironment.TargetFramework
-                : null);
+        result.MatchMarkdownSnapshot(Postfix([NET8_0, NET9_0], [NET10_0]));
     }
 
     [Fact]
@@ -138,10 +133,11 @@ public class IntegrationTests(PostgreSqlResource resource)
         var executor = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddDbContextCursorPagingProvider()
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(q => q
             .SetDocument(
@@ -152,7 +148,7 @@ public class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
                 """)
-            .SetGlobalState("printSQL", true));
+            .SetGlobalState("printSQL", true), Xunit.TestContext.Current.CancellationToken);
 
         result.MatchMarkdownSnapshot();
     }
@@ -166,11 +162,12 @@ public class IntegrationTests(PostgreSqlResource resource)
         var executor = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddTypeExtension(typeof(ProductConnectionExtensions))
             .AddDbContextCursorPagingProvider()
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(q => q
             .SetDocument(
@@ -181,12 +178,9 @@ public class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
                 """)
-            .SetGlobalState("printSQL", true));
+            .SetGlobalState("printSQL", true), Xunit.TestContext.Current.CancellationToken);
 
-        result.MatchMarkdownSnapshot(
-            postFix: TestEnvironment.TargetFramework == "NET10_0"
-                ? TestEnvironment.TargetFramework
-                : null);
+        result.MatchMarkdownSnapshot(Postfix([NET8_0, NET9_0], [NET10_0]));
     }
 
     [Fact]
@@ -198,10 +192,11 @@ public class IntegrationTests(PostgreSqlResource resource)
         var executor = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddDbContextCursorPagingProvider()
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(q => q
             .SetDocument(
@@ -217,12 +212,9 @@ public class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
                 """)
-            .SetGlobalState("printSQL", true));
+            .SetGlobalState("printSQL", true), Xunit.TestContext.Current.CancellationToken);
 
-        result.MatchMarkdownSnapshot(
-            postFix: TestEnvironment.TargetFramework == "NET10_0"
-                ? TestEnvironment.TargetFramework
-                : null);
+        result.MatchMarkdownSnapshot(Postfix([NET8_0, NET9_0], [NET10_0]));
     }
 
     [Fact]
@@ -234,10 +226,11 @@ public class IntegrationTests(PostgreSqlResource resource)
         var executor = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddDbContextCursorPagingProvider()
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(q => q
             .SetDocument(
@@ -253,12 +246,9 @@ public class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
                 """)
-            .SetGlobalState("printSQL", true));
+            .SetGlobalState("printSQL", true), Xunit.TestContext.Current.CancellationToken);
 
-        result.MatchMarkdownSnapshot(
-            postFix: TestEnvironment.TargetFramework == "NET10_0"
-                ? TestEnvironment.TargetFramework
-                : null);
+        result.MatchMarkdownSnapshot(Postfix([NET8_0, NET9_0], [NET10_0]));
     }
 
     [Fact]
@@ -270,10 +260,11 @@ public class IntegrationTests(PostgreSqlResource resource)
         var executor = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddSorting()
             .AddDbContextCursorPagingProvider()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(q => q
             .SetDocument(
@@ -291,12 +282,9 @@ public class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
                 """)
-            .SetGlobalState("printSQL", true));
+            .SetGlobalState("printSQL", true), Xunit.TestContext.Current.CancellationToken);
 
-        result.MatchMarkdownSnapshot(
-            postFix: TestEnvironment.TargetFramework == "NET10_0"
-                ? TestEnvironment.TargetFramework
-                : null);
+        result.MatchMarkdownSnapshot(Postfix([NET8_0, NET9_0], [NET10_0]));
     }
 
     [Fact]
@@ -308,10 +296,11 @@ public class IntegrationTests(PostgreSqlResource resource)
         var executor = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddSorting()
             .AddDbContextCursorPagingProvider()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(q => q
             .SetDocument(
@@ -329,12 +318,9 @@ public class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
                 """)
-            .SetGlobalState("printSQL", true));
+            .SetGlobalState("printSQL", true), Xunit.TestContext.Current.CancellationToken);
 
-        result.MatchMarkdownSnapshot(
-            postFix: TestEnvironment.TargetFramework == "NET10_0"
-                ? TestEnvironment.TargetFramework
-                : null);
+        result.MatchMarkdownSnapshot(Postfix([NET8_0, NET9_0], [NET10_0]));
     }
 
     [Fact]
@@ -346,10 +332,11 @@ public class IntegrationTests(PostgreSqlResource resource)
         var executor = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddSorting()
             .AddDbContextCursorPagingProvider()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(q => q
             .SetDocument(
@@ -368,12 +355,9 @@ public class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
                 """)
-            .SetGlobalState("printSQL", true));
+            .SetGlobalState("printSQL", true), Xunit.TestContext.Current.CancellationToken);
 
-        result.MatchMarkdownSnapshot(
-            postFix: TestEnvironment.TargetFramework == "NET10_0"
-                ? TestEnvironment.TargetFramework
-                : null);
+        result.MatchMarkdownSnapshot(Postfix([NET8_0, NET9_0], [NET10_0]));
     }
 
     [Fact]
@@ -385,10 +369,11 @@ public class IntegrationTests(PostgreSqlResource resource)
         var executor = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddSorting()
             .AddDbContextCursorPagingProvider()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(q => q
             .SetDocument(
@@ -407,12 +392,9 @@ public class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
                 """)
-            .SetGlobalState("printSQL", true));
+            .SetGlobalState("printSQL", true), Xunit.TestContext.Current.CancellationToken);
 
-        result.MatchMarkdownSnapshot(
-            postFix: TestEnvironment.TargetFramework == "NET10_0"
-                ? TestEnvironment.TargetFramework
-                : null);
+        result.MatchMarkdownSnapshot(Postfix([NET8_0, NET9_0], [NET10_0]));
     }
 
     [Fact]
@@ -424,11 +406,12 @@ public class IntegrationTests(PostgreSqlResource resource)
         var executor = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddSorting()
             .AddDbContextCursorPagingProvider()
             .ModifyPagingOptions(o => o.NullOrdering = NullOrdering.NativeNullsLast)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var firstResult = await executor.ExecuteAsync(
             """
@@ -439,7 +422,8 @@ public class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         var firstOperationResult = firstResult.ExpectOperationResult();
         var firstGraphQLError = firstOperationResult.Errors?.FirstOrDefault();
@@ -474,7 +458,8 @@ public class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         var secondOperationResult = secondResult.ExpectOperationResult();
         var secondGraphQLError = secondOperationResult.Errors?.FirstOrDefault();
@@ -496,10 +481,11 @@ public class IntegrationTests(PostgreSqlResource resource)
         var executor = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddSorting()
             .AddDbContextCursorPagingProvider()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var firstResult = await executor.ExecuteAsync(
             """
@@ -510,7 +496,8 @@ public class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         var firstOperationResult = firstResult.ExpectOperationResult();
         Assert.True(firstOperationResult.Errors is null or { Count: 0 }, firstResult.ToJson());
@@ -538,7 +525,8 @@ public class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         var secondOperationResult = secondResult.ExpectOperationResult();
         Assert.True(secondOperationResult.Errors is null or { Count: 0 }, secondResult.ToJson());

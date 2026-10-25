@@ -7,11 +7,13 @@ namespace Mocha.Middlewares;
 /// identifiers, headers, and addressing information for cross-process messaging.
 /// </summary>
 /// <remarks>
-/// All properties use init-only setters so envelopes are effectively immutable after construction.
+/// An unset <see cref="SentAt"/> is initialized immediately before transport dispatch.
 /// The copy constructor creates a deep copy of mutable state (headers) while sharing the read-only body buffer.
 /// </remarks>
 public sealed class MessageEnvelope
 {
+    private DateTimeOffset? _sentAt;
+
     /// <summary>
     /// Creates an empty envelope with default values.
     /// </summary>
@@ -43,6 +45,16 @@ public sealed class MessageEnvelope
         EnclosedMessageTypes = envelope.EnclosedMessageTypes;
         Host = envelope.Host;
     }
+
+    /// <summary>
+    /// Creates a copy of the specified envelope that owns its body buffer. Unlike the copy
+    /// constructor, which shares the source body, this clones the body so the copy stays valid
+    /// after the source (or the pooled buffer backing it) is reused.
+    /// </summary>
+    /// <param name="envelope">The source envelope to copy. Must not be <see langword="null"/>.</param>
+    /// <returns>A copy whose body is an independent buffer.</returns>
+    public static MessageEnvelope CopyWithOwnedBody(MessageEnvelope envelope)
+        => new(envelope) { Body = envelope.Body.ToArray() };
 
     /// <summary>
     /// Unique identifier for the message.
@@ -96,13 +108,17 @@ public sealed class MessageEnvelope
     public string? MessageType { get; init; }
 
     /// <summary>
-    /// UTC timestamp when the envelope was created.
+    /// UTC timestamp when the message was sent, or null before transport dispatch.
     /// </summary>
-    public DateTimeOffset? SentAt { get; init; }
+    public DateTimeOffset? SentAt
+    {
+        get => _sentAt;
+        init => _sentAt = value;
+    }
 
     /// <summary>
     /// Must be processed before this timestamp.
-    /// Used for TTL / NServiceBus "TimeToBeReceived".
+    /// Used for message time-to-live.
     /// </summary>
     public DateTimeOffset? DeliverBy { get; init; }
 
@@ -136,6 +152,8 @@ public sealed class MessageEnvelope
     /// Information about the remote host that produced this message (machine name, process ID, etc.).
     /// </summary>
     public IRemoteHostInfo? Host { get; init; }
+
+    internal void SetSentAt(DateTimeOffset sentAt) => _sentAt = sentAt;
 
     /// <summary>
     /// Well-known property name constants used for serialization and header mapping of envelope fields.

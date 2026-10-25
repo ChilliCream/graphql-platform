@@ -3,11 +3,11 @@
 ## SQL 0
 
 ```sql
--- @__p_0='11'
+-- @p='11'
 SELECT p."AnimalType" = 'Dog', p."Id", p."Name", p."AnimalType" = 'Cat'
 FROM "Pets" AS p
 ORDER BY p."Name", p."Id"
-LIMIT @__p_0
+LIMIT @p
 ```
 
 ## Expression 0

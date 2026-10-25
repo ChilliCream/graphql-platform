@@ -79,6 +79,7 @@ namespace TestNamespace
 
                     configuration.Type = typeInspector.GetTypeRef(typeof(global::TestNamespace.Brand), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(global::TestNamespace.Brand);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 
@@ -114,6 +115,11 @@ namespace TestNamespace
                         fieldDescriptor,
                         configuration.Member,
                         new global::HotChocolate.Types.BindMemberAttribute("BrandId"));
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetBrandAsync_product(),
+                        fieldDescriptor);
+
                     configuration.ConfigurationsAreApplied = true;
                     fieldDescriptor.CreateConfiguration();
 
@@ -134,6 +140,7 @@ namespace TestNamespace
                         typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("int")));
                     configuration.ResultType = typeof(int);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 

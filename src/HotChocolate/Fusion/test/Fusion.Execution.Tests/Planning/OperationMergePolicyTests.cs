@@ -1,4 +1,6 @@
+using System.Text;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using Microsoft.Extensions.ObjectPool;
@@ -109,6 +111,26 @@ public class OperationMergePolicyTests : FusionTestBase
     }
 
     [Fact]
+    public void Merge_Should_Dedup_Into_Single_Batch_When_Forwarded_Literal_Is_MultiByte()
+    {
+        // arrange
+        // The canonical plan signature is computed over UTF-8 bytes. A multi-byte
+        // literal ("café") in the forwarded selection combined with the
+        // __fusion_N_ variable-prefix rewriting would break dedup if the signature
+        // used character indexing instead of byte indexing.
+        var schema = CreateMultiByteLiteralSchema();
+
+        // act
+        var plan = PlanOperation(schema, MultiByteLiteralQuery, OperationMergePolicy.Aggressive);
+
+        // assert
+        var batchOps = GetBatchOperationsForSchema(plan, "b");
+        Assert.Single(batchOps);
+        Assert.Equal(2, batchOps[0].Targets.Length);
+        Assert.Contains("café", Encoding.UTF8.GetString(batchOps[0].SourceText.Value.Span));
+    }
+
+    [Fact]
     public void Balanced_Produces_More_Nodes_Than_Aggressive_For_Distant_Depths()
     {
         // arrange
@@ -191,7 +213,7 @@ public class OperationMergePolicyTests : FusionTestBase
 
         var operationDoc = Utf8GraphQLParser.Parse(operationText);
 
-        var rewriter = new Rewriters.DocumentRewriter(schema);
+        var rewriter = new DocumentRewriter(schema);
         var rewritten = rewriter.RewriteDocument(operationDoc, operationName: null);
         var operation = rewritten.Definitions.OfType<OperationDefinitionNode>().First();
 
@@ -201,7 +223,8 @@ public class OperationMergePolicyTests : FusionTestBase
             compiler,
             new OperationPlannerOptions
             {
-                MergePolicy = mergePolicy
+                MergePolicy = mergePolicy,
+                EnableEntityReuseSplitting = false
             });
         const string id = "123456789101112";
         return planner.CreatePlan(id, id, id, operation);
@@ -438,4 +461,572 @@ public class OperationMergePolicyTests : FusionTestBase
           }
         }
         """;
+
+    private static FusionSchemaDefinition CreateMultiByteLiteralSchema()
+    {
+        return ComposeSchema(
+            """
+            # name: a
+            schema {
+              query: Query
+            }
+
+            type Query {
+              first: Product
+              second: Product
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+            }
+            """,
+            """
+            # name: b
+            schema {
+              query: Query
+            }
+
+            type Query {
+              productById(id: ID! @is(field: "id")): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              translation(language: String!): String!
+            }
+            """);
+    }
+
+    private const string MultiByteLiteralQuery =
+        """
+        {
+          first {
+            id
+            translation(language: "café")
+          }
+          second {
+            id
+            translation(language: "café")
+          }
+        }
+        """;
+    [Fact]
+    public void Plan_Should_KeepIdenticalLookupsSeparate_When_MergePolicyIsNoneAndGroupingIsDisabled()
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { topProduct { name } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.None,
+                EnableRequestGrouping = false
+            });
+
+        // assert
+        var nodes = plan.AllNodes.Where(n => n.SchemaName == "c").ToArray();
+        Assert.Equal(2, nodes.Length);
+        Assert.All(nodes, node => Assert.IsType<OperationExecutionNode>(node));
+    }
+
+    [Fact]
+    public void Plan_Should_BatchSeparateLookups_When_MergePolicyIsNone()
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { topProduct { name } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.None,
+                EnableRequestGrouping = true
+            });
+
+        // assert
+        var nodes = plan.AllNodes.Where(n => n.SchemaName == "c").ToArray();
+        var operations = nodes.OfType<OperationBatchExecutionNode>()
+            .SelectMany(n => n.Operations.ToArray()).ToArray();
+        Assert.Single(nodes);
+        Assert.Equal(2, operations.Length);
+        Assert.All(operations, operation => Assert.IsType<SingleOperationDefinition>(operation));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_MergeSameDepthLookups_When_MergePolicyIsConservative(bool enableRequestGrouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { topProduct { name } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.Conservative,
+                EnableRequestGrouping = enableRequestGrouping
+            });
+
+        // assert
+        var nodes = plan.AllNodes.Where(n => n.SchemaName == "c").ToArray();
+        var operations = nodes.OfType<OperationBatchExecutionNode>()
+            .SelectMany(n => n.Operations.ToArray()).ToArray();
+        Assert.Single(nodes);
+        Assert.Single(operations);
+        Assert.Contains(operations, operation => operation is BatchOperationDefinition { Targets.Length: 2 });
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_MergeSameDepthLookups_When_MergePolicyIsBalanced(bool enableRequestGrouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { topProduct { name } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.Balanced,
+                EnableRequestGrouping = enableRequestGrouping
+            });
+
+        // assert
+        var nodes = plan.AllNodes.Where(n => n.SchemaName == "c").ToArray();
+        var operations = nodes.OfType<OperationBatchExecutionNode>()
+            .SelectMany(n => n.Operations.ToArray()).ToArray();
+        Assert.Single(nodes);
+        Assert.Single(operations);
+        Assert.Contains(operations, operation => operation is BatchOperationDefinition { Targets.Length: 2 });
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_MergeSameDepthLookups_When_MergePolicyIsAggressive(bool enableRequestGrouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { topProduct { name } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.Aggressive,
+                EnableRequestGrouping = enableRequestGrouping
+            });
+
+        // assert
+        var nodes = plan.AllNodes.Where(n => n.SchemaName == "c").ToArray();
+        var operations = nodes.OfType<OperationBatchExecutionNode>()
+            .SelectMany(n => n.Operations.ToArray()).ToArray();
+        Assert.Single(nodes);
+        Assert.Single(operations);
+        Assert.Contains(operations, operation => operation is BatchOperationDefinition { Targets.Length: 2 });
+    }
+
+    [Fact]
+    public void Plan_Should_KeepUnrelatedLookupsSeparate_When_RequestGroupingIsDisabled()
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { topProduct { name } }
+              other: products { price }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.Aggressive,
+                EnableRequestGrouping = false
+            });
+
+        // assert
+        var nodes = plan.AllNodes.Where(n => n.SchemaName == "c").ToArray();
+        var operations = nodes.OfType<OperationBatchExecutionNode>()
+            .SelectMany(n => n.Operations.ToArray()).ToArray();
+        Assert.Equal(2, nodes.Length);
+        Assert.Single(operations);
+        Assert.Contains(operations, operation => operation is BatchOperationDefinition { Targets.Length: 2 });
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_KeepAdjacentDepthLookupsSeparate_When_MergePolicyIsNone(bool enableRequestGrouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { featured { name } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.None,
+                EnableRequestGrouping = enableRequestGrouping
+            });
+
+        // assert
+        var nodes = plan.AllNodes.Where(n => n.SchemaName == "c").ToArray();
+        Assert.Equal(2, nodes.Length);
+        Assert.All(nodes, node => Assert.IsType<OperationExecutionNode>(node));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_KeepDistantDepthLookupsSeparate_When_MergePolicyIsNone(bool enableRequestGrouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { collection { featured { name } } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.None,
+                EnableRequestGrouping = enableRequestGrouping
+            });
+
+        // assert
+        var nodes = plan.AllNodes.Where(n => n.SchemaName == "c").ToArray();
+        Assert.Equal(2, nodes.Length);
+        Assert.All(nodes, node => Assert.IsType<OperationExecutionNode>(node));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_KeepAdjacentDepthLookupsSeparate_When_MergePolicyIsConservative(bool enableRequestGrouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { featured { name } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.Conservative,
+                EnableRequestGrouping = enableRequestGrouping
+            });
+
+        // assert
+        var nodes = plan.AllNodes.Where(n => n.SchemaName == "c").ToArray();
+        Assert.Equal(2, nodes.Length);
+        Assert.All(nodes, node => Assert.IsType<OperationExecutionNode>(node));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_KeepDistantDepthLookupsSeparate_When_MergePolicyIsConservative(bool enableRequestGrouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { collection { featured { name } } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.Conservative,
+                EnableRequestGrouping = enableRequestGrouping
+            });
+
+        // assert
+        var nodes = plan.AllNodes.Where(n => n.SchemaName == "c").ToArray();
+        Assert.Equal(2, nodes.Length);
+        Assert.All(nodes, node => Assert.IsType<OperationExecutionNode>(node));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_MergeAdjacentDepthLookups_When_MergePolicyIsBalanced(bool enableRequestGrouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { featured { name } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.Balanced,
+                EnableRequestGrouping = enableRequestGrouping,
+                EnableEntityReuseSplitting = false
+            });
+
+        // assert
+        var nodes = plan.AllNodes.Where(n => n.SchemaName == "c").ToArray();
+        var operations = nodes.OfType<OperationBatchExecutionNode>()
+            .SelectMany(n => n.Operations.ToArray()).ToArray();
+        Assert.Single(nodes);
+        Assert.Single(operations);
+        Assert.Contains(operations, operation => operation is BatchOperationDefinition { Targets.Length: 2 });
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_KeepDistantDepthLookupsSeparate_When_MergePolicyIsBalanced(bool enableRequestGrouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { collection { featured { name } } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.Balanced,
+                EnableRequestGrouping = enableRequestGrouping
+            });
+
+        // assert
+        var nodes = plan.AllNodes.Where(n => n.SchemaName == "c").ToArray();
+        Assert.Equal(2, nodes.Length);
+        Assert.All(nodes, node => Assert.IsType<OperationExecutionNode>(node));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_MergeAdjacentDepthLookups_When_MergePolicyIsAggressive(bool enableRequestGrouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { featured { name } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.Aggressive,
+                EnableRequestGrouping = enableRequestGrouping,
+                EnableEntityReuseSplitting = false
+            });
+
+        // assert
+        var nodes = plan.AllNodes.Where(n => n.SchemaName == "c").ToArray();
+        var operations = nodes.OfType<OperationBatchExecutionNode>()
+            .SelectMany(n => n.Operations.ToArray()).ToArray();
+        Assert.Single(nodes);
+        Assert.Single(operations);
+        Assert.Contains(operations, operation => operation is BatchOperationDefinition { Targets.Length: 2 });
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_MergeDistantDepthLookups_When_MergePolicyIsAggressive(bool enableRequestGrouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands { collection { featured { name } } }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.Aggressive,
+                EnableRequestGrouping = enableRequestGrouping,
+                EnableEntityReuseSplitting = false
+            });
+
+        // assert
+        var nodes = plan.AllNodes.Where(n => n.SchemaName == "c").ToArray();
+        var operations = nodes.OfType<OperationBatchExecutionNode>()
+            .SelectMany(n => n.Operations.ToArray()).ToArray();
+        Assert.Single(nodes);
+        Assert.Single(operations);
+        Assert.Contains(operations, operation => operation is BatchOperationDefinition { Targets.Length: 2 });
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Plan_Should_KeepDistantLookupsSeparate_When_BalancedMergesPassThroughAdjacentDepths(bool enableRequestGrouping)
+    {
+        // arrange
+        var schema = CreateLookupPolicySchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products { name }
+              brands {
+                featured { name }
+                collection { featured { name } }
+              }
+            }
+            """,
+            new OperationPlannerOptions
+            {
+                MergePolicy = OperationMergePolicy.Balanced,
+                EnableRequestGrouping = enableRequestGrouping,
+                EnableEntityReuseSplitting = false
+            });
+
+        // assert
+        var nodes = plan.AllNodes.Where(n => n.SchemaName == "c").ToArray();
+        var operations = nodes.OfType<OperationBatchExecutionNode>()
+            .SelectMany(n => n.Operations.ToArray()).ToArray();
+        Assert.Equal(2, nodes.Length);
+        var merged = Assert.IsType<BatchOperationDefinition>(Assert.Single(operations));
+        Assert.Equal(
+            ["$.brands.featured", "$.products"],
+            merged.Targets.ToArray().Select(t => t.ToString()).Order(StringComparer.Ordinal));
+    }
+
+    private static FusionSchemaDefinition CreateLookupPolicySchema()
+        => ComposeSchema(
+            """
+            type Query {
+              products: [Product!]!
+              brands: [Brand!]!
+            }
+
+            type Product @key(fields: "id") { id: ID! }
+
+            type Brand @key(fields: "id") {
+              id: ID!
+              topProduct: Product!
+            }
+            """,
+            """
+            type Query {
+              brandById(id: ID! @is(field: "id")): Brand @lookup @internal
+            }
+
+            type Brand @key(fields: "id") {
+              id: ID!
+              featured: Product!
+              collection: Collection!
+            }
+
+            type Collection @key(fields: "id") { id: ID! }
+
+            type Product @key(fields: "id") { id: ID! }
+            """,
+            """
+            type Query {
+              productById(id: ID! @is(field: "id")): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              name: String!
+              price: Int!
+            }
+            """,
+            """
+            type Query {
+              collectionById(id: ID! @is(field: "id")): Collection @lookup @internal
+            }
+
+            type Collection @key(fields: "id") {
+              id: ID!
+              featured: Product!
+            }
+
+            type Product @key(fields: "id") { id: ID! }
+            """);
 }

@@ -75,7 +75,7 @@ public class AsyncManualResetEventTests
         var task1 = autoResetEvent.WaitAsync(CancellationToken.None);
         var task2 = autoResetEvent.WaitAsync(CancellationToken.None);
         autoResetEvent.Set();
-        await Task.Delay(100); // Delay to allow the event to propagate
+        await Task.Delay(100, TestContext.Current.CancellationToken); // Delay to allow the event to propagate
 
         // Assert
         Assert.True(task1.IsCompleted ^ task2.IsCompleted);
@@ -92,7 +92,7 @@ public class AsyncManualResetEventTests
         var task2 = autoResetEvent.WaitAsync(CancellationToken.None);
         autoResetEvent.Set();
         autoResetEvent.Set();
-        await Task.Delay(100); // Delay to allow the event to propagate
+        await Task.Delay(100, TestContext.Current.CancellationToken); // Delay to allow the event to propagate
 
         // Assert
         Assert.True(task1.IsCompleted && task2.IsCompleted);
@@ -107,7 +107,7 @@ public class AsyncManualResetEventTests
         // Act
         var task = autoResetEvent.WaitAsync(CancellationToken.None);
         autoResetEvent.Dispose();
-        await Task.Delay(100); // Delay to allow the event to propagate
+        await Task.Delay(100, TestContext.Current.CancellationToken); // Delay to allow the event to propagate
 
         // Assert
         Assert.True(task.IsCanceled);

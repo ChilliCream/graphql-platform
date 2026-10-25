@@ -34,7 +34,8 @@ public class OperationPlannerConfigurationTests : FusionTestBase
                     }
                     """));
 
-        var executor = await services.BuildServiceProvider().GetRequestExecutorAsync();
+        var executor = await services.BuildServiceProvider().GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var planner = executor.Schema.Services.GetRequiredService<OperationPlanner>();

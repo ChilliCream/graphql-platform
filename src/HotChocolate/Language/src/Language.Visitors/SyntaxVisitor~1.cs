@@ -26,7 +26,6 @@ public partial class SyntaxVisitor<TContext> : ISyntaxVisitor<TContext>
     /// <summary>
     /// The visitor default action.
     /// </summary>
-    /// <value></value>
     protected virtual ISyntaxVisitorAction DefaultAction { get; }
 
     /// <summary>

@@ -15,9 +15,9 @@ response:
     {
       "data": {
         "product": {
-          "id": "UHJvZHVjdDox",
+          "id": "UHJvZHVjdDoxMDQzMzExNzcz",
           "brand": {
-            "id": "QnJhbmQ6Mg==",
+            "id": "QnJhbmQ6MTk0NzM3NjE4Mw==",
             "name": null
           }
         }
@@ -40,6 +40,10 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        product: Product
+      }
+
       type Brand @key(fields: "id") {
         id: ID!
       }
@@ -47,10 +51,6 @@ sourceSchemas:
       type Product {
         id: ID!
         brand: Brand
-      }
-
-      type Query {
-        product: Product
       }
     interactions:
       - request:
@@ -70,9 +70,9 @@ sourceSchemas:
               {
                 "data": {
                   "product": {
-                    "id": "UHJvZHVjdDox",
+                    "id": "UHJvZHVjdDoxMDQzMzExNzcz",
                     "brand": {
-                      "id": "QnJhbmQ6Mg=="
+                      "id": "QnJhbmQ6MTk0NzM3NjE4Mw=="
                     }
                   }
                 }
@@ -83,13 +83,13 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        brandById(id: ID!): Brand @lookup
+      }
+
       type Brand {
         id: ID!
         name: String @error
-      }
-
-      type Query {
-        brandById(id: ID!): Brand @lookup
       }
     interactions:
       - request:
@@ -102,7 +102,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_id": "QnJhbmQ6Mg=="
+              "__fusion_1_id": "QnJhbmQ6MTk0NzM3NjE4Mw=="
             }
         response:
           results:
@@ -136,7 +136,7 @@ operationPlan:
             }
           }
         }
-      hash: e358ecef0b90dbe58021a2df1c597e63
+      hash: f3f0091db4a3041042e36f1f67ca524d
       searchSpace: 1
       expandedNodes: 2
   nodes:

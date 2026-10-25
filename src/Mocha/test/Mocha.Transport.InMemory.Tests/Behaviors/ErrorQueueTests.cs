@@ -20,14 +20,12 @@ public class ErrorQueueTests
             .AddConsumer<ErrorSpyConsumer>()
             .AddInMemory(t =>
             {
-                t.Endpoint("handler-ep")
+                t.Queue("handler-q")
                     .Handler<ThrowingOrderHandler>()
-                    .Queue("handler-q")
-                    .FaultEndpoint("memory:///q/handler-q_error");
+                    .FaultEndpoint(new Uri("memory:///q/handler-q_error"));
 
-                t.Endpoint("error-ep")
+                t.Queue("handler-q_error")
                     .Consumer<ErrorSpyConsumer>()
-                    .Queue("handler-q_error")
                     .Kind(ReceiveEndpointKind.Error);
             })
             .BuildServiceProvider();
@@ -41,12 +39,9 @@ public class ErrorQueueTests
         // assert - faulted message lands in error queue with fault headers
         Assert.True(await capture.WaitAsync(s_timeout), "Error consumer did not receive the faulted message");
         var headers = Assert.Single(capture.CapturedHeaders);
-        Assert.True(headers.TryGetValue("fault-exception-type", out var exType));
-        Assert.Contains("InvalidOperationException", (string?)exType);
-        Assert.True(headers.TryGetValue("fault-message", out var faultMsg));
-        Assert.Equal("Handler failed deliberately", (string?)faultMsg);
-        Assert.True(headers.ContainsKey("fault-stack-trace"));
-        Assert.True(headers.ContainsKey("fault-timestamp"));
+        Assert.Equal(FaultHeaders.ExpectedShape(), FaultHeaders.Shape(headers));
+        Assert.Contains("InvalidOperationException", (string?)headers[FaultHeaders.ExceptionType]);
+        Assert.Equal("Handler failed deliberately", headers[FaultHeaders.Message]);
     }
 
     [Fact]
@@ -61,14 +56,12 @@ public class ErrorQueueTests
             .AddConsumer<ErrorSpySendConsumer>()
             .AddInMemory(t =>
             {
-                t.Endpoint("payment-ep")
+                t.Queue("payment-q")
                     .Handler<ThrowingPaymentHandler>()
-                    .Queue("payment-q")
-                    .FaultEndpoint("memory:///q/payment-q_error");
+                    .FaultEndpoint(new Uri("memory:///q/payment-q_error"));
 
-                t.Endpoint("error-ep")
+                t.Queue("payment-q_error")
                     .Consumer<ErrorSpySendConsumer>()
-                    .Queue("payment-q_error")
                     .Kind(ReceiveEndpointKind.Error);
 
                 t.DispatchEndpoint("payment-dispatch").ToQueue("payment-q").Send<ProcessPayment>();
@@ -84,7 +77,7 @@ public class ErrorQueueTests
         // assert - faulted message lands in error queue
         Assert.True(await capture.WaitAsync(s_timeout), "Error consumer did not receive the faulted message");
         var headers = Assert.Single(capture.CapturedHeaders);
-        Assert.True(headers.TryGetValue("fault-exception-type", out var exType));
+        Assert.True(headers.TryGetValue(FaultHeaders.ExceptionType, out var exType));
         Assert.Contains("InvalidOperationException", (string?)exType);
     }
 
@@ -100,14 +93,12 @@ public class ErrorQueueTests
             .AddConsumer<ErrorSpyConsumer>()
             .AddInMemory(t =>
             {
-                t.Endpoint("handler-ep")
+                t.Queue("handler-q")
                     .Handler<ThrowingOrderHandler>()
-                    .Queue("handler-q")
-                    .FaultEndpoint("memory:///q/handler-q_error");
+                    .FaultEndpoint(new Uri("memory:///q/handler-q_error"));
 
-                t.Endpoint("error-ep")
+                t.Queue("handler-q_error")
                     .Consumer<ErrorSpyConsumer>()
-                    .Queue("handler-q_error")
                     .Kind(ReceiveEndpointKind.Error);
             })
             .BuildServiceProvider();

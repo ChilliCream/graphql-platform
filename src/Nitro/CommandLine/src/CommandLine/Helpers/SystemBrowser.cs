@@ -11,7 +11,10 @@ using static ChilliCream.Nitro.CommandLine.Helpers.OidcConfiguration;
 
 namespace ChilliCream.Nitro.CommandLine.Helpers;
 
-internal class SystemBrowser(int? port = null, string? path = null) : IBrowser
+internal class SystemBrowser(
+    Action<string, bool> onAuthorizationUrl,
+    int? port = null,
+    string? path = null) : IBrowser
 {
     public int Port { get; } = port ?? GetRandomUnusedPort();
 
@@ -23,7 +26,8 @@ internal class SystemBrowser(int? port = null, string? path = null) : IBrowser
     {
         await using var listener = new LoopbackHttpListener(Port, path);
 
-        Open(options.StartUrl);
+        var browserOpened = TryOpen(options.StartUrl);
+        onAuthorizationUrl(options.StartUrl, browserOpened);
 
         try
         {
@@ -54,32 +58,52 @@ internal class SystemBrowser(int? port = null, string? path = null) : IBrowser
         }
     }
 
-    public static void Open(string url)
+    public static bool TryOpen(string url)
     {
         try
         {
-            Process.Start(url);
+            using var process = Process.Start(url);
+            return process is not null;
         }
         catch
         {
             // hack because of this: https://github.com/dotnet/corefx/issues/10361
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            try
             {
-                url = url.Replace("&", "^&");
-                Process.Start(
-                    new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
+                ProcessStartInfo? startInfo = null;
+
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    url = url.Replace("&", "^&");
+                    startInfo = new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true };
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    startInfo = new ProcessStartInfo("xdg-open", url);
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    startInfo = new ProcessStartInfo("open", url);
+                }
+
+                if (startInfo is null)
+                {
+                    return false;
+                }
+
+                using var process = Process.Start(startInfo);
+
+                if (process is null)
+                {
+                    return false;
+                }
+
+                // A fast non-zero exit means the opener could not hand the URL to a browser.
+                return !process.WaitForExit(2000) || process.ExitCode == 0;
             }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            catch
             {
-                Process.Start("xdg-open", url);
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                Process.Start("open", url);
-            }
-            else
-            {
-                throw;
+                return false;
             }
         }
     }
@@ -96,7 +120,7 @@ internal class SystemBrowser(int? port = null, string? path = null) : IBrowser
 
 file sealed class LoopbackHttpListener : IAsyncDisposable
 {
-    private const int DefaultTimeout = 60 * 5; // 5 mins (in seconds)
+    private const int DefaultTimeout = 60 * 10; // 10 mins (in seconds)
 
     private readonly IWebHost _host;
     private readonly TaskCompletionSource<string> _source = new();

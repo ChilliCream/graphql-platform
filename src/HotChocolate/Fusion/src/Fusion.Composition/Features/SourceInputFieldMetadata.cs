@@ -4,6 +4,8 @@ namespace HotChocolate.Fusion.Features;
 
 internal sealed class SourceInputFieldMetadata
 {
+    public bool HasEventCursorDirective { get; set; }
+
     public bool HasIsDirective { get; set; }
 
     public bool HasRequireDirective { get; set; }

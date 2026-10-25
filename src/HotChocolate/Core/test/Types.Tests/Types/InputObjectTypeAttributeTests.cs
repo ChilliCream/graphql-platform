@@ -85,7 +85,8 @@ public class InputObjectTypeAttributeTests
             .ExecuteAsync(
                 OperationRequestBuilder.New()
                     .SetDocument("{ foo(a: { }) { foo bar baz qux quux } }")
-                    .Build())
+                    .Build(),
+                TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -114,7 +115,8 @@ public class InputObjectTypeAttributeTests
                                 }
                             }")
                     .SetVariableValues(new Dictionary<string, object?> { { "q", new Dictionary<string, object>() } })
-                    .Build())
+                    .Build(),
+                TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 

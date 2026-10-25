@@ -1,13 +1,13 @@
-﻿schema {
+schema {
   query: Query
-}
-
-type Person {
-  name: String!
-  dynamic: String!
 }
 
 type Query {
   hello: String!
   person: Person!
+}
+
+type Person {
+  name: String!
+  dynamic: String!
 }

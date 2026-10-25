@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
 using Mocha.Middlewares;
 using Mocha.Outbox;
@@ -13,6 +14,33 @@ public sealed class PostgresMessageOutboxTests : IClassFixture<PostgresFixture>
     public PostgresMessageOutboxTests(PostgresFixture fixture)
     {
         _fixture = fixture;
+    }
+
+    [Fact]
+    public async Task PersistAsync_Should_UseNamedOptions_When_TransactionRequirementIsConfigured()
+    {
+        // arrange
+        var connectionString = await _fixture.CreateDatabaseAsync();
+        var services = new ServiceCollection();
+        services.AddDbContext<TestDbContext>(options => options.UseTestNpgsql(connectionString));
+        services.AddSingleton<IOutboxSignal, ResilientOutboxSignal>();
+        services.AddMessageBus().AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox());
+        services.PostConfigure<PostgresOutboxOptions>(
+            typeof(TestDbContext).FullName,
+            options => options.RequireTransaction = false);
+        await using var provider = services.BuildServiceProvider();
+        await using var scope = provider.CreateAsyncScope();
+        var context = scope.ServiceProvider.GetRequiredService<TestDbContext>();
+        await context.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
+        var outbox = scope.ServiceProvider.GetRequiredService<IMessageOutbox>();
+        var envelope = CreateTestEnvelope();
+        envelope.Headers!.Set(MessageHeaders.MessageKind, MessageKind.Publish);
+
+        // act
+        await outbox.PersistAsync(envelope, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(1, await context.Set<OutboxMessage>().CountAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -113,11 +141,11 @@ public sealed class PostgresMessageOutboxTests : IClassFixture<PostgresFixture>
     public void Dispose_Should_NotThrow_When_Called()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<TestDbContext>().UseNpgsql("Host=localhost;Database=test").Options;
+        var options = new DbContextOptionsBuilder<TestDbContext>().UseTestNpgsql("Host=localhost;Database=test").Options;
         using var context = new TestDbContext(options);
         var queries = PostgresMessageOutboxQueries.From(new OutboxTableInfo());
         var signal = new StubOutboxSignal();
-        var outbox = new PostgresMessageOutbox(context, signal, queries.InsertEnvelope);
+        var outbox = new PostgresMessageOutbox(context, signal, queries.InsertEnvelope, requireTransaction: false);
 
         // Act & Assert
         var ex = Record.Exception(outbox.Dispose);
@@ -130,12 +158,12 @@ public sealed class PostgresMessageOutboxTests : IClassFixture<PostgresFixture>
         StubOutboxSignal Signal)> CreateOutboxAsync()
     {
         var connectionString = await _fixture.CreateDatabaseAsync();
-        var options = new DbContextOptionsBuilder<TestDbContext>().UseNpgsql(connectionString).Options;
+        var options = new DbContextOptionsBuilder<TestDbContext>().UseTestNpgsql(connectionString).Options;
         var context = new TestDbContext(options);
         await context.Database.EnsureCreatedAsync();
         var queries = PostgresMessageOutboxQueries.From(new OutboxTableInfo());
         var signal = new StubOutboxSignal();
-        var outbox = new PostgresMessageOutbox(context, signal, queries.InsertEnvelope);
+        var outbox = new PostgresMessageOutbox(context, signal, queries.InsertEnvelope, requireTransaction: false);
         return (context, outbox, signal);
     }
 
@@ -147,6 +175,7 @@ public sealed class PostgresMessageOutboxTests : IClassFixture<PostgresFixture>
             MessageType = "urn:message:test-event",
             DestinationAddress = "memory://test/queue",
             SentAt = DateTimeOffset.UtcNow,
+            Headers = new Headers(),
             Body = "{\"value\":42}"u8.ToArray()
         };
     }

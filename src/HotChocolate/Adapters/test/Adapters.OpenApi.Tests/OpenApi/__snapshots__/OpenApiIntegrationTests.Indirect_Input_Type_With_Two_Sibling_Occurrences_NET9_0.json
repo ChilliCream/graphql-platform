@@ -1,0 +1,59 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "HotChocolate.Adapters.OpenApi.Tests | v1",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/two-children": {
+      "post": {
+        "operationId": "submitTwoChildren",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "left": {
+                    "$ref": "#/components/schemas/SelfReferencingInput"
+                  },
+                  "right": {
+                    "$ref": "#/components/schemas/SelfReferencingInput"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": null,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "SelfReferencingInput": {
+        "type": "object",
+        "properties": {
+          "child": {
+            "$ref": "#/components/schemas/SelfReferencingInput"
+          },
+          "value": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

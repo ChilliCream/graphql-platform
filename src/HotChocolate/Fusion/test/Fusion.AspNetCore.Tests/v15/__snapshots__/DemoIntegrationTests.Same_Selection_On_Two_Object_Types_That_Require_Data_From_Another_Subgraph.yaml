@@ -21,14 +21,14 @@ response:
       "data": {
         "item1": {
           "product": {
-            "id": "UHJvZHVjdDo0",
-            "name": "Product: UHJvZHVjdDo0"
+            "id": "UHJvZHVjdDoyNDQ2OTY1NDg4",
+            "name": "Product: UHJvZHVjdDoyNDQ2OTY1NDg4"
           }
         },
         "item2": {
           "product": {
-            "id": "UHJvZHVjdDoz",
-            "name": "Product: UHJvZHVjdDoz"
+            "id": "UHJvZHVjdDo1NjY0NDI0NjA=",
+            "name": "Product: UHJvZHVjdDo1NjY0NDI0NjA="
           }
         }
       }
@@ -40,8 +40,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node @key(fields: "id") {
-        id: ID!
+      type Query {
+        item1: Item1!
+        item2: Item2!
       }
 
       type Item1 {
@@ -56,9 +57,8 @@ sourceSchemas:
         id: ID!
       }
 
-      type Query {
-        item1: Item1!
-        item2: Item2!
+      interface Node @key(fields: "id") {
+        id: ID!
       }
     interactions:
       - request:
@@ -83,12 +83,12 @@ sourceSchemas:
                 "data": {
                   "item1": {
                     "product": {
-                      "id": "UHJvZHVjdDo0"
+                      "id": "UHJvZHVjdDoyNDQ2OTY1NDg4"
                     }
                   },
                   "item2": {
                     "product": {
-                      "id": "UHJvZHVjdDoz"
+                      "id": "UHJvZHVjdDo1NjY0NDI0NjA="
                     }
                   }
                 }
@@ -99,8 +99,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup
+        nodes(ids: [ID!]!): [Node]!
       }
 
       type Product implements Node {
@@ -108,9 +109,8 @@ sourceSchemas:
         name: String!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup
-        nodes(ids: [ID!]!): [Node]!
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
@@ -127,10 +127,10 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "UHJvZHVjdDoz"
+                "__fusion_1_id": "UHJvZHVjdDo1NjY0NDI0NjA="
               },
               {
-                "__fusion_1_id": "UHJvZHVjdDo0"
+                "__fusion_1_id": "UHJvZHVjdDoyNDQ2OTY1NDg4"
               }
             ]
         response:
@@ -141,7 +141,7 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "Product",
-                    "name": "Product: UHJvZHVjdDoz"
+                    "name": "Product: UHJvZHVjdDo1NjY0NDI0NjA="
                   }
                 }
               }
@@ -150,7 +150,7 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "Product",
-                    "name": "Product: UHJvZHVjdDo0"
+                    "name": "Product: UHJvZHVjdDoyNDQ2OTY1NDg4"
                   }
                 }
               }
@@ -173,7 +173,7 @@ operationPlan:
             }
           }
         }
-      hash: e2224f1b985fbda85e8bf7b9b94be074
+      hash: ea26dbd70d09faf9f892d75802cf575e
       searchSpace: 1
       expandedNodes: 2
   nodes:
@@ -209,7 +209,7 @@ operationPlan:
       targets:
         - $.item2.product
         - $.item1.product
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
           selectionMap: >-

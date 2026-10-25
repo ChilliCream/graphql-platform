@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <LangVersion>Preview</LangVersion>
+    <AssemblyName>HotChocolate.Fusion.Composition.Benchmarks</AssemblyName>
+    <RootNamespace>HotChocolate.Fusion.Composition.Benchmarks</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Fusion.Composition\HotChocolate.Fusion.Composition.csproj" />
+  </ItemGroup>
+
+</Project>

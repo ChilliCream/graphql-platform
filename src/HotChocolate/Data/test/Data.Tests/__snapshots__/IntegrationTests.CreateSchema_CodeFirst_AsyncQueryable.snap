@@ -17,12 +17,12 @@ schema {
   query: FooType
 }
 
-type Bar {
-  qux: String!
-}
-
 type FooType {
   foos(where: BarFilterInput): [Bar]
+}
+
+type Bar {
+  qux: String!
 }
 
 input BarFilterInput {

@@ -125,7 +125,7 @@ public sealed class SyntaxTypeReference
 
     public SyntaxTypeReference WithFactory(
         Func<IDescriptorContext, TypeSystemObject>? factory = null)
-        => new(Type, Context, Scope, Factory);
+        => new(Type, Context, Scope, factory);
 
     public SyntaxTypeReference With(
         Optional<ITypeNode> type = default,

@@ -47,7 +47,7 @@ internal sealed class AggregateServiceScopeInitializer : IServiceScopeInitialize
 
                 while (Unsafe.IsAddressLessThan(ref start, ref end))
                 {
-                    start!.Initialize(context, requestScope, resolverScope);
+                    start.Initialize(context, requestScope, resolverScope);
                     start = ref Unsafe.Add(ref start, 1);
                 }
                 break;

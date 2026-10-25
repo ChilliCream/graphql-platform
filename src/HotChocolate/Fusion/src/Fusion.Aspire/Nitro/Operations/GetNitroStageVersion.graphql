@@ -1,0 +1,19 @@
+query GetNitroStageVersion($apiId: ID!, $stageName: String!) {
+  apiById(id: $apiId) {
+    stage(name: $stageName) {
+      publishedFusionConfiguration {
+        id
+      }
+      publishedClients {
+        client {
+          id
+        }
+        publishedVersions {
+          version {
+            id
+          }
+        }
+      }
+    }
+  }
+}

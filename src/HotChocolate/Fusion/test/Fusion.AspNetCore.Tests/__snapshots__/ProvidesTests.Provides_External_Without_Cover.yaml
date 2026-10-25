@@ -1,0 +1,195 @@
+title: Provides_External_Without_Cover
+request:
+  document: |
+    {
+      reviews {
+        author {
+          email
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "reviews": [
+          {
+            "author": {
+              "email": "User: VXNlcjoxMzg1ODgwMDMz"
+            }
+          },
+          {
+            "author": {
+              "email": "User: VXNlcjo1Mjk1MTI4MDU="
+            }
+          },
+          {
+            "author": {
+              "email": "User: VXNlcjo0MTQzMzgyNTQy"
+            }
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: reviews
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        reviews: [Review]
+        userById(id: ID! @is(field: "id")): User @lookup @internal
+      }
+
+      type Review @key(fields: "id") {
+        id: ID!
+        author: User @provides(fields: "username")
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        username: String @external
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_20abc898_1 {
+              reviews {
+                author {
+                  id
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "reviews": [
+                    {
+                      "author": {
+                        "id": "VXNlcjoxMzg1ODgwMDMz"
+                      }
+                    },
+                    {
+                      "author": {
+                        "id": "VXNlcjo1Mjk1MTI4MDU="
+                      }
+                    },
+                    {
+                      "author": {
+                        "id": "VXNlcjo0MTQzMzgyNTQy"
+                      }
+                    }
+                  ]
+                }
+              }
+  - name: users
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        userById(id: ID! @is(field: "id")): User @lookup @internal
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        username: String
+        email: String
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_20abc898_2($__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                email
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "VXNlcjoxMzg1ODgwMDMz"
+              },
+              {
+                "__fusion_1_id": "VXNlcjo1Mjk1MTI4MDU="
+              },
+              {
+                "__fusion_1_id": "VXNlcjo0MTQzMzgyNTQy"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "email": "User: VXNlcjoxMzg1ODgwMDMz"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "email": "User: VXNlcjo1Mjk1MTI4MDU="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "email": "User: VXNlcjo0MTQzMzgyNTQy"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          reviews {
+            author {
+              email
+              id @fusion__requirement
+            }
+          }
+        }
+      hash: c9cb1e3b03af4e8aee9e5b4c51ce58c4
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: reviews
+      operation: |
+        query Op_20abc898_1 {
+          reviews {
+            author {
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: users
+      operation: |
+        query Op_20abc898_2($__fusion_1_id: ID!) {
+          userById(id: $__fusion_1_id) {
+            email
+          }
+        }
+      source: $.userById
+      target: $.reviews.author
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

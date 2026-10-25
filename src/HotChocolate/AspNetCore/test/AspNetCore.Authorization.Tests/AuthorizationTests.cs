@@ -194,7 +194,7 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
     {
         // arrange
         var server = CreateTestServer(
-           builder =>
+            builder =>
             {
                 configure(builder);
                 builder.Services.AddAuthorization(options =>

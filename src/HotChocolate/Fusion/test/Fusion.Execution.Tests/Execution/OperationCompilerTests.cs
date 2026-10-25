@@ -1,5 +1,11 @@
+using System.Buffers;
+using System.Runtime.CompilerServices;
+using System.Text;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Results;
+using HotChocolate.Fusion.Execution.Rewriters;
+using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -31,7 +37,7 @@ public class OperationCompilerTests : FusionTestBase
 
         // act
         var compiler = new OperationCompiler(schema, _fieldMapPool);
-        var operation = compiler.Compile("1", "1", operationDefinition);
+        var operation = compiler.Compile("1", "1", "1", operationDefinition);
 
         // assert
         Assert.Equal("1", operation.Id);
@@ -44,7 +50,7 @@ public class OperationCompilerTests : FusionTestBase
 
         var product = root.Selections[0];
         Assert.Equal("product", product.Field.Name);
-        Assert.True(product.IsIncluded(0));
+        Assert.True(product.IsIncluded(new ConditionFlags(0)));
 
         var productSelectionSet =
             operation.GetSelectionSet(
@@ -54,7 +60,7 @@ public class OperationCompilerTests : FusionTestBase
 
         var id = productSelectionSet.Selections[0];
         Assert.Equal("id", id.Field.Name);
-        Assert.True(id.IsIncluded(0));
+        Assert.True(id.IsIncluded(new ConditionFlags(0)));
     }
 
     [Fact]
@@ -85,8 +91,8 @@ public class OperationCompilerTests : FusionTestBase
 
         // act
         var compiler = new OperationCompiler(schema, _fieldMapPool);
-        var operation = compiler.Compile("1", "1", operationDefinition);
-        var flags = operation.CreateIncludeFlags(variableValues);
+        var operation = compiler.Compile("1", "1", "1", operationDefinition);
+        var flags = operation.CreateIncludeConditionFlags(variableValues);
 
         // assert
         Assert.Equal("1", operation.Id);
@@ -134,8 +140,8 @@ public class OperationCompilerTests : FusionTestBase
 
         // act
         var compiler = new OperationCompiler(schema, _fieldMapPool);
-        var operation = compiler.Compile("1", "1", operationDefinition);
-        var flags = operation.CreateIncludeFlags(variableValues);
+        var operation = compiler.Compile("1", "1", "1", operationDefinition);
+        var flags = operation.CreateIncludeConditionFlags(variableValues);
 
         // assert
         Assert.Equal("1", operation.Id);
@@ -160,6 +166,306 @@ public class OperationCompilerTests : FusionTestBase
         Assert.True(id.IsInternal);
     }
 
+    [Fact]
+    public void Complementary_Fragment_Spreads_Should_Use_Full_Fragment_When_Minimal_Is_False()
+    {
+        // arrange
+        var includedResponseNames = GetComplementaryFragmentIncludedResponseNames(minimal: false);
+
+        // assert
+        includedResponseNames.MatchInlineSnapshot(
+            """
+            __typename
+            id
+            hasDrm
+            title
+            publishedAt
+            """);
+    }
+
+    [Fact]
+    public void Complementary_Fragment_Spreads_Should_Use_Minimal_Fragment_When_Minimal_Is_True()
+    {
+        // arrange
+        var includedResponseNames = GetComplementaryFragmentIncludedResponseNames(minimal: true);
+
+        // assert
+        includedResponseNames.MatchInlineSnapshot(
+            """
+            __typename
+            id
+            hasDrm
+            """);
+    }
+
+    [Fact]
+    public void Unconditional_Field_Should_Remain_Included_When_Conditional_Duplicate_Is_Excluded()
+    {
+        // arrange
+        const string sourceText =
+            """
+            query ($if1: Boolean!) {
+                product {
+                    name
+                    name @include(if: $if1)
+                }
+            }
+            """;
+
+        var document = Utf8GraphQLParser.Parse(sourceText);
+        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().First();
+        var schema = CreateSchema();
+
+        var booleanType = schema.Types.GetType<IScalarTypeDefinition>("Boolean");
+        var nonNullBooleanType = new NonNullType(booleanType);
+
+        var variableValues = new VariableValueCollection(
+            new Dictionary<string, VariableValue>
+            {
+                { "if1", new VariableValue("if1", nonNullBooleanType, BooleanValueNode.False) }
+            });
+
+        // act
+        var compiler = new OperationCompiler(schema, _fieldMapPool);
+        var operation = compiler.Compile("1", "1", "1", operationDefinition);
+        var flags = operation.CreateIncludeConditionFlags(variableValues);
+
+        // assert
+        var product = GetSelection(operation.RootSelectionSet, "product");
+        var productSelectionSet = operation.GetSelectionSet(product);
+        var name = GetSelection(productSelectionSet, "name");
+
+        Assert.True(name.IsIncluded(flags));
+    }
+
+    [Fact]
+    public void Internal_Field_Should_Not_Make_Conditional_User_Field_Always_Included()
+    {
+        // arrange
+        const string sourceText =
+            """
+            query ($skip: Boolean!) {
+                product {
+                    __typename @fusion__requirement
+                    __typename @skip(if: $skip)
+                }
+            }
+            """;
+
+        var document = Utf8GraphQLParser.Parse(sourceText);
+        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().First();
+        var schema = CreateSchema();
+
+        var booleanType = schema.Types.GetType<IScalarTypeDefinition>("Boolean");
+        var nonNullBooleanType = new NonNullType(booleanType);
+
+        var variableValues = new VariableValueCollection(
+            new Dictionary<string, VariableValue>
+            {
+                { "skip", new VariableValue("skip", nonNullBooleanType, BooleanValueNode.True) }
+            });
+
+        // act
+        var compiler = new OperationCompiler(schema, _fieldMapPool);
+        var operation = compiler.Compile("1", "1", "1", operationDefinition);
+        var flags = operation.CreateIncludeConditionFlags(variableValues);
+
+        // assert
+        var product = GetSelection(operation.RootSelectionSet, "product");
+        var productSelectionSet = operation.GetSelectionSet(product);
+        var typeName = GetSelection(productSelectionSet, "__typename");
+
+        Assert.False(typeName.IsInternal);
+        Assert.False(typeName.IsIncluded(flags));
+    }
+
+    [Fact]
+    public void Compile_Should_PrepareTypeNameLookup_When_InterfaceHasFourPossibleTypes()
+    {
+        var schema = ComposeSchema(
+            """
+            type Query {
+                node: Node
+            }
+
+            interface Node {
+                id: ID
+            }
+
+            type Type1 implements Node { id: ID }
+            type Type2 implements Node { id: ID }
+            type Type3 implements Node { id: ID }
+            type Type4 implements Node { id: ID }
+            """);
+        var interfaceType = schema.Types.GetType<FusionInterfaceTypeDefinition>("Node");
+
+        Assert.True(interfaceType.TypeNameLookupTypes.IsDefault);
+        Assert.False(ValueCompletion.TryResolveType(default, interfaceType, out _));
+
+        var operationDefinition = Utf8GraphQLParser.Parse("{ node { id } }")
+            .Definitions
+            .OfType<OperationDefinitionNode>()
+            .First();
+        var compiler = new OperationCompiler(schema, _fieldMapPool);
+        compiler.Compile("1", "1", "1", operationDefinition);
+
+        Assert.Equal(
+            ["Type1", "Type2", "Type3", "Type4"],
+            interfaceType.TypeNameLookupTypes.Select(t => t.Name));
+        var json = "{\"__typename\":\"Type4\"}"u8.ToArray();
+        using var result = SourceResultDocument.Parse(
+            CommonTestExtensions.CreateArena(),
+            json,
+            json.Length);
+        Assert.True(ValueCompletion.TryResolveType(
+            result.Root.GetProperty("__typename"),
+            interfaceType,
+            out var resolvedType));
+        Assert.Same(schema.Types.GetType<FusionObjectTypeDefinition>("Type4"), resolvedType);
+    }
+
+    [Fact]
+    public void Compile_Should_DisableTypeNameLookup_When_InterfaceHasMoreThanFourPossibleTypes()
+    {
+        var schema = ComposeSchema(
+            """
+            type Query {
+                node: Node
+            }
+
+            interface Node {
+                id: ID
+            }
+
+            type Type1 implements Node { id: ID }
+            type Type2 implements Node { id: ID }
+            type Type3 implements Node { id: ID }
+            type Type4 implements Node { id: ID }
+            type Type5 implements Node { id: ID }
+            """);
+        var interfaceType = schema.Types.GetType<FusionInterfaceTypeDefinition>("Node");
+        var operationDefinition = Utf8GraphQLParser.Parse("{ node { id } }")
+            .Definitions
+            .OfType<OperationDefinitionNode>()
+            .First();
+        var compiler = new OperationCompiler(schema, _fieldMapPool);
+
+        compiler.Compile("1", "1", "1", operationDefinition);
+
+        Assert.True(interfaceType.TypeNameLookupTypes.IsEmpty);
+        Assert.False(ValueCompletion.TryResolveType(default, interfaceType, out _));
+    }
+
+    [Fact]
+    public void Compile_Should_KeepTheShortHash_When_ItHoldsANonNameCharacter()
+    {
+        // arrange
+        var schema = CreateSchema();
+        var operationDefinition = Utf8GraphQLParser.Parse("{ product { id } }")
+            .Definitions
+            .OfType<OperationDefinitionNode>()
+            .First();
+        var compiler = new OperationCompiler(schema, _fieldMapPool);
+
+        // act
+        var operation = compiler.Compile("1", "0123456789abcdef", "BnjEJe8-", operationDefinition);
+
+        // assert
+        Assert.Equal("BnjEJe8-", operation.ShortHash);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void GetSelectionById_Should_ReturnSelection_When_ElementStorageGrows(bool lazy)
+    {
+        // arrange
+        var compiler = new OperationCompiler(CreateSchema(), _fieldMapPool);
+        var definition = CreateStorageGrowthDefinition(lazy, selectionCount: 160);
+        var operation = compiler.Compile("large", "large", "large", definition);
+        var rootSelection = operation.RootSelectionSet.Selections[0];
+
+        // act
+        var selections = lazy
+            ? operation.GetSelectionSet(rootSelection).Selections
+            : operation.RootSelectionSet.Selections;
+
+        // assert
+        Assert.Equal(160, selections.Length);
+        Assert.Same(rootSelection, operation.GetSelectionById(rootSelection.Id));
+        Assert.Same(selections[^1], operation.GetSelectionById(selections[^1].Id));
+    }
+
+    [Fact]
+    public void GetSelectionSet_Should_KeepPreviousElementStorage_When_StorageGrows()
+    {
+        // arrange
+        var compiler = new OperationCompiler(CreateSchema(), _fieldMapPool);
+        var definition = CreateStorageGrowthDefinition(lazy: true, selectionCount: 160);
+        var operation = compiler.Compile("large", "large", "large", definition);
+        var rootSelection = operation.RootSelectionSet.Selections[0];
+        var previousStorage = GetElementsById(operation);
+
+        // act
+        operation.GetSelectionSet(rootSelection);
+        OverwritePooledArray(previousStorage.Length);
+
+        // assert
+        Assert.NotSame(previousStorage, GetElementsById(operation));
+        Assert.Same(rootSelection, previousStorage[rootSelection.Id]);
+    }
+
+    [Fact]
+    public async Task Compile_Should_ReleasePreviousSchema_When_SchemaIsReplaced()
+    {
+        // arrange
+        var previousSchema = CompileLargeOperationWithDiscardedSchema();
+        await using var schema = CreateSchema();
+        var compiler = new OperationCompiler(schema, _fieldMapPool);
+        var definition = Utf8GraphQLParser.Parse("{ __typename }")
+            .Definitions.OfType<OperationDefinitionNode>().Single();
+
+        // act
+        var operation = compiler.Compile("current", "current", "current", definition);
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+
+        // assert
+        Assert.False(previousSchema.IsAlive);
+        GC.KeepAlive(operation);
+    }
+
+    private static OperationDefinitionNode CreateStorageGrowthDefinition(bool lazy, int selectionCount)
+    {
+        var fields = string.Join(
+            " ",
+            Enumerable.Range(0, selectionCount).Select(i => lazy ? $"f{i}:id" : $"f{i}:__typename"));
+        var document = lazy ? $"{{ product {{ {fields} }} }}" : $"{{ {fields} }}";
+        return Utf8GraphQLParser.Parse(document).Definitions.OfType<OperationDefinitionNode>().Single();
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private WeakReference CompileLargeOperationWithDiscardedSchema()
+    {
+        var schema = CreateSchema();
+        var compiler = new OperationCompiler(schema, _fieldMapPool);
+        var definition = CreateStorageGrowthDefinition(lazy: false, selectionCount: 160);
+        compiler.Compile("previous", "previous", "previous", definition);
+        schema.DisposeAsync().AsTask().GetAwaiter().GetResult();
+        return new WeakReference(schema);
+    }
+
+    private static void OverwritePooledArray(int length)
+    {
+        var array = ArrayPool<object>.Shared.Rent(length);
+        Array.Fill(array, new object());
+        ArrayPool<object>.Shared.Return(array, clearArray: true);
+    }
+
+    [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_elementsById")]
+    private static extern ref object[] GetElementsById(Operation operation);
+
     public static FusionSchemaDefinition CreateSchema()
     {
         const string sourceText =
@@ -177,5 +483,123 @@ public class OperationCompilerTests : FusionTestBase
             """;
 
         return ComposeSchema(sourceText);
+    }
+
+    private static FusionSchemaDefinition CreateStreamSchema()
+    {
+        const string sourceText =
+            """
+            type Query {
+                series: [Series!]!
+            }
+
+            type Series {
+                id: ID!
+                streams: [Stream!]!
+            }
+
+            type Stream {
+                id: ID!
+                title: String
+                hasDrm: Boolean
+                publishedAt: String
+            }
+
+            scalar Boolean
+            """;
+
+        return ComposeSchema(sourceText);
+    }
+
+    private string GetComplementaryFragmentIncludedResponseNames(bool minimal)
+    {
+        const string sourceText =
+            """
+            query TestQuery($minimal: Boolean = false) {
+              series {
+                streams {
+                  __typename
+                  ...streamFields
+                }
+              }
+            }
+
+            fragment streamFields on Stream {
+              __typename
+              ...MinimalStream @include(if: $minimal)
+              ...FullStream @skip(if: $minimal)
+            }
+
+            fragment MinimalStream on Stream {
+              id
+              hasDrm
+            }
+
+            fragment FullStream on Stream {
+              id
+              title
+              hasDrm
+              publishedAt
+            }
+            """;
+
+        var document = Utf8GraphQLParser.Parse(sourceText);
+        var schema = CreateStreamSchema();
+        var rewritten = new DocumentRewriter(schema).RewriteDocument(document);
+        var operationDefinition = rewritten.Definitions.OfType<OperationDefinitionNode>().First();
+        var booleanType = schema.Types.GetType<IScalarTypeDefinition>("Boolean");
+        var variableValues = new VariableValueCollection(
+            new Dictionary<string, VariableValue>
+            {
+                {
+                    "minimal",
+                    new VariableValue(
+                        "minimal",
+                        booleanType,
+                        minimal ? BooleanValueNode.True : BooleanValueNode.False)
+                }
+            });
+
+        var compiler = new OperationCompiler(schema, _fieldMapPool);
+        var operation = compiler.Compile("1", "1", "1", operationDefinition);
+        var flags = operation.CreateIncludeConditionFlags(variableValues);
+
+        var series = GetSelection(operation.RootSelectionSet, "series");
+        var seriesSelectionSet = operation.GetSelectionSet(series);
+        var streams = GetSelection(seriesSelectionSet, "streams");
+        var streamsSelectionSet = operation.GetSelectionSet(streams);
+
+        return GetIncludedResponseNames(streamsSelectionSet, flags);
+    }
+
+    private static Selection GetSelection(SelectionSet selectionSet, string responseName)
+    {
+        if (selectionSet.TryGetSelection(responseName, out var selection))
+        {
+            return selection;
+        }
+
+        throw new InvalidOperationException(
+            $"The selection set does not contain a `{responseName}` selection.");
+    }
+
+    private static string GetIncludedResponseNames(SelectionSet selectionSet, ConditionFlags flags)
+    {
+        var result = new StringBuilder();
+
+        foreach (var selection in selectionSet.Selections)
+        {
+            if (selection.IsIncluded(flags))
+            {
+                if (result.Length > 0)
+                {
+                    result.AppendLine();
+                }
+
+                result.Append(selection.ResponseName);
+            }
+        }
+
+        return result.ToString();
     }
 }

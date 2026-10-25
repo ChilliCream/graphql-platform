@@ -1,10 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <Sdk Name="Aspire.AppHost.Sdk" Version="13.1.2" />
+  <Sdk Name="Aspire.AppHost.Sdk" Version="13.6.1" />
 
   <PropertyGroup>
+    <AspireUseCliBundle>true</AspireUseCliBundle>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UserSecretsId>f2d3a820-9a6b-4453-96e4-3e0ba86bd53d</UserSecretsId>
@@ -13,6 +13,8 @@
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting.AppHost" />
     <PackageReference Include="Aspire.Hosting.PostgreSQL" />
+    <!-- Dependency of Aspire.Hosting.AppHost. Pinned to secure version. -->
+    <PackageReference Include="MessagePack" />
   </ItemGroup>
 
   <ItemGroup>

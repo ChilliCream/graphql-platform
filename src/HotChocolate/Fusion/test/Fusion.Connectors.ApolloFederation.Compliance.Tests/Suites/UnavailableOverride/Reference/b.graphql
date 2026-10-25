@@ -1,0 +1,15 @@
+extend schema
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.3"
+    import: ["@key", "@override", "@shareable"]
+  )
+
+type Post @key(fields: "id") {
+  id: ID!
+  createdAt: String! @override(from: "non-existing") @shareable
+}
+
+type Query {
+  feed: [Post] @shareable
+  bFeed: [Post]
+}

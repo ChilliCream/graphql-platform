@@ -8,7 +8,7 @@ public class UploadSerializer : ScalarSerializer<string, Upload>
     /// <summary>
     /// Creates a new instance of <see cref="UploadSerializer"/>
     /// </summary>
-    /// <param name="typeName"></param>
+    /// <param name="typeName">The name of the scalar type.</param>
     public UploadSerializer(string typeName = BuiltInScalarNames.Upload)
         : base(typeName)
     {

@@ -20,42 +20,58 @@ public sealed class Operation : IOperation
     private readonly ConcurrentDictionary<(int, string), SelectionSet> _selectionSets = [];
     private readonly OperationCompiler _compiler;
     private readonly IncludeConditionCollection _includeConditions;
+    private readonly DeferConditionCollection _deferConditions;
+    private readonly IReadOnlyDictionary<InlineFragmentNode, DeliveryGroup> _deliveryGroupByFragment;
     private readonly OperationFeatureCollection _features;
+    private readonly bool _hasIncrementalParts;
     private object[] _elementsById;
     private int _lastId;
 
     internal Operation(
         string id,
         string hash,
+        string shortHash,
         OperationDefinitionNode definition,
         IObjectTypeDefinition rootType,
         ISchemaDefinition schema,
         SelectionSet rootSelectionSet,
         OperationCompiler compiler,
         IncludeConditionCollection includeConditions,
+        DeferConditionCollection deferConditions,
+        IReadOnlyDictionary<InlineFragmentNode, DeliveryGroup> deliveryGroupByFragment,
+        bool hasIncrementalParts,
         int lastId,
         object[] elementsById)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(hash);
+        ArgumentException.ThrowIfNullOrWhiteSpace(shortHash);
         ArgumentNullException.ThrowIfNull(definition);
         ArgumentNullException.ThrowIfNull(rootType);
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(rootSelectionSet);
         ArgumentNullException.ThrowIfNull(compiler);
         ArgumentNullException.ThrowIfNull(includeConditions);
+        ArgumentNullException.ThrowIfNull(deferConditions);
+        ArgumentNullException.ThrowIfNull(deliveryGroupByFragment);
         ArgumentNullException.ThrowIfNull(elementsById);
 
         Id = id;
         Hash = hash;
+        ShortHash = shortHash;
         Definition = definition;
         RootType = rootType;
         Schema = schema;
         RootSelectionSet = rootSelectionSet;
         _compiler = compiler;
         _includeConditions = includeConditions;
+        _deferConditions = deferConditions;
+        _deliveryGroupByFragment = deliveryGroupByFragment;
+        _hasIncrementalParts = hasIncrementalParts;
         _lastId = lastId;
         _elementsById = elementsById;
+        HasWideIncludeFlags = includeConditions.Count > 64;
+        HasWideDeferFlags = deferConditions.Count > 64;
 
         _features = new OperationFeatureCollection();
         rootSelectionSet.Seal(this);
@@ -70,6 +86,11 @@ public sealed class Operation : IOperation
     /// Gets the hash of the original operation document.
     /// </summary>
     public string Hash { get; }
+
+    /// <summary>
+    /// Gets the short hash of the original operation document.
+    /// </summary>
+    public string ShortHash { get; }
 
     /// <summary>
     /// Gets the name of the operation.
@@ -105,7 +126,29 @@ public sealed class Operation : IOperation
     /// <inheritdoc cref="IFeatureProvider"/>
     public IFeatureCollection Features => _features;
 
-    public bool HasIncrementalParts => throw new NotImplementedException();
+    public bool HasIncrementalParts => _hasIncrementalParts;
+
+    /// <summary>
+    /// Gets a value indicating whether this operation has more than 64 include
+    /// conditions and therefore requires the wide include flag overloads.
+    /// </summary>
+    public bool HasWideIncludeFlags { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this operation has more than 64 defer
+    /// conditions and therefore requires the wide defer flag overloads.
+    /// </summary>
+    public bool HasWideDeferFlags { get; }
+
+    /// <summary>
+    /// Gets the number of distinct include conditions of this operation.
+    /// </summary>
+    internal int IncludeConditionCount => _includeConditions.Count;
+
+    /// <summary>
+    /// Gets the number of distinct defer conditions of this operation.
+    /// </summary>
+    internal int DeferConditionCount => _deferConditions.Count;
 
     /// <summary>
     /// Gets the selection set for the specified <paramref name="selection"/>
@@ -146,11 +189,11 @@ public sealed class Operation : IOperation
     /// <exception cref="ArgumentException">
     /// The specified <paramref name="selection"/> has no selection set.
     /// </exception>
-    public SelectionSet GetSelectionSet(Selection selection, IObjectTypeDefinition typeContext)
+    public SelectionSet GetSelectionSet(Selection selection, IComplexTypeDefinition typeContext)
     {
         ArgumentNullException.ThrowIfNull(selection);
         ArgumentNullException.ThrowIfNull(typeContext);
-        Debug.Assert(typeContext is FusionObjectTypeDefinition);
+        Debug.Assert(typeContext is FusionComplexTypeDefinition);
 
         var key = (selection.Id, typeContext.Name);
 
@@ -163,8 +206,11 @@ public sealed class Operation : IOperation
                     selectionSet =
                         _compiler.CompileSelectionSet(
                             selection,
-                            (FusionObjectTypeDefinition)typeContext,
+                            (FusionComplexTypeDefinition)typeContext,
                             _includeConditions,
+                            _deliveryGroupByFragment,
+                            HasWideIncludeFlags,
+                            HasWideDeferFlags,
                             ref _elementsById,
                             ref _lastId);
                     selectionSet.Seal(this);
@@ -230,11 +276,114 @@ public sealed class Operation : IOperation
         {
             if (includeCondition.IsIncluded(variables))
             {
-                includeFlags |= 1ul << index++;
+                includeFlags |= 1ul << index;
+            }
+
+            index++;
+
+            // The single-word API only evaluates the first 64 conditions.
+            if (index == 64)
+            {
+                break;
             }
         }
 
         return includeFlags;
+    }
+
+    /// <summary>
+    /// Creates the defer flags for the specified variable values.
+    /// </summary>
+    /// <param name="variables">
+    /// The variable values.
+    /// </param>
+    /// <returns>
+    /// Returns the defer flags for the specified variable values.
+    /// </returns>
+    public ulong CreateDeferFlags(IVariableValueCollection variables)
+    {
+        var index = 0;
+        var deferFlags = 0ul;
+
+        foreach (var deferCondition in _deferConditions)
+        {
+            if (deferCondition.IsDeferred(variables))
+            {
+                deferFlags |= 1ul << index;
+            }
+
+            index++;
+
+            // The single-word API only evaluates the first 64 conditions.
+            if (index == 64)
+            {
+                break;
+            }
+        }
+
+        return deferFlags;
+    }
+
+    /// <summary>
+    /// Creates the include condition flags for the specified variable values.
+    /// </summary>
+    public ConditionFlags CreateIncludeConditionFlags(IVariableValueCollection variables)
+    {
+        var overflow = HasWideIncludeFlags
+            ? new ulong[(_includeConditions.Count - 1) >> 6]
+            : null;
+        var index = 0;
+        var word0 = 0ul;
+
+        foreach (var includeCondition in _includeConditions)
+        {
+            if (includeCondition.IsIncluded(variables))
+            {
+                if (index < 64)
+                {
+                    word0 |= 1ul << index;
+                }
+                else
+                {
+                    overflow![(index >> 6) - 1] |= 1ul << (index & 63);
+                }
+            }
+
+            index++;
+        }
+
+        return new ConditionFlags(word0, overflow);
+    }
+
+    /// <summary>
+    /// Creates the defer condition flags for the specified variable values.
+    /// </summary>
+    public ConditionFlags CreateDeferConditionFlags(IVariableValueCollection variables)
+    {
+        var overflow = HasWideDeferFlags
+            ? new ulong[(_deferConditions.Count - 1) >> 6]
+            : null;
+        var index = 0;
+        var word0 = 0ul;
+
+        foreach (var deferCondition in _deferConditions)
+        {
+            if (deferCondition.IsDeferred(variables))
+            {
+                if (index < 64)
+                {
+                    word0 |= 1ul << index;
+                }
+                else
+                {
+                    overflow![(index >> 6) - 1] |= 1ul << (index & 63);
+                }
+            }
+
+            index++;
+        }
+
+        return new ConditionFlags(word0, overflow);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

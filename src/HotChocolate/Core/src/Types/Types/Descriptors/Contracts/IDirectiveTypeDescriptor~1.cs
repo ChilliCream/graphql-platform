@@ -1,6 +1,8 @@
 #nullable disable
 
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Configurations;
 
@@ -26,6 +28,17 @@ public interface IDirectiveTypeDescriptor<T>
     /// </summary>
     /// <param name="value">The object type description.</param>
     IDirectiveTypeDescriptor<T> Description(string value);
+
+    /// <summary>
+    /// Deprecates the directive.
+    /// </summary>
+    /// <param name="reason">The reason why this directive is deprecated.</param>
+    IDirectiveTypeDescriptor<T> Deprecated(string reason);
+
+    /// <summary>
+    /// Deprecates the directive.
+    /// </summary>
+    IDirectiveTypeDescriptor<T> Deprecated();
 
     /// <summary>
     /// Defines the argument binding behavior.
@@ -88,14 +101,14 @@ public interface IDirectiveTypeDescriptor<T>
     /// <summary>
     /// Configure a middleware for this directive.
     /// </summary>
-    IDirectiveTypeDescriptor<T> Use<TMiddleware>()
+    IDirectiveTypeDescriptor<T> Use<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>()
         where TMiddleware : class;
 
     /// <summary>
     /// Configure a middleware for this directive.
     /// </summary>
     /// <param name="factory">The middleware factory.</param>
-    IDirectiveTypeDescriptor<T> Use<TMiddleware>(
+    IDirectiveTypeDescriptor<T> Use<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>(
         Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
         where TMiddleware : class;
 
@@ -114,4 +127,21 @@ public interface IDirectiveTypeDescriptor<T>
     /// Directive is internal and only visible within the type system.
     /// </summary>
     IDirectiveTypeDescriptor<T> Internal();
+
+    /// <summary>
+    /// Annotates a directive to this directive definition.
+    /// </summary>
+    IDirectiveTypeDescriptor<T> Directive<TDirective>(TDirective directiveInstance)
+        where TDirective : class;
+
+    /// <summary>
+    /// Annotates a directive to this directive definition.
+    /// </summary>
+    IDirectiveTypeDescriptor<T> Directive<TDirective>()
+        where TDirective : class, new();
+
+    /// <summary>
+    /// Annotates a directive to this directive definition.
+    /// </summary>
+    IDirectiveTypeDescriptor<T> Directive(string name, params ArgumentNode[] arguments);
 }

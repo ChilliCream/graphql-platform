@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.CostAnalysis.Core.PublicApi.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.CostAnalysis</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <NoWarn>HC8002;$(NoWarn)</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Keep internal APIs inaccessible so these tests exercise the public contract. -->
+    <ProjectReference Include="..\..\src\CostAnalysis.Core\HotChocolate.CostAnalysis.Core.csproj" />
+    <ProjectReference Include="..\..\..\Mutable\src\Types.Mutable\HotChocolate.Types.Mutable.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\CostAnalysis.Core.Conformance.Tests\__resources__\precision\*.json"
+          Link="__resources__\precision\%(Filename)%(Extension)">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

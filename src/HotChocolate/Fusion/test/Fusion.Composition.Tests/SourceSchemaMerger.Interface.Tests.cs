@@ -195,8 +195,22 @@ public sealed class SourceSchemaMergerInterfaceTests : SourceSchemaMergerTestBas
 
             interface Product
               @fusion__type(schema: A)
-              @fusion__lookup(schema: A, key: "id", field: "productById(id: ID!): Product", map: ["id"], path: null, internal: false)
-              @fusion__lookup(schema: A, key: "name", field: "productByName(name: String!): Product", map: ["name"], path: null, internal: false) {
+              @fusion__lookup(
+                schema: A
+                key: "id"
+                field: "productById(id: ID!): Product"
+                map: ["id"]
+                path: null
+                internal: false
+              )
+              @fusion__lookup(
+                schema: A
+                key: "name"
+                field: "productByName(name: String!): Product"
+                map: ["name"]
+                path: null
+                internal: false
+              ) {
               id: ID! @fusion__field(schema: A)
               name: String! @fusion__field(schema: A)
             }
@@ -243,7 +257,14 @@ public sealed class SourceSchemaMergerInterfaceTests : SourceSchemaMergerTestBas
             type Cat implements Animal
               @fusion__type(schema: A)
               @fusion__implements(schema: A, interface: "Animal")
-              @fusion__lookup(schema: A, key: "id", field: "catById(id: ID!): Cat", map: ["id"], path: "animalById", internal: false) {
+              @fusion__lookup(
+                schema: A
+                key: "id"
+                field: "catById(id: ID!): Cat"
+                map: ["id"]
+                path: "animalById"
+                internal: false
+              ) {
               catById(id: ID! @fusion__inputField(schema: A)): Cat @fusion__field(schema: A)
               id: ID! @fusion__field(schema: A)
             }
@@ -251,14 +272,28 @@ public sealed class SourceSchemaMergerInterfaceTests : SourceSchemaMergerTestBas
             type Dog implements Animal
               @fusion__type(schema: A)
               @fusion__implements(schema: A, interface: "Animal")
-              @fusion__lookup(schema: A, key: "id", field: "dogById(id: ID!): Dog", map: ["id"], path: "animalById", internal: false) {
+              @fusion__lookup(
+                schema: A
+                key: "id"
+                field: "dogById(id: ID!): Dog"
+                map: ["id"]
+                path: "animalById"
+                internal: false
+              ) {
               dogById(id: ID! @fusion__inputField(schema: A)): Dog @fusion__field(schema: A)
               id: ID! @fusion__field(schema: A)
             }
 
             interface Animal
               @fusion__type(schema: A)
-              @fusion__lookup(schema: A, key: "id", field: "animalById(id: ID!): Animal", map: ["id"], path: null, internal: false) {
+              @fusion__lookup(
+                schema: A
+                key: "id"
+                field: "animalById(id: ID!): Animal"
+                map: ["id"]
+                path: null
+                internal: false
+              ) {
               id: ID! @fusion__field(schema: A)
             }
             """);

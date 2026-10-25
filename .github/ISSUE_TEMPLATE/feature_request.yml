@@ -11,6 +11,7 @@ body:
         - Hot Chocolate
         - Strawberry Shake
         - Nitro
+        - Mocha
         - Green Donut
     validations:
       required: true

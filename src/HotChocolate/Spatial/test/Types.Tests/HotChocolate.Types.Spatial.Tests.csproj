@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
   <PropertyGroup>
     <AssemblyName>HotChocolate.Types.Spatial.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Types.Spatial</RootNamespace>
@@ -9,6 +11,10 @@
     <ProjectReference Include="..\..\..\Language\src\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
     <ProjectReference Include="..\..\src\Types\HotChocolate.Types.Spatial.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Moq" />
   </ItemGroup>
 
 </Project>

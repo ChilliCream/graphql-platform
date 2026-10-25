@@ -17,6 +17,8 @@ namespace HotChocolate.Fusion.Packaging;
 /// </summary>
 public sealed class FusionArchive : IDisposable
 {
+    private const string PlanningFingerprintPrefix = "v1:";
+
     private readonly Stream _stream;
     private readonly bool _leaveOpen;
     private readonly ArchiveSession _session;
@@ -105,7 +107,8 @@ public sealed class FusionArchive : IDisposable
         ArgumentNullException.ThrowIfNull(stream);
         var readOptions = new FusionArchiveReadOptions(
             options.MaxAllowedSchemaSize ?? FusionArchiveReadOptions.Default.MaxAllowedSchemaSize,
-            options.MaxAllowedSettingsSize ?? FusionArchiveReadOptions.Default.MaxAllowedSettingsSize);
+            options.MaxAllowedSettingsSize ?? FusionArchiveReadOptions.Default.MaxAllowedSettingsSize,
+            options.MaxAllowedLegacyArchiveSize ?? FusionArchiveReadOptions.Default.MaxAllowedLegacyArchiveSize);
         return new FusionArchive(stream, mode, leaveOpen, readOptions);
     }
 
@@ -380,6 +383,8 @@ public sealed class FusionArchive : IDisposable
                 "You need to first declare the gateway schema version in the archive metadata.");
         }
 
+        var planningFingerprint = FormatPlanningFingerprint(SHA256.HashData(schema.Span));
+
         await using (var stream = _session.OpenWrite(FileNames.GetGatewaySchemaPath(version)))
         {
             await stream.WriteAsync(schema, cancellationToken);
@@ -390,6 +395,11 @@ public sealed class FusionArchive : IDisposable
             await using var jsonWriter = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true });
             settings.WriteTo(jsonWriter);
             await jsonWriter.FlushAsync(cancellationToken);
+        }
+
+        await using (var stream = _session.OpenWrite(FileNames.GetGatewayPlanningFingerprintPath(version)))
+        {
+            await stream.WriteAsync(Encoding.UTF8.GetBytes(planningFingerprint), cancellationToken);
         }
     }
 
@@ -423,6 +433,8 @@ public sealed class FusionArchive : IDisposable
             return null;
         }
 
+        var planningFingerprint = await TryReadPlanningFingerprintAsync(version, cancellationToken);
+
         JsonDocument settings;
         await using (var stream = await _session.OpenReadAsync(
             FileNames.GetGatewaySettingsPath(version),
@@ -432,7 +444,7 @@ public sealed class FusionArchive : IDisposable
             settings = await JsonDocument.ParseAsync(stream, default, cancellationToken);
         }
 
-        return new GatewayConfiguration(OpenReadSchemaAsync, settings, version);
+        return new GatewayConfiguration(OpenReadSchemaAsync, settings, version, planningFingerprint);
 
         Task<Stream> OpenReadSchemaAsync(CancellationToken ct)
             => _session.OpenReadAsync(FileNames.GetGatewaySchemaPath(version), FileKind.Schema, ct);
@@ -445,6 +457,9 @@ public sealed class FusionArchive : IDisposable
     /// <param name="schemaName">The name of the source schema.</param>
     /// <param name="schema">The source schema as UTF-8 encoded bytes.</param>
     /// <param name="settings">The source schema configuration.</param>
+    /// <param name="schemaExtensions">
+    /// The source schema extensions as UTF-8 encoded bytes. If empty, no extensions file is written.
+    /// </param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <exception cref="ArgumentException">Thrown when schemaName is null, empty, or invalid.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when schema is empty.</exception>
@@ -454,6 +469,7 @@ public sealed class FusionArchive : IDisposable
         string schemaName,
         ReadOnlyMemory<byte> schema,
         JsonDocument settings,
+        ReadOnlyMemory<byte> schemaExtensions = default,
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(schemaName);
@@ -485,6 +501,17 @@ public sealed class FusionArchive : IDisposable
         await using (var stream = _session.OpenWrite(FileNames.GetSourceSchemaPath(schemaName)))
         {
             await stream.WriteAsync(schema, cancellationToken);
+        }
+
+        if (schemaExtensions.Length > 0)
+        {
+            await using var stream = _session.OpenWrite(FileNames.GetSourceSchemaExtensionsPath(schemaName));
+            await stream.WriteAsync(schemaExtensions, cancellationToken);
+        }
+        else
+        {
+            // Ensure no stale extensions linger from a previous composition.
+            _session.Delete(FileNames.GetSourceSchemaExtensionsPath(schemaName));
         }
 
         await using (var stream = _session.OpenWrite(FileNames.GetSourceSchemaSettingsPath(schemaName)))
@@ -527,10 +554,103 @@ public sealed class FusionArchive : IDisposable
             settings = await JsonDocument.ParseAsync(stream, default, cancellationToken);
         }
 
-        return new SourceSchemaConfiguration(OpenReadSchemaAsync, settings);
+        return new SourceSchemaConfiguration(OpenReadSchemaAsync, TryOpenReadSchemaExtensionsAsync, settings);
 
         Task<Stream> OpenReadSchemaAsync(CancellationToken ct)
             => _session.OpenReadAsync(FileNames.GetSourceSchemaPath(schemaName), FileKind.Schema, ct);
+
+        async Task<Stream?> TryOpenReadSchemaExtensionsAsync(CancellationToken ct)
+        {
+            var extensionsPath = FileNames.GetSourceSchemaExtensionsPath(schemaName);
+
+            if (!await _session.ExistsAsync(extensionsPath, FileKind.Schema, ct))
+            {
+                return null;
+            }
+
+            return await _session.OpenReadAsync(extensionsPath, FileKind.Schema, ct);
+        }
+    }
+
+    /// <summary>
+    /// Removes a source schema configuration from the archive, deleting its files and
+    /// removing it from the archive metadata.
+    /// </summary>
+    /// <param name="schemaName">The name of the source schema to remove.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>
+    /// <c>true</c> if the source schema was present and removed; otherwise, <c>false</c>.
+    /// </returns>
+    /// <exception cref="ArgumentException">Thrown when schemaName is null or empty.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when the archive is read-only.</exception>
+    public async Task<bool> RemoveSourceSchemaConfigurationAsync(
+        string schemaName,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(schemaName);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        EnsureMutable();
+
+        var metadata = await GetArchiveMetadataAsync(cancellationToken);
+
+        if (metadata is null || !metadata.SourceSchemas.Contains(schemaName))
+        {
+            return false;
+        }
+
+        _session.Delete(FileNames.GetSourceSchemaPath(schemaName));
+        _session.Delete(FileNames.GetSourceSchemaSettingsPath(schemaName));
+        _session.Delete(FileNames.GetSourceSchemaExtensionsPath(schemaName));
+
+        var updatedMetadata = metadata with
+        {
+            SourceSchemas = metadata.SourceSchemas.Remove(schemaName)
+        };
+
+        await SetArchiveMetadataAsync(updatedMetadata, cancellationToken);
+
+        return true;
+    }
+
+    /// <summary>
+    /// Sets the legacy archive file in the archive by copying the content from the provided stream.
+    /// </summary>
+    /// <param name="content">The stream containing the legacy archive content.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <exception cref="ArgumentNullException">Thrown when content is null.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when the archive is read-only.</exception>
+    public async Task SetLegacyArchiveFileAsync(
+        Stream content,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(content);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        EnsureMutable();
+
+        await using var stream = _session.OpenWrite(FileNames.LegacyArchive);
+        await content.CopyToAsync(stream, cancellationToken);
+    }
+
+    /// <summary>
+    /// Attempts to get the legacy archive file from the archive as a stream.
+    /// Returns null if no legacy archive file is present.
+    /// </summary>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>A stream to read the legacy archive content, or null if not present.</returns>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    public async Task<Stream?> TryGetLegacyArchiveFileAsync(
+        CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        if (!await _session.ExistsAsync(FileNames.LegacyArchive, FileKind.LegacyArchive, cancellationToken))
+        {
+            return null;
+        }
+
+        return await _session.OpenReadAsync(FileNames.LegacyArchive, FileKind.LegacyArchive, cancellationToken);
     }
 
     /// <summary>
@@ -786,6 +906,30 @@ public sealed class FusionArchive : IDisposable
             Interlocked.CompareExchange(ref _buffer, buffer, currentBuffer);
         }
     }
+
+    private async Task<string?> TryReadPlanningFingerprintAsync(
+        Version version,
+        CancellationToken cancellationToken)
+    {
+        var path = FileNames.GetGatewayPlanningFingerprintPath(version);
+        if (!_session.Exists(path))
+        {
+            return null;
+        }
+
+        await using var stream = await _session.OpenReadAsync(path, FileKind.Settings, cancellationToken);
+        using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: false);
+        var fingerprint = await reader.ReadToEndAsync(cancellationToken);
+
+        return fingerprint.Length > 0 ? fingerprint : null;
+    }
+
+    private static string FormatPlanningFingerprint(ReadOnlySpan<byte> hash)
+#if NET9_0_OR_GREATER
+        => PlanningFingerprintPrefix + Convert.ToHexStringLower(hash);
+#else
+        => PlanningFingerprintPrefix + Convert.ToHexString(hash).ToLowerInvariant();
+#endif
 
     private async Task<SignatureManifest> GenerateManifestAsync(CancellationToken cancellationToken)
     {

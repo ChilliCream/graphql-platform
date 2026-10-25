@@ -13,7 +13,7 @@ public class Issue7399Tests
             .AddQueryType<Query>()
             .AddParameterExpressionBuilder(
                 ctx => ctx.GetGlobalState<MyGlobalState>("MyGlobalState"))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.DoesNotContain("@cost(", executor.Schema.ToString(), StringComparison.Ordinal);
     }

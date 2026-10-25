@@ -15,21 +15,21 @@ response:
       "data": {
         "reviews": [
           {
-            "body": "Review: UmV2aWV3OjE=",
+            "body": "Review: UmV2aWV3OjEyNjkxOTY4ODU=",
             "author": {
-              "birthdate": "User: VXNlcjo0"
+              "birthdate": "User: VXNlcjoxMzg1ODgwMDMz"
             }
           },
           {
-            "body": "Review: UmV2aWV3OjI=",
+            "body": "Review: UmV2aWV3OjExNzAzNzU4NDg=",
             "author": {
-              "birthdate": "User: VXNlcjo1"
+              "birthdate": "User: VXNlcjo1Mjk1MTI4MDU="
             }
           },
           {
-            "body": "Review: UmV2aWV3OjM=",
+            "body": "Review: UmV2aWV3OjY3NjIyMTU5MQ==",
             "author": {
-              "birthdate": "User: VXNlcjo2"
+              "birthdate": "User: VXNlcjo0MTQzMzgyNTQy"
             }
           }
         ]
@@ -40,10 +40,6 @@ sourceSchemas:
     schema: |
       schema {
         query: Query
-      }
-
-      interface Node {
-        id: ID!
       }
 
       type Query {
@@ -60,6 +56,10 @@ sourceSchemas:
         username: String!
         birthdate: String!
       }
+
+      interface Node {
+        id: ID!
+      }
     interactions:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
@@ -75,13 +75,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "VXNlcjo0"
+                "__fusion_1_id": "VXNlcjoxMzg1ODgwMDMz"
               },
               {
-                "__fusion_1_id": "VXNlcjo1"
+                "__fusion_1_id": "VXNlcjo1Mjk1MTI4MDU="
               },
               {
-                "__fusion_1_id": "VXNlcjo2"
+                "__fusion_1_id": "VXNlcjo0MTQzMzgyNTQy"
               }
             ]
         response:
@@ -92,7 +92,7 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "User",
-                    "birthdate": "User: VXNlcjo0"
+                    "birthdate": "User: VXNlcjoxMzg1ODgwMDMz"
                   }
                 }
               }
@@ -101,7 +101,7 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "User",
-                    "birthdate": "User: VXNlcjo1"
+                    "birthdate": "User: VXNlcjo1Mjk1MTI4MDU="
                   }
                 }
               }
@@ -110,7 +110,7 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "User",
-                    "birthdate": "User: VXNlcjo2"
+                    "birthdate": "User: VXNlcjo0MTQzMzgyNTQy"
                   }
                 }
               }
@@ -120,20 +120,16 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        reviews: [Review!]!
       }
 
       type Product implements Node {
         id: ID!
         reviews: [Review!]!
         reviewCount: Int!
-      }
-
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        nodes(ids: [ID!]!): [Node]! @shareable
-        reviews: [Review!]!
       }
 
       type Review implements Node {
@@ -147,6 +143,10 @@ sourceSchemas:
         id: ID!
         reviews: [Review!]!
         errorField: String @error
+      }
+
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
@@ -167,21 +167,21 @@ sourceSchemas:
                 "data": {
                   "reviews": [
                     {
-                      "body": "Review: UmV2aWV3OjE=",
+                      "body": "Review: UmV2aWV3OjEyNjkxOTY4ODU=",
                       "author": {
-                        "id": "VXNlcjo0"
+                        "id": "VXNlcjoxMzg1ODgwMDMz"
                       }
                     },
                     {
-                      "body": "Review: UmV2aWV3OjI=",
+                      "body": "Review: UmV2aWV3OjExNzAzNzU4NDg=",
                       "author": {
-                        "id": "VXNlcjo1"
+                        "id": "VXNlcjo1Mjk1MTI4MDU="
                       }
                     },
                     {
-                      "body": "Review: UmV2aWV3OjM=",
+                      "body": "Review: UmV2aWV3OjY3NjIyMTU5MQ==",
                       "author": {
-                        "id": "VXNlcjo2"
+                        "id": "VXNlcjo0MTQzMzgyNTQy"
                       }
                     }
                   ]
@@ -200,7 +200,7 @@ operationPlan:
           }
         }
       name: GetUser
-      hash: bc5cddd0c27ee413097062aa33fd6b4b
+      hash: a3ec231577d372b0199ed3590fa14b14
       searchSpace: 1
       expandedNodes: 2
   nodes:

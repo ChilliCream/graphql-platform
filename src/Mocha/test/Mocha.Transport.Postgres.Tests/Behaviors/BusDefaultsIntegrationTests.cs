@@ -89,14 +89,14 @@ public class BusDefaultsIntegrationTests
             {
                 t.ConnectionString(db.ConnectionString);
                 t.ConfigureDefaults(d => d.Queue.AutoDelete = true);
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
 
                 // Explicitly declare a queue with AutoDelete=false - should override the default
                 t.DeclareTopic("order-topic");
                 t.DeclareQueue("explicit-q").AutoDelete(false);
                 t.DeclareSubscription("order-topic", "explicit-q");
 
-                t.Endpoint("explicit-ep").Consumer<OrderSpyConsumer>().Queue("explicit-q");
+                t.Queue("explicit-q").Consumer<OrderSpyConsumer>();
                 t.DispatchEndpoint("order-dispatch").ToTopic("order-topic").Publish<OrderCreated>();
             })
             .BuildTestBusAsync();
@@ -122,13 +122,13 @@ public class BusDefaultsIntegrationTests
             {
                 t.ConnectionString(db.ConnectionString);
                 t.ConfigureDefaults(d => d.Queue.AutoDelete = true);
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
 
                 t.DeclareTopic("order-topic");
                 t.DeclareQueue("override-q").AutoDelete(false);
                 t.DeclareSubscription("order-topic", "override-q");
 
-                t.Endpoint("override-ep").Consumer<OrderSpyConsumer>().Queue("override-q");
+                t.Queue("override-q").Consumer<OrderSpyConsumer>();
                 t.DispatchEndpoint("order-dispatch").ToTopic("order-topic").Publish<OrderCreated>();
             })
             .BuildTestBusAsync();

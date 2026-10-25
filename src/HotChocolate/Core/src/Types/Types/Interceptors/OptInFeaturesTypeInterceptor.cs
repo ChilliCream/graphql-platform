@@ -1,4 +1,5 @@
 using HotChocolate.Configuration;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 
@@ -27,6 +28,13 @@ internal sealed class OptInFeaturesTypeInterceptor : TypeInterceptor
     {
         switch (configuration)
         {
+            case DirectiveTypeConfiguration directiveType:
+                _optInFeatures.UnionWith(directiveType.GetOptInFeatures());
+                _optInFeatures.UnionWith(
+                    directiveType.Arguments.SelectMany(a => a.GetOptInFeatures()));
+
+                break;
+
             case EnumTypeConfiguration enumType:
                 _optInFeatures.UnionWith(enumType.Values.SelectMany(v => v.GetOptInFeatures()));
 
@@ -61,11 +69,23 @@ file static class Extensions
     public static IEnumerable<string> GetOptInFeatures(
         this IDirectiveConfigurationProvider configuration)
     {
-        return configuration.Directives
-            .Select(d => d.Value)
-            .OfType<RequiresOptIn>()
-            .Select(r => r.Feature);
+        foreach (var directive in configuration.Directives)
+        {
+            switch (directive.Value)
+            {
+                case RequiresOptIn requiresOptIn:
+                    yield return requiresOptIn.Feature;
+                    break;
+
+                case DirectiveNode { Name.Value: DirectiveNames.RequiresOptIn.Name } node
+                    when node.Arguments.FirstOrDefault(
+                        a => a.Name.Value == DirectiveNames.RequiresOptIn.Arguments.Feature)
+                        is { Value: StringValueNode feature }:
+                    yield return feature.Value;
+                    break;
+            }
+        }
     }
 }
 
-internal sealed class OptInFeatures : SortedSet<string>;
+internal sealed class OptInFeatures() : SortedSet<string>(StringComparer.Ordinal);

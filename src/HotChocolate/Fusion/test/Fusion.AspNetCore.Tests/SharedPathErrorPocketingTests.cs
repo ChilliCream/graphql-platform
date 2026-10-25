@@ -52,7 +52,8 @@ public class SharedPathErrorPocketingTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         await MatchSnapshotAsync(gateway, request, result);
     }
@@ -103,7 +104,8 @@ public class SharedPathErrorPocketingTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         await MatchSnapshotAsync(gateway, request, result);
     }
@@ -154,9 +156,10 @@ public class SharedPathErrorPocketingTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
         Assert.True(response.Errors.ValueKind is JsonValueKind.Array);
         Assert.Equal(1, response.Errors.GetArrayLength());
@@ -211,7 +214,8 @@ public class SharedPathErrorPocketingTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         await MatchSnapshotAsync(gateway, request, result);
     }
@@ -286,7 +290,8 @@ public class SharedPathErrorPocketingTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         await MatchSnapshotAsync(gateway, request, result);
     }
@@ -337,7 +342,8 @@ public class SharedPathErrorPocketingTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         await MatchSnapshotAsync(gateway, request, result);
     }
@@ -430,7 +436,8 @@ public class SharedPathErrorPocketingTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         await MatchSnapshotAsync(gateway, request, result);
     }

@@ -1,8 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <IsPackable>false</IsPackable>
-  </PropertyGroup>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
 
   <PropertyGroup>
     <AssemblyName>StrawberryShake.CodeGeneration.Razor.Tests</AssemblyName>
@@ -10,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\HotChocolate\Core\test\StarWars\HotChocolate.StarWars.Tests.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Core\test\StarWars\HotChocolate.StarWars.csproj" />
     <ProjectReference Include="..\..\..\Client\src\Persistence.SQLite\StrawberryShake.Persistence.SQLite.csproj" />
     <ProjectReference Include="..\..\..\Client\src\Razor\StrawberryShake.Razor.csproj" />
     <ProjectReference Include="..\..\..\Client\src\Transport.Http\StrawberryShake.Transport.Http.csproj" />
@@ -20,8 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="sqlite-net-pcl" />
-    <PackageReference Include="SQLitePCLRaw.bundle_green" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />
   </ItemGroup>
 
   <ItemGroup>

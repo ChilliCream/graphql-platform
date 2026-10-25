@@ -15,8 +15,8 @@ response:
       "data": {
         "viewer": {
           "product": {
-            "id": "UHJvZHVjdDoy",
-            "name": "Product: UHJvZHVjdDoy"
+            "id": "UHJvZHVjdDoxMzc5NDU5Mzc2",
+            "name": "Product: UHJvZHVjdDoxMzc5NDU5Mzc2"
           }
         }
       }
@@ -28,20 +28,20 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node @key(fields: "id") {
-        id: ID!
+      type Query {
+        viewer: Viewer
       }
 
       type Product implements Node {
         id: ID!
       }
 
-      type Query {
-        viewer: Viewer
-      }
-
       type Viewer {
         product: Product!
+      }
+
+      interface Node @key(fields: "id") {
+        id: ID!
       }
     interactions:
       - request:
@@ -61,7 +61,7 @@ sourceSchemas:
                 "data": {
                   "viewer": {
                     "product": {
-                      "id": "UHJvZHVjdDoy"
+                      "id": "UHJvZHVjdDoxMzc5NDU5Mzc2"
                     }
                   }
                 }
@@ -72,13 +72,13 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        test: Test!
+      }
+
       type Product @key(fields: "id") {
         id: ID!
         name: String! @shareable
-      }
-
-      type Query {
-        test: Test!
       }
 
       type Test {
@@ -90,8 +90,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup
       }
 
       type Product implements Node {
@@ -99,8 +99,8 @@ sourceSchemas:
         name: String! @shareable
       }
 
-      type Query {
-        node(id: ID!): Node @lookup
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
@@ -116,7 +116,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_id": "UHJvZHVjdDoy"
+              "__fusion_1_id": "UHJvZHVjdDoxMzc5NDU5Mzc2"
             }
         response:
           results:
@@ -125,7 +125,7 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "Product",
-                    "name": "Product: UHJvZHVjdDoy"
+                    "name": "Product: UHJvZHVjdDoxMzc5NDU5Mzc2"
                   }
                 }
               }
@@ -141,7 +141,7 @@ operationPlan:
             }
           }
         }
-      hash: ab5a05497f5464d885f19433725b3475
+      hash: fb2efb0faf18d3c7385b2df7bf89a0da
       searchSpace: 1
       expandedNodes: 2
   nodes:

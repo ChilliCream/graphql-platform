@@ -65,6 +65,29 @@ public class ArgumentNamesRuleTests
                 "The argument `dogCommand` is required.", t.Message));
     }
 
+    // The rule must fire once per lexical argument, not once per fragment spread.
+    [Fact]
+    public void InvalidFieldArgNameInReusedFragment()
+    {
+        ExpectErrors(
+            """
+            query {
+              dog {
+                ... invalidArgName
+                ... invalidArgName
+              }
+            }
+
+            fragment invalidArgName on Dog {
+              doesKnowCommand(command: CLEAN_UP_HOUSE)
+            }
+            """,
+            t => Assert.Equal(
+                "The argument `command` does not exist.", t.Message),
+            t => Assert.Equal(
+                "The argument `dogCommand` is required.", t.Message));
+    }
+
     [Fact]
     public void InvalidDirectiveArgName()
     {
@@ -379,5 +402,23 @@ public class ArgumentNamesRuleTests
               fieldWithArg @directive(arg1: "value", arg1: "value", arg1: "value")
             }
             """);
+    }
+
+    [Fact]
+    public void Validate_Should_Report_When_ASpreadPassesAnArgumentTheFragmentDoesNotDeclare()
+    {
+        ExpectErrors(
+            """
+            {
+                dog {
+                    ...withVariable(unknown: true)
+                }
+            }
+
+            fragment withVariable($atOtherHomes: Boolean) on Dog {
+                isHouseTrained(atOtherHomes: $atOtherHomes)
+            }
+            """,
+            FragmentArgumentParserOptions);
     }
 }

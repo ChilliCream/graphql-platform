@@ -276,6 +276,43 @@ public sealed class IsInvalidFieldsRuleTests : RuleTestBase
             ]);
     }
 
+    // The @is field selection map references a constant argument that does not exist on the field.
+    [Fact]
+    public void Validate_IsFieldWithUnknownArgument_Fails()
+    {
+        AssertInvalid(
+            [
+                """
+                # Schema A
+                type Query {
+                    personById(id: ID! @is(field: "identifier(scope: LOCAL)")): Person @lookup
+                }
+
+                type Person {
+                    identifier: ID!
+                    name: String
+                }
+                """
+            ],
+            [
+                """
+                {
+                    "message": "The @is directive on argument 'Query.personById(id:)' in schema 'A' specifies an invalid field selection against the composed schema.",
+                    "code": "IS_INVALID_FIELDS",
+                    "severity": "Error",
+                    "coordinate": "Query.personById(id:)",
+                    "member": "is",
+                    "schema": "A",
+                    "extensions": {
+                        "errors": [
+                            "The argument 'scope' does not exist on field 'Person.identifier'."
+                        ]
+                    }
+                }
+                """
+            ]);
+    }
+
     // List output type, List input type (valid for Fusion v1 batch lookups).
     [Fact]
     public void Validate_IsInvalidFieldsListVsList_Fails()

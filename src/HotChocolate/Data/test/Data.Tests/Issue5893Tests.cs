@@ -11,9 +11,10 @@ public class Issue5893Tests
     {
         var executor = await new ServiceCollection()
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddProjections()
             .AddQueryType<Issue5893Query>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(
             """
@@ -25,7 +26,8 @@ public class Issue5893Tests
                 }
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
         Assert.Empty(operationResult.Errors ?? []);

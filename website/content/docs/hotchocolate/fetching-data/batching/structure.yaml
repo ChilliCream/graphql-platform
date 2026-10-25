@@ -1,0 +1,6 @@
+title: Batching
+items:
+  - path: dataloader
+    title: DataLoader
+  - path: batch-resolver
+    title: Batch Resolvers

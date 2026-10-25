@@ -13,7 +13,7 @@ public class MongoDbListNoneOperationHandler : MongoDbListOperationHandlerBase
     /// <inheritdoc />
     protected override int Operation => DefaultFilterOperations.None;
 
-    public static MongoDbListNoneOperationHandler Create(FilterProviderContext context)
+    public static MongoDbListNoneOperationHandler Create(FilterProviderContext _)
         => new();
 
     /// <inheritdoc />

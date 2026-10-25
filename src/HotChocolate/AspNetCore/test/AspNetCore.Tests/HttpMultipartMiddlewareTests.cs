@@ -1,4 +1,11 @@
+using System.Net;
+using System.Text.Json;
 using HotChocolate.AspNetCore.Tests.Utilities;
+using HotChocolate.Types;
+using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 
 namespace HotChocolate.AspNetCore;
@@ -32,6 +39,28 @@ public class HttpMultipartMiddlewareTests(TestServerFactory serverFactory) : Ser
 
         // assert
         result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Preflight_Should_ReturnBadRequest_When_EveryAcceptMediaTypeIsRejected()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            new Uri("http://localhost:5000/graphql"))
+        {
+            Content = new MultipartFormDataContent()
+        };
+        request.Headers.Add(HeaderNames.Accept, "application/graphql-response+json;q=0");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
@@ -332,6 +361,104 @@ public class HttpMultipartMiddlewareTests(TestServerFactory serverFactory) : Ser
     }
 
     [Fact]
+    public async Task Upload_Should_Not_DoubleEncode_When_StringVariableIsEscaped()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        const string query = @"
+                query ($upload: Upload!, $text: String!) {
+                    uploadWithText(file: $upload, text: $text)
+                }";
+
+        var request = JsonConvert.SerializeObject(
+            new ClientQueryRequest
+            {
+                Query = query,
+                Variables = new Dictionary<string, object?>
+                {
+                    { "upload", null },
+                    { "text", "test \" test" }
+                }
+            });
+
+        // act
+        var form = new MultipartFormDataContent
+        {
+            { new StringContent(request), "operations" },
+            { new StringContent("{ \"1\": [\"variables.upload\"] }"), "map" },
+            { new StringContent("abc"), "1", "foo.bar" }
+        };
+
+        form.Headers.Add(HttpHeaderKeys.Preflight, "1");
+
+        var result = await server.PostMultipartAsync(form, path: "/upload");
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "ContentType": "application/graphql-response+json; charset=utf-8",
+              "StatusCode": "OK",
+              "Data": {
+                "uploadWithText": "test \" test"
+              },
+              "Errors": null,
+              "Extensions": null
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Upload_Should_Not_DoubleEncode_When_StringVariableHasMixedEscapes()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        const string query = @"
+                query ($upload: Upload!, $text: String!) {
+                    uploadWithText(file: $upload, text: $text)
+                }";
+
+        var request = JsonConvert.SerializeObject(
+            new ClientQueryRequest
+            {
+                Query = query,
+                Variables = new Dictionary<string, object?>
+                {
+                    { "upload", null },
+                    { "text", "q\" b\\ n\n ué" }
+                }
+            });
+
+        // act
+        var form = new MultipartFormDataContent
+        {
+            { new StringContent(request), "operations" },
+            { new StringContent("{ \"1\": [\"variables.upload\"] }"), "map" },
+            { new StringContent("abc"), "1", "foo.bar" }
+        };
+
+        form.Headers.Add(HttpHeaderKeys.Preflight, "1");
+
+        var result = await server.PostMultipartAsync(form, path: "/upload");
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "ContentType": "application/graphql-response+json; charset=utf-8",
+              "StatusCode": "OK",
+              "Data": {
+                "uploadWithText": "q\" b\\ n\n ué"
+              },
+              "Errors": null,
+              "Extensions": null
+            }
+            """);
+    }
+
+    [Fact]
     public async Task Upload_Nullable_File()
     {
         // arrange
@@ -516,6 +643,49 @@ public class HttpMultipartMiddlewareTests(TestServerFactory serverFactory) : Ser
     }
 
     [Fact]
+    public async Task Upload_File_In_InputObject_With_NonNull_Placeholder_Should_Be_Rejected()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        const string query = @"
+                query ($input: InputWithFileInput!) {
+                    objectUpload(input: $input)
+                }";
+
+        var request = JsonConvert.SerializeObject(
+            new ClientQueryRequest
+            {
+                Query = query,
+                Variables = new Dictionary<string, object?>
+                {
+                    {
+                        "input",
+                        new Dictionary<string, object?>
+                        {
+                            { "file", new Dictionary<string, object?> { { "path", "./foo.bar" } } }
+                        }
+                    }
+                }
+            });
+
+        // act
+        var form = new MultipartFormDataContent
+            {
+                { new StringContent(request), "operations" },
+                { new StringContent("{ \"1\": [\"variables.input.file\"] }"), "map" },
+                { new StringContent("abc"), "1", "foo.bar" }
+            };
+
+        form.Headers.Add(HttpHeaderKeys.Preflight, "1");
+
+        var result = await server.PostMultipartAsync(form, path: "/upload");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Upload_File_Inline_InputObject()
     {
         // arrange
@@ -641,5 +811,66 @@ public class HttpMultipartMiddlewareTests(TestServerFactory serverFactory) : Ser
 
         // assert
         result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Post_Should_ReturnBadRequest_When_AntiforgeryValidationFailed()
+    {
+        // arrange
+        var server = ServerFactory.Create(
+            services => services
+                .AddRouting()
+                .AddGraphQLServer()
+                .AddQueryType(d => d.Field("greeting").Type<StringType>().Resolve("Hello")),
+            app => app
+                .Use(
+                    next => context =>
+                    {
+                        context.Features.Set<IAntiforgeryValidationFeature>(
+                            new FailedAntiforgeryValidationFeature());
+                        return next(context);
+                    })
+                .UseRouting()
+                .UseEndpoints(endpoints => endpoints.MapGraphQL()));
+        var client = server.CreateClient();
+
+        // act
+        using var form = new MultipartFormDataContent
+        {
+            { new StringContent("""{ "query": "{ greeting }" }"""), "operations" },
+            { new StringContent("{}"), "map" }
+        };
+        form.Headers.Add(HttpHeaderKeys.Preflight, "1");
+
+        using var response = await client.PostAsync(
+            "/graphql",
+            form,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        using var body = JsonDocument.Parse(
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        body.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The multipart form could not be read.",
+                  "extensions": {
+                    "code": "HC0033",
+                    "underlyingError": "This form is being accessed with a failed antiforgery validation. Validate the `IAntiforgeryValidationFeature` on the request before reading from the form."
+                  }
+                }
+              ]
+            }
+            """);
+    }
+
+    private sealed class FailedAntiforgeryValidationFeature : IAntiforgeryValidationFeature
+    {
+        public bool IsValid => false;
+
+        public Exception? Error => null;
     }
 }

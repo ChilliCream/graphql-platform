@@ -25,7 +25,7 @@ response:
       "data": {
         "node": {
           "product": {
-            "name": "Product: UHJvZHVjdDox"
+            "name": "Product: UHJvZHVjdDo4OTEyMTMyMzc="
           }
         }
       }
@@ -37,8 +37,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
       }
 
       type Discussion implements Node {
@@ -50,8 +50,8 @@ sourceSchemas:
         id: ID!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
@@ -80,7 +80,7 @@ sourceSchemas:
                   "node": {
                     "__typename": "Discussion",
                     "product": {
-                      "id": "UHJvZHVjdDox"
+                      "id": "UHJvZHVjdDo4OTEyMTMyMzc="
                     }
                   }
                 }
@@ -91,21 +91,21 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
       }
 
       type Product @key(fields: "id") {
         id: ID!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-      }
-
       type Review implements Node {
         id: ID!
         product: Product
+      }
+
+      interface Node {
+        id: ID!
       }
   - name: C
     schema: |
@@ -113,8 +113,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
       }
 
       type Product implements Node {
@@ -122,8 +122,8 @@ sourceSchemas:
         name: String
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
@@ -139,7 +139,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_2_id": "UHJvZHVjdDox"
+              "__fusion_2_id": "UHJvZHVjdDo4OTEyMTMyMzc="
             }
         response:
           results:
@@ -148,7 +148,7 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "Product",
-                    "name": "Product: UHJvZHVjdDox"
+                    "name": "Product: UHJvZHVjdDo4OTEyMTMyMzc="
                   }
                 }
               }
@@ -173,7 +173,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 7a72a6b2c73563990dd6a8e780fbbd78
+      hash: 8ab9fb6fb4414e34e5c6b8620b9bbb6f
       searchSpace: 1
       expandedNodes: 3
   nodes:

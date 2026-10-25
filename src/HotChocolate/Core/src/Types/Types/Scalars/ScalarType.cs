@@ -42,9 +42,9 @@ public abstract partial class ScalarType
     public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
 
     /// <summary>
-    /// Gets the optional description of this scalar type.
+    /// Gets the URL that specifies the behavior and constraints of this scalar type.
     /// </summary>
-    public Uri? SpecifiedBy
+    public string? SpecifiedBy
     {
         get;
         protected set
@@ -124,6 +124,12 @@ public abstract partial class ScalarType
     {
         ArgumentNullException.ThrowIfNull(valueLiteral);
 
+        // A scalar whose serialization type is unknown cannot reject any literal.
+        if (SerializationType is ScalarSerializationType.Undefined)
+        {
+            return true;
+        }
+
         if ((SerializationType & ScalarSerializationType.String) == ScalarSerializationType.String
             && valueLiteral is { Kind: SyntaxKind.StringValue })
         {
@@ -137,7 +143,7 @@ public abstract partial class ScalarType
         }
 
         if ((SerializationType & ScalarSerializationType.Float) == ScalarSerializationType.Float
-            && valueLiteral is { Kind: SyntaxKind.FloatValue })
+            && valueLiteral is { Kind: SyntaxKind.FloatValue or SyntaxKind.IntValue })
         {
             return true;
         }
@@ -245,21 +251,17 @@ public abstract partial class ScalarType
             throw CreateInputValueToLiteralError(inputValue, context);
         }
 
-        // We try to get a memory builder from the context and assign it to our JsonValueParser
-        // which rewrites the json into a GraphQL value node.
-        // The memory builder allows us to store the actual values as UTF-8 string.
+        // The memory builder stores the UTF-8 values of the created literals and is shared
+        // by all values that are coerced for the same request.
         var utf8MemoryBuilder = context.Features.Get<Utf8MemoryBuilder>();
-        var builderExistedBeforeParsing = utf8MemoryBuilder is not null;
-
         var parser = new JsonValueParser(doNotSeal: true) { _memory = utf8MemoryBuilder };
         var literal = parser.Parse(inputValue);
 
-        // If no builder existed so far but we now created one by rewriting the JSON value,
-        // then we store the JSON builder on the context so that it can be picked up and reused by other values
-        // in the current coercion of input values.
-        if (!builderExistedBeforeParsing && utf8MemoryBuilder is not null)
+        // The parser creates the builder on first use, so we store it on the context
+        // for the values that are coerced after this one.
+        if (utf8MemoryBuilder is null && parser._memory is not null)
         {
-            context.Features.Set(utf8MemoryBuilder);
+            context.Features.Set(parser._memory);
         }
 
         return literal;

@@ -71,7 +71,7 @@ namespace TestNamespace
             HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
                 extension.Context,
                 descriptor,
-                null,
+                typeof(global::TestNamespace.Query),
                 new global::HotChocolate.Types.QueryTypeAttribute());
             configuration.ConfigurationsAreApplied = true;
 
@@ -88,6 +88,7 @@ namespace TestNamespace
 
                     configuration.Type = typeInspector.GetTypeRef(typeof(global::TestNamespace.Test), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(global::TestNamespace.Test);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 
@@ -116,6 +117,12 @@ namespace TestNamespace
                         {
                             typeof(int)
                         })!;
+
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetTestById_id(),
+                        fieldDescriptor);
 
                     configuration.Resolvers = context.Resolvers.GetTestById();
                 },
@@ -199,6 +206,7 @@ namespace TestNamespace
 
                     configuration.Type = typeInspector.GetTypeRef(typeof(global::TestNamespace.Test), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(global::TestNamespace.Test);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 
@@ -219,6 +227,12 @@ namespace TestNamespace
 
                         configuration.Arguments.Add(argumentConfiguration);
                     }
+
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetTest_id(),
+                        fieldDescriptor);
 
                     configuration.Resolvers = context.Resolvers.GetTest();
                 },

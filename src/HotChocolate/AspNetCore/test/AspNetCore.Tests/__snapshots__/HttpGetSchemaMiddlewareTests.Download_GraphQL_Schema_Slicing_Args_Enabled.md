@@ -15,27 +15,86 @@ schema {
   subscription: Subscription
 }
 
-interface Character {
-  id: ID!
-  name: String!
-  friends(
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the last _n_ elements from the list."
-    last: Int
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-  ): FriendsConnection
-  appearsIn: [Episode]
-  traits: Any
-  height(unit: Unit): Float
+type Query {
+  """
+  Retrieve a hero by a particular Star Wars episode.
+  
+  
+  **Returns:**
+  The character.
+  """
+  hero("The episode to look up by." episode: Episode! = NEW_HOPE): Character
+  """
+  Retrieve a hero by their traits.
+  
+  
+  **Returns:**
+  The character.
+  """
+  heroByTraits("The traits to look up by." traits: Any!): Character
+  """
+  Retrieve heroes by particular Star Wars episodes.
+  
+  
+  **Returns:**
+  The characters.
+  """
+  heroes("The episodes to look up by." episodes: [Episode!]!): [Character!]
+  character(characterIds: [String!]!): [Character!]! @cost(weight: "10")
+  search(text: String!): [SearchResult]
+  """
+  Gets a human by Id.
+  
+  
+  **Returns:**
+  The human.
+  """
+  human("The Id of the human to retrieve." id: String!): Human
+  """
+  Get a particular droid by Id.
+  
+  
+  **Returns:**
+  The droid.
+  """
+  droid("The Id of the droid." id: String!): Droid
+  time: Long!
+  evict: Boolean!
+  wait(m: Int!): Boolean! @cost(weight: "10")
+  someDeprecatedField(
+    deprecatedArg: String! = "foo" @deprecated(reason: "use something else")
+  ): String! @deprecated(reason: "use something else")
 }
 
+type Mutation {
+  """
+  Creates a review for a given Star Wars episode.
+  
+  
+  **Returns:**
+  The created review.
+  """
+  createReview(
+    "The episode to review."
+    episode: Episode!
+    "The review."
+    review: ReviewInput!
+  ): Review! @cost(weight: "10")
+  complete(episode: Episode!): Boolean! @cost(weight: "10")
+}
+
+type Subscription {
+  onReview(episode: Episode!): Review!
+  delay(delay: Int!, count: Int!): String!
+}
+
+"A droid in the Star Wars universe."
 type Droid implements Character {
+  "The unique identifier for the character."
   id: ID!
+  "The name of the character."
   name: String!
+  "The episodes the character appears in."
   appearsIn: [Episode]
   friends(
     "Returns the first _n_ elements from the list."
@@ -47,10 +106,17 @@ type Droid implements Character {
     "Returns the elements in the list that come before the specified cursor."
     before: String
   ): FriendsConnection
-    @listSize(assumedSize: 50, slicingArguments: ["first", "last"], slicingArgumentDefaultValue: 10, sizedFields: ["edges", "nodes"])
+    @listSize(
+      assumedSize: 50
+      slicingArguments: ["first", "last"]
+      slicingArgumentDefaultValue: 10
+      sizedFields: ["edges", "nodes"]
+    )
     @cost(weight: "10")
   height(unit: Unit): Float
+  "The droid's primary function."
   primaryFunction: String
+  "The traits of this character."
   traits: Any
 }
 
@@ -72,9 +138,13 @@ type FriendsEdge {
   node: Character
 }
 
+"A human character in the Star Wars universe."
 type Human implements Character {
+  "The unique identifier for the character."
   id: ID!
+  "The name of the character."
   name: String!
+  "The episodes the character appears in."
   appearsIn: [Episode]
   friends(
     "Returns the first _n_ elements from the list."
@@ -86,18 +156,19 @@ type Human implements Character {
     "Returns the elements in the list that come before the specified cursor."
     before: String
   ): FriendsConnection
-    @listSize(assumedSize: 50, slicingArguments: ["first", "last"], slicingArgumentDefaultValue: 10, sizedFields: ["edges", "nodes"])
+    @listSize(
+      assumedSize: 50
+      slicingArguments: ["first", "last"]
+      slicingArgumentDefaultValue: 10
+      sizedFields: ["edges", "nodes"]
+    )
     @cost(weight: "10")
   otherHuman: Human
   height(unit: Unit): Float
+  "The planet the character is originally from."
   homePlanet: String
+  "The traits of this character."
   traits: Any
-}
-
-type Mutation {
-  createReview(episode: Episode!, review: ReviewInput!): Review!
-    @cost(weight: "10")
-  complete(episode: Episode!): Boolean! @cost(weight: "10")
 }
 
 "Information about pagination in a connection."
@@ -112,61 +183,92 @@ type PageInfo {
   endCursor: String
 }
 
-type Query {
-  hero(episode: Episode! = NEW_HOPE): Character
-  heroByTraits(traits: Any!): Character
-  heroes(episodes: [Episode!]!): [Character!]
-  character(characterIds: [String!]!): [Character!]! @cost(weight: "10")
-  search(text: String!): [SearchResult]
-  human(id: String!): Human
-  droid(id: String!): Droid
-  time: Long!
-  evict: Boolean!
-  wait(m: Int!): Boolean! @cost(weight: "10")
-  someDeprecatedField(
-    deprecatedArg: String! = "foo" @deprecated(reason: "use something else")
-  ): String! @deprecated(reason: "use something else")
-}
-
+"A review of a particular movie."
 type Review {
+  "An explanation for the rating."
   commentary: String @cost(weight: "10")
+  "The number of stars given for this review."
   stars: Int!
 }
 
+"A starship in the Star Wars universe."
 type Starship {
+  "The Id of the starship."
   id: ID!
+  "The name of the starship."
   name: String!
   length(unit: Unit): Float!
 }
 
-type Subscription {
-  onReview(episode: Episode!): Review!
-  delay(delay: Int!, count: Int!): String!
+"A character in the Star Wars universe."
+interface Character {
+  "The unique identifier for the character."
+  id: ID!
+  "The name of the character."
+  name: String!
+  "The names of the character's friends."
+  friends(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+  ): FriendsConnection
+  "The episodes the character appears in."
+  appearsIn: [Episode]
+  "The traits of this character."
+  traits: Any
+  "The height of the character."
+  height(unit: Unit): Float
 }
 
 union SearchResult = Starship | Human | Droid
 
+"A review of a particular movie."
 input ReviewInput {
+  "The number of stars given for this review."
   stars: Int!
+  "An explanation for the rating."
   commentary: String
 }
 
+"The Star Wars episodes."
 enum Episode {
+  "Star Wars Episode IV: A New Hope"
   NEW_HOPE
+  "Star Wars Episode V: Empire Strikes Back"
   EMPIRE
+  "Star Wars Episode VI: Return of the Jedi"
   JEDI
 }
 
+"Different units of measurement."
 enum Unit {
   FOOT
   METERS
 }
 
+"The `Any` scalar type represents any valid GraphQL value."
+scalar Any @specifiedBy(url: "https://scalars.graphql.org/chillicream/any.html")
+
+"The `Long` scalar type represents a signed 64-bit integer."
+scalar Long
+  @specifiedBy(url: "https://scalars.graphql.org/chillicream/long.html")
+
 "The purpose of the `cost` directive is to define a `weight` for GraphQL types, fields, and arguments. Static analysis can use these weights when calculating the overall cost of a query or response."
 directive @cost(
   "The `weight` argument defines what value to add to the overall cost for every appearance, or possible appearance, of a type, field, argument, etc."
   weight: String!
-) on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
+) on
+  | SCALAR
+  | OBJECT
+  | FIELD_DEFINITION
+  | ARGUMENT_DEFINITION
+  | ENUM
+  | INPUT_FIELD_DEFINITION
 
 "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."
 directive @defer(
@@ -192,12 +294,6 @@ directive @listSize(
   requireOneSlicingArgument: Boolean = true
 ) on FIELD_DEFINITION
 
-"The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
-directive @specifiedBy(
-  "The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types."
-  url: String!
-) on SCALAR
-
 "The `@stream` directive may be provided for a field of `List` type so that the backend can leverage technology such as asynchronous iterators to provide a partial list in the initial response, and additional list items in subsequent responses. `@include` and `@skip` take precedence over `@stream`."
 directive @stream(
   "If this argument label has a value other than null, it will be passed on to the result of this stream directive. This label is intended to give client applications a way to identify to which fragment a streamed result belongs to."
@@ -207,11 +303,4 @@ directive @stream(
   "Streamed when true."
   if: Boolean
 ) on FIELD
-
-"The `Any` scalar type represents any valid GraphQL value."
-scalar Any @specifiedBy(url: "https://scalars.graphql.org/chillicream/any.html")
-
-"The `Long` scalar type represents a signed 64-bit integer."
-scalar Long
-  @specifiedBy(url: "https://scalars.graphql.org/chillicream/long.html")
 ```

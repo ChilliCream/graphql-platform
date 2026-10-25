@@ -64,7 +64,10 @@ public interface ITypeCompletionContext : ITypeSystemObjectContext
     /// <param name="directiveType">
     /// The resolved directive type.
     /// </param>
-    /// <returns></returns>
+    /// <returns>
+    /// <c>true</c> if the directive type was found;
+    /// otherwise, <c>false</c>.
+    /// </returns>
     bool TryGetDirectiveType(
         TypeReference directiveRef,
         [NotNullWhen(true)] out DirectiveType? directiveType);

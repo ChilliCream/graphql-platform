@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Fusion.Options;
+using HotChocolate.Serialization;
 using HotChocolate.Types.Mutable;
-using HotChocolate.Types.Mutable.Serialization;
 using static HotChocolate.Fusion.CompositionTestHelper;
 
 namespace HotChocolate.Fusion;

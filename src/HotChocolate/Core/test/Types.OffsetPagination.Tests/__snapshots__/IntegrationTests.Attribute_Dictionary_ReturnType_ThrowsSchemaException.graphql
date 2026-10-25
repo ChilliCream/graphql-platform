@@ -2,6 +2,10 @@ schema {
   query: UglyLegacyQuery
 }
 
+type UglyLegacyQuery {
+  uglyLegacyResolver(skip: Int, take: Int): UglyLegacyResolverCollectionSegment
+}
+
 "Information about the offset pagination."
 type CollectionSegmentInfo {
   "Indicates whether more items exist following the set defined by the clients arguments."
@@ -13,10 +17,6 @@ type CollectionSegmentInfo {
 type KeyValuePairOfStringAndString {
   key: String!
   value: String!
-}
-
-type UglyLegacyQuery {
-  uglyLegacyResolver(skip: Int, take: Int): UglyLegacyResolverCollectionSegment
 }
 
 "A segment of a collection."

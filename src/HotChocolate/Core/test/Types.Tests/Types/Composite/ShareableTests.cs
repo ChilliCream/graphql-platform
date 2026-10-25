@@ -13,7 +13,7 @@ public static class ShareableTests
                 .AddGraphQL()
                 .AddQueryType<Query1>()
                 .AddTypeExtension(typeof(PageInfoExtensions))
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -31,7 +31,7 @@ public static class ShareableTests
                         d.Name("PageInfo");
                         d.Shareable();
                     }))
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -44,7 +44,7 @@ public static class ShareableTests
                 .AddGraphQL()
                 .AddQueryType<Query1>()
                 .AddTypeExtension(typeof(PageInfoScopedExtensions))
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -63,7 +63,7 @@ public static class ShareableTests
                         d.Shareable(scoped: true);
                         d.Field("new").Resolve("bar");
                     }))
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -75,7 +75,7 @@ public static class ShareableTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query2>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -87,7 +87,7 @@ public static class ShareableTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query3>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }

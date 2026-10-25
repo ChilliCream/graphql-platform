@@ -1,0 +1,21 @@
+schema {
+  query: Query
+}
+
+type Query {
+  fusion__lookup_productById(id: Int!): Product @internal @lookup
+  fusion__lookup_userByEmail(email: String!): User @internal @lookup
+  product(id: Int!): Product
+  topProducts: [Product!]!
+}
+
+type Product @key(fields: "id") {
+  id: Int!
+  name: String!
+  price: Float!
+}
+
+type User @key(fields: "email") {
+  email: String!
+  name: String!
+}

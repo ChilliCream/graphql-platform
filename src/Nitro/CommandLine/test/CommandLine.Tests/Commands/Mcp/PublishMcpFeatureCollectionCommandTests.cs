@@ -29,8 +29,8 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
               --stage <stage> (REQUIRED)                                          The name of the stage [env: NITRO_STAGE]
               --force                                                             Skip confirmation prompts for deletes and overwrites
               --wait-for-approval                                                 Wait for the deployment to be approved before completing [env: NITRO_WAIT_FOR_APPROVAL]
-              --cloud-url <cloud-url>                                             The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                                                 The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>                                             The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                                                 The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                                                     The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                                      Show help and usage information
 
@@ -94,7 +94,7 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -122,9 +122,7 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'dev'
-            ├── Starting publish request
-            │   └── ✕ Failed to start publish request.
+            Publishing new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'
             └── ✕ Failed to publish a new MCP feature collection version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -154,10 +152,68 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'dev'
-            ├── Starting publish request
-            │   └── ✕ Failed to start publish request.
+            Publishing new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'
             └── ✕ Failed to publish a new MCP feature collection version.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task StageNotFound_ReturnsError()
+    {
+        SetupPublishMcpFeatureCollectionMutation(errors:
+            new PublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_StageNotFoundError(
+                "StageNotFoundError", "Stage not found.", Stage));
+
+        var result = await ExecuteCommandAsync(
+            "mcp", "publish", "--tag", Tag, "--stage", Stage,
+            "--mcp-feature-collection-id", McpFeatureCollectionId);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task CollectionNotFound_ReturnsError()
+    {
+        SetupPublishMcpFeatureCollectionMutation(errors:
+            new PublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_McpFeatureCollectionNotFoundError(
+                McpFeatureCollectionId, "MCP Feature Collection not found."));
+
+        var result = await ExecuteCommandAsync(
+            "mcp", "publish", "--tag", Tag, "--stage", Stage,
+            "--mcp-feature-collection-id", McpFeatureCollectionId);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            MCP Feature Collection not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task CollectionVersionNotFound_ReturnsError()
+    {
+        SetupPublishMcpFeatureCollectionMutation(errors:
+            new PublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_McpFeatureCollectionVersionNotFoundError(
+                Tag, "MCP Feature Collection version not found.", McpFeatureCollectionId));
+
+        var result = await ExecuteCommandAsync(
+            "mcp", "publish", "--tag", Tag, "--stage", Stage,
+            "--mcp-feature-collection-id", McpFeatureCollectionId);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            MCP Feature Collection version not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -186,9 +242,7 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'dev'
-            ├── Starting publish request
-            │   └── ✕ Failed to start publish request.
+            Publishing new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'
             └── ✕ Failed to publish a new MCP feature collection version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -216,12 +270,9 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         // assert
         result.AssertSuccess(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'dev'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   └── ✓ Published successfully.
-            └── ✓ Published new MCP feature collection version 'v1' to stage 'dev'.
+            Publishing new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'
+            ├── Publication request created. (ID: request-1)
+            └── ✓ Published new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'.
             """);
     }
 
@@ -248,12 +299,9 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         // assert
         result.AssertSuccess(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'dev'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   └── ✓ Published successfully.
-            └── ✓ Published new MCP feature collection version 'v1' to stage 'dev'.
+            Publishing new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'
+            ├── Publication request created. (ID: request-1)
+            └── ✓ Published new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'.
             """);
     }
 
@@ -279,17 +327,14 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'dev'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   └── ✕ Processing failed.
-            │       └── Something went wrong during publish.
-            └── ✕ Failed to publish a new MCP feature collection version.
+            Publishing new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'
+            ├── Publication request created. (ID: request-1)
+            └── ✕ MCP feature collection version was rejected.
+                └── Something went wrong during publish.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            MCP feature collection publish failed.
+            MCP feature collection version was rejected.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -317,13 +362,10 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         // assert
         result.AssertSuccess(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'dev'
+            Publishing new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'
             ├── ! Force push is enabled.
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   └── ✓ Published successfully.
-            └── ✓ Published new MCP feature collection version 'v1' to stage 'dev'.
+            ├── Publication request created. (ID: request-1)
+            └── ✓ Published new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'.
             """);
     }
 
@@ -352,18 +394,15 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         // assert
         result.AssertSuccess(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'dev'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   ├── ! Validation failed.
-            │   │   └── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
-            │   │       └── Tool 'Fail'
-            │   │           └── The field `person` does not exist on the type `Query`. (1:14)
-            │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            │   ├── Your request has been approved.
-            │   └── ✓ Published successfully.
-            └── ✓ Published new MCP feature collection version 'v1' to stage 'dev'.
+            Publishing new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'
+            ├── Publication request created. (ID: request-1)
+            ├── ! Failed validation.
+            │   └── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
+            │       └── Tool 'Fail'
+            │           └── The field `person` does not exist on the type `Query`. (1:14)
+            ├── ⏳ Waiting for approval. Approve in Nitro to continue.
+            ├── Your request has been approved.
+            └── ✓ Published new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'.
             """);
     }
 
@@ -391,21 +430,18 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            MCP feature collection publish failed.
+            MCP feature collection version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'dev'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   ├── ! Validation failed.
-            │   │   └── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
-            │   │       └── Tool 'Fail'
-            │   │           └── The field `person` does not exist on the type `Query`. (1:14)
-            │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            │   └── ✕ Processing failed.
-            └── ✕ Failed to publish a new MCP feature collection version.
+            Publishing new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'
+            ├── Publication request created. (ID: request-1)
+            ├── ! Failed validation.
+            │   └── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
+            │       └── Tool 'Fail'
+            │           └── The field `person` does not exist on the type `Query`. (1:14)
+            ├── ⏳ Waiting for approval. Approve in Nitro to continue.
+            └── ✕ MCP feature collection version was rejected.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -430,12 +466,9 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         // assert
         result.AssertSuccess(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'dev'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   └── ✓ Published successfully.
-            └── ✓ Published new MCP feature collection version 'v1' to stage 'dev'.
+            Publishing new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'
+            ├── Publication request created. (ID: request-1)
+            └── ✓ Published new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'.
             """);
     }
 
@@ -455,26 +488,6 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
                     "UnauthorizedOperation",
                     "Not authorized to publish."),
                 "Not authorized to publish."
-            },
-            {
-                new PublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_StageNotFoundError(
-                    "StageNotFoundError",
-                    "Stage not found.",
-                    Stage),
-                "Stage not found."
-            },
-            {
-                new PublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_McpFeatureCollectionNotFoundError(
-                    McpFeatureCollectionId,
-                    "MCP Feature Collection not found."),
-                "MCP Feature Collection not found."
-            },
-            {
-                new PublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_McpFeatureCollectionVersionNotFoundError(
-                    Tag,
-                    "MCP Feature Collection version not found.",
-                    McpFeatureCollectionId),
-                "MCP Feature Collection version not found."
             },
             {
                 unexpectedError.Object,

@@ -24,7 +24,9 @@ public static class HotChocolateAspNetCoreHostingBuilderExtensions
     /// <param name="disableDefaultSecurity">
     /// Defines if the default security policy should be disabled.
     /// </param>
-    /// <returns></returns>
+    /// <returns>
+    /// The <see cref="IRequestExecutorBuilder"/> for configuration chaining.
+    /// </returns>
     public static IRequestExecutorBuilder AddGraphQL(
         this IHostApplicationBuilder builder,
         string? schemaName = null,

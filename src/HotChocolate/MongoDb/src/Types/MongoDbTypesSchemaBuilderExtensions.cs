@@ -29,7 +29,6 @@ public static class MongoDbTypesSchemaBuilderExtensions
     {
         builder.AddType<BsonType>();
         builder.BindRuntimeType(typeof(BsonValue), typeof(BsonType));
-        builder.BindRuntimeType(typeof(BsonArray), typeof(BsonType));
         builder.BindRuntimeType(typeof(BsonDocument), typeof(BsonType));
         builder.BindRuntimeType(typeof(BsonBoolean), typeof(BsonType));
         builder.BindRuntimeType(typeof(BsonDouble), typeof(BsonType));

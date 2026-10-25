@@ -77,7 +77,8 @@ public class CircuitBreakerConfigurationExtensionsTests
 
         var provider = services.BuildServiceProvider();
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
-        var result = runtime.Transports[0].ReceiveEndpoints.First().Features.Get<CircuitBreakerFeature>();
+        var endpoint = runtime.Transports[0].ReceiveEndpoints.Single(e => e.Name == "endpoint1");
+        var result = endpoint.Features.Get<CircuitBreakerFeature>();
         Assert.NotNull(result);
         Assert.Equal(0.2, result.FailureRatio);
     }

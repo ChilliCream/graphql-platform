@@ -1,3 +1,4 @@
+using HotChocolate.Language;
 using HotChocolate.Types.Mutable.Serialization;
 
 namespace HotChocolate.Types.Mutable;
@@ -147,5 +148,88 @@ public class ScalarSerializationTypeTests
         var type = schema.Types.GetType<IScalarTypeDefinition>("Custom");
         Assert.Equal(ScalarSerializationType.String, type.SerializationType);
         Assert.Equal("\\b\\d{3}\\b", type.Pattern);
+    }
+
+    [Fact]
+    public void Serialization_Type_Resolved_From_SpecifiedBy_Url()
+    {
+        // arrange
+        const string sdl =
+            """
+            scalar Custom @specifiedBy(url: "https://scalars.graphql.org/chillicream/uuid.html")
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(sdl);
+
+        // assert
+        var type = schema.Types.GetType<IScalarTypeDefinition>("Custom");
+        Assert.Equal(ScalarSerializationType.String, type.SerializationType);
+        Assert.Null(type.Pattern);
+    }
+
+    [Fact]
+    public void SerializeAs_Takes_Precedence_Over_SpecifiedBy_Url()
+    {
+        // arrange
+        const string sdl =
+            """
+            scalar Custom
+                @serializeAs(type: INT)
+                @specifiedBy(url: "https://scalars.graphql.org/chillicream/uuid.html")
+
+            directive @serializeAs(type: [ScalarSerializationType!], pattern: String) on SCALAR
+
+            enum ScalarSerializationType {
+              STRING
+              BOOLEAN
+              INT
+              FLOAT
+              OBJECT
+              LIST
+            }
+            """;
+
+        // act
+        var schema = SchemaParser.Parse(sdl);
+
+        // assert
+        var type = schema.Types.GetType<IScalarTypeDefinition>("Custom");
+        Assert.Equal(ScalarSerializationType.Int, type.SerializationType);
+    }
+
+    [Fact]
+    public void IsValueCompatible_UndefinedType_AcceptsAnyLiteral()
+    {
+        // arrange
+        // A scalar with no declared serialization type cannot prove any literal is incompatible.
+        IScalarTypeDefinition type = new MutableScalarTypeDefinition("Custom");
+
+        // act
+        var acceptsInt = type.IsValueCompatible(new IntValueNode(1));
+        var acceptsString = type.IsValueCompatible(new StringValueNode("x"));
+        var acceptsEnum = type.IsValueCompatible(new EnumValueNode("FOO"));
+
+        // assert
+        Assert.Equal(ScalarSerializationType.Undefined, type.SerializationType);
+        Assert.True(acceptsInt);
+        Assert.True(acceptsString);
+        Assert.True(acceptsEnum);
+    }
+
+    [Fact]
+    public void IsValueCompatible_ListType_AcceptsOnlyListLiterals()
+    {
+        // arrange
+        IScalarTypeDefinition type =
+            new MutableScalarTypeDefinition("Custom") { SerializationType = ScalarSerializationType.List };
+
+        // act
+        var acceptsList = type.IsValueCompatible(new ListValueNode([]));
+        var acceptsString = type.IsValueCompatible(new StringValueNode("x"));
+
+        // assert
+        Assert.True(acceptsList);
+        Assert.False(acceptsString);
     }
 }

@@ -36,7 +36,7 @@ public class DataAttributeOrderAnalyzerTests
                 public IQueryable<Product> GetProducts() => null!;
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -72,7 +72,7 @@ public class DataAttributeOrderAnalyzerTests
                 public IQueryable<Product> GetProducts() => null!;
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -111,7 +111,7 @@ public class DataAttributeOrderAnalyzerTests
                 public IQueryable<Product> GetProducts() => null!;
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -148,7 +148,7 @@ public class DataAttributeOrderAnalyzerTests
                 public IQueryable<Product> GetProducts() => null!;
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -184,7 +184,7 @@ public class DataAttributeOrderAnalyzerTests
                 public IQueryable<Product> GetProducts() => null!;
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -221,7 +221,7 @@ public class DataAttributeOrderAnalyzerTests
                 public IQueryable<Product> GetProducts() => null!;
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -255,7 +255,7 @@ public class DataAttributeOrderAnalyzerTests
                 public IQueryable<Product> GetProducts() => null!;
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -282,6 +282,6 @@ public class DataAttributeOrderAnalyzerTests
                 public string Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

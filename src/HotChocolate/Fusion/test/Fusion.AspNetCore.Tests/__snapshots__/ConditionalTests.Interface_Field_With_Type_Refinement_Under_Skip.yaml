@@ -47,12 +47,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
-      }
-
-      interface Votable @key(fields: "id") {
-        id: ID!
+      type Query {
+        abstractTypes: [Votable]
+        node(id: ID!): Node @lookup @shareable
       }
 
       type Author implements Votable & Node @key(fields: "id") {
@@ -63,9 +60,12 @@ sourceSchemas:
         id: ID!
       }
 
-      type Query {
-        abstractTypes: [Votable]
-        node(id: ID!): Node @lookup @shareable
+      interface Node {
+        id: ID!
+      }
+
+      interface Votable @key(fields: "id") {
+        id: ID!
       }
     interactions:
       - request:
@@ -96,15 +96,15 @@ sourceSchemas:
                   "abstractTypes": [
                     {
                       "__typename": "Discussion",
-                      "id": "RGlzY3Vzc2lvbjox"
+                      "id": "RGlzY3Vzc2lvbjo4NDU0NzcwNDE="
                     },
                     {
                       "__typename": "Author",
-                      "id": "QXV0aG9yOjI="
+                      "id": "QXV0aG9yOjI0NTA2NDI1Nw=="
                     },
                     {
                       "__typename": "Discussion",
-                      "id": "RGlzY3Vzc2lvbjoz"
+                      "id": "RGlzY3Vzc2lvbjoyOTQ5OTQ1OTg1"
                     }
                   ]
                 }
@@ -115,14 +115,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
-      }
-
-      interface Votable @key(fields: "id") {
-        id: ID!
-        upvotes: Int!
-        score: Int!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        discussionById(id: ID!): Discussion @lookup @shareable
       }
 
       type Discussion implements Votable & Node @key(fields: "id") {
@@ -131,9 +126,14 @@ sourceSchemas:
         score: Int!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        discussionById(id: ID!): Discussion @lookup @shareable
+      interface Node {
+        id: ID!
+      }
+
+      interface Votable @key(fields: "id") {
+        id: ID!
+        upvotes: Int!
+        score: Int!
       }
     interactions:
       - request:
@@ -150,10 +150,10 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "RGlzY3Vzc2lvbjox"
+                "__fusion_1_id": "RGlzY3Vzc2lvbjo4NDU0NzcwNDE="
               },
               {
-                "__fusion_1_id": "RGlzY3Vzc2lvbjoz"
+                "__fusion_1_id": "RGlzY3Vzc2lvbjoyOTQ5OTQ1OTg1"
               }
             ]
         response:
@@ -183,14 +183,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
-      }
-
-      interface Votable @key(fields: "id") {
-        id: ID!
-        upvotes: Int!
-        score: Int!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        authorById(id: ID!): Author @lookup @shareable
       }
 
       type Author implements Votable & Node @key(fields: "id") {
@@ -199,9 +194,14 @@ sourceSchemas:
         score: Int!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        authorById(id: ID!): Author @lookup @shareable
+      interface Node {
+        id: ID!
+      }
+
+      interface Votable @key(fields: "id") {
+        id: ID!
+        upvotes: Int!
+        score: Int!
       }
     interactions:
       - request:
@@ -223,7 +223,7 @@ sourceSchemas:
             {
               "skip1": true,
               "skip2": true,
-              "__fusion_2_id": "QXV0aG9yOjI="
+              "__fusion_2_id": "QXV0aG9yOjI0NTA2NDI1Nw=="
             }
         response:
           results:
@@ -253,7 +253,7 @@ operationPlan:
             }
           }
         }
-      hash: 2c04e9678504894af47de4bcb5c4f3b1
+      hash: 7ac0102f4d4a34ffb1114490ed2379a8
       searchSpace: 1
       expandedNodes: 2
   nodes:

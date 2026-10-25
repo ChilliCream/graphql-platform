@@ -45,7 +45,7 @@ internal sealed class CreateWorkspaceCommand : Command
             .ConfirmAsync(
                 parseResult,
                 Opt<SetAsDefaultWorkspaceOption>.Instance,
-                "Set as default workspace?",
+                Prompts.SetAsDefaultWorkspace,
                 ct);
 
         await using (var activity = console.StartActivity(
@@ -56,7 +56,7 @@ internal sealed class CreateWorkspaceCommand : Command
 
             if (createdWorkspace.Errors?.Count > 0)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
 
                 foreach (var error in createdWorkspace.Errors)
                 {

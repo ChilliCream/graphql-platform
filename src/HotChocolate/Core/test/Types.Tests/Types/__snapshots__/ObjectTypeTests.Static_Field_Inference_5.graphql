@@ -2,12 +2,12 @@ schema {
   query: Query
 }
 
+type Query {
+  book: Book!
+}
+
 type Book {
   id: Int!
   title: String!
   isComic: Boolean!
-}
-
-type Query {
-  book: Book!
 }

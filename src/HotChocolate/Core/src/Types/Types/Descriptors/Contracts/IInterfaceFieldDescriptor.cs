@@ -330,4 +330,37 @@ public interface IInterfaceFieldDescriptor
     IInterfaceFieldDescriptor Directive(
         string name,
         params ArgumentNode[] arguments);
+
+    /// <summary>
+    /// Specifies the requirements for the parent object.
+    /// </summary>
+    /// <param name="selector">
+    /// The requirements for the parent object.
+    /// </param>
+    /// <returns>
+    /// Returns the descriptor to chain further configuration.
+    /// </returns>
+    IInterfaceFieldDescriptor ParentRequires<TParent>(Expression<Func<TParent, object>> selector);
+
+    /// <summary>
+    /// Specifies the requirements for the parent object.
+    /// </summary>
+    /// <param name="requires">
+    /// The requirements for the parent object.
+    /// </param>
+    /// <returns>
+    /// Returns the descriptor to chain further configuration.
+    /// </returns>
+    IInterfaceFieldDescriptor ParentRequires<TParent>(string? requires);
+
+    /// <summary>
+    /// Specifies the requirements for the parent object.
+    /// </summary>
+    /// <param name="requires">
+    /// The requirements for the parent object.
+    /// </param>
+    /// <returns>
+    /// Returns the descriptor to chain further configuration.
+    /// </returns>
+    IInterfaceFieldDescriptor ParentRequires(string? requires);
 }

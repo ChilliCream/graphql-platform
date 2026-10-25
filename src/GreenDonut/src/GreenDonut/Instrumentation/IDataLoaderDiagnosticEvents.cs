@@ -82,7 +82,8 @@ public interface IDataLoaderDiagnosticEvents
     void BatchDispatchError(Exception error);
 
     /// <summary>
-    /// This event is raised whenever the batch dispatcher has evaluated the currently open batches.
+    /// This event is raised when the batch dispatcher evaluates the open batches without
+    /// dispatching any of them, once per run of such evaluations.
     /// </summary>
     /// <param name="openBatches">
     /// The number of open batches at the time of evaluation.

@@ -53,7 +53,25 @@ public sealed class MessagingModuleInspector : ISyntaxInspector
                         continue;
                     }
 
-                    syntaxInfo = new MessagingModuleInfo(name);
+                    string? jsonContextTypeName = null;
+
+                    // Look for the JsonContext named argument:
+                    // [assembly: MessagingModule("MyApp", JsonContext = typeof(MyJsonContext))]
+                    foreach (var arg in attributeSyntax.ArgumentList.Arguments)
+                    {
+                        if (arg.NameEquals is { Name.Identifier.Text: SyntaxConstants.JsonContextProperty }
+                            && arg.Expression is TypeOfExpressionSyntax typeOfExpr)
+                        {
+                            var typeInfo = semanticModel.GetTypeInfo(typeOfExpr.Type, cancellationToken);
+                            if (typeInfo.Type is not null)
+                            {
+                                jsonContextTypeName = typeInfo.Type.ToDisplayString(
+                                    SymbolDisplayFormat.FullyQualifiedFormat);
+                            }
+                        }
+                    }
+
+                    syntaxInfo = new MessagingModuleInfo(name, jsonContextTypeName);
                     return true;
                 }
             }

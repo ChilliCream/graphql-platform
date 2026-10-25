@@ -1,7 +1,13 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace HotChocolate.Execution.Requirements;
 
+[UnconditionalSuppressMessage(
+    "AOT",
+    "IL2072",
+    Justification =
+        "Property types are inspected from types that are statically known in the schema.")]
 internal sealed class PropertyNode : TypeContainer
 {
     public PropertyNode(PropertyInfo property, List<TypeNode>? nodes = null) : base(nodes)
@@ -69,7 +75,9 @@ internal sealed class PropertyNode : TypeContainer
         return new PropertyNode(Property, nodes, IsArray, IsCollection, ElementType);
     }
 
-    private static Type? GetCollectionType(Type type)
+    private static Type? GetCollectionType(
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)]
+        Type type)
     {
         if (type.IsGenericType
             && type.GetGenericTypeDefinition() == typeof(ICollection<>))

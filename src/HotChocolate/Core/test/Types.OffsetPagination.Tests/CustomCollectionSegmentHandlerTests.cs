@@ -30,7 +30,7 @@ public class CustomCollectionSegmentHandlerTests
             .AddQueryType<Query>()
             .Create()
             .MakeExecutable()
-            .ExecuteAsync(request)
+            .ExecuteAsync(request, TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 

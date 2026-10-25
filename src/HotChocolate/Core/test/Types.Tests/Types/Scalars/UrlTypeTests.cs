@@ -155,7 +155,7 @@ public class UrlTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         type.CoerceOutputValue(uri, resultValue);
 
@@ -172,7 +172,7 @@ public class UrlTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         type.CoerceOutputValue(uri, resultValue);
 
@@ -189,7 +189,7 @@ public class UrlTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         void Action() => type.CoerceOutputValue(value, resultValue);
 

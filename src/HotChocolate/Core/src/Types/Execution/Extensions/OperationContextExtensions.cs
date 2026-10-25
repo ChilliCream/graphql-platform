@@ -10,10 +10,8 @@ internal static class OperationContextExtensions
         public OperationContext ReportError(
             Exception exception,
             MiddlewareContext resolverContext,
-            ISelection? selection = null,
             Path? path = null)
         {
-            selection ??= resolverContext.Selection;
             path ??= resolverContext.Path;
 
             ArgumentNullException.ThrowIfNull(exception);
@@ -22,7 +20,9 @@ internal static class OperationContextExtensions
             {
                 foreach (var error in ex.Errors)
                 {
-                    context.ReportError(error, resolverContext);
+                    context.ReportError(
+                        error.Path is null ? error.WithPath(path) : error,
+                        resolverContext);
                 }
             }
             else
@@ -30,7 +30,6 @@ internal static class OperationContextExtensions
                 var error = ErrorBuilder
                     .FromException(exception)
                     .SetPath(path)
-                    .AddLocations(selection.GetSyntaxNodes())
                     .Build();
 
                 context.ReportError(error, resolverContext);
@@ -140,14 +139,16 @@ internal static class OperationContextExtensions
 
         if (handled is AggregateError aggregateError)
         {
+            var nextDepth = depth + 1;
+
             foreach (var innerError in aggregateError.Errors)
             {
-                UnwrapError(errorHandler, innerError, errors, depth++);
+                UnwrapError(errorHandler, innerError, errors, nextDepth);
             }
         }
         else
         {
-            errors.Add(error);
+            errors.Add(handled);
         }
     }
 }

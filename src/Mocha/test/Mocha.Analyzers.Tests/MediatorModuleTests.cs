@@ -21,7 +21,7 @@ public class MediatorModuleTests
                     => new("item");
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -43,7 +43,7 @@ public class MediatorModuleTests
                     => default;
             }
             """
-        ], assemblyName: "MyCompany.Services.Ordering").MatchMarkdownAsync();
+        ], assemblyName: "MyCompany.Services.Ordering").MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -66,6 +66,6 @@ public class MediatorModuleTests
                     => new(1);
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

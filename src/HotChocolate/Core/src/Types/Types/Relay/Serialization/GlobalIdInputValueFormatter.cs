@@ -41,7 +41,9 @@ internal class GlobalIdInputValueFormatter(
 
             case IReadOnlyList<NodeId> nodeIds:
             {
+#pragma warning disable IL3050
                 var internalIds = Array.CreateInstance(elementType, nodeIds.Count);
+#pragma warning restore IL3050
 
                 for (var i = 0; i < nodeIds.Count; i++)
                 {
@@ -55,7 +57,9 @@ internal class GlobalIdInputValueFormatter(
 
             case IReadOnlyList<string?> formattedIds:
             {
+#pragma warning disable IL3050
                 var internalIds = Array.CreateInstance(elementType, formattedIds.Count);
+#pragma warning restore IL3050
 
                 for (var i = 0; i < formattedIds.Count; i++)
                 {
@@ -129,7 +133,9 @@ internal class GlobalIdInputValueFormatter(
 
         static Array CreateResultArray(object[] tempIds, int size, Type elementType)
         {
+#pragma warning disable IL3050
             var internalIds = Array.CreateInstance(elementType, size);
+#pragma warning restore IL3050
             Array.Copy(tempIds, internalIds, size);
             ArrayPool<object>.Shared.Return(tempIds);
             return internalIds;

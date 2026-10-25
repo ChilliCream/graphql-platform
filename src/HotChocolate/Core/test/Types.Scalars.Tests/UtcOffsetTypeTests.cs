@@ -80,7 +80,7 @@ public class UtcOffsetTypeTests : ScalarTypeTestBase
         var expectedResult = new TimeSpan(-12, 0, 0);
 
         // act
-        object result = (TimeSpan)scalar.CoerceInputLiteral(valueSyntax)!;
+        object result = (TimeSpan)scalar.CoerceInputLiteral(valueSyntax);
 
         // assert
         Assert.Equal(expectedResult, result);
@@ -148,7 +148,7 @@ public class UtcOffsetTypeTests : ScalarTypeTestBase
         context.Setup(t => t.Features).Returns(FeatureCollection.Empty);
 
         // act
-        var deserializedValue = (TimeSpan)scalar.CoerceInputValue(doc.RootElement, context.Object)!;
+        var deserializedValue = (TimeSpan)scalar.CoerceInputValue(doc.RootElement, context.Object);
 
         // assert
         Assert.Equal(runtimeValue, deserializedValue);

@@ -13,7 +13,7 @@ public class FilterContextParameterExpressionBuilderTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddFiltering()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         const string query =
@@ -26,7 +26,7 @@ public class FilterContextParameterExpressionBuilderTests
             }
             """;
 
-        await executor.ExecuteAsync(query);
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(Query.Context);

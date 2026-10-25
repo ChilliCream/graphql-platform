@@ -43,26 +43,8 @@ public sealed class LoginCommandTests(NitroCommandFixture fixture) : SessionComm
         // assert
         result.AssertError(
             """
-            'nitro login' requires an interactive console. Use '--api-key' to authenticate command invocations in non-interactive environments.
+            `nitro login` requires an interactive console. Use '--api-key' to authenticate command invocations in non-interactive environments.
             """);
-    }
-
-    [Fact]
-    public async Task LoginReturnsNull_ReturnsError()
-    {
-        // arrange
-        SetupInteractionMode(InteractionMode.Interactive);
-        SetupLoginReturnsNull();
-
-        // act
-        var result = await ExecuteCommandAsync("login");
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            There was a failure and Nitro could not log you in.
-            """);
-        Assert.Equal(1, result.ExitCode);
     }
 
     [Fact]
@@ -85,7 +67,7 @@ public sealed class LoginCommandTests(NitroCommandFixture fixture) : SessionComm
     }
 
     [Fact]
-    public async Task NoWorkspacesAvailable_ReturnsError()
+    public async Task NoWorkspacesAvailable_ReturnsSuccess_WithWarning()
     {
         // arrange
         SetupInteractionMode(InteractionMode.Interactive);
@@ -96,11 +78,15 @@ public sealed class LoginCommandTests(NitroCommandFixture fixture) : SessionComm
         var result = await ExecuteCommandAsync("login");
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
-            You do not have any workspaces. Run `[bold blue]nitro launch[/]` and create one.
+            ✓ Logging in via browser
+            ├── Opening browser at https://identity.chillicream.com. Continue login there.
+            ├── ! You do not have any workspaces. Run `nitro launch` and create one.
+            └── ✓ Logged in as user@test.com
             """);
-        Assert.Equal(1, result.ExitCode);
+
+        VerifyNoWorkspaceSelected();
     }
 
     [Fact]
@@ -116,8 +102,62 @@ public sealed class LoginCommandTests(NitroCommandFixture fixture) : SessionComm
         var result = await ExecuteCommandAsync("login");
 
         // assert
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccess(
+            """
+            ✓ Logging in via browser
+            ├── Opening browser at https://identity.chillicream.com. Continue login there.
+            └── ✓ Logged in as user@test.com (Workspace: my-workspace)
+            """);
+
+        VerifyWorkspaceSelected("ws-1", "my-workspace");
+    }
+
+    [Fact]
+    public async Task BrowserCannotBeOpened_PrintsLoginUrl_ReturnsSuccess()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupLoginWithBrowserCallback(
+            "https://identity.chillicream.com/connect/authorize?client_id=nitro",
+            browserOpened: false);
+        SetupSelectWorkspaces(CreateWorkspaceNode("ws-1", "my-workspace"));
+        SetupSelectWorkspace("ws-1", "my-workspace");
+
+        // act
+        var result = await ExecuteCommandAsync("login");
+
+        // assert
+        result.AssertSuccess(
+            """
+            ✓ Logging in via browser
+            ├── Opening browser at https://identity.chillicream.com. Continue login there.
+            ├── ! Could not open a browser. Use this URL to log in: https://identity.chillicream.com/connect/authorize?client_id=nitro
+            └── ✓ Logged in as user@test.com (Workspace: my-workspace)
+            """);
+    }
+
+    [Fact]
+    public async Task BrowserOpened_PrintsLoginUrlHint_ReturnsSuccess()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupLoginWithBrowserCallback(
+            "https://identity.chillicream.com/connect/authorize?client_id=nitro",
+            browserOpened: true);
+        SetupSelectWorkspaces(CreateWorkspaceNode("ws-1", "my-workspace"));
+        SetupSelectWorkspace("ws-1", "my-workspace");
+
+        // act
+        var result = await ExecuteCommandAsync("login");
+
+        // assert
+        result.AssertSuccess(
+            """
+            ✓ Logging in via browser
+            ├── Opening browser at https://identity.chillicream.com. Continue login there.
+            ├── If your browser does not open automatically, use this URL to log in: https://identity.chillicream.com/connect/authorize?client_id=nitro
+            └── ✓ Logged in as user@test.com (Workspace: my-workspace)
+            """);
     }
 
     [Fact]
@@ -135,11 +175,12 @@ public sealed class LoginCommandTests(NitroCommandFixture fixture) : SessionComm
 
         // act
         command.SelectOption(0);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccess();
+
+        VerifyWorkspaceSelected("ws-1", "first-workspace");
     }
 
     [Fact]
@@ -155,8 +196,30 @@ public sealed class LoginCommandTests(NitroCommandFixture fixture) : SessionComm
         var result = await ExecuteCommandAsync("login", "https://custom.server.com");
 
         // assert
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task UrlArgument_StripsPathAndQuery_ReturnsSuccess()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupLogin("http://custom.server.com");
+        SetupSelectWorkspaces(CreateWorkspaceNode("ws-1", "my-workspace"));
+        SetupSelectWorkspaceAny();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "login",
+            "http://user:pw@custom.server.com/graphql?foo=bar#frag");
+
+        // assert
+        result.AssertSuccess(
+            """
+            ✓ Logging in via browser
+            ├── Opening browser at http://custom.server.com. Continue login there.
+            └── ✓ Logged in as user@test.com (Workspace: my-workspace)
+            """);
     }
 
     [Fact]
@@ -164,7 +227,7 @@ public sealed class LoginCommandTests(NitroCommandFixture fixture) : SessionComm
     {
         // arrange
         SetupInteractionMode(InteractionMode.Interactive);
-        SetupLogin("custom.server.com");
+        SetupLogin("https://custom.server.com");
         SetupSelectWorkspaces(CreateWorkspaceNode("ws-1", "my-workspace"));
         SetupSelectWorkspaceAny();
 
@@ -174,5 +237,29 @@ public sealed class LoginCommandTests(NitroCommandFixture fixture) : SessionComm
         // assert
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task UrlOption_StripsPathAndQuery_ReturnsSuccess()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupLogin("http://custom.server.com");
+        SetupSelectWorkspaces(CreateWorkspaceNode("ws-1", "my-workspace"));
+        SetupSelectWorkspaceAny();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "login",
+            "--cloud-url",
+            "http://user:pw@custom.server.com/graphql?foo=bar#frag");
+
+        // assert
+        result.AssertSuccess(
+            """
+            ✓ Logging in via browser
+            ├── Opening browser at http://custom.server.com. Continue login there.
+            └── ✓ Logged in as user@test.com (Workspace: my-workspace)
+            """);
     }
 }

@@ -4,7 +4,6 @@ using Demo.Catalog.Queries;
 using Microsoft.EntityFrameworkCore;
 using Mocha;
 using Mocha.EntityFrameworkCore;
-using Mocha.Hosting;
 using Mocha.Mediator;
 using Mocha.Inbox;
 using Mocha.Outbox;
@@ -142,8 +141,6 @@ app.MapPost("/api/returns/initiate", async (InitiateReturnRequestDto request, IS
         message = "Return label created. Ship the package and we'll process the refund when it arrives."
     });
 });
-
-app.MapMessageBusDeveloperTopology();
 
 app.Run();
 

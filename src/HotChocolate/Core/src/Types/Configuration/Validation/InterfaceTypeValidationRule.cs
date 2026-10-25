@@ -21,6 +21,8 @@ internal sealed class InterfaceTypeValidationRule : ISchemaValidationRule
                     EnsureFieldNamesAreValid(interfaceType, errors);
                     EnsureInterfacesAreCorrectlyImplemented(interfaceType, errors);
                     EnsureArgumentDeprecationIsValid(interfaceType, errors);
+                    EnsureObjectDeprecationIsValid(interfaceType, errors);
+                    EnsureDefaultValuesAreValid(interfaceType, errors);
                 }
             }
         }

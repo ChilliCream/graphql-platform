@@ -5,7 +5,6 @@ public abstract class SelectionVisitor
     /// <summary>
     /// The visitor default action.
     /// </summary>
-    /// <value></value>
     protected ISelectionVisitorAction DefaultAction => Continue;
 
     /// <summary>

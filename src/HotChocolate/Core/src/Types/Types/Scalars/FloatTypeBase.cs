@@ -36,7 +36,7 @@ public abstract class FloatTypeBase<TRuntimeType>
         TRuntimeType min,
         TRuntimeType max,
         BindingBehavior bind = BindingBehavior.Explicit)
-       : base(name, bind)
+        : base(name, bind)
     {
         MinValue = min;
         MaxValue = max;

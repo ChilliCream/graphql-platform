@@ -6,7 +6,10 @@ namespace Mocha;
 /// Thread-safe implementation of <see cref="IMessageTypeRegistry"/> that stores and resolves message type metadata by CLR type and identity string.
 /// </summary>
 /// <param name="serializerRegistry">The serializer registry used to resolve serializers for message types.</param>
-public sealed class MessageTypeRegistry(IMessageSerializerRegistry serializerRegistry) : IMessageTypeRegistry
+/// <param name="options">The messaging options controlling strict registration mode.</param>
+public sealed class MessageTypeRegistry(
+    IMessageSerializerRegistry serializerRegistry,
+    IReadOnlyMessagingOptions options) : IMessageTypeRegistry
 {
     public IMessageSerializerRegistry Serializers => serializerRegistry;
 
@@ -40,6 +43,15 @@ public sealed class MessageTypeRegistry(IMessageSerializerRegistry serializerReg
     {
         lock (_lock)
         {
+            if (_messageTypesByIdentity.TryGetValue(messageType.Identity, out var existing)
+                && existing.RuntimeType != messageType.RuntimeType)
+            {
+                throw ThrowHelper.DuplicateMessageIdentity(
+                    messageType.Identity,
+                    messageType.RuntimeType,
+                    existing.RuntimeType);
+            }
+
             if (_messageTypes.Add(messageType))
             {
                 _messageTypesByType.Add(messageType.RuntimeType, messageType);
@@ -56,6 +68,11 @@ public sealed class MessageTypeRegistry(IMessageSerializerRegistry serializerReg
             return messageType;
         }
 
+        if (options.IsAotCompatible)
+        {
+            throw ThrowHelper.MessageTypeNotRegistered(type);
+        }
+
         lock (_lock)
         {
             messageType = GetMessageType(type);
@@ -64,9 +81,8 @@ public sealed class MessageTypeRegistry(IMessageSerializerRegistry serializerReg
                 return messageType;
             }
 
-            messageType = new MessageType();
-            var configuration = new MessageTypeConfiguration { RuntimeType = type };
-            messageType.Initialize(context, configuration);
+            messageType = new MessageType(type);
+            messageType.Initialize(context);
             AddMessageType(messageType);
             messageType.Complete(context);
 

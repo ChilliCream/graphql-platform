@@ -18,7 +18,7 @@ response:
     {
       "data": {
         "productBySlug": {
-          "name": "Product: UHJvZHVjdDox"
+          "name": "Product: UHJvZHVjdDoxMTY3NDUwNjg="
         }
       }
     }
@@ -29,14 +29,14 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        productBySlug(slug: String!): Product
+      }
+
       type Product {
         id: ID!
         name: String!
         review: Review
-      }
-
-      type Query {
-        productBySlug(slug: String!): Product
       }
 
       type Review @key(fields: "id") {
@@ -64,7 +64,7 @@ sourceSchemas:
               {
                 "data": {
                   "productBySlug": {
-                    "name": "Product: UHJvZHVjdDox"
+                    "name": "Product: UHJvZHVjdDoxMTY3NDUwNjg="
                   }
                 }
               }
@@ -95,7 +95,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: dcf2affdd717b34522665fb9ecd548f8
+      hash: ac9eade519ec3fe9441f97560da5cfe5
       searchSpace: 1
       expandedNodes: 2
   nodes:

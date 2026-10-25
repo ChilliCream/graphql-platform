@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Configurations;
@@ -81,6 +82,13 @@ public partial class ObjectType
 
     IReadOnlyFieldDefinitionCollection<IOutputFieldDefinition> IComplexTypeDefinition.Fields
         => Fields.AsReadOnlyFieldDefinitionCollection();
+
+    /// <inheritdoc />
+    [MemberNotNullWhen(true, nameof(DeprecationReason))]
+    public bool IsDeprecated => DeprecationReason is not null;
+
+    /// <inheritdoc />
+    public string? DeprecationReason { get; private set; }
 
     /// <inheritdoc />
     public virtual bool IsInstanceOfType(IResolverContext context, object resolverResult)

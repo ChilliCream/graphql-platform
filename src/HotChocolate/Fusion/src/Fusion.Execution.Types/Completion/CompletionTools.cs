@@ -6,6 +6,7 @@ using HotChocolate.Fusion.Types.Directives;
 using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using ArgumentNode = HotChocolate.Language.ArgumentNode;
 
 namespace HotChocolate.Fusion.Types.Completion;
 
@@ -28,10 +29,17 @@ internal static class CompletionTools
         for (var i = 0; i < directives.Count; i++)
         {
             var directive = directives[i];
-            var directiveType = context.GetDirectiveType(directive.Name.Value);
+            var isPublic = !FusionBuiltIns.Tag.Equals(
+                directive.Name.Value,
+                StringComparison.Ordinal);
+            var directiveName = isPublic
+                ? directive.Name.Value
+                : DirectiveNames.Tag.Name;
+            var directiveType = context.GetDirectiveType(directiveName);
             var arguments = CreateArgumentAssignments(directive.Arguments);
             temp[i] = new FusionDirective(
                 directiveType,
+                isPublic,
                 ImmutableCollectionsMarshal.AsImmutableArray(arguments));
         }
 
@@ -132,6 +140,7 @@ internal static class CompletionTools
         var sourceInterfaceType = new SourceInterfaceType[types.Length];
         var sourceImplements = ImplementsDirectiveParser.Parse(
             typeDef.Directives);
+        var interfaceObjectSchemaKeys = InterfaceObjectDirectiveParser.Parse(typeDef.Directives);
 
         for (var i = 0; i < types.Length; i++)
         {
@@ -145,7 +154,8 @@ internal static class CompletionTools
                 typeDef.Name.Value,
                 schemaName,
                 lookups,
-                implements ?? []);
+                implements ?? [],
+                interfaceObjectSchemaKeys.Contains(type.SchemaKey));
         }
 
         return new SourceInterfaceTypeCollection(sourceInterfaceType);

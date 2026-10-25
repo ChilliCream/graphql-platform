@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
-using Mocha.Features;
 using Mocha.Inbox;
 using Mocha.Middlewares;
 using Mocha.Transport.InMemory.Tests.Helpers;
@@ -249,7 +248,7 @@ public class InboxTests
             "FailingHandler was not invoked on the first attempt");
 
         // Give the first delivery time to fully settle (fault middleware, etc.)
-        await Task.Delay(TimeSpan.FromMilliseconds(200));
+        await Task.Delay(TimeSpan.FromMilliseconds(200), TestContext.Current.CancellationToken);
 
         // Capture counters after first delivery.
         // Depending on consumer iteration order:
@@ -283,7 +282,7 @@ public class InboxTests
         }
 
         // Give a short window to ensure no extra invocation arrives
-        await Task.Delay(TimeSpan.FromMilliseconds(300));
+        await Task.Delay(TimeSpan.FromMilliseconds(300), TestContext.Current.CancellationToken);
 
         // assert - across both deliveries:
         // SucceedingHandler invoked exactly once (either on first or second delivery, but not both)

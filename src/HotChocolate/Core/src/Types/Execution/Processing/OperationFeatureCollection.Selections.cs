@@ -52,19 +52,25 @@ public sealed partial class OperationFeatureCollection
     {
         ArgumentNullException.ThrowIfNull(factory);
 
-        if (!TryGet<TFeature>(selectionId, out var feature))
+        if (TryGet<TFeature>(selectionId, out var feature))
         {
-            lock (_writeLock)
-            {
-                if (!TryGet(selectionId, out feature))
-                {
-                    feature = factory();
-                    this[selectionId, typeof(TFeature)] = feature;
-                }
-            }
+            return feature;
         }
 
-        return feature;
+        // The factory is invoked outside of the write lock, feature factories can reach back
+        // into the operation and take the operation lock to compile selection sets.
+        var created = factory();
+
+        lock (_writeLock)
+        {
+            if (TryGet<TFeature>(selectionId, out var existing))
+            {
+                return existing;
+            }
+
+            this[selectionId, typeof(TFeature)] = created;
+            return created;
+        }
     }
 
     internal TFeature GetOrSetSafe<TFeature, TContext>(
@@ -74,19 +80,23 @@ public sealed partial class OperationFeatureCollection
     {
         ArgumentNullException.ThrowIfNull(factory);
 
-        if (!TryGet<TFeature>(selectionId, out var feature))
+        if (TryGet<TFeature>(selectionId, out var feature))
         {
-            lock (_writeLock)
-            {
-                if (!TryGet(selectionId, out feature))
-                {
-                    feature = factory(context);
-                    this[selectionId, typeof(TFeature)] = feature;
-                }
-            }
+            return feature;
         }
 
-        return feature;
+        var created = factory(context);
+
+        lock (_writeLock)
+        {
+            if (TryGet<TFeature>(selectionId, out var existing))
+            {
+                return existing;
+            }
+
+            this[selectionId, typeof(TFeature)] = created;
+            return created;
+        }
     }
 
     internal IEnumerable<KeyValuePair<Type, object>> GetFeatures(int selectionId)

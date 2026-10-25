@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Fusion.Subscriptions.AmazonSqs</AssemblyName>
+    <RootNamespace>HotChocolate.Fusion.Subscriptions.AmazonSqs</RootNamespace>
+    <LangVersion>preview</LangVersion>
+    <DefineConstants>$(DefineConstants);FUSION</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Subscriptions.AmazonSqs.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Fusion.Execution\HotChocolate.Fusion.Execution.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.SimpleNotificationService" />
+    <PackageReference Include="AWSSDK.SQS" />
+  </ItemGroup>
+
+</Project>

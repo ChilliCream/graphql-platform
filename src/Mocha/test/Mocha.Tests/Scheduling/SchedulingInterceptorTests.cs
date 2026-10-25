@@ -49,7 +49,7 @@ public sealed class SchedulingInterceptorTests : IDisposable
         var interceptor = new SchedulingDbTransactionInterceptor(signal, timeProvider);
 
         // act
-        await interceptor.TransactionCommittedAsync(null!, null!);
+        await interceptor.TransactionCommittedAsync(null!, null!, TestContext.Current.CancellationToken);
 
         // assert
         var notification = Assert.Single(signal.Notifications);
@@ -87,7 +87,8 @@ public sealed class SchedulingInterceptorTests : IDisposable
         dbContext.Database.EnsureCreated();
 
         // Begin a transaction so CurrentTransaction is non-null
-        await using var transaction = await dbContext.Database.BeginTransactionAsync();
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(
+            TestContext.Current.CancellationToken);
         var eventData = CreateSaveChangesEventData(dbContext);
 
         // act
@@ -127,7 +128,7 @@ public sealed class SchedulingInterceptorTests : IDisposable
         var eventData = CreateSaveChangesEventData(dbContext);
 
         // act
-        var result = await interceptor.SavedChangesAsync(eventData, 1);
+        var result = await interceptor.SavedChangesAsync(eventData, 1, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(1, result);

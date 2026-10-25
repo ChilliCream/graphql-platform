@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Fusion.Subscriptions.NATS</AssemblyName>
+    <RootNamespace>HotChocolate.Fusion.Subscriptions.NATS</RootNamespace>
+    <LangVersion>preview</LangVersion>
+    <DefineConstants>$(DefineConstants);FUSION</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Subscriptions.NATS.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Fusion.Execution\HotChocolate.Fusion.Execution.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NATS.Client.Core" />
+    <PackageReference Include="NATS.Client.JetStream" />
+  </ItemGroup>
+
+</Project>

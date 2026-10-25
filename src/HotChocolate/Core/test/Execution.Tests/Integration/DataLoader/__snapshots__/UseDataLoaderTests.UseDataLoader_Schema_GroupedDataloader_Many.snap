@@ -1,11 +1,11 @@
-﻿schema {
+schema {
   query: Query
-}
-
-type Foo {
-  id: Int!
 }
 
 type Query {
   multiple: [Foo]
+}
+
+type Foo {
+  id: Int!
 }

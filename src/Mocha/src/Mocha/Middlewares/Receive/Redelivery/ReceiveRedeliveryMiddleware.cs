@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Features;
 using Mocha.Middlewares;
+using Mocha.Scheduling;
 
 namespace Mocha;
 
@@ -34,7 +35,7 @@ internal sealed class ReceiveRedeliveryMiddleware(
         {
             await next(context);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!context.CancellationToken.IsCancellationRequested)
         {
             // Request/reply messages must not be redelivered - the caller is waiting.
             if (context.Envelope?.ResponseAddress is not null)
@@ -95,7 +96,18 @@ internal sealed class ReceiveRedeliveryMiddleware(
                 context.CancellationToken);
 
             dispatchContext.Envelope = envelope;
-            dispatchContext.ScheduledTime = scheduledTime;
+
+            var resolver = context.Services.GetRequiredService<ScheduledMessageStoreResolver>();
+
+            if (resolver.CanSchedule(dispatchContext))
+            {
+                dispatchContext.ScheduledTime = scheduledTime;
+            }
+            else
+            {
+                // No scheduling store available for this transport, fall back to immediate redelivery.
+                dispatchContext.Features.Configure<SchedulingMiddlewareFeature>(f => f.SkipScheduler = true);
+            }
 
             await dispatchEndpoint.ExecuteAsync(dispatchContext);
         }
@@ -131,29 +143,15 @@ internal sealed class ReceiveRedeliveryMiddleware(
 file static class Extensions
 {
     /// <summary>
+    /// Determines whether a scheduled message store is available for the dispatch context's transport.
+    /// </summary>
+    public static bool CanSchedule(this ScheduledMessageStoreResolver resolver, IDispatchContext context)
+        => resolver.TryResolve(context, out _);
+
+    /// <summary>
     /// Resolves exception policy feature with the most specific scope taking precedence.
     /// Endpoint -> Transport -> Bus.
     /// </summary>
     public static ExceptionPolicyFeature? GetExceptionPolicyFeature(this ReceiveMiddlewareFactoryContext context)
-    {
-        var busFeatures = context.Services.GetRequiredService<IFeatureCollection>();
-
-        // Endpoint -> Transport -> Bus (most specific first).
-        if (context.Endpoint.Features.TryGet(out ExceptionPolicyFeature? endpointFeature))
-        {
-            return endpointFeature;
-        }
-
-        if (context.Transport.Features.TryGet(out ExceptionPolicyFeature? transportFeature))
-        {
-            return transportFeature;
-        }
-
-        if (busFeatures.TryGet(out ExceptionPolicyFeature? busFeature))
-        {
-            return busFeature;
-        }
-
-        return null;
-    }
+        => ExceptionPolicyResolver.Resolve(context.Services, context.Endpoint);
 }

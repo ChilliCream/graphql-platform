@@ -10,5 +10,5 @@
       }
     ]
   },
-  "executable": ".param set @__p_0 1\n\nSELECT \"a\".\"Id\", \"a\".\"Name\"\nFROM \"Authors\" AS \"a\"\nLIMIT @__p_0"
+  "executable": ".param set @p 1\n\nSELECT \"a\".\"Id\", \"a\".\"Name\"\nFROM \"Authors\" AS \"a\"\nLIMIT @p"
 }

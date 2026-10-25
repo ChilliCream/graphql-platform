@@ -49,7 +49,12 @@ public sealed class RabbitMQQueue : TopologyResource<RabbitMQQueueConfiguration>
     /// <summary>
     /// Gets the additional queue arguments for advanced configuration (e.g., x-message-ttl, x-max-length).
     /// </summary>
-    public ImmutableDictionary<string, object?> Arguments { get; private set; } = ImmutableDictionary<string, object?>.Empty;
+    public ImmutableDictionary<string, object?> Arguments { get; private set; }
+#if NET10_0_OR_GREATER
+        = [];
+#else
+        = ImmutableDictionary<string, object?>.Empty;
+#endif
 
     protected override void OnInitialize(RabbitMQQueueConfiguration configuration)
     {
@@ -58,7 +63,12 @@ public sealed class RabbitMQQueue : TopologyResource<RabbitMQQueueConfiguration>
         Durable = configuration.Durable ?? true;
         Exclusive = configuration.Exclusive ?? false;
         AutoDelete = configuration.AutoDelete ?? false;
-        Arguments = configuration.Arguments?.ToImmutableDictionary(kv => kv.Key, kv => (object?)kv.Value) ?? ImmutableDictionary<string, object?>.Empty;
+        Arguments = configuration.Arguments?.ToImmutableDictionary(kv => kv.Key, kv => (object?)kv.Value)
+#if NET10_0_OR_GREATER
+            ?? [];
+#else
+            ?? ImmutableDictionary<string, object?>.Empty;
+#endif
         AutoProvision = configuration.AutoProvision;
     }
 
@@ -74,7 +84,15 @@ public sealed class RabbitMQQueue : TopologyResource<RabbitMQQueueConfiguration>
         ImmutableInterlocked.Update(ref _bindings, (current) => current.Add(binding));
     }
 
-    // TODO: this is a bit lost here
+    /// <summary>
+    /// Marks this queue as non-durable and auto-delete.
+    /// </summary>
+    internal void MarkTemporary()
+    {
+        Durable = false;
+        AutoDelete = true;
+    }
+
     /// <summary>
     /// Declares this queue on the broker using the specified channel.
     /// </summary>

@@ -1,10 +1,44 @@
-schema {
+schema @tag(name: "OnSchema") {
   query: Query
 }
 
-type Query {
-  field: String @tag(name: "abc")
+type Query @tag(name: "OnObjectType") {
+  foo(a: String! @tag(name: "OnObjectFieldArg")): IFoo!
+    @tag(name: "OnObjectField")
+  fooEnum(input: FooInput!): FooEnum!
+  fooUnion: FooUnion!
 }
+
+type Foo implements IFoo {
+  bar(baz: String!): String!
+}
+
+type FooUnionA {
+  id: String!
+}
+
+type FooUnionB {
+  id: String!
+}
+
+interface IFoo @tag(name: "OnInterface") {
+  bar(baz: String! @tag(name: "OnInterfaceFieldArg")): String!
+    @tag(name: "OnInterfaceField")
+}
+
+union FooUnion @tag(name: "OnUnion") = FooUnionA | FooUnionB
+
+input FooInput @tag(name: "OnInputObjectType") {
+  bar: String! @tag(name: "OnInputObjectField")
+}
+
+enum FooEnum @tag(name: "OnEnum") {
+  FOO @tag(name: "OnEnumValue")
+  BAR
+}
+
+directive @foo(arg: String! @tag(name: "OnDirectiveArgument"))
+  @tag(name: "OnDirectiveDefinition") on QUERY
 
 """
 The @tag directive is used to apply arbitrary string
@@ -18,4 +52,16 @@ interface Book {
   author: String!
 }
 """
-directive @tag("The name of the tag." name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+directive @tag("The name of the tag." name: String!) repeatable on
+  | SCHEMA
+  | SCALAR
+  | OBJECT
+  | FIELD_DEFINITION
+  | ARGUMENT_DEFINITION
+  | INTERFACE
+  | UNION
+  | ENUM
+  | ENUM_VALUE
+  | INPUT_OBJECT
+  | INPUT_FIELD_DEFINITION
+  | DIRECTIVE_DEFINITION

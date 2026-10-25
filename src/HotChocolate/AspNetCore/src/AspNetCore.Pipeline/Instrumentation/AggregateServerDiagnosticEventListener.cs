@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Http;
+using HotChocolate.AspNetCore.Subscriptions;
+using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.Language;
 
 namespace HotChocolate.AspNetCore.Instrumentation;
@@ -109,6 +111,16 @@ internal sealed class AggregateServerDiagnosticEventListener : IServerDiagnostic
         }
 
         return new AggregateActivityScope(scopes);
+    }
+
+    public void WebSocketConnectionInitialized(
+        ISocketSession session,
+        IOperationMessagePayload connectionInitMessage)
+    {
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            _listeners[i].WebSocketConnectionInitialized(session, connectionInitMessage);
+        }
     }
 
     public void WebSocketSessionError(HttpContext context, Exception exception)

@@ -1,0 +1,89 @@
+operation:
+  - document: |
+      {
+        entity {
+          name
+          entity {
+            name
+            entity {
+              name
+              id @fusion__requirement
+              entity @fusion__requirement {
+                age @fusion__requirement
+              }
+            }
+            entity @fusion__requirement {
+              age @fusion__requirement
+              id @fusion__requirement
+              entity @fusion__requirement {
+                age @fusion__requirement
+              }
+            }
+            id @fusion__requirement
+          }
+          entity @fusion__requirement {
+            age @fusion__requirement
+            id @fusion__requirement
+            entity @fusion__requirement {
+              age @fusion__requirement
+              id @fusion__requirement
+              entity @fusion__requirement {
+                age @fusion__requirement
+              }
+            }
+          }
+          id @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 5
+    expandedNodes: 15
+nodes:
+  - id: 1
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_1 {
+        entity {
+          entity {
+            entity {
+              age
+              id
+              entity {
+                age
+              }
+            }
+            age
+            id
+          }
+          id
+        }
+      }
+  - id: 2
+    type: ApolloOperationBatch
+    schema: a
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Entity {
+            name
+          }
+        }
+      }
+    source: $._entities
+    targets:
+      - $.entity
+      - $.entity.entity
+      - $.entity.entity.entity
+    batchingGroupId: 5
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+      - name: __fusion_2_entity
+        selectionMap: >-
+          {
+            age: entity.age
+          }
+    dependencies:
+      - id: 1

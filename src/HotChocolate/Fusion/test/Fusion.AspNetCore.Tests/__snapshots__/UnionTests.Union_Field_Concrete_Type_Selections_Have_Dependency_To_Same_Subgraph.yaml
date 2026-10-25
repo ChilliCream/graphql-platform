@@ -21,7 +21,7 @@ response:
       "data": {
         "post": {
           "product": {
-            "subgraph2": "Product: UHJvZHVjdDoy"
+            "subgraph2": "Product: UHJvZHVjdDoxODk0NzA4MjAy"
           }
         }
       }
@@ -31,6 +31,10 @@ sourceSchemas:
     schema: |
       schema {
         query: Query
+      }
+
+      type Query {
+        post: Post
       }
 
       type Author @key(fields: "id") {
@@ -49,10 +53,6 @@ sourceSchemas:
 
       type Product @key(fields: "id") {
         id: ID!
-      }
-
-      type Query {
-        post: Post
       }
 
       union Post = Photo | Discussion
@@ -83,7 +83,7 @@ sourceSchemas:
                   "post": {
                     "__typename": "Photo",
                     "product": {
-                      "id": "UHJvZHVjdDoy"
+                      "id": "UHJvZHVjdDoxODk0NzA4MjAy"
                     }
                   }
                 }
@@ -94,6 +94,11 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        productById(id: ID!): Product @lookup
+        authorById(id: ID!): Author @lookup
+      }
+
       type Author {
         id: ID!
         subgraph2: String!
@@ -102,11 +107,6 @@ sourceSchemas:
       type Product {
         id: ID!
         subgraph2: String!
-      }
-
-      type Query {
-        productById(id: ID!): Product @lookup
-        authorById(id: ID!): Author @lookup
       }
     interactions:
       - request:
@@ -119,7 +119,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_2_id": "UHJvZHVjdDoy"
+              "__fusion_2_id": "UHJvZHVjdDoxODk0NzA4MjAy"
             }
         response:
           results:
@@ -127,7 +127,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDoy"
+                    "subgraph2": "Product: UHJvZHVjdDoxODk0NzA4MjAy"
                   }
                 }
               }
@@ -152,7 +152,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 8891193d6a2efd1415247828bc89c072
+      hash: 4b84ef3511c74827a98289c6769c9080
       searchSpace: 1
       expandedNodes: 2
   nodes:
@@ -186,7 +186,7 @@ operationPlan:
         }
       source: $.authorById
       target: $.post<Discussion>.author
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -204,7 +204,7 @@ operationPlan:
         }
       source: $.productById
       target: $.post<Photo>.product
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

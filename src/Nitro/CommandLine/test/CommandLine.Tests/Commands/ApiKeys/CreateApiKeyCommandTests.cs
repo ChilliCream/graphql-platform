@@ -28,8 +28,8 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ApiK
               --api-id <api-id>                    The ID of the API [env: NITRO_API_ID]
               --workspace-id <workspace-id>        The ID of the workspace [env: NITRO_WORKSPACE_ID]
               --stage-condition <stage-condition>  [Preview] Limit the API key to a specific stage name (if not set, the key is valid for all stages)
-              --cloud-url <cloud-url>              The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                  The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>              The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                  The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                      The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                       Show help and usage information
 
@@ -62,7 +62,7 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ApiK
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -104,7 +104,7 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ApiK
         // assert
         result.AssertError(
             """
-            The '--workspace-id' or '--api-id' option is required in non-interactive mode.
+            Missing required option '--workspace-id' or '--api-id'.
             """);
     }
 
@@ -129,7 +129,7 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ApiK
         // assert
         result.AssertError(
             """
-            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually specify the '--workspace-id' option (if available).
+            Could not determine workspace. Either login via `nitro login` or specify the '--workspace-id' option.
             """);
     }
 
@@ -196,6 +196,60 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ApiK
     }
 
     [Fact]
+    public async Task ApiNotFound_ReturnsError()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+        SetupCreateApiKeyMutation(
+            "tenant-key",
+            "workspace-from-session",
+            apiId: "api-404",
+            errors: new CreateApiKeyCommandMutation_CreateApiKey_Errors_ApiNotFoundError(
+                "ApiNotFoundError",
+                "The API with ID 'api-404' was not found.",
+                "api-404"));
+
+        // act
+        var result = await ExecuteCommandAsync("api-key", "create", "--api-id", "api-404", "--name", "tenant-key");
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The API with ID 'api-404' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task RoleNotFound_ReturnsError()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+        SetupCreateApiKeyMutation(
+            "tenant-key",
+            "workspace-from-session",
+            apiId: "api-404",
+            errors: new CreateApiKeyCommandMutation_CreateApiKey_Errors_RoleNotFoundError(
+                "RoleNotFoundError",
+                "The role with ID 'role-404' was not found.",
+                "role-404"));
+
+        // act
+        var result = await ExecuteCommandAsync("api-key", "create", "--api-id", "api-404", "--name", "tenant-key");
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The role with ID 'role-404' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task CreateApiKeyReturnsNullResult_ReturnsError()
     {
         // arrange
@@ -241,7 +295,7 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ApiK
         command.SelectOption(0); // Api or Workspace
         command.SelectOption(0); // Api 1
 
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -263,7 +317,7 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ApiK
         command.Input("integration"); // name
         command.SelectOption(1); // Api or Workspace
 
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -286,7 +340,7 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ApiK
         // act
         command.Input(ApiKeyName);
 
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -517,13 +571,6 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ApiK
         return new()
         {
             {
-                new CreateApiKeyCommandMutation_CreateApiKey_Errors_ApiNotFoundError(
-                    "ApiNotFoundError",
-                    "The API with ID 'api-404' was not found.",
-                    "api-404"),
-                "The API with ID 'api-404' was not found."
-            },
-            {
                 new CreateApiKeyCommandMutation_CreateApiKey_Errors_WorkspaceNotFound(
                     "WorkspaceNotFound",
                     "The workspace with ID 'ws-404' was not found.",
@@ -535,13 +582,6 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ApiK
                     "PersonalWorkspaceNotSupportedError",
                     "Personal workspaces are not supported for this operation."),
                 "Personal workspaces are not supported for this operation."
-            },
-            {
-                new CreateApiKeyCommandMutation_CreateApiKey_Errors_RoleNotFoundError(
-                    "RoleNotFoundError",
-                    "The role with ID 'role-404' was not found.",
-                    "role-404"),
-                "The role with ID 'role-404' was not found."
             },
             {
                 new CreateApiKeyCommandMutation_CreateApiKey_Errors_ValidationError(

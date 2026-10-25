@@ -23,15 +23,15 @@ internal sealed class QueueMonitoringTask(
 
         command.CommandText =
             $"""
-             SELECT q.id, q.name, q.consumer_id,
-                    COUNT(m.transport_message_id) AS message_count,
-                    COUNT(CASE WHEN m.scheduled_time IS NOT NULL AND m.scheduled_time > now() THEN 1 END) AS scheduled_count,
-                    MIN(m.sent_time) AS oldest_message,
-                    MAX(m.sent_time) AS newest_message
-             FROM {SchemaOptions.QueueTable} q
-             LEFT JOIN {SchemaOptions.MessageTable} m ON m.queue_id = q.id
-             GROUP BY q.id, q.name, q.consumer_id;
-             """;
+            SELECT q.id, q.name, q.consumer_id,
+                COUNT(m.transport_message_id) AS message_count,
+                COUNT(CASE WHEN m.scheduled_time IS NOT NULL AND m.scheduled_time > now() THEN 1 END) AS scheduled_count,
+                MIN(m.sent_time) AS oldest_message,
+                MAX(m.sent_time) AS newest_message
+            FROM {SchemaOptions.QueueTable} q
+            LEFT JOIN {SchemaOptions.MessageTable} m ON m.queue_id = q.id
+            GROUP BY q.id, q.name, q.consumer_id;
+            """;
 
         await using var reader = await command.ExecuteReaderAsync(ct);
 

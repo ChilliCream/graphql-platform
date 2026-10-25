@@ -2,13 +2,13 @@ schema {
   query: Query
 }
 
+type Query {
+  foo(where: BarFilterInput): Bar
+}
+
 type Bar {
   baz: String!
   qux: String!
-}
-
-type Query {
-  foo(where: BarFilterInput): Bar
 }
 
 input BarFilterInput {

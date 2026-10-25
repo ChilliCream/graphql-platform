@@ -55,8 +55,8 @@ public sealed class MessagePipeline
     /// <summary>
     /// Run the pipeline and process messages.
     /// </summary>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
+    /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     public async Task RunAsync(CancellationToken cancellationToken)
     {
         await Task.WhenAll(

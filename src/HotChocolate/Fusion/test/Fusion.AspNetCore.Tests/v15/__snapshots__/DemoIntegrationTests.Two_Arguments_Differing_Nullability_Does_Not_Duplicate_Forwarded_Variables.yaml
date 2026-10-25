@@ -22,10 +22,6 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
-      }
-
       type Query {
         node(id: ID!): Node @lookup @shareable
         nodes(ids: [ID!]!): [Node]! @shareable
@@ -39,6 +35,10 @@ sourceSchemas:
         name: String!
         username: String!
         birthdate: String!
+      }
+
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
@@ -66,7 +66,7 @@ operationPlan:
           testWithTwoArgumentsDifferingNullability(first: $number, second: $number)
         }
       name: Test
-      hash: 2ead4419dfb56bb66a60503178451950
+      hash: 7369888d56330c781a470a838d9cca55
       searchSpace: 1
       expandedNodes: 1
   nodes:

@@ -1,14 +1,7 @@
-#if !NET9_0_OR_GREATER
-using System.Diagnostics.CodeAnalysis;
-#endif
 using HotChocolate.Language;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
 
-#if !NET9_0_OR_GREATER
-[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
-[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
-#endif
 internal sealed class OperationSession : IOperationSession
 {
     private readonly CancellationTokenSource _cts = new();
@@ -47,6 +40,7 @@ internal sealed class OperationSession : IOperationSession
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _ct);
         var ct = cts.Token;
         var completeTry = false;
+        var errorSent = false;
 
         try
         {
@@ -59,6 +53,9 @@ internal sealed class OperationSession : IOperationSession
                 case OperationResult queryResult:
                     if (queryResult.Data is null && queryResult.Errors is { Count: > 0 })
                     {
+                        // an error message terminates the operation, so no complete message
+                        // is sent afterwards.
+                        errorSent = true;
                         await _session.Protocol.SendErrorMessageAsync(
                             _session,
                             Id,
@@ -92,7 +89,7 @@ internal sealed class OperationSession : IOperationSession
             // message again.
             completeTry = true;
 
-            if (!ct.IsCancellationRequested)
+            if (!errorSent && !ct.IsCancellationRequested)
             {
                 await _session.Protocol.SendCompleteMessageAsync(_session, Id, ct);
             }

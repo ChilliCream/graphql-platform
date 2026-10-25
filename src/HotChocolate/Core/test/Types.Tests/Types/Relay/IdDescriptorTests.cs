@@ -35,7 +35,8 @@ public class IdDescriptorTests
                                 { "stringId", stringId },
                                 { "guidId", guidId }
                             })
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -71,7 +72,8 @@ public class IdDescriptorTests
                             { "someId", someId },
                             { "anotherId", anotherId }
                         })
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         new
@@ -123,7 +125,8 @@ public class IdDescriptorTests
                     }
                 }
             }
-            """);
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -179,7 +182,8 @@ public class IdDescriptorTests
                     validFluentFooIdInput: acceptsFluentFooId(input: { id: "{{fluentFooId}}" }) { int }
                     validSingleTypeFluentFooIdInput: acceptsSingleTypeFluentFooId(input: { id: "{{singleTypeFluentFooId}}" }) { int }
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -212,7 +216,8 @@ public class IdDescriptorTests
                 validFluentFooIdInput: acceptsFluentFooId(input: { id: "{{singleTypeFluentFooId}}" }) { int }
                 validSingleTypeFluentFooIdInput: acceptsSingleTypeFluentFooId(input: { id: "{{userId}}" }) { int }
             }
-            """);
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot(postFix: "InvalidArgs");

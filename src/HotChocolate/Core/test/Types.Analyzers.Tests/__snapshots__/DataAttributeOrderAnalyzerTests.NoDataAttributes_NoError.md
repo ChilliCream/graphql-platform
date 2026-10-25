@@ -70,11 +70,12 @@ namespace TestNamespace
                     var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
 
-                    configuration.DeprecationReason = "No longer supported.";
+                    configuration.DeprecationReason = "No longer supported";
                     configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                         typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("string")));
                     configuration.ResultType = typeof(string);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 
@@ -95,6 +96,12 @@ namespace TestNamespace
 
                         configuration.Arguments.Add(argumentConfiguration);
                     }
+
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetName_product(),
+                        fieldDescriptor);
 
                     configuration.Resolvers = context.Resolvers.GetName();
                 },

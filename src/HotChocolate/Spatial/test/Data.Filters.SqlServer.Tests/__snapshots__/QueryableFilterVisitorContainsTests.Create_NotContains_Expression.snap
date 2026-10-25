@@ -13,10 +13,10 @@
 
 2 SQL:
 ---------------
--- @__p_0='POINT (1 1)' (DbType = Object)
+-- @p='POINT (1 1)' (DbType = Object)
 SELECT d."Id", d."Bar"
 FROM "Data" AS d
-WHERE NOT (ST_Contains(d."Bar", @__p_0))
+WHERE NOT (ST_Contains(d."Bar", @p))
 ---------------
 
 1 Result:
@@ -34,8 +34,8 @@ WHERE NOT (ST_Contains(d."Bar", @__p_0))
 
 1 SQL:
 ---------------
--- @__p_0='POINT (-1 -1)' (DbType = Object)
+-- @p='POINT (-1 -1)' (DbType = Object)
 SELECT d."Id", d."Bar"
 FROM "Data" AS d
-WHERE NOT (ST_Contains(d."Bar", @__p_0))
+WHERE NOT (ST_Contains(d."Bar", @p))
 ---------------

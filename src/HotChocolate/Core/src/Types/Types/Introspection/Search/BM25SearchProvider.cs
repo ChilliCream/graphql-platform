@@ -112,6 +112,7 @@ internal sealed class BM25SearchProvider : ISchemaSearchProvider
     {
         var rootTypeNames = data.RootTypeNames;
         var reverseMap = data.ReverseMap;
+        var abstractTypeMap = data.AbstractTypeMap;
         var startTypeName = coordinate.Name;
         var paths = new List<SchemaCoordinatePath>();
 
@@ -141,38 +142,56 @@ internal sealed class BM25SearchProvider : ISchemaSearchProvider
 
             var (currentType, currentPath) = queue.Dequeue();
 
-            if (!reverseMap.TryGetValue(currentType, out var references))
+            if (reverseMap.TryGetValue(currentType, out var references))
             {
-                continue;
+                foreach (var reference in references)
+                {
+                    var isRootReference = rootTypeNames.Contains(reference.Name);
+
+                    // Only dedupe non-root hops. A root reference completes a path instead of
+                    // continuing the traversal, so marking it visited would suppress additional
+                    // distinct paths through other fields on the same root type.
+                    if (!isRootReference && !visited.Add(reference.Name))
+                    {
+                        continue;
+                    }
+
+                    var newPath = new List<SchemaCoordinate>(currentPath.Count + 1) { reference };
+                    newPath.AddRange(currentPath);
+
+                    if (isRootReference)
+                    {
+                        if (coordinate.MemberName is not null)
+                        {
+                            newPath.Add(coordinate);
+                        }
+
+                        paths.Add(new SchemaCoordinatePath(CollectionsMarshal.AsSpan(newPath)));
+
+                        if (paths.Count >= maxPaths)
+                        {
+                            return paths;
+                        }
+                    }
+                    else
+                    {
+                        queue.Enqueue((reference.Name, newPath));
+                    }
+                }
             }
 
-            foreach (var reference in references)
+            // A concrete type is also reachable wherever one of its abstract types
+            // (an implemented interface, or a union it belongs to) is referenced. Step up to
+            // those abstractions without extending the path, since narrowing from an abstract
+            // type to this type does not traverse a field.
+            if (abstractTypeMap.TryGetValue(currentType, out var abstractTypes))
             {
-                if (!visited.Add(reference.Name))
+                foreach (var abstractType in abstractTypes)
                 {
-                    continue;
-                }
-
-                var newPath = new List<SchemaCoordinate>(currentPath.Count + 1) { reference };
-                newPath.AddRange(currentPath);
-
-                if (rootTypeNames.Contains(reference.Name))
-                {
-                    if (coordinate.MemberName is not null)
+                    if (visited.Add(abstractType))
                     {
-                        newPath.Add(coordinate);
+                        queue.Enqueue((abstractType, currentPath));
                     }
-
-                    paths.Add(new SchemaCoordinatePath(CollectionsMarshal.AsSpan(newPath)));
-
-                    if (paths.Count >= maxPaths)
-                    {
-                        break;
-                    }
-                }
-                else
-                {
-                    queue.Enqueue((reference.Name, newPath));
                 }
             }
         }
@@ -194,7 +213,7 @@ internal sealed class BM25SearchProvider : ISchemaSearchProvider
                 return _searchData;
             }
 
-            var (documents, reverseMap) = Index(_schema);
+            var (documents, reverseMap, abstractTypeMap) = Index(_schema);
             var index = BM25Index.Build(documents);
 
             var rootTypeNames = new HashSet<string>(StringComparer.Ordinal)
@@ -215,6 +234,10 @@ internal sealed class BM25SearchProvider : ISchemaSearchProvider
             _searchData = new SearchData(
                 index,
                 reverseMap.ToFrozenDictionary(
+                    kvp => kvp.Key,
+                    kvp => kvp.Value.ToArray(),
+                    StringComparer.Ordinal),
+                abstractTypeMap.ToFrozenDictionary(
                     kvp => kvp.Key,
                     kvp => kvp.Value.ToArray(),
                     StringComparer.Ordinal),
@@ -261,11 +284,14 @@ internal sealed class BM25SearchProvider : ISchemaSearchProvider
     private sealed class SearchData(
         BM25Index index,
         FrozenDictionary<string, SchemaCoordinate[]> reverseMap,
+        FrozenDictionary<string, string[]> abstractTypeMap,
         FrozenSet<string> rootTypeNames)
     {
         public BM25Index Index { get; } = index;
 
         public FrozenDictionary<string, SchemaCoordinate[]> ReverseMap { get; } = reverseMap;
+
+        public FrozenDictionary<string, string[]> AbstractTypeMap { get; } = abstractTypeMap;
 
         public FrozenSet<string> RootTypeNames { get; } = rootTypeNames;
     }

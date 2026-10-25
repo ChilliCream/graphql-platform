@@ -25,8 +25,8 @@ public sealed class CreateMcpFeatureCollectionCommandTests(NitroCommandFixture f
             Options:
                             --api-id <api-id>        The ID of the API [env: NITRO_API_ID]
                             --name <name>            The name of the MCP Feature Collection [env: NITRO_MCP_FEATURE_COLLECTION_NAME]
-                            --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-                            --api-key <api-key>      The API key used for authentication [env: NITRO_API_KEY]
+                            --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+                            --api-key <api-key>      The API key or PAT used for authentication [env: NITRO_API_KEY]
                             --output <json>          The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
                             -?, -h, --help           Show help and usage information
 
@@ -59,7 +59,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests(NitroCommandFixture f
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -104,7 +104,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests(NitroCommandFixture f
         // assert
         result.AssertError(
             """
-            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually specify the '--workspace-id' option (if available).
+            Missing required option '--api-id'.
             """);
     }
 
@@ -160,6 +160,25 @@ public sealed class CreateMcpFeatureCollectionCommandTests(NitroCommandFixture f
             """
             Creating MCP feature collection 'my-mcp' for API 'api-1'
             └── ✕ Failed to create the MCP feature collection.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ApiNotFound_ReturnsError()
+    {
+        SetupCreateMcpFeatureCollectionMutation(
+            new CreateMcpFeatureCollectionCommandMutation_CreateMcpFeatureCollection_Errors_ApiNotFoundError(
+                "API not found", "ApiNotFoundError", ApiId));
+
+        var result = await ExecuteCommandAsync(
+            "mcp", "create", "--api-id", ApiId, "--name", McpFeatureCollectionName);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            API not found
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -250,14 +269,14 @@ public sealed class CreateMcpFeatureCollectionCommandTests(NitroCommandFixture f
         GetCreateMcpFeatureCollectionErrors() => new()
     {
         {
-            new CreateMcpFeatureCollectionCommandMutation_CreateMcpFeatureCollection_Errors_ApiNotFoundError(
-                "API not found", "ApiNotFoundError", "api-1"),
-            "API not found"
-        },
-        {
             new CreateMcpFeatureCollectionCommandMutation_CreateMcpFeatureCollection_Errors_UnauthorizedOperation(
                 "Not authorized", "UnauthorizedOperation"),
             "Not authorized"
+        },
+        {
+            new CreateMcpFeatureCollectionCommandMutation_CreateMcpFeatureCollection_Errors_DuplicateNameError(
+                "Name already in use", "DuplicateNameError"),
+            "The name 'my-mcp' is already in use by another MCP Feature Collection."
         }
     };
 }

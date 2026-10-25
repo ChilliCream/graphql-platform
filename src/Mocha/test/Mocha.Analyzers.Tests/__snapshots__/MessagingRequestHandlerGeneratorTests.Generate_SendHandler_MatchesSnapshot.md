@@ -9,21 +9,61 @@
 namespace Microsoft.Extensions.DependencyInjection
 {
     [global::System.CodeDom.Compiler.GeneratedCode("Mocha.Analyzers", "1.0.0")]
-    public static class TestsMessageBusBuilderExtensions
+    public static partial class TestsMessageBusBuilderExtensions
     {
+        [global::Mocha.MessagingModuleInfo(
+            HandlerTypes = new global::System.Type[]
+            {
+                typeof(global::TestApp.ProcessOrderHandler),
+            }
+        )]
         public static global::Mocha.IMessageBusHostBuilder AddTests(
             this global::Mocha.IMessageBusHostBuilder builder)
         {
 
+            // --- Message Types ---
+            global::Mocha.MessageBusHostBuilderExtensions.AddMessage<global::TestApp.ProcessOrderRequest>(builder);
+            global::Mocha.MessageBusHostBuilderExtensions.ConfigureDescriptorContext(
+                builder,
+                static ctx => global::Mocha.Features.FeatureCollectionExtensions.GetRequired<global::Mocha.MessagingConfigurationFeature>(ctx.Features)
+                    .Configurations.TryAdd<global::Mocha.IMessageTypeDescriptor>(
+                        "Tests::TestApp.ProcessOrderRequest",
+                        typeof(global::TestApp.ProcessOrderRequest),
+                        __Initialize_ProcessOrderRequest_MessageType__80IS74_WRtkxh16rF63L3Q));
+
             // --- Request Handlers ---
-            global::Mocha.MessageBusHostBuilderExtensions.AddHandlerConfiguration<global::TestApp.ProcessOrderHandler>(builder,
-                new global::Mocha.MessagingHandlerConfiguration
-                {
-                    HandlerType = typeof(global::TestApp.ProcessOrderHandler),
-                    Factory = global::Mocha.ConsumerFactory.Send<global::TestApp.ProcessOrderHandler, global::TestApp.ProcessOrderRequest>()
-                });
+            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddScoped<global::TestApp.ProcessOrderHandler>(
+                builder.Services);
+            global::Mocha.MessageBusHostBuilderExtensions.AddConsumer(
+                builder,
+                static () => global::Mocha.ConsumerFactory.Send<global::TestApp.ProcessOrderHandler, global::TestApp.ProcessOrderRequest>());
+            global::Mocha.MessageBusHostBuilderExtensions.ConfigureDescriptorContext(
+                builder,
+                static ctx => global::Mocha.Features.FeatureCollectionExtensions.GetRequired<global::Mocha.MessagingConfigurationFeature>(ctx.Features)
+                    .Configurations.TryAdd<global::Mocha.IConsumerDescriptor>(
+                        "Tests::TestApp.ProcessOrderHandler",
+                        typeof(global::TestApp.ProcessOrderHandler),
+                        __Initialize_ProcessOrderHandler_Consumer__6lyGOwt3bVovBGGhaQRQ_g));
 
             return builder;
+        }
+
+        private static void __Initialize_ProcessOrderRequest_MessageType__80IS74_WRtkxh16rF63L3Q(global::Mocha.IMessageTypeDescriptor descriptor)
+        {
+            descriptor.Extend().Configuration.Source = new global::Mocha.SourceMetadata
+            {
+                Assembly = "Tests",
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", null, 5, 1, 5, 48)
+            };
+        }
+
+        private static void __Initialize_ProcessOrderHandler_Consumer__6lyGOwt3bVovBGGhaQRQ_g(global::Mocha.IConsumerDescriptor descriptor)
+        {
+            descriptor.Extend().Configuration.Source = new global::Mocha.SourceMetadata
+            {
+                Assembly = "Tests",
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", null, 7, 1, 11, 2)
+            };
         }
     }
 }

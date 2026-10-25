@@ -3,9 +3,8 @@ using HotChocolate.Fusion.Text.Json;
 namespace HotChocolate.Fusion.Execution.Clients;
 
 /// <summary>
-/// Represents the result returned by a source schema after executing a GraphQL request.
-/// Provides access to the <c>data</c>, <c>errors</c>, and <c>extensions</c> sections of the
-/// response and manages the lifetime of the underlying result document.
+/// Represents the result returned by a source schema after executing a GraphQL request. Provides
+/// access to the <c>data</c>, <c>errors</c>, and <c>extensions</c> sections of the response.
 /// </summary>
 public sealed class SourceSchemaResult : IDisposable
 {
@@ -13,23 +12,46 @@ public sealed class SourceSchemaResult : IDisposable
     private static ReadOnlySpan<byte> ErrorsProperty => "errors"u8;
     private static ReadOnlySpan<byte> ExtensionsProperty => "extensions"u8;
     private readonly SourceResultDocument _document;
-    private readonly bool _ownsDocument;
+    private readonly IDisposable? _documentOwner;
+    private SourceSchemaErrors? _errors;
     private bool _errorsParsed;
 
     /// <summary>
-    /// Creates a new <see cref="SourceSchemaResult"/> that takes ownership of the given document
-    /// and will dispose it when this result is disposed.
+    /// Creates a new <see cref="SourceSchemaResult"/> that holds the given document and releases
+    /// its hold when this result is disposed.
     /// </summary>
     /// <param name="path">The path in the Fusion result where this result will be merged.</param>
     /// <param name="document">The raw response document from the source schema.</param>
+    /// <param name="documentOwner">
+    /// The owner of <paramref name="document"/> when it is shared with other results, or
+    /// <c>null</c> when this result is the only one that reads it.
+    /// </param>
+    /// <param name="lookupData">
+    /// The pre-resolved element of the root field that carries the lookup data, or <c>null</c>
+    /// when it is resolved from <see cref="Data"/>.
+    /// </param>
+    /// <param name="errors">The errors that apply to this result, or <c>null</c> if there are none.</param>
     /// <param name="final">Whether this is the final message in a streaming response.</param>
     /// <param name="additionalPaths">Any additional paths where this result should also be merged.</param>
     public SourceSchemaResult(
         CompactPath path,
         SourceResultDocument document,
+        SourceResultDocumentOwner? documentOwner = null,
+        SourceResultElement? lookupData = null,
+        SourceSchemaErrors? errors = null,
         FinalMessage final = FinalMessage.Undefined,
         CompactPathSegment additionalPaths = default)
-        : this(path, document, final, ownsDocument: true, additionalPaths)
+        : this(
+            path,
+            document,
+            final,
+            documentOwner ?? (IDisposable)document,
+            additionalPaths,
+            lookupData,
+            errors,
+            // The errors of a shared document are routed per result, so a result that shares one
+            // never reads its errors from the document.
+            errorsParsed: errors is not null || documentOwner is not null)
     {
     }
 
@@ -37,31 +59,37 @@ public sealed class SourceSchemaResult : IDisposable
         CompactPath path,
         SourceResultDocument document,
         FinalMessage final,
-        bool ownsDocument,
-        CompactPathSegment additionalPaths)
+        IDisposable? documentOwner,
+        CompactPathSegment additionalPaths,
+        SourceResultElement? lookupData,
+        SourceSchemaErrors? errors,
+        bool errorsParsed)
     {
         ArgumentNullException.ThrowIfNull(document);
 
         _document = document;
-        _ownsDocument = ownsDocument;
+        _documentOwner = documentOwner;
+        _errors = errors;
+        _errorsParsed = errorsParsed;
         AdditionalPaths = additionalPaths;
+        LookupData = lookupData;
         Path = path;
         Final = final;
     }
 
     /// <summary>
-    /// The primary path in the composite result into which this source schema result will be merged.
+    /// Gets the primary path in the composite result into which this source schema result will be merged.
     /// </summary>
     public CompactPath Path { get; }
 
     /// <summary>
-    /// Additional paths where this result should also be merged, used when a single source
-    /// schema response satisfies multiple selection sets at different locations.
+    /// Gets the additional paths in the composite result into which this source schema result will
+    /// also be merged.
     /// </summary>
     public CompactPathSegment AdditionalPaths { get; }
 
     /// <summary>
-    /// The <c>data</c> element of the source schema response, or an empty element if the
+    /// Gets the <c>data</c> element of the source schema response, or an empty element if the
     /// response did not include a data property.
     /// </summary>
     public SourceResultElement Data
@@ -74,8 +102,15 @@ public sealed class SourceSchemaResult : IDisposable
     }
 
     /// <summary>
-    /// The parsed errors from the source schema response, or <c>null</c> if there were none.
-    /// Parsed lazily on first access.
+    /// Gets the pre-resolved element of the root field that carries the lookup data, or <c>null</c>
+    /// when it is resolved from <see cref="Data"/>. When set, it stands in for the first segment of
+    /// the source path.
+    /// </summary>
+    public SourceResultElement? LookupData { get; }
+
+    /// <summary>
+    /// Gets the errors of the source schema response that apply to this result, or <c>null</c>
+    /// when there are none.
     /// </summary>
     public SourceSchemaErrors? Errors
     {
@@ -83,32 +118,23 @@ public sealed class SourceSchemaResult : IDisposable
         {
             if (!_errorsParsed)
             {
-                field = _document.Root.TryGetProperty(ErrorsProperty, out var errors)
+                _errors = _document.Root.TryGetProperty(ErrorsProperty, out var errors)
                     ? SourceSchemaErrors.From(errors)
                     : null;
                 _errorsParsed = true;
             }
 
-            return field;
-        }
-    }
-
-    internal SourceResultElement RawErrors
-    {
-        get
-        {
-            _document.Root.TryGetProperty(ErrorsProperty, out var errors);
-            return errors;
+            return _errors;
         }
     }
 
     /// <summary>
-    /// Returns <c>true</c> if the source schema response contains an <c>errors</c> property.
+    /// Returns <c>true</c> if the source schema response carries errors that apply to this result.
     /// </summary>
-    public bool HasErrors => _document.Root.TryGetProperty(ErrorsProperty, out _);
+    public bool HasErrors => Errors is not null;
 
     /// <summary>
-    /// The <c>extensions</c> element of the source schema response, or an empty element if
+    /// Gets the <c>extensions</c> element of the source schema response, or an empty element if
     /// the response did not include an extensions property.
     /// </summary>
     public SourceResultElement Extensions
@@ -125,25 +151,19 @@ public sealed class SourceSchemaResult : IDisposable
     /// </summary>
     public FinalMessage Final { get; }
 
-    /// <summary>
-    /// Creates a copy of this result associated with a different path, without taking ownership
-    /// of the underlying document. Used internally when the same result needs to be referenced
-    /// at a different location in the composite result.
-    /// </summary>
-    internal SourceSchemaResult WithPath(CompactPath path)
-        => new(path, _document, Final, ownsDocument: false, additionalPaths: default);
-
     internal SourceSchemaResult WithPath(CompactPath path, CompactPathSegment additionalPaths)
-        => new(path, _document, Final, ownsDocument: false, additionalPaths);
+        => new(
+            path,
+            _document,
+            Final,
+            documentOwner: null,
+            additionalPaths,
+            LookupData,
+            _errors,
+            _errorsParsed);
 
     /// <summary>
-    /// Disposes the underlying result document if this instance owns it.
+    /// Releases this result's hold on the underlying result document.
     /// </summary>
-    public void Dispose()
-    {
-        if (_ownsDocument)
-        {
-            _document.Dispose();
-        }
-    }
+    public void Dispose() => _documentOwner?.Dispose();
 }

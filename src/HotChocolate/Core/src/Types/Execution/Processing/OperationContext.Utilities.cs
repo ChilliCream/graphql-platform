@@ -33,6 +33,5 @@ internal sealed partial class OperationContext
     /// <summary>
     /// Gets the type converter service.
     /// </summary>
-    /// <value></value>
     public ITypeConverter Converter { get; }
 }

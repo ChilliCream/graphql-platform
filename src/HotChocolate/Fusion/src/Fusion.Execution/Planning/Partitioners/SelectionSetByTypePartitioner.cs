@@ -2,7 +2,6 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
-using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Planning.Partitioners;
@@ -42,9 +41,16 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
                 ..selections
             ]);
 
-            indexBuilder.Register(input.SelectionSet.Id, selectionSetNode);
+            // Concrete branches are independently planned aggregates and must not
+            // share the abstract input selection set's logical identity.
+            indexBuilder.RegisterConcreteBranch(
+                input.SelectionSet.Id,
+                type,
+                selectionSetNode);
 
-            selectionSetByType.Add(new SelectionSetByType((FusionObjectTypeDefinition)schema.Types[type], selectionSetNode));
+            selectionSetByType.Add(new SelectionSetByType(
+                (FusionObjectTypeDefinition)schema.Types.GetType(type, allowInaccessibleFields: true),
+                selectionSetNode));
         }
 
         return new SelectionSetByTypePartitionerResult(sharedSelectionSet, selectionSetByType.ToImmutable(), indexBuilder);
@@ -71,7 +77,7 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
 
                     if (inlineFragmentNode.TypeCondition is { Name.Value: { } name })
                     {
-                        typeCondition = schema.Types[name].AsTypeDefinition();
+                        typeCondition = schema.Types.GetType(name, allowInaccessibleFields: true).AsTypeDefinition();
                     }
 
                     var hasDirectives = inlineFragmentNode.Directives.Any();
@@ -119,7 +125,10 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
             }
             else
             {
-                foreach (var possibleType in schema.GetPossibleTypes(type))
+                // The branches are limited to the object types the enclosing selection set can
+                // yield, as an interface type condition can be implemented by types that are not
+                // possible types of that selection set.
+                foreach (var possibleType in schema.GetPossibleTypes(context.SharedType, includeInaccessible: true))
                 {
                     AddSelectionsForConcreteType(context, possibleType, selectionsWithPath, cloneSelectionSets: true);
                 }
@@ -131,12 +140,54 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
         }
     }
 
+    /// <summary>
+    /// Determines whether the specified object type is a possible type of the enclosing
+    /// selection set and satisfies all type conditions on the current type path.
+    /// </summary>
+    private bool MatchesEnclosingTypeConditions(Context context, FusionObjectTypeDefinition type)
+    {
+        if (!ContainsType(schema.GetPossibleTypes(context.SharedType, includeInaccessible: true), type))
+        {
+            return false;
+        }
+
+        foreach (var typeCondition in context.TypePath)
+        {
+            if (!ContainsType(schema.GetPossibleTypes(typeCondition, includeInaccessible: true), type))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool ContainsType(
+        ImmutableArray<FusionObjectTypeDefinition> possibleTypes,
+        FusionObjectTypeDefinition type)
+    {
+        foreach (var possibleType in possibleTypes)
+        {
+            if (ReferenceEquals(possibleType, type))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private void AddSelectionsForConcreteType(
         Context context,
         FusionObjectTypeDefinition type,
         List<ISelectionNode> selections,
         bool cloneSelectionSets = false)
     {
+        if (!MatchesEnclosingTypeConditions(context, type))
+        {
+            return;
+        }
+
         if (!context.SelectionsByType.TryGetValue(type.Name, out var typeSelections))
         {
             typeSelections = [];
@@ -145,40 +196,29 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
 
         if (cloneSelectionSets)
         {
-            var rewrittenSelections = new List<ISelectionNode>(selections.Count);
-
             foreach (var selection in selections)
             {
-                var rewrittenSelection = SyntaxRewriter.Create(
-                    node =>
-                    {
-                        if (node is SelectionSetNode selectionSetNode)
-                        {
-                            var newSelectionSet = new SelectionSetNode(selectionSetNode.Selections);
-
-                            // Since we're cloning the selection set,
-                            // we also need to keep track of the original
-                            // selection set the cloned one belongs to,
-                            // so we can later insert requirements in the original one.
-                            context.SelectionSetIndexBuilder.RegisterCloned(
-                                selectionSetNode,
-                                newSelectionSet);
-
-                            return newSelectionSet;
-                        }
-
-                        return node;
-                    }).Rewrite(selection)!;
-
-                rewrittenSelections.Add(rewrittenSelection);
+                typeSelections.Add(CloneSelection(selection, context.SelectionSetIndexBuilder));
             }
-
-            typeSelections.AddRange(rewrittenSelections);
         }
         else
         {
             typeSelections.AddRange(selections);
         }
+    }
+
+    private static ISelectionNode CloneSelection(
+        ISelectionNode selection,
+        SelectionSetIndexBuilder indexBuilder)
+    {
+        return selection switch
+        {
+            FieldNode field when field.SelectionSet is not null
+                => field.WithSelectionSet(SelectionSetCloner.Clone(field.SelectionSet, indexBuilder)),
+            InlineFragmentNode fragment
+                => fragment.WithSelectionSet(SelectionSetCloner.Clone(fragment.SelectionSet, indexBuilder)),
+            _ => selection
+        };
     }
 
     private static List<ISelectionNode> GetSelectionsWithPath(
@@ -192,10 +232,7 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
         {
             var newSelectionSet = new SelectionSetNode(start);
 
-            if (!indexBuilder.IsRegistered(newSelectionSet))
-            {
-                indexBuilder.Register(newSelectionSet);
-            }
+            indexBuilder.RegisterCloned(fragment.SelectionSet, newSelectionSet);
 
             start = [fragment.WithSelectionSet(newSelectionSet)];
         }

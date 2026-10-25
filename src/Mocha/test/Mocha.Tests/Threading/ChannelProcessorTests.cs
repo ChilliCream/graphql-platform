@@ -59,7 +59,7 @@ public sealed class ChannelProcessorTests
         channel.Writer.TryWrite(2);
 
         // assert - if both workers entered, the barrier completes within timeout
-        var completed = await Task.WhenAny(barrier.Task, Task.Delay(s_timeout));
+        var completed = await Task.WhenAny(barrier.Task, Task.Delay(s_timeout, TestContext.Current.CancellationToken));
         Assert.Same(barrier.Task, completed);
     }
 
@@ -153,7 +153,9 @@ public sealed class ChannelProcessorTests
         await processor.DisposeAsync();
 
         // assert - the handler's cancellation token was triggered
-        var completed = await Task.WhenAny(tokenCancelled.Task, Task.Delay(s_timeout));
+        var completed = await Task.WhenAny(
+            tokenCancelled.Task,
+            Task.Delay(s_timeout, TestContext.Current.CancellationToken));
         Assert.Same(tokenCancelled.Task, completed);
     }
 

@@ -9,6 +9,7 @@
 
       <_NitroIdentityClientId>$(NitroIdentityClientId)</_NitroIdentityClientId>
       <_NitroIdentityScopes>$(NitroIdentityScopes)</_NitroIdentityScopes>
+      <_NitroApiClientId>$(NitroApiClientId)</_NitroApiClientId>
     </PropertyGroup>
 
     <MakeDir Directories="$(_GenDir)" />
@@ -23,6 +24,7 @@ namespace $(_SecretsNamespace)
     {
         internal const string NitroIdentityClientId = &quot;$(_NitroIdentityClientId)&quot;;
         internal const string NitroIdentityScopes = &quot;$(_NitroIdentityScopes)&quot;;
+        internal const string NitroApiClientId = &quot;$(_NitroApiClientId)&quot;;
     }
 }
 ))" />

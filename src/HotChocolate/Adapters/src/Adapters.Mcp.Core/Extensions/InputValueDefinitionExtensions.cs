@@ -5,7 +5,9 @@ namespace HotChocolate.Adapters.Mcp.Extensions;
 
 internal static class InputValueDefinitionExtensions
 {
-    public static JsonSchema ToJsonSchema(this IInputValueDefinition inputField)
+    public static JsonSchema ToJsonSchema(
+        this IInputValueDefinition inputField,
+        JsonSchemaContext? context = null)
     {
         var type = inputField.Type;
         var schemaBuilder =
@@ -13,7 +15,8 @@ internal static class InputValueDefinitionExtensions
                 isOneOf: inputField.DeclaringMember is IInputObjectTypeDefinition
                 {
                     IsOneOf: true
-                });
+                },
+                context);
 
         // Description.
         if (inputField.Description is not null)

@@ -17,11 +17,12 @@ public class Issue6197ReproTests
             .AddTypeConverter<TimeZoneInfo, JsonElement>(value => JsonSerializer.SerializeToElement(value.Id))
             .AddQueryType<Query>()
             .ExecuteRequestAsync(
-            """
+                """
             {
               value
             }
-            """);
+            """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(

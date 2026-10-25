@@ -50,7 +50,11 @@ public class TraceparentHelperTests
 
         // assert
         Assert.NotNull(result);
+#if NET11_0_OR_GREATER
+        var expected = $"00-{activity.TraceId.ToHexString()}-{activity.SpanId.ToHexString()}-03";
+#else
         var expected = $"00-{activity.TraceId.ToHexString()}-{activity.SpanId.ToHexString()}-01";
+#endif
         Assert.Equal(expected, result);
     }
 

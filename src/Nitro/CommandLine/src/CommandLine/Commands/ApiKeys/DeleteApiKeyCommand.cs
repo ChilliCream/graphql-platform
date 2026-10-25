@@ -43,7 +43,7 @@ internal sealed class DeleteApiKeyCommand : Command
         if (!force)
         {
             var confirmed = await console.ConfirmAsync(
-                $"Do you really want to delete API key with ID '{keyId}'?",
+                Prompts.ConfirmDeleteApiKey(keyId),
                 cancellationToken);
 
             if (!confirmed)
@@ -60,13 +60,13 @@ internal sealed class DeleteApiKeyCommand : Command
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
 
                 foreach (var error in data.Errors)
                 {
                     var errorMessage = error switch
                     {
-                        IApiKeyNotFoundError err => err.Message,
+                        IApiKeyNotFoundError err => throw new NitroClientNotFoundException(err.Message),
                         IError err => Messages.UnexpectedMutationError(err),
                         _ => Messages.UnexpectedMutationError()
                     };

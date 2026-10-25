@@ -2,9 +2,9 @@ schema {
   query: Query
 }
 
-"The node interface is implemented by entities that have a global unique identifier."
-interface Node {
-  id: ID!
+type Query {
+  entity(name: String!): Entity!
+  entity2(name: String!): Entity2!
 }
 
 type Entity implements Node {
@@ -17,7 +17,7 @@ type Entity2 {
   name: String!
 }
 
-type Query {
-  entity(name: String!): Entity!
-  entity2(name: String!): Entity2!
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node {
+  id: ID!
 }

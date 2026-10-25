@@ -35,17 +35,19 @@ public class QueryableFilterVisitorBooleanTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: true}}){ bar}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
         snapshot.Add(res1, "true");
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: false}}){ bar}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
         snapshot.Add(res2, "false");
 
         // assert
-        await snapshot.MatchAsync();
+        await snapshot.MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -59,17 +61,19 @@ public class QueryableFilterVisitorBooleanTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { neq: true}}){ bar}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
         snapshot.Add(res1, "true");
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { neq: false}}){ bar}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
         snapshot.Add(res2, "false");
 
         // assert
-        await snapshot.MatchAsync();
+        await snapshot.MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -83,23 +87,26 @@ public class QueryableFilterVisitorBooleanTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: true}}){ bar}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
         snapshot.Add(res1, "true");
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: false}}){ bar}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
         snapshot.Add(res2, "false");
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: null}}){ bar}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
         snapshot.Add(res3, "null");
 
         // assert
-        await snapshot.MatchAsync();
+        await snapshot.MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -113,23 +120,26 @@ public class QueryableFilterVisitorBooleanTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { neq: true}}){ bar}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
         snapshot.Add(res1, "true");
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { neq: false}}){ bar}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
         snapshot.Add(res2, "false");
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { neq: null}}){ bar}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
         snapshot.Add(res3, "null");
 
         // assert
-        await snapshot.MatchAsync();
+        await snapshot.MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Foo

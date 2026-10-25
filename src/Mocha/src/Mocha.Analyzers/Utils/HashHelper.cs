@@ -28,4 +28,7 @@ internal static class HashHelper
 
         return base64.Replace("+", "-").Replace("/", "_").TrimEnd('=');
     }
+
+    public static string ComputeIdentifierSalt(string value)
+        => ModuleNameHelper.SanitizeIdentifier(ComputeSalt(value));
 }

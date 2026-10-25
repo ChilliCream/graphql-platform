@@ -1,10 +1,13 @@
+using System.Buffers;
 using System.Collections.Frozen;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using CookieCrumble.HotChocolate.Formatters;
 using HotChocolate.Buffers;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -19,22 +22,102 @@ namespace HotChocolate.Fusion;
 
 public abstract partial class FusionTestBase
 {
-    protected async Task MatchSnapshotAsync(
+    protected Task MatchSnapshotAsync(
         Gateway gateway,
         OperationRequest request,
         GraphQLHttpResponse response,
         string? postFix = null,
-        RawRequest? rawRequest = null)
+        RawRequest? rawRequest = null,
+        bool stableStream = false)
+        => MatchSnapshotCoreAsync(
+            gateway,
+            request,
+            response,
+            assertResults: null,
+            postFix,
+            rawRequest,
+            stableStream);
+
+    protected Task AssertAndMatchSnapshotAsync(
+        Gateway gateway,
+        OperationRequest request,
+        GraphQLHttpResponse response,
+        Action<IReadOnlyList<OperationResult>> assertResults)
+    {
+        ArgumentNullException.ThrowIfNull(assertResults);
+
+        return MatchSnapshotCoreAsync(
+            gateway,
+            request,
+            response,
+            assertResults,
+            postFix: null,
+            rawRequest: null,
+            stableStream: false);
+    }
+
+    protected Task AssertAndMatchSnapshotAsync(
+        Gateway gateway,
+        OperationRequest request,
+        GraphQLHttpResponse response,
+        Action<IReadOnlyList<OperationResult>> assertResults,
+        string postFix)
+    {
+        ArgumentNullException.ThrowIfNull(assertResults);
+
+        return MatchSnapshotCoreAsync(
+            gateway,
+            request,
+            response,
+            assertResults,
+            postFix,
+            rawRequest: null,
+            stableStream: false);
+    }
+
+    private async Task MatchSnapshotCoreAsync(
+        Gateway gateway,
+        OperationRequest request,
+        GraphQLHttpResponse response,
+        Action<IReadOnlyList<OperationResult>>? assertResults,
+        string? postFix,
+        RawRequest? rawRequest,
+        bool stableStream)
     {
         var snapshot = new Snapshot(postFix, ".yaml");
 
         var results = new List<OperationResult>();
+        string? stableStreamText = null;
 
-        // We first wait and capture all possible gateway responses.
-        await foreach (var result in response.ReadAsResultStreamAsync())
+        if (stableStream)
         {
-            results.Add(result);
+            var bodyBytes = await response.HttpResponseMessage.Content.ReadAsByteArrayAsync();
+
+            using var formatterResponseMessage = CloneHttpResponseMessage(response.HttpResponseMessage, bodyBytes);
+            using var formatterResponse = new GraphQLHttpResponse(formatterResponseMessage);
+
+            var buffer = new ArrayBufferWriter<byte>();
+            SnapshotValueFormatters.GraphQLHttpStable.Format(buffer, formatterResponse);
+            stableStreamText = Encoding.UTF8.GetString(buffer.WrittenSpan);
+
+            using var resultsResponseMessage = CloneHttpResponseMessage(response.HttpResponseMessage, bodyBytes);
+            using var resultsResponse = new GraphQLHttpResponse(resultsResponseMessage);
+
+            await foreach (var result in resultsResponse.ReadAsResultStreamAsync())
+            {
+                results.Add(result);
+            }
         }
+        else
+        {
+            // We first wait and capture all possible gateway responses.
+            await foreach (var result in response.ReadAsResultStreamAsync())
+            {
+                results.Add(result);
+            }
+        }
+
+        assertResults?.Invoke(results);
 
         var testServerRegistrations = gateway.Services
             .GetServices<TestServerRegistration>()
@@ -50,7 +133,7 @@ public abstract partial class FusionTestBase
         WriteOperationRequest(writer, request, rawRequest);
         writer.Unindent();
 
-        WriteResults(writer, results);
+        WriteResults(writer, results, stableStreamText);
 
         writer.WriteLine("sourceSchemas:");
         writer.Indent();
@@ -116,8 +199,17 @@ public abstract partial class FusionTestBase
         }
     }
 
-    private void WriteResults(CodeWriter writer, List<OperationResult> results)
+    private void WriteResults(CodeWriter writer, List<OperationResult> results, string? stableStreamText = null)
     {
+        if (stableStreamText is not null)
+        {
+            writer.WriteLine("stableResponseStream: |");
+            writer.Indent();
+            WriteMultilineString(writer, stableStreamText.TrimEnd());
+            writer.Unindent();
+            return;
+        }
+
         if (results is [{ } singleResult])
         {
             writer.WriteLine("response:");
@@ -147,6 +239,39 @@ public abstract partial class FusionTestBase
 
             writer.Unindent();
         }
+    }
+
+    private static HttpResponseMessage CloneHttpResponseMessage(HttpResponseMessage source, byte[] bodyBytes)
+    {
+        var clone = new HttpResponseMessage(source.StatusCode);
+
+        foreach (var header in source.Headers)
+        {
+            clone.Headers.TryAddWithoutValidation(header.Key, header.Value);
+        }
+
+        var content = new ByteArrayContent(bodyBytes);
+
+        if (source.Content.Headers.ContentType is not null)
+        {
+            content.Headers.ContentType =
+                MediaTypeHeaderValue.Parse(source.Content.Headers.ContentType.ToString());
+        }
+
+        foreach (var header in source.Content.Headers)
+        {
+            if (string.Equals(header.Key, "Content-Type", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(header.Key, "Content-Length", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            content.Headers.TryAddWithoutValidation(header.Key, header.Value);
+        }
+
+        clone.Content = content;
+
+        return clone;
     }
 
     private static void WriteResult(CodeWriter writer, OperationResult result)
@@ -220,7 +345,12 @@ public abstract partial class FusionTestBase
             writer.WriteLine("interactions:");
             writer.Indent();
 
-            foreach (var (_, interaction) in interactions.OrderBy(x => x.Key))
+            // Order by (OperationPlanId, NodeId) so parallel mini-plans (e.g.
+            // deferred groups) render in a stable order independent of the
+            // runtime arrival order of their subgraph responses.
+            foreach (var interaction in interactions.Values
+                .OrderBy(x => x.OperationPlanId, StringComparer.Ordinal)
+                .ThenBy(x => x.NodeId))
             {
                 var request = interaction.Request!;
 
@@ -274,6 +404,8 @@ public abstract partial class FusionTestBase
                                 writer.Unindent();
                             }
 
+                            TryWriteOnError(writer, item);
+
                             writer.Unindent();
                         }
 
@@ -281,6 +413,8 @@ public abstract partial class FusionTestBase
                     }
                     else
                     {
+                        TryWriteOnError(writer, jsonBody.RootElement);
+
                         writer.WriteLine("document: |");
                         writer.Indent();
 
@@ -358,10 +492,10 @@ public abstract partial class FusionTestBase
 
         jsonWriter.WriteStartObject();
 
-        if (result.RawErrors.ValueKind != JsonValueKind.Undefined)
+        if (result.Errors is { } errors)
         {
             jsonWriter.WritePropertyName("errors");
-            jsonWriter.WriteRawValue(result.RawErrors.GetRawValue());
+            WriteSourceSchemaErrors(jsonWriter, errors);
         }
 
         if (result.Data.ValueKind != JsonValueKind.Undefined)
@@ -383,6 +517,107 @@ public abstract partial class FusionTestBase
 
         using var document = JsonDocument.Parse(memoryStream);
         return JsonSerializer.Serialize(document, new JsonSerializerOptions { WriteIndented = true });
+    }
+
+    /// <summary>
+    /// Writes the errors a source schema result carries, the errors without a path first and the
+    /// errors with a path in the order of the paths they were reported for.
+    /// </summary>
+    private static void WriteSourceSchemaErrors(Utf8JsonWriter jsonWriter, SourceSchemaErrors errors)
+    {
+        jsonWriter.WriteStartArray();
+
+        foreach (var error in errors.RootErrors)
+        {
+            WriteSourceSchemaError(jsonWriter, error);
+        }
+
+        WriteSourceSchemaErrors(jsonWriter, errors.Trie);
+
+        jsonWriter.WriteEndArray();
+    }
+
+    private static void WriteSourceSchemaErrors(Utf8JsonWriter jsonWriter, ErrorTrie trie)
+    {
+        if (trie.Error is not null)
+        {
+            WriteSourceSchemaError(jsonWriter, trie.Error);
+        }
+
+        var stack = new Stack<Dictionary<object, ErrorTrie>.ValueCollection.Enumerator>();
+        stack.Push(trie.Values.GetEnumerator());
+
+        while (stack.TryPop(out var children))
+        {
+            if (!children.MoveNext())
+            {
+                continue;
+            }
+
+            var child = children.Current;
+            stack.Push(children);
+
+            if (child.Error is not null)
+            {
+                WriteSourceSchemaError(jsonWriter, child.Error);
+            }
+
+            stack.Push(child.Values.GetEnumerator());
+        }
+    }
+
+    private static void WriteSourceSchemaError(Utf8JsonWriter jsonWriter, IError error)
+    {
+        jsonWriter.WriteStartObject();
+        jsonWriter.WriteString("message", error.Message);
+
+        if (error.Path is not null)
+        {
+            jsonWriter.WritePropertyName("path");
+            jsonWriter.WriteStartArray();
+
+            foreach (var segment in error.Path.ToList())
+            {
+                switch (segment)
+                {
+                    case int index:
+                        jsonWriter.WriteNumberValue(index);
+                        break;
+
+                    default:
+                        jsonWriter.WriteStringValue(segment.ToString());
+                        break;
+                }
+            }
+
+            jsonWriter.WriteEndArray();
+        }
+
+        if (error.Extensions is { Count: > 0 } extensions)
+        {
+            jsonWriter.WritePropertyName("extensions");
+            jsonWriter.WriteStartObject();
+
+            foreach (var (key, value) in extensions)
+            {
+                jsonWriter.WritePropertyName(key);
+
+                switch (value)
+                {
+                    case RawJsonValue rawJson:
+                        jsonWriter.WriteRawValue(rawJson.Value.Span);
+                        break;
+
+                    default:
+                        JsonSerializer.Serialize(jsonWriter, value);
+                        break;
+                }
+            }
+
+            jsonWriter.WriteEndObject();
+        }
+
+        jsonWriter.WriteEndObject();
     }
 
     private static void WriteSourceSchemaDocument(CodeWriter writer, string schemaText)
@@ -450,6 +685,22 @@ public abstract partial class FusionTestBase
         }
     }
 
+    private static void TryWriteOnError(CodeWriter writer, JsonElement requestElement)
+    {
+        if (requestElement.ValueKind is not JsonValueKind.Object
+            || !requestElement.TryGetProperty("onError", out var onErrorProperty)
+            || onErrorProperty.ValueKind is not JsonValueKind.String
+            || !Enum.TryParse<ErrorHandlingMode>(
+                onErrorProperty.GetString(),
+                ignoreCase: true,
+                out var onError))
+        {
+            return;
+        }
+
+        writer.WriteLine("onError: {0}", onError);
+    }
+
     private static void WriteFormattedJson(CodeWriter writer, JsonElement json)
     {
         var memoryStream = new MemoryStream();
@@ -487,7 +738,7 @@ public abstract partial class FusionTestBase
     {
         var streamReader = new StreamReader(body);
         var rawRequestString = streamReader.ReadToEnd();
-        var contentTypeString = contentType.MediaType!;
+        var contentTypeString = contentType.MediaType;
 
         var boundary = contentType.Parameters
             .FirstOrDefault(

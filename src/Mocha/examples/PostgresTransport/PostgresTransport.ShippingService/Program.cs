@@ -1,5 +1,4 @@
 using Mocha;
-using Mocha.Hosting;
 using Mocha.Transport.Postgres;
 using PostgresTransport.Contracts.Events;
 using PostgresTransport.ShippingService.Handlers;
@@ -50,8 +49,6 @@ app.MapPost(
             status = "Shipped"
         });
     });
-
-app.MapMessageBusDeveloperTopology();
 
 app.Run();
 

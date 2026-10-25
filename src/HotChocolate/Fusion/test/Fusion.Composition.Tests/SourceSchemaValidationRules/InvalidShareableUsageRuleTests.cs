@@ -52,15 +52,14 @@ public sealed class InvalidShareableUsageRuleTests : RuleTestBase
             ]);
     }
 
-    // By definition, root subscription fields cannot be shared across multiple schemas. In this
-    // example, both schemas define a subscription field "newOrderPlaced".
+    // Root subscription fields can be marked as shareable. Whether multiple schemas provide the
+    // same subscription contribution is validated by composition pre-merge rules.
     [Fact]
-    public void Validate_InvalidShareableUsageSubscriptionField_Fails()
+    public void Validate_ShareableSubscriptionField_Succeeds()
     {
-        AssertInvalid(
+        AssertValid(
             [
                 """
-                # Schema A
                 type Subscription {
                     newOrderPlaced: Order @shareable
                 }
@@ -71,33 +70,13 @@ public sealed class InvalidShareableUsageRuleTests : RuleTestBase
                 }
                 """,
                 """
-                # Schema B
                 type Subscription {
                     newOrderPlaced: Order @shareable
                 }
-                """
-            ],
-            [
-                """
-                {
-                    "message": "The field 'Subscription.newOrderPlaced' in schema 'A' must not be marked as shareable.",
-                    "code": "INVALID_SHAREABLE_USAGE",
-                    "severity": "Error",
-                    "coordinate": "Subscription.newOrderPlaced",
-                    "member": "newOrderPlaced",
-                    "schema": "A",
-                    "extensions": {}
-                }
-                """,
-                """
-                {
-                    "message": "The field 'Subscription.newOrderPlaced' in schema 'B' must not be marked as shareable.",
-                    "code": "INVALID_SHAREABLE_USAGE",
-                    "severity": "Error",
-                    "coordinate": "Subscription.newOrderPlaced",
-                    "member": "newOrderPlaced",
-                    "schema": "B",
-                    "extensions": {}
+
+                type Order {
+                    id: ID!
+                    items: [String]
                 }
                 """
             ]);

@@ -45,6 +45,7 @@ public class ObjectFieldDescriptor
     {
         var naming = context.Naming;
         Configuration.Member = member ?? throw new ArgumentNullException(nameof(member));
+        Configuration.DeclaringType = member.ReflectedType ?? member.DeclaringType;
         Configuration.Name = naming.GetMemberName(member, MemberKind.ObjectField);
         Configuration.Description = naming.GetMemberDescription(member, MemberKind.ObjectField);
         Configuration.SourceType = sourceType;
@@ -107,6 +108,7 @@ public class ObjectFieldDescriptor
         if (member is not null)
         {
             var naming = context.Naming;
+            Configuration.DeclaringType = member.ReflectedType ?? member.DeclaringType;
             Configuration.Name = naming.GetMemberName(member, MemberKind.ObjectField);
             Configuration.Description = naming.GetMemberDescription(member, MemberKind.ObjectField);
             Configuration.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
@@ -197,9 +199,11 @@ public class ObjectFieldDescriptor
             {
                 var ownerType = definition.ResolverType ?? definition.SourceType;
 
+#pragma warning disable IL2075 // 'this' argument does not satisfy 'DynamicallyAccessedMembersAttribute' - ownerType is obtained from runtime configuration which cannot be statically annotated.
                 var subscribeMember = ownerType?.GetMember(
                     definition.SubscribeWith,
                     Public | NonPublic | Instance | Static)[0];
+#pragma warning restore IL2075
 
                 if (subscribeMember is MethodInfo subscribeMethod)
                 {
@@ -238,22 +242,7 @@ public class ObjectFieldDescriptor
                     definition.GetParameterExpressionBuilders(),
                     IsBatchResolver());
 
-                foreach (var parameter in _parameterInfos)
-                {
-                    if (!parameter.IsDefined(typeof(ParentAttribute)))
-                    {
-                        continue;
-                    }
-
-                    var requirements = parameter.GetCustomAttribute<ParentAttribute>()?.Requires;
-                    if (!(requirements?.Length > 0))
-                    {
-                        continue;
-                    }
-
-                    Configuration.Flags |= CoreFieldFlags.WithRequirements;
-                    Configuration.Features.Set(new FieldRequirementFeature(requirements, parameter.ParameterType));
-                }
+                FieldDescriptorUtilities.DiscoverParentRequirements(_parameterInfos, Configuration);
             }
 
             _argumentsInitialized = true;
@@ -430,8 +419,14 @@ public class ObjectFieldDescriptor
 
             Configuration.ResolverType = resolverType;
             Configuration.ResolverMember = propertyOrMethod;
+            Configuration.DeclaringType = propertyOrMethod.ReflectedType ?? propertyOrMethod.DeclaringType;
             Configuration.Resolver = null;
             Configuration.ResultType = propertyOrMethod.GetReturnType();
+
+            if (Configuration.Member is not null)
+            {
+                Configuration.Flags |= CoreFieldFlags.MemberReplacement;
+            }
 
             if (propertyOrMethod is MethodInfo m)
             {
@@ -542,6 +537,7 @@ public class ObjectFieldDescriptor
             TypeContext.Output);
         Configuration.ResolverType = resolverType;
         Configuration.ResolverMember = propertyOrMethod;
+        Configuration.DeclaringType = propertyOrMethod.ReflectedType ?? propertyOrMethod.DeclaringType;
         Configuration.Resolver = null;
         Configuration.ResultType = elementType;
 
@@ -592,29 +588,13 @@ public class ObjectFieldDescriptor
     /// <inheritdoc />
     public IObjectFieldDescriptor ParentRequires<TParent>(string? requires)
     {
-        if (!(requires?.Length > 0))
-        {
-            Configuration.Flags &= ~CoreFieldFlags.WithRequirements;
-            Configuration.Features.Set<FieldRequirementFeature>(null);
-            return this;
-        }
-
-        Configuration.Flags |= CoreFieldFlags.WithRequirements;
-        Configuration.Features.Set(new FieldRequirementFeature(requires, typeof(TParent)));
+        Configuration.SetFieldRequirements(requires, typeof(TParent));
         return this;
     }
 
     public IObjectFieldDescriptor ParentRequires(string? requires)
     {
-        if (!(requires?.Length > 0))
-        {
-            Configuration.Flags &= ~CoreFieldFlags.WithRequirements;
-            Configuration.Features.Set<FieldRequirementFeature>(null);
-            return this;
-        }
-
-        Configuration.Flags |= CoreFieldFlags.WithRequirements;
-        Configuration.Features.Set(new FieldRequirementFeature(requires, Configuration.SourceType));
+        Configuration.SetFieldRequirements(requires, Configuration.SourceType);
         return this;
     }
 
@@ -639,7 +619,7 @@ public class ObjectFieldDescriptor
     /// <param name="member">The member this field represents</param>
     /// <param name="sourceType">The type of the member</param>
     /// <param name="resolverType">The resolved type</param>
-    /// <returns></returns>
+    /// <returns>A new <see cref="ObjectFieldDescriptor"/>.</returns>
     public static ObjectFieldDescriptor New(
         IDescriptorContext context,
         MemberInfo member,
@@ -654,7 +634,7 @@ public class ObjectFieldDescriptor
     /// <param name="expression">The expression this field is based on</param>
     /// <param name="sourceType">The type of the member</param>
     /// <param name="resolverType">The resolved type</param>
-    /// <returns></returns>
+    /// <returns>A new <see cref="ObjectFieldDescriptor"/>.</returns>
     public static ObjectFieldDescriptor New(
         IDescriptorContext context,
         LambdaExpression expression,
@@ -667,7 +647,7 @@ public class ObjectFieldDescriptor
     /// </summary>
     /// <param name="context">The descriptor context</param>
     /// <param name="definition">The definition of the field</param>
-    /// <returns></returns>
+    /// <returns>A new <see cref="ObjectFieldDescriptor"/>.</returns>
     public static ObjectFieldDescriptor From(
         IDescriptorContext context,
         ObjectFieldConfiguration definition)

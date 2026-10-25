@@ -32,13 +32,13 @@ sourceSchemas:
         query: Query
       }
 
-      type Product {
-        name: String!
-        id: Int!
-      }
-
       type Query {
         productById(id: Int!): Product @lookup
+      }
+
+      type Product @key(fields: "id") {
+        name: String!
+        id: Int!
       }
     interactions:
       - request:
@@ -68,7 +68,7 @@ operationPlan:
             name
           }
         }
-      hash: 97fd38fcea394bc6badd7ea22c6de660
+      hash: 017a9f2b2f4118d0ee104f49a33abbd9
       searchSpace: 1
       expandedNodes: 1
   nodes:

@@ -1,0 +1,38 @@
+{
+  "data": {
+    "__schema": {
+      "directives": [
+        {
+          "name": "skip",
+          "appliedDirectives": []
+        },
+        {
+          "name": "include",
+          "appliedDirectives": []
+        },
+        {
+          "name": "deprecated",
+          "appliedDirectives": []
+        },
+        {
+          "name": "meta",
+          "appliedDirectives": []
+        },
+        {
+          "name": "annotated",
+          "appliedDirectives": [
+            {
+              "name": "meta",
+              "args": [
+                {
+                  "name": "name",
+                  "value": "\"example\""
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

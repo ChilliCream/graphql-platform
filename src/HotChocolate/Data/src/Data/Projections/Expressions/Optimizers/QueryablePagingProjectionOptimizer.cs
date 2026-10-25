@@ -68,8 +68,9 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
             CombinedEdgeField,
             SelectionPath.Root,
             nodesField,
-            [new FieldSelectionNode(combinedField, 0)],
+            [new FieldSelectionNode(combinedField, default(ConditionFlags))],
             [],
+            isProjectionRequirement: false,
             isInternal: true,
             arguments: selection.Arguments,
             resolverPipeline: nodesPipeline);
@@ -170,5 +171,5 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
                 ? new SelectionSetNode(((SelectionSetNode)n).Selections)
                 : n);
 
-    public static QueryablePagingProjectionOptimizer Create(ProjectionProviderContext context) => new();
+    public static QueryablePagingProjectionOptimizer Create(ProjectionProviderContext _) => new();
 }

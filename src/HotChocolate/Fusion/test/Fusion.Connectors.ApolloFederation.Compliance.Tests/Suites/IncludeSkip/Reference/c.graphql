@@ -1,0 +1,14 @@
+extend schema
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.3"
+    import: ["@key", "@external", "@requires"]
+  )
+
+type Product @key(fields: "id") {
+  id: ID!
+  isExpensive: Boolean! @external
+  include: Boolean! @requires(fields: "isExpensive")
+  skip: Boolean! @requires(fields: "isExpensive")
+  neverCalledInclude: Boolean! @requires(fields: "isExpensive")
+  neverCalledSkip: Boolean! @requires(fields: "isExpensive")
+}

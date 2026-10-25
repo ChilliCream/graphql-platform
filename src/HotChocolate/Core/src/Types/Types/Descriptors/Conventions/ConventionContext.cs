@@ -44,7 +44,7 @@ internal sealed class ConventionContext(
     /// <param name="descriptorContext">
     /// The descriptor context.
     /// </param>
-    /// <returns></returns>
+    /// <returns>A new <see cref="ConventionContext"/>.</returns>
     public static ConventionContext Create(
         string? scope,
         IServiceProvider services,

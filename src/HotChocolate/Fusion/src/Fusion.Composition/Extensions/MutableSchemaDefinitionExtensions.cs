@@ -1,7 +1,12 @@
 using System.Collections.Immutable;
+using HotChocolate.Fusion.ApolloFederation;
+using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
+using BooleanValueNode = HotChocolate.Language.BooleanValueNode;
+using ListValueNode = HotChocolate.Language.ListValueNode;
+using StringValueNode = HotChocolate.Language.StringValueNode;
 
 namespace HotChocolate.Fusion.Extensions;
 
@@ -35,11 +40,29 @@ internal static class MutableSchemaDefinitionExtensions
         MutableComplexTypeDefinition type,
         string? schemaName = null)
     {
-        if (!string.IsNullOrEmpty(schemaName) && !type.ExistsInSchema(schemaName))
+        if (!string.IsNullOrEmpty(schemaName)
+            && !type.ExistsInSchema(schemaName)
+            && !ReachesInterfaceObjectStandIn(schema, type, schemaName))
         {
             return [];
         }
 
+        var unionsContainingType = type.Kind == TypeKind.Object
+            ? schema.Types
+                .OfType<MutableUnionTypeDefinition>()
+                .Where(u => u.Types.Contains(type))
+                .ToImmutableArray()
+            : [];
+
+        return GetPossibleFusionLookupDirectivesCore(schema, type, schemaName, unionsContainingType);
+    }
+
+    internal static List<IDirective> GetPossibleFusionLookupDirectivesCore(
+        MutableSchemaDefinition schema,
+        MutableComplexTypeDefinition type,
+        string? schemaName,
+        IReadOnlyList<MutableUnionTypeDefinition> unionsContainingType)
+    {
         // Get the lookups directly on the requested type.
         var lookups = GetFusionLookupDirectives(type, schemaName);
 
@@ -71,16 +94,39 @@ internal static class MutableSchemaDefinitionExtensions
             lookups.AddRange(interfaceLookupsInSchema);
         }
 
+        // Get the interface lookups of any @interfaceObject stand-in for an interface this type
+        // implements. A stand-in resolves every possible type of its interface by the shared key,
+        // so its interface-typed lookups are available for this type even in schemas that do not
+        // define the type. The implements relation is read from the completed set on the type,
+        // which includes edges derived by transitive closure.
+        var standInInterfaceNames = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var implementedInterface in type.Implements)
+        {
+            if (!standInInterfaceNames.Add(implementedInterface.Name)
+                || !schema.Types.TryGetType<MutableInterfaceTypeDefinition>(
+                    implementedInterface.Name,
+                    out var standInInterfaceType))
+            {
+                continue;
+            }
+
+            foreach (var standInSchemaName in GetInterfaceObjectSchemaNames(standInInterfaceType))
+            {
+                if (!string.IsNullOrEmpty(schemaName) && standInSchemaName != schemaName)
+                {
+                    continue;
+                }
+
+                lookups.AddRange(GetFusionLookupDirectives(standInInterfaceType, standInSchemaName));
+            }
+        }
+
         // Get the lookups of unions this type is a member of,
         // if it's an object type.
         if (type.Kind == TypeKind.Object)
         {
-            var unionTypes = schema.Types
-                .OfType<MutableUnionTypeDefinition>()
-                .Where(u => u.Types.Contains(type))
-                .ToImmutableArray();
-
-            foreach (var unionType in unionTypes)
+            foreach (var unionType in unionsContainingType)
             {
                 if (!string.IsNullOrEmpty(schemaName) && !unionType.ExistsInSchema(schemaName))
                 {
@@ -134,9 +180,68 @@ internal static class MutableSchemaDefinitionExtensions
         return lookupsById;
     }
 
-    public static void RemoveUnreferencedDefinitions(
+    /// <summary>
+    /// Removes type system definitions that are not reachable from operation roots, preserved
+    /// directive definitions or preserved types, then removes any <c>@external</c> fields the
+    /// removals left unreferenced, repeating until the schema is stable.
+    /// </summary>
+    /// <param name="schema">
+    /// The schema from which unreferenced definitions are removed.
+    /// </param>
+    /// <param name="preservedTypeNames">
+    /// Type names that are always treated as reachable.
+    /// </param>
+    /// <param name="preservedDirectiveNames">
+    /// Directive names whose definitions are always treated as reachable.
+    /// </param>
+    /// <param name="seedUnionsAsRoots">
+    /// A source schema's union definition is a piecewise contribution to the merged union.
+    /// Reachability of a union is a merged-schema property, so per-source pruning must seed
+    /// union definitions as roots. The merged-schema prune passes false and remains the cleanup
+    /// for genuinely dead unions.
+    /// </param>
+    /// <returns>
+    /// The type definitions that were removed, in schema order.
+    /// </returns>
+    public static List<ITypeDefinition> RemoveUnreferencedDefinitions(
         this MutableSchemaDefinition schema,
-        ImmutableSortedSet<MutableSchemaDefinition> sourceSchemas)
+        IReadOnlySet<string> preservedTypeNames,
+        IReadOnlySet<string> preservedDirectiveNames,
+        bool seedUnionsAsRoots)
+    {
+        var removedTypes = new List<ITypeDefinition>();
+
+        RemoveUnreachableDefinitions(
+            schema,
+            preservedTypeNames,
+            preservedDirectiveNames,
+            seedUnionsAsRoots,
+            removedTypes);
+
+        // Removing an unreachable type also removes the @require/@provides selections it carried.
+        // An @external field whose only references came from those selections is now dead, so
+        // prune it and re-run reachability: dropping the field can orphan its return type, whose
+        // own requirement selections can in turn orphan further externals. This converges quickly,
+        // and schemas with no dead externals never re-run reachability.
+        while (RemoveExternalFields.RemoveDeadExternalFields(schema))
+        {
+            RemoveUnreachableDefinitions(
+                schema,
+                preservedTypeNames,
+                preservedDirectiveNames,
+                seedUnionsAsRoots,
+                removedTypes);
+        }
+
+        return removedTypes;
+    }
+
+    private static void RemoveUnreachableDefinitions(
+        MutableSchemaDefinition schema,
+        IReadOnlySet<string> preservedTypeNames,
+        IReadOnlySet<string> preservedDirectiveNames,
+        bool seedUnionsAsRoots,
+        List<ITypeDefinition> removedTypes)
     {
         var touchedDefinitions = new HashSet<ITypeSystemMember>();
         var backlog = new Stack<ITypeSystemMember>();
@@ -144,6 +249,14 @@ internal static class MutableSchemaDefinitionExtensions
         foreach (var directive in schema.Directives)
         {
             backlog.Push(directive.Definition);
+        }
+
+        foreach (var directiveName in preservedDirectiveNames)
+        {
+            if (schema.DirectiveDefinitions.TryGetDirective(directiveName, out var directiveDefinition))
+            {
+                backlog.Push(directiveDefinition);
+            }
         }
 
         if (schema.QueryType is not null)
@@ -161,13 +274,28 @@ internal static class MutableSchemaDefinitionExtensions
             backlog.Push(schema.SubscriptionType);
         }
 
-        var preservedTypeNames = GetPreservedTypeNames(sourceSchemas);
-
         foreach (var typeName in preservedTypeNames)
         {
             if (schema.Types.TryGetType(typeName, out var inputType))
             {
                 backlog.Push(inputType);
+            }
+        }
+
+        // A union type definition in a source schema is a piecewise contribution to the
+        // merged union. Because a union's reachability is a merged-schema property, per-source
+        // pruning seeds union definitions as roots so member contributions that only become
+        // reachable through another source schema's fields are not eaten before the merge.
+        // The merged-schema prune (which passes seedUnionsAsRoots: false) still removes unions
+        // that are unreachable in every source.
+        if (seedUnionsAsRoots)
+        {
+            foreach (var type in schema.Types)
+            {
+                if (type is IUnionTypeDefinition)
+                {
+                    backlog.Push(type);
+                }
             }
         }
 
@@ -186,6 +314,10 @@ internal static class MutableSchemaDefinitionExtensions
 
                 case IDirectiveDefinition directiveDefinition:
                     InspectDirectiveDefinition(directiveDefinition, backlog);
+                    break;
+
+                case IEnumTypeDefinition enumType:
+                    InspectEnumType(enumType, backlog);
                     break;
 
                 case IInputObjectTypeDefinition inputObjectType:
@@ -215,6 +347,7 @@ internal static class MutableSchemaDefinitionExtensions
             }
 
             definitionsToRemove.Add(type);
+            removedTypes.Add(type);
         }
 
         foreach (var directiveDefinition in schema.DirectiveDefinitions)
@@ -245,6 +378,47 @@ internal static class MutableSchemaDefinitionExtensions
         }
     }
 
+    /// <summary>
+    /// Gets the source schema names in which <paramref name="interfaceType"/> is declared as an
+    /// <c>@interfaceObject</c> stand-in, read from its <c>@fusion__interfaceObject(schema:)</c>
+    /// directives on the merged schema.
+    /// </summary>
+    internal static IEnumerable<string> GetInterfaceObjectSchemaNames(
+        MutableInterfaceTypeDefinition interfaceType)
+    {
+        foreach (var directive in interfaceType.Directives.AsEnumerable())
+        {
+            if (directive.Name == WellKnownDirectiveNames.FusionInterfaceObject)
+            {
+                yield return (string)directive.Arguments[WellKnownArgumentNames.Schema].Value!;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Determines whether <paramref name="type"/> implements an interface that has an
+    /// <c>@interfaceObject</c> stand-in in <paramref name="schemaName"/>. Such a type can be looked
+    /// up in that schema through the stand-in even though the schema does not define the type.
+    /// </summary>
+    internal static bool ReachesInterfaceObjectStandIn(
+        MutableSchemaDefinition schema,
+        MutableComplexTypeDefinition type,
+        string schemaName)
+    {
+        foreach (var implementedInterface in type.Implements)
+        {
+            if (schema.Types.TryGetType<MutableInterfaceTypeDefinition>(
+                    implementedInterface.Name,
+                    out var interfaceType)
+                && GetInterfaceObjectSchemaNames(interfaceType).Contains(schemaName))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private static List<IDirective> GetFusionLookupDirectives(
         IDirectivesProvider directivesProvider,
         string? schemaName)
@@ -260,7 +434,8 @@ internal static class MutableSchemaDefinitionExtensions
     /// Returns a list of type names for types that must be preserved in the merged schema
     /// even if they are not directly referenced.
     /// </summary>
-    private static HashSet<string> GetPreservedTypeNames(ImmutableSortedSet<MutableSchemaDefinition> sourceSchemas)
+    public static HashSet<string> GetPreservedTypeNames(
+        ImmutableSortedSet<MutableSchemaDefinition> sourceSchemas)
     {
         var preservedTypeNames = new HashSet<string>();
 
@@ -272,13 +447,12 @@ internal static class MutableSchemaDefinitionExtensions
                 {
                     foreach (var argument in field.Arguments)
                     {
-                        var argumentInnerType = argument.Type.InnerType();
+                        var argumentNamedType = argument.Type.NamedType();
 
                         if ((argument.HasRequireDirective || field.IsLookup)
-                            && argumentInnerType is INameProvider { Name: var name }
-                            && !SpecScalarNames.IsSpecScalar(name))
+                            && !SpecScalarNames.IsSpecScalar(argumentNamedType.Name))
                         {
-                            preservedTypeNames.Add(name);
+                            preservedTypeNames.Add(argumentNamedType.Name);
                         }
                     }
                 }
@@ -286,6 +460,199 @@ internal static class MutableSchemaDefinitionExtensions
         }
 
         return preservedTypeNames;
+    }
+
+    /// <summary>
+    /// Returns the names of the client directives that every source schema defines with at least
+    /// one shared forwarded executable location, and whose argument types, including the input
+    /// types they reach, have the same definition without <c>@inaccessible</c> elements in every
+    /// source schema that defines them.
+    /// </summary>
+    public static HashSet<string> GetPreservedDirectiveNames(
+        ImmutableSortedSet<MutableSchemaDefinition> sourceSchemas)
+    {
+        var preservedDirectiveNames = new HashSet<string>(StringComparer.Ordinal);
+
+        if (sourceSchemas.Count == 0)
+        {
+            return preservedDirectiveNames;
+        }
+
+        foreach (var directiveDefinition in sourceSchemas[0].DirectiveDefinitions)
+        {
+            if (IsSharedClientDirective(directiveDefinition.Name, sourceSchemas)
+                && HasSharedArgumentTypes(directiveDefinition.Name, sourceSchemas))
+            {
+                preservedDirectiveNames.Add(directiveDefinition.Name);
+            }
+        }
+
+        return preservedDirectiveNames;
+    }
+
+    private static bool IsSharedClientDirective(
+        string directiveName,
+        ImmutableSortedSet<MutableSchemaDefinition> sourceSchemas)
+    {
+        var locations = DirectiveDefinitionExtensions.ForwardedExecutableLocations;
+
+        foreach (var schema in sourceSchemas)
+        {
+            if (!schema.DirectiveDefinitions.TryGetDirective(directiveName, out var definition)
+                || !definition.IsComposableExecutableDirective)
+            {
+                return false;
+            }
+
+            locations &= definition.Locations;
+        }
+
+        return locations != 0;
+    }
+
+    /// <summary>
+    /// Determines whether every type that the arguments of the directive reach, directly or through
+    /// input object fields, has the same definition without <c>@inaccessible</c> elements in every
+    /// source schema that defines it.
+    /// </summary>
+    private static bool HasSharedArgumentTypes(
+        string directiveName,
+        ImmutableSortedSet<MutableSchemaDefinition> sourceSchemas)
+    {
+        var visitedTypeNames = new HashSet<string>(StringComparer.Ordinal);
+        var backlog = new Stack<string>();
+
+        foreach (var schema in sourceSchemas)
+        {
+            foreach (var argument in schema.DirectiveDefinitions[directiveName].Arguments)
+            {
+                backlog.Push(argument.Type.NamedType().Name);
+            }
+        }
+
+        while (backlog.TryPop(out var typeName))
+        {
+            if (SpecScalarNames.IsSpecScalar(typeName) || !visitedTypeNames.Add(typeName))
+            {
+                continue;
+            }
+
+            ITypeDefinition? firstType = null;
+
+            foreach (var schema in sourceSchemas)
+            {
+                if (!schema.Types.TryGetType(typeName, out var type))
+                {
+                    continue;
+                }
+
+                if (HasInaccessibleElement(type))
+                {
+                    return false;
+                }
+
+                if (firstType is null)
+                {
+                    firstType = type;
+                }
+                else if (!HaveSameDefinition(firstType, type))
+                {
+                    return false;
+                }
+
+                if (type is MutableInputObjectTypeDefinition inputObjectType)
+                {
+                    foreach (var field in inputObjectType.Fields)
+                    {
+                        backlog.Push(field.Type.NamedType().Name);
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private static bool HasInaccessibleElement(ITypeDefinition type)
+    {
+        if (type is IDirectivesProvider directivesProvider && directivesProvider.HasInaccessibleDirective())
+        {
+            return true;
+        }
+
+        switch (type)
+        {
+            case MutableEnumTypeDefinition enumType:
+                foreach (var value in enumType.Values)
+                {
+                    if (value.HasInaccessibleDirective())
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+
+            case MutableInputObjectTypeDefinition inputObjectType:
+                foreach (var field in inputObjectType.Fields)
+                {
+                    if (field.HasInaccessibleDirective())
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+
+            default:
+                return false;
+        }
+    }
+
+    private static bool HaveSameDefinition(ITypeDefinition typeA, ITypeDefinition typeB)
+    {
+        switch (typeA, typeB)
+        {
+            case (MutableEnumTypeDefinition enumA, MutableEnumTypeDefinition enumB):
+                if (enumA.Values.Count != enumB.Values.Count)
+                {
+                    return false;
+                }
+
+                foreach (var value in enumA.Values)
+                {
+                    if (!enumB.Values.ContainsName(value.Name))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+
+            case (MutableInputObjectTypeDefinition inputA, MutableInputObjectTypeDefinition inputB):
+                if (inputA.IsOneOf != inputB.IsOneOf || inputA.Fields.Count != inputB.Fields.Count)
+                {
+                    return false;
+                }
+
+                foreach (var fieldA in inputA.Fields)
+                {
+                    if (!inputB.Fields.TryGetField(fieldA.Name, out var fieldB)
+                        || !fieldA.Type.Equals(fieldB.Type, TypeComparison.Structural)
+                        || !SyntaxComparer.BySyntax.Equals(fieldA.DefaultValue, fieldB.DefaultValue))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+
+            case (MutableScalarTypeDefinition scalarA, MutableScalarTypeDefinition scalarB):
+                return string.Equals(scalarA.SpecifiedBy, scalarB.SpecifiedBy, StringComparison.Ordinal);
+
+            default:
+                return false;
+        }
     }
 
     private static void InspectComplexType(
@@ -301,6 +668,7 @@ internal static class MutableSchemaDefinitionExtensions
         foreach (var directive in complexType.Directives)
         {
             backlog.Push(directive.Definition);
+            InspectSelectionCarryingDirective(schema, directive, backlog);
         }
 
         foreach (var field in complexType.Fields)
@@ -311,6 +679,7 @@ internal static class MutableSchemaDefinitionExtensions
             foreach (var directive in field.Directives)
             {
                 backlog.Push(directive.Definition);
+                InspectSelectionCarryingDirective(schema, directive, backlog);
             }
 
             if (returnType is IInterfaceTypeDefinition or IUnionTypeDefinition)
@@ -328,8 +697,150 @@ internal static class MutableSchemaDefinitionExtensions
                 foreach (var directive in argument.Directives)
                 {
                     backlog.Push(directive.Definition);
+                    InspectSelectionCarryingDirective(schema, directive, backlog);
                 }
             }
+        }
+    }
+
+    private static void InspectSelectionCarryingDirective(
+        ISchemaDefinition schema,
+        IDirective directive,
+        Stack<ITypeSystemMember> backlog)
+    {
+        switch (directive.Name)
+        {
+            case WellKnownDirectiveNames.Key:
+            case WellKnownDirectiveNames.Provides:
+                if (directive.Arguments.TryGetValue(WellKnownArgumentNames.Fields, out var fieldsValue)
+                    && fieldsValue is StringValueNode fieldsSelectionSet)
+                {
+                    PushSelectionSetReferencedTypes(schema, fieldsSelectionSet.Value, backlog);
+                }
+
+                break;
+
+            case WellKnownDirectiveNames.EventStream:
+                if (directive.Arguments.TryGetValue(WellKnownArgumentNames.Message, out var messageValue)
+                    && messageValue is StringValueNode messageSelectionSet)
+                {
+                    PushSelectionSetReferencedTypes(schema, messageSelectionSet.Value, backlog);
+                }
+
+                break;
+
+            case WellKnownDirectiveNames.Require:
+            case WellKnownDirectiveNames.Is:
+                if (directive.Arguments.TryGetValue(WellKnownArgumentNames.Field, out var fieldValue)
+                    && fieldValue is StringValueNode fieldSelectionMap)
+                {
+                    PushSelectionMapReferencedTypes(schema, fieldSelectionMap.Value, backlog);
+                }
+
+                break;
+        }
+    }
+
+    private static void PushSelectionSetReferencedTypes(
+        ISchemaDefinition schema,
+        string selectionSet,
+        Stack<ITypeSystemMember> backlog)
+    {
+        SelectionSetNode parsed;
+
+        // Invalid selections are the validators' concern; skip and continue so the prune
+        // never crashes on malformed directive arguments.
+        try
+        {
+            parsed = ParseSelectionSet(selectionSet);
+        }
+        catch (SyntaxException)
+        {
+            return;
+        }
+
+        CollectSelectionSetTypeConditions(schema, parsed, backlog);
+    }
+
+    private static void CollectSelectionSetTypeConditions(
+        ISchemaDefinition schema,
+        ISyntaxNode node,
+        Stack<ITypeSystemMember> backlog)
+    {
+        if (node is InlineFragmentNode { TypeCondition: { } typeCondition })
+        {
+            PushTypeByName(schema, typeCondition.Name.Value, backlog);
+        }
+
+        foreach (var child in node.GetNodes())
+        {
+            CollectSelectionSetTypeConditions(schema, child, backlog);
+        }
+    }
+
+    private static void PushSelectionMapReferencedTypes(
+        ISchemaDefinition schema,
+        string fieldSelectionMap,
+        Stack<ITypeSystemMember> backlog)
+    {
+        IValueSelectionNode parsed;
+
+        // Invalid maps are the validators' concern; skip and continue so the prune
+        // never crashes on malformed directive arguments.
+        try
+        {
+            parsed = new FieldSelectionMapParser(fieldSelectionMap).Parse();
+        }
+        catch (FieldSelectionMapSyntaxException)
+        {
+            return;
+        }
+
+        CollectSelectionMapTypeConditions(schema, parsed, backlog);
+    }
+
+    private static void CollectSelectionMapTypeConditions(
+        ISchemaDefinition schema,
+        IFieldSelectionMapSyntaxNode node,
+        Stack<ITypeSystemMember> backlog)
+    {
+        switch (node)
+        {
+            case PathNode { TypeName: { } pathTypeName }:
+                PushTypeByName(schema, pathTypeName.Value, backlog);
+                break;
+
+            case PathSegmentNode { TypeName: { } segmentTypeName }:
+                PushTypeByName(schema, segmentTypeName.Value, backlog);
+                break;
+        }
+
+        foreach (var child in node.GetNodes())
+        {
+            CollectSelectionMapTypeConditions(schema, child, backlog);
+        }
+    }
+
+    private static void PushTypeByName(
+        ISchemaDefinition schema,
+        string typeName,
+        Stack<ITypeSystemMember> backlog)
+    {
+        if (schema.Types.TryGetType(typeName, out var type))
+        {
+            backlog.Push(type);
+        }
+    }
+
+    private static SelectionSetNode ParseSelectionSet(string value)
+    {
+        try
+        {
+            return Utf8GraphQLParser.Syntax.ParseSelectionSet(value);
+        }
+        catch (SyntaxException)
+        {
+            return Utf8GraphQLParser.Syntax.ParseSelectionSet($"{{ {value} }}");
         }
     }
 
@@ -340,6 +851,24 @@ internal static class MutableSchemaDefinitionExtensions
         foreach (var argument in directiveDefinition.Arguments)
         {
             backlog.Push(argument.Type.AsTypeDefinition());
+        }
+    }
+
+    private static void InspectEnumType(
+        IEnumTypeDefinition enumType,
+        Stack<ITypeSystemMember> backlog)
+    {
+        foreach (var directive in enumType.Directives)
+        {
+            backlog.Push(directive.Definition);
+        }
+
+        foreach (var value in enumType.Values)
+        {
+            foreach (var directive in value.Directives)
+            {
+                backlog.Push(directive.Definition);
+            }
         }
     }
 

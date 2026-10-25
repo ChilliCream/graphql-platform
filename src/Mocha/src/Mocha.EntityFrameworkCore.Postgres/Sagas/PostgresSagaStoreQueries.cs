@@ -9,14 +9,9 @@ namespace Mocha.Sagas.EfCore;
 internal sealed class PostgresSagaStoreQueries
 {
     /// <summary>
-    /// Gets or sets the SQL query to select the serialized saga state by id and saga name.
+    /// Gets or sets the SQL query to select the serialized saga state and concurrency version by id and saga name.
     /// </summary>
     public string SelectState { get; set; } = null!;
-
-    /// <summary>
-    /// Gets or sets the SQL query to select the concurrency version by id and saga name.
-    /// </summary>
-    public string SelectVersion { get; set; } = null!;
 
     /// <summary>
     /// Gets or sets the SQL statement to insert a new saga state record.
@@ -43,13 +38,7 @@ internal sealed class PostgresSagaStoreQueries
         return new PostgresSagaStoreQueries
         {
             SelectState = $"""
-                SELECT "{t.State}"
-                FROM {t.QualifiedTableName}
-                WHERE "{t.Id}" = @id AND "{t.SagaName}" = @sagaName;
-                """,
-
-            SelectVersion = $"""
-                SELECT "{t.Version}"
+                SELECT "{t.State}", "{t.Version}"
                 FROM {t.QualifiedTableName}
                 WHERE "{t.Id}" = @id AND "{t.SagaName}" = @sagaName;
                 """,

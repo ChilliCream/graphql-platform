@@ -1,0 +1,10 @@
+{
+  "message": "The type of `Query.foo` is the deprecated type `Foo`. Either deprecate the field or change its return type.",
+  "type": "Query",
+  "extensions": {
+    "field": "foo",
+    "rfc": "https://github.com/graphql/graphql-spec/pull/997",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Objects.Type-Validation"
+  }
+}
+

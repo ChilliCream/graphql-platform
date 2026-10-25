@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Adapters.Mcp.Abstractions</AssemblyName>
+    <RootNamespace>HotChocolate.Adapters.Mcp</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Adapters.Mcp" />
+    <InternalsVisibleTo Include="HotChocolate.Adapters.Mcp.Core" />
+    <InternalsVisibleTo Include="HotChocolate.Adapters.Mcp.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Adapters.Mcp.Core.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Adapters.Mcp.Packaging" />
+    <InternalsVisibleTo Include="HotChocolate.Adapters.Mcp.Packaging.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Adapters.Mcp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ChilliCream.ModelContextProtocol.AspNetCore" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Language\src\Language\HotChocolate.Language.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\McpAdapterResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>McpAdapterResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\McpAdapterResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>McpAdapterResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+</Project>

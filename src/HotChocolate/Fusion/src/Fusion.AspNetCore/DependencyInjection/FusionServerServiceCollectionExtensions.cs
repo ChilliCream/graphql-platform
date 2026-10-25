@@ -1,3 +1,4 @@
+using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Instrumentation;
@@ -10,6 +11,8 @@ using HotChocolate.Fusion.AspNetCore;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -18,24 +21,42 @@ public static class FusionServerServiceCollectionExtensions
     public static IFusionGatewayBuilder AddGraphQLGatewayServer(
         this IServiceCollection services,
         string? name = null,
-        int maxAllowedRequestSize = ServerDefaults.MaxAllowedRequestSize)
+        int maxAllowedRequestSize = ServerDefaults.MaxAllowedRequestSize,
+        bool disableDefaultSecurity = false)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentOutOfRangeException.ThrowIfNegative(maxAllowedRequestSize);
 
-        return services
+        var builder = services
             .AddGraphQLGateway(name)
             .AddGraphQLGatewayServerCore(maxAllowedRequestSize)
             .AddStartupInitialization()
             .AddDefaultHttpRequestInterceptor()
             .AddSubscriptionServices();
+
+        if (!disableDefaultSecurity)
+        {
+            builder.DisableIntrospection(
+                (sp, _) =>
+                {
+                    var environment = sp.GetService<IHostEnvironment>();
+                    return environment?.IsDevelopment() != true;
+                });
+            builder.AddMaxAllowedFieldCycleDepthRule();
+        }
+        else
+        {
+            builder.ModifyCostOptions(o => o.EnforceCostLimits = false);
+        }
+
+        return builder;
     }
 
     private static IFusionGatewayBuilder AddGraphQLGatewayServerCore(
         this IFusionGatewayBuilder builder,
         int maxAllowedRequestSize = ServerDefaults.MaxAllowedRequestSize)
     {
-        builder.ConfigureSchemaServices((_, sc) =>
+        builder.ConfigureSchemaServices((applicationServices, sc) =>
         {
             sc.TryAddSingleton<ITimeProvider, DefaultTimeProvider>();
 
@@ -51,6 +72,7 @@ public static class FusionServerServiceCollectionExtensions
                     sp.GetRequiredService<IDocumentHashProvider>(),
                     maxAllowedRequestSize,
                     sp.GetRequiredService<ParserOptions>()));
+            sc.TryAddSingleton(new HttpRequestLimits(maxAllowedRequestSize));
 
             sc.TryAddSingleton<IServerDiagnosticEvents>(sp =>
             {
@@ -62,6 +84,18 @@ public static class FusionServerServiceCollectionExtensions
                     _ => new AggregateServerDiagnosticEventListener(listeners)
                 };
             });
+
+            sc.TryAddSingleton(schemaServices =>
+            {
+                var schemaName = schemaServices.GetRequiredService<ISchemaDefinition>().Name;
+                var serverOptions = applicationServices
+                    .GetRequiredService<IOptionsMonitor<GraphQLServerOptions>>()
+                    .Get(schemaName);
+                return new ExecutionConcurrencyGate(serverOptions.MaxConcurrentExecutions);
+            });
+
+            sc.TryAddSingleton(
+                static sp => new ExecutorSession(sp.GetRequiredService<IRequestExecutor>()));
         });
 
         return builder;
@@ -97,7 +131,8 @@ public static class FusionServerServiceCollectionExtensions
             (_, s) => s.AddSingleton<IProtocolHandler>(
                 sp => new ApolloSubscriptionProtocolHandler(
                     sp.GetRequiredService<ISocketSessionInterceptor>(),
-                    sp.GetRequiredService<IWebSocketPayloadFormatter>())));
+                    sp.GetRequiredService<IWebSocketPayloadFormatter>(),
+                    sp.GetRequiredService<IServerDiagnosticEvents>())));
 
     private static IFusionGatewayBuilder AddGraphQLOverWebSocketProtocol(
         this IFusionGatewayBuilder builder)
@@ -108,5 +143,6 @@ public static class FusionServerServiceCollectionExtensions
                     sp.GetRequiredService<IWebSocketPayloadFormatter>(),
                     sp.GetRequiredService<IDocumentCache>(),
                     sp.GetRequiredService<IDocumentHashProvider>(),
-                    sp.GetRequiredService<ParserOptions>())));
+                    sp.GetRequiredService<ParserOptions>(),
+                    sp.GetRequiredService<IServerDiagnosticEvents>())));
 }

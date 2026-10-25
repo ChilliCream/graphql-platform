@@ -2,12 +2,12 @@ schema {
   query: Query2
 }
 
-type BothInputAndOutput @shareable {
-  field: String
-}
-
 type Query2 {
   output(input: BothInputAndOutputInput!): BothInputAndOutput!
+}
+
+type BothInputAndOutput @shareable {
+  field: String
 }
 
 input BothInputAndOutputInput {

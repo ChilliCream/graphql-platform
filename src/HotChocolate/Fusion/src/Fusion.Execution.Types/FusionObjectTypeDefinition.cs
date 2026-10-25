@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Completion;
@@ -10,9 +11,18 @@ namespace HotChocolate.Fusion.Types;
 /// <summary>
 /// Represents a GraphQL object type definition in a fusion schema.
 /// </summary>
+/// <param name="name">The name of the object type.</param>
+/// <param name="description">The description of the object type.</param>
+/// <param name="deprecationReason">
+/// The deprecation reason, or <c>null</c> if the object type is not deprecated.
+/// An empty or white-space value is treated as <c>null</c>.
+/// </param>
+/// <param name="isInaccessible">A value indicating whether the type is inaccessible.</param>
+/// <param name="fieldsDefinition">The collection of fields defined on this object type.</param>
 public sealed class FusionObjectTypeDefinition(
     string name,
     string? description,
+    string? deprecationReason,
     bool isInaccessible,
     FusionOutputFieldDefinitionCollection fieldsDefinition)
     : FusionComplexTypeDefinition(name, description, isInaccessible, fieldsDefinition)
@@ -28,6 +38,19 @@ public sealed class FusionObjectTypeDefinition(
 
     /// <inheritdoc />
     public override bool IsEntityType => (_flags & FusionTypeFlags.Entity) != 0;
+
+    /// <summary>
+    /// Defines if this object type is deprecated.
+    /// This is <c>true</c> if a <see cref="DeprecationReason"/> is present.
+    /// </summary>
+    [MemberNotNullWhen(true, nameof(DeprecationReason))]
+    public bool IsDeprecated => DeprecationReason is not null;
+
+    /// <summary>
+    /// Gets the deprecation reason, or <c>null</c> if this object type is not deprecated.
+    /// </summary>
+    public string? DeprecationReason { get; } =
+        string.IsNullOrWhiteSpace(deprecationReason) ? null : deprecationReason;
 
     /// <summary>
     /// Gets metadata about this object type in its source schemas.

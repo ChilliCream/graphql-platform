@@ -25,7 +25,7 @@ response:
             "subgraph2Only": true,
             "sharedLinked": {
               "subgraph2Only": true,
-              "sharedScalar": "ProductAvailabilityMail: UHJvZHVjdEF2YWlsYWJpbGl0eU1haWw6Mg=="
+              "sharedScalar": "ProductAvailabilityMail: UHJvZHVjdEF2YWlsYWJpbGl0eU1haWw6NDE5MzY2NTcxMw=="
             }
           }
         }
@@ -38,8 +38,10 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        productById(id: ID!): Product @lookup
+        productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
       }
 
       type Product implements Node {
@@ -56,10 +58,8 @@ sourceSchemas:
         sharedScalar: String! @shareable
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        productById(id: ID!): Product @lookup
-        productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
@@ -87,9 +87,9 @@ sourceSchemas:
                   "productById": {
                     "subgraph1Only": {
                       "sharedLinked": {
-                        "sharedScalar": "ProductAvailabilityMail: UHJvZHVjdEF2YWlsYWJpbGl0eU1haWw6Mg=="
+                        "sharedScalar": "ProductAvailabilityMail: UHJvZHVjdEF2YWlsYWJpbGl0eU1haWw6NDE5MzY2NTcxMw=="
                       },
-                      "id": "UHJvZHVjdEF2YWlsYWJpbGl0eTox"
+                      "id": "UHJvZHVjdEF2YWlsYWJpbGl0eToyMTEyMTU3MDY0"
                     }
                   }
                 }
@@ -100,8 +100,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
       }
 
       type ProductAvailability implements Node {
@@ -115,9 +116,8 @@ sourceSchemas:
         sharedScalar: String! @shareable
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
@@ -132,7 +132,7 @@ sourceSchemas:
                 }
               variables: |
                 {
-                  "__fusion_1_id": "UHJvZHVjdEF2YWlsYWJpbGl0eTox"
+                  "__fusion_1_id": "UHJvZHVjdEF2YWlsYWJpbGl0eToyMTEyMTU3MDY0"
                 }
             - document: |
                 query Op_90079d4b_3($__fusion_2_id: ID!) {
@@ -147,7 +147,7 @@ sourceSchemas:
                 }
               variables: |
                 {
-                  "__fusion_2_id": "UHJvZHVjdEF2YWlsYWJpbGl0eTox"
+                  "__fusion_2_id": "UHJvZHVjdEF2YWlsYWJpbGl0eToyMTEyMTU3MDY0"
                 }
         response:
           contentType: application/jsonl; charset=utf-8
@@ -186,7 +186,7 @@ operationPlan:
             }
           }
         }
-      hash: 90079d4b5c5cadf6c4ff7cd99819d1cd
+      hash: 27f194287686e287215cd67cc4518b73
       searchSpace: 1
       expandedNodes: 2
   nodes:
@@ -217,7 +217,7 @@ operationPlan:
         }
       source: $.productAvailabilityById
       target: $.productById.subgraph1Only
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -240,7 +240,7 @@ operationPlan:
         }
       source: $.node<ProductAvailability>
       target: $.productById.subgraph1Only
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

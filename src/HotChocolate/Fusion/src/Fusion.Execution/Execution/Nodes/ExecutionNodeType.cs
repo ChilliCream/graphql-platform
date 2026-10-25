@@ -4,6 +4,7 @@ public enum ExecutionNodeType
 {
     Operation,
     OperationBatch,
+    EventStream,
     Introspection,
     Node
 }

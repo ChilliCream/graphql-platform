@@ -18,7 +18,7 @@ response:
       "data": {
         "search": {
           "reputation": 123,
-          "profile": "User: VXNlcjox"
+          "profile": "User: VXNlcjoyNzkwNzU0ODY2"
         }
       }
     }
@@ -29,12 +29,12 @@ sourceSchemas:
         query: Query
       }
 
-      type Product @key(fields: "id") {
-        id: ID!
-      }
-
       type Query {
         search: SearchResult
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
       }
 
       type User @key(fields: "id") {
@@ -64,7 +64,7 @@ sourceSchemas:
                 "data": {
                   "search": {
                     "__typename": "User",
-                    "id": "VXNlcjox"
+                    "id": "VXNlcjoyNzkwNzU0ODY2"
                   }
                 }
               }
@@ -74,13 +74,13 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        searchResultById(id: ID!): SearchResult @lookup
+      }
+
       type Product {
         id: ID!
         price: Float!
-      }
-
-      type Query {
-        searchResultById(id: ID!): SearchResult @lookup
       }
 
       type User {
@@ -103,7 +103,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_2_id": "VXNlcjox"
+              "__fusion_2_id": "VXNlcjoyNzkwNzU0ODY2"
             }
         response:
           results:
@@ -141,7 +141,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_3_id": "VXNlcjox"
+              "__fusion_3_id": "VXNlcjoyNzkwNzU0ODY2"
             }
         response:
           results:
@@ -149,7 +149,7 @@ sourceSchemas:
               {
                 "data": {
                   "userById": {
-                    "profile": "User: VXNlcjox"
+                    "profile": "User: VXNlcjoyNzkwNzU0ODY2"
                   }
                 }
               }
@@ -170,7 +170,7 @@ operationPlan:
             }
           }
         }
-      hash: e8751f643c686c83b20ce5da12fee405
+      hash: 5448003a63a8de100739bc0fcb793226
       searchSpace: 1
       expandedNodes: 2
   nodes:
@@ -189,6 +189,23 @@ operationPlan:
             }
           }
         }
+    - id: 4
+      type: Operation
+      schema: C
+      operation: |
+        query Op_e8751f64_4($__fusion_3_id: ID!) {
+          userById(id: $__fusion_3_id) {
+            profile
+          }
+        }
+      source: $.userById
+      target: $.search<User>
+      requirements:
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
     - id: 2
       type: Operation
       schema: B
@@ -203,7 +220,7 @@ operationPlan:
         }
       source: $.searchResultById<Product>
       target: $.search<Product>
-      batchingGroupId: 2
+      batchingGroupId: 5
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -224,26 +241,9 @@ operationPlan:
         }
       source: $.searchResultById<User>
       target: $.search<User>
-      batchingGroupId: 2
+      batchingGroupId: 5
       requirements:
         - name: __fusion_2_id
-          selectionMap: >-
-            id
-      dependencies:
-        - id: 1
-    - id: 4
-      type: Operation
-      schema: C
-      operation: |
-        query Op_e8751f64_4($__fusion_3_id: ID!) {
-          userById(id: $__fusion_3_id) {
-            profile
-          }
-        }
-      source: $.userById
-      target: $.search<User>
-      requirements:
-        - name: __fusion_3_id
           selectionMap: >-
             id
       dependencies:

@@ -28,7 +28,6 @@ public sealed class Representation
     /// <summary>
     /// Gets the type name of the entity.
     /// </summary>
-    /// <value></value>
     public string TypeName { get; }
 
     /// <summary>

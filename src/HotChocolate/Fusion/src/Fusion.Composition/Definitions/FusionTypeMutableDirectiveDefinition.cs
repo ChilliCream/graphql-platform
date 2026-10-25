@@ -12,7 +12,8 @@ namespace HotChocolate.Fusion.Definitions;
 /// </summary>
 internal sealed class FusionTypeMutableDirectiveDefinition : MutableDirectiveDefinition
 {
-    public FusionTypeMutableDirectiveDefinition(MutableEnumTypeDefinition schemaMutableEnumType)
+    public FusionTypeMutableDirectiveDefinition(
+        MutableEnumTypeDefinition schemaMutableEnumType)
         : base(FusionType)
     {
         Description = FusionTypeMutableDirectiveDefinition_Description;

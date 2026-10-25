@@ -1,0 +1,34 @@
+operation:
+  - document: |
+      {
+        a {
+          __typename @fusion__requirement
+          ... on Pet {
+            petField
+          }
+          ... on Animal {
+            animalField
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 2
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: A
+    operation: |
+      query Op_123456789101112_1 {
+        a {
+          __typename
+          ... on Pet {
+            __typename
+            petField
+          }
+          ... on Animal {
+            __typename
+            animalField
+          }
+        }
+      }

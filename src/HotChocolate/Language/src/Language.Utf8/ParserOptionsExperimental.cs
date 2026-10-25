@@ -5,27 +5,69 @@ namespace HotChocolate.Language;
 /// </summary>
 public sealed class ParserOptionsExperimental
 {
-    internal ParserOptionsExperimental(bool allowFragmentVariables)
+    /// <summary>
+    /// Initializes a new instance of <see cref="ParserOptionsExperimental"/>.
+    /// </summary>
+    /// <param name="allowFragmentVariables">
+    /// Defines that the parser shall parse fragment variable definitions.
+    /// </param>
+    /// <param name="allowFragmentArguments">
+    /// Defines that the parser shall parse fragment variable definitions and fragment spread
+    /// arguments.
+    /// </param>
+    public ParserOptionsExperimental(
+        bool allowFragmentVariables = false,
+        bool allowFragmentArguments = false)
     {
         AllowFragmentVariables = allowFragmentVariables;
+        AllowFragmentArguments = allowFragmentArguments;
     }
 
     /// <summary>
-    /// If enabled, the parser will understand and parse variable
-    /// definitions contained in a fragment definition.They'll be
-    /// represented in the `variableDefinitions` field of the
-    /// FragmentDefinitionNode.
-    ///
-    /// The syntax is identical to normal, query-defined variables.
-    /// For example:
+    /// <para>
+    /// If enabled, the parser will parse the variable definitions of a fragment definition into
+    /// <see cref="FragmentDefinitionNode.VariableDefinitions"/>.
+    /// </para>
+    /// <para>
+    /// A variable definition uses the same syntax as an operation variable.
+    /// </para>
+    /// <code>
+    /// fragment A($var: Boolean = false) on T
+    /// {
+    ///   ...
+    /// }
+    /// </code>
+    /// <para>
+    /// Note: this feature is experimental and may change or be removed in the future. Enabling
+    /// <see cref="AllowFragmentArguments"/> also enables this.
+    /// </para>
+    /// </summary>
+    public bool AllowFragmentVariables { get; }
+
+    /// <summary>
+    /// <para>
+    /// If enabled, the parser will parse the variable definitions of a fragment definition into
+    /// <see cref="FragmentDefinitionNode.VariableDefinitions"/>, and the arguments of a fragment
+    /// spread into <see cref="FragmentSpreadNode.Arguments"/>.
+    /// </para>
+    /// <para>
+    /// A variable definition uses the same syntax as an operation variable, and an argument uses
+    /// the same syntax as a field argument.
+    /// </para>
+    /// <code>
+    /// query
+    /// {
+    ///   ...A(var: true)
+    /// }
     ///
     /// fragment A($var: Boolean = false) on T
     /// {
-    ///    ...
+    ///   ...
     /// }
-    ///
-    /// Note: this feature is experimental and may change or be
-    /// removed in the future.
+    /// </code>
+    /// <para>
+    /// Note: this feature is experimental and may change or be removed in the future.
+    /// </para>
     /// </summary>
-    public bool AllowFragmentVariables { get; }
+    public bool AllowFragmentArguments { get; }
 }

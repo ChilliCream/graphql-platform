@@ -22,7 +22,7 @@ public sealed class RetryExecutorTests
                 return ValueTask.CompletedTask;
             },
             onRetry: null,
-            cancellationToken: default);
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(1, counter.Count);
@@ -42,7 +42,7 @@ public sealed class RetryExecutorTests
                     0,
                     static (_) => throw new InvalidOperationException("no match"),
                     onRetry: null,
-                    cancellationToken: default)
+                    cancellationToken: TestContext.Current.CancellationToken)
                 .AsTask()
         );
     }
@@ -59,7 +59,7 @@ public sealed class RetryExecutorTests
             0,
             static (_) => throw new InvalidOperationException("discard me"),
             onRetry: null,
-            cancellationToken: default);
+            cancellationToken: TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -76,7 +76,7 @@ public sealed class RetryExecutorTests
                     0,
                     static (_) => throw new InvalidOperationException("dead letter"),
                     onRetry: null,
-                    cancellationToken: default)
+                    cancellationToken: TestContext.Current.CancellationToken)
                 .AsTask()
         );
     }
@@ -95,7 +95,7 @@ public sealed class RetryExecutorTests
                     0,
                     static (_) => throw new InvalidOperationException("no retry"),
                     onRetry: null,
-                    cancellationToken: default)
+                    cancellationToken: TestContext.Current.CancellationToken)
                 .AsTask()
         );
     }
@@ -125,7 +125,7 @@ public sealed class RetryExecutorTests
                 return ValueTask.CompletedTask;
             },
             onRetry: null,
-            cancellationToken: default);
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(2, counter.Count);
@@ -152,7 +152,7 @@ public sealed class RetryExecutorTests
                         throw new InvalidOperationException("always fails");
                     },
                     onRetry: null,
-                    cancellationToken: default)
+                    cancellationToken: TestContext.Current.CancellationToken)
                 .AsTask()
         );
 
@@ -185,7 +185,7 @@ public sealed class RetryExecutorTests
                 return ValueTask.CompletedTask;
             },
             onRetry: static (s, attempt) => s.Attempts.Add(attempt),
-            cancellationToken: default);
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(3, counter.Count);
@@ -208,7 +208,7 @@ public sealed class RetryExecutorTests
             0,
             static (_) => ValueTask.CompletedTask,
             onRetry: static (_, _) => throw new InvalidOperationException("should not be called"),
-            cancellationToken: default);
+            cancellationToken: TestContext.Current.CancellationToken);
     }
 
     // -- CalculateDelay tests --
@@ -347,7 +347,7 @@ public sealed class RetryExecutorTests
                 throw new ArgumentNullException("param");
             },
             onRetry: null,
-            cancellationToken: default);
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(1, counter.Count);
@@ -376,7 +376,7 @@ public sealed class RetryExecutorTests
                         throw new InvalidOperationException("dead letter");
                     },
                     onRetry: null,
-                    cancellationToken: default)
+                    cancellationToken: TestContext.Current.CancellationToken)
                 .AsTask()
         );
 
@@ -402,7 +402,7 @@ public sealed class RetryExecutorTests
                         throw new ArgumentException("derived");
                     },
                     onRetry: null,
-                    cancellationToken: default)
+                    cancellationToken: TestContext.Current.CancellationToken)
                 .AsTask()
         );
 
@@ -432,7 +432,7 @@ public sealed class RetryExecutorTests
                         throw new InvalidOperationException("specific");
                     },
                     onRetry: null,
-                    cancellationToken: default)
+                    cancellationToken: TestContext.Current.CancellationToken)
                 .AsTask()
         );
 
@@ -453,7 +453,7 @@ public sealed class RetryExecutorTests
             0,
             static (_) => throw new InvalidOperationException("transient failure"),
             onRetry: null,
-            cancellationToken: default);
+            cancellationToken: TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -472,7 +472,7 @@ public sealed class RetryExecutorTests
                     0,
                     static (_) => throw new InvalidOperationException("permanent failure"),
                     onRetry: null,
-                    cancellationToken: default)
+                    cancellationToken: TestContext.Current.CancellationToken)
                 .AsTask()
         );
     }
@@ -504,7 +504,7 @@ public sealed class RetryExecutorTests
                 throw new ArgumentException("discard this");
             },
             onRetry: null,
-            cancellationToken: default);
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(2, counter.Count);
@@ -535,7 +535,7 @@ public sealed class RetryExecutorTests
                 return ValueTask.CompletedTask;
             },
             onRetry: null,
-            cancellationToken: default);
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(3, counter.Count);
@@ -555,7 +555,7 @@ public sealed class RetryExecutorTests
                     0,
                     static (_) => throw new InvalidOperationException("no rules"),
                     onRetry: null,
-                    cancellationToken: default)
+                    cancellationToken: TestContext.Current.CancellationToken)
                 .AsTask()
         );
     }
@@ -579,7 +579,7 @@ public sealed class RetryExecutorTests
                         throw new InvalidOperationException("always fails");
                     },
                     onRetry: null,
-                    cancellationToken: default)
+                    cancellationToken: TestContext.Current.CancellationToken)
                 .AsTask()
         );
 
@@ -606,7 +606,7 @@ public sealed class RetryExecutorTests
                         throw new InvalidOperationException("always fails");
                     },
                     onRetry: static (s, attempt) => s.Attempts.Add(attempt),
-                    cancellationToken: default)
+                    cancellationToken: TestContext.Current.CancellationToken)
                 .AsTask()
         );
 
@@ -632,7 +632,7 @@ public sealed class RetryExecutorTests
                         throw new InvalidOperationException("always fails");
                     },
                     onRetry: null,
-                    cancellationToken: default)
+                    cancellationToken: TestContext.Current.CancellationToken)
                 .AsTask()
         );
 
@@ -643,30 +643,65 @@ public sealed class RetryExecutorTests
     [Fact]
     public async Task ExecuteAsync_Should_ThrowOperationCanceled_When_CancellationRequestedDuringDelay()
     {
-        // arrange - use a short real delay with pre-cancelled token to verify cancellation propagation
-        var rules = BuildRules(p => p.On<Exception>().Retry(3, TimeSpan.FromSeconds(1), RetryBackoffType.Constant));
+        // arrange
+        var rules = BuildRules(p => p.On<Exception>().Retry(3, TimeSpan.FromSeconds(10), RetryBackoffType.Constant));
         using var cts = new CancellationTokenSource();
         var counter = new Counter();
 
-        // Pre-cancel so the delay will throw OperationCanceledException immediately
-        cts.Cancel();
+        // act
+        var execution = RetryExecutor.ExecuteAsync(
+            rules,
+            counter,
+            static s =>
+            {
+                s.Increment();
+                throw new InvalidOperationException("fail");
+            },
+            onRetry: null,
+            cts.Token).AsTask();
+        await cts.CancelAsync();
 
-        // act & assert
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
-            RetryExecutor
-                .ExecuteAsync(
-                    rules,
-                    counter,
-                    static (s) =>
-                    {
-                        s.Increment();
-                        throw new InvalidOperationException("fail");
-                    },
-                    onRetry: null,
-                    cts.Token)
-                .AsTask()
-        );
+        // assert
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => execution);
+        Assert.Equal(1, counter.Count);
+    }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ExecuteAsync_Should_PropagateFailure_When_ActionCancelsProcessing(bool discard)
+    {
+        // arrange
+        var rules = BuildRules(p =>
+        {
+            if (discard)
+            {
+                p.On<Exception>().Discard();
+            }
+            else
+            {
+                p.On<Exception>().Retry(3, TimeSpan.Zero, RetryBackoffType.Constant);
+            }
+        });
+        using var cts = new CancellationTokenSource();
+        var counter = new Counter();
+        var failure = new InvalidOperationException("Cancelled attempt");
+
+        // act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => RetryExecutor.ExecuteAsync(
+            rules,
+            counter,
+            s =>
+            {
+                s.Increment();
+                cts.Cancel();
+                throw failure;
+            },
+            onRetry: null,
+            cts.Token).AsTask());
+
+        // assert
+        Assert.Same(failure, exception);
         Assert.Equal(1, counter.Count);
     }
 
@@ -692,7 +727,7 @@ public sealed class RetryExecutorTests
                         throw new InvalidOperationException("fail");
                     },
                     onRetry: null,
-                    cancellationToken: default)
+                    cancellationToken: TestContext.Current.CancellationToken)
                 .AsTask()
         );
 
@@ -727,7 +762,7 @@ public sealed class RetryExecutorTests
                 return ValueTask.CompletedTask;
             },
             onRetry: null,
-            cancellationToken: default);
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(3, counter.Count);
@@ -747,7 +782,7 @@ public sealed class RetryExecutorTests
                     0,
                     static (_) => throw new InvalidOperationException("specific message"),
                     onRetry: null,
-                    cancellationToken: default)
+                    cancellationToken: TestContext.Current.CancellationToken)
                 .AsTask()
         );
 
@@ -773,7 +808,7 @@ public sealed class RetryExecutorTests
                         throw new ArgumentException("caught by default");
                     },
                     onRetry: null,
-                    cancellationToken: default)
+                    cancellationToken: TestContext.Current.CancellationToken)
                 .AsTask()
         );
 
@@ -801,7 +836,7 @@ public sealed class RetryExecutorTests
                 throw new InvalidOperationException("discarded despite default retry");
             },
             onRetry: null,
-            cancellationToken: default);
+            cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal(1, counter.Count);
     }
@@ -829,7 +864,7 @@ public sealed class RetryExecutorTests
                         throw new ArgumentException("falls to default");
                     },
                     onRetry: null,
-                    cancellationToken: default)
+                    cancellationToken: TestContext.Current.CancellationToken)
                 .AsTask()
         );
 
@@ -858,7 +893,7 @@ public sealed class RetryExecutorTests
                         throw new InvalidOperationException("exhaust then dead letter");
                     },
                     onRetry: null,
-                    cancellationToken: default)
+                    cancellationToken: TestContext.Current.CancellationToken)
                 .AsTask()
         );
 
@@ -891,7 +926,7 @@ public sealed class RetryExecutorTests
                         throw new InvalidOperationException("full chain");
                     },
                     onRetry: null,
-                    cancellationToken: default)
+                    cancellationToken: TestContext.Current.CancellationToken)
                 .AsTask()
         );
 

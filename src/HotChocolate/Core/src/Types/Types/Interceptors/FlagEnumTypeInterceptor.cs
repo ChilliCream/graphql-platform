@@ -117,7 +117,9 @@ public class FlagsEnumInterceptor : TypeInterceptor
             RuntimeType = typeof(Dictionary<string, object>)
         };
 
+#pragma warning disable IL3050
         foreach (var value in Enum.GetValues(type))
+#pragma warning restore IL3050
         {
             var valueName = GetFlagFieldName(type, value);
             var description = _namingConventions.GetEnumValueDescription(value);
@@ -149,7 +151,9 @@ public class FlagsEnumInterceptor : TypeInterceptor
         };
 
         var metadata = new Dictionary<string, object>();
+#pragma warning disable IL3050
         foreach (var value in Enum.GetValues(type))
+#pragma warning restore IL3050
         {
             var valueName = GetFlagFieldName(type, value);
             var description = _namingConventions.GetEnumValueDescription(value);
@@ -162,7 +166,9 @@ public class FlagsEnumInterceptor : TypeInterceptor
         var inputType = InputObjectType.CreateUnsafe(objectTypeDefinition);
         RegisterType(inputType);
 
+#pragma warning disable IL3050, IL2070, IL2071
         var typedFormatter = typeof(FlagsEnumFormatter<>).MakeGenericType(type);
+#pragma warning restore IL3050, IL2070, IL2071
         var formatter =
             (IInputValueFormatter)Activator.CreateInstance(typedFormatter, metadata, inputType)!;
 

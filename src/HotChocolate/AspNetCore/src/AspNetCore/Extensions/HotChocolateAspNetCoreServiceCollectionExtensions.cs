@@ -7,6 +7,7 @@ using HotChocolate.AspNetCore.ParameterExpressionBuilders;
 using HotChocolate.AspNetCore.Parsers;
 using HotChocolate.AspNetCore.Warmup;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Internal;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -61,14 +62,9 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
                 (sp, _) =>
                 {
                     var environment = sp.GetService<IHostEnvironment>();
-                    return environment?.IsDevelopment() == false;
+                    return environment?.IsDevelopment() != true;
                 });
-            builder.AddMaxAllowedFieldCycleDepthRule(
-                isEnabled: (sp, _) =>
-                {
-                    var environment = sp.GetService<IHostEnvironment>();
-                    return environment?.IsDevelopment() == false;
-                });
+            builder.AddMaxAllowedFieldCycleDepthRule();
         }
 
         return builder;
@@ -121,7 +117,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         this IRequestExecutorBuilder builder,
         int maxAllowedRequestSize = MaxAllowedRequestSize)
     {
-        builder.ConfigureSchemaServices(s =>
+        builder.ConfigureSchemaServices((applicationServices, s) =>
         {
             s.TryAddSingleton(sp =>
             {
@@ -143,6 +139,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
                     sp.GetRequiredService<IDocumentHashProvider>(),
                     maxAllowedRequestSize,
                     sp.GetRequiredService<ParserOptions>()));
+            s.TryAddSingleton(new HttpRequestLimits(maxAllowedRequestSize));
 
             s.TryAddSingleton<IServerDiagnosticEvents>(sp =>
             {
@@ -154,12 +151,28 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
                     _ => new AggregateServerDiagnosticEventListener(listeners)
                 };
             });
+
+            s.TryAddSingleton(schemaServices =>
+            {
+                var schemaName = schemaServices.GetRequiredService<ISchemaDefinition>().Name;
+                var serverOptions = applicationServices
+                    .GetRequiredService<IOptionsMonitor<GraphQLServerOptions>>()
+                    .Get(schemaName);
+                return new ExecutionConcurrencyGate(serverOptions.MaxConcurrentExecutions);
+            });
+
+            s.TryAddSingleton(
+                static sp => new ExecutorSession(sp.GetRequiredService<IRequestExecutor>()));
         });
 
         builder.Services.TryAddEnumerable(
             ServiceDescriptor.Singleton<
                 IPostConfigureOptions<GraphQLServerOptions>,
                 SourceSchemaServerOptionsPostConfigure>());
+
+        builder.Services.TryAddSingleton<
+            ITransportCapabilitiesProvider,
+            TransportCapabilitiesProvider>();
 
         if (!builder.Services.IsImplementationTypeRegistered<HttpContextParameterExpressionBuilder>())
         {

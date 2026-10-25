@@ -20,6 +20,6 @@ public class MessagingConsumerGeneratorTests
                     => default;
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

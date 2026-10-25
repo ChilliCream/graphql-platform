@@ -26,7 +26,8 @@ public class AuthorizationHandlerTests
                     .New()
                     .SetDocument("{ bar }")
                     .AddGlobalState("auth", authResult)
-                    .Build());
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot(authResult);
     }

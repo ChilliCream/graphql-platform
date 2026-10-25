@@ -68,7 +68,7 @@ namespace TestNamespace
             HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
                 extension.Context,
                 descriptor,
-                null,
+                typeof(global::TestNamespace.Query),
                 new global::HotChocolate.Types.QueryTypeAttribute());
             configuration.ConfigurationsAreApplied = true;
 
@@ -87,6 +87,7 @@ namespace TestNamespace
                         typeInspector.GetTypeRef(typeof(global::TestNamespace.User), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.ListTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_User"))));
                     configuration.ResultType = typeof(global::System.Collections.Generic.IEnumerable<global::TestNamespace.User?>);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 
@@ -122,6 +123,11 @@ namespace TestNamespace
                         fieldDescriptor,
                         configuration.Member,
                         new global::HotChocolate.Types.Composite.LookupAttribute());
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetUsersById_id(),
+                        fieldDescriptor);
+
                     configuration.ConfigurationsAreApplied = true;
                     fieldDescriptor.CreateConfiguration();
 

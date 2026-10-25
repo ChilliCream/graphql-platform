@@ -8,7 +8,8 @@ internal static class FieldNodeExtensions
     public static SelectionState GetSelectionState(
         this FieldNode fieldNode,
         ISyntaxNode? declaringNode,
-        ITypeDefinition? parentType)
+        ITypeDefinition? parentType,
+        NamedTypeNode? fragmentTypeCondition = null)
     {
         var skipField = fieldNode.GetSkipIfValue();
         var includeField = fieldNode.GetIncludeIfValue();
@@ -22,6 +23,12 @@ internal static class FieldNodeExtensions
             case FragmentSpreadNode fragmentSpread:
                 skipFragment = fragmentSpread.GetSkipIfValue();
                 includeFragment = fragmentSpread.GetIncludeIfValue();
+
+                if (fragmentTypeCondition is not null
+                    && fragmentTypeCondition.Name.Value != parentType?.Name)
+                {
+                    typeConditional = true;
+                }
 
                 break;
 

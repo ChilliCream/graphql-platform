@@ -219,7 +219,8 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
     /// </summary>
     public float ToSingle()
     {
-        if (_value is null)
+        var cachedValue = _value;
+        if (cachedValue is null)
         {
             if (_memorySegment.IsEmpty)
             {
@@ -243,11 +244,11 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
             return value;
         }
 
-        return _value[0] switch
+        return cachedValue[0] switch
         {
-            FloatValueKind.Single => MemoryMarshal.Read<float>(_value.AsSpan(1)),
-            FloatValueKind.Double => (float)MemoryMarshal.Read<double>(_value.AsSpan(1)),
-            FloatValueKind.Decimal => (float)MemoryMarshal.Read<decimal>(_value.AsSpan(1)),
+            FloatValueKind.Single => MemoryMarshal.Read<float>(cachedValue.AsSpan(1)),
+            FloatValueKind.Double => (float)MemoryMarshal.Read<double>(cachedValue.AsSpan(1)),
+            FloatValueKind.Decimal => (float)MemoryMarshal.Read<decimal>(cachedValue.AsSpan(1)),
             _ => throw new InvalidOperationException("Unsupported numeric kind.")
         };
     }
@@ -257,7 +258,8 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
     /// </summary>
     public double ToDouble()
     {
-        if (_value is null)
+        var cachedValue = _value;
+        if (cachedValue is null)
         {
             if (_memorySegment.IsEmpty)
             {
@@ -281,11 +283,11 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
             return value;
         }
 
-        return _value[0] switch
+        return cachedValue[0] switch
         {
-            FloatValueKind.Single => MemoryMarshal.Read<float>(_value.AsSpan(1)),
-            FloatValueKind.Double => MemoryMarshal.Read<double>(_value.AsSpan(1)),
-            FloatValueKind.Decimal => (double)MemoryMarshal.Read<decimal>(_value.AsSpan(1)),
+            FloatValueKind.Single => MemoryMarshal.Read<float>(cachedValue.AsSpan(1)),
+            FloatValueKind.Double => MemoryMarshal.Read<double>(cachedValue.AsSpan(1)),
+            FloatValueKind.Decimal => (double)MemoryMarshal.Read<decimal>(cachedValue.AsSpan(1)),
             _ => throw new InvalidOperationException("Unsupported numeric kind.")
         };
     }
@@ -295,7 +297,8 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
     /// </summary>
     public decimal ToDecimal()
     {
-        if (_value is null)
+        var cachedValue = _value;
+        if (cachedValue is null)
         {
             if (_memorySegment.IsEmpty)
             {
@@ -319,11 +322,11 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
             return value;
         }
 
-        return _value[0] switch
+        return cachedValue[0] switch
         {
-            FloatValueKind.Single => (decimal)MemoryMarshal.Read<float>(_value.AsSpan(1)),
-            FloatValueKind.Double => (decimal)MemoryMarshal.Read<double>(_value.AsSpan(1)),
-            FloatValueKind.Decimal => MemoryMarshal.Read<decimal>(_value.AsSpan(1)),
+            FloatValueKind.Single => (decimal)MemoryMarshal.Read<float>(cachedValue.AsSpan(1)),
+            FloatValueKind.Double => (decimal)MemoryMarshal.Read<double>(cachedValue.AsSpan(1)),
+            FloatValueKind.Decimal => MemoryMarshal.Read<decimal>(cachedValue.AsSpan(1)),
             _ => throw new InvalidOperationException("Unsupported numeric kind.")
         };
     }

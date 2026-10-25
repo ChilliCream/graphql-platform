@@ -67,7 +67,7 @@ namespace TestNamespace
             HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
                 extension.Context,
                 descriptor,
-                null,
+                typeof(global::TestNamespace.Query),
                 new global::HotChocolate.Types.QueryTypeAttribute());
             configuration.ConfigurationsAreApplied = true;
 
@@ -84,6 +84,7 @@ namespace TestNamespace
 
                     configuration.Type = typeInspector.GetTypeRef(typeof(global::TestNamespace.Foo), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(global::TestNamespace.Foo);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 
@@ -112,6 +113,12 @@ namespace TestNamespace
                         {
                             typeof(int)
                         })!;
+
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetFooById_id(),
+                        fieldDescriptor);
 
                     configuration.Resolvers = context.Resolvers.GetFooById();
                 },

@@ -16,7 +16,7 @@ public sealed class MiddlewareFactoryContextTests
             registerCommand: true);
 
         // Act
-        await mediator.SendAsync(new PipelineTestCommand("test"));
+        await mediator.SendAsync(new PipelineTestCommand("test"), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(typeof(PipelineTestCommand), capturedMessageType);
@@ -35,7 +35,7 @@ public sealed class MiddlewareFactoryContextTests
             registerVoidCommand: true);
 
         // Act
-        await mediator.SendAsync(new CtxTestVoidCommand());
+        await mediator.SendAsync(new CtxTestVoidCommand(), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(typeof(CtxTestVoidCommand), capturedMessageType);
@@ -54,7 +54,7 @@ public sealed class MiddlewareFactoryContextTests
             registerQuery: true);
 
         // Act
-        await mediator.QueryAsync(new CtxTestQuery());
+        await mediator.QueryAsync(new CtxTestQuery(), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(typeof(CtxTestQuery), capturedMessageType);
@@ -73,7 +73,7 @@ public sealed class MiddlewareFactoryContextTests
             registerNotification: true);
 
         // Act
-        await mediator.PublishAsync(new CtxTestNotification());
+        await mediator.PublishAsync(new CtxTestNotification(), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(typeof(CtxTestNotification), capturedMessageType);
@@ -91,7 +91,7 @@ public sealed class MiddlewareFactoryContextTests
             registerVoidCommand: true);
 
         // Act
-        await mediator.SendAsync(new CtxTestVoidCommand());
+        await mediator.SendAsync(new CtxTestVoidCommand(), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(result);
@@ -108,7 +108,7 @@ public sealed class MiddlewareFactoryContextTests
             registerCommand: true);
 
         // Act
-        await mediator.SendAsync(new PipelineTestCommand("test"));
+        await mediator.SendAsync(new PipelineTestCommand("test"), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(result);
@@ -128,8 +128,8 @@ public sealed class MiddlewareFactoryContextTests
         var mediator2 = BuildMediator(commandMiddleware, registerCommand: true);
 
         // Act
-        await mediator1.QueryAsync(new CtxTestQuery());
-        await mediator2.SendAsync(new PipelineTestCommand("test"));
+        await mediator1.QueryAsync(new CtxTestQuery(), TestContext.Current.CancellationToken);
+        await mediator2.SendAsync(new PipelineTestCommand("test"), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(queryResult);
@@ -147,7 +147,7 @@ public sealed class MiddlewareFactoryContextTests
             registerNotification: true);
 
         // Act
-        await mediator.PublishAsync(new CtxTestNotification());
+        await mediator.PublishAsync(new CtxTestNotification(), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(result);
@@ -164,7 +164,7 @@ public sealed class MiddlewareFactoryContextTests
             registerQuery: true);
 
         // Act
-        await mediator.QueryAsync(new CtxTestQuery());
+        await mediator.QueryAsync(new CtxTestQuery(), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.False(result);
@@ -181,7 +181,7 @@ public sealed class MiddlewareFactoryContextTests
             registerVoidCommand: true);
 
         // Act
-        await mediator.SendAsync(new CtxTestVoidCommand());
+        await mediator.SendAsync(new CtxTestVoidCommand(), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.False(result);
@@ -198,7 +198,7 @@ public sealed class MiddlewareFactoryContextTests
             registerCommand: true);
 
         // Act
-        await mediator.SendAsync(new PipelineTestCommand("test"));
+        await mediator.SendAsync(new PipelineTestCommand("test"), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.False(result);
@@ -215,7 +215,7 @@ public sealed class MiddlewareFactoryContextTests
             registerCommand: true);
 
         // Act
-        await mediator.SendAsync(new PipelineTestCommand("test"));
+        await mediator.SendAsync(new PipelineTestCommand("test"), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(result);
@@ -232,7 +232,7 @@ public sealed class MiddlewareFactoryContextTests
             registerCommand: true);
 
         // Act
-        await mediator.SendAsync(new PipelineTestCommand("test"));
+        await mediator.SendAsync(new PipelineTestCommand("test"), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.False(result);
@@ -249,7 +249,7 @@ public sealed class MiddlewareFactoryContextTests
             registerCommand: true);
 
         // Act
-        await mediator.SendAsync(new PipelineTestCommand("test"));
+        await mediator.SendAsync(new PipelineTestCommand("test"), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(result);
@@ -266,7 +266,7 @@ public sealed class MiddlewareFactoryContextTests
             registerCommand: true);
 
         // Act
-        await mediator.SendAsync(new PipelineTestCommand("test"));
+        await mediator.SendAsync(new PipelineTestCommand("test"), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(result);
@@ -283,7 +283,7 @@ public sealed class MiddlewareFactoryContextTests
             registerCommand: true);
 
         // Act
-        await mediator.SendAsync(new PipelineTestCommand("test"));
+        await mediator.SendAsync(new PipelineTestCommand("test"), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.False(result);
@@ -300,7 +300,7 @@ public sealed class MiddlewareFactoryContextTests
             registerVoidCommand: true);
 
         // Act
-        await mediator.SendAsync(new CtxTestVoidCommand());
+        await mediator.SendAsync(new CtxTestVoidCommand(), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.False(result);
@@ -317,7 +317,7 @@ public sealed class MiddlewareFactoryContextTests
             registerNotification: true);
 
         // Act
-        await mediator.PublishAsync(new CtxTestNotification());
+        await mediator.PublishAsync(new CtxTestNotification(), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.False(result);
@@ -363,13 +363,13 @@ public sealed class MiddlewareFactoryContextTests
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
         // Act - send command with response (should NOT trigger middleware)
-        await mediator.SendAsync(new PipelineTestCommand("test"));
+        await mediator.SendAsync(new PipelineTestCommand("test"), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.False(middlewareExecuted);
 
         // Act - send void command (should trigger middleware)
-        await mediator.SendAsync(new CtxTestVoidCommand());
+        await mediator.SendAsync(new CtxTestVoidCommand(), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(middlewareExecuted);
@@ -415,13 +415,13 @@ public sealed class MiddlewareFactoryContextTests
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
         // Act - send command with string response (should NOT trigger)
-        await mediator.SendAsync(new PipelineTestCommand("test"));
+        await mediator.SendAsync(new PipelineTestCommand("test"), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.False(middlewareExecuted);
 
         // Act - send query with int response (should trigger)
-        await mediator.QueryAsync(new CtxTestQuery());
+        await mediator.QueryAsync(new CtxTestQuery(), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(middlewareExecuted);

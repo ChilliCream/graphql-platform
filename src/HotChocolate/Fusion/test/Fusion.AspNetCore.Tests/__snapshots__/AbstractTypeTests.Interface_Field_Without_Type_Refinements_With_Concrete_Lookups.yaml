@@ -12,7 +12,7 @@ response:
     {
       "data": {
         "votable": {
-          "id": "RGlzY3Vzc2lvbjox",
+          "id": "RGlzY3Vzc2lvbjozNTUxODE3ODYy",
           "viewerCanVote": true
         }
       }
@@ -24,8 +24,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Votable @key(fields: "id") {
-        id: ID!
+      type Query {
+        votable: Votable
       }
 
       type Comment implements Votable @key(fields: "id") {
@@ -36,8 +36,8 @@ sourceSchemas:
         id: ID!
       }
 
-      type Query {
-        votable: Votable
+      interface Votable @key(fields: "id") {
+        id: ID!
       }
     interactions:
       - request:
@@ -56,7 +56,7 @@ sourceSchemas:
                 "data": {
                   "votable": {
                     "__typename": "Discussion",
-                    "id": "RGlzY3Vzc2lvbjox"
+                    "id": "RGlzY3Vzc2lvbjozNTUxODE3ODYy"
                   }
                 }
               }
@@ -66,9 +66,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Votable {
-        id: ID!
-        viewerCanVote: Boolean!
+      type Query {
+        discussionById(id: ID!): Discussion @lookup
+        commentById(id: ID!): Comment @lookup
       }
 
       type Comment implements Votable {
@@ -81,9 +81,9 @@ sourceSchemas:
         viewerCanVote: Boolean!
       }
 
-      type Query {
-        discussionById(id: ID!): Discussion @lookup
-        commentById(id: ID!): Comment @lookup
+      interface Votable {
+        id: ID!
+        viewerCanVote: Boolean!
       }
     interactions:
       - request:
@@ -96,7 +96,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_id": "RGlzY3Vzc2lvbjox"
+              "__fusion_1_id": "RGlzY3Vzc2lvbjozNTUxODE3ODYy"
             }
         response:
           results:
@@ -119,7 +119,7 @@ operationPlan:
             viewerCanVote
           }
         }
-      hash: fb4e28df20f489a10c0f71a560445d04
+      hash: 2b4187b6f789d11473cd0ff534ef9994
       searchSpace: 1
       expandedNodes: 2
   nodes:
@@ -144,7 +144,7 @@ operationPlan:
         }
       source: $.discussionById
       target: $.votable<Discussion>
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -162,7 +162,7 @@ operationPlan:
         }
       source: $.commentById
       target: $.votable<Comment>
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

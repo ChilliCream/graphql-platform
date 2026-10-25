@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Mocha.Features;
 using Mocha.Transport.Postgres.Tests.Helpers;
 
 namespace Mocha.Transport.Postgres.Tests;
@@ -54,7 +55,7 @@ public class PostgresTransportTests
         // assert
         Assert.True(found, "TryGetDispatchEndpoint should resolve queue:// URI");
         Assert.NotNull(endpoint);
-        Assert.IsType<PostgresQueue>(endpoint!.Destination);
+        Assert.IsType<PostgresQueue>(endpoint.Destination);
         Assert.Equal("payment", ((PostgresQueue)endpoint.Destination).Name);
     }
 
@@ -77,7 +78,7 @@ public class PostgresTransportTests
         // assert
         Assert.True(found, "TryGetDispatchEndpoint should resolve topic:// URI");
         Assert.NotNull(endpoint);
-        Assert.IsType<PostgresTopic>(endpoint!.Destination);
+        Assert.IsType<PostgresTopic>(endpoint.Destination);
         Assert.Equal("events", ((PostgresTopic)endpoint.Destination).Name);
     }
 
@@ -105,6 +106,21 @@ public class PostgresTransportTests
     }
 
     [Fact]
+    public void TryGetDispatchEndpoint_Should_ReturnReplyDispatchEndpoint_When_ReplyAliasUsed()
+    {
+        // arrange
+        var runtime = CreateRuntimeWithHandlers(b => b.AddEventHandler<OrderCreatedHandler>());
+        var transport = runtime.Transports.OfType<PostgresMessagingTransport>().Single();
+
+        // act
+        var found = transport.TryGetDispatchEndpoint(new Uri("postgres:replies"), out var endpoint);
+
+        // assert
+        Assert.True(found);
+        Assert.Same(transport.ReplyDispatchEndpoint, endpoint);
+    }
+
+    [Fact]
     public void TryGetDispatchEndpoint_Should_Resolve_When_TopologyBaseAddressUsed()
     {
         // arrange
@@ -120,7 +136,7 @@ public class PostgresTransportTests
             e.Destination?.Address != null && topology.Address.IsBaseOf(e.Destination.Address));
 
         Assert.NotNull(dispatchEndpoint);
-        var destinationAddress = dispatchEndpoint!.Destination.Address;
+        var destinationAddress = dispatchEndpoint.Destination.Address;
 
         // act
         var found = transport.TryGetDispatchEndpoint(destinationAddress, out var endpoint);
@@ -225,7 +241,7 @@ public class PostgresTransportTests
 
         // assert
         Assert.NotNull(description.Topology);
-        Assert.Contains(description.Topology!.Entities, e => e.Kind == "topic" && e.Name == "my-events");
+        Assert.Contains(description.Topology.Entities, e => e.Kind == "topic" && e.Name == "my-events");
     }
 
     [Fact]
@@ -240,7 +256,7 @@ public class PostgresTransportTests
 
         // assert
         Assert.NotNull(description.Topology);
-        Assert.Contains(description.Topology!.Entities, e => e.Kind == "queue" && e.Name == "my-queue");
+        Assert.Contains(description.Topology.Entities, e => e.Kind == "queue" && e.Name == "my-queue");
     }
 
     [Fact]
@@ -260,7 +276,7 @@ public class PostgresTransportTests
 
         // assert
         Assert.NotNull(description.Topology);
-        Assert.NotEmpty(description.Topology!.Links);
+        Assert.NotEmpty(description.Topology.Links);
         var link = Assert.Single(description.Topology.Links);
         Assert.Equal("subscription", link.Kind);
         Assert.Equal("forward", link.Direction);
@@ -280,7 +296,7 @@ public class PostgresTransportTests
         // assert
         Assert.NotNull(description.Topology);
         Assert.Equal(topology.Address.ToString(), description.Topology!.Address);
-        Assert.Equal(topology.Address.ToString(), description.Identifier);
+        Assert.Equal(topology.Address.ToString(), description.Address);
     }
 
     [Fact]
@@ -303,7 +319,7 @@ public class PostgresTransportTests
 
         // assert
         Assert.NotNull(description.Topology);
-        Assert.True(description.Topology!.Entities.Count(e => e.Kind == "topic") >= 2);
+        Assert.True(description.Topology.Entities.Count(e => e.Kind == "topic") >= 2);
         Assert.True(description.Topology.Entities.Count(e => e.Kind == "queue") >= 2);
         Assert.True(description.Topology.Links.Count >= 2);
     }
@@ -324,7 +340,7 @@ public class PostgresTransportTests
             .FirstOrDefault(e => e.Destination is PostgresQueue && e.Kind == DispatchEndpointKind.Default);
 
         Assert.NotNull(queueEndpoint);
-        Assert.IsType<PostgresQueue>(queueEndpoint!.Destination);
+        Assert.IsType<PostgresQueue>(queueEndpoint.Destination);
         Assert.Equal("process-payment", ((PostgresQueue)queueEndpoint.Destination).Name);
     }
 
@@ -344,7 +360,7 @@ public class PostgresTransportTests
             .FirstOrDefault(e => e.Destination is PostgresTopic);
 
         Assert.NotNull(topicEndpoint);
-        Assert.IsType<PostgresTopic>(topicEndpoint!.Destination);
+        Assert.IsType<PostgresTopic>(topicEndpoint.Destination);
         Assert.Equal("order-created", ((PostgresTopic)topicEndpoint.Destination).Name);
     }
 
@@ -368,7 +384,7 @@ public class PostgresTransportTests
         Assert.NotEmpty(queueEndpoints);
         var queueDispatch = queueEndpoints.First();
         Assert.NotNull(queueDispatch.Destination?.Address);
-        Assert.Contains("/q/", queueDispatch.Destination!.Address!.AbsolutePath);
+        Assert.Contains("/q/", queueDispatch.Destination.Address.AbsolutePath);
     }
 
     [Fact]
@@ -391,7 +407,7 @@ public class PostgresTransportTests
         Assert.NotEmpty(topicEndpoints);
         var topicDispatch = topicEndpoints.First();
         Assert.NotNull(topicDispatch.Destination?.Address);
-        Assert.Contains("/t/", topicDispatch.Destination!.Address!.AbsolutePath);
+        Assert.Contains("/t/", topicDispatch.Destination.Address.AbsolutePath);
     }
 
     [Fact]
@@ -490,7 +506,7 @@ public class PostgresTransportTests
     }
 
     [Fact]
-    public void CreateEndpointConfiguration_Should_CreateReplyConfig_When_PostgresRepliesPath()
+    public void CreateEndpointConfiguration_Should_CreateReplyConfig_When_InternalPostgresReplyAddressUsed()
     {
         // arrange
         var runtime = CreateRuntimeWithHandlers(b => b.AddEventHandler<OrderCreatedHandler>());
@@ -498,7 +514,7 @@ public class PostgresTransportTests
         var context = (IMessagingConfigurationContext)runtime;
 
         // act
-        var config = transport.CreateEndpointConfiguration(context, new Uri("postgres:///replies"));
+        var config = transport.CreateEndpointConfiguration(context, new Uri("postgres:replies"));
 
         // assert
         Assert.NotNull(config);
@@ -569,11 +585,13 @@ public class PostgresTransportTests
         var receiveEndpoint = transport.ReceiveEndpoints.First(e => e.Kind == ReceiveEndpointKind.Default);
 
         // assert
-        Assert.NotNull(receiveEndpoint.ErrorEndpoint);
-        Assert.Contains("_error", receiveEndpoint.ErrorEndpoint!.Name);
+        var faultFeature = receiveEndpoint.Features.Get<ReceiveFaultEndpointFeature>();
+        Assert.NotNull(faultFeature?.Endpoint);
+        Assert.Contains("_error", faultFeature.Endpoint.Name);
 
-        Assert.NotNull(receiveEndpoint.SkippedEndpoint);
-        Assert.Contains("_skipped", receiveEndpoint.SkippedEndpoint!.Name);
+        var skippedFeature = receiveEndpoint.Features.Get<ReceiveSkippedEndpointFeature>();
+        Assert.NotNull(skippedFeature?.Endpoint);
+        Assert.Contains("_skipped", skippedFeature.Endpoint.Name);
     }
 
     [Fact]

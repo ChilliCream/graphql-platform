@@ -26,8 +26,10 @@ internal sealed class KeyValuePairObjectType(IExtendedType runtimeType) : Object
         var descriptorExtension = descriptor.Extend();
         var context = descriptorExtension.Context;
         var configuration = descriptorExtension.Configuration;
+#pragma warning disable IL2075
         var keyProperty = runtimeType.Type.GetProperty("Key")!;
         var valueProperty = runtimeType.Type.GetProperty("Value")!;
+#pragma warning restore IL2075
         var keyType = runtimeType.TypeArguments[0];
         var valueType = runtimeType.TypeArguments[1];
 

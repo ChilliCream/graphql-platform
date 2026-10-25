@@ -30,7 +30,7 @@ public class PostgresQueueTests
         // assert
         var queue = Assert.Single(topology.Queues, q => q.Name == "addr-queue");
         Assert.NotNull(queue.Address);
-        Assert.Contains("/q/addr-queue", queue.Address!.AbsolutePath);
+        Assert.Contains("/q/addr-queue", queue.Address.AbsolutePath);
     }
 
     [Fact]
@@ -86,6 +86,6 @@ public class PostgresQueueTests
 
         // assert
         var queue = Assert.Single(topology.Queues, q => q.Name == "base-addr");
-        Assert.True(topology.Address.IsBaseOf(queue.Address!));
+        Assert.True(topology.Address.IsBaseOf(queue.Address));
     }
 }

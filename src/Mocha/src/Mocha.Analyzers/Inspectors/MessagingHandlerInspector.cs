@@ -88,19 +88,50 @@ public sealed class MessagingHandlerInspector : ISyntaxInspector
 
             var handlerFullName = namedTypeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
             var handlerNamespace = namedTypeSymbol.ContainingNamespace?.ToDisplayString() ?? string.Empty;
-            var messageTypeName = implemented.TypeArguments[descriptor.MessageTypeArgIndex]
-                .ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            var messageSymbol = (INamedTypeSymbol)implemented.TypeArguments[descriptor.MessageTypeArgIndex];
+            var messageTypeName = messageSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            var messageNamespace = messageSymbol.ContainingNamespace?.ToDisplayString() ?? string.Empty;
+            var responseType = descriptor.HasResponse ? implemented.TypeArguments[1] : null;
+            var responseNamespace = responseType is INamedTypeSymbol responseNamespaceType
+                ? responseNamespaceType.ContainingNamespace?.ToDisplayString() ?? string.Empty
+                : null;
             var locationInfo = typeDeclaration.Identifier.GetLocation().ToLocationInfo();
+            var declarationLocation = typeDeclaration.ToDeclarationLocationInfo();
+
+            // Walk the full type hierarchy (base types + interfaces) for AOT enclosed type computation.
+            var hierarchy = new List<string>();
+            var currentBase = messageSymbol.BaseType;
+            while (currentBase is not null && currentBase.SpecialType != SpecialType.System_Object)
+            {
+                hierarchy.Add(currentBase.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+                currentBase = currentBase.BaseType;
+            }
+            foreach (var iface in messageSymbol.AllInterfaces)
+            {
+                hierarchy.Add(iface.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+            }
+
+            // Capture declaration metadata (doc + location) for the message and response types cross-file from
+            // their resolved symbols, so this handler is one of several discovery sources merged by type name.
+            // Metadata-only types (declared in another assembly) yield null. This is stale only in the IDE's
+            // incremental cache; every real compiler invocation runs fresh.
+            var declaredMessageType = messageSymbol.ToDeclaredTypeInfo(cancellationToken);
+            var declaredResponseType = responseType.ToDeclaredTypeInfo(cancellationToken);
 
             syntaxInfo = new MessagingHandlerInfo(
                 handlerFullName,
                 handlerNamespace,
                 messageTypeName,
-                descriptor.HasResponse
-                    ? implemented.TypeArguments[1].ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
-                    : null,
+                messageNamespace,
+                responseType?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                responseNamespace,
                 descriptor.Kind,
-                locationInfo);
+                new ImmutableEquatableArray<string>(hierarchy),
+                namedTypeSymbol.GetXmlDocumentation(cancellationToken),
+                locationInfo,
+                declarationLocation,
+                declaredMessageType,
+                declaredResponseType);
             return true;
         }
 

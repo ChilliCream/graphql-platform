@@ -107,7 +107,9 @@ public class CodeFirstTests
                 })
                 .AddType<Dog>()
                 .AddType<Cat>()
-                .ExecuteRequestAsync("{ shouldBeCat { __typename } shouldBeDog { __typename } }");
+                .ExecuteRequestAsync(
+                    "{ shouldBeCat { __typename } shouldBeDog { __typename } }",
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -126,7 +128,7 @@ public class CodeFirstTests
                 })
                 .AddType<Dog>()
                 .AddType<Cat>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -138,7 +140,7 @@ public class CodeFirstTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryStructEquals>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -150,7 +152,7 @@ public class CodeFirstTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryComparableEntity>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -162,7 +164,7 @@ public class CodeFirstTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<PascalCaseQuery>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -179,7 +181,8 @@ public class CodeFirstTests
                     {
                         testResolver(testArgument: "abc")
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -198,7 +201,7 @@ public class CodeFirstTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<QueryNestedClassNullableString>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -210,7 +213,7 @@ public class CodeFirstTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<QueryWithEnumerableArg>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchInlineSnapshot(
             """
@@ -231,7 +234,7 @@ public class CodeFirstTests
             await new ServiceCollection()
                 .AddGraphQLServer("abc-def")
                 .AddQueryType<QueryWithEnumerableArg>()
-                .BuildSchemaAsync("abc-def");
+                .BuildSchemaAsync("abc-def", TestContext.Current.CancellationToken);
 
         schema.MatchInlineSnapshot(
             """

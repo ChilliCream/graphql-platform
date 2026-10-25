@@ -27,7 +27,7 @@ internal sealed class StatusCommand : Command
         if (session is null)
         {
             throw new ExitException(
-                "Not logged in. Run 'nitro login' first.");
+                "Not logged in. Run `nitro login` first.");
         }
 
         var defaultApiUrl = Constants.ApiUrl["https://".Length..];
@@ -43,7 +43,7 @@ internal sealed class StatusCommand : Command
 
         if (session.Workspace is { } workspace)
         {
-            message += $" ([green]{workspace.Name.EscapeMarkup()}[/] workspace)";
+            message += $" (Workspace: [green]{workspace.Name.EscapeMarkup()}[/])";
         }
 
         console.MarkupLine(message);

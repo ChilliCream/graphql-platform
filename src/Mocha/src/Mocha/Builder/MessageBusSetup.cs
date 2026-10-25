@@ -2,5 +2,5 @@ namespace Mocha;
 
 internal sealed class MessageBusSetup
 {
-    public List<Action<IMessageBusBuilder>> ConfigureMessageBus { get; set; } = [];
+    public List<Action<MessageBusBuilder>> ConfigureMessageBus { get; set; } = [];
 }

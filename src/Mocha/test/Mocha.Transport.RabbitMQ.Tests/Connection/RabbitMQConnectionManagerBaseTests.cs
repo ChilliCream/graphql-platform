@@ -66,7 +66,7 @@ public class RabbitMQConnectionManagerBaseTests
         await using var manager = CreateManager(connectionMock.Object);
 
         // act
-        await manager.EnsureConnectedAsync(default);
+        await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.True(manager.IsConnected);
@@ -79,7 +79,7 @@ public class RabbitMQConnectionManagerBaseTests
         var connectionMock = CreateOpenConnection();
         var manager = CreateManager(connectionMock.Object);
 
-        await manager.EnsureConnectedAsync(default);
+        await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
 
         // act
         await manager.DisposeAsync();
@@ -100,7 +100,7 @@ public class RabbitMQConnectionManagerBaseTests
         // arrange
         var connectionMock = CreateOpenConnection();
         var manager = CreateManager(connectionMock.Object);
-        await manager.EnsureConnectedAsync(default);
+        await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
 
         // act
         await manager.DisposeAsync();
@@ -118,7 +118,7 @@ public class RabbitMQConnectionManagerBaseTests
         await using var manager = CreateManager(connectionMock.Object);
 
         // act
-        await manager.EnsureConnectedAsync(default);
+        await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(1, manager.BeforeConnectionCreatedCount);
@@ -132,7 +132,7 @@ public class RabbitMQConnectionManagerBaseTests
         await using var manager = CreateManager(connectionMock.Object);
 
         // act
-        await manager.EnsureConnectedAsync(default);
+        await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(1, manager.AfterConnectionCreatedCount);
@@ -146,7 +146,7 @@ public class RabbitMQConnectionManagerBaseTests
         await using var manager = CreateManager(connectionMock.Object);
 
         // act
-        await manager.EnsureConnectedAsync(default);
+        await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(1, manager.ConnectionEstablishedCount);

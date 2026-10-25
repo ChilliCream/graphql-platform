@@ -16,14 +16,10 @@ internal sealed class TestServerSession : IDisposable
         Action<IApplicationBuilder> configureApplication,
         string? environmentName = null)
     {
-        var builder = WebApplication.CreateSlimBuilder();
+        var builder = WebApplication.CreateSlimBuilder(
+            new WebApplicationOptions { EnvironmentName = environmentName });
         builder.WebHost.UseTestServer();
         configureServices(builder.Services);
-
-        if (environmentName is not null)
-        {
-            builder.Environment.EnvironmentName = environmentName;
-        }
 
         var app = builder.Build();
         configureApplication(app);

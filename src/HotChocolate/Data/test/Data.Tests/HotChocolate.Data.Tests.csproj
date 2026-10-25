@@ -1,18 +1,21 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
   <PropertyGroup>
     <RootNamespace>HotChocolate.Data</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut.Data.EntityFramework\GreenDonut.Data.EntityFramework.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Authorization\HotChocolate.Authorization.csproj" />
     <ProjectReference Include="..\..\..\Core\test\Types.Tests\HotChocolate.Types.Tests.csproj" />
     <ProjectReference Include="..\..\src\Data\HotChocolate.Data.csproj" />
+    <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.Resources.PostgreSql\CookieCrumble.Resources.PostgreSql.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
-    <PackageReference Include="Squadron.PostgreSql" />
   </ItemGroup>
 
 </Project>

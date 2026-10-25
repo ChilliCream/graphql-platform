@@ -184,7 +184,7 @@ public class CopyOnWriteListTests
         // Act
         foreach (var item in itemsToAdd)
         {
-            tasks.Add(Task.Run(() => cowList.Add(item)));
+            tasks.Add(Task.Run(() => cowList.Add(item), TestContext.Current.CancellationToken));
         }
 
         await Task.WhenAll(tasks);

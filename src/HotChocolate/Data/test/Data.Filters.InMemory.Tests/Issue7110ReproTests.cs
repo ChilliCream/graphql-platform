@@ -26,7 +26,7 @@ public class Issue7110ReproTests : IClassFixture<SchemaCache>
             values,
             configure: sb => sb.AddGlobalObjectIdentification(false));
 
-        var idsResult = await executor.ExecuteAsync("{ root { id } }");
+        var idsResult = await executor.ExecuteAsync("{ root { id } }", TestContext.Current.CancellationToken);
         using var idsDocument = JsonDocument.Parse(idsResult.ToJson());
         var relayId = idsDocument
             .RootElement
@@ -48,8 +48,9 @@ public class Issue7110ReproTests : IClassFixture<SchemaCache>
                           }
                         }
                         """)
-                    .SetVariableValues(new Dictionary<string, object?> { ["id"] = relayId! })
-                    .Build());
+                    .SetVariableValues(new Dictionary<string, object?> { ["id"] = relayId })
+                    .Build(),
+                TestContext.Current.CancellationToken);
 
         var operationResult = filteredResult.ExpectOperationResult();
         Assert.Empty(operationResult.Errors ?? []);

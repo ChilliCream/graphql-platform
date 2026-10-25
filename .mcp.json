@@ -2,17 +2,13 @@
   "mcpServers": {
     "playwright": {
       "command": "npx",
-      "args": ["-y", "@playwright/mcp@latest"]
-    },
-    "lighthouse": {
-      "command": "npx",
-      "args": ["-y", "@danielsogl/lighthouse-mcp@latest"]
+      "args": ["--yes", "@playwright/mcp@0.0.79"]
     },
     "nuget": {
       "command": "dotnet",
       "args": [
         "dnx",
-        "NuGet.Mcp.Server",
+        "NuGet.Mcp.Server@1.4.16",
         "--source",
         "https://api.nuget.org/v3/index.json",
         "--yes"

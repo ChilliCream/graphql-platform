@@ -1,0 +1,15 @@
+{
+  "id": "operation_and_schema_argument_defaults_bound_lists",
+  "source": "rust-unit",
+  "sdl": "directive @cost(weight: String!) on ARGUMENT_DEFINITION | ENUM | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | OBJECT | SCALAR\ndirective @listSize(\n  assumedSize: Int\n  slicingArguments: [String!]\n  sizedFields: [String!]\n  requireOneSlicingArgument: Boolean = true\n) on FIELD_DEFINITION\ntype User { name: String }\ntype Query { users(first: Int = 3): [User] @listSize(slicingArguments: \"first\") }\n",
+  "operation": "query Example($first: Int = 4) {\n  schemaDefault: users { name }\n  operationDefault: users(first: $first) { name }\n}\n",
+  "operationName": "Example",
+  "variables": {},
+  "defaultListSize": "Infinity",
+  "backend": "exact-case",
+  "expected": {
+    "typeCost": 8,
+    "fieldCost": 2
+  },
+  "notes": "Port of estimator.rs test `operation_and_schema_argument_defaults_bound_lists` at line 1330, commit fec57fd7a980b5399637fa464a9bdce0781d91dd. The source asserts typeCost 8; fieldCost 2 is the oracle's two composite-return field calls."
+}

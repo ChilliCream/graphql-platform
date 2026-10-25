@@ -10,67 +10,71 @@ public class CancelScheduledMessageTests
     [Fact]
     public async Task CancelScheduledMessageAsync_Should_ReturnFalse_When_TokenIsNull()
     {
-        // arrange
         await using var provider = await CreateBusAsync();
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act
         var result = await bus.CancelScheduledMessageAsync(null!, CancellationToken.None);
 
-        // assert
         Assert.False(result);
     }
 
     [Fact]
     public async Task CancelScheduledMessageAsync_Should_ReturnFalse_When_TokenIsEmpty()
     {
-        // arrange
         await using var provider = await CreateBusAsync();
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act
         var result = await bus.CancelScheduledMessageAsync("", CancellationToken.None);
 
-        // assert
         Assert.False(result);
     }
 
     [Fact]
     public async Task CancelScheduledMessageAsync_Should_ReturnFalse_When_NoStoreRegistered()
     {
-        // arrange
         await using var provider = await CreateBusAsync();
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act
         var result = await bus.CancelScheduledMessageAsync(
             "some-provider:some-value",
             CancellationToken.None);
 
-        // assert
         Assert.False(result);
     }
 
     [Fact]
-    public async Task CancelScheduledMessageAsync_Should_DelegateToStore_When_TokenIsValid()
+    public async Task CancelScheduledMessageAsync_Should_DelegateToStore_When_TokenPrefixMatches()
     {
-        // arrange
         var spy = new SpyScheduledMessageStore();
         await using var provider = await CreateBusAsync(spy);
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act
         var result = await bus.CancelScheduledMessageAsync(
             "test-provider:my-cancel-value",
             CancellationToken.None);
 
-        // assert
         Assert.True(result);
         Assert.Equal("test-provider:my-cancel-value", spy.LastCancelledValue);
+    }
+
+    [Fact]
+    public async Task CancelScheduledMessageAsync_Should_ReturnFalse_When_TokenPrefixIsUnknown()
+    {
+        var spy = new SpyScheduledMessageStore();
+        await using var provider = await CreateBusAsync(spy);
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        var result = await bus.CancelScheduledMessageAsync(
+            "unknown:my-cancel-value",
+            CancellationToken.None);
+
+        Assert.False(result);
+        Assert.Null(spy.LastCancelledValue);
     }
 
     private static async Task<ServiceProvider> CreateBusAsync(
@@ -80,11 +84,15 @@ public class CancelScheduledMessageTests
         var builder = services.AddMessageBus();
         builder.AddEventHandler<StubEventHandler>();
         builder.AddInMemory();
-        builder.UseSchedulerCore();
 
         if (spyStore is not null)
         {
-            services.AddScoped<IScheduledMessageStore>(_ => spyStore);
+            services.AddScoped(_ => spyStore);
+            services.AddSingleton(
+                new ScheduledMessageStoreRegistration(
+                    typeof(InMemoryMessagingTransport),
+                    SpyScheduledMessageStore.TokenPrefix,
+                    typeof(SpyScheduledMessageStore)));
         }
 
         var provider = services.BuildServiceProvider();
@@ -95,11 +103,12 @@ public class CancelScheduledMessageTests
 
     private sealed class SpyScheduledMessageStore : IScheduledMessageStore
     {
+        public const string TokenPrefix = "test-provider:";
+
         public string? LastCancelledValue { get; private set; }
 
         public ValueTask<string> PersistAsync(
-            MessageEnvelope envelope,
-            DateTimeOffset scheduledTime,
+            IDispatchContext context,
             CancellationToken cancellationToken) =>
             ValueTask.FromResult("test-provider:test-id");
 

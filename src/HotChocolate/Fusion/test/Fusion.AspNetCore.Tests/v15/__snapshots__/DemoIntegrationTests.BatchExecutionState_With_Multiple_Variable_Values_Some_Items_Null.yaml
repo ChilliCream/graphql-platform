@@ -28,8 +28,8 @@ response:
                 "node": {
                   "feedback": {
                     "buyer": {
-                      "relativeUrl": "User: VXNlcjoxMQ==",
-                      "displayName": "User: VXNlcjoxMQ=="
+                      "relativeUrl": "User: VXNlcjoyNDAxMDIwODM1",
+                      "displayName": "User: VXNlcjoyNDAxMDIwODM1"
                     }
                   }
                 }
@@ -38,8 +38,8 @@ response:
                 "node": {
                   "feedback": {
                     "buyer": {
-                      "relativeUrl": "User: VXNlcjoxMg==",
-                      "displayName": "User: VXNlcjoxMg=="
+                      "relativeUrl": "User: VXNlcjoyNTIzMjkxNzA=",
+                      "displayName": "User: VXNlcjoyNTIzMjkxNzA="
                     }
                   }
                 }
@@ -48,8 +48,8 @@ response:
                 "node": {
                   "feedback": {
                     "buyer": {
-                      "relativeUrl": "User: VXNlcjoxMw==",
-                      "displayName": "User: VXNlcjoxMw=="
+                      "relativeUrl": "User: VXNlcjozNzQwMjMwMTI0",
+                      "displayName": "User: VXNlcjozNzQwMjMwMTI0"
                     }
                   }
                 }
@@ -66,10 +66,6 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
-      }
-
       type Query {
         node(id: ID!): Node @lookup @shareable
         nodes(ids: [ID!]!): [Node]! @shareable
@@ -78,6 +74,10 @@ sourceSchemas:
       type User implements Node {
         id: ID!
         displayName: String!
+      }
+
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
@@ -94,13 +94,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_2_id": "VXNlcjoxMQ=="
+                "__fusion_2_id": "VXNlcjoyNDAxMDIwODM1"
               },
               {
-                "__fusion_2_id": "VXNlcjoxMg=="
+                "__fusion_2_id": "VXNlcjoyNTIzMjkxNzA="
               },
               {
-                "__fusion_2_id": "VXNlcjoxMw=="
+                "__fusion_2_id": "VXNlcjozNzQwMjMwMTI0"
               }
             ]
         response:
@@ -111,7 +111,7 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "User",
-                    "displayName": "User: VXNlcjoxMQ=="
+                    "displayName": "User: VXNlcjoyNDAxMDIwODM1"
                   }
                 }
               }
@@ -120,7 +120,7 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "User",
-                    "displayName": "User: VXNlcjoxMg=="
+                    "displayName": "User: VXNlcjoyNTIzMjkxNzA="
                   }
                 }
               }
@@ -129,7 +129,7 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "User",
-                    "displayName": "User: VXNlcjoxMw=="
+                    "displayName": "User: VXNlcjozNzQwMjMwMTI0"
                   }
                 }
               }
@@ -137,10 +137,6 @@ sourceSchemas:
     schema: |
       schema {
         query: Query
-      }
-
-      interface Node {
-        id: ID!
       }
 
       type Query {
@@ -151,6 +147,10 @@ sourceSchemas:
 
       type User implements Node {
         relativeUrl: String!
+        id: ID!
+      }
+
+      interface Node {
         id: ID!
       }
     interactions:
@@ -168,7 +168,7 @@ sourceSchemas:
               {
                 "data": {
                   "userBySlug": {
-                    "id": "VXNlcjox"
+                    "id": "VXNlcjozMTc2NDEzNg=="
                   }
                 }
               }
@@ -186,13 +186,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_3_id": "VXNlcjoxMQ=="
+                "__fusion_3_id": "VXNlcjoyNDAxMDIwODM1"
               },
               {
-                "__fusion_3_id": "VXNlcjoxMg=="
+                "__fusion_3_id": "VXNlcjoyNTIzMjkxNzA="
               },
               {
-                "__fusion_3_id": "VXNlcjoxMw=="
+                "__fusion_3_id": "VXNlcjozNzQwMjMwMTI0"
               }
             ]
         response:
@@ -203,7 +203,7 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "User",
-                    "relativeUrl": "User: VXNlcjoxMQ=="
+                    "relativeUrl": "User: VXNlcjoyNDAxMDIwODM1"
                   }
                 }
               }
@@ -212,7 +212,7 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "User",
-                    "relativeUrl": "User: VXNlcjoxMg=="
+                    "relativeUrl": "User: VXNlcjoyNTIzMjkxNzA="
                   }
                 }
               }
@@ -221,7 +221,7 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "User",
-                    "relativeUrl": "User: VXNlcjoxMw=="
+                    "relativeUrl": "User: VXNlcjozNzQwMjMwMTI0"
                   }
                 }
               }
@@ -231,8 +231,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
       }
 
       type FeedbacksConnection {
@@ -241,11 +242,6 @@ sourceSchemas:
 
       type FeedbacksEdge {
         node: ResaleFeedback!
-      }
-
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        nodes(ids: [ID!]!): [Node]! @shareable
       }
 
       type ResaleFeedback implements Node {
@@ -260,6 +256,10 @@ sourceSchemas:
       type User implements Node {
         id: ID!
         feedbacks: FeedbacksConnection
+      }
+
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
@@ -285,7 +285,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_id": "VXNlcjox"
+              "__fusion_1_id": "VXNlcjozMTc2NDEzNg=="
             }
         response:
           results:
@@ -300,7 +300,7 @@ sourceSchemas:
                           "node": {
                             "feedback": {
                               "buyer": {
-                                "id": "VXNlcjoxMQ=="
+                                "id": "VXNlcjoyNDAxMDIwODM1"
                               }
                             }
                           }
@@ -309,7 +309,7 @@ sourceSchemas:
                           "node": {
                             "feedback": {
                               "buyer": {
-                                "id": "VXNlcjoxMg=="
+                                "id": "VXNlcjoyNTIzMjkxNzA="
                               }
                             }
                           }
@@ -318,7 +318,7 @@ sourceSchemas:
                           "node": {
                             "feedback": {
                               "buyer": {
-                                "id": "VXNlcjoxMw=="
+                                "id": "VXNlcjozNzQwMjMwMTI0"
                               }
                             }
                           }
@@ -349,7 +349,7 @@ operationPlan:
             id @fusion__requirement
           }
         }
-      hash: 595ce2b9cc1d2b098614fb4f4733426b
+      hash: 3fae8d42ee423375a1700245e76ecc68
       searchSpace: 2
       expandedNodes: 6
   nodes:

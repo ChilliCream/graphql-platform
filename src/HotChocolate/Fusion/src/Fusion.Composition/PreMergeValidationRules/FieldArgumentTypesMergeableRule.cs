@@ -34,7 +34,7 @@ internal sealed class FieldArgumentTypesMergeableRule : IEventHandler<FieldArgum
             var typeA = argumentInfoA.Argument.Type;
             var typeB = argumentInfoB.Argument.Type;
 
-            if (!ValidationHelper.SameTypeShape(typeA, typeB))
+            if (!TypeMergeHelper.SameTypeShape(typeA, typeB))
             {
                 context.Log.Write(
                     FieldArgumentTypesNotMergeable(

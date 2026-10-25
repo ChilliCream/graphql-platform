@@ -45,12 +45,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
-      }
-
-      interface Votable @key(fields: "id") {
-        id: ID!
+      type Query {
+        abstractTypes: [Votable]
+        node(id: ID!): Node @lookup @shareable
       }
 
       type Author implements Votable & Node @key(fields: "id") {
@@ -61,9 +58,12 @@ sourceSchemas:
         id: ID!
       }
 
-      type Query {
-        abstractTypes: [Votable]
-        node(id: ID!): Node @lookup @shareable
+      interface Node {
+        id: ID!
+      }
+
+      interface Votable @key(fields: "id") {
+        id: ID!
       }
     interactions:
       - request:
@@ -97,15 +97,15 @@ sourceSchemas:
                   "abstractTypes": [
                     {
                       "__typename": "Discussion",
-                      "id": "RGlzY3Vzc2lvbjox"
+                      "id": "RGlzY3Vzc2lvbjo4NDU0NzcwNDE="
                     },
                     {
                       "__typename": "Author",
-                      "id": "QXV0aG9yOjI="
+                      "id": "QXV0aG9yOjI0NTA2NDI1Nw=="
                     },
                     {
                       "__typename": "Discussion",
-                      "id": "RGlzY3Vzc2lvbjoz"
+                      "id": "RGlzY3Vzc2lvbjoyOTQ5OTQ1OTg1"
                     }
                   ]
                 }
@@ -116,14 +116,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
-      }
-
-      interface Votable @key(fields: "id") {
-        id: ID!
-        upvotes: Int!
-        score: Int!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        discussionById(id: ID!): Discussion @lookup @shareable
       }
 
       type Discussion implements Votable & Node @key(fields: "id") {
@@ -132,9 +127,14 @@ sourceSchemas:
         score: Int!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        discussionById(id: ID!): Discussion @lookup @shareable
+      interface Node {
+        id: ID!
+      }
+
+      interface Votable @key(fields: "id") {
+        id: ID!
+        upvotes: Int!
+        score: Int!
       }
     interactions:
       - request:
@@ -150,10 +150,10 @@ sourceSchemas:
               variables: |
                 [
                   {
-                    "__fusion_1_id": "RGlzY3Vzc2lvbjox"
+                    "__fusion_1_id": "RGlzY3Vzc2lvbjo4NDU0NzcwNDE="
                   },
                   {
-                    "__fusion_1_id": "RGlzY3Vzc2lvbjoz"
+                    "__fusion_1_id": "RGlzY3Vzc2lvbjoyOTQ5OTQ1OTg1"
                   }
                 ]
             - document: |
@@ -165,10 +165,10 @@ sourceSchemas:
               variables: |
                 [
                   {
-                    "__fusion_3_id": "RGlzY3Vzc2lvbjox"
+                    "__fusion_3_id": "RGlzY3Vzc2lvbjo4NDU0NzcwNDE="
                   },
                   {
-                    "__fusion_3_id": "RGlzY3Vzc2lvbjoz"
+                    "__fusion_3_id": "RGlzY3Vzc2lvbjoyOTQ5OTQ1OTg1"
                   }
                 ]
         response:
@@ -212,14 +212,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
-      }
-
-      interface Votable @key(fields: "id") {
-        id: ID!
-        upvotes: Int!
-        score: Int!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        authorById(id: ID!): Author @lookup @shareable
       }
 
       type Author implements Votable & Node @key(fields: "id") {
@@ -228,9 +223,14 @@ sourceSchemas:
         score: Int!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        authorById(id: ID!): Author @lookup @shareable
+      interface Node {
+        id: ID!
+      }
+
+      interface Votable @key(fields: "id") {
+        id: ID!
+        upvotes: Int!
+        score: Int!
       }
     interactions:
       - request:
@@ -249,7 +249,7 @@ sourceSchemas:
           variables: |
             {
               "skip2": true,
-              "__fusion_2_id": "QXV0aG9yOjI="
+              "__fusion_2_id": "QXV0aG9yOjI0NTA2NDI1Nw=="
             }
         response:
           results:
@@ -280,7 +280,7 @@ operationPlan:
             }
           }
         }
-      hash: 0731cc535062aece2d84c08e6667a388
+      hash: 36c1fa1dc3deacfef079f1f3da44c798
       searchSpace: 1
       expandedNodes: 2
   nodes:
@@ -306,45 +306,6 @@ operationPlan:
       forwardedVariables:
         - skip1
         - skip2
-    - id: 2
-      type: Operation
-      schema: B
-      operation: |
-        query Op_0731cc53_2($__fusion_1_id: ID!) {
-          discussionById(id: $__fusion_1_id) {
-            upvotes
-          }
-        }
-      source: $.discussionById
-      target: $.abstractTypes<Discussion>
-      batchingGroupId: 2
-      requirements:
-        - name: __fusion_1_id
-          selectionMap: >-
-            id
-      conditions:
-        - variable: $skip1
-          passingValue: false
-      dependencies:
-        - id: 1
-    - id: 4
-      type: Operation
-      schema: B
-      operation: |
-        query Op_0731cc53_4($__fusion_3_id: ID!) {
-          discussionById(id: $__fusion_3_id) {
-            score
-          }
-        }
-      source: $.discussionById
-      target: $.abstractTypes<Discussion>
-      batchingGroupId: 2
-      requirements:
-        - name: __fusion_3_id
-          selectionMap: >-
-            id
-      dependencies:
-        - id: 1
     - id: 3
       type: Operation
       schema: C
@@ -370,5 +331,44 @@ operationPlan:
           passingValue: false
       forwardedVariables:
         - skip2
+      dependencies:
+        - id: 1
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_0731cc53_2($__fusion_1_id: ID!) {
+          discussionById(id: $__fusion_1_id) {
+            upvotes
+          }
+        }
+      source: $.discussionById
+      target: $.abstractTypes<Discussion>
+      batchingGroupId: 5
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      conditions:
+        - variable: $skip1
+          passingValue: false
+      dependencies:
+        - id: 1
+    - id: 4
+      type: Operation
+      schema: B
+      operation: |
+        query Op_0731cc53_4($__fusion_3_id: ID!) {
+          discussionById(id: $__fusion_3_id) {
+            score
+          }
+        }
+      source: $.discussionById
+      target: $.abstractTypes<Discussion>
+      batchingGroupId: 5
+      requirements:
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
       dependencies:
         - id: 1

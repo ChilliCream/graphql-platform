@@ -1,0 +1,49 @@
+operation:
+  - document: |
+      {
+        node(id: "a1") {
+          __typename @fusion__requirement
+          ... on Account {
+            id
+            username
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 1
+nodes:
+  - id: 1
+    type: Node
+    idValue: "a1"
+    responseName: node
+    branches:
+      - Account: 3
+    fallback: 2
+  - id: 2
+    type: Operation
+    operation: |
+      query Op_123456789101112_2 {
+        node(id: "a1") {
+          __typename
+        }
+      }
+    dependencies:
+      - id: 1
+  - id: 3
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_3 {
+        node(id: "a1") {
+          __typename
+          ... on Account {
+            __typename
+            id
+            username
+          }
+        }
+      }
+    dependencies:
+      - id: 1
+      - id: 2

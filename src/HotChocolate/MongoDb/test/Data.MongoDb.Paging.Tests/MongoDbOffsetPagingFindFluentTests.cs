@@ -1,3 +1,4 @@
+using CookieCrumble.Resources;
 using HotChocolate.Data.MongoDb.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
@@ -6,11 +7,10 @@ using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using Squadron;
 
 namespace HotChocolate.Data.MongoDb.Paging;
 
-public class MongoDbOffsetPagingFindFluentTests : IClassFixture<MongoResource>
+public class MongoDbOffsetPagingFindFluentTests
 {
     private readonly List<Foo> _foos =
     [
@@ -47,13 +47,14 @@ public class MongoDbOffsetPagingFindFluentTests : IClassFixture<MongoResource>
                     }
                     totalCount
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -74,13 +75,14 @@ public class MongoDbOffsetPagingFindFluentTests : IClassFixture<MongoResource>
                         hasPreviousPage
                     }
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -101,13 +103,14 @@ public class MongoDbOffsetPagingFindFluentTests : IClassFixture<MongoResource>
                         hasPreviousPage
                     }
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -128,13 +131,14 @@ public class MongoDbOffsetPagingFindFluentTests : IClassFixture<MongoResource>
                         hasPreviousPage
                     }
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -149,13 +153,14 @@ public class MongoDbOffsetPagingFindFluentTests : IClassFixture<MongoResource>
                 foos {
                     totalCount
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Foo

@@ -32,7 +32,7 @@ public class FusionCachingTests : FusionTestBase
 
         // assert
         Assert.NotNull(response.Headers.CacheControl);
-        Assert.Equal(TimeSpan.FromSeconds(3600), response.Headers.CacheControl!.MaxAge);
+        Assert.Equal(TimeSpan.FromSeconds(3600), response.Headers.CacheControl.MaxAge);
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public class FusionCachingTests : FusionTestBase
 
         // assert
         Assert.NotNull(response.Headers.CacheControl);
-        Assert.Equal(TimeSpan.FromSeconds(1800), response.Headers.CacheControl!.MaxAge);
+        Assert.Equal(TimeSpan.FromSeconds(1800), response.Headers.CacheControl.MaxAge);
     }
 
     [Fact]
@@ -82,12 +82,14 @@ public class FusionCachingTests : FusionTestBase
 
         // assert
         Assert.NotNull(response.Headers.CacheControl);
-        Assert.True(response.Headers.CacheControl!.Private);
+        Assert.True(response.Headers.CacheControl.Private);
         Assert.Equal(TimeSpan.FromSeconds(3600), response.Headers.CacheControl.MaxAge);
     }
 
-    [Fact]
-    public async Task Query_With_SharedMaxAge_Should_Return_SMaxAge_Header()
+    [Theory]
+    [InlineData("POST")]
+    [InlineData("QUERY")]
+    public async Task Query_With_SharedMaxAge_Should_Return_SMaxAge_Header(string method)
     {
         // arrange
         using var server = CreateSourceSchema(
@@ -99,16 +101,17 @@ public class FusionCachingTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
             [("a", server)],
             configureGatewayBuilder: b => b
+                .ModifyServerOptions(o => o.EnableQueryRequests = true)
                 .AddCacheControl()
                 .UseQueryCache());
 
         // act
         var httpClient = gateway.CreateClient();
-        var response = await httpClient.PostGraphQLAsync("{ sharedData }");
+        var response = await httpClient.SendGraphQLAsync(new HttpMethod(method), "{ sharedData }");
 
         // assert
         Assert.NotNull(response.Headers.CacheControl);
-        Assert.Equal(TimeSpan.FromSeconds(1800), response.Headers.CacheControl!.SharedMaxAge);
+        Assert.Equal(TimeSpan.FromSeconds(1800), response.Headers.CacheControl.SharedMaxAge);
     }
 
     [Fact]
@@ -295,11 +298,20 @@ public static class MutationSchema
 
 internal static class TestHttpClientExtensions
 {
-    public static async Task<HttpResponseMessage> PostGraphQLAsync(
-        this HttpClient client, string query)
+    public static Task<HttpResponseMessage> PostGraphQLAsync(this HttpClient client, string query)
+        => client.SendGraphQLAsync(HttpMethod.Post, query);
+
+    public static async Task<HttpResponseMessage> SendGraphQLAsync(
+        this HttpClient client,
+        HttpMethod method,
+        string query)
     {
         var payload = $$"""{"query":"{{query}}"}""";
-        var content = new StringContent(payload, Encoding.UTF8, "application/json");
-        return await client.PostAsync("/graphql", content);
+        using var request = new HttpRequestMessage(method, "/graphql")
+        {
+            Content = new StringContent(payload, Encoding.UTF8, "application/json")
+        };
+
+        return await client.SendAsync(request);
     }
 }

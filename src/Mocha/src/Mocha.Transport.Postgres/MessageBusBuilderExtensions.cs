@@ -1,3 +1,6 @@
+using Microsoft.Extensions.DependencyInjection;
+using Mocha.Scheduling;
+
 namespace Mocha.Transport.Postgres;
 
 /// <summary>
@@ -22,6 +25,11 @@ public static class PostgresMessageBusBuilderExtensions
         var transport = new PostgresMessagingTransport(x => configure(x.AddDefaults()));
 
         busBuilder.ConfigureMessageBus(b => b.AddTransport(transport));
+        busBuilder.Services.AddSingleton(
+            new ScheduledMessageStoreRegistration(
+                transport,
+                PostgresTransportScheduledMessageStore.TokenPrefix,
+                _ => new PostgresTransportScheduledMessageStore(transport)));
 
         return busBuilder;
     }

@@ -1,5 +1,8 @@
+using System.Reflection;
 using HotChocolate.Execution;
+using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
+using static CookieCrumble.TestEnvironment;
 
 namespace HotChocolate.Data.Projections;
 
@@ -99,6 +102,12 @@ public class QueryableProjectionFilterTests
         new()
     ];
 
+    private static readonly ParentWithObliviousNavigation[] s_parentsWithObliviousNavigation =
+    [
+        new() { Child = new OptionalChild() },
+        new()
+    ];
+
     private readonly SchemaCache _cache = new();
 
     [Fact]
@@ -133,13 +142,14 @@ public class QueryableProjectionFilterTests
                         }
                     }
                     """)
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
-            .Create(postFix: TestEnvironment.TargetFramework)
+            .Create(Postfix([NET8_0], [NET9_0], [NET10_0]))
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -175,13 +185,14 @@ public class QueryableProjectionFilterTests
                         }
                     }
                     """)
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
-            .Create(postFix: TestEnvironment.TargetFramework)
+            .Create(Postfix([NET8_0], [NET9_0], [NET10_0]))
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -216,13 +227,14 @@ public class QueryableProjectionFilterTests
                         }
                     }
                     """)
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
-            .Create(postFix: TestEnvironment.TargetFramework)
+            .Create(Postfix([NET8_0], [NET9_0], [NET10_0]))
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -258,13 +270,14 @@ public class QueryableProjectionFilterTests
                         }
                     }
                     """)
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
-            .Create(postFix: TestEnvironment.TargetFramework)
+            .Create(Postfix([NET8_0], [NET9_0], [NET10_0]))
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -284,13 +297,14 @@ public class QueryableProjectionFilterTests
                             }
                         }
                     }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -312,13 +326,14 @@ public class QueryableProjectionFilterTests
                             }
                         }
                     }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -345,13 +360,67 @@ public class QueryableProjectionFilterTests
                             }
                         }
                     }")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Projection_Should_Preserve_Null_When_Optional_Navigation_Nullability_Is_Unknown()
+    {
+        // arrange
+        var childProperty = typeof(ParentWithObliviousNavigation)
+            .GetProperty(nameof(ParentWithObliviousNavigation.Child))!;
+        var nullabilityInfo = new NullabilityInfoContext().Create(childProperty);
+        Assert.Equal(NullabilityState.Unknown, nullabilityInfo.ReadState);
+
+        var tester = _cache.CreateSchema(
+            s_parentsWithObliviousNavigation,
+            ConfigureObliviousOptionalNavigation,
+            objectType: new ObjectType<ParentWithObliviousNavigation>(
+                descriptor => descriptor
+                    .Field(x => x.Child)
+                    .Type<ObjectType<OptionalChild>>()));
+
+        // act
+        var result = await tester.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    """
+                    {
+                        root {
+                            child {
+                                id
+                            }
+                        }
+                    }
+                    """)
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "root": [
+                  {
+                    "child": {
+                      "id": 1
+                    }
+                  },
+                  {
+                    "child": null
+                  }
+                ]
+              }
+            }
+            """);
     }
 
     private static void OnModelCreating(ModelBuilder modelBuilder)
@@ -359,6 +428,15 @@ public class QueryableProjectionFilterTests
         modelBuilder.Entity<Foo>().HasMany(x => x.ObjectArray);
         modelBuilder.Entity<Foo>().HasOne(x => x.NestedObject);
         modelBuilder.Entity<Bar>().HasOne(x => x.Foo);
+    }
+
+    private static void ConfigureObliviousOptionalNavigation(ModelBuilder modelBuilder)
+    {
+        modelBuilder
+            .Entity<ParentWithObliviousNavigation>()
+            .HasOne(x => x.Child)
+            .WithMany()
+            .IsRequired(false);
     }
 
     public class Foo
@@ -433,6 +511,22 @@ public class QueryableProjectionFilterTests
         public int Id { get; set; }
 
         public FooNullable? Foo { get; set; }
+    }
+
+#nullable disable
+
+    public class ParentWithObliviousNavigation
+    {
+        public int Id { get; set; }
+
+        public OptionalChild Child { get; set; }
+    }
+
+#nullable restore
+
+    public class OptionalChild
+    {
+        public int Id { get; set; }
     }
 
     public enum BarEnum

@@ -20,8 +20,8 @@ schema {
   mutation: Mutation
 }
 
-interface Error {
-  message: String!
+type Mutation {
+  throw: ThrowPayload!
 }
 
 type CustomError implements Error {
@@ -32,10 +32,6 @@ type CustomNullRef implements Error {
   message: String!
 }
 
-type Mutation {
-  throw: ThrowPayload!
-}
-
 type Payload {
   foo: String!
 }
@@ -43,6 +39,10 @@ type Payload {
 type ThrowPayload {
   payload: Payload
   errors: [ThrowError!]
+}
+
+interface Error {
+  message: String!
 }
 
 union ThrowError = CustomError | CustomNullRef

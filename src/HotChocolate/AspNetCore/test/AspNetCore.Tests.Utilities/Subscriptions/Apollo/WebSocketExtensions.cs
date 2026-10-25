@@ -58,9 +58,9 @@ public static class WebSocketExtensions
         bool largeMessage = false)
     {
         await SendMessageAsync(
-           webSocket,
-           new DataStartMessage(subscriptionId, request),
-           largeMessage);
+            webSocket,
+            new DataStartMessage(subscriptionId, request),
+            largeMessage);
     }
 
     public static async Task SendSubscriptionStopAsync(

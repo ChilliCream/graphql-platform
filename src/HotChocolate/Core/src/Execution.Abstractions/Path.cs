@@ -48,22 +48,11 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
     /// <returns>
     /// Returns the new path segment.
     /// </returns>
-    /// <exception cref="InvalidOperationException">
-    /// Appending an indexer on the root segment is not allowed.
-    /// </exception>
     /// <exception cref="ArgumentOutOfRangeException">
     /// The index must be greater than or equal to zero.
     /// </exception>
     public Path Append(int index)
-    {
-        if (this is RootPathSegment)
-        {
-            throw new InvalidOperationException(
-                "Appending an indexer on the root segment is not allowed.");
-        }
-
-        return new IndexerPathSegment(this, index);
-    }
+        => new IndexerPathSegment(this, index);
 
     /// <summary>
     /// Appends another path to this path.

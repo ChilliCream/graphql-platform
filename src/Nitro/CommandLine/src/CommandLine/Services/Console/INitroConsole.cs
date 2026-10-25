@@ -14,5 +14,9 @@ internal interface INitroConsole : IAnsiConsole
 
     IAnsiConsole Error { get; }
 
+    void WriteRawLine(string value);
+
     void SetOutputFormat(OutputFormat format);
+
+    INitroConsoleActivity StartActivity(string title, string failureMessage);
 }

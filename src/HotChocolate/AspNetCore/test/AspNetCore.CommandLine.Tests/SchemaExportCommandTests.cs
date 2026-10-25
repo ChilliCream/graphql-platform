@@ -86,9 +86,178 @@ public class SchemaExportCommandTests : IDisposable
         await app.InvokeAsync($"schema export --output {tempFile}", output);
 
         // assert
-        snapshot.Add(await File.ReadAllTextAsync(tempFile + ".graphqls"), "Schema", markdownLanguage: "graphql");
-        snapshot.Add(await File.ReadAllTextAsync(tempFile + "-settings.json"), "Settings", markdownLanguage: "json");
-        await snapshot.MatchMarkdownAsync();
+        snapshot.Add(
+            await File.ReadAllTextAsync(tempFile + ".graphqls", TestContext.Current.CancellationToken),
+            "Schema",
+            markdownLanguage: "graphql");
+        snapshot.Add(
+            await File.ReadAllTextAsync(tempFile + "-settings.json", TestContext.Current.CancellationToken),
+            "Settings",
+            markdownLanguage: "json");
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task App_Should_WriteSemanticNonNullSchemaToFile_When_SemanticNonNullOptionIsSpecified()
+    {
+        // arrange
+        var snapshot = new Snapshot();
+        var services = new ServiceCollection();
+        services.AddGraphQL()
+            .AddQueryType(x => x.Name("Query").Field("foo").Type<NonNullType<StringType>>().Resolve("bar"));
+
+        var hostMock = new Mock<IHost>();
+        hostMock
+            .Setup(x => x.Services)
+            .Returns(services.BuildServiceProvider());
+
+        var host = hostMock.Object;
+        var output = new StringWriter();
+        var app = new App(host);
+        var tempFile = CreateSchemaFileName();
+
+        // act
+        await app.InvokeAsync($"schema export --output {tempFile} --semantic-non-null", output);
+
+        // assert
+        snapshot.Add(
+            await File.ReadAllTextAsync(tempFile + ".graphqls", TestContext.Current.CancellationToken),
+            "Schema",
+            markdownLanguage: "graphql");
+        snapshot.Add(
+            await File.ReadAllTextAsync(tempFile + "-settings.json", TestContext.Current.CancellationToken),
+            "Settings",
+            markdownLanguage: "json");
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task App_Should_WriteOctober2021Schema_When_SpecVersionIsSpecified()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddGraphQL()
+            .AddQueryType(x =>
+            {
+                x.Name("Query").Tag("schema-export");
+                x.Field("foo").Resolve("bar");
+            });
+
+        var hostMock = new Mock<IHost>();
+        hostMock
+            .Setup(x => x.Services)
+            .Returns(services.BuildServiceProvider());
+
+        var host = hostMock.Object;
+        var output = new StringWriter();
+        var app = new App(host);
+        var tempFile = CreateSchemaFileName();
+
+        // act
+        var exitCode = await app.InvokeAsync(
+            $"schema export --output {tempFile} --spec-version october-2021",
+            output);
+
+        // assert
+        Assert.Equal(0, exitCode);
+        (await File.ReadAllTextAsync(tempFile + ".graphqls", TestContext.Current.CancellationToken))
+            .MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task App_Should_AcceptIsoSeptember2025SpecVersion_When_SpecVersionIsSpecified()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddGraphQL()
+            .AddQueryType(x => x.Name("Query").Field("foo").Resolve("bar"));
+
+        var hostMock = new Mock<IHost>();
+        hostMock
+            .Setup(x => x.Services)
+            .Returns(services.BuildServiceProvider());
+
+        var host = hostMock.Object;
+        var output = new StringWriter();
+        var app = new App(host);
+        var tempFile = CreateSchemaFileName();
+
+        // act
+        var exitCode = await app.InvokeAsync(
+            $"schema export --output {tempFile} --spec-version 2025-09",
+            output);
+
+        // assert
+        Assert.Equal(0, exitCode);
+        Assert.True(File.Exists(tempFile + ".graphqls"));
+    }
+
+    [Fact]
+    public async Task App_Should_ReturnErrorWithoutWritingFile_When_SpecVersionIsUnknown()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddGraphQL()
+            .AddQueryType(x => x.Name("Query").Field("foo").Resolve("bar"));
+
+        var hostMock = new Mock<IHost>();
+        hostMock
+            .Setup(x => x.Services)
+            .Returns(services.BuildServiceProvider());
+
+        var host = hostMock.Object;
+        var output = new StringWriter();
+        var app = new App(host);
+        var command = new ExportCommand(host);
+        var tempFile = CreateSchemaFileName();
+
+        // act
+        var errors = command.Parse("--spec-version foo").Errors;
+        var exitCode = await app.InvokeAsync(
+            $"schema export --output {tempFile} --spec-version foo",
+            output);
+
+        // assert
+        Assert.Equal(1, exitCode);
+        Assert.Collection(
+            errors,
+            error => Assert.Equal(
+                "Unknown spec version 'foo'. Supported values: october-2021, september-2025.",
+                error.Message));
+        Assert.False(File.Exists(tempFile + ".graphqls"));
+    }
+
+    [Fact]
+    public async Task App_Should_PreserveSemanticNonNullDirective_When_October2021SpecVersionIsSpecified()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddGraphQL()
+            .AddQueryType(x =>
+            {
+                x.Name("Query").Tag("schema-export");
+                x.Field("foo").Type<NonNullType<StringType>>().Resolve("bar");
+            });
+
+        var hostMock = new Mock<IHost>();
+        hostMock
+            .Setup(x => x.Services)
+            .Returns(services.BuildServiceProvider());
+
+        var host = hostMock.Object;
+        var output = new StringWriter();
+        var app = new App(host);
+        var tempFile = CreateSchemaFileName();
+
+        // act
+        var exitCode = await app.InvokeAsync(
+            $"schema export --output {tempFile} --semantic-non-null --spec-version october-2021",
+            output);
+
+        // assert
+        Assert.Equal(0, exitCode);
+        (await File.ReadAllTextAsync(tempFile + ".graphqls", TestContext.Current.CancellationToken))
+            .MatchSnapshot();
     }
 
     [Fact]
@@ -113,6 +282,62 @@ public class SchemaExportCommandTests : IDisposable
 
         // assert
         output.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task App_Should_PreserveUnescapedAngleBrackets_When_UpdatingExistingSettingsFile()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddGraphQL()
+            .AddQueryType(x => x.Name("Query").Field("foo").Resolve("bar"));
+
+        var hostMock = new Mock<IHost>();
+        hostMock
+            .Setup(x => x.Services)
+            .Returns(services.BuildServiceProvider());
+
+        var host = hostMock.Object;
+        var output = new StringWriter();
+        var app = new App(host);
+        var tempFile = CreateSchemaFileName();
+        var settingsFile = tempFile + "-settings.json";
+
+        const string existingSettings =
+            """
+            {
+              "name": "default",
+              "satisfiability": {
+                "ignoredNonAccessibleFields": {
+                  "Foo.bar": [
+                    "Schema1:Query.foo<Bar>"
+                  ]
+                }
+              }
+            }
+            """;
+
+        await File.WriteAllTextAsync(settingsFile, existingSettings, TestContext.Current.CancellationToken);
+
+        // act
+        await app.InvokeAsync($"schema export --output {tempFile}", output);
+
+        // assert
+        var actual = await File.ReadAllTextAsync(settingsFile, TestContext.Current.CancellationToken);
+        actual.ReplaceLineEndings("\n").MatchInlineSnapshot(
+            """
+            {
+              "name": "_Default",
+              "satisfiability": {
+                "ignoredNonAccessibleFields": {
+                  "Foo.bar": [
+                    "Schema1:Query.foo<Bar>"
+                  ]
+                }
+              }
+            }
+
+            """);
     }
 
     [Fact]

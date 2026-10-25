@@ -1,0 +1,5 @@
+For more details look at the `Errors` property.
+
+1. Unable to infer or resolve a schema type from the type reference `IMyArg (Input)`.
+
+NestedQuery.GetFoo -> FooWithBar.Bar -> BarWithBaz.Baz(input) -> IMyArg (HotChocolate.Types.ObjectType<HotChocolate.Configuration.TypeDiscovererTests.BarWithBaz>)

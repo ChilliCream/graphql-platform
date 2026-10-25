@@ -69,27 +69,14 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
     public Uri Address { get; protected set; } = null!;
 
     /// <summary>
+    /// Gets the stable URN identity of this receive endpoint.
+    /// </summary>
+    public string Urn { get; private set; } = null!;
+
+    /// <summary>
     /// Gets the classification of this receive endpoint.
     /// </summary>
     public ReceiveEndpointKind Kind { get; protected set; }
-
-    /// <summary>
-    /// Gets the dispatch endpoint to which faulted messages are forwarded.
-    /// </summary>
-    /// <remarks>
-    /// When <see langword="null"/>, faulted messages are not forwarded to an error queue.
-    /// Configured via <see cref="ReceiveEndpointConfiguration.ErrorEndpoint"/>.
-    /// </remarks>
-    public DispatchEndpoint? ErrorEndpoint { get; protected set; }
-
-    /// <summary>
-    /// Gets the dispatch endpoint to which skipped (unrecognized) messages are forwarded.
-    /// </summary>
-    /// <remarks>
-    /// When <see langword="null"/>, skipped messages are not forwarded.
-    /// Configured via <see cref="ReceiveEndpointConfiguration.SkippedEndpoint"/>.
-    /// </remarks>
-    public DispatchEndpoint? SkippedEndpoint { get; protected set; }
 
     /// <summary>
     /// Gets the feature collection associated with this endpoint for storing extensibility data.
@@ -103,7 +90,7 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
     /// Allocates a scoped <see cref="IServiceProvider"/>, retrieves a pooled
     /// <see cref="ReceiveContext"/>, configures it via <paramref name="configure"/>, and
     /// executes the compiled middleware pipeline. Exceptions that escape the pipeline are
-    /// caught and logged at the Critical level to prevent transport-level crashes.
+    /// logged at the Critical level unless message processing was cancelled.
     /// </remarks>
     /// <typeparam name="TState">The type of caller-provided state passed to the configure action.</typeparam>
     /// <param name="configure">
@@ -117,6 +104,8 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
         TState state,
         CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var logger = _runtimeState!.Logger;
         var services = _runtimeState!.ServiceProvider;
         var pools = _runtimeState.Pools;
@@ -136,7 +125,7 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
 
             await _pipeline(context);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
         {
             // exceptions should technically never bubble up here.
             logger.LogCritical(ex, "Error processing message");
@@ -164,10 +153,13 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
     {
         AssertUninitialized();
 
+        Transport.Routing.ConfigureEndpoint(context, configuration);
         Transport.Conventions.Configure(context, Transport, configuration);
+
         Configuration = configuration;
         Kind = configuration.Kind;
         Name = configuration.Name ?? throw ThrowHelper.EndpointNameRequired();
+        Urn = MochaUrn.ReceiveEndpoint(context.Host.EffectiveServiceName, Transport.Schema, Transport.Name, Name);
         configuration.Features.CopyTo(Features);
 
         OnInitialize(context, Configuration);
@@ -190,8 +182,21 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
     /// <param name="context">The messaging configuration context used for topology discovery.</param>
     public void DiscoverTopology(IMessagingConfigurationContext context)
     {
-        Transport.Conventions.DiscoverTopology(context, this, Configuration);
+        OnDiscoverTopology(context, Configuration);
+
+        Transport.Routing.DiscoverTopology(context, this, Configuration);
     }
+
+    /// <summary>
+    /// When overridden in a derived class, ensures the endpoint's own backing resource exists before
+    /// the topology conventions run.
+    /// </summary>
+    /// <param name="context">The messaging configuration context.</param>
+    /// <param name="configuration">The receive endpoint configuration.</param>
+    protected virtual void OnDiscoverTopology(
+        IMessagingConfigurationContext context,
+        ReceiveEndpointConfiguration configuration)
+    { }
 
     /// <summary>
     /// Finalizes the endpoint configuration by compiling the receive pipeline and resolving
@@ -210,14 +215,16 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
 
         Address ??= new UriBuilder { Scheme = Transport.Schema, Path = Name }.Uri;
 
-        if (ErrorEndpoint is null && Configuration.ErrorEndpoint is { } errorAddress)
+        var faultFeature = Features.Get<ReceiveFaultEndpointFeature>();
+        if (faultFeature is { Endpoint: null, Address: { } faultAddress })
         {
-            ErrorEndpoint = context.Endpoints.GetOrCreate(context, errorAddress);
+            faultFeature.Endpoint = context.Endpoints.GetOrCreate(context, faultAddress);
         }
 
-        if (SkippedEndpoint is null && Configuration.SkippedEndpoint is { } skippedAddress)
+        var skippedFeature = Features.Get<ReceiveSkippedEndpointFeature>();
+        if (skippedFeature is { Endpoint: null, Address: { } skippedAddress })
         {
-            SkippedEndpoint = context.Endpoints.GetOrCreate(context, skippedAddress);
+            skippedFeature.Endpoint = context.Endpoints.GetOrCreate(context, skippedAddress);
         }
 
         _pipeline = MiddlewareCompiler.CompileReceive(
@@ -283,9 +290,8 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
     /// Stops this endpoint, ceasing message consumption and releasing runtime resources.
     /// </summary>
     /// <remarks>
-    /// Delegates to <see cref="OnStopAsync"/> for transport-specific shutdown and clears
-    /// the runtime state. This method is idempotent; calling it on an already-stopped
-    /// endpoint is a no-op.
+    /// Delegates to <see cref="OnStopAsync"/> for transport-specific shutdown. This method is
+    /// idempotent; calling it on an already-stopped endpoint is a no-op.
     /// </remarks>
     /// <param name="context">The messaging runtime context.</param>
     /// <param name="cancellationToken">Token to signal cancellation of the stop operation.</param>
@@ -298,7 +304,6 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
 
         await OnStopAsync(context, cancellationToken);
 
-        _runtimeState = null;
         IsStarted = false;
     }
 
@@ -345,11 +350,15 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
     /// </returns>
     public ReceiveEndpointDescription Describe()
     {
-        return new ReceiveEndpointDescription(Name, Kind, Address?.ToString(), Source?.Address?.ToString());
+        return new ReceiveEndpointDescription(Urn, Name, Kind, Address?.ToString(), Source?.Address?.ToString());
     }
 
     private static async ValueTask DefaultPipeline(IReceiveContext context)
     {
+        // The parsing feature has to live on the receive context so consumer attempts, which run
+        // on clones that fall back to the receive context's features, share one lazily deserialized message.
+        context.Features.GetOrSet<MessageParsingFeature>();
+
         var feature = context.Features.GetOrSet<ReceiveConsumerFeature>();
         var consumers = feature.Consumers;
 

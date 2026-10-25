@@ -11,20 +11,54 @@ namespace HotChocolate.Fusion.Satisfiability;
 
 internal sealed class RequirementsValidator(
     MutableSchemaDefinition schema,
-    bool includeSatisfiabilityPaths = false)
+    FusionLookupDirectiveCache lookupCache,
+    SatisfiabilityFacts facts,
+    bool includeSatisfiabilityPaths)
 {
+    private readonly FusionLookupDirectiveCache _lookupCache = lookupCache;
+    private readonly SatisfiabilityFacts _facts = facts;
+
+    /// <summary>
+    /// Validates that <paramref name="requirements"/> can be resolved for
+    /// <paramref name="contextType"/> at the position described by <paramref name="parentPathItem"/>.
+    /// </summary>
+    /// <param name="requirements">The requirement selection set.</param>
+    /// <param name="contextType">The object type the requirements are selected on.</param>
+    /// <param name="parentPathItem">The path item holding the type, or null at a root type.</param>
+    /// <param name="ancestors">
+    /// The path items above <paramref name="parentPathItem"/>, from the nearest to the root, or an
+    /// empty list when no path based transition may continue above it.
+    /// </param>
+    /// <param name="excludeSchemaName">
+    /// The schema that must not resolve the requirement, or null to allow every schema.
+    /// </param>
+    /// <param name="allowNestedFieldsFromExcludedSchema">
+    /// Whether the excluded schema may resolve the fields below the first level of the requirement.
+    /// </param>
+    /// <param name="cycleDetectionPath">The shared cycle detection path, or null to start a new one.</param>
+    /// <param name="unavailableSchemaNames">
+    /// Schemas whose data is unavailable at the position for any purpose, including lookup keys
+    /// and nested requirements.
+    /// </param>
+    /// <returns>The satisfiability errors, empty when the requirements are satisfiable.</returns>
     public ImmutableArray<SatisfiabilityError> Validate(
         SelectionSetNode requirements,
         MutableObjectTypeDefinition contextType,
         SatisfiabilityPathItem? parentPathItem,
-        string excludeSchemaName,
-        SatisfiabilityPath? cycleDetectionPath = null)
+        IReadOnlyList<SatisfiabilityPathItem> ancestors,
+        string? excludeSchemaName,
+        bool allowNestedFieldsFromExcludedSchema = false,
+        SatisfiabilityPath? cycleDetectionPath = null,
+        ImmutableHashSet<string>? unavailableSchemaNames = null)
     {
         var context = new RequirementsValidatorContext(
             contextType,
             parentPathItem,
+            ancestors,
             excludeSchemaName,
-            cycleDetectionPath);
+            allowNestedFieldsFromExcludedSchema,
+            cycleDetectionPath,
+            unavailableSchemaNames ?? []);
 
         var errors = new List<SatisfiabilityError>();
 
@@ -88,20 +122,11 @@ internal sealed class RequirementsValidator(
                     }
 
                     var fragmentType = schema.Types[inlineFragmentNode.TypeCondition.Name.Value];
-                    var fragmentPossibleTypes = schema.GetPossibleTypes(fragmentType);
 
-                    foreach (var possibleType in fragmentPossibleTypes)
+                    // The fragment only applies when the current type is one of its possible types.
+                    if (schema.GetPossibleTypes(fragmentType).Contains(context.TypeContext.Peek()))
                     {
-                        context.TypeContext.Push(possibleType);
-
-                        var requirementErrors = Visit(inlineFragmentNode.SelectionSet, context);
-
-                        if (requirementErrors.Any())
-                        {
-                            errors.AddRange(requirementErrors);
-                        }
-
-                        context.TypeContext.Pop();
+                        errors.AddRange(Visit(inlineFragmentNode.SelectionSet, context));
                     }
 
                     break;
@@ -132,22 +157,58 @@ internal sealed class RequirementsValidator(
 
         var previousPathItem = context.Path.TryPeek(out var item) ? item : null;
         var previousSchemaName = previousPathItem?.SchemaName;
-        var cacheKey = new FieldAccessCacheKey(field, type, previousSchemaName);
+
+        // The excluded schema never resolves a first-level field of the requirement, and resolves a
+        // nested field only when the context allows it.
+        var excludeSchemaName =
+            context.Depth == 0 || !context.AllowNestedFieldsFromExcludedSchema
+                ? context.ExcludeSchemaName
+                : null;
+        var cacheKey = new FieldAccessCacheKey(field, type, previousSchemaName, excludeSchemaName);
 
         if (context.FieldAccessCache.Contains(cacheKey))
         {
             return [];
         }
 
-        var schemaNames = field.GetSchemaNames().Remove(context.ExcludeSchemaName);
+        var schemaNames = field.GetSchemaNames();
+        if (excludeSchemaName is not null)
+        {
+            schemaNames = schemaNames.Remove(excludeSchemaName);
+        }
+        if (!context.UnavailableSchemaNames.IsEmpty)
+        {
+            schemaNames = schemaNames.RemoveAll(context.UnavailableSchemaNames.Contains);
+        }
         var fieldType = field.Type.AsTypeDefinition();
+        var optionCount = 0;
+        var skippedDueToProvidedSelectionSet = false;
+
+        // The fixpoint facts are computed with the data of every schema available, so they can
+        // only confirm a transition or requirement when no schema is unavailable.
+        var canUseFacts = context.UnavailableSchemaNames.IsEmpty;
 
         foreach (var schemaName in schemaNames)
         {
-            // If the field is marked as partial, it must be provided by the current schema for it
-            // to be an option.
+            SelectionSetNode? providedSelectionSet = null;
+
+            if (previousPathItem?.ProvidedSelectionSet is not null
+                && previousSchemaName == schemaName
+                && !previousPathItem.TryGetProvidedSelectionSet(
+                    field,
+                    type,
+                    schemaName,
+                    schema,
+                    out providedSelectionSet))
+            {
+                skippedDueToProvidedSelectionSet = true;
+                continue;
+            }
+
+            // A partial (@external) field is never a resolution candidate in its declaring schema;
+            // only an event stream message can make it an option. @provides never does (PR #231).
             if (field.IsPartial(schemaName)
-                && previousPathItem?.Provides(field, type, schemaName, schema) != true)
+                && previousPathItem?.ProvidesViaEventStream(field, type, schemaName, schema) != true)
             {
                 continue;
             }
@@ -167,8 +228,14 @@ internal sealed class RequirementsValidator(
                 continue;
             }
 
-            // Validate transition between source schemas.
-            if (previousSchemaName != schemaName)
+            // Validate transition between source schemas. The fixpoint answers the direct-lookup
+            // route in O(1); only when it cannot confirm the transition, or when a provided selection
+            // set narrows the context, do we fall back to the full recursion that builds the error.
+            if (previousSchemaName != schemaName
+                && (previousSchemaName is null
+                    || previousPathItem?.ProvidedSelectionSet is not null
+                    || !canUseFacts
+                    || !_facts.CanTransition(type, schemaName, previousSchemaName)))
             {
                 var transitionErrors = ValidateSourceSchemaTransition(
                     type,
@@ -192,18 +259,47 @@ internal sealed class RequirementsValidator(
                 }
             }
 
-            // Validate field requirements (@require).
+            // Validate field requirements (@require). The fixpoint answers whether the requirement
+            // holds in O(1); only when it does not, or when a provided selection set narrows the
+            // context, do we re-run the recursion to build the error tree.
             var requirements = field.GetFusionRequiresRequirements(schemaName);
 
-            if (requirements is not null)
+            if (requirements is not null
+                && (previousPathItem?.ProvidedSelectionSet is not null
+                    || !canUseFacts
+                    || !_facts.IsFieldResolvableOn(type, field, schemaName)))
             {
+                // The path above the requiring field is the requirement path followed by the path
+                // above the context.
+                IReadOnlyList<SatisfiabilityPathItem> ancestors =
+                    [.. context.Path.Skip(1), .. context.Ancestors];
+
                 var requirementErrors =
-                    new RequirementsValidator(schema, includeSatisfiabilityPaths).Validate(
+                    Validate(
                         requirements,
                         type,
-                        context.Path.Peek(),
+                        previousPathItem,
+                        ancestors,
                         excludeSchemaName: schemaName,
-                        context.CycleDetectionPath);
+                        allowNestedFieldsFromExcludedSchema: true,
+                        cycleDetectionPath: context.CycleDetectionPath,
+                        unavailableSchemaNames: context.UnavailableSchemaNames);
+
+                if (requirementErrors.IsEmpty)
+                {
+                    requirementErrors =
+                        ValidateReentry(
+                            requirements,
+                            type,
+                            field,
+                            schemaName,
+                            previousPathItem,
+                            ancestors,
+                            RequirementsValidator_NoLookupForRequiringField,
+                            RequirementsValidator_UnableToSatisfyRequirementForLookup,
+                            cycleDetectionPath: context.CycleDetectionPath,
+                            unavailableSchemaNames: context.UnavailableSchemaNames);
+                }
 
                 if (requirementErrors.Length != 0)
                 {
@@ -221,9 +317,10 @@ internal sealed class RequirementsValidator(
                 }
             }
 
+            optionCount++;
             context.CycleDetectionPath.Pop();
 
-            context.Path.Push(pathItem);
+            context.Path.Push(pathItem with { ProvidedSelectionSet = providedSelectionSet });
 
             if (fieldNode.SelectionSet is null)
             {
@@ -234,6 +331,8 @@ internal sealed class RequirementsValidator(
 
             var possibleTypes = fieldType.GetPossibleTypes(schemaName, schema);
             var childErrors = new List<SatisfiabilityError>();
+
+            context.Depth++;
 
             foreach (var possibleType in possibleTypes)
             {
@@ -252,6 +351,8 @@ internal sealed class RequirementsValidator(
                 context.TypeContext.Pop();
             }
 
+            context.Depth--;
+
             if (childErrors.Count == 0)
             {
                 errors.Clear();
@@ -269,9 +370,14 @@ internal sealed class RequirementsValidator(
             }
         }
 
-        context.FieldAccessCache.Add(cacheKey);
+        // Only a successful access is reused; a failed access is validated again where it recurs.
+        if (optionCount > 0 && errors.Count == 0)
+        {
+            context.FieldAccessCache.Add(cacheKey);
+        }
 
-        if (schemaNames.Length == 0)
+        if (schemaNames.Length == 0
+            || (optionCount == 0 && errors.Count == 0 && skippedDueToProvidedSelectionSet))
         {
             errors.Add(
                 new SatisfiabilityError(
@@ -289,94 +395,132 @@ internal sealed class RequirementsValidator(
         RequirementsValidatorContext context,
         string transitionToSchemaName)
     {
-        var errors = new List<SatisfiabilityError>();
+        return SourceSchemaTransitionHelper.ValidateSourceSchemaTransition(
+            schema,
+            _lookupCache,
+            type,
+            transitionToSchemaName,
+            [.. context.Path, .. context.Ancestors],
+            (contextType, pathFromParent, lookupRequirements) =>
+                Validate(
+                    lookupRequirements,
+                    contextType,
+                    pathFromParent.Count > 0 ? pathFromParent[0] : null,
+                    pathFromParent.Count > 1 ? [.. pathFromParent.Skip(1)] : [],
+                    excludeSchemaName: transitionToSchemaName,
+                    cycleDetectionPath: context.CycleDetectionPath,
+                    unavailableSchemaNames: context.UnavailableSchemaNames),
+            RequirementsValidator_NoLookupsFoundForType,
+            RequirementsValidator_UnableToSatisfyRequirementForLookup,
+            queryViewerField: null);
+    }
 
-        var lookupDirectives =
-            schema.GetPossibleFusionLookupDirectives(type, transitionToSchemaName);
-
-        if (!lookupDirectives.Any() && !CanTransitionToSchemaThroughPath(context.Path, transitionToSchemaName))
+    /// <summary>
+    /// Validates that <paramref name="schemaName"/> can resolve <paramref name="field"/> once its
+    /// requirements have been fetched from other schemas. This holds when the requirements can be
+    /// resolved without data from the schema, or when the schema has a lookup for
+    /// <paramref name="type"/> whose key is resolvable while the type is held on the schema.
+    /// </summary>
+    /// <param name="requirements">The requirement selection set of the field.</param>
+    /// <param name="type">The object type declaring the field.</param>
+    /// <param name="field">The field with requirements.</param>
+    /// <param name="schemaName">The schema resolving the field.</param>
+    /// <param name="parentPathItem">The path item holding the type, or null at a root type.</param>
+    /// <param name="ancestors">
+    /// The path items above <paramref name="parentPathItem"/>, from the nearest to the root.
+    /// </param>
+    /// <param name="noLookupMessageFormat">The message format used when the schema cannot be re-entered.</param>
+    /// <param name="unableToSatisfyRequirementForLookupMessageFormat">
+    /// The message format used when a lookup key cannot be satisfied.
+    /// </param>
+    /// <param name="cycleDetectionPath">The shared cycle detection path, or null to start a new one.</param>
+    /// <param name="unavailableSchemaNames">
+    /// Schemas whose data is unavailable at the position for any purpose.
+    /// </param>
+    /// <returns>The satisfiability errors, empty when the field can be resolved.</returns>
+    public ImmutableArray<SatisfiabilityError> ValidateReentry(
+        SelectionSetNode requirements,
+        MutableObjectTypeDefinition type,
+        MutableOutputFieldDefinition field,
+        string schemaName,
+        SatisfiabilityPathItem? parentPathItem,
+        IReadOnlyList<SatisfiabilityPathItem> ancestors,
+        string noLookupMessageFormat,
+        string unableToSatisfyRequirementForLookupMessageFormat,
+        SatisfiabilityPath? cycleDetectionPath = null,
+        ImmutableHashSet<string>? unavailableSchemaNames = null)
+    {
+        if (schema.IsRootOperationType(type))
         {
-            errors.Add(
-                new SatisfiabilityError(
-                    string.Format(
-                        RequirementsValidator_NoLookupsFoundForType,
-                        type.Name,
-                        transitionToSchemaName)));
-
-            return [.. errors];
+            return [];
         }
 
-        foreach (var lookupDirective in lookupDirectives)
+        unavailableSchemaNames ??= [];
+
+        var lookupErrors = new List<SatisfiabilityError>();
+
+        foreach (var lookup in _lookupCache.GetPossibleFusionLookupDirectives(type, schemaName))
         {
-            var lookupKeyArg = (string)lookupDirective.Arguments["key"].Value!;
-            var lookupFieldArg = (string)lookupDirective.Arguments["field"].Value!;
-            var lookupPathArg = (string?)lookupDirective.Arguments["path"].Value;
-
+            var lookupKeyArg = (string)lookup.Arguments[WellKnownArgumentNames.Key].Value!;
+            var lookupFieldArg = (string)lookup.Arguments[WellKnownArgumentNames.Field].Value!;
+            var lookupPathArg = (string?)lookup.Arguments[WellKnownArgumentNames.Path].Value;
             var lookupRequirements = ParseSelectionSet($"{{ {lookupKeyArg} }}");
-            var lookupFieldName = ParseFieldDefinition(lookupFieldArg).Name.Value;
 
-            // Ensure that lookup requirements are satisfied.
-            var requirementErrors =
+            // The key is fetched by the first call to the schema, so the schema itself is a valid
+            // source for the key fields.
+            var keyErrors =
                 Validate(
                     lookupRequirements,
                     type,
-                    context.Path.Peek(),
-                    excludeSchemaName: transitionToSchemaName,
-                    context.CycleDetectionPath);
+                    parentPathItem,
+                    ancestors,
+                    excludeSchemaName: null,
+                    cycleDetectionPath: cycleDetectionPath,
+                    unavailableSchemaNames: unavailableSchemaNames);
 
-            if (requirementErrors.IsEmpty)
+            if (keyErrors.IsEmpty)
             {
                 return [];
             }
 
+            var lookupFieldName = ParseFieldDefinition(lookupFieldArg).Name.Value;
             var lookupName = lookupPathArg is null
                 ? lookupFieldName
                 : $"{lookupPathArg}.{lookupFieldName}";
 
-            errors.Add(
+            lookupErrors.Add(
                 new SatisfiabilityError(
                     string.Format(
-                        RequirementsValidator_UnableToSatisfyRequirementForLookup,
+                        unableToSatisfyRequirementForLookupMessageFormat,
                         lookupRequirements.ToString(indented: false),
                         lookupName,
-                        transitionToSchemaName),
-                    requirementErrors));
+                        schemaName),
+                    keyErrors));
         }
 
-        return [.. errors];
-    }
+        // Without a lookup the field can only be resolved by the call that already holds the type,
+        // which works when the requirements do not depend on data produced by that call.
+        var independentErrors =
+            Validate(
+                requirements,
+                type,
+                parentPathItem,
+                ancestors,
+                excludeSchemaName: schemaName,
+                cycleDetectionPath: cycleDetectionPath,
+                unavailableSchemaNames: unavailableSchemaNames.Add(schemaName));
 
-    /// <summary>
-    /// We check whether the path we're currently on exists one-to-one
-    /// on the given schema or whether a type on the path has a lookup
-    /// on the given schema.
-    /// </summary>
-    private bool CanTransitionToSchemaThroughPath(
-        SatisfiabilityPath path,
-        string schemaName)
-    {
-        foreach (var pathItem in path)
+        if (independentErrors.IsEmpty)
         {
-            var lookupDirectives =
-                schema.GetPossibleFusionLookupDirectives(
-                    pathItem.Type,
-                    schemaName);
-
-            var hasLookups = lookupDirectives.Count > 0;
-            var fieldExists = pathItem.Field.ExistsInSchema(schemaName);
-
-            if (hasLookups && fieldExists)
-            {
-                return true;
-            }
-
-            if (!fieldExists)
-            {
-                return false;
-            }
+            return [];
         }
 
-        return true;
+        return
+        [
+            new SatisfiabilityError(
+                string.Format(noLookupMessageFormat, type.Name, field.Name, schemaName),
+                [.. lookupErrors])
+        ];
     }
 }
 
@@ -385,8 +529,11 @@ internal sealed class RequirementsValidatorContext
     public RequirementsValidatorContext(
         MutableObjectTypeDefinition contextType,
         SatisfiabilityPathItem? parentPathItem,
-        string excludeSchemaName,
-        SatisfiabilityPath? cycleDetectionPath = null)
+        IReadOnlyList<SatisfiabilityPathItem> ancestors,
+        string? excludeSchemaName,
+        bool allowNestedFieldsFromExcludedSchema,
+        SatisfiabilityPath? cycleDetectionPath,
+        ImmutableHashSet<string> unavailableSchemaNames)
     {
         TypeContext.Push(contextType);
 
@@ -395,17 +542,46 @@ internal sealed class RequirementsValidatorContext
             Path.Push(parentPathItem);
         }
 
+        Ancestors = ancestors;
         ExcludeSchemaName = excludeSchemaName;
+        AllowNestedFieldsFromExcludedSchema = allowNestedFieldsFromExcludedSchema;
         CycleDetectionPath = cycleDetectionPath ?? [];
+        UnavailableSchemaNames = unavailableSchemaNames;
     }
 
     public Stack<MutableObjectTypeDefinition> TypeContext { get; } = [];
 
     public SatisfiabilityPath Path { get; } = [];
 
-    public string ExcludeSchemaName { get; }
+    /// <summary>
+    /// Gets the path items above the first item of <see cref="Path"/>, from the nearest to the root.
+    /// </summary>
+    public IReadOnlyList<SatisfiabilityPathItem> Ancestors { get; }
+
+    /// <summary>
+    /// Gets the schema that must not resolve the requirement, or null when every schema is allowed.
+    /// </summary>
+    public string? ExcludeSchemaName { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the excluded schema may resolve the fields below the first
+    /// level of the requirement.
+    /// </summary>
+    public bool AllowNestedFieldsFromExcludedSchema { get; }
+
+    /// <summary>
+    /// Gets or sets the number of requirement fields above the field being visited, which is zero
+    /// for a first-level field.
+    /// </summary>
+    public int Depth { get; set; }
 
     public SatisfiabilityPath CycleDetectionPath { get; }
+
+    /// <summary>
+    /// Gets the schemas whose data is unavailable at the position for any purpose, including
+    /// lookup keys and nested requirements.
+    /// </summary>
+    public ImmutableHashSet<string> UnavailableSchemaNames { get; }
 
     public HashSet<FieldAccessCacheKey> FieldAccessCache { get; } = [];
 }

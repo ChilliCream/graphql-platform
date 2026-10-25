@@ -63,8 +63,9 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
                 alias,
                 SelectionPath.Root,
                 field,
-                [new FieldSelectionNode(fieldNode, 0)],
+                [new FieldSelectionNode(fieldNode, default(ConditionFlags))],
                 [],
+                isProjectionRequirement: false,
                 isInternal: true,
                 resolverPipeline: nodesPipeline);
 
@@ -74,5 +75,5 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
         return selection;
     }
 
-    public static IsProjectedProjectionOptimizer Create(ProjectionProviderContext context) => new();
+    public static IsProjectedProjectionOptimizer Create(ProjectionProviderContext _) => new();
 }

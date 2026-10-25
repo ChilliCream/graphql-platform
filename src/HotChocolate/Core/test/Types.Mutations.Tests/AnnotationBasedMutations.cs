@@ -21,7 +21,7 @@ public partial class AnnotationBasedMutations
                 .AddMutationConventions(
                     new MutationConventionOptions { ApplyToAllMutations = true })
                 .ModifyOptions(o => o.StrictValidation = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -35,7 +35,7 @@ public partial class AnnotationBasedMutations
                 .AddMutationType<SimpleMutationWithErrorObj>()
                 .AddMutationConventions()
                 .ModifyOptions(o => o.StrictValidation = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -50,7 +50,7 @@ public partial class AnnotationBasedMutations
                 .AddMutationConventions()
                 .AddMutationErrorConfiguration<CustomErrorConfig>()
                 .ModifyOptions(o => o.StrictValidation = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -78,7 +78,8 @@ public partial class AnnotationBasedMutations
                         }
                       }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -93,7 +94,7 @@ public partial class AnnotationBasedMutations
                 .AddMutationType<SimpleMutation>()
                 .AddMutationConventions()
                 .AddQueryFieldToMutationPayloads()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -108,7 +109,7 @@ public partial class AnnotationBasedMutations
                 .AddMutationConventions(
                     new MutationConventionOptions { ApplyToAllMutations = true })
                 .ModifyOptions(o => o.StrictValidation = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -130,7 +131,8 @@ public partial class AnnotationBasedMutations
                         string
                       }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -146,7 +148,7 @@ public partial class AnnotationBasedMutations
                 .AddMutationConventions(
                     new MutationConventionOptions { ApplyToAllMutations = true })
                 .AddQueryFieldToMutationPayloads()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -162,7 +164,7 @@ public partial class AnnotationBasedMutations
                 .AddMutationConventions(
                     new MutationConventionOptions { ApplyToAllMutations = true })
                 .ModifyOptions(o => o.StrictValidation = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -185,7 +187,8 @@ public partial class AnnotationBasedMutations
                             string
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -208,7 +211,8 @@ public partial class AnnotationBasedMutations
                             string
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -222,18 +226,17 @@ public partial class AnnotationBasedMutations
                 .AddMutationType()
                 .AddTypeExtension<SimpleMutationExtension>()
                 .AddDirectiveType(
-                    new DirectiveType(
-                        d =>
-                        {
-                            d.Name("foo");
-                            d.Location(DirectiveLocation.Field);
-                            d.Use(
-                                (next, _) => async context =>
-                                {
-                                    // this is just a dummy middleware
-                                    await next(context);
-                                });
-                        }))
+                    d =>
+                    {
+                        d.Name("foo");
+                        d.Location(DirectiveLocation.Field);
+                        d.Use(
+                            (next, _) => async context =>
+                            {
+                                // this is just a dummy middleware
+                                await next(context);
+                            });
+                    })
                 .AddMutationConventions(
                     new MutationConventionOptions { ApplyToAllMutations = true })
                 .ModifyOptions(o => o.StrictValidation = false)
@@ -244,7 +247,8 @@ public partial class AnnotationBasedMutations
                             string
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -279,7 +283,8 @@ public partial class AnnotationBasedMutations
                         string
                       }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -294,7 +299,7 @@ public partial class AnnotationBasedMutations
                 .AddMutationConventions(
                     new MutationConventionOptions { ApplyToAllMutations = true })
                 .ModifyOptions(o => o.StrictValidation = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -309,7 +314,7 @@ public partial class AnnotationBasedMutations
                 .AddMutationType<SimpleMutationWithSingleError>()
                 .AddMutationConventions()
                 .AddQueryFieldToMutationPayloads()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -335,7 +340,8 @@ public partial class AnnotationBasedMutations
                             }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -350,7 +356,7 @@ public partial class AnnotationBasedMutations
                 .AddMutationConventions(
                     new MutationConventionOptions { ApplyToAllMutations = true })
                 .ModifyOptions(o => o.StrictValidation = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -372,7 +378,7 @@ public partial class AnnotationBasedMutations
                         ApplyToAllMutations = true
                     })
                 .ModifyOptions(o => o.StrictValidation = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -387,7 +393,7 @@ public partial class AnnotationBasedMutations
                 .AddMutationConventions(
                     new MutationConventionOptions { ApplyToAllMutations = true })
                 .ModifyOptions(o => o.StrictValidation = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -401,7 +407,7 @@ public partial class AnnotationBasedMutations
                 .AddMutationType<SimpleMutationAttribute>()
                 .AddMutationConventions(false)
                 .ModifyOptions(o => o.StrictValidation = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -415,7 +421,7 @@ public partial class AnnotationBasedMutations
                 .AddMutationType<SimpleMutationAttributeOptOut>()
                 .AddMutationConventions(true)
                 .ModifyOptions(o => o.StrictValidation = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -429,7 +435,7 @@ public partial class AnnotationBasedMutations
                 .AddMutationType<SimpleMutationPayloadOverride>()
                 .AddMutationConventions(true)
                 .ModifyOptions(o => o.StrictValidation = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -441,11 +447,13 @@ public partial class AnnotationBasedMutations
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddCostAnalyzer()
+                .ModifyCostOptions(o => o.DefaultListSize = 1)
                 .AddMutationType<SimpleMutationPayloadOverrideWithError>()
                 .AddMutationConventions(true)
                 .ModifyOptions(o => o.StrictValidation = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
+        Assert.Equal("Query", schema.QueryType.Name);
         schema.MatchSnapshot();
     }
 
@@ -458,7 +466,7 @@ public partial class AnnotationBasedMutations
                 .AddMutationType<SimpleMutationInputOverride>()
                 .AddMutationConventions(true)
                 .ModifyOptions(o => o.StrictValidation = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -473,7 +481,7 @@ public partial class AnnotationBasedMutations
                 .TryAddTypeInterceptor<SimpleMutation_ErrorViaTypeInterceptor>()
                 .AddMutationConventions(true)
                 .ModifyOptions(o => o.StrictValidation = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -487,7 +495,7 @@ public partial class AnnotationBasedMutations
                 .AddMutationType<MultipleArgumentMutation>()
                 .AddMutationConventions(true)
                 .ModifyOptions(o => o.StrictValidation = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -508,7 +516,8 @@ public partial class AnnotationBasedMutations
                             user { name }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -539,7 +548,8 @@ public partial class AnnotationBasedMutations
                             }
                             """)
                         .SetVariableValues(new Dictionary<string, object?> { { "id", id } })
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -563,7 +573,8 @@ public partial class AnnotationBasedMutations
                             user { name id }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -588,7 +599,8 @@ public partial class AnnotationBasedMutations
                             user { name }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -611,7 +623,8 @@ public partial class AnnotationBasedMutations
                             errors { ... on Error { message } }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -625,7 +638,7 @@ public partial class AnnotationBasedMutations
                 .AddMutationType<MutationWithUnionResult1>()
                 .AddMutationConventions()
                 .ModifyOptions(o => o.StrictValidation = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -649,7 +662,8 @@ public partial class AnnotationBasedMutations
                             errors { ... on Error { message } }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -674,7 +688,8 @@ public partial class AnnotationBasedMutations
                             errors { ... on Error { message } }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -698,7 +713,8 @@ public partial class AnnotationBasedMutations
                             errors { ... on Error { message } }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -712,7 +728,7 @@ public partial class AnnotationBasedMutations
                 .AddMutationType<MutationWithUnionResult2>()
                 .AddMutationConventions()
                 .ModifyOptions(o => o.StrictValidation = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -727,7 +743,7 @@ public partial class AnnotationBasedMutations
                 .AddTypeExtension<MutationWithUnionResult2_Task>()
                 .AddMutationConventions()
                 .ModifyOptions(o => o.StrictValidation = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -745,6 +761,24 @@ public partial class AnnotationBasedMutations
         var exception = await Assert.ThrowsAsync<SchemaException>(Error);
 
         exception.Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Error_Type_With_IList_Property_Should_Be_Treated_As_List()
+    {
+        // arrange & act
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithIListError>()
+                .AddMutationConventions()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        var errorType = schema.Types.GetType<ObjectType>("ErrorWithCodes");
+        Assert.Equal("[Int!]!", errorType.Fields["codes"].Type.ToString());
+        Assert.False(schema.Types.TryGetType<InterfaceType>("IListOfInt32", out _));
     }
 
     [Fact]
@@ -766,7 +800,8 @@ public partial class AnnotationBasedMutations
                             errors { ... on Error { message } }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -790,7 +825,8 @@ public partial class AnnotationBasedMutations
                             errors { ... on Error { message } }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -804,7 +840,7 @@ public partial class AnnotationBasedMutations
                 .AddMutationType<MutationWithUnionResult3>()
                 .AddMutationConventions()
                 .ModifyOptions(o => o.StrictValidation = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -828,7 +864,8 @@ public partial class AnnotationBasedMutations
                             errors { ... on Error { message } }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -852,7 +889,8 @@ public partial class AnnotationBasedMutations
                             errors { ... on Error { message } }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -866,7 +904,7 @@ public partial class AnnotationBasedMutations
                 .AddMutationType<MutationWithUnionResult4>()
                 .AddMutationConventions()
                 .ModifyOptions(o => o.StrictValidation = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -890,7 +928,8 @@ public partial class AnnotationBasedMutations
                             errors { ... on Error { message } }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -914,7 +953,8 @@ public partial class AnnotationBasedMutations
                             errors { ... on Error { message } }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
         result.MatchSnapshot();
     }
 
@@ -927,7 +967,7 @@ public partial class AnnotationBasedMutations
                 .AddMutationType<MutationWithUnionResult5>()
                 .AddMutationConventions()
                 .ModifyOptions(o => o.StrictValidation = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -951,7 +991,8 @@ public partial class AnnotationBasedMutations
                             errors { ... on Error { message } }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -975,7 +1016,8 @@ public partial class AnnotationBasedMutations
                             errors { ... on Error { message } }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -989,7 +1031,7 @@ public partial class AnnotationBasedMutations
                 .AddMutationType<MutationWithUnionResult6>()
                 .AddMutationConventions()
                 .ModifyOptions(o => o.StrictValidation = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -1013,7 +1055,8 @@ public partial class AnnotationBasedMutations
                             errors { ... on Error { message } }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -1037,7 +1080,8 @@ public partial class AnnotationBasedMutations
                             errors { ... on Error { message } }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -1051,7 +1095,7 @@ public partial class AnnotationBasedMutations
                 .AddMutationType<MutationWithUnionResult7>()
                 .AddMutationConventions()
                 .ModifyOptions(o => o.StrictValidation = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -1065,7 +1109,7 @@ public partial class AnnotationBasedMutations
                 .AddMutationType<MutationWithPayloadOverride>()
                 .AddMutationConventions()
                 .ModifyOptions(o => o.StrictValidation = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -1089,7 +1133,8 @@ public partial class AnnotationBasedMutations
                             }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -1113,7 +1158,8 @@ public partial class AnnotationBasedMutations
                             }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -1128,7 +1174,7 @@ public partial class AnnotationBasedMutations
                 .AddMutationType<MutationWithPayloadOverride>()
                 .AddMutationConventions()
                 .AddQueryFieldToMutationPayloads()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -1142,7 +1188,7 @@ public partial class AnnotationBasedMutations
                 .AddQueryType(d => d.Field("abc").Resolve("def"))
                 .AddMutationType<ListReturnMutation>()
                 .AddMutationConventions()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -1166,7 +1212,8 @@ public partial class AnnotationBasedMutations
                             }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -1187,7 +1234,8 @@ public partial class AnnotationBasedMutations
                             string
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -1195,6 +1243,46 @@ public partial class AnnotationBasedMutations
               "data": {
                 "doSomething": {
                   "string": "something, null, unspecified"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteRequestAsync_Should_ReportUnspecified_When_VariableIsOmitted()
+    {
+        // arrange
+        var request = OperationRequestBuilder.New()
+            .SetDocument(
+                """
+                mutation($a: String, $b: String) {
+                    doSomething(input: { optional1: $a, optional2: $b }) {
+                        string
+                    }
+                }
+                """)
+            .SetVariableValues("""{ "b": null }""")
+            .Build();
+
+        // act
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d.Field("abc").Resolve("def"))
+                .AddMutationType<MutationWithOptionalArg>()
+                .AddMutationConventions()
+                .ExecuteRequestAsync(
+                    request,
+                    cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "doSomething": {
+                  "string": "unspecified, null, unspecified"
                 }
               }
             }
@@ -1212,7 +1300,7 @@ public partial class AnnotationBasedMutations
                 .AddType<IInterfaceError>()
                 .AddType<IInterfaceError2>()
                 .AddMutationConventions()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         result.ToString().MatchSnapshot();
     }
@@ -1229,7 +1317,7 @@ public partial class AnnotationBasedMutations
                 .AddType<IInterfaceError>()
                 .AddType<IInterfaceError2>()
                 .AddMutationConventions()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         result.ToString().MatchSnapshot();
     }
@@ -1254,7 +1342,8 @@ public partial class AnnotationBasedMutations
                             }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -1282,7 +1371,7 @@ public partial class AnnotationBasedMutations
                 .AddMutationConventions(
                     new MutationConventionOptions { ApplyToAllMutations = true })
                 .ModifyOptions(o => o.StrictValidation = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
 
@@ -1302,6 +1391,33 @@ public partial class AnnotationBasedMutations
     }
 
     [Fact]
+    public async Task MutationConvention_With_V15FieldNameFormat_Keeps_Underscores()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<MutationWithV15FieldNameFormat>()
+                .AddMutationConventions(
+                    new MutationConventionOptions
+                    {
+                        ApplyToAllMutations = true,
+                        InputTypeNamePattern = "{MutationName}InputType",
+                        PayloadTypeNamePattern = "{MutationName}PayloadType"
+                    })
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var schemaText = schema.ToString();
+
+        // V15 style capitalizes the first letter but keeps the underscores intact.
+        Assert.Contains("ch_myMutation(input: Ch_myMutationInputType!): Ch_myMutationPayloadType!", schemaText);
+        Assert.Contains("input Ch_myMutationInputType {", schemaText);
+        Assert.Contains("type Ch_myMutationPayloadType {", schemaText);
+        Assert.DoesNotContain("ChMyMutationInputType", schemaText);
+        Assert.DoesNotContain("ChMyMutationPayloadType", schemaText);
+    }
+
+    [Fact]
     public async Task Mutation_With_ErrorAnnotatedAndCustomInterface_LateAndEarlyRegistration()
     {
         var result =
@@ -1313,7 +1429,7 @@ public partial class AnnotationBasedMutations
                 .AddType<IInterfaceError>()
                 .AddType<IInterfaceError2>()
                 .AddMutationConventions()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         result.ToString().MatchSnapshot();
     }
@@ -1327,7 +1443,7 @@ public partial class AnnotationBasedMutations
                 .AddQueryType(d => d.Field("abc").Resolve("def"))
                 .AddMutationType<ExplicitMutation>(c => c.Field(t => t.DoSomething(0)))
                 .AddMutationConventions()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.ToString().MatchSnapshot();
     }
@@ -1557,6 +1673,12 @@ public partial class AnnotationBasedMutations
         }
     }
 
+    [PrefixMutationFields("ch_")]
+    public class MutationWithV15FieldNameFormat
+    {
+        public string MyMutation(string value) => value;
+    }
+
     public class SimpleMutationWithSingleError
     {
         [Error(typeof(CustomException))]
@@ -1744,6 +1866,17 @@ public partial class AnnotationBasedMutations
         }
 
         public string Message { get; }
+    }
+
+    public class MutationWithIListError
+    {
+        public FieldResult<string, ErrorWithCodes> DoSomething(int[] codes)
+            => new ErrorWithCodes(codes);
+    }
+
+    public record ErrorWithCodes(IList<int> Codes)
+    {
+        public string Message => $"Codes {string.Join(", ", Codes)} not found.";
     }
 
     public class MutationWithPayloadOverride
@@ -2005,5 +2138,30 @@ public partial class AnnotationBasedMutations
 
         [System.Text.RegularExpressions.GeneratedRegex(@"[A-Z]{2,}(?=[A-Z][a-z]+[0-9]*|\b)|[A-Z]?[a-z]+[0-9]*|[A-Z]|[0-9]+")]
         private static partial System.Text.RegularExpressions.Regex SnakeCasePatternRegex();
+    }
+
+    public sealed class PrefixMutationFieldsAttribute(string prefix) : ObjectTypeDescriptorAttribute
+    {
+        protected override void OnConfigure(
+            IDescriptorContext context,
+            IObjectTypeDescriptor descriptor,
+            Type? type)
+        {
+            if (type is null)
+            {
+                return;
+            }
+
+            descriptor
+                .Extend()
+                .OnBeforeCreate((_, definition) =>
+                {
+                    foreach (var field in definition.Fields)
+                    {
+                        field.Name = prefix + field.Name;
+                        field.UseV15MutationFieldNameFormat = true;
+                    }
+                });
+        }
     }
 }

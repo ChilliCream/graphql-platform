@@ -9,6 +9,7 @@
       "Url": null,
       "AccessModifier": "public",
       "StrictSchemaValidation": true,
+      "EnableCovariantFieldMerging": true,
       "HashAlgorithm": "md5",
       "UseSingleFile": true,
       "RequestStrategy": "Default",

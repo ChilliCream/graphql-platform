@@ -84,6 +84,15 @@ public sealed class DataLoaderModuleFileBuilder : IDisposable
             dataLoaderType);
     }
 
+    public void WriteAddDataLoaderWithService(string dataLoaderServiceType, string dataLoaderType)
+    {
+        _writer.WriteIndentedLine(
+            "global::{0}.AddDataLoader<{1}, {2}>(services);",
+            WellKnownTypes.DataLoaderServiceCollectionExtension,
+            dataLoaderServiceType,
+            dataLoaderType);
+    }
+
     public void WriteAddDataLoader(
         string dataLoaderType,
         string dataLoaderInterfaceType,

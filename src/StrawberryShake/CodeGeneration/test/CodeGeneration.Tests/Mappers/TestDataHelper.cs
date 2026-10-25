@@ -6,7 +6,7 @@ using HotChocolate.StarWars;
 using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Utilities;
-using static ChilliCream.Testing.FileResource;
+using static CookieCrumble.FileResource;
 
 namespace StrawberryShake.CodeGeneration.Mappers;
 

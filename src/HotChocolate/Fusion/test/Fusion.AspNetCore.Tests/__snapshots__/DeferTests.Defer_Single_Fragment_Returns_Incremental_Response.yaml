@@ -1,0 +1,237 @@
+title: Defer_Single_Fragment_Returns_Incremental_Response
+request:
+  document: |
+    query GetUser {
+      user(id: "1") {
+        name
+        ... @defer(label: "reviews") {
+          reviews {
+            title
+            body
+          }
+        }
+      }
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 2,
+    "initial": {
+      "data": {
+        "user": {
+          "name": "User: VXNlcjoyMDkyMTcyNjc2"
+        }
+      }
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": [
+          "user"
+        ],
+        "label": "reviews"
+      }
+    ],
+    "incremental": [
+      {
+        "id": "0",
+        "path": [
+          "user"
+        ],
+        "data": {
+          "reviews": [
+            {
+              "body": "Review: UmV2aWV3OjE4NDE5NzQ4Mjk=",
+              "title": "Review: UmV2aWV3OjE4NDE5NzQ4Mjk="
+            },
+            {
+              "body": "Review: UmV2aWV3OjMxMjUwNzc5NDI=",
+              "title": "Review: UmV2aWV3OjMxMjUwNzc5NDI="
+            },
+            {
+              "body": "Review: UmV2aWV3OjI2OTUyMzAxMDE=",
+              "title": "Review: UmV2aWV3OjI2OTUyMzAxMDE="
+            }
+          ]
+        }
+      }
+    ],
+    "completed": [
+      {
+        "id": "0"
+      }
+    ],
+    "final": {
+      "data": {
+        "user": {
+          "name": "User: VXNlcjoyMDkyMTcyNjc2",
+          "reviews": [
+            {
+              "body": "Review: UmV2aWV3OjE4NDE5NzQ4Mjk=",
+              "title": "Review: UmV2aWV3OjE4NDE5NzQ4Mjk="
+            },
+            {
+              "body": "Review: UmV2aWV3OjMxMjUwNzc5NDI=",
+              "title": "Review: UmV2aWV3OjMxMjUwNzc5NDI="
+            },
+            {
+              "body": "Review: UmV2aWV3OjI2OTUyMzAxMDE=",
+              "title": "Review: UmV2aWV3OjI2OTUyMzAxMDE="
+            }
+          ]
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        user(id: ID!): User @lookup
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        name: String!
+        email: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query GetUser_9d7b4d57_1 {
+              user(id: "1") {
+                name
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "user": {
+                    "name": "User: VXNlcjoyMDkyMTcyNjc2",
+                    "id": "VXNlcjoyMDkyMTcyNjc2"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        userById(id: ID!): User @lookup
+      }
+
+      type Review {
+        title: String!
+        body: String!
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        reviews: [Review!]!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query GetUser_defer_1($__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                reviews {
+                  title
+                  body
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "VXNlcjoyMDkyMTcyNjc2"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "reviews": [
+                      {
+                        "title": "Review: UmV2aWV3OjE4NDE5NzQ4Mjk=",
+                        "body": "Review: UmV2aWV3OjE4NDE5NzQ4Mjk="
+                      },
+                      {
+                        "title": "Review: UmV2aWV3OjMxMjUwNzc5NDI=",
+                        "body": "Review: UmV2aWV3OjMxMjUwNzc5NDI="
+                      },
+                      {
+                        "title": "Review: UmV2aWV3OjI2OTUyMzAxMDE=",
+                        "body": "Review: UmV2aWV3OjI2OTUyMzAxMDE="
+                      }
+                    ]
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query GetUser {
+          user(id: "1") {
+            name
+            id @fusion__requirement
+          }
+        }
+      name: GetUser
+      hash: 0c21e49b82f4980a9d8c72873bcb8b57
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query GetUser_9d7b4d57_1 {
+          user(id: "1") {
+            name
+            id
+          }
+        }
+  deliveryGroups:
+    - id: 0
+      path: $.user
+      label: reviews
+  incrementalPlans:
+    - deliveryGroupIds:
+        - 0
+      parentNodeId: 1
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      nodes:
+        - id: 1
+          type: Operation
+          schema: B
+          operation: |
+            query GetUser_defer_1($__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                reviews {
+                  title
+                  body
+                }
+              }
+            }
+          source: $.userById
+          target: $.user
+          requirements:
+            - name: __fusion_1_id
+              selectionMap: >-
+                id
+          dependencies:
+            - parentNodeId: 1

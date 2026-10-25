@@ -1,7 +1,4 @@
 using System.Buffers;
-#if !NET9_0_OR_GREATER
-using System.Diagnostics.CodeAnalysis;
-#endif
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.Transport.Sockets;
 using Microsoft.AspNetCore.Http;
@@ -10,10 +7,6 @@ using static HotChocolate.AspNetCore.Subscriptions.ConnectionCloseReason;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
 
-#if !NET9_0_OR_GREATER
-[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
-[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
-#endif
 internal sealed class WebSocketSession : ISocketSession
 {
     private bool _disposed;
@@ -49,7 +42,10 @@ internal sealed class WebSocketSession : ISocketSession
         ExecutorSession executorSession,
         GraphQLServerOptions serverOptions)
     {
-        using var connection = new WebSocketConnection(context, executorSession);
+        using var connection = new WebSocketConnection(
+            context,
+            executorSession,
+            serverOptions.Sockets.MaxAllowedMessageSize);
         connection.Features.Set(serverOptions);
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(
             context.RequestAborted,
@@ -82,9 +78,11 @@ internal sealed class WebSocketSession : ISocketSession
                     await executorSession.SocketSessionInterceptor.OnCloseAsync(session,
                         connection.HttpContext.RequestAborted);
 
-                    if (!connection.IsClosed)
+                    if (connection.RequiresClose)
                     {
-                        // ensure that the connection is closed at the end.
+                        // ensure that the connection is closed at the end. This also
+                        // covers the case where the client half-closed (CloseReceived)
+                        // and the server still needs to send the answering Close frame.
                         await connection.CloseAsync(
                             WebSocketSession_SessionEnded,
                             NormalClosure,

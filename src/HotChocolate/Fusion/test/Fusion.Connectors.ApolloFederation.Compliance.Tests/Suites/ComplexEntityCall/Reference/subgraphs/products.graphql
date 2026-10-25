@@ -1,0 +1,24 @@
+extend schema
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.0"
+    import: ["@key", "@external", "@extends", "@shareable"]
+  )
+
+type Query {
+  topProducts: ProductList!
+}
+
+type ProductList @key(fields: "products{id}") {
+  products: [Product!]!
+}
+
+type Product @extends @key(fields: "id") {
+  id: String! @external
+  category: Category @shareable
+}
+
+type Category @key(fields: "id") {
+  mainProduct: Product! @shareable
+  id: String!
+  tag: String @shareable
+}

@@ -1,0 +1,359 @@
+operation:
+  - document: |
+      query testQuery {
+        search {
+          __typename @fusion__requirement
+          ... on ExistingResult {
+            asset {
+              meterType {
+                type
+                id @fusion__requirement
+              }
+              category {
+                allowedMeterTypes {
+                  type
+                }
+                id @fusion__requirement
+              }
+              id @fusion__requirement
+            }
+          }
+          ... on ConfigMatchesResult {
+            asset {
+              category {
+                allowedMeterTypes {
+                  type
+                }
+                id @fusion__requirement
+              }
+              meterType {
+                type
+                id @fusion__requirement
+              }
+              id @fusion__requirement
+            }
+          }
+          ... on NotSubmissableResult {
+            asset {
+              meterType {
+                type
+                id @fusion__requirement
+              }
+              statusMessage
+              category {
+                allowedMeterTypes {
+                  type
+                }
+                id @fusion__requirement
+              }
+              id @fusion__requirement
+            }
+          }
+          ... on CustomResult {
+            asset {
+              meterType {
+                type
+                id @fusion__requirement
+              }
+              category {
+                allowedMeterTypes {
+                  type
+                }
+                id @fusion__requirement
+              }
+              id @fusion__requirement
+            }
+          }
+        }
+      }
+    name: testQuery
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: search
+    operation: |
+      query testQuery_123456789101112_1 {
+        search {
+          __typename
+          ... on ExistingResult {
+            asset {
+              id
+            }
+          }
+          ... on ConfigMatchesResult {
+            asset {
+              id
+            }
+          }
+          ... on NotSubmissableResult {
+            asset {
+              id
+            }
+          }
+          ... on CustomResult {
+            asset {
+              id
+            }
+          }
+        }
+      }
+  - id: 2
+    type: ApolloOperation
+    schema: assets
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Asset {
+            meterType {
+              id
+            }
+            category {
+              id
+            }
+          }
+        }
+      }
+    source: $._entities
+    target: $.search<CustomResult>.asset
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 3
+    type: ApolloOperation
+    schema: search
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Category {
+            allowedMeterTypes {
+              type
+            }
+          }
+        }
+      }
+    source: $._entities
+    target: $.search<CustomResult>.asset.category
+    requirements:
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 2
+  - id: 4
+    type: ApolloOperation
+    schema: search
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on MeterType {
+            type
+          }
+        }
+      }
+    source: $._entities
+    target: $.search<CustomResult>.asset.meterType
+    requirements:
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 2
+  - id: 5
+    type: ApolloOperation
+    schema: assets
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Asset {
+            meterType {
+              id
+            }
+            statusMessage
+            category {
+              id
+            }
+          }
+        }
+      }
+    source: $._entities
+    target: $.search<NotSubmissableResult>.asset
+    requirements:
+      - name: __fusion_4_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 6
+    type: ApolloOperation
+    schema: search
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Category {
+            allowedMeterTypes {
+              type
+            }
+          }
+        }
+      }
+    source: $._entities
+    target: $.search<NotSubmissableResult>.asset.category
+    requirements:
+      - name: __fusion_5_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 5
+  - id: 7
+    type: ApolloOperation
+    schema: search
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on MeterType {
+            type
+          }
+        }
+      }
+    source: $._entities
+    target: $.search<NotSubmissableResult>.asset.meterType
+    requirements:
+      - name: __fusion_6_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 5
+  - id: 8
+    type: ApolloOperation
+    schema: assets
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Asset {
+            category {
+              id
+            }
+            meterType {
+              id
+            }
+          }
+        }
+      }
+    source: $._entities
+    target: $.search<ConfigMatchesResult>.asset
+    requirements:
+      - name: __fusion_7_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 9
+    type: ApolloOperation
+    schema: search
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on MeterType {
+            type
+          }
+        }
+      }
+    source: $._entities
+    target: $.search<ConfigMatchesResult>.asset.meterType
+    requirements:
+      - name: __fusion_8_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 8
+  - id: 10
+    type: ApolloOperation
+    schema: search
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Category {
+            allowedMeterTypes {
+              type
+            }
+          }
+        }
+      }
+    source: $._entities
+    target: $.search<ConfigMatchesResult>.asset.category
+    requirements:
+      - name: __fusion_9_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 8
+  - id: 11
+    type: ApolloOperation
+    schema: assets
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Asset {
+            meterType {
+              id
+            }
+            category {
+              id
+            }
+          }
+        }
+      }
+    source: $._entities
+    target: $.search<ExistingResult>.asset
+    requirements:
+      - name: __fusion_10_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 12
+    type: ApolloOperation
+    schema: search
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Category {
+            allowedMeterTypes {
+              type
+            }
+          }
+        }
+      }
+    source: $._entities
+    target: $.search<ExistingResult>.asset.category
+    requirements:
+      - name: __fusion_11_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 11
+  - id: 13
+    type: ApolloOperation
+    schema: search
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on MeterType {
+            type
+          }
+        }
+      }
+    source: $._entities
+    target: $.search<ExistingResult>.asset.meterType
+    requirements:
+      - name: __fusion_12_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 11

@@ -5,6 +5,7 @@ using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.AspNetCore.Tests.Utilities.TestServerExtensions;
 
@@ -33,7 +34,10 @@ public class GraphQLHttpClientTests : ServerTestBase
         var client = new DefaultGraphQLHttpClient(httpClient);
 
         // act
-        var response = await client.PostAsync(query, "http://localhost:5000/graphql");
+        var response = await client.PostAsync(
+            query,
+            "http://localhost:5000/graphql",
+            TestContext.Current.CancellationToken);
 
         async Task Error() => await response.ReadAsResultAsync();
 
@@ -59,7 +63,10 @@ public class GraphQLHttpClientTests : ServerTestBase
         var client = new DefaultGraphQLHttpClient(httpClient);
 
         // act
-        var response = await client.PostAsync(query, "http://localhost:5000/graphql");
+        var response = await client.PostAsync(
+            query,
+            "http://localhost:5000/graphql",
+            TestContext.Current.CancellationToken);
 
         async Task Error() => await response.ReadAsResultAsync();
 
@@ -966,9 +973,331 @@ public class GraphQLHttpClientTests : ServerTestBase
         await snapshot.MatchMarkdownAsync(cts.Token);
     }
 
+    [Fact]
+    public async Task Query_Should_ReturnResult_When_RequestUriIsGiven()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var testServer = CreateQueryServer();
+        var httpClient = testServer.CreateClient();
+
+        const string query =
+            """
+            query {
+              hero(episode: JEDI) {
+                name
+              }
+            }
+            """;
+
+        var client = new DefaultGraphQLHttpClient(httpClient);
+
+        // act
+        using var response = await client.QueryAsync(
+            query,
+            new Uri(CreateUrl("/graphql")),
+            cts.Token);
+
+        // assert
+        using var body = await response.ReadAsResultAsync(cts.Token);
+        body.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "hero": {
+                  "name": "R2-D2"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Query_Should_ReturnResult_When_RequestUriStringIsGiven()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var testServer = CreateQueryServer();
+        var httpClient = testServer.CreateClient();
+
+        const string query =
+            """
+            query {
+              hero(episode: JEDI) {
+                name
+              }
+            }
+            """;
+
+        var client = new DefaultGraphQLHttpClient(httpClient);
+
+        // act
+        using var response = await client.QueryAsync(
+            query,
+            CreateUrl("/graphql"),
+            cts.Token);
+
+        // assert
+        using var body = await response.ReadAsResultAsync(cts.Token);
+        body.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "hero": {
+                  "name": "R2-D2"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Query_Should_ReturnResult_When_BaseAddressIsGiven()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var testServer = CreateQueryServer();
+        var httpClient = testServer.CreateClient();
+        httpClient.BaseAddress = new Uri(CreateUrl("/graphql"));
+
+        const string query =
+            """
+            query {
+              hero(episode: JEDI) {
+                name
+              }
+            }
+            """;
+
+        var client = new DefaultGraphQLHttpClient(httpClient);
+
+        // act
+        using var response = await client.QueryAsync(query, cts.Token);
+
+        // assert
+        using var body = await response.ReadAsResultAsync(cts.Token);
+        body.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "hero": {
+                  "name": "R2-D2"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Query_Should_ApplyVariables_When_RequestUriIsGiven()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var testServer = CreateQueryServer();
+        var httpClient = testServer.CreateClient();
+        var client = new DefaultGraphQLHttpClient(httpClient);
+
+        const string query =
+            """
+            query($episode: Episode!) {
+              hero(episode: $episode) {
+                name
+              }
+            }
+            """;
+
+        var variables = new Dictionary<string, object?> { ["episode"] = "JEDI" };
+        var requestUri = new Uri(CreateUrl("/graphql"));
+
+        // act
+        using var response = await client.QueryAsync(
+            query,
+            variables,
+            requestUri,
+            cts.Token);
+
+        // assert
+        using var body = await response.ReadAsResultAsync(cts.Token);
+        body.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "hero": {
+                  "name": "R2-D2"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Query_Should_ApplyVariables_When_RequestUriStringIsGiven()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var testServer = CreateQueryServer();
+        var httpClient = testServer.CreateClient();
+        var client = new DefaultGraphQLHttpClient(httpClient);
+
+        const string query =
+            """
+            query($episode: Episode!) {
+              hero(episode: $episode) {
+                name
+              }
+            }
+            """;
+
+        var variables = new Dictionary<string, object?> { ["episode"] = "JEDI" };
+
+        // act
+        using var response = await client.QueryAsync(
+            query,
+            variables,
+            CreateUrl("/graphql"),
+            cts.Token);
+
+        // assert
+        using var body = await response.ReadAsResultAsync(cts.Token);
+        body.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "hero": {
+                  "name": "R2-D2"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Query_Should_ApplyVariables_When_BaseAddressIsGiven()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var testServer = CreateQueryServer();
+        var httpClient = testServer.CreateClient();
+        httpClient.BaseAddress = new Uri(CreateUrl("/graphql"));
+        var client = new DefaultGraphQLHttpClient(httpClient);
+
+        const string query =
+            """
+            query($episode: Episode!) {
+              hero(episode: $episode) {
+                name
+              }
+            }
+            """;
+
+        var variables = new Dictionary<string, object?> { ["episode"] = "JEDI" };
+
+        // act
+        using var response = await client.QueryAsync(query, variables, cts.Token);
+
+        // assert
+        using var body = await response.ReadAsResultAsync(cts.Token);
+        body.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "hero": {
+                  "name": "R2-D2"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Query_Should_SendQueryMethodWithJsonBody_When_RequestIsBuilt()
+    {
+        // arrange
+        var handler = new RecordingHttpMessageHandler();
+        var httpClient = new HttpClient(handler);
+        var client = new DefaultGraphQLHttpClient(httpClient);
+        var request = new GraphQLHttpRequest(
+            new OperationRequest("{ __typename }"),
+            new Uri("http://localhost:5000/graphql"))
+        {
+            Method = GraphQLHttpMethod.Query
+        };
+
+        // act
+        using var response = await client.SendAsync(
+            request,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal("QUERY", handler.LastRequest?.Method.Method);
+        Assert.Equal(
+            "application/json; charset=utf-8",
+            handler.LastRequest?.Content?.Headers.ContentType?.ToString());
+        Assert.NotNull(handler.LastBody);
+        using var body = JsonDocument.Parse(handler.LastBody);
+        Assert.Equal("{ __typename }", body.RootElement.GetProperty("query").GetString());
+    }
+
+    [Fact]
+    public async Task Query_Should_Throw_When_BodyIsBatch()
+    {
+        // arrange
+        var httpClient = new HttpClient();
+        var client = new DefaultGraphQLHttpClient(httpClient);
+        var batch = new OperationBatchRequest(
+            [
+                new OperationRequest("query a { __typename }"),
+                new OperationRequest("query b { __typename }")
+            ]);
+        var request = new GraphQLHttpRequest(batch, new Uri("http://localhost:5000/graphql"))
+        {
+            Method = GraphQLHttpMethod.Query
+        };
+
+        async Task Act() => await client.SendAsync(
+            request,
+            TestContext.Current.CancellationToken);
+
+        // act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(Act);
+
+        // assert
+        Assert.Equal(
+            "The request body must be of type `OperationRequest` for HTTP QUERY requests.",
+            exception.Message);
+    }
+
+    [Fact]
+    public async Task Query_Should_Throw_When_FileUploadsAreEnabled()
+    {
+        // arrange
+        var httpClient = new HttpClient();
+        var client = new DefaultGraphQLHttpClient(httpClient);
+        var request = new GraphQLHttpRequest(
+            new OperationRequest("{ __typename }"),
+            new Uri("http://localhost:5000/graphql"))
+        {
+            Method = GraphQLHttpMethod.Query,
+            EnableFileUploads = true
+        };
+
+        async Task Act() => await client.SendAsync(
+            request,
+            TestContext.Current.CancellationToken);
+
+        // act
+        var exception = await Assert.ThrowsAsync<NotSupportedException>(Act);
+
+        // assert
+        Assert.Equal(
+            "File uploads are not supported for HTTP QUERY requests.",
+            exception.Message);
+    }
+
     [Theory]
     [InlineData((string?)null)]
     [InlineData("application/pdf")]
+    [InlineData("text/plain; charset=utf-8")]
     public async Task Post_GraphQL_FileUpload(string? contentType)
     {
         // arrange
@@ -1164,8 +1493,8 @@ public class GraphQLHttpClientTests : ServerTestBase
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
-        using var result = await client.SendAsync(request);
-        var document = await result.ReadAsResultAsync();
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var document = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
         // assert
         var number = document.Data.GetProperty("number").GetInt32();
@@ -1192,8 +1521,8 @@ public class GraphQLHttpClientTests : ServerTestBase
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
-        using var result = await client.SendAsync(request);
-        var document = await result.ReadAsResultAsync();
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var document = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
 
         // assert
         var number = document.Data.GetProperty("number").GetInt32();
@@ -1220,7 +1549,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
-        using var result = await client.SendAsync(request);
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
         var stream = result.ReadAsResultStreamAsync();
 
         // assert
@@ -1257,7 +1586,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
-        using var result = await client.SendAsync(request);
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
         var stream = result.ReadAsResultStreamAsync();
 
         // assert
@@ -1299,7 +1628,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
-        using var result = await client.SendAsync(request);
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
         var stream = result.ReadAsResultStreamAsync();
 
         // assert
@@ -1347,7 +1676,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
-        using var result = await client.SendAsync(request);
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
         var stream = result.ReadAsResultStreamAsync();
 
         // assert
@@ -1390,7 +1719,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
-        using var result = await client.SendAsync(request);
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
         var stream = result.ReadAsResultStreamAsync();
 
         // assert
@@ -1436,7 +1765,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
-        using var result = await client.SendAsync(request);
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
         var stream = result.ReadAsResultStreamAsync();
 
         // assert
@@ -1480,7 +1809,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
-        using var result = await client.SendAsync(request);
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
         var stream = result.ReadAsResultStreamAsync();
 
         // assert
@@ -1529,7 +1858,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
-        using var result = await client.SendAsync(request);
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
         var stream = result.ReadAsResultStreamAsync();
 
         // assert
@@ -1545,6 +1874,188 @@ public class GraphQLHttpClientTests : ServerTestBase
         }
 
         Assert.Equal(2, count);
+    }
+
+    [Fact]
+    public async Task ReadAsResultStream_Text_Event_Stream_Multi_Line_Data()
+    {
+        // arrange
+        // The event payload is split across several data lines that are joined with a single line feed.
+        var ms = new MemoryStream();
+        var sw = new StreamWriter(ms);
+        sw.Write("event: next");
+        sw.Write('\n');
+        sw.Write("data: {\"data\":");
+        sw.Write('\n');
+        sw.Write("data: {\"number\":42}");
+        sw.Write('\n');
+        sw.Write("data: }");
+        sw.Write('\n');
+        sw.Write('\n');
+        sw.Write("event: complete");
+        sw.Write('\n');
+        sw.Write('\n');
+        sw.Flush();
+        ms.Position = 0;
+
+        var handler = new MockHttpMessageHandler(ms, "text/event-stream");
+        using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
+
+        var operationRequest = new OperationRequest("{ number }");
+        var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var stream = result.ReadAsResultStreamAsync();
+
+        // assert
+        var count = 0;
+
+        await foreach (var document in stream)
+        {
+            var number = document.Data.GetProperty("number").GetInt32();
+            Assert.Equal(42, number);
+            count++;
+        }
+
+        Assert.Equal(1, count);
+    }
+
+    [Fact]
+    public async Task ReadAsResultStream_Text_Event_Stream_With_KeepAlive_Comments()
+    {
+        // arrange
+        // Keep-alive comment blocks appear before, between, and after the events and are ignored.
+        var ms = new MemoryStream();
+        var sw = new StreamWriter(ms);
+        sw.Write(": ping");
+        sw.Write('\n');
+        sw.Write('\n');
+        sw.Write("event: next");
+        sw.Write('\n');
+        sw.Write("data: {\"data\":{\"number\":0}}");
+        sw.Write('\n');
+        sw.Write('\n');
+        sw.Write(": ping");
+        sw.Write('\n');
+        sw.Write('\n');
+        sw.Write("event: next");
+        sw.Write('\n');
+        sw.Write("data: {\"data\":{\"number\":1}}");
+        sw.Write('\n');
+        sw.Write('\n');
+        sw.Write("event: complete");
+        sw.Write('\n');
+        sw.Write('\n');
+        sw.Flush();
+        ms.Position = 0;
+
+        var handler = new MockHttpMessageHandler(ms, "text/event-stream");
+        using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
+
+        var operationRequest = new OperationRequest("{ number }");
+        var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var stream = result.ReadAsResultStreamAsync();
+
+        // assert
+        var count = 0;
+
+        await foreach (var document in stream)
+        {
+            var number = document.Data.GetProperty("number").GetInt32();
+            Assert.Equal(count, number);
+            count++;
+        }
+
+        Assert.Equal(2, count);
+    }
+
+    [Fact]
+    public async Task ReadAsResultStream_Text_Event_Stream_Unknown_Event_With_Data_Is_Ignored()
+    {
+        // arrange
+        // An event name that is neither "next" nor "complete" is not part of the GraphQL over SSE
+        // protocol and is ignored, even when it carries data.
+        var ms = new MemoryStream();
+        var sw = new StreamWriter(ms);
+        sw.Write("event: foo");
+        sw.Write('\n');
+        sw.Write("data: {\"data\":{\"number\":0}}");
+        sw.Write('\n');
+        sw.Write('\n');
+        sw.Flush();
+        ms.Position = 0;
+
+        var handler = new MockHttpMessageHandler(ms, "text/event-stream");
+        using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
+
+        var operationRequest = new OperationRequest("{ number }");
+        var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var stream = result.ReadAsResultStreamAsync();
+
+        // assert
+        var count = 0;
+
+        await foreach (var _ in stream)
+        {
+            count++;
+        }
+
+        Assert.Equal(0, count);
+    }
+
+    [Fact]
+    public async Task ReadAsResultStream_Text_Event_Stream_Complete_With_Empty_Data_Ends_Stream()
+    {
+        // arrange
+        // A complete event with an empty data field ends the stream before the next event.
+        var ms = new MemoryStream();
+        var sw = new StreamWriter(ms);
+        sw.Write("event: next");
+        sw.Write('\n');
+        sw.Write("data: {\"data\":{\"number\":0}}");
+        sw.Write('\n');
+        sw.Write('\n');
+        sw.Write("event: complete");
+        sw.Write('\n');
+        sw.Write("data:");
+        sw.Write('\n');
+        sw.Write('\n');
+        sw.Write("event: next");
+        sw.Write('\n');
+        sw.Write("data: {\"data\":{\"number\":1}}");
+        sw.Write('\n');
+        sw.Write('\n');
+        sw.Flush();
+        ms.Position = 0;
+
+        var handler = new MockHttpMessageHandler(ms, "text/event-stream");
+        using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
+
+        var operationRequest = new OperationRequest("{ number }");
+        var request = new GraphQLHttpRequest(
+            operationRequest,
+            new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var result = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var stream = result.ReadAsResultStreamAsync();
+
+        // assert
+        var numbers = new List<int>();
+
+        await foreach (var document in stream)
+        {
+            numbers.Add(document.Data.GetProperty("number").GetInt32());
+        }
+
+        Assert.Equal(0, Assert.Single(numbers));
     }
 
     [Fact]
@@ -1564,7 +2075,8 @@ public class GraphQLHttpClientTests : ServerTestBase
         // act
         using var response = await client.PostAsync(
             operationRequest,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(handler.LastBody);
@@ -1597,14 +2109,15 @@ public class GraphQLHttpClientTests : ServerTestBase
         // act
         using var response = await client.PostAsync(
             operationRequest,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(handler.LastBody);
         Assert.DoesNotContain("\\u0027", handler.LastBody, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("\\u2019", handler.LastBody, StringComparison.OrdinalIgnoreCase);
 
-        using var body = JsonDocument.Parse(handler.LastBody!);
+        using var body = JsonDocument.Parse(handler.LastBody);
         var serializedDescription = body.RootElement
             .GetProperty("variables")
             .GetProperty("description")
@@ -1692,5 +2205,36 @@ public class GraphQLHttpClientTests : ServerTestBase
         [Subscribe(With = nameof(CreateStream))]
         public string OnError([EventMessage] string message)
             => message;
+    }
+
+    private TestServer CreateQueryServer()
+        => CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .ModifyServerOptions(o => o.EnableQueryRequests = true));
+
+    private sealed class RecordingHttpMessageHandler : HttpMessageHandler
+    {
+        public HttpRequestMessage? LastRequest { get; private set; }
+
+        public string? LastBody { get; private set; }
+
+        protected override async Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            LastRequest = request;
+            LastBody = request.Content is null
+                ? null
+                : await request.Content.ReadAsStringAsync(cancellationToken);
+
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(
+                    """{"data":{"__typename":"Query"}}""",
+                    Encoding.UTF8,
+                    "application/json")
+            };
+        }
     }
 }

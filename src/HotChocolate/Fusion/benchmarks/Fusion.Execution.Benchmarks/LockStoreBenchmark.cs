@@ -1,10 +1,7 @@
-using System;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 
-namespace Fusion.Execution.Benchmarks;
+namespace HotChocolate.Fusion.Execution.Benchmarks;
 
 [ThreadingDiagnoser]
 [MemoryDiagnoser]

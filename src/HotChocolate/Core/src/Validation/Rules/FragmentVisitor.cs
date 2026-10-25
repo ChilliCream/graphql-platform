@@ -151,10 +151,6 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
         {
             if (type.IsCompositeType())
             {
-                ValidateFragmentSpreadIsPossible(
-                    node, context,
-                    context.Types.Peek().NamedType(),
-                    type);
                 context.Types.Push(type);
                 return Continue;
             }
@@ -171,7 +167,6 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
         FragmentDefinitionNode node,
         DocumentValidatorContext context)
     {
-        context.Fragments.Leave(node);
         return base.Leave(node, context);
     }
 
@@ -213,6 +208,18 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
             if (context.Path.Contains(fragment))
             {
                 context.ReportError(context.FragmentCycleDetected(node));
+            }
+
+            if (context.Schema.Types.TryGetType<IOutputTypeDefinition>(
+                fragment.TypeCondition.Name.Value,
+                out var typeCondition)
+                && typeCondition.IsCompositeType())
+            {
+                ValidateFragmentSpreadIsPossible(
+                    node,
+                    context,
+                    context.Types.Peek().NamedType(),
+                    typeCondition);
             }
         }
         else

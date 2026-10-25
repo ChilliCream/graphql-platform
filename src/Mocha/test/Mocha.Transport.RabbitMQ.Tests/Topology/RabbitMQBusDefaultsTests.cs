@@ -74,7 +74,7 @@ public class RabbitMQBusDefaultsTests
     }
 
     [Fact]
-    public void AddQueue_Should_MergeDefaultArguments_When_DefaultsConfigured()
+    public void AddQueue_Should_ApplyDefaultArguments_When_DefaultsConfigured()
     {
         // arrange
         var (_, _, topology) = CreateTopology(t =>
@@ -106,7 +106,7 @@ public class RabbitMQBusDefaultsTests
     }
 
     [Fact]
-    public void AddQueue_Should_MergeMultipleArguments_When_DefaultsAndExplicitCombined()
+    public void AddQueue_Should_CombineDefaultAndExplicitArguments_When_BothConfigured()
     {
         // arrange
         var (_, _, topology) = CreateTopology(t =>

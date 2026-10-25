@@ -27,12 +27,6 @@ public sealed class RootTypePartialAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        // Check if class is static
-        if (!classDeclaration.Modifiers.Any(m => m.IsKind(SyntaxKind.StaticKeyword)))
-        {
-            return;
-        }
-
         // Check if class is already partial
         if (classDeclaration.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword)))
         {

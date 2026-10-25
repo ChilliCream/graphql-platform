@@ -28,7 +28,8 @@ public static class DirectiveLocationUtils
             { Language.DirectiveLocation.EnumValue, DirectiveLocation.EnumValue },
             { Language.DirectiveLocation.InputObject, DirectiveLocation.InputObject },
             { Language.DirectiveLocation.InputFieldDefinition, DirectiveLocation.InputFieldDefinition },
-            { Language.DirectiveLocation.VariableDefinition, DirectiveLocation.VariableDefinition }
+            { Language.DirectiveLocation.VariableDefinition, DirectiveLocation.VariableDefinition },
+            { Language.DirectiveLocation.DirectiveDefinition, DirectiveLocation.DirectiveDefinition }
         };
 
     private static readonly Dictionary<DirectiveLocation, Language.DirectiveLocation> s_locationToSyntax =
@@ -52,7 +53,8 @@ public static class DirectiveLocationUtils
             { DirectiveLocation.Enum, Language.DirectiveLocation.Enum },
             { DirectiveLocation.EnumValue, Language.DirectiveLocation.EnumValue },
             { DirectiveLocation.InputObject, Language.DirectiveLocation.InputObject },
-            { DirectiveLocation.InputFieldDefinition, Language.DirectiveLocation.InputFieldDefinition }
+            { DirectiveLocation.InputFieldDefinition, Language.DirectiveLocation.InputFieldDefinition },
+            { DirectiveLocation.DirectiveDefinition, Language.DirectiveLocation.DirectiveDefinition }
         };
 
     private static readonly Dictionary<DirectiveLocation, Language.DirectiveLocation> s_typeToLang =
@@ -133,6 +135,10 @@ public static class DirectiveLocationUtils
             {
                 DirectiveLocation.InputFieldDefinition,
                 Language.DirectiveLocation.InputFieldDefinition
+            },
+            {
+                DirectiveLocation.DirectiveDefinition,
+                Language.DirectiveLocation.DirectiveDefinition
             }
         };
 
@@ -288,6 +294,12 @@ public static class DirectiveLocationUtils
             == DirectiveLocation.InputFieldDefinition)
         {
             yield return DirectiveLocation.InputFieldDefinition;
+        }
+
+        if ((locations & DirectiveLocation.DirectiveDefinition)
+            == DirectiveLocation.DirectiveDefinition)
+        {
+            yield return DirectiveLocation.DirectiveDefinition;
         }
     }
 }

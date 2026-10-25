@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
   <PropertyGroup>
     <AssemblyName>HotChocolate.PersistedOperations.Redis.Tests</AssemblyName>
     <RootNamespace>HotChocolate.PersistedOperations.Redis</RootNamespace>
@@ -8,10 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
     <ProjectReference Include="..\..\src\PersistedOperations.Redis\HotChocolate.PersistedOperations.Redis.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Squadron.Redis" />
+    <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.Resources.Redis\CookieCrumble.Resources.Redis.csproj" />
   </ItemGroup>
 
   <ItemGroup>

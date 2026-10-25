@@ -22,7 +22,7 @@ public class WrongAuthorizationAttributeAnalyzerTests
 
              public class Product;
              """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -40,7 +40,7 @@ public class WrongAuthorizationAttributeAnalyzerTests
              [Authorize]
              public record Product;
              """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -63,7 +63,7 @@ public class WrongAuthorizationAttributeAnalyzerTests
 
              public class Product;
              """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -86,7 +86,7 @@ public class WrongAuthorizationAttributeAnalyzerTests
 
              public class Product;
              """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -109,7 +109,7 @@ public class WrongAuthorizationAttributeAnalyzerTests
 
              public class Product;
              """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -132,7 +132,7 @@ public class WrongAuthorizationAttributeAnalyzerTests
 
              public class Product;
              """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -150,7 +150,7 @@ public class WrongAuthorizationAttributeAnalyzerTests
              [Authorize]
              public record Product;
              """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -171,7 +171,7 @@ public class WrongAuthorizationAttributeAnalyzerTests
                  public string GetName() => "Test";
              }
              """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -194,7 +194,7 @@ public class WrongAuthorizationAttributeAnalyzerTests
 
              public class Product;
              """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -217,7 +217,7 @@ public class WrongAuthorizationAttributeAnalyzerTests
 
              public class Product;
              """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -238,7 +238,7 @@ public class WrongAuthorizationAttributeAnalyzerTests
                  public string GetName() => "Test";
              }
              """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -259,7 +259,7 @@ public class WrongAuthorizationAttributeAnalyzerTests
                  public string GetName() => "Test";
              }
              """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -280,7 +280,7 @@ public class WrongAuthorizationAttributeAnalyzerTests
                  public static string GetName() => "Test";
              }
              """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -301,6 +301,6 @@ public class WrongAuthorizationAttributeAnalyzerTests
                  public static string GetName() => "Test";
              }
              """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

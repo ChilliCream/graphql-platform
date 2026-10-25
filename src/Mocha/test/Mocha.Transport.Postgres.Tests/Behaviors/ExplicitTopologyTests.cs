@@ -28,12 +28,12 @@ public class ExplicitTopologyTests
             .AddPostgres(t =>
             {
                 t.ConnectionString(db.ConnectionString);
-                t.BindHandlersExplicitly();
+                t.BindExplicitly();
                 t.DeclareTopic("custom-topic");
                 t.DeclareQueue("custom-q");
                 t.DeclareSubscription("custom-topic", "custom-q");
 
-                t.Endpoint("custom-ep").Consumer<OrderSpyConsumer>().Queue("custom-q");
+                t.Queue("custom-q").Consumer<OrderSpyConsumer>();
 
                 t.DispatchEndpoint("custom-dispatch").ToTopic("custom-topic").Publish<OrderCreated>();
             })
@@ -65,12 +65,12 @@ public class ExplicitTopologyTests
             .AddPostgres(t =>
             {
                 t.ConnectionString(db.ConnectionString);
-                t.BindHandlersImplicitly();
+                t.BindImplicitly();
                 t.DeclareTopic("custom-topic");
                 t.DeclareQueue("custom-q");
                 t.DeclareSubscription("custom-topic", "custom-q");
 
-                t.Endpoint("custom-ep").Consumer<OrderSpyConsumer>().Queue("custom-q");
+                t.Queue("custom-q").Consumer<OrderSpyConsumer>();
 
                 t.DispatchEndpoint("custom-dispatch").ToTopic("custom-topic").Publish<OrderCreated>();
             })
@@ -87,6 +87,44 @@ public class ExplicitTopologyTests
 
         var message = Assert.Single(capture.Messages);
         Assert.Equal("ORD-TOPO", message.OrderId);
+    }
+
+    [Fact]
+    public async Task PublishAsync_Should_RouteToQueue_When_ExplicitTopologyDeclared_UsingReceives()
+    {
+        // arrange
+        var capture = new OrderCapture();
+        await using var db = await _fixture.CreateDatabaseAsync();
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(capture)
+            .AddMessageBus()
+            .AddConsumer<OrderSpyConsumer>()
+            .AddPostgres(t =>
+            {
+                t.ConnectionString(db.ConnectionString);
+                t.BindExplicitly();
+                t.DeclareTopic("custom-topic");
+                t.DeclareQueue("custom-q");
+                t.DeclareSubscription("custom-topic", "custom-q");
+
+                t.Queue("custom-q")
+                    .Receives<OrderCreated>();
+
+                t.DispatchEndpoint("custom-dispatch").ToTopic("custom-topic").Publish<OrderCreated>();
+            })
+            .BuildTestBusAsync();
+
+        using var scope = bus.Provider.CreateScope();
+        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        await messageBus.PublishAsync(new OrderCreated { OrderId = "ORD-RCV" }, CancellationToken.None);
+
+        // assert
+        Assert.True(await capture.WaitAsync(s_timeout), "Consumer on custom-q did not receive the published message");
+
+        var message = Assert.Single(capture.Messages);
+        Assert.Equal("ORD-RCV", message.OrderId);
     }
 
     public sealed class OrderCapture

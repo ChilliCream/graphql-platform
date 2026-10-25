@@ -26,8 +26,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Votable {
-        viewerCanVote: Boolean!
+      type Query {
+        votable: Votable
+        discussionById(id: ID!): Discussion @lookup @shareable
       }
 
       type Comment implements Votable {
@@ -40,9 +41,8 @@ sourceSchemas:
         viewerCanVote: Boolean!
       }
 
-      type Query {
-        votable: Votable
-        discussionById(id: ID!): Discussion @lookup @shareable
+      interface Votable {
+        viewerCanVote: Boolean!
       }
     interactions:
       - request:
@@ -65,7 +65,7 @@ sourceSchemas:
                   "votable": {
                     "__typename": "Discussion",
                     "viewerCanVote": true,
-                    "id": "RGlzY3Vzc2lvbjox"
+                    "id": "RGlzY3Vzc2lvbjozNTUxODE3ODYy"
                   }
                 }
               }
@@ -75,13 +75,13 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        discussionById(id: ID!): Discussion @lookup @shareable
+      }
+
       type Discussion {
         id: ID!
         viewerRating: Float!
-      }
-
-      type Query {
-        discussionById(id: ID!): Discussion @lookup @shareable
       }
     interactions:
       - request:
@@ -94,7 +94,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_id": "RGlzY3Vzc2lvbjox"
+              "__fusion_1_id": "RGlzY3Vzc2lvbjozNTUxODE3ODYy"
             }
         response:
           results:
@@ -120,7 +120,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 4a61c641179c756fb55bfa3dd9de6101
+      hash: 167f2291788ca4a3134177fbe691ed4b
       searchSpace: 1
       expandedNodes: 2
   nodes:

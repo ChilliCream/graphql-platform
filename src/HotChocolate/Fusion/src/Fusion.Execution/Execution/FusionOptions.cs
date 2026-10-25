@@ -1,7 +1,6 @@
 using HotChocolate.Caching.Memory;
 using HotChocolate.Execution.Relay;
 using HotChocolate.Fusion.Types;
-using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -81,8 +80,8 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
     } = 256;
 
     /// <summary>
-    /// Gets or sets the initial capacity of the local path segment pool used during result composition.
-    /// <c>64</c> by default. <c>1</c> is the minimum.
+    /// Gets or sets the number of path segment arrays a pooled request context keeps
+    /// between requests. <c>64</c> by default. <c>1</c> is the minimum.
     /// </summary>
     public int PathSegmentLocalPoolCapacity
     {
@@ -102,10 +101,11 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
     } = 64;
 
     /// <summary>
-    /// Gets or sets the default error handling mode.
-    /// <see cref="ErrorHandlingMode.Propagate"/> by default.
+    /// Gets or sets whether a lookup takes entities that the result of the same query already
+    /// holds with every field the lookup selects, instead of fetching them again.
+    /// <c>true</c> by default.
     /// </summary>
-    public ErrorHandlingMode DefaultErrorHandlingMode
+    public bool EnableEntityReuse
     {
         get;
         set
@@ -114,7 +114,7 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
 
             field = value;
         }
-    } = ErrorHandlingMode.Propagate;
+    } = true;
 
     /// <summary>
     /// Gets or sets whether the request executor should be initialized lazily.
@@ -168,6 +168,70 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
     }
 
     /// <summary>
+    /// Gets or sets whether <c>@defer</c> is enabled.
+    /// When <c>false</c>, the <c>@defer</c> directive is not exposed in the schema
+    /// and deferred execution is disabled.
+    /// <c>true</c> by default.
+    /// </summary>
+    public bool EnableDefer
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    } = true;
+
+    /// <summary>
+    /// Gets or sets whether <c>@deprecated</c> on object types is enabled. When <c>true</c>, the
+    /// introspection schema exposes <c>isDeprecated</c> and <c>deprecationReason</c> on
+    /// <c>__Type</c> and the <c>includeDeprecated</c> argument on <c>__Type.possibleTypes</c>
+    /// and <c>__Schema.types</c>.
+    /// </summary>
+    public bool EnableObjectDeprecation
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets whether opt-in feature support is enabled. When <c>true</c>, the introspection
+    /// schema exposes the <c>includeOptIn</c> argument and opt-in members are hidden from
+    /// introspection unless the client opts into their feature.
+    /// </summary>
+    public bool EnableOptInFeatures
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    }
+
+    /// <summary>
+    /// Specifies whether empty selection sets (<c>{ }</c>) are valid on composite fields and in query and mutation operations.
+    /// </summary>
+    public bool EnableEmptySelectionSets
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    }
+
+    /// <summary>
     /// Enables the <c>__search</c> and <c>__definitions</c> introspection fields
     /// for semantic schema discovery.
     /// </summary>
@@ -180,7 +244,7 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
 
             field = value;
         }
-    }
+    } = true;
 
     /// <summary>
     /// Clones the options into a new mutable instance.
@@ -190,19 +254,11 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
     /// </returns>
     public FusionOptions Clone()
     {
-        return new FusionOptions
-        {
-            EvictionTimeout = EvictionTimeout,
-            OperationExecutionPlanCacheSize = OperationExecutionPlanCacheSize,
-            OperationExecutionPlanCacheDiagnostics = OperationExecutionPlanCacheDiagnostics,
-            OperationDocumentCacheSize = OperationDocumentCacheSize,
-            PathSegmentLocalPoolCapacity = PathSegmentLocalPoolCapacity,
-            DefaultErrorHandlingMode = DefaultErrorHandlingMode,
-            LazyInitialization = LazyInitialization,
-            NodeIdSerializerFormat = NodeIdSerializerFormat,
-            ApplySerializeAsToScalars = ApplySerializeAsToScalars,
-            EnableSemanticIntrospection = EnableSemanticIntrospection
-        };
+        var clone = (FusionOptions)MemberwiseClone();
+
+        clone._isReadOnly = false;
+
+        return clone;
     }
 
     object ICloneable.Clone() => Clone();

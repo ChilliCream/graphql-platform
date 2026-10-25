@@ -26,8 +26,8 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : Clie
             Options:
               --api-id <api-id>        The ID of the API [env: NITRO_API_ID]
               --name <name>            The name of the client [env: NITRO_CLIENT_NAME]
-              --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>      The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>      The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>          The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help           Show help and usage information
 
@@ -59,12 +59,31 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : Clie
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
+            """);
+    }
+
+    [Fact]
+    public async Task NoWorkspaceInSession_And_NoApiId_ReturnsError_Interactive()
+    {
+        // arrange & act
+        SetupSession();
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var result = await ExecuteCommandAsync(
+            "client",
+            "create",
+            "--name",
+            ClientName);
+
+        // assert
+        result.AssertError(
+            """
+            Could not determine workspace. Either login via `nitro login` or specify the '--workspace-id' option.
             """);
     }
 
     [Theory]
-    [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
     public async Task NoWorkspaceInSession_And_NoApiId_ReturnsError(InteractionMode mode)
@@ -82,7 +101,7 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : Clie
         // assert
         result.AssertError(
             """
-            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually specify the '--workspace-id' option (if available).
+            Missing required option '--api-id'.
             """);
     }
 
@@ -125,7 +144,7 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : Clie
         // act
         command.SelectOption(0);
         command.Input(ClientName);
-        var result = await command.RunToCompletionAsync();
+        var result = await command.RunToCompletionAsync(TestContext.Current.CancellationToken);
 
         // assert
         result.AssertSuccess();
@@ -220,6 +239,25 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : Clie
     }
 
     [Fact]
+    public async Task ApiNotFound_ReturnsError()
+    {
+        var apiNotFound = new Mock<ICreateClientCommandMutation_CreateClient_Errors_ApiNotFoundError>(MockBehavior.Strict);
+        apiNotFound.As<IApiNotFoundError>().SetupGet(x => x.Message).Returns("The API was not found.");
+        SetupCreateClientMutation(errors: apiNotFound.Object);
+
+        var result = await ExecuteCommandAsync(
+            "client", "create", "--api-id", ApiId, "--name", ClientName);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The API was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task MutationReturnsNoClient_ReturnsError()
     {
         // arrange
@@ -295,19 +333,19 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : Clie
 
     public static TheoryData<ICreateClientCommandMutation_CreateClient_Errors, string> GetCreateClientErrors()
     {
-        var apiNotFound = new Mock<ICreateClientCommandMutation_CreateClient_Errors_ApiNotFoundError>(MockBehavior.Strict);
-        apiNotFound.As<IApiNotFoundError>().SetupGet(x => x.Message).Returns("The API was not found.");
-
         var unauthorized = new Mock<ICreateClientCommandMutation_CreateClient_Errors_UnauthorizedOperation>(MockBehavior.Strict);
         unauthorized.As<IUnauthorizedOperation>().SetupGet(x => x.Message).Returns("Unauthorized operation.");
+
+        var duplicateName = new Mock<ICreateClientCommandMutation_CreateClient_Errors_DuplicateNameError>(MockBehavior.Strict);
+        duplicateName.As<IDuplicateNameError>().SetupGet(x => x.Message).Returns("Name already in use.");
 
         var genericError = new Mock<ICreateClientCommandMutation_CreateClient_Errors>(MockBehavior.Strict);
         genericError.As<IError>().SetupGet(x => x.Message).Returns("something bad happened");
 
         return new()
         {
-            { apiNotFound.Object, "The API was not found." },
             { unauthorized.Object, "Unauthorized operation." },
+            { duplicateName.Object, "The name 'web-client' is already in use by another Client." },
             { genericError.Object, "Unexpected mutation error: something bad happened" }
         };
     }

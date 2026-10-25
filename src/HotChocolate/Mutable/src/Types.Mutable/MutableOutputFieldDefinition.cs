@@ -15,8 +15,6 @@ public class MutableOutputFieldDefinition(string name, IOutputType? type = null)
     , IMutableFieldDefinition
     , IFeatureProvider
 {
-    private bool _isDeprecated;
-    private string? _deprecationReason;
     private DirectiveCollection? _directives;
     private InputFieldDefinitionCollection? _arguments;
 
@@ -54,34 +52,15 @@ public class MutableOutputFieldDefinition(string name, IOutputType? type = null)
         }
     }
 
-    /// <inheritdoc cref="IMutableFieldDefinition.IsDeprecated" />
-    public bool IsDeprecated
-    {
-        get => _isDeprecated;
-        set
-        {
-            _isDeprecated = value;
-
-            if (!value)
-            {
-                _deprecationReason = null;
-            }
-        }
-    }
+    /// <inheritdoc cref="IDeprecationProvider.IsDeprecated" />
+    [MemberNotNullWhen(true, nameof(DeprecationReason))]
+    public bool IsDeprecated => DeprecationReason is not null;
 
     /// <inheritdoc cref="IMutableFieldDefinition.DeprecationReason" />
     public string? DeprecationReason
     {
-        get => _deprecationReason;
-        set
-        {
-            _deprecationReason = value;
-
-            if (!string.IsNullOrEmpty(value))
-            {
-                _isDeprecated = true;
-            }
-        }
+        get;
+        set => field = string.IsNullOrWhiteSpace(value) ? null : value;
     }
 
     /// <inheritdoc cref="IMutableFieldDefinition.IsIntrospectionField" />

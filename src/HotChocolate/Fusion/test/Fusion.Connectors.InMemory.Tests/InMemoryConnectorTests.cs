@@ -1,11 +1,32 @@
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Options;
 using HotChocolate.Types.Composite;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace HotChocolate.Fusion;
 
 public sealed class InMemoryConnectorTests
 {
+    [Fact]
+    public void ModifyInMemoryCompositionOptions_Should_ConfigureSchemaComposerOptions()
+    {
+        // arrange
+        var services = new ServiceCollection();
+
+        services.AddGraphQLGateway()
+            .ModifyInMemoryCompositionOptions(
+                options => options.ApolloFederationCompatibility.AllowNonResolvableInterfaceObjects = true);
+
+        using var serviceProvider = services.BuildServiceProvider();
+
+        // act
+        var options = serviceProvider.GetRequiredService<IOptions<SchemaComposerOptions>>().Value;
+
+        // assert
+        Assert.True(options.ApolloFederationCompatibility.AllowNonResolvableInterfaceObjects);
+    }
+
     [Fact]
     public async Task Execute_Should_ReturnData_When_SingleInMemorySchema()
     {
@@ -19,7 +40,7 @@ public sealed class InMemoryConnectorTests
         services.AddGraphQLGateway()
             .AddInMemorySchema("products");
 
-        var executor = await services.BuildGatewayAsync();
+        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -30,7 +51,8 @@ public sealed class InMemoryConnectorTests
                 name
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchMarkdownSnapshot();
@@ -54,7 +76,7 @@ public sealed class InMemoryConnectorTests
             .AddInMemorySchema("products")
             .AddInMemorySchema("reviews");
 
-        var executor = await services.BuildGatewayAsync();
+        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -65,7 +87,8 @@ public sealed class InMemoryConnectorTests
                 name
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchMarkdownSnapshot();
@@ -86,10 +109,11 @@ public sealed class InMemoryConnectorTests
             .AddSourceSchemaDefaults();
 
         services.AddGraphQLGateway()
+            .ModifyInMemoryCompositionOptions(o => o.Merger.DefaultListSize = 1)
             .AddInMemorySchema("products")
             .AddInMemorySchema("reviews");
 
-        var executor = await services.BuildGatewayAsync();
+        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -104,7 +128,53 @@ public sealed class InMemoryConnectorTests
                 }
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Execute_Should_ReturnReviews_When_BatchedLookupsHaveMultipleVariableSets()
+    {
+        // arrange
+        var services = new ServiceCollection();
+
+        services.AddGraphQL("catalog")
+            .AddQueryType<BatchedLookups.CatalogSchema.Query>()
+            .AddSourceSchemaDefaults();
+
+        services.AddGraphQL("reviews")
+            .AddQueryType<BatchedLookups.ReviewsSchema.Query>()
+            .AddSourceSchemaDefaults();
+
+        services.AddGraphQLGateway()
+            .ModifyInMemoryCompositionOptions(o => o.Merger.DefaultListSize = 1)
+            .AddInMemorySchema("catalog")
+            .AddInMemorySchema("reviews");
+
+        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              users {
+                id
+                reviews {
+                  body
+                }
+              }
+              products {
+                id
+                reviews {
+                  body
+                }
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchMarkdownSnapshot();
@@ -213,6 +283,55 @@ public sealed class InMemoryConnectorTests
             }
 
             public record Review(int Id, string Body, int Stars);
+        }
+    }
+
+    private static class BatchedLookups
+    {
+        public static class CatalogSchema
+        {
+            public class Query
+            {
+                public IEnumerable<User> GetUsers() => [new User(1), new User(2)];
+
+                public IEnumerable<Product> GetProducts() => [new Product(1), new Product(2)];
+            }
+
+            [EntityKey("id")]
+            public record User(int Id);
+
+            [EntityKey("id")]
+            public record Product(int Id);
+        }
+
+        public static class ReviewsSchema
+        {
+            public class Query
+            {
+                [Lookup]
+                [Internal]
+                public User GetUserById(int id) => new(id);
+
+                [Lookup]
+                [Internal]
+                public Product GetProductById(int id) => new(id);
+            }
+
+            [EntityKey("id")]
+            [GraphQLName("User")]
+            public record User(int Id)
+            {
+                public IEnumerable<Review> GetReviews() => [new Review($"Review by user {Id}")];
+            }
+
+            [EntityKey("id")]
+            [GraphQLName("Product")]
+            public record Product(int Id)
+            {
+                public IEnumerable<Review> GetReviews() => [new Review($"Review of product {Id}")];
+            }
+
+            public record Review(string Body);
         }
     }
 }

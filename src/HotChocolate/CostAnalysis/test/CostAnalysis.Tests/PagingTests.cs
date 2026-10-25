@@ -21,7 +21,7 @@ public class PagingTests
                 .AddFiltering()
                 .AddSorting()
                 .ModifyPagingOptions(o => o.RequirePagingBoundaries = true)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -37,7 +37,7 @@ public class PagingTests
                 .AddSorting()
                 .ModifyPagingOptions(o => o.RequirePagingBoundaries = true)
                 .ModifyCostOptions(o => o.ApplyCostDefaults = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -73,10 +73,10 @@ public class PagingTests
                 .ModifyPagingOptions(o => o.RequirePagingBoundaries = false)
                 .AddFiltering()
                 .AddSorting()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var response = await executor.ExecuteAsync(request);
+        var response = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         var expectation =
@@ -92,7 +92,7 @@ public class PagingTests
             .Add(operation, "Operation")
             .Add(expectation.RootElement, "Expected")
             .Add(response, "Response")
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -126,10 +126,10 @@ public class PagingTests
                 .ModifyPagingOptions(o => o.RequirePagingBoundaries = false)
                 .AddFiltering()
                 .AddSorting()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var response = await executor.ExecuteAsync(request);
+        var response = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         var expectation =
@@ -145,7 +145,7 @@ public class PagingTests
             .Add(operation, "Operation")
             .Add(expectation.RootElement, "Expected")
             .Add(response, "Response")
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -179,16 +179,26 @@ public class PagingTests
                 .AddFiltering()
                 .AddSorting()
                 .ModifyPagingOptions(o => o.RequirePagingBoundaries = true)
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var response = await executor.ExecuteAsync(request);
+        var response = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+        var result = response.ExpectOperationResult();
 
         // assert
+        var error = Assert.Single(result.Errors);
+        Assert.Equal("HC0082", error.Code);
+        Assert.Collection(
+            error.Locations!,
+            location =>
+            {
+                Assert.Equal(2, location.Line);
+                Assert.Equal(5, location.Column);
+            });
         await snapshot
             .Add(operation, "Operation")
             .Add(response, "Response")
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -221,16 +231,16 @@ public class PagingTests
                 .AddQueryType<Query>()
                 .AddFiltering()
                 .AddSorting()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var response = await executor.ExecuteAsync(request);
+        var response = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         await snapshot
             .Add(operation, "Operation")
             .Add(response, "Response")
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -263,16 +273,16 @@ public class PagingTests
                 .AddQueryType<Query>()
                 .AddFiltering()
                 .AddSorting()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var response = await executor.ExecuteAsync(request);
+        var response = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         await snapshot
             .Add(operation, "Operation")
             .Add(response, "Response")
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -305,16 +315,16 @@ public class PagingTests
                 .AddQueryType<Query>()
                 .AddFiltering()
                 .AddSorting()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var response = await executor.ExecuteAsync(request);
+        var response = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         await snapshot
             .Add(operation, "Operation")
             .Add(response, "Response")
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -348,16 +358,16 @@ public class PagingTests
                 .AddFiltering()
                 .AddSorting()
                 .ModifyPagingOptions(o => o.RequirePagingBoundaries = true)
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var response = await executor.ExecuteAsync(request);
+        var response = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         await snapshot
             .Add(operation, "Operation")
             .Add(response, "Response")
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -396,16 +406,16 @@ public class PagingTests
                 .AddFiltering()
                 .AddSorting()
                 .ModifyPagingOptions(o => o.RequirePagingBoundaries = true)
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var response = await executor.ExecuteAsync(request);
+        var response = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         await snapshot
             .Add(operation, "Operation")
             .Add(response, "Response")
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -439,10 +449,10 @@ public class PagingTests
                 .ModifyPagingOptions(o => o.RequirePagingBoundaries = false)
                 .AddFiltering()
                 .AddSorting()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var response = await executor.ExecuteAsync(request);
+        var response = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         var expectation =
@@ -458,7 +468,7 @@ public class PagingTests
             .Add(operation, "Operation")
             .Add(expectation.RootElement, "Expected")
             .Add(response, "Response")
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -492,10 +502,10 @@ public class PagingTests
                 .ModifyPagingOptions(o => o.RequirePagingBoundaries = false)
                 .AddFiltering()
                 .AddSorting()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var response = await executor.ExecuteAsync(request);
+        var response = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         var expectation =
@@ -511,7 +521,7 @@ public class PagingTests
             .Add(operation, "Operation")
             .Add(expectation.RootElement, "Expected")
             .Add(response, "Response")
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -535,6 +545,7 @@ public class PagingTests
         var request =
             OperationRequestBuilder.New()
                 .SetDocument(operation)
+                .SetVariableValues("""{ "where": { "title": { "eq": "abc" } } }""")
                 .ReportCost()
                 .Build();
 
@@ -545,17 +556,17 @@ public class PagingTests
                 .ModifyPagingOptions(o => o.RequirePagingBoundaries = false)
                 .AddFiltering()
                 .AddSorting()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var response = await executor.ExecuteAsync(request);
+        var response = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         var expectation =
             JsonDocument.Parse(
                 """
                 {
-                    "fieldCost": 10,
+                    "fieldCost": 32,
                     "typeCost": 12
                 }
                 """);
@@ -564,7 +575,7 @@ public class PagingTests
             .Add(operation, "Operation")
             .Add(expectation.RootElement, "Expected")
             .Add(response, "Response")
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -598,17 +609,17 @@ public class PagingTests
                 .AddFiltering()
                 .AddSorting()
                 .ModifyPagingOptions(o => o.DefaultPageSize = 2)
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var response = await executor.ExecuteAsync(request);
+        var response = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         await snapshot
             .Add(operation, "Operation")
             .Add(response, "Response")
             .Add(executor.Schema, "Schema")
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -643,17 +654,17 @@ public class PagingTests
                 .AddSorting()
                 .ModifyPagingOptions(o => o.DefaultPageSize = 2)
                 .ModifyCostOptions(o => o.ApplySlicingArgumentDefaultValue = false)
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var response = await executor.ExecuteAsync(request);
+        var response = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         await snapshot
             .Add(operation, "Operation")
             .Add(response, "Response")
             .Add(executor.Schema, "Schema")
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     public class Query

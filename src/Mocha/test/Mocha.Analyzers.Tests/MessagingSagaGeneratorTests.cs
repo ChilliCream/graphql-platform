@@ -21,6 +21,6 @@ public class MessagingSagaGeneratorTests
                 }
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

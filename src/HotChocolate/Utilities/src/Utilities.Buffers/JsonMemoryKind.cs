@@ -4,5 +4,6 @@ internal enum JsonMemoryKind
 {
     Metadata = 1,
     Json = 2,
-    Variables = 3
+    Variables = 3,
+    Arena = 4
 }

@@ -26,8 +26,8 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
               --client-id <client-id> (REQUIRED)              The ID of the client [env: NITRO_CLIENT_ID]
               --stage <stage> (REQUIRED)                      The name of the stage [env: NITRO_STAGE]
               --operations-file <operations-file> (REQUIRED)  The path to the json file with the operations [env: NITRO_OPERATIONS_FILE]
-              --cloud-url <cloud-url>                         The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                             The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>                         The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                             The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                                 The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                  Show help and usage information
 
@@ -62,7 +62,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -118,9 +118,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating client against stage 'dev' of client 'client-1'
-            ├── Starting validation request
-            │   └── ✕ Failed to start the validation request.
+            Validating client 'client-1' against stage 'dev'
             └── ✕ Failed to validate the client.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -151,10 +149,49 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
         result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating client against stage 'dev' of client 'client-1'
-            ├── Starting validation request
-            │   └── ✕ Failed to start the validation request.
+            Validating client 'client-1' against stage 'dev'
             └── ✕ Failed to validate the client.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ClientNotFound_ReturnsError()
+    {
+        SetupOperationsFile();
+        SetupValidateClientMutation(
+            new ValidateClientVersion_ValidateClient_Errors_ClientNotFoundError("Client not found.", ClientId));
+
+        var result = await ExecuteCommandAsync(
+            "client", "validate", "--stage", Stage, "--client-id", ClientId,
+            "--operations-file", OperationsFile);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Client not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task StageNotFound_ReturnsError()
+    {
+        SetupOperationsFile();
+        SetupValidateClientMutation(
+            new ValidateClientVersion_ValidateClient_Errors_StageNotFoundError(
+                "StageNotFoundError", "Stage not found.", Stage));
+
+        var result = await ExecuteCommandAsync(
+            "client", "validate", "--stage", Stage, "--client-id", ClientId,
+            "--operations-file", OperationsFile);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -184,9 +221,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating client against stage 'dev' of client 'client-1'
-            ├── Starting validation request
-            │   └── ✕ Failed to start the validation request.
+            Validating client 'client-1' against stage 'dev'
             └── ✕ Failed to validate the client.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -216,12 +251,9 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
             System.Text.Encoding.UTF8.GetString(capturedStream.ToArray()));
         result.AssertSuccess(
             """
-            Validating client against stage 'dev' of client 'client-1'
-            ├── Starting validation request
-            │   └── ✓ Validation request created (ID: request-1).
-            ├── Validating
-            │   └── ✓ Validation passed.
-            └── ✓ Validated client against stage 'dev'.
+            Validating client 'client-1' against stage 'dev'
+            ├── Validation request created. (ID: request-1)
+            └── ✓ Client passed validation.
             """);
     }
 
@@ -245,12 +277,9 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
         // assert
         result.AssertSuccess(
             """
-            Validating client against stage 'dev' of client 'client-1'
-            ├── Starting validation request
-            │   └── ✓ Validation request created (ID: request-1).
-            ├── Validating
-            │   └── ✓ Validation passed.
-            └── ✓ Validated client against stage 'dev'.
+            Validating client 'client-1' against stage 'dev'
+            ├── Validation request created. (ID: request-1)
+            └── ✓ Client passed validation.
             """);
     }
 
@@ -277,18 +306,15 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating client against stage 'dev' of client 'client-1'
-            ├── Starting validation request
-            │   └── ✓ Validation request created (ID: request-1).
-            ├── Validating
-            │   └── ✕ Validation failed.
-            │       └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
-            │           └── foo (10:10)
-            └── ✕ Failed to validate the client.
+            Validating client 'client-1' against stage 'dev'
+            ├── Validation request created. (ID: request-1)
+            └── ✕ Client failed validation.
+                └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
+                    └── foo (10:10)
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Client validation failed.
+            Client failed validation.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -301,19 +327,6 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
                 "UnauthorizedOperation",
                 "Not authorized to validate."),
             "Not authorized to validate."
-        },
-        {
-            new ValidateClientVersion_ValidateClient_Errors_ClientNotFoundError(
-                "Client not found.",
-                "client-1"),
-            "Client not found."
-        },
-        {
-            new ValidateClientVersion_ValidateClient_Errors_StageNotFoundError(
-                "StageNotFoundError",
-                "Stage not found.",
-                "dev"),
-            "Stage not found."
         },
         {
             new ValidateClientVersion_ValidateClient_Errors_InvalidSourceMetadataInputError(

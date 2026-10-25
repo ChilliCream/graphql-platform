@@ -37,7 +37,7 @@ public class EnumValueConfiguration
     /// <summary>
     /// Defines if this enum value is deprecated.
     /// </summary>
-    public bool IsDeprecated => !string.IsNullOrEmpty(DeprecationReason);
+    public bool IsDeprecated => !string.IsNullOrWhiteSpace(DeprecationReason);
 
     /// <summary>
     /// Defines if this enum value is ignored

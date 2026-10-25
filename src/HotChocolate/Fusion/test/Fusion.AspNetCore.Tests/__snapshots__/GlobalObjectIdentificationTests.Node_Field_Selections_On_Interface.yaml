@@ -28,12 +28,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
-      }
-
-      interface Votable {
-        viewerCanVote: Boolean!
+      type Query {
+        node(id: ID!): Node @lookup
       }
 
       type Comment implements Node & Votable {
@@ -47,8 +43,12 @@ sourceSchemas:
         viewerRating: Float!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup
+      interface Node {
+        id: ID!
+      }
+
+      interface Votable {
+        viewerCanVote: Boolean!
       }
     interactions:
       - request:
@@ -90,7 +90,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 63ca3aafa7eb59911553fe11e060f57b
+      hash: b3a08cf56d190a298d1cdf9f61450ce3
       searchSpace: 1
       expandedNodes: 1
   nodes:

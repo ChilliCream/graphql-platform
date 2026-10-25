@@ -14,14 +14,14 @@ request:
           name
         }
         types {
-          ... FullType
+          ...FullType
         }
         directives {
           name
           description
           isRepeatable
           args(includeDeprecated: true) {
-            ... InputValue
+            ...InputValue
           }
           locations
         }
@@ -38,19 +38,19 @@ request:
         name
         description
         args(includeDeprecated: true) {
-          ... InputValue
+          ...InputValue
         }
         type {
-          ... TypeRef
+          ...TypeRef
         }
         isDeprecated
         deprecationReason
       }
       inputFields(includeDeprecated: true) {
-        ... InputValue
+        ...InputValue
       }
       interfaces {
-        ... TypeRef
+        ...TypeRef
       }
       enumValues(includeDeprecated: true) {
         name
@@ -59,7 +59,7 @@ request:
         deprecationReason
       }
       possibleTypes {
-        ... TypeRef
+        ...TypeRef
       }
     }
 
@@ -67,7 +67,7 @@ request:
       name
       description
       type {
-        ... TypeRef
+        ...TypeRef
       }
       defaultValue
       isDeprecated
@@ -200,7 +200,24 @@ response:
                 {
                   "name": "directives",
                   "description": null,
-                  "args": [],
+                  "args": [
+                    {
+                      "name": "includeDeprecated",
+                      "description": null,
+                      "type": {
+                        "kind": "NON_NULL",
+                        "name": null,
+                        "ofType": {
+                          "kind": "SCALAR",
+                          "name": "Boolean",
+                          "ofType": null
+                        }
+                      },
+                      "defaultValue": "false",
+                      "isDeprecated": false,
+                      "deprecationReason": null
+                    }
+                  ],
                   "type": {
                     "kind": "NON_NULL",
                     "name": null,
@@ -935,6 +952,34 @@ response:
                   },
                   "isDeprecated": false,
                   "deprecationReason": null
+                },
+                {
+                  "name": "isDeprecated",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "Boolean",
+                      "ofType": null
+                    }
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "deprecationReason",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
                 }
               ],
               "inputFields": null,
@@ -1065,9 +1110,157 @@ response:
                   "description": null,
                   "isDeprecated": false,
                   "deprecationReason": null
+                },
+                {
+                  "name": "DIRECTIVE_DEFINITION",
+                  "description": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
                 }
               ],
               "possibleTypes": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "__SearchResult",
+              "description": null,
+              "specifiedByURL": null,
+              "isOneOf": null,
+              "fields": [
+                {
+                  "name": "cursor",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "String",
+                      "ofType": null
+                    }
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "coordinate",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "String",
+                      "ofType": null
+                    }
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "definition",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "UNION",
+                      "name": "__SchemaDefinition",
+                      "ofType": null
+                    }
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "pathsToRoot",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "LIST",
+                      "name": null,
+                      "ofType": {
+                        "kind": "NON_NULL",
+                        "name": null,
+                        "ofType": {
+                          "kind": "LIST",
+                          "name": null,
+                          "ofType": {
+                            "kind": "NON_NULL",
+                            "name": null,
+                            "ofType": {
+                              "kind": "SCALAR",
+                              "name": "String"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "score",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "Float",
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
+              "inputFields": null,
+              "interfaces": [],
+              "enumValues": null,
+              "possibleTypes": null
+            },
+            {
+              "kind": "UNION",
+              "name": "__SchemaDefinition",
+              "description": null,
+              "specifiedByURL": null,
+              "isOneOf": null,
+              "fields": null,
+              "inputFields": null,
+              "interfaces": null,
+              "enumValues": null,
+              "possibleTypes": [
+                {
+                  "kind": "OBJECT",
+                  "name": "__Directive",
+                  "ofType": null
+                },
+                {
+                  "kind": "OBJECT",
+                  "name": "__EnumValue",
+                  "ofType": null
+                },
+                {
+                  "kind": "OBJECT",
+                  "name": "__Field",
+                  "ofType": null
+                },
+                {
+                  "kind": "OBJECT",
+                  "name": "__InputValue",
+                  "ofType": null
+                },
+                {
+                  "kind": "OBJECT",
+                  "name": "__Type",
+                  "ofType": null
+                }
+              ]
             },
             {
               "kind": "OBJECT",
@@ -1599,16 +1792,16 @@ response:
               "interfaces": null,
               "enumValues": [
                 {
-                  "name": "PHOTO",
-                  "description": null,
-                  "isDeprecated": true,
-                  "deprecationReason": "No longer supported"
-                },
-                {
                   "name": "STORY",
                   "description": "Enum value description",
                   "isDeprecated": false,
                   "deprecationReason": null
+                },
+                {
+                  "name": "PHOTO",
+                  "description": null,
+                  "isDeprecated": true,
+                  "deprecationReason": "No longer supported"
                 }
               ],
               "possibleTypes": null
@@ -1629,6 +1822,18 @@ response:
               "kind": "SCALAR",
               "name": "Boolean",
               "description": "The \u0060Boolean\u0060 scalar type represents \u0060true\u0060 or \u0060false\u0060.",
+              "specifiedByURL": null,
+              "isOneOf": null,
+              "fields": null,
+              "inputFields": null,
+              "interfaces": null,
+              "enumValues": null,
+              "possibleTypes": null
+            },
+            {
+              "kind": "SCALAR",
+              "name": "Float",
+              "description": "The \u0060Float\u0060 scalar type represents signed double-precision finite values as specified by [IEEE 754](https://en.wikipedia.org/wiki/IEEE_floating_point).",
               "specifiedByURL": null,
               "isOneOf": null,
               "fields": null,
@@ -1663,6 +1868,68 @@ response:
             }
           ],
           "directives": [
+            {
+              "name": "test",
+              "description": "Directive description",
+              "isRepeatable": true,
+              "args": [
+                {
+                  "name": "arg",
+                  "description": "Directive argument description",
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "String",
+                      "ofType": null
+                    }
+                  },
+                  "defaultValue": "\u0022default\u0022",
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
+              "locations": [
+                "FIELD",
+                "VARIABLE_DEFINITION"
+              ]
+            },
+            {
+              "name": "defer",
+              "description": null,
+              "isRepeatable": false,
+              "args": [
+                {
+                  "name": "if",
+                  "description": null,
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "Boolean",
+                    "ofType": null
+                  },
+                  "defaultValue": "true",
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "label",
+                  "description": null,
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "defaultValue": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
+              "locations": [
+                "FRAGMENT_SPREAD",
+                "INLINE_FRAGMENT"
+              ]
+            },
             {
               "name": "skip",
               "description": "Directs the executor to skip this field or fragment when the \u0060if\u0060 argument is true.",
@@ -1768,6 +2035,39 @@ sourceSchemas:
         subscription: Subscription
       }
 
+      "Object type description"
+      type Query @test(arg: "value") {
+        "Object field description"
+        posts(
+          "Argument description"
+          filter: PostsFilter
+          first: Int! = 5 @test(arg: "value")
+          hidden: Boolean @deprecated
+        ): [Post]
+        userCreation: UserCreation
+        votables: [Votable]! @deprecated
+        postById(postId: ID! @is(field: "id")): Post @lookup
+        node(id: ID!): Node @lookup
+      }
+
+      type Mutation @test(arg: "value") {
+        postReview(input: PostReviewInput): Review @test(arg: "value")
+      }
+
+      type Subscription @test(arg: "value") {
+        onNewReview: Review
+      }
+
+      type Post implements Votable & Node @key(fields: "id") {
+        id: ID!
+        postKind: PostKind @shareable
+        location: String @inaccessible
+      }
+
+      type Review implements Votable & Node @test(arg: "value") {
+        id: ID!
+      }
+
       interface Node @test(arg: "value") {
         id: ID!
       }
@@ -1778,44 +2078,11 @@ sourceSchemas:
         id: ID!
       }
 
-      type Mutation @test(arg: "value") {
-        postReview(input: PostReviewInput): Review @test(arg: "value")
-      }
-
-      type Post implements Votable & Node @key(fields: "id") {
-        id: ID!
-        postKind: PostKind @shareable
-        location: String @inaccessible
-      }
-
-      "Object type description"
-      type Query @test(arg: "value") {
-        "Object field description"
-        posts(
-          "Argument description"
-          filter: PostsFilter
-          first: Int! = 5 @test(arg: "value")
-          hidden: Boolean @deprecated(reason: "No longer supported")
-        ): [Post]
-        userCreation: UserCreation
-        votables: [Votable]! @deprecated(reason: "No longer supported")
-        postById(postId: ID! @is(field: "id")): Post @lookup
-        node(id: ID!): Node @lookup
-      }
-
-      type Review implements Votable & Node @test(arg: "value") {
-        id: ID!
-      }
-
-      type Subscription @test(arg: "value") {
-        onNewReview: Review
-      }
-
       "Union description"
       union UserCreation @test(arg: "value") = Post | Review
 
       input PostReviewInput @oneOf {
-        scalar: String @deprecated(reason: "No longer supported")
+        scalar: String @deprecated
         pros: [PostReviewPro]
       }
 
@@ -1833,14 +2100,30 @@ sourceSchemas:
       enum PostKind @test(arg: "value") {
         "Enum value description"
         STORY @test(arg: "value")
-        PHOTO @deprecated(reason: "No longer supported")
+        PHOTO @deprecated
       }
 
-      "The `@oneOf` directive is used within the type system definition language to indicate that an Input Object is a OneOf Input Object."
-      directive @oneOf on INPUT_OBJECT
-
       "Directive description"
-      directive @test("Directive argument description" arg: String! = "default") repeatable on QUERY | MUTATION | SUBSCRIPTION | FIELD | FRAGMENT_DEFINITION | FRAGMENT_SPREAD | INLINE_FRAGMENT | VARIABLE_DEFINITION | SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+      directive @test("Directive argument description" arg: String! = "default") repeatable on
+        | QUERY
+        | MUTATION
+        | SUBSCRIPTION
+        | FIELD
+        | FRAGMENT_DEFINITION
+        | FRAGMENT_SPREAD
+        | INLINE_FRAGMENT
+        | VARIABLE_DEFINITION
+        | SCHEMA
+        | SCALAR
+        | OBJECT
+        | FIELD_DEFINITION
+        | ARGUMENT_DEFINITION
+        | INTERFACE
+        | UNION
+        | ENUM
+        | ENUM_VALUE
+        | INPUT_OBJECT
+        | INPUT_FIELD_DEFINITION
 operationPlan:
   operation:
     - document: |
@@ -2049,7 +2332,7 @@ operationPlan:
           }
         }
       name: IntrospectionQuery
-      hash: 100115cb7dd55b6a817c8f83458b8fc5
+      hash: afbf4977b3891649597f56d811a50c30
       searchSpace: 1
       expandedNodes: 1
   nodes:

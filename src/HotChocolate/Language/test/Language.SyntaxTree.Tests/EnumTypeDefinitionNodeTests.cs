@@ -100,11 +100,11 @@ public class EnumTypeDefinitionNodeTests
 
         // act
         Action a = () => new EnumTypeDefinitionNode(
-             location,
-             name,
-             description,
-             directives,
-             null!);
+            location,
+            name,
+            description,
+            directives,
+            null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(a);
@@ -121,11 +121,11 @@ public class EnumTypeDefinitionNodeTests
         var values = new List<EnumValueDefinitionNode>();
 
         var type = new EnumTypeDefinitionNode(
-           location,
-           name,
-           description,
-           directives,
-           values);
+            location,
+            name,
+            description,
+            directives,
+            values);
 
         // act
         type = type.WithName(new NameNode("baz"));
@@ -145,11 +145,11 @@ public class EnumTypeDefinitionNodeTests
         var values = new List<EnumValueDefinitionNode>();
 
         var type = new EnumTypeDefinitionNode(
-           location,
-           name,
-           description,
-           directives,
-           values);
+            location,
+            name,
+            description,
+            directives,
+            values);
 
         // act
         type = type.WithDescription(new StringValueNode("baz"));
@@ -169,11 +169,11 @@ public class EnumTypeDefinitionNodeTests
         var values = new List<EnumValueDefinitionNode>();
 
         var type = new EnumTypeDefinitionNode(
-           location,
-           name,
-           description,
-           new List<DirectiveNode>(),
-           values);
+            location,
+            name,
+            description,
+            new List<DirectiveNode>(),
+            values);
 
         // act
         type = type.WithDirectives(directives);
@@ -193,11 +193,11 @@ public class EnumTypeDefinitionNodeTests
         var values = new List<EnumValueDefinitionNode>();
 
         var type = new EnumTypeDefinitionNode(
-           location,
-           name,
-           description,
-           directives,
-           new List<EnumValueDefinitionNode>());
+            location,
+            name,
+            description,
+            directives,
+            new List<EnumValueDefinitionNode>());
 
         // act
         type = type.WithValues(values);
@@ -217,11 +217,11 @@ public class EnumTypeDefinitionNodeTests
         var values = new List<EnumValueDefinitionNode>();
 
         var type = new EnumTypeDefinitionNode(
-           null,
-           name,
-           description,
-           directives,
-           values);
+            null,
+            name,
+            description,
+            directives,
+            values);
 
         // act
         type = type.WithLocation(location);

@@ -29,6 +29,14 @@ sourceSchemas:
         mutation: Mutation
       }
 
+      type Query {
+        foo: String!
+      }
+
+      type Mutation {
+        createBook(input: CreateBookInput!): CreateBookPayload!
+      }
+
       type Book @key(fields: "id") {
         id: Int!
         title: String!
@@ -36,14 +44,6 @@ sourceSchemas:
 
       type CreateBookPayload {
         book: Book!
-      }
-
-      type Mutation {
-        createBook(input: CreateBookInput!): CreateBookPayload!
-      }
-
-      type Query {
-        foo: String!
       }
 
       input CreateBookInput {
@@ -78,13 +78,13 @@ sourceSchemas:
         query: Query
       }
 
-      type Book {
-        id: Int!
-        author: String!
-      }
-
       type Query {
         bookById(id: Int!): Book @internal @lookup
+      }
+
+      type Book @key(fields: "id") {
+        id: Int!
+        author: String!
       }
     interactions:
       - request:
@@ -121,7 +121,7 @@ operationPlan:
             }
           }
         }
-      hash: 8adeedac0c987644c3244bc6ad459a3d
+      hash: e53efbe8e84d1c17ffe288d2cbcc16e7
       searchSpace: 1
       expandedNodes: 2
   nodes:

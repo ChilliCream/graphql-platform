@@ -1,9 +1,12 @@
+using System.Net;
 using System.Text;
 using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using GraphQLHttpClient = HotChocolate.Transport.Http.GraphQLHttpClient;
@@ -39,7 +42,8 @@ public class PersistedOperationTests : FusionTestBase
             new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
             {
                 Method = GraphQLHttpMethod.Post
-            });
+            },
+            TestContext.Current.CancellationToken);
 
         // arrange
         result.HttpResponseMessage.MatchSnapshot();
@@ -70,7 +74,8 @@ public class PersistedOperationTests : FusionTestBase
             new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
             {
                 Method = GraphQLHttpMethod.Post
-            });
+            },
+            TestContext.Current.CancellationToken);
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -101,7 +106,8 @@ public class PersistedOperationTests : FusionTestBase
             new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
             {
                 Method = GraphQLHttpMethod.Post
-            });
+            },
+            TestContext.Current.CancellationToken);
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -132,7 +138,8 @@ public class PersistedOperationTests : FusionTestBase
             new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
             {
                 Method = GraphQLHttpMethod.Post
-            });
+            },
+            TestContext.Current.CancellationToken);
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -163,7 +170,8 @@ public class PersistedOperationTests : FusionTestBase
             new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
             {
                 Method = GraphQLHttpMethod.Post
-            });
+            },
+            TestContext.Current.CancellationToken);
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -193,7 +201,8 @@ public class PersistedOperationTests : FusionTestBase
             new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
             {
                 Method = GraphQLHttpMethod.Post
-            });
+            },
+            TestContext.Current.CancellationToken);
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -224,7 +233,8 @@ public class PersistedOperationTests : FusionTestBase
             new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
             {
                 Method = GraphQLHttpMethod.Post
-            });
+            },
+            TestContext.Current.CancellationToken);
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -255,7 +265,8 @@ public class PersistedOperationTests : FusionTestBase
             new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
             {
                 Method = GraphQLHttpMethod.Post
-            });
+            },
+            TestContext.Current.CancellationToken);
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -286,7 +297,8 @@ public class PersistedOperationTests : FusionTestBase
             new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
             {
                 Method = GraphQLHttpMethod.Post
-            });
+            },
+            TestContext.Current.CancellationToken);
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -313,7 +325,8 @@ public class PersistedOperationTests : FusionTestBase
             new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
             {
                 Method = GraphQLHttpMethod.Post
-            });
+            },
+            TestContext.Current.CancellationToken);
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -341,7 +354,8 @@ public class PersistedOperationTests : FusionTestBase
             new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
             {
                 Method = GraphQLHttpMethod.Post
-            });
+            },
+            TestContext.Current.CancellationToken);
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -372,7 +386,8 @@ public class PersistedOperationTests : FusionTestBase
             new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
             {
                 Method = GraphQLHttpMethod.Post
-            });
+            },
+            TestContext.Current.CancellationToken);
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -407,7 +422,8 @@ public class PersistedOperationTests : FusionTestBase
             new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
             {
                 Method = GraphQLHttpMethod.Post
-            });
+            },
+            TestContext.Current.CancellationToken);
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -442,7 +458,8 @@ public class PersistedOperationTests : FusionTestBase
             new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
             {
                 Method = GraphQLHttpMethod.Post
-            });
+            },
+            TestContext.Current.CancellationToken);
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -475,10 +492,185 @@ public class PersistedOperationTests : FusionTestBase
             new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
             {
                 Method = GraphQLHttpMethod.Post
-            });
+            },
+            TestContext.Current.CancellationToken);
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
+    }
+
+    [Theory]
+    [InlineData(HttpTransportVersion.Legacy, "text/plain", HttpStatusCode.NotFound)]
+    [InlineData(HttpTransportVersion.Legacy, null, HttpStatusCode.NotFound)]
+    [InlineData(HttpTransportVersion.Draft20250508, "text/plain", HttpStatusCode.NotFound)]
+    [InlineData(HttpTransportVersion.Draft20250508, null, HttpStatusCode.NotFound)]
+    [InlineData(
+        HttpTransportVersion.Draft20260903,
+        "text/plain",
+        HttpStatusCode.UnsupportedMediaType)]
+    [InlineData(HttpTransportVersion.Draft20260903, null, HttpStatusCode.UnsupportedMediaType)]
+    public async Task Post_Should_ReturnUnsupportedMediaType_When_ContentTypeIsNotJson(
+        HttpTransportVersion transportVersion,
+        string? contentType,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var storage = new OperationStorage();
+        storage.AddOperation("getField", "query GetField { field }");
+
+        var server = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                field: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureApplication: app =>
+            {
+                app.UseRouting();
+                app.UseEndpoints(endpoints => endpoints.MapGraphQLPersistedOperations());
+            },
+            configureGatewayBuilder: b => b
+                .ConfigureSchemaServices(
+                    (_, s) => s.AddSingleton<IOperationDocumentStorage>(storage))
+                .UsePersistedOperationPipeline()
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        HttpTransportVersion = transportVersion
+                    }),
+            includeOperationPlan: false);
+
+        using var client = gateway.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            "http://localhost:5000/graphql/persisted/getField/GetField");
+        request.Content = contentType is null
+            ? new ByteArrayContent(Encoding.UTF8.GetBytes("{ }"))
+            : new StringContent("{ }", Encoding.UTF8, contentType);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(
+            "",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Theory]
+    [InlineData(HttpTransportVersion.Draft20250508, HttpStatusCode.NotFound, new string[0])]
+    [InlineData(
+        HttpTransportVersion.Draft20260903,
+        HttpStatusCode.MethodNotAllowed,
+        new[] { "GET", "OPTIONS", "POST" })]
+    public async Task Put_Should_ReturnMethodNotAllowed_When_PersistedRoutesAreMappedAlone(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string[] expectedAllow)
+    {
+        // arrange
+        var storage = new OperationStorage();
+        storage.AddOperation("getField", "query GetField { field }");
+
+        var server = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                field: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureApplication: app =>
+            {
+                app.UseRouting();
+                app.UseEndpoints(endpoints => endpoints.MapGraphQLPersistedOperations());
+            },
+            configureGatewayBuilder: b => b
+                .ConfigureSchemaServices(
+                    (_, s) => s.AddSingleton<IOperationDocumentStorage>(storage))
+                .UsePersistedOperationPipeline()
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        HttpTransportVersion = transportVersion
+                    }),
+            includeOperationPlan: false);
+
+        using var client = gateway.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Put,
+            "http://localhost:5000/graphql/persisted/getField/GetField");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedAllow, response.Content.Headers.Allow);
+    }
+
+    [Theory]
+    [InlineData(HttpTransportVersion.Draft20250508, HttpStatusCode.NotFound, new string[0])]
+    [InlineData(
+        HttpTransportVersion.Draft20260903,
+        HttpStatusCode.NoContent,
+        new[] { "GET", "OPTIONS", "POST" })]
+    public async Task Options_Should_ReturnAllowedMethods_When_PersistedRoutesAreMappedAlone(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string[] expectedAllow)
+    {
+        // arrange
+        var storage = new OperationStorage();
+        storage.AddOperation("getField", "query GetField { field }");
+
+        var server = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                field: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureApplication: app =>
+            {
+                app.UseRouting();
+                app.UseEndpoints(endpoints => endpoints.MapGraphQLPersistedOperations());
+            },
+            configureGatewayBuilder: b => b
+                .ConfigureSchemaServices(
+                    (_, s) => s.AddSingleton<IOperationDocumentStorage>(storage))
+                .UsePersistedOperationPipeline()
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        HttpTransportVersion = transportVersion
+                    }),
+            includeOperationPlan: false);
+
+        using var client = gateway.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Options,
+            "http://localhost:5000/graphql/persisted/getField/GetField");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedAllow, response.Content.Headers.Allow);
     }
 
     private static OperationRequest CreateApolloStyleRequest(

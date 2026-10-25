@@ -2,12 +2,12 @@ schema {
   query: QueryComparableEntity
 }
 
-type ComparableExample {
-  some: String!
-}
-
 type QueryComparableEntity {
   foo(example: ComparableExampleInput!): ComparableExample!
+}
+
+type ComparableExample {
+  some: String!
 }
 
 input ComparableExampleInput {

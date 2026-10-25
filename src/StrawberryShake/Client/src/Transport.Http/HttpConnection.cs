@@ -152,10 +152,7 @@ public class HttpConnection : IHttpConnection
                 MapVariables(list);
             }
 
-            if (copy is not null)
-            {
-                copy[variable.Key] = value;
-            }
+            copy?[variable.Key] = value;
         }
 
         return copy ?? variables;

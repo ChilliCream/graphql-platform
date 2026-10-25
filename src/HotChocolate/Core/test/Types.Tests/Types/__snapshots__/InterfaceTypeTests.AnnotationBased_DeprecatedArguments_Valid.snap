@@ -1,5 +1,9 @@
-﻿schema {
+schema {
   query: Query
+}
+
+type Query {
+  foo: Int!
 }
 
 interface DeprecatedImplementation implements DeprecatedInterface {
@@ -8,8 +12,4 @@ interface DeprecatedImplementation implements DeprecatedInterface {
 
 interface DeprecatedInterface {
   deprecated(deprecated: Int @deprecated(reason: "reason")): Int
-}
-
-type Query {
-  foo: Int!
 }

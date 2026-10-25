@@ -129,7 +129,7 @@ public record Error : IError
         if (Extensions is not null)
         {
             var builder = ImmutableOrderedDictionary.CreateBuilder<string, object?>();
-            builder.AddRange(Extensions!);
+            builder.AddRange(Extensions);
             builder.Add(key, value);
             return this with { Extensions = builder.ToImmutable() };
         }
@@ -158,7 +158,7 @@ public record Error : IError
         if (Extensions is not null)
         {
             var builder = ImmutableOrderedDictionary.CreateBuilder<string, object?>();
-            builder.AddRange(Extensions!);
+            builder.AddRange(Extensions);
             builder.Remove(key);
             return this with { Extensions = builder.ToImmutable() };
         }

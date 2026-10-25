@@ -12,7 +12,7 @@ public sealed partial class SourceResultDocument
         ReadOnlySpan<char> propertyName,
         out SourceResultElement value)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _parsedData.Get(objectCursor);
 
@@ -101,7 +101,7 @@ public sealed partial class SourceResultDocument
         ReadOnlySpan<byte> propertyName,
         out SourceResultElement value)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _parsedData.Get(objectCursor);
 

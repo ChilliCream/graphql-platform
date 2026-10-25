@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Completion;
@@ -17,7 +18,6 @@ public sealed class FusionInputFieldDefinition : IInputValueDefinition, IInacces
         string name,
         string? description,
         IValueNode? defaultValue,
-        bool isDeprecated,
         string? deprecationReason,
         bool isInaccessible)
     {
@@ -26,10 +26,10 @@ public sealed class FusionInputFieldDefinition : IInputValueDefinition, IInacces
 
         Index = index;
         Name = name;
+        NameNode = new NameNode(name);
         Description = description;
         DefaultValue = defaultValue;
-        IsDeprecated = isDeprecated;
-        DeprecationReason = deprecationReason;
+        DeprecationReason = string.IsNullOrWhiteSpace(deprecationReason) ? null : deprecationReason;
         IsInaccessible = isInaccessible;
 
         // these properties are initialized
@@ -43,6 +43,8 @@ public sealed class FusionInputFieldDefinition : IInputValueDefinition, IInacces
     public int Index { get; }
 
     public string Name { get; }
+
+    internal NameNode NameNode { get; }
 
     public string? Description { get; }
 
@@ -83,7 +85,8 @@ public sealed class FusionInputFieldDefinition : IInputValueDefinition, IInacces
 
     public IValueNode? DefaultValue { get; }
 
-    public bool IsDeprecated { get; }
+    [MemberNotNullWhen(true, nameof(DeprecationReason))]
+    public bool IsDeprecated => DeprecationReason is not null;
 
     public string? DeprecationReason { get; }
 

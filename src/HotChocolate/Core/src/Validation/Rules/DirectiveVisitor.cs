@@ -171,10 +171,16 @@ internal sealed class DirectiveVisitor()
                 context.ReportError(context.DirectiveMustBeUniqueInLocation(directive));
             }
 
-            // Defer And Stream Directive Labels Are Unique
+            // Defer And Stream Directive Labels Are Unique.
+            // The rule is document-scoped: a label must be unique across all @defer and
+            // @stream directives in the document. The same lexical directive can be
+            // reached from multiple operations (each operation re-walks its spread fragments
+            // independently), so we must track the directive nodes already counted to avoid
+            // colliding a label with itself when revisited.
             if (node.Kind is Field or InlineFragment or FragmentSpread
                 && (directive.Name.Value.Equals(DirectiveNames.Defer.Name, StringComparison.Ordinal)
-                || directive.Name.Value.Equals(DirectiveNames.Stream.Name, StringComparison.Ordinal)))
+                || directive.Name.Value.Equals(DirectiveNames.Stream.Name, StringComparison.Ordinal))
+                && feature.ProcessedLabelDirectives.Add(directive))
             {
                 switch (directive.GetArgumentValue(DirectiveNames.Defer.Arguments.Label))
                 {
@@ -249,10 +255,13 @@ internal sealed class DirectiveVisitor()
 
         public HashSet<string> Labels { get; } = [];
 
+        public HashSet<DirectiveNode> ProcessedLabelDirectives { get; } = [];
+
         protected internal override void Reset()
         {
             DirectiveNames.Clear();
             Labels.Clear();
+            ProcessedLabelDirectives.Clear();
         }
     }
 }

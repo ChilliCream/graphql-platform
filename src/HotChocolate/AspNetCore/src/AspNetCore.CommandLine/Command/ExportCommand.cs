@@ -1,6 +1,7 @@
 using System.CommandLine;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Internal;
+using HotChocolate.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -18,17 +19,40 @@ internal sealed class ExportCommand : Command
     {
         Description = "Export the graphql schema to a schema file";
 
-        Options.Add(Opt<OutputOption>.Instance);
-        Options.Add(Opt<SchemaNameOption>.Instance);
+        var outputOption = new OutputOption();
+        var schemaNameOption = new SchemaNameOption();
+        var semanticNonNullOption = new SemanticNonNullOption();
+        var specVersionOption = new SpecVersionOption();
+
+        Options.Add(outputOption);
+        Options.Add(schemaNameOption);
+        Options.Add(semanticNonNullOption);
+        Options.Add(specVersionOption);
 
         SetAction(
             (parseResult, cancellationToken) =>
             {
                 var output = parseResult.InvocationConfiguration.Output;
-                var outputFile = parseResult.GetValue(Opt<OutputOption>.Instance);
-                var schemaName = parseResult.GetValue(Opt<SchemaNameOption>.Instance);
+                var outputFile = parseResult.GetValue(outputOption);
+                var schemaName = parseResult.GetValue(schemaNameOption);
+                var semanticNonNull = parseResult.GetValue(semanticNonNullOption);
+                var specVersionValue = parseResult.GetValue(specVersionOption);
+                GraphQLSpecVersion? specVersion = null;
 
-                return ExecuteAsync(output, host, outputFile, schemaName, cancellationToken);
+                if (specVersionValue is not null)
+                {
+                    GraphQLSpecVersions.TryParse(specVersionValue, out var parsedSpecVersion);
+                    specVersion = parsedSpecVersion;
+                }
+
+                return ExecuteAsync(
+                    output,
+                    host,
+                    outputFile,
+                    schemaName,
+                    semanticNonNull,
+                    specVersion,
+                    cancellationToken);
             });
     }
 
@@ -37,6 +61,8 @@ internal sealed class ExportCommand : Command
         IHost host,
         FileInfo? outputFile,
         string? schemaName,
+        bool semanticNonNull,
+        GraphQLSpecVersion? specVersion,
         CancellationToken cancellationToken)
     {
         var provider = host.Services.GetRequiredService<IRequestExecutorProvider>();
@@ -58,7 +84,12 @@ internal sealed class ExportCommand : Command
 
         var executor = await provider.GetExecutorAsync(schemaName, cancellationToken);
         outputFile ??= new FileInfo(System.IO.Path.Combine(Environment.CurrentDirectory, "schema.graphqls"));
-        var result = await SchemaFileExporter.Export(outputFile.FullName, executor, cancellationToken);
+        var result = await SchemaFileExporter.Export(
+            outputFile.FullName,
+            executor,
+            semanticNonNull,
+            specVersion,
+            cancellationToken);
 
         await output.WriteLineAsync("Exported Files:");
         await output.WriteLineAsync($"- {result.SchemaFileName}");

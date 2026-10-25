@@ -1,9 +1,0 @@
-{
-  "data": {
-    "pureNullableScalarListItemReturningNull": [
-      "a",
-      null,
-      "c"
-    ]
-  }
-}

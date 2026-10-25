@@ -1,0 +1,225 @@
+using Azure.Messaging.ServiceBus;
+using Azure.Messaging.ServiceBus.Administration;
+using System.Security.Cryptography;
+using System.Text;
+
+namespace Mocha.Transport.AzureServiceBus;
+
+/// <summary>
+/// Represents a subscription linking a topic to a queue in the Azure Service Bus messaging topology.
+/// When a message is published to the topic, it is forwarded to the destination queue via this subscription.
+/// </summary>
+public sealed class AzureServiceBusSubscription
+    : TopologyResource<AzureServiceBusSubscriptionConfiguration>
+    , IAzureServiceBusResource
+{
+    private const int MaxSubscriptionNameLength = 50;
+    private string? _configuredName;
+
+    /// <summary>
+    /// Gets the deterministic broker subscription name.
+    /// </summary>
+    public string Name { get; private set; } = null!;
+
+    /// <summary>
+    /// Gets the source topic for this subscription.
+    /// </summary>
+    public AzureServiceBusTopic Source { get; private set; } = null!;
+
+    /// <summary>
+    /// Gets the destination queue for this subscription.
+    /// </summary>
+    public AzureServiceBusQueue Destination { get; private set; } = null!;
+
+    /// <summary>
+    /// Gets whether this subscription should be auto-provisioned on the broker.
+    /// </summary>
+    public bool? AutoProvision { get; private set; }
+
+    /// <summary>
+    /// Gets the lock duration applied by the broker when a message is delivered to a receiver.
+    /// </summary>
+    public TimeSpan? LockDuration { get; private set; }
+
+    /// <summary>
+    /// Gets the maximum delivery attempts before a message is dead-lettered.
+    /// </summary>
+    public int? MaxDeliveryCount { get; private set; }
+
+    /// <summary>
+    /// Gets the default time-to-live applied to messages that do not specify their own.
+    /// </summary>
+    public TimeSpan? DefaultMessageTimeToLive { get; private set; }
+
+    /// <summary>
+    /// Gets whether the subscription requires sessions.
+    /// </summary>
+    public bool? RequiresSession { get; private set; }
+
+    /// <summary>
+    /// Gets the entity to which messages received on this subscription are auto-forwarded.
+    /// When null, the subscription forwards to its destination queue by convention.
+    /// </summary>
+    public string? ForwardTo { get; private set; }
+
+    /// <summary>
+    /// Gets the entity to which dead-lettered messages from this subscription are auto-forwarded.
+    /// </summary>
+    public string? ForwardDeadLetteredMessagesTo { get; private set; }
+
+    /// <summary>
+    /// Gets whether expired messages are moved to the dead-letter queue instead of being dropped.
+    /// </summary>
+    public bool? DeadLetteringOnMessageExpiration { get; private set; }
+
+    /// <summary>
+    /// Gets the idle window after which the broker may delete the subscription.
+    /// </summary>
+    public TimeSpan? AutoDeleteOnIdle { get; private set; }
+
+    protected override void OnInitialize(AzureServiceBusSubscriptionConfiguration configuration)
+    {
+        _configuredName = configuration.Name;
+        AutoProvision = configuration.AutoProvision;
+        LockDuration = configuration.LockDuration;
+        MaxDeliveryCount = configuration.MaxDeliveryCount;
+        DefaultMessageTimeToLive = configuration.DefaultMessageTimeToLive;
+        RequiresSession = configuration.RequiresSession;
+        ForwardTo = configuration.ForwardTo;
+        ForwardDeadLetteredMessagesTo = configuration.ForwardDeadLetteredMessagesTo;
+        DeadLetteringOnMessageExpiration = configuration.DeadLetteringOnMessageExpiration;
+        AutoDeleteOnIdle = configuration.AutoDeleteOnIdle;
+    }
+
+    protected override void OnComplete(AzureServiceBusSubscriptionConfiguration configuration)
+    {
+        var builder = new UriBuilder(Topology.Address)
+        {
+            Path = Topology.Address.AbsolutePath.TrimEnd('/')
+                + "/s/t/" + Source.Name
+                + "/q/" + Destination.Name
+        };
+        Address = builder.Uri;
+    }
+
+    internal void SetSource(AzureServiceBusTopic source)
+    {
+        Source = source;
+    }
+
+    internal void SetDestination(AzureServiceBusQueue destination)
+    {
+        Destination = destination;
+        Name = _configuredName ?? GetForwardingSubscriptionName(destination.Name);
+    }
+
+    /// <summary>
+    /// Computes the deterministic broker subscription name used by a topic-to-queue forwarding subscription
+    /// for the specified destination queue. Infrastructure-as-code tooling can use this method to pre-create
+    /// the subscription with the identical name. The result never exceeds 50 characters and never contains
+    /// slashes, even when the queue name is hierarchical. The hash suffix used for names requiring
+    /// sanitization or truncation widened from 4 to 8 bytes; pre-created subscriptions relying on the
+    /// former 4-byte suffix must be recreated under the new name.
+    /// </summary>
+    /// <param name="queueName">The destination queue name.</param>
+    /// <returns>The forwarding subscription name.</returns>
+    public static string GetForwardingSubscriptionName(string queueName)
+    {
+        var sanitizedQueueName = queueName.IndexOf('/') < 0
+            ? queueName
+            : queueName.Replace('/', '-');
+        var candidate = "fwd-" + sanitizedQueueName;
+
+        // A name that required sanitization always gets a hash suffix so it cannot collide with the
+        // subscription name for a different queue that already matches the sanitized form.
+        if (candidate.Length <= MaxSubscriptionNameLength && sanitizedQueueName == queueName)
+        {
+            return candidate;
+        }
+
+        var hash = Convert.ToHexString(
+            SHA256.HashData(Encoding.UTF8.GetBytes(queueName)),
+            0,
+            8).ToLowerInvariant();
+        var prefixLength = Math.Min(candidate.Length, MaxSubscriptionNameLength - hash.Length - 1);
+        return candidate[..prefixLength] + "-" + hash;
+    }
+
+    /// <inheritdoc />
+    public async Task ProvisionAsync(
+        AzureServiceBusClientManager clientManager,
+        CancellationToken cancellationToken)
+    {
+        if (AutoProvision == false)
+        {
+            return;
+        }
+
+        var options = new CreateSubscriptionOptions(Source.Name, Name)
+        {
+            ForwardTo = ForwardTo ?? Destination.Name
+        };
+
+        // Only assign properties the user explicitly set so SDK defaults remain in effect otherwise.
+        if (LockDuration is not null)
+        {
+            options.LockDuration = LockDuration.Value;
+        }
+
+        if (MaxDeliveryCount is not null)
+        {
+            options.MaxDeliveryCount = MaxDeliveryCount.Value;
+        }
+
+        if (DefaultMessageTimeToLive is not null)
+        {
+            options.DefaultMessageTimeToLive = DefaultMessageTimeToLive.Value;
+        }
+
+        if (RequiresSession is not null)
+        {
+            options.RequiresSession = RequiresSession.Value;
+        }
+
+        if (ForwardDeadLetteredMessagesTo is not null)
+        {
+            options.ForwardDeadLetteredMessagesTo = ForwardDeadLetteredMessagesTo;
+        }
+
+        if (DeadLetteringOnMessageExpiration is not null)
+        {
+            options.DeadLetteringOnMessageExpiration = DeadLetteringOnMessageExpiration.Value;
+        }
+
+        if (AutoDeleteOnIdle is not null)
+        {
+            options.AutoDeleteOnIdle = AutoDeleteOnIdle.Value;
+        }
+
+        try
+        {
+            await clientManager.CreateSubscriptionAsync(options, cancellationToken);
+        }
+        catch (ServiceBusException ex) when (ex.Reason == ServiceBusFailureReason.MessagingEntityAlreadyExists)
+        {
+            // Already provisioned by another instance, safe to ignore.
+        }
+    }
+
+    /// <summary>
+    /// Deletes this subscription from Azure Service Bus.
+    /// </summary>
+    internal async Task DeprovisionAsync(
+        AzureServiceBusClientManager clientManager,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await clientManager.DeleteSubscriptionAsync(Source.Name, Name, cancellationToken);
+        }
+        catch (ServiceBusException ex) when (ex.Reason == ServiceBusFailureReason.MessagingEntityNotFound)
+        {
+            // Already removed by another instance or a previous cleanup attempt, safe to ignore.
+        }
+    }
+}

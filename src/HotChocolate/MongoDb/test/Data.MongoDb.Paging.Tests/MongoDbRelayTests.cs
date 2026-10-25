@@ -19,23 +19,24 @@ public class MongoDbRelayTests
             .AddObjectIdConverters()
             .AddGlobalObjectIdentification()
             .AddMongoDbPagingProviders()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
             """
             {
                 foo {
-                   id
+                    id
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -49,23 +50,24 @@ public class MongoDbRelayTests
             .AddObjectIdConverters(compressGlobalIds: false)
             .AddGlobalObjectIdentification()
             .AddMongoDbPagingProviders()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
             """
             {
                 foo {
-                   id
+                    id
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -79,23 +81,24 @@ public class MongoDbRelayTests
             .AddObjectIdConverters()
             .AddGlobalObjectIdentification()
             .AddMongoDbPagingProviders()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
             """
             {
                 node(id:"Rm9vOlB/GR6BDBlynehg6g==") {
-                   id
+                    id
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -109,23 +112,24 @@ public class MongoDbRelayTests
             .AddObjectIdConverters(compressGlobalIds: false)
             .AddGlobalObjectIdentification()
             .AddMongoDbPagingProviders()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
             """
             {
                 node(id:"Rm9vOjUwN2YxOTFlODEwYzE5NzI5ZGU4NjBlYQ==") {
-                   id
+                    id
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(result)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Query

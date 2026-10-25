@@ -19,7 +19,7 @@ response:
     {
       "data": {
         "productBySlug": {
-          "name": "Product: UHJvZHVjdDox",
+          "name": "Product: UHJvZHVjdDoxMTY3NDUwNjg=",
           "review": {
             "rating": 123
           }
@@ -33,14 +33,14 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        productBySlug(slug: String!): Product
+      }
+
       type Product {
         id: ID!
         name: String!
         review: Review
-      }
-
-      type Query {
-        productBySlug(slug: String!): Product
       }
 
       type Review @key(fields: "id") {
@@ -64,9 +64,9 @@ sourceSchemas:
               {
                 "data": {
                   "productBySlug": {
-                    "name": "Product: UHJvZHVjdDox",
+                    "name": "Product: UHJvZHVjdDoxMTY3NDUwNjg=",
                     "review": {
-                      "id": "UmV2aWV3OjI="
+                      "id": "UmV2aWV3OjE2MTgxNTI5MA=="
                     }
                   }
                 }
@@ -99,7 +99,7 @@ sourceSchemas:
           variables: |
             {
               "skip": true,
-              "__fusion_1_id": "UmV2aWV3OjI="
+              "__fusion_1_id": "UmV2aWV3OjE2MTgxNTI5MA=="
             }
         response:
           results:
@@ -125,7 +125,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 8a7e6c10a18f14af822384ae6c9a85c3
+      hash: e1b4040f72b744b44c2264f3c24027fe
       searchSpace: 1
       expandedNodes: 2
   nodes:

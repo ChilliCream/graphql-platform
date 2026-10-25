@@ -14,8 +14,9 @@ namespace HotChocolate.AspNetCore.Parsers;
 
 internal sealed class DefaultHttpRequestParser : IHttpRequestParser
 {
-    private const int MinRequestSize = 256;
-    internal const string QueryIdKey = "id";
+    internal const int MinRequestSize = 256;
+    internal const string DocumentIdKey = "documentId";
+    internal const string IdKey = "id";
     private const string OperationNameKey = "operationName";
     private const string OnErrorKey = "onError";
     internal const string QueryKey = "query";
@@ -51,45 +52,37 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
     {
         try
         {
-            ReadResult result;
+            var result = await ReadFullBodyAsync(requestBody, cancellationToken);
 
-            do
+            // After the loop, the final ReadAsync has not yet been advanced. The pipe
+            // contract requires every successful ReadAsync to be followed by an AdvanceTo,
+            // otherwise the next ReadAsync (e.g. Kestrel draining the request body)
+            // throws "Reading is already in progress".
+            try
             {
-                result = await requestBody.ReadAsync(cancellationToken);
-
-                if (result.Buffer.Length > _maxRequestSize)
+                if (result.IsCanceled)
                 {
-                    requestBody.AdvanceTo(result.Buffer.End);
-                    throw new GraphQLRequestException("Request size exceeds maximum allowed size.");
+                    throw new OperationCanceledException();
                 }
 
-                if (!result.IsCompleted && !result.IsCanceled)
-                {
-                    // We tell the pipe that we've examined everything but consumed nothing yet.
-                    requestBody.AdvanceTo(result.Buffer.Start, result.Buffer.End);
-                }
-            }
-            while (result is { IsCompleted: false, IsCanceled: false });
+                var requestParser = new Utf8GraphQLRequestParser(
+                    _parserOptions,
+                    _documentCache,
+                    _documentHashProvider,
+                    skipDocumentBody);
 
-            if (result.IsCanceled)
+                return requestParser.Parse(result.Buffer);
+            }
+            finally
             {
-                throw new OperationCanceledException();
+                requestBody.AdvanceTo(result.Buffer.End);
             }
-
-            var requestParser = new Utf8GraphQLRequestParser(
-                _parserOptions,
-                _documentCache,
-                _documentHashProvider,
-                skipDocumentBody);
-
-            var requests = requestParser.Parse(result.Buffer);
-
-            // Mark all data as consumed
-            requestBody.AdvanceTo(result.Buffer.End);
-
-            return requests;
         }
         catch (GraphQLRequestException)
+        {
+            throw;
+        }
+        catch (OperationCanceledException)
         {
             throw;
         }
@@ -118,45 +111,37 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
 
         try
         {
-            ReadResult result;
+            var result = await ReadFullBodyAsync(requestBody, cancellationToken);
 
-            do
+            // After the loop, the final ReadAsync has not yet been advanced. The pipe
+            // contract requires every successful ReadAsync to be followed by an AdvanceTo,
+            // otherwise the next ReadAsync (e.g. Kestrel draining the request body)
+            // throws "Reading is already in progress".
+            try
             {
-                result = await requestBody.ReadAsync(cancellationToken);
-
-                if (result.Buffer.Length > _maxRequestSize)
+                if (result.IsCanceled)
                 {
-                    requestBody.AdvanceTo(result.Buffer.End);
-                    throw new GraphQLRequestException("Request size exceeds maximum allowed size.");
+                    throw new OperationCanceledException();
                 }
 
-                if (!result.IsCompleted && !result.IsCanceled)
-                {
-                    // We tell the pipe that we've examined everything but consumed nothing yet.
-                    requestBody.AdvanceTo(result.Buffer.Start, result.Buffer.End);
-                }
-            }
-            while (result is { IsCompleted: false, IsCanceled: false });
+                var requestParser = new Utf8GraphQLRequestParser(
+                    _parserOptions,
+                    _documentCache,
+                    _documentHashProvider,
+                    skipDocumentBody);
 
-            if (result.IsCanceled)
+                return requestParser.ParsePersistedOperation(parsedDocumentId, operationName, result.Buffer);
+            }
+            finally
             {
-                throw new OperationCanceledException();
+                requestBody.AdvanceTo(result.Buffer.End);
             }
-
-            var requestParser = new Utf8GraphQLRequestParser(
-                _parserOptions,
-                _documentCache,
-                _documentHashProvider,
-                skipDocumentBody);
-
-            var request = requestParser.ParsePersistedOperation(parsedDocumentId, operationName, result.Buffer);
-
-            // Mark all data as consumed
-            requestBody.AdvanceTo(result.Buffer.End);
-
-            return request;
         }
         catch (GraphQLRequestException)
+        {
+            throw;
+        }
+        catch (OperationCanceledException)
         {
             throw;
         }
@@ -167,6 +152,40 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         catch (Exception ex)
         {
             throw DefaultHttpRequestParser_UnexpectedError(ex);
+        }
+    }
+
+    private async ValueTask<ReadResult> ReadFullBodyAsync(
+        PipeReader requestBody,
+        CancellationToken cancellationToken)
+    {
+        while (true)
+        {
+            ReadResult result;
+
+            try
+            {
+                result = await requestBody.ReadAsync(cancellationToken);
+            }
+            catch (BadHttpRequestException exception)
+                when (exception.StatusCode == StatusCodes.Status413PayloadTooLarge)
+            {
+                throw RequestBodyTooLarge();
+            }
+
+            if (result.Buffer.Length > _maxRequestSize)
+            {
+                requestBody.AdvanceTo(result.Buffer.End);
+                throw DefaultHttpRequestParser_MaxRequestSizeExceeded();
+            }
+
+            if (result.IsCompleted || result.IsCanceled)
+            {
+                return result;
+            }
+
+            // We tell the pipe that we've examined everything but consumed nothing yet.
+            requestBody.AdvanceTo(result.Buffer.Start, result.Buffer.End);
         }
     }
 
@@ -188,20 +207,33 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             query = parameters[QueryKey];
         }
 
-        string? queryId = parameters[QueryIdKey];
+        string? documentId = parameters[IdKey];
+
+        if (string.IsNullOrWhiteSpace(documentId))
+        {
+            documentId = parameters[DocumentIdKey];
+        }
+
         string? operationName = parameters[OperationNameKey];
         string? onError = parameters[OnErrorKey];
         JsonDocument? extensions = null;
 
-        // if we have no query or query id, we cannot execute anything.
-        if (string.IsNullOrWhiteSpace(query) && string.IsNullOrWhiteSpace(queryId))
+        // if we have no query or document ID, we cannot execute anything.
+        if (string.IsNullOrWhiteSpace(query) && string.IsNullOrWhiteSpace(documentId))
         {
             // so, if we do not find a top-level query or top-level id, we will try to parse
             // the extensions and look in the extensions for Apollo's active persisted
             // query extensions.
             if ((string?)parameters[ExtensionsKey] is { Length: > 0 } se)
             {
-                extensions = JsonDocument.Parse(se);
+                try
+                {
+                    extensions = JsonDocument.Parse(se);
+                }
+                catch (JsonException ex)
+                {
+                    throw DefaultHttpRequestParser_UnexpectedError(ex);
+                }
             }
 
             // we will use the request parser utils to extract the hash from the extensions.
@@ -222,14 +254,14 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
                 }
             }
 
-            // if we however found a query hash, we will use it as a query id and move on
+            // if we however found a query hash, we will use it as a document ID and move on
             // to execute the query.
-            queryId = hash;
+            documentId = hash;
         }
 
-        if (!string.IsNullOrWhiteSpace(queryId))
+        if (!string.IsNullOrWhiteSpace(documentId))
         {
-            EnsureValidDocumentId(queryId);
+            EnsureValidDocumentId(documentId);
         }
 
         try
@@ -260,7 +292,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
 
             return new GraphQLRequest(
                 document,
-                queryId,
+                documentId,
                 documentHash,
                 operationName,
                 errorHandlingMode,
@@ -388,6 +420,10 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
                 _documentHashProvider,
                 skipDocumentBody);
             return requestParser.Parse(span);
+        }
+        catch (SyntaxException ex)
+        {
+            throw DefaultHttpRequestParser_SyntaxError(ex);
         }
         catch (InvalidGraphQLRequestException ex)
         {

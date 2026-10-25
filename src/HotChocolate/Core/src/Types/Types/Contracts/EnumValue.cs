@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Features;
 using HotChocolate.Language;
@@ -37,11 +38,14 @@ public abstract class EnumValue
 
     /// <summary>
     /// Defines if this enum value is deprecated.
+    /// This is <c>true</c> if a <see cref="DeprecationReason"/> is present.
     /// </summary>
-    public abstract bool IsDeprecated { get; }
+    [MemberNotNullWhen(true, nameof(DeprecationReason))]
+    public bool IsDeprecated => DeprecationReason is not null;
 
     /// <summary>
-    /// Gets the deprecation reason for this enum value.
+    /// Gets the deprecation reason for this enum value,
+    /// or <c>null</c> if this enum value is not deprecated.
     /// </summary>
     public abstract string? DeprecationReason { get; }
 
@@ -49,6 +53,11 @@ public abstract class EnumValue
     /// Gets the runtime value.
     /// </summary>
     public abstract object Value { get; }
+
+    /// <summary>
+    /// Gets the GraphQL literal of this enum value. It is available once the enum value is completed.
+    /// </summary>
+    internal EnumValueNode Literal { get; private set; } = null!;
 
     /// <summary>
     /// Gets the directives of this enum value.
@@ -82,6 +91,7 @@ public abstract class EnumValue
         ITypeSystemMember declaringMember)
     {
         DeclaringType = (EnumType)declaringMember;
+        Literal = new EnumValueNode(Name);
         OnCompleteMetadata(context, declaringMember);
     }
 

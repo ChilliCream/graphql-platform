@@ -1,0 +1,14 @@
+$ nitro agent tasks show acme-epic1.1
+acme-epic1.1: Draft new pricing copy
+
+Status: in_progress  Priority: P2  Type: task
+Assignee: alice
+Created: 2026-01-01 09:05 by e2e-agent
+Updated: 2026-01-02 10:00
+Labels: content
+
+Dependencies:
+  parent-child -> acme-epic1 (open) Launch v2 pricing page
+Blocks:
+  acme-epic1.2 (open) Wire up billing API
+$

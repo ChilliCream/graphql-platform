@@ -16,7 +16,7 @@ public class Issue_5794
                 .AddGraphQLServer()
                 .AddQueryType<Issue5794Query>()
                 .AddType<Issue5794MyTypeObjectType>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -26,7 +26,8 @@ public class Issue_5794
                 id
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         var operationResult = result.ExpectOperationResult();
@@ -52,7 +53,7 @@ public class Issue_5794
                 .AddGraphQLServer()
                 .AddQueryType<Issue5794QueryNoIgnore>()
                 .AddType<Issue5794MyTypeObjectTypeNoIgnore>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -62,7 +63,8 @@ public class Issue_5794
                 id
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         var operationResult = result.ExpectOperationResult();

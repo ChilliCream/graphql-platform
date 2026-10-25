@@ -2228,23 +2228,24 @@ namespace Foo.Bar
     ///   $skip: Int!
     ///   $take: Int!
     ///   $searchTerm: String! = ""
-    ///   $order: [FeatSortInput!] = [
-    ///     {
-    ///       name: ASC
-    ///     }
-    ///   ]
+    ///   $order: [FeatSortInput!] = [{ name: ASC }]
     /// ) {
     ///   feats(
     ///     skip: $skip
     ///     take: $take
     ///     order: $order
-    ///     where: { or: [{ name: { contains: $searchTerm } }, { traits: { some: { name: { contains: $searchTerm } } } }] }
+    ///     where: {
+    ///       or: [
+    ///         { name: { contains: $searchTerm } }
+    ///         { traits: { some: { name: { contains: $searchTerm } } } }
+    ///       ]
+    ///     }
     ///   ) {
     ///     __typename
     ///     totalCount
     ///     items {
     ///       __typename
-    ///       ... FeatsPage
+    ///       ...FeatsPage
     ///       ... on Feat {
     ///         id
     ///       }
@@ -2276,8 +2277,8 @@ namespace Foo.Bar
 
         public static GetFeatsPageQueryDocument Instance { get; } = new GetFeatsPageQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetFeatsPage($skip: Int!, $take: Int!, $searchTerm: String! = \"\", $order: [FeatSortInput!] = [{ name: ASC }]) { feats(skip: $skip, take: $take, order: $order, where: { or: [{ name: { contains: $searchTerm } }, { traits: { some: { name: { contains: $searchTerm } } } }] }) { __typename totalCount items { __typename ... FeatsPage ... on Feat { id } } } } fragment FeatsPage on Feat { id name level canBeLearnedMoreThanOnce details { __typename text ... on FeatDetailsBlock { id } } }"u8;
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "798cb31c64329138d10ad14cc642b97aa805c58f");
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetFeatsPage($skip: Int!, $take: Int!, $searchTerm: String! = \"\", $order: [FeatSortInput!] = [{ name: ASC }]) { feats(skip: $skip, take: $take, order: $order, where: { or: [{ name: { contains: $searchTerm } }, { traits: { some: { name: { contains: $searchTerm } } } }] }) { __typename totalCount items { __typename ...FeatsPage ... on Feat { id } } } } fragment FeatsPage on Feat { id name level canBeLearnedMoreThanOnce details { __typename text ... on FeatDetailsBlock { id } } }"u8;
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "8d3606bbd8584b83332cde4d78c4e25b47a425ba");
 
         public override global::System.String ToString()
         {
@@ -2297,23 +2298,24 @@ namespace Foo.Bar
     ///   $skip: Int!
     ///   $take: Int!
     ///   $searchTerm: String! = ""
-    ///   $order: [FeatSortInput!] = [
-    ///     {
-    ///       name: ASC
-    ///     }
-    ///   ]
+    ///   $order: [FeatSortInput!] = [{ name: ASC }]
     /// ) {
     ///   feats(
     ///     skip: $skip
     ///     take: $take
     ///     order: $order
-    ///     where: { or: [{ name: { contains: $searchTerm } }, { traits: { some: { name: { contains: $searchTerm } } } }] }
+    ///     where: {
+    ///       or: [
+    ///         { name: { contains: $searchTerm } }
+    ///         { traits: { some: { name: { contains: $searchTerm } } } }
+    ///       ]
+    ///     }
     ///   ) {
     ///     __typename
     ///     totalCount
     ///     items {
     ///       __typename
-    ///       ... FeatsPage
+    ///       ...FeatsPage
     ///       ... on Feat {
     ///         id
     ///       }
@@ -2467,23 +2469,24 @@ namespace Foo.Bar
     ///   $skip: Int!
     ///   $take: Int!
     ///   $searchTerm: String! = ""
-    ///   $order: [FeatSortInput!] = [
-    ///     {
-    ///       name: ASC
-    ///     }
-    ///   ]
+    ///   $order: [FeatSortInput!] = [{ name: ASC }]
     /// ) {
     ///   feats(
     ///     skip: $skip
     ///     take: $take
     ///     order: $order
-    ///     where: { or: [{ name: { contains: $searchTerm } }, { traits: { some: { name: { contains: $searchTerm } } } }] }
+    ///     where: {
+    ///       or: [
+    ///         { name: { contains: $searchTerm } }
+    ///         { traits: { some: { name: { contains: $searchTerm } } } }
+    ///       ]
+    ///     }
     ///   ) {
     ///     __typename
     ///     totalCount
     ///     items {
     ///       __typename
-    ///       ... FeatsPage
+    ///       ...FeatsPage
     ///       ... on Feat {
     ///         id
     ///       }
@@ -2525,7 +2528,7 @@ namespace Foo.Bar
     ///     __typename
     ///     items {
     ///       __typename
-    ///       ... FeatById
+    ///       ...FeatById
     ///       ... on Feat {
     ///         id
     ///       }
@@ -2565,8 +2568,8 @@ namespace Foo.Bar
 
         public static GetFeatByIdQueryDocument Instance { get; } = new GetFeatByIdQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetFeatById($id: UUID!) { feats(where: { id: { eq: $id } }) { __typename items { __typename ... FeatById ... on Feat { id } } } } fragment FeatById on Feat { id name level special trigger details { __typename text ... on FeatDetailsBlock { id } } actionType { __typename name ... on ActionType { id } } }"u8;
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "9ebaff788b63cffe97932e6ad7792fa29e168e73");
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetFeatById($id: UUID!) { feats(where: { id: { eq: $id } }) { __typename items { __typename ...FeatById ... on Feat { id } } } } fragment FeatById on Feat { id name level special trigger details { __typename text ... on FeatDetailsBlock { id } } actionType { __typename name ... on ActionType { id } } }"u8;
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "eca34be3ea50e62b5d0c18b1588c4c2ab83c792d");
 
         public override global::System.String ToString()
         {
@@ -2587,7 +2590,7 @@ namespace Foo.Bar
     ///     __typename
     ///     items {
     ///       __typename
-    ///       ... FeatById
+    ///       ...FeatById
     ///       ... on Feat {
     ///         id
     ///       }
@@ -2703,7 +2706,7 @@ namespace Foo.Bar
     ///     __typename
     ///     items {
     ///       __typename
-    ///       ... FeatById
+    ///       ...FeatById
     ///       ... on Feat {
     ///         id
     ///       }

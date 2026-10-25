@@ -13,7 +13,10 @@ public interface ICSharpSyntaxGenerator
     /// <param name="settings">
     /// Settings for the code generation
     /// </param>
-    /// <returns></returns>
+    /// <returns>
+    /// <c>true</c> if this generator can handle the descriptor;
+    /// otherwise, <c>false</c>.
+    /// </returns>
     bool CanHandle(
         ICodeDescriptor descriptor,
         CSharpSyntaxGeneratorSettings settings);

@@ -41,7 +41,7 @@ public class LongType : IntegerTypeBase<long>
         : base(name, min, max, bind)
     {
         Description = description;
-        SpecifiedBy = new Uri(SpecifiedByUri);
+        SpecifiedBy = SpecifiedByUri;
     }
 
     /// <summary>

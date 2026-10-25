@@ -1,4 +1,6 @@
 using System.Collections.Immutable;
+using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Types.Directives;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;
@@ -89,15 +91,34 @@ internal sealed record PlanNode
     /// <summary>
     /// Number of operation steps per depth level.
     /// </summary>
-    public ImmutableDictionary<int, int> OpsPerLevel { get; init; } = ImmutableDictionary<int, int>.Empty;
+    public ImmutableDictionary<int, int> OpsPerLevel { get; init; }
+#if NET10_0_OR_GREATER
+        = [];
+#else
+        = ImmutableDictionary<int, int>.Empty;
+#endif
 
     /// <summary>
     /// Depth lookup for operation step ids.
     /// </summary>
     public ImmutableDictionary<int, int> OperationStepDepths { get; init; }
+#if NET10_0_OR_GREATER
+        = [];
+#else
         = ImmutableDictionary<int, int>.Empty;
+#endif
 
     public uint LastRequirementId { get; init; }
+
+    /// <summary>
+    /// The operation-level registry that assigns a stable internal alias to each distinct
+    /// requirement-field identity, so identical requirements from any requiring field share
+    /// one alias while requirements differing by arguments receive distinct aliases.
+    /// </summary>
+    public OperationPlanner.RequirementAliasRegistry RequirementAliases { get; init; }
+        = OperationPlanner.RequirementAliasRegistry.Empty;
+
+    public EventStreamDirective? EventStreamDirective { get; init; }
 
     public double PathCost
         => (MaxDepth * Options.DepthWeight)
@@ -118,11 +139,13 @@ internal sealed record PlanNode
 
     public string CreateOperationName(int stepId)
     {
+        var shortHash = OperationShortHash.ToNameSafe(ShortHash);
+
         if (OperationDefinition.Name is null)
         {
-            return $"Op_{ShortHash}_{stepId}";
+            return $"Op_{shortHash}_{stepId}";
         }
 
-        return $"{OperationDefinition.Name.Value}_{ShortHash}_{stepId}";
+        return $"{OperationDefinition.Name.Value}_{shortHash}_{stepId}";
     }
 }

@@ -1,0 +1,239 @@
+{
+  "source": {
+    "name": "HotChocolate.Diagnostics"
+  },
+  "activities": [
+    {
+      "OperationName": "GraphQL Operation",
+      "DisplayName": "subscription",
+      "Kind": "Internal",
+      "Status": "Ok",
+      "tags": [
+        {
+          "Key": "graphql.processing.type",
+          "Value": "request"
+        },
+        {
+          "Key": "graphql.operation.type",
+          "Value": "subscription"
+        },
+        {
+          "Key": "graphql.operation.name",
+          "Value": "OnFailingMessageSubscription"
+        },
+        {
+          "Key": "graphql.document.hash",
+          "Value": "md5:1f38a1bfe720ad0cb6083bf8b309d3aa"
+        }
+      ],
+      "event": [
+        {
+          "Name": "AddedOperationToCache",
+          "Tags": []
+        },
+        {
+          "Name": "AddedDocumentToCache",
+          "Tags": []
+        }
+      ],
+      "activities": [
+        {
+          "OperationName": "GraphQL Document Parsing",
+          "DisplayName": "GraphQL Document Parsing",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:1f38a1bfe720ad0cb6083bf8b309d3aa"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Document Validation",
+          "DisplayName": "GraphQL Document Validation",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "validate"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:1f38a1bfe720ad0cb6083bf8b309d3aa"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Operation Planning",
+          "DisplayName": "GraphQL Operation Planning",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "plan"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:1f38a1bfe720ad0cb6083bf8b309d3aa"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "subscription"
+            },
+            {
+              "Key": "graphql.operation.name",
+              "Value": "OnFailingMessageSubscription"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Operation Execution",
+          "DisplayName": "GraphQL Operation Execution",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "execute"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "subscription"
+            },
+            {
+              "Key": "graphql.operation.name",
+              "Value": "OnFailingMessageSubscription"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:1f38a1bfe720ad0cb6083bf8b309d3aa"
+            }
+          ],
+          "event": [],
+          "activities": [
+            {
+              "OperationName": "GraphQL Subscription Event",
+              "DisplayName": "GraphQL Subscription Event",
+              "Kind": "Internal",
+              "Status": "Error",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "subscription_event"
+                },
+                {
+                  "Key": "graphql.operation.type",
+                  "Value": "subscription"
+                },
+                {
+                  "Key": "graphql.operation.name",
+                  "Value": "OnFailingMessageSubscription"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:1f38a1bfe720ad0cb6083bf8b309d3aa"
+                },
+                {
+                  "Key": "graphql.subscription.id",
+                  "Value": "1"
+                },
+                {
+                  "Key": "error.type",
+                  "Value": "System.InvalidOperationException"
+                }
+              ],
+              "event": [
+                {
+                  "Name": "graphql.error",
+                  "Tags": [
+                    {
+                      "Key": "graphql.error.message",
+                      "Value": "Unexpected Execution Error"
+                    },
+                    {
+                      "Key": "graphql.field.path",
+                      "Value": "onFailingMessage"
+                    },
+                    {
+                      "Key": "graphql.field.schema_coordinate",
+                      "Value": "SimpleSubscription.onFailingMessage"
+                    },
+                    {
+                      "Key": "graphql.operation.type",
+                      "Value": "subscription"
+                    },
+                    {
+                      "Key": "graphql.operation.name",
+                      "Value": "OnFailingMessageSubscription"
+                    },
+                    {
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:1f38a1bfe720ad0cb6083bf8b309d3aa"
+                    },
+                    {
+                      "Key": "exception.type",
+                      "Value": "System.InvalidOperationException"
+                    },
+                    {
+                      "Key": "exception.message",
+                      "Value": "Subscription event failed."
+                    },
+                    {
+                      "Key": "exception.stacktrace",
+                      "Value": "System.InvalidOperationException: Subscription event failed.\n   at HotChocolate.Diagnostics.ActivityExecutionDiagnosticListenerTests.SimpleSubscription.OnFailingMessage(String message) in ActivityExecutionDiagnosticListenerTests.cs\n   at lambda_method(Closure, IResolverContext)\n   at HotChocolate.Types.Helpers.FieldMiddlewareCompiler.<>c__DisplayClass9_0.<CreateResolverMiddleware>b__0(IMiddlewareContext ctx) in FieldMiddlewareCompiler.cs\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.ExecuteResolverPipelineAsync(CancellationToken cancellationToken) in ResolverTask.Execute.cs\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.TryExecuteAsync(CancellationToken cancellationToken) in ResolverTask.Execute.cs"
+                    }
+                  ]
+                }
+              ],
+              "activities": [
+                {
+                  "OperationName": "SimpleSubscription.onFailingMessage",
+                  "DisplayName": "SimpleSubscription.onFailingMessage",
+                  "Kind": "Internal",
+                  "Status": "Error",
+                  "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "resolve"
+                    },
+                    {
+                      "Key": "graphql.field.alias",
+                      "Value": "onFailingMessage"
+                    },
+                    {
+                      "Key": "graphql.field.path",
+                      "Value": "onFailingMessage"
+                    },
+                    {
+                      "Key": "graphql.field.name",
+                      "Value": "onFailingMessage"
+                    },
+                    {
+                      "Key": "graphql.field.schema_coordinate",
+                      "Value": "SimpleSubscription.onFailingMessage"
+                    },
+                    {
+                      "Key": "graphql.field.parent_type",
+                      "Value": "SimpleSubscription"
+                    },
+                    {
+                      "Key": "error.type",
+                      "Value": "System.InvalidOperationException"
+                    }
+                  ],
+                  "event": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

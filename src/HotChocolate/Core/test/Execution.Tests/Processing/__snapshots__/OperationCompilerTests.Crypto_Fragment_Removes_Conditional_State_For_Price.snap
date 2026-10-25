@@ -3,7 +3,7 @@ query Crypto {
     price @include(if: false) {
       lastPrice
     }
-    ... PriceInfo
+    ...PriceInfo
   }
 }
 

@@ -30,8 +30,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Votable {
-        viewerCanVote: Boolean!
+      type Query {
+        votables: [Votable]
       }
 
       type Comment implements Votable {
@@ -45,8 +45,8 @@ sourceSchemas:
         viewerRating: Float!
       }
 
-      type Query {
-        votables: [Votable]
+      interface Votable {
+        viewerCanVote: Boolean!
       }
     interactions:
       - request:
@@ -89,7 +89,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 1284c0cbd89b5f15b05363016da3d317
+      hash: 13d2ecfc9e03b488be0483ddaa4f8dbf
       searchSpace: 1
       expandedNodes: 1
   nodes:

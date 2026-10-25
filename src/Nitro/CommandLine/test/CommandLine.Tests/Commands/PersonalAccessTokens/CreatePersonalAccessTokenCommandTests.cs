@@ -26,8 +26,8 @@ public sealed class CreatePersonalAccessTokenCommandTests(NitroCommandFixture fi
             Options:
               --description <description>  The description of the personal access token [env: NITRO_DESCRIPTION]
               --expires <expires>          The expiration time of the personal access token in days [env: NITRO_EXPIRES] [default: 180]
-              --cloud-url <cloud-url>      The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>          The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>      The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>          The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>              The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help               Show help and usage information
 
@@ -58,7 +58,7 @@ public sealed class CreatePersonalAccessTokenCommandTests(NitroCommandFixture fi
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 

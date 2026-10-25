@@ -5,6 +5,7 @@ using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Text.Json;
 using HotChocolate.Types;
 using static HotChocolate.Fusion.Properties.FusionExecutionResources;
+using static HotChocolate.Fusion.Text.Json.CompositeResultDocument;
 
 #pragma warning disable CS1574, CS1584, CS1581, CS1580
 
@@ -13,9 +14,9 @@ namespace HotChocolate.Fusion.Text.Json;
 public readonly partial struct CompositeResultElement
 {
     private readonly CompositeResultDocument _parent;
-    private readonly CompositeResultDocument.Cursor _cursor;
+    private readonly Cursor _cursor;
 
-    internal CompositeResultElement(CompositeResultDocument parent, CompositeResultDocument.Cursor cursor)
+    internal CompositeResultElement(CompositeResultDocument parent, Cursor cursor)
     {
         // parent is usually not null, but the Current property
         // on the enumerators (when initialized as `default`) can
@@ -42,15 +43,23 @@ public readonly partial struct CompositeResultElement
     {
         CheckValidInstance();
 
-        var formatter = new CompositeResultDocument.RawJsonFormatter(_parent, jsonWriter);
         var row = _parent._metaDb.Get(_cursor);
-        formatter.WriteValue(_cursor, row);
+        if (_parent.HasNullMarkers)
+        {
+            var formatter = new NullMarkerRawJsonFormatter(_parent, jsonWriter);
+            formatter.WriteValue(_cursor, row);
+        }
+        else
+        {
+            var formatter = new RawJsonFormatter(_parent, jsonWriter);
+            formatter.WriteValue(_cursor, row);
+        }
     }
 
     /// <summary>
     /// Gets the internal meta-db cursor.
     /// </summary>
-    internal CompositeResultDocument.Cursor Cursor => _cursor;
+    internal Cursor Cursor => _cursor;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private ElementTokenType TokenType => _parent?.GetElementTokenType(_cursor) ?? ElementTokenType.None;
@@ -117,7 +126,7 @@ public readonly partial struct CompositeResultElement
         {
             CheckValidInstance();
 
-            if (_cursor == CompositeResultDocument.Cursor.Zero)
+            if (_cursor.IsZero)
             {
                 return null;
             }
@@ -135,7 +144,7 @@ public readonly partial struct CompositeResultElement
     {
         get
         {
-            if (_cursor == CompositeResultDocument.Cursor.Zero)
+            if (_cursor.IsZero)
             {
                 return null;
             }
@@ -184,6 +193,21 @@ public readonly partial struct CompositeResultElement
             }
 
             return _parent.IsNullOrInvalidated(_cursor);
+        }
+    }
+
+    internal bool IsRoot => _cursor.IsZero;
+
+    internal bool IsNullMarker
+    {
+        get
+        {
+            if (_parent is null)
+            {
+                return false;
+            }
+
+            return _parent.IsNullMarker(_cursor);
         }
     }
 
@@ -236,7 +260,7 @@ public readonly partial struct CompositeResultElement
         {
             CheckValidInstance();
 
-            if (_cursor == CompositeResultDocument.Cursor.Zero)
+            if (_cursor.IsZero)
             {
                 return false;
             }
@@ -256,6 +280,22 @@ public readonly partial struct CompositeResultElement
             CheckValidInstance();
 
             return _parent.IsInternalProperty(_cursor);
+        }
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether this element represents an enum value.
+    /// </summary>
+    public bool IsEnumValue
+    {
+        get
+        {
+            if (_parent is null)
+            {
+                return false;
+            }
+
+            return _parent.IsEnumValueProperty(_cursor);
         }
     }
 
@@ -414,6 +454,16 @@ public readonly partial struct CompositeResultElement
         return _parent.TryGetNamedPropertyValue(_cursor, propertyName, out value);
     }
 
+    internal bool TryGetProperty(
+        string propertyName,
+        ref PropertyLookupMemo memo,
+        out CompositeResultElement value)
+    {
+        ArgumentNullException.ThrowIfNull(propertyName);
+
+        return _parent.TryGetNamedPropertyValue(_cursor, propertyName, ref memo, out value);
+    }
+
     /// <summary>
     /// Attempts to get a property by UTF-8 encoded name when the current element is an object.
     /// </summary>
@@ -431,11 +481,42 @@ public readonly partial struct CompositeResultElement
         return _parent.TryGetNamedPropertyValue(_cursor, utf8PropertyName, out value);
     }
 
+    internal bool TryGetProperty(
+        ReadOnlySpan<byte> utf8PropertyName,
+        out CompositeResultElement value,
+        out Selection selection)
+    {
+        CheckValidInstance();
+
+        return _parent.TryGetNamedPropertyValue(_cursor, utf8PropertyName, out value, out selection);
+    }
+
     internal CompositeResultElement GetPropertyBySelectionId(int selectionId)
     {
         CheckValidInstance();
 
         return _parent.GetPropertyBySelectionId(_cursor, selectionId);
+    }
+
+    internal CompositeObjectContext GetObjectContext()
+    {
+        // The validity guard is hoisted here so it is paid once per object instead
+        // of once per property. See CompositeResultDocument.GetObjectContext.
+        CheckValidInstance();
+
+        return _parent.GetObjectContext(_cursor);
+    }
+
+    /// <summary>
+    /// Classifies this element in one step. Returns <c>false</c> for an undefined slot
+    /// that still needs to be initialized, returns <c>true</c> with the object context
+    /// for an object, and throws for any other value kind.
+    /// </summary>
+    internal bool TryGetObjectContext(out CompositeObjectContext objectContext)
+    {
+        CheckValidInstance();
+
+        return _parent.TryGetObjectContext(_cursor, out objectContext);
     }
 
     /// <summary>
@@ -811,7 +892,18 @@ public readonly partial struct CompositeResultElement
     {
         CheckValidInstance();
 
-        return _parent.GetRawValue(_cursor, includeQuotes: true);
+        return _parent.GetRawValue(_cursor, includeQuotes);
+    }
+
+    /// <summary>
+    /// Gets a kind marker and the raw bytes of this element when it is a non-null leaf value.
+    /// Two leaf values with equal kind markers and equal raw bytes serialize to the same JSON.
+    /// </summary>
+    internal bool TryGetLeafValueKey(out byte kind, out ReadOnlySpan<byte> value)
+    {
+        CheckValidInstance();
+
+        return _parent.TryGetLeafValueKey(_cursor, out kind, out value);
     }
 
     /// <summary>
@@ -942,12 +1034,17 @@ public readonly partial struct CompositeResultElement
     }
 
     internal void SetObjectValue(SelectionSet selectionSet)
+        => SetObjectValue(selectionSet, out _);
+
+    internal void SetObjectValue(
+        SelectionSet selectionSet,
+        out CompositeObjectContext objectContext)
     {
         CheckValidInstance();
 
         ArgumentNullException.ThrowIfNull(selectionSet);
 
-        var obj = _parent.CreateObject(_cursor, selectionSet: selectionSet);
+        var obj = _parent.CreateObject(_cursor, selectionSet, out objectContext);
         _parent.AssignCompositeValue(this, obj);
     }
 
@@ -968,11 +1065,45 @@ public readonly partial struct CompositeResultElement
         _parent.AssignSourceValue(this, source);
     }
 
+    internal void SetLeafValue(SourceResultElementSnapshot source)
+    {
+        CheckValidInstance();
+
+        _parent.AssignSourceValue(this, source._parent, source._cursor, source._row);
+    }
+
+    /// <summary>
+    /// Assigns the leaf value of <paramref name="source"/> to this element without copying
+    /// the value data. Both elements must belong to the same result document.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c> if the source holds a non-null leaf value that was assigned;
+    /// otherwise, <c>false</c>.
+    /// </returns>
+    internal bool TrySetLeafValue(CompositeResultElement source)
+    {
+        CheckValidInstance();
+
+        if (!ReferenceEquals(_parent, source._parent))
+        {
+            return false;
+        }
+
+        return _parent.TryAssignLeafValue(this, source);
+    }
+
     internal void SetNullValue()
     {
         CheckValidInstance();
 
         _parent.AssignNullValue(this);
+    }
+
+    internal void SetNullMarker()
+    {
+        CheckValidInstance();
+
+        _parent.SetNullMarker(_cursor);
     }
 
     /// <inheritdoc />

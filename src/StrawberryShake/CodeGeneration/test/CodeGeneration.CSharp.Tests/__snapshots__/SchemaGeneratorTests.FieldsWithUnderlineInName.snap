@@ -2967,7 +2967,7 @@ namespace Foo.Bar
     ///     __typename
     ///     nodes {
     ///       __typename
-    ///       ... Bwr_TimeSeries
+    ///       ...Bwr_TimeSeries
     ///       ... on bwr_TimeSeries {
     ///         id
     ///       }
@@ -2992,7 +2992,7 @@ namespace Foo.Bar
     ///   unit
     ///   validationCriteria {
     ///     __typename
-    ///     ... Bwr_ValidationCriteria
+    ///     ...Bwr_ValidationCriteria
     ///     ... on bwr_ValidationCriteria {
     ///       id
     ///     }
@@ -3031,8 +3031,8 @@ namespace Foo.Bar
 
         public static GetBwr_TimeSeriesQueryDocument Instance { get; } = new GetBwr_TimeSeriesQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetBwr_TimeSeries($where: bwr_TimeSeriesFilterInput, $readDataInput: ReadDataInput!) { bwr_TimeSeries(where: $where) { __typename nodes { __typename ... Bwr_TimeSeries ... on bwr_TimeSeries { id } } } } fragment Bwr_TimeSeries on bwr_TimeSeries { inventoryId: _inventoryItemId area source type name category specification commodity resolution { __typename timeUnit factor } unit validationCriteria { __typename ... Bwr_ValidationCriteria ... on bwr_ValidationCriteria { id } } importSpecification { __typename fromPeriod toPeriod ... on bwr_ImportSpecification { id } } _dataPoints(input: $readDataInput) { __typename timestamp value flag } } fragment Bwr_ValidationCriteria on bwr_ValidationCriteria { _inventoryItemId name completeness lowerBound upperBound }"u8;
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "fd97876c1fe57bcb23d5c9cf665e79aff6ded9e3");
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetBwr_TimeSeries($where: bwr_TimeSeriesFilterInput, $readDataInput: ReadDataInput!) { bwr_TimeSeries(where: $where) { __typename nodes { __typename ...Bwr_TimeSeries ... on bwr_TimeSeries { id } } } } fragment Bwr_TimeSeries on bwr_TimeSeries { inventoryId: _inventoryItemId area source type name category specification commodity resolution { __typename timeUnit factor } unit validationCriteria { __typename ...Bwr_ValidationCriteria ... on bwr_ValidationCriteria { id } } importSpecification { __typename fromPeriod toPeriod ... on bwr_ImportSpecification { id } } _dataPoints(input: $readDataInput) { __typename timestamp value flag } } fragment Bwr_ValidationCriteria on bwr_ValidationCriteria { _inventoryItemId name completeness lowerBound upperBound }"u8;
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "e20edf4d7cf928682ed3bc9f2a3ac8467c6e5e45");
 
         public override global::System.String ToString()
         {
@@ -3056,7 +3056,7 @@ namespace Foo.Bar
     ///     __typename
     ///     nodes {
     ///       __typename
-    ///       ... Bwr_TimeSeries
+    ///       ...Bwr_TimeSeries
     ///       ... on bwr_TimeSeries {
     ///         id
     ///       }
@@ -3081,7 +3081,7 @@ namespace Foo.Bar
     ///   unit
     ///   validationCriteria {
     ///     __typename
-    ///     ... Bwr_ValidationCriteria
+    ///     ...Bwr_ValidationCriteria
     ///     ... on bwr_ValidationCriteria {
     ///       id
     ///     }
@@ -3220,7 +3220,7 @@ namespace Foo.Bar
     ///     __typename
     ///     nodes {
     ///       __typename
-    ///       ... Bwr_TimeSeries
+    ///       ...Bwr_TimeSeries
     ///       ... on bwr_TimeSeries {
     ///         id
     ///       }
@@ -3245,7 +3245,7 @@ namespace Foo.Bar
     ///   unit
     ///   validationCriteria {
     ///     __typename
-    ///     ... Bwr_ValidationCriteria
+    ///     ...Bwr_ValidationCriteria
     ///     ... on bwr_ValidationCriteria {
     ///       id
     ///     }

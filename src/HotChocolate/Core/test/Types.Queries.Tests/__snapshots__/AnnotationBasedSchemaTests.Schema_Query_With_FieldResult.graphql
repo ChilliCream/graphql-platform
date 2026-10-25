@@ -2,8 +2,9 @@ schema {
   query: QueryWithFieldResult
 }
 
-interface Error {
-  message: String!
+type QueryWithFieldResult {
+  userById(id: String!): UserByIdResult!
+  userById2(id: String!): UserById2Result!
 }
 
 type Address {
@@ -17,11 +18,6 @@ type AddressNotFound implements Error {
   message: String!
 }
 
-type QueryWithFieldResult {
-  userById(id: String!): UserByIdResult!
-  userById2(id: String!): UserById2Result!
-}
-
 type User {
   id: String!
   name: String!
@@ -31,6 +27,10 @@ type User {
 
 type UserNotFound implements Error {
   id: String!
+  message: String!
+}
+
+interface Error {
   message: String!
 }
 

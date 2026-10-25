@@ -27,12 +27,12 @@ sourceSchemas:
         query: Query
       }
 
-      type Product @key(fields: "id") {
-        id: ID!
-      }
-
       type Query {
         search: SearchResult
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
       }
 
       type User @key(fields: "id") {
@@ -62,7 +62,7 @@ sourceSchemas:
                 "data": {
                   "search": {
                     "__typename": "User",
-                    "id": "VXNlcjox"
+                    "id": "VXNlcjoyNzkwNzU0ODY2"
                   }
                 }
               }
@@ -72,13 +72,13 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        searchResultById(id: ID!): SearchResult @lookup
+      }
+
       type Product {
         id: ID!
         price: Float!
-      }
-
-      type Query {
-        searchResultById(id: ID!): SearchResult @lookup
       }
 
       type User {
@@ -101,7 +101,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_2_id": "VXNlcjox"
+              "__fusion_2_id": "VXNlcjoyNzkwNzU0ODY2"
             }
         response:
           results:
@@ -130,7 +130,7 @@ operationPlan:
             }
           }
         }
-      hash: 465e7f4e2fce633f9dddf88285e5c3b1
+      hash: 3620755ae1ccdf0a0f99f82d4fb38e52
       searchSpace: 1
       expandedNodes: 2
   nodes:
@@ -163,7 +163,7 @@ operationPlan:
         }
       source: $.searchResultById<Product>
       target: $.search<Product>
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -184,7 +184,7 @@ operationPlan:
         }
       source: $.searchResultById<User>
       target: $.search<User>
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

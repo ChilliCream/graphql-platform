@@ -37,7 +37,8 @@ public class DictionaryTypeTests
                     }
                 )
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -247,9 +248,10 @@ public class DictionaryTypeTests
         // arrange
         var executor = await new ServiceCollection()
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<DictionaryOutputQueryWithObliviousObjectValuesExecution>()
             .AddJsonTypeConverter()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -264,7 +266,8 @@ public class DictionaryTypeTests
                 value
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(

@@ -14,7 +14,8 @@ public static class RequestDeduplicationHttpClientBuilderExtensions
     /// <summary>
     /// Adds a <see cref="RequestDeduplicationHandler"/> to the HTTP client pipeline
     /// that deduplicates identical in-flight requests. Only GraphQL query operations
-    /// (signaled via the <c>GraphQL-Operation-Type</c> header) are deduplicated.
+    /// (annotated on <c>HttpRequestMessage.Options</c> using
+    /// <c>GraphQLHttpRequest.OperationKindOptionsKey</c>) are deduplicated.
     /// </summary>
     /// <param name="builder">The HTTP client builder.</param>
     /// <param name="configure">

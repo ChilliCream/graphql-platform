@@ -69,7 +69,7 @@ namespace TestNamespace
             }
 
             descriptor
-                .Field(naming.GetMemberName("Greeting", global::HotChocolate.Types.MemberKind.ObjectField))
+                .Field("greeting")
                 .ExtendWith(static (field, context) =>
                 {
                     var configuration = field.Configuration;
@@ -81,6 +81,7 @@ namespace TestNamespace
                         typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("string")));
                     configuration.ResultType = typeof(string);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 

@@ -1,6 +1,8 @@
-using System.Text.Json;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
+using ChilliCream.Nitro.CommandLine.FusionCompatibility;
+using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Services;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Packaging;
@@ -47,8 +49,8 @@ internal static class FusionPublishHelpers
                 {
                     IUnauthorizedOperation err => err.Message,
                     IInvalidSourceMetadataInputError err => err.Message,
-                    IApiNotFoundError err => err.Message,
-                    IStageNotFoundError err => err.Message,
+                    IApiNotFoundError err => throw new NitroClientNotFoundException(err.Message),
+                    IStageNotFoundError err => throw new NitroClientNotFoundException(err.Message),
                     ISubgraphInvalidError err => err.Message,
                     IInvalidProcessingStateTransitionError err => err.Message,
                     IError err => Messages.UnexpectedMutationError(err),
@@ -68,7 +70,7 @@ internal static class FusionPublishHelpers
             throw MutationReturnedNoData();
         }
 
-        // activity.Update($"Request ID: {requestId.EscapeMarkup()}");
+        activity.Update($"Publication request created. {$"(ID: {requestId.EscapeMarkup()})".Dim()}");
 
         using var subscriptionCancellation =
             CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -103,8 +105,9 @@ internal static class FusionPublishHelpers
                         }
                     }
 
-                    activity.Fail(errorTree);
-                    throw Exit("Your request has failed.");
+                    await activity.FailAllAsync(errorTree, "Fusion configuration version was rejected.");
+
+                    throw new ExitException("Fusion configuration version was rejected.");
 
                 case IFusionConfigurationPublishingSuccess:
                     await subscriptionCancellation.CancelAsync();
@@ -153,7 +156,8 @@ internal static class FusionPublishHelpers
                 var errorMessage = error switch
                 {
                     IUnauthorizedOperation err => err.Message,
-                    IFusionConfigurationRequestNotFoundError err => err.Message,
+                    IFusionConfigurationRequestNotFoundError err =>
+                        throw new NitroClientNotFoundException(err.Message),
                     IInvalidProcessingStateTransitionError err => err.Message,
                     IError err => Messages.UnexpectedMutationError(err),
                     _ => Messages.UnexpectedMutationError()
@@ -185,7 +189,8 @@ internal static class FusionPublishHelpers
                 var errorMessage = error switch
                 {
                     IUnauthorizedOperation err => err.Message,
-                    IFusionConfigurationRequestNotFoundError err => err.Message,
+                    IFusionConfigurationRequestNotFoundError err =>
+                        throw new NitroClientNotFoundException(err.Message),
                     IInvalidProcessingStateTransitionError err => err.Message,
                     IError err => Messages.UnexpectedMutationError(err),
                     _ => Messages.UnexpectedMutationError()
@@ -225,8 +230,8 @@ internal static class FusionPublishHelpers
                         }
                     }
 
-                    activity.Fail(publishErrorTree);
-                    throw new ExitException("Failed to publish the new configuration.");
+                    await activity.FailAllAsync(publishErrorTree, "Fusion configuration version was rejected.");
+                    throw new ExitException("Fusion configuration version was rejected.");
 
                 case IFusionConfigurationPublishingSuccess:
                     committed = true;
@@ -310,14 +315,15 @@ internal static class FusionPublishHelpers
 
         if (result.Errors?.Count > 0)
         {
-            activity.Fail();
+            await activity.FailAllAsync();
 
             foreach (var error in result.Errors)
             {
                 var errorMessage = error switch
                 {
                     IUnauthorizedOperation err => err.Message,
-                    IFusionConfigurationRequestNotFoundError err => err.Message,
+                    IFusionConfigurationRequestNotFoundError err =>
+                        throw new NitroClientNotFoundException(err.Message),
                     IInvalidProcessingStateTransitionError err => err.Message,
                     IError err => Messages.UnexpectedMutationError(err),
                     _ => Messages.UnexpectedMutationError()
@@ -336,47 +342,24 @@ internal static class FusionPublishHelpers
             {
                 case IProcessingTaskIsQueued:
                     throw Exit(
-                        "Your request is in the queued state. Try to run `fusion-configuration publish start` once the request is ready ");
+                        "Your request is in the queued state. Try to run `fusion-configuration publish start` once the request is ready.");
 
                 case IFusionConfigurationPublishingFailed:
-                    throw Exit("Your request has already failed");
+                    throw Exit("Your request has already failed.");
 
                 case IFusionConfigurationPublishingSuccess:
-                    throw Exit("You request is already published");
+                    throw Exit("Your request is already published.");
 
                 case IProcessingTaskIsReady:
                     throw Exit(
-                        "Your request is ready for the composition. Run `fusion-configuration publish start`");
+                        "Your request is ready for the composition. Run `fusion-configuration publish start`.");
 
-                case IFusionConfigurationValidationFailed { Errors: var errors }:
+                case IFusionConfigurationValidationFailed validationFailed:
                     var errorTree = new Tree("");
+                    errorTree.AddFusionConfigurationValidationErrors(validationFailed);
 
-                    foreach (var error in errors)
-                    {
-                        switch (error)
-                        {
-                            case ISchemaVersionChangeViolationError e:
-                                errorTree.AddSchemaVersionChangeViolations(e);
-                                break;
-                            case IInvalidGraphQLSchemaError e:
-                                errorTree.AddGraphQLSchemaErrors(e);
-                                break;
-                            case IPersistedQueryValidationError e:
-                                errorTree.AddPersistedQueryValidationErrorsWithClients(e);
-                                break;
-                            case IOpenApiCollectionValidationError e:
-                                errorTree.AddOpenApiCollectionValidationErrors(e);
-                                break;
-                            case IMcpFeatureCollectionValidationError e:
-                                errorTree.AddMcpFeatureCollectionValidationErrors(e);
-                                break;
-                            case IUnexpectedProcessingError e:
-                                errorTree.AddErrorMessage(e.Message);
-                                break;
-                        }
-                    }
+                    activity.Fail(errorTree, "Fusion configuration failed validation.");
 
-                    activity.Fail(errorTree);
                     return false;
 
                 case IFusionConfigurationValidationSuccess:
@@ -386,7 +369,7 @@ internal static class FusionPublishHelpers
                 case IValidationInProgress:
                 case IWaitForApproval:
                 case IProcessingTaskApproved:
-                    // activity.Update(Messages.Validating);
+                    activity.Update(Messages.Validating);
                     break;
 
                 default:
@@ -398,12 +381,209 @@ internal static class FusionPublishHelpers
         return false;
     }
 
+    public static async Task<Stream> PrepareComposedArchiveAsync(
+        INitroConsoleActivity activity,
+        string apiId,
+        string stageName,
+        string? legacyArchiveFile,
+        Dictionary<string, LocalSourceSchema> newSourceSchemas,
+        IFusionConfigurationClient client,
+        IFileSystem fileSystem,
+        INitroConsole console,
+        CancellationToken cancellationToken)
+    {
+        Stream? existingArchiveStream;
+        MemoryStream? legacyBuffer = null;
+        CompositionSettings? compositionSettings;
+
+        await using (var downloadActivity = activity.StartChildActivity(
+            $"Downloading existing configuration from '{stageName}'",
+            "Failed to download the existing Fusion configuration."))
+        {
+            try
+            {
+                existingArchiveStream = await client.DownloadLatestFusionArchiveAsync(
+                    apiId,
+                    stageName,
+                    WellKnownVersions.LatestGatewayFormatVersion.ToString(),
+                    ArchiveFormats.Far,
+                    cancellationToken);
+            }
+            catch (NitroClientNotFoundException)
+            {
+                existingArchiveStream = null;
+            }
+
+            // Precedence:
+            //   server .far + no flag -> use .far
+            //   server .far + flag    -> use .far, refresh embedded .fgp from local flag
+            //   server .fgp + no flag -> error
+            //   server .fgp + flag    -> use local flag as migration source
+            //   nothing + flag        -> use local flag as composition base
+            //   nothing + no flag     -> fresh compose
+            if (existingArchiveStream is not null)
+            {
+                downloadActivity.Success($"Downloaded existing configuration from '{stageName}'.");
+            }
+            else if (legacyArchiveFile is not null)
+            {
+                downloadActivity.Warning(
+                    $"There is no existing configuration on '{stageName.EscapeMarkup()}', using {OptionalLegacyFusionArchiveFileOption.OptionName} instead.");
+            }
+            else
+            {
+                Stream? serverLegacyStream;
+                try
+                {
+                    serverLegacyStream = await client.DownloadLatestFusionArchiveAsync(
+                        apiId,
+                        stageName,
+                        WellKnownVersions.LegacyGatewayFormatVersion.ToString(),
+                        ArchiveFormats.Fgp,
+                        cancellationToken);
+                }
+                catch (NitroClientNotFoundException)
+                {
+                    serverLegacyStream = null;
+                }
+
+                if (serverLegacyStream is not null)
+                {
+                    await serverLegacyStream.DisposeAsync();
+
+                    throw new ExitException(
+                        Messages.LegacyArchiveRequiredForFgpStage(stageName));
+                }
+
+                downloadActivity.Warning($"There is no existing configuration on '{stageName}'.");
+            }
+        }
+
+        if (legacyArchiveFile is not null)
+        {
+            try
+            {
+                await using var fs = fileSystem.OpenReadStream(legacyArchiveFile);
+                legacyBuffer = new MemoryStream();
+                await fs.CopyToAsync(legacyBuffer, cancellationToken);
+                legacyBuffer.Position = 0;
+            }
+            catch (IOException ex)
+            {
+                throw new ExitException(
+                    Messages.FailedToOpenLegacyArchive(legacyArchiveFile, ex.Message));
+            }
+        }
+
+        await using var composeActivity = activity.StartChildActivity(
+            "Composing new configuration",
+            "Failed to compose new configuration.");
+
+        try
+        {
+            CompositionSettings? stageCompositionSettings;
+
+            try
+            {
+                stageCompositionSettings = ToCompositionSettings(
+                    await client.GetStageCompositionSettingsAsync(apiId, stageName, cancellationToken));
+            }
+            catch (NitroClientGraphQLException ex) when (ex.Code == "HC0020")
+            {
+                stageCompositionSettings = null;
+                composeActivity.Update(
+                    Messages.FailedToDownloadCompositionSettings(
+                        stageName.EscapeMarkup(),
+                        Messages.SelfHostLatestVersionReminder),
+                    ActivityUpdateKind.Warning);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                composeActivity.Fail(
+                    Messages.FailedToDownloadCompositionSettings(stageName.EscapeMarkup()));
+
+                throw new ExitException(
+                    Messages.FailedToDownloadCompositionSettings(stageName.EscapeMarkup(), ex.Message.EscapeMarkup()));
+            }
+
+            compositionSettings = stageCompositionSettings;
+
+            if (legacyBuffer is not null && existingArchiveStream is null)
+            {
+                try
+                {
+                    var migratedSettings = await LegacyFusionArchiveMigrator.MergeIntoAsync(
+                        legacyBuffer,
+                        newSourceSchemas,
+                        newSourceSchemas.Keys,
+                        cancellationToken);
+
+                    var migrated = migratedSettings ?? new CompositionSettings();
+                    compositionSettings = stageCompositionSettings?.MergeInto(migrated) ?? migrated;
+                }
+                catch (FusionGraphPackageException ex) when (legacyArchiveFile is not null)
+                {
+                    throw new ExitException(
+                        Messages.FailedToOpenLegacyArchive(legacyArchiveFile, ex.Message));
+                }
+            }
+
+            var archiveStream = new MemoryStream();
+            var (result, compositionLog) = await ComposeAsync(
+                archiveStream,
+                existingArchiveStream,
+                stageName,
+                newSourceSchemas,
+                compositionSettings,
+                legacyBuffer,
+                cancellationToken);
+
+            if (result.IsSuccess)
+            {
+                composeActivity.Success("Composed new configuration.");
+
+                return archiveStream;
+            }
+
+            await composeActivity.FailAllAsync();
+
+            console.WriteLine();
+            console.WriteLine("## Composition log");
+            console.WriteLine();
+
+            FusionComposeCommand.WriteCompositionLog(
+                compositionLog,
+                console.Out,
+                false);
+
+            foreach (var error in result.Errors)
+            {
+                console.Error.WriteErrorLine(error.Message);
+            }
+
+            throw new ExitException();
+        }
+        finally
+        {
+            if (existingArchiveStream is not null)
+            {
+                await existingArchiveStream.DisposeAsync();
+            }
+
+            if (legacyBuffer is not null)
+            {
+                await legacyBuffer.DisposeAsync();
+            }
+        }
+    }
+
     public static async Task<(CompositionResult<MutableSchemaDefinition>, CompositionLog)> ComposeAsync(
         Stream archiveStream,
         Stream? existingArchiveStream,
         string environment,
-        Dictionary<string, (SourceSchemaText, JsonDocument)> newSourceSchemas,
+        Dictionary<string, LocalSourceSchema> newSourceSchemas,
         CompositionSettings? compositionSettings,
+        Stream? legacyArchive,
         CancellationToken cancellationToken)
     {
         FusionArchive archive;
@@ -430,6 +610,7 @@ internal static class FusionPublishHelpers
             environment,
             newSourceSchemas,
             compositionSettings,
+            legacyArchive,
             cancellationToken);
 
         archiveStream.Seek(0, SeekOrigin.Begin);
@@ -440,8 +621,9 @@ internal static class FusionPublishHelpers
     public static async Task<(CompositionResult<MutableSchemaDefinition>, CompositionLog)> ComposeAsync(
         FusionArchive archive,
         string environment,
-        Dictionary<string, (SourceSchemaText, JsonDocument)> newSourceSchemas,
+        Dictionary<string, LocalSourceSchema> newSourceSchemas,
         CompositionSettings? compositionSettings,
+        Stream? legacyArchive,
         CancellationToken cancellationToken)
     {
         var compositionLog = new CompositionLog();
@@ -451,9 +633,60 @@ internal static class FusionPublishHelpers
             newSourceSchemas,
             archive,
             environment,
+            preferDevUrls: false,
             compositionSettings,
+            legacyArchive,
             cancellationToken);
 
         return (result, compositionLog);
     }
+
+    private static CompositionSettings? ToCompositionSettings(StageCompositionSettings? settings)
+    {
+        if (settings is null)
+        {
+            return null;
+        }
+
+        return new CompositionSettings
+        {
+            Preprocessor = new CompositionSettings.PreprocessorSettings
+            {
+                ExcludeByTag = settings.ExcludeByTag is null
+                    ? null
+                    : [.. settings.ExcludeByTag]
+            },
+            Merger = new CompositionSettings.MergerSettings
+            {
+                CacheControlMergeBehavior = ToDirectiveMergeBehavior(settings.CacheControlMergeBehavior),
+                EnableGlobalObjectIdentification = settings.EnableGlobalObjectIdentification,
+                RemoveUnreferencedDefinitions = settings.RemoveUnreferencedDefinitions,
+                TagMergeBehavior = ToDirectiveMergeBehavior(settings.TagMergeBehavior),
+                NodeResolution = ToNodeResultion(settings.NodeResolution)
+            }
+        };
+    }
+
+    private static HotChocolate.Fusion.Options.DirectiveMergeBehavior? ToDirectiveMergeBehavior(
+        CompositionDirectiveMergeBehavior? behavior)
+        => behavior switch
+        {
+            null => null,
+            CompositionDirectiveMergeBehavior.Ignore
+                => HotChocolate.Fusion.Options.DirectiveMergeBehavior.Ignore,
+            CompositionDirectiveMergeBehavior.Include
+                => HotChocolate.Fusion.Options.DirectiveMergeBehavior.Include,
+            CompositionDirectiveMergeBehavior.IncludePrivate
+                => HotChocolate.Fusion.Options.DirectiveMergeBehavior.IncludePrivate,
+            _ => throw new ArgumentOutOfRangeException(nameof(behavior), behavior, null)
+        };
+
+    private static NodeResolution? ToNodeResultion(CompositionNodeResolution? nodeResolution)
+        => nodeResolution switch
+        {
+            null => null,
+            CompositionNodeResolution.Gateway => NodeResolution.Gateway,
+            CompositionNodeResolution.SourceSchema => NodeResolution.SourceSchema,
+            _ => throw new ArgumentOutOfRangeException(nameof(nodeResolution), nodeResolution, null)
+        };
 }

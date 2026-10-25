@@ -26,12 +26,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
-      }
-
-      interface Votable {
-        viewerCanVote: Boolean!
+      type Query {
+        node(id: ID!): Node @lookup
       }
 
       type Author implements Node & Votable {
@@ -45,8 +41,12 @@ sourceSchemas:
         viewerCanVote: Boolean!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup
+      interface Node {
+        id: ID!
+      }
+
+      interface Votable {
+        viewerCanVote: Boolean!
       }
     interactions:
       - request:
@@ -89,7 +89,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: eaa5be751070d348ed88da9a09cd512b
+      hash: b524bd9e0c98102ce04148f9aa9e768e
       searchSpace: 1
       expandedNodes: 1
   nodes:

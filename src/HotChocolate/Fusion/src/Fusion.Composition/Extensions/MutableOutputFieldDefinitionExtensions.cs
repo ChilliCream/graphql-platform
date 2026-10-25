@@ -36,6 +36,17 @@ internal static class MutableOutputFieldDefinitionExtensions
             }
         }
 
+        public void ApplyImplementDirective()
+        {
+            var implementDirectiveExists =
+                field.Directives.AsEnumerable().Any(d => d.Name == DirectiveNames.Implement);
+
+            if (!implementDirectiveExists)
+            {
+                field.Directives.Add(new Directive(FusionBuiltIns.SourceSchemaDirectives[DirectiveNames.Implement]));
+            }
+        }
+
         public bool ExistsInSchema(string schemaName)
         {
             return field.Directives.AsEnumerable().Any(
@@ -43,6 +54,14 @@ internal static class MutableOutputFieldDefinitionExtensions
                     d.Name == DirectiveNames.FusionField
                     && (string)d.Arguments[ArgumentNames.Schema].Value! == schemaName);
         }
+
+        /// <summary>
+        /// Determines whether the field is a <c>viewer</c> field without arguments that returns the
+        /// type of <paramref name="queryViewerField"/>.
+        /// </summary>
+        public bool IsViewerFieldFor(MutableOutputFieldDefinition queryViewerField)
+            => field is { Name: WellKnownFieldNames.Viewer, Arguments.Count: 0 }
+                && ReferenceEquals(field.Type.NamedType(), queryViewerField.Type.NamedType());
 
         public string? GetFusionFieldProvides(string schemaName)
         {
@@ -55,6 +74,49 @@ internal static class MutableOutputFieldDefinitionExtensions
             if (fusionFieldDirective?.Arguments.TryGetValue(ArgumentNames.Provides, out var provides) == true)
             {
                 return (string?)provides.Value;
+            }
+
+            return null;
+        }
+
+        public ImmutableArray<string> GetFusionEventStreamSchemaNames()
+        {
+            ImmutableArray<string>.Builder? builder = null;
+
+            foreach (var directive in field.Directives.AsEnumerable())
+            {
+                if (directive.Name != DirectiveNames.FusionEventStream)
+                {
+                    continue;
+                }
+
+                builder ??= ImmutableArray.CreateBuilder<string>();
+                builder.Add((string)directive.Arguments[ArgumentNames.Schema].Value!);
+            }
+
+            return builder?.ToImmutable() ?? [];
+        }
+
+        public SelectionSetNode? GetFusionEventStreamMessage(string schemaName)
+        {
+            var fusionEventStreamDirective =
+                field.Directives.AsEnumerable().FirstOrDefault(
+                    d =>
+                        d.Name == DirectiveNames.FusionEventStream
+                        && (string)d.Arguments[ArgumentNames.Schema].Value! == schemaName);
+
+            if (fusionEventStreamDirective?.Arguments.TryGetValue(ArgumentNames.Message, out var message) == true)
+            {
+                var selectionSet = ParseSelectionSet((string)message.Value!);
+
+                if (fusionEventStreamDirective.Arguments.TryGetValue(ArgumentNames.CursorField, out var cursorField)
+                    && cursorField.Value is string cursorFieldName)
+                {
+                    return selectionSet.WithSelections(
+                        [.. selectionSet.Selections, new FieldNode(cursorFieldName)]);
+                }
+
+                return selectionSet;
             }
 
             return null;

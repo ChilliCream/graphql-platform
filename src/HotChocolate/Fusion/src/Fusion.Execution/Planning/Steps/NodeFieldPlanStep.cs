@@ -14,6 +14,13 @@ public record NodeFieldPlanStep : PlanStep
 
     public required OperationPlanStep FallbackQuery { get; init; }
 
+    /// <summary>
+    /// Indicates that the node is resolved by a source schema: the fallback query resolves the
+    /// concrete type and the per-type branches enrich from it, so the branches run after the
+    /// fallback query rather than being selected as exclusive alternatives.
+    /// </summary>
+    public bool SourceSchemaResolution { get; init; }
+
     public ImmutableDictionary<string, OperationPlanStep> Branches { get; set; }
 #if NET10_0_OR_GREATER
         = [];

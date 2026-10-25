@@ -1342,4 +1342,22 @@ public class ValuesOfCorrectTypeRuleTests
             }
             """);
     }
+
+    [Fact]
+    public void Validate_Should_Report_When_AFragmentArgumentValueHasTheWrongType()
+    {
+        ExpectErrors(
+            """
+            {
+                dog {
+                    ...withVariable(atOtherHomes: "abc")
+                }
+            }
+
+            fragment withVariable($atOtherHomes: Boolean) on Dog {
+                isHouseTrained(atOtherHomes: $atOtherHomes)
+            }
+            """,
+            FragmentArgumentParserOptions);
+    }
 }

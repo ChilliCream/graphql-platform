@@ -50,12 +50,20 @@ internal static class ThrowHelper
                     method.Name)
                 .Build());
 
+    public static SchemaException ObjectDeprecationNotEnabled(string typeName)
+        => new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    ObjectTypeDescriptor_Deprecated_NotEnabled,
+                    typeName)
+                .Build());
+
     public static SchemaException SubscribeAttribute_MessageTypeUnspecified(MemberInfo member)
         => new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_SubscribeAttribute_MessageTypeUnspecified,
-                    member.DeclaringType!.FullName,
+                    member.DeclaringType.FullName,
                     member.Name)
                 .SetExtension("member", member)
                 .Build());
@@ -65,7 +73,7 @@ internal static class ThrowHelper
             SchemaErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_SubscribeAttribute_TopicTypeUnspecified,
-                    member.DeclaringType!.FullName,
+                    member.DeclaringType.FullName,
                     member.Name)
                 .SetExtension("member", member)
                 .Build());
@@ -77,7 +85,7 @@ internal static class ThrowHelper
             SchemaErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_SubscribeAttribute_SubscribeResolverNotFound,
-                    member.DeclaringType!.FullName,
+                    member.DeclaringType.FullName,
                     member.Name,
                     subscribeResolverName)
                 .SetExtension("member", member)
@@ -608,22 +616,17 @@ internal static class ThrowHelper
         ITypeSystemMember type,
         IInputValueInfo inputField,
         Path inputFieldPath,
-        Language.Location? location,
         Exception conversionException)
     {
-        var builder = ErrorBuilder.New()
+        var error = ErrorBuilder.New()
             .SetMessage(ThrowHelper_InvalidTypeConversion, inputField.Name)
             .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-            .TryAddLocation(location)
             .SetException(conversionException)
-            .SetCoordinate(inputField.Coordinate);
+            .SetCoordinate(inputField.Coordinate)
+            .SetInputPath(inputFieldPath)
+            .Build();
 
-        if (inputFieldPath.Length > 1)
-        {
-            builder.SetInputPath(inputFieldPath);
-        }
-
-        return new(builder.Build(), type);
+        return new(error, type);
     }
 
     public static LeafCoercionException Scalar_Cannot_CoerceInputLiteral(

@@ -1,0 +1,51 @@
+[
+  {
+    "query": "mutation {\n  addProduct(input: { name: \"new\", price: 599.99 }) {\n    name\n    price\n    isExpensive\n    isAvailable\n  }\n}\n",
+    "expected": {
+      "data": {
+        "addProduct": {
+          "name": "new",
+          "price": 599.99,
+          "isExpensive": true,
+          "isAvailable": true
+        }
+      }
+    }
+  },
+  {
+    "query": "query {\n  product(id: \"p1\") {\n    id\n    name\n    price\n    isExpensive\n    isAvailable\n  }\n}\n",
+    "expected": {
+      "data": {
+        "product": {
+          "id": "p1",
+          "name": "p1-name",
+          "price": 9.99,
+          "isExpensive": false,
+          "isAvailable": true
+        }
+      }
+    }
+  },
+  {
+    "query": "mutation {\n  five: add(num: 5, requestId: \"r1\")\n  ten: multiply(by: 2, requestId: \"r1\")\n  twelve: add(num: 2, requestId: \"r1\")\n  final: delete(requestId: \"r1\")\n}\n",
+    "expected": {
+      "data": {
+        "five": 5,
+        "ten": 10,
+        "twelve": 12,
+        "final": 12
+      }
+    }
+  },
+  {
+    "query": "mutation {\n  addCategory(name: \"new\", requestId: \"r2\") {\n    id\n    name\n  }\n}\n",
+    "expected": {
+      "data": {
+        "addCategory": {
+          "id": "c-added-r2",
+          "name": "new"
+        }
+      }
+    }
+  }
+]

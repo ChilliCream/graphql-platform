@@ -26,24 +26,20 @@ sourceSchemas:
         query: Query
       }
 
-      interface IInterface @key(fields: "id") {
-        id: Int!
-      }
-
-      type Product implements IInterface {
-        id: Int!
-        schema1: String!
-        shared: SharedProduct @shareable
-      }
-
       type Query {
         productById(id: Int!): Product @lookup
         viewer: Viewer! @shareable
         schema1: String!
         interface: IInterface! @shareable
-        unsharedInterface: IInterface!
+        unsharedInterface: IUnsharedInterface!
         union: IUnion! @shareable
         topReview: Review! @shareable
+      }
+
+      type Product implements IInterface & IUnsharedInterface @key(fields: "id") {
+        id: Int!
+        schema1: String!
+        shared: SharedProduct @shareable
       }
 
       type Review implements IInterface {
@@ -67,6 +63,14 @@ sourceSchemas:
 
       type ViewerSettings {
         schema1: String!
+      }
+
+      interface IInterface @key(fields: "id") {
+        id: Int!
+      }
+
+      interface IUnsharedInterface {
+        id: Int!
       }
 
       union IUnion = Product | Review
@@ -99,16 +103,6 @@ sourceSchemas:
         query: Query
       }
 
-      interface IInterface @key(fields: "id") {
-        id: Int!
-      }
-
-      type Product implements IInterface {
-        id: Int!
-        schema2: String!
-        shared: SharedProduct @shareable
-      }
-
       type Query {
         product(id: Int!): Product @lookup
         viewer: Viewer! @shareable
@@ -116,6 +110,12 @@ sourceSchemas:
         interface: IInterface! @shareable
         union: IUnion! @shareable
         topReview: Review! @shareable
+      }
+
+      type Product implements IInterface @key(fields: "id") {
+        id: Int!
+        schema2: String!
+        shared: SharedProduct @shareable
       }
 
       type Review implements IInterface {
@@ -139,6 +139,10 @@ sourceSchemas:
 
       type ViewerSettings {
         schema2: String!
+      }
+
+      interface IInterface @key(fields: "id") {
+        id: Int!
       }
 
       union IUnion = Product | Review
@@ -177,7 +181,7 @@ operationPlan:
             }
           }
         }
-      hash: 55b9106f0dc9ff30e58f924088ee5f0d
+      hash: 107caa02c032e0e4cfc8888393367dc5
       searchSpace: 2
       expandedNodes: 2
   nodes:

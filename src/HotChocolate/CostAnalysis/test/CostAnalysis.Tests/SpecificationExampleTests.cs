@@ -33,10 +33,10 @@ public sealed class SpecificationExampleTests
 
         var requestExecutor = await CreateRequestExecutorBuilder()
             .AddDocumentFromString(schema)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await requestExecutor.ExecuteAsync(request);
+        var result = await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken);
         var queryResult = result.ExpectOperationResult();
 
         // assert
@@ -45,7 +45,7 @@ public sealed class SpecificationExampleTests
             .Add(expectedFieldCost, "ExpectedFieldCost")
             .AddResult(queryResult, "Result")
             .Add(schema, "Schema")
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     public static TheoryData<int, string, string, double> SpecificationExampleData()
@@ -162,13 +162,17 @@ public sealed class SpecificationExampleTests
                 }
                 """,
                 "example @approx(tolerance: 0)",
-                5 // FIXME: Should be 4. See https://github.com/ChilliCream/graphql-platform/pull/7130.
+                4
             }
         };
 
     private static IRequestExecutorBuilder CreateRequestExecutorBuilder()
         => new ServiceCollection()
             .AddGraphQLServer()
-            .ModifyCostOptions(o => o.DefaultResolverCost = null)
+            .ModifyCostOptions(o =>
+            {
+                o.DefaultResolverCost = null;
+                o.DefaultListSize = 1;
+            })
             .UseField(next => next);
 }

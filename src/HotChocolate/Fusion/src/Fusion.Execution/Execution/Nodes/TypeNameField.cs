@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Execution.Introspection;
 using HotChocolate.Fusion.Types.Collections;
@@ -44,7 +45,8 @@ internal sealed class TypeNameField : IOutputFieldDefinition
     public SchemaCoordinate Coordinate
         => throw new NotSupportedException("__typename is a function not an actual field belonging to a type.");
 
-    public bool IsDeprecated => false;
+    [MemberNotNullWhen(true, nameof(DeprecationReason))]
+    public bool IsDeprecated => DeprecationReason is not null;
 
     public string? DeprecationReason => null;
 

@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.Text.Json;
 
@@ -45,18 +47,12 @@ public sealed partial class SourceResultDocument
                     break;
 
                 case JsonTokenType.String:
-                {
-                    var value = document.ReadRawValue(row, includeQuotes: true);
-                    writer.WriteStringValue(value, skipEscaping: true);
+                    document.WriteRawStringValueTo(writer, row.Location, row.SizeOrLength);
                     break;
-                }
 
                 case JsonTokenType.Number:
-                {
-                    var value = document.ReadRawValue(row, includeQuotes: false);
-                    writer.WriteNumberValue(value);
+                    document.WriteRawNumberValueTo(writer, row.Location, row.SizeOrLength);
                     break;
-                }
 
                 default:
                     throw new NotSupportedException();
@@ -78,7 +74,7 @@ public sealed partial class SourceResultDocument
                 Debug.Assert(nameRow.TokenType is JsonTokenType.PropertyName);
 
                 // property name
-                writer.WritePropertyName(document.ReadRawValue(nameRow, includeQuotes: false));
+                writer.WritePropertyNameUnescaped(document.ReadRawValue(nameRow, includeQuotes: false));
 
                 // property value
                 var valueCursor = current + 1;
@@ -126,5 +122,193 @@ public sealed partial class SourceResultDocument
 
             writer.WriteEndArray();
         }
+    }
+
+    /// <summary>
+    /// Writes the raw string value at <paramref name="location"/> into <paramref name="emitter"/>.
+    /// </summary>
+    internal void WriteRawStringValueTo(ref MinimizedJsonEmitter emitter, int location, int size)
+    {
+        if (TryGetSingleChunkValue(location, size, out var value))
+        {
+            emitter.WriteStringValue(value);
+            return;
+        }
+
+        WriteCrossChunkValueTo(ref emitter, location, size);
+    }
+
+    /// <summary>
+    /// Writes the raw number value at <paramref name="location"/> into <paramref name="emitter"/>.
+    /// </summary>
+    internal void WriteRawNumberValueTo(ref MinimizedJsonEmitter emitter, int location, int size)
+    {
+        if (TryGetSingleChunkValue(location, size, out var value))
+        {
+            emitter.WriteRawValue(value);
+            return;
+        }
+
+        WriteCrossChunkValueTo(ref emitter, location, size);
+    }
+
+    /// <summary>
+    /// Writes the value at <paramref name="cursor"/> into <paramref name="emitter"/>.
+    /// </summary>
+    internal void WriteValueTo(ref MinimizedJsonEmitter emitter, Cursor cursor)
+        => WriteValueTo(ref emitter, cursor, _parsedData.Get(cursor));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool TryGetSingleChunkValue(int location, int size, out ReadOnlySpan<byte> value)
+    {
+        if (size > JsonConstants.MaxUnescapedTokenSize)
+        {
+            ThrowHelper.ThrowArgumentException_ValueTooLarge(size);
+        }
+
+        var startChunkIndex = location >>> DataOffsetBits;
+        var offsetInStartChunk = location & DataOffsetMask;
+
+        Debug.Assert((uint)startChunkIndex < (uint)_segments.Length);
+        ref readonly var startSeg = ref Unsafe.Add(
+            ref MemoryMarshal.GetArrayDataReference(_segments),
+            startChunkIndex);
+
+        if (offsetInStartChunk + size <= startSeg.Length)
+        {
+            ref var start = ref Unsafe.Add(
+                ref MemoryMarshal.GetArrayDataReference(startSeg.Buffer),
+                startSeg.Offset + offsetInStartChunk);
+            value = MemoryMarshal.CreateReadOnlySpan(ref start, size);
+            return true;
+        }
+
+        value = default;
+        return false;
+    }
+
+    private void WriteCrossChunkValueTo(ref MinimizedJsonEmitter emitter, int location, int size)
+    {
+        var bytesRead = 0;
+        var chunkIndex = location >>> DataOffsetBits;
+        var offsetInChunk = location & DataOffsetMask;
+
+        emitter.WriteRawValueStart();
+
+        while (bytesRead < size)
+        {
+            var seg = _segments[chunkIndex];
+            var bytesToWrite = Math.Min(size - bytesRead, seg.Length - offsetInChunk);
+            emitter.WriteRawValuePart(seg.Buffer.AsSpan(seg.Offset + offsetInChunk, bytesToWrite));
+            bytesRead += bytesToWrite;
+            chunkIndex++;
+            offsetInChunk = 0;
+        }
+
+        emitter.WriteRawValueEnd();
+    }
+
+    private void WriteValueTo(ref MinimizedJsonEmitter emitter, Cursor cursor, DbRow row)
+    {
+        var tokenType = row.TokenType;
+
+        Debug.Assert(tokenType is not JsonTokenType.EndObject);
+        Debug.Assert(tokenType is not JsonTokenType.EndArray);
+
+        switch (tokenType)
+        {
+            case JsonTokenType.StartObject:
+                WriteObjectTo(ref emitter, cursor, row);
+                break;
+
+            case JsonTokenType.StartArray:
+                WriteArrayTo(ref emitter, cursor, row);
+                break;
+
+            case JsonTokenType.None:
+            case JsonTokenType.Null:
+                emitter.WriteRawValue(JsonConstants.NullValue);
+                break;
+
+            case JsonTokenType.True:
+                emitter.WriteRawValue(JsonConstants.TrueValue);
+                break;
+
+            case JsonTokenType.False:
+                emitter.WriteRawValue(JsonConstants.FalseValue);
+                break;
+
+            case JsonTokenType.String:
+                WriteRawStringValueTo(ref emitter, row.Location, row.SizeOrLength);
+                break;
+
+            case JsonTokenType.Number:
+                WriteRawNumberValueTo(ref emitter, row.Location, row.SizeOrLength);
+                break;
+
+            default:
+                throw new NotSupportedException();
+        }
+    }
+
+    private void WriteObjectTo(ref MinimizedJsonEmitter emitter, Cursor start, DbRow startRow)
+    {
+        Debug.Assert(startRow.TokenType is JsonTokenType.StartObject);
+
+        var current = start + 1;
+        var end = start + startRow.NumberOfRows - 1;
+
+        emitter.WriteStartObject();
+
+        while (current < end)
+        {
+            var nameRow = _parsedData.Get(current);
+            Debug.Assert(nameRow.TokenType is JsonTokenType.PropertyName);
+
+            emitter.WriteQuotedPropertyName(ReadRawValue(nameRow, includeQuotes: true));
+
+            var valueCursor = current + 1;
+            var valueRow = _parsedData.Get(valueCursor);
+            current = valueCursor;
+            WriteValueTo(ref emitter, current, valueRow);
+
+            if (valueRow.IsSimpleValue)
+            {
+                current++;
+            }
+            else
+            {
+                current += valueRow.NumberOfRows;
+            }
+        }
+
+        emitter.WriteEndObject();
+    }
+
+    private void WriteArrayTo(ref MinimizedJsonEmitter emitter, Cursor start, DbRow startRow)
+    {
+        Debug.Assert(startRow.TokenType is JsonTokenType.StartArray);
+
+        var current = start + 1;
+        var end = start + startRow.NumberOfRows - 1;
+
+        emitter.WriteStartArray();
+
+        while (current < end)
+        {
+            var row = _parsedData.Get(current);
+            WriteValueTo(ref emitter, current, row);
+
+            if (row.IsSimpleValue)
+            {
+                current++;
+            }
+            else
+            {
+                current += row.NumberOfRows;
+            }
+        }
+
+        emitter.WriteEndArray();
     }
 }

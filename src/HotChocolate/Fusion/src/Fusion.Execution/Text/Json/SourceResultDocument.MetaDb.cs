@@ -1,4 +1,3 @@
-using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -12,40 +11,60 @@ public sealed partial class SourceResultDocument
 {
     internal struct MetaDb : IDisposable
     {
-        private static readonly ArrayPool<byte[]> s_arrayPool = ArrayPool<byte[]>.Shared;
-
-        private byte[][] _chunks;
+        private IMemoryArena _arena;
+        private MemorySegment[] _chunks;
         private Cursor _cursor;
+        private int _rowsInCurrentChunk;
+        private byte[] _currentBuffer;
+        private int _currentOffset;
         private bool _disposed;
 
-        static MetaDb()
+        // The chunk schedule ramps from Size1K up to Size128K over chunks 0..RampChunks-1; from there
+        // every chunk holds MaxRowsPerChunk rows. s_rampRows is the cumulative number of rows the ramp
+        // chunks hold, used to size the chunk table from the schedule rather than from the smallest
+        // (Size1K) chunk, which would over-rent the table by the ramp's growth factor.
+        private const int RampChunks = (int)ChunkSize.Size128K + 1;
+        private static readonly int s_maxRowsPerChunk = Cursor.RowsPerChunkFor((int)ChunkSize.Size128K);
+        private static readonly int s_rampRows = ComputeRampRows();
+
+        private static int ComputeRampRows()
         {
-            Debug.Assert(
-                JsonMemory.BufferSize >= Cursor.ChunkBytes,
-                "MetaDb.BufferSize must match Cursor.ChunkBytes for index math to align.");
+            var rows = 0;
+
+            for (var i = 0; i < RampChunks; i++)
+            {
+                rows += Cursor.RowsPerChunkFor(i);
+            }
+
+            return rows;
         }
 
-        internal static MetaDb CreateForEstimatedRows(int estimatedRows)
+        internal static MetaDb CreateForEstimatedRows(IMemoryArena arena, int estimatedRows)
         {
-            var chunksNeeded = Math.Max(4, (estimatedRows / Cursor.RowsPerChunk) + 1);
-            var chunks = s_arrayPool.Rent(chunksNeeded);
+            // The ramp chunks cover s_rampRows rows across RampChunks chunks; rows beyond the ramp add
+            // one constant-size chunk each. +1 guards the boundary so the table never grows mid-parse
+            // for a correctly estimated document.
+            var chunksNeeded = estimatedRows <= s_rampRows
+                ? RampChunks + 1
+                : RampChunks + 1 + ((estimatedRows - s_rampRows) / s_maxRowsPerChunk);
+            var chunks = arena.RentSegmentTable(chunksNeeded);
             var log = Log;
 
             log.MetaDbCreated(1, estimatedRows, 1);
 
-            // Rent the first chunk now to avoid branching on first append
-            chunks[0] = JsonMemory.Rent(JsonMemoryKind.Metadata);
+            // Rent the first chunk now to avoid branching on first append. The document always
+            // starts at chunk 0 (Size1K) and ramps up as it grows.
+            var first = chunks[0] = arena.Rent(1 << (10 + (int)Cursor.ChunkSizeFor(0)));
             log.ChunkAllocated(1, 0);
-
-            for (var i = 1; i < chunks.Length; i++)
-            {
-                chunks[i] = [];
-            }
 
             return new MetaDb
             {
+                _arena = arena,
                 _chunks = chunks,
-                _cursor = Cursor.Zero
+                _cursor = Cursor.Zero,
+                _rowsInCurrentChunk = Cursor.RowsPerChunkFor(0),
+                _currentBuffer = first.Buffer,
+                _currentOffset = first.Offset
             };
         }
 
@@ -59,7 +78,7 @@ public sealed partial class SourceResultDocument
             get
             {
                 var cursor = _cursor;
-                if (cursor.Row >= Cursor.RowsPerChunk)
+                if (cursor.Row >= _rowsInCurrentChunk)
                 {
                     return Cursor.FromByteOffset(cursor.Chunk + 1, 0);
                 }
@@ -88,10 +107,10 @@ public sealed partial class SourceResultDocument
             int numberOfRows = 1,
             bool hasComplexChildren = false)
         {
-            var (cursor, chunk, byteOffset) = AcquireSlot();
+            var (cursor, buffer, byteOffset) = AcquireSlot();
 
             var row = new DbRow(tokenType, startLocation, length, numberOfRows, hasComplexChildren);
-            ref var dest = ref MemoryMarshal.GetArrayDataReference(chunk);
+            ref var dest = ref MemoryMarshal.GetArrayDataReference(buffer);
             Unsafe.WriteUnaligned(ref Unsafe.Add(ref dest, byteOffset), row);
 
             return cursor;
@@ -114,62 +133,59 @@ public sealed partial class SourceResultDocument
 
             var row = new DbRow(tokenType, location, sizeOrLength, numberOfRows, hasComplexChildren);
             var chunk = _chunks[cursor.Chunk];
-            ref var dest = ref MemoryMarshal.GetArrayDataReference(chunk);
-            Unsafe.WriteUnaligned(ref Unsafe.Add(ref dest, cursor.ByteOffset), row);
+            ref var dest = ref MemoryMarshal.GetArrayDataReference(chunk.Buffer);
+            Unsafe.WriteUnaligned(ref Unsafe.Add(ref dest, chunk.Offset + cursor.ByteOffset), row);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private (Cursor cursor, byte[] chunk, int byteOffset) AcquireSlot()
+        private (Cursor cursor, byte[] buffer, int byteOffset) AcquireSlot()
         {
-            var log = Log;
             var cursor = _cursor;
-            var chunks = _chunks.AsSpan();
-            var chunksLength = chunks.Length;
 
-            // If current chunk is full, move to next chunk row 0.
-            if (cursor.Row >= Cursor.RowsPerChunk)
+            if (cursor.Row < _rowsInCurrentChunk)
             {
-                cursor = Cursor.FromByteOffset(cursor.Chunk + 1, 0);
+                _cursor = Cursor.From(cursor.Chunk, cursor.Row + 1);
+                return (cursor, _currentBuffer, _currentOffset + cursor.ByteOffset);
             }
 
+            return AcquireSlotInNextChunk();
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private (Cursor cursor, byte[] buffer, int byteOffset) AcquireSlotInNextChunk()
+        {
+            var cursor = Cursor.FromByteOffset(_cursor.Chunk + 1, 0);
             var chunkIndex = cursor.Chunk;
+            _rowsInCurrentChunk = Cursor.RowsPerChunkFor(chunkIndex);
 
             // make sure we have enough space for the chunk referenced by the chunkIndex.
-            if (chunkIndex >= chunksLength)
+            if (chunkIndex >= _chunks.Length)
             {
                 // if we do not have enough space we will double the size we have for
                 // chunks of memory.
-                var nextChunksLength = chunksLength * 2;
-                var newChunks = s_arrayPool.Rent(nextChunksLength);
-                log.ChunksExpanded(2, chunksLength, nextChunksLength);
-
-                Array.Copy(_chunks, newChunks, chunksLength);
-
-                for (var i = chunksLength; i < nextChunksLength; i++)
-                {
-                    newChunks[i] = [];
-                }
-
-                // clear and return old chunks buffer
-                chunks.Clear();
-                s_arrayPool.Return(_chunks);
-
-                // assign new chunks buffer
-                _chunks = newChunks;
-                chunks = newChunks.AsSpan();
+                GrowChunks(_chunks.Length);
             }
 
-            var chunk = chunks[chunkIndex];
+            var chunk = _chunks[chunkIndex];
 
-            // if the chunk is empty we did not yet rent any memory for it
-            if (chunk.Length == 0)
+            // if the chunk has no backing buffer we did not yet rent any memory for it
+            if (chunk.Buffer is null)
             {
-                chunk = chunks[chunkIndex] = JsonMemory.Rent(JsonMemoryKind.Metadata);
-                log.ChunkAllocated(1, chunkIndex);
+                var chunkBytes = 1 << (10 + (int)Cursor.ChunkSizeFor(chunkIndex));
+                chunk = _chunks[chunkIndex] = _arena.Rent(chunkBytes);
+                Log.ChunkAllocated(1, chunkIndex);
             }
 
-            _cursor++;
-            return (cursor, chunk, cursor.ByteOffset);
+            _currentBuffer = chunk.Buffer;
+            _currentOffset = chunk.Offset;
+            _cursor = Cursor.From(chunkIndex, 1);
+            return (cursor, chunk.Buffer, chunk.Offset);
+        }
+
+        private void GrowChunks(int currentLength)
+        {
+            _arena.GrowSegmentTable(ref _chunks);
+            Log.ChunksExpanded(2, currentLength, _chunks.Length);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -177,9 +193,14 @@ public sealed partial class SourceResultDocument
         {
             AssertValidCursor(cursor);
 
-            var dataPos = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset);
+            ref readonly var chunk = ref Unsafe.Add(
+                ref MemoryMarshal.GetArrayDataReference(_chunks),
+                cursor.Chunk);
 
-            return MemoryMarshal.Read<DbRow>(dataPos);
+            return Unsafe.ReadUnaligned<DbRow>(
+                ref Unsafe.Add(
+                    ref MemoryMarshal.GetArrayDataReference(chunk.Buffer),
+                    chunk.Offset + cursor.ByteOffset));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -188,10 +209,15 @@ public sealed partial class SourceResultDocument
             AssertValidCursor(cursor);
 
             // _numberOfRowsAndTypeUnion is the third int in the row.
-            var offset = cursor.ByteOffset + 8;
-            var dataPos = _chunks[cursor.Chunk].AsSpan(offset);
+            ref readonly var chunk = ref Unsafe.Add(
+                ref MemoryMarshal.GetArrayDataReference(_chunks),
+                cursor.Chunk);
 
-            var union = MemoryMarshal.Read<uint>(dataPos);
+            var union = Unsafe.ReadUnaligned<uint>(
+                ref Unsafe.Add(
+                    ref MemoryMarshal.GetArrayDataReference(chunk.Buffer),
+                    chunk.Offset + cursor.ByteOffset + 8));
+
             return (JsonTokenType)(union >> 28);
         }
 
@@ -201,11 +227,14 @@ public sealed partial class SourceResultDocument
             Debug.Assert(
                 cursor.Chunk >= 0 && cursor.Chunk < _chunks.Length,
                 $"chunk {cursor.Chunk} out of bounds");
+            Debug.Assert(
+                _chunks[cursor.Chunk].Buffer is not null,
+                $"chunk {cursor.Chunk} is not allocated");
 
             if (cursor.Chunk < _cursor.Chunk)
             {
                 Debug.Assert(
-                    cursor.Row is >= 0 and < Cursor.RowsPerChunk,
+                    cursor.Row >= 0 && cursor.Row < cursor.RowsPerChunk,
                     $"row {cursor.Row} out of bounds for chunk {cursor.Chunk}");
             }
             else if (cursor.Chunk == _cursor.Chunk)
@@ -226,23 +255,13 @@ public sealed partial class SourceResultDocument
             {
                 var cursor = _cursor;
                 var chunksLength = cursor.Chunk + 1;
-                var chunks = _chunks.AsSpan(0, chunksLength);
                 Log.MetaDbDisposed(1, chunksLength, cursor.Row);
 
-                foreach (var chunk in chunks)
-                {
-                    if (chunk.Length == 0)
-                    {
-                        break;
-                    }
-
-                    JsonMemory.Return(JsonMemoryKind.Metadata, chunk);
-                }
-
-                chunks.Clear();
-                s_arrayPool.Return(_chunks);
-
+                // The arena owns the chunk memory and the chunk table, and frees both as a whole
+                // when it is disposed, so neither is returned here.
                 _chunks = [];
+                _currentBuffer = null!;
+                _arena = null!;
                 _disposed = true;
             }
         }

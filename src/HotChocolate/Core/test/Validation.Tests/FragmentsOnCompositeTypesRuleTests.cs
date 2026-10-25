@@ -165,6 +165,28 @@ public class FragmentsOnCompositeTypesRuleTests
                 t.Message));
     }
 
+    // The rule must fire once per lexical fragment definition, not once per spread.
+    [Fact]
+    public void Fragment_On_Scalar_Is_Invalid_When_Reused()
+    {
+        ExpectErrors(
+            """
+            {
+              dog {
+                ... fragOnScalar
+                ... fragOnScalar
+              }
+            }
+
+            fragment fragOnScalar on Int {
+              something
+            }
+            """,
+            t => Assert.Equal(
+                "Fragments can only be declared on unions, interfaces, and objects.",
+                t.Message));
+    }
+
     [Fact]
     public void InlineFragment_On_Scalar_Is_Invalid()
     {

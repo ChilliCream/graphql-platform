@@ -50,6 +50,17 @@ internal sealed class FusionFieldMutableDirectiveDefinition : MutableDirectiveDe
                 DefaultValue = new BooleanValueNode(false)
             });
 
+        Arguments.Add(
+            new MutableInputFieldDefinition(
+                WellKnownArgumentNames.SourceExternal,
+                new NonNullType(booleanType))
+            {
+                Description =
+                    "Indicates that the source field was declared as "
+                    + "external before connector preprocessing.",
+                DefaultValue = new BooleanValueNode(false)
+            });
+
         IsRepeatable = true;
         Locations = DirectiveLocation.FieldDefinition;
     }

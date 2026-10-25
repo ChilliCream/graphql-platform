@@ -329,12 +329,6 @@ enum FooBar {
   BAR
 }
 
-"The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
-directive @specifiedBy(
-  "The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types."
-  url: String!
-) on SCALAR
-
 "The `Decimal` scalar type represents a decimal floating-point number with high precision."
 scalar Decimal
   @specifiedBy(url: "https://scalars.graphql.org/chillicream/decimal.html")
@@ -355,9 +349,11 @@ scalar Long
 scalar Short
   @specifiedBy(url: "https://scalars.graphql.org/chillicream/short.html")
 
-"The `URI` scalar type represents a Uniform Resource Identifier (URI) as defined by RFC 3986."
-scalar URI @specifiedBy(url: "https://scalars.graphql.org/chillicream/uri.html")
-
 "The `UnsignedByte` scalar type represents an unsigned 8-bit integer."
 scalar UnsignedByte
-  @specifiedBy(url: "https://scalars.graphql.org/chillicream/unsigned-byte.html")
+  @specifiedBy(
+    url: "https://scalars.graphql.org/chillicream/unsigned-byte.html"
+  )
+
+"The `URI` scalar type represents a Uniform Resource Identifier (URI) as defined by RFC 3986."
+scalar URI @specifiedBy(url: "https://scalars.graphql.org/chillicream/uri.html")

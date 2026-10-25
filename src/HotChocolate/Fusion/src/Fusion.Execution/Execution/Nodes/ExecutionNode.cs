@@ -11,9 +11,11 @@ public abstract class ExecutionNode : IOperationPlanNode, IEquatable<ExecutionNo
     private IOperationPlanNode[] _dependents = [];
     private IOperationPlanNode[] _dependencies = [];
     private IOperationPlanNode[] _optionalDependencies = [];
+    private int[] _parentDependencies = [];
     private int _dependentCount;
     private int _dependencyCount;
     private int _optionalDependencyCount;
+    private int _parentDependencyCount;
 
     /// <summary>
     /// The unique id of this execution node.
@@ -54,6 +56,15 @@ public abstract class ExecutionNode : IOperationPlanNode, IEquatable<ExecutionNo
     /// </summary>
     public ReadOnlySpan<IOperationPlanNode> OptionalDependencies => _optionalDependencies;
 
+    /// <summary>
+    /// Gets the identifiers of steps in the enclosing plan scope that must
+    /// complete before this node can run.
+    /// </summary>
+    public ReadOnlySpan<int> ParentDependencies => _parentDependencies;
+
+    internal ReadOnlySpan<int> BufferedParentDependencies
+        => _parentDependencies.AsSpan(0, _parentDependencyCount);
+
 #pragma warning disable CA2012
     public void BeginExecute(
         OperationPlanContext context,
@@ -65,14 +76,17 @@ public abstract class ExecutionNode : IOperationPlanNode, IEquatable<ExecutionNo
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
-        var start = Stopwatch.GetTimestamp();
-        var scope = CreateScope(context);
-        var activity = Activity.Current;
-        ExecutionStatus status;
+        var collectTelemetry = context.CollectTelemetry;
+        var start = collectTelemetry ? Stopwatch.GetTimestamp() : 0;
+        var activity = collectTelemetry ? Activity.Current : null;
+        IDisposable? scope = null;
+        var status = ExecutionStatus.Failed;
         Exception? error = null;
 
         try
         {
+            scope = CreateScope(context);
+
             if (IsSkipped(context))
             {
                 status = ExecutionStatus.Skipped;
@@ -84,27 +98,31 @@ public abstract class ExecutionNode : IOperationPlanNode, IEquatable<ExecutionNo
         }
         catch (Exception ex)
         {
-            OnError(context, scope, ex);
             error = ex;
             status = ExecutionStatus.Failed;
+            OnError(context, scope, ex);
         }
         finally
         {
             scope?.Dispose();
+
+            // A started node must always report exactly one completion so the
+            // execution state's active-node count stays balanced. Otherwise the
+            // executor (and its drain) would wait forever for a node that never
+            // reports back.
+            var result = new ExecutionNodeResult(
+                Id,
+                activity,
+                status,
+                collectTelemetry ? Stopwatch.GetElapsedTime(start) : default,
+                error,
+                context.GetDependentsToExecute(this),
+                context.GetSkippedDefinitions(this),
+                context.GetVariableValueSets(this),
+                context.GetTransportDetails(this));
+
+            context.CompleteNode(result);
         }
-
-        var result = new ExecutionNodeResult(
-            Id,
-            activity,
-            status,
-            Stopwatch.GetElapsedTime(start),
-            error,
-            context.GetDependentsToExecute(this),
-            context.GetSkippedDefinitions(this),
-            context.GetVariableValueSets(this),
-            context.GetTransportDetails(this));
-
-        context.CompleteNode(result);
     }
 
     protected abstract ValueTask<ExecutionStatus> OnExecuteAsync(
@@ -172,6 +190,23 @@ public abstract class ExecutionNode : IOperationPlanNode, IEquatable<ExecutionNo
         _dependents[_dependentCount++] = node;
     }
 
+    internal void AddParentDependency(int parentNodeId)
+    {
+        ExpectMutable();
+
+        if (_parentDependencies.Length == 0)
+        {
+            _parentDependencies = new int[4];
+        }
+
+        if (_parentDependencyCount == _parentDependencies.Length)
+        {
+            Array.Resize(ref _parentDependencies, _parentDependencyCount * 2);
+        }
+
+        _parentDependencies[_parentDependencyCount++] = parentNodeId;
+    }
+
     internal void AddOptionalDependency(IOperationPlanNode node)
     {
         ExpectMutable();
@@ -215,9 +250,15 @@ public abstract class ExecutionNode : IOperationPlanNode, IEquatable<ExecutionNo
             Array.Resize(ref _optionalDependencies, _optionalDependencyCount);
         }
 
+        if (_parentDependencies.Length > _parentDependencyCount)
+        {
+            Array.Resize(ref _parentDependencies, _parentDependencyCount);
+        }
+
         Array.Sort(_dependencies, static (a, b) => a.Id.CompareTo(b.Id));
         Array.Sort(_dependents, static (a, b) => a.Id.CompareTo(b.Id));
         Array.Sort(_optionalDependencies, static (a, b) => a.Id.CompareTo(b.Id));
+        Array.Sort(_parentDependencies);
 
         OnSealingNode();
 

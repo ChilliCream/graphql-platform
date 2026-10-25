@@ -1,8 +1,6 @@
-#if !NET9_0_OR_GREATER
-using System.Diagnostics.CodeAnalysis;
-#endif
 using System.IO.Pipelines;
 using System.Net;
+using System.Text.Json;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Parsers;
@@ -10,6 +8,7 @@ using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
+using HotChocolate.Serialization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -25,6 +24,7 @@ public sealed class ExecutorSession
     private readonly IHttpRequestInterceptor _requestInterceptor;
     private readonly ISocketSessionInterceptor _socketSessionInterceptor;
     private readonly IHttpRequestParser _requestParser;
+    private readonly HttpRequestLimits _requestLimits;
     private readonly IHttpResponseFormatter _responseFormatter;
     private readonly IServerDiagnosticEvents _diagnosticEvents;
     private readonly bool _skipDocumentBody;
@@ -40,6 +40,7 @@ public sealed class ExecutorSession
         _socketSessionInterceptor = executor.Schema.Services.GetRequiredService<ISocketSessionInterceptor>();
         _responseFormatter = executor.Schema.Services.GetRequiredService<IHttpResponseFormatter>();
         _requestParser = executor.Schema.Services.GetRequiredService<IHttpRequestParser>();
+        _requestLimits = executor.Schema.Services.GetRequiredService<HttpRequestLimits>();
         _diagnosticEvents = executor.Schema.Services.GetRequiredService<IServerDiagnosticEvents>();
         var persistedOps = executor.Schema.Services.GetService<PersistedOperationOptions>();
         _skipDocumentBody = persistedOps is { OnlyAllowPersistedDocuments: true, AllowDocumentBody: false };
@@ -49,6 +50,12 @@ public sealed class ExecutorSession
     public ISocketSessionInterceptor SocketSessionInterceptor => _socketSessionInterceptor;
 
     public IServerDiagnosticEvents DiagnosticEvents => _diagnosticEvents;
+
+    internal bool ReportsUnsupportedMethodOrMediaType
+        => _responseFormatter is DefaultHttpResponseFormatter formatter
+            && formatter.ReportsUnsupportedMethodOrMediaType;
+
+    internal int MaxRequestSize => _requestLimits.MaxRequestSize;
 
     public ulong Version => _executor.Version;
 
@@ -82,10 +89,6 @@ public sealed class ExecutorSession
         CancellationToken cancellationToken)
         => _requestInterceptor.OnCreateAsync(context, requestExecutor, requestBuilder, cancellationToken);
 
-#if !NET9_0_OR_GREATER
-    [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
-    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
-#endif
     public async Task<IExecutionResult> ExecuteSingleAsync(
         HttpContext context,
         GraphQLRequest request,
@@ -106,6 +109,9 @@ public sealed class ExecutorSession
         {
             if (!options.Batching.HasFlag(AllowedBatching.VariableBatching))
             {
+                _diagnosticEvents.HttpRequestError(
+                    context,
+                    Handle(ErrorHelper.VariableBatchingDisabled()));
                 var error = Handle(ErrorHelper.InvalidRequest());
                 return OperationResult.FromError(error);
             }
@@ -115,6 +121,7 @@ public sealed class ExecutorSession
                 && variableBatch.VariableValues.Document.RootElement.GetArrayLength() > maxBatchSize)
             {
                 var error = Handle(ErrorHelper.BatchSizeExceeded(maxBatchSize));
+                _diagnosticEvents.HttpRequestError(context, error);
                 return OperationResult.FromError(error);
             }
         }
@@ -122,10 +129,6 @@ public sealed class ExecutorSession
         return await _executor.ExecuteAsync(operationRequest, context.RequestAborted);
     }
 
-#if !NET9_0_OR_GREATER
-    [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
-    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
-#endif
     public async Task<IResponseStream> ExecuteOperationBatchAsync(
         HttpContext context,
         GraphQLRequest request,
@@ -153,10 +156,6 @@ public sealed class ExecutorSession
             cancellationToken: context.RequestAborted);
     }
 
-#if !NET9_0_OR_GREATER
-    [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
-    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
-#endif
     public async Task<IResponseStream> ExecuteBatchAsync(
         HttpContext context,
         GraphQLRequest[] requests,
@@ -195,7 +194,7 @@ public sealed class ExecutorSession
         CancellationToken cancellationToken)
     {
         var requests = await _requestParser.ParseRequestAsync(requestBody, _skipDocumentBody, cancellationToken);
-        ThrowIfDocumentBodyNotAllowed(requests);
+        ValidateParsedRequests(requests);
         return requests;
     }
 
@@ -207,14 +206,14 @@ public sealed class ExecutorSession
     {
         var request = await _requestParser.ParsePersistedOperationRequestAsync(
             documentId, operationName, requestBody, _skipDocumentBody, cancellationToken);
-        ThrowIfDocumentBodyNotAllowed(request);
+        ValidateParsedRequest(request);
         return request;
     }
 
     public GraphQLRequest ParseRequestFromParams(IQueryCollection parameters)
     {
         var request = _requestParser.ParseRequestFromParams(parameters, _skipDocumentBody);
-        ThrowIfDocumentBodyNotAllowed(request);
+        ValidateParsedRequest(request);
         return request;
     }
 
@@ -222,13 +221,52 @@ public sealed class ExecutorSession
         string operationId,
         string? operationName,
         IQueryCollection parameters)
-        => _requestParser.ParsePersistedOperationRequestFromParams(operationId, operationName, parameters);
+    {
+        var request = _requestParser.ParsePersistedOperationRequestFromParams(
+            operationId,
+            operationName,
+            parameters);
+        ValidateParsedRequest(request);
+        return request;
+    }
 
     public GraphQLRequest[] ParseRequest(string sourceText)
     {
         var requests = _requestParser.ParseRequest(sourceText, _skipDocumentBody);
-        ThrowIfDocumentBodyNotAllowed(requests);
+        ValidateParsedRequests(requests);
         return requests;
+    }
+
+    private void ValidateParsedRequest(GraphQLRequest request)
+    {
+        try
+        {
+            ThrowIfDocumentBodyNotAllowed(request);
+            ThrowIfVariableBatchIsEmpty(request);
+        }
+        catch
+        {
+            request.Dispose();
+            throw;
+        }
+    }
+
+    private void ValidateParsedRequests(GraphQLRequest[] requests)
+    {
+        try
+        {
+            ThrowIfDocumentBodyNotAllowed(requests);
+            ThrowIfVariableBatchIsEmpty(requests);
+        }
+        catch
+        {
+            foreach (var request in requests)
+            {
+                request.Dispose();
+            }
+
+            throw;
+        }
     }
 
     private void ThrowIfDocumentBodyNotAllowed(GraphQLRequest request)
@@ -247,6 +285,23 @@ public sealed class ExecutorSession
         }
     }
 
+    private static void ThrowIfVariableBatchIsEmpty(GraphQLRequest request)
+    {
+        if (request.Variables is { RootElement: { ValueKind: JsonValueKind.Array } variableSets }
+            && variableSets.GetArrayLength() == 0)
+        {
+            throw ErrorHelper.EmptyVariableBatch();
+        }
+    }
+
+    private static void ThrowIfVariableBatchIsEmpty(GraphQLRequest[] requests)
+    {
+        foreach (var request in requests)
+        {
+            ThrowIfVariableBatchIsEmpty(request);
+        }
+    }
+
     public ValueTask WriteResultAsync(
         HttpContext context,
         IExecutionResult result,
@@ -261,10 +316,30 @@ public sealed class ExecutorSession
 
     public async Task WriteSchemaAsync(
         HttpContext context)
+        => await WriteSchemaAsync(context, null);
+
+    public async Task WriteSchemaAsync(
+        HttpContext context,
+        GraphQLSpecVersion? specVersion)
         => await _responseFormatter.FormatAsync(
             context.Response,
             Schema,
             Version,
+            specVersion,
+            context.RequestAborted);
+
+    public async Task WriteSemanticNonNullSchemaAsync(
+        HttpContext context)
+        => await WriteSemanticNonNullSchemaAsync(context, null);
+
+    public async Task WriteSemanticNonNullSchemaAsync(
+        HttpContext context,
+        GraphQLSpecVersion? specVersion)
+        => await _responseFormatter.FormatSemanticNonNullSchemaAsync(
+            context.Response,
+            Schema,
+            Version,
+            specVersion,
             context.RequestAborted);
 
     public RequestFlags CreateRequestFlags(AcceptMediaType[] acceptMediaTypes)

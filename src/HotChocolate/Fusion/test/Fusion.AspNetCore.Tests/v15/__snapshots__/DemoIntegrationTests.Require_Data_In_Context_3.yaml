@@ -28,47 +28,47 @@ response:
       "data": {
         "users": [
           {
-            "id": "VXNlcjox",
-            "name": "User: VXNlcjox",
-            "birthdate": "User: VXNlcjox",
+            "id": "VXNlcjoyNjE2NDgyNzU=",
+            "name": "User: VXNlcjoyNjE2NDgyNzU=",
+            "birthdate": "User: VXNlcjoyNjE2NDgyNzU=",
             "reviews": [
               {
-                "body": "Review: UmV2aWV3OjE=",
+                "body": "Review: UmV2aWV3OjM2OTA5MTgwNzE=",
                 "author": {
-                  "name": "User: VXNlcjoyMg==",
-                  "birthdate": "User: VXNlcjoyMg=="
+                  "name": "User: VXNlcjoxMjMyMTA1NzE3",
+                  "birthdate": "User: VXNlcjoxMjMyMTA1NzE3"
                 },
                 "product": {
-                  "id": "UHJvZHVjdDoyMw==",
-                  "name": "Product: UHJvZHVjdDoyMw==",
+                  "id": "UHJvZHVjdDozMjI1MTY2MTMx",
+                  "name": "Product: UHJvZHVjdDozMjI1MTY2MTMx",
                   "deliveryEstimate": {
                     "max": 123
                   }
                 }
               },
               {
-                "body": "Review: UmV2aWV3OjI=",
+                "body": "Review: UmV2aWV3OjMzMDIwMDUyNTA=",
                 "author": {
-                  "name": "User: VXNlcjoyNA==",
-                  "birthdate": "User: VXNlcjoyNA=="
+                  "name": "User: VXNlcjoyOTAzNjIzMDA3",
+                  "birthdate": "User: VXNlcjoyOTAzNjIzMDA3"
                 },
                 "product": {
-                  "id": "UHJvZHVjdDoyNQ==",
-                  "name": "Product: UHJvZHVjdDoyNQ==",
+                  "id": "UHJvZHVjdDoxNjc1NDI5Mzg2",
+                  "name": "Product: UHJvZHVjdDoxNjc1NDI5Mzg2",
                   "deliveryEstimate": {
                     "max": 123
                   }
                 }
               },
               {
-                "body": "Review: UmV2aWV3OjM=",
+                "body": "Review: UmV2aWV3OjE1NzQxMDk3MDc=",
                 "author": {
-                  "name": "User: VXNlcjoyNg==",
-                  "birthdate": "User: VXNlcjoyNg=="
+                  "name": "User: VXNlcjo0MDg3Mzk3Njkz",
+                  "birthdate": "User: VXNlcjo0MDg3Mzk3Njkz"
                 },
                 "product": {
-                  "id": "UHJvZHVjdDoyNw==",
-                  "name": "Product: UHJvZHVjdDoyNw==",
+                  "id": "UHJvZHVjdDo4MzQwMjM4MTY=",
+                  "name": "Product: UHJvZHVjdDo4MzQwMjM4MTY=",
                   "deliveryEstimate": {
                     "max": 123
                   }
@@ -77,47 +77,47 @@ response:
             ]
           },
           {
-            "id": "VXNlcjoy",
-            "name": "User: VXNlcjoy",
-            "birthdate": "User: VXNlcjoy",
+            "id": "VXNlcjoxNTU5MzY4MDMx",
+            "name": "User: VXNlcjoxNTU5MzY4MDMx",
+            "birthdate": "User: VXNlcjoxNTU5MzY4MDMx",
             "reviews": [
               {
-                "body": "Review: UmV2aWV3OjQ=",
+                "body": "Review: UmV2aWV3OjE3MTQ0MjkzNzk=",
                 "author": {
-                  "name": "User: VXNlcjoxNg==",
-                  "birthdate": "User: VXNlcjoxNg=="
+                  "name": "User: VXNlcjozMTk3MDYyNDQz",
+                  "birthdate": "User: VXNlcjozMTk3MDYyNDQz"
                 },
                 "product": {
-                  "id": "UHJvZHVjdDoxNw==",
-                  "name": "Product: UHJvZHVjdDoxNw==",
+                  "id": "UHJvZHVjdDoyNDIyODA5NTI4",
+                  "name": "Product: UHJvZHVjdDoyNDIyODA5NTI4",
                   "deliveryEstimate": {
                     "max": 123
                   }
                 }
               },
               {
-                "body": "Review: UmV2aWV3OjU=",
+                "body": "Review: UmV2aWV3OjUxNDA3NDYxMw==",
                 "author": {
-                  "name": "User: VXNlcjoxOA==",
-                  "birthdate": "User: VXNlcjoxOA=="
+                  "name": "User: VXNlcjoyNjQ0NzQ2NTgx",
+                  "birthdate": "User: VXNlcjoyNjQ0NzQ2NTgx"
                 },
                 "product": {
-                  "id": "UHJvZHVjdDoxOQ==",
-                  "name": "Product: UHJvZHVjdDoxOQ==",
+                  "id": "UHJvZHVjdDo3MDc2NDk0NzY=",
+                  "name": "Product: UHJvZHVjdDo3MDc2NDk0NzY=",
                   "deliveryEstimate": {
                     "max": 123
                   }
                 }
               },
               {
-                "body": "Review: UmV2aWV3OjY=",
+                "body": "Review: UmV2aWV3OjM0OTQyNjQ0NDc=",
                 "author": {
-                  "name": "User: VXNlcjoyMA==",
-                  "birthdate": "User: VXNlcjoyMA=="
+                  "name": "User: VXNlcjozMjYxMzA0NTU5",
+                  "birthdate": "User: VXNlcjozMjYxMzA0NTU5"
                 },
                 "product": {
-                  "id": "UHJvZHVjdDoyMQ==",
-                  "name": "Product: UHJvZHVjdDoyMQ==",
+                  "id": "UHJvZHVjdDozMDkyNzc0MTM=",
+                  "name": "Product: UHJvZHVjdDozMDkyNzc0MTM=",
                   "deliveryEstimate": {
                     "max": 123
                   }
@@ -126,47 +126,47 @@ response:
             ]
           },
           {
-            "id": "VXNlcjoz",
-            "name": "User: VXNlcjoz",
-            "birthdate": "User: VXNlcjoz",
+            "id": "VXNlcjozNDQ5MTc0MTI0",
+            "name": "User: VXNlcjozNDQ5MTc0MTI0",
+            "birthdate": "User: VXNlcjozNDQ5MTc0MTI0",
             "reviews": [
               {
-                "body": "Review: UmV2aWV3Ojc=",
+                "body": "Review: UmV2aWV3OjI3NDAzMzIzMDk=",
                 "author": {
-                  "name": "User: VXNlcjoxMA==",
-                  "birthdate": "User: VXNlcjoxMA=="
+                  "name": "User: VXNlcjoyNTc3MDMyNDY1",
+                  "birthdate": "User: VXNlcjoyNTc3MDMyNDY1"
                 },
                 "product": {
-                  "id": "UHJvZHVjdDoxMQ==",
-                  "name": "Product: UHJvZHVjdDoxMQ==",
+                  "id": "UHJvZHVjdDo0MTk3NDE2NTI2",
+                  "name": "Product: UHJvZHVjdDo0MTk3NDE2NTI2",
                   "deliveryEstimate": {
                     "max": 123
                   }
                 }
               },
               {
-                "body": "Review: UmV2aWV3Ojg=",
+                "body": "Review: UmV2aWV3Ojg2NjE5MjI0NQ==",
                 "author": {
-                  "name": "User: VXNlcjoxMg==",
-                  "birthdate": "User: VXNlcjoxMg=="
+                  "name": "User: VXNlcjoyNzM0NjUwNjg=",
+                  "birthdate": "User: VXNlcjoyNzM0NjUwNjg="
                 },
                 "product": {
-                  "id": "UHJvZHVjdDoxMw==",
-                  "name": "Product: UHJvZHVjdDoxMw==",
+                  "id": "UHJvZHVjdDoxMDkxMDgyMDI3",
+                  "name": "Product: UHJvZHVjdDoxMDkxMDgyMDI3",
                   "deliveryEstimate": {
                     "max": 123
                   }
                 }
               },
               {
-                "body": "Review: UmV2aWV3Ojk=",
+                "body": "Review: UmV2aWV3OjM4NDM5NzI2NTA=",
                 "author": {
-                  "name": "User: VXNlcjoxNA==",
-                  "birthdate": "User: VXNlcjoxNA=="
+                  "name": "User: VXNlcjoyOTA5Mjc0ODg0",
+                  "birthdate": "User: VXNlcjoyOTA5Mjc0ODg0"
                 },
                 "product": {
-                  "id": "UHJvZHVjdDoxNQ==",
-                  "name": "Product: UHJvZHVjdDoxNQ==",
+                  "id": "UHJvZHVjdDo3MDYwNzczMA==",
+                  "name": "Product: UHJvZHVjdDo3MDYwNzczMA==",
                   "deliveryEstimate": {
                     "max": 123
                   }
@@ -184,10 +184,6 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
-      }
-
       type Query {
         node(id: ID!): Node @lookup @shareable
         nodes(ids: [ID!]!): [Node]! @shareable
@@ -201,6 +197,10 @@ sourceSchemas:
         name: String!
         username: String!
         birthdate: String!
+      }
+
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
@@ -220,19 +220,19 @@ sourceSchemas:
                 "data": {
                   "users": [
                     {
-                      "id": "VXNlcjox",
-                      "name": "User: VXNlcjox",
-                      "birthdate": "User: VXNlcjox"
+                      "id": "VXNlcjoyNjE2NDgyNzU=",
+                      "name": "User: VXNlcjoyNjE2NDgyNzU=",
+                      "birthdate": "User: VXNlcjoyNjE2NDgyNzU="
                     },
                     {
-                      "id": "VXNlcjoy",
-                      "name": "User: VXNlcjoy",
-                      "birthdate": "User: VXNlcjoy"
+                      "id": "VXNlcjoxNTU5MzY4MDMx",
+                      "name": "User: VXNlcjoxNTU5MzY4MDMx",
+                      "birthdate": "User: VXNlcjoxNTU5MzY4MDMx"
                     },
                     {
-                      "id": "VXNlcjoz",
-                      "name": "User: VXNlcjoz",
-                      "birthdate": "User: VXNlcjoz"
+                      "id": "VXNlcjozNDQ5MTc0MTI0",
+                      "name": "User: VXNlcjozNDQ5MTc0MTI0",
+                      "birthdate": "User: VXNlcjozNDQ5MTc0MTI0"
                     }
                   ]
                 }
@@ -252,31 +252,31 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_4_id": "VXNlcjoyMg=="
+                "__fusion_4_id": "VXNlcjoxMjMyMTA1NzE3"
               },
               {
-                "__fusion_4_id": "VXNlcjoyNA=="
+                "__fusion_4_id": "VXNlcjoyOTAzNjIzMDA3"
               },
               {
-                "__fusion_4_id": "VXNlcjoyNg=="
+                "__fusion_4_id": "VXNlcjo0MDg3Mzk3Njkz"
               },
               {
-                "__fusion_4_id": "VXNlcjoxNg=="
+                "__fusion_4_id": "VXNlcjozMTk3MDYyNDQz"
               },
               {
-                "__fusion_4_id": "VXNlcjoxOA=="
+                "__fusion_4_id": "VXNlcjoyNjQ0NzQ2NTgx"
               },
               {
-                "__fusion_4_id": "VXNlcjoyMA=="
+                "__fusion_4_id": "VXNlcjozMjYxMzA0NTU5"
               },
               {
-                "__fusion_4_id": "VXNlcjoxMA=="
+                "__fusion_4_id": "VXNlcjoyNTc3MDMyNDY1"
               },
               {
-                "__fusion_4_id": "VXNlcjoxMg=="
+                "__fusion_4_id": "VXNlcjoyNzM0NjUwNjg="
               },
               {
-                "__fusion_4_id": "VXNlcjoxNA=="
+                "__fusion_4_id": "VXNlcjoyOTA5Mjc0ODg0"
               }
             ]
         response:
@@ -287,8 +287,8 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "User",
-                    "name": "User: VXNlcjoyMg==",
-                    "birthdate": "User: VXNlcjoyMg=="
+                    "name": "User: VXNlcjoxMjMyMTA1NzE3",
+                    "birthdate": "User: VXNlcjoxMjMyMTA1NzE3"
                   }
                 }
               }
@@ -297,8 +297,8 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "User",
-                    "name": "User: VXNlcjoyNA==",
-                    "birthdate": "User: VXNlcjoyNA=="
+                    "name": "User: VXNlcjoyOTAzNjIzMDA3",
+                    "birthdate": "User: VXNlcjoyOTAzNjIzMDA3"
                   }
                 }
               }
@@ -307,8 +307,8 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "User",
-                    "name": "User: VXNlcjoyNg==",
-                    "birthdate": "User: VXNlcjoyNg=="
+                    "name": "User: VXNlcjo0MDg3Mzk3Njkz",
+                    "birthdate": "User: VXNlcjo0MDg3Mzk3Njkz"
                   }
                 }
               }
@@ -317,8 +317,8 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "User",
-                    "name": "User: VXNlcjoxNg==",
-                    "birthdate": "User: VXNlcjoxNg=="
+                    "name": "User: VXNlcjozMTk3MDYyNDQz",
+                    "birthdate": "User: VXNlcjozMTk3MDYyNDQz"
                   }
                 }
               }
@@ -327,8 +327,8 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "User",
-                    "name": "User: VXNlcjoxOA==",
-                    "birthdate": "User: VXNlcjoxOA=="
+                    "name": "User: VXNlcjoyNjQ0NzQ2NTgx",
+                    "birthdate": "User: VXNlcjoyNjQ0NzQ2NTgx"
                   }
                 }
               }
@@ -337,8 +337,8 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "User",
-                    "name": "User: VXNlcjoyMA==",
-                    "birthdate": "User: VXNlcjoyMA=="
+                    "name": "User: VXNlcjozMjYxMzA0NTU5",
+                    "birthdate": "User: VXNlcjozMjYxMzA0NTU5"
                   }
                 }
               }
@@ -347,8 +347,8 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "User",
-                    "name": "User: VXNlcjoxMA==",
-                    "birthdate": "User: VXNlcjoxMA=="
+                    "name": "User: VXNlcjoyNTc3MDMyNDY1",
+                    "birthdate": "User: VXNlcjoyNTc3MDMyNDY1"
                   }
                 }
               }
@@ -357,8 +357,8 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "User",
-                    "name": "User: VXNlcjoxMg==",
-                    "birthdate": "User: VXNlcjoxMg=="
+                    "name": "User: VXNlcjoyNzM0NjUwNjg=",
+                    "birthdate": "User: VXNlcjoyNzM0NjUwNjg="
                   }
                 }
               }
@@ -367,8 +367,8 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "User",
-                    "name": "User: VXNlcjoxNA==",
-                    "birthdate": "User: VXNlcjoxNA=="
+                    "name": "User: VXNlcjoyOTA5Mjc0ODg0",
+                    "birthdate": "User: VXNlcjoyOTA5Mjc0ODg0"
                   }
                 }
               }
@@ -378,20 +378,16 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        reviews: [Review!]!
       }
 
       type Product implements Node {
         id: ID!
         reviews: [Review!]!
         reviewCount: Int!
-      }
-
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        nodes(ids: [ID!]!): [Node]! @shareable
-        reviews: [Review!]!
       }
 
       type Review implements Node {
@@ -405,6 +401,10 @@ sourceSchemas:
         id: ID!
         reviews: [Review!]!
         errorField: String @error
+      }
+
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
@@ -429,13 +429,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "VXNlcjox"
+                "__fusion_1_id": "VXNlcjoyNjE2NDgyNzU="
               },
               {
-                "__fusion_1_id": "VXNlcjoy"
+                "__fusion_1_id": "VXNlcjoxNTU5MzY4MDMx"
               },
               {
-                "__fusion_1_id": "VXNlcjoz"
+                "__fusion_1_id": "VXNlcjozNDQ5MTc0MTI0"
               }
             ]
         response:
@@ -448,30 +448,30 @@ sourceSchemas:
                     "__typename": "User",
                     "reviews": [
                       {
-                        "body": "Review: UmV2aWV3OjE=",
+                        "body": "Review: UmV2aWV3OjM2OTA5MTgwNzE=",
                         "author": {
-                          "id": "VXNlcjoyMg=="
+                          "id": "VXNlcjoxMjMyMTA1NzE3"
                         },
                         "product": {
-                          "id": "UHJvZHVjdDoyMw=="
+                          "id": "UHJvZHVjdDozMjI1MTY2MTMx"
                         }
                       },
                       {
-                        "body": "Review: UmV2aWV3OjI=",
+                        "body": "Review: UmV2aWV3OjMzMDIwMDUyNTA=",
                         "author": {
-                          "id": "VXNlcjoyNA=="
+                          "id": "VXNlcjoyOTAzNjIzMDA3"
                         },
                         "product": {
-                          "id": "UHJvZHVjdDoyNQ=="
+                          "id": "UHJvZHVjdDoxNjc1NDI5Mzg2"
                         }
                       },
                       {
-                        "body": "Review: UmV2aWV3OjM=",
+                        "body": "Review: UmV2aWV3OjE1NzQxMDk3MDc=",
                         "author": {
-                          "id": "VXNlcjoyNg=="
+                          "id": "VXNlcjo0MDg3Mzk3Njkz"
                         },
                         "product": {
-                          "id": "UHJvZHVjdDoyNw=="
+                          "id": "UHJvZHVjdDo4MzQwMjM4MTY="
                         }
                       }
                     ]
@@ -485,30 +485,30 @@ sourceSchemas:
                     "__typename": "User",
                     "reviews": [
                       {
-                        "body": "Review: UmV2aWV3OjQ=",
+                        "body": "Review: UmV2aWV3OjE3MTQ0MjkzNzk=",
                         "author": {
-                          "id": "VXNlcjoxNg=="
+                          "id": "VXNlcjozMTk3MDYyNDQz"
                         },
                         "product": {
-                          "id": "UHJvZHVjdDoxNw=="
+                          "id": "UHJvZHVjdDoyNDIyODA5NTI4"
                         }
                       },
                       {
-                        "body": "Review: UmV2aWV3OjU=",
+                        "body": "Review: UmV2aWV3OjUxNDA3NDYxMw==",
                         "author": {
-                          "id": "VXNlcjoxOA=="
+                          "id": "VXNlcjoyNjQ0NzQ2NTgx"
                         },
                         "product": {
-                          "id": "UHJvZHVjdDoxOQ=="
+                          "id": "UHJvZHVjdDo3MDc2NDk0NzY="
                         }
                       },
                       {
-                        "body": "Review: UmV2aWV3OjY=",
+                        "body": "Review: UmV2aWV3OjM0OTQyNjQ0NDc=",
                         "author": {
-                          "id": "VXNlcjoyMA=="
+                          "id": "VXNlcjozMjYxMzA0NTU5"
                         },
                         "product": {
-                          "id": "UHJvZHVjdDoyMQ=="
+                          "id": "UHJvZHVjdDozMDkyNzc0MTM="
                         }
                       }
                     ]
@@ -522,30 +522,30 @@ sourceSchemas:
                     "__typename": "User",
                     "reviews": [
                       {
-                        "body": "Review: UmV2aWV3Ojc=",
+                        "body": "Review: UmV2aWV3OjI3NDAzMzIzMDk=",
                         "author": {
-                          "id": "VXNlcjoxMA=="
+                          "id": "VXNlcjoyNTc3MDMyNDY1"
                         },
                         "product": {
-                          "id": "UHJvZHVjdDoxMQ=="
+                          "id": "UHJvZHVjdDo0MTk3NDE2NTI2"
                         }
                       },
                       {
-                        "body": "Review: UmV2aWV3Ojg=",
+                        "body": "Review: UmV2aWV3Ojg2NjE5MjI0NQ==",
                         "author": {
-                          "id": "VXNlcjoxMg=="
+                          "id": "VXNlcjoyNzM0NjUwNjg="
                         },
                         "product": {
-                          "id": "UHJvZHVjdDoxMw=="
+                          "id": "UHJvZHVjdDoxMDkxMDgyMDI3"
                         }
                       },
                       {
-                        "body": "Review: UmV2aWV3Ojk=",
+                        "body": "Review: UmV2aWV3OjM4NDM5NzI2NTA=",
                         "author": {
-                          "id": "VXNlcjoxNA=="
+                          "id": "VXNlcjoyOTA5Mjc0ODg0"
                         },
                         "product": {
-                          "id": "UHJvZHVjdDoxNQ=="
+                          "id": "UHJvZHVjdDo3MDYwNzczMA=="
                         }
                       }
                     ]
@@ -558,8 +558,11 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        productById(id: ID!): Product @lookup @shareable
+        topProducts(first: Int!): [Product!]!
       }
 
       type Product implements Node {
@@ -571,19 +574,16 @@ sourceSchemas:
         repeatData(data: RepeatDataInput!): RepeatDataPayload!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        nodes(ids: [ID!]!): [Node]! @shareable
-        productById(id: ID!): Product @lookup @shareable
-        topProducts(first: Int!): [Product!]!
-      }
-
       type RepeatDataData {
         num: Int!
       }
 
       type RepeatDataPayload {
         data: RepeatDataData!
+      }
+
+      interface Node {
+        id: ID!
       }
 
       input RepeatDataDataInput {
@@ -605,31 +605,31 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_3_id": "UHJvZHVjdDoyMw=="
+                "__fusion_3_id": "UHJvZHVjdDozMjI1MTY2MTMx"
               },
               {
-                "__fusion_3_id": "UHJvZHVjdDoyNQ=="
+                "__fusion_3_id": "UHJvZHVjdDoxNjc1NDI5Mzg2"
               },
               {
-                "__fusion_3_id": "UHJvZHVjdDoyNw=="
+                "__fusion_3_id": "UHJvZHVjdDo4MzQwMjM4MTY="
               },
               {
-                "__fusion_3_id": "UHJvZHVjdDoxNw=="
+                "__fusion_3_id": "UHJvZHVjdDoyNDIyODA5NTI4"
               },
               {
-                "__fusion_3_id": "UHJvZHVjdDoxOQ=="
+                "__fusion_3_id": "UHJvZHVjdDo3MDc2NDk0NzY="
               },
               {
-                "__fusion_3_id": "UHJvZHVjdDoyMQ=="
+                "__fusion_3_id": "UHJvZHVjdDozMDkyNzc0MTM="
               },
               {
-                "__fusion_3_id": "UHJvZHVjdDoxMQ=="
+                "__fusion_3_id": "UHJvZHVjdDo0MTk3NDE2NTI2"
               },
               {
-                "__fusion_3_id": "UHJvZHVjdDoxMw=="
+                "__fusion_3_id": "UHJvZHVjdDoxMDkxMDgyMDI3"
               },
               {
-                "__fusion_3_id": "UHJvZHVjdDoxNQ=="
+                "__fusion_3_id": "UHJvZHVjdDo3MDYwNzczMA=="
               }
             ]
         response:
@@ -639,7 +639,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "name": "Product: UHJvZHVjdDoyMw=="
+                    "name": "Product: UHJvZHVjdDozMjI1MTY2MTMx"
                   }
                 }
               }
@@ -647,7 +647,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "name": "Product: UHJvZHVjdDoyNQ=="
+                    "name": "Product: UHJvZHVjdDoxNjc1NDI5Mzg2"
                   }
                 }
               }
@@ -655,7 +655,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "name": "Product: UHJvZHVjdDoyNw=="
+                    "name": "Product: UHJvZHVjdDo4MzQwMjM4MTY="
                   }
                 }
               }
@@ -663,7 +663,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "name": "Product: UHJvZHVjdDoxNw=="
+                    "name": "Product: UHJvZHVjdDoyNDIyODA5NTI4"
                   }
                 }
               }
@@ -671,7 +671,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "name": "Product: UHJvZHVjdDoxOQ=="
+                    "name": "Product: UHJvZHVjdDo3MDc2NDk0NzY="
                   }
                 }
               }
@@ -679,7 +679,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "name": "Product: UHJvZHVjdDoyMQ=="
+                    "name": "Product: UHJvZHVjdDozMDkyNzc0MTM="
                   }
                 }
               }
@@ -687,7 +687,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "name": "Product: UHJvZHVjdDoxMQ=="
+                    "name": "Product: UHJvZHVjdDo0MTk3NDE2NTI2"
                   }
                 }
               }
@@ -695,7 +695,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "name": "Product: UHJvZHVjdDoxMw=="
+                    "name": "Product: UHJvZHVjdDoxMDkxMDgyMDI3"
                   }
                 }
               }
@@ -703,7 +703,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "name": "Product: UHJvZHVjdDoxNQ=="
+                    "name": "Product: UHJvZHVjdDo3MDYwNzczMA=="
                   }
                 }
               }
@@ -713,8 +713,9 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
       }
 
       type DeliveryEstimate {
@@ -729,9 +730,8 @@ sourceSchemas:
         deliveryEstimate(size: Int, weight: Int, zip: String!): DeliveryEstimate!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        nodes(ids: [ID!]!): [Node]! @shareable
+      interface Node {
+        id: ID!
       }
     interactions:
       - request:
@@ -750,31 +750,31 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_2_id": "UHJvZHVjdDoyMw=="
+                "__fusion_2_id": "UHJvZHVjdDozMjI1MTY2MTMx"
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDoyNQ=="
+                "__fusion_2_id": "UHJvZHVjdDoxNjc1NDI5Mzg2"
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDoyNw=="
+                "__fusion_2_id": "UHJvZHVjdDo4MzQwMjM4MTY="
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDoxNw=="
+                "__fusion_2_id": "UHJvZHVjdDoyNDIyODA5NTI4"
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDoxOQ=="
+                "__fusion_2_id": "UHJvZHVjdDo3MDc2NDk0NzY="
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDoyMQ=="
+                "__fusion_2_id": "UHJvZHVjdDozMDkyNzc0MTM="
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDoxMQ=="
+                "__fusion_2_id": "UHJvZHVjdDo0MTk3NDE2NTI2"
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDoxMw=="
+                "__fusion_2_id": "UHJvZHVjdDoxMDkxMDgyMDI3"
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDoxNQ=="
+                "__fusion_2_id": "UHJvZHVjdDo3MDYwNzczMA=="
               }
             ]
         response:
@@ -907,7 +907,7 @@ operationPlan:
           }
         }
       name: Large
-      hash: 62d57bc09d841d72c3b2971bc4f29f40
+      hash: 4f94623210f21dd6188bb9f3ed313525
       searchSpace: 2
       expandedNodes: 4
   nodes:

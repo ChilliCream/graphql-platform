@@ -2,8 +2,10 @@ schema {
   query: QueryAttr
 }
 
-interface ISome {
-  explicitType(skip: Int, take: Int): StringCollectionSegment
+type QueryAttr {
+  nestedObjectList(skip: Int, take: Int): NestedObjectListCollectionSegment
+  letters(skip: Int, take: Int): LettersCollectionSegment
+  explicitType(skip: Int, take: Int): ExplicitTypeCollectionSegment
 }
 
 "Information about the offset pagination."
@@ -43,16 +45,14 @@ type NestedObjectListCollectionSegment {
   totalCount: Int!
 }
 
-type QueryAttr {
-  nestedObjectList(skip: Int, take: Int): NestedObjectListCollectionSegment
-  letters(skip: Int, take: Int): LettersCollectionSegment
-  explicitType(skip: Int, take: Int): ExplicitTypeCollectionSegment
-}
-
 "A segment of a collection."
 type StringCollectionSegment {
   "Information to aid in pagination."
   pageInfo: CollectionSegmentInfo!
   "A flattened list of the items."
   items: [String!]
+}
+
+interface ISome {
+  explicitType(skip: Int, take: Int): StringCollectionSegment
 }

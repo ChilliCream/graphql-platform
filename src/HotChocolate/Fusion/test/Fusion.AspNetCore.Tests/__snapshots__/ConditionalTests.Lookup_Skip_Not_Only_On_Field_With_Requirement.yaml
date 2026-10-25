@@ -27,12 +27,12 @@ sourceSchemas:
         query: Query
       }
 
-      type Product {
-        id: ID! @shareable
-      }
-
       type Query {
         productBySlug(slug: String!): Product
+      }
+
+      type Product {
+        id: ID! @shareable
       }
     interactions:
       - request:
@@ -49,7 +49,7 @@ sourceSchemas:
               {
                 "data": {
                   "productBySlug": {
-                    "id": "UHJvZHVjdDox"
+                    "id": "UHJvZHVjdDoxMTY3NDUwNjg="
                   }
                 }
               }
@@ -59,13 +59,13 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        productById(id: ID!): Product @lookup @shareable
+      }
+
       type Product {
         id: ID!
         size: Int!
-      }
-
-      type Query {
-        productById(id: ID!): Product @lookup @shareable
       }
   - name: C
     schema: |
@@ -73,14 +73,14 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        productById(id: ID!): Product @lookup @shareable
+      }
+
       type Product {
         id: ID!
         dimension(size: Int! @require(field: "size")): String
         price: Int!
-      }
-
-      type Query {
-        productById(id: ID!): Product @lookup @shareable
       }
     interactions:
       - request:
@@ -93,7 +93,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_id": "UHJvZHVjdDox"
+              "__fusion_1_id": "UHJvZHVjdDoxMTY3NDUwNjg="
             }
         response:
           results:
@@ -117,7 +117,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 3197e72d689348deba5e89fb8db76ece
+      hash: dd2a74989fa0a82e778e048d88b0dd1d
       searchSpace: 2
       expandedNodes: 6
   nodes:

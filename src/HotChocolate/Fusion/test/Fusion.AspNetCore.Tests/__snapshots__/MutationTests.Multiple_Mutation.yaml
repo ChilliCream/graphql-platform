@@ -43,6 +43,14 @@ sourceSchemas:
         mutation: Mutation
       }
 
+      type Query {
+        foo: String!
+      }
+
+      type Mutation {
+        createBook(input: CreateBookInput!): CreateBookPayload!
+      }
+
       type Book @key(fields: "id") {
         id: Int!
         title: String!
@@ -50,14 +58,6 @@ sourceSchemas:
 
       type CreateBookPayload {
         book: Book!
-      }
-
-      type Mutation {
-        createBook(input: CreateBookInput!): CreateBookPayload!
-      }
-
-      type Query {
-        foo: String!
       }
 
       input CreateBookInput {
@@ -116,17 +116,17 @@ sourceSchemas:
         query: Query
       }
 
-      type Book {
-        id: Int!
-        author: String!
-      }
-
       type Query {
         bookById(id: Int!): Book @internal @lookup
       }
+
+      type Book @key(fields: "id") {
+        id: Int!
+        author: String!
+      }
     interactions:
       - request:
-          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_192dc5f8_2($__fusion_1_id: Int!) {
               bookById(id: $__fusion_1_id) {
@@ -134,16 +134,10 @@ sourceSchemas:
               }
             }
           variables: |
-            [
-              {
-                "__fusion_1_id": 1
-              },
-              {
-                "__fusion_1_id": 2
-              }
-            ]
+            {
+              "__fusion_1_id": 1
+            }
         response:
-          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -153,6 +147,20 @@ sourceSchemas:
                   }
                 }
               }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_192dc5f8_4($__fusion_2_id: Int!) {
+              bookById(id: $__fusion_2_id) {
+                author
+              }
+            }
+          variables: |
+            {
+              "__fusion_2_id": 2
+            }
+        response:
+          results:
             - |
               {
                 "data": {
@@ -181,7 +189,7 @@ operationPlan:
             }
           }
         }
-      hash: 192dc5f8a8f00336bac2094122ae7902
+      hash: bbc81bd737fecca721f2de75bc01e8a3
       searchSpace: 1
       expandedNodes: 2
   nodes:
@@ -197,7 +205,7 @@ operationPlan:
           }
         }
     - id: 2
-      type: OperationBatch
+      type: Operation
       schema: B
       operation: |
         query Op_192dc5f8_2($__fusion_1_id: Int!) {
@@ -206,17 +214,13 @@ operationPlan:
           }
         }
       source: $.bookById
-      targets:
-        - $.a.book
-        - $.b.book
-      batchingGroupId: 2
+      target: $.a.book
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
             id
       dependencies:
         - id: 1
-        - id: 3
     - id: 3
       type: Operation
       schema: A
@@ -229,3 +233,20 @@ operationPlan:
             }
           }
         }
+    - id: 4
+      type: Operation
+      schema: B
+      operation: |
+        query Op_192dc5f8_4($__fusion_2_id: Int!) {
+          bookById(id: $__fusion_2_id) {
+            author
+          }
+        }
+      source: $.bookById
+      target: $.b.book
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 3

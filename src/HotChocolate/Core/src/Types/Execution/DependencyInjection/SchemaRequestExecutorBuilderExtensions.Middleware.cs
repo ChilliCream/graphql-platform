@@ -28,7 +28,9 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// meant for testing scenarios. Use a type interceptor if you want to more control over
     /// where a field middleware is applied.
     /// </remarks>
-    public static IRequestExecutorBuilder UseField<TMiddleware>(
+    public static IRequestExecutorBuilder UseField<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)]
+    TMiddleware>(
         this IRequestExecutorBuilder builder)
         where TMiddleware : class
     {
@@ -57,7 +59,10 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// meant for testing scenarios. Use a type interceptor if you want to more control over
     /// where a field middleware is applied.
     /// </remarks>
-    public static IRequestExecutorBuilder UseField<TMiddleware>(
+    public static IRequestExecutorBuilder UseField<
+        [DynamicallyAccessedMembers(
+            DynamicallyAccessedMemberTypes.PublicConstructors
+            | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>(
         this IRequestExecutorBuilder builder,
         Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
         where TMiddleware : class
@@ -143,7 +148,10 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// <returns>
     /// The request executor builder.
     /// </returns>
-    public static IRequestExecutorBuilder MapField<TMiddleware>(
+    public static IRequestExecutorBuilder MapField<
+        [DynamicallyAccessedMembers(
+            DynamicallyAccessedMemberTypes.PublicConstructors
+            | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>(
         this IRequestExecutorBuilder builder,
         FieldReference fieldReference)
         where TMiddleware : class
@@ -178,7 +186,10 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// <paramref name="fieldReference"/> is <c>null</c>.
     /// <paramref name="factory"/> is <c>null</c>.
     /// </exception>
-    public static IRequestExecutorBuilder MapField<TMiddleware>(
+    public static IRequestExecutorBuilder MapField<
+        [DynamicallyAccessedMembers(
+            DynamicallyAccessedMemberTypes.PublicConstructors
+            | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>(
         this IRequestExecutorBuilder builder,
         FieldReference fieldReference,
         Func<IServiceProvider, FieldDelegate, TMiddleware> factory)

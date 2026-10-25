@@ -5,7 +5,6 @@
 
 using Mocha;
 using Mocha.Transport.InMemory;
-using Mocha.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,11 +30,6 @@ app.MapGet("/orders", async (IMessageBus bus) =>
 });
 
 Console.WriteLine("Listening on http://localhost:5000/orders");
-
-if (app.Environment.IsDevelopment())
-{
-    app.MapMessageBusDeveloperTopology();
-}
 
 app.Run();
 

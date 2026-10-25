@@ -25,7 +25,7 @@ public class UnsignedIntType : IntegerTypeBase<uint>
         : base(name, uint.MinValue, uint.MaxValue, bind)
     {
         Description = description;
-        SpecifiedBy = new Uri(SpecifiedByUri);
+        SpecifiedBy = SpecifiedByUri;
     }
 
     /// <summary>

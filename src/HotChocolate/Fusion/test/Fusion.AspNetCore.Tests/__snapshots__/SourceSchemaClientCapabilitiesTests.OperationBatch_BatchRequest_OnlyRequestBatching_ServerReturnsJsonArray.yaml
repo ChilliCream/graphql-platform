@@ -72,20 +72,20 @@ sourceSchemas:
         query: Query
       }
 
-      type Author {
-        id: ID!
-      }
-
-      type Book {
-        author: Author
-        id: ID!
-        title: String!
-      }
-
       type Query {
         books: [Book!]!
         bookById(id: ID!): Book @lookup @internal
         authorById(id: ID!): Author @lookup @internal
+      }
+
+      type Author @key(fields: "id") {
+        id: ID!
+      }
+
+      type Book @key(fields: "id") {
+        author: Author
+        id: ID!
+        title: String!
       }
     interactions:
       - request:
@@ -132,19 +132,19 @@ sourceSchemas:
         query: Query
       }
 
-      type Author {
+      type Query {
+        bookById(id: ID!): Book @lookup @internal
+        authorById(id: ID!): Author @lookup @internal
+      }
+
+      type Author @key(fields: "id") {
         name(postFix: String): String!
         id: ID!
       }
 
-      type Book {
+      type Book @key(fields: "id") {
         rating: String!
         id: ID!
-      }
-
-      type Query {
-        bookById(id: ID!): Book @lookup @internal
-        authorById(id: ID!): Author @lookup @internal
       }
     interactions:
       - request:
@@ -209,7 +209,7 @@ operationPlan:
             }
           }
         }
-      hash: 1b3419daa4dae74e12e1ad0237002b57
+      hash: 6dfeebce6555fde03c68781ef2e510e0
       searchSpace: 1
       expandedNodes: 2
   nodes:
@@ -238,7 +238,7 @@ operationPlan:
         }
       source: $.authorById
       target: $.books.b
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -256,7 +256,7 @@ operationPlan:
         }
       source: $.authorById
       target: $.books.a
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

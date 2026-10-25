@@ -66,10 +66,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
             if (enabled)
             {
-                if (temp is not null)
-                {
-                    temp[i++] = current;
-                }
+                temp?[i++] = current;
 
                 if (_mutationAggregator is null && current.IsMutationAggregator(context))
                 {

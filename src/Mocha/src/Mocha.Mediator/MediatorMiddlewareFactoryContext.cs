@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Mocha.Mediator;
 
 /// <summary>
@@ -23,6 +25,7 @@ public sealed class MediatorMiddlewareFactoryContext
     /// <summary>
     /// Gets the message type of the pipeline being compiled.
     /// </summary>
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)]
     public Type MessageType { get; internal set; } = null!;
 
     /// <summary>

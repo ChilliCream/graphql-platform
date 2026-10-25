@@ -152,18 +152,59 @@ public class PostgresMessageEnvelopeParserTests
     }
 
     [Fact]
-    public void Parse_Should_ExtractSentAt_When_SentTimePresent()
+    public void Parse_Should_UseTransportSentTime_When_SentAtHeaderAbsent()
     {
         // arrange
         var sentTime = new DateTime(2024, 1, 15, 12, 0, 0, DateTimeKind.Utc);
-        var item = CreateMessageItem(sentTime: sentTime);
+        var item = CreateMessageItem(headers: new { messageId = "legacy" }, sentTime: sentTime);
 
         // act
         var envelope = _parser.Parse(item);
 
         // assert
-        Assert.NotNull(envelope.SentAt);
-        Assert.Equal(new DateTimeOffset(sentTime, TimeSpan.Zero), envelope.SentAt.Value);
+        Assert.Equal(new DateTimeOffset(sentTime, TimeSpan.Zero), envelope.SentAt);
+    }
+
+    [Fact]
+    public void Parse_Should_PreservePublicationTime_When_TransportSendOccursLater()
+    {
+        // arrange
+        var sentAt = new DateTimeOffset(2024, 1, 15, 12, 0, 0, TimeSpan.FromHours(2));
+        var item = CreateMessageItem(
+            headers: new { sentAt },
+            sentTime: new DateTime(2024, 1, 15, 13, 0, 0, DateTimeKind.Utc));
+
+        // act
+        var envelope = _parser.Parse(item);
+
+        // assert
+        Assert.Equal(sentAt, envelope.SentAt);
+        Assert.Equal(sentAt.Offset, envelope.SentAt!.Value.Offset);
+        Assert.Empty(envelope.Headers!);
+    }
+
+    [Theory]
+    [InlineData("null")]
+    [InlineData("123")]
+    [InlineData("true")]
+    [InlineData("\"invalid\"")]
+    [InlineData("{}")]
+    [InlineData("[]")]
+    public void Parse_Should_UseTransportSentTime_When_SentAtHeaderInvalid(string sentAt)
+    {
+        // arrange
+        var sentTime = new DateTime(2024, 1, 15, 13, 0, 0, DateTimeKind.Utc);
+        using var headers = JsonDocument.Parse(
+            $$"""{"sentAt": {{sentAt}}, "messageId": "after-timestamp"}""");
+        var item = CreateMessageItem(headers: headers.RootElement, sentTime: sentTime);
+
+        // act
+        var envelope = _parser.Parse(item);
+
+        // assert
+        Assert.Equal(new DateTimeOffset(sentTime, TimeSpan.Zero), envelope.SentAt);
+        Assert.Equal("after-timestamp", envelope.MessageId);
+        Assert.Empty(envelope.Headers!);
     }
 
     [Fact]
@@ -229,7 +270,7 @@ public class PostgresMessageEnvelopeParserTests
 
         // assert
         Assert.NotNull(envelope.EnclosedMessageTypes);
-        Assert.Equal(2, envelope.EnclosedMessageTypes!.Value.Length);
+        Assert.Equal(2, envelope.EnclosedMessageTypes.Value.Length);
         Assert.Equal("OrderCreated", envelope.EnclosedMessageTypes.Value[0]);
         Assert.Equal("IEvent", envelope.EnclosedMessageTypes.Value[1]);
     }
@@ -343,7 +384,7 @@ public class PostgresMessageEnvelopeParserTests
 
         // assert
         Assert.NotNull(envelope.ScheduledTime);
-        Assert.Equal(2026, envelope.ScheduledTime!.Value.Year);
+        Assert.Equal(2026, envelope.ScheduledTime.Value.Year);
         Assert.Equal(6, envelope.ScheduledTime.Value.Month);
         Assert.Equal(1, envelope.ScheduledTime.Value.Day);
         Assert.Equal(12, envelope.ScheduledTime.Value.Hour);

@@ -94,7 +94,7 @@ public class MessagePipelineTests
         // act
         messagePipeline.Start();
         await socketClient.WaitTillFinished();
-        await processed.WaitAsync();
+        await processed.WaitAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal("ab", result);

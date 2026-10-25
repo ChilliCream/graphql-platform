@@ -39,7 +39,8 @@ public class MultiPartResponseStreamSerializerTests
                             }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         IResponseStream stream = Assert.IsType<ResponseStream>(result);
 
@@ -53,7 +54,7 @@ public class MultiPartResponseStreamSerializerTests
 
         // assert
         memoryStream.Seek(0, SeekOrigin.Begin);
-        (await new StreamReader(memoryStream).ReadToEndAsync()).MatchSnapshot();
+        (await new StreamReader(memoryStream).ReadToEndAsync(TestContext.Current.CancellationToken)).MatchSnapshot();
     }
 
     [Fact]

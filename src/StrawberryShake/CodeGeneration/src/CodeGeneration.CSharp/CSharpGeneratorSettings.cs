@@ -29,6 +29,11 @@ public class CSharpGeneratorSettings
     public bool StrictSchemaValidation { get; set; } = true;
 
     /// <summary>
+    /// Defines if fields whose return types differ only in nullability can be merged.
+    /// </summary>
+    public bool EnableCovariantFieldMerging { get; set; }
+
+    /// <summary>
     /// Generates the client without a store
     /// </summary>
     public bool NoStore { get; set; }

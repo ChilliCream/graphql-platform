@@ -129,7 +129,7 @@ public sealed class LocalDateTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         type.CoerceOutputValue(localDate, resultValue);
 
@@ -145,7 +145,7 @@ public sealed class LocalDateTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         void Action() => type.CoerceOutputValue(123, resultValue);
 
@@ -205,11 +205,13 @@ public sealed class LocalDateTypeTests
             .AddQueryType(b => b.Name(OperationTypeNames.Query))
             .AddType(typeof(QuerySingleRuntimeType))
             .AddNodaTime()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result =
-            await executor.ExecuteAsync("""{ localDate(input: "9999-12-31") }""");
+            await executor.ExecuteAsync(
+                """{ localDate(input: "9999-12-31") }""",
+                TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -231,7 +233,7 @@ public sealed class LocalDateTypeTests
             .AddQueryType(b => b.Name(OperationTypeNames.Query))
             .AddType(typeof(QueryTwoRuntimeTypes))
             .AddNodaTime()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -240,7 +242,8 @@ public sealed class LocalDateTypeTests
                 localDate1(input: "9999-12-31")
                 localDate2(input: "9999-12-31")
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(

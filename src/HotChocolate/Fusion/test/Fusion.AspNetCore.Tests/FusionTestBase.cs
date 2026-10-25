@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http.Headers;
@@ -15,13 +16,13 @@ using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
+using HotChocolate.Language;
 using HotChocolate.Transport.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Xunit.Sdk;
 
@@ -38,16 +39,30 @@ public abstract partial class FusionTestBase : IDisposable
         Action<IApplicationBuilder>? configureApplication = null,
         Action<IFusionGatewayBuilder>? configureGatewayBuilder = null,
         [StringSyntax("json")] string? gatewaySettings = null,
-        string? environmentName = "Development")
+        string? environmentName = "Development",
+        string? gatewayName = null,
+        bool disableDefaultSecurity = false,
+        bool enableGlobalObjectIdentification = true,
+        int? defaultListSize = 1,
+        bool includeOperationPlan = true,
+        Action<SchemaComposerOptions>? configureComposerOptions = null)
     {
         var sourceSchemas = new List<SourceSchemaText>();
         var gatewayServices = new ServiceCollection();
-        var gatewayBuilder = gatewayServices.AddGraphQLGatewayServer();
+        var gatewayBuilder = gatewayServices.AddGraphQLGatewayServer(
+            gatewayName,
+            disableDefaultSecurity: disableDefaultSecurity);
         var interactions = new ConcurrentDictionary<string, ConcurrentDictionary<int, SourceSchemaInteraction>>();
+        // Interactions are keyed by an atomically-incremented int, but looked up
+        // by (OperationPlanId, NodeId) so that parallel mini-plans (e.g. deferred
+        // execution groups) that reuse the same node id within their own plan do
+        // not collide onto the same bucket.
         var nodeToInteractionId =
-            new ConcurrentDictionary<string, ConcurrentDictionary<int, int>>(StringComparer.Ordinal);
+            new ConcurrentDictionary<string, ConcurrentDictionary<(string OperationPlanId, int NodeId), int>>(
+                StringComparer.Ordinal);
         var requestToInteractionId =
             new ConcurrentDictionary<string, ConcurrentDictionary<HttpRequestMessage, int>>(StringComparer.Ordinal);
+        var nextInteractionId = 0;
 
         foreach (var (name, server) in sourceSchemaServers)
         {
@@ -64,6 +79,8 @@ public abstract partial class FusionTestBase : IDisposable
                     name,
                     new Uri("http://localhost:5000/graphql"),
                     capabilities: sourceSchemaOptions.Capabilities,
+                    onError: sourceSchemaOptions.OnError,
+                    subscriptionReadTimeout: sourceSchemaOptions.SubscriptionReadTimeout,
                     defaultAcceptHeaderValues: sourceSchemaOptions.DefaultAcceptHeaderValues,
                     batchingAcceptHeaderValues: sourceSchemaOptions.BatchingAcceptHeaderValues,
                     subscriptionAcceptHeaderValues: sourceSchemaOptions.SubscriptionAcceptHeaderValues,
@@ -127,9 +144,11 @@ public abstract partial class FusionTestBase : IDisposable
         {
             Merger =
             {
-                EnableGlobalObjectIdentification = true
+                EnableGlobalObjectIdentification = enableGlobalObjectIdentification,
+                DefaultListSize = defaultListSize
             }
         };
+        configureComposerOptions?.Invoke(composerOptions);
         var composer = new SchemaComposer(sourceSchemas, composerOptions, compositionLog);
         var result = composer.Compose();
 
@@ -155,11 +174,17 @@ public abstract partial class FusionTestBase : IDisposable
         }
 
         gatewayBuilder.AddInMemoryConfiguration(result.Value.ToSyntaxNode(), settings);
-        gatewayBuilder.AddHttpRequestInterceptor<OperationPlanHttpRequestInterceptor>();
+
+        if (includeOperationPlan)
+        {
+            gatewayBuilder.AddHttpRequestInterceptor<OperationPlanHttpRequestInterceptor>();
+        }
+
         gatewayBuilder.ModifyRequestOptions(o =>
         {
             o.CollectOperationPlanTelemetry = false;
             o.AllowErrorHandlingModeOverride = true;
+            o.AllowOperationPlanRequests = true;
         });
         configureGatewayBuilder?.Invoke(gatewayBuilder);
 
@@ -168,7 +193,7 @@ public abstract partial class FusionTestBase : IDisposable
             {
                 app.UseWebSockets();
                 app.UseRouting();
-                app.UseEndpoints(endpoint => endpoint.MapGraphQL());
+                app.UseEndpoints(endpoint => endpoint.MapGraphQL(schemaName: gatewayName));
             };
 
         var gatewayTestServer = _testServerSession.CreateServer(
@@ -200,10 +225,18 @@ public abstract partial class FusionTestBase : IDisposable
                 schemaName,
                 _ => new ConcurrentDictionary<HttpRequestMessage, int>(ReferenceEqualityComparer.Instance));
 
-            var interactionId = schemaRequestToInteractionId.GetOrAdd(requestMessage, _ => node.Id);
-            schemaNodeToInteractionId[node.Id] = interactionId;
+            var planId = context.OperationPlan.Id;
+            var lookupKey = (planId, node.Id);
 
-            return schemaInteractions.GetOrAdd(interactionId, _ => new SourceSchemaInteraction());
+            var interactionId = schemaRequestToInteractionId.GetOrAdd(
+                requestMessage,
+                _ => Interlocked.Increment(ref nextInteractionId));
+            schemaNodeToInteractionId[lookupKey] = interactionId;
+
+            var interaction = schemaInteractions.GetOrAdd(interactionId, _ => new SourceSchemaInteraction());
+            interaction.OperationPlanId = planId;
+            interaction.NodeId = node.Id;
+            return interaction;
         }
 
         SourceSchemaInteraction GetSourceSchemaInteraction(OperationPlanContext context, ExecutionNode node)
@@ -212,12 +245,23 @@ public abstract partial class FusionTestBase : IDisposable
             var schemaInteractions = interactions.GetOrAdd(schemaName, _ => []);
             var schemaNodeToInteractionId = nodeToInteractionId.GetOrAdd(schemaName, _ => []);
 
-            if (schemaNodeToInteractionId.TryGetValue(node.Id, out var interactionId))
+            var planId = context.OperationPlan.Id;
+            var lookupKey = (planId, node.Id);
+
+            if (schemaNodeToInteractionId.TryGetValue(lookupKey, out var interactionId))
             {
-                return schemaInteractions.GetOrAdd(interactionId, _ => new SourceSchemaInteraction());
+                var existing = schemaInteractions.GetOrAdd(interactionId, _ => new SourceSchemaInteraction());
+                existing.OperationPlanId ??= planId;
+                existing.NodeId ??= node.Id;
+                return existing;
             }
 
-            return schemaInteractions.GetOrAdd(node.Id, _ => new SourceSchemaInteraction());
+            var fallbackId = Interlocked.Increment(ref nextInteractionId);
+            schemaNodeToInteractionId[lookupKey] = fallbackId;
+            var fallback = schemaInteractions.GetOrAdd(fallbackId, _ => new SourceSchemaInteraction());
+            fallback.OperationPlanId ??= planId;
+            fallback.NodeId ??= node.Id;
+            return fallback;
         }
     }
 
@@ -241,23 +285,33 @@ public abstract partial class FusionTestBase : IDisposable
         }
     }
 
-    protected class Gateway(
-        TestServer testServer,
-        List<SourceSchemaText> sourceSchemas,
-        ConcurrentDictionary<string, ConcurrentDictionary<int, SourceSchemaInteraction>> interactions) : IDisposable
+    protected class Gateway : IDisposable
     {
-        public HttpClient CreateClient() => testServer.CreateClient();
+        internal Gateway(
+            TestServer testServer,
+            List<SourceSchemaText> sourceSchemas,
+            ConcurrentDictionary<string, ConcurrentDictionary<int, SourceSchemaInteraction>> interactions)
+        {
+            _testServer = testServer;
+            SourceSchemas = sourceSchemas;
+            Interactions = interactions;
+        }
 
-        public IServiceProvider Services => testServer.Services;
+        private readonly TestServer _testServer;
 
-        public List<SourceSchemaText> SourceSchemas => sourceSchemas;
+        public HttpClient CreateClient() => _testServer.CreateClient();
 
-        public ConcurrentDictionary<string, ConcurrentDictionary<int, SourceSchemaInteraction>> Interactions =>
-            interactions;
+        public WebSocketClient CreateWebSocketClient() => _testServer.CreateWebSocketClient();
+
+        public IServiceProvider Services => _testServer.Services;
+
+        internal List<SourceSchemaText> SourceSchemas { get; }
+
+        public ConcurrentDictionary<string, ConcurrentDictionary<int, SourceSchemaInteraction>> Interactions { get; }
 
         public void Dispose()
         {
-            testServer.Dispose();
+            _testServer.Dispose();
         }
     }
 
@@ -270,6 +324,20 @@ public abstract partial class FusionTestBase : IDisposable
         public HttpStatusCode? StatusCode { get; set; }
 
         public string? ContentType { get; set; }
+
+        /// <summary>
+        /// The <see cref="OperationPlan.Id"/> that owned the execution node
+        /// producing this interaction. Used for stable ordering in snapshots
+        /// when parallel mini-plans (e.g. deferred execution groups) produce
+        /// concurrent subgraph calls.
+        /// </summary>
+        public string? OperationPlanId { get; set; }
+
+        /// <summary>
+        /// The <see cref="ExecutionNode.Id"/> within its owning operation plan.
+        /// Used together with <see cref="OperationPlanId"/> for stable ordering.
+        /// </summary>
+        public int? NodeId { get; set; }
 
         public sealed class RawSourceSchemaRequest
         {
@@ -291,13 +359,17 @@ public abstract partial class FusionTestBase : IDisposable
 
         public Func<HttpRequestMessage, Task<HttpResponseMessage>>? MockHttpResponse { get; set; }
 
-        public SourceSchemaClientCapabilities Capabilities { get; set; } = SourceSchemaClientCapabilities.All;
+        public SourceSchemaClientCapabilities Capabilities { get; set; } = SourceSchemaClientCapabilities.Default;
 
         public ImmutableArray<MediaTypeWithQualityHeaderValue>? DefaultAcceptHeaderValues { get; set; }
 
         public ImmutableArray<MediaTypeWithQualityHeaderValue>? BatchingAcceptHeaderValues { get; set; }
 
         public ImmutableArray<MediaTypeWithQualityHeaderValue>? SubscriptionAcceptHeaderValues { get; set; }
+
+        public TimeSpan? SubscriptionReadTimeout { get; set; }
+
+        public ErrorHandlingMode? OnError { get; set; }
     }
 
     private sealed class OperationPlanHttpRequestInterceptor : DefaultHttpRequestInterceptor
@@ -346,7 +418,14 @@ public abstract partial class FusionTestBase : IDisposable
                 }
                 else
                 {
-                    client = registration.Server.CreateClient();
+                    client = new HttpClient(
+                        new TraceContextPropagationHandler
+                        {
+                            InnerHandler = registration.Server.CreateHandler()
+                        })
+                    {
+                        BaseAddress = registration.Server.BaseAddress
+                    };
                 }
 
                 registration.Options.ConfigureHttpClient?.Invoke(client);
@@ -387,6 +466,58 @@ public abstract partial class FusionTestBase : IDisposable
                 HttpRequestMessage request,
                 CancellationToken cancellationToken)
                 => handler(request);
+        }
+
+        // The Fusion test harness routes gateway -> subgraph calls through the in-memory
+        // TestServer handler, which bypasses .NET's HttpClient diagnostics. This handler
+        // emits a client-kind HTTP span and forwards the W3C trace context to the subgraph
+        // host so the subgraph request continues the trace.
+        private sealed class TraceContextPropagationHandler : DelegatingHandler
+        {
+            private static readonly ActivitySource s_httpClientActivitySource = new("System.Net.Http");
+
+            protected override async Task<HttpResponseMessage> SendAsync(
+                HttpRequestMessage request,
+                CancellationToken cancellationToken)
+            {
+                var activity = s_httpClientActivitySource.StartActivity(
+                    "System.Net.Http.HttpRequestOut",
+                    ActivityKind.Client);
+
+                activity?.SetTag("http.request.method", request.Method.Method);
+                activity?.SetTag("server.address", request.RequestUri?.Host);
+                activity?.SetTag("server.port", request.RequestUri?.Port);
+                activity?.SetTag("url.full", request.RequestUri?.ToString());
+
+                DistributedContextPropagator.Current.Inject(
+                    activity,
+                    request,
+                    static (carrier, key, value) =>
+                        ((HttpRequestMessage)carrier!).Headers.TryAddWithoutValidation(key, value));
+
+                try
+                {
+                    var response = await base.SendAsync(request, cancellationToken);
+
+                    activity?.SetTag("http.response.status_code", (int)response.StatusCode);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        activity?.SetStatus(ActivityStatusCode.Error);
+                    }
+
+                    return response;
+                }
+                catch
+                {
+                    activity?.SetStatus(ActivityStatusCode.Error);
+                    throw;
+                }
+                finally
+                {
+                    activity?.Dispose();
+                }
+            }
         }
     }
 

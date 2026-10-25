@@ -14,8 +14,8 @@ response:
     {
       "data": {
         "someField": {
-          "value": "ConcreteTypeA: Q29uY3JldGVUeXBlQTox",
-          "specificToA": "ConcreteTypeA: Q29uY3JldGVUeXBlQTox"
+          "value": "ConcreteTypeA: Q29uY3JldGVUeXBlQTozNTM0Nzg4MTcz",
+          "specificToA": "ConcreteTypeA: Q29uY3JldGVUeXBlQTozNTM0Nzg4MTcz"
         }
       }
     }
@@ -26,8 +26,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface SomeInterface {
-        value: String
+      type Query {
+        someField: SomeInterface
       }
 
       type ConcreteTypeA implements SomeInterface {
@@ -35,8 +35,8 @@ sourceSchemas:
         specificToA: String
       }
 
-      type Query {
-        someField: SomeInterface
+      interface SomeInterface {
+        value: String
       }
     interactions:
       - request:
@@ -58,8 +58,8 @@ sourceSchemas:
                 "data": {
                   "someField": {
                     "__typename": "ConcreteTypeA",
-                    "value": "ConcreteTypeA: Q29uY3JldGVUeXBlQTox",
-                    "specificToA": "ConcreteTypeA: Q29uY3JldGVUeXBlQTox"
+                    "value": "ConcreteTypeA: Q29uY3JldGVUeXBlQTozNTM0Nzg4MTcz",
+                    "specificToA": "ConcreteTypeA: Q29uY3JldGVUeXBlQTozNTM0Nzg4MTcz"
                   }
                 }
               }
@@ -69,8 +69,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface SomeInterface {
-        value: String
+      type Query {
+        anotherField: SomeInterface
       }
 
       type ConcreteTypeB implements SomeInterface {
@@ -78,8 +78,8 @@ sourceSchemas:
         specificToB: String
       }
 
-      type Query {
-        anotherField: SomeInterface
+      interface SomeInterface {
+        value: String
       }
 operationPlan:
   operation:
@@ -93,7 +93,7 @@ operationPlan:
             }
           }
         }
-      hash: 4d0b2677a554c6d9271f010797cf70ee
+      hash: 69ae31f3547d052e53cb8b25119dcee8
       searchSpace: 1
       expandedNodes: 1
   nodes:

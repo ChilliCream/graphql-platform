@@ -5,7 +5,6 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using Mocha;
-using Mocha.Hosting;
 using Mocha.Transport.InMemory;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -45,10 +44,6 @@ app.MapGet("/orders", async (IMessageBus messageBus) =>
 });
 
 Console.WriteLine("GET http://localhost:5000/orders to publish an order");
-if (app.Environment.IsDevelopment())
-{
-    app.MapMessageBusDeveloperTopology();
-}
 
 app.Run();
 

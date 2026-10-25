@@ -24,7 +24,8 @@ public class IntrospectionTests(TestServerFactory serverFactory) : ServerTestBas
                 }
             }
             """,
-            Url);
+            Url,
+            TestContext.Current.CancellationToken);
 
         // assert
         response.HttpResponseMessage.MatchMarkdownSnapshot();
@@ -47,7 +48,8 @@ public class IntrospectionTests(TestServerFactory serverFactory) : ServerTestBas
                 }
             }
             """,
-            Url);
+            Url,
+            TestContext.Current.CancellationToken);
 
         // assert
         response.HttpResponseMessage.MatchMarkdownSnapshot();
@@ -70,7 +72,8 @@ public class IntrospectionTests(TestServerFactory serverFactory) : ServerTestBas
                 }
             }
             """,
-            Url);
+            Url,
+            TestContext.Current.CancellationToken);
 
         // assert
         response.HttpResponseMessage.MatchMarkdownSnapshot();
@@ -106,7 +109,7 @@ public class IntrospectionTests(TestServerFactory serverFactory) : ServerTestBas
 
         // act
         var client = new DefaultGraphQLHttpClient(server.CreateClient());
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -143,7 +146,7 @@ public class IntrospectionTests(TestServerFactory serverFactory) : ServerTestBas
 
         // act
         var client = new DefaultGraphQLHttpClient(server.CreateClient());
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -177,7 +180,7 @@ public class IntrospectionTests(TestServerFactory serverFactory) : ServerTestBas
 
         // act
         var client = new DefaultGraphQLHttpClient(server.CreateClient());
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -213,7 +216,7 @@ public class IntrospectionTests(TestServerFactory serverFactory) : ServerTestBas
 
         // act
         var client = new DefaultGraphQLHttpClient(server.CreateClient());
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

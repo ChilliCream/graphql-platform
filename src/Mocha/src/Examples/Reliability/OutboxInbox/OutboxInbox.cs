@@ -13,7 +13,6 @@ using Mocha.Inbox;
 using Mocha.Outbox;
 using Mocha.Transport.RabbitMQ;
 using RabbitMQ.Client;
-using Mocha.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,21 +53,19 @@ builder.Services
 
 var app = builder.Build();
 
-app.MapGet("/orders", async (IMessageBus bus) =>
+app.MapGet("/orders", async (AppDbContext db, IMessageBus bus, CancellationToken cancellationToken) =>
 {
     var orderId = Guid.NewGuid();
+    await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
 
     await bus.PublishAsync(
         new OrderPlaced(orderId, "Mechanical Keyboard", 149.99m),
-        CancellationToken.None);
+        cancellationToken);
+
+    await transaction.CommitAsync(cancellationToken);
 
     return Results.Ok(new { OrderId = orderId, Status = "Published" });
 });
-
-if (app.Environment.IsDevelopment())
-{
-    app.MapMessageBusDeveloperTopology();
-}
 
 app.Run();
 

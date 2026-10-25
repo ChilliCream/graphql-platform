@@ -55,7 +55,9 @@ public static class SyntaxPrinter
         this ISyntaxNode node,
         Stream stream,
         bool indented = true,
+#pragma warning disable RCS1163
         CancellationToken cancellationToken = default)
+#pragma warning restore RCS1163
     {
 #if NETSTANDARD2_0
         using var streamWriter = new StreamWriter(

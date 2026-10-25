@@ -39,10 +39,10 @@ public class FusionSourceSchemaArchiveTests : IDisposable
 
         // act & Assert
         using var archive = FusionSourceSchemaArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(metadata);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
 
         // Can read immediately within the same session
-        var retrieved = await archive.GetArchiveMetadataAsync();
+        var retrieved = await archive.GetArchiveMetadataAsync(TestContext.Current.CancellationToken);
         Assert.NotNull(retrieved);
         Assert.Equal(metadata.FormatVersion, retrieved.FormatVersion);
     }
@@ -55,7 +55,7 @@ public class FusionSourceSchemaArchiveTests : IDisposable
 
         // act & Assert
         using var archive = FusionSourceSchemaArchive.Create(stream);
-        var result = await archive.GetArchiveMetadataAsync();
+        var result = await archive.GetArchiveMetadataAsync(TestContext.Current.CancellationToken);
         Assert.Null(result);
     }
 
@@ -68,7 +68,7 @@ public class FusionSourceSchemaArchiveTests : IDisposable
         // act & Assert
         using var archive = FusionSourceSchemaArchive.Create(stream);
         await Assert.ThrowsAsync<ArgumentNullException>(
-            () => archive.SetArchiveMetadataAsync(null!));
+            () => archive.SetArchiveMetadataAsync(null!, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -80,10 +80,10 @@ public class FusionSourceSchemaArchiveTests : IDisposable
 
         // act
         using var archive = FusionSourceSchemaArchive.Create(stream, leaveOpen: true);
-        await archive.SetSchemaAsync(schema);
+        await archive.SetSchemaAsync(schema, TestContext.Current.CancellationToken);
 
         // assert - Can read immediately within the same session
-        var retrieved = await archive.TryGetSchemaAsync();
+        var retrieved = await archive.TryGetSchemaAsync(TestContext.Current.CancellationToken);
 
         Assert.NotNull(retrieved);
         Assert.Equal(schema, retrieved.Value.ToArray());
@@ -99,7 +99,7 @@ public class FusionSourceSchemaArchiveTests : IDisposable
         // act & assert
         using var archive = FusionSourceSchemaArchive.Create(stream, leaveOpen: true);
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
-            () => archive.SetSchemaAsync(schema));
+            () => archive.SetSchemaAsync(schema, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -110,7 +110,52 @@ public class FusionSourceSchemaArchiveTests : IDisposable
 
         // act
         using var archive = FusionSourceSchemaArchive.Create(stream);
-        var result = await archive.TryGetSchemaAsync();
+        var result = await archive.TryGetSchemaAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task SetSchemaExtensions_WithValidData_StoresCorrectly()
+    {
+        // arrange
+        await using var stream = CreateStream();
+        var extensions = "extend type Query { hello: String }"u8.ToArray();
+
+        // act
+        using var archive = FusionSourceSchemaArchive.Create(stream, leaveOpen: true);
+        await archive.SetSchemaExtensionsAsync(extensions, TestContext.Current.CancellationToken);
+
+        // assert
+        var retrieved = await archive.TryGetSchemaExtensionsAsync(TestContext.Current.CancellationToken);
+
+        Assert.NotNull(retrieved);
+        Assert.Equal(extensions, retrieved.Value.ToArray());
+    }
+
+    [Fact]
+    public async Task SetSchemaExtensions_WithEmptyExtensions_ThrowsArgumentOutOfRangeException()
+    {
+        // arrange
+        await using var stream = CreateStream();
+        var extensions = ReadOnlyMemory<byte>.Empty;
+
+        // act & assert
+        using var archive = FusionSourceSchemaArchive.Create(stream, leaveOpen: true);
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
+            () => archive.SetSchemaExtensionsAsync(extensions, TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task TryGetSchemaExtensions_WhenNotSet_ReturnsNull()
+    {
+        // arrange
+        await using var stream = CreateStream();
+
+        // act
+        using var archive = FusionSourceSchemaArchive.Create(stream);
+        var result = await archive.TryGetSchemaExtensionsAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.Null(result);
@@ -125,10 +170,10 @@ public class FusionSourceSchemaArchiveTests : IDisposable
 
         // act
         using var archive = FusionSourceSchemaArchive.Create(stream, leaveOpen: true);
-        await archive.SetSettingsAsync(settings);
+        await archive.SetSettingsAsync(settings, TestContext.Current.CancellationToken);
 
         // assert - Can read immediately within the same session
-        using var retrieved = await archive.TryGetSettingsAsync();
+        using var retrieved = await archive.TryGetSettingsAsync(TestContext.Current.CancellationToken);
 
         Assert.NotNull(retrieved);
         Assert.Equal("1.0", retrieved.RootElement.GetProperty("version").GetString());
@@ -144,7 +189,7 @@ public class FusionSourceSchemaArchiveTests : IDisposable
         // act & assert
         using var archive = FusionSourceSchemaArchive.Create(stream, leaveOpen: true);
         await Assert.ThrowsAsync<ArgumentNullException>(
-            () => archive.SetSettingsAsync(null!));
+            () => archive.SetSettingsAsync(null!, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -155,7 +200,7 @@ public class FusionSourceSchemaArchiveTests : IDisposable
 
         // act
         using var archive = FusionSourceSchemaArchive.Create(stream);
-        var result = await archive.TryGetSettingsAsync();
+        var result = await archive.TryGetSettingsAsync(TestContext.Current.CancellationToken);
 
         // assert
         Assert.Null(result);
@@ -171,11 +216,11 @@ public class FusionSourceSchemaArchiveTests : IDisposable
 
         // act & assert
         using var archive = FusionSourceSchemaArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(metadata);
-        await archive.SetSettingsAsync(settings);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+        await archive.SetSettingsAsync(settings, TestContext.Current.CancellationToken);
 
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => archive.CommitAsync());
+            () => archive.CommitAsync(TestContext.Current.CancellationToken));
         Assert.Equal(
             "Cannot commit changes as long as one of the following has not been set: GraphQL schema, settings or archive metadata.",
             exception.Message);
@@ -191,11 +236,11 @@ public class FusionSourceSchemaArchiveTests : IDisposable
 
         // act & assert
         using var archive = FusionSourceSchemaArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(metadata);
-        await archive.SetSchemaAsync(schema);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+        await archive.SetSchemaAsync(schema, TestContext.Current.CancellationToken);
 
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => archive.CommitAsync());
+            () => archive.CommitAsync(TestContext.Current.CancellationToken));
         Assert.Equal(
             "Cannot commit changes as long as one of the following has not been set: GraphQL schema, settings or archive metadata.",
             exception.Message);
@@ -211,11 +256,11 @@ public class FusionSourceSchemaArchiveTests : IDisposable
 
         // act & assert
         using var archive = FusionSourceSchemaArchive.Create(stream, leaveOpen: true);
-        await archive.SetSchemaAsync(schema);
-        await archive.SetSettingsAsync(settings);
+        await archive.SetSchemaAsync(schema, TestContext.Current.CancellationToken);
+        await archive.SetSettingsAsync(settings, TestContext.Current.CancellationToken);
 
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => archive.CommitAsync());
+            () => archive.CommitAsync(TestContext.Current.CancellationToken));
         Assert.Equal(
             "Cannot commit changes as long as one of the following has not been set: GraphQL schema, settings or archive metadata.",
             exception.Message);
@@ -233,10 +278,10 @@ public class FusionSourceSchemaArchiveTests : IDisposable
         // Create and commit a valid archive first
         using (var archive = FusionSourceSchemaArchive.Create(stream, leaveOpen: true))
         {
-            await archive.SetArchiveMetadataAsync(metadata);
-            await archive.SetSchemaAsync(schema);
-            await archive.SetSettingsAsync(settings);
-            await archive.CommitAsync();
+            await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+            await archive.SetSchemaAsync(schema, TestContext.Current.CancellationToken);
+            await archive.SetSettingsAsync(settings, TestContext.Current.CancellationToken);
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
         }
 
         // act & assert - Open in read mode and try to commit
@@ -244,7 +289,7 @@ public class FusionSourceSchemaArchiveTests : IDisposable
         using (var readArchive = FusionSourceSchemaArchive.Open(stream, FusionSourceSchemaArchiveMode.Read, leaveOpen: true))
         {
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => readArchive.CommitAsync());
+                () => readArchive.CommitAsync(TestContext.Current.CancellationToken));
             Assert.Equal("Cannot commit changes to a read-only archive.", exception.Message);
         }
     }
@@ -261,25 +306,25 @@ public class FusionSourceSchemaArchiveTests : IDisposable
         // act - Create and commit
         using (var archive = FusionSourceSchemaArchive.Create(stream, leaveOpen: true))
         {
-            await archive.SetArchiveMetadataAsync(metadata);
-            await archive.SetSchemaAsync(schema);
-            await archive.SetSettingsAsync(settings);
-            await archive.CommitAsync();
+            await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+            await archive.SetSchemaAsync(schema, TestContext.Current.CancellationToken);
+            await archive.SetSettingsAsync(settings, TestContext.Current.CancellationToken);
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
         }
 
         // assert - Reopen and verify persistence
         stream.Position = 0;
         using (var readArchive = FusionSourceSchemaArchive.Open(stream, leaveOpen: true))
         {
-            var retrievedMetadata = await readArchive.GetArchiveMetadataAsync();
+            var retrievedMetadata = await readArchive.GetArchiveMetadataAsync(TestContext.Current.CancellationToken);
             Assert.NotNull(retrievedMetadata);
             Assert.Equal(metadata.FormatVersion, retrievedMetadata.FormatVersion);
 
-            var retrievedSchema = await readArchive.TryGetSchemaAsync();
+            var retrievedSchema = await readArchive.TryGetSchemaAsync(TestContext.Current.CancellationToken);
             Assert.NotNull(retrievedSchema);
             Assert.Equal(schema, retrievedSchema.Value.ToArray());
 
-            using var retrievedSettings = await readArchive.TryGetSettingsAsync();
+            using var retrievedSettings = await readArchive.TryGetSettingsAsync(TestContext.Current.CancellationToken);
             Assert.NotNull(retrievedSettings);
             Assert.Equal("1.0", retrievedSettings.RootElement.GetProperty("version").GetString());
             Assert.Equal("users", retrievedSettings.RootElement.GetProperty("name").GetString());
@@ -299,25 +344,25 @@ public class FusionSourceSchemaArchiveTests : IDisposable
         // act - Create initial archive
         using (var archive = FusionSourceSchemaArchive.Create(stream, leaveOpen: true))
         {
-            await archive.SetArchiveMetadataAsync(metadata);
-            await archive.SetSchemaAsync(schema1);
-            await archive.SetSettingsAsync(settings);
-            await archive.CommitAsync();
+            await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+            await archive.SetSchemaAsync(schema1, TestContext.Current.CancellationToken);
+            await archive.SetSettingsAsync(settings, TestContext.Current.CancellationToken);
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
         }
 
         // act - Update existing archive with new schema
         stream.Position = 0;
         using (var updateArchive = FusionSourceSchemaArchive.Open(stream, FusionSourceSchemaArchiveMode.Update, leaveOpen: true))
         {
-            await updateArchive.SetSchemaAsync(schema2);
-            await updateArchive.CommitAsync();
+            await updateArchive.SetSchemaAsync(schema2, TestContext.Current.CancellationToken);
+            await updateArchive.CommitAsync(TestContext.Current.CancellationToken);
         }
 
         // assert - Verify updated schema
         stream.Position = 0;
         using (var readArchive = FusionSourceSchemaArchive.Open(stream, leaveOpen: true))
         {
-            var retrievedSchema = await readArchive.TryGetSchemaAsync();
+            var retrievedSchema = await readArchive.TryGetSchemaAsync(TestContext.Current.CancellationToken);
             Assert.NotNull(retrievedSchema);
             Assert.Equal(schema2, retrievedSchema.Value.ToArray());
         }

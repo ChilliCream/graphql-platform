@@ -100,13 +100,23 @@ public class NodeDescriptor
 
     /// <inheritdoc cref="INodeDescriptor.ResolveNode(Type)"/>
     public IObjectFieldDescriptor ResolveNode(Type type)
-        => ResolveNodeWith(
+    {
+#pragma warning disable IL2072 // 'nodeType' does not satisfy DAM requirements
+#pragma warning disable IL2067 // 'resolverType' does not satisfy DAM requirements
+        return ResolveNodeWith(
             Context.TypeInspector.GetNodeResolverMethod(
                 Configuration.NodeType ?? type)!);
+#pragma warning restore IL2067
+#pragma warning restore IL2072
+    }
 
     internal void TryResolveNode(Type type)
     {
+#pragma warning disable IL2072 // 'nodeType' does not satisfy DAM requirements
+#pragma warning disable IL2067 // 'resolverType' does not satisfy DAM requirements
         var resolver = Context.TypeInspector.GetNodeResolverMethod(Configuration.NodeType ?? type);
+#pragma warning restore IL2067
+#pragma warning restore IL2072
 
         if (resolver is not null)
         {
@@ -116,16 +126,28 @@ public class NodeDescriptor
 
     /// <inheritdoc cref="INodeDescriptor.ResolveNodeWith{TResolver}()"/>
     public IObjectFieldDescriptor ResolveNodeWith<TResolver>()
-        => ResolveNodeWith(
+    {
+#pragma warning disable IL2072 // 'nodeType' does not satisfy DAM requirements
+#pragma warning disable IL2087 // 'resolverType' does not satisfy DAM requirements
+        return ResolveNodeWith(
             Context.TypeInspector.GetNodeResolverMethod(
                 Configuration.NodeType ?? typeof(TResolver),
                 typeof(TResolver))!);
+#pragma warning restore IL2087
+#pragma warning restore IL2072
+    }
 
     /// <inheritdoc
     ///   cref="INodeDescriptor.ResolveNodeWith{TResolver}(Expression{Func{TResolver,object?}})"/>
     public IObjectFieldDescriptor ResolveNodeWith(Type type)
-        => ResolveNodeWith(
+    {
+#pragma warning disable IL2072 // 'nodeType' does not satisfy DAM requirements
+#pragma warning disable IL2067 // 'resolverType' does not satisfy DAM requirements
+        return ResolveNodeWith(
             Context.TypeInspector.GetNodeResolverMethod(
                 Configuration.NodeType ?? type,
                 type)!);
+#pragma warning restore IL2067
+#pragma warning restore IL2072
+    }
 }

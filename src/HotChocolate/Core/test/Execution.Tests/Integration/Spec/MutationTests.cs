@@ -19,7 +19,8 @@ public class MutationTests
                         a
                         b
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -66,6 +67,71 @@ public class MutationTests
               }
             }
             """);
+    }
+
+    [Fact]
+    public async Task Execute_Should_CompleteAllMutations_When_ChildResolverYieldsUnderConcurrency()
+    {
+        // arrange
+        // A mutation root field is executed as a serial task and awaited by the work
+        // scheduler. Its payload exposes a single async child field that yields, so the
+        // child resolver completes on a thread-pool thread while the scheduler loop is
+        // waiting for the serial task. Firing many of these concurrently exercises the
+        // narrow window where a completion signal can race the scheduler's wait, which
+        // would leave a request hung forever.
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d.Field("noop").Resolve("noop"))
+                .AddMutationType<RaceMutation>()
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        const string mutation =
+            """
+            mutation {
+                doWork {
+                    value
+                }
+            }
+            """;
+
+        const int rounds = 40;
+        const int requestsPerRound = 200;
+
+        // act
+        // assert
+        // Each round must complete within the guard; a lost wakeup surfaces here as a
+        // TimeoutException instead of hanging the whole test run.
+        for (var round = 0; round < rounds; round++)
+        {
+            var requests = new Task<IExecutionResult>[requestsPerRound];
+            for (var i = 0; i < requestsPerRound; i++)
+            {
+                requests[i] = executor.ExecuteAsync(mutation, TestContext.Current.CancellationToken);
+            }
+
+            var results = await Task.WhenAll(requests)
+                .WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+
+            foreach (var result in results)
+            {
+                Assert.Empty(result.ExpectOperationResult().Errors);
+            }
+        }
+    }
+
+    public class RaceMutation
+    {
+        public RacePayload DoWork() => new();
+    }
+
+    public class RacePayload
+    {
+        public async Task<int> Value()
+        {
+            await Task.Yield();
+            return 1;
+        }
     }
 
     public class Mutation1

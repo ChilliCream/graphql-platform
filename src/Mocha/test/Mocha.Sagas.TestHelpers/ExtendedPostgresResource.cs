@@ -1,21 +1,21 @@
+using CookieCrumble.Resources;
 using Npgsql;
-using Squadron;
 
 namespace Mocha.Sagas.Tests;
 
 /// <summary>
-/// PostgreSQL test resource using Squadron
+/// PostgreSQL test resource with schema inspection helpers.
 /// </summary>
 public sealed class ExtendedPostgresResource : IAsyncLifetime
 {
     private readonly PostgreSqlResource _resource = new();
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         await _resource.InitializeAsync();
     }
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         await _resource.DisposeAsync();
     }

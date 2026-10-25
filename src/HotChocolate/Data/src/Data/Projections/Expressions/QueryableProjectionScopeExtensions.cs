@@ -22,7 +22,7 @@ public static class QueryableProjectionScopeExtensions
     /// <param name="scope">The scope that contains the projection information</param>
     /// <typeparam name="T">The target type</typeparam>
     /// <typeparam name="TTarget">The target result type of the expression</typeparam>
-    /// <returns></returns>
+    /// <returns>The projection expression.</returns>
     public static Expression<Func<T, TTarget>> Project<T, TTarget>(
         this QueryableProjectionScope scope)
         where T : TTarget
@@ -79,7 +79,17 @@ public static class QueryableProjectionScopeExtensions
     private static bool ShouldReuseExistingInstance(Type type)
         => type.GetConstructor(Type.EmptyTypes) is not null
             && type.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic)
-                .Any(t => t.GetParameters().Length > 0);
+                .Any(t =>
+                    t.GetParameters().Length > 0
+                    && !IsRecordCopyConstructor(t, type));
+
+    private static bool IsRecordCopyConstructor(ConstructorInfo constructor, Type declaringType)
+    {
+        var parameters = constructor.GetParameters();
+
+        return parameters.Length == 1
+            && parameters[0].ParameterType == declaringType;
+    }
 
     public static Expression CreateMemberInitLambda(this QueryableProjectionScope scope)
         => Expression.Lambda(scope.CreateMemberInit(), scope.Parameter);

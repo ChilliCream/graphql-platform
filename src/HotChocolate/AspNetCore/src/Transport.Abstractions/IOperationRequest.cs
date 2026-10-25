@@ -13,10 +13,17 @@ public interface IOperationRequest : IRequestBody
     /// </summary>
     string? Id { get; }
 
+#if FUSION
+    /// <summary>
+    /// Gets the UTF-8 encoded query document containing the operation to execute.
+    /// </summary>
+    ReadOnlyMemory<byte> Query { get; }
+#else
     /// <summary>
     /// Gets the query string or document containing the operation to execute.
     /// </summary>
     string? Query { get; }
+#endif
 
     /// <summary>
     /// Gets the name of the operation to execute.

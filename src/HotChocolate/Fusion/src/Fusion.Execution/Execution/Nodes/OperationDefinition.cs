@@ -1,4 +1,7 @@
+using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -7,14 +10,19 @@ internal abstract class OperationDefinition : IOperationPlanNode
     private readonly OperationRequirement[] _requirements;
     private readonly string[] _forwardedVariables;
     private readonly ExecutionNodeCondition[] _conditions;
+    private int[] _parentDependencies = [];
     private IOperationPlanNode[] _dependents = [];
     private IOperationPlanNode[] _dependencies = [];
+    private IOperationPlanNode[] _optionalDependencies = [];
+    private int _parentDependencyCount;
     private int _dependentCount;
     private int _dependencyCount;
+    private int _optionalDependencyCount;
 
     protected OperationDefinition(
         int id,
         OperationSourceText operation,
+        string? lookupTypeName,
         string? schemaName,
         SelectionPath source,
         OperationRequirement[] requirements,
@@ -24,7 +32,9 @@ internal abstract class OperationDefinition : IOperationPlanNode
         bool requiresFileUpload)
     {
         Id = id;
-        Operation = operation;
+        SourceText = operation;
+        Document = Utf8GraphQLOperationParser.Parse(operation.Value, ParserOptions.Trusted);
+        LookupTypeName = lookupTypeName;
         SchemaName = schemaName;
         Source = source;
         _requirements = requirements;
@@ -43,7 +53,18 @@ internal abstract class OperationDefinition : IOperationPlanNode
     /// Gets the source text and metadata for the GraphQL operation that this
     /// definition represents.
     /// </summary>
-    public OperationSourceText Operation { get; }
+    public OperationSourceText SourceText { get; }
+
+    /// <summary>
+    /// Gets the parsed syntax tree of the operation source text.
+    /// </summary>
+    public Utf8OperationDocument Document { get; }
+
+    /// <summary>
+    /// Gets the name of the type that the body of the operation's single root selection is
+    /// selected on, or <c>null</c> when the operation is not a lookup.
+    /// </summary>
+    public string? LookupTypeName { get; }
 
     /// <summary>
     /// Gets the name of the source schema that this operation targets,
@@ -63,11 +84,17 @@ internal abstract class OperationDefinition : IOperationPlanNode
     /// </summary>
     public ReadOnlySpan<OperationRequirement> Requirements => _requirements;
 
+    internal ImmutableArray<OperationRequirement> GetRequirementsArray()
+        => ImmutableCollectionsMarshal.AsImmutableArray(_requirements);
+
     /// <summary>
     /// Gets the names of the variables that are forwarded from the original
     /// client request into this operation.
     /// </summary>
     public ReadOnlySpan<string> ForwardedVariables => _forwardedVariables;
+
+    internal ImmutableArray<string> GetForwardedVariablesArray()
+        => ImmutableCollectionsMarshal.AsImmutableArray(_forwardedVariables);
 
     /// <summary>
     /// Gets the result selection set that describes which fields this operation
@@ -87,6 +114,12 @@ internal abstract class OperationDefinition : IOperationPlanNode
     public bool RequiresFileUpload { get; }
 
     /// <summary>
+    /// Gets the identifiers of steps in the parent plan scope that must
+    /// complete before this operation definition can run.
+    /// </summary>
+    public ReadOnlySpan<int> ParentDependencies => _parentDependencies.AsSpan(0, _parentDependencyCount);
+
+    /// <summary>
     /// Gets the nodes that cannot start until this operation definition has
     /// completed.
     /// </summary>
@@ -100,10 +133,10 @@ internal abstract class OperationDefinition : IOperationPlanNode
     public ReadOnlySpan<IOperationPlanNode> Dependencies => _dependencies.AsSpan(0, _dependencyCount);
 
     /// <summary>
-    /// Operation definitions never have optional dependencies, so this always
-    /// returns an empty span.
+    /// Gets the nodes this operation definition runs after without requiring them to succeed.
     /// </summary>
-    public ReadOnlySpan<IOperationPlanNode> OptionalDependencies => [];
+    public ReadOnlySpan<IOperationPlanNode> OptionalDependencies
+        => _optionalDependencies.AsSpan(0, _optionalDependencyCount);
 
     internal void AddDependency(IOperationPlanNode node)
     {
@@ -118,6 +151,36 @@ internal abstract class OperationDefinition : IOperationPlanNode
         }
 
         _dependencies[_dependencyCount++] = node;
+    }
+
+    internal void AddOptionalDependency(IOperationPlanNode node)
+    {
+        if (_optionalDependencies.Length == 0)
+        {
+            _optionalDependencies = new IOperationPlanNode[4];
+        }
+
+        if (_optionalDependencyCount == _optionalDependencies.Length)
+        {
+            Array.Resize(ref _optionalDependencies, _optionalDependencyCount * 2);
+        }
+
+        _optionalDependencies[_optionalDependencyCount++] = node;
+    }
+
+    internal void AddParentDependency(int parentNodeId)
+    {
+        if (_parentDependencies.Length == 0)
+        {
+            _parentDependencies = new int[4];
+        }
+
+        if (_parentDependencyCount == _parentDependencies.Length)
+        {
+            Array.Resize(ref _parentDependencies, _parentDependencyCount * 2);
+        }
+
+        _parentDependencies[_parentDependencyCount++] = parentNodeId;
     }
 
     internal void AddDependent(IOperationPlanNode node)
@@ -147,7 +210,19 @@ internal abstract class OperationDefinition : IOperationPlanNode
             Array.Resize(ref _dependents, _dependentCount);
         }
 
+        if (_optionalDependencies.Length > _optionalDependencyCount)
+        {
+            Array.Resize(ref _optionalDependencies, _optionalDependencyCount);
+        }
+
+        if (_parentDependencies.Length > _parentDependencyCount)
+        {
+            Array.Resize(ref _parentDependencies, _parentDependencyCount);
+        }
+
         Array.Sort(_dependencies, static (a, b) => a.Id.CompareTo(b.Id));
         Array.Sort(_dependents, static (a, b) => a.Id.CompareTo(b.Id));
+        Array.Sort(_optionalDependencies, static (a, b) => a.Id.CompareTo(b.Id));
+        Array.Sort(_parentDependencies, static (a, b) => a.CompareTo(b));
     }
 }

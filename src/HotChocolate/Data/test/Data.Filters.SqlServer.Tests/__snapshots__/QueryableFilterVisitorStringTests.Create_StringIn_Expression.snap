@@ -16,14 +16,12 @@ testatestAndtestb Result:
 
 testatestAndtestb SQL:
 ---------------
-.param set @__p_0 '["testatest","testbtest"]'
+.param set @p1 'testatest'
+.param set @p2 'testbtest'
 
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE "d"."Bar" IN (
-    SELECT "p"."value"
-    FROM json_each(@__p_0) AS "p"
-)
+WHERE "d"."Bar" IN (@p1, @p2)
 ---------------
 
 testbtestAndNull
@@ -32,12 +30,6 @@ testbtestAndNull
   "errors": [
     {
       "message": "The provided value for filter `in` of type StringOperationFilterInput is invalid. Null values are not supported.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 28
-        }
-      ],
       "path": [
         "root"
       ],
@@ -69,12 +61,9 @@ testatest Result:
 
 testatest SQL:
 ---------------
-.param set @__p_0 '["testatest"]'
+.param set @p1 'testatest'
 
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE "d"."Bar" IN (
-    SELECT "p"."value"
-    FROM json_each(@__p_0) AS "p"
-)
+WHERE "d"."Bar" = @p1
 ---------------

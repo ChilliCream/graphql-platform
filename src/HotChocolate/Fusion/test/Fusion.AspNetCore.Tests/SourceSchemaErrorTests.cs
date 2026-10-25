@@ -1,3 +1,6 @@
+using System.Net;
+using System.Net.Http.Headers;
+using System.Text;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -42,14 +45,15 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
     [Fact]
-    public async Task SchemaDefault_Null_AppliesWithoutPerRequestOverride()
+    public async Task OnError_SchemaDefault_Null_AppliesWithoutPerRequestOverride()
     {
         // arrange
         using var server1 = CreateSourceSchema(
@@ -61,7 +65,7 @@ public class SourceSchemaErrorTests : FusionTestBase
             ("A", server1)
         ],
         configureGatewayBuilder: builder =>
-            builder.ModifyOptions(o => o.DefaultErrorHandlingMode = ErrorHandlingMode.Null));
+            builder.ModifyRequestOptions(o => o.DefaultErrorHandlingMode = ErrorHandlingMode.Null));
 
         // act — no per-request onError override
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -77,7 +81,92 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task OnError_PerRequestOverride_IsIgnored_When_AllowErrorHandlingModeOverride_IsDisabled()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<SourceSchema3.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ],
+        configureGatewayBuilder: builder =>
+            builder.ModifyRequestOptions(o =>
+            {
+                o.DefaultErrorHandlingMode = ErrorHandlingMode.Propagate;
+                o.AllowErrorHandlingModeOverride = false;
+            }));
+
+        // act
+        // Even though the request asks for Null, the gateway must ignore the override
+        // and apply the configured Propagate mode (so data is fully omitted).
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              topProduct {
+                price
+                name
+              }
+            }
+            """,
+            onError: ErrorHandlingMode.Null);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task OnError_Null_OnSourceSchema_Forwards_To_Subgraph_Request()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema3.Query>(),
+            onError: ErrorHandlingMode.Null);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              productById(id: 1) {
+                name
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
@@ -112,8 +201,9 @@ public class SourceSchemaErrorTests : FusionTestBase
             onError: onError);
 
         using var result = await client.PostAsync(
-           request,
-            new Uri("http://localhost:5000/graphql"));
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
@@ -149,7 +239,8 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
@@ -200,7 +291,8 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
@@ -251,7 +343,8 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
@@ -288,7 +381,8 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
@@ -325,7 +419,8 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
@@ -371,7 +466,8 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
@@ -413,7 +509,8 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
@@ -455,7 +552,8 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
@@ -497,7 +595,8 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
@@ -539,7 +638,8 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
@@ -581,7 +681,8 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
@@ -623,7 +724,8 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
@@ -680,7 +782,8 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
@@ -723,7 +826,8 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
@@ -766,7 +870,8 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
@@ -809,7 +914,8 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
@@ -852,7 +958,8 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
@@ -887,10 +994,224 @@ public class SourceSchemaErrorTests : FusionTestBase
 
         using var result = await client.PostAsync(
             request,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Error_On_List_Field_With_Null_Element(ErrorHandlingMode onError)
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema9.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              job {
+                items {
+                  name
+                }
+              }
+            }
+            """,
+            onError: onError);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Error_Below_Null_List_Element(ErrorHandlingMode onError)
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema10.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              job {
+                items {
+                  name
+                }
+              }
+            }
+            """,
+            onError: onError);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Error_Below_Null_List_Element_With_Alias(ErrorHandlingMode onError)
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema10.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              job {
+                items {
+                  title: name
+                }
+              }
+            }
+            """,
+            onError: onError);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Error_Below_Null_List_Element_With_Deep_Path(ErrorHandlingMode onError)
+    {
+        // arrange
+        // the error path continues 100000 segments below the selected leaf field
+        var deepPath = string.Join(",", Enumerable.Repeat("\"child\"", 100_000));
+        var sourceSchemaResponse =
+            $$"""
+            {
+              "errors": [
+                {
+                  "message": "Could not resolve Item.name",
+                  "path": ["job", "items", 0, "name", {{deepPath}}]
+                }
+              ],
+              "data": { "job": { "items": [null] } }
+            }
+            """;
+
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              job: Job!
+            }
+
+            type Job {
+              items: [Item]!
+            }
+
+            type Item {
+              name: String!
+            }
+            """,
+            mockHttpResponse: _ => Task.FromResult(
+                new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(
+                        sourceSchemaResponse,
+                        Encoding.UTF8,
+                        new MediaTypeHeaderValue("application/json"))
+                }));
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server1)],
+            includeOperationPlan: false);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              job {
+                items {
+                  name
+                }
+              }
+            }
+            """,
+            onError: onError);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
+        response.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "job": {
+                  "items": [
+                    null
+                  ]
+                }
+              },
+              "errors": [
+                {
+                  "message": "Could not resolve Item.name",
+                  "path": [
+                    "job",
+                    "items",
+                    0,
+                    "name"
+                  ]
+                }
+              ]
+            }
+            """);
     }
 
     public static class SourceSchema1
@@ -1029,6 +1350,54 @@ public class SourceSchemaErrorTests : FusionTestBase
                         .SetException(new Exception("Some exception"))
                         .Build());
             }
+        }
+    }
+
+    public static class SourceSchema9
+    {
+        public class Query
+        {
+            public Job GetJob() => new();
+        }
+
+        public class Job
+        {
+            public List<Item?> GetItems(IResolverContext context)
+            {
+                context.ReportError(
+                    ErrorBuilder.New()
+                        .SetMessage("Could not resolve Job.items")
+                        .SetCode("NOT_FOUND")
+                        .SetPath(context.Path)
+                        .Build());
+                return [null];
+            }
+        }
+
+        public record Item(string Name);
+    }
+
+    public static class SourceSchema10
+    {
+        public class Query
+        {
+            public Job GetJob() => new();
+        }
+
+        public class Job
+        {
+            public List<Item?> GetItems() => [new Item()];
+        }
+
+        public class Item
+        {
+            public string GetName(IResolverContext context)
+                => throw new GraphQLException(
+                    ErrorBuilder.New()
+                        .SetMessage("Could not resolve Item.name")
+                        .SetCode("NOT_FOUND")
+                        .SetPath(context.Path)
+                        .Build());
         }
     }
 }

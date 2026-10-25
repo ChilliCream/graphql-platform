@@ -62,6 +62,13 @@ Examples of things built on top of the ChilliCream GraphQL Platform that are ope
 
 [Check out](COMMUNITY.md) what members of our awesome community have made!
 
+## License
+
+The source code in this repository is licensed under the [MIT License](LICENSE). The
+MIT License covers the source code only. It does not cover the ChilliCream name and
+trademarks, the logos and package icons, or the website content and design. See
+[TRADEMARKS.md](TRADEMARKS.md) for details.
+
 ## Financial Contributors
 
 [Become a financial contributor](https://opencollective.com/chillicream/contribute) and help us sustain our community.

@@ -1,0 +1,32 @@
+operation:
+  - document: |
+      {
+        featured {
+          __typename @fusion__requirement
+          ... on Product {
+            name
+          }
+          ... on Review {
+            rating
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 2
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: A
+    operation: |
+      query Op_123456789101112_1 {
+        featured {
+          __typename
+          ... on Product {
+            name
+          }
+          ... on Review {
+            rating
+          }
+        }
+      }

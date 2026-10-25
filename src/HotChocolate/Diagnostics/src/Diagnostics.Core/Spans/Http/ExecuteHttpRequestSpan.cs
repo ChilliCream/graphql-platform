@@ -4,7 +4,6 @@ using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using static HotChocolate.Diagnostics.SemanticConventions;
-using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Diagnostics;
 
@@ -19,6 +18,7 @@ internal sealed class ExecuteHttpRequestSpan(
         ActivitySource source,
         HttpContext httpContext,
         HttpRequestKind kind,
+        string schemaName,
         ActivityEnricherBase enricher,
         InstrumentationOptionsBase options)
     {
@@ -43,20 +43,23 @@ internal sealed class ExecuteHttpRequestSpan(
             case HttpRequestKind.HttpGetSchema:
                 activity.DisplayName = "GraphQL HTTP GET SDL";
                 break;
+            case HttpRequestKind.HttpGetSemanticNonNullSchema:
+                activity.DisplayName = "GraphQL HTTP GET Semantic Non-Null SDL";
+                break;
+            case HttpRequestKind.HttpQuery:
+                activity.DisplayName = "GraphQL HTTP QUERY";
+                break;
         }
 
         activity.SetTag(GraphQL.Http.Kind, kind.ToString());
-
-        if (!(httpContext.Items.TryGetValue(SchemaName, out var value)
-            && value is string schemaName))
-        {
-            schemaName = ISchemaDefinition.DefaultName;
-        }
-
         activity.SetTag(GraphQL.Schema.Name, schemaName);
 
         return new ExecuteHttpRequestSpan(activity, httpContext, kind, enricher, options);
     }
+
+    public bool IsBatch { get; private set; }
+
+    public void MarkAsBatch() => IsBatch = true;
 
     public void SetSingleRequestDetails(GraphQLRequest request)
     {
@@ -119,13 +122,13 @@ internal sealed class ExecuteHttpRequestSpan(
             if (request.DocumentId is not null
                 && (options.RequestDetails & RequestDetails.Id) == RequestDetails.Id)
             {
-                Activity.SetTag(GraphQL.Http.Request.BatchRequest.QueryId(i), request.DocumentId.Value);
+                Activity.SetTag(GraphQL.Http.Request.BatchRequest.QueryId(i), request.DocumentId.Value.Value);
             }
 
             if (request.DocumentHash is not null
                 && (options.RequestDetails & RequestDetails.Hash) == RequestDetails.Hash)
             {
-                Activity.SetTag(GraphQL.Http.Request.BatchRequest.QueryHash(i), request.DocumentHash.Value);
+                Activity.SetTag(GraphQL.Http.Request.BatchRequest.QueryHash(i), request.DocumentHash.Value.Value);
             }
 
             if (request.Document is not null
@@ -223,7 +226,20 @@ internal sealed class ExecuteHttpRequestSpan(
     {
         if (Activity.Status != ActivityStatusCode.Error)
         {
-            Activity.SetStatus(ActivityStatusCode.Ok);
+            if (httpContext.RequestAborted.IsCancellationRequested)
+            {
+                // An intentional caller cancellation (browser tab closed, connection
+                // dropped) is not an error: per the OpenTelemetry semantic conventions
+                // the span is left Unset and no error.type is reported.
+            }
+            else if (httpContext.Response.StatusCode >= 400)
+            {
+                Activity.SetStatus(ActivityStatusCode.Error);
+            }
+            else
+            {
+                Activity.SetStatus(ActivityStatusCode.Ok);
+            }
         }
 
         enricher.EnrichExecuteHttpRequest(httpContext, kind, Activity);
@@ -232,7 +248,8 @@ internal sealed class ExecuteHttpRequestSpan(
     public void RecordError(IError error)
     {
         Activity.SetStatus(ActivityStatusCode.Error);
-        Activity.AddGraphQLError(error);
+        Activity.AddGraphQLErrorEvent(error);
+        Activity.SetErrorType(error, ActivityExtensions.ExecutionErrorType);
 
         enricher.EnrichHttpRequestError(httpContext, error, Activity);
     }
@@ -241,6 +258,7 @@ internal sealed class ExecuteHttpRequestSpan(
     {
         Activity.SetStatus(ActivityStatusCode.Error);
         Activity.AddException(exception);
+        Activity.SetErrorType(exception);
 
         enricher.EnrichHttpRequestError(httpContext, exception, Activity);
     }

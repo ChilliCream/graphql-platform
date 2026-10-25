@@ -8,11 +8,21 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="nitro" />
+    <InternalsVisibleTo Include="ChilliCream.Nitro.CommandLine.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Aspire" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Aspire.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Composition.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Composition.ApolloFederation.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.ApolloFederation.Compliance.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Execution.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Utilities.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.AspNetCore.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.InMemory" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Composition.Benchmarks" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Execution.Benchmarks" />
+    <InternalsVisibleTo Include="HotChocolate.Adapters.Mcp.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Adapters.OpenApi.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.ApolloFederation.Tests" />
   </ItemGroup>
 
   <ItemGroup>
@@ -27,6 +37,10 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>CompositionResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <EmbeddedResource Update="ApolloFederation\Properties\FederationResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>FederationResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
@@ -34,6 +48,11 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>CompositionResources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="ApolloFederation\Properties\FederationResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FederationResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
 

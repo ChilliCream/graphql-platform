@@ -1,0 +1,25 @@
+query ListClientPublishedVersionsCommandQuery($clientId: ID!, $stage: String!, $after: String, $first: Int) {
+  node(id: $clientId) {
+    ... on Client {
+      publishedVersions(stage: $stage, first: $first, after: $after) {
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+        edges {
+          ...ListClientPublishedVersionsCommand_PublishedClientVersionEdge
+        }
+      }
+    }
+  }
+}
+
+fragment ListClientPublishedVersionsCommand_PublishedClientVersionEdge on ClientPublishedVersionsEdge {
+  cursor
+  node {
+    publishedAt
+    version {
+      tag
+    }
+  }
+}

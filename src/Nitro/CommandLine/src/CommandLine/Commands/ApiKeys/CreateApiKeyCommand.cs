@@ -65,7 +65,7 @@ internal sealed class CreateApiKeyCommand : Command
             }
 
             var choice = await console.PromptAsync(
-                "Do you want to create the API key scoped to an API or the whole workspace?",
+                Prompts.CreateApiKeyScope,
                 ["Api", "Workspace"],
                 cancellationToken);
 
@@ -76,7 +76,7 @@ internal sealed class CreateApiKeyCommand : Command
                 apiId = await console.PromptForApiIdAsync(
                     apisClient,
                     workspaceId,
-                    "For which API do you want to create an API key?",
+                    Prompts.SelectApiForCreateApiKey,
                     cancellationToken);
             }
         }
@@ -96,16 +96,16 @@ internal sealed class CreateApiKeyCommand : Command
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
 
                 foreach (var error in data.Errors)
                 {
                     var errorMessage = error switch
                     {
-                        IApiNotFoundError err => err.Message,
+                        IApiNotFoundError err => throw new NitroClientNotFoundException(err.Message),
                         IWorkspaceNotFound err => err.Message,
                         IPersonalWorkspaceNotSupportedError err => err.Message,
-                        IRoleNotFoundError err => err.Message,
+                        IRoleNotFoundError err => throw new NitroClientNotFoundException(err.Message),
                         IValidationError err => err.Message,
                         IError err => Messages.UnexpectedMutationError(err),
                         _ => "Unexpected mutation error"

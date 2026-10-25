@@ -36,7 +36,7 @@ public partial class SchemaErrorBuilder
     }
 
     public SchemaErrorBuilder SetTypeSystemObject(
-       TypeSystemObject typeSystemObject)
+        TypeSystemObject typeSystemObject)
     {
         _error.TypeSystemObject = typeSystemObject;
         return this;

@@ -28,6 +28,7 @@ internal sealed class KeyInvalidFieldsRule : IEventHandler<SchemaEvent>
 
         var sourceKeyDirectives = context.SchemaDefinitions
             .SelectMany(s => s.Types.OfType<MutableComplexTypeDefinition>(), (s, o) => (s, o))
+            .Where(x => schema.Types.ContainsName(x.o.Name))
             .SelectMany(
                 x =>
                     x.o.Directives.AsEnumerable().Where(d => d.Name == DirectiveNames.Key),

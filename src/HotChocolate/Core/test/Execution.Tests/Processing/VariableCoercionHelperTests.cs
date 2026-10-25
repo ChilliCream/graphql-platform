@@ -192,6 +192,38 @@ public class VariableCoercionHelperTests
     }
 
     [Fact]
+    public void Coerce_Nullable_String_Variable_With_Null_Default_Where_Value_Is_Not_Provided()
+    {
+        // arrange
+        var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
+
+        var variableDefinitions = new List<VariableDefinitionNode>
+        {
+            new VariableDefinitionNode(
+                null,
+                new VariableNode("abc"),
+                description: null,
+                new NamedTypeNode("String"),
+                NullValueNode.Default,
+                Array.Empty<DirectiveNode>())
+        };
+
+        var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new MockFeatureProvider();
+        var helper = new VariableCoercionHelper(new());
+
+        // act
+        helper.CoerceVariableValues(
+            schema, variableDefinitions, default, coercedValues, featureProvider);
+
+        // assert
+        var entry = Assert.Single(coercedValues);
+        Assert.Equal("abc", entry.Key);
+        Assert.Null(entry.Value.RuntimeValue);
+        Assert.IsType<NullValueNode>(entry.Value.ValueLiteral);
+    }
+
+    [Fact]
     public void Coerce_Nullable_String_Variable_With_Default_Where_Value_Is_Provided()
     {
         // arrange
@@ -382,9 +414,7 @@ public class VariableCoercionHelperTests
                 Assert.False(Assert.IsType<SomeInput>(t.Value.RuntimeValue).OptionalField.HasValue);
                 t.Value.ValueLiteral.MatchInlineSnapshot(
                     """
-                    {
-                      field: true
-                    }
+                    { field: true }
                     """);
             });
     }
@@ -479,9 +509,12 @@ public class VariableCoercionHelperTests
                 "errors": [
                   {
                     "message": "String cannot coerce the given value JSON element of type `Number` to a runtime value.",
-                    "path": [
-                      "abc"
-                    ]
+                    "extensions": {
+                      "inputPath": [
+                        "abc"
+                      ],
+                      "fieldType": "String"
+                    }
                   }
                 ]
                 """);
@@ -609,10 +642,54 @@ public class VariableCoercionHelperTests
 
         entry.Value.ValueLiteral.MatchInlineSnapshot(
             """
-            [
-              "xyz"
-            ]
+            ["xyz"]
             """);
+    }
+
+    [Fact]
+    public void Error_When_Single_Value_Type_Does_Not_Match_List_Element_Type()
+    {
+        // arrange
+        var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
+
+        var variableDefinitions = new List<VariableDefinitionNode>
+        {
+            new(null,
+                new VariableNode("abc"),
+                description: null,
+                new ListTypeNode(new NamedTypeNode("Int")),
+                null,
+                Array.Empty<DirectiveNode>())
+        };
+
+        var variableValues = JsonDocument.Parse("""{"abc": "xyz"}""");
+        var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new MockFeatureProvider();
+        var helper = new VariableCoercionHelper(new());
+
+        // act
+        void Action() => helper.CoerceVariableValues(
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action)
+            .Errors.Select(t => t.WithException(null))
+            .ToList()
+            .MatchInlineSnapshot(
+                """
+                "errors": [
+                  {
+                    "message": "Int cannot coerce the given value JSON element of type `String` to a runtime value.",
+                    "extensions": {
+                      "inputPath": [
+                        "abc",
+                        0
+                      ],
+                      "fieldType": "Int"
+                    }
+                  }
+                ]
+                """);
     }
 
     [Fact]
@@ -667,11 +744,7 @@ public class VariableCoercionHelperTests
         Assert.Equal("abc", entry.Key);
         entry.Value.ValueLiteral.MatchInlineSnapshot(
             """
-            [
-              {
-                enum: Foo
-              }
-            ]
+            [{ enum: Foo }]
             """);
     }
 
@@ -730,14 +803,7 @@ public class VariableCoercionHelperTests
         Assert.Equal("abc", entry.Key);
         entry.Value.ValueLiteral.MatchInlineSnapshot(
             """
-            [
-              {
-                enum: Foo
-              },
-              {
-                enum: Bar
-              }
-            ]
+            [{ enum: Foo }, { enum: Bar }]
             """);
     }
 
@@ -796,14 +862,7 @@ public class VariableCoercionHelperTests
         Assert.Equal("abc", entry.Key);
         entry.Value.ValueLiteral.MatchInlineSnapshot(
             """
-            [
-              {
-                enum: Foo
-              },
-              {
-                enum: Bar
-              }
-            ]
+            [{ enum: Foo }, { enum: Bar }]
             """);
     }
 
@@ -860,10 +919,7 @@ public class VariableCoercionHelperTests
         Assert.Equal("abc", entry.Key);
         entry.Value.ValueLiteral.MatchInlineSnapshot(
             """
-            {
-              enum: Foo,
-              enum2: Bar
-            }
+            { enum: Foo, enum2: Bar }
             """);
     }
 
@@ -920,10 +976,7 @@ public class VariableCoercionHelperTests
         Assert.Equal("abc", entry.Key);
         entry.Value.ValueLiteral.MatchInlineSnapshot(
             """
-            {
-              enum: Foo,
-              enum2: Bar
-            }
+            { enum: Foo, enum2: Bar }
             """);
     }
 
@@ -980,10 +1033,7 @@ public class VariableCoercionHelperTests
         Assert.Equal("abc", entry.Key);
         entry.Value.ValueLiteral.MatchInlineSnapshot(
             """
-            {
-              value_a: "Foo",
-              value_b: Bar
-            }
+            { value_a: "Foo", value_b: Bar }
             """);
     }
 
@@ -1052,14 +1102,7 @@ public class VariableCoercionHelperTests
         Assert.Equal("abc", entry.Key);
         entry.Value.ValueLiteral.MatchInlineSnapshot(
             """
-            [
-              {
-                value_a: "Foo"
-              },
-              {
-                value_b: Bar
-              }
-            ]
+            [{ value_a: "Foo" }, { value_b: Bar }]
             """);
     }
 
@@ -1094,6 +1137,164 @@ public class VariableCoercionHelperTests
 
         // assert
         Assert.Empty(coercedValues);
+    }
+
+    [Fact]
+    public void Coerce_Number_Variables_Should_RemoveSharedMemoryBuilder_When_CoercionEnds()
+    {
+        // arrange
+        var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
+
+        var variableDefinitions = new List<VariableDefinitionNode>
+        {
+            new VariableDefinitionNode(
+                null,
+                new VariableNode("a"),
+                description: null,
+                new NamedTypeNode("Int"),
+                null,
+                Array.Empty<DirectiveNode>()),
+            new VariableDefinitionNode(
+                null,
+                new VariableNode("b"),
+                description: null,
+                new NamedTypeNode("Float"),
+                null,
+                Array.Empty<DirectiveNode>())
+        };
+
+        using var variableValues = JsonDocument.Parse("""{"a": 42, "b": 3.5}""");
+        var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new MockFeatureProvider();
+        var helper = new VariableCoercionHelper(new());
+
+        // act
+        helper.CoerceVariableValues(
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider);
+
+        // assert
+        Assert.Empty(featureProvider.Features);
+        Assert.Collection(
+            coercedValues.Values,
+            a => Assert.Equal("42", Assert.IsType<IntValueNode>(a.ValueLiteral).ToString()),
+            b => Assert.Equal("3.5", Assert.IsType<FloatValueNode>(b.ValueLiteral).ToString()));
+    }
+
+    [Fact]
+    public void Coerce_InputObject_With_Escaped_Field_Names_And_Enum()
+    {
+        // arrange
+        var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
+
+        var variableDefinitions = new List<VariableDefinitionNode>
+        {
+            new VariableDefinitionNode(
+                null,
+                new VariableNode("review"),
+                description: null,
+                new NonNullTypeNode(new NamedTypeNode("ReviewInput")),
+                null,
+                Array.Empty<DirectiveNode>()),
+            new VariableDefinitionNode(
+                null,
+                new VariableNode("episode"),
+                description: null,
+                new NonNullTypeNode(new NamedTypeNode("Episode")),
+                null,
+                Array.Empty<DirectiveNode>())
+        };
+
+        using var variableValues = JsonDocument.Parse(
+            """
+            {"review":{"st\u0061rs":5,"commentary":"escaped"},"episode":"J\u0045DI"}
+            """);
+
+        var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new MockFeatureProvider();
+        var helper = new VariableCoercionHelper(new());
+
+        // act
+        helper.CoerceVariableValues(
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider);
+
+        // assert
+        var review = Assert.IsType<Review>(coercedValues["review"].RuntimeValue);
+        Assert.Equal(5, review.Stars);
+        Assert.Equal("escaped", review.Commentary);
+        Assert.Equal(Episode.Jedi, coercedValues["episode"].RuntimeValue);
+        coercedValues["review"].ValueLiteral.ToString().MatchInlineSnapshot(
+            """
+            { stars: 5, commentary: "escaped" }
+            """);
+    }
+
+    [Fact]
+    public void Coerce_Enum_With_Escaped_Name_Uses_Schema_Name_For_Literal()
+    {
+        // arrange
+        var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
+
+        var variableDefinitions = new List<VariableDefinitionNode>
+        {
+            new VariableDefinitionNode(
+                null,
+                new VariableNode("episode"),
+                description: null,
+                new NonNullTypeNode(new NamedTypeNode("Episode")),
+                null,
+                Array.Empty<DirectiveNode>())
+        };
+
+        using var variableValues = JsonDocument.Parse("""{"episode":"J\u0045DI"}""");
+
+        var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new MockFeatureProvider();
+        var helper = new VariableCoercionHelper(new());
+
+        // act
+        helper.CoerceVariableValues(
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider);
+
+        // assert
+        Assert.Equal(Episode.Jedi, coercedValues["episode"].RuntimeValue);
+        var literal = Assert.IsType<EnumValueNode>(coercedValues["episode"].ValueLiteral);
+        Assert.Equal("JEDI", literal.Value);
+    }
+
+    [Fact]
+    public void Coerce_Enum_Should_Reuse_Literal_Across_Coercions()
+    {
+        // arrange
+        var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
+
+        var variableDefinitions = new List<VariableDefinitionNode>
+        {
+            new VariableDefinitionNode(
+                null,
+                new VariableNode("episode"),
+                description: null,
+                new NonNullTypeNode(new NamedTypeNode("Episode")),
+                null,
+                Array.Empty<DirectiveNode>())
+        };
+
+        using var variableValues = JsonDocument.Parse("""{"episode":"JEDI"}""");
+
+        var first = new Dictionary<string, VariableValue>();
+        var second = new Dictionary<string, VariableValue>();
+        var featureProvider = new MockFeatureProvider();
+        var helper = new VariableCoercionHelper(new());
+
+        // act
+        helper.CoerceVariableValues(
+            schema, variableDefinitions, variableValues.RootElement, first, featureProvider);
+        helper.CoerceVariableValues(
+            schema, variableDefinitions, variableValues.RootElement, second, featureProvider);
+
+        // assert
+        var literal = Assert.IsType<EnumValueNode>(first["episode"].ValueLiteral);
+        Assert.Equal("JEDI", literal.Value);
+        Assert.Same(literal, second["episode"].ValueLiteral);
     }
 
     private class MockFeatureProvider : IFeatureProvider

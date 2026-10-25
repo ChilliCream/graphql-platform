@@ -18,7 +18,7 @@ public class InferenceTests
                 .AddQueryType<Query1>()
                 .AddInterfaceType<ProductBase>()
                 .AddObjectType<Product>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -32,7 +32,7 @@ public class InferenceTests
                 .AddQueryType<Query1>()
                 .AddInterfaceType<ProductBase>()
                 .AddObjectType<Product>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }

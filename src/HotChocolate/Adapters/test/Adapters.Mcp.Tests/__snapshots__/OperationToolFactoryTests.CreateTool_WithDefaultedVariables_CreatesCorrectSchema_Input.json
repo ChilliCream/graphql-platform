@@ -127,38 +127,7 @@
       "default": 9223372036854775807
     },
     "object": {
-      "type": "object",
-      "properties": {
-        "field1A": {
-          "type": "object",
-          "properties": {
-            "field1B": {
-              "type": "object",
-              "properties": {
-                "field1C": {
-                  "type": "string",
-                  "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
-                  "description": "field1C description",
-                  "default": "12:00:00"
-                }
-              },
-              "required": [],
-              "description": "field1B description",
-              "default": {
-                "field1C": "12:00:00"
-              }
-            }
-          },
-          "required": [],
-          "description": "field1A description",
-          "default": {
-            "field1B": {
-              "field1C": "12:00:00"
-            }
-          }
-        }
-      },
-      "required": [],
+      "$ref": "#/$defs/Object1DefaultedInput",
       "description": "Object description",
       "default": {
         "field1A": {
@@ -233,5 +202,47 @@
       "default": "00000000-0000-0000-0000-000000000000"
     }
   },
-  "required": []
+  "required": [],
+  "$defs": {
+    "Object1DefaultedInput": {
+      "type": "object",
+      "properties": {
+        "field1A": {
+          "$ref": "#/$defs/Object2DefaultedInput",
+          "description": "field1A description",
+          "default": {
+            "field1B": {
+              "field1C": "12:00:00"
+            }
+          }
+        }
+      },
+      "required": []
+    },
+    "Object2DefaultedInput": {
+      "type": "object",
+      "properties": {
+        "field1B": {
+          "$ref": "#/$defs/Object3DefaultedInput",
+          "description": "field1B description",
+          "default": {
+            "field1C": "12:00:00"
+          }
+        }
+      },
+      "required": []
+    },
+    "Object3DefaultedInput": {
+      "type": "object",
+      "properties": {
+        "field1C": {
+          "type": "string",
+          "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
+          "description": "field1C description",
+          "default": "12:00:00"
+        }
+      },
+      "required": []
+    }
+  }
 }

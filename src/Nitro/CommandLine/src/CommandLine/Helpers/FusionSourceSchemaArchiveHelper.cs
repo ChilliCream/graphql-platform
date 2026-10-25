@@ -8,6 +8,7 @@ internal static class FusionSourceSchemaArchiveHelper
     public static async Task<Stream> CreateArchiveStreamAsync(
         ReadOnlyMemory<byte> schema,
         JsonDocument settings,
+        ReadOnlyMemory<byte> schemaExtensions = default,
         CancellationToken cancellationToken = default)
     {
         var archiveStream = new MemoryStream();
@@ -15,6 +16,12 @@ internal static class FusionSourceSchemaArchiveHelper
 
         await archive.SetArchiveMetadataAsync(new ArchiveMetadata(), cancellationToken);
         await archive.SetSchemaAsync(schema, cancellationToken);
+
+        if (schemaExtensions.Length > 0)
+        {
+            await archive.SetSchemaExtensionsAsync(schemaExtensions, cancellationToken);
+        }
+
         await archive.SetSettingsAsync(settings, cancellationToken);
 
         await archive.CommitAsync(cancellationToken);

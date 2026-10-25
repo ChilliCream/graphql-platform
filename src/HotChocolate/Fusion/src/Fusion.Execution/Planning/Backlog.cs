@@ -48,6 +48,29 @@ internal readonly struct Backlog(ImmutableStack<WorkItem> items, BacklogCost cos
         return new Backlog(items, cost);
     }
 
+    public Backlog BindSourceSchemaNodeCandidate(int candidateGroupId, string schemaName)
+    {
+        var workItems = _items.ToArray();
+        var items = ImmutableStack<WorkItem>.Empty;
+
+        for (var i = workItems.Length - 1; i >= 0; i--)
+        {
+            var workItem = workItems[i];
+            if (workItem.SourceSchemaNodePolicy is { CandidateGroupId: { } groupId } policy
+                && groupId == candidateGroupId)
+            {
+                workItem = workItem with
+                {
+                    SourceSchemaNodePolicy = policy.BindCandidate(schemaName)
+                };
+            }
+
+            items = items.Push(workItem);
+        }
+
+        return new Backlog(items, Cost);
+    }
+
     /// <summary>
     /// Pushes work items for unresolvable selection sets that need
     /// their own operation steps on other schemas.
@@ -55,7 +78,10 @@ internal readonly struct Backlog(ImmutableStack<WorkItem> items, BacklogCost cos
     public Backlog PushUnresolvable(
         ImmutableStack<ConditionedSelectionSet> unresolvable,
         string fromSchema,
-        int parentDepth)
+        int parentDepth,
+        ImmutableHashSet<int>? dependents = null,
+        bool allowSourceSchemaReentry = false,
+        SourceSchemaNodePlanningPolicy? sourceSchemaNodePolicy = null)
     {
         if (unresolvable.IsEmpty)
         {
@@ -75,7 +101,10 @@ internal readonly struct Backlog(ImmutableStack<WorkItem> items, BacklogCost cos
                 FromSchema: fromSchema)
             {
                 ParentDepth = parentDepth,
-                Conditions = entry.Conditions
+                Conditions = entry.Conditions,
+                Dependents = dependents ?? [],
+                AllowSourceSchemaReentry = allowSourceSchemaReentry,
+                SourceSchemaNodePolicy = sourceSchemaNodePolicy
             };
             backlog = backlog.Push(workItem);
         }
@@ -87,10 +116,17 @@ internal readonly struct Backlog(ImmutableStack<WorkItem> items, BacklogCost cos
     /// Pushes work items for fields that have requirements
     /// which may need lookup steps to satisfy.
     /// </summary>
+    /// <param name="fieldsWithRequirements">The fields that have requirements.</param>
+    /// <param name="consumer">The owner of the fields.</param>
+    /// <param name="dependents">The steps that need the data of the fields.</param>
+    /// <param name="parentDepth">The depth of the step that produced the fields.</param>
+    /// <param name="sourceSchemaNodePolicy">The source schema node planning policy, or null.</param>
     public Backlog PushRequirements(
         ImmutableStack<ConditionedFieldSelection> fieldsWithRequirements,
-        int stepId,
-        int parentDepth)
+        RequirementConsumer consumer,
+        ImmutableHashSet<int> dependents,
+        int parentDepth,
+        SourceSchemaNodePlanningPolicy? sourceSchemaNodePolicy = null)
     {
         if (fieldsWithRequirements.IsEmpty)
         {
@@ -101,10 +137,12 @@ internal readonly struct Backlog(ImmutableStack<WorkItem> items, BacklogCost cos
 
         foreach (var entry in fieldsWithRequirements.Reverse())
         {
-            var workItem = new FieldRequirementWorkItem(entry.FieldSelection, stepId)
+            var workItem = new FieldRequirementWorkItem(entry.FieldSelection, consumer)
             {
+                Dependents = dependents,
                 ParentDepth = parentDepth,
-                Conditions = entry.Conditions
+                Conditions = entry.Conditions,
+                SourceSchemaNodePolicy = sourceSchemaNodePolicy
             };
             backlog = backlog.Push(workItem);
         }

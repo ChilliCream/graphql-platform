@@ -20,7 +20,8 @@ public class Issue6258ReproTests
                 }
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -36,7 +37,8 @@ public class Issue6258ReproTests
                 id
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }

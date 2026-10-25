@@ -1,0 +1,205 @@
+title: Provides_Partial_Covers_Some
+request:
+  document: |
+    {
+      reviews {
+        author {
+          username
+          email
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "reviews": [
+          {
+            "author": {
+              "username": "User: VXNlcjoxMzg1ODgwMDMz",
+              "email": "User: VXNlcjoxMzg1ODgwMDMz"
+            }
+          },
+          {
+            "author": {
+              "username": "User: VXNlcjo1Mjk1MTI4MDU=",
+              "email": "User: VXNlcjo1Mjk1MTI4MDU="
+            }
+          },
+          {
+            "author": {
+              "username": "User: VXNlcjo0MTQzMzgyNTQy",
+              "email": "User: VXNlcjo0MTQzMzgyNTQy"
+            }
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: reviews
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        reviews: [Review]
+        userById(id: ID! @is(field: "id")): User @lookup @internal
+      }
+
+      type Review @key(fields: "id") {
+        id: ID!
+        author: User @provides(fields: "username")
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        username: String @external
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_f51d8b92_1 {
+              reviews {
+                author {
+                  username
+                  id
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "reviews": [
+                    {
+                      "author": {
+                        "username": "User: VXNlcjoxMzg1ODgwMDMz",
+                        "id": "VXNlcjoxMzg1ODgwMDMz"
+                      }
+                    },
+                    {
+                      "author": {
+                        "username": "User: VXNlcjo1Mjk1MTI4MDU=",
+                        "id": "VXNlcjo1Mjk1MTI4MDU="
+                      }
+                    },
+                    {
+                      "author": {
+                        "username": "User: VXNlcjo0MTQzMzgyNTQy",
+                        "id": "VXNlcjo0MTQzMzgyNTQy"
+                      }
+                    }
+                  ]
+                }
+              }
+  - name: users
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        userById(id: ID! @is(field: "id")): User @lookup @internal
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        username: String
+        email: String
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_f51d8b92_2($__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                email
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "VXNlcjoxMzg1ODgwMDMz"
+              },
+              {
+                "__fusion_1_id": "VXNlcjo1Mjk1MTI4MDU="
+              },
+              {
+                "__fusion_1_id": "VXNlcjo0MTQzMzgyNTQy"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "email": "User: VXNlcjoxMzg1ODgwMDMz"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "email": "User: VXNlcjo1Mjk1MTI4MDU="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "email": "User: VXNlcjo0MTQzMzgyNTQy"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          reviews {
+            author {
+              username
+              email
+              id @fusion__requirement
+            }
+          }
+        }
+      hash: 3af057e54986a5fa37f706a66ed8d973
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: reviews
+      operation: |
+        query Op_f51d8b92_1 {
+          reviews {
+            author {
+              username
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: users
+      operation: |
+        query Op_f51d8b92_2($__fusion_1_id: ID!) {
+          userById(id: $__fusion_1_id) {
+            email
+          }
+        }
+      source: $.userById
+      target: $.reviews.author
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

@@ -6,7 +6,6 @@
 using Mocha;
 using Mocha.Events;
 using Mocha.Transport.InMemory;
-using Mocha.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -49,11 +48,6 @@ app.MapGet("/refund", async (IMessageBus bus, ILogger<Program> logger) =>
 });
 
 Console.WriteLine("Listening on http://localhost:5000/refund");
-
-if (app.Environment.IsDevelopment())
-{
-    app.MapMessageBusDeveloperTopology();
-}
 
 app.Run();
 

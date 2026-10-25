@@ -12,7 +12,7 @@ public class Issue6970ReproTests
         await new ServiceCollection()
             .AddGraphQLServer()
             .AddQueryType<Query>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 

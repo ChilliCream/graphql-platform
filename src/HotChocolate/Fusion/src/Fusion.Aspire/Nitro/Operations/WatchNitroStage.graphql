@@ -1,0 +1,34 @@
+subscription WatchNitroStage($apiId: ID!, $stageName: String!) {
+  onStageChanged(
+    apiId: $apiId
+    stageName: $stageName
+    kind: [FUSION_CONFIGURATION, CLIENT]
+  ) {
+    __typename
+    kind
+    ... on FusionConfigurationPublishedStageChangeEvent {
+      fusionConfiguration {
+        id
+      }
+    }
+    ... on ClientVersionPublishedStageChangeEvent {
+      clientVersion {
+        id
+        client {
+          id
+        }
+      }
+    }
+    ... on ClientVersionUnpublishedStageChangeEvent {
+      clientVersion {
+        id
+        client {
+          id
+        }
+      }
+    }
+    ... on ClientDeletedStageChangeEvent {
+      clientId
+    }
+  }
+}

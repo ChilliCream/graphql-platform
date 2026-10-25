@@ -23,7 +23,7 @@ public class CodeFirstMutations
                 .AddMutationConventions(
                     new MutationConventionOptions { ApplyToAllMutations = true })
                 .ModifyOptions(o => o.StrictValidation = false)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -48,7 +48,9 @@ public class CodeFirstMutations
                         ApplyToAllMutations = true
                     })
                 .ModifyOptions(o => o.StrictValidation = false)
-                .ExecuteRequestAsync("mutation { doSomething(input: { a: \"abc\" }) { string } }");
+                .ExecuteRequestAsync(
+                    "mutation { doSomething(input: { a: \"abc\" }) { string } }",
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }

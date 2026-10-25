@@ -43,9 +43,8 @@ public sealed class OperationPlannerOptions
     } = 1.5;
 
     /// <summary>
-    /// Gets or sets whether the planner assigns batching group IDs to execution nodes.
-    /// When enabled, independent query operations targeting the same source schema are
-    /// grouped so the executor can dispatch them as a single transport-level batch request.
+    /// Gets or sets whether independent query operations for the same source schema and
+    /// dependency depth are grouped into transport batches.
     /// </summary>
     public bool EnableRequestGrouping
     {
@@ -58,9 +57,36 @@ public sealed class OperationPlannerOptions
     } = true;
 
     /// <summary>
-    /// Gets or sets how aggressively structurally-identical operations are merged
-    /// to reduce downstream request count. Cycle safety is always enforced regardless
-    /// of this setting.
+    /// Gets or sets whether <c>@defer</c> support is enabled in the planner.
+    /// When disabled, the planner skips defer processing entirely.
+    /// </summary>
+    public bool EnableDefer
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+            field = value;
+        }
+    } = true;
+
+    /// <summary>
+    /// When enabled, nested <c>@defer</c> fragments without a label are inlined
+    /// into their parent deferred group instead of producing a separate group.
+    /// This reduces incremental delivery overhead at the cost of less granular streaming.
+    /// </summary>
+    public bool InlineUnlabeledDeferFragments
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+            field = value;
+        }
+    } = true;
+
+    /// <summary>
+    /// Gets or sets whether structurally identical lookups merge across target paths and dependency depths.
     /// </summary>
     public OperationMergePolicy MergePolicy
     {
@@ -71,6 +97,21 @@ public sealed class OperationPlannerOptions
             field = value;
         }
     } = OperationMergePolicy.Aggressive;
+
+    /// <summary>
+    /// Gets or sets whether the planner keeps structurally identical lookups at different
+    /// dependency depths apart when entity reuse could serve the deeper lookup from the
+    /// shallower one. The deeper lookup then depends on the shallower lookup.
+    /// </summary>
+    public bool EnableEntityReuseSplitting
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+            field = value;
+        }
+    } = true;
 
     /// <summary>
     /// Gets or sets the weight applied for each operation beyond the fan-out penalty threshold.

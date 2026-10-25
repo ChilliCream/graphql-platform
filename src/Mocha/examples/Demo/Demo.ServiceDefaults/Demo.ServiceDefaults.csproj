@@ -2,8 +2,6 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Demo.ServiceDefaults</AssemblyName>
     <RootNamespace>HotChocolate.Demo.ServiceDefaults</RootNamespace>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
     <IsAspireSharedProject>true</IsAspireSharedProject>
   </PropertyGroup>
   <ItemGroup>

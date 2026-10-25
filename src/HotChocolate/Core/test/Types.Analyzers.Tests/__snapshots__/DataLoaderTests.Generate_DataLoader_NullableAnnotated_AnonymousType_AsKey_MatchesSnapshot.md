@@ -20,6 +20,9 @@ namespace TestNamespace
     {
     }
 
+    /// <summary>
+    /// A DataLoader generated from <see cref="global::TestNamespace.Dataloaders.GetStuff(global::System.Collections.Generic.IReadOnlyList&lt;global::System.ValueTuple&lt;global::TestNamespace.Id1, global::TestNamespace.Id2&gt;&gt;, global::System.Threading.CancellationToken)"/>.
+    /// </summary>
     public sealed partial class StuffDataLoader
         : global::GreenDonut.DataLoaderBase<(global::TestNamespace.Id1, global::TestNamespace.Id2?), global::TestNamespace.Stuff[]>
         , IStuffDataLoader

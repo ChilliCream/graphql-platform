@@ -1,0 +1,78 @@
+# End-to-end recording of the Tasks tab board's maximize toggle ('z'),
+# keystroke-driven, against the fixture workspace.
+#
+# Exercises BoardLayoutKind.Maximized: 'z' collapses the grid to the focused
+# column at full width with a "<index>/<count>" header suffix (rendered as
+# "<Name> - <index>/<count> (<count>)" by BoardMode.RenderMaximized +
+# ColumnPane.Render), Right moves which column is maximized, and a second
+# 'z' returns to the four-column grid (the fixture's empty "Ready" column is
+# hidden, so <count> is 4, not the view's full five). Every transition syncs
+# on a Wait+Screen sentinel anchored on a literal column header (with its
+# fixture task count) or card row from fixtures/seed.sql, never on Sleep.
+# Fixed geometry (Width/Height below) is the stability lever for this
+# full-screen layout: changing it requires `--update` of every board-flow*
+# golden. Height matches board-flow.tape.
+#
+# Launched via bare `nitro agent`, same as
+# board-flow.tape, so the tab strip is on screen throughout; this flow's own
+# job is the maximize toggle, so it does not also drive a tab switch.
+# Produces board-maximize-flow.gif + board-maximize-flow.txt.
+
+Output board-maximize-flow.gif
+Output board-maximize-flow.txt
+
+Set Shell bash
+Set FontSize 18
+Set Width 1100
+Set Height 850
+Set Padding 14
+Set TypingSpeed 50ms
+Set CursorBlink false
+
+# --- setup (hidden) ---
+Hide
+Type `export PS1="$ "` Enter
+Type `export PATH=/src/src/Nitro/CommandLine/test/e2e/bin:$PATH` Enter
+Type `export HOME=/tmp/home` Enter
+Type `mkdir -p "$HOME"` Enter
+Type `rm -rf /tmp/work && mkdir -p /tmp/work && cp -r /vhs/fixture/acme /tmp/work/acme && cd /tmp/work/acme` Enter
+Type `clear` Enter
+Show
+
+# --- the demo ---
+Type `nitro agent` Enter
+
+# Initial frame: five-column grid, focus on "Blocked" (index 0), selection
+# on its first row (acme-a1b); tolerant of the task table's column padding
+# via " +".
+Wait+Screen@30s /> ○ +bug +P0 +acme-a1b +Checkout crashes on Safari/
+
+# z: maximize the focused column ("Blocked", 1 of 4, 3 cards). The empty
+# "Ready" column is hidden, so the visible count is 4, not the view's full
+# five (see board-flow.tape's header).
+Type "z"
+Wait+Screen@30s /Blocked - 1\/4 \(3\)/
+
+# Right: the maximized column follows focus to "Deferred" (2 of 4, 1 card).
+Right
+Wait+Screen@30s /Deferred - 2\/4 \(1\)/
+
+# Right: "In Progress" (3 of 4, 1 card). The hidden "Ready" column is
+# skipped, so this single Right press moves focus straight past it.
+Right
+Wait+Screen@30s /In Progress - 3\/4 \(1\)/
+
+# Right: "Closed" (4 of 4, 1 card).
+Right
+Wait+Screen@30s /Closed - 4\/4 \(1\)/
+
+# z: restore the four-column grid, still focused on "Closed". Final state
+# for the golden: the neighboring "In Progress (1)" column header is visible
+# again, which only happens outside Maximized layout (Maximized shows one
+# column).
+Type "z"
+Wait+Screen@30s /In Progress \(1\)/
+
+Sleep 1500ms
+Screenshot board-maximize-flow-final.png
+Sleep 500ms

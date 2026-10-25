@@ -6,7 +6,7 @@ public sealed partial class CompositeResultDocument
 {
     internal bool TryGetValue(Cursor cursor, out sbyte value)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.Get(cursor);
         CheckExpectedType(ElementTokenType.Number, row.TokenType);
@@ -26,7 +26,7 @@ public sealed partial class CompositeResultDocument
 
     internal bool TryGetValue(Cursor cursor, out byte value)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.Get(cursor);
         CheckExpectedType(ElementTokenType.Number, row.TokenType);
@@ -46,7 +46,7 @@ public sealed partial class CompositeResultDocument
 
     internal bool TryGetValue(Cursor cursor, out short value)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.Get(cursor);
         CheckExpectedType(ElementTokenType.Number, row.TokenType);
@@ -66,7 +66,7 @@ public sealed partial class CompositeResultDocument
 
     internal bool TryGetValue(Cursor cursor, out ushort value)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.Get(cursor);
         CheckExpectedType(ElementTokenType.Number, row.TokenType);
@@ -86,7 +86,7 @@ public sealed partial class CompositeResultDocument
 
     internal bool TryGetValue(Cursor cursor, out int value)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.Get(cursor);
         CheckExpectedType(ElementTokenType.Number, row.TokenType);
@@ -106,7 +106,7 @@ public sealed partial class CompositeResultDocument
 
     internal bool TryGetValue(Cursor cursor, out uint value)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.Get(cursor);
         CheckExpectedType(ElementTokenType.Number, row.TokenType);
@@ -126,7 +126,7 @@ public sealed partial class CompositeResultDocument
 
     internal bool TryGetValue(Cursor cursor, out long value)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.Get(cursor);
         CheckExpectedType(ElementTokenType.Number, row.TokenType);
@@ -146,7 +146,7 @@ public sealed partial class CompositeResultDocument
 
     internal bool TryGetValue(Cursor cursor, out ulong value)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.Get(cursor);
         CheckExpectedType(ElementTokenType.Number, row.TokenType);
@@ -166,7 +166,7 @@ public sealed partial class CompositeResultDocument
 
     internal bool TryGetValue(Cursor cursor, out double value)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.Get(cursor);
         CheckExpectedType(ElementTokenType.Number, row.TokenType);
@@ -186,7 +186,7 @@ public sealed partial class CompositeResultDocument
 
     internal bool TryGetValue(Cursor cursor, out float value)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.Get(cursor);
         CheckExpectedType(ElementTokenType.Number, row.TokenType);
@@ -206,7 +206,7 @@ public sealed partial class CompositeResultDocument
 
     internal bool TryGetValue(Cursor cursor, out decimal value)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.Get(cursor);
         CheckExpectedType(ElementTokenType.Number, row.TokenType);

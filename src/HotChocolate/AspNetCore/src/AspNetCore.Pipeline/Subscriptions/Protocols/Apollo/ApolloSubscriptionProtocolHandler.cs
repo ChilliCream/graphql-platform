@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.AspNetCore.Formatters;
+using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
 using HotChocolate.Text.Json;
@@ -18,13 +19,16 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
 {
     private readonly ISocketSessionInterceptor _interceptor;
     private readonly IWebSocketPayloadFormatter _formatter;
+    private readonly IServerDiagnosticEvents _diagnosticEvents;
 
     public ApolloSubscriptionProtocolHandler(
         ISocketSessionInterceptor interceptor,
-        IWebSocketPayloadFormatter formatter)
+        IWebSocketPayloadFormatter formatter,
+        IServerDiagnosticEvents diagnosticEvents)
     {
         _interceptor = interceptor;
         _formatter = formatter;
+        _diagnosticEvents = diagnosticEvents;
     }
 
     public string Name => GraphQL_WS;
@@ -55,13 +59,6 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         var connection = session.Connection;
         var connected = connection.IsConnected;
 
-        if (connected && message.IsSingleSegment
-            && message.First.Equals(Utf8MessageBodies.KeepAlive))
-        {
-            // received a simple ping, we do not need to answer to this message.
-            return;
-        }
-
         using var document = JsonDocument.Parse(message);
         var root = document.RootElement;
         JsonElement idProp;
@@ -85,6 +82,12 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
             return;
         }
 
+        if (type.ValueEquals("ka"u8))
+        {
+            // a client keep-alive is a no-op, we must not close the connection.
+            return;
+        }
+
         if (type.ValueEquals(Utf8Messages.ConnectionInitialize))
         {
             if (connected)
@@ -95,6 +98,10 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
                     cancellationToken);
                 return;
             }
+
+            // signal that the client sent the connection init in time, even if accepting the
+            // connection (for example authentication) still needs to run.
+            ((WebSocketConnection)connection).ConnectionInitReceived = true;
 
             var operationMessageObj =
                 TryGetPayload(root, out var payload)
@@ -109,7 +116,8 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
 
             if (connectionStatus.Accepted)
             {
-                connection.IsConnected = true;
+                ((WebSocketConnection)connection).IsConnected = true;
+                _diagnosticEvents.WebSocketConnectionInitialized(session, operationMessageObj);
                 await SendConnectionAcceptMessage(
                     session,
                     connectionStatus.Extensions,

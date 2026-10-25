@@ -25,21 +25,21 @@ response:
           {
             "node": {
               "product": {
-                "subgraph2": "Product: UHJvZHVjdDo5"
+                "subgraph2": "Product: UHJvZHVjdDoxNDA3NjE3OTA1"
               }
             }
           },
           {
             "node": {
               "product": {
-                "subgraph2": "Product: UHJvZHVjdDo4"
+                "subgraph2": "Product: UHJvZHVjdDozNDM1NDA3NjIy"
               }
             }
           },
           {
             "node": {
               "product": {
-                "subgraph2": "Product: UHJvZHVjdDo3"
+                "subgraph2": "Product: UHJvZHVjdDoxNTAzNDY2NjE1"
               }
             }
           }
@@ -51,6 +51,10 @@ sourceSchemas:
     schema: |
       schema {
         query: Query
+      }
+
+      type Query {
+        postEdges: [PostEdge]
       }
 
       type Author @key(fields: "id") {
@@ -73,10 +77,6 @@ sourceSchemas:
 
       type Product @key(fields: "id") {
         id: ID!
-      }
-
-      type Query {
-        postEdges: [PostEdge]
       }
 
       union Post = Photo | Discussion
@@ -111,7 +111,7 @@ sourceSchemas:
                       "node": {
                         "__typename": "Photo",
                         "product": {
-                          "id": "UHJvZHVjdDo5"
+                          "id": "UHJvZHVjdDoxNDA3NjE3OTA1"
                         }
                       }
                     },
@@ -119,7 +119,7 @@ sourceSchemas:
                       "node": {
                         "__typename": "Photo",
                         "product": {
-                          "id": "UHJvZHVjdDo4"
+                          "id": "UHJvZHVjdDozNDM1NDA3NjIy"
                         }
                       }
                     },
@@ -127,7 +127,7 @@ sourceSchemas:
                       "node": {
                         "__typename": "Photo",
                         "product": {
-                          "id": "UHJvZHVjdDo3"
+                          "id": "UHJvZHVjdDoxNTAzNDY2NjE1"
                         }
                       }
                     }
@@ -140,6 +140,11 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        productById(id: ID!): Product @lookup
+        authorById(id: ID!): Author @lookup
+      }
+
       type Author {
         id: ID!
         subgraph2: String!
@@ -148,11 +153,6 @@ sourceSchemas:
       type Product {
         id: ID!
         subgraph2: String!
-      }
-
-      type Query {
-        productById(id: ID!): Product @lookup
-        authorById(id: ID!): Author @lookup
       }
     interactions:
       - request:
@@ -166,13 +166,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_2_id": "UHJvZHVjdDo5"
+                "__fusion_2_id": "UHJvZHVjdDoxNDA3NjE3OTA1"
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDo4"
+                "__fusion_2_id": "UHJvZHVjdDozNDM1NDA3NjIy"
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDo3"
+                "__fusion_2_id": "UHJvZHVjdDoxNTAzNDY2NjE1"
               }
             ]
         response:
@@ -182,7 +182,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDo5"
+                    "subgraph2": "Product: UHJvZHVjdDoxNDA3NjE3OTA1"
                   }
                 }
               }
@@ -190,7 +190,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDo4"
+                    "subgraph2": "Product: UHJvZHVjdDozNDM1NDA3NjIy"
                   }
                 }
               }
@@ -198,7 +198,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDo3"
+                    "subgraph2": "Product: UHJvZHVjdDoxNTAzNDY2NjE1"
                   }
                 }
               }
@@ -225,7 +225,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 4ba127aba8ffc260347c8622a2df5d92
+      hash: de4ef66fda388602b63306049fa5c673
       searchSpace: 1
       expandedNodes: 2
   nodes:
@@ -261,7 +261,7 @@ operationPlan:
         }
       source: $.authorById
       target: $.postEdges.node<Discussion>.author
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -279,7 +279,7 @@ operationPlan:
         }
       source: $.productById
       target: $.postEdges.node<Photo>.product
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

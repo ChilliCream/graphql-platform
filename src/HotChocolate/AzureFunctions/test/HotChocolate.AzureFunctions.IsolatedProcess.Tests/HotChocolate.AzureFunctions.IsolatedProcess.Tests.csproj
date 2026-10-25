@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
   <ItemGroup>
     <ProjectReference Include="..\..\src\HotChocolate.AzureFunctions.IsolatedProcess\HotChocolate.AzureFunctions.IsolatedProcess.csproj" />
     <ProjectReference Include="..\HotChocolate.AzureFunctions.Tests\HotChocolate.AzureFunctions.Tests.csproj" />

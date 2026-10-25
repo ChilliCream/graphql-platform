@@ -15,12 +15,13 @@ public class WarmupRequestTests
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         const string documentId = "f614e9a2ed367399e87751d41ca09105";
         var warmupRequest = OperationRequestBuilder.New()
             .SetDocument("query test($name: String!) { greeting(name: $name) }")
             .SetDocumentId(documentId)
+            .SetVariableValues(new Dictionary<string, object?> { ["name"] = "Warmup" })
             .MarkAsWarmupRequest()
             .Build();
 
@@ -30,7 +31,7 @@ public class WarmupRequestTests
             .Build();
 
         // act 1
-        var warmupResult = await executor.ExecuteAsync(warmupRequest);
+        var warmupResult = await executor.ExecuteAsync(warmupRequest, TestContext.Current.CancellationToken);
 
         // assert 1
         Assert.IsType<WarmupExecutionResult>(warmupResult);
@@ -42,7 +43,7 @@ public class WarmupRequestTests
         Assert.Equal(1, operationCache.Count);
 
         // act 2
-        var regularResult = await executor.ExecuteAsync(regularRequest);
+        var regularResult = await executor.ExecuteAsync(regularRequest, TestContext.Current.CancellationToken);
         var regularOperationResult = regularResult.ExpectOperationResult();
 
         // assert 2
@@ -66,17 +67,18 @@ public class WarmupRequestTests
             .ModifyRequestOptions(
                 options => options.PersistedOperations.OnlyAllowPersistedDocuments = true)
             .UsePersistedOperationPipeline()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         const string documentId = "f614e9a2ed367399e87751d41ca09105";
         var warmupRequest = OperationRequestBuilder.New()
             .SetDocument("query test($name: String!) { greeting(name: $name) }")
             .SetDocumentId(documentId)
+            .SetVariableValues(new Dictionary<string, object?> { ["name"] = "Warmup" })
             .MarkAsWarmupRequest()
             .Build();
 
         // act
-        var warmupResult = await executor.ExecuteAsync(warmupRequest);
+        var warmupResult = await executor.ExecuteAsync(warmupRequest, TestContext.Current.CancellationToken);
 
         // assert
         Assert.IsType<WarmupExecutionResult>(warmupResult);

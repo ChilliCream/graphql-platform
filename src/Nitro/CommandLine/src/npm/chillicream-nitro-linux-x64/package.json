@@ -1,0 +1,32 @@
+{
+  "name": "@chillicream/nitro-linux-x64",
+  "version": "0.0.0",
+  "description": "Nitro CLI binary for linux-x64 (glibc)",
+  "homepage": "https://chillicream.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ChilliCream/graphql-platform",
+    "directory": "src/Nitro/CommandLine/src/npm/chillicream-nitro-linux-x64"
+  },
+  "bugs": {
+    "url": "https://github.com/ChilliCream/graphql-platform/issues"
+  },
+  "author": {
+    "name": "ChilliCream",
+    "url": "https://chillicream.com",
+    "email": "info@chillicream.com"
+  },
+  "license": "MIT",
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "libc": [
+    "glibc"
+  ],
+  "files": [
+    "nitro"
+  ]
+}

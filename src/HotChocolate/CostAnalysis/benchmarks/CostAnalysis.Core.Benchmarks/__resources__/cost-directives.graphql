@@ -1,0 +1,8 @@
+directive @cost(weight: String!) on ARGUMENT_DEFINITION | ENUM | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | OBJECT | SCALAR
+directive @listSize(
+  assumedSize: Int
+  slicingArguments: [String!]
+  slicingArgumentDefaultValue: Float
+  sizedFields: [String!]
+  requireOneSlicingArgument: Boolean = true
+) on FIELD_DEFINITION

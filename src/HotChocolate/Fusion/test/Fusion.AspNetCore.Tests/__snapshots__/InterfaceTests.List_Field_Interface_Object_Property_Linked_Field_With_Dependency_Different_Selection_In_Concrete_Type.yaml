@@ -23,24 +23,24 @@ response:
           {
             "authorable": {
               "author": {
-                "displayName": "Author: QXV0aG9yOjk=",
-                "email": "Author: QXV0aG9yOjk="
+                "displayName": "Author: QXV0aG9yOjI5NDQ0MDk4MTI=",
+                "email": "Author: QXV0aG9yOjI5NDQ0MDk4MTI="
               }
             }
           },
           {
             "authorable": {
               "author": {
-                "displayName": "Author: QXV0aG9yOjg=",
-                "email": "Author: QXV0aG9yOjg="
+                "displayName": "Author: QXV0aG9yOjM3NDMxNzY1NjQ=",
+                "email": "Author: QXV0aG9yOjM3NDMxNzY1NjQ="
               }
             }
           },
           {
             "authorable": {
               "author": {
-                "displayName": "Author: QXV0aG9yOjc=",
-                "email": "Author: QXV0aG9yOjc="
+                "displayName": "Author: QXV0aG9yOjI5MjE4NTE3Mzg=",
+                "email": "Author: QXV0aG9yOjI5MjE4NTE3Mzg="
               }
             }
           }
@@ -54,8 +54,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Authorable {
-        author: Author
+      type Query {
+        wrappers: [Wrapper]
       }
 
       type Author @key(fields: "id") {
@@ -70,12 +70,12 @@ sourceSchemas:
         author: Author
       }
 
-      type Query {
-        wrappers: [Wrapper]
-      }
-
       type Wrapper {
         authorable: Authorable
+      }
+
+      interface Authorable {
+        author: Author
       }
     interactions:
       - request:
@@ -106,7 +106,7 @@ sourceSchemas:
                       "authorable": {
                         "__typename": "Discussion",
                         "author": {
-                          "id": "QXV0aG9yOjk="
+                          "id": "QXV0aG9yOjI5NDQ0MDk4MTI="
                         }
                       }
                     },
@@ -114,7 +114,7 @@ sourceSchemas:
                       "authorable": {
                         "__typename": "Discussion",
                         "author": {
-                          "id": "QXV0aG9yOjg="
+                          "id": "QXV0aG9yOjM3NDMxNzY1NjQ="
                         }
                       }
                     },
@@ -122,7 +122,7 @@ sourceSchemas:
                       "authorable": {
                         "__typename": "Discussion",
                         "author": {
-                          "id": "QXV0aG9yOjc="
+                          "id": "QXV0aG9yOjI5MjE4NTE3Mzg="
                         }
                       }
                     }
@@ -135,14 +135,14 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        authorById(id: ID!): Author @lookup
+      }
+
       type Author {
         id: ID!
         displayName: String!
         email: String
-      }
-
-      type Query {
-        authorById(id: ID!): Author @lookup
       }
     interactions:
       - request:
@@ -158,13 +158,13 @@ sourceSchemas:
               variables: |
                 [
                   {
-                    "__fusion_1_id": "QXV0aG9yOjk="
+                    "__fusion_1_id": "QXV0aG9yOjI5NDQ0MDk4MTI="
                   },
                   {
-                    "__fusion_1_id": "QXV0aG9yOjg="
+                    "__fusion_1_id": "QXV0aG9yOjM3NDMxNzY1NjQ="
                   },
                   {
-                    "__fusion_1_id": "QXV0aG9yOjc="
+                    "__fusion_1_id": "QXV0aG9yOjI5MjE4NTE3Mzg="
                   }
                 ]
             - document: |
@@ -176,13 +176,13 @@ sourceSchemas:
               variables: |
                 [
                   {
-                    "__fusion_2_id": "QXV0aG9yOjk="
+                    "__fusion_2_id": "QXV0aG9yOjI5NDQ0MDk4MTI="
                   },
                   {
-                    "__fusion_2_id": "QXV0aG9yOjg="
+                    "__fusion_2_id": "QXV0aG9yOjM3NDMxNzY1NjQ="
                   },
                   {
-                    "__fusion_2_id": "QXV0aG9yOjc="
+                    "__fusion_2_id": "QXV0aG9yOjI5MjE4NTE3Mzg="
                   }
                 ]
         response:
@@ -192,7 +192,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "displayName": "Author: QXV0aG9yOjg="
+                    "displayName": "Author: QXV0aG9yOjM3NDMxNzY1NjQ="
                   }
                 }
               }
@@ -200,7 +200,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "displayName": "Author: QXV0aG9yOjc="
+                    "displayName": "Author: QXV0aG9yOjI5MjE4NTE3Mzg="
                   }
                 }
               }
@@ -208,7 +208,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "email": "Author: QXV0aG9yOjc="
+                    "email": "Author: QXV0aG9yOjI5MjE4NTE3Mzg="
                   }
                 }
               }
@@ -216,7 +216,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "displayName": "Author: QXV0aG9yOjk="
+                    "displayName": "Author: QXV0aG9yOjI5NDQ0MDk4MTI="
                   }
                 }
               }
@@ -224,7 +224,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "email": "Author: QXV0aG9yOjk="
+                    "email": "Author: QXV0aG9yOjI5NDQ0MDk4MTI="
                   }
                 }
               }
@@ -232,7 +232,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "email": "Author: QXV0aG9yOjg="
+                    "email": "Author: QXV0aG9yOjM3NDMxNzY1NjQ="
                   }
                 }
               }
@@ -257,7 +257,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: a7ffad6524e32b71feed6541aa4acfb2
+      hash: 0f2dec6969a82139673e50a9080cf8c4
       searchSpace: 1
       expandedNodes: 2
   nodes:
@@ -291,7 +291,7 @@ operationPlan:
         }
       source: $.authorById
       target: $.wrappers.authorable<Discussion>.author
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -309,7 +309,7 @@ operationPlan:
         }
       source: $.authorById
       target: $.wrappers.authorable.author
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

@@ -19,19 +19,19 @@ response:
           {
             "votable": {
               "viewerCanVote": true,
-              "title": "Discussion: RGlzY3Vzc2lvbjo0"
+              "title": "Discussion: RGlzY3Vzc2lvbjozMzcxMjEwMzU1"
             }
           },
           {
             "votable": {
               "viewerCanVote": true,
-              "title": "Discussion: RGlzY3Vzc2lvbjo1"
+              "title": "Discussion: RGlzY3Vzc2lvbjoyNjYwMDg1Mzg1"
             }
           },
           {
             "votable": {
               "viewerCanVote": true,
-              "title": "Discussion: RGlzY3Vzc2lvbjo2"
+              "title": "Discussion: RGlzY3Vzc2lvbjoyMzA2MzgxODg4"
             }
           }
         ]
@@ -44,8 +44,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Votable {
-        viewerCanVote: Boolean!
+      type Query {
+        wrappers: [Wrapper]
       }
 
       type Comment implements Votable {
@@ -59,12 +59,12 @@ sourceSchemas:
         title: String!
       }
 
-      type Query {
-        wrappers: [Wrapper]
-      }
-
       type Wrapper {
         votable: Votable
+      }
+
+      interface Votable {
+        viewerCanVote: Boolean!
       }
     interactions:
       - request:
@@ -91,21 +91,21 @@ sourceSchemas:
                       "votable": {
                         "__typename": "Discussion",
                         "viewerCanVote": true,
-                        "title": "Discussion: RGlzY3Vzc2lvbjo0"
+                        "title": "Discussion: RGlzY3Vzc2lvbjozMzcxMjEwMzU1"
                       }
                     },
                     {
                       "votable": {
                         "__typename": "Discussion",
                         "viewerCanVote": true,
-                        "title": "Discussion: RGlzY3Vzc2lvbjo1"
+                        "title": "Discussion: RGlzY3Vzc2lvbjoyNjYwMDg1Mzg1"
                       }
                     },
                     {
                       "votable": {
                         "__typename": "Discussion",
                         "viewerCanVote": true,
-                        "title": "Discussion: RGlzY3Vzc2lvbjo2"
+                        "title": "Discussion: RGlzY3Vzc2lvbjoyMzA2MzgxODg4"
                       }
                     }
                   ]
@@ -126,7 +126,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 877cb4f8633906ccccbeccaa1d5ee865
+      hash: 8c48648d507859244be6455ff8d46126
       searchSpace: 1
       expandedNodes: 1
   nodes:

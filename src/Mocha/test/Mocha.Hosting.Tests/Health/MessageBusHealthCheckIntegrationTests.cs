@@ -14,7 +14,7 @@ public sealed class MessageBusHealthCheckIntegrationTests
         var healthCheckService = provider.GetRequiredService<HealthCheckService>();
 
         // Act
-        var report = await healthCheckService.CheckHealthAsync(default);
+        var report = await healthCheckService.CheckHealthAsync(TestContext.Current.CancellationToken);
 
         // Assert
         var entry = Assert.Contains("MessageBus", report.Entries);
@@ -32,7 +32,7 @@ public sealed class MessageBusHealthCheckIntegrationTests
         // Act & Assert
         for (var i = 0; i < 3; i++)
         {
-            var report = await healthCheckService.CheckHealthAsync(default);
+            var report = await healthCheckService.CheckHealthAsync(TestContext.Current.CancellationToken);
             var entry = Assert.Contains("MessageBus", report.Entries);
             Assert.Equal(HealthStatus.Healthy, entry.Status);
         }

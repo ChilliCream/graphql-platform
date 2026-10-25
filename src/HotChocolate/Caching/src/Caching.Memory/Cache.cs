@@ -17,6 +17,9 @@ public sealed class Cache<TValue>
     private readonly int _capacity;
     private readonly CacheEntry?[] _ring;
     private readonly ConcurrentDictionary<string, CacheEntry> _map;
+#if NET9_0_OR_GREATER
+    private readonly ConcurrentDictionary<string, CacheEntry>.AlternateLookup<ReadOnlySpan<char>> _spanLookup;
+#endif
     private readonly CacheDiagnostics _diagnostics;
 
     // The clock hand is incremented atomically and is used to
@@ -46,6 +49,9 @@ public sealed class Cache<TValue>
             concurrencyLevel: Environment.ProcessorCount,
             capacity: _capacity,
             comparer: StringComparer.Ordinal);
+#if NET9_0_OR_GREATER
+        _spanLookup = _map.GetAlternateLookup<ReadOnlySpan<char>>();
+#endif
         _diagnostics = diagnostics ?? NoOpCacheDiagnostics.Instance;
         _diagnostics.RegisterCapacityGauge(() => _capacity);
         _diagnostics.RegisterSizeGauge(() => _map.Count);
@@ -76,6 +82,8 @@ public sealed class Cache<TValue>
     /// </returns>
     public bool TryGet(string key, [NotNullWhen(true)] out TValue? value)
     {
+        ArgumentException.ThrowIfNullOrEmpty(key);
+
         if (_map.TryGetValue(key, out var entry))
         {
             // We mark our entry as used by setting Accessed to 1
@@ -104,6 +112,8 @@ public sealed class Cache<TValue>
     /// </param>
     public void TryAdd(string key, TValue value)
     {
+        ArgumentException.ThrowIfNullOrEmpty(key);
+
         var args = new CacheEntryCreateArgs<TValue>(value, static (_, v) => v, this);
 
         // we use the same mechanism as in GetOrCreate, but we do not
@@ -154,7 +164,7 @@ public sealed class Cache<TValue>
     /// </returns>
     public TValue GetOrCreate<TState>(string key, Func<string, TState, TValue> create, TState state)
     {
-        ArgumentNullException.ThrowIfNull(key);
+        ArgumentException.ThrowIfNullOrEmpty(key);
         ArgumentNullException.ThrowIfNull(create);
 
         // We first check if the entry is already in the map.
@@ -206,6 +216,139 @@ public sealed class Cache<TValue>
         Volatile.Write(ref entry.Accessed, 1);
         return entry.Value;
     }
+
+#if NET9_0_OR_GREATER
+    /// <summary>
+    /// Tries to get a value from the cache without allocating a string on a cache hit.
+    /// </summary>
+    /// <param name="key">
+    /// The key to look up.
+    /// </param>
+    /// <param name="value">
+    /// The value that was found.
+    /// </param>
+    /// <returns>
+    /// True if the value was found, otherwise false.
+    /// </returns>
+    public bool TryGet(ReadOnlySpan<char> key, [NotNullWhen(true)] out TValue? value)
+    {
+        if (key.IsEmpty)
+        {
+            throw new ArgumentException("The key cannot be empty.", nameof(key));
+        }
+
+        if (_spanLookup.TryGetValue(key, out var entry))
+        {
+            // We mark our entry as used by setting Accessed to 1
+            // this means the entry will be safe from the next eviction.
+            // Note: Volatile.Write is faster than Interlocked.Exchange, and we accept the
+            // tiny risk that an in‑flight eviction may still remove this entry.
+            Volatile.Write(ref entry.Accessed, 1);
+            _diagnostics.Hit();
+            value = entry.Value!;
+            return true;
+        }
+
+        _diagnostics.Miss();
+        value = default;
+        return false;
+    }
+
+    /// <summary>
+    /// Tries to add a value to the cache if it does not exist.
+    /// No string allocation occurs when the key is already present.
+    /// </summary>
+    /// <param name="key">
+    /// The key to add.
+    /// </param>
+    /// <param name="value">
+    /// The value to add.
+    /// </param>
+    public void TryAdd(ReadOnlySpan<char> key, TValue value)
+    {
+        if (key.IsEmpty)
+        {
+            throw new ArgumentException("The key cannot be empty.", nameof(key));
+        }
+
+        if (_spanLookup.ContainsKey(key))
+        {
+            return;
+        }
+
+        TryAdd(key.ToString(), value);
+    }
+
+    /// <summary>
+    /// Gets a value from the cache or creates it if it does not exist.
+    /// No string allocation occurs on a cache hit.
+    /// </summary>
+    /// <param name="key">
+    /// The key to look up.
+    /// </param>
+    /// <param name="create">
+    /// The function to create the value if it does not exist.
+    /// </param>
+    /// <returns>
+    /// The value that was found or created.
+    /// </returns>
+    public TValue GetOrCreate(ReadOnlySpan<char> key, Func<string, TValue> create)
+    {
+        if (key.IsEmpty)
+        {
+            throw new ArgumentException("The key cannot be empty.", nameof(key));
+        }
+
+        return GetOrCreate(key, static (k, f) => f(k), create);
+    }
+
+    /// <summary>
+    /// Gets a value from the cache or creates it if it does not exist.
+    /// No string allocation occurs on a cache hit.
+    /// </summary>
+    /// <param name="key">
+    /// The key to look up.
+    /// </param>
+    /// <param name="create">
+    /// The function to create the value if it does not exist.
+    /// </param>
+    /// <param name="state">
+    /// The state that is passed to the create function.
+    /// </param>
+    /// <typeparam name="TState">
+    /// The type of the state that is passed to the create function.
+    /// </typeparam>
+    /// <returns>
+    /// The value that was found or created.
+    /// </returns>
+    public TValue GetOrCreate<TState>(ReadOnlySpan<char> key, Func<string, TState, TValue> create, TState state)
+    {
+        if (key.IsEmpty)
+        {
+            throw new ArgumentException("The key cannot be empty.", nameof(key));
+        }
+
+        ArgumentNullException.ThrowIfNull(create);
+
+        // We first check if the entry is already in the map.
+        // This is a fast lookup and will be used most of the time.
+        if (_spanLookup.TryGetValue(key, out var entry))
+        {
+            // We mark our entry as used by setting Accessed to 1
+            // this means the entry will be safe from the next eviction.
+            // Note: Volatile.Write is faster than Interlocked.Exchange, and we accept the
+            // tiny risk that an in‑flight eviction may still remove this entry.
+            Volatile.Write(ref entry.Accessed, 1);
+            _diagnostics.Hit();
+            return entry.Value;
+        }
+
+        // On a miss, we materialize the key and delegate to the string-keyed overload
+        // so the single-race-winner invariant of GetOrAdd is preserved.
+        return GetOrCreate(key.ToString(), create, state);
+    }
+
+#endif
 
     private CacheEntry InsertNew(string key, TValue value)
     {
@@ -263,7 +406,7 @@ public sealed class Cache<TValue>
     /// <summary>
     /// Returns all keys in the cache. This method is for testing only.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>All keys currently in the cache.</returns>
     internal IEnumerable<string> GetKeys()
     {
         foreach (var entry in _ring)

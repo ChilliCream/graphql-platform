@@ -347,7 +347,7 @@ public class MessagingVisitorTests
         public List<string> Calls { get; } = [];
     }
 
-    public class RecordingVisitor : MessagingVisitor<RecordingContext>
+    internal class RecordingVisitor : MessagingVisitor<RecordingContext>
     {
         public RecordingContext Context { get; private set; } = new();
 
@@ -466,7 +466,7 @@ public class MessagingVisitorTests
         }
     }
 
-    public sealed class BreakOnRuntimeVisitor : RecordingVisitor
+    internal sealed class BreakOnRuntimeVisitor : RecordingVisitor
     {
         protected override VisitorAction Enter(MessagingRuntime runtime, RecordingContext context)
         {
@@ -475,7 +475,7 @@ public class MessagingVisitorTests
         }
     }
 
-    public sealed class BreakOnFirstMessageTypeVisitor : RecordingVisitor
+    internal sealed class BreakOnFirstMessageTypeVisitor : RecordingVisitor
     {
         protected override VisitorAction Enter(MessageType messageType, RecordingContext context)
         {
@@ -484,7 +484,7 @@ public class MessagingVisitorTests
         }
     }
 
-    public sealed class SkipAllMessageTypesVisitor : RecordingVisitor
+    internal sealed class SkipAllMessageTypesVisitor : RecordingVisitor
     {
         protected override VisitorAction Enter(MessageType messageType, RecordingContext context)
         {
@@ -493,7 +493,7 @@ public class MessagingVisitorTests
         }
     }
 
-    public sealed class BreakOnTransportVisitor : RecordingVisitor
+    internal sealed class BreakOnTransportVisitor : RecordingVisitor
     {
         protected override VisitorAction Enter(MessagingTransport transport, RecordingContext context)
         {
@@ -502,7 +502,7 @@ public class MessagingVisitorTests
         }
     }
 
-    public sealed class SkipTransportVisitor : RecordingVisitor
+    internal sealed class SkipTransportVisitor : RecordingVisitor
     {
         protected override VisitorAction Enter(MessagingTransport transport, RecordingContext context)
         {
@@ -511,7 +511,7 @@ public class MessagingVisitorTests
         }
     }
 
-    public sealed class BreakOnFirstConsumerVisitor : RecordingVisitor
+    internal sealed class BreakOnFirstConsumerVisitor : RecordingVisitor
     {
         protected override VisitorAction Enter(Consumer consumer, RecordingContext context)
         {

@@ -47,4 +47,22 @@ public class ArgumentUniquenessRuleTests
                 + "set is ambiguous and invalid.",
                 t.Message));
     }
+
+    [Fact]
+    public void Validate_Should_Report_When_ASpreadPassesTheSameArgumentTwice()
+    {
+        ExpectErrors(
+            """
+            {
+                dog {
+                    ...withVariable(atOtherHomes: true, atOtherHomes: false)
+                }
+            }
+
+            fragment withVariable($atOtherHomes: Boolean) on Dog {
+                isHouseTrained(atOtherHomes: $atOtherHomes)
+            }
+            """,
+            FragmentArgumentParserOptions);
+    }
 }

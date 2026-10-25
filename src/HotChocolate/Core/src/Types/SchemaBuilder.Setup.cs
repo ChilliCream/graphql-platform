@@ -28,6 +28,11 @@ public partial class SchemaBuilder
             return Create(builder, schema, context);
         }
 
+        [UnconditionalSuppressMessage(
+            "ReflectionAnalysis",
+            "IL2072",
+            Justification =
+                "Type interceptor types are registered by the framework and preserved at runtime.")]
         public static Schema Create(
             SchemaBuilder builder,
             LazySchema lazySchema,
@@ -168,11 +173,13 @@ public partial class SchemaBuilder
 
                 var visitorContext = new SchemaSyntaxVisitorContext(context)
                 {
+                    DirectiveExtensions = feature.DirectiveExtensions,
                     ScalarDirectives = feature.ScalarDirectives
                 };
 
                 visitor.Visit(schemaDocument, visitorContext);
                 types.AddRange(visitorContext.Types);
+                feature.DirectiveExtensions = visitorContext.DirectiveExtensions;
                 feature.ScalarDirectives = visitorContext.ScalarDirectives;
 
                 RegisterOperationName(
@@ -239,6 +246,11 @@ public partial class SchemaBuilder
             IReadOnlyList<TypeReference> typeReferences,
             TypeRegistry typeRegistry)
         {
+            RegisterOperationName(
+                builder,
+                OperationType.Query,
+                builder._options.QueryTypeName);
+
             var operations =
                 builder._operations.ToDictionary(
                     t => t.Key,
@@ -265,8 +277,7 @@ public partial class SchemaBuilder
 
                     typeRegistry.TryRegister(
                         runtimeTypeRef,
-                        binding.GetSchemaTypeReference(context.TypeInspector),
-                        explicitBinding: RuntimeTypeBindingHelper.RequiresExactBinding(runtimeTypeRef.Type));
+                        binding.GetSchemaTypeReference(context.TypeInspector));
                 }
             }
 
@@ -408,7 +419,11 @@ public partial class SchemaBuilder
                 static t => t.Key,
                 t => t.Value(context.TypeInspector));
 
-            ResolveOperations(definition, operations, typeRegistry);
+            ResolveOperations(
+                definition,
+                operations,
+                typeRegistry,
+                builder._options.QueryTypeName ?? OperationTypeNames.Query);
 
             var included = new HashSet<ITypeSystemMember>(typeRegistry.Types.Count);
             var types = new List<ITypeSystemMember>(typeRegistry.Types.Count);
@@ -441,7 +456,8 @@ public partial class SchemaBuilder
         private static void ResolveOperations(
             SchemaTypesConfiguration schemaDef,
             Dictionary<OperationType, TypeReference> operations,
-            TypeRegistry typeRegistry)
+            TypeRegistry typeRegistry,
+            string queryTypeName)
         {
             if (operations.Count == 0)
             {
@@ -451,7 +467,9 @@ public partial class SchemaBuilder
             }
             else
             {
-                schemaDef.QueryType = GetOperationType(OperationType.Query);
+                schemaDef.QueryType =
+                    GetOperationType(OperationType.Query)
+                    ?? GetObjectType(queryTypeName, OperationType.Query);
                 schemaDef.MutationType = GetOperationType(OperationType.Mutation);
                 schemaDef.SubscriptionType = GetOperationType(OperationType.Subscription);
             }

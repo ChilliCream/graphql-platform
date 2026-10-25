@@ -4,6 +4,7 @@
     <RootNamespace>HotChocolate.Adapters.OpenApi</RootNamespace>
     <PackageId>HotChocolate.Fusion.Adapters.OpenApi</PackageId>
     <TargetFrameworks>$(OpenApiTargetFrameworks)</TargetFrameworks>
+    <PackageIcon>fusion-icon.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>

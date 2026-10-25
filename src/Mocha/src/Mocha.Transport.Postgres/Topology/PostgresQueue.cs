@@ -49,6 +49,11 @@ public sealed class PostgresQueue : TopologyResource<PostgresQueueConfiguration>
         ImmutableInterlocked.Update(ref _subscriptions, static (s, sub) => s.Add(sub), subscription);
     }
 
+    /// <summary>
+    /// Marks this queue as auto-deleted.
+    /// </summary>
+    internal void MarkTemporary() => AutoDelete = true;
+
     /// <inheritdoc />
     public Task ProvisionAsync(
         PostgresConnectionManager connectionManager,

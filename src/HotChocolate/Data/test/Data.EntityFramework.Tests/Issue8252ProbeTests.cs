@@ -36,7 +36,7 @@ public sealed class Issue8252ProbeTests
             await using (var scope = services.CreateAsyncScope())
             {
                 await using var context = scope.ServiceProvider.GetRequiredService<Issue8252Context>();
-                await context.Database.EnsureCreatedAsync();
+                await context.Database.EnsureCreatedAsync(Xunit.TestContext.Current.CancellationToken);
 
                 context.Content.AddRange(
                     new TextContent
@@ -53,12 +53,12 @@ public sealed class Issue8252ProbeTests
                         Height = 10
                     });
 
-                await context.SaveChangesAsync();
+                await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
             }
 
             var executor = await services
                 .GetRequiredService<IRequestExecutorProvider>()
-                .GetExecutorAsync();
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
             // act
             var allFragments = await executor.ExecuteAsync(
@@ -75,7 +75,8 @@ public sealed class Issue8252ProbeTests
                     }
                   }
                 }
-                """);
+                """,
+                Xunit.TestContext.Current.CancellationToken);
 
             var textOnly = await executor.ExecuteAsync(
                 """
@@ -88,7 +89,8 @@ public sealed class Issue8252ProbeTests
                     }
                   }
                 }
-                """);
+                """,
+                Xunit.TestContext.Current.CancellationToken);
 
             var textOnlyWithTypeName = await executor.ExecuteAsync(
                 """
@@ -102,7 +104,8 @@ public sealed class Issue8252ProbeTests
                     }
                   }
                 }
-                """);
+                """,
+                Xunit.TestContext.Current.CancellationToken);
 
             // assert
             var allFragmentsResult = allFragments.ExpectOperationResult();
@@ -175,7 +178,7 @@ public sealed class Issue8252ProbeTests
             await using (var scope = services.CreateAsyncScope())
             {
                 await using var context = scope.ServiceProvider.GetRequiredService<Issue8252Context>();
-                await context.Database.EnsureCreatedAsync();
+                await context.Database.EnsureCreatedAsync(Xunit.TestContext.Current.CancellationToken);
 
                 context.Content.AddRange(
                     new TextContent
@@ -192,12 +195,12 @@ public sealed class Issue8252ProbeTests
                         Height = 10
                     });
 
-                await context.SaveChangesAsync();
+                await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
             }
 
             var executor = await services
                 .GetRequiredService<IRequestExecutorProvider>()
-                .GetExecutorAsync();
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
             // act
             var textOnlyWithTypeName = await executor.ExecuteAsync(
@@ -209,7 +212,8 @@ public sealed class Issue8252ProbeTests
                     }
                   }
                 }
-                """);
+                """,
+                Xunit.TestContext.Current.CancellationToken);
 
             // assert
             var result = textOnlyWithTypeName.ExpectOperationResult();

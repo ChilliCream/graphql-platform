@@ -41,7 +41,7 @@ public class DecimalType : FloatTypeBase<decimal>
         : base(name, min, max, bind)
     {
         Description = description;
-        SpecifiedBy = new Uri(SpecifiedByUri);
+        SpecifiedBy = SpecifiedByUri;
     }
 
     /// <summary>

@@ -12,9 +12,12 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
 #else
     private readonly object _sync = new();
 #endif
-    private readonly ConcurrentDictionary<(string Name, OperationType Type), ISourceSchemaClient> _clients = [];
+    private readonly ConcurrentDictionary<(string Name, OperationType Type), ClientEntry> _clients = [];
     private readonly ISourceSchemaClientFactory[] _clientFactories;
+    private readonly FusionSchemaDefinition _schemaDefinition;
     private readonly SourceSchemaClientConfigurations _configurations;
+    private long _requestTimestamp;
+    private int _ownedClientCount;
     private bool _disposed;
 
     public DefaultSourceSchemaClientScope(
@@ -25,6 +28,7 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
         ArgumentNullException.ThrowIfNull(clientFactories);
 
         _clientFactories = clientFactories;
+        _schemaDefinition = schemaDefinition;
         _configurations = schemaDefinition.Features.GetRequired<SourceSchemaClientConfigurations>();
     }
 
@@ -34,49 +38,75 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
 
         var key = (name, operationType);
 
-        if (!_clients.TryGetValue(key, out var sourceSchemaClient))
+        if (_clients.TryGetValue(key, out var entry) && entry.IsValid(_requestTimestamp))
         {
-            lock (_sync)
-            {
-                if (!_clients.TryGetValue(key, out sourceSchemaClient))
-                {
-                    if (!_configurations.TryGet(name, operationType, out var config))
-                    {
-                        throw new InvalidOperationException(
-                            $"No client configuration found for schema '{name}' and operation type {operationType}.");
-                    }
+            return entry.Client;
+        }
 
-                    sourceSchemaClient = CreateClient(config);
-                    _clients.TryAdd(key, sourceSchemaClient);
+        lock (_sync)
+        {
+            if (!_clients.TryGetValue(key, out entry) || !entry.IsValid(_requestTimestamp))
+            {
+                if (!_configurations.TryGet(name, operationType, out var config))
+                {
+                    throw ThrowHelper.ClientConfigurationNotFound(name, operationType);
+                }
+
+                // A shared client that is no longer valid is replaced, not disposed.
+                entry = CreateClient(config);
+                _clients[key] = entry;
+
+                if (entry.SharedClient is null)
+                {
+                    _ownedClientCount++;
                 }
             }
         }
 
-        return sourceSchemaClient;
+        return entry.Client;
     }
 
-    private ISourceSchemaClient CreateClient(ISourceSchemaClientConfiguration configuration)
+    /// <summary>
+    /// Starts a request that takes shared clients which are valid at the given
+    /// <see cref="System.Diagnostics.Stopwatch"/> timestamp.
+    /// </summary>
+    internal void BeginRequest(long timestamp) => _requestTimestamp = timestamp;
+
+    private ClientEntry CreateClient(ISourceSchemaClientConfiguration configuration)
+    {
+        var factory = GetFactory(configuration);
+
+        if (factory is ISharedSourceSchemaClientFactory sharedFactory
+            && sharedFactory.TryGetSharedClient(_schemaDefinition, configuration, out var sharedClient))
+        {
+            return new ClientEntry(sharedClient.Client, sharedClient);
+        }
+
+        return new ClientEntry(factory.CreateClient(_schemaDefinition, configuration), SharedClient: null);
+    }
+
+    private ISourceSchemaClientFactory GetFactory(ISourceSchemaClientConfiguration configuration)
     {
         var factories = _clientFactories;
 
         if (factories.Length > 0 && factories[0].CanHandle(configuration))
         {
-            return factories[0].CreateClient(configuration);
+            return factories[0];
         }
 
         if (factories.Length > 1 && factories[1].CanHandle(configuration))
         {
-            return factories[1].CreateClient(configuration);
+            return factories[1];
         }
 
         if (factories.Length > 2 && factories[2].CanHandle(configuration))
         {
-            return factories[2].CreateClient(configuration);
+            return factories[2];
         }
 
         if (factories.Length > 3 && factories[3].CanHandle(configuration))
         {
-            return factories[3].CreateClient(configuration);
+            return factories[3];
         }
 
         if (factories.Length > 4)
@@ -85,13 +115,42 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
             {
                 if (factories[i].CanHandle(configuration))
                 {
-                    return factories[i].CreateClient(configuration);
+                    return factories[i];
                 }
             }
         }
 
         throw new NotSupportedException(
             $"No client factory found for configuration type: {configuration.GetType().Name}.");
+    }
+
+    /// <summary>
+    /// Ends the current request so the scope can serve the next one. Shared clients are kept;
+    /// all other clients are disposed.
+    /// </summary>
+    internal ValueTask ResetAsync()
+    {
+        if (_disposed || _ownedClientCount == 0)
+        {
+            return ValueTask.CompletedTask;
+        }
+
+        return DisposeOwnedClientsAsync();
+    }
+
+    private async ValueTask DisposeOwnedClientsAsync()
+    {
+        foreach (var (key, entry) in _clients)
+        {
+            // Shared clients may still be in use by other requests, so they are never disposed.
+            if (entry.SharedClient is null)
+            {
+                _clients.TryRemove(key, out _);
+                await entry.Client.DisposeAsync().ConfigureAwait(false);
+            }
+        }
+
+        _ownedClientCount = 0;
     }
 
     public async ValueTask DisposeAsync()
@@ -101,12 +160,14 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
             return;
         }
 
-        foreach (var client in _clients.Values)
-        {
-            await client.DisposeAsync().ConfigureAwait(false);
-        }
-
-        _clients.Clear();
         _disposed = true;
+        await DisposeOwnedClientsAsync().ConfigureAwait(false);
+        _clients.Clear();
+    }
+
+    private readonly record struct ClientEntry(ISourceSchemaClient Client, SharedSourceSchemaClient? SharedClient)
+    {
+        public bool IsValid(long requestTimestamp)
+            => SharedClient is null || SharedClient.IsValid(requestTimestamp);
     }
 }

@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Mocha.Transport.AzureServiceBus</AssemblyName>
+    <RootNamespace>Mocha.Transport.AzureServiceBus</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Mocha.Abstractions\Mocha.Abstractions.csproj" />
+    <ProjectReference Include="..\Mocha\Mocha.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Azure.Messaging.ServiceBus" VersionOverride="7.20.1" />
+    <PackageReference Include="Azure.Identity" VersionOverride="1.13.2" />
+  </ItemGroup>
+</Project>

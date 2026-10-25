@@ -3,6 +3,14 @@ schema {
   mutation: FirstOrDefaultMutationManyToMany
 }
 
+type FirstOrDefaultQuery {
+  books(book: BookInput!): Book
+}
+
+type FirstOrDefaultMutationManyToMany {
+  addPublisher(publisher: PublisherInput!): Author
+}
+
 type Author {
   id: Int!
   name: String
@@ -16,14 +24,6 @@ type Book {
   title: String
   author: Author
   publisher: Publisher
-}
-
-type FirstOrDefaultMutationManyToMany {
-  addPublisher(publisher: PublisherInput!): Author
-}
-
-type FirstOrDefaultQuery {
-  books(book: BookInput!): Book
 }
 
 type Publisher {

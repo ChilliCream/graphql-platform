@@ -27,8 +27,8 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
               --openapi-collection-id <openapi-collection-id> (REQUIRED)  The ID of the OpenAPI collection [env: NITRO_OPENAPI_COLLECTION_ID]
               --stage <stage> (REQUIRED)                                  The name of the stage [env: NITRO_STAGE]
               -p, --pattern <pattern> (REQUIRED)                          One or more glob patterns for selecting OpenAPI document files
-              --cloud-url <cloud-url>                                     The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                                         The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>                                     The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                                         The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                                             The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                              Show help and usage information
 
@@ -63,7 +63,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -92,10 +92,8 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating OpenAPI collection against stage 'dev'
+            Validating OpenAPI collection 'oa-1' against stage 'dev'
             ├── Found 1 document(s).
-            ├── Starting validation request
-            │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the OpenAPI collection.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -125,13 +123,53 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating OpenAPI collection against stage 'dev'
+            Validating OpenAPI collection 'oa-1' against stage 'dev'
             ├── Found 1 document(s).
-            ├── Starting validation request
-            │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task StageNotFound_ReturnsError()
+    {
+        SetupOpenApiDocument();
+        SetupValidateOpenApiCollectionMutation(
+            new ValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors_StageNotFoundError(
+                "StageNotFoundError", "Stage not found.", Stage));
+
+        var result = await ExecuteCommandAsync(
+            "openapi", "validate", "--stage", Stage, "--openapi-collection-id", OpenApiCollectionId,
+            "--pattern", "**/*.graphql");
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task CollectionNotFound_ReturnsError()
+    {
+        SetupOpenApiDocument();
+        SetupValidateOpenApiCollectionMutation(
+            new ValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors_OpenApiCollectionNotFoundError(
+                OpenApiCollectionId, "OpenAPI collection not found."));
+
+        var result = await ExecuteCommandAsync(
+            "openapi", "validate", "--stage", Stage, "--openapi-collection-id", OpenApiCollectionId,
+            "--pattern", "**/*.graphql");
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            OpenAPI collection not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
         Assert.Equal(1, result.ExitCode);
     }
 
@@ -156,10 +194,8 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating OpenAPI collection against stage 'dev'
+            Validating OpenAPI collection 'oa-1' against stage 'dev'
             ├── Found 1 document(s).
-            ├── Starting validation request
-            │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -192,13 +228,10 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
         await AssertOpenApiCollectionArchive(capturedStream);
         result.AssertSuccess(
             """
-            Validating OpenAPI collection against stage 'dev'
+            Validating OpenAPI collection 'oa-1' against stage 'dev'
             ├── Found 1 document(s).
-            ├── Starting validation request
-            │   └── ✓ Validation request created (ID: request-1).
-            ├── Validating
-            │   └── ✓ Validation passed.
-            └── ✓ Validated OpenAPI collection against stage 'dev'.
+            ├── Validation request created. (ID: request-1)
+            └── ✓ OpenAPI collection passed validation.
             """);
     }
 
@@ -224,13 +257,10 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
         await AssertOpenApiCollectionArchive(capturedStream);
         result.AssertSuccess(
             """
-            Validating OpenAPI collection against stage 'dev'
+            Validating OpenAPI collection 'oa-1' against stage 'dev'
             ├── Found 1 document(s).
-            ├── Starting validation request
-            │   └── ✓ Validation request created (ID: request-1).
-            ├── Validating
-            │   └── ✓ Validation passed.
-            └── ✓ Validated OpenAPI collection against stage 'dev'.
+            ├── Validation request created. (ID: request-1)
+            └── ✓ OpenAPI collection passed validation.
             """);
     }
 
@@ -257,20 +287,17 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating OpenAPI collection against stage 'dev'
+            Validating OpenAPI collection 'oa-1' against stage 'dev'
             ├── Found 1 document(s).
-            ├── Starting validation request
-            │   └── ✓ Validation request created (ID: request-1).
-            ├── Validating
-            │   └── ✕ Validation failed.
-            │       └── OpenAPI collection 'petstore' (ID: collection-1)
-            │           └── Endpoint 'GET /fail'
-            │               └── The field `person` does not exist on the type `Query`. (1:14)
-            └── ✕ Failed to validate the OpenAPI collection.
+            ├── Validation request created. (ID: request-1)
+            └── ✕ OpenAPI collection failed validation.
+                └── OpenAPI collection 'petstore' (ID: collection-1)
+                    └── Endpoint 'GET /fail'
+                        └── The field `person` does not exist on the type `Query`. (1:14)
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            OpenAPI collection validation failed.
+            OpenAPI collection failed validation.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -286,23 +313,6 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
                     "Not authorized to validate."),
                 """
                 Not authorized to validate.
-                """
-            },
-            {
-                new ValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors_StageNotFoundError(
-                    "StageNotFoundError",
-                    "Stage not found.",
-                    Stage),
-                """
-                Stage not found.
-                """
-            },
-            {
-                new ValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors_OpenApiCollectionNotFoundError(
-                    OpenApiCollectionId,
-                    "OpenAPI collection not found."),
-                """
-                OpenAPI collection not found.
                 """
             }
         };

@@ -22,7 +22,10 @@ public static class TestServerHelper
                 builder.WebHost.UseKestrel();
                 builder.WebHost.UseUrls($"http://localhost:{port}");
 
-                var gqlBuilder = builder.Services.AddRouting().AddGraphQLServer();
+                var gqlBuilder = builder.Services
+                    .AddRouting()
+                    .AddGraphQLServer()
+                    .ModifyCostOptions(o => o.DefaultListSize = 1);
 
                 configure(gqlBuilder);
 

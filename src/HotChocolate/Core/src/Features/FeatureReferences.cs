@@ -98,7 +98,7 @@ public struct FeatureReferences<TCache>
         if (Revision != revision)
         {
             // Clear cached value to force call to UpdateCached
-            cached = null!;
+            cached = null;
             // Collection changed, clear whole feature cache
             flush = true;
         }

@@ -1,5 +1,9 @@
 using System.Buffers;
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
+#if NET10_0_OR_GREATER
+using System.Runtime.InteropServices;
+#endif
 using System.Text.Json;
 using HotChocolate.Features;
 using HotChocolate.Language;
@@ -50,7 +54,7 @@ public sealed class InputParser
             targetType = field.RuntimeType;
         }
 
-        return FormatAndConvertValue(field, path, value.Location, runtimeValue, false, false, targetType);
+        return FormatAndConvertValue(field, path, runtimeValue, false, false, targetType);
     }
 
     public object? ParseLiteral(IValueNode value, IType type, Path? path = null)
@@ -113,25 +117,37 @@ public sealed class InputParser
         bool defaults,
         IInputValueInfo? field)
     {
+        var elementType = type.ElementType;
+        var flatList = !elementType.IsListType();
+
+        // Input object elements can be materialized as dictionaries when the input
+        // object has no concrete runtime binding. Such a dictionary has to be
+        // converted to the list's runtime element type before it is added,
+        // otherwise the strongly typed runtime list would reject it.
+        var coerceElements = flatList && elementType.NamedType().Kind is TypeKind.InputObject;
+        var elementRuntimeType = coerceElements ? elementType.ToRuntimeType() : null;
+
         if (resultValue.Kind == SyntaxKind.ListValue)
         {
             var list = CreateList(type);
             var items = ((ListValueNode)resultValue).Items;
-            var flatList = !type.ElementType.IsListType();
-            var elementType = type.ElementType;
 
             if (flatList)
             {
                 for (var i = 0; i < items.Count; i++)
                 {
+                    var itemPath = path.Append(i);
+                    var element = ParseLiteralInternal(
+                        items[i],
+                        elementType,
+                        itemPath,
+                        stack,
+                        defaults,
+                        field);
                     list.Add(
-                        ParseLiteralInternal(
-                            items[i],
-                            elementType,
-                            path.Append(i),
-                            stack,
-                            defaults,
-                            field));
+                        coerceElements
+                            ? ConvertListElement(type, field, itemPath, elementRuntimeType!, element)
+                            : element);
                 }
             }
             else
@@ -163,16 +179,45 @@ public sealed class InputParser
         else
         {
             var list = CreateList(type);
+            var itemPath = path.Append(0);
+            var element = ParseLiteralInternal(
+                resultValue,
+                elementType,
+                itemPath,
+                stack,
+                defaults,
+                field);
             list.Add(
-                ParseLiteralInternal(
-                    resultValue,
-                    type.ElementType,
-                    path.Append(0),
-                    stack,
-                    defaults,
-                    field));
+                coerceElements
+                    ? ConvertListElement(type, field, itemPath, elementRuntimeType!, element)
+                    : element);
             return list;
         }
+    }
+
+    private object? ConvertListElement(
+        ListType type,
+        IInputValueInfo? field,
+        Path path,
+        Type elementRuntimeType,
+        object? element)
+    {
+        var value = ConvertValue(elementRuntimeType, element, out var conversionException);
+
+        if (conversionException is not null)
+        {
+            if (field is not null)
+            {
+                throw InvalidTypeConversion(type.ElementType, field, path, conversionException);
+            }
+
+            // Without a field context (the IType / JsonElement overloads) there is no
+            // coercion error to build, so surface the underlying conversion error
+            // instead of letting the runtime list throw a misleading type-mismatch.
+            throw conversionException;
+        }
+
+        return value;
     }
 
     private object ParseObject(
@@ -208,14 +253,19 @@ public sealed class InputParser
                 var fields = ((ObjectValueNode)resultValue).Fields;
                 var oneOf = type.IsOneOf;
 
-                if (oneOf && fields.Count is 0)
+                if (oneOf)
                 {
-                    throw OneOfNoFieldSet(type, path);
-                }
+                    var setFieldCount = CountOneOfFields(type, fields);
 
-                if (oneOf && fields.Count > 1)
-                {
-                    throw OneOfMoreThanOneFieldSet(type, path);
+                    if (setFieldCount is 0)
+                    {
+                        throw OneOfNoFieldSet(type, path);
+                    }
+
+                    if (setFieldCount > 1)
+                    {
+                        throw OneOfMoreThanOneFieldSet(type, path);
+                    }
                 }
 
                 for (var i = 0; i < fields.Count; i++)
@@ -302,16 +352,14 @@ public sealed class InputParser
         }
         catch (LeafCoercionException ex)
         {
-            if (field is null)
+            var errorBuilder = ErrorBuilder.FromError(ex.Errors[0]).SetInputPath(path);
+
+            if (field is not null)
             {
-                throw new LeafCoercionException(ex.Errors[0].WithPath(path), ex.Type, path);
+                errorBuilder.SetCoordinate(field.Coordinate);
             }
 
-            var error = ErrorBuilder.FromError(ex.Errors[0])
-                .SetInputPath(path)
-                .SetCoordinate(field.Coordinate)
-                .SetExtension("fieldType", type.Name)
-                .Build();
+            var error = errorBuilder.SetExtension("fieldType", type.Name).Build();
 
             throw new LeafCoercionException(error, ex.Type, path);
         }
@@ -476,6 +524,14 @@ public sealed class InputParser
         IFeatureProvider context)
     {
         var list = CreateList(type);
+        var elementType = type.ElementType;
+
+        // Input object elements can be materialized as dictionaries when the input
+        // object has no concrete runtime binding. Such a dictionary has to be
+        // converted to the list's runtime element type before it is added,
+        // otherwise the strongly typed runtime list would reject it.
+        var coerceElements = !elementType.IsListType() && elementType.NamedType().Kind is TypeKind.InputObject;
+        var elementRuntimeType = coerceElements ? elementType.ToRuntimeType() : null;
 
         if (inputValue.ValueKind is JsonValueKind.Array)
         {
@@ -483,13 +539,21 @@ public sealed class InputParser
             foreach (var element in inputValue.EnumerateArray())
             {
                 var newPath = path.Append(i++);
-                list.Add(Deserialize(element, type.ElementType, newPath, field, context));
+                var value = Deserialize(element, elementType, newPath, field, context);
+                list.Add(
+                    coerceElements
+                        ? ConvertListElement(type, field, newPath, elementRuntimeType!, value)
+                        : value);
             }
         }
         else
         {
             var newPath = path.Append(0);
-            list.Add(Deserialize(inputValue, type.ElementType, newPath, field, context));
+            var value = Deserialize(inputValue, elementType, newPath, field, context);
+            list.Add(
+                coerceElements
+                    ? ConvertListElement(type, field, newPath, elementRuntimeType!, value)
+                    : value);
         }
 
         return list;
@@ -500,35 +564,40 @@ public sealed class InputParser
         if (inputValue.ValueKind is JsonValueKind.Object)
         {
             var oneOf = type.IsOneOf;
-#if NET9_0_OR_GREATER
-            var propertyCount = inputValue.GetPropertyCount();
-#else
-            var propertyCount = inputValue.EnumerateObject().Count();
-#endif
 
-            if (oneOf && propertyCount is 0)
+            if (oneOf)
             {
-                throw OneOfNoFieldSet(type, path);
+                var setFieldCount = CountOneOfFields(type, inputValue);
+
+                if (setFieldCount is 0)
+                {
+                    throw OneOfNoFieldSet(type, path);
+                }
+
+                if (setFieldCount > 1)
+                {
+                    throw OneOfMoreThanOneFieldSet(type, path);
+                }
             }
 
-            if (oneOf && propertyCount > 1)
-            {
-                throw OneOfMoreThanOneFieldSet(type, path);
-            }
-
-            var processedFields = StringSetPool.Shared.Rent();
             List<string>? invalidFieldNames = null;
             var fieldValues = new object?[type.Fields.Count];
+            var processed = ArrayPool<bool>.Shared.Rent(fieldValues.Length);
+            processed.AsSpan(0, fieldValues.Length).Clear();
+            var processedCount = 0;
 
             try
             {
                 foreach (var property in inputValue.EnumerateObject())
                 {
-                    if (type.Fields.TryGetField(property.Name, out var field))
+                    if (TryGetField(type.Fields, property, out var field))
                     {
-                        var fieldPath = path.Append(field.Name);
-                        if (processedFields.Add(property.Name))
+                        if (!processed[field.Index])
                         {
+                            processed[field.Index] = true;
+                            processedCount++;
+                            var fieldPath = path.Append(field.Name);
+
                             if (property.Value.ValueKind is JsonValueKind.Null)
                             {
                                 if (field.Type.Kind is TypeKind.NonNull)
@@ -543,7 +612,7 @@ public sealed class InputParser
                             }
 
                             var value = Deserialize(property.Value, field.Type, fieldPath, field, context);
-                            value = FormatAndConvertValue(field, path, null, value, field.IsOptional, true);
+                            value = FormatAndConvertValue(field, path, value, field.IsOptional, true);
 
                             fieldValues[field.Index] = value;
                         }
@@ -555,13 +624,13 @@ public sealed class InputParser
                     }
                 }
 
-                if (processedFields.Count < fieldValues.Length)
+                if (processedCount < fieldValues.Length)
                 {
                     for (var i = 0; i < fieldValues.Length; i++)
                     {
-                        var field = type.Fields[i];
-                        if (processedFields.Add(field.Name))
+                        if (!processed[i])
                         {
+                            var field = type.Fields[i];
                             var fieldPath = path.Append(field.Name);
                             fieldValues[i] = CreateDefaultValue(field, fieldPath, 0);
                         }
@@ -570,7 +639,7 @@ public sealed class InputParser
             }
             finally
             {
-                StringSetPool.Shared.Return(processedFields);
+                ArrayPool<bool>.Shared.Return(processed);
             }
 
             if (invalidFieldNames?.Count > 0)
@@ -582,6 +651,84 @@ public sealed class InputParser
         }
 
         throw ParseInputObject_InvalidValueKind(type, path);
+    }
+
+    /// <summary>
+    /// Counts the fields that the OneOf check considers: every supplied field, or only
+    /// the fields defined on <paramref name="type"/> when additional fields are ignored.
+    /// </summary>
+    private int CountOneOfFields(
+        InputObjectType type,
+        IReadOnlyList<ObjectFieldNode> fields)
+    {
+        if (!_ignoreAdditionalInputFields)
+        {
+            return fields.Count;
+        }
+
+        var count = 0;
+
+        for (var i = 0; i < fields.Count; i++)
+        {
+            if (type.Fields.ContainsField(fields[i].Name.Value) && ++count > 1)
+            {
+                break;
+            }
+        }
+
+        return count;
+    }
+
+    /// <inheritdoc cref="CountOneOfFields(InputObjectType, IReadOnlyList{ObjectFieldNode})"/>
+    private int CountOneOfFields(
+        InputObjectType type,
+        JsonElement value)
+    {
+        if (!_ignoreAdditionalInputFields)
+        {
+#if NET9_0_OR_GREATER
+            return value.GetPropertyCount();
+#else
+            return value.EnumerateObject().Count();
+#endif
+        }
+
+        var count = 0;
+
+        foreach (var property in value.EnumerateObject())
+        {
+            if (TryGetField(type.Fields, property, out _) && ++count > 1)
+            {
+                break;
+            }
+        }
+
+        return count;
+    }
+
+    /// <summary>
+    /// Attempts to get the field that the name of a JSON property refers to.
+    /// </summary>
+    internal static bool TryGetField(
+        InputFieldCollection fields,
+        JsonProperty property,
+        [NotNullWhen(true)] out InputField? field)
+    {
+#if NET10_0_OR_GREATER
+        var utf8Name = JsonMarshal.GetRawUtf8PropertyName(property);
+
+        if (fields.TryGetField(utf8Name, out field))
+        {
+            return true;
+        }
+
+        if (utf8Name.IndexOf((byte)'\\') == -1)
+        {
+            return false;
+        }
+#endif
+
+        return fields.TryGetField(property.Name, out field);
     }
 
     private static object DeserializeLeaf(
@@ -597,16 +744,14 @@ public sealed class InputParser
         }
         catch (LeafCoercionException ex)
         {
-            if (field is null)
+            var errorBuilder = ErrorBuilder.FromError(ex.Errors[0]).SetInputPath(path);
+
+            if (field is not null)
             {
-                throw new LeafCoercionException(ex.Errors[0].WithPath(path), ex.Type, path);
+                errorBuilder.SetCoordinate(field.Coordinate);
             }
 
-            var error = ErrorBuilder.FromError(ex.Errors[0])
-                .SetInputPath(path)
-                .SetCoordinate(field.Coordinate)
-                .SetExtension("fieldType", type.Name)
-                .Build();
+            var error = errorBuilder.SetExtension("fieldType", type.Name).Build();
 
             throw new LeafCoercionException(error, ex.Type, path);
         }
@@ -652,7 +797,9 @@ public sealed class InputParser
             // we will create a default instance and assign that instead.
             if (field.RuntimeType.IsValueType)
             {
+#pragma warning disable IL2072
                 value = Activator.CreateInstance(field.RuntimeType);
+#pragma warning restore IL2072
             }
 
             return field.IsOptional
@@ -686,13 +833,12 @@ public sealed class InputParser
             stack,
             defaults,
             field);
-        return FormatAndConvertValue(field, fieldPath, literal.Location, value, isOptional, optionalHasValue);
+        return FormatAndConvertValue(field, fieldPath, value, isOptional, optionalHasValue);
     }
 
     private object? FormatAndConvertValue(
         IInputValueInfo inputValueInfo,
         Path fieldPath,
-        Language.Location? location,
         object? value,
         bool isOptional,
         bool optionalHasValue,
@@ -702,7 +848,7 @@ public sealed class InputParser
         value = ConvertValue(requestedType ?? inputValueInfo.RuntimeType, value, out var conversionException);
         if (conversionException != null)
         {
-            throw InvalidTypeConversion(inputValueInfo.Type, inputValueInfo, fieldPath, location, conversionException);
+            throw InvalidTypeConversion(inputValueInfo.Type, inputValueInfo, fieldPath, conversionException);
         }
 
         if (isOptional)
@@ -749,7 +895,11 @@ public sealed class InputParser
     }
 
     private static IList CreateList(ListType type)
-        => (IList)Activator.CreateInstance(type.ToRuntimeType())!;
+    {
+#pragma warning disable IL2072
+        return (IList)Activator.CreateInstance(type.ToRuntimeType())!;
+#pragma warning restore IL2072
+    }
 
     private readonly struct Optional : IOptional
     {

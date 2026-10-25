@@ -25,8 +25,8 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup
       }
 
       type Discussion implements Node {
@@ -34,8 +34,8 @@ sourceSchemas:
         title: String
       }
 
-      type Query {
-        node(id: ID!): Node @lookup
+      interface Node {
+        id: ID!
       }
 operationPlan:
   operation:
@@ -49,7 +49,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 10801a856f6686b5f88162250887cefd
+      hash: f708ee13174036c0f5fc6e60ea40f731
       searchSpace: 1
       expandedNodes: 1
   nodes:

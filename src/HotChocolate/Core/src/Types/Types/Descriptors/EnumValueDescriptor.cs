@@ -77,7 +77,7 @@ public class EnumValueDescriptor
 
     public IEnumValueDescriptor Deprecated(string reason)
     {
-        if (string.IsNullOrEmpty(reason))
+        if (string.IsNullOrWhiteSpace(reason))
         {
             return Deprecated();
         }

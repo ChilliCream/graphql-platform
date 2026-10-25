@@ -1,8 +1,0 @@
-# syntax=docker/dockerfile:1
-FROM nginx:alpine
-
-RUN rm /etc/nginx/conf.d/default.conf
-
-COPY ./config/conf.d /etc/nginx/conf.d
-
-COPY ./out /usr/share/nginx/html

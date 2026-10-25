@@ -28,4 +28,9 @@ public class ConsumerConfiguration : MessagingConfiguration
     /// at build time.
     /// </summary>
     public List<Action<List<ConsumerMiddlewareConfiguration>>> ConsumerPipelineModifiers { get; set; } = [];
+
+    /// <summary>
+    /// Source metadata captured from the handler declaration.
+    /// </summary>
+    public SourceMetadata? Source { get; set; }
 }

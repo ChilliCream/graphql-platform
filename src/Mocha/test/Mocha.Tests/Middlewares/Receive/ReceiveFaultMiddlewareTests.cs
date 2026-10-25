@@ -1,6 +1,8 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.ObjectPool;
 using Mocha.Events;
+using Mocha.Features;
 using Mocha.Middlewares;
 using Mocha.Transport.InMemory;
 
@@ -80,7 +82,7 @@ public sealed class ReceiveFaultMiddlewareTests : ReceiveMiddlewareTestBase
 
         // Deterministic sync not available - no observable side-effect to wait on
         // after a swallowed fault, so a brief delay lets the pipeline finish.
-        await Task.Delay(500, default);
+        await Task.Delay(500, TestContext.Current.CancellationToken);
 
         // assert - runtime should still be running
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
@@ -110,7 +112,7 @@ public sealed class ReceiveFaultMiddlewareTests : ReceiveMiddlewareTestBase
 
         // Let the fault propagate before publishing the next message -
         // no deterministic signal for a swallowed exception.
-        await Task.Delay(200, default);
+        await Task.Delay(200, TestContext.Current.CancellationToken);
 
         await bus.PublishAsync(new FaultTestEvent { Id = "success-after-fail" }, CancellationToken.None);
 
@@ -140,7 +142,7 @@ public sealed class ReceiveFaultMiddlewareTests : ReceiveMiddlewareTestBase
         }
 
         // No deterministic signal for swallowed faults; wait for all 10 to settle.
-        await Task.Delay(1000, default);
+        await Task.Delay(1000, TestContext.Current.CancellationToken);
 
         // assert - runtime should remain stable
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
@@ -179,7 +181,7 @@ public sealed class ReceiveFaultMiddlewareTests : ReceiveMiddlewareTestBase
             "Should receive exactly 3 successful messages");
 
         // Negative wait: confirm no extra messages arrive after the expected 3.
-        await Task.Delay(200, default);
+        await Task.Delay(200, TestContext.Current.CancellationToken);
 
         Assert.Equal(3, recorder.Messages.Count);
         var ids = recorder.Messages.Cast<FaultTestEvent>().Select(e => e.Id).ToList();
@@ -226,7 +228,7 @@ public sealed class ReceiveFaultMiddlewareTests : ReceiveMiddlewareTestBase
             "Should receive 3 successful messages from concurrent publish");
 
         // Negative wait: confirm no extra messages arrive after the expected 3.
-        await Task.Delay(200, default);
+        await Task.Delay(200, TestContext.Current.CancellationToken);
 
         Assert.Equal(3, recorder.Messages.Count);
         var ids = recorder.Messages.Cast<FaultTestEvent>().Select(e => e.Id).ToList();
@@ -432,6 +434,70 @@ public sealed class ReceiveFaultMiddlewareTests : ReceiveMiddlewareTestBase
     }
 
     [Fact]
+    public async Task InvokeAsync_Should_CopyInboundHeadersToFaultReply_When_ResponseAddressIsSet()
+    {
+        // arrange
+        // the saga header identifies the saga instance a reply belongs to, so it has to survive the
+        // fault reply for a saga to correlate a failed step back to its own state
+        const string sagaId = "3f2504e0-4f89-11d3-9a0c-0305e82c3301";
+        var bus = new ReplyCapturingMessageBus();
+        var context = new StubReceiveContext
+        {
+            ResponseAddress = new Uri("memory:q/response-1"),
+            CorrelationId = "correlation-1",
+            Services = CreateServices(s => s.AddSingleton<IMessageBus>(bus))
+        };
+        context.Headers.Set("saga-id", sagaId);
+        context.Headers.Set("tenant-id", "acme");
+
+        var middleware = new ReceiveFaultMiddleware(
+            TimeProvider.System,
+            errorEndpoint: null,
+            new UnusedMessagingPools());
+
+        // act
+        await middleware.InvokeAsync(
+            context,
+            CreateThrowingDelegate(new InvalidOperationException("handler failed")));
+
+        // assert
+        var (response, options) = Assert.Single(bus.Replies);
+        Assert.IsType<NotAcknowledgedEvent>(response);
+        Assert.Equal(MessageKind.Fault, options.MessageKind);
+        Assert.Equal(
+            new Dictionary<string, object?> { ["saga-id"] = sagaId, ["tenant-id"] = "acme" },
+            options.Headers);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_Should_UseFaultAddress_When_FaultAndResponseAddressesAreSet()
+    {
+        // arrange
+        var bus = new ReplyCapturingMessageBus();
+        var context = new StubReceiveContext
+        {
+            FaultAddress = new Uri("memory:q/faults"),
+            ResponseAddress = new Uri("memory:q/responses"),
+            Services = CreateServices(s => s.AddSingleton<IMessageBus>(bus))
+        };
+        var middleware = new ReceiveFaultMiddleware(
+            TimeProvider.System,
+            errorEndpoint: null,
+            new UnusedMessagingPools());
+
+        // act
+        await middleware.InvokeAsync(
+            context,
+            CreateThrowingDelegate(new InvalidOperationException("handler failed")));
+
+        // assert
+        var (response, options) = Assert.Single(bus.Replies);
+        Assert.IsType<NotAcknowledgedEvent>(response);
+        Assert.Equal(new Uri("memory:q/faults"), options.ReplyAddress);
+        Assert.Equal(MessageKind.Fault, options.MessageKind);
+    }
+
+    [Fact]
     public void Create_Should_ReturnConfiguration_WithCorrectKey()
     {
         // act
@@ -498,7 +564,8 @@ public sealed class ReceiveFaultMiddlewareTests : ReceiveMiddlewareTestBase
         {
             if (configuration is { Kind: ReceiveEndpointKind.Default, QueueName: { } queueName })
             {
-                configuration.ErrorEndpoint ??= new Uri($"{transport.Schema}:q/{queueName}_error");
+                var feature = configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>();
+                feature.Address ??= new Uri($"{transport.Schema}:q/{queueName}_error");
             }
         }
     }
@@ -564,5 +631,93 @@ public sealed class ReceiveFaultMiddlewareTests : ReceiveMiddlewareTestBase
     {
         public ValueTask<FaultTestResponse> HandleAsync(FaultTestRequest request, CancellationToken cancellationToken)
             => throw new InvalidOperationException($"Request handler failed for: {request.Id}");
+    }
+
+    /// <summary>
+    /// Captures the replies the fault middleware hands to the bus.
+    /// </summary>
+    private sealed class ReplyCapturingMessageBus : IMessageBus
+    {
+        public List<(object Response, ReplyOptions Options)> Replies { get; } = [];
+
+        public ValueTask ReplyAsync<TResponse>(
+            TResponse response,
+            ReplyOptions options,
+            CancellationToken cancellationToken) where TResponse : notnull
+        {
+            Replies.Add((response, options));
+            return ValueTask.CompletedTask;
+        }
+
+        public ValueTask SendAsync<T>(T message, CancellationToken cancellationToken) where T : notnull
+            => throw new NotSupportedException();
+
+        public ValueTask SendAsync<T>(T message, SendOptions options, CancellationToken cancellationToken)
+            where T : notnull
+            => throw new NotSupportedException();
+
+        public ValueTask PublishAsync<T>(T message, CancellationToken cancellationToken) where T : notnull
+            => throw new NotSupportedException();
+
+        public ValueTask PublishAsync<T>(T message, PublishOptions options, CancellationToken cancellationToken)
+            where T : notnull
+            => throw new NotSupportedException();
+
+        public ValueTask<TResponse> RequestAsync<TResponse>(
+            IEventRequest<TResponse> message,
+            CancellationToken cancellationToken)
+            => throw new NotSupportedException();
+
+        public ValueTask<TResponse> RequestAsync<TResponse>(
+            IEventRequest<TResponse> message,
+            SendOptions options,
+            CancellationToken cancellationToken)
+            => throw new NotSupportedException();
+
+        public ValueTask RequestAsync(object message, CancellationToken cancellationToken)
+            => throw new NotSupportedException();
+
+        public ValueTask RequestAsync(object message, SendOptions options, CancellationToken cancellationToken)
+            => throw new NotSupportedException();
+
+        public ValueTask<SchedulingResult> SchedulePublishAsync<T>(
+            T message,
+            DateTimeOffset scheduledTime,
+            CancellationToken cancellationToken) where T : notnull
+            => throw new NotSupportedException();
+
+        public ValueTask<SchedulingResult> SchedulePublishAsync<T>(
+            T message,
+            DateTimeOffset scheduledTime,
+            PublishOptions options,
+            CancellationToken cancellationToken) where T : notnull
+            => throw new NotSupportedException();
+
+        public ValueTask<SchedulingResult> ScheduleSendAsync<T>(
+            T message,
+            DateTimeOffset scheduledTime,
+            CancellationToken cancellationToken) where T : notnull
+            => throw new NotSupportedException();
+
+        public ValueTask<SchedulingResult> ScheduleSendAsync<T>(
+            T message,
+            DateTimeOffset scheduledTime,
+            SendOptions options,
+            CancellationToken cancellationToken) where T : notnull
+            => throw new NotSupportedException();
+
+        public ValueTask<bool> CancelScheduledMessageAsync(string token, CancellationToken cancellationToken)
+            => throw new NotSupportedException();
+    }
+
+    /// <summary>
+    /// Fails loudly if the reply path reaches for a pooled context, which it delegates to the bus.
+    /// </summary>
+    private sealed class UnusedMessagingPools : IMessagingPools
+    {
+        public ObjectPool<DispatchContext> DispatchContext
+            => throw new NotSupportedException("The fault reply path must dispatch through the bus.");
+
+        public ObjectPool<ReceiveContext> ReceiveContext => throw new NotSupportedException();
     }
 }

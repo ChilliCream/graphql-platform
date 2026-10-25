@@ -13,7 +13,8 @@ public static class VariableRewriter
     /// <summary>
     /// Rewrites <paramref name="node" /> and replaces all occurrences of
     /// <see cref="VariableNode" /> with concrete <see cref="IValueNode" />
-    /// from the <paramref name="variableValues" />.
+    /// from the <paramref name="variableValues" />. An input object field set to a variable
+    /// that has no runtime value is removed.
     /// </summary>
     /// <param name="node">
     /// The value that shall be rewritten.
@@ -64,6 +65,11 @@ public static class VariableRewriter
             var oneOf = type.Directives.ContainsDirective(DirectiveNames.OneOf.Name);
             var value = node.Fields[0];
 
+            if (IsUnsetVariable(value.Value, variableValues))
+            {
+                return node.WithFields([]);
+            }
+
             if (type.Fields.TryGetField(value.Name.Value, out var field)
                 && TryRewriteField(value, field, variableValues, out var rewritten))
             {
@@ -81,37 +87,59 @@ public static class VariableRewriter
         }
 
         ObjectFieldNode[]? rewrittenItems = null;
+        var count = 0;
 
         for (var i = 0; i < node.Fields.Count; i++)
         {
             var value = node.Fields[i];
+            var isUnset = IsUnsetVariable(value.Value, variableValues);
+            ObjectFieldNode? rewritten = null;
 
-            if (type.Fields.TryGetField(value.Name.Value, out var field)
-                && TryRewriteField(value, field, variableValues, out var rewritten))
+            if (!isUnset
+                && type.Fields.TryGetField(value.Name.Value, out var field)
+                && TryRewriteField(value, field, variableValues, out var rewrittenField))
             {
-                if (rewrittenItems is null)
+                rewritten = rewrittenField;
+            }
+
+            if (rewrittenItems is null)
+            {
+                if (!isUnset && rewritten is null)
                 {
-                    rewrittenItems = new ObjectFieldNode[node.Fields.Count];
-                    for (var j = 0; j < node.Fields.Count; j++)
-                    {
-                        rewrittenItems[j] = node.Fields[j];
-                    }
+                    continue;
                 }
-                rewrittenItems[i] = rewritten;
+
+                rewrittenItems = new ObjectFieldNode[node.Fields.Count];
+                for (var j = 0; j < i; j++)
+                {
+                    rewrittenItems[j] = node.Fields[j];
+                }
+                count = i;
             }
-            else if (rewrittenItems is not null)
+
+            if (!isUnset)
             {
-                rewrittenItems[i] = node.Fields[i];
+                rewrittenItems[count++] = rewritten ?? value;
             }
         }
 
-        if (rewrittenItems is not null)
+        if (rewrittenItems is null)
         {
-            return node.WithFields(rewrittenItems);
+            return node;
         }
 
-        return node;
+        return count == rewrittenItems.Length
+            ? node.WithFields(rewrittenItems)
+            : node.WithFields(rewrittenItems[..count]);
     }
+
+    /// <summary>
+    /// Returns whether <paramref name="value" /> is a variable that has no runtime value.
+    /// Such a value counts as not provided.
+    /// </summary>
+    internal static bool IsUnsetVariable(IValueNode value, IVariableValueCollection variableValues)
+        => value is VariableNode variable
+            && !variableValues.TryGetValue<IValueNode>(variable.Name.Value, out _);
 
     private static bool TryRewriteField(
         ObjectFieldNode original,
@@ -193,9 +221,9 @@ public static class VariableRewriter
                 }
                 rewrittenItems[i] = rewritten;
             }
-            else if (rewrittenItems is not null)
+            else
             {
-                rewrittenItems[i] = node.Items[i];
+                rewrittenItems?[i] = node.Items[i];
             }
         }
 

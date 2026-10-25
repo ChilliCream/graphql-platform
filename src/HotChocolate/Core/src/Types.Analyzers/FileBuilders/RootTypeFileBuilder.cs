@@ -8,6 +8,27 @@ public sealed class RootTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(
 {
     protected override string OutputFieldDescriptorType => WellKnownTypes.ObjectFieldDescriptor;
 
+    public override void WriteBeginClass(IOutputTypeInfo type)
+    {
+        if (type is RootTypeInfo { IsStatic: false } rootType)
+        {
+            Writer.WriteIndentedLine(
+                "{0} partial class {1}",
+                rootType.IsPublic ? "public" : "internal",
+                rootType.Name);
+            Writer.WriteIndentedLine("{");
+            Writer.IncreaseIndent();
+            return;
+        }
+
+        base.WriteBeginClass(type);
+    }
+
+    protected override string GetInstanceReceiver(
+        string fullyQualifiedTypeName,
+        string contextExpression = "context")
+        => $"{contextExpression}.Resolver<{fullyQualifiedTypeName}>()";
+
     public override void WriteInitializeMethod(IOutputTypeInfo type, ILocalTypeLookup typeLookup)
     {
         if (type is not RootTypeInfo rootType)

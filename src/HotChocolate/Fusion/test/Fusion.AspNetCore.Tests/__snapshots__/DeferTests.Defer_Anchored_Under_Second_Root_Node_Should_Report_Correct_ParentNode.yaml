@@ -1,0 +1,310 @@
+title: Defer_Anchored_Under_Second_Root_Node_Should_Report_Correct_ParentNode
+request:
+  document: |
+    query t {
+      products {
+        id
+        name
+      }
+      users {
+        __typename
+        ... @defer {
+          id
+          name
+        }
+      }
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 2,
+    "initial": {
+      "data": {
+        "products": [
+          {
+            "id": "UHJvZHVjdDoxOTc0MTQ1MDk=",
+            "name": "Product: UHJvZHVjdDoxOTc0MTQ1MDk="
+          },
+          {
+            "id": "UHJvZHVjdDozOTM1NzEyMDU5",
+            "name": "Product: UHJvZHVjdDozOTM1NzEyMDU5"
+          },
+          {
+            "id": "UHJvZHVjdDoyMjE1MjQ2OTE2",
+            "name": "Product: UHJvZHVjdDoyMjE1MjQ2OTE2"
+          }
+        ],
+        "users": [
+          {
+            "__typename": "User"
+          },
+          {
+            "__typename": "User"
+          },
+          {
+            "__typename": "User"
+          }
+        ]
+      }
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": [
+          "users"
+        ]
+      }
+    ],
+    "incremental": [
+      {
+        "id": "0",
+        "path": [
+          "users"
+        ],
+        "subPath": [
+          0
+        ],
+        "data": {
+          "id": "VXNlcjoyNjE2NDgyNzU=",
+          "name": "User: VXNlcjoyNjE2NDgyNzU="
+        }
+      },
+      {
+        "id": "0",
+        "path": [
+          "users"
+        ],
+        "subPath": [
+          1
+        ],
+        "data": {
+          "id": "VXNlcjoxNTU5MzY4MDMx",
+          "name": "User: VXNlcjoxNTU5MzY4MDMx"
+        }
+      },
+      {
+        "id": "0",
+        "path": [
+          "users"
+        ],
+        "subPath": [
+          2
+        ],
+        "data": {
+          "id": "VXNlcjozNDQ5MTc0MTI0",
+          "name": "User: VXNlcjozNDQ5MTc0MTI0"
+        }
+      }
+    ],
+    "completed": [
+      {
+        "id": "0"
+      }
+    ],
+    "final": {
+      "data": {
+        "products": [
+          {
+            "id": "UHJvZHVjdDoxOTc0MTQ1MDk=",
+            "name": "Product: UHJvZHVjdDoxOTc0MTQ1MDk="
+          },
+          {
+            "id": "UHJvZHVjdDozOTM1NzEyMDU5",
+            "name": "Product: UHJvZHVjdDozOTM1NzEyMDU5"
+          },
+          {
+            "id": "UHJvZHVjdDoyMjE1MjQ2OTE2",
+            "name": "Product: UHJvZHVjdDoyMjE1MjQ2OTE2"
+          }
+        ],
+        "users": [
+          {
+            "__typename": "User",
+            "id": "VXNlcjoyNjE2NDgyNzU=",
+            "name": "User: VXNlcjoyNjE2NDgyNzU="
+          },
+          {
+            "__typename": "User",
+            "id": "VXNlcjoxNTU5MzY4MDMx",
+            "name": "User: VXNlcjoxNTU5MzY4MDMx"
+          },
+          {
+            "__typename": "User",
+            "id": "VXNlcjozNDQ5MTc0MTI0",
+            "name": "User: VXNlcjozNDQ5MTc0MTI0"
+          }
+        ]
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        products: [Product!]!
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
+        name: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query t_7bbab574_1 {
+              products {
+                id
+                name
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "products": [
+                    {
+                      "id": "UHJvZHVjdDoxOTc0MTQ1MDk=",
+                      "name": "Product: UHJvZHVjdDoxOTc0MTQ1MDk="
+                    },
+                    {
+                      "id": "UHJvZHVjdDozOTM1NzEyMDU5",
+                      "name": "Product: UHJvZHVjdDozOTM1NzEyMDU5"
+                    },
+                    {
+                      "id": "UHJvZHVjdDoyMjE1MjQ2OTE2",
+                      "name": "Product: UHJvZHVjdDoyMjE1MjQ2OTE2"
+                    }
+                  ]
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        users: [User!]!
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        name: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query t_7bbab574_2 {
+              users {
+                __typename
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "users": [
+                    {
+                      "__typename": "User"
+                    },
+                    {
+                      "__typename": "User"
+                    },
+                    {
+                      "__typename": "User"
+                    }
+                  ]
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query t_defer_1 {
+              users {
+                id
+                name
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "users": [
+                    {
+                      "id": "VXNlcjoyNjE2NDgyNzU=",
+                      "name": "User: VXNlcjoyNjE2NDgyNzU="
+                    },
+                    {
+                      "id": "VXNlcjoxNTU5MzY4MDMx",
+                      "name": "User: VXNlcjoxNTU5MzY4MDMx"
+                    },
+                    {
+                      "id": "VXNlcjozNDQ5MTc0MTI0",
+                      "name": "User: VXNlcjozNDQ5MTc0MTI0"
+                    }
+                  ]
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query t {
+          products {
+            id
+            name
+          }
+          users {
+            __typename
+          }
+        }
+      name: t
+      hash: c4a89d1d7687730f81553a3f5f71e2b9
+      searchSpace: 2
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query t_7bbab574_1 {
+          products {
+            id
+            name
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query t_7bbab574_2 {
+          users {
+            __typename
+          }
+        }
+  deliveryGroups:
+    - id: 0
+      path: $.users
+  incrementalPlans:
+    - deliveryGroupIds:
+        - 0
+      parentNodeId: 2
+      nodes:
+        - id: 1
+          type: Operation
+          schema: B
+          operation: |
+            query t_defer_1 {
+              users {
+                id
+                name
+              }
+            }

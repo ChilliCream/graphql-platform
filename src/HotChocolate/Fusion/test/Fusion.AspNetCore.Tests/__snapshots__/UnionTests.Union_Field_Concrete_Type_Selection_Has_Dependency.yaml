@@ -21,7 +21,7 @@ response:
       "data": {
         "post": {
           "product": {
-            "subgraph2": "Product: UHJvZHVjdDoy"
+            "subgraph2": "Product: UHJvZHVjdDoxODk0NzA4MjAy"
           }
         }
       }
@@ -31,6 +31,10 @@ sourceSchemas:
     schema: |
       schema {
         query: Query
+      }
+
+      type Query {
+        post: Post
       }
 
       type Author @key(fields: "id") {
@@ -49,10 +53,6 @@ sourceSchemas:
 
       type Product @key(fields: "id") {
         id: ID!
-      }
-
-      type Query {
-        post: Post
       }
 
       union Post = Photo | Discussion
@@ -83,7 +83,7 @@ sourceSchemas:
                   "post": {
                     "__typename": "Photo",
                     "product": {
-                      "id": "UHJvZHVjdDoy"
+                      "id": "UHJvZHVjdDoxODk0NzA4MjAy"
                     }
                   }
                 }
@@ -94,13 +94,13 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        productById(id: ID!): Product @lookup
+      }
+
       type Product {
         id: ID!
         subgraph2: String!
-      }
-
-      type Query {
-        productById(id: ID!): Product @lookup
       }
     interactions:
       - request:
@@ -113,7 +113,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_2_id": "UHJvZHVjdDoy"
+              "__fusion_2_id": "UHJvZHVjdDoxODk0NzA4MjAy"
             }
         response:
           results:
@@ -121,7 +121,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDoy"
+                    "subgraph2": "Product: UHJvZHVjdDoxODk0NzA4MjAy"
                   }
                 }
               }
@@ -131,13 +131,13 @@ sourceSchemas:
         query: Query
       }
 
+      type Query {
+        authorById(id: ID!): Author @lookup
+      }
+
       type Author {
         id: ID!
         subgraph3: String!
-      }
-
-      type Query {
-        authorById(id: ID!): Author @lookup
       }
 operationPlan:
   operation:
@@ -160,7 +160,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 9f626641f08c21990a3d8e457eb3732f
+      hash: d98d96db29fe79349c0240ecf0c3cdce
       searchSpace: 1
       expandedNodes: 2
   nodes:

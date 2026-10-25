@@ -40,7 +40,7 @@ public sealed class DeprecatedDirective
     /// <summary>
     /// Returns a deprecation directive syntax node representation.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The directive syntax node representation.</returns>
     public DirectiveNode ToNode() => CreateNode(Reason);
 
     /// <summary>
@@ -69,7 +69,7 @@ public sealed class DeprecatedDirective
 
         var arguments = reason is null
             ? Array.Empty<ArgumentNode>()
-            : [new ArgumentNode(DirectiveNames.Deprecated.Arguments.DefaultReason, reason)];
+            : [new ArgumentNode(DirectiveNames.Deprecated.Arguments.Reason, reason)];
 
         return new DirectiveNode(
             null,

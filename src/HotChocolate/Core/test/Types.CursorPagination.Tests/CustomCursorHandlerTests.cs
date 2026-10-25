@@ -30,7 +30,7 @@ public class CustomCursorHandlerTests
             .AddQueryType<Query>()
             .Create()
             .MakeExecutable()
-            .ExecuteAsync(request)
+            .ExecuteAsync(request, TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 

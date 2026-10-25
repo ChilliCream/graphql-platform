@@ -74,6 +74,7 @@ namespace TestNamespace
                         typeInspector.GetTypeRef(typeof(global::TestNamespace.Product), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.ListTypeNode(new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_Product")))));
                     configuration.ResultType = typeof(global::System.Collections.Generic.IEnumerable<global::TestNamespace.Product>);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 
@@ -94,6 +95,12 @@ namespace TestNamespace
 
                         configuration.Arguments.Add(argumentConfiguration);
                     }
+
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetProductsAsync_productService(),
+                        fieldDescriptor);
 
                     configuration.Resolvers = context.Resolvers.GetProductsAsync();
                     configuration.ResultPostProcessor = global::HotChocolate.Execution.ListPostProcessor<global::TestNamespace.Product>.Default;
@@ -130,7 +137,7 @@ namespace TestNamespace
                 var args0_filter = global::HotChocolate.Data.Filters.FilterContextResolverContextExtensions.GetFilterContext(context);
                 var args0_sorting = global::HotChocolate.Data.Sorting.SortingContextResolverContextExtensions.GetSortingContext(context);
                 var args0 = new global::GreenDonut.Data.QueryContext<global::TestNamespace.Brand>(
-                    global::HotChocolate.Execution.Processing.HotChocolateExecutionSelectionExtensions.AsSelector<global::TestNamespace.Brand>(args0_selection, context.IncludeFlags),
+                    global::HotChocolate.Execution.Processing.HotChocolateExecutionSelectionExtensions.AsSelector<global::TestNamespace.Brand>(args0_selection, context.IncludeConditionFlags),
                     args0_filter?.AsPredicate<global::TestNamespace.Brand>(),
                     args0_sorting?.AsSortDefinition<global::TestNamespace.Brand>());
                 var args1 = _binding_GetProductsAsync_productService.Execute<global::TestNamespace.ProductService>(context);

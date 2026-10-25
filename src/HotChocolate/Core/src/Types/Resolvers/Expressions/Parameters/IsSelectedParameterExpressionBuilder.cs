@@ -10,7 +10,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 internal sealed class IsSelectedParameterExpressionBuilder
     : IParameterExpressionBuilder
-    , IParameterFieldConfiguration
+    , IParameterDescriptorFieldConfiguration
     , IParameterBindingFactory
 {
     public ArgumentKind Kind => ArgumentKind.LocalState;
@@ -40,24 +40,48 @@ internal sealed class IsSelectedParameterExpressionBuilder
     {
         var attribute = parameter.GetCustomAttribute<IsSelectedAttribute>()!;
 
+        ApplyPatternConfiguration(attribute, descriptor);
+        ApplyMiddleware(attribute, parameter.Name!, descriptor);
+    }
+
+    public void ApplyConfiguration(ParameterDescriptor parameter, ObjectFieldDescriptor descriptor)
+        => ApplyPatternConfiguration(
+            parameter.Attributes.OfType<IsSelectedAttribute>().Single(),
+            descriptor);
+
+    private static void ApplyPatternConfiguration(
+        IsSelectedAttribute attribute,
+        ObjectFieldDescriptor descriptor)
+    {
+        if (attribute.Fields is null)
+        {
+            return;
+        }
+
+        var definition = descriptor.Extend().Configuration;
+        definition.Tasks.Add(
+            new OnCompleteTypeSystemConfigurationTask((ctx, def) =>
+                {
+                    var feature = ctx.DescriptorContext.Features.GetOrSet<IsSelectedFeature>();
+                    feature.Patterns.Add(new IsSelectedPattern((ObjectType)ctx.Type, def.Name, attribute.Fields));
+                },
+                definition,
+                ApplyConfigurationOn.AfterCompletion));
+    }
+
+    private static void ApplyMiddleware(
+        IsSelectedAttribute attribute,
+        string parameterName,
+        ObjectFieldDescriptor descriptor)
+    {
         if (attribute.Fields is not null)
         {
-            var definition = descriptor.Extend().Configuration;
-            definition.Tasks.Add(
-                new OnCompleteTypeSystemConfigurationTask((ctx, def) =>
-                    {
-                        var feature = ctx.DescriptorContext.Features.GetOrSet<IsSelectedFeature>();
-                        feature.Patterns.Add(new IsSelectedPattern((ObjectType)ctx.Type, def.Name, attribute.Fields));
-                    },
-                    definition,
-                    ApplyConfigurationOn.AfterCompletion));
-
             descriptor.Use(
                 next => async ctx =>
                 {
                     var selectionContext = new IsSelectedContext(ctx.Schema, ctx.Select());
                     IsSelectedVisitor.Instance.Visit(attribute.Fields, selectionContext);
-                    ctx.SetLocalState($"isSelected.{parameter.Name}", selectionContext.AllSelected);
+                    ctx.SetLocalState($"isSelected.{parameterName}", selectionContext.AllSelected);
                     await next(ctx);
                 });
             return;
@@ -73,7 +97,7 @@ internal sealed class IsSelectedParameterExpressionBuilder
                     next => async ctx =>
                     {
                         var isSelected = ctx.IsSelected(fieldName);
-                        ctx.SetLocalState($"{nameof(isSelected)}.{parameter.Name}", isSelected);
+                        ctx.SetLocalState($"{nameof(isSelected)}.{parameterName}", isSelected);
                         await next(ctx);
                     });
                 break;
@@ -88,7 +112,7 @@ internal sealed class IsSelectedParameterExpressionBuilder
                     next => async ctx =>
                     {
                         var isSelected = ctx.IsSelected(fieldName1, fieldName2);
-                        ctx.SetLocalState($"{nameof(isSelected)}.{parameter.Name}", isSelected);
+                        ctx.SetLocalState($"{nameof(isSelected)}.{parameterName}", isSelected);
                         await next(ctx);
                     });
                 break;
@@ -104,7 +128,7 @@ internal sealed class IsSelectedParameterExpressionBuilder
                     next => async ctx =>
                     {
                         var isSelected = ctx.IsSelected(fieldName1, fieldName2, fieldName3);
-                        ctx.SetLocalState($"{nameof(isSelected)}.{parameter.Name}", isSelected);
+                        ctx.SetLocalState($"{nameof(isSelected)}.{parameterName}", isSelected);
                         await next(ctx);
                     });
                 break;
@@ -118,7 +142,7 @@ internal sealed class IsSelectedParameterExpressionBuilder
                     next => async ctx =>
                     {
                         var isSelected = ctx.IsSelected(fieldNames);
-                        ctx.SetLocalState($"{nameof(isSelected)}.{parameter.Name}", isSelected);
+                        ctx.SetLocalState($"{nameof(isSelected)}.{parameterName}", isSelected);
                         await next(ctx);
                     });
                 break;

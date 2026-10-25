@@ -20,7 +20,7 @@ public class MessagingRequestHandlerGeneratorTests
                     => new("shipped");
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -41,6 +41,6 @@ public class MessagingRequestHandlerGeneratorTests
                     => default;
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

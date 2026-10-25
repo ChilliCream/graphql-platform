@@ -23,12 +23,10 @@ public readonly struct OffsetPagingArguments
     /// <summary>
     /// The items that shall be skipped.
     /// </summary>
-    /// <value></value>
     public int? Skip { get; }
 
     /// <summary>
     /// The count of items that shall be included into the page.
     /// </summary>
-    /// <value></value>
     public int? Take { get; }
 }

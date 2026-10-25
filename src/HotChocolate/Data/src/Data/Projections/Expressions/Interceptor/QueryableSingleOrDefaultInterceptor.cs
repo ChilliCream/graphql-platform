@@ -9,5 +9,5 @@ public class QueryableSingleOrDefaultInterceptor
     {
     }
 
-    public static QueryableSingleOrDefaultInterceptor Create(ProjectionProviderContext context) => new();
+    public static QueryableSingleOrDefaultInterceptor Create(ProjectionProviderContext _) => new();
 }

@@ -52,11 +52,8 @@ public class ProcessPartialRefundCommandHandler(BillingDbContext db, ILogger<Pro
         refund.ProcessedAt = DateTimeOffset.UtcNow;
 
         // Update invoice status if exists - partial refund doesn't fully refund the invoice
-        if (invoice is not null)
-        {
-            // Keep invoice as Paid but we've recorded the partial refund
-            invoice.UpdatedAt = DateTimeOffset.UtcNow;
-        }
+        // Keep invoice as Paid but we've recorded the partial refund
+        invoice?.UpdatedAt = DateTimeOffset.UtcNow;
 
         await db.SaveChangesAsync(cancellationToken);
 

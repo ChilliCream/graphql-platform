@@ -1,0 +1,16 @@
+extend schema
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.3"
+    import: ["@key", "@external", "@provides"]
+  )
+
+type Query {
+  entity: Entity @provides(fields: "name description")
+  entities: [Entity!]! @provides(fields: "name description")
+}
+
+type Entity @key(fields: "id") {
+  id: ID!
+  name: String! @external
+  description: String! @external
+}

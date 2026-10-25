@@ -1,0 +1,17 @@
+{
+  "message": "More than one argument with the same name in an argument set is ambiguous and invalid.",
+  "locations": [
+    {
+      "line": 3,
+      "column": 45
+    }
+  ],
+  "path": [
+    "dog"
+  ],
+  "extensions": {
+    "fragment": "withVariable",
+    "argument": "atOtherHomes",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Argument-Uniqueness"
+  }
+}

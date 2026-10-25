@@ -29,16 +29,16 @@ sourceSchemas:
         query: Query
       }
 
-      type Product {
-        id: Int!
-        price: Float!
-      }
-
       type Query {
         topProduct: Product!
         nullableTopProduct: Product
         topProducts: [Product!]!
         productById(id: Int!): Product @lookup @internal
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+        price: Float!
       }
     interactions:
       - request:
@@ -59,7 +59,7 @@ operationPlan:
             price
           }
         }
-      hash: 1c1cf0244bcda9f7f91e7e0becca0616
+      hash: ac4272d2d34cb45cb04d36e274ec14bd
       searchSpace: 1
       expandedNodes: 1
   nodes:

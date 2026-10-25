@@ -120,6 +120,26 @@ public sealed class ValueSelectionToSelectionSetRewriterTests
                 """
             },
             {
+                "Product",
+                """price(currency: "USD")""",
+                """
+                {
+                    price(currency: "USD")
+                }
+                """
+            },
+            {
+                "Product",
+                """{ averagePrice: category.averagePrice(currency: "USD") }""",
+                """
+                {
+                    category {
+                        averagePrice(currency: "USD")
+                    }
+                }
+                """
+            },
+            {
                 "Location",
                 "{ coordinates: coordinates[{ lat: x, lon: y }] }",
                 """
@@ -189,6 +209,32 @@ public sealed class ValueSelectionToSelectionSetRewriterTests
         };
     }
 
+    [Fact]
+    public void Rewrite_PathSegmentWithArgument_KeepsArgument()
+    {
+        // arrange
+        var value = new FieldSelectionMapParser("dimension(unit: METRIC).length").Parse();
+
+        // act
+        var selectionSet = ValueSelectionToSelectionSetRewriter.Rewrite([value]);
+
+        // assert
+        Assert.Equal("{ dimension(unit: METRIC) { length } }", selectionSet.ToString(indented: false));
+    }
+
+    [Fact]
+    public void Rewrite_ObjectFieldWithArgument_KeepsArgument()
+    {
+        // arrange
+        var value = new FieldSelectionMapParser("{ width(unit: IMPERIAL) }").Parse();
+
+        // act
+        var selectionSet = ValueSelectionToSelectionSetRewriter.Rewrite([value]);
+
+        // assert
+        Assert.Contains("width(unit: IMPERIAL)", selectionSet.ToString(indented: false));
+    }
+
     private static readonly ISchemaDefinition s_schema = SchemaParser.Parse(
         """
         type Query {
@@ -220,6 +266,12 @@ public sealed class ValueSelectionToSelectionSetRewriterTests
         type Product {
             dimensions: Dimensions!
             parts: [Part!]!
+            price(currency: String!): Int
+            category: Category
+        }
+
+        type Category {
+            averagePrice(currency: String!): Int
         }
 
         type Dimensions {

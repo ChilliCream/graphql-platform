@@ -143,7 +143,7 @@ public sealed class LocalTimeTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         type.CoerceOutputValue(time, resultValue);
 
@@ -160,7 +160,7 @@ public sealed class LocalTimeTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         type.CoerceOutputValue(localTime, resultValue);
 
@@ -176,7 +176,7 @@ public sealed class LocalTimeTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         void Action() => type.CoerceOutputValue(123, resultValue);
 
@@ -256,11 +256,13 @@ public sealed class LocalTimeTypeTests
             .AddQueryType(b => b.Name(OperationTypeNames.Query))
             .AddType(typeof(QuerySingleRuntimeType))
             .AddNodaTime()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result =
-            await executor.ExecuteAsync("""{ localTime(input: "23:59:59.999999999") }""");
+            await executor.ExecuteAsync(
+                """{ localTime(input: "23:59:59.999999999") }""",
+                TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -282,7 +284,7 @@ public sealed class LocalTimeTypeTests
             .AddQueryType(b => b.Name(OperationTypeNames.Query))
             .AddType(typeof(QueryTwoRuntimeTypes))
             .AddNodaTime()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -291,7 +293,8 @@ public sealed class LocalTimeTypeTests
                 localTime1(input: "23:59:59.999999999")
                 localTime2(input: "23:59:59.999999999")
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(

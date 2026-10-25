@@ -153,8 +153,6 @@ public static class CompilationExtensions
         var graphQLDeprecatedAttribute = compilation.GetTypeByMetadataName(WellKnownAttributes.GraphQLDeprecatedAttribute);
         var obsoleteAttribute = compilation.GetTypeByMetadataName(WellKnownAttributes.ObsoleteAttribute);
 
-        const string defaultReason = "No longer supported.";
-
         foreach (var attributeData in symbol.GetAttributes())
         {
             // Check for GraphQLDeprecatedAttribute
@@ -168,7 +166,7 @@ public static class CompilationExtensions
                     return deprecatedReason;
                 }
 
-                return defaultReason;
+                return DirectiveNames.Deprecated.Arguments.DefaultReason;
             }
 
             // Check for ObsoleteAttribute
@@ -182,7 +180,7 @@ public static class CompilationExtensions
                     return obsoleteReason;
                 }
 
-                return defaultReason;
+                return DirectiveNames.Deprecated.Arguments.DefaultReason;
             }
         }
 

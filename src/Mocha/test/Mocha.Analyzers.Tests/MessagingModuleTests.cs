@@ -22,7 +22,7 @@ public class MessagingModuleTests
                     => default;
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -43,6 +43,6 @@ public class MessagingModuleTests
                     => default;
             }
             """
-        ], assemblyName: "My.OrderService.Api").MatchMarkdownAsync();
+        ], assemblyName: "My.OrderService.Api").MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

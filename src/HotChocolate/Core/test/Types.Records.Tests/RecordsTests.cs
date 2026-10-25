@@ -16,7 +16,7 @@ public class RecordsTests
             .AddQueryType<Query>()
             .Services
             .BuildServiceProvider()
-            .GetSchemaAsync()
+            .GetSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -28,7 +28,7 @@ public class RecordsTests
             .AddQueryType<Query2>()
             .Services
             .BuildServiceProvider()
-            .GetSchemaAsync()
+            .GetSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 

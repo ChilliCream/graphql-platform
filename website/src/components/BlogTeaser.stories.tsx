@@ -1,0 +1,57 @@
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { BlogTeaser } from "./BlogTeaser";
+
+const meta = {
+  title: "Components/BlogTeaser",
+  component: BlogTeaser,
+  decorators: [
+    (Story) => (
+      <div style={{ width: 360 }}>
+        <Story />
+      </div>
+    ),
+  ],
+} satisfies Meta<typeof BlogTeaser>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const WithImage: Story = {
+  args: {
+    post: {
+      href: "/blog/2025/02/01/hot-chocolate-15",
+      title: "What's new for Hot Chocolate 15",
+      date: "2025-02-01",
+      featuredImage: "/placeholders/featured.png",
+      author: "Michael Staib",
+      authorImageUrl: "/placeholders/avatar.png",
+    },
+  },
+};
+
+export const BrokenImage: Story = {
+  args: {
+    post: {
+      href: "/blog/2024/01/01/example",
+      title: "A post whose featured image fails to load",
+      date: "2024-01-01",
+      featuredImage: "/placeholders/missing.png",
+      author: "Jane Doe",
+      authorImageUrl: null,
+    },
+  },
+};
+
+export const LongTitle: Story = {
+  args: {
+    post: {
+      href: "/blog/2024/01/01/example",
+      title:
+        "A particularly long blog post title that needs to wrap across multiple lines and eventually clamp",
+      date: "2024-06-15",
+      featuredImage: "/placeholders/featured.png",
+      author: "Author Name",
+      authorImageUrl: null,
+    },
+  },
+};

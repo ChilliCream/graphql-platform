@@ -326,12 +326,72 @@ response:
                     "name": null,
                     "kind": "NON_NULL"
                   }
+                },
+                {
+                  "name": "isDeprecated",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "deprecationReason",
+                  "type": {
+                    "name": "String",
+                    "kind": "SCALAR"
+                  }
                 }
               ]
             },
             {
               "name": "__DirectiveLocation",
               "kind": "ENUM",
+              "fields": null
+            },
+            {
+              "name": "__SearchResult",
+              "kind": "OBJECT",
+              "fields": [
+                {
+                  "name": "cursor",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "coordinate",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "definition",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "pathsToRoot",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "score",
+                  "type": {
+                    "name": "Float",
+                    "kind": "SCALAR"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "__SchemaDefinition",
+              "kind": "UNION",
               "fields": null
             },
             {
@@ -593,6 +653,11 @@ response:
               "fields": null
             },
             {
+              "name": "Float",
+              "kind": "SCALAR",
+              "fields": null
+            },
+            {
               "name": "ID",
               "kind": "SCALAR",
               "fields": null
@@ -613,10 +678,6 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
-        id: ID!
-      }
-
       type Query {
         node(id: ID!): Node @lookup @shareable
         nodes(ids: [ID!]!): [Node]! @shareable
@@ -631,26 +692,26 @@ sourceSchemas:
         username: String!
         birthdate: String!
       }
+
+      interface Node {
+        id: ID!
+      }
   - name: B
     schema: |
       schema {
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        reviews: [Review!]!
       }
 
       type Product implements Node {
         id: ID!
         reviews: [Review!]!
         reviewCount: Int!
-      }
-
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        nodes(ids: [ID!]!): [Node]! @shareable
-        reviews: [Review!]!
       }
 
       type Review implements Node {
@@ -665,14 +726,21 @@ sourceSchemas:
         reviews: [Review!]!
         errorField: String @error
       }
+
+      interface Node {
+        id: ID!
+      }
   - name: C
     schema: |
       schema {
         query: Query
       }
 
-      interface Node {
-        id: ID!
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        productById(id: ID!): Product @lookup @shareable
+        topProducts(first: Int!): [Product!]!
       }
 
       type Product implements Node {
@@ -684,19 +752,16 @@ sourceSchemas:
         repeatData(data: RepeatDataInput!): RepeatDataPayload!
       }
 
-      type Query {
-        node(id: ID!): Node @lookup @shareable
-        nodes(ids: [ID!]!): [Node]! @shareable
-        productById(id: ID!): Product @lookup @shareable
-        topProducts(first: Int!): [Product!]!
-      }
-
       type RepeatDataData {
         num: Int!
       }
 
       type RepeatDataPayload {
         data: RepeatDataData!
+      }
+
+      interface Node {
+        id: ID!
       }
 
       input RepeatDataDataInput {
@@ -725,7 +790,7 @@ operationPlan:
           }
         }
       name: Introspect
-      hash: 151c2e2faa405b4b9c65f001decc564e
+      hash: b78797d1fc038cb78f881ab78bd98ee7
       searchSpace: 1
       expandedNodes: 1
   nodes:

@@ -1,0 +1,7 @@
+{
+  "message": "The specified directive `@onObject` is not allowed on the current location `DirectiveDefinition`.",
+  "code": "TS_MISSING_TYPE",
+  "extensions": {
+    "Source": "directive @custom on OBJECT"
+  }
+}

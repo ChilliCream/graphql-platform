@@ -1,6 +1,5 @@
 using HotChocolate.Events;
 using HotChocolate.Events.Contracts;
-using HotChocolate.Features;
 using HotChocolate.Types;
 using static HotChocolate.Logging.LogEntryHelper;
 
@@ -16,16 +15,14 @@ public sealed class DirectiveIsDefinedRule : IValidationEventHandler<DirectiveEv
     /// </summary>
     public void Handle(DirectiveEvent @event, ValidationContext context)
     {
-        var (directive, member) = @event;
+        var (directive, member, _) = @event;
 
         if (DirectiveNames.IsSpecDirective(directive.Name))
         {
             return;
         }
 
-        var feature = directive.Definition.Features.Get<IncompleteDirectiveDefinitionFeature>();
-
-        if (feature?.IsIncomplete == true)
+        if (directive.Definition is IMissingDirectiveDefinition)
         {
             context.Log.Write(UndefinedDirective(directive, member));
         }
