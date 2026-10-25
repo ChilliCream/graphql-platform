@@ -386,6 +386,13 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     internal void EnqueuePendingMerge(PendingMerge merge)
         => _executionState.EnqueueMerge(merge);
 
+    /// <summary>
+    /// Enqueues a pending merge without signaling the executor.
+    /// The node must report its completion afterwards, which signals the executor.
+    /// </summary>
+    internal void EnqueuePendingMergeBeforeCompletion(PendingMerge merge)
+        => _executionState.EnqueueMergeBeforeCompletion(merge);
+
     internal ImmutableArray<VariableValues> CreateVariableValueSets(
         SelectionPath selectionSet,
         ReadOnlySpan<string> forwardedVariables,
