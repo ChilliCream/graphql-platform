@@ -50,18 +50,22 @@ export const COMPOSITION_GROUPS = [
   {
     id: "composite-schema",
     name: "GraphQL Federation specification",
+    shortName: "GraphQL Federation",
     description:
       "An open standard for GraphQL federation, developed in the open under the GraphQL Foundation, with engineers from Apollo, ChilliCream, Netflix, The Guild, WunderGraph and others.",
   },
   {
     id: "apollo-federation",
     name: "Apollo Federation",
+    shortName: "Apollo Federation",
     description:
       "A GraphQL federation approach popularized by Apollo and since adopted by other vendors.",
   },
 ] as const satisfies readonly {
   id: Composition;
   name: string;
+  /** The name used inside sentences, such as "the fastest GraphQL Federation router". */
+  shortName: string;
   description: string;
 }[];
 
@@ -180,11 +184,7 @@ export function historySeries(
       name: variantName(entry),
       runtime: formatPlatformTag(versions.at(-1)!.platform, features),
       composition: entry.variant.composition,
-      preview: isPreview(
-        versions.at(-1)!.version,
-        versions.at(-1)!.platform,
-        entry.variant.preview,
-      ),
+      preview: isPreview(entry.variant),
       color: colors[colorIndex % colors.length],
       dashed: colorIndex >= colors.length,
       points: sampled.map((version) => ({
@@ -322,6 +322,7 @@ export const isReliable = (
 export interface ResultsGroup {
   readonly id: Composition;
   readonly name: string;
+  readonly shortName: string;
   readonly description: string;
   readonly rows: readonly BenchmarkVariantResult[];
   /** The highest median throughput in the table, used to scale its bars. */
@@ -337,16 +338,23 @@ export const isWinner = (row: BenchmarkVariantResult, group: ResultsGroup) =>
 const scenarioRows = (scenario: Pick<BenchmarkScenario, "results">) =>
   scenario.results.flatMap((result) => result.variants);
 
+/** Returns whether the page shows a variant: Fusion only as its stable Native AOT build on .NET 11, every other gateway with all its variants. */
+export function isShownVariant({ gateway, variant }: BenchmarkCatalogEntry) {
+  return (
+    gateway.id !== "fusion" ||
+    (!isPreview(variant) &&
+      variant.platform.runtime?.version?.split(".")[0] === "11" &&
+      (variant.platform.features ?? []).some((feature) => feature.id === "aot"))
+  );
+}
+
 /** Returns the ids of the gateways with at least one variant that is not a preview. */
 export function releasedGateways(
   variants: ReadonlyMap<string, BenchmarkCatalogEntry>,
 ): ReadonlySet<string> {
   return new Set(
     [...variants.values()]
-      .filter(
-        ({ variant }) =>
-          !isPreview(variant.version, variant.platform, variant.preview),
-      )
+      .filter(({ variant }) => !isPreview(variant))
       .map(({ gateway }) => gateway.id),
   );
 }
@@ -380,64 +388,17 @@ export function benchmarkPageDescription(report: BenchmarkReport): string {
   return `Compare GraphQL federation router performance: throughput, latency, memory and CPU for ${list}, benchmarked daily under identical conditions.`;
 }
 
-/** Returns the group a variant competes in for the best version: its gateway and composition, split into preview and non-preview variants. */
-export const versionGroupKey = ({ gateway, variant }: BenchmarkCatalogEntry) =>
-  [
-    gateway.id,
-    variant.composition,
-    isPreview(variant.version, variant.platform, variant.preview),
-  ].join("\u0000");
-
-const resultRank = (row: BenchmarkVariantResult) =>
-  row.status === "complete"
-    ? isReliable(row)
-      ? 3
-      : 2
-    : isMeasured(row)
-      ? 1
-      : 0;
-
-const compareResults = (a: BenchmarkVariantResult, b: BenchmarkVariantResult) =>
-  resultRank(a) - resultRank(b) ||
-  (a.throughput?.medianRps ?? 0) - (b.throughput?.medianRps ?? 0);
-
-/** Returns the variants of a scenario whose result a better variant of the same version group replaces. */
-export function supersededVariants(
-  scenario: Pick<BenchmarkScenario, "results">,
-  variants: ReadonlyMap<string, BenchmarkCatalogEntry>,
-): ReadonlySet<string> {
-  const rows = scenarioRows(scenario);
-  const best = new Map<string, BenchmarkVariantResult>();
-  for (const row of rows) {
-    const key = versionGroupKey(variants.get(row.variant)!);
-    const current = best.get(key);
-    if (!current || compareResults(row, current) > 0) {
-      best.set(key, row);
-    }
-  }
-  return new Set(
-    rows
-      .filter(
-        (row) => best.get(versionGroupKey(variants.get(row.variant)!)) !== row,
-      )
-      .map((row) => row.variant),
-  );
-}
-
-/** Returns the non-empty composition tables of a scenario, rows sorted by median throughput, keeping only the best variant of each version group. */
+/** Returns the non-empty composition tables of a scenario, rows sorted by median throughput. */
 export function scenarioGroups(
   scenario: BenchmarkScenario,
   variants: ReadonlyMap<string, BenchmarkCatalogEntry>,
 ): readonly ResultsGroup[] {
-  const superseded = supersededVariants(scenario, variants);
-  const rows = scenarioRows(scenario)
-    .filter((row) => !superseded.has(row.variant))
-    .toSorted(
-      (a, b) =>
-        (b.status === "complete" ? b.throughput.medianRps : -1) -
-          (a.status === "complete" ? a.throughput.medianRps : -1) ||
-        a.variant.localeCompare(b.variant),
-    );
+  const rows = scenarioRows(scenario).toSorted(
+    (a, b) =>
+      (b.status === "complete" ? b.throughput.medianRps : -1) -
+        (a.status === "complete" ? a.throughput.medianRps : -1) ||
+      a.variant.localeCompare(b.variant),
+  );
   return COMPOSITION_GROUPS.flatMap((group) => {
     const groupRows = rows.filter(
       (row) => variants.get(row.variant)!.variant.composition === group.id,

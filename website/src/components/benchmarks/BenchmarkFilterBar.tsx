@@ -12,7 +12,7 @@ const POPOVER_GAP = 8;
 
 const PREVIEWS = {
   label: "Include previews",
-  hint: "Shows preview releases, such as nightly builds, prerelease versions and variants on a prerelease runtime, alongside stable releases.",
+  hint: "Shows preview releases, such as nightly builds and prerelease versions, alongside stable releases.",
 };
 
 interface BenchmarkFilterBarProps {

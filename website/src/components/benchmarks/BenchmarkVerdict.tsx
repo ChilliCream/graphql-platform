@@ -1,6 +1,5 @@
 import {
   COMPOSITION_GROUPS,
-  compositionReport,
   formatNumber,
   orderedScenarios,
   releasedGateways,
@@ -20,6 +19,7 @@ import {
   type BenchmarkCompletedVariantResult,
   type BenchmarkReport,
   type BenchmarkVariantResult,
+  type Composition,
   type ScenarioId,
 } from "@/src/helpers/benchmarkReport";
 import { CrownIcon } from "@/src/icons/CrownIcon";
@@ -34,16 +34,8 @@ interface NamedVerdict {
 
 /** Which router, if any, is fastest across every scenario. */
 type Overall =
-  | {
-      readonly kind: "leads";
-      readonly name: string;
-      readonly gatewayId: string;
-    }
-  | {
-      readonly kind: "leadsOrTies";
-      readonly name: string;
-      readonly gatewayId: string;
-    }
+  | { readonly kind: "leads"; readonly name: string }
+  | { readonly kind: "leadsOrTies"; readonly name: string }
   | { readonly kind: "tied"; readonly name: string }
   | { readonly kind: "none" }
   | { readonly kind: "empty" };
@@ -66,19 +58,24 @@ function scenarioSentence(verdict: NamedVerdict | undefined) {
   return `${leader.name} is the fastest at ${formatNumber(leader.rps)} requests per second, ${formatPercent(lead)} ahead of ${runnerUp.name} at ${formatNumber(runnerUp.rps)}.`;
 }
 
-/** Returns the sentence that summarizes every scenario. */
-function summarySentence(overall: Overall) {
+/** Returns the sentence that summarizes every scenario of one composition, limited to the scenarios with successful results when `incomplete` is set. */
+function summarySentence(
+  overall: Overall,
+  composition: string,
+  incomplete: boolean,
+) {
+  const scope = incomplete ? " in every scenario with successful results" : "";
   switch (overall.kind) {
     case "leads":
-      return `${overall.name} is the fastest router in every scenario.`;
+      return `${overall.name} is the fastest ${composition} router${scope}.`;
     case "leadsOrTies":
-      return `${overall.name} is the fastest router, or tied for fastest, in every scenario.`;
+      return `${overall.name} is the fastest ${composition} router, or tied for fastest${scope}.`;
     case "tied":
-      return `${overall.name} are tied for fastest in every scenario.`;
+      return `${overall.name} are tied as the fastest ${composition} routers${scope}.`;
     case "none":
-      return "No single router is the fastest in every scenario.";
+      return `No single ${composition} router is the fastest in every scenario${incomplete ? " with successful results" : ""}.`;
     case "empty":
-      return "No scenario has results without failed requests.";
+      return `No ${composition} router finished a scenario without failed requests.`;
   }
 }
 
@@ -190,54 +187,8 @@ function overallOf(
     (entry) => entry.gateway.id === shared[0],
   )!.gateway.name;
   return present.every((verdict) => !verdict.tied)
-    ? { kind: "leads", name, gatewayId: shared[0] }
-    : { kind: "leadsOrTies", name, gatewayId: shared[0] };
-}
-
-const formatList = (items: readonly string[]) =>
-  new Intl.ListFormat("en", { type: "conjunction" }).format(items);
-
-/** Returns the sentence that names the fastest router of each composition across every scenario, or undefined when no composition has a single fastest router with a stable release. */
-export function fastestSentence(report: BenchmarkReport): string | undefined {
-  const variants = benchmarkVariants(report);
-  const released = releasedGateways(variants);
-  const winners = COMPOSITION_GROUPS.flatMap((group) => {
-    const scenarios = orderedScenarios(
-      compositionReport(report, variants, group.id),
-    );
-    const verdicts = scenarios.map((scenario) =>
-      scenarioVerdict(scenario, variants),
-    );
-    const overall = overallOf(verdicts, variants);
-    if (
-      (overall.kind !== "leads" && overall.kind !== "leadsOrTies") ||
-      !released.has(overall.gatewayId)
-    ) {
-      return [];
-    }
-    const tied = scenarios
-      .filter((_, index) => verdicts[index]?.tied)
-      .map((scenario) => SCENARIO_INFO[scenario.id].name.toLowerCase());
-    return {
-      gatewayId: overall.gatewayId,
-      name: overall.name,
-      detail:
-        tied.length === 0
-          ? group.name
-          : `${group.name}, tied in the ${formatList(tied)} scenario${tied.length > 1 ? "s" : ""}`,
-    };
-  });
-  if (winners.length === 0) {
-    return undefined;
-  }
-  const routers = Map.groupBy(winners, (winner) => winner.gatewayId);
-  const parts = [...routers.values()].map((items) => {
-    const details = items.map((item) => item.detail);
-    return `${items[0].name} (${details.some((detail) => detail.includes(",")) ? details.join("; ") : formatList(details)})`;
-  });
-  return parts.length === 1
-    ? `The fastest GraphQL federation router in the latest run is ${parts[0]}.`
-    : `The fastest GraphQL federation routers in the latest run are ${formatList(parts)}.`;
+    ? { kind: "leads", name }
+    : { kind: "leadsOrTies", name };
 }
 
 function linkFusion(text: string) {
@@ -254,7 +205,9 @@ function linkFusion(text: string) {
 
 interface BenchmarkVerdictSummaryProps {
   readonly id: string;
+  /** A report that contains only the results of `composition`. */
   readonly report: BenchmarkReport;
+  readonly composition: Composition;
   /** The variants shown in the tables of each scenario. A comparison is shown only when its runner-up is among them. */
   readonly visibleRows: ReadonlyMap<ScenarioId, ReadonlySet<string>>;
 }
@@ -263,6 +216,7 @@ interface BenchmarkVerdictSummaryProps {
 export function BenchmarkVerdictSummary({
   id,
   report,
+  composition,
   visibleRows,
 }: BenchmarkVerdictSummaryProps) {
   const variants = benchmarkVariants(report);
@@ -279,13 +233,11 @@ export function BenchmarkVerdictSummary({
     variants,
   );
 
-  const incomplete = scenarios.some((item) => item.verdict === undefined);
-  const summary = incomplete
-    ? summarySentence(overall).replace(
-        "in every scenario",
-        "in every scenario with successful results",
-      )
-    : summarySentence(overall);
+  const summary = summarySentence(
+    overall,
+    COMPOSITION_GROUPS.find((group) => group.id === composition)!.shortName,
+    scenarios.some((item) => item.verdict === undefined),
+  );
   const lines = scenarios.map(({ scenario, verdict }) => {
     const rival =
       verdict?.runnerUp &&

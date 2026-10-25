@@ -1,7 +1,4 @@
-import {
-  BenchmarkVerdictSummary,
-  fastestSentence,
-} from "@/src/components/benchmarks/BenchmarkVerdict";
+import { BenchmarkVerdictSummary } from "@/src/components/benchmarks/BenchmarkVerdict";
 import {
   SECTION_HEADING,
   SUBSECTION_HEADING,
@@ -29,15 +26,11 @@ export function BenchmarkGlance({
   variants,
   visibleRows,
 }: BenchmarkGlanceProps) {
-  const answer = fastestSentence(report);
   return (
     <section aria-labelledby="benchmark-results-heading">
       <h2 id="benchmark-results-heading" className={SECTION_HEADING}>
         Results at a glance
       </h2>
-      {answer && (
-        <p className="text-body text-cc-prose mt-3 max-w-4xl">{answer}</p>
-      )}
       <div className="mt-6 grid gap-10 xl:grid-cols-2 xl:gap-12">
         {COMPOSITION_GROUPS.map((group) => (
           <section
@@ -53,6 +46,7 @@ export function BenchmarkGlance({
             <BenchmarkVerdictSummary
               id={`benchmark-results-${group.id}`}
               report={compositionReport(report, variants, group.id)}
+              composition={group.id}
               visibleRows={visibleRows}
             />
           </section>

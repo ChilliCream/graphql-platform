@@ -1,9 +1,12 @@
 import type { ScenarioId } from "@/src/helpers/benchmarkReport";
 
 export const BENCHMARK_PAGE = {
-  title: "GraphQL Federation Benchmarks",
+  title: "GraphQL Federation Router Benchmark",
   path: "/benchmarks/graphql-federation",
 } as const;
+
+/** The short title on the benchmark page's share image. */
+export const BENCHMARK_SHARE_TITLE = "GraphQL Federation Benchmark";
 
 /** The published JSON files behind the benchmark page. */
 export const BENCHMARK_DATA = {

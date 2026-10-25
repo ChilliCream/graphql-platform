@@ -1,9 +1,9 @@
 import { useLayoutEffect, useRef } from "react";
 import {
   defaultScenarioId,
+  isShownVariant,
   orderedScenarios,
   scenarioGroups,
-  supersededVariants,
 } from "@/src/components/benchmarks/benchmarkView";
 import {
   benchmarkTechnology,
@@ -78,12 +78,8 @@ export function useBenchmarkControls(
     })),
   });
   const released = (entry: BenchmarkCatalogEntry) =>
-    filters.showPreviews ||
-    !isPreview(
-      entry.variant.version,
-      entry.variant.platform,
-      entry.variant.preview,
-    );
+    isShownVariant(entry) &&
+    (filters.showPreviews || !isPreview(entry.variant));
   const summaryReport = shown(released);
   const filteredReport = shown(
     (entry) =>
@@ -126,35 +122,16 @@ export function useBenchmarkControls(
       const scenario = history?.scenarios.find(
         (scenario) => scenario.id === id,
       );
-      const reportScenario = filteredReport.scenarios.find(
-        (scenario) => scenario.id === id,
-      );
-      const superseded = reportScenario
-        ? supersededVariants(reportScenario, variants)
-        : new Set<string>();
       return (
         scenario && {
           ...scenario,
-          variants: scenario.variants.flatMap((item) => {
+          variants: scenario.variants.filter((item) => {
             const entry = historyVariants?.get(item.variant);
-            if (
-              !entry ||
-              !matchesBenchmarkTechnology(entry, filters.technologies) ||
-              superseded.has(item.variant)
-            ) {
-              return [];
-            }
-            const results = filters.showPreviews
-              ? item.results
-              : item.results.filter(
-                  (result) =>
-                    !isPreview(
-                      result.version,
-                      result.platform,
-                      entry.variant.preview,
-                    ),
-                );
-            return results.length > 0 ? [{ ...item, results }] : [];
+            return (
+              entry &&
+              matchesBenchmarkTechnology(entry, filters.technologies) &&
+              released(entry)
+            );
           }),
         }
       );

@@ -240,11 +240,7 @@ export function BenchmarkResultsTable({
               const runs = row.throughput?.runsRps?.length ?? measuredRuns;
               const winner = isWinner(row, group);
               const failed = row.status === "failed";
-              const preview = isPreview(
-                entry.variant.version,
-                entry.variant.platform,
-                entry.variant.preview,
-              );
+              const preview = isPreview(entry.variant);
               const value = `${theme.cell} ${theme.value} text-right whitespace-nowrap tabular-nums`;
               return (
                 <tr
@@ -394,11 +390,7 @@ interface RouterIdentityProps {
 function RouterIdentity({ entry, features }: RouterIdentityProps) {
   const name = variantName(entry);
   const link = gatewayLink(entry.gateway);
-  const preview = isPreview(
-    entry.variant.version,
-    entry.variant.platform,
-    entry.variant.preview,
-  );
+  const preview = isPreview(entry.variant);
   return (
     <div
       className="flex flex-wrap items-center gap-x-2 gap-y-1"
@@ -507,11 +499,7 @@ function BenchmarkMobileResults({
           const winner = isWinner(row, group);
           const failed = row.status === "failed";
           const runs = row.throughput?.runsRps?.length ?? measuredRuns;
-          const preview = isPreview(
-            entry.variant.version,
-            entry.variant.platform,
-            entry.variant.preview,
-          );
+          const preview = isPreview(entry.variant);
           const metrics = isMeasured(row)
             ? [
                 row.latencyMs ? `${formatLatency(row.latencyMs.p95)} ms` : "—",

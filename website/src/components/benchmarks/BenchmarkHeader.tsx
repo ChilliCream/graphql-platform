@@ -1,9 +1,12 @@
 import {
   benchmarkFacts,
-  releasedGatewayNames,
+  releasedGateways,
 } from "@/src/components/benchmarks/benchmarkView";
 import { Link } from "@/src/design-system/Link";
-import type { BenchmarkReport } from "@/src/helpers/benchmarkReport";
+import {
+  benchmarkVariants,
+  type BenchmarkReport,
+} from "@/src/helpers/benchmarkReport";
 
 interface BenchmarkHeaderProps {
   readonly report: BenchmarkReport;
@@ -12,22 +15,22 @@ interface BenchmarkHeaderProps {
 /** The page title and description with the number and date of the latest run. */
 export function BenchmarkHeader({ report }: BenchmarkHeaderProps) {
   return (
-    <header className="grid gap-8 pt-10 sm:pt-16 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-end lg:gap-16">
-      <div>
-        <h1 className="font-heading text-h4 sm:text-h3 lg:text-h2 text-cc-heading font-semibold">
-          GraphQL Federation Router Benchmark
-        </h1>
-        <p className="text-h6 text-cc-prose mt-5 max-w-3xl font-normal">
+    <header className="pt-10 sm:pt-16">
+      <h1 className="font-heading text-h4 sm:text-h3 lg:text-h2 text-cc-heading font-semibold">
+        GraphQL Federation Router Benchmark
+      </h1>
+      <div className="mt-5 grid gap-8 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-end lg:gap-16">
+        <p className="text-h6 text-cc-prose max-w-3xl font-normal">
           Which GraphQL federation router is fastest? This open benchmark runs{" "}
-          {routerList(report)} on the same machine, with the same subgraphs and
-          the same GraphQL operation, so you can compare throughput, latency,
-          memory and CPU on equal terms.
+          {routerList(report)} on identical hardware, with the same subgraphs
+          and the same GraphQL operation, and compares their throughput,
+          latency, memory and CPU.
           <br />
           New results are published every day from a public workflow that anyone
           can inspect or rerun on their own hardware.
         </p>
+        <RunPanel report={report} />
       </div>
-      <RunPanel report={report} />
     </header>
   );
 }
@@ -71,11 +74,19 @@ function RunPanel({ report }: RunPanelProps) {
   );
 }
 
-/** Lists the gateways that have had a stable release, followed by "others" when the report contains more. */
+/** The ids of the gateways the introduction names, in order, when they have had a stable release. */
+const FEATURED_ROUTERS = ["apollo-router", "fusion", "hive-router", "cosmo"];
+
+/** Lists the featured gateways by product name, followed by "other routers" when the report contains more. */
 function routerList(report: BenchmarkReport) {
-  const { names, others } = releasedGatewayNames(report);
+  const released = releasedGateways(benchmarkVariants(report));
+  const featured = FEATURED_ROUTERS.flatMap((id) =>
+    report.gateways
+      .filter((gateway) => gateway.id === id && released.has(id))
+      .map((gateway) => gateway.name),
+  );
   return new Intl.ListFormat("en", { type: "conjunction" }).format([
-    ...names,
-    ...(others ? ["others"] : []),
+    ...featured,
+    ...(featured.length < report.gateways.length ? ["other routers"] : []),
   ]);
 }
