@@ -1641,6 +1641,24 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry UnreachableSourceField(
+        MutableOutputFieldDefinition field,
+        MutableComplexTypeDefinition type,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_UnreachableSourceField,
+                field.Coordinate.ToString(),
+                schema.Name,
+                type.Name)
+            .SetCode(LogEntryCodes.UnreachableSourceField)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(field)
+            .SetSchema(schema)
+            .Build();
+    }
+
     private static string ErrorFormatter(ImmutableDictionary<string, object?> extensions)
     {
         var errors = (IEnumerable<string>)extensions["errors"]!;
