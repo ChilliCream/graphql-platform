@@ -306,3 +306,39 @@ test("samples the same run dates for every series", () => {
     ],
   );
 });
+test("names a preview by its major version without renaming the released series", () => {
+  const platform = { language: { name: "Rust" } };
+  const entry = (id, version, preview) => ({
+    gateway: { id: "apollo-router", name: "Apollo Router" },
+    variant: {
+      id,
+      version,
+      ...(preview ? { preview: true } : {}),
+      composition: "apollo-federation",
+      platform,
+    },
+  });
+  const variants = new Map([
+    ["apollo-router", entry("apollo-router", "2.18.0", false)],
+    ["apollo-router-v3", entry("apollo-router-v3", "3.0.0-preview.0", true)],
+  ]);
+  const result = (version) => ({
+    version,
+    run: { number: 1, completedAt: "2026-10-01T12:00:00Z" },
+    platform,
+    throughput: { medianRps: 1000, runsRps: [1000] },
+  });
+  const series = historySeries(
+    {
+      variants: [
+        { variant: "apollo-router", results: [result("2.18.0")] },
+        { variant: "apollo-router-v3", results: [result("3.0.0-preview.0")] },
+      ],
+    },
+    variants,
+  );
+  assert.deepEqual(
+    series.map((item) => item.name),
+    ["Apollo Router", "Apollo Router 3.x"],
+  );
+});

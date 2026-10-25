@@ -6,25 +6,33 @@ import { BenchmarkScenarioPanels } from "@/src/components/benchmarks/BenchmarkSc
 import { BenchmarkScenarioTiles } from "@/src/components/benchmarks/BenchmarkScenarioTiles";
 import { BenchmarkStickyScenarioBar } from "@/src/components/benchmarks/BenchmarkStickyScenarioBar";
 import { useBenchmarkControls } from "@/src/components/benchmarks/useBenchmarkControls";
+import type { ReactNode } from "react";
 import type {
-  BenchmarkHistory,
   BenchmarkReport,
   ScenarioId,
 } from "@/src/helpers/benchmarkReport";
 
 interface BenchmarkExplorerProps {
   readonly report: BenchmarkReport;
-  readonly history: BenchmarkHistory;
+  /** The technologies of the variants in the history, which the filters offer next to those of the report. */
+  readonly historyTechnologies: readonly string[];
+  /** The history chart of each scenario that has recorded runs. */
+  readonly charts: Partial<Record<ScenarioId, ReactNode>>;
   readonly initialScenario: ScenarioId;
 }
 
 /** The results summary per composition, the scenario tiles with their sticky bar, and the selected scenario's tables and history chart. */
 export function BenchmarkExplorer({
   report,
-  history,
+  historyTechnologies,
+  charts,
   initialScenario,
 }: BenchmarkExplorerProps) {
-  const controls = useBenchmarkControls(report, history, initialScenario);
+  const controls = useBenchmarkControls(
+    report,
+    historyTechnologies,
+    initialScenario,
+  );
 
   return (
     <div className="relative [overflow-anchor:none]" data-benchmark-explorer>
@@ -32,7 +40,6 @@ export function BenchmarkExplorer({
       <BenchmarkGlance
         report={controls.summaryReport}
         variants={controls.variants}
-        visibleRows={controls.visibleRows}
       />
       <section
         aria-labelledby="benchmark-scenarios-heading"
@@ -42,7 +49,7 @@ export function BenchmarkExplorer({
           Results by scenario
         </h2>
         <BenchmarkScenarioTiles controls={controls} className="mt-6" />
-        <BenchmarkScenarioPanels controls={controls} />
+        <BenchmarkScenarioPanels controls={controls} charts={charts} />
       </section>
     </div>
   );

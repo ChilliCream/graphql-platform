@@ -10,22 +10,15 @@ import {
 import type {
   BenchmarkCatalogEntry,
   BenchmarkReport,
-  ScenarioId,
 } from "@/src/helpers/benchmarkReport";
 
 interface BenchmarkGlanceProps {
   readonly report: BenchmarkReport;
   readonly variants: ReadonlyMap<string, BenchmarkCatalogEntry>;
-  /** The variants shown in the tables of each scenario. */
-  readonly visibleRows: ReadonlyMap<ScenarioId, ReadonlySet<string>>;
 }
 
 /** The results summary across every scenario, one card per composition. */
-export function BenchmarkGlance({
-  report,
-  variants,
-  visibleRows,
-}: BenchmarkGlanceProps) {
+export function BenchmarkGlance({ report, variants }: BenchmarkGlanceProps) {
   return (
     <section aria-labelledby="benchmark-results-heading">
       <h2 id="benchmark-results-heading" className={SECTION_HEADING}>
@@ -47,7 +40,6 @@ export function BenchmarkGlance({
               id={`benchmark-results-${group.id}`}
               report={compositionReport(report, variants, group.id)}
               composition={group.id}
-              visibleRows={visibleRows}
             />
           </section>
         ))}

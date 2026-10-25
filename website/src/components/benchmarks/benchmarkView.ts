@@ -151,7 +151,7 @@ export interface HistorySeries {
   readonly points: readonly HistoryPoint[];
 }
 
-/** Returns one series per variant with its dated runs. Series that share a name and runtime are told apart by their newest major version. */
+/** Returns one series per variant with its dated runs. Series that share a name and runtime are told apart by their newest major version, except that a released series keeps its name next to a preview. */
 export function historySeries(
   scenario: BenchmarkHistoryScenario,
   variants: ReadonlyMap<string, BenchmarkCatalogEntry>,
@@ -223,6 +223,7 @@ export function historySeries(
     series.some(
       (other) =>
         other !== item &&
+        (item.preview || !other.preview) &&
         other.composition === item.composition &&
         other.name === item.name &&
         other.runtime === item.runtime,

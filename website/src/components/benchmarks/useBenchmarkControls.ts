@@ -15,15 +15,14 @@ import {
   benchmarkVariants,
   isPreview,
   type BenchmarkCatalogEntry,
-  type BenchmarkHistory,
   type BenchmarkReport,
   type ScenarioId,
 } from "@/src/helpers/benchmarkReport";
 
-/** In-memory filters and the scenario selected by the static route. */
+/** In-memory filters and the scenario selected by the static route. `historyTechnologies` are the technologies of the history variants, which the filters offer next to those of the report. */
 export function useBenchmarkControls(
   report: BenchmarkReport,
-  history: BenchmarkHistory | undefined,
+  historyTechnologies: readonly string[],
   initialScenario: ScenarioId,
 ) {
   const { filters, setFilters: updateFilters } = useBenchmarkPreferences();
@@ -57,13 +56,11 @@ export function useBenchmarkControls(
     window.scrollTo({ top: position.y, behavior: "instant" });
   }, [filters]);
   const variants = benchmarkVariants(report);
-  const historyVariants = history && benchmarkVariants(history);
   const technologies = [
-    ...new Set(
-      [...variants.values(), ...(historyVariants?.values() ?? [])].map(
-        benchmarkTechnology,
-      ),
-    ),
+    ...new Set([
+      ...[...variants.values()].map(benchmarkTechnology),
+      ...historyTechnologies,
+    ]),
   ].sort();
   const shown = (keep: (entry: BenchmarkCatalogEntry) => boolean) => ({
     ...report,
@@ -114,40 +111,10 @@ export function useBenchmarkControls(
     summaryReport,
     report: filteredReport,
     variants,
-    historyVariants,
     technologies,
     filters,
     setFilters,
-    historyOf: (id: ScenarioId) => {
-      const scenario = history?.scenarios.find(
-        (scenario) => scenario.id === id,
-      );
-      return (
-        scenario && {
-          ...scenario,
-          variants: scenario.variants.filter((item) => {
-            const entry = historyVariants?.get(item.variant);
-            return (
-              entry &&
-              matchesBenchmarkTechnology(entry, filters.technologies) &&
-              released(entry)
-            );
-          }),
-        }
-      );
-    },
     selected,
-    /** The variants shown in the tables of each scenario. */
-    visibleRows: new Map(
-      scenarios.map((scenario) => [
-        scenario.id,
-        new Set(
-          scenarioGroups(scenario, variants).flatMap((group) =>
-            group.rows.map((row) => row.variant),
-          ),
-        ),
-      ]),
-    ),
     hasResults: scenarios.some(
       (scenario) => scenarioGroups(scenario, variants).length > 0,
     ),

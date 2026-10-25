@@ -20,7 +20,6 @@ import {
   type BenchmarkReport,
   type BenchmarkVariantResult,
   type Composition,
-  type ScenarioId,
 } from "@/src/helpers/benchmarkReport";
 import { CrownIcon } from "@/src/icons/CrownIcon";
 
@@ -43,14 +42,16 @@ type Overall =
 const formatPercent = (value: number) =>
   `${(value * 100).toFixed(1).replace(/\.0$/, "")}%`;
 
-/** Returns the sentence for one scenario, or for a scenario without any result free of failed requests. */
-function scenarioSentence(verdict: NamedVerdict | undefined) {
+/** Returns the sentence for one scenario, or for a scenario without any result free of failed requests. `sole` is set when the scenario has no other router. */
+function scenarioSentence(verdict: NamedVerdict | undefined, sole: boolean) {
   if (!verdict) {
     return "No router finished this scenario without failed requests.";
   }
   const { leader, runnerUp, lead, tied } = verdict;
   if (!runnerUp) {
-    return `${leader.name} is the only router without failed requests, at ${formatNumber(leader.rps)} requests per second.`;
+    return sole
+      ? `${leader.name} served ${formatNumber(leader.rps)} requests per second.`
+      : `${leader.name} is the only router without failed requests, at ${formatNumber(leader.rps)} requests per second.`;
   }
   if (tied) {
     return `${leader.name} and ${runnerUp.name} are tied within the run variance, at ${formatNumber(leader.rps)} and ${formatNumber(runnerUp.rps)} requests per second.`;
@@ -208,8 +209,6 @@ interface BenchmarkVerdictSummaryProps {
   /** A report that contains only the results of `composition`. */
   readonly report: BenchmarkReport;
   readonly composition: Composition;
-  /** The variants shown in the tables of each scenario. A comparison is shown only when its runner-up is among them. */
-  readonly visibleRows: ReadonlyMap<ScenarioId, ReadonlySet<string>>;
 }
 
 /** A written summary of every scenario: one overall sentence and one sentence per scenario. */
@@ -217,7 +216,6 @@ export function BenchmarkVerdictSummary({
   id,
   report,
   composition,
-  visibleRows,
 }: BenchmarkVerdictSummaryProps) {
   const variants = benchmarkVariants(report);
   const released = releasedGateways(variants);
@@ -232,22 +230,38 @@ export function BenchmarkVerdictSummary({
     scenarios.map(({ verdict }) => verdict),
     variants,
   );
-
-  const summary = summarySentence(
-    overall,
-    COMPOSITION_GROUPS.find((group) => group.id === composition)!.shortName,
-    scenarios.some((item) => item.verdict === undefined),
+  const gatewayIds = new Set(
+    report.scenarios.flatMap((scenario) =>
+      scenario.results.flatMap((result) =>
+        result.variants.map((row) => variants.get(row.variant)!.gateway.id),
+      ),
+    ),
   );
+  const sole =
+    gatewayIds.size === 1
+      ? report.gateways.find((gateway) => gatewayIds.has(gateway.id))
+      : undefined;
+  const compositionName = COMPOSITION_GROUPS.find(
+    (group) => group.id === composition,
+  )!.shortName;
+
+  const summary = sole
+    ? `${sole.name} is the only ${compositionName} router in this benchmark.`
+    : summarySentence(
+        overall,
+        compositionName,
+        scenarios.some((item) => item.verdict === undefined),
+      );
   const lines = scenarios.map(({ scenario, verdict }) => {
     const rival =
-      verdict?.runnerUp &&
-      visibleRows.get(scenario.id)?.has(verdict.runnerUp.variant)
-        ? variants.get(verdict.runnerUp.variant)!.gateway
-        : undefined;
+      verdict?.runnerUp && variants.get(verdict.runnerUp.variant)!.gateway;
     return {
       id: scenario.id,
       name: SCENARIO_INFO[scenario.id].name,
-      text: scenarioSentence(nameVerdict(verdict, variants, released)),
+      text: scenarioSentence(
+        nameVerdict(verdict, variants, released),
+        sole !== undefined,
+      ),
       verdict,
       gateway: verdict && variants.get(verdict.leader.variant)!.gateway,
       rival,
@@ -267,7 +281,7 @@ export function BenchmarkVerdictSummary({
   const body = (
     <>
       <p className="text-cc-heading text-body mt-2">
-        {commonWinner && (
+        {commonWinner && !sole && (
           <CrownIcon className="text-cc-accent mr-1.5 inline size-4 align-[-2px]" />
         )}
         {linkFusion(summary)}

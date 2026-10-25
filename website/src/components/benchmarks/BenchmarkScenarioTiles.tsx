@@ -16,7 +16,7 @@ interface BenchmarkScenarioTilesProps {
   readonly detail?: (scenario: BenchmarkScenario) => ReactNode;
 }
 
-/** The scenario links with their load shapes. The sticky scenario bar replaces them once they scroll out of view. */
+/** The scenario links with their load shapes, each linking to the page of its scenario. The sticky scenario bar replaces them once they scroll out of view. */
 export function BenchmarkScenarioTiles({
   controls,
   className = "",
@@ -26,7 +26,6 @@ export function BenchmarkScenarioTiles({
   return (
     <fieldset
       className={`border-cc-card-border grid border-y md:grid-cols-3 ${className}`}
-      data-benchmark-controls
       data-benchmark-scenario-tiles
     >
       <legend className="sr-only">Scenario</legend>

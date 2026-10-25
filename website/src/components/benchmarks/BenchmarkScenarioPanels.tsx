@@ -1,19 +1,23 @@
+import { Fragment, type ReactNode } from "react";
 import { BenchmarkFilterButton } from "@/src/components/benchmarks/BenchmarkFilterButton";
-import { BenchmarkHistoryChart } from "@/src/components/benchmarks/BenchmarkHistoryChart";
 import { BenchmarkNoscript } from "@/src/components/benchmarks/BenchmarkNoscript";
 import { BenchmarkScenarioResults } from "@/src/components/benchmarks/BenchmarkScenarioResults";
 import { SCENARIO_INFO } from "@/src/components/benchmarks/benchmarkView";
 import type { BenchmarkControls } from "@/src/components/benchmarks/useBenchmarkControls";
+import type { ScenarioId } from "@/src/helpers/benchmarkReport";
 
 interface BenchmarkScenarioPanelsProps {
   readonly controls: BenchmarkControls;
+  /** The history chart of each scenario that has recorded runs. */
+  readonly charts: Partial<Record<ScenarioId, ReactNode>>;
 }
 
-/** The results tables and history chart of the selected scenario. Every scenario is rendered so the page works without JavaScript. */
+/** The results tables and history chart of the selected scenario. Every scenario is rendered, and only the selected one is shown. */
 export function BenchmarkScenarioPanels({
   controls,
+  charts,
 }: BenchmarkScenarioPanelsProps) {
-  const { report, scenarios, variants, historyVariants } = controls;
+  const { report, scenarios, variants } = controls;
 
   return (
     <>
@@ -38,7 +42,7 @@ export function BenchmarkScenarioPanels({
       )}
       {controls.hasResults &&
         scenarios.map((scenario) => {
-          const scenarioHistory = controls.historyOf(scenario.id);
+          const chart = charts[scenario.id];
           const name = SCENARIO_INFO[scenario.id].name;
           return (
             <section
@@ -63,16 +67,13 @@ export function BenchmarkScenarioPanels({
                   </div>
                 }
               />
-              {scenarioHistory &&
-              scenarioHistory.variants.length > 0 &&
-              historyVariants ? (
+              {chart ? (
                 <div className="mt-16">
-                  <BenchmarkHistoryChart
+                  <Fragment
                     key={`${controls.filters.showPreviews}:${controls.filters.technologies.join(",")}`}
-                    id={`benchmark-${scenario.id}`}
-                    scenario={scenarioHistory}
-                    variants={historyVariants}
-                  />
+                  >
+                    {chart}
+                  </Fragment>
                 </div>
               ) : (
                 <p className="text-caption text-cc-ink-dim mt-12">
