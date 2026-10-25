@@ -120,7 +120,7 @@ public class TimeoutMiddlewareTests : FusionTestBase
     {
         // arrange
         var executor = await CreateExecutorAsync(
-            TimeSpan.FromMilliseconds(100),
+            TimeSpan.FromSeconds(1),
             builder => builder.UseRequest(
                 (_, _) => async context =>
                 {
@@ -154,7 +154,7 @@ public class TimeoutMiddlewareTests : FusionTestBase
             {
               "errors": [
                 {
-                  "message": "The request exceeded the configured timeout of `00:00:00.1000000`.",
+                  "message": "The request exceeded the configured timeout of `00:00:01`.",
                   "extensions": {
                     "code": "HC0045"
                   }
