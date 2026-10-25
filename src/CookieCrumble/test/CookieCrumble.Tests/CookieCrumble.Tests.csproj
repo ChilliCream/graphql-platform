@@ -3,15 +3,14 @@
   <PropertyGroup>
     <AssemblyName>CookieCrumble.Tests</AssemblyName>
     <RootNamespace>CookieCrumble</RootNamespace>
-    <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <OutputType>Exe</OutputType>
     <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
-    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" />
-    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" VersionOverride="17.14.2" />
+    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" VersionOverride="1.9.1" />
+    <PackageReference Include="xunit.v3" VersionOverride="3.2.2" />
   </ItemGroup>
 
   <ItemGroup>

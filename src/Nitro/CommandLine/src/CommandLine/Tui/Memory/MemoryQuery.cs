@@ -3,10 +3,8 @@ using ChilliCream.Nitro.CommandLine.Services.Memory;
 namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 
 /// <summary>
-/// The pieces one memory tab search box entry parses into: free text passed
-/// to <see cref="IMemoryStore.SearchCuratedAsync"/> literally, plus a type
-/// and tags narrowed the same way the CLI's <c>--type</c> and <c>--tag</c>
-/// options do.
+/// A parsed memory query with free text for <see cref="IMemoryStore"/> searches
+/// and optional curated-memory type and tag filters.
 /// </summary>
 internal readonly record struct MemoryQuery(string Text, string? Type, IReadOnlyList<string> Tags)
 {

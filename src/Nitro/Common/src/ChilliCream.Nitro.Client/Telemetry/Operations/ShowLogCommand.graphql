@@ -1,0 +1,49 @@
+query ShowLogCommandQuery($workspaceId: ID!, $id: String!) {
+  workspaceById(workspaceId: $workspaceId) {
+    logById(id: $id) {
+      id
+      epoch
+      severityText
+      severityNumber
+      body
+      traceId
+      spanId
+      bodyDetail {
+        json
+        kind
+        message
+      }
+      logAttributes {
+        ...ShowLogCommand_OpenTelemetryAttribute
+      }
+      resourceAttributes {
+        key
+        value
+      }
+      scope {
+        name
+        schemaUrl
+        version
+        attributes {
+          ...ShowLogCommand_OpenTelemetryAttribute
+        }
+      }
+    }
+  }
+}
+
+fragment ShowLogCommand_OpenTelemetryAttribute on OpenTelemetryAttribute {
+  key
+  ... on OpenTelemetryBoolAttribute {
+    boolean: value
+  }
+  ... on OpenTelemetryFloatAttribute {
+    float: value
+  }
+  ... on OpenTelemetryLongAttribute {
+    long: value
+  }
+  ... on OpenTelemetryStringAttribute {
+    string: value
+  }
+}

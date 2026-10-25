@@ -22,17 +22,17 @@ response:
         "posts": [
           {
             "product": {
-              "subgraph2": "Product: UHJvZHVjdDo0"
+              "subgraph2": "Product: UHJvZHVjdDoxNTQ5MzgwMzU2"
             }
           },
           {
             "product": {
-              "subgraph2": "Product: UHJvZHVjdDo1"
+              "subgraph2": "Product: UHJvZHVjdDoxNjEyOTY2MTgz"
             }
           },
           {
             "product": {
-              "subgraph2": "Product: UHJvZHVjdDo2"
+              "subgraph2": "Product: UHJvZHVjdDo0MDM1NDE3Mzc3"
             }
           }
         ]
@@ -92,19 +92,19 @@ sourceSchemas:
                     {
                       "__typename": "Photo",
                       "product": {
-                        "id": "UHJvZHVjdDo0"
+                        "id": "UHJvZHVjdDoxNTQ5MzgwMzU2"
                       }
                     },
                     {
                       "__typename": "Discussion",
                       "product": {
-                        "id": "UHJvZHVjdDo1"
+                        "id": "UHJvZHVjdDoxNjEyOTY2MTgz"
                       }
                     },
                     {
                       "__typename": "Photo",
                       "product": {
-                        "id": "UHJvZHVjdDo2"
+                        "id": "UHJvZHVjdDo0MDM1NDE3Mzc3"
                       }
                     }
                   ]
@@ -136,13 +136,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "UHJvZHVjdDo1"
+                "__fusion_1_id": "UHJvZHVjdDoxNjEyOTY2MTgz"
               },
               {
-                "__fusion_1_id": "UHJvZHVjdDo0"
+                "__fusion_1_id": "UHJvZHVjdDoxNTQ5MzgwMzU2"
               },
               {
-                "__fusion_1_id": "UHJvZHVjdDo2"
+                "__fusion_1_id": "UHJvZHVjdDo0MDM1NDE3Mzc3"
               }
             ]
         response:
@@ -152,7 +152,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDo1"
+                    "subgraph2": "Product: UHJvZHVjdDoxNjEyOTY2MTgz"
                   }
                 }
               }
@@ -160,7 +160,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDo0"
+                    "subgraph2": "Product: UHJvZHVjdDoxNTQ5MzgwMzU2"
                   }
                 }
               }
@@ -168,7 +168,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDo2"
+                    "subgraph2": "Product: UHJvZHVjdDo0MDM1NDE3Mzc3"
                   }
                 }
               }
@@ -193,7 +193,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 9b3b2942c1fefa10ff166b89f628b2b4
+      hash: dc9184aba1a2d400767e58a62c927115
       searchSpace: 1
       expandedNodes: 2
   nodes:

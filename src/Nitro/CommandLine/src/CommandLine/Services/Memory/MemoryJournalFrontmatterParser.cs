@@ -4,13 +4,9 @@ using System.Globalization;
 namespace ChilliCream.Nitro.CommandLine.Services.Memory;
 
 /// <summary>
-/// Parses the restricted frontmatter grammar journal entry markdown files
-/// use: a fixed, non-nested set of <c>key: value</c> lines between two
-/// <c>---</c> delimiters, followed by the markdown body. Mirrors
-/// <see cref="MemoryFrontmatterParser"/>'s grammar and strict failure
-/// contract, over the smaller key set a journal entry has: no type, tags,
-/// updated-at timestamp, or promoted-from, since a journal entry is an
-/// immutable capture rather than an editable curated memory.
+/// Parses journal metadata and a markdown body, requiring schema, id, creation time,
+/// and creator fields. Rejects invalid metadata, unknown keys, unsupported schema
+/// versions, and ids that differ from the expected filename id.
 /// </summary>
 internal static class MemoryJournalFrontmatterParser
 {
@@ -19,7 +15,7 @@ internal static class MemoryJournalFrontmatterParser
     private const string Delimiter = "---";
 
     private static readonly string[] s_requiredKeys = ["schema", "id", "created_at", "created_by"];
-    private static readonly HashSet<string> s_knownKeys = new(s_requiredKeys);
+    private static readonly HashSet<string> s_knownKeys = [.. s_requiredKeys];
 
     public static bool TryParse(
         string content,
@@ -155,9 +151,7 @@ internal static class MemoryJournalFrontmatterParser
 
     private static bool TryParseTimestamp(string value, out DateTimeOffset timestamp)
     {
-        // Stored timestamps must be UTC RFC 3339, marked with the 'Z'
-        // designator; frontmatter is machine-written, not user-typed, so
-        // this is stricter than the offset-inferring parsing options use.
+        // Accepts invariant-culture timestamps with a Z suffix, interpreted as UTC.
         if (value.EndsWith('Z')
             && DateTimeOffset.TryParse(
                 value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out timestamp))

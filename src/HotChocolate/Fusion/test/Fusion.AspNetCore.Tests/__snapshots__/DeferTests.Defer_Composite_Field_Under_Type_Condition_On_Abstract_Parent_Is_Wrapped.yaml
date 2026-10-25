@@ -90,27 +90,27 @@ stableResponseStream: |
           "devices": {
             "edges": [
               {
-                "cursor": "ConnectorDeviceEdge: Q29ubmVjdG9yRGV2aWNlRWRnZToy",
+                "cursor": "ConnectorDeviceEdge: Q29ubmVjdG9yRGV2aWNlRWRnZToyODkxMTIyOA==",
                 "node": {
                   "__typename": "ConnectorDevice",
-                  "id": "Q29ubmVjdG9yRGV2aWNlOjU=",
-                  "name": "ConnectorDevice: Q29ubmVjdG9yRGV2aWNlOjU="
+                  "id": "Q29ubmVjdG9yRGV2aWNlOjY0NzkxMTQ0MQ==",
+                  "name": "ConnectorDevice: Q29ubmVjdG9yRGV2aWNlOjY0NzkxMTQ0MQ=="
                 }
               },
               {
-                "cursor": "ConnectorDeviceEdge: Q29ubmVjdG9yRGV2aWNlRWRnZToz",
+                "cursor": "ConnectorDeviceEdge: Q29ubmVjdG9yRGV2aWNlRWRnZTozMTYxODIwNDky",
                 "node": {
                   "__typename": "ConnectorDevice",
-                  "id": "Q29ubmVjdG9yRGV2aWNlOjY=",
-                  "name": "ConnectorDevice: Q29ubmVjdG9yRGV2aWNlOjY="
+                  "id": "Q29ubmVjdG9yRGV2aWNlOjMxNzIxNDQzNjA=",
+                  "name": "ConnectorDevice: Q29ubmVjdG9yRGV2aWNlOjMxNzIxNDQzNjA="
                 }
               },
               {
-                "cursor": "ConnectorDeviceEdge: Q29ubmVjdG9yRGV2aWNlRWRnZTo0",
+                "cursor": "ConnectorDeviceEdge: Q29ubmVjdG9yRGV2aWNlRWRnZTo0MTExNTEyMjAz",
                 "node": {
                   "__typename": "ConnectorDevice",
-                  "id": "Q29ubmVjdG9yRGV2aWNlOjc=",
-                  "name": "ConnectorDevice: Q29ubmVjdG9yRGV2aWNlOjc="
+                  "id": "Q29ubmVjdG9yRGV2aWNlOjQyMzIxMzMwMjE=",
+                  "name": "ConnectorDevice: Q29ubmVjdG9yRGV2aWNlOjQyMzIxMzMwMjE="
                 }
               }
             ],
@@ -135,27 +135,27 @@ stableResponseStream: |
           "devices": {
             "edges": [
               {
-                "cursor": "ConnectorDeviceEdge: Q29ubmVjdG9yRGV2aWNlRWRnZToy",
+                "cursor": "ConnectorDeviceEdge: Q29ubmVjdG9yRGV2aWNlRWRnZToyODkxMTIyOA==",
                 "node": {
                   "__typename": "ConnectorDevice",
-                  "id": "Q29ubmVjdG9yRGV2aWNlOjU=",
-                  "name": "ConnectorDevice: Q29ubmVjdG9yRGV2aWNlOjU="
+                  "id": "Q29ubmVjdG9yRGV2aWNlOjY0NzkxMTQ0MQ==",
+                  "name": "ConnectorDevice: Q29ubmVjdG9yRGV2aWNlOjY0NzkxMTQ0MQ=="
                 }
               },
               {
-                "cursor": "ConnectorDeviceEdge: Q29ubmVjdG9yRGV2aWNlRWRnZToz",
+                "cursor": "ConnectorDeviceEdge: Q29ubmVjdG9yRGV2aWNlRWRnZTozMTYxODIwNDky",
                 "node": {
                   "__typename": "ConnectorDevice",
-                  "id": "Q29ubmVjdG9yRGV2aWNlOjY=",
-                  "name": "ConnectorDevice: Q29ubmVjdG9yRGV2aWNlOjY="
+                  "id": "Q29ubmVjdG9yRGV2aWNlOjMxNzIxNDQzNjA=",
+                  "name": "ConnectorDevice: Q29ubmVjdG9yRGV2aWNlOjMxNzIxNDQzNjA="
                 }
               },
               {
-                "cursor": "ConnectorDeviceEdge: Q29ubmVjdG9yRGV2aWNlRWRnZTo0",
+                "cursor": "ConnectorDeviceEdge: Q29ubmVjdG9yRGV2aWNlRWRnZTo0MTExNTEyMjAz",
                 "node": {
                   "__typename": "ConnectorDevice",
-                  "id": "Q29ubmVjdG9yRGV2aWNlOjc=",
-                  "name": "ConnectorDevice: Q29ubmVjdG9yRGV2aWNlOjc="
+                  "id": "Q29ubmVjdG9yRGV2aWNlOjQyMzIxMzMwMjE=",
+                  "name": "ConnectorDevice: Q29ubmVjdG9yRGV2aWNlOjQyMzIxMzMwMjE="
                 }
               }
             ],
@@ -326,26 +326,26 @@ sourceSchemas:
                       "totalCount": 123,
                       "edges": [
                         {
-                          "cursor": "ConnectorDeviceEdge: Q29ubmVjdG9yRGV2aWNlRWRnZToy",
+                          "cursor": "ConnectorDeviceEdge: Q29ubmVjdG9yRGV2aWNlRWRnZToyODkxMTIyOA==",
                           "node": {
-                            "id": "Q29ubmVjdG9yRGV2aWNlOjU=",
-                            "name": "ConnectorDevice: Q29ubmVjdG9yRGV2aWNlOjU=",
+                            "id": "Q29ubmVjdG9yRGV2aWNlOjY0NzkxMTQ0MQ==",
+                            "name": "ConnectorDevice: Q29ubmVjdG9yRGV2aWNlOjY0NzkxMTQ0MQ==",
                             "__typename": "ConnectorDevice"
                           }
                         },
                         {
-                          "cursor": "ConnectorDeviceEdge: Q29ubmVjdG9yRGV2aWNlRWRnZToz",
+                          "cursor": "ConnectorDeviceEdge: Q29ubmVjdG9yRGV2aWNlRWRnZTozMTYxODIwNDky",
                           "node": {
-                            "id": "Q29ubmVjdG9yRGV2aWNlOjY=",
-                            "name": "ConnectorDevice: Q29ubmVjdG9yRGV2aWNlOjY=",
+                            "id": "Q29ubmVjdG9yRGV2aWNlOjMxNzIxNDQzNjA=",
+                            "name": "ConnectorDevice: Q29ubmVjdG9yRGV2aWNlOjMxNzIxNDQzNjA=",
                             "__typename": "ConnectorDevice"
                           }
                         },
                         {
-                          "cursor": "ConnectorDeviceEdge: Q29ubmVjdG9yRGV2aWNlRWRnZTo0",
+                          "cursor": "ConnectorDeviceEdge: Q29ubmVjdG9yRGV2aWNlRWRnZTo0MTExNTEyMjAz",
                           "node": {
-                            "id": "Q29ubmVjdG9yRGV2aWNlOjc=",
-                            "name": "ConnectorDevice: Q29ubmVjdG9yRGV2aWNlOjc=",
+                            "id": "Q29ubmVjdG9yRGV2aWNlOjQyMzIxMzMwMjE=",
+                            "name": "ConnectorDevice: Q29ubmVjdG9yRGV2aWNlOjQyMzIxMzMwMjE=",
                             "__typename": "ConnectorDevice"
                           }
                         }
@@ -369,7 +369,7 @@ operationPlan:
           }
         }
       name: ConnectorDetailsQuery
-      hash: b0bc69b8f141920cd280ac8292e05c09
+      hash: fdf38f87112ff3a7b4e0e331217bd94c
       searchSpace: 1
       expandedNodes: 1
   nodes:

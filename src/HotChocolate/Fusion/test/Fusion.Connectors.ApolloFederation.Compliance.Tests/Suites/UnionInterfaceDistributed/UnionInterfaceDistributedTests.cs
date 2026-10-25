@@ -1,4 +1,3 @@
-using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Suites.UnionInterfaceDistributed.A;
 using HotChocolate.Fusion.Suites.UnionInterfaceDistributed.B;
 

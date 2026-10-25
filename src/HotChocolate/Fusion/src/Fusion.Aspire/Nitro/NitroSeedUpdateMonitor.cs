@@ -97,10 +97,7 @@ internal sealed class NitroSeedUpdateMonitor
 
     public void Start(CancellationToken stoppingToken)
     {
-        if (_completion is null)
-        {
-            _completion = RunAsync(stoppingToken);
-        }
+        _completion ??= RunAsync(stoppingToken);
     }
 
     public async Task SetAutoUpdateAsync(

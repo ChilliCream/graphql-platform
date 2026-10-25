@@ -75,6 +75,7 @@ internal sealed class AzureHeaderDictionary : IHeaderDictionary
         set
         {
             _response.Headers[key] = value;
+            _responseData.Headers.Remove(key);
             _responseData.Headers.Add(key, (IEnumerable<string>)value);
         }
     }
@@ -85,6 +86,7 @@ internal sealed class AzureHeaderDictionary : IHeaderDictionary
         set
         {
             _response.Headers.ContentLength = value;
+            _responseData.Headers.Remove(HeaderNames.ContentLength);
             _responseData.Headers.Add(
                 HeaderNames.ContentLength,
                 (string?)_response.Headers[HeaderNames.ContentLength]);

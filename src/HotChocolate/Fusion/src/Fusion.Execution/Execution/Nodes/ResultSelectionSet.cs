@@ -57,6 +57,16 @@ internal sealed class ResultSelectionSet
     /// </summary>
     public ReadOnlySpan<string> ResponseNames => _allResponseNames;
 
+    /// <summary>
+    /// Gets the direct field selections at this level, excluding inline fragments.
+    /// </summary>
+    internal ReadOnlySpan<ResultSelection> Selections => _selections;
+
+    /// <summary>
+    /// Gets the inline fragments at this level.
+    /// </summary>
+    internal ReadOnlySpan<ResultFragment> Fragments => _fragments;
+
     public bool HasSourceResponseNameMappings { get; }
 
     /// <summary>
@@ -524,10 +534,12 @@ internal sealed class ResultSelectionSet
             if (directive.Name.Value.Equals(ResponseNameDirective, StringComparison.Ordinal)
                 && directive.Arguments is
                 [
+#pragma warning disable IDE0055 // https://github.com/dotnet/roslyn/issues/73251
                     {
                         Name.Value: "name",
                         Value: StringValueNode responseName
                     }
+#pragma warning restore IDE0055
                 ])
             {
                 return responseName.Value;

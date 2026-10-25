@@ -553,7 +553,7 @@ This is the default behavior. The `EntityFrameworkTransactionMiddleware` exclude
 
 ## No OpenTelemetry traces appear
 
-The `MediatorDiagnosticMiddleware` is always present, but it uses a no-op listener by default. You must call `.AddInstrumentation()` to register the `ActivityMediatorDiagnosticListener`. You also need to configure your OpenTelemetry SDK to collect from the `Mocha.Mediator` source via `.AddSource("Mocha.Mediator")`.
+The `MediatorDiagnosticMiddleware` is always present, but it uses a no-op listener by default. You must call `.AddInstrumentation()` to register the `ActivityMediatorDiagnosticListener`. You also need to configure your OpenTelemetry SDK to collect from the `Mocha.Mediator` source via `#!csharp .AddSource("Mocha.Mediator")`.
 
 ## Services resolved in the factory vs. at runtime
 

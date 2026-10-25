@@ -1,17 +1,14 @@
 using System.Text;
 using System.Threading.Channels;
-using DotNet.Testcontainers.Builders;
-using DotNet.Testcontainers.Containers;
+using CookieCrumble.Resources;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using NATS.Client.Core;
 using NATS.Client.JetStream;
-using NATS.Client.JetStream.Models;
-using Squadron;
 
 namespace HotChocolate.Fusion.Subscriptions.NATS;
 
-public sealed class NatsEventStreamBrokerTests : IClassFixture<NatsResource>
+public sealed class NatsEventStreamBrokerTests
 {
     private readonly NatsResource _natsResource;
 
@@ -172,20 +169,20 @@ public sealed class NatsEventStreamBrokerTests : IClassFixture<NatsResource>
     public async Task Subscribe_Should_ResumeFromCursor_When_JetStreamCursorProvided()
     {
         // arrange
-        await using var fixture = await JetStreamNatsFixture.StartAsync();
         var subjectA = CreateSubject();
         var subjectB = CreateSubject();
-        var stream = "S" + Guid.NewGuid().ToString("N");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
-        await CreateStreamAsync(fixture.Url, stream, [subjectA, subjectB], cts.Token);
+        await using var stream = await _natsResource.CreateStreamAsync(
+            [subjectA, subjectB],
+            cts.Token);
         var services = new ServiceCollection();
         services.AddNatsEventStreamBroker(configure: o =>
         {
-            o.Url = fixture.Url;
+            o.Url = _natsResource.NatsConnectionString;
             o.JetStream = new NatsJetStreamOptions
             {
-                Stream = stream
+                Stream = stream.Name
             };
         });
         await using var provider = services.BuildServiceProvider();
@@ -205,8 +202,16 @@ public sealed class NatsEventStreamBrokerTests : IClassFixture<NatsResource>
                     cts.Token)
                 .GetAsyncEnumerator(cts.Token);
             var first = enumerator.MoveNextAsync().AsTask();
-            await WaitForConsumerAsync(fixture.Url, stream, expectedCount: 1, cts.Token);
-            await PublishJetStreamAsync(fixture.Url, subjectA, """{"id":1}"""u8.ToArray(), cts.Token);
+            await WaitForConsumerAsync(
+                _natsResource.NatsConnectionString,
+                stream.Name,
+                expectedCount: 1,
+                cts.Token);
+            await PublishJetStreamAsync(
+                _natsResource.NatsConnectionString,
+                subjectA,
+                """{"id":1}"""u8.ToArray(),
+                cts.Token);
 
             Assert.True(await first);
             using var firstMessage = enumerator.Current;
@@ -215,7 +220,11 @@ public sealed class NatsEventStreamBrokerTests : IClassFixture<NatsResource>
         }
 
         // publish a gap event while no subscriber is connected.
-        await PublishJetStreamAsync(fixture.Url, subjectB, """{"id":2}"""u8.ToArray(), cts.Token);
+        await PublishJetStreamAsync(
+            _natsResource.NatsConnectionString,
+            subjectB,
+            """{"id":2}"""u8.ToArray(),
+            cts.Token);
 
         // phase 2: resume from the captured cursor and recover the missed gap event.
         await using (var broker = factory.Create(null))
@@ -239,23 +248,25 @@ public sealed class NatsEventStreamBrokerTests : IClassFixture<NatsResource>
     public async Task Subscribe_Should_OnlyDeliverNewEvents_When_FreshJetStreamSubscribe()
     {
         // arrange
-        await using var fixture = await JetStreamNatsFixture.StartAsync();
         var subject = CreateSubject();
-        var stream = "S" + Guid.NewGuid().ToString("N");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
-        await CreateStreamAsync(fixture.Url, stream, [subject], cts.Token);
+        await using var stream = await _natsResource.CreateStreamAsync([subject], cts.Token);
 
         // a historic event is retained before the subscription is established.
-        await PublishJetStreamAsync(fixture.Url, subject, """{"id":1}"""u8.ToArray(), cts.Token);
+        await PublishJetStreamAsync(
+            _natsResource.NatsConnectionString,
+            subject,
+            """{"id":1}"""u8.ToArray(),
+            cts.Token);
 
         var services = new ServiceCollection();
         services.AddNatsEventStreamBroker(configure: o =>
         {
-            o.Url = fixture.Url;
+            o.Url = _natsResource.NatsConnectionString;
             o.JetStream = new NatsJetStreamOptions
             {
-                Stream = stream
+                Stream = stream.Name
             };
         });
         await using var provider = services.BuildServiceProvider();
@@ -271,8 +282,16 @@ public sealed class NatsEventStreamBrokerTests : IClassFixture<NatsResource>
                 cts.Token)
             .GetAsyncEnumerator(cts.Token);
         var next = enumerator.MoveNextAsync().AsTask();
-        await WaitForConsumerAsync(fixture.Url, stream, expectedCount: 1, cts.Token);
-        await PublishJetStreamAsync(fixture.Url, subject, """{"id":2}"""u8.ToArray(), cts.Token);
+        await WaitForConsumerAsync(
+            _natsResource.NatsConnectionString,
+            stream.Name,
+            expectedCount: 1,
+            cts.Token);
+        await PublishJetStreamAsync(
+            _natsResource.NatsConnectionString,
+            subject,
+            """{"id":2}"""u8.ToArray(),
+            cts.Token);
 
         // assert
         // the fresh subscription skips the retained history and only sees the new event.
@@ -285,19 +304,17 @@ public sealed class NatsEventStreamBrokerTests : IClassFixture<NatsResource>
     public async Task Subscribe_Should_FanOutToAllSubscribers_When_MultipleConcurrentJetStreamSubscriptions()
     {
         // arrange
-        await using var fixture = await JetStreamNatsFixture.StartAsync();
         var subject = CreateSubject();
-        var stream = "S" + Guid.NewGuid().ToString("N");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
-        await CreateStreamAsync(fixture.Url, stream, [subject], cts.Token);
+        await using var stream = await _natsResource.CreateStreamAsync([subject], cts.Token);
         var services = new ServiceCollection();
         services.AddNatsEventStreamBroker(configure: o =>
         {
-            o.Url = fixture.Url;
+            o.Url = _natsResource.NatsConnectionString;
             o.JetStream = new NatsJetStreamOptions
             {
-                Stream = stream
+                Stream = stream.Name
             };
         });
         await using var provider = services.BuildServiceProvider();
@@ -321,11 +338,23 @@ public sealed class NatsEventStreamBrokerTests : IClassFixture<NatsResource>
             .GetAsyncEnumerator(cts.Token);
         var firstA = enumeratorA.MoveNextAsync().AsTask();
         var firstB = enumeratorB.MoveNextAsync().AsTask();
-        await WaitForConsumerAsync(fixture.Url, stream, expectedCount: 2, cts.Token);
+        await WaitForConsumerAsync(
+            _natsResource.NatsConnectionString,
+            stream.Name,
+            expectedCount: 2,
+            cts.Token);
 
         // act
-        await PublishJetStreamAsync(fixture.Url, subject, """{"id":1}"""u8.ToArray(), cts.Token);
-        await PublishJetStreamAsync(fixture.Url, subject, """{"id":2}"""u8.ToArray(), cts.Token);
+        await PublishJetStreamAsync(
+            _natsResource.NatsConnectionString,
+            subject,
+            """{"id":1}"""u8.ToArray(),
+            cts.Token);
+        await PublishJetStreamAsync(
+            _natsResource.NatsConnectionString,
+            subject,
+            """{"id":2}"""u8.ToArray(),
+            cts.Token);
 
         // assert
         // both concurrent subscriptions receive the full event stream, not a load-balanced share.
@@ -404,23 +433,6 @@ public sealed class NatsEventStreamBrokerTests : IClassFixture<NatsResource>
         }
     }
 
-    private static async Task CreateStreamAsync(
-        string url,
-        string stream,
-        ICollection<string> subjects,
-        CancellationToken cancellationToken)
-    {
-        await using var connection = new NatsConnection(new NatsOpts { Url = url });
-        var js = new NatsJSContext(connection);
-        await js.CreateStreamAsync(
-            new StreamConfig
-            {
-                Name = stream,
-                Subjects = subjects
-            },
-            cancellationToken);
-    }
-
     private static async Task PublishJetStreamAsync(
         string url,
         string subject,
@@ -475,35 +487,5 @@ public sealed class NatsEventStreamBrokerTests : IClassFixture<NatsResource>
             new Dictionary<string, IValueNode>();
 
         public bool RequiresCursor => true;
-    }
-
-    private sealed class JetStreamNatsFixture : IAsyncDisposable
-    {
-        private readonly IContainer _container;
-
-        private JetStreamNatsFixture(IContainer container)
-        {
-            _container = container;
-        }
-
-        public string Url => $"nats://localhost:{_container.GetMappedPublicPort(4222)}";
-
-        public static async Task<JetStreamNatsFixture> StartAsync()
-        {
-            var fixture = new JetStreamNatsFixture(
-                new ContainerBuilder("nats:2.10-alpine")
-                    .WithPortBinding(4222, assignRandomHostPort: true)
-                    .WithCommand("-js")
-                    .WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(4222))
-                    .Build());
-
-            await fixture._container.StartAsync();
-            return fixture;
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            await _container.DisposeAsync();
-        }
     }
 }

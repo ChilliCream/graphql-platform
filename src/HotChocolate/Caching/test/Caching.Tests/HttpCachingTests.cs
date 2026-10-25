@@ -365,12 +365,15 @@ public class HttpCachingTests : ServerTestBase
         result.MatchSnapshot();
     }
 
-    [Fact]
-    public async Task SharedMaxAgeAndVary_Should_Cache()
+    [Theory]
+    [InlineData("POST")]
+    [InlineData("QUERY")]
+    public async Task SharedMaxAgeAndVary_Should_Cache(string method)
     {
         var server = CreateServer(services =>
         {
             services.AddGraphQLServer()
+                .ModifyServerOptions(o => o.EnableQueryRequests = true)
                 .UseQueryCache()
                 .AddCacheControl()
                 .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
@@ -382,7 +385,7 @@ public class HttpCachingTests : ServerTestBase
         });
 
         var client = server.CreateClient();
-        var result = await client.PostQueryAsync("{ field }");
+        var result = await client.SendQueryAsync(new HttpMethod(method), "{ field }");
 
         result.MatchSnapshot();
     }
@@ -413,6 +416,31 @@ public class HttpCachingTests : ServerTestBase
 
         result.MatchSnapshot();
     }
+
+    [Fact]
+    public async Task SharedMaxAgeAndVary_Should_ListAcceptOnce_When_VaryNamesAccept()
+    {
+        // arrange
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCache()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
+                .AddQueryType(d =>
+                    d.Name("Query")
+                        .Field("field")
+                        .Resolve("")
+                        .CacheControl(sharedMaxAge: 2000, vary: ["Accept", "X-foo"]));
+        });
+        var client = server.CreateClient();
+
+        // act
+        var result = await client.PostQueryAsync("{ field }");
+
+        // assert
+        Assert.Equal(["Accept", "x-foo"], result.Headers.Vary);
+    }
 }
 
 public class GraphQLResult
@@ -426,13 +454,22 @@ public class GraphQLResult
 
 internal static class TestServerExtensions
 {
-    public static async Task<GraphQLResult> PostQueryAsync(this HttpClient client, string query)
+    public static Task<GraphQLResult> PostQueryAsync(this HttpClient client, string query)
+        => client.SendQueryAsync(HttpMethod.Post, query);
+
+    public static async Task<GraphQLResult> SendQueryAsync(
+        this HttpClient client,
+        HttpMethod method,
+        string query)
     {
         var payload = $"{{ \"query\": \"{query}\" }}";
 
-        var content = new StringContent(payload, Encoding.UTF8, "application/json");
+        using var request = new HttpRequestMessage(method, "/graphql")
+        {
+            Content = new StringContent(payload, Encoding.UTF8, "application/json")
+        };
 
-        var response = await client.PostAsync("/graphql", content);
+        var response = await client.SendAsync(request);
 
         var result = new GraphQLResult
         {

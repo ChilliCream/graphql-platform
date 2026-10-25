@@ -4,7 +4,7 @@
 
 ```json
 {
-  "query": "query Op_5328c9ea_1 {\n  parents {\n    a: child {\n      id\n    }\n  }\n  parent {\n    b: child {\n      id\n    }\n  }\n}"
+  "query": "query Op_5328c9ea_1 { parents { a: child { id } } parent { b: child { id } } }"
 }
 ```
 
@@ -12,7 +12,7 @@
 
 ```json
 {
-  "query": "query Op_5328c9ea_Batch_d9cfb37825dbe30d($_0_representations:[_Any!]!,$_1_representations:[_Any!]!){_0__entities:_entities(representations:$_0_representations){...on Child{b:value(suffix:\"!\")}} _1__entities:_entities(representations:$_1_representations){...on Child{a:value}}}",
+  "query": "query Op_5328c9ea_Batch_a189d37d1227784b($_0_representations:[_Any!]!,$_1_representations:[_Any!]!){_0__entities:_entities(representations:$_0_representations){...on Child{b:value(suffix:\"!\")}} _1__entities:_entities(representations:$_1_representations){...on Child{a:value}}}",
   "variables": {
     "_0_representations": [
       {

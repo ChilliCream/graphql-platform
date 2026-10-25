@@ -12,9 +12,7 @@ internal sealed class MailStore(
     IFileSystem fileSystem,
     TimeProvider timeProvider,
     AgentDatabase database,
-    IAgentRegistry agentRegistry,
-    INitroInstanceIdProvider? instanceIdProvider = null,
-    IGlobalConfigDirectoryProvider? globalConfigDirectoryProvider = null) : IMailStore
+    IAgentStore agentStore) : IMailStore
 {
     private const string IdPrefix = "m-";
     private const string IdAlphabet = "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -22,9 +20,7 @@ internal sealed class MailStore(
     private const int MaxIdAttempts = 10;
 
     /// <summary>
-    /// Opens a connection to a new or existing workspace database, applies
-    /// the schema, and stamps the current schema version. Returns the open
-    /// connection so seeding helpers in tests can write against it directly.
+    /// Initializes the workspace database and returns an open connection owned by the caller.
     /// </summary>
     public async Task<SqliteConnection> InitializeAsync(
         string workspaceDirectory,
@@ -72,26 +68,17 @@ internal sealed class MailStore(
         var now = timeProvider.GetUtcNow();
         var seed = $"{sender}|{subject}|{now:O}";
 
-        // Auto-registers the sender through the shared registry before the
-        // message write transaction opens; the registry manages its own
-        // connection, so this upsert is not part of that transaction.
-        await agentRegistry.TouchAsync(sender, cancellationToken);
+        // Second line of defense behind the --actor resolver: a caller that reaches the
+        // store directly (a hook, the TUI) can still pass an unusable sender.
+        await EnsureAgentUsableAsync(sender, cancellationToken);
 
-        // Ensures every recipient has an agent row, implicit-created when
-        // they have never registered or acted, before the write transaction
-        // opens: the registry manages its own connection, and an open
-        // transaction on the write connection would block it from starting
-        // one of its own against the same file, mirroring the sender touch
-        // above.
-        var unregistered = await EnsureRecipientsAsync(recipients, cancellationToken);
+        // Refreshes the sender's presence before the message transaction.
+        await agentStore.TouchAsync(sender, cancellationToken);
 
-        // Resolved before the write transaction opens, mirroring the sender
-        // touch and recipient registration above: reading the machine's
-        // instance id can hit the filesystem, and an open transaction on the
-        // write connection would block a nested connection to the same file.
-        var nitroInstanceId = creation.WakePolicy == MailWakePolicy.Enqueue
-            ? await ResolveNitroInstanceIdAsync(cancellationToken)
-            : null;
+        // Rejects the whole send when a recipient is unknown or deleted.
+        await EnsureRecipientsExistAsync(recipients, cancellationToken);
+
+        var shouldEnqueueWake = creation.WakePolicy == MailWakePolicy.Enqueue;
 
         await using var connection = await ConnectAsync(cancellationToken);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
@@ -134,9 +121,9 @@ internal sealed class MailStore(
 
         await InsertRecipientsAsync(connection, id, recipients, cancellationToken, transaction);
 
-        var wakeReceipts = nitroInstanceId is null
-            ? []
-            : await EnqueueWakeAsync(connection, nitroInstanceId, recipients, now, cancellationToken, transaction);
+        var wakeReceipts = shouldEnqueueWake
+            ? await EnqueueWakeAsync(connection, recipients, now, cancellationToken, transaction)
+            : [];
 
         await transaction.CommitAsync(cancellationToken);
 
@@ -150,7 +137,6 @@ internal sealed class MailStore(
             Body = creation.Body,
             CreatedAt = now,
             Recipients = recipients,
-            Unregistered = unregistered,
             WakeReceipts = wakeReceipts
         };
     }
@@ -172,21 +158,13 @@ internal sealed class MailStore(
         var actor = MailAgentName.Normalize(sender);
         var now = timeProvider.GetUtcNow();
 
-        var (original, root, recipients) =
+        var (original, root, recipients, skipped) =
             await ResolveReplyAsync(inReplyToId, actor, cancellationToken);
 
-        // Auto-registers the replying actor through the shared registry, now
-        // that eligibility is confirmed, before opening the write
-        // connection below; the registry manages its own connection, and an
-        // open transaction on another connection to the same file blocks it
-        // from starting one of its own.
-        await agentRegistry.TouchAsync(actor, cancellationToken);
+        // Refreshes the replying actor's presence after participant validation.
+        await agentStore.TouchAsync(actor, cancellationToken);
 
-        // Resolved before the write transaction opens, for the same reason
-        // SendMessageAsync resolves it before its own transaction.
-        var nitroInstanceId = wakePolicy == MailWakePolicy.Enqueue
-            ? await ResolveNitroInstanceIdAsync(cancellationToken)
-            : null;
+        var shouldEnqueueWake = wakePolicy == MailWakePolicy.Enqueue;
 
         await using var connection = await ConnectAsync(cancellationToken);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
@@ -230,9 +208,9 @@ internal sealed class MailStore(
 
         await InsertRecipientsAsync(connection, id, recipients, cancellationToken, transaction);
 
-        var wakeReceipts = nitroInstanceId is null
-            ? []
-            : await EnqueueWakeAsync(connection, nitroInstanceId, recipients, now, cancellationToken, transaction);
+        var wakeReceipts = shouldEnqueueWake
+            ? await EnqueueWakeAsync(connection, recipients, now, cancellationToken, transaction)
+            : [];
 
         await transaction.CommitAsync(cancellationToken);
 
@@ -246,41 +224,88 @@ internal sealed class MailStore(
             Body = body,
             CreatedAt = now,
             Recipients = recipients,
-            WakeReceipts = wakeReceipts
+            WakeReceipts = wakeReceipts,
+            Skipped = skipped
+        };
+    }
+
+    public async Task<MailTransferResult> TransferParticipationAsync(
+        string from,
+        string to,
+        CancellationToken cancellationToken)
+    {
+        var source = MailAgentName.Normalize(from);
+        var target = MailAgentName.Normalize(to);
+
+        if (source == target)
+        {
+            throw new ExitException("The source and target agents must be different.");
+        }
+
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+        var targetExists = await connection.ExecuteScalarAsync<long>(
+            "SELECT COUNT(*) FROM agents WHERE name = @target",
+            new { target, cancellationToken },
+            transaction);
+
+        if (targetExists == 0)
+        {
+            throw new ExitException($"Target agent '{target}' does not exist.");
+        }
+
+        // Only unread, unarchived recipient rows move; read or archived mail stays
+        // with the source, and a message's sender is never rewritten.
+        var dropped = await connection.ExecuteAsync(
+            """
+            DELETE FROM message_recipients AS source
+            WHERE source.recipient = @source
+                AND source.read_at IS NULL
+                AND source.archived_at IS NULL
+                AND EXISTS (
+                    SELECT 1
+                    FROM message_recipients AS target
+                    WHERE target.message_id = source.message_id
+                        AND target.recipient = @target)
+            """,
+            new { source, target, cancellationToken },
+            transaction);
+
+        var recipientMessageIds = (await connection.QueryAsync<string>(
+            """
+            SELECT message_id FROM message_recipients
+            WHERE recipient = @source AND read_at IS NULL AND archived_at IS NULL
+            ORDER BY message_id
+            """,
+            new { source, cancellationToken },
+            transaction)).ToArray();
+
+        var recipientsMoved = await connection.ExecuteAsync(
+            """
+            UPDATE message_recipients
+            SET recipient = @target
+            WHERE recipient = @source
+                AND read_at IS NULL
+                AND archived_at IS NULL
+            """,
+            new { source, target, cancellationToken },
+            transaction);
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return new MailTransferResult(recipientsMoved, dropped)
+        {
+            RecipientMessageIds = recipientMessageIds
         };
     }
 
     /// <summary>
-    /// Resolves this machine's Nitro instance id for a
-    /// <see cref="MailWakePolicy.Enqueue"/> send or reply. Throws
-    /// <see cref="InvalidOperationException"/> when this store was
-    /// constructed without the instance id and global config directory
-    /// providers <see cref="MailWakePolicy.Enqueue"/> requires.
-    /// </summary>
-    private async Task<string> ResolveNitroInstanceIdAsync(CancellationToken cancellationToken)
-    {
-        if (instanceIdProvider is null || globalConfigDirectoryProvider is null)
-        {
-            throw new InvalidOperationException(
-                "MailWakePolicy.Enqueue requires this MailStore to be constructed with an "
-                + "INitroInstanceIdProvider and an IGlobalConfigDirectoryProvider.");
-        }
-
-        return await instanceIdProvider.GetIdAsync(globalConfigDirectoryProvider.GetDirectory(), cancellationToken);
-    }
-
-    /// <summary>
-    /// Increments <c>mail_wake_outbox.requested_generation</c> once for each
-    /// distinct recipient, inserting the outbox row when this is its first
-    /// wake for (<paramref name="nitroInstanceId"/>, recipient). Preserves
-    /// the earliest pending <c>due_at</c> across concurrent enqueues to the
-    /// same recipient rather than overwriting it with this call's own
-    /// <paramref name="now"/>. Returns each recipient's resulting
-    /// generation, in recipient order.
+    /// Advances each recipient's wake generation and returns the resulting tokens
+    /// in recipient order. Preserves the earlier due time when wake work already exists.
     /// </summary>
     private static async Task<List<MailWakeReceipt>> EnqueueWakeAsync(
         SqliteConnection connection,
-        string nitroInstanceId,
         IReadOnlyList<MailRecipient> recipients,
         DateTimeOffset now,
         CancellationToken cancellationToken,
@@ -290,20 +315,22 @@ internal sealed class MailStore(
 
         foreach (var recipient in recipients)
         {
-            var generation = await connection.QueryFirstOrDefaultAsync<long>(
+            await using var command = connection.CreateCommand();
+            command.Transaction = (SqliteTransaction)transaction;
+            command.CommandText =
                 """
-                INSERT INTO mail_wake_outbox (
-                    nitro_instance_id, actor, requested_generation, settled_generation, due_at, updated_at
-                )
-                VALUES (@nitroInstanceId, @actor, 1, 0, @now, @now)
-                ON CONFLICT (nitro_instance_id, actor) DO UPDATE SET
+                INSERT INTO mail_wake_outbox (actor, requested_generation, settled_generation, due_at, updated_at)
+                VALUES (@actor, 1, 0, @now, @now)
+                ON CONFLICT (actor) DO UPDATE SET
                     requested_generation = requested_generation + 1,
                     due_at = MIN(due_at, excluded.due_at),
                     updated_at = excluded.updated_at
                 RETURNING requested_generation
-                """,
-                new { nitroInstanceId, actor = recipient.Name, now, cancellationToken },
-                transaction);
+                """;
+            command.Parameters.AddWithValue("@actor", recipient.Name);
+            command.Parameters.AddWithValue("@now", now);
+
+            var generation = (long)(await command.ExecuteScalarAsync(cancellationToken))!;
 
             receipts.Add(new MailWakeReceipt { Actor = recipient.Name, Generation = generation });
         }
@@ -312,17 +339,16 @@ internal sealed class MailStore(
     }
 
     /// <summary>
-    /// Reads the original message and the thread root, validates the actor
-    /// is authorized to reply, and computes the reply's recipient set, all
-    /// against a short-lived read connection closed before this method
-    /// returns. Throws <see cref="ExitException"/> when the original
-    /// message does not exist, the actor is not a participant, or the
-    /// computed recipient set is empty.
+    /// Returns the original message, thread root, computed reply recipients, and the
+    /// names dropped for being unknown or deleted. Throws <see cref="ExitException"/>
+    /// when the message is missing, the actor is not a participant or is unusable, a
+    /// lone remaining recipient is unusable, or every remaining recipient is unusable.
     /// </summary>
-    private async Task<(MailMessage Original, MailMessage Root, List<MailRecipient> Recipients)> ResolveReplyAsync(
-        string inReplyToId,
-        string actor,
-        CancellationToken cancellationToken)
+    private async Task<(MailMessage Original, MailMessage Root, List<MailRecipient> Recipients, IReadOnlyList<string> Skipped)>
+        ResolveReplyAsync(
+            string inReplyToId,
+            string actor,
+            CancellationToken cancellationToken)
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
@@ -342,11 +368,15 @@ internal sealed class MailStore(
                 $"'{actor}' is not the sender or a recipient of '{inReplyToId}' and cannot reply to it.");
         }
 
+        // Second line of defense behind the --actor resolver: a caller that reaches the
+        // store directly (a hook, the TUI) can still pass an unusable actor.
+        await EnsureAgentUsableAsync(actor, cancellationToken);
+
         var candidates = new List<string> { original.Sender };
         candidates.AddRange(original.Recipients.OrderBy(r => r.Ordinal).Select(r => r.Name));
 
         var seen = new HashSet<string>(StringComparer.Ordinal);
-        var recipients = new List<MailRecipient>();
+        var candidateNames = new List<string>();
 
         foreach (var name in candidates)
         {
@@ -355,24 +385,75 @@ internal sealed class MailStore(
                 continue;
             }
 
-            recipients.Add(new MailRecipient
-            {
-                Name = name,
-                Kind = MailRecipientKinds.To,
-                Ordinal = recipients.Count
-            });
+            candidateNames.Add(name);
         }
 
-        if (recipients.Count == 0)
+        if (candidateNames.Count == 0)
         {
             throw new ExitException(
                 $"Replying to '{inReplyToId}' as '{actor}' would leave no recipients.");
         }
 
+        var (recipients, skipped) = candidateNames.Count == 1
+            ? await ResolveDirectReplyRecipientAsync(candidateNames[0], cancellationToken)
+            : await ResolveReplyAllRecipientsAsync(candidateNames, cancellationToken);
+
         var root = await GetMessageAsync(connection, original.ThreadId, cancellationToken)
             ?? original;
 
-        return (original, root, recipients);
+        return (original, root, recipients, skipped);
+    }
+
+    /// <summary>
+    /// Resolves a direct reply's single recipient, rejecting it outright with the same
+    /// message as an unusable send recipient rather than dropping it to no recipients.
+    /// </summary>
+    private async Task<(List<MailRecipient> Recipients, IReadOnlyList<string> Skipped)> ResolveDirectReplyRecipientAsync(
+        string name,
+        CancellationToken cancellationToken)
+    {
+        await EnsureAgentUsableAsync(name, cancellationToken);
+
+        return ([new MailRecipient { Name = name, Kind = MailRecipientKinds.To, Ordinal = 0 }], []);
+    }
+
+    /// <summary>
+    /// Resolves a reply-all's recipients, dropping every unknown or deleted participant
+    /// and reporting the drops in <c>Skipped</c>. Throws <see cref="ExitException"/> when
+    /// every candidate is unusable.
+    /// </summary>
+    private async Task<(List<MailRecipient> Recipients, IReadOnlyList<string> Skipped)> ResolveReplyAllRecipientsAsync(
+        IReadOnlyList<string> candidateNames,
+        CancellationToken cancellationToken)
+    {
+        var recipients = new List<MailRecipient>();
+        var skipped = new List<(string Name, bool WasDeleted)>();
+
+        foreach (var name in candidateNames)
+        {
+            var availability = await CheckParticipantAsync(name, cancellationToken);
+
+            if (availability == MailParticipantAvailability.Usable)
+            {
+                recipients.Add(new MailRecipient
+                {
+                    Name = name,
+                    Kind = MailRecipientKinds.To,
+                    Ordinal = recipients.Count
+                });
+            }
+            else
+            {
+                skipped.Add((name, availability == MailParticipantAvailability.Deleted));
+            }
+        }
+
+        if (recipients.Count == 0)
+        {
+            throw ThrowHelper.NoReplyRecipientsRemaining(skipped);
+        }
+
+        return (recipients, skipped.Select(s => s.Name).ToArray());
     }
 
     public async Task<MailMessage?> GetMessageAsync(
@@ -484,11 +565,6 @@ internal sealed class MailStore(
         return messages;
     }
 
-    // The WHERE/LIMIT clauses here are assembled at runtime from the filter,
-    // so the SQL text is never a call-site literal; Dapper.AOT can only
-    // intercept calls whose SQL it can read at compile time. This is
-    // executed through plain ADO.NET rather than Dapper's reflection
-    // fallback, mirroring TaskStore.BuildTaskFilterClause.
     private static (string Sql, Dictionary<string, object?> Parameters) BuildInboxQuery(
         MailInboxFilter filter)
     {
@@ -564,12 +640,6 @@ internal sealed class MailStore(
         return messages;
     }
 
-    // Only joins message_recipients when Agent is set, since matching an
-    // agent requires checking both the sender and recipient columns; the
-    // join can then surface a message more than once (for example the
-    // agent sent it to several recipients), so DISTINCT dedupes ids back to
-    // one row per message. The WHERE/LIMIT clauses are assembled at runtime
-    // for the same reason as BuildInboxQuery.
     private static (string Sql, Dictionary<string, object?> Parameters) BuildWorkspaceQuery(
         MailWorkspaceFilter filter)
     {
@@ -736,9 +806,7 @@ internal sealed class MailStore(
         await transaction.CommitAsync(cancellationToken);
     }
 
-    // Every id is validated as addressed to the actor before any write
-    // happens, giving the bulk mutations their all-or-nothing behavior,
-    // mirroring TaskStore.CloseTaskAsync.
+    // Validates every recipient copy before the caller changes any of them.
     private static async Task ValidateRecipientOwnershipAsync(
         SqliteConnection connection,
         IReadOnlyList<string> messageIds,
@@ -798,15 +866,17 @@ internal sealed class MailStore(
             """,
             new { actor = normalizedActor, cancellationToken });
 
-        return await BuildThreadSummariesAsync(connection, rollups, normalizedActor, cancellationToken);
+        return await BuildThreadSummariesAsync(
+            connection,
+            rollups,
+            normalizedActor,
+            preserveOrder: false,
+            lastMessagesByThreadId: null,
+            countsByThreadId: null,
+            recipientsByMessageId: null,
+            cancellationToken: cancellationToken);
     }
 
-    // The two branches keep separate compile-time-literal SQL strings, one
-    // per value of includeArchived, rather than splicing the archived
-    // predicate into one interpolated string: Dapper.AOT can only intercept
-    // a QueryAsync call whose SQL text it can read at compile time, and a
-    // runtime-conditional fragment would defeat that the same way
-    // BuildInboxQuery's runtime-assembled SQL forced it onto plain ADO.NET.
     public async Task<IReadOnlyList<MailThreadSummary>> QueryInboxThreadsAsync(
         string actor,
         bool includeArchived,
@@ -850,7 +920,15 @@ internal sealed class MailStore(
                 """,
                 new { actor = normalizedActor, cancellationToken });
 
-        return await BuildThreadSummariesAsync(connection, rollups, normalizedActor, cancellationToken);
+        return await BuildThreadSummariesAsync(
+            connection,
+            rollups,
+            normalizedActor,
+            preserveOrder: false,
+            lastMessagesByThreadId: null,
+            countsByThreadId: null,
+            recipientsByMessageId: null,
+            cancellationToken: cancellationToken);
     }
 
     public async Task<IReadOnlyList<MailThreadSummary>> QuerySentThreadsAsync(
@@ -875,7 +953,15 @@ internal sealed class MailStore(
             """,
             new { actor = normalizedActor, cancellationToken });
 
-        return await BuildThreadSummariesAsync(connection, rollups, normalizedActor, cancellationToken);
+        return await BuildThreadSummariesAsync(
+            connection,
+            rollups,
+            normalizedActor,
+            preserveOrder: false,
+            lastMessagesByThreadId: null,
+            countsByThreadId: null,
+            recipientsByMessageId: null,
+            cancellationToken: cancellationToken);
     }
 
     public async Task<IReadOnlyList<MailThreadSummary>> QueryWorkspaceThreadsAsync(
@@ -888,16 +974,14 @@ internal sealed class MailStore(
 
         var rollups = normalizedAgent is null
             ? await connection.QueryAsync<ThreadRollupRow>(
-                new CommandDefinition(
-                    """
+                """
                     SELECT
                         thread_id AS ThreadId,
                         COUNT(*) AS MessageCount,
                         MAX(created_at) AS LastMessageAt
                     FROM messages
                     GROUP BY thread_id
-                    """,
-                    cancellationToken: cancellationToken))
+                    """)
             : await connection.QueryAsync<ThreadRollupRow>(
                 """
                 SELECT
@@ -917,81 +1001,324 @@ internal sealed class MailStore(
                 """,
                 new { agent = normalizedAgent, cancellationToken });
 
-        // Never actor-scoped, even when narrowed to one agent: a workspace
-        // rollup must not expose that (or any) agent's read state (epic wi3
-        // convention 8).
-        return await BuildThreadSummariesAsync(connection, rollups, unreadActor: null, cancellationToken);
+        // Workspace summaries omit per-actor unread and archived counts.
+        return await BuildThreadSummariesAsync(
+            connection,
+            rollups,
+            unreadActor: null,
+            preserveOrder: false,
+            lastMessagesByThreadId: null,
+            countsByThreadId: null,
+            recipientsByMessageId: null,
+            cancellationToken: cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<MailThreadSummary>> QueryParticipationThreadsAsync(
+        string agent,
+        int? limit,
+        CancellationToken cancellationToken)
+    {
+        var normalizedAgent = MailAgentName.Normalize(agent);
+
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        // Ranks threads by the agent's own newest sent-or-received message in the
+        // thread, not the thread's overall last message, so a later reply from
+        // someone else does not outrank the agent's own activity.
+        var rankSql =
+            """
+            SELECT thread_id
+            FROM (
+                SELECT thread_id, created_at FROM messages WHERE sender = @agent
+                UNION
+                SELECT m.thread_id, m.created_at
+                FROM messages m
+                JOIN message_recipients mr ON mr.message_id = m.id
+                WHERE mr.recipient = @agent
+            )
+            GROUP BY thread_id
+            ORDER BY MAX(created_at) DESC, thread_id DESC
+            """;
+
+        var rankParameters = new Dictionary<string, object?> { ["agent"] = normalizedAgent };
+
+        if (limit is { } value)
+        {
+            rankParameters["limit"] = value;
+            rankSql += " LIMIT @limit";
+        }
+
+        var rankedThreadIds = await ExecuteIdQueryAsync(connection, rankSql, rankParameters, cancellationToken);
+
+        if (rankedThreadIds.Count == 0)
+        {
+            return [];
+        }
+
+        // Thread ids are our own generated ids (never external input), so they are
+        // inlined directly into an IN-list rather than bound as a parameter: a dynamic
+        // thread count cannot be expanded by Dapper.AOT's compile-time query analysis.
+        var threadIdList = string.Join(", ", rankedThreadIds.Select(id => $"'{id.Replace("'", "''")}'"));
+
+        // Reads the true message count and last-message time (any sender) for every
+        // ranked thread in a single IN-list query, unlike the ranking key above.
+        var rollupByThreadId = new Dictionary<string, ThreadRollupRow>();
+
+        await using (var rollupCommand = connection.CreateCommand())
+        {
+            rollupCommand.CommandText =
+                $"""
+                SELECT thread_id, COUNT(*), MAX(created_at)
+                FROM messages
+                WHERE thread_id IN ({threadIdList})
+                GROUP BY thread_id
+                """;
+
+            await using var reader = await rollupCommand.ExecuteReaderAsync(cancellationToken);
+
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                var row = new ThreadRollupRow
+                {
+                    ThreadId = reader.GetString(0),
+                    MessageCount = reader.GetInt32(1),
+                    LastMessageAt = reader.GetString(2)
+                };
+
+                rollupByThreadId[row.ThreadId] = row;
+            }
+        }
+
+        var rollups = rankedThreadIds.Select(id => rollupByThreadId[id]).ToList();
+
+        // Reads the last message for every ranked thread in a single windowed query
+        // instead of a LIMIT 1 query per thread.
+        var lastMessageByThreadId = new Dictionary<string, MailMessageRow>();
+
+        await using (var lastMessageCommand = connection.CreateCommand())
+        {
+            lastMessageCommand.CommandText =
+                $"""
+                SELECT id, thread_id, in_reply_to, sender, subject, body, created_at
+                FROM (
+                    SELECT *, ROW_NUMBER() OVER (
+                        PARTITION BY thread_id ORDER BY created_at DESC, id DESC
+                    ) AS rn
+                    FROM messages
+                    WHERE thread_id IN ({threadIdList})
+                )
+                WHERE rn = 1
+                """;
+
+            await using var reader = await lastMessageCommand.ExecuteReaderAsync(cancellationToken);
+
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                var row = new MailMessageRow
+                {
+                    Id = reader.GetString(0),
+                    ThreadId = reader.GetString(1),
+                    InReplyTo = reader.IsDBNull(2) ? null : reader.GetString(2),
+                    Sender = reader.GetString(3),
+                    Subject = reader.GetString(4),
+                    Body = reader.GetString(5),
+                    CreatedAt = reader.GetString(6)
+                };
+
+                lastMessageByThreadId[row.ThreadId] = row;
+            }
+        }
+
+        // Reads per-agent unread and archived counts for every ranked thread in a single
+        // grouped query instead of two COUNT(*) queries per thread.
+        var countsByThreadId = new Dictionary<string, (int Unread, int Archived)>();
+
+        await using (var countsCommand = connection.CreateCommand())
+        {
+            countsCommand.CommandText =
+                $"""
+                SELECT
+                    m.thread_id,
+                    SUM(CASE WHEN mr.read_at IS NULL THEN 1 ELSE 0 END),
+                    SUM(CASE WHEN mr.archived_at IS NOT NULL THEN 1 ELSE 0 END)
+                FROM message_recipients mr
+                JOIN messages m ON m.id = mr.message_id
+                WHERE mr.recipient = @agent AND m.thread_id IN ({threadIdList})
+                GROUP BY m.thread_id
+                """;
+
+            countsCommand.Parameters.AddWithValue("@agent", normalizedAgent);
+
+            await using var reader = await countsCommand.ExecuteReaderAsync(cancellationToken);
+
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                countsByThreadId[reader.GetString(0)] = (reader.GetInt32(1), reader.GetInt32(2));
+            }
+        }
+
+        // Reads the recipients of every ranked thread's last message in a single query
+        // instead of one query per thread.
+        var recipientNamesByMessageId = new Dictionary<string, List<string>>();
+
+        if (lastMessageByThreadId.Count > 0)
+        {
+            var lastMessageIdList = string.Join(
+                ", ",
+                lastMessageByThreadId.Values.Select(m => $"'{m.Id.Replace("'", "''")}'"));
+
+            await using var recipientsCommand = connection.CreateCommand();
+
+            recipientsCommand.CommandText =
+                $"""
+                SELECT message_id AS MessageId, {MailRecipient.Columns}
+                FROM message_recipients
+                WHERE message_id IN ({lastMessageIdList})
+                ORDER BY message_id, ordinal
+                """;
+
+            await using var reader = await recipientsCommand.ExecuteReaderAsync(cancellationToken);
+
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                var messageId = reader.GetString(0);
+                var name = reader.GetString(1);
+
+                if (!recipientNamesByMessageId.TryGetValue(messageId, out var names))
+                {
+                    names = [];
+                    recipientNamesByMessageId[messageId] = names;
+                }
+
+                names.Add(name);
+            }
+        }
+
+        var recipientsByMessageId = recipientNamesByMessageId.ToDictionary(
+            entry => entry.Key,
+            entry => (IReadOnlyList<string>)entry.Value);
+
+        return await BuildThreadSummariesAsync(
+            connection,
+            rollups,
+            normalizedAgent,
+            preserveOrder: true,
+            lastMessagesByThreadId: lastMessageByThreadId,
+            countsByThreadId: countsByThreadId,
+            recipientsByMessageId: recipientsByMessageId,
+            cancellationToken: cancellationToken);
     }
 
     /// <summary>
-    /// Fills in each rollup's subject, last message details, body preview,
-    /// and (when <paramref name="unreadActor"/> is given) unread and
-    /// archived counts, against the same connection the rollups were read
-    /// from. Shared by every thread query so each keeps its own
-    /// compile-time-literal SQL for the thread id source while the
-    /// per-thread follow-up reads and the ordering stay in one place.
+    /// Builds thread summaries from <paramref name="rollups"/>, ordered by last-message time
+    /// and thread id newest first, or in rollup order when <paramref name="preserveOrder"/> is
+    /// true. <paramref name="lastMessagesByThreadId"/>, <paramref name="countsByThreadId"/>, and
+    /// <paramref name="recipientsByMessageId"/> each supply their per-thread data when non-null;
+    /// unread and archived counts are null when <paramref name="unreadActor"/> is null.
     /// </summary>
     private static async Task<IReadOnlyList<MailThreadSummary>> BuildThreadSummariesAsync(
         SqliteConnection connection,
         IEnumerable<ThreadRollupRow> rollups,
         string? unreadActor,
+        bool preserveOrder,
+        IReadOnlyDictionary<string, MailMessageRow>? lastMessagesByThreadId,
+        IReadOnlyDictionary<string, (int Unread, int Archived)>? countsByThreadId,
+        IReadOnlyDictionary<string, IReadOnlyList<string>>? recipientsByMessageId,
         CancellationToken cancellationToken)
     {
         var summaries = new List<MailThreadSummary>();
 
         foreach (var rollup in rollups)
         {
-            var root = await connection.QueryFirstOrDefaultAsync<MailMessageRow>(
-                $"SELECT {MailMessage.Columns} FROM messages WHERE id = @id",
-                new { id = rollup.ThreadId, cancellationToken });
+            string subject;
+            MailMessageRow? lastMessage;
 
-            var lastMessage = await connection.QueryFirstOrDefaultAsync<MailMessageRow>(
-                $"""
-                SELECT {MailMessage.Columns} FROM messages
-                WHERE thread_id = @threadId
-                ORDER BY created_at DESC, id DESC
-                LIMIT 1
-                """,
-                new { threadId = rollup.ThreadId, cancellationToken });
+            if (lastMessagesByThreadId is not null)
+            {
+                lastMessagesByThreadId.TryGetValue(rollup.ThreadId, out lastMessage);
+                subject = lastMessage?.Subject ?? "";
+            }
+            else
+            {
+                var root = await connection.QueryFirstOrDefaultAsync<MailMessageRow>(
+                    $"SELECT {MailMessage.Columns} FROM messages WHERE id = @id",
+                    new { id = rollup.ThreadId, cancellationToken });
 
-            IReadOnlyList<string> lastRecipients = lastMessage is null
-                ? []
-                : (await GetRecipientsAsync(connection, lastMessage.Id, cancellationToken))
+                lastMessage = await connection.QueryFirstOrDefaultAsync<MailMessageRow>(
+                    $"""
+                    SELECT {MailMessage.Columns} FROM messages
+                    WHERE thread_id = @threadId
+                    ORDER BY created_at DESC, id DESC
+                    LIMIT 1
+                    """,
+                    new { threadId = rollup.ThreadId, cancellationToken });
+
+                subject = root?.Subject ?? "";
+            }
+
+            IReadOnlyList<string> lastRecipients;
+
+            if (lastMessage is null)
+            {
+                lastRecipients = [];
+            }
+            else if (recipientsByMessageId is not null)
+            {
+                lastRecipients = recipientsByMessageId.TryGetValue(lastMessage.Id, out var names)
+                    ? names
+                    : [];
+            }
+            else
+            {
+                lastRecipients = (await GetRecipientsAsync(connection, lastMessage.Id, cancellationToken))
                     .Select(r => r.Name)
                     .ToArray();
+            }
 
             int? unreadCount = null;
             int? archivedCount = null;
 
             if (unreadActor is not null)
             {
-                unreadCount = await connection.ExecuteScalarAsync<int>(
-                    """
-                    SELECT COUNT(*)
-                    FROM message_recipients mr
-                    JOIN messages m ON m.id = mr.message_id
-                    WHERE m.thread_id = @threadId
-                        AND mr.recipient = @actor
-                        AND mr.read_at IS NULL
-                    """,
-                    new { threadId = rollup.ThreadId, actor = unreadActor, cancellationToken });
+                if (countsByThreadId is not null)
+                {
+                    var (unread, archived) = countsByThreadId.TryGetValue(rollup.ThreadId, out var counts)
+                        ? counts
+                        : (0, 0);
 
-                archivedCount = await connection.ExecuteScalarAsync<int>(
-                    """
-                    SELECT COUNT(*)
-                    FROM message_recipients mr
-                    JOIN messages m ON m.id = mr.message_id
-                    WHERE m.thread_id = @threadId
-                        AND mr.recipient = @actor
-                        AND mr.archived_at IS NOT NULL
-                    """,
-                    new { threadId = rollup.ThreadId, actor = unreadActor, cancellationToken });
+                    unreadCount = unread;
+                    archivedCount = archived;
+                }
+                else
+                {
+                    unreadCount = await connection.ExecuteScalarAsync<int>(
+                        """
+                        SELECT COUNT(*)
+                        FROM message_recipients mr
+                        JOIN messages m ON m.id = mr.message_id
+                        WHERE m.thread_id = @threadId
+                            AND mr.recipient = @actor
+                            AND mr.read_at IS NULL
+                        """,
+                        new { threadId = rollup.ThreadId, actor = unreadActor, cancellationToken });
+
+                    archivedCount = await connection.ExecuteScalarAsync<int>(
+                        """
+                        SELECT COUNT(*)
+                        FROM message_recipients mr
+                        JOIN messages m ON m.id = mr.message_id
+                        WHERE m.thread_id = @threadId
+                            AND mr.recipient = @actor
+                            AND mr.archived_at IS NOT NULL
+                        """,
+                        new { threadId = rollup.ThreadId, actor = unreadActor, cancellationToken });
+                }
             }
 
             summaries.Add(new MailThreadSummary
             {
                 ThreadId = rollup.ThreadId,
-                Subject = root?.Subject ?? "",
+                Subject = subject,
                 MessageCount = rollup.MessageCount,
                 LastMessageAt = DateTimeOffset.Parse(rollup.LastMessageAt, CultureInfo.InvariantCulture),
                 LastSender = lastMessage?.Sender ?? "",
@@ -1002,6 +1329,11 @@ internal sealed class MailStore(
             });
         }
 
+        if (preserveOrder)
+        {
+            return summaries;
+        }
+
         return summaries
             .OrderByDescending(s => s.LastMessageAt)
             .ThenByDescending(s => s.ThreadId, StringComparer.Ordinal)
@@ -1009,10 +1341,9 @@ internal sealed class MailStore(
     }
 
     /// <summary>
-    /// Collapses every run of whitespace (spaces, tabs, newlines) in
-    /// <paramref name="body"/> to a single space, trims the ends, and
-    /// truncates to <see cref="MailThreadSummary.BodyPreviewMaxLength"/>
-    /// characters with a trailing "…" when truncated.
+    /// Collapses whitespace and trims the body, retaining at most
+    /// <see cref="MailThreadSummary.BodyPreviewMaxLength"/> characters before
+    /// appending an ellipsis when truncated.
     /// </summary>
     private static string CreateBodyPreview(string body)
     {
@@ -1086,10 +1417,6 @@ internal sealed class MailStore(
     {
         var normalizedSender = MailAgentName.Normalize(sender);
 
-        // The LIMIT clause is assembled at runtime from the optional limit,
-        // so the SQL text is never a call-site literal; executed through
-        // plain ADO.NET rather than Dapper's reflection fallback, mirroring
-        // BuildInboxQuery/ExecuteIdQueryAsync above.
         var sql =
             """
             SELECT id FROM messages
@@ -1169,28 +1496,55 @@ internal sealed class MailStore(
     }
 
     /// <summary>
-    /// Ensures every recipient has an agent row, implicit-creating one for
-    /// any name that has never registered or acted, and returns the names,
-    /// in recipient order, whose row is implicit, whether it already was or
-    /// was just created here.
+    /// Fails the whole send when a to or cc recipient does not exist or was deleted.
+    /// Checks recipients in order and throws <see cref="ExitException"/> for the
+    /// first offending name.
     /// </summary>
-    private async Task<List<string>> EnsureRecipientsAsync(
+    private async Task EnsureRecipientsExistAsync(
         IReadOnlyList<MailRecipient> recipients,
         CancellationToken cancellationToken)
     {
-        var unregistered = new List<string>();
-
         foreach (var recipient in recipients)
         {
-            var agent = await agentRegistry.EnsureImplicitAsync(recipient.Name, cancellationToken);
+            await EnsureAgentUsableAsync(recipient.Name, cancellationToken);
+        }
+    }
 
-            if (agent.Implicit)
-            {
-                unregistered.Add(recipient.Name);
-            }
+    /// <summary>
+    /// Throws <see cref="ExitException"/> when the named agent does not exist or was
+    /// deleted, using the same messages as a rejected send recipient.
+    /// </summary>
+    private async Task EnsureAgentUsableAsync(string name, CancellationToken cancellationToken)
+    {
+        var agent = await agentStore.FindAsync(name, cancellationToken);
+
+        if (agent is null)
+        {
+            throw ThrowHelper.UnknownMailRecipient(name);
         }
 
-        return unregistered;
+        if (agent.IsDeleted)
+        {
+            throw ThrowHelper.DeletedMailRecipient(name);
+        }
+    }
+
+    /// <summary>
+    /// Classifies the named agent as usable, unknown, or deleted, without throwing,
+    /// for callers that drop rather than reject an unusable participant.
+    /// </summary>
+    private async Task<MailParticipantAvailability> CheckParticipantAsync(
+        string name,
+        CancellationToken cancellationToken)
+    {
+        var agent = await agentStore.FindAsync(name, cancellationToken);
+
+        if (agent is null)
+        {
+            return MailParticipantAvailability.Unknown;
+        }
+
+        return agent.IsDeleted ? MailParticipantAvailability.Deleted : MailParticipantAvailability.Usable;
     }
 
     private static async Task InsertRecipientsAsync(
@@ -1272,17 +1626,21 @@ internal sealed class MailStore(
     }
 
     /// <summary>
-    /// Escapes the LIKE wildcard characters '%' and '_' (and the escape
-    /// character itself) so search text is matched literally, other than the
-    /// wildcards this store wraps around it.
+    /// Escapes percent signs, underscores, and backslashes for literal matching in a LIKE pattern.
     /// </summary>
     private static string EscapeLikeText(string value)
         => value.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
 
-    // These nested row types are internal, not private: Dapper.AOT's
-    // generated interceptors live outside MailStore and cannot reference a
-    // private nested type, so a private row type would silently fall back to
-    // Dapper's reflection-emit deserializer.
+    /// <summary>
+    /// Whether a reply-all participant is usable, unknown, or deleted.
+    /// </summary>
+    private enum MailParticipantAvailability
+    {
+        Usable,
+        Unknown,
+        Deleted
+    }
+
     internal sealed class MailMessageRow
     {
         public required string Id { get; init; }
@@ -1327,9 +1685,7 @@ internal sealed class MailStore(
     }
 
     /// <summary>
-    /// A thread's message count and last-message timestamp, for
-    /// <see cref="QueryThreadsAsync"/>; the subject and last sender are
-    /// filled in by follow-up queries per thread.
+    /// A thread id, message count, and last-message timestamp.
     /// </summary>
     internal sealed class ThreadRollupRow
     {

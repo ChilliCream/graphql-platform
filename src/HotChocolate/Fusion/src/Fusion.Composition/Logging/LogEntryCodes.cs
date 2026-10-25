@@ -49,6 +49,7 @@ public static class LogEntryCodes
     public const string InvalidGraphQL = "INVALID_GRAPHQL";
     public const string InvalidApolloFederationSupportSettings =
         "INVALID_APOLLO_FEDERATION_SUPPORT_SETTINGS";
+    public const string InvalidDefaultListSizeSetting = "INVALID_DEFAULT_LIST_SIZE_SETTING";
     public const string InvalidNodeResolution = "INVALID_NODE_RESOLUTION";
     public const string InvalidProjectedFieldSharing = "INVALID_PROJECTED_FIELD_SHARING";
     public const string InvalidShareableUsage = "INVALID_SHAREABLE_USAGE";
@@ -101,5 +102,6 @@ public static class LogEntryCodes
         "EVENT_STREAM_MESSAGE_ABSTRACT_TYPE_REQUIRES_TYPENAME";
     public const string EventStreamTopicsEmpty = "EVENT_STREAM_TOPICS_EMPTY";
     public const string TypeKindMismatch = "TYPE_KIND_MISMATCH";
+    public const string UnreachableSourceField = "UNREACHABLE_SOURCE_FIELD";
     public const string UnsatisfiableQueryPath = "UNSATISFIABLE_QUERY_PATH";
 }

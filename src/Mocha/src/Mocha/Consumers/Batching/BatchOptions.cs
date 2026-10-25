@@ -16,7 +16,7 @@ public sealed class BatchOptions
     public TimeSpan BatchTimeout { get; set; } = TimeSpan.FromSeconds(1);
 
     /// <summary>
-    /// Gets or sets the maximum number of batches that can be processed concurrently.
+    /// Gets or sets the maximum number of batches that each receive endpoint processes concurrently.
     /// Higher values improve throughput when batch processing is slow relative to message
     /// arrival rate, at the cost of losing ordering guarantees between batches. Default: 1.
     /// </summary>

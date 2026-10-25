@@ -1,5 +1,6 @@
 using System.IO.Hashing;
 using System.Security.Cryptography;
+using System.Text;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -14,7 +15,7 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// Gets the type of the operation.
 /// </param>
 /// <param name="Value">
-/// Gets the UTF-8 encoded GraphQL operation document source text.
+/// Gets the UTF-8 encoded GraphQL operation document source text sent to the source schema.
 /// </param>
 /// <param name="Hash">
 /// Gets the hash of the operation source text.
@@ -23,7 +24,17 @@ public readonly record struct OperationSourceText(
     string Name,
     OperationType Type,
     ReadOnlyMemory<byte> Value,
-    OperationSourceTextHash Hash);
+    OperationSourceTextHash Hash)
+{
+    /// <summary>
+    /// Creates compact source text and its hash from a syntax node.
+    /// </summary>
+    internal static OperationSourceText Create(string name, OperationType type, ISyntaxNode node)
+    {
+        var value = Encoding.UTF8.GetBytes(node.ToString(indented: false));
+        return new OperationSourceText(name, type, value, OperationSourceTextHash.Compute(value));
+    }
+}
 
 /// <summary>
 /// Represents the hash of a GraphQL operation source text.

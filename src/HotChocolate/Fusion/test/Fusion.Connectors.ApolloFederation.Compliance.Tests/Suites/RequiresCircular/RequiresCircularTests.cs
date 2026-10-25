@@ -1,5 +1,6 @@
 using HotChocolate.Fusion.Suites.RequiresCircular.A;
 using HotChocolate.Fusion.Suites.RequiresCircular.B;
+using Xunit.Sdk;
 
 namespace HotChocolate.Fusion.Suites;
 
@@ -15,6 +16,19 @@ public sealed class RequiresCircularTests
     [Theory]
     [MemberData(nameof(Cases))]
     [Trait("Category", "OfficialV2")]
-    public Task OfficialCase_Should_MatchExpectedResult_When_Executed(string caseId)
-        => RunOfficialV2CaseAsync(caseId);
+    public async Task OfficialCase_Should_FailComposition_When_RequiringSubgraphServesRequiredParent(
+        string caseId)
+    {
+        // act
+        // b serves Post.author and requires author { yearsOfExperience }, which composition rejects
+        var exception = await Assert.ThrowsAsync<XunitException>(() => RunOfficialV2CaseAsync(caseId));
+
+        // assert
+        exception.Message.ReplaceLineEndings("\n").MatchInlineSnapshot(
+            """
+            Post-merge validation failed.
+            The @require directive on argument 'Post.byNovice(author:)' in schema 'b' specifies an invalid field selection against the composed schema.
+             - errors: The required field 'Post.author' must not be served by the requiring source schema 'b'.
+            """);
+    }
 }

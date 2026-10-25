@@ -1,7 +1,7 @@
 import { parse } from "node-html-parser";
 import { parseSitemapUrls } from "./parse-sitemap.mjs";
 
-const baseUrl = new URL(process.argv[2] ?? "http://localhost:3001");
+const baseUrl = new URL(process.argv[2] ?? "http://localhost:3002");
 const SITE_NODE_TYPES = new Set(["Organization", "ImageObject", "WebSite"]);
 const BLOG_PAGINATION_PATH = /^\/blog\/\d+$/;
 const TAG_ARCHIVE_PATH = /^\/blog\/tags\/[^/?#]+(?:\/\d+)?$/;
@@ -818,6 +818,8 @@ async function validateMachineReadableRepresentations() {
     ["/docs/llms-full.txt"],
     ["/blog/llms.txt"],
     ["/blog/llms-full.txt"],
+    ["/videos/llms.txt"],
+    ["/videos/llms-full.txt"],
   ];
   for (const [pathname, existingResponse] of catalogs) {
     const response =

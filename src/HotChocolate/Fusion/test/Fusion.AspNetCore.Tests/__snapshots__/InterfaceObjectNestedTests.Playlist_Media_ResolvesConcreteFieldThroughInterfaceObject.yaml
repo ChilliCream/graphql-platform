@@ -18,10 +18,10 @@ response:
     {
       "data": {
         "playlist": {
-          "id": "UGxheWxpc3Q6MQ==",
-          "name": "Playlist: UGxheWxpc3Q6MQ==",
+          "id": "UGxheWxpc3Q6ODkxOTg4Mjc=",
+          "name": "Playlist: UGxheWxpc3Q6ODkxOTg4Mjc=",
           "media": {
-            "id": "TWVkaWE6Mg==",
+            "id": "TWVkaWE6MTkwMDE3NzQyMQ==",
             "duration": 123
           }
         }
@@ -69,7 +69,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_id": "TWVkaWE6Mg=="
+              "__fusion_1_id": "TWVkaWE6MTkwMDE3NzQyMQ=="
             }
         response:
           results:
@@ -120,10 +120,10 @@ sourceSchemas:
               {
                 "data": {
                   "playlist": {
-                    "id": "UGxheWxpc3Q6MQ==",
-                    "name": "Playlist: UGxheWxpc3Q6MQ==",
+                    "id": "UGxheWxpc3Q6ODkxOTg4Mjc=",
+                    "name": "Playlist: UGxheWxpc3Q6ODkxOTg4Mjc=",
                     "media": {
-                      "id": "TWVkaWE6Mg=="
+                      "id": "TWVkaWE6MTkwMDE3NzQyMQ=="
                     }
                   }
                 }
@@ -146,7 +146,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: a40319aaa234c8e3c78d03216c9a7a8c
+      hash: 54e1c2c79745a242a9b999962d567c19
       searchSpace: 1
       expandedNodes: 2
   nodes:

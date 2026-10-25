@@ -23,15 +23,6 @@ internal static class HeaderUtilities
     private static readonly Cache<AcceptHeaderResult> s_headerCache = new(128);
     private static readonly Cache<AcceptMediaType> s_mediaTypeCache = new(128);
 
-    public static readonly AcceptMediaType[] GraphQLResponseContentTypes =
-    [
-        new AcceptMediaType(
-            ContentType.Types.Application,
-            ContentType.SubTypes.GraphQLResponse,
-            null,
-            StringSegment.Empty)
-    ];
-
     /// <summary>
     /// Gets the parsed accept header values from a request.
     /// </summary>

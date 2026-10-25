@@ -7,12 +7,12 @@ using StackExchange.Redis;
 namespace HotChocolate.Fusion.Subscriptions.Redis;
 
 public sealed class RedisEventStreamBrokerTests(RedisFixture fixture)
-    : IClassFixture<RedisFixture>
 {
     [Fact]
     public async Task Subscribe_Should_DeliverPublishedEvent_When_RedisBrokerPublishes()
     {
         // arrange
+        fixture.SkipWhenUnavailable();
         var channel = fixture.NextChannel();
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
         var ready = Channel.CreateUnbounded<bool>();
@@ -45,6 +45,7 @@ public sealed class RedisEventStreamBrokerTests(RedisFixture fixture)
     public async Task Subscribe_Should_MergeAllChannelsIntoOneStream_When_MultipleTopicsSubscribed()
     {
         // arrange
+        fixture.SkipWhenUnavailable();
         var channelA = fixture.NextChannel();
         var channelB = fixture.NextChannel();
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
@@ -76,6 +77,7 @@ public sealed class RedisEventStreamBrokerTests(RedisFixture fixture)
     public async Task Subscribe_Should_DeliverEveryEventToEachSubscriber_When_TwoConcurrentSubscribers()
     {
         // arrange
+        fixture.SkipWhenUnavailable();
         var channel = fixture.NextChannel();
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
         var ready = Channel.CreateUnbounded<bool>();
@@ -119,6 +121,7 @@ public sealed class RedisEventStreamBrokerTests(RedisFixture fixture)
     public async Task Subscribe_Should_ThrowInvalidCursor_When_CursorSupplied()
     {
         // arrange
+        fixture.SkipWhenUnavailable();
         var channel = fixture.NextChannel();
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
         var services = CreateServices();
@@ -142,6 +145,7 @@ public sealed class RedisEventStreamBrokerTests(RedisFixture fixture)
     public async Task Subscribe_Should_CloseConsumerCleanly_When_CancellationRequested()
     {
         // arrange
+        fixture.SkipWhenUnavailable();
         var channel = fixture.NextChannel();
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
         var ready = Channel.CreateUnbounded<bool>();
@@ -178,6 +182,7 @@ public sealed class RedisEventStreamBrokerTests(RedisFixture fixture)
     public async Task DisposeAsync_Should_NotDisposeConnectionMultiplexer_When_CallerSupplied()
     {
         // arrange
+        fixture.SkipWhenUnavailable();
         await using var multiplexer = await ConnectionMultiplexer.ConnectAsync(fixture.ConnectionString);
         var services = new ServiceCollection();
         services.AddRedisEventStreamBroker(

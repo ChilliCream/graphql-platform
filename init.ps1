@@ -1,5 +1,5 @@
 # Initialize a fresh checkout: restore .NET packages for the root solution, then
-# install the website's yarn dependencies.
+# install the website's npm dependencies.
 
 $ErrorActionPreference = 'Stop'
 
@@ -10,7 +10,7 @@ try {
 
     Push-Location website
     try {
-        & yarn
+        & npm ci
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     }
     finally {

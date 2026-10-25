@@ -77,15 +77,15 @@ sourceSchemas:
                   "abstractTypes": [
                     {
                       "__typename": "Discussion",
-                      "id": "RGlzY3Vzc2lvbjox"
+                      "id": "RGlzY3Vzc2lvbjo4NDU0NzcwNDE="
                     },
                     {
                       "__typename": "Author",
-                      "id": "QXV0aG9yOjI="
+                      "id": "QXV0aG9yOjI0NTA2NDI1Nw=="
                     },
                     {
                       "__typename": "Discussion",
-                      "id": "RGlzY3Vzc2lvbjoz"
+                      "id": "RGlzY3Vzc2lvbjoyOTQ5OTQ1OTg1"
                     }
                   ]
                 }
@@ -131,10 +131,10 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "RGlzY3Vzc2lvbjox"
+                "__fusion_1_id": "RGlzY3Vzc2lvbjo4NDU0NzcwNDE="
               },
               {
-                "__fusion_1_id": "RGlzY3Vzc2lvbjoz"
+                "__fusion_1_id": "RGlzY3Vzc2lvbjoyOTQ5OTQ1OTg1"
               }
             ]
         response:
@@ -198,7 +198,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_2_id": "QXV0aG9yOjI="
+              "__fusion_2_id": "QXV0aG9yOjI0NTA2NDI1Nw=="
             }
         response:
           results:
@@ -227,7 +227,7 @@ operationPlan:
             }
           }
         }
-      hash: 13354b96bf8e9c5bb2d7ab9d87a0cb2b
+      hash: f235c2c8196655defd31ba724ceb73d3
       searchSpace: 1
       expandedNodes: 2
   nodes:

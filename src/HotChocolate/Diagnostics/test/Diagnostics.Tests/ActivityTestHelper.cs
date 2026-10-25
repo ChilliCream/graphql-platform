@@ -128,7 +128,8 @@ public static partial class ActivityTestHelper
         // Spans are exported as they stop, and server-side spans can finish on background
         // continuations after the awaited call returns. Wait until no spans are in flight so
         // those late spans are included, then read the snapshot.
-        private IReadOnlyList<Activity> Settled => _settled ??= CollectSettledActivities();
+        [JsonIgnore]
+        public IReadOnlyList<Activity> Settled => _settled ??= CollectSettledActivities();
 
         private IReadOnlyList<Activity> CollectSettledActivities()
         {

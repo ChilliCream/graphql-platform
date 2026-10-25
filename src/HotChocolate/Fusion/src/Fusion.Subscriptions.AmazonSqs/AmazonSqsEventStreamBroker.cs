@@ -101,11 +101,10 @@ internal sealed class AmazonSqsEventStreamBroker(AmazonSqsEventStreamOptions opt
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var session = CreateSession(cancellationToken);
-        string? queueUrl = null;
 
         try
         {
-            queueUrl = await CreateQueueAsync(topic, session, session.Token).ConfigureAwait(false);
+            var queueUrl = await CreateQueueAsync(topic, session, session.Token).ConfigureAwait(false);
 
             while (!session.Token.IsCancellationRequested)
             {

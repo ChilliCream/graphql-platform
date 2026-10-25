@@ -1,14 +1,13 @@
+using CookieCrumble.Resources;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using Squadron;
 
 namespace HotChocolate.Data.MongoDb.Sorting;
 
 public class MongoDbSortVisitorEnumTests
-    : SchemaCache,
-      IClassFixture<MongoResource>
+    : SchemaCache
 {
     private static readonly Foo[] s_fooEntities =
     [

@@ -447,11 +447,13 @@ public partial class AnnotationBasedMutations
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddCostAnalyzer()
+                .ModifyCostOptions(o => o.DefaultListSize = 1)
                 .AddMutationType<SimpleMutationPayloadOverrideWithError>()
                 .AddMutationConventions(true)
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
+        Assert.Equal("Query", schema.QueryType.Name);
         schema.MatchSnapshot();
     }
 
@@ -1241,6 +1243,46 @@ public partial class AnnotationBasedMutations
               "data": {
                 "doSomething": {
                   "string": "something, null, unspecified"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteRequestAsync_Should_ReportUnspecified_When_VariableIsOmitted()
+    {
+        // arrange
+        var request = OperationRequestBuilder.New()
+            .SetDocument(
+                """
+                mutation($a: String, $b: String) {
+                    doSomething(input: { optional1: $a, optional2: $b }) {
+                        string
+                    }
+                }
+                """)
+            .SetVariableValues("""{ "b": null }""")
+            .Build();
+
+        // act
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d.Field("abc").Resolve("def"))
+                .AddMutationType<MutationWithOptionalArg>()
+                .AddMutationConventions()
+                .ExecuteRequestAsync(
+                    request,
+                    cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "doSomething": {
+                  "string": "unspecified, null, unspecified"
                 }
               }
             }

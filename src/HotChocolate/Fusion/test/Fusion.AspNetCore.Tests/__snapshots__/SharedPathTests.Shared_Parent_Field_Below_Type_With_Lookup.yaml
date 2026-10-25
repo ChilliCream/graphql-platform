@@ -33,12 +33,12 @@ sourceSchemas:
         viewer: Viewer! @shareable
         schema1: String!
         interface: IInterface! @shareable
-        unsharedInterface: IInterface!
+        unsharedInterface: IUnsharedInterface!
         union: IUnion! @shareable
         topReview: Review! @shareable
       }
 
-      type Product implements IInterface @key(fields: "id") {
+      type Product implements IInterface & IUnsharedInterface @key(fields: "id") {
         id: Int!
         schema1: String!
         shared: SharedProduct @shareable
@@ -68,6 +68,10 @@ sourceSchemas:
       }
 
       interface IInterface @key(fields: "id") {
+        id: Int!
+      }
+
+      interface IUnsharedInterface {
         id: Int!
       }
 
@@ -185,7 +189,7 @@ operationPlan:
             id @fusion__requirement
           }
         }
-      hash: b5a406bda2d9875764ec947b24529920
+      hash: 367fe6c77e6ad8f31a2da6957b1f2999
       searchSpace: 1
       expandedNodes: 2
   nodes:

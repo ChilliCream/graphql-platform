@@ -39,7 +39,7 @@ public class QueryableDefaultFieldHandler
         if (node.Value.IsNull())
         {
             context.ReportError(
-                ErrorHelper.CreateNonNullError(field, node.Value, context));
+                ErrorHelper.CreateNonNullError(field, context));
 
             action = SyntaxVisitor.Skip;
 
@@ -116,9 +116,6 @@ public class QueryableDefaultFieldHandler
             return false;
         }
 
-        // Dequeue last
-        var condition = context.GetLevel().Dequeue();
-
         context.PopInstance();
         context.RuntimeTypes.Pop();
 
@@ -132,15 +129,17 @@ public class QueryableDefaultFieldHandler
         // structs:
         //    previous.Value.current > 10   ==> previous is not null && previous.Value.current > 10
         //
+        // The condition of this field, if it produced one, is the newest in the level.
         if (context.InMemory
             && context.TryGetPreviousRuntimeType(out var previousRuntimeType)
-            && (previousRuntimeType.IsNullableValueType() || !previousRuntimeType.IsValueType()))
+            && (previousRuntimeType.IsNullableValueType() || !previousRuntimeType.IsValueType())
+            && context.GetLevel().TryDequeueNewest(out var condition))
         {
             var peekedInstance = context.GetInstance();
             condition = FilterExpressionBuilder.NotNullAndAlso(peekedInstance, condition);
+            context.GetLevel().Enqueue(condition);
         }
 
-        context.GetLevel().Enqueue(condition);
         action = SyntaxVisitor.Continue;
 
         return true;
@@ -188,6 +187,21 @@ file static class LocalExtensions
         [NotNullWhen(true)] out IExtendedType? runtimeType)
     {
         return context.RuntimeTypes.TryPeek(out runtimeType);
+    }
+
+    /// <summary>
+    /// Removes the most recently added condition and keeps the order of the others.
+    /// </summary>
+    public static bool TryDequeueNewest(
+        this Queue<Expression> level,
+        [NotNullWhen(true)] out Expression? condition)
+    {
+        for (var i = 1; i < level.Count; i++)
+        {
+            level.Enqueue(level.Dequeue());
+        }
+
+        return level.TryDequeue(out condition);
     }
 
     public static bool IsNullableValueType(this IExtendedType type)

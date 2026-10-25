@@ -1,12 +1,16 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
-/// Resolves the Claude Code <c>settings.json</c> path for a scope:
-/// <c>~/.claude/settings.json</c> for <see cref="HookInstallScopes.User"/>,
-/// <c>&lt;workspace&gt;/.claude/settings.json</c> for
-/// <see cref="HookInstallScopes.Project"/>.
+/// Resolves the settings file a hook install scope edits for a harness speaking Claude Code's
+/// hook format.
 /// </summary>
 internal interface IClaudeSettingsPathResolver
 {
     string Resolve(string scope);
+
+    /// <summary>
+    /// The settings file of each install scope whose hooks the harness runs for a session started
+    /// in the current directory, the user scope's file first.
+    /// </summary>
+    IReadOnlyList<string> ResolveForCurrentDirectory();
 }

@@ -1,7 +1,6 @@
 #if FUSION
 using System.Buffers;
 using System.IO.Pipelines;
-using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Text.Json;
 #else
@@ -90,7 +89,7 @@ internal sealed class JsonResultEnumerable(HttpResponseMessage message, string? 
                         var spaceInCurrentChunk = chunkSize - currentChunkPosition;
                         var bytesToCopy = Math.Min(spaceInCurrentChunk, source.Length - segmentOffset);
 
-                        source.Slice(segmentOffset, bytesToCopy).CopyTo(current.Span.Slice(currentChunkPosition));
+                        source.Slice(segmentOffset, bytesToCopy).CopyTo(current.Span[currentChunkPosition..]);
                         currentChunkPosition += bytesToCopy;
                         segmentOffset += bytesToCopy;
 
@@ -138,32 +137,9 @@ internal sealed class JsonResultEnumerable(HttpResponseMessage message, string? 
             if (IsJsonArray(SourceResultDocument.FirstSpan(chunks, usedChunks, lastLength)))
             {
                 // All elements parse over the same shared arena segments; their packed data locations
-                // point into those segments, so there is no per-element copy. The reader is a ref
-                // struct and cannot cross a yield, so the elements are parsed first and yielded after.
-                var documents = new List<SourceResultDocument>();
-                var jsonReader = SourceResultDocument.CreateFilledReader(chunks, usedChunks, lastLength);
-
-                jsonReader.Read();
-
-                if (jsonReader.TokenType != JsonTokenType.StartArray)
-                {
-                    throw new InvalidOperationException("Expected first JSON token to be a StartArray.");
-                }
-
-                while (jsonReader.Read())
-                {
-                    if (jsonReader.TokenType == JsonTokenType.EndArray)
-                    {
-                        break;
-                    }
-
-                    documents.Add(
-                        SourceResultDocument.ParseFilledElement(
-                            arena,
-                            ref jsonReader,
-                            chunks,
-                            usedChunks));
-                }
+                // point into those segments, so there is no per-element copy. Every element is parsed
+                // before the first one is yielded.
+                var documents = SourceResultDocument.ParseFilledArrayElements(arena, chunks, usedChunks, lastLength);
 
                 foreach (var document in documents)
                 {

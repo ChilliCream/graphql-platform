@@ -1,9 +1,9 @@
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 using static HotChocolate.Properties.Resources;
 
 namespace HotChocolate.Execution.Processing;
@@ -69,9 +69,12 @@ internal sealed class VariableCoercionHelper
 
             var hasValue = hasVariables && variableValues.TryGetProperty(variableName, out propertyValue);
 
-            if (!hasValue && variableDefinition.DefaultValue is { Kind: not SyntaxKind.NullValue } defaultValue)
+            if (!hasValue && variableDefinition.DefaultValue is { } defaultValue)
             {
-                var runtimeValue = _inputParser.ParseLiteral(defaultValue, variableType);
+                var runtimeValue = _inputParser.ParseLiteral(
+                    defaultValue,
+                    variableType,
+                    path: Path.Root.Append(variableName));
                 coercedValues[variableName] = new VariableValue(variableName, variableType, runtimeValue, defaultValue);
                 continue;
             }
@@ -85,27 +88,15 @@ internal sealed class VariableCoercionHelper
 
                 // if we do not have any value we will not create an entry to the
                 // coerced variables.
-                if (!hasValue)
-                {
-                    continue;
-                }
+                continue;
+            }
 
-                coercedValues[variableName] =
-                    new VariableValue(
-                        variableName,
-                        variableType,
-                        null,
-                        NullValueNode.Default);
-            }
-            else
-            {
-                coercedValues[variableName] =
-                    CoerceVariableValue(
-                        variableDefinition,
-                        variableType,
-                        propertyValue,
-                        context);
-            }
+            coercedValues[variableName] =
+                CoerceVariableValue(
+                    variableDefinition,
+                    variableType,
+                    propertyValue,
+                    context);
         }
     }
 
@@ -172,12 +163,13 @@ internal sealed class VariableCoercionHelper
                 return Unsafe.As<ScalarType>(type).InputValueToLiteral(inputValue, context);
 
             case TypeKind.Enum:
-                if (inputValue.ValueKind is not JsonValueKind.String)
+                if (inputValue.ValueKind is not JsonValueKind.String
+                    || !((EnumType)type).TryGetValue(inputValue, out var enumValue))
                 {
                     throw new InvalidOperationException();
                 }
 
-                return new EnumValueNode(inputValue.GetString()!);
+                return enumValue.Literal;
 
             case TypeKind.InputObject:
                 if (inputValue.ValueKind is not JsonValueKind.Object)
@@ -185,37 +177,40 @@ internal sealed class VariableCoercionHelper
                     throw new InvalidOperationException();
                 }
 
-                var inputObjectType = (InputObjectType)type;
+                var inputFields = ((InputObjectType)type).Fields;
                 var fields = new List<ObjectFieldNode>();
-                var processedFields = StringSetPool.Shared.Rent();
+                var processed = ArrayPool<bool>.Shared.Rent(inputFields.Count);
+                processed.AsSpan(0, inputFields.Count).Clear();
 
                 try
                 {
                     foreach (var property in inputValue.EnumerateObject())
                     {
-                        if (!inputObjectType.Fields.TryGetField(property.Name, out var field))
+                        if (!InputParser.TryGetField(inputFields, property, out var field))
                         {
                             continue;
                         }
 
-                        processedFields.Add(property.Name);
+                        processed[field.Index] = true;
 
                         if (property.Value.ValueKind is JsonValueKind.Null)
                         {
-                            fields.Add(new ObjectFieldNode(field.Name, NullValueNode.Default));
+                            fields.Add(new ObjectFieldNode(null, field.NameNode, NullValueNode.Default));
                         }
                         else
                         {
                             var value = CoerceInputLiteral(property.Value, field.Type, context, depth + 1);
-                            fields.Add(new ObjectFieldNode(field.Name, value));
+                            fields.Add(new ObjectFieldNode(null, field.NameNode, value));
                         }
                     }
 
-                    foreach (var field in inputObjectType.Fields)
+                    for (var i = 0; i < inputFields.Count; i++)
                     {
-                        if (field is { IsOptional: false, DefaultValue: not (null or NullValueNode) } && !processedFields.Contains(field.Name))
+                        var field = inputFields[i];
+
+                        if (!processed[i] && field is { IsOptional: false, DefaultValue: not (null or NullValueNode) })
                         {
-                            fields.Add(new ObjectFieldNode(field.Name, field.DefaultValue));
+                            fields.Add(new ObjectFieldNode(null, field.NameNode, field.DefaultValue));
                         }
                     }
 
@@ -223,7 +218,7 @@ internal sealed class VariableCoercionHelper
                 }
                 finally
                 {
-                    StringSetPool.Shared.Return(processedFields);
+                    ArrayPool<bool>.Shared.Return(processed);
                 }
 
             case TypeKind.List:

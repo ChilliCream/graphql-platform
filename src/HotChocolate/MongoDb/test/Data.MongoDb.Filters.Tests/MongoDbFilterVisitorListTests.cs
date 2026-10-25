@@ -1,14 +1,13 @@
+using CookieCrumble.Resources;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using Squadron;
 
 namespace HotChocolate.Data.MongoDb.Filters;
 
 public class MongoDbFilterVisitorListTests
     : SchemaCache
-    , IClassFixture<MongoResource>
 {
     private static readonly Foo[] s_fooEntities =
     [
@@ -419,6 +418,46 @@ public class MongoDbFilterVisitorListTests
             .AddResult(res1, "false")
             .AddResult(res2, "true")
             .AddResult(res3, "null")
+            .MatchAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_ApplyNoCondition_When_ElementFilterIsEmpty()
+    {
+        // arrange
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
+
+        // act
+        var res1 = await tester.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { fooNested: { some: { } } }) { fooNested { bar } } }")
+                .Build(),
+            TestContext.Current.CancellationToken);
+        var res2 = await tester.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { fooNested: { all: { } } }) { fooNested { bar } } }")
+                .Build(),
+            TestContext.Current.CancellationToken);
+        var res3 = await tester.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { fooNested: { none: { } } }) { fooNested { bar } } }")
+                .Build(),
+            TestContext.Current.CancellationToken);
+        var res4 = await tester.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    "{ root(where: { fooNested: { some: { bar: { } } } }) "
+                    + "{ fooNested { bar } } }")
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await Snapshot
+            .Create()
+            .AddResult(res1, "some")
+            .AddResult(res2, "all")
+            .AddResult(res3, "none")
+            .AddResult(res4, "some with empty field")
             .MatchAsync(TestContext.Current.CancellationToken);
     }
 

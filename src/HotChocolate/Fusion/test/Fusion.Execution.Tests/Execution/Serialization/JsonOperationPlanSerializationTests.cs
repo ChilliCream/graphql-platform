@@ -56,6 +56,12 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
 
         // assert
         formatter.Format(parsedPlan).MatchInlineSnapshot(Encoding.UTF8.GetString(buffer.WrittenSpan));
+        foreach (var original in originalPlan.AllNodes.OfType<OperationExecutionNode>())
+        {
+            var parsed = parsedPlan.AllNodes.OfType<OperationExecutionNode>().Single(t => t.Id == original.Id);
+            Assert.Equal(original.Operation.Value.ToArray(), parsed.Operation.Value.ToArray());
+            Assert.Equal(original.Operation.Hash, parsed.Operation.Hash);
+        }
     }
 
     // Source schema A owns the union and the nested lookups, source schema B the Asset entity
@@ -754,6 +760,114 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
     }
 
     [Fact]
+    public void Parse_Should_RestoreMultiTargetApolloLookup_When_PlanMergesIdenticalLookups()
+    {
+        // arrange
+        // The Product lookups for '$.products' and '$.brands.featured' are identical and sit
+        // at the same depth, so they merge into one lookup with two targets.
+        var compositeSchema = ComposeApolloSchema(
+            """
+            schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"]) {
+              query: Query
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+            }
+
+            type Brand @key(fields: "id") {
+              id: ID!
+              featured: Product
+            }
+
+            type Query {
+              products: [Product!]
+              brands: [Brand!]
+              _service: _Service!
+              _entities(representations: [_Any!]!): [_Entity]!
+            }
+
+            type _Service { sdl: String! }
+
+            union _Entity = Product | Brand
+
+            scalar FieldSet
+            scalar _Any
+
+            directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+            directive @link(url: String! import: [String!]) repeatable on SCHEMA
+            """,
+            """
+            schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"]) {
+              query: Query
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              name: String
+            }
+
+            type Query {
+              _service: _Service!
+              _entities(representations: [_Any!]!): [_Entity]!
+            }
+
+            type _Service { sdl: String! }
+
+            union _Entity = Product
+
+            scalar FieldSet
+            scalar _Any
+
+            directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+            directive @link(url: String! import: [String!]) repeatable on SCHEMA
+            """);
+        var originalPlan = PlanOperation(
+            compositeSchema,
+            """
+            {
+                products {
+                    name
+                }
+                brands {
+                    featured {
+                        name
+                    }
+                }
+            }
+            """);
+
+        using var buffer = new PooledArrayWriter();
+        var formatter = new JsonOperationPlanFormatter(
+            new JsonWriterOptions
+            {
+                Indented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+        formatter.Format(buffer, originalPlan);
+
+        // act
+        var compiler = new OperationCompiler(
+            compositeSchema,
+            new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+        var parser = new JsonOperationPlanParser(compiler);
+        var parsedPlan = parser.Parse(buffer.WrittenMemory);
+
+        // assert
+        MatchSnapshot(originalPlan);
+        var parsedNode = Assert.Single(
+            parsedPlan.AllNodes.OfType<ApolloOperationBatchExecutionNode>());
+        var parsedOperation = Assert.IsType<BatchOperationDefinition>(
+            Assert.Single(parsedNode.Operations.ToArray()));
+        Assert.Equal(
+            ["$.brands.featured", "$.products"],
+            parsedOperation.Targets.ToArray().Select(t => t.ToString()));
+        AssertApolloLookup(Assert.Single(parsedNode.Lookups.ToArray()), "Product");
+        formatter.Format(parsedPlan).MatchInlineSnapshot(Encoding.UTF8.GetString(buffer.WrittenSpan));
+    }
+
+    [Fact]
     public void Format_Should_WriteEntitiesOperationMetadata_When_PlanHasApolloLookup()
     {
         // arrange
@@ -1024,6 +1138,58 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
     }
 
     [Fact]
+    public void Parse_Plan_Preserves_NoParentNodeId_When_RootPlanHasNoExecutionNode()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                users: [User!]!
+            }
+
+            type User {
+                id: ID!
+            }
+            """);
+
+        var originalPlan = PlanOperation(
+            schema,
+            """
+            {
+                ... @defer {
+                    users {
+                        id
+                    }
+                }
+            }
+            """);
+
+        using var buffer = new PooledArrayWriter();
+        var formatter = new JsonOperationPlanFormatter(
+            new JsonWriterOptions
+            {
+                Indented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+        formatter.Format(buffer, originalPlan);
+
+        // act
+        var compiler = new OperationCompiler(
+            schema,
+            new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+        var parser = new JsonOperationPlanParser(compiler);
+        var parsedPlan = parser.Parse(buffer.WrittenMemory);
+
+        // assert
+        Encoding.UTF8.GetString(buffer.WrittenSpan).MatchSnapshot();
+        Assert.Empty(parsedPlan.AllNodes);
+        Assert.Equal(
+            IncrementalPlan.NoParentNodeId,
+            Assert.Single(parsedPlan.IncrementalPlans).ParentNodeId);
+    }
+
+    [Fact]
     public void Parse_Plan_Preserves_ParentDependencies_On_Deferred_IncrementalPlan_Nodes()
     {
         // arrange
@@ -1216,7 +1382,7 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
     {
         if (shape.IsDefault)
         {
-            return JsonValue.Create("default")!;
+            return JsonValue.Create("default");
         }
 
         var nodes = new JsonArray();

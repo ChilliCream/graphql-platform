@@ -130,10 +130,7 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
                 // possible types of that selection set.
                 foreach (var possibleType in schema.GetPossibleTypes(context.SharedType, includeInaccessible: true))
                 {
-                    if (MatchesEnclosingTypeConditions(context, possibleType))
-                    {
-                        AddSelectionsForConcreteType(context, possibleType, selectionsWithPath, cloneSelectionSets: true);
-                    }
+                    AddSelectionsForConcreteType(context, possibleType, selectionsWithPath, cloneSelectionSets: true);
                 }
             }
         }
@@ -144,11 +141,16 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
     }
 
     /// <summary>
-    /// Determines whether the specified object type satisfies all type conditions
-    /// on the current type path.
+    /// Determines whether the specified object type is a possible type of the enclosing
+    /// selection set and satisfies all type conditions on the current type path.
     /// </summary>
     private bool MatchesEnclosingTypeConditions(Context context, FusionObjectTypeDefinition type)
     {
+        if (!ContainsType(schema.GetPossibleTypes(context.SharedType, includeInaccessible: true), type))
+        {
+            return false;
+        }
+
         foreach (var typeCondition in context.TypePath)
         {
             if (!ContainsType(schema.GetPossibleTypes(typeCondition, includeInaccessible: true), type))
@@ -181,6 +183,11 @@ internal sealed class SelectionSetByTypePartitioner(FusionSchemaDefinition schem
         List<ISelectionNode> selections,
         bool cloneSelectionSets = false)
     {
+        if (!MatchesEnclosingTypeConditions(context, type))
+        {
+            return;
+        }
+
         if (!context.SelectionsByType.TryGetValue(type.Name, out var typeSelections))
         {
             typeSelections = [];

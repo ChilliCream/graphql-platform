@@ -1,4 +1,3 @@
-using System.Net.Http.Headers;
 using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Transport;

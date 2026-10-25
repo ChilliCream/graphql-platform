@@ -1,0 +1,15 @@
+{
+  "id": "default_and_type_costs_match_the_lean_ibm_model",
+  "source": "rust-unit",
+  "sdl": "directive @cost(weight: String!) on ARGUMENT_DEFINITION | ENUM | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | OBJECT | SCALAR\ndirective @listSize(\n  assumedSize: Int\n  slicingArguments: [String!]\n  sizedFields: [String!]\n  requireOneSlicingArgument: Boolean = true\n) on FIELD_DEFINITION\n\ntype Query {\n  book: Book\n  bestsellers: [Book] @listSize(assumedSize: 5)\n  newest(limit: Int): [Book] @listSize(slicingArguments: [\"limit\"])\n  users(max: Int): [User] @listSize(slicingArguments: [\"max\"])\n  rangeBooks(first: Int, last: Int): [Book] @listSize(\n    assumedSize: 2\n    slicingArguments: [\"first\", \"last\"]\n    requireOneSlicingArgument: false\n  )\n  container(first: Int): Container @listSize(\n    slicingArguments: [\"first\"]\n    sizedFields: [\"page\"]\n    requireOneSlicingArgument: false\n  )\n  defaultContainer(first: Int = 4): Container @listSize(\n    slicingArguments: [\"first\"]\n    sizedFields: [\"page\"]\n  )\n  listContainer(first: Int): [Container] @listSize(\n    slicingArguments: [\"first\"]\n    sizedFields: [\"page\"]\n  )\n  fieldWithCost(approx: Boolean @cost(weight: \"-3\")): Int\n    @cost(weight: \"5\")\n  publication: Publication\n  inputWithCost(filter: Filter @cost(weight: \"15\")): Int\n    @cost(weight: \"5\")\n  listInputWithCost(ids: [ID] @cost(weight: \"3\")): Int\n}\n\ntype Book implements Publication {\n  title: String\n  author: Author\n  publisher: Publisher\n}\ntype Magazine implements Publication @cost(weight: \"7\") { title: String }\ninterface Publication { title: String }\ntype Author { name: String }\ntype User { age: Int @cost(weight: \"2\") }\ntype Publisher { name: String, address: Address }\ntype Address @cost(weight: \"5\") { zipCode: Int }\ntype Container { page: [Book], recent: [Book], metadata: String }\ninput Filter {\n  approx: Boolean @cost(weight: \"-12\")\n  nested: Filter\n}\n",
+  "operation": "{ book { title author { name } publisher { name address { zipCode } } } }",
+  "operationName": null,
+  "variables": {},
+  "defaultListSize": 10,
+  "backend": "exact-case",
+  "expected": {
+    "typeCost": 9,
+    "fieldCost": 4
+  },
+  "notes": "Port of estimator.rs test `default_and_type_costs_match_the_lean_ibm_model` at line 772, commit fec57fd7a980b5399637fa464a9bdce0781d91dd."
+}

@@ -156,13 +156,19 @@ A keyed service is a service registered in the DI container with an associated k
 You can register a keyed service like this:
 
 ```csharp
+internal enum BookServiceKey
+{
+    Primary
+}
+
 builder.Services.AddKeyedScoped<BookService>("bookService");
+builder.Services.AddKeyedScoped<BookService>(BookServiceKey.Primary);
 ```
 
 <ExampleTabs>
 <Implementation>
 
-You can then access the keyed service in your resolver by applying the `[Service]` attribute with the key:
+You can then access the keyed service in your resolver by applying the `[Service]` attribute with the key. `[Service]` has parity with `[FromKeyedServices]` and supports any attribute constant, including strings, enum values, and integers. String keys remain supported unchanged.
 
 ```csharp
 [QueryType]
@@ -170,7 +176,8 @@ public static class Query
 {
     public static async Task<Book?> GetBookByIdAsync(
         Guid id,
-        [Service("bookService")] BookService bookService)
+        [Service("bookService")] BookService bookService,
+        [Service(BookServiceKey.Primary)] BookService primaryBookService)
     {
         return await bookService.GetBookAsync(id);
     }

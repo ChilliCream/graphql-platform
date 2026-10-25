@@ -11,25 +11,12 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Search;
 /// <summary>
 /// The search mode: a query input line, a live-updating results list, and a
 /// detail panel for the selected task, with focus switching between the
-/// three. Queries the store through <see cref="TaskQueryParser"/> and
-/// <see cref="TaskQuery.ToFilter"/>; issues no SQL of its own.
+/// three.
 /// </summary>
-/// <remarks>
-/// Text typed into the query input and the debounce that follows it are not
-/// reachable through <see cref="ITuiMode.Handle"/>: the shell's key dispatch
-/// only ever produces the closed <see cref="TuiMessage"/> set from a
-/// <see cref="Input.KeyMap"/>. <see cref="HandleQueryKey"/> and
-/// <see cref="TickAsync"/> expose that behavior directly for the shell to
-/// drive: raw key input while <see cref="Focus"/> is <see cref="SearchFocus.Input"/>,
-/// and every tick, respectively. <see cref="FocusInput"/> is likewise driven
-/// directly by the shell for the '/' gesture, since jumping into search from
-/// another mode has no equivalent in the closed <see cref="TuiMessage"/> set.
-/// </remarks>
 internal sealed class SearchMode : ITuiMode
 {
     /// <summary>
-    /// How long after the last keystroke a valid query is re-run against the
-    /// store.
+    /// The delay after a query edit before a valid query becomes due.
     /// </summary>
     public static readonly TimeSpan DebounceWindow = TimeSpan.FromMilliseconds(200);
 
@@ -45,6 +32,7 @@ internal sealed class SearchMode : ITuiMode
     private TaskQuery? _pendingQuery;
     private DateTimeOffset? _pendingQueryDueAt;
     private bool _refreshRequested;
+    private bool _detailReloadRequested;
 
     public SearchMode(ITaskStore store)
     {
@@ -71,8 +59,7 @@ internal sealed class SearchMode : ITuiMode
     public TaskQueryParseError? ParseError { get; private set; }
 
     /// <summary>
-    /// The id of the selected task in the results list, or null when the
-    /// list is empty. Detail and editing modes hook in through this.
+    /// The selected result's task id, or null when the result list is empty.
     /// </summary>
     public string? SelectedTaskId => _results.SelectedTaskId;
 
@@ -106,15 +93,17 @@ internal sealed class SearchMode : ITuiMode
     public static readonly KeyHint TypingHint = new("type", "search");
 
     /// <summary>
-    /// The footer hint for Enter while the query input has focus: the one
-    /// global gesture that still falls through while typing.
+    /// The Enter hint shown while query input has focus.
     /// </summary>
     public static readonly KeyHint EnterHint = new("enter", "open");
 
     public void OnEnter()
     {
-        _pendingQuery = _lastAppliedQuery;
-        _pendingQueryDueAt = null;
+        if (_pendingQuery is null && ParseError is null)
+        {
+            _pendingQuery = _lastAppliedQuery;
+            _pendingQueryDueAt = null;
+        }
     }
 
     public void OnResize(int width, int height)
@@ -127,8 +116,7 @@ internal sealed class SearchMode : ITuiMode
         {
             case TuiMessage.RefreshRequested:
                 // Re-runs the last applied query for display on the next tick,
-                // without touching a not-yet-due pending edit: an external
-                // write must not discard text the user is still typing.
+                // without touching a not-yet-due pending edit.
                 _refreshRequested = true;
                 return [];
 
@@ -169,12 +157,9 @@ internal sealed class SearchMode : ITuiMode
     public void FocusInput() => _focus = SearchFocus.Input;
 
     /// <summary>
-    /// Handles one raw key while the query input has focus: cursor movement,
-    /// insertion, and deletion. Every edit re-parses <see cref="QueryText"/>
-    /// via <see cref="TaskQueryParser"/>; a valid parse schedules a query
-    /// <see cref="DebounceWindow"/> after <paramref name="now"/>, an invalid
-    /// one sets <see cref="ParseError"/> and schedules nothing. Has no effect
-    /// when a pane other than the input has focus.
+    /// Edits or navigates the query input when it has focus, scheduling valid edits
+    /// after <see cref="DebounceWindow"/>. Invalid edits set <see cref="ParseError"/>
+    /// and clear the pending query; other panes are unaffected.
     /// </summary>
     public void HandleQueryKey(ConsoleKeyInfo info, DateTimeOffset now)
     {
@@ -309,8 +294,7 @@ internal sealed class SearchMode : ITuiMode
             case CursorDirection.Left:
                 if (_focus == SearchFocus.Input)
                 {
-                    // Already at the leftmost pane: h/Escape leaves search
-                    // mode instead of doing nothing.
+                    // Moving left from query input leaves search mode.
                     return [new TuiMessage.Back()];
                 }
 
@@ -367,6 +351,7 @@ internal sealed class SearchMode : ITuiMode
         var filter = query.ToFilter(now);
         var tasks = await _store.QueryTasksAsync(filter, cancellationToken).ConfigureAwait(false);
         _results.SetTasks(tasks);
+        _detailReloadRequested = true;
     }
 
     private IRenderable RenderInput()
@@ -430,9 +415,10 @@ internal sealed class SearchMode : ITuiMode
             };
         }
 
-        if (_detailModel.CurrentTaskId != id)
+        if (_detailModel.CurrentTaskId != id || _detailReloadRequested)
         {
             _detailModel.LoadAsync(id, CancellationToken.None).GetAwaiter().GetResult();
+            _detailReloadRequested = false;
         }
 
         return _detailView.Render(width, height, focused);

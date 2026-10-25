@@ -1,7 +1,6 @@
 using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Mocha.Features;
 using Mocha.Middlewares;
 using Mocha.Transport.AzureServiceBus.Features;
 
@@ -26,19 +25,20 @@ internal sealed class AzureServiceBusAcknowledgementMiddleware
             feature.ProcessMessageEventArgs?.EntityPath
             ?? feature.ProcessSessionMessageEventArgs?.EntityPath
             ?? string.Empty;
-        var cancellationToken = context.CancellationToken;
 
         try
         {
             await next(context);
 
-            await CompleteAsync(feature.Actions, context.Services, feature.Message, entityPath, cancellationToken);
+            // Once next returns the handler's work is committed, so settlement runs to completion
+            // without the shutdown token. A cancelled handler throws and is abandoned instead.
+            await CompleteAsync(feature.Actions, context.Services, feature.Message, entityPath, CancellationToken.None);
         }
         catch
         {
             try
             {
-                await AbandonAsync(feature.Actions, context.Services, feature.Message, entityPath, cancellationToken);
+                await AbandonAsync(feature.Actions, context.Services, feature.Message, entityPath, CancellationToken.None);
             }
             catch
             {

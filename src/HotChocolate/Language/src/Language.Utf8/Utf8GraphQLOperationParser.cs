@@ -753,7 +753,7 @@ public ref struct Utf8GraphQLOperationParser
 
         for (var i = 0; i < _variableCount; i++)
         {
-            ref var entry = ref MemoryMarshal.GetReference(_variableDirectory!.AsSpan(i * 8));
+            ref var entry = ref MemoryMarshal.GetReference(_variableDirectory.AsSpan(i * 8));
             var existingStart = Unsafe.ReadUnaligned<int>(ref entry);
             var existingLength = Unsafe.ReadUnaligned<int>(ref Unsafe.Add(ref entry, 4));
 
@@ -775,7 +775,7 @@ public ref struct Utf8GraphQLOperationParser
             GrowVariableBuffer(ref _variableDirectory, required);
         }
 
-        ref var slot = ref MemoryMarshal.GetReference(_variableDirectory!.AsSpan(_variableCount * 8));
+        ref var slot = ref MemoryMarshal.GetReference(_variableDirectory.AsSpan(_variableCount * 8));
         Unsafe.WriteUnaligned(ref slot, nameStart);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref slot, 4), nameLength);
         return _variableCount++;

@@ -17,13 +17,18 @@ internal ref struct JsonVariableCoercion
     private const int MaxAllowedDepth = 64;
     private const int MaxPathSegments = MaxAllowedDepth + 2;
     private readonly IFeatureProvider _context;
+    private readonly bool _ignoreAdditionalInputFields;
     private readonly ref Utf8MemoryBuilder? _memory;
     private DeferredPathSegmentBuffer _pathSegments;
     private int _pathSegmentCount;
 
-    public JsonVariableCoercion(IFeatureProvider context, ref Utf8MemoryBuilder? memory)
+    public JsonVariableCoercion(
+        IFeatureProvider context,
+        ref Utf8MemoryBuilder? memory,
+        bool ignoreAdditionalInputFields)
     {
         _context = context;
+        _ignoreAdditionalInputFields = ignoreAdditionalInputFields;
         _memory = ref memory;
         _pathSegments = default;
         _pathSegmentCount = 0;
@@ -225,9 +230,18 @@ internal ref struct JsonVariableCoercion
 
         if (oneOf)
         {
-            foreach (var _ in element.EnumerateObject())
+            foreach (var property in element.EnumerateObject())
             {
-                fieldCount++;
+                if (_ignoreAdditionalInputFields
+                    && !TryGetInputField(inputObjectType, property, out _))
+                {
+                    continue;
+                }
+
+                if (++fieldCount > 1)
+                {
+                    break;
+                }
             }
         }
 
@@ -272,8 +286,13 @@ internal ref struct JsonVariableCoercion
         {
             foreach (var property in element.EnumerateObject())
             {
-                if (!inputObjectType.Fields.TryGetField(property.Name, out var fieldDefinition))
+                if (!TryGetInputField(inputObjectType, property, out var fieldDefinition))
                 {
+                    if (_ignoreAdditionalInputFields)
+                    {
+                        continue;
+                    }
+
                     value = null;
                     error = ErrorBuilder.New()
                         .SetMessage(
@@ -307,7 +326,7 @@ internal ref struct JsonVariableCoercion
                     ArrayPool<ObjectFieldNode>.Shared.Return(temp);
                 }
 
-                PushPathSegment(property.Name);
+                PushPathSegment(fieldDefinition.Name);
 
                 try
                 {
@@ -322,7 +341,7 @@ internal ref struct JsonVariableCoercion
                         return false;
                     }
 
-                    buffer[count++] = new ObjectFieldNode(property.Name, fieldValue);
+                    buffer[count++] = new ObjectFieldNode(null, fieldDefinition.NameNode, fieldValue);
                     processed[fieldDefinition.Index] = true;
                     processedCount++;
                 }
@@ -369,6 +388,28 @@ internal ref struct JsonVariableCoercion
                 ArrayPool<bool>.Shared.Return(processedBuffer);
             }
         }
+    }
+
+    private static bool TryGetInputField(
+        FusionInputObjectTypeDefinition inputObjectType,
+        JsonProperty property,
+        [NotNullWhen(true)] out FusionInputFieldDefinition? field)
+    {
+#if NET10_0_OR_GREATER
+        var utf8Name = JsonMarshal.GetRawUtf8PropertyName(property);
+
+        if (inputObjectType.Fields.TryGetField(utf8Name, out field))
+        {
+            return true;
+        }
+
+        if (utf8Name.IndexOf((byte)'\\') == -1)
+        {
+            return false;
+        }
+#endif
+
+        return inputObjectType.Fields.TryGetField(property.Name, out field);
     }
 
     private readonly bool TryParseScalar(
@@ -435,21 +476,35 @@ internal ref struct JsonVariableCoercion
             return false;
         }
 
-        var enumValue = element.GetString()!;
+        var utf8Name = GetRawStringContent(element);
 
-        if (!enumType.Values.ContainsName(enumValue))
+        if (enumType.Values.TryGetValue(utf8Name, out var enumValue))
         {
-            value = null;
-            error = ErrorBuilder.New()
-                .SetMessage("The value `{0}` is not a valid value for the enum type `{1}`.", enumValue, enumType.Name)
-                .SetExtension("variable", $"{BuildPath()}")
-                .Build();
-            return false;
+            value = enumValue.Literal;
+            error = null;
+            return true;
         }
 
-        value = new EnumValueNode(enumValue);
-        error = null;
-        return true;
+        if (utf8Name.IndexOf((byte)'\\') != -1)
+        {
+            // the JSON string escapes characters of the name, so we look it up unescaped.
+            if (enumType.Values.TryGetValue(element.GetString()!, out enumValue))
+            {
+                value = enumValue.Literal;
+                error = null;
+                return true;
+            }
+        }
+
+        value = null;
+        error = ErrorBuilder.New()
+            .SetMessage(
+                "The value `{0}` is not a valid value for the enum type `{1}`.",
+                element.GetString(),
+                enumType.Name)
+            .SetExtension("variable", $"{BuildPath()}")
+            .Build();
+        return false;
     }
 
     private readonly IValueNode ParseLiteral(JsonElement element, int depth)
@@ -471,8 +526,7 @@ internal ref struct JsonVariableCoercion
                 return BooleanValueNode.False;
 
             case JsonValueKind.String:
-                var stringValue = element.GetString()!;
-                return new StringValueNode(null, stringValue, false);
+                return new StringValueNode(null, WriteStringValue(element), false);
 
             case JsonValueKind.Number:
                 var span = JsonMarshal.GetRawUtf8Value(element);
@@ -563,6 +617,33 @@ internal ref struct JsonVariableCoercion
     {
         _memory ??= new Utf8MemoryBuilder();
         return _memory.Write(value);
+    }
+
+    private readonly ReadOnlyMemorySegment WriteStringValue(JsonElement element)
+    {
+        var content = GetRawStringContent(element);
+
+        if (content.IndexOf((byte)'\\') == -1)
+        {
+            return WriteValue(content);
+        }
+
+        var reader = new Utf8JsonReader(JsonMarshal.GetRawUtf8Value(element));
+        reader.Read();
+
+        // the unescaped value is never longer than the escaped value.
+        _memory ??= new Utf8MemoryBuilder();
+        var start = _memory.NextIndex;
+        var written = reader.CopyString(_memory.GetSpan(content.Length));
+        _memory.Advance(written);
+        return _memory.GetMemorySegment(start, written);
+    }
+
+    private static ReadOnlySpan<byte> GetRawStringContent(JsonElement element)
+    {
+        // the raw value of a JSON string includes the surrounding quotes.
+        var raw = JsonMarshal.GetRawUtf8Value(element);
+        return raw[1..^1];
     }
 
     private void PushPathSegment(string name)

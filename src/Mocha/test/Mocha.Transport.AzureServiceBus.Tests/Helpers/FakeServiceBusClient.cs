@@ -92,16 +92,33 @@ internal sealed record CreatedSessionProcessor(
 
 /// <summary>
 /// A <see cref="ServiceBusProcessor"/> test double whose processing loop never runs; start and stop
-/// complete immediately, and <see cref="RaiseProcessErrorAsync"/> lets tests invoke the handler
-/// registered via <see cref="ServiceBusProcessor.ProcessErrorAsync"/> without a live namespace.
+/// complete immediately, and <see cref="RaiseProcessMessageAsync"/> and <see cref="RaiseProcessErrorAsync"/>
+/// let tests invoke the handlers registered via <see cref="ServiceBusProcessor.ProcessMessageAsync"/> and
+/// <see cref="ServiceBusProcessor.ProcessErrorAsync"/> without a live namespace.
 /// </summary>
 internal sealed class FakeServiceBusProcessor : ServiceBusProcessor
 {
+    /// <summary>
+    /// When set, <see cref="CloseAsync"/> throws this exception instead of closing, simulating
+    /// a failure while tearing down the underlying AMQP link.
+    /// </summary>
+    public Exception? CloseFailure { get; set; }
+
     public Action? OnStopProcessing { get; set; }
 
     public int StartProcessingCallCount { get; private set; }
 
     public int StopProcessingCallCount { get; private set; }
+
+    public override Task CloseAsync(CancellationToken cancellationToken = default)
+    {
+        if (CloseFailure is { } failure)
+        {
+            throw failure;
+        }
+
+        return base.CloseAsync(cancellationToken);
+    }
 
     public override Task StartProcessingAsync(CancellationToken cancellationToken = default)
     {
@@ -116,14 +133,17 @@ internal sealed class FakeServiceBusProcessor : ServiceBusProcessor
         return Task.CompletedTask;
     }
 
+    public Task RaiseProcessMessageAsync(ProcessMessageEventArgs args) => OnProcessMessageAsync(args);
+
     public Task RaiseProcessErrorAsync(ProcessErrorEventArgs args) => OnProcessErrorAsync(args);
 }
 
 /// <summary>
 /// A <see cref="ServiceBusSessionProcessor"/> test double whose processing loop never runs; start
-/// and stop complete immediately, and <see cref="RaiseProcessErrorAsync"/> lets tests invoke the
-/// handler registered via <see cref="ServiceBusSessionProcessor.ProcessErrorAsync"/> without a live
-/// namespace.
+/// and stop complete immediately, and <see cref="RaiseProcessMessageAsync"/> and
+/// <see cref="RaiseProcessErrorAsync"/> let tests invoke the handlers registered via
+/// <see cref="ServiceBusSessionProcessor.ProcessMessageAsync"/> and
+/// <see cref="ServiceBusSessionProcessor.ProcessErrorAsync"/> without a live namespace.
 /// </summary>
 internal sealed class FakeServiceBusSessionProcessor : ServiceBusSessionProcessor
 {
@@ -141,6 +161,8 @@ internal sealed class FakeServiceBusSessionProcessor : ServiceBusSessionProcesso
     public override Task StartProcessingAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
 
     public override Task StopProcessingAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+    public Task RaiseProcessMessageAsync(ProcessSessionMessageEventArgs args) => OnProcessSessionMessageAsync(args);
 
     public Task RaiseProcessErrorAsync(ProcessErrorEventArgs args) => OnProcessErrorAsync(args);
 

@@ -9,7 +9,7 @@ StrawberryShake comes with some tools that integrate into the dotnet CLI and hel
 
 # Initialize Project
 
-`dotnet graphql init http://localhost/graphql`
+`#!shell dotnet graphql init http://localhost/graphql`
 
 The `init` command allows you to initialize a C# project for use with Strawberry Shake. It essentially creates the initial configuration file `.graphqlrc.json` and downloads the GraphQL schema.
 
@@ -49,7 +49,7 @@ The update command allows you to update the local GraphQL schema with the newest
 
 # Download Schema
 
-`dotnet graphql download http://localhost/graphql`
+`#!shell dotnet graphql download http://localhost/graphql`
 
 The download command allows downloading a GraphQL schema from any GraphQL server.
 

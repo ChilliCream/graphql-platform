@@ -4,7 +4,7 @@
 
 ```json
 {
-  "query": "query Op_88f73202_1 {\n  parent {\n    a: child {\n      id\n    }\n    b: child {\n      id\n    }\n  }\n}"
+  "query": "query Op_88f73202_1 { parent { a: child { id } b: child { id } } }"
 }
 ```
 
@@ -13,7 +13,7 @@
 ```json
 [
   {
-    "query": "query($representations: [_Any!]!) {\n  _entities(representations: $representations) {\n    ... on Child {\n      b: value(suffix: \"!\")\n    }\n  }\n}",
+    "query": "query($representations: [_Any!]!) { _entities(representations: $representations) { ... on Child { b: value(suffix: \"!\") } } }",
     "variables": {
       "representations": [
         {
@@ -24,7 +24,7 @@
     }
   },
   {
-    "query": "query($representations: [_Any!]!) {\n  _entities(representations: $representations) {\n    ... on Child {\n      a: value\n    }\n  }\n}",
+    "query": "query($representations: [_Any!]!) { _entities(representations: $representations) { ... on Child { a: value } } }",
     "variables": {
       "representations": [
         {

@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
@@ -13,7 +8,6 @@ using BenchmarkDotNet.Toolchains.InProcess.Emit;
 using HotChocolate;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution;
-using HotChocolate.Fusion;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Logging;

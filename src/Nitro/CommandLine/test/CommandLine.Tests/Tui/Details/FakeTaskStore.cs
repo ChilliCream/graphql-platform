@@ -3,10 +3,8 @@ using ChilliCream.Nitro.CommandLine.Services.Tasks;
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Details;
 
 /// <summary>
-/// An in-memory <see cref="ITaskStore"/> exercising only the read surface
-/// the task detail view consumes (task by id, labels, dependencies both
-/// directions, comments, blocked set). Every other member throws
-/// <see cref="NotSupportedException"/>: the detail view never calls them.
+/// An in-memory <see cref="ITaskStore"/> supporting reads of tasks by id, labels, dependencies,
+/// dependents, comments, and the blocked set. All other methods throw <see cref="NotSupportedException"/>.
 /// </summary>
 internal sealed class FakeTaskStore : ITaskStore
 {
@@ -24,6 +22,10 @@ internal sealed class FakeTaskStore : ITaskStore
 
     public Task<TaskItem?> GetTaskAsync(string id, CancellationToken cancellationToken)
         => Task.FromResult(Tasks.GetValueOrDefault(id));
+
+    public Task<IReadOnlyList<TaskItem>> QueryParticipationAsync(
+        string agent, int? limit, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
 
     public Task<IReadOnlyList<string>> GetLabelsAsync(string taskId, CancellationToken cancellationToken)
         => Task.FromResult<IReadOnlyList<string>>(Labels.GetValueOrDefault(taskId) ?? []);
@@ -106,6 +108,9 @@ internal sealed class FakeTaskStore : ITaskStore
         => throw new NotSupportedException();
 
     public Task<TaskItem> DeleteTaskAsync(string id, string reason, string actor, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
+    public Task<int> ReleaseAssigneeAsync(string agent, string reason, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
     public Task<IReadOnlyList<TaskEpicStatus>> CloseEligibleEpicsAsync(string actor, CancellationToken cancellationToken)

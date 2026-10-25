@@ -39,9 +39,7 @@ internal sealed class ContextMemoryCommand : Command
         var limit = parseResult.GetRequiredValue(Opt<MemoryContextLimitOption>.Instance);
         var maxChars = parseResult.GetRequiredValue(Opt<MemoryMaxCharsOption>.Instance);
 
-        // Context is curated only, never journal, and always reads the
-        // merged project-then-global candidate order the budget algorithm
-        // ranks against.
+        // Context is curated only, never journal.
         var candidates = await store.GetRecentCuratedAsync(null, cancellationToken);
 
         if (tags.Length > 0)

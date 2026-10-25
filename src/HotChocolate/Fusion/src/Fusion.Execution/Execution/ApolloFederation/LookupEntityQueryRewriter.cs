@@ -1,4 +1,3 @@
-using System.Text;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Metadata;
@@ -69,18 +68,13 @@ internal static class LookupEntityQueryRewriter
             strippedSelections = FlattenConcreteTypeConditions(strippedSelections);
         }
 
-        var value = Encoding.UTF8.GetBytes(
-            BuildEntitiesDocument(
-                entityTypeName,
-                strippedSelections,
-                operationDefinition.VariableDefinitions));
+        var entitiesDocument = BuildEntitiesDocument(
+            entityTypeName,
+            strippedSelections,
+            operationDefinition.VariableDefinitions);
 
         return new RewrittenOperation(
-            new OperationSourceText(
-                operation.Name,
-                operation.Type,
-                value,
-                OperationSourceTextHash.Compute(value)),
+            OperationSourceText.Create(operation.Name, operation.Type, entitiesDocument),
             entityTypeName,
             lookupField);
     }
@@ -435,7 +429,7 @@ internal static class LookupEntityQueryRewriter
         return requireArguments;
     }
 
-    private static string BuildEntitiesDocument(
+    private static DocumentNode BuildEntitiesDocument(
         string entityTypeName,
         SelectionSetNode selectionSet,
         IReadOnlyList<VariableDefinitionNode> availableVariableDefinitions)
@@ -477,7 +471,7 @@ internal static class LookupEntityQueryRewriter
             directives: [],
             selectionSet: new SelectionSetNode([entitiesField]));
 
-        return new DocumentNode([operationDefinition]).ToString(indented: true);
+        return new DocumentNode([operationDefinition]);
     }
 
     private static List<VariableDefinitionNode> BuildVariableDefinitions(

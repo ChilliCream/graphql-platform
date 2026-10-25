@@ -72,23 +72,12 @@ public sealed class RabbitMQQueueDescriptorConfiguration : MessagingConfiguratio
     public List<Action<List<ReceiveMiddlewareConfiguration>>> ReceivePipelineModifiers { get; } = [];
 
     /// <summary>
+    /// Gets the configuration callbacks applied to this queue's receive endpoint, in registration order.
+    /// </summary>
+    public List<Action<IReceiveMiddlewareProvider>> ConfigureReceiveEndpoint { get; } = [];
+
+    /// <summary>
     /// Gets the source exchange bindings declared from this queue descriptor.
     /// </summary>
     public List<RabbitMQQueueSourceBindingConfiguration> SourceBindings { get; } = [];
-}
-
-/// <summary>
-/// Configuration for a source exchange binding declared from a queue descriptor.
-/// </summary>
-public sealed class RabbitMQQueueSourceBindingConfiguration
-{
-    /// <summary>
-    /// Gets or sets the source address.
-    /// </summary>
-    public Uri Source { get; set; } = null!;
-
-    /// <summary>
-    /// Gets or sets the optional routing key.
-    /// </summary>
-    public string? RoutingKey { get; set; }
 }

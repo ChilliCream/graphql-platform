@@ -31,6 +31,18 @@ internal static class ThrowHelper
     public static Exception MiddlewareKeyNotFound(string key)
         => new InvalidOperationException($"Middleware with key {key} not found");
 
+    public static Exception MessageTypeNotRegistered(Type messageType)
+        => new InvalidOperationException(
+            $"Message type '{messageType.FullName}' was not registered at startup. "
+            + "Register it via the source generator or AddMessage<T>(). "
+            + "Set IsAotCompatible = false to allow runtime type registration.");
+
+    public static Exception DuplicateMessageIdentity(string identity, Type messageType, Type existingMessageType)
+        => new InvalidOperationException(
+            $"The message type '{messageType.FullName}' has the identity '{identity}', which is already "
+            + $"used by the message type '{existingMessageType.FullName}'. Each message type must have a "
+            + "unique identity.");
+
     public static Exception RouteEndpointNotConnected(InboundRoute route)
     {
         var consumer = route.Consumer?.Identity.FullName
@@ -97,6 +109,9 @@ internal static class ThrowHelper
 
     public static Exception TransportNotStarted()
         => new InvalidOperationException("Transport is not started");
+
+    public static Exception RuntimeStopped()
+        => new InvalidOperationException("Messaging runtime is stopped and cannot be started again");
 
     public static Exception EndpointConfigurationFailed()
         => new InvalidOperationException("Failed to create endpoint configuration");
@@ -267,4 +282,9 @@ internal static class ThrowHelper
         => new InvalidOperationException(
             $"Message type '{messageTypeName}' is already claimed by receive endpoint '{claimingEndpoint}' "
             + $"and cannot be claimed by endpoint '{conflictingEndpoint}'. Each message type can be claimed by at most one endpoint.");
+
+    public static Exception ConsumerExceptionPolicyConflict(string consumerName, string endpoint, string conflictingEndpoint)
+        => new InvalidOperationException(
+            $"Consumer '{consumerName}' is bound to receive endpoints '{endpoint}' and '{conflictingEndpoint}', "
+            + "which resolve to different exception policies. A consumer must resolve to one exception policy.");
 }

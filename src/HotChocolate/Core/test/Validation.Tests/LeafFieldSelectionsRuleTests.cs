@@ -1,3 +1,4 @@
+using HotChocolate.Language;
 using HotChocolate.Validation.Rules;
 
 namespace HotChocolate.Validation;
@@ -5,6 +6,44 @@ namespace HotChocolate.Validation;
 public class LeafFieldSelectionsRuleTests()
     : DocumentValidatorVisitorTestBase(builder => builder.AddRule<LeafFieldSelectionsRule>())
 {
+    [Fact]
+    public void Validate_Should_AcceptEmptySelectionSets_WhenEnabled()
+    {
+        ExpectValidWithEmptySelectionSets("{ }");
+        ExpectValidWithEmptySelectionSets("query Q { }");
+        ExpectValidWithEmptySelectionSets("mutation { }");
+        ExpectValidWithEmptySelectionSets("{ human(id: \"1\") { } }");
+        ExpectValidWithEmptySelectionSets("{ human(id: \"1\") { ... on Human { } } }");
+        ExpectValidWithEmptySelectionSets(
+            "{ human(id: \"1\") { ...f } } fragment f on Human { }");
+    }
+
+    [Theory]
+    [InlineData(
+        "subscription { }",
+        "Operation `Unnamed` has an empty selection set. Root types without selections are disallowed.")]
+    [InlineData(
+        "{ human }",
+        "Field \"human\" of type \"Human\" must have a selection of subfields. Did you mean \"human { ... }\"?")]
+    [InlineData(
+        "{ human(id: \"1\") { name { } } }",
+        "Field \"name\" must not have a selection since type \"String!\" has no subfields.")]
+    public void Validate_Should_RejectInvalidSelections_WhenEnabled(
+        string sourceText,
+        string expectedMessage)
+    {
+        // arrange
+        var rule = CreateRuleWithEmptySelectionSets();
+        var document = Utf8GraphQLParser.Parse(sourceText);
+        var context = ValidationUtils.CreateContext(document, maxAllowedErrors: int.MaxValue);
+
+        // act
+        rule.Validate(context, document);
+
+        // assert
+        Assert.Equal(expectedMessage, Assert.Single(context.Errors).Message);
+    }
+
     [Fact]
     public void ScalarSelection()
     {
@@ -247,6 +286,61 @@ public class LeafFieldSelectionsRuleTests()
     }
 
     [Fact]
+    public void Validate_Should_ReportError_When_TypedInlineFragmentIsEmpty()
+    {
+        ExpectErrors(
+            """
+            {
+              human(id: "1") {
+                ... on Human { }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Validate_Should_ReportError_When_UntypedInlineFragmentIsEmpty()
+    {
+        ExpectErrors(
+            """
+            {
+              human(id: "1") {
+                ... { }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Validate_Should_ReportError_When_NamedFragmentIsEmpty()
+    {
+        ExpectErrors(
+            """
+            {
+              human(id: "1") {
+                ...f
+              }
+            }
+
+            fragment f on Human { }
+            """);
+    }
+
+    [Fact]
+    public void Validate_Should_ReportError_When_InlineFragmentIsEmptyInsideValidSelection()
+    {
+        ExpectErrors(
+            """
+            {
+              human(id: "1") {
+                name
+                ... on Human { }
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public void ScalarSelectionNotAllowedOnBoolean()
     {
         ExpectErrors(
@@ -368,5 +462,29 @@ public class LeafFieldSelectionsRuleTests()
                 "Field \"doesKnowCommand\" must not have a selection since type \"Boolean!\" has "
                 + "no subfields.",
                 t.Message));
+    }
+
+    private void ExpectValidWithEmptySelectionSets(string sourceText)
+    {
+        // arrange
+        var rule = CreateRuleWithEmptySelectionSets();
+        var document = Utf8GraphQLParser.Parse(sourceText);
+        var context = ValidationUtils.CreateContext(document);
+
+        // act
+        rule.Validate(context, document);
+
+        // assert
+        Assert.False(context.UnexpectedErrorsDetected);
+        Assert.Empty(context.Errors);
+    }
+
+    private static IDocumentValidatorRule CreateRuleWithEmptySelectionSets()
+    {
+        return DocumentValidatorBuilder.New()
+            .AddRule((_, o) => new LeafFieldSelectionsRule(o.EnableEmptySelectionSets))
+            .ModifyOptions(o => o.EnableEmptySelectionSets = true)
+            .Build()
+            .Rules[0];
     }
 }

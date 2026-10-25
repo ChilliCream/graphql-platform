@@ -4,10 +4,8 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
-/// Covers the actor guard across the command surface. Actor names are
-/// allocated, never invented, so every command taking <c>--actor</c>
-/// rejects a name no allocation ever minted, and accepts one
-/// <c>agent login</c> did.
+/// Tests rejection of unallocated actors and acceptance of login-allocated actors
+/// for task creation, commenting, closure, mail sending, and memory saving.
 /// </summary>
 public sealed class ActorGuardTests : AgentCommandTestBase
 {
@@ -16,8 +14,7 @@ public sealed class ActorGuardTests : AgentCommandTestBase
 
     public ActorGuardTests(NitroCommandFixture fixture) : base(fixture)
     {
-        // The guard lives in the real resolver, so this suite must not run
-        // behind the fixed one every other command test uses.
+        // Use the real actor resolver.
         SetupRealActingActor();
         DefaultActor = null;
     }
@@ -99,8 +96,7 @@ public sealed class ActorGuardTests : AgentCommandTestBase
     }
 
     /// <summary>
-    /// Allocates an actor the way a harness without a session-start hook
-    /// does, and returns the minted name.
+    /// Runs <c>agent login</c> and returns the allocated actor name.
     /// </summary>
     private async Task<string> LoginAsync()
     {

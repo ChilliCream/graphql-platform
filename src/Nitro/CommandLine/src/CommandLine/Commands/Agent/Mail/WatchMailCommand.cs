@@ -2,7 +2,6 @@ using System.Globalization;
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Mail.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
-using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
@@ -66,7 +65,7 @@ internal sealed class WatchMailCommand : Command
             new MailInboxFilter { Actor = actor },
             cancellationToken);
 
-        HashSet<string> baselineIds = includeExisting
+        var baselineIds = includeExisting
             ? []
             : after is { } cursor
                 ? baseline.Where(m => IsAtOrBeforeCursor(m, cursor)).Select(m => m.Id).ToHashSet()
@@ -109,7 +108,7 @@ internal sealed class WatchMailCommand : Command
                 {
                     resultHolder.SetResult(
                         new ListResult<MailMessageDetailResult>(
-                            arrived.Select(m => MailMessageDetailResult.Create(m, actor)).ToArray()));
+                            arrived.Select(m => MailMessageDetailResult.Create(m, actor, [])).ToArray()));
 
                     return ExitCodes.Success;
                 }
@@ -205,11 +204,9 @@ internal sealed class WatchMailCommand : Command
     }
 
     /// <summary>
-    /// True when <paramref name="message"/> is at or before the cursor, i.e.
-    /// it was already visible as of the cursor and must not be re-delivered.
-    /// A message cursor excludes exactly the cursor message itself and
-    /// everything earlier; a timestamp cursor excludes everything at or
-    /// before that instant, having no message to tiebreak against.
+    /// True when <paramref name="message"/> is at or before the cursor: a message
+    /// cursor excludes the cursor message and everything earlier, and a timestamp
+    /// cursor excludes everything at or before that instant.
     /// </summary>
     private static bool IsAtOrBeforeCursor(MailMessage message, MailCursor cursor)
     {

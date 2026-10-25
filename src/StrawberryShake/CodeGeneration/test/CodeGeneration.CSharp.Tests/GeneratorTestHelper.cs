@@ -54,7 +54,7 @@ public static class GeneratorTestHelper
         bool skipWarnings,
         params string[] sourceTexts)
     {
-        var clientModel = CreateClientModel(sourceTexts, settings.StrictValidation, settings.NoStore);
+        var clientModel = CreateClientModel(sourceTexts, settings);
 
         var documents = new StringBuilder();
         var documentNames = new HashSet<string>();
@@ -86,6 +86,7 @@ public static class GeneratorTestHelper
                 ClientName = settings.ClientName ?? "FooClient",
                 AccessModifier = settings.AccessModifier,
                 StrictSchemaValidation = settings.StrictValidation,
+                EnableCovariantFieldMerging = settings.EnableCovariantFieldMerging,
                 RequestStrategy = settings.RequestStrategy,
                 TransportProfiles = settings.Profiles,
                 NoStore = settings.NoStore,
@@ -270,10 +271,7 @@ public static class GeneratorTestHelper
         }
     }
 
-    private static ClientModel CreateClientModel(
-        string[] sourceText,
-        bool strictValidation,
-        bool noStore)
+    private static ClientModel CreateClientModel(string[] sourceText, AssertSettings settings)
     {
         var files = sourceText
             .Select(s => new GraphQLFile(Utf8GraphQLParser.Parse(s)))
@@ -284,7 +282,9 @@ public static class GeneratorTestHelper
 
         var analyzer = new DocumentAnalyzer();
 
-        analyzer.SetSchema(SchemaHelper.Load(typeSystemDocs, strictValidation, noStore));
+        analyzer.SetSchema(
+            SchemaHelper.Load(typeSystemDocs, settings.StrictValidation, settings.NoStore));
+        analyzer.EnableCovariantFieldMerging(settings.EnableCovariantFieldMerging);
 
         foreach (var executable in executableDocs.Select(file => file.Document))
         {
@@ -304,6 +304,8 @@ public static class GeneratorTestHelper
             = AccessModifier.Public;
 
         public bool StrictValidation { get; set; }
+
+        public bool EnableCovariantFieldMerging { get; set; }
 
         public string? SnapshotFile { get; set; }
 

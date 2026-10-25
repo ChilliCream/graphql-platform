@@ -5,9 +5,9 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Parsers;
-using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
+using HotChocolate.AspNetCore.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Options;
@@ -64,8 +64,15 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
             if (!context.Request.Headers.ContainsKey(HttpHeaderKeys.Preflight)
                 && options.EnforceMultipartRequestsPreflightHeader)
             {
+                // The preflight check is a cross-site request guard and runs before content
+                // negotiation, so the status stays 400. The client's media types still travel
+                // with it so the formatter can tell whether the error body would be readable.
                 var headerResult = HeaderUtilities.GetAcceptHeader(context.Request);
-                await session.WriteResultAsync(context, _multipartRequestError, headerResult.AcceptMediaTypes, BadRequest);
+                await session.WriteResultAsync(
+                    context,
+                    _multipartRequestError,
+                    headerResult.AcceptMediaTypes,
+                    BadRequest);
                 return;
             }
 
@@ -86,13 +93,24 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
         HttpContext context,
         ExecutorSession session)
     {
-        IFormCollection? form;
-        var httpRequest = context.Request;
+        IFormCollection form;
 
         try
         {
-            var formFeature = new FormFeature(httpRequest, _formOptions);
-            form = await formFeature.ReadFormAsync(context.RequestAborted);
+            form = await MultipartFormReader.ReadAsync(
+                context.Request,
+                _formOptions,
+                session.MaxRequestSize,
+                context.RequestAborted);
+        }
+        catch (GraphQLRequestException)
+        {
+            throw;
+        }
+        catch (BadHttpRequestException exception)
+            when (exception.StatusCode == StatusCodes.Status413PayloadTooLarge)
+        {
+            throw ThrowHelper.RequestBodyTooLarge();
         }
         catch (Exception exception)
         {

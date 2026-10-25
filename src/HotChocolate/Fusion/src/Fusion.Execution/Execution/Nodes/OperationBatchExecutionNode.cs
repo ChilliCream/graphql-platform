@@ -53,13 +53,14 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         var schemaName = SchemaName;
         var operation = _operations[0];
 
-        var variables = CreateVariableValueSets(context, operation);
+        var variables = CreateVariableValueSets(context, operation, out var reusedCount);
 
         if (variables.Length == 0
             && (operation.Requirements.Length > 0
                 || operation.ForwardedVariables.Length > 0))
         {
-            return ExecutionStatus.Skipped;
+            // When every entity was taken from the result, the node completed its work.
+            return reusedCount > 0 ? ExecutionStatus.Success : ExecutionStatus.Skipped;
         }
 
         context.TrackVariableValueSets(this, variables);
@@ -167,11 +168,13 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                 schemaName,
                 requestBuilder,
                 operationByIndex,
-                variablesByIndex);
+                variablesByIndex,
+                out var hasReusedEntities);
 
             if (operationCount == 0)
             {
-                return ExecutionStatus.Skipped;
+                // When every entity was taken from the result, the node completed its work.
+                return hasReusedEntities ? ExecutionStatus.Success : ExecutionStatus.Skipped;
             }
 
             var requests = requestBuilder.DrainToImmutable();
@@ -315,9 +318,11 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         string schemaName,
         ImmutableArray<SourceSchemaClientRequest>.Builder requestBuilder,
         OperationDefinition[] operationByIndex,
-        ImmutableArray<VariableValues>[] variablesByIndex)
+        ImmutableArray<VariableValues>[] variablesByIndex,
+        out bool hasReusedEntities)
     {
         var operationCount = 0;
+        hasReusedEntities = false;
 
         foreach (var operation in _operations)
         {
@@ -333,13 +338,23 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                 continue;
             }
 
-            var variables = CreateVariableValueSets(context, operation);
+            var variables = CreateVariableValueSets(context, operation, out var reusedCount);
+
+            if (reusedCount > 0)
+            {
+                hasReusedEntities = true;
+            }
 
             if (variables.Length == 0
                 && (operation.Requirements.Length > 0
                     || operation.ForwardedVariables.Length > 0))
             {
-                context.TrackSkippedDefinition(this, operation);
+                // An operation whose entities were all taken from the result is not skipped.
+                if (reusedCount == 0)
+                {
+                    context.TrackSkippedDefinition(this, operation);
+                }
+
                 continue;
             }
 
@@ -469,6 +484,41 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         }
 
         return false;
+    }
+
+    private static ImmutableArray<VariableValues> CreateVariableValueSets(
+        OperationPlanContext context,
+        OperationDefinition operation,
+        out int reusedCount)
+    {
+        reusedCount = 0;
+
+        if (context.GetEntityReuseCandidates(operation.Id) is not { } candidates)
+        {
+            return CreateVariableValueSets(context, operation);
+        }
+
+        if (operation is SingleOperationDefinition single)
+        {
+            return context.CreateVariableValueSets(
+                [single.Target],
+                single.ForwardedVariables,
+                single.Requirements,
+                candidates,
+                out reusedCount);
+        }
+
+        if (operation is BatchOperationDefinition batch)
+        {
+            return context.CreateVariableValueSets(
+                batch.Targets,
+                batch.ForwardedVariables,
+                batch.Requirements,
+                candidates,
+                out reusedCount);
+        }
+
+        return CreateVariableValueSets(context, operation);
     }
 
     private static ImmutableArray<VariableValues> CreateVariableValueSets(

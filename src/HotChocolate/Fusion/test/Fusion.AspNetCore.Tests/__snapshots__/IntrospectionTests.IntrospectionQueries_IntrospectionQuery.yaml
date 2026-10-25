@@ -1869,6 +1869,33 @@ response:
           ],
           "directives": [
             {
+              "name": "test",
+              "description": "Directive description",
+              "isRepeatable": true,
+              "args": [
+                {
+                  "name": "arg",
+                  "description": "Directive argument description",
+                  "type": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "SCALAR",
+                      "name": "String",
+                      "ofType": null
+                    }
+                  },
+                  "defaultValue": "\u0022default\u0022",
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
+              "locations": [
+                "FIELD",
+                "VARIABLE_DEFINITION"
+              ]
+            },
+            {
               "name": "defer",
               "description": null,
               "isRepeatable": false,
@@ -2305,7 +2332,7 @@ operationPlan:
           }
         }
       name: IntrospectionQuery
-      hash: df63680b2f2c0fb31760baf2f4f0b505
+      hash: afbf4977b3891649597f56d811a50c30
       searchSpace: 1
       expandedNodes: 1
   nodes:

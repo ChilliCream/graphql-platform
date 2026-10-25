@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Tui.Editing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Editing;
 
@@ -96,12 +97,19 @@ internal sealed class FakeTaskStore : ITaskStore
         return Task.FromResult(ResultTask);
     }
 
+    public Task<int> ReleaseAssigneeAsync(string agent, string reason, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
     public string? FindWorkspaceDirectory() => throw new NotSupportedException();
 
     public Task<IReadOnlyList<TaskItem>> QueryTasksAsync(TaskFilter filter, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
     public Task<TaskItem?> GetTaskAsync(string id, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
+    public Task<IReadOnlyList<TaskItem>> QueryParticipationAsync(
+        string agent, int? limit, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
     public Task<TaskItem> GetRequiredTaskAsync(string id, CancellationToken cancellationToken)

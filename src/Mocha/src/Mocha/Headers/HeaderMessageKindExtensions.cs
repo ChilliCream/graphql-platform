@@ -7,6 +7,11 @@ internal static class HeaderMessageKindExtensions
         return headers.GetMessageKind() == MessageKind.Reply;
     }
 
+    public static bool IsReplyOrFault(this IReadOnlyHeaders headers)
+    {
+        return headers.GetMessageKind() is MessageKind.Reply or MessageKind.Fault;
+    }
+
     public static string? GetMessageKind(this IReadOnlyHeaders headers)
     {
         return headers.Get(MessageHeaders.MessageKind);

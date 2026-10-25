@@ -10,11 +10,11 @@ namespace HotChocolate.Fusion.Execution.Benchmarks;
 [MarkdownExporter]
 public class InlineFragmentOperationRewriterBenchmark : FusionBenchmarkBase
 {
-    private InlineFragmentOperationRewriter _rewriter;
+    private InlineFragmentOperationRewriter _rewriter = null!;
 
-    private DocumentNode _simpleQueryWithRequirements;
-    private DocumentNode _complexQuery;
-    private DocumentNode _conditionalRedundancyQuery;
+    private DocumentNode _simpleQueryWithRequirements = null!;
+    private DocumentNode _complexQuery = null!;
+    private DocumentNode _conditionalRedundancyQuery = null!;
 
     [GlobalSetup]
     public void GlobalSetup()

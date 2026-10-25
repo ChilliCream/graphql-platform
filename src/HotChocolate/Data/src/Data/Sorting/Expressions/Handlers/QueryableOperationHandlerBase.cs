@@ -34,7 +34,7 @@ public abstract class QueryableOperationHandlerBase
         if (sortEnumValue is null)
         {
             context.ReportError(
-                ErrorHelper.CreateNonNullError(field, valueNode, context));
+                ErrorHelper.CreateNonNullError(field, context));
 
             action = null!;
             return false;

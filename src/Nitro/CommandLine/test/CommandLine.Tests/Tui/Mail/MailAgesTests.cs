@@ -4,7 +4,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Mail;
 
 public sealed class MailAgesTests
 {
-    private static readonly DateTimeOffset Now = new(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset s_now = new(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
 
     [Theory]
     [InlineData(0, "now")]
@@ -16,10 +16,10 @@ public sealed class MailAgesTests
     public void Format_Should_ReturnRelativeLabel_When_MessageIsUnderAWeekOld(int elapsedSeconds, string expected)
     {
         // arrange
-        var createdAt = Now.AddSeconds(-elapsedSeconds);
+        var createdAt = s_now.AddSeconds(-elapsedSeconds);
 
         // act
-        var formatted = MailAges.Format(createdAt, Now);
+        var formatted = MailAges.Format(createdAt, s_now);
 
         // assert
         Assert.Equal(expected, formatted);
@@ -29,10 +29,10 @@ public sealed class MailAgesTests
     public void Format_Should_ReturnIsoDate_When_MessageIsAtLeastAWeekOld()
     {
         // arrange
-        var createdAt = Now.AddDays(-8);
+        var createdAt = s_now.AddDays(-8);
 
         // act
-        var formatted = MailAges.Format(createdAt, Now);
+        var formatted = MailAges.Format(createdAt, s_now);
 
         // assert
         Assert.Equal(createdAt.ToString("yyyy-MM-dd"), formatted);
@@ -42,10 +42,10 @@ public sealed class MailAgesTests
     public void Format_Should_ReturnNow_When_CreatedAtIsInTheFuture()
     {
         // arrange
-        var createdAt = Now.AddMinutes(5);
+        var createdAt = s_now.AddMinutes(5);
 
         // act
-        var formatted = MailAges.Format(createdAt, Now);
+        var formatted = MailAges.Format(createdAt, s_now);
 
         // assert
         Assert.Equal("now", formatted);

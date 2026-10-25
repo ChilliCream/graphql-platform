@@ -2,8 +2,11 @@ namespace Mocha.Transport.Postgres;
 
 /// <summary>
 /// Fluent descriptor for configuring a PostgreSQL queue and its receive endpoint.
+/// Receive configuration callbacks apply to the queue's receive endpoint.
 /// </summary>
-public interface IPostgresQueueDescriptor : IMessagingDescriptor<PostgresQueueDescriptorConfiguration>
+public interface IPostgresQueueDescriptor
+    : IMessagingDescriptor<PostgresQueueDescriptorConfiguration>
+    , IConfigurable<IReceiveMiddlewareProvider>
 {
     /// <summary>
     /// Sets whether the backing queue is automatically provisioned in the database.
@@ -149,4 +152,13 @@ public interface IPostgresQueueDescriptor : IMessagingDescriptor<PostgresQueueDe
     /// <param name="source">The source URI identifying the topic.</param>
     /// <returns>The descriptor for method chaining.</returns>
     IPostgresQueueDescriptor BindFrom(Uri source);
+
+    /// <summary>
+    /// Declares an explicit topic from which this queue receives messages, with an explicit
+    /// provisioning opt-in or opt-out for the derived subscription, overriding the queue's setting.
+    /// </summary>
+    /// <param name="source">The source topic address.</param>
+    /// <param name="autoProvision">Whether the subscription is provisioned.</param>
+    /// <returns>The queue descriptor for chaining.</returns>
+    IPostgresQueueDescriptor BindFrom(Uri source, bool autoProvision);
 }

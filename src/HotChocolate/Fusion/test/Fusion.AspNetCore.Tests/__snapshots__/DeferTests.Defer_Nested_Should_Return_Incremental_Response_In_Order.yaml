@@ -19,7 +19,7 @@ stableResponseStream: |
     "initial": {
       "data": {
         "user": {
-          "name": "User: VXNlcjox"
+          "name": "User: VXNlcjoyMDkyMTcyNjc2"
         }
       }
     },
@@ -46,7 +46,7 @@ stableResponseStream: |
           "user"
         ],
         "data": {
-          "email": "User: VXNlcjox"
+          "email": "User: VXNlcjoyMDkyMTcyNjc2"
         }
       },
       {
@@ -55,7 +55,7 @@ stableResponseStream: |
           "user"
         ],
         "data": {
-          "address": "User: VXNlcjox"
+          "address": "User: VXNlcjoyMDkyMTcyNjc2"
         }
       }
     ],
@@ -70,9 +70,9 @@ stableResponseStream: |
     "final": {
       "data": {
         "user": {
-          "address": "User: VXNlcjox",
-          "email": "User: VXNlcjox",
-          "name": "User: VXNlcjox"
+          "address": "User: VXNlcjoyMDkyMTcyNjc2",
+          "email": "User: VXNlcjoyMDkyMTcyNjc2",
+          "name": "User: VXNlcjoyMDkyMTcyNjc2"
         }
       }
     }
@@ -108,15 +108,15 @@ sourceSchemas:
               {
                 "data": {
                   "user": {
-                    "name": "User: VXNlcjox",
-                    "id": "VXNlcjox"
+                    "name": "User: VXNlcjoyMDkyMTcyNjc2",
+                    "id": "VXNlcjoyMDkyMTcyNjc2"
                   }
                 }
               }
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_defer_1 {
+            query Op_defer_2 {
               user(id: "1") {
                 id
               }
@@ -127,7 +127,7 @@ sourceSchemas:
               {
                 "data": {
                   "user": {
-                    "id": "VXNlcjox"
+                    "id": "VXNlcjoyMDkyMTcyNjc2"
                   }
                 }
               }
@@ -150,14 +150,14 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_defer_2($__fusion_1_id: ID!) {
+            query Op_defer_1($__fusion_1_id: ID!) {
               userById(id: $__fusion_1_id) {
                 email
               }
             }
           variables: |
             {
-              "__fusion_1_id": "VXNlcjox"
+              "__fusion_1_id": "VXNlcjoyMDkyMTcyNjc2"
             }
         response:
           results:
@@ -165,21 +165,21 @@ sourceSchemas:
               {
                 "data": {
                   "userById": {
-                    "email": "User: VXNlcjox"
+                    "email": "User: VXNlcjoyMDkyMTcyNjc2"
                   }
                 }
               }
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_defer_2($__fusion_1_id: ID!) {
+            query Op_defer_1($__fusion_1_id: ID!) {
               userById(id: $__fusion_1_id) {
                 address
               }
             }
           variables: |
             {
-              "__fusion_1_id": "VXNlcjox"
+              "__fusion_1_id": "VXNlcjoyMDkyMTcyNjc2"
             }
         response:
           results:
@@ -187,7 +187,7 @@ sourceSchemas:
               {
                 "data": {
                   "userById": {
-                    "address": "User: VXNlcjox"
+                    "address": "User: VXNlcjoyMDkyMTcyNjc2"
                   }
                 }
               }
@@ -200,7 +200,7 @@ operationPlan:
             id @fusion__requirement
           }
         }
-      hash: d1db12b9a5735063f8b816612efd3c53
+      hash: 8c5cead5a4f6073983505b76bcc523bd
       searchSpace: 1
       expandedNodes: 1
   nodes:
@@ -235,7 +235,7 @@ operationPlan:
           type: Operation
           schema: B
           operation: |
-            query Op_defer_2($__fusion_1_id: ID!) {
+            query Op_defer_1($__fusion_1_id: ID!) {
               userById(id: $__fusion_1_id) {
                 email
               }
@@ -252,7 +252,7 @@ operationPlan:
           type: Operation
           schema: A
           operation: |
-            query Op_defer_1 {
+            query Op_defer_2 {
               user(id: "1") {
                 id
               }
@@ -269,7 +269,7 @@ operationPlan:
           type: Operation
           schema: B
           operation: |
-            query Op_defer_2($__fusion_1_id: ID!) {
+            query Op_defer_1($__fusion_1_id: ID!) {
               userById(id: $__fusion_1_id) {
                 address
               }

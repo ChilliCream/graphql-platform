@@ -1,5 +1,5 @@
-# Normalize to LF on commit; checkout follows local Git config
-* text=auto
+# Normalize to LF on commit and checkout
+* text=auto eol=lf
 
 # Scripts with interpreter lines must have LF
 *.sh        text eol=lf
@@ -10,3 +10,6 @@
 *.bat       text eol=crlf
 *.cmd       text eol=crlf
 *.ps1       text eol=crlf
+
+# Vendored patch file: preserve as-is, skip whitespace checks
+src/HotChocolate/CostAnalysis/tools/oracle/oracle.patch -whitespace

@@ -191,7 +191,7 @@ public class DispatchSchedulingMiddlewareTests
         // arrange
         var middleware = new DispatchSchedulingMiddleware();
         var services = new ServiceCollection();
-        services.AddScoped<ScheduledMessageStoreResolver>(ScheduledMessageStoreResolver.Create);
+        services.AddScoped(ScheduledMessageStoreResolver.Create);
         await using var provider = services.BuildServiceProvider();
         using var scope = provider.CreateScope();
 
@@ -245,7 +245,7 @@ public class DispatchSchedulingMiddlewareTests
     private static ServiceProvider BuildProvider(InMemoryScheduledMessageStore store)
     {
         var services = new ServiceCollection();
-        services.AddScoped<ScheduledMessageStoreResolver>(ScheduledMessageStoreResolver.Create);
+        services.AddScoped(ScheduledMessageStoreResolver.Create);
         services.AddScoped(_ => store);
         services.AddSingleton(
             new ScheduledMessageStoreRegistration(
