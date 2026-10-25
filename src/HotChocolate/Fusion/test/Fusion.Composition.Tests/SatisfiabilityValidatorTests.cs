@@ -5394,6 +5394,46 @@ public sealed class SatisfiabilityValidatorTests
     }
 
     [Fact]
+    public void Validate_Should_Fail_When_RequirementTransitionNeedsKeyFromRequiringSchemaWithoutLookup()
+    {
+        // arrange
+        var sdl = CreateRequirementKeyFromRequiringSchemaSchemas(requiringSchemaFirst: false);
+
+        // act
+        var (result, log) = ValidateSatisfiability(sdl);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'Item.label' on path 'B:Query.items<Item>'.
+              Unable to satisfy the requirement '{ code }' on field 'B:Item.label<String>'.
+                The field 'Item.label' in schema 'B' requires data from another schema, but schema 'B' has no lookup for type 'Item' that could resolve the field once the required data has been fetched.
+            """);
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_RequirementTransitionNeedsKeyFromRequiringSchemaWithoutLookupAndRequiringSchemaIsFirst()
+    {
+        // arrange
+        var sdl = CreateRequirementKeyFromRequiringSchemaSchemas(requiringSchemaFirst: true);
+
+        // act
+        var (result, log) = ValidateSatisfiability(sdl);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'Item.label' on path 'A:Query.items<Item>'.
+              Unable to satisfy the requirement '{ code }' on field 'A:Item.label<String>'.
+                The field 'Item.label' in schema 'A' requires data from another schema, but schema 'A' has no lookup for type 'Item' that could resolve the field once the required data has been fetched.
+            """);
+    }
+
+    [Fact]
     public void Type_Without_Lookup_Not_All_Schemas_Share_Path_Up_To_Root()
     {
         // arrange
@@ -5803,6 +5843,37 @@ public sealed class SatisfiabilityValidatorTests
         var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
 
         return (satisfiabilityValidator.Validate(), log);
+    }
+
+    private static string[] CreateRequirementKeyFromRequiringSchemaSchemas(bool requiringSchemaFirst)
+    {
+        const string lookupSchema =
+            """
+            type Query {
+                itemById(id: ID!): Item @lookup @internal
+            }
+
+            type Item {
+                id: ID!
+                code: String!
+            }
+            """;
+
+        const string requiringSchema =
+            """
+            type Query {
+                items: [Item]
+            }
+
+            type Item {
+                id: ID!
+                label(code: String! @require(field: "code")): String!
+            }
+            """;
+
+        return requiringSchemaFirst
+            ? [requiringSchema, lookupSchema]
+            : [lookupSchema, requiringSchema];
     }
 
     private static string[] CreateRepeatedFieldSchemas(bool sharedRootFieldFirst)

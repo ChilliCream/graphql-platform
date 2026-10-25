@@ -1,3 +1,4 @@
+using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types.Composite;
 using HotChocolate.Types.Relay;
@@ -138,6 +139,156 @@ public class RequireCrossProviderTests : FusionTestBase
             """);
     }
 
+    [Fact]
+    public async Task Execute_Should_Resolve_Root_Name_When_Require_Selects_Self_Reference_From_Other_Schema()
+    {
+        // arrange
+        using var gateway = await CreateSelfReferenceGatewayAsync(includeOperationPlan: false);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+              entity {
+                name
+              }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
+        response.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "entity": {
+                  "name": "1:20"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_Should_Resolve_Nested_Name_When_Require_Selects_Self_Reference_From_Other_Schema()
+    {
+        // arrange
+        using var gateway = await CreateSelfReferenceGatewayAsync(includeOperationPlan: true);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+              entity {
+                entity {
+                  name
+                }
+              }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Execute_Should_Resolve_Deeply_Nested_Name_When_Require_Selects_Self_Reference_From_Other_Schema()
+    {
+        // arrange
+        using var gateway = await CreateSelfReferenceGatewayAsync(includeOperationPlan: false);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+              entity {
+                entity {
+                  entity {
+                    name
+                  }
+                }
+              }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
+        response.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "entity": {
+                  "entity": {
+                    "entity": {
+                      "name": "3:40"
+                    }
+                  }
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_Should_Resolve_Name_At_Every_Depth_When_Require_Selects_Self_Reference_From_Other_Schema()
+    {
+        // arrange
+        using var gateway = await CreateSelfReferenceGatewayAsync(includeOperationPlan: true);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+              entity {
+                name
+                entity {
+                  name
+                  entity {
+                    name
+                  }
+                }
+              }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    private Task<Gateway> CreateSelfReferenceGatewayAsync(bool includeOperationPlan)
+    {
+        var schemaA = CreateSourceSchema(
+            "a",
+            builder => builder.AddQueryType<SelfReferenceRequire.SchemaA.Query>());
+        var schemaB = CreateSourceSchema(
+            "b",
+            builder => builder.AddQueryType<SelfReferenceRequire.SchemaB.Query>());
+
+        return CreateCompositeSchemaAsync(
+            [("a", schemaA), ("b", schemaB)],
+            includeOperationPlan: includeOperationPlan);
+    }
+
     // Two-hop object require crossing Post.author into Author.
     public static class CircularCrossProvider
     {
@@ -259,6 +410,54 @@ public class RequireCrossProviderTests : FusionTestBase
             public record Comment([property: ID] int Id);
 
             public record Author(string Id);
+        }
+    }
+
+    // Self-referencing require where Entity.name in a requires entity.age, which only b resolves.
+    public static class SelfReferenceRequire
+    {
+        public static class SchemaA
+        {
+            public class Query
+            {
+                [Shareable]
+                public Entity GetEntity() => new(1);
+
+                [Lookup]
+                [Internal]
+                public Entity? GetEntityById([ID] int id) => new(id);
+            }
+
+            [EntityKey("id")]
+            [Shareable]
+            public sealed class Entity(int id)
+            {
+                [ID]
+                public int? Id => id;
+
+                public string GetName([Require("entity.age")] int entityAge) => $"{id}:{entityAge}";
+            }
+        }
+
+        // b serves the chain 1 -> 2 -> 3 -> 4, where each entity has the age id * 10.
+        public static class SchemaB
+        {
+            public class Query
+            {
+                [Shareable]
+                public Entity? GetEntity() => new(1);
+            }
+
+            [Shareable]
+            public sealed class Entity(int id)
+            {
+                [ID]
+                public int? Id => id;
+
+                public int Age => id * 10;
+
+                public Entity GetEntity() => new(id + 1);
+            }
         }
     }
 }

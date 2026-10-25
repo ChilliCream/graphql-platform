@@ -189,6 +189,10 @@ internal sealed class RequirementsValidator(
         var optionCount = 0;
         var skippedDueToProvidedSelectionSet = false;
 
+        // The fixpoint facts are computed with the data of every schema available, so they can
+        // only confirm a transition or requirement when no schema is unavailable.
+        var canUseFacts = context.UnavailableSchemaNames.IsEmpty;
+
         foreach (var schemaName in schemaNames)
         {
             SelectionSetNode? providedSelectionSet = null;
@@ -235,6 +239,7 @@ internal sealed class RequirementsValidator(
             if (previousSchemaName != schemaName
                 && (previousSchemaName is null
                     || previousPathItem?.ProvidedSelectionSet is not null
+                    || !canUseFacts
                     || !_facts.CanTransition(type, schemaName, previousSchemaName)))
             {
                 var transitionErrors = ValidateSourceSchemaTransition(
@@ -266,6 +271,7 @@ internal sealed class RequirementsValidator(
 
             if (requirements is not null
                 && (previousPathItem?.ProvidedSelectionSet is not null
+                    || !canUseFacts
                     || !_facts.IsFieldResolvableOn(type, field, schemaName)))
             {
                 var requirementErrors =
