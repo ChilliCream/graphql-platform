@@ -200,13 +200,23 @@ internal static class MutableSchemaDefinitionExtensions
     /// union definitions as roots. The merged-schema prune passes false and remains the cleanup
     /// for genuinely dead unions.
     /// </param>
-    public static void RemoveUnreferencedDefinitions(
+    /// <returns>
+    /// The type definitions that were removed, in schema order.
+    /// </returns>
+    public static List<ITypeDefinition> RemoveUnreferencedDefinitions(
         this MutableSchemaDefinition schema,
         IReadOnlySet<string> preservedTypeNames,
         IReadOnlySet<string> preservedDirectiveNames,
         bool seedUnionsAsRoots)
     {
-        RemoveUnreachableDefinitions(schema, preservedTypeNames, preservedDirectiveNames, seedUnionsAsRoots);
+        var removedTypes = new List<ITypeDefinition>();
+
+        RemoveUnreachableDefinitions(
+            schema,
+            preservedTypeNames,
+            preservedDirectiveNames,
+            seedUnionsAsRoots,
+            removedTypes);
 
         // Removing an unreachable type also removes the @require/@provides selections it carried.
         // An @external field whose only references came from those selections is now dead, so
@@ -215,15 +225,23 @@ internal static class MutableSchemaDefinitionExtensions
         // and schemas with no dead externals never re-run reachability.
         while (RemoveExternalFields.RemoveDeadExternalFields(schema))
         {
-            RemoveUnreachableDefinitions(schema, preservedTypeNames, preservedDirectiveNames, seedUnionsAsRoots);
+            RemoveUnreachableDefinitions(
+                schema,
+                preservedTypeNames,
+                preservedDirectiveNames,
+                seedUnionsAsRoots,
+                removedTypes);
         }
+
+        return removedTypes;
     }
 
     private static void RemoveUnreachableDefinitions(
         MutableSchemaDefinition schema,
         IReadOnlySet<string> preservedTypeNames,
         IReadOnlySet<string> preservedDirectiveNames,
-        bool seedUnionsAsRoots)
+        bool seedUnionsAsRoots,
+        List<ITypeDefinition> removedTypes)
     {
         var touchedDefinitions = new HashSet<ITypeSystemMember>();
         var backlog = new Stack<ITypeSystemMember>();
@@ -329,6 +347,7 @@ internal static class MutableSchemaDefinitionExtensions
             }
 
             definitionsToRemove.Add(type);
+            removedTypes.Add(type);
         }
 
         foreach (var directiveDefinition in schema.DirectiveDefinitions)

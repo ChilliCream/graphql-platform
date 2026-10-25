@@ -1216,7 +1216,8 @@ public sealed class SchemaComposerTests
                 "ReferenceToDeprecatedTypeRule",
                 "ReferenceToInaccessibleTypeRule",
                 "ReferenceToInternalTypeRule",
-                "RequireInvalidFieldsRule"
+                "RequireInvalidFieldsRule",
+                "UnreachableSourceFieldRule"
             ],
             rules);
     }

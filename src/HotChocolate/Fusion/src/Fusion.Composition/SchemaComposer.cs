@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using HotChocolate.Fusion.Comparers;
 using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Extensions;
+using HotChocolate.Fusion.Features;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Options;
@@ -144,6 +145,7 @@ internal sealed class SchemaComposer
 
         // Prune unreachable definitions from each source schema before validation, so types
         // stripped by @excludeByTag (or otherwise unreferenced) are not validated or merged.
+        // The removed object and interface types are recorded for post-merge validation.
         if (_schemaComposerOptions.Merger.RemoveUnreferencedDefinitions)
         {
             var preservedTypeNames = MutableSchemaDefinitionExtensions.GetPreservedTypeNames(schemas);
@@ -151,10 +153,18 @@ internal sealed class SchemaComposer
 
             foreach (var schema in schemas)
             {
-                schema.RemoveUnreferencedDefinitions(
-                    preservedTypeNames,
-                    preservedDirectiveNames,
-                    seedUnionsAsRoots: true);
+                var removedTypes =
+                    schema.RemoveUnreferencedDefinitions(
+                        preservedTypeNames,
+                        preservedDirectiveNames,
+                        seedUnionsAsRoots: true);
+                var removedComplexTypes =
+                    removedTypes.OfType<MutableComplexTypeDefinition>().ToArray();
+
+                if (removedComplexTypes.Length > 0)
+                {
+                    schema.Features.Set(new UnreachableTypesMetadata(removedComplexTypes));
+                }
             }
         }
 
@@ -352,6 +362,7 @@ internal sealed class SchemaComposer
         new ReferenceToDeprecatedTypeRule(),
         new ReferenceToInaccessibleTypeRule(),
         new ReferenceToInternalTypeRule(),
-        new RequireInvalidFieldsRule()
+        new RequireInvalidFieldsRule(),
+        new UnreachableSourceFieldRule()
     ];
 }
