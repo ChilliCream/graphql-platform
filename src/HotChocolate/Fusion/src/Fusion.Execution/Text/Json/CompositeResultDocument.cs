@@ -470,6 +470,29 @@ public sealed partial class CompositeResultDocument : IDisposable
         var template = selectionSet.ObjectTemplate;
         Debug.Assert(template.Rows.Length > 0, "The selection set is in an invalid state.");
 
+        var selections = selectionSet.Selections;
+
+        // An object without conditional selections never excludes a property row, so the
+        // template block is appended as is.
+        var startObjectCursor = template.ConditionalSelections.IsEmpty
+            ? _metaDb.AppendObjectBlock(template.Rows, parent.Value, excludedRowOffsets: [])
+            : AppendConditionalObjectBlock(parent, template, selections);
+
+        objectContext = new CompositeObjectContext(
+            this,
+            startObjectCursor,
+            selectionSet,
+            (selections.Length * 2) + 1);
+
+        return new CompositeResultElement(this, startObjectCursor);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private Cursor AppendConditionalObjectBlock(
+        Cursor parent,
+        ObjectTemplate template,
+        ReadOnlySpan<Selection> selections)
+    {
         // The template rows are canonical: they never carry IsExcluded. Each document evaluates
         // its own skip/include and defer state and hands the block-relative property row offsets
         // of the selections it excludes to the block append, which stamps the flag alongside the
@@ -479,46 +502,34 @@ public sealed partial class CompositeResultDocument : IDisposable
             ? stackalloc int[conditionalSelections.Length]
             : new int[conditionalSelections.Length];
         var excludedCount = 0;
-        var selections = selectionSet.Selections;
 
-        if (conditionalSelections.Length > 0)
+        if (_wideIncludeFlags is null && _wideDeferFlags is null)
         {
-            if (_wideIncludeFlags is null && _wideDeferFlags is null)
+            foreach (var index in conditionalSelections)
             {
-                foreach (var index in conditionalSelections)
+                if (IsExcluded(selections[index]))
                 {
-                    if (IsExcluded(selections[index]))
-                    {
-                        // The property row of selection index i is row (i * 2) + 1 of the object block.
-                        excludedRowOffsets[excludedCount++] = (index * 2) + 1;
-                    }
+                    // The property row of selection index i is row (i * 2) + 1 of the object block.
+                    excludedRowOffsets[excludedCount++] = (index * 2) + 1;
                 }
             }
-            else
+        }
+        else
+        {
+            foreach (var index in conditionalSelections)
             {
-                foreach (var index in conditionalSelections)
+                if (IsExcludedWide(selections[index]))
                 {
-                    if (IsExcludedWide(selections[index]))
-                    {
-                        // The property row of selection index i is row (i * 2) + 1 of the object block.
-                        excludedRowOffsets[excludedCount++] = (index * 2) + 1;
-                    }
+                    // The property row of selection index i is row (i * 2) + 1 of the object block.
+                    excludedRowOffsets[excludedCount++] = (index * 2) + 1;
                 }
             }
         }
 
-        var startObjectCursor = _metaDb.AppendObjectBlock(
+        return _metaDb.AppendObjectBlock(
             template.Rows,
             parent.Value,
             excludedRowOffsets[..excludedCount]);
-
-        objectContext = new CompositeObjectContext(
-            this,
-            startObjectCursor,
-            selectionSet,
-            (selections.Length * 2) + 1);
-
-        return new CompositeResultElement(this, startObjectCursor);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -571,6 +582,52 @@ public sealed partial class CompositeResultDocument : IDisposable
         WriteEndArray();
 
         return new CompositeResultElement(this, cursor);
+    }
+
+    /// <summary>
+    /// Creates an object for <paramref name="selectionSet"/> and assigns it to the undefined
+    /// slot at <paramref name="target"/>.
+    /// </summary>
+    internal void InitializeObject(
+        Cursor target,
+        SelectionSet selectionSet,
+        out CompositeObjectContext objectContext)
+    {
+        Debug.Assert(
+            _metaDb.GetElementTokenType(target, resolveReferences: false) is ElementTokenType.None,
+            "Only an undefined slot can be initialized.");
+
+        var obj = CreateObject(target, selectionSet, out objectContext);
+
+        // The slot is undefined, so no layout is replaced and the layout version stays unchanged.
+        _metaDb.ReplacePreserveParent(
+            cursor: target,
+            tokenType: ElementTokenType.Reference,
+            location: obj.Cursor.Value);
+    }
+
+    /// <summary>
+    /// Creates an array of <paramref name="length"/> undefined elements and assigns it to the
+    /// undefined slot at <paramref name="target"/>.
+    /// </summary>
+    /// <returns>
+    /// An enumerator over the elements of the new array.
+    /// </returns>
+    internal CompositeResultElement.ArrayEnumerator InitializeArray(Cursor target, int length)
+    {
+        Debug.Assert(
+            _metaDb.GetElementTokenType(target, resolveReferences: false) is ElementTokenType.None,
+            "Only an undefined slot can be initialized.");
+
+        var array = CreateArray(target, length);
+
+        // The slot is undefined, so no layout is replaced and the layout version stays unchanged.
+        _metaDb.ReplacePreserveParent(
+            cursor: target,
+            tokenType: ElementTokenType.Reference,
+            location: array.Cursor.Value);
+
+        return new CompositeResultElement.ArrayEnumerator(this, array.Cursor, length);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
