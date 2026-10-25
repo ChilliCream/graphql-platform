@@ -252,7 +252,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -279,7 +279,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -311,7 +311,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -343,7 +343,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -375,7 +375,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -405,7 +405,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -438,7 +438,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -467,7 +467,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -496,7 +496,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -525,7 +525,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -554,7 +554,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -586,7 +586,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -615,7 +615,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -647,7 +647,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {
@@ -679,7 +679,7 @@ public sealed class ApolloLookupMergePlanningTests : FusionTestBase
         var schema = CreateLookupPolicySchema();
 
         // act
-        var plan = FusionTestBase.PlanOperation(
+        var plan = PlanOperation(
             schema,
             """
             {

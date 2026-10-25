@@ -17,11 +17,16 @@ const hooks = registerHooks({
     );
   },
 });
-const { historySeries, historyTimeScale, historyDateTicks } =
-  await import("../../src/components/benchmarks/benchmarkView.ts");
+const {
+  historySeries,
+  historyTimeScale,
+  historyDateTicks,
+  latestCompletedPoint,
+  seriesChange,
+} = await import("../../src/components/benchmarks/benchmarkView.ts");
 hooks.deregister();
 const fixture = readFileSync(
-  new URL("./fixtures/federationBenchmarkHistory.json", import.meta.url),
+  new URL("./fixtures/federation-benchmark-history.json", import.meta.url),
   "utf8",
 );
 const day = 86_400_000;
@@ -165,4 +170,64 @@ test("distributes six-month samples evenly without a short final interval", () =
     [1000, 1183, 20],
   );
   assert.ok(gaps.every((gap) => gap === 9 || gap === 10));
+});
+test("keeps failed runs that fall between samples", () => {
+  const history = parseBenchmarkHistory(fixture);
+  const scenario = structuredClone(history.scenarios[0]);
+  const variant = scenario.variants[0];
+  const base = variant.results[0];
+  const start = Date.parse("2026-04-17T12:00:00Z");
+  variant.results = Array.from({ length: 184 }, (_, index) => ({
+    ...base,
+    ...(index === 5 ? { status: "failed" } : {}),
+    run: {
+      number: 1000 + index,
+      completedAt: new Date(start + index * day).toISOString(),
+    },
+  }));
+  const points = historySeries(scenario, benchmarkVariants(history), false)[0]
+    .points;
+  assert.deepEqual(
+    [
+      points.filter((point) => point.failed).map((point) => point.runNumber),
+      points.length,
+    ],
+    [[1005], 21],
+  );
+});
+test("excludes failed runs from the change and latest completed point", () => {
+  const history = parseBenchmarkHistory(fixture);
+  const scenario = structuredClone(history.scenarios[0]);
+  const variant = scenario.variants[0];
+  const base = variant.results[0];
+  variant.results = [100, 110, 50].map((rps, index) => ({
+    ...base,
+    ...(index === 2 ? { status: "failed" } : {}),
+    run: { number: index + 1, completedAt: `2026-10-0${index + 1}T12:00:00Z` },
+    throughput: { ...base.throughput, medianRps: rps },
+  }));
+  const series = historySeries(scenario, benchmarkVariants(history), false)[0];
+  assert.deepEqual(
+    [seriesChange(series), latestCompletedPoint(series).runNumber],
+    [(110 - 100) / 100, 2],
+  );
+});
+test("accepts failed history results with fewer runs than configured", () => {
+  const history = JSON.parse(fixture);
+  const result = history.scenarios[0].variants[0].results[0];
+  result.status = "failed";
+  result.throughput.runsRps = [
+    result.throughput.worstRps,
+    result.throughput.bestRps,
+  ];
+  const parsed = parseBenchmarkHistory(JSON.stringify(history));
+  assert.equal(parsed.scenarios[0].variants[0].results[0].status, "failed");
+});
+test("rejects unknown history result statuses", () => {
+  const history = JSON.parse(fixture);
+  history.scenarios[0].variants[0].results[0].status = "complete";
+  assert.throws(
+    () => parseBenchmarkHistory(JSON.stringify(history)),
+    /Unknown benchmark report value/,
+  );
 });

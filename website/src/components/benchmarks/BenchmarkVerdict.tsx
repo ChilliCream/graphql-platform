@@ -10,7 +10,8 @@ import { Link } from "@/src/design-system/Link";
 import {
   BENCHMARK_FUSION_DOCS_URL,
   benchmarkVariants,
-  formatRuntimeTag,
+  decisiveFeatures,
+  formatPlatformTag,
   gatewayLink,
   variantName,
   type BenchmarkCatalogEntry,
@@ -79,8 +80,9 @@ function routerName(
   const entry = variants.get(row.variant)!;
   const label = (item: BenchmarkCatalogEntry) =>
     [variantName(item), item.variant.version].filter(Boolean).join(" ");
+  const features = decisiveFeatures(variants);
   const runtime = (item: BenchmarkCatalogEntry) =>
-    formatRuntimeTag(item.variant.platform);
+    formatPlatformTag(item.variant.platform, features.get(item.variant.id)!);
   const shared = [...variants.values()].some(
     (item) => item !== entry && label(item) === label(entry),
   );
@@ -210,30 +212,14 @@ export function BenchmarkVerdictSummary({
         "in every scenario with successful results",
       )
     : summarySentence(overall, report.run.number);
-  const lines = scenarios.map(({ scenario, verdict }) => {
-    const displayed =
-      verdict?.tied &&
-      verdict.runnerUp &&
-      variants
-        .get(verdict.leader.variant)!
-        .gateway.name.localeCompare(
-          variants.get(verdict.runnerUp.variant)!.gateway.name,
-          "en",
-          { sensitivity: "base" },
-        ) > 0
-        ? { ...verdict, leader: verdict.runnerUp, runnerUp: verdict.leader }
-        : verdict;
-    return {
-      id: scenario.id,
-      name: SCENARIO_INFO[scenario.id].name,
-      text: scenarioSentence(nameVerdict(displayed, variants)),
-      verdict: displayed,
-      gateway: displayed && variants.get(displayed.leader.variant)!.gateway,
-      rival:
-        displayed?.runnerUp &&
-        variants.get(displayed.runnerUp.variant)!.gateway,
-    };
-  });
+  const lines = scenarios.map(({ scenario, verdict }) => ({
+    id: scenario.id,
+    name: SCENARIO_INFO[scenario.id].name,
+    text: scenarioSentence(nameVerdict(verdict, variants)),
+    verdict,
+    gateway: verdict && variants.get(verdict.leader.variant)!.gateway,
+    rival: verdict?.runnerUp && variants.get(verdict.runnerUp.variant)!.gateway,
+  }));
   const commonWinner =
     lines.length > 0 &&
     lines.every(

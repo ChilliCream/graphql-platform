@@ -116,8 +116,7 @@ public interface IExecutionDiagnosticEvents : ICoreExecutionDiagnosticEvents
     /// for a listener to receive this event.
     /// </remarks>
     /// <param name="task">
-    /// The execution task being run, such as DataLoader batch execution or other
-    /// background processing tasks.
+    /// The execution task being run, such as the execution of a deferred fragment.
     /// </param>
     /// <returns>
     /// A scope that will be disposed when the task execution has finished.
@@ -129,8 +128,8 @@ public interface IExecutionDiagnosticEvents : ICoreExecutionDiagnosticEvents
     /// during task execution.
     /// </summary>
     /// <param name="task">
-    /// The execution task that encountered an error, such as DataLoader batch execution
-    /// or other background processing tasks.
+    /// The execution task that encountered an error, such as the execution of a deferred
+    /// fragment.
     /// </param>
     /// <param name="error">
     /// The error that occurred while running the execution task.
@@ -138,8 +137,8 @@ public interface IExecutionDiagnosticEvents : ICoreExecutionDiagnosticEvents
     void TaskError(IExecutionTask task, IError error);
 
     /// <summary>
-    /// Called when the request execution pipeline starts processing tasks,
-    /// typically when scaling task processors up.
+    /// Called when the execution engine starts or resumes processing the execution tasks
+    /// of a request.
     /// </summary>
     /// <param name="context">
     /// The request context for the request being executed.
@@ -147,8 +146,8 @@ public interface IExecutionDiagnosticEvents : ICoreExecutionDiagnosticEvents
     void StartProcessing(RequestContext context);
 
     /// <summary>
-    /// Called when the request execution pipeline stops processing tasks,
-    /// typically when scaling task processors down or completing execution.
+    /// Called when the execution engine pauses while execution tasks of the request,
+    /// such as resolvers, are still running.
     /// </summary>
     /// <param name="context">
     /// The request context for the request being executed.

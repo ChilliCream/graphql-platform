@@ -8,6 +8,11 @@ import {
 } from "@/src/data/federationBenchmarks";
 import { BENCHMARK_PAGE as PAGE } from "@/src/components/benchmarks/benchmarkRoutes";
 import type { ScenarioId } from "@/src/helpers/benchmarkReport";
+import {
+  BENCHMARK_DATASET_ID,
+  createBenchmarkDatasetNode,
+} from "@/src/helpers/benchmarkStructuredData";
+import { schemaRef } from "@/src/helpers/structuredData";
 
 interface BenchmarkPageProps {
   readonly initialScenario: ScenarioId;
@@ -25,6 +30,8 @@ export function BenchmarkPage({ initialScenario }: BenchmarkPageProps) {
           { name: "Home", path: "/" },
           { name: "GraphQL Federation Benchmarks" },
         ]}
+        mainEntity={schemaRef(BENCHMARK_DATASET_ID)}
+        additionalNodes={[createBenchmarkDatasetNode(report, history)]}
       />
       <article>
         <BenchmarkHeader report={report} />

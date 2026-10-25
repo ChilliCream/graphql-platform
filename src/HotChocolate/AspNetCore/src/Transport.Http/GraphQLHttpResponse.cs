@@ -649,7 +649,7 @@ public sealed class GraphQLHttpResponse : IDisposable
 
                     if (await stream.ReadAsync(probe.Memory, cancellationToken).ConfigureAwait(false) != 0)
                     {
-                        throw Text.Json.ThrowHelper.SourceResultDocumentTooLarge();
+                        throw ThrowHelper.SourceResultDocumentTooLarge();
                     }
 
                     break;
