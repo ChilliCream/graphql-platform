@@ -4,6 +4,7 @@ import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 
 import { FEDERATION_FAQ_ITEMS } from "./faq";
 import { GraphBackdrop } from "./hero/GraphBackdrop";
+import { ComparisonsSection } from "./sections/ComparisonsSection";
 import { FusionCta } from "./sections/FusionCta";
 import { HowItWorksSection } from "./sections/HowItWorksSection";
 import { ProblemSection } from "./sections/ProblemSection";
@@ -51,9 +52,9 @@ export function ExplainerPage() {
         </div>
       </section>
 
-      <ProblemSection />
-
       <WhatIsSection />
+      <ProblemSection />
+      <ComparisonsSection />
       <WhySection />
       <HowItWorksSection />
       <FusionCta />

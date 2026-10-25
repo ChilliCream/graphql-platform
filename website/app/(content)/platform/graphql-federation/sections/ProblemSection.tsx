@@ -17,17 +17,19 @@ export function ProblemSection() {
       </div>
       <div className="mt-10 grid items-center gap-10 lg:grid-cols-12 lg:gap-16">
         <div className="min-w-0 lg:col-span-5">
-          <Eyebrow color="ink-dim">One schema, one release queue</Eyebrow>
+          <Eyebrow color="ink-dim">One schema, one release process</Eyebrow>
           <div className="text-cc-ink mt-3 space-y-4 text-base">
             <p>
-              Most GraphQL APIs start as one server with one schema. That works
-              well for a while.
+              Many GraphQL APIs start with a single server and a single schema.
+              This approach is simple to develop, deploy, and maintain,
+              especially when one team owns the entire API.
             </p>
             <p>
-              Then the API grows, and several teams end up working on different
-              parts of the same schema. Releasing becomes the hard part.
-              Everyone shares one release queue, so every change needs
-              coordination and every team waits on the same bottleneck.
+              As an organization grows, multiple teams may need to contribute to
+              the same graph. With a shared server and deployment process,
+              changes often require coordination across teams. Releases become
+              more complex, and teams can find themselves waiting on one
+              another.
             </p>
           </div>
         </div>
@@ -40,19 +42,19 @@ export function ProblemSection() {
           <Eyebrow color="ink-dim">With GraphQL Federation</Eyebrow>
           <div className="text-cc-ink mt-3 space-y-4 text-base">
             <p>
-              GraphQL Federation breaks that one big schema into smaller ones.
-              Each service contributes a source schema, and a service that
-              contributes a source schema is called a subgraph. One per team, or
-              one per domain. Each team owns its subgraph: the source schema,
-              the code, the release schedule.
+              GraphQL Federation removes the need for every team to contribute
+              to the same server. Instead, each team can own a subgraph with its
+              own schema, implementation, and deployment lifecycle.
             </p>
             <p>
-              When a team ships a change, composition checks the source schemas
-              against each other and merges them into one composite schema,
-              which is what your gateway serves. If the change conflicts with
-              another subgraph, composition fails at build time and the change
-              never reaches production. Your consumers, also known as clients,
-              never notice any of this.
+              Schema composition combines these independently maintained schemas
+              into one composite schema. It also detects conflicts and
+              incompatible changes before a new composition is deployed, helping
+              protect the integrity of the overall API.
+            </p>
+            <p>
+              Teams can evolve their services independently while clients
+              continue to interact with one unified GraphQL API.
             </p>
           </div>
         </div>
