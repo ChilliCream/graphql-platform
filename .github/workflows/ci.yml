@@ -16,7 +16,7 @@ permissions:
 jobs:
   check-changes:
     name: Check for Changes
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     outputs:
       website_changes: ${{ steps.check-website.outputs.website_changes }}
       docs_changes: ${{ steps.check-docs.outputs.docs_changes }}
@@ -34,7 +34,7 @@ jobs:
       - name: Check for changes in website directory
         id: check-website
         run: |
-          changes=$(git diff --name-only HEAD~1 HEAD -- ./website)
+          changes=$(git diff --name-only HEAD~1 HEAD -- ./website ./src/Mocha/src/mocha-visualizer)
           if [[ -n "$changes" ]]; then
             echo "website_changes=true" >> $GITHUB_OUTPUT
           else
@@ -99,7 +99,7 @@ jobs:
 
   spellcheck:
     name: "Spellcheck Documentation"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: check-changes
     if: needs.check-changes.outputs.website_changes == 'true' || needs.check-changes.outputs.docs_changes == 'true'
     steps:
@@ -121,7 +121,7 @@ jobs:
 
   linting:
     name: "Markdown linting"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         name: Check out the code
@@ -140,7 +140,7 @@ jobs:
     name: "Website Tests"
     needs: check-changes
     if: needs.check-changes.outputs.website_changes == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - name: Checkout Repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -151,45 +151,44 @@ jobs:
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24
-          cache: "yarn"
-          cache-dependency-path: "website/yarn.lock"
+          cache: "npm"
+          cache-dependency-path: "website/package-lock.json"
 
-      - name: Cache Yarn Packages
+      - name: Cache Next.js Build Artifacts
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
-            website/.yarn/cache
             website/.next/cache
-          key: ${{ runner.os }}-yarn-${{ hashFiles('website/yarn.lock') }}
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('website/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-yarn-
+            ${{ runner.os }}-nextjs-
 
       - name: Install Packages
-        run: yarn --immutable --network-timeout 100000
+        run: npm ci
         working-directory: website
 
       - name: Install Playwright Chromium
-        run: yarn playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium
         working-directory: website
 
       - name: Format Check
-        run: yarn format:check
+        run: npm run format:check
         working-directory: website
 
       - name: Lint
-        run: yarn lint
+        run: npm run lint
         working-directory: website
 
       - name: Generate Agent Skills
-        run: yarn generate-agent-skills
+        run: npm run generate-agent-skills
         working-directory: website
 
       - name: Build
-        run: yarn build
+        run: npm run build
         working-directory: website
 
       - name: Visual Regression Tests
-        run: yarn test:visual
+        run: npm run test:visual
         working-directory: website
 
       - name: Upload Playwright Report
@@ -202,7 +201,7 @@ jobs:
 
   configure:
     name: Generate Test Matrix
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: check-changes
     if: needs.check-changes.outputs.library_changes == 'true'
 
@@ -221,7 +220,7 @@ jobs:
 
   library-tests:
     name: Run ${{ matrix.name }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: [configure, check-changes]
     if: needs.check-changes.outputs.library_changes == 'true'
     env:
@@ -299,7 +298,7 @@ jobs:
 
   cost-analysis-benchmark-build:
     name: Build Cost Analysis Benchmarks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: check-changes
     if: needs.check-changes.outputs.library_changes == 'true'
     steps:
@@ -316,7 +315,7 @@ jobs:
 
   patch-coverage:
     name: Patch Coverage
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: [check-changes, library-tests]
     if: needs.check-changes.outputs.library_changes == 'true'
     permissions:
@@ -390,7 +389,7 @@ jobs:
 
   verify-aspire-nitro-operations:
     name: Verify Fusion Aspire Nitro Operations
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: check-changes
     if: needs.check-changes.outputs.aspire_nitro_client_changes == 'true'
     steps:
@@ -413,7 +412,7 @@ jobs:
 
   validate-aspire-nitro-client:
     name: Validate Fusion Aspire Nitro Client
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: [check-changes, verify-aspire-nitro-operations]
     if: >-
       needs.check-changes.outputs.aspire_nitro_client_changes == 'true' &&
@@ -450,7 +449,7 @@ jobs:
 
   validate-nitro-client:
     name: Validate Nitro Client
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: check-changes
     if: >-
       needs.check-changes.outputs.nitro_client_changes == 'true' &&
@@ -475,7 +474,7 @@ jobs:
 
   verify-nitro-npm-package:
     name: Verify Nitro npm package
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: check-changes
     if: needs.check-changes.outputs.src_changes == 'true'
     steps:
@@ -489,16 +488,13 @@ jobs:
         with:
           node-version: 24
 
-      - name: Enable corepack
-        run: corepack enable
-
       - name: Install dependencies
         working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
-        run: yarn install --immutable
+        run: npm ci
 
       - name: Build
         working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
-        run: yarn build
+        run: npm run build
 
       - name: Inject optionalDependencies
         working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
@@ -534,7 +530,7 @@ jobs:
         verify-nitro-npm-package,
       ]
     if: always()
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - name: Check if Library Tests or Website Tests failed
         run: exit 1

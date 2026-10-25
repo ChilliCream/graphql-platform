@@ -21,7 +21,7 @@ response:
       "data": {
         "post": {
           "product": {
-            "subgraph2": "Product: UHJvZHVjdDoy"
+            "subgraph2": "Product: UHJvZHVjdDoxODk0NzA4MjAy"
           }
         }
       }
@@ -79,7 +79,7 @@ sourceSchemas:
                   "post": {
                     "__typename": "Photo",
                     "product": {
-                      "id": "UHJvZHVjdDoy"
+                      "id": "UHJvZHVjdDoxODk0NzA4MjAy"
                     }
                   }
                 }
@@ -109,7 +109,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_id": "UHJvZHVjdDoy"
+              "__fusion_1_id": "UHJvZHVjdDoxODk0NzA4MjAy"
             }
         response:
           results:
@@ -117,7 +117,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDoy"
+                    "subgraph2": "Product: UHJvZHVjdDoxODk0NzA4MjAy"
                   }
                 }
               }

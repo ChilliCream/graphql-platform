@@ -75,7 +75,7 @@ sourceSchemas:
                     {
                       "__typename": "Discussion",
                       "viewerCanVote": true,
-                      "id": "RGlzY3Vzc2lvbjox"
+                      "id": "RGlzY3Vzc2lvbjoxMDQ0MjI3Njk3"
                     },
                     {
                       "__typename": "Comment",
@@ -84,7 +84,7 @@ sourceSchemas:
                     {
                       "__typename": "Discussion",
                       "viewerCanVote": true,
-                      "id": "RGlzY3Vzc2lvbjoz"
+                      "id": "RGlzY3Vzc2lvbjozMzkzMDAzNzcz"
                     }
                   ]
                 }
@@ -115,10 +115,10 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "RGlzY3Vzc2lvbjox"
+                "__fusion_1_id": "RGlzY3Vzc2lvbjoxMDQ0MjI3Njk3"
               },
               {
-                "__fusion_1_id": "RGlzY3Vzc2lvbjoz"
+                "__fusion_1_id": "RGlzY3Vzc2lvbjozMzkzMDAzNzcz"
               }
             ]
         response:

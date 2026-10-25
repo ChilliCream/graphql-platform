@@ -126,6 +126,14 @@ internal sealed class InMemoryQueueDescriptor
     }
 
     /// <inheritdoc />
+    public void Configure(Action<IReceiveMiddlewareProvider> configure)
+    {
+        ArgumentNullException.ThrowIfNull(configure);
+
+        Configuration.ConfigureReceiveEndpoint.Add(configure);
+    }
+
+    /// <inheritdoc />
     public IInMemoryQueueDescriptor FaultEndpoint(Uri address)
     {
         ArgumentNullException.ThrowIfNull(address);

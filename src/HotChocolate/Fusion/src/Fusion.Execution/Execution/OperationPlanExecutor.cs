@@ -9,7 +9,6 @@ using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
-using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution;
@@ -109,7 +108,6 @@ internal static partial class OperationPlanExecutor
             // @defer(if:) evaluates to true) and the incremental plans that will actually run.
             // The running plans come from the rule the policy evaluator shares.
             var activeDeliveryGroups = GetActiveDeliveryGroups(operationPlan, variables);
-            var deliveryPaths = CreateDeliveryPaths(operationPlan);
 
             var runningIncrementalPlans = IncrementalPlan.GetRunningPlans(
                 operationPlan.IncrementalPlans,
@@ -133,7 +131,7 @@ internal static partial class OperationPlanExecutor
 
                 pendingResults.Add(new PendingResult(
                     deliveryGroup.Id,
-                    deliveryPaths[deliveryGroup.Id].PendingPath,
+                    operationPlan.GetDeliveryPath(deliveryGroup.Id).PendingPath,
                     deliveryGroup.Label));
             }
 
@@ -163,7 +161,6 @@ internal static partial class OperationPlanExecutor
                     initialResult,
                     activeDeliveryGroups,
                     runningIncrementalPlans,
-                    deliveryPaths,
                     rootContext,
                     cancellationToken),
                 ExecutionResultKind.DeferredResult);
@@ -193,7 +190,6 @@ internal static partial class OperationPlanExecutor
         OperationResult initialResult,
         bool[] activeDeliveryGroups,
         bool[] runningIncrementalPlans,
-        IReadOnlyDictionary<int, DeliveryPath> deliveryPaths,
         OperationPlanContext rootContext,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
@@ -358,7 +354,7 @@ internal static partial class OperationPlanExecutor
 
                         childPending.Add(new PendingResult(
                             deliveryGroup.Id,
-                            deliveryPaths[deliveryGroup.Id].PendingPath,
+                            operationPlan.GetDeliveryPath(deliveryGroup.Id).PendingPath,
                             deliveryGroup.Label));
                     }
                 }
@@ -396,7 +392,7 @@ internal static partial class OperationPlanExecutor
                         && TryCreateIncrementalResults(
                             result.Data.Value,
                             bestDeliveryGroup,
-                            deliveryPaths[bestDeliveryGroup.Id].PendingFieldCount,
+                            operationPlan.GetDeliveryPath(bestDeliveryGroup.Id).PendingFieldCount,
                             result.Errors.Count > 0 ? result.Errors : null,
                             out var incrementalResults))
                     {
@@ -733,172 +729,6 @@ internal static partial class OperationPlanExecutor
                 pendingCountByDeliveryGroup[deliveryGroup.Id] = count;
             }
         }
-    }
-
-    private static Dictionary<int, DeliveryPath> CreateDeliveryPaths(OperationPlan operationPlan)
-    {
-        var deliveryPaths = new Dictionary<int, DeliveryPath>();
-
-        foreach (var incrementalPlan in operationPlan.IncrementalPlans)
-        {
-            foreach (var deliveryGroup in incrementalPlan.DeliveryGroups)
-            {
-                deliveryPaths.TryAdd(
-                    deliveryGroup.Id,
-                    CreateDeliveryPath(
-                        incrementalPlan.Operation,
-                        deliveryGroup.Path ?? SelectionPath.Root));
-            }
-        }
-
-        return deliveryPaths;
-    }
-
-    private static DeliveryPath CreateDeliveryPath(
-        Operation operation,
-        SelectionPath selectionPath)
-    {
-        var path = Path.Root;
-        var pendingFieldCount = 0;
-        var currentSelectionSet = operation.Definition.SelectionSet;
-        IOutputTypeDefinition currentType = operation.RootType;
-
-        for (var i = 0; i < selectionPath.Length; i++)
-        {
-            var segment = selectionPath[i];
-
-            if (segment.Kind is SelectionPathSegmentKind.Root)
-            {
-                continue;
-            }
-
-            if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
-            {
-                if (!TryFindInlineFragment(currentSelectionSet, segment.Name, out var inlineFragment)
-                    || !operation.Schema.Types.TryGetType<IOutputTypeDefinition>(segment.Name, out var fragmentType))
-                {
-                    throw new InvalidOperationException(
-                        $"Could not resolve selection path segment '{segment.Name}'.");
-                }
-
-                currentSelectionSet = inlineFragment.SelectionSet;
-                currentType = fragmentType;
-                continue;
-            }
-
-            if (!TryFindField(
-                operation.Schema,
-                currentSelectionSet,
-                currentType,
-                segment.Name,
-                out var fieldNode,
-                out var field))
-            {
-                throw new InvalidOperationException(
-                    $"Could not resolve selection path segment '{segment.Name}'.");
-            }
-
-            path = path.Append(fieldNode.Alias?.Value ?? fieldNode.Name.Value);
-            pendingFieldCount++;
-
-            if (field.Type.IsListType())
-            {
-                break;
-            }
-
-            currentSelectionSet = fieldNode.SelectionSet
-                ?? throw new InvalidOperationException(
-                    $"Selection path segment '{segment.Name}' has no selection set.");
-            currentType = field.Type.NamedType<IOutputTypeDefinition>();
-        }
-
-        return new DeliveryPath(path, pendingFieldCount);
-    }
-
-    private static bool TryFindField(
-        ISchemaDefinition schema,
-        SelectionSetNode selectionSet,
-        IOutputTypeDefinition typeContext,
-        string responseName,
-        out FieldNode fieldNode,
-        out IOutputFieldDefinition field)
-    {
-        foreach (var selection in selectionSet.Selections)
-        {
-            if (selection is FieldNode candidate
-                && (candidate.Alias?.Value ?? candidate.Name.Value) == responseName
-                && typeContext is IComplexTypeDefinition complexType
-                && complexType.Fields.TryGetField(candidate.Name.Value, out var resolvedField)
-                && resolvedField is not null)
-            {
-                fieldNode = candidate;
-                field = resolvedField;
-                return true;
-            }
-
-            if (selection is InlineFragmentNode inlineFragment)
-            {
-                IOutputTypeDefinition fragmentType;
-                if (inlineFragment.TypeCondition?.Name.Value is not { } typeName)
-                {
-                    fragmentType = typeContext;
-                }
-                else if (schema.Types.TryGetType<IOutputTypeDefinition>(
-                    typeName,
-                    out var resolvedType)
-                    && resolvedType is not null)
-                {
-                    fragmentType = resolvedType;
-                }
-                else
-                {
-                    continue;
-                }
-
-                if (TryFindField(
-                    schema,
-                    inlineFragment.SelectionSet,
-                    fragmentType,
-                    responseName,
-                    out fieldNode,
-                    out field))
-                {
-                    return true;
-                }
-            }
-        }
-
-        fieldNode = null!;
-        field = null!;
-        return false;
-    }
-
-    private static bool TryFindInlineFragment(
-        SelectionSetNode selectionSet,
-        string typeName,
-        out InlineFragmentNode inlineFragment)
-    {
-        foreach (var selection in selectionSet.Selections)
-        {
-            if (selection is not InlineFragmentNode candidate)
-            {
-                continue;
-            }
-
-            if (candidate.TypeCondition?.Name.Value == typeName)
-            {
-                inlineFragment = candidate;
-                return true;
-            }
-
-            if (TryFindInlineFragment(candidate.SelectionSet, typeName, out inlineFragment))
-            {
-                return true;
-            }
-        }
-
-        inlineFragment = null!;
-        return false;
     }
 
     /// <summary>

@@ -18,8 +18,8 @@ response:
     {
       "data": {
         "search": {
-          "id": "Qm9vazox",
-          "title": "Book: Qm9vazox"
+          "id": "Qm9vazoyNzkwNzU0ODY2",
+          "title": "Book: Qm9vazoyNzkwNzU0ODY2"
         }
       }
     }
@@ -65,7 +65,7 @@ sourceSchemas:
                 "data": {
                   "search": {
                     "__typename": "Book",
-                    "id": "Qm9vazox"
+                    "id": "Qm9vazoyNzkwNzU0ODY2"
                   }
                 }
               }
@@ -104,7 +104,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_2_id": "Qm9vazox"
+              "__fusion_2_id": "Qm9vazoyNzkwNzU0ODY2"
             }
         response:
           results:
@@ -113,7 +113,7 @@ sourceSchemas:
                 "data": {
                   "searchResultById": {
                     "__typename": "Book",
-                    "title": "Book: Qm9vazox"
+                    "title": "Book: Qm9vazoyNzkwNzU0ODY2"
                   }
                 }
               }

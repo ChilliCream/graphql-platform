@@ -41,7 +41,7 @@ try {
 } catch {
   throw new Error(
     `Could not read ${indexPath}. The Storybook static build must run before the visual tests ` +
-      `(Playwright's webServer handles this automatically via "yarn test:visual").`,
+      `(Playwright's webServer handles this automatically via "npm run test:visual").`,
   );
 }
 

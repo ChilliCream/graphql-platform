@@ -1,0 +1,99 @@
+query ShowTraceCommandQuery(
+  $workspaceId: ID!
+  $traceId: String!
+  $spanId: String
+  $seeker: String
+) {
+  workspaceById(workspaceId: $workspaceId) {
+    traceById(traceId: $traceId, spanId: $spanId, seeker: $seeker) {
+      spanCount
+      spansTruncated
+      totalDuration
+      spans {
+        ...ShowTraceCommand_Span
+      }
+    }
+  }
+}
+
+fragment ShowTraceCommand_Span on OpenTelemetrySpan {
+  spanId
+  parentSpanId
+  spanName
+  spanKind
+  duration
+  epoch
+  statusCode
+  statusMessage
+  resourceAttributes {
+    key
+    value
+  }
+  spanAttributes {
+    key
+    value
+  }
+  events {
+    name
+    epoch
+    attributes {
+      key
+      value
+    }
+  }
+  ... on OpenTelemetryHttpClientSpan {
+    http {
+      flavor
+      method
+      scheme
+      statusCode
+      url
+      userAgent
+    }
+  }
+  ... on OpenTelemetryHttpServerSpan {
+    http {
+      flavor
+      method
+      scheme
+      statusCode
+      url
+      userAgent
+    }
+  }
+  ... on OpenTelemetryDbSpan {
+    db {
+      connectionString
+      instance
+      name
+      operation
+      statement
+      system
+      url
+      user
+    }
+  }
+  ... on OpenTelemetryGraphQLOperationSpan {
+    document {
+      body
+      id
+    }
+    operation {
+      hash
+      kind
+      name
+    }
+  }
+  ... on OpenTelemetryGraphQLResolverSpan {
+    selection {
+      field {
+        coordinate
+        declaringType
+        name
+      }
+      name
+      path
+      type
+    }
+  }
+}

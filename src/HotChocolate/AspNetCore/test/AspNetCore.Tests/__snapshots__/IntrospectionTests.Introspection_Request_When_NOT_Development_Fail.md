@@ -2,6 +2,7 @@
 
 ```text
 Headers:
+Vary: Accept
 Content-Type: application/graphql-response+json; charset=utf-8
 -------------------------->
 Status Code: BadRequest

@@ -6,8 +6,8 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 /// The fields this adapter reads from a Claude Code hook's stdin JSON:
 /// <c>session_id</c> and <c>cwd</c> on every event, <c>agent_id</c> when the
 /// event fires inside a subagent session, plus <c>stop_hook_active</c> on
-/// <c>Stop</c> and <c>notification_type</c> on <c>Notification</c>. Other
-/// fields are left unparsed.
+/// <c>Stop</c>, <c>notification_type</c> on <c>Notification</c>, and
+/// <c>agent_kind</c> on Venti's <c>AgentNaming</c>. Other fields are left unparsed.
 /// </summary>
 internal sealed record ClaudeHookPayload
 {
@@ -25,4 +25,7 @@ internal sealed record ClaudeHookPayload
 
     [JsonPropertyName("notification_type")]
     public string? NotificationType { get; init; }
+
+    [JsonPropertyName("agent_kind")]
+    public string? AgentKind { get; init; }
 }

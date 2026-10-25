@@ -41,8 +41,8 @@ public class AutomaticMockingTests
             {
               "data": {
                 "obj": {
-                  "id": "T2JqZWN0OjE=",
-                  "str": "Object: T2JqZWN0OjE="
+                  "id": "T2JqZWN0OjQxNjMxNzU3ODY=",
+                  "str": "Object: T2JqZWN0OjQxNjMxNzU3ODY="
                 }
               }
             }
@@ -170,16 +170,16 @@ public class AutomaticMockingTests
               "data": {
                 "objs": [
                   {
-                    "id": "T2JqZWN0OjE=",
-                    "str": "Object: T2JqZWN0OjE="
+                    "id": "T2JqZWN0OjEzODUwODY3NjA=",
+                    "str": "Object: T2JqZWN0OjEzODUwODY3NjA="
                   },
                   {
-                    "id": "T2JqZWN0OjI=",
-                    "str": "Object: T2JqZWN0OjI="
+                    "id": "T2JqZWN0OjMxNjQ5ODkzMQ==",
+                    "str": "Object: T2JqZWN0OjMxNjQ5ODkzMQ=="
                   },
                   {
-                    "id": "T2JqZWN0OjM=",
-                    "str": "Object: T2JqZWN0OjM="
+                    "id": "T2JqZWN0Ojk3NTM4MjI4OA==",
+                    "str": "Object: T2JqZWN0Ojk3NTM4MjI4OA=="
                   }
                 ]
               }
@@ -227,30 +227,30 @@ public class AutomaticMockingTests
               "data": {
                 "objsA": [
                   {
-                    "id": "T2JqZWN0OjE=",
-                    "str": "Object: T2JqZWN0OjE="
+                    "id": "T2JqZWN0OjY1MDU1MjE3Mg==",
+                    "str": "Object: T2JqZWN0OjY1MDU1MjE3Mg=="
                   },
                   {
-                    "id": "T2JqZWN0OjI=",
-                    "str": "Object: T2JqZWN0OjI="
+                    "id": "T2JqZWN0OjM0ODUyMjU5MQ==",
+                    "str": "Object: T2JqZWN0OjM0ODUyMjU5MQ=="
                   },
                   {
-                    "id": "T2JqZWN0OjM=",
-                    "str": "Object: T2JqZWN0OjM="
+                    "id": "T2JqZWN0OjI4MDM0OTg4MzQ=",
+                    "str": "Object: T2JqZWN0OjI4MDM0OTg4MzQ="
                   }
                 ],
                 "objsB": [
                   {
-                    "id": "T2JqZWN0OjQ=",
-                    "str": "Object: T2JqZWN0OjQ="
+                    "id": "T2JqZWN0OjEwNjIzNzc5MjY=",
+                    "str": "Object: T2JqZWN0OjEwNjIzNzc5MjY="
                   },
                   {
-                    "id": "T2JqZWN0OjU=",
-                    "str": "Object: T2JqZWN0OjU="
+                    "id": "T2JqZWN0OjU1MTg2MzQ2NQ==",
+                    "str": "Object: T2JqZWN0OjU1MTg2MzQ2NQ=="
                   },
                   {
-                    "id": "T2JqZWN0OjY=",
-                    "str": "Object: T2JqZWN0OjY="
+                    "id": "T2JqZWN0OjQyNjQ2NjIzOTA=",
+                    "str": "Object: T2JqZWN0OjQyNjQ2NjIzOTA="
                   }
                 ]
               }
@@ -291,11 +291,11 @@ public class AutomaticMockingTests
               "data": {
                 "objs": [
                   {
-                    "id": "T2JqZWN0OjE="
+                    "id": "T2JqZWN0OjEzODUwODY3NjA="
                   },
                   null,
                   {
-                    "id": "T2JqZWN0OjI="
+                    "id": "T2JqZWN0Ojk3NTM4MjI4OA=="
                   }
                 ]
               }
@@ -345,11 +345,11 @@ public class AutomaticMockingTests
               "data": {
                 "objs": [
                   {
-                    "id": "T2JqZWN0OjE="
+                    "id": "T2JqZWN0OjEzODUwODY3NjA="
                   },
                   null,
                   {
-                    "id": "T2JqZWN0OjI="
+                    "id": "T2JqZWN0Ojk3NTM4MjI4OA=="
                   }
                 ]
               }
@@ -390,13 +390,13 @@ public class AutomaticMockingTests
               "data": {
                 "objs": [
                   {
-                    "str": "Object: T2JqZWN0OjE="
+                    "str": "Object: T2JqZWN0OjEzODUwODY3NjA="
                   },
                   {
                     "str": null
                   },
                   {
-                    "str": "Object: T2JqZWN0OjM="
+                    "str": "Object: T2JqZWN0Ojk3NTM4MjI4OA=="
                   }
                 ]
               }
@@ -447,13 +447,13 @@ public class AutomaticMockingTests
               "data": {
                 "objs": [
                   {
-                    "str": "Object: T2JqZWN0OjE="
+                    "str": "Object: T2JqZWN0OjEzODUwODY3NjA="
                   },
                   {
                     "str": null
                   },
                   {
-                    "str": "Object: T2JqZWN0OjM="
+                    "str": "Object: T2JqZWN0Ojk3NTM4MjI4OA=="
                   }
                 ]
               }
@@ -516,8 +516,8 @@ public class AutomaticMockingTests
               "data": {
                 "intrface": {
                   "__typename": "Object",
-                  "id": "T2JqZWN0OjE=",
-                  "str": "Object: T2JqZWN0OjE=",
+                  "id": "T2JqZWN0OjE0NjU0NDcwMTY=",
+                  "str": "Object: T2JqZWN0OjE0NjU0NDcwMTY=",
                   "num": 123
                 }
               }
@@ -687,19 +687,19 @@ public class AutomaticMockingTests
                 "interfaces": [
                   {
                     "__typename": "Object",
-                    "id": "T2JqZWN0OjE=",
-                    "str": "Object: T2JqZWN0OjE=",
+                    "id": "T2JqZWN0OjI3MjkzMjQzNTg=",
+                    "str": "Object: T2JqZWN0OjI3MjkzMjQzNTg=",
                     "num": 123
                   },
                   {
                     "__typename": "Object2",
-                    "id": "T2JqZWN0Mjoy",
-                    "str": "Object2: T2JqZWN0Mjoy"
+                    "id": "T2JqZWN0MjoyMzA3OTYzOTA1",
+                    "str": "Object2: T2JqZWN0MjoyMzA3OTYzOTA1"
                   },
                   {
                     "__typename": "Object3",
-                    "id": "T2JqZWN0Mzoz",
-                    "str": "Object3: T2JqZWN0Mzoz"
+                    "id": "T2JqZWN0MzoyMTY3NjU0Mzcx",
+                    "str": "Object3: T2JqZWN0MzoyMTY3NjU0Mzcx"
                   }
                 ]
               }
@@ -763,18 +763,18 @@ public class AutomaticMockingTests
                 "interfaces": [
                   {
                     "__typename": "Object2",
-                    "id": "T2JqZWN0Mjox",
-                    "str": "Object2: T2JqZWN0Mjox"
+                    "id": "T2JqZWN0MjoyNzI5MzI0MzU4",
+                    "str": "Object2: T2JqZWN0MjoyNzI5MzI0MzU4"
                   },
                   {
                     "__typename": "Object2",
-                    "id": "T2JqZWN0Mjoy",
-                    "str": "Object2: T2JqZWN0Mjoy"
+                    "id": "T2JqZWN0MjoyMzA3OTYzOTA1",
+                    "str": "Object2: T2JqZWN0MjoyMzA3OTYzOTA1"
                   },
                   {
                     "__typename": "Object",
-                    "id": "T2JqZWN0OjM=",
-                    "str": "Object: T2JqZWN0OjM=",
+                    "id": "T2JqZWN0OjIxNjc2NTQzNzE=",
+                    "str": "Object: T2JqZWN0OjIxNjc2NTQzNzE=",
                     "num": 123
                   }
                 ]
@@ -935,15 +935,15 @@ public class AutomaticMockingTests
                 "interfaces": [
                   {
                     "__typename": "Object",
-                    "id": "T2JqZWN0OjE=",
-                    "str": "Object: T2JqZWN0OjE=",
+                    "id": "T2JqZWN0OjI3MjkzMjQzNTg=",
+                    "str": "Object: T2JqZWN0OjI3MjkzMjQzNTg=",
                     "num": 123
                   },
                   null,
                   {
                     "__typename": "Object",
-                    "id": "T2JqZWN0OjI=",
-                    "str": "Object: T2JqZWN0OjI=",
+                    "id": "T2JqZWN0OjIxNjc2NTQzNzE=",
+                    "str": "Object: T2JqZWN0OjIxNjc2NTQzNzE=",
                     "num": 123
                   }
                 ]
@@ -1007,15 +1007,15 @@ public class AutomaticMockingTests
                 "interfaces": [
                   {
                     "__typename": "Object",
-                    "id": "T2JqZWN0OjE=",
-                    "str": "Object: T2JqZWN0OjE=",
+                    "id": "T2JqZWN0OjI3MjkzMjQzNTg=",
+                    "str": "Object: T2JqZWN0OjI3MjkzMjQzNTg=",
                     "num": 123
                   },
                   null,
                   {
                     "__typename": "Object",
-                    "id": "T2JqZWN0OjI=",
-                    "str": "Object: T2JqZWN0OjI=",
+                    "id": "T2JqZWN0OjIxNjc2NTQzNzE=",
+                    "str": "Object: T2JqZWN0OjIxNjc2NTQzNzE=",
                     "num": 123
                   }
                 ]
@@ -1070,20 +1070,20 @@ public class AutomaticMockingTests
                 "interfaces": [
                   {
                     "__typename": "Object",
-                    "id": "T2JqZWN0OjE=",
-                    "str": "Object: T2JqZWN0OjE=",
+                    "id": "T2JqZWN0OjI3MjkzMjQzNTg=",
+                    "str": "Object: T2JqZWN0OjI3MjkzMjQzNTg=",
                     "num": 123
                   },
                   {
                     "__typename": "Object",
-                    "id": "T2JqZWN0OjI=",
-                    "str": "Object: T2JqZWN0OjI=",
+                    "id": "T2JqZWN0OjIzMDc5NjM5MDU=",
+                    "str": "Object: T2JqZWN0OjIzMDc5NjM5MDU=",
                     "num": null
                   },
                   {
                     "__typename": "Object",
-                    "id": "T2JqZWN0OjM=",
-                    "str": "Object: T2JqZWN0OjM=",
+                    "id": "T2JqZWN0OjIxNjc2NTQzNzE=",
+                    "str": "Object: T2JqZWN0OjIxNjc2NTQzNzE=",
                     "num": 123
                   }
                 ]
@@ -1148,20 +1148,20 @@ public class AutomaticMockingTests
                 "interfaces": [
                   {
                     "__typename": "Object",
-                    "id": "T2JqZWN0OjE=",
-                    "str": "Object: T2JqZWN0OjE=",
+                    "id": "T2JqZWN0OjI3MjkzMjQzNTg=",
+                    "str": "Object: T2JqZWN0OjI3MjkzMjQzNTg=",
                     "num": 123
                   },
                   {
                     "__typename": "Object",
-                    "id": "T2JqZWN0OjI=",
-                    "str": "Object: T2JqZWN0OjI=",
+                    "id": "T2JqZWN0OjIzMDc5NjM5MDU=",
+                    "str": "Object: T2JqZWN0OjIzMDc5NjM5MDU=",
                     "num": null
                   },
                   {
                     "__typename": "Object",
-                    "id": "T2JqZWN0OjM=",
-                    "str": "Object: T2JqZWN0OjM=",
+                    "id": "T2JqZWN0OjIxNjc2NTQzNzE=",
+                    "str": "Object: T2JqZWN0OjIxNjc2NTQzNzE=",
                     "num": 123
                   }
                 ]
@@ -1220,8 +1220,8 @@ public class AutomaticMockingTests
               "data": {
                 "intrface": {
                   "__typename": "Object2",
-                  "id": "T2JqZWN0Mjox",
-                  "str": "Object2: T2JqZWN0Mjox",
+                  "id": "T2JqZWN0MjoxNDY1NDQ3MDE2",
+                  "str": "Object2: T2JqZWN0MjoxNDY1NDQ3MDE2",
                   "num": 123
                 }
               }
@@ -1273,8 +1273,8 @@ public class AutomaticMockingTests
               "data": {
                 "unon": {
                   "__typename": "Object",
-                  "id": "T2JqZWN0OjE=",
-                  "str": "Object: T2JqZWN0OjE="
+                  "id": "T2JqZWN0OjEzOTE2ODU1Mzg=",
+                  "str": "Object: T2JqZWN0OjEzOTE2ODU1Mzg="
                 }
               }
             }
@@ -1428,8 +1428,8 @@ public class AutomaticMockingTests
                 "unions": [
                   {
                     "__typename": "Object",
-                    "id": "T2JqZWN0OjE=",
-                    "str": "Object: T2JqZWN0OjE="
+                    "id": "T2JqZWN0OjM5NDU4NDkyNjQ=",
+                    "str": "Object: T2JqZWN0OjM5NDU4NDkyNjQ="
                   },
                   {
                     "__typename": "Object2"
@@ -1497,8 +1497,8 @@ public class AutomaticMockingTests
                   },
                   {
                     "__typename": "Object",
-                    "id": "T2JqZWN0OjI=",
-                    "str": "Object: T2JqZWN0OjI="
+                    "id": "T2JqZWN0OjM1MzcyNzkxNTk=",
+                    "str": "Object: T2JqZWN0OjM1MzcyNzkxNTk="
                   },
                   {
                     "__typename": "Object2"
@@ -1646,14 +1646,14 @@ public class AutomaticMockingTests
                 "unions": [
                   {
                     "__typename": "Object",
-                    "id": "T2JqZWN0OjE=",
-                    "str": "Object: T2JqZWN0OjE="
+                    "id": "T2JqZWN0OjM5NDU4NDkyNjQ=",
+                    "str": "Object: T2JqZWN0OjM5NDU4NDkyNjQ="
                   },
                   null,
                   {
                     "__typename": "Object",
-                    "id": "T2JqZWN0OjI=",
-                    "str": "Object: T2JqZWN0OjI="
+                    "id": "T2JqZWN0Ojc5OTk5ODkxOA==",
+                    "str": "Object: T2JqZWN0Ojc5OTk5ODkxOA=="
                   }
                 ]
               }
@@ -1711,14 +1711,14 @@ public class AutomaticMockingTests
                 "unions": [
                   {
                     "__typename": "Object",
-                    "id": "T2JqZWN0OjE=",
-                    "str": "Object: T2JqZWN0OjE="
+                    "id": "T2JqZWN0OjM5NDU4NDkyNjQ=",
+                    "str": "Object: T2JqZWN0OjM5NDU4NDkyNjQ="
                   },
                   null,
                   {
                     "__typename": "Object",
-                    "id": "T2JqZWN0OjI=",
-                    "str": "Object: T2JqZWN0OjI="
+                    "id": "T2JqZWN0Ojc5OTk5ODkxOA==",
+                    "str": "Object: T2JqZWN0Ojc5OTk5ODkxOA=="
                   }
                 ]
               }
@@ -1767,18 +1767,18 @@ public class AutomaticMockingTests
                 "unions": [
                   {
                     "__typename": "Object",
-                    "id": "T2JqZWN0OjE=",
-                    "str": "Object: T2JqZWN0OjE="
+                    "id": "T2JqZWN0OjM5NDU4NDkyNjQ=",
+                    "str": "Object: T2JqZWN0OjM5NDU4NDkyNjQ="
                   },
                   {
                     "__typename": "Object",
-                    "id": "T2JqZWN0OjI=",
+                    "id": "T2JqZWN0OjM1MzcyNzkxNTk=",
                     "str": null
                   },
                   {
                     "__typename": "Object",
-                    "id": "T2JqZWN0OjM=",
-                    "str": "Object: T2JqZWN0OjM="
+                    "id": "T2JqZWN0Ojc5OTk5ODkxOA==",
+                    "str": "Object: T2JqZWN0Ojc5OTk5ODkxOA=="
                   }
                 ]
               }
@@ -1837,18 +1837,18 @@ public class AutomaticMockingTests
                 "unions": [
                   {
                     "__typename": "Object",
-                    "id": "T2JqZWN0OjE=",
-                    "str": "Object: T2JqZWN0OjE="
+                    "id": "T2JqZWN0OjM5NDU4NDkyNjQ=",
+                    "str": "Object: T2JqZWN0OjM5NDU4NDkyNjQ="
                   },
                   {
                     "__typename": "Object",
-                    "id": "T2JqZWN0OjI=",
+                    "id": "T2JqZWN0OjM1MzcyNzkxNTk=",
                     "str": null
                   },
                   {
                     "__typename": "Object",
-                    "id": "T2JqZWN0OjM=",
-                    "str": "Object: T2JqZWN0OjM="
+                    "id": "T2JqZWN0Ojc5OTk5ODkxOA==",
+                    "str": "Object: T2JqZWN0Ojc5OTk5ODkxOA=="
                   }
                 ]
               }
@@ -3292,8 +3292,365 @@ public class AutomaticMockingTests
 
     #endregion
 
-    private static async Task<IExecutionResult> ExecuteRequestAgainstSchemaAsync(
+    #region Generated IDs
+
+    [Fact]
+    public async Task Object_Ids_Do_Not_Depend_On_Selection_Order()
+    {
+        // arrange
+        const string schema =
+            """
+            type Query {
+              obj: Object
+            }
+
+            type Object {
+              id: ID!
+            }
+            """;
+        const string firstRequest =
+            """
+            query {
+              a: obj {
+                id
+              }
+              b: obj {
+                id
+              }
+            }
+            """;
+        const string secondRequest =
+            """
+            query {
+              b: obj {
+                id
+              }
+              a: obj {
+                id
+              }
+            }
+            """;
+
+        // act
+        var first = await ExecuteRequestAgainstSchemaAsync(firstRequest, schema);
+        var second = await ExecuteRequestAgainstSchemaAsync(secondRequest, schema);
+
+        // assert
+        new[] { first, second }.MatchInlineSnapshots(
+        [
+            """
+            {
+              "data": {
+                "a": {
+                  "id": "T2JqZWN0OjE4ODEwMDk2ODM="
+                },
+                "b": {
+                  "id": "T2JqZWN0OjIwMDQxNDIwNjY="
+                }
+              }
+            }
+            """,
+            """
+            {
+              "data": {
+                "b": {
+                  "id": "T2JqZWN0OjIwMDQxNDIwNjY="
+                },
+                "a": {
+                  "id": "T2JqZWN0OjE4ODEwMDk2ODM="
+                }
+              }
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public async Task ById_Child_Ids_Do_Not_Depend_On_Variable_Batch()
+    {
+        // arrange
+        const string schema =
+            """
+            type Query {
+              userById(id: ID!): User
+            }
+
+            type User {
+              id: ID!
+              reviews: [Review!]!
+            }
+
+            type Review {
+              id: ID!
+            }
+            """;
+        const string request =
+            """
+            query($id: ID!) {
+              userById(id: $id) {
+                reviews {
+                  id
+                }
+              }
+            }
+            """;
+
+        // act
+        var batch = await ExecuteRequestAgainstSchemaAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(request)
+                .SetVariableValues("""[{ "id": "5" }, { "id": "6" }]""")
+                .Build(),
+            schema);
+        var first = await ExecuteRequestAgainstSchemaAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(request)
+                .SetVariableValues("""{ "id": "5" }""")
+                .Build(),
+            schema);
+        var second = await ExecuteRequestAgainstSchemaAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(request)
+                .SetVariableValues("""{ "id": "6" }""")
+                .Build(),
+            schema);
+
+        // assert
+        IExecutionResult[] results = [first, second, .. batch.ExpectOperationResultBatch().Results];
+        results.MatchInlineSnapshots(
+        [
+            """
+            {
+              "data": {
+                "userById": {
+                  "reviews": [
+                    {
+                      "id": "UmV2aWV3OjIxMTgzNzk5NTE="
+                    },
+                    {
+                      "id": "UmV2aWV3OjIxNDU0Njc1OA=="
+                    },
+                    {
+                      "id": "UmV2aWV3OjEyNzM1NDc0MDY="
+                    }
+                  ]
+                }
+              }
+            }
+            """,
+            """
+            {
+              "data": {
+                "userById": {
+                  "reviews": [
+                    {
+                      "id": "UmV2aWV3OjI0NTI2NTY0NDk="
+                    },
+                    {
+                      "id": "UmV2aWV3OjQxMDcxMjI1NDU="
+                    },
+                    {
+                      "id": "UmV2aWV3OjI1NDQzMDAxMTY="
+                    }
+                  ]
+                }
+              }
+            }
+            """,
+            """
+            {
+              "variableIndex": 0,
+              "data": {
+                "userById": {
+                  "reviews": [
+                    {
+                      "id": "UmV2aWV3OjIxMTgzNzk5NTE="
+                    },
+                    {
+                      "id": "UmV2aWV3OjIxNDU0Njc1OA=="
+                    },
+                    {
+                      "id": "UmV2aWV3OjEyNzM1NDc0MDY="
+                    }
+                  ]
+                }
+              }
+            }
+            """,
+            """
+            {
+              "variableIndex": 1,
+              "data": {
+                "userById": {
+                  "reviews": [
+                    {
+                      "id": "UmV2aWV3OjI0NTI2NTY0NDk="
+                    },
+                    {
+                      "id": "UmV2aWV3OjQxMDcxMjI1NDU="
+                    },
+                    {
+                      "id": "UmV2aWV3OjI1NDQzMDAxMTY="
+                    }
+                  ]
+                }
+              }
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public async Task Object_Ids_Differ_When_Argument_Values_Differ()
+    {
+        // arrange
+        const string schema =
+            """
+            type Query {
+              productBySku(sku: String!): Product
+            }
+
+            type Product {
+              id: ID!
+            }
+            """;
+        const string firstRequest =
+            """
+            query {
+              productBySku(sku: "a") {
+                id
+              }
+            }
+            """;
+        const string secondRequest =
+            """
+            query {
+              productBySku(sku: "b") {
+                id
+              }
+            }
+            """;
+
+        // act
+        var first = await ExecuteRequestAgainstSchemaAsync(firstRequest, schema);
+        var second = await ExecuteRequestAgainstSchemaAsync(secondRequest, schema);
+
+        // assert
+        new[] { first, second }.MatchInlineSnapshots(
+        [
+            """
+            {
+              "data": {
+                "productBySku": {
+                  "id": "UHJvZHVjdDoxMzQxNjYzMzY5"
+                }
+              }
+            }
+            """,
+            """
+            {
+              "data": {
+                "productBySku": {
+                  "id": "UHJvZHVjdDozMDQ5ODg0MzI5"
+                }
+              }
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public async Task Object_Ids_Use_Variable_Values_Not_Variable_Names()
+    {
+        // arrange
+        const string schema =
+            """
+            type Query {
+              productBySku(sku: String!): Product
+            }
+
+            type Product {
+              id: ID!
+            }
+            """;
+        const string request =
+            """
+            query($sku: String!) {
+              productBySku(sku: $sku) {
+                id
+              }
+            }
+            """;
+        const string renamedRequest =
+            """
+            query($other: String!) {
+              productBySku(sku: $other) {
+                id
+              }
+            }
+            """;
+
+        // act
+        var batch = await ExecuteRequestAgainstSchemaAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(request)
+                .SetVariableValues("""[{ "sku": "a" }, { "sku": "b" }]""")
+                .Build(),
+            schema);
+        var renamed = await ExecuteRequestAgainstSchemaAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(renamedRequest)
+                .SetVariableValues("""{ "other": "a" }""")
+                .Build(),
+            schema);
+
+        // assert
+        IExecutionResult[] results = [.. batch.ExpectOperationResultBatch().Results, renamed];
+        results.MatchInlineSnapshots(
+        [
+            """
+            {
+              "variableIndex": 0,
+              "data": {
+                "productBySku": {
+                  "id": "UHJvZHVjdDoxMzQxNjYzMzY5"
+                }
+              }
+            }
+            """,
+            """
+            {
+              "variableIndex": 1,
+              "data": {
+                "productBySku": {
+                  "id": "UHJvZHVjdDozMDQ5ODg0MzI5"
+                }
+              }
+            }
+            """,
+            """
+            {
+              "data": {
+                "productBySku": {
+                  "id": "UHJvZHVjdDoxMzQxNjYzMzY5"
+                }
+              }
+            }
+            """
+        ]);
+    }
+
+    #endregion
+
+    private static Task<IExecutionResult> ExecuteRequestAgainstSchemaAsync(
         string request,
+        string schemaText)
+        => ExecuteRequestAgainstSchemaAsync(
+            OperationRequestBuilder.New().SetDocument(request).Build(),
+            schemaText);
+
+    private static async Task<IExecutionResult> ExecuteRequestAgainstSchemaAsync(
+        IOperationRequest request,
         string schemaText)
     {
         var executor = await new ServiceCollection()

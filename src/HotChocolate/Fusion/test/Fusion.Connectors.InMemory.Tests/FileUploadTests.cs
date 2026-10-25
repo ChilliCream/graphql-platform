@@ -1,4 +1,6 @@
 using System.Text;
+using System.Text.Json;
+using HotChocolate.Execution;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types;
@@ -6,6 +8,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using OperationRequest = HotChocolate.Transport.OperationRequest;
 
 namespace HotChocolate.Fusion;
 
@@ -49,6 +52,50 @@ public sealed class FileUploadTests : IDisposable
         // assert
         var body = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         body.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Upload_Single_File_Should_KeepText_When_TextSpansArenaSegments()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddGraphQL("uploads")
+            .AddQueryType<UploadSchema.Query>()
+            .AddUploadType()
+            .AddSourceSchemaDefaults();
+        services.AddGraphQLGateway()
+            .AddInMemorySchema("uploads");
+        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+
+        // the text does not fit the first memory segment of the variables
+        var text = new string('x', 1500);
+
+        using var request = OperationRequestBuilder.New()
+            .SetDocument(
+                """
+                query ($file: Upload!, $text: String!) {
+                  uploadWithText(file: $file, text: $text)
+                }
+                """)
+            .SetVariableValues(
+                new Dictionary<string, object?>
+                {
+                    ["file"] = "1",
+                    ["text"] = text
+                })
+            .AddFile("1", new StreamFile("test.txt", () => new MemoryStream("abc"u8.ToArray())))
+            .Build();
+
+        // act
+        await using var result = (await executor.ExecuteAsync(request, TestContext.Current.CancellationToken))
+            .ExpectOperationResult();
+
+        // assert
+        Assert.Empty(result.Errors);
+        using var document = JsonDocument.Parse(result.ToJson());
+        Assert.Equal(
+            "test.txt:" + text,
+            document.RootElement.GetProperty("data").GetProperty("uploadWithText").GetString());
     }
 
     [Fact]
@@ -301,6 +348,8 @@ public sealed class FileUploadTests : IDisposable
 
             public async Task<FileUploadResult> SingleUploadWithInput(FileInput input)
                 => await ReadFileAsync(input.File);
+
+            public string UploadWithText(IFile file, string text) => file.Name + ":" + text;
 
             public async IAsyncEnumerable<FileUploadResult> MultiUpload(IFile[] files)
             {

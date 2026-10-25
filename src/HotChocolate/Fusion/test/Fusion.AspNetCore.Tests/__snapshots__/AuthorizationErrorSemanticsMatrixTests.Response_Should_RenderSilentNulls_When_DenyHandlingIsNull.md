@@ -46,8 +46,8 @@
 {
   "data": {
     "product": {
-      "id": "UHJvZHVjdDox",
-      "name": "Product: UHJvZHVjdDox",
+      "id": "UHJvZHVjdDoxMDQzMzExNzcz",
+      "name": "Product: UHJvZHVjdDoxMDQzMzExNzcz",
       "price": 123
     }
   }
@@ -114,15 +114,15 @@
   "data": {
     "products": [
       {
-        "id": "UHJvZHVjdDox",
+        "id": "UHJvZHVjdDoxOTc0MTQ1MDk=",
         "price": null
       },
       {
-        "id": "UHJvZHVjdDoy",
+        "id": "UHJvZHVjdDozOTM1NzEyMDU5",
         "price": null
       },
       {
-        "id": "UHJvZHVjdDoz",
+        "id": "UHJvZHVjdDoyMjE1MjQ2OTE2",
         "price": null
       }
     ]

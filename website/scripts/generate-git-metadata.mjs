@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 // Standalone git metadata step, run as part of the release workflow (and the
 // local `ci-local.sh` script). Walks the git history of the tracked content
-// directories and writes `git-metadata.generated.json` mapping each doc/blog
-// file to its last commit date and author. The app reads this file at build
-// time; when it is absent it falls back to static placeholder metadata.
+// directories and writes `git-metadata.generated.json` mapping each
+// doc/blog/video file to its last commit date and author. The app reads this
+// file at build time; when it is absent it falls back to static placeholder
+// metadata.
 //
 // A shallow checkout cannot produce accurate attribution, so this fails hard
 // instead of silently degrading. Use `actions/checkout` with `fetch-depth: 0`.
@@ -19,6 +20,7 @@ const HEADER = "@@COMMIT@@";
 const TRACKED_DIRS = [
   path.join(WEBSITE_ROOT, "content", "docs"),
   path.join(WEBSITE_ROOT, "content", "blog"),
+  path.join(WEBSITE_ROOT, "content", "videos"),
   path.join(WEBSITE_ROOT, "app", "(content)"),
 ];
 

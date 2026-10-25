@@ -302,7 +302,8 @@ internal sealed class FusionRequestExecutorManager
     {
         var plannerOptions = new OperationPlannerOptions
         {
-            EnableDefer = options.EnableDefer
+            EnableDefer = options.EnableDefer,
+            EnableEntityReuseSplitting = options.EnableEntityReuse
         };
 
         foreach (var configure in setup.PlannerOptionsModifiers)

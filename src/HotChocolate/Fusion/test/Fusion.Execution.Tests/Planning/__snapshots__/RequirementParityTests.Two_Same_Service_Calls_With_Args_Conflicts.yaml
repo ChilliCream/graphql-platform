@@ -51,6 +51,7 @@ nodes:
         selectionMap: >-
           price
     dependencies:
+      - id: 1
       - id: 6
   - id: 3
     type: Operation
@@ -66,24 +67,6 @@ nodes:
     batchingGroupId: 6
     requirements:
       - name: __fusion_3_upc
-        selectionMap: >-
-          upc
-    dependencies:
-      - id: 1
-  - id: 4
-    type: Operation
-    schema: products
-    operation: |
-      query Op_123456789101112_4($__fusion_4_upc: String!) {
-        productByUpc(upc: $__fusion_4_upc) {
-          upc
-        }
-      }
-    source: $.productByUpc
-    target: $.products
-    batchingGroupId: 6
-    requirements:
-      - name: __fusion_4_upc
         selectionMap: >-
           upc
     dependencies:

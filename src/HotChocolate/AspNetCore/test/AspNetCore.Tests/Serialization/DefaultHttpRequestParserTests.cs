@@ -173,6 +173,74 @@ public sealed class DefaultHttpRequestParserTests
     }
 
     [Fact]
+    public void ParseRequestFromParams_Should_ReadDocumentId_When_IdIsMissing()
+    {
+        // arrange
+        var queryParams = new QueryCollection(
+            new Dictionary<string, StringValues>
+            {
+                ["documentId"] = "abc1213_5164-ABC-123"
+            });
+        var parser = new DefaultHttpRequestParser(
+            new DefaultDocumentCache(),
+            new Sha256DocumentHashProvider(),
+            256,
+            ParserOptions.Default);
+
+        // act
+        var request = parser.ParseRequestFromParams(queryParams);
+
+        // assert
+        Assert.Equal("abc1213_5164-ABC-123", request.DocumentId?.Value);
+    }
+
+    [Fact]
+    public void ParseRequestFromParams_Should_PreferId_When_IdAndDocumentIdAreSet()
+    {
+        // arrange
+        var queryParams = new QueryCollection(
+            new Dictionary<string, StringValues>
+            {
+                ["documentId"] = "def456",
+                ["id"] = "abc123"
+            });
+        var parser = new DefaultHttpRequestParser(
+            new DefaultDocumentCache(),
+            new Sha256DocumentHashProvider(),
+            256,
+            ParserOptions.Default);
+
+        // act
+        var request = parser.ParseRequestFromParams(queryParams);
+
+        // assert
+        Assert.Equal("abc123", request.DocumentId?.Value);
+    }
+
+    [Fact]
+    public void ParseRequestFromParams_Should_Throw_When_DocumentIdHasInvalidFormat()
+    {
+        // arrange
+        var queryParams = new QueryCollection(
+            new Dictionary<string, StringValues>
+            {
+                ["documentId"] = "sha256:abc123"
+            });
+        var parser = new DefaultHttpRequestParser(
+            new DefaultDocumentCache(),
+            new Sha256DocumentHashProvider(),
+            256,
+            ParserOptions.Default);
+
+        // act
+        void Parse() => parser.ParseRequestFromParams(queryParams);
+
+        // assert
+        var ex = Assert.Throws<GraphQLRequestException>(Parse);
+        Assert.Equal("The operation ID has an invalid format.", ex.Message);
+    }
+
+    [Fact]
     public async Task ParseRequestAsync_Should_AdvancePipe_When_SyntaxError()
     {
         // arrange

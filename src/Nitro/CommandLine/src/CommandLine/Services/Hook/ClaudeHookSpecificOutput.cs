@@ -4,5 +4,7 @@ internal sealed record ClaudeHookSpecificOutput
 {
     public required string HookEventName { get; init; }
 
-    public required string AdditionalContext { get; init; }
+    public string? AdditionalContext { get; init; }
+
+    public string? AgentName { get; init; }
 }

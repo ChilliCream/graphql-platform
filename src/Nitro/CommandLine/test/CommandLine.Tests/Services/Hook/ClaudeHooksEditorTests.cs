@@ -9,6 +9,8 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 /// </summary>
 public sealed class ClaudeHooksEditorTests
 {
+    private static readonly ClaudeHooksTemplate s_template = ClaudeHooksTemplate.Claude;
+
     private static readonly LaunchDescriptor s_descriptor =
         new("/home/agent/.dotnet/tools/nitro", []);
 
@@ -17,7 +19,7 @@ public sealed class ClaudeHooksEditorTests
     {
         // arrange
         // act
-        var result = ClaudeHooksEditor.Install(null, s_descriptor, DateTimeOffset.UnixEpoch);
+        var result = ClaudeHooksEditor.Install(null, s_template, s_descriptor, DateTimeOffset.UnixEpoch);
 
         // assert
         result.Outcomes.MatchInlineSnapshot(
@@ -49,10 +51,10 @@ public sealed class ClaudeHooksEditorTests
         var root = Parse(result.SettingsJson);
         var hooks = (JsonObject)root["hooks"]!;
 
-        foreach (var claudeEvent in ClaudeHooksTemplate.Events)
+        foreach (var claudeEvent in s_template.Events)
         {
             var group = SingleGroup(hooks, claudeEvent);
-            AssertCommand(group, ClaudeHooksTemplate.BuildCommand(s_descriptor, claudeEvent), 10);
+            AssertCommand(group, s_template.BuildCommand(s_descriptor, claudeEvent), 10);
         }
 
         Assert.Equal(5, result.Sidecar.Count);
@@ -66,7 +68,7 @@ public sealed class ClaudeHooksEditorTests
         var beforeRoot = Parse(before);
         var herdrBefore = ((JsonObject)beforeRoot["hooks"]!)["SessionStart"]![0];
 
-        var result = ClaudeHooksEditor.Install(before, s_descriptor, DateTimeOffset.UnixEpoch);
+        var result = ClaudeHooksEditor.Install(before, s_template, s_descriptor, DateTimeOffset.UnixEpoch);
 
         Assert.All(result.Outcomes, o => Assert.Equal(HookInstallOutcome.Installed, o.Outcome));
 
@@ -76,7 +78,7 @@ public sealed class ClaudeHooksEditorTests
         Assert.Equal(2, sessionStart.Count);
         Assert.True(JsonNode.DeepEquals(herdrBefore, sessionStart[0]));
         AssertCommand(
-            (JsonObject)sessionStart[1]!, ClaudeHooksTemplate.BuildCommand(s_descriptor, "SessionStart"), 10);
+            (JsonObject)sessionStart[1]!, s_template.BuildCommand(s_descriptor, "SessionStart"), 10);
 
         // Untouched foreign top-level content round-trips unchanged.
         Assert.True(JsonNode.DeepEquals(beforeRoot["someOtherTopLevelKey"], afterRoot["someOtherTopLevelKey"]));
@@ -91,7 +93,7 @@ public sealed class ClaudeHooksEditorTests
         var herdrBefore = ((JsonArray)beforeHooks["SessionStart"]!)[0];
         var foreignSessionEndBefore = ((JsonArray)beforeHooks["SessionEnd"]!)[0];
 
-        var result = ClaudeHooksEditor.Install(before, s_descriptor, DateTimeOffset.UnixEpoch);
+        var result = ClaudeHooksEditor.Install(before, s_template, s_descriptor, DateTimeOffset.UnixEpoch);
 
         var byEvent = result.Outcomes.ToDictionary(o => o.Event, o => o.Outcome);
         Assert.Equal(HookInstallOutcome.Updated, byEvent["SessionStart"]);
@@ -105,19 +107,19 @@ public sealed class ClaudeHooksEditorTests
         Assert.Equal(2, sessionStart.Count);
         Assert.True(JsonNode.DeepEquals(herdrBefore, sessionStart[0]));
         AssertCommand(
-            (JsonObject)sessionStart[1]!, ClaudeHooksTemplate.BuildCommand(s_descriptor, "SessionStart"), 10);
+            (JsonObject)sessionStart[1]!, s_template.BuildCommand(s_descriptor, "SessionStart"), 10);
 
         var sessionEnd = (JsonArray)afterHooks["SessionEnd"]!;
         Assert.Equal(2, sessionEnd.Count);
         Assert.True(JsonNode.DeepEquals(foreignSessionEndBefore, sessionEnd[0]));
         AssertCommand(
-            (JsonObject)sessionEnd[1]!, ClaudeHooksTemplate.BuildCommand(s_descriptor, "SessionEnd"), 10);
+            (JsonObject)sessionEnd[1]!, s_template.BuildCommand(s_descriptor, "SessionEnd"), 10);
 
         AssertCommand(
             SingleGroup(afterHooks, "UserPromptSubmit"),
-            ClaudeHooksTemplate.BuildCommand(s_descriptor, "UserPromptSubmit"),
+            s_template.BuildCommand(s_descriptor, "UserPromptSubmit"),
             10);
-        AssertCommand(SingleGroup(afterHooks, "Stop"), ClaudeHooksTemplate.BuildCommand(s_descriptor, "Stop"), 10);
+        AssertCommand(SingleGroup(afterHooks, "Stop"), s_template.BuildCommand(s_descriptor, "Stop"), 10);
     }
 
     [Fact]
@@ -125,7 +127,7 @@ public sealed class ClaudeHooksEditorTests
     {
         var before = ClaudeHooksInstallFixtures.Read("install", "already-installed.json");
 
-        var result = ClaudeHooksEditor.Install(before, s_descriptor, DateTimeOffset.UnixEpoch);
+        var result = ClaudeHooksEditor.Install(before, s_template, s_descriptor, DateTimeOffset.UnixEpoch);
 
         Assert.All(result.Outcomes, o => Assert.Equal(HookInstallOutcome.Unchanged, o.Outcome));
         Assert.True(JsonNode.DeepEquals(Parse(before), Parse(result.SettingsJson)));
@@ -136,7 +138,7 @@ public sealed class ClaudeHooksEditorTests
     {
         var before = ClaudeHooksInstallFixtures.Read("install", "outdated.json");
 
-        var result = ClaudeHooksEditor.Install(before, s_descriptor, DateTimeOffset.UnixEpoch);
+        var result = ClaudeHooksEditor.Install(before, s_template, s_descriptor, DateTimeOffset.UnixEpoch);
 
         var byEvent = result.Outcomes.ToDictionary(o => o.Event, o => o.Outcome);
         Assert.Equal(HookInstallOutcome.Updated, byEvent["SessionStart"]);
@@ -146,7 +148,7 @@ public sealed class ClaudeHooksEditorTests
 
         var hooks = (JsonObject)Parse(result.SettingsJson)["hooks"]!;
         AssertCommand(
-            SingleGroup(hooks, "SessionStart"), ClaudeHooksTemplate.BuildCommand(s_descriptor, "SessionStart"), 10);
+            SingleGroup(hooks, "SessionStart"), s_template.BuildCommand(s_descriptor, "SessionStart"), 10);
     }
 
     [Fact]
@@ -154,21 +156,23 @@ public sealed class ClaudeHooksEditorTests
     {
         var before = ClaudeHooksInstallFixtures.Read("install", "manually-edited.json");
 
-        var result = ClaudeHooksEditor.Install(before, s_descriptor, DateTimeOffset.UnixEpoch);
+        var result = ClaudeHooksEditor.Install(before, s_template, s_descriptor, DateTimeOffset.UnixEpoch);
 
         var outcome = Assert.Single(result.Outcomes, o => o.Event == "SessionStart");
         Assert.Equal(HookInstallOutcome.Updated, outcome.Outcome);
 
         var hooks = (JsonObject)Parse(result.SettingsJson)["hooks"]!;
         AssertCommand(
-            SingleGroup(hooks, "SessionStart"), ClaudeHooksTemplate.BuildCommand(s_descriptor, "SessionStart"), 10);
+            SingleGroup(hooks, "SessionStart"), s_template.BuildCommand(s_descriptor, "SessionStart"), 10);
     }
 
     [Fact]
     public void Install_Twice_IsIdempotent()
     {
-        var once = ClaudeHooksEditor.Install(null, s_descriptor, DateTimeOffset.UnixEpoch).SettingsJson;
-        var twice = ClaudeHooksEditor.Install(once, s_descriptor, DateTimeOffset.UnixEpoch).SettingsJson;
+        var once = ClaudeHooksEditor.Install(
+            null, s_template, s_descriptor, DateTimeOffset.UnixEpoch).SettingsJson;
+        var twice = ClaudeHooksEditor.Install(
+            once, s_template, s_descriptor, DateTimeOffset.UnixEpoch).SettingsJson;
 
         Assert.Equal(once, twice);
     }
@@ -180,7 +184,7 @@ public sealed class ClaudeHooksEditorTests
         var before = ClaudeHooksInstallFixtures.Read("install", "four-events.json");
 
         // act
-        var result = ClaudeHooksEditor.Status(before, s_descriptor);
+        var result = ClaudeHooksEditor.Status(before, s_template, s_descriptor);
 
         // assert
         result.MatchInlineSnapshot(
@@ -222,7 +226,7 @@ public sealed class ClaudeHooksEditorTests
         var before = ClaudeHooksInstallFixtures.Read("install", "four-events.json");
 
         // act
-        var result = ClaudeHooksEditor.Install(before, s_descriptor, DateTimeOffset.UnixEpoch);
+        var result = ClaudeHooksEditor.Install(before, s_template, s_descriptor, DateTimeOffset.UnixEpoch);
 
         // assert
         result.Outcomes.MatchInlineSnapshot(
@@ -250,7 +254,7 @@ public sealed class ClaudeHooksEditorTests
               }
             ]
             """);
-        ClaudeHooksEditor.Status(result.SettingsJson, s_descriptor).MatchInlineSnapshot(
+        ClaudeHooksEditor.Status(result.SettingsJson, s_template, s_descriptor).MatchInlineSnapshot(
             """
             [
               {
@@ -285,29 +289,30 @@ public sealed class ClaudeHooksEditorTests
     [Fact]
     public void Status_ReportsMissingInstalledAndOutdated()
     {
-        var missing = ClaudeHooksEditor.Status(null, s_descriptor);
+        var missing = ClaudeHooksEditor.Status(null, s_template, s_descriptor);
         Assert.All(missing, r => Assert.Equal(HookStatusOutcome.Missing, r.Outcome));
 
         var installed = ClaudeHooksEditor.Status(
-            ClaudeHooksInstallFixtures.Read("install", "already-installed.json"), s_descriptor);
+            ClaudeHooksInstallFixtures.Read("install", "already-installed.json"), s_template, s_descriptor);
         Assert.All(installed, r => Assert.Equal(HookStatusOutcome.Installed, r.Outcome));
 
         var outdated = ClaudeHooksEditor.Status(
-            ClaudeHooksInstallFixtures.Read("install", "outdated.json"), s_descriptor);
+            ClaudeHooksInstallFixtures.Read("install", "outdated.json"), s_template, s_descriptor);
         var sessionStart = Assert.Single(outdated, r => r.Event == "SessionStart");
         Assert.Equal(HookStatusOutcome.Outdated, sessionStart.Outcome);
         Assert.Equal("/opt/old/nitro agent hook claude session-start", sessionStart.InstalledCommand);
         Assert.All(outdated.Where(r => r.Event != "SessionStart"), r => Assert.Equal(HookStatusOutcome.Missing, r.Outcome));
 
         var manuallyEdited = ClaudeHooksEditor.Status(
-            ClaudeHooksInstallFixtures.Read("install", "manually-edited.json"), s_descriptor);
+            ClaudeHooksInstallFixtures.Read("install", "manually-edited.json"), s_template, s_descriptor);
         Assert.Equal(HookStatusOutcome.Outdated, Assert.Single(manuallyEdited, r => r.Event == "SessionStart").Outcome);
     }
 
     [Fact]
     public void Uninstall_MissingFile_AllNotPresent()
     {
-        var result = ClaudeHooksEditor.Uninstall(null, new Dictionary<string, ClaudeHooksSidecarEntry>());
+        var result = ClaudeHooksEditor.Uninstall(
+            null, s_template, new Dictionary<string, ClaudeHooksSidecarEntry>());
 
         Assert.All(result.Outcomes, o => Assert.Equal(HookUninstallOutcome.NotPresent, o.Outcome));
         Assert.Empty(result.Sidecar);
@@ -323,7 +328,7 @@ public sealed class ClaudeHooksEditorTests
 
         var sidecar = SidecarFor(before);
 
-        var result = ClaudeHooksEditor.Uninstall(before, sidecar);
+        var result = ClaudeHooksEditor.Uninstall(before, s_template, sidecar);
 
         Assert.All(result.Outcomes, o => Assert.Equal(HookUninstallOutcome.Removed, o.Outcome));
         Assert.Empty(result.Sidecar);
@@ -349,13 +354,13 @@ public sealed class ClaudeHooksEditorTests
         var staleSidecar = new Dictionary<string, ClaudeHooksSidecarEntry>
         {
             ["SessionStart"] = new(
-                ClaudeHooksTemplate.BuildCommand(s_descriptor, "SessionStart"),
+                s_template.BuildCommand(s_descriptor, "SessionStart"),
                 10,
-                ClaudeHooksSidecarEntry.ComputeHash(ClaudeHooksTemplate.BuildCommand(s_descriptor, "SessionStart"), 10),
+                ClaudeHooksSidecarEntry.ComputeHash(s_template.BuildCommand(s_descriptor, "SessionStart"), 10),
                 DateTimeOffset.UnixEpoch)
         };
 
-        var result = ClaudeHooksEditor.Uninstall(before, staleSidecar);
+        var result = ClaudeHooksEditor.Uninstall(before, s_template, staleSidecar);
 
         var sessionStart = Assert.Single(result.Outcomes, o => o.Event == "SessionStart");
         Assert.Equal(HookUninstallOutcome.Removed, sessionStart.Outcome);
@@ -369,19 +374,663 @@ public sealed class ClaudeHooksEditorTests
     {
         var before = ClaudeHooksInstallFixtures.Read("install", "foreign-only.json");
 
-        var result = ClaudeHooksEditor.Uninstall(before, new Dictionary<string, ClaudeHooksSidecarEntry>());
+        var result = ClaudeHooksEditor.Uninstall(
+            before, s_template, new Dictionary<string, ClaudeHooksSidecarEntry>());
 
         var sessionStart = Assert.Single(result.Outcomes, o => o.Event == "SessionStart");
         Assert.Equal(HookUninstallOutcome.NotPresent, sessionStart.Outcome);
         Assert.True(JsonNode.DeepEquals(Parse(before), Parse(result.SettingsJson)));
     }
 
+    [Fact]
+    public void Install_Should_UpdateTheOwnedHandlerInPlaceAndDropDuplicates_When_ItSharesAGroupWithAUserHook()
+    {
+        // arrange
+        var settings =
+            $$"""
+            {
+              "hooks": {
+                "Stop": [
+                  {
+                    "matcher": "*",
+                    "hooks": [
+                      { "type": "command", "command": "./mine.sh" },
+                      { "type": "command", "command": "/opt/old/nitro agent hook venti stop", "timeout": 5 }
+                    ]
+                  },
+                  { "hooks": [{ "type": "command", "command": "{{VentiCommand("Stop")}}", "timeout": 10 }] }
+                ]
+              }
+            }
+            """;
+
+        // act
+        var result = ClaudeHooksEditor.Install(settings, ClaudeHooksTemplate.Venti, s_descriptor, DateTimeOffset.UnixEpoch);
+
+        // assert
+        Assert.Equal(HookInstallOutcome.Updated, Assert.Single(result.Outcomes, o => o.Event == "Stop").Outcome);
+        Format(Parse(result.SettingsJson)["hooks"]!["Stop"]!).MatchInlineSnapshot(
+            """
+            [
+              {
+                "matcher": "*",
+                "hooks": [
+                  {
+                    "type": "command",
+                    "command": "./mine.sh"
+                  },
+                  {
+                    "type": "command",
+                    "command": "/home/agent/.dotnet/tools/nitro agent hook venti stop",
+                    "timeout": 10
+                  }
+                ]
+              }
+            ]
+            """);
+    }
+
+    [Fact]
+    public void Install_Should_MoveTheOwnedHandlerToItsOwnGroup_When_AMatcherNarrowsItsGroup()
+    {
+        // arrange
+        var settings =
+            $$"""
+            {
+              "hooks": {
+                "SessionStart": [
+                  {
+                    "matcher": "startup",
+                    "hooks": [
+                      { "type": "command", "command": "./mine.sh" },
+                      { "type": "command", "command": "{{VentiCommand("SessionStart")}}", "timeout": 10 }
+                    ]
+                  }
+                ]
+              }
+            }
+            """;
+
+        // act
+        var result = ClaudeHooksEditor.Install(settings, ClaudeHooksTemplate.Venti, s_descriptor, DateTimeOffset.UnixEpoch);
+
+        // assert
+        Format(Parse(result.SettingsJson)["hooks"]!["SessionStart"]!).MatchInlineSnapshot(
+            """
+            [
+              {
+                "matcher": "startup",
+                "hooks": [
+                  {
+                    "type": "command",
+                    "command": "./mine.sh"
+                  }
+                ]
+              },
+              {
+                "hooks": [
+                  {
+                    "type": "command",
+                    "command": "/home/agent/.dotnet/tools/nitro agent hook venti session-start",
+                    "timeout": 10
+                  }
+                ]
+              }
+            ]
+            """);
+    }
+
+    [Theory]
+    [InlineData("\"type\": \"command\", \"timeout\": 10, \"async\": true")]
+    [InlineData("\"type\": \"command\", \"timeout\": 10, \"enabled\": \"no\"")]
+    [InlineData("\"type\": \"command\", \"timeout\": 10, \"statusMessage\": 3")]
+    [InlineData("\"type\": \"command\", \"timeout\": \"10\"")]
+    [InlineData("\"type\": \"prompt\", \"timeout\": 10")]
+    public void Install_Should_LeaveARunnableHandler_When_TheOwnedHandlerIsNotRunnableAsWritten(string properties)
+    {
+        // arrange
+        var settings =
+            $$"""
+            {
+              "hooks": {
+                "Stop": [
+                  { "hooks": [{ "command": "{{VentiCommand("Stop")}}", {{properties}} }] }
+                ]
+              }
+            }
+            """;
+        var statusBefore = ClaudeHooksEditor.Status(settings, ClaudeHooksTemplate.Venti, s_descriptor);
+
+        // act
+        var result = ClaudeHooksEditor.Install(settings, ClaudeHooksTemplate.Venti, s_descriptor, DateTimeOffset.UnixEpoch);
+
+        // assert
+        var statusAfter = ClaudeHooksEditor.Status(result.SettingsJson, ClaudeHooksTemplate.Venti, s_descriptor);
+        Assert.Equal(
+            (HookStatusOutcome.Outdated, HookInstallOutcome.Updated, HookStatusOutcome.Installed),
+            (statusBefore.Single(r => r.Event == "Stop").Outcome,
+                result.Outcomes.Single(o => o.Event == "Stop").Outcome,
+                statusAfter.Single(r => r.Event == "Stop").Outcome));
+    }
+
+    [Fact]
+    public void Install_Should_MoveTheHandlerKeepingItSwitchedOff_When_ADisabledHandlerSharesANarrowedGroupWithUserHooks()
+    {
+        // arrange
+        const string settings =
+            """
+            {
+              "hooks": {
+                "Notification": [
+                  { "hooks": [{ "type": "command", "command": "./always.sh" }] },
+                  {
+                    "matcher": "idle_prompt",
+                    "hooks": [
+                      { "type": "command", "command": "./mine.sh" },
+                      {
+                        "type": "command",
+                        "command": "/opt/old/nitro agent hook venti notification",
+                        "timeout": 10,
+                        "enabled": false,
+                        "statusMessage": "Checking mail"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+            """;
+
+        // act
+        var result = ClaudeHooksEditor.Install(settings, ClaudeHooksTemplate.Venti, s_descriptor, DateTimeOffset.UnixEpoch);
+
+        // assert
+        Assert.Equal(
+            (HookInstallOutcome.Disabled, HookStatusOutcome.Disabled),
+            (result.Outcomes.Single(o => o.Event == "Notification").Outcome,
+                ClaudeHooksEditor.Status(result.SettingsJson, ClaudeHooksTemplate.Venti, s_descriptor)
+                    .Single(r => r.Event == "Notification").Outcome));
+        Format(Parse(result.SettingsJson)["hooks"]!["Notification"]!).MatchInlineSnapshot(
+            """
+            [
+              {
+                "hooks": [
+                  {
+                    "type": "command",
+                    "command": "./always.sh"
+                  }
+                ]
+              },
+              {
+                "matcher": "idle_prompt",
+                "hooks": [
+                  {
+                    "type": "command",
+                    "command": "./mine.sh"
+                  }
+                ]
+              },
+              {
+                "hooks": [
+                  {
+                    "type": "command",
+                    "command": "/home/agent/.dotnet/tools/nitro agent hook venti notification",
+                    "timeout": 10,
+                    "enabled": false,
+                    "statusMessage": "Checking mail"
+                  }
+                ]
+              }
+            ]
+            """);
+    }
+
+    [Theory]
+    [InlineData("\"matcher\": null, ", "")]
+    [InlineData("", ", \"async\": null")]
+    [InlineData("", ", \"enabled\": null")]
+    [InlineData("", ", \"statusMessage\": null")]
+    public void Install_Should_RepairTheHandler_When_AnOptionalPropertyIsExplicitlyNull(
+        string groupProperties,
+        string handlerProperties)
+    {
+        // arrange
+        var settings =
+            $$"""
+            {
+              "hooks": {
+                "Stop": [
+                  { {{groupProperties}}"hooks": [{ "type": "command", "command": "{{VentiCommand("Stop")}}", "timeout": 10{{handlerProperties}} }] }
+                ]
+              }
+            }
+            """;
+        var statusBefore = ClaudeHooksEditor.Status(settings, ClaudeHooksTemplate.Venti, s_descriptor);
+
+        // act
+        var result = ClaudeHooksEditor.Install(settings, ClaudeHooksTemplate.Venti, s_descriptor, DateTimeOffset.UnixEpoch);
+
+        // assert
+        Assert.Equal(
+            (HookStatusOutcome.Outdated, HookInstallOutcome.Updated, HookStatusOutcome.Installed),
+            (statusBefore.Single(r => r.Event == "Stop").Outcome,
+                result.Outcomes.Single(o => o.Event == "Stop").Outcome,
+                ClaudeHooksEditor.Status(result.SettingsJson, ClaudeHooksTemplate.Venti, s_descriptor)
+                    .Single(r => r.Event == "Stop").Outcome));
+        Format(Parse(result.SettingsJson)["hooks"]!["Stop"]!).MatchInlineSnapshot(
+            """
+            [
+              {
+                "hooks": [
+                  {
+                    "type": "command",
+                    "command": "/home/agent/.dotnet/tools/nitro agent hook venti stop",
+                    "timeout": 10
+                  }
+                ]
+              }
+            ]
+            """);
+    }
+
+    [Fact]
+    public void Status_Should_ReportOutdated_When_TheEventHasTwoOwnedHandlers()
+    {
+        // arrange
+        var command = VentiCommand("Stop");
+        var settings =
+            $$"""
+            {
+              "hooks": {
+                "Stop": [
+                  { "hooks": [{ "type": "command", "command": "{{command}}", "timeout": 10 }] },
+                  { "hooks": [{ "type": "command", "command": "{{command}}", "timeout": 10 }] }
+                ]
+              }
+            }
+            """;
+
+        // act
+        var status = ClaudeHooksEditor.Status(settings, ClaudeHooksTemplate.Venti, s_descriptor);
+
+        // assert
+        Assert.Equal(HookStatusOutcome.Outdated, status.Single(r => r.Event == "Stop").Outcome);
+    }
+
+    [Fact]
+    public void Install_Should_KeepTheEnabledFlagAndReportDisabled_When_TheVentiHandlerIsSwitchedOff()
+    {
+        // arrange
+        const string settings =
+            """
+            {
+              "hooks": {
+                "Stop": [
+                  { "hooks": [{ "type": "command", "command": "/opt/old/nitro agent hook venti stop", "timeout": 10, "enabled": false }] }
+                ]
+              }
+            }
+            """;
+
+        // act
+        var result = ClaudeHooksEditor.Install(settings, ClaudeHooksTemplate.Venti, s_descriptor, DateTimeOffset.UnixEpoch);
+
+        // assert
+        Assert.Equal(
+            (HookInstallOutcome.Disabled, HookStatusOutcome.Disabled),
+            (result.Outcomes.Single(o => o.Event == "Stop").Outcome,
+                ClaudeHooksEditor.Status(result.SettingsJson, ClaudeHooksTemplate.Venti, s_descriptor)
+                    .Single(r => r.Event == "Stop").Outcome));
+        Format(Parse(result.SettingsJson)["hooks"]!["Stop"]!).MatchInlineSnapshot(
+            """
+            [
+              {
+                "hooks": [
+                  {
+                    "type": "command",
+                    "command": "/home/agent/.dotnet/tools/nitro agent hook venti stop",
+                    "timeout": 10,
+                    "enabled": false
+                  }
+                ]
+              }
+            ]
+            """);
+    }
+
+    [Fact]
+    public void Status_Should_ReportInstalled_When_AClaudeHandlerCarriesAnEnabledFlag()
+    {
+        // arrange
+        var settings =
+            $$"""
+            {
+              "hooks": {
+                "Stop": [
+                  { "hooks": [{ "type": "command", "command": "{{s_template.BuildCommand(s_descriptor, "Stop")}}", "timeout": 10, "enabled": false }] }
+                ]
+              }
+            }
+            """;
+
+        // act
+        var status = ClaudeHooksEditor.Status(settings, s_template, s_descriptor);
+
+        // assert
+        Assert.Equal(HookStatusOutcome.Installed, status.Single(r => r.Event == "Stop").Outcome);
+    }
+
+    [Fact]
+    public void Uninstall_Should_RemoveEveryOwnedHandlerAndKeepSiblingsWithTheirGroup_When_OwnedHandlersShareGroups()
+    {
+        // arrange
+        var command = VentiCommand("Stop");
+        var settings =
+            $$"""
+            {
+              "hooks": {
+                "Stop": [
+                  {
+                    "matcher": "*",
+                    "hooks": [
+                      { "type": "command", "command": "{{command}}", "timeout": 10 },
+                      { "type": "command", "command": "./mine.sh" }
+                    ]
+                  },
+                  { "hooks": [{ "type": "command", "command": "{{command}}", "timeout": 10 }] },
+                  { "hooks": [{ "type": "command", "command": "/opt/old/nitro agent hook venti stop" }] }
+                ]
+              }
+            }
+            """;
+
+        // act
+        var result = ClaudeHooksEditor.Uninstall(
+            settings, ClaudeHooksTemplate.Venti, new Dictionary<string, ClaudeHooksSidecarEntry>());
+
+        // assert
+        Assert.Equal(HookUninstallOutcome.Removed, result.Outcomes.Single(o => o.Event == "Stop").Outcome);
+        Format(Parse(result.SettingsJson)).MatchInlineSnapshot(
+            """
+            {
+              "hooks": {
+                "Stop": [
+                  {
+                    "matcher": "*",
+                    "hooks": [
+                      {
+                        "type": "command",
+                        "command": "./mine.sh"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Install_Should_AddAgentNamingInAMainGroup_When_VentiSettingsAreMissing()
+    {
+        // arrange
+        // act
+        var result = ClaudeHooksEditor.Install(null, ClaudeHooksTemplate.Venti, s_descriptor, DateTimeOffset.UnixEpoch);
+
+        // assert
+        Assert.Equal(
+            ["AgentNaming", "SessionStart", "UserPromptSubmit", "Stop", "Notification", "SessionEnd"],
+            result.Outcomes.Select(o => o.Event));
+        Assert.Equal(6, result.Sidecar.Count);
+        Format(Parse(result.SettingsJson)["hooks"]!["AgentNaming"]!).MatchInlineSnapshot(
+            """
+            [
+              {
+                "matcher": "main",
+                "hooks": [
+                  {
+                    "type": "command",
+                    "command": "/home/agent/.dotnet/tools/nitro agent hook venti agent-naming",
+                    "timeout": 10
+                  }
+                ]
+              }
+            ]
+            """);
+    }
+
+    [Fact]
+    public void Install_Should_AddOnlyAgentNaming_When_VentiSettingsHoldTheFiveLifecycleEntries()
+    {
+        // arrange
+        var installed = Parse(
+            ClaudeHooksEditor.Install(null, ClaudeHooksTemplate.Venti, s_descriptor, DateTimeOffset.UnixEpoch)
+                .SettingsJson);
+        ((JsonObject)installed["hooks"]!).Remove("AgentNaming");
+        var settings = Format(installed);
+        var statusBefore = ClaudeHooksEditor.Status(settings, ClaudeHooksTemplate.Venti, s_descriptor);
+
+        // act
+        var result = ClaudeHooksEditor.Install(settings, ClaudeHooksTemplate.Venti, s_descriptor, DateTimeOffset.UnixEpoch);
+
+        // assert
+        var reinstalled = ClaudeHooksEditor.Install(
+            result.SettingsJson, ClaudeHooksTemplate.Venti, s_descriptor, DateTimeOffset.UnixEpoch);
+        Assert.Equal(result.SettingsJson, reinstalled.SettingsJson);
+        new
+        {
+            StatusBefore = statusBefore.Select(r => $"{r.Event}: {r.Outcome}"),
+            Install = result.Outcomes.Select(o => $"{o.Event}: {o.Outcome}"),
+            Reinstall = reinstalled.Outcomes.Select(o => $"{o.Event}: {o.Outcome}"),
+            StatusAfter = ClaudeHooksEditor.Status(result.SettingsJson, ClaudeHooksTemplate.Venti, s_descriptor)
+                .Select(r => $"{r.Event}: {r.Outcome}")
+        }.MatchInlineSnapshot(
+            """
+            {
+              "StatusBefore": [
+                "AgentNaming: Missing",
+                "SessionStart: Installed",
+                "UserPromptSubmit: Installed",
+                "Stop: Installed",
+                "Notification: Installed",
+                "SessionEnd: Installed"
+              ],
+              "Install": [
+                "AgentNaming: Installed",
+                "SessionStart: Unchanged",
+                "UserPromptSubmit: Unchanged",
+                "Stop: Unchanged",
+                "Notification: Unchanged",
+                "SessionEnd: Unchanged"
+              ],
+              "Reinstall": [
+                "AgentNaming: Unchanged",
+                "SessionStart: Unchanged",
+                "UserPromptSubmit: Unchanged",
+                "Stop: Unchanged",
+                "Notification: Unchanged",
+                "SessionEnd: Unchanged"
+              ],
+              "StatusAfter": [
+                "AgentNaming: Installed",
+                "SessionStart: Installed",
+                "UserPromptSubmit: Installed",
+                "Stop: Installed",
+                "Notification: Installed",
+                "SessionEnd: Installed"
+              ]
+            }
+            """);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("\"matcher\": \"*\", ")]
+    [InlineData("\"matcher\": \"\", ")]
+    [InlineData("\"matcher\": \"subagent\", ")]
+    [InlineData("\"matcher\": \"main|subagent\", ")]
+    [InlineData("\"matcher\": null, ")]
+    public void Install_Should_MoveTheNamingHandlerToAMainGroup_When_ItsGroupHasAnotherMatcher(string groupProperties)
+    {
+        // arrange
+        var settings =
+            $$"""
+            {
+              "hooks": {
+                "AgentNaming": [
+                  {
+                    {{groupProperties}}"hooks": [
+                      { "type": "command", "command": "./mine.sh" },
+                      { "type": "command", "command": "{{VentiCommand("AgentNaming")}}", "timeout": 10 }
+                    ]
+                  }
+                ]
+              }
+            }
+            """;
+        var statusBefore = ClaudeHooksEditor.Status(settings, ClaudeHooksTemplate.Venti, s_descriptor);
+
+        // act
+        var result = ClaudeHooksEditor.Install(settings, ClaudeHooksTemplate.Venti, s_descriptor, DateTimeOffset.UnixEpoch);
+
+        // assert
+        var groups = (JsonArray)Parse(result.SettingsJson)["hooks"]!["AgentNaming"]!;
+        Assert.Equal(
+            (HookStatusOutcome.Outdated, HookInstallOutcome.Updated, HookStatusOutcome.Installed),
+            (statusBefore.Single(r => r.Event == "AgentNaming").Outcome,
+                result.Outcomes.Single(o => o.Event == "AgentNaming").Outcome,
+                ClaudeHooksEditor.Status(result.SettingsJson, ClaudeHooksTemplate.Venti, s_descriptor)
+                    .Single(r => r.Event == "AgentNaming").Outcome));
+        Assert.Equal(
+            ["./mine.sh", VentiCommand("AgentNaming")],
+            groups.Select(g => g!["hooks"]!.AsArray().Single()!["command"]!.GetValue<string>()));
+        Assert.Equal("main", groups[1]!["matcher"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public void Install_Should_KeepTheSwitchedOffHandlerInTheMainGroup_When_ANamingDuplicateRunsOnEveryAgent()
+    {
+        // arrange
+        var settings =
+            $$"""
+            {
+              "hooks": {
+                "AgentNaming": [
+                  {
+                    "matcher": "*",
+                    "hooks": [
+                      { "type": "command", "command": "./always.sh" },
+                      { "type": "command", "command": "{{VentiCommand("AgentNaming")}}", "timeout": 10 }
+                    ]
+                  },
+                  {
+                    "matcher": "main",
+                    "hooks": [
+                      { "type": "command", "command": "./mine.sh" },
+                      { "type": "command", "command": "/opt/old/nitro agent hook venti agent-naming", "timeout": 5, "enabled": false }
+                    ]
+                  }
+                ]
+              }
+            }
+            """;
+
+        // act
+        var result = ClaudeHooksEditor.Install(settings, ClaudeHooksTemplate.Venti, s_descriptor, DateTimeOffset.UnixEpoch);
+
+        // assert
+        Assert.Equal(
+            (HookInstallOutcome.Disabled, HookStatusOutcome.Disabled),
+            (result.Outcomes.Single(o => o.Event == "AgentNaming").Outcome,
+                ClaudeHooksEditor.Status(result.SettingsJson, ClaudeHooksTemplate.Venti, s_descriptor)
+                    .Single(r => r.Event == "AgentNaming").Outcome));
+        Format(Parse(result.SettingsJson)["hooks"]!["AgentNaming"]!).MatchInlineSnapshot(
+            """
+            [
+              {
+                "matcher": "*",
+                "hooks": [
+                  {
+                    "type": "command",
+                    "command": "./always.sh"
+                  }
+                ]
+              },
+              {
+                "matcher": "main",
+                "hooks": [
+                  {
+                    "type": "command",
+                    "command": "./mine.sh"
+                  },
+                  {
+                    "type": "command",
+                    "command": "/home/agent/.dotnet/tools/nitro agent hook venti agent-naming",
+                    "timeout": 10,
+                    "enabled": false
+                  }
+                ]
+              }
+            ]
+            """);
+    }
+
+    [Fact]
+    public void Uninstall_Should_RemoveTheNamingHandlerAndKeepTheMainGroupSibling_When_TheyShareAGroup()
+    {
+        // arrange
+        var settings =
+            $$"""
+            {
+              "hooks": {
+                "AgentNaming": [
+                  {
+                    "matcher": "main",
+                    "hooks": [
+                      { "type": "command", "command": "{{VentiCommand("AgentNaming")}}", "timeout": 10 },
+                      { "type": "command", "command": "./mine.sh" }
+                    ]
+                  }
+                ]
+              }
+            }
+            """;
+
+        // act
+        var result = ClaudeHooksEditor.Uninstall(
+            settings, ClaudeHooksTemplate.Venti, new Dictionary<string, ClaudeHooksSidecarEntry>());
+
+        // assert
+        Assert.Equal(HookUninstallOutcome.Removed, result.Outcomes.Single(o => o.Event == "AgentNaming").Outcome);
+        Format(Parse(result.SettingsJson)).MatchInlineSnapshot(
+            """
+            {
+              "hooks": {
+                "AgentNaming": [
+                  {
+                    "matcher": "main",
+                    "hooks": [
+                      {
+                        "type": "command",
+                        "command": "./mine.sh"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    private static string VentiCommand(string hookEvent)
+        => ClaudeHooksTemplate.Venti.BuildCommand(s_descriptor, hookEvent);
+
     private static Dictionary<string, ClaudeHooksSidecarEntry> SidecarFor(string installedJson)
     {
         var hooks = (JsonObject)Parse(installedJson)["hooks"]!;
         var sidecar = new Dictionary<string, ClaudeHooksSidecarEntry>();
 
-        foreach (var claudeEvent in ClaudeHooksTemplate.Events)
+        foreach (var claudeEvent in s_template.Events)
         {
             var group = SingleOwnedGroup(hooks, claudeEvent);
             var hook = (JsonObject)((JsonArray)group["hooks"]!)[0]!;
@@ -399,7 +1048,7 @@ public sealed class ClaudeHooksEditorTests
         => (JsonObject)((JsonArray)hooks[claudeEvent]!)
             .Single(g => ((JsonObject)g!)["hooks"]!.AsArray()
                 .All(h => ((JsonObject)h!)["command"]!.GetValue<string>()
-                    .Contains(ClaudeHooksTemplate.CommandMarker, StringComparison.Ordinal)))!;
+                    .Contains(s_template.CommandMarker, StringComparison.Ordinal)))!;
 
     private static JsonObject SingleGroup(JsonObject hooks, string claudeEvent)
     {
@@ -418,4 +1067,6 @@ public sealed class ClaudeHooksEditorTests
     }
 
     private static JsonObject Parse(string json) => (JsonObject)JsonNode.Parse(json)!;
+
+    private static string Format(JsonNode node) => node.ToJsonString(new() { WriteIndented = true });
 }

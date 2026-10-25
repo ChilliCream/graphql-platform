@@ -31,17 +31,17 @@ response:
             "reviews": [
               {
                 "author": {
-                  "name": "User: VXNlcjo1"
+                  "name": "User: VXNlcjo0MTIwMDEwNDg="
                 }
               },
               {
                 "author": {
-                  "name": "User: VXNlcjo2"
+                  "name": "User: VXNlcjoyMzcxMDkxNjIx"
                 }
               },
               {
                 "author": {
-                  "name": "User: VXNlcjo3"
+                  "name": "User: VXNlcjozMDMxNzE3Mjc1"
                 }
               }
             ]
@@ -114,7 +114,7 @@ sourceSchemas:
                     "__typename": "ProductSearchResult",
                     "product": {
                       "productId": 123,
-                      "reviewAudience": "Product: UHJvZHVjdDoy"
+                      "reviewAudience": "Product: UHJvZHVjdDoxNDk5MzMwMTU3"
                     }
                   }
                 }
@@ -167,7 +167,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_4_audience": "Product: UHJvZHVjdDoy",
+              "__fusion_4_audience": "Product: UHJvZHVjdDoxNDk5MzMwMTU3",
               "__fusion_5_id": 123
             }
         response:
@@ -179,17 +179,17 @@ sourceSchemas:
                     "reviews": [
                       {
                         "author": {
-                          "userId": "VXNlcjo1"
+                          "userId": "VXNlcjo0MTIwMDEwNDg="
                         }
                       },
                       {
                         "author": {
-                          "userId": "VXNlcjo2"
+                          "userId": "VXNlcjoyMzcxMDkxNjIx"
                         }
                       },
                       {
                         "author": {
-                          "userId": "VXNlcjo3"
+                          "userId": "VXNlcjozMDMxNzE3Mjc1"
                         }
                       }
                     ]
@@ -222,13 +222,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_2_id": "VXNlcjo1"
+                "__fusion_2_id": "VXNlcjo0MTIwMDEwNDg="
               },
               {
-                "__fusion_2_id": "VXNlcjo2"
+                "__fusion_2_id": "VXNlcjoyMzcxMDkxNjIx"
               },
               {
-                "__fusion_2_id": "VXNlcjo3"
+                "__fusion_2_id": "VXNlcjozMDMxNzE3Mjc1"
               }
             ]
         response:
@@ -238,7 +238,7 @@ sourceSchemas:
               {
                 "data": {
                   "userById": {
-                    "name": "User: VXNlcjo1"
+                    "name": "User: VXNlcjo0MTIwMDEwNDg="
                   }
                 }
               }
@@ -246,7 +246,7 @@ sourceSchemas:
               {
                 "data": {
                   "userById": {
-                    "name": "User: VXNlcjo2"
+                    "name": "User: VXNlcjoyMzcxMDkxNjIx"
                   }
                 }
               }
@@ -254,7 +254,7 @@ sourceSchemas:
               {
                 "data": {
                   "userById": {
-                    "name": "User: VXNlcjo3"
+                    "name": "User: VXNlcjozMDMxNzE3Mjc1"
                   }
                 }
               }

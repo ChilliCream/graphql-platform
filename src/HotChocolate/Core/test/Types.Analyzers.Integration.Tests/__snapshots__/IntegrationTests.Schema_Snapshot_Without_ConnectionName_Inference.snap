@@ -121,6 +121,7 @@ type Mutation {
   saveShapes(shapes: [ShapeInput!]!): Boolean!
   setOptionalValue(value: String): String!
   createExport(currentUser: CurrentUserInput!, name: String!): String!
+  renameShape(name: String!): RenameShapePayload!
 }
 
 type Subscription {
@@ -298,6 +299,10 @@ type PublisherEdge {
 
 type renamed_DescriptorAttributeProbe {
   name: String!
+}
+
+type RenameShapePayload {
+  result: String!
 }
 
 type Shape {

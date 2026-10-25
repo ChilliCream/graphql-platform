@@ -393,7 +393,8 @@ internal sealed class RequirementsValidator(
                     cycleDetectionPath: context.CycleDetectionPath,
                     unavailableSchemaNames: context.UnavailableSchemaNames),
             RequirementsValidator_NoLookupsFoundForType,
-            RequirementsValidator_UnableToSatisfyRequirementForLookup);
+            RequirementsValidator_UnableToSatisfyRequirementForLookup,
+            queryViewerField: null);
     }
 
     /// <summary>

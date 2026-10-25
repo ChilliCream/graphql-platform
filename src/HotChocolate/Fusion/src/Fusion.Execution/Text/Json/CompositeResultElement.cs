@@ -896,6 +896,17 @@ public readonly partial struct CompositeResultElement
     }
 
     /// <summary>
+    /// Gets a kind marker and the raw bytes of this element when it is a non-null leaf value.
+    /// Two leaf values with equal kind markers and equal raw bytes serialize to the same JSON.
+    /// </summary>
+    internal bool TryGetLeafValueKey(out byte kind, out ReadOnlySpan<byte> value)
+    {
+        CheckValidInstance();
+
+        return _parent.TryGetLeafValueKey(_cursor, out kind, out value);
+    }
+
+    /// <summary>
     /// Compares the text of this element to the specified string.
     /// </summary>
     /// <param name="text">The text to compare against.</param>
@@ -1059,6 +1070,26 @@ public readonly partial struct CompositeResultElement
         CheckValidInstance();
 
         _parent.AssignSourceValue(this, source._parent, source._cursor, source._row);
+    }
+
+    /// <summary>
+    /// Assigns the leaf value of <paramref name="source"/> to this element without copying
+    /// the value data. Both elements must belong to the same result document.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c> if the source holds a non-null leaf value that was assigned;
+    /// otherwise, <c>false</c>.
+    /// </returns>
+    internal bool TrySetLeafValue(CompositeResultElement source)
+    {
+        CheckValidInstance();
+
+        if (!ReferenceEquals(_parent, source._parent))
+        {
+            return false;
+        }
+
+        return _parent.TryAssignLeafValue(this, source);
     }
 
     internal void SetNullValue()

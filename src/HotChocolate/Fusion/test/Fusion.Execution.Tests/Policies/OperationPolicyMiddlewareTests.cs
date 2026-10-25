@@ -194,12 +194,7 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
         // assert
         Assert.Single(client.Requests).MatchInlineSnapshot(
             """
-            query Op_915ec426_1($__fusion_policy_1: Boolean!) {
-              product {
-                id
-                price @skip(if: $__fusion_policy_1)
-              }
-            }
+            query Op_915ec426_1($__fusion_policy_1: Boolean!) { product { id price @skip(if: $__fusion_policy_1) } }
             """);
     }
 
@@ -895,21 +890,10 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
         client.Requests.MatchInlineSnapshots(
             [
                 """
-                query Op_98828f15_1($d: Boolean!, $__fusion_policy_2: Boolean!) {
-                  product {
-                    id
-                    ... @skip(if: $d) {
-                      margin @skip(if: $__fusion_policy_2)
-                    }
-                  }
-                }
+                query Op_98828f15_1($d: Boolean!, $__fusion_policy_2: Boolean!) { product { id ... @skip(if: $d) { margin @skip(if: $__fusion_policy_2) } } }
                 """,
                 """
-                query Op_defer_1($__fusion_policy_1: Boolean!) {
-                  product {
-                    margin @skip(if: $__fusion_policy_1)
-                  }
-                }
+                query Op_defer_1($__fusion_policy_1: Boolean!) { product { margin @skip(if: $__fusion_policy_1) } }
                 """
             ]);
         Assert.Single(recorder.Records);
@@ -956,14 +940,7 @@ public class OperationPolicyMiddlewareTests : AuthorizationExecutionTestBase
         client.Requests.MatchInlineSnapshots(
             [
                 """
-                query Op_98828f15_1($d: Boolean!, $__fusion_policy_2: Boolean!) {
-                  product {
-                    id
-                    ... @skip(if: $d) {
-                      margin @skip(if: $__fusion_policy_2)
-                    }
-                  }
-                }
+                query Op_98828f15_1($d: Boolean!, $__fusion_policy_2: Boolean!) { product { id ... @skip(if: $d) { margin @skip(if: $__fusion_policy_2) } } }
                 """
             ]);
         Assert.Single(recorder.Records);

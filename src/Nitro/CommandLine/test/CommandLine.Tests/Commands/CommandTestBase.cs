@@ -12,6 +12,7 @@ using ChilliCream.Nitro.Client.OpenApi;
 using ChilliCream.Nitro.Client.PersonalAccessTokens;
 using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.Client.Stages;
+using ChilliCream.Nitro.Client.Telemetry;
 using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
@@ -42,6 +43,7 @@ public abstract class CommandTestBase
     private IGlobalConfigDirectoryProvider? _globalConfigDirectoryProviderOverride;
     private Services.Preferences.IBoardPreferencesStore? _boardPreferencesStoreOverride;
     private Services.Hook.IClaudeSettingsPathResolver? _claudeSettingsPathResolverOverride;
+    private Services.Hook.IClaudeSettingsPathResolver? _ventiSettingsPathResolverOverride;
     private Services.Hook.ICodexPathResolver? _codexPathResolverOverride;
     private Services.Hook.ICodexQueueClient? _codexQueueClientOverride;
     private Services.Notify.IClaudePeerClient? _claudePeerClientOverride;
@@ -61,6 +63,7 @@ public abstract class CommandTestBase
     protected readonly Mock<IPersonalAccessTokensClient> PersonalAccessTokensClientMock = new(MockBehavior.Strict);
     protected readonly Mock<IEnvironmentsClient> EnvironmentsClientMock = new(MockBehavior.Strict);
     protected readonly Mock<IStagesClient> StagesClientMock = new(MockBehavior.Strict);
+    protected readonly Mock<ITelemetryClient> TelemetryClientMock = new(MockBehavior.Strict);
     internal readonly Mock<Services.Sessions.ISessionService> _sessionServiceMock = new();
     internal readonly Mock<IBrowserLauncher> _browserLauncherMock = new();
     protected readonly Mock<IWorkspacesClient> WorkspacesClientMock = new(MockBehavior.Strict);
@@ -121,6 +124,14 @@ public abstract class CommandTestBase
     private protected void SetupClaudeSettingsPathResolver(string userScopePath, string projectScopePath)
     {
         _claudeSettingsPathResolverOverride = new FixedClaudeSettingsPathResolver(userScopePath, projectScopePath);
+    }
+
+    /// <summary>
+    /// Configures Venti settings lookup to use the supplied user and project paths.
+    /// </summary>
+    private protected void SetupVentiSettingsPathResolver(string userScopePath, string projectScopePath)
+    {
+        _ventiSettingsPathResolverOverride = new FixedClaudeSettingsPathResolver(userScopePath, projectScopePath);
     }
 
     /// <summary>
@@ -392,6 +403,12 @@ public abstract class CommandTestBase
             services.Replace(ServiceDescriptor.Singleton(_claudeSettingsPathResolverOverride));
         }
 
+        if (_ventiSettingsPathResolverOverride is not null)
+        {
+            services.RemoveAllKeyed<Services.Hook.IClaudeSettingsPathResolver>(AgentSessionHarness.Venti);
+            services.AddKeyedSingleton(AgentSessionHarness.Venti, _ventiSettingsPathResolverOverride);
+        }
+
         if (_codexPathResolverOverride is not null)
         {
             services.Replace(ServiceDescriptor.Singleton(_codexPathResolverOverride));
@@ -435,6 +452,7 @@ public abstract class CommandTestBase
         services.Replace(ServiceDescriptor.Singleton(PersonalAccessTokensClientMock.Object));
         services.Replace(ServiceDescriptor.Singleton(EnvironmentsClientMock.Object));
         services.Replace(ServiceDescriptor.Singleton(StagesClientMock.Object));
+        services.Replace(ServiceDescriptor.Singleton(TelemetryClientMock.Object));
         services.AddSingleton(console);
 
         return services.BuildServiceProvider();
@@ -644,6 +662,8 @@ internal sealed class FixedClaudeSettingsPathResolver(string userScopePath, stri
 {
     public string Resolve(string scope)
         => scope == Services.Hook.HookInstallScopes.Project ? projectScopePath : userScopePath;
+
+    public IReadOnlyList<string> ResolveForCurrentDirectory() => [userScopePath, projectScopePath];
 }
 
 internal sealed class FixedCodexPathResolver(string hooksJsonPath, string configTomlPath)

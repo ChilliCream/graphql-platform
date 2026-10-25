@@ -281,6 +281,46 @@ public class SlicingArgumentsTests
         schema.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task SlicingArgumentDefaultValue_Should_BeCappedAtMaxPageSize_When_DefaultPageSizeExceedsMaxPageSize()
+    {
+        // arrange
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query4>()
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var directives =
+            schema.QueryType.Fields
+                .Where(f => !f.IsIntrospectionField)
+                .Select(f => $"{f.Name}: {f.Directives.FirstOrDefault("listSize")}");
+
+        // assert
+        directives.MatchInlineSnapshots(
+        [
+            """
+            cursor: @listSize(
+              assumedSize: 1000
+              slicingArguments: ["first", "last"]
+              slicingArgumentDefaultValue: 1000
+              sizedFields: ["edges", "nodes"]
+              requireOneSlicingArgument: false
+            )
+            """,
+            """
+            offset: @listSize(
+              assumedSize: 1000
+              slicingArguments: ["take"]
+              slicingArgumentDefaultValue: 1000
+              sizedFields: ["items"]
+              requireOneSlicingArgument: false
+            )
+            """
+        ]);
+    }
+
     public class Query
     {
         [UsePaging]
@@ -303,5 +343,14 @@ public class SlicingArgumentsTests
             RequireOneSlicingArgument = false,
             SlicingArgumentDefaultValue = 999)]
         public IEnumerable<int> GetFoos() => Enumerable.Range(1, 100);
+    }
+
+    public class Query4
+    {
+        [UsePaging(DefaultPageSize = int.MaxValue, MaxPageSize = 1000)]
+        public IEnumerable<int> GetCursor() => Enumerable.Range(1, 100);
+
+        [UseOffsetPaging(DefaultPageSize = int.MaxValue, MaxPageSize = 1000)]
+        public IEnumerable<int> GetOffset() => Enumerable.Range(1, 100);
     }
 }

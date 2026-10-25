@@ -562,6 +562,59 @@ public class VariableCoercionHelperTests : FusionTestBase
             """);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void TryCoerceVariableValues_Should_CoerceInputFields_When_FieldNamesAreEscaped(
+        bool ignoreAdditionalInputFields)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+              field(input: SearchInput!): String
+            }
+
+            input SearchInput {
+              a: Int
+              b: Int
+              c: Int
+              d: Int
+              e: Int
+              f: Int
+              g: Int
+              h: Int
+              id: Int!
+              name: String
+            }
+            """);
+        var variableDefinition = CreateVariableDefinition(
+            "input",
+            new NonNullTypeNode(new NamedTypeNode("SearchInput")));
+        using var variableValues = JsonDocument.Parse(
+            """
+            {"input":{"a":0,"\u0069d":1,"n\u0061me":"escaped"}}
+            """);
+
+        // act
+        var success = VariableCoercionHelper.TryCoerceVariableValues(
+            new MockFeatureProvider(),
+            schema,
+            [variableDefinition],
+            variableValues.RootElement,
+            ignoreAdditionalInputFields,
+            out var coercedVariableValues,
+            out var error);
+
+        // assert
+        Assert.True(success, error?.Message);
+        Assert.NotNull(coercedVariableValues);
+        coercedVariableValues["input"].Value.ToString().MatchInlineSnapshot(
+            """
+            { a: 0, id: 1, name: "escaped" }
+            """);
+    }
+
     [Fact]
     public void TryCoerceVariableValues_Should_StillRequireDefinedFields_When_AdditionalInputFieldsAreIgnored()
     {
@@ -677,6 +730,92 @@ public class VariableCoercionHelperTests : FusionTestBase
                   }
                 ]
                 """);
+    }
+
+    [Fact]
+    public void TryCoerceVariableValues_Should_UnescapeString_When_StringContainsEscapeSequences()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+              field(a: String, b: String): String
+            }
+            """);
+        var variableDefinitions = new List<VariableDefinitionNode>
+        {
+            CreateVariableDefinition("escaped", new NamedTypeNode("String")),
+            CreateVariableDefinition("plain", new NamedTypeNode("String"))
+        };
+        using var variableValues = JsonDocument.Parse(
+            """
+            {
+              "escaped": "caf\u00e9\n\ud83d\ude00 \\ \"end\"",
+              "plain": "plain"
+            }
+            """);
+
+        // act
+        var success = VariableCoercionHelper.TryCoerceVariableValues(
+            new MockFeatureProvider(),
+            schema,
+            variableDefinitions,
+            variableValues.RootElement,
+            ignoreAdditionalInputFields: false,
+            out var coercedVariableValues,
+            out var error);
+
+        // assert
+        Assert.True(success, error?.Message);
+        Assert.Equal(
+            "caf\u00e9\n\ud83d\ude00 \\ \"end\"",
+            Assert.IsType<StringValueNode>(coercedVariableValues!["escaped"].Value).Value);
+        Assert.Equal("plain", Assert.IsType<StringValueNode>(coercedVariableValues["plain"].Value).Value);
+    }
+
+    [Fact]
+    public void TryCoerceVariableValues_Should_CoerceEnum_When_NameIsPlainOrEscaped()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+              field(a: Color, b: Color): String
+            }
+
+            enum Color {
+              RED
+              GREEN
+            }
+            """);
+        var variableDefinitions = new List<VariableDefinitionNode>
+        {
+            CreateVariableDefinition("plain", new NamedTypeNode("Color")),
+            CreateVariableDefinition("escaped", new NamedTypeNode("Color"))
+        };
+        using var variableValues = JsonDocument.Parse(
+            """
+            {
+              "plain": "GREEN",
+              "escaped": "GR\u0045EN"
+            }
+            """);
+
+        // act
+        var success = VariableCoercionHelper.TryCoerceVariableValues(
+            new MockFeatureProvider(),
+            schema,
+            variableDefinitions,
+            variableValues.RootElement,
+            ignoreAdditionalInputFields: false,
+            out var coercedVariableValues,
+            out var error);
+
+        // assert
+        Assert.True(success, error?.Message);
+        Assert.Equal("GREEN", Assert.IsType<EnumValueNode>(coercedVariableValues!["plain"].Value).Value);
+        Assert.Equal("GREEN", Assert.IsType<EnumValueNode>(coercedVariableValues["escaped"].Value).Value);
+        Assert.Same(coercedVariableValues["plain"].Value, coercedVariableValues["escaped"].Value);
     }
 
     private static IError CoerceError(

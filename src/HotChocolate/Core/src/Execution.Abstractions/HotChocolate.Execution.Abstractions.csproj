@@ -15,6 +15,7 @@
     <InternalsVisibleTo Include="HotChocolate.Abstractions.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Types" />
     <InternalsVisibleTo Include="HotChocolate.Execution" />
+    <InternalsVisibleTo Include="HotChocolate.Execution.Pipeline" />
     <InternalsVisibleTo Include="HotChocolate.Validation" />
     <InternalsVisibleTo Include="HotChocolate.CostAnalysis" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Execution" />

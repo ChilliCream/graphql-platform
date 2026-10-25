@@ -17,9 +17,10 @@ public sealed partial class CompositeResultDocument : IDisposable
     private readonly ulong _deferFlags;
     private readonly ulong[]? _wideIncludeFlags;
     private readonly ulong[]? _wideDeferFlags;
-    private readonly PathSegmentLocalPool? _pathPool;
+    private PathSegmentLocalPool? _pathPool;
     internal MetaDb _metaDb;
     private NullMarkerState _nullMarkerState;
+    private int _layoutVersion;
     private int _disposed;
 
     internal CompositeResultDocument(
@@ -62,6 +63,18 @@ public sealed partial class CompositeResultDocument : IDisposable
     }
 
     public CompositeResultElement Data { get; }
+
+    /// <summary>
+    /// Gets a version that changes whenever a value that references an object or a list is
+    /// replaced. While it is unchanged, every element keeps the path it had when it was read.
+    /// </summary>
+    internal int LayoutVersion => _layoutVersion;
+
+    /// <summary>
+    /// Stops this document from renting path segment arrays from the request scoped pool.
+    /// Paths created afterwards are allocated.
+    /// </summary>
+    internal void DetachPathPool() => Volatile.Write(ref _pathPool, null);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal ElementTokenType GetElementTokenType(Cursor cursor)
@@ -154,8 +167,12 @@ public sealed partial class CompositeResultDocument : IDisposable
         return row.SizeOrLength;
     }
 
+    /// <summary>
+    /// Creates the path of the element at <paramref name="current"/>. When <paramref name="pooled"/>
+    /// is <c>false</c>, the path arrays are allocated instead of rented from the request scoped pool.
+    /// </summary>
     [SkipLocalsInit]
-    internal CompactPath CreateCompactPath(Cursor current)
+    internal CompactPath CreateCompactPath(Cursor current, bool pooled = true)
     {
         var firstRow = _metaDb.Get(current);
 
@@ -188,7 +205,7 @@ public sealed partial class CompositeResultDocument : IDisposable
         }
 
         Span<int> pathBuffer = stackalloc int[32];
-        var path = new CompactPathBuilder(pathBuffer, _pathPool);
+        var path = new CompactPathBuilder(pathBuffer, pooled ? Volatile.Read(ref _pathPool) : null);
         var parentTokenType = ElementTokenType.StartObject;
 
         for (var i = written - 1; i >= 0; i--)
@@ -436,7 +453,7 @@ public sealed partial class CompositeResultDocument : IDisposable
             // introspection field). Its concrete type comes from the enclosing selection set,
             // which the merge has already specialized to the runtime type.
             var typeName = _operation.GetSelectionSetById(row.Location).Type.Name;
-            return Utf8StringCache.GetQuotedUtf8String(typeName);
+            return Utf8StringCache.GetJsonPropertyName(typeName).AsSpan(..^1);
         }
 
         throw new NotSupportedException();
@@ -559,6 +576,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void AssignCompositeValue(CompositeResultElement target, CompositeResultElement value)
     {
+        TrackValueReplacement(target.Cursor);
         _metaDb.ReplacePreserveParent(
             cursor: target.Cursor,
             tokenType: ElementTokenType.Reference,
@@ -588,6 +606,7 @@ public sealed partial class CompositeResultDocument : IDisposable
         Debug.Assert(_sources.Contains(parent), "Expected the source document of the source element to be registered.");
 
         var tokenType = sourceRow.TokenType.ToElementTokenType();
+        TrackValueReplacement(target.Cursor);
 
         if (tokenType is ElementTokenType.StartObject or ElementTokenType.StartArray)
         {
@@ -613,9 +632,159 @@ public sealed partial class CompositeResultDocument : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void AssignNullValue(CompositeResultElement target)
     {
+        TrackValueReplacement(target.Cursor);
         _metaDb.ReplacePreserveParent(
             cursor: target.Cursor,
             tokenType: ElementTokenType.Null);
+    }
+
+    /// <summary>
+    /// Assigns the leaf value of <paramref name="source"/> to <paramref name="target"/> without
+    /// copying the value data. Both elements must belong to this document.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c> if the source holds a non-null leaf value that was assigned;
+    /// otherwise, <c>false</c> and the target is unchanged.
+    /// </returns>
+    internal bool TryAssignLeafValue(CompositeResultElement target, CompositeResultElement source)
+        => TryAssignLeafValue(target.Cursor, source.Cursor);
+
+    /// <summary>
+    /// Assigns the leaf value at <paramref name="source"/> to the slot at <paramref name="target"/>
+    /// without copying the value data.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c> if the source holds a non-null leaf value that was assigned;
+    /// otherwise, <c>false</c> and the target is unchanged.
+    /// </returns>
+    internal bool TryAssignLeafValue(Cursor target, Cursor source)
+    {
+        var row = _metaDb.Get(source);
+
+        if (!IsAssignableLeafValue(row))
+        {
+            return false;
+        }
+
+        TrackValueReplacement(target);
+        _metaDb.ReplacePreserveParent(
+            cursor: target,
+            tokenType: row.TokenType,
+            location: row.Location,
+            sizeOrLength: row.SizeOrLength,
+            sourceDocumentId: row.SourceDocumentId,
+            flags: row.Flags);
+        return true;
+    }
+
+    /// <summary>
+    /// Classifies the slot at <paramref name="cursor"/> for
+    /// <see cref="TryAssignLeafValue(Cursor, Cursor)"/>.
+    /// </summary>
+    internal LeafValueState GetLeafValueState(Cursor cursor)
+    {
+        var row = _metaDb.Get(cursor);
+
+        if (IsAssignableLeafValue(row))
+        {
+            return LeafValueState.Assignable;
+        }
+
+        return row.TokenType is ElementTokenType.Null
+            or ElementTokenType.None
+            or ElementTokenType.StartObject
+            or ElementTokenType.StartArray
+            ? LeafValueState.NotALeaf
+            : LeafValueState.Unsupported;
+    }
+
+    private static bool IsAssignableLeafValue(DbRow row)
+        => (row.TokenType is ElementTokenType.String
+                or ElementTokenType.Number
+                or ElementTokenType.True
+                or ElementTokenType.False)
+            && (row.Flags & ElementFlags.Invalidated) != ElementFlags.Invalidated;
+
+    /// <summary>
+    /// Reads the token type and raw bytes of the value at <paramref name="cursor"/> for a key
+    /// comparison. Only values that serialize as their raw bytes are readable: source result
+    /// strings and numbers, booleans, null and an unset slot (<see cref="ElementTokenType.None"/>).
+    /// </summary>
+    /// <returns>
+    /// <c>true</c> if the value is readable; otherwise, <c>false</c>.
+    /// </returns>
+    internal bool TryGetRawLeafValue(Cursor cursor, out ElementTokenType tokenType, out ReadOnlySpan<byte> value)
+    {
+        var row = _metaDb.Get(cursor);
+        tokenType = row.TokenType;
+
+        switch (tokenType)
+        {
+            case ElementTokenType.String or ElementTokenType.Number
+                when (row.Flags & ElementFlags.SourceResult) == ElementFlags.SourceResult:
+                value = _sources[row.SourceDocumentId].ReadRawValue(row.Location, row.SizeOrLength);
+                return true;
+
+            case ElementTokenType.True
+                or ElementTokenType.False
+                or ElementTokenType.Null
+                or ElementTokenType.None:
+                value = default;
+                return true;
+
+            default:
+                value = default;
+                return false;
+        }
+    }
+
+    /// <summary>
+    /// Resolves the object at <paramref name="cursor"/> to the first row of an object that a
+    /// selection set describes.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c> if the cursor refers to an object with a selection set; otherwise, <c>false</c>.
+    /// </returns>
+    internal bool TryGetSelectionSetObject(
+        Cursor cursor,
+        out Cursor startCursor,
+        out int selectionSetId,
+        out int numberOfRows)
+    {
+        startCursor = cursor;
+        var row = _metaDb.GetValue(ref startCursor);
+
+        if (row.TokenType is not ElementTokenType.StartObject
+            || row.OperationReferenceType is not OperationReferenceType.SelectionSet)
+        {
+            selectionSetId = 0;
+            numberOfRows = 0;
+            return false;
+        }
+
+        selectionSetId = row.OperationReferenceId;
+        numberOfRows = row.NumberOfRows;
+        return true;
+    }
+
+    /// <summary>
+    /// Gets the row offset of the value slot of <paramref name="selection"/> from the first row
+    /// of an object that <paramref name="selectionSet"/> describes.
+    /// </summary>
+    internal static int GetValueRowOffset(SelectionSet selectionSet, Selection selection)
+    {
+        Debug.Assert(selection.Id > selectionSet.Id);
+        return ((selection.Id - selectionSet.Id - 1) * 2) + 2;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void TrackValueReplacement(Cursor target)
+    {
+        if (_metaDb.GetElementTokenType(target, resolveReferences: false)
+            is ElementTokenType.Reference or ElementTokenType.StartObject or ElementTokenType.StartArray)
+        {
+            _layoutVersion++;
+        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

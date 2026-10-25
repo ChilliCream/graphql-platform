@@ -147,7 +147,8 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
             new FixedClaudeSettingsPathResolver(settingsPathB),
             new FixedLaunchDescriptorResolver(s_descriptor),
             new ClaudeHooksSidecarStore(_fileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
-            _timeProvider);
+            _timeProvider,
+            ClaudeHooksTemplate.Claude);
 
         // Complete serviceB's install after serviceA reads the sidecar, but before it writes.
         var injectingFileSystem = new RunOnFirstReadFileSystem(
@@ -158,7 +159,8 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
             new FixedClaudeSettingsPathResolver(settingsPathA),
             new FixedLaunchDescriptorResolver(s_descriptor),
             new ClaudeHooksSidecarStore(injectingFileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
-            _timeProvider);
+            _timeProvider,
+            ClaudeHooksTemplate.Claude);
 
         await serviceA.InstallAsync(HookInstallScopes.User, ct);
 
@@ -181,7 +183,8 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
             new FixedClaudeSettingsPathResolver(settingsPathA),
             new FixedLaunchDescriptorResolver(s_descriptor),
             new ClaudeHooksSidecarStore(_fileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
-            _timeProvider);
+            _timeProvider,
+            ClaudeHooksTemplate.Claude);
         await preInstallService.InstallAsync(HookInstallScopes.User, ct);
 
         var serviceB = new ClaudeHooksInstallerService(
@@ -189,7 +192,8 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
             new FixedClaudeSettingsPathResolver(settingsPathB),
             new FixedLaunchDescriptorResolver(s_descriptor),
             new ClaudeHooksSidecarStore(_fileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
-            _timeProvider);
+            _timeProvider,
+            ClaudeHooksTemplate.Claude);
 
         // Complete serviceB's install after serviceA reads the sidecar, but before it writes.
         var injectingFileSystem = new RunOnFirstReadFileSystem(
@@ -200,7 +204,8 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
             new FixedClaudeSettingsPathResolver(settingsPathA),
             new FixedLaunchDescriptorResolver(s_descriptor),
             new ClaudeHooksSidecarStore(injectingFileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
-            _timeProvider);
+            _timeProvider,
+            ClaudeHooksTemplate.Claude);
 
         await serviceA.UninstallAsync(HookInstallScopes.User, ct);
 
@@ -217,11 +222,14 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
         new FixedClaudeSettingsPathResolver(_settingsPath),
         new FixedLaunchDescriptorResolver(s_descriptor),
         new ClaudeHooksSidecarStore(fileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
-        _timeProvider);
+        _timeProvider,
+        ClaudeHooksTemplate.Claude);
 
     private sealed class FixedClaudeSettingsPathResolver(string path) : IClaudeSettingsPathResolver
     {
         public string Resolve(string scope) => path;
+
+        public IReadOnlyList<string> ResolveForCurrentDirectory() => [path];
     }
 
     private sealed class FixedLaunchDescriptorResolver(LaunchDescriptor descriptor) : ILaunchDescriptorResolver

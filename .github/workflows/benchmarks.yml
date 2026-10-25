@@ -11,7 +11,7 @@ jobs:
   setup:
     name: "Initialize Benchmark Report"
     if: github.event.action != 'closed' && github.event_name == 'pull_request' && github.event.pull_request.draft == false
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       pull-requests: write
     steps:
@@ -39,19 +39,23 @@ jobs:
             ];
             const modes = [
               { key: 'constant', label: 'Constant', desc: '(50 VUs)' },
-              { key: 'ramping', label: 'Ramping', desc: '(0-500-0 VUs)' },
+              { key: 'constant-latency', label: 'Constant Latency', desc: '(50 VUs, 4 ms source schema delay)' },
+              { key: 'ramping', label: 'Ramping', desc: '(50-500-50 VUs)' },
             ];
             const runners = [
               { group: 'benchmarking-1', label: '1' },
             ];
 
             let md = '### Fusion Gateway Performance Results\n\n';
-            md += `> **Progress: 0/6 benchmarks completed** — this report updates as each job finishes.\n\n`;
+            md += `> **Progress: 0/8 benchmarks completed** — this report updates as each job finishes.\n\n`;
 
             for (const test of tests) {
               md += `#### ${test.title}\n\n`;
               md += '| | Req/s | Err% |\n|:--|--:|--:|\n';
               for (const mode of modes) {
+                if (test.key === 'variable-batch' && mode.key === 'constant-latency') {
+                  continue;
+                }
                 for (const runner of runners) {
                   md += `| **${mode.label} ${runner.label}** ${mode.desc} | *pending* | *pending* |\n`;
                 }
@@ -59,6 +63,9 @@ jobs:
               md += '\n<details>\n<summary>Response Times</summary>\n\n';
               md += '| | Min | Med | Avg | P90 | P95 | Max |\n|:--|--:|--:|--:|--:|--:|--:|\n';
               for (const mode of modes) {
+                if (test.key === 'variable-batch' && mode.key === 'constant-latency') {
+                  continue;
+                }
                 for (const runner of runners) {
                   md += `| **${mode.label} ${runner.label}** | *pending* | *pending* | *pending* | *pending* | *pending* | *pending* |\n`;
                 }
@@ -113,8 +120,11 @@ jobs:
       fail-fast: false
       matrix:
         test: [no-recursion, deep-recursion, variable-batch]
-        mode: [constant, ramping]
+        mode: [constant, constant-latency, ramping]
         runner-group: [benchmarking-1]
+        exclude:
+          - test: variable-batch
+            mode: constant-latency
         include:
           - runner-group: benchmarking-1
             runner-label: "Runner 1"
@@ -126,6 +136,8 @@ jobs:
             test-name: "Variable Batch"
           - mode: constant
             mode-label: "Constant"
+          - mode: constant-latency
+            mode-label: "Constant Latency"
           - mode: ramping
             mode-label: "Ramping"
 
@@ -168,11 +180,11 @@ jobs:
           fi
 
       - name: Make scripts executable
-        working-directory: src/HotChocolate/Fusion/benchmarks/k6
+        working-directory: src/HotChocolate/Fusion/benchmarks/k6/gf
         run: chmod +x *.sh
 
       - name: Run benchmark
-        working-directory: src/HotChocolate/Fusion/benchmarks/k6
+        working-directory: src/HotChocolate/Fusion/benchmarks/k6/gf
         run: |
           ./run-single-benchmark.sh \
             "${{ matrix.test }}" \
@@ -186,7 +198,7 @@ jobs:
         if: always()
         with:
           name: benchmark-${{ matrix.test }}-${{ matrix.mode }}-${{ matrix.runner-group }}
-          path: src/HotChocolate/Fusion/benchmarks/k6/result.json
+          path: src/HotChocolate/Fusion/benchmarks/k6/gf/result.json
           retention-days: 30
 
       # Lightweight progressive PR update — reads only the local result.json
@@ -204,7 +216,7 @@ jobs:
             let result;
             try {
               result = JSON.parse(fs.readFileSync(
-                'src/HotChocolate/Fusion/benchmarks/k6/result.json', 'utf8'));
+                'src/HotChocolate/Fusion/benchmarks/k6/gf/result.json', 'utf8'));
             } catch (e) {
               console.log('No result.json found, skipping comment update');
               return;
@@ -252,27 +264,31 @@ jobs:
             ];
             const modes = [
               { key: 'constant', label: 'Constant', desc: '(50 VUs)' },
-              { key: 'ramping', label: 'Ramping', desc: '(0-500-0 VUs)' },
+              { key: 'constant-latency', label: 'Constant Latency', desc: '(50 VUs, 4 ms source schema delay)' },
+              { key: 'ramping', label: 'Ramping', desc: '(50-500-50 VUs)' },
             ];
             const runners = [
               { group: 'benchmarking-1', label: '1' },
             ];
 
             let md = '### Fusion Gateway Performance Results\n\n';
-            if (completed < 6) {
-              md += `> **Progress: ${completed}/6 benchmarks completed** — this report updates as each job finishes.\n\n`;
+            if (completed < 8) {
+              md += `> **Progress: ${completed}/8 benchmarks completed** — this report updates as each job finishes.\n\n`;
             }
 
             for (const test of tests) {
               md += `#### ${test.title}\n\n`;
               md += '| | Req/s | Err% |\n|:--|--:|--:|\n';
               for (const mode of modes) {
+                if (test.key === 'variable-batch' && mode.key === 'constant-latency') {
+                  continue;
+                }
                 for (const runner of runners) {
                   const k = `${test.key}|${mode.key}|${runner.group}`;
                   const r = allResults[k];
                   const lbl = `**${mode.label} ${runner.label}**`;
                   if (r) {
-                    md += `| ${lbl} ${mode.desc} | ${fmt(r.throughput.requests_per_second)} | ${fmt(r.reliability.error_rate)}% |\n`;
+                    md += `| ${lbl} ${mode.desc} | ${fmt(r.throughput.requests_per_second)} | ${fmt(r.reliability.error_rate * 100)}% |\n`;
                   } else {
                     md += `| ${lbl} ${mode.desc} | *pending* | *pending* |\n`;
                   }
@@ -281,6 +297,9 @@ jobs:
               md += '\n<details>\n<summary>Response Times</summary>\n\n';
               md += '| | Min | Med | Avg | P90 | P95 | Max |\n|:--|--:|--:|--:|--:|--:|--:|\n';
               for (const mode of modes) {
+                if (test.key === 'variable-batch' && mode.key === 'constant-latency') {
+                  continue;
+                }
                 for (const runner of runners) {
                   const k = `${test.key}|${mode.key}|${runner.group}`;
                   const r = allResults[k];
@@ -319,13 +338,13 @@ jobs:
               comment_id: existing.id,
               body: commentBody,
             });
-            console.log(`Updated comment (${completed}/6 completed)`);
+            console.log(`Updated comment (${completed}/8 completed)`);
 
   report:
     name: "Final Performance Report"
     needs: [setup, benchmark]
     if: "!cancelled() && github.event.action != 'closed' && github.event_name == 'pull_request'"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       pull-requests: write
 
@@ -422,27 +441,31 @@ jobs:
             ];
             const modes = [
               { key: 'constant', label: 'Constant', desc: '(50 VUs)' },
-              { key: 'ramping', label: 'Ramping', desc: '(0-500-0 VUs)' },
+              { key: 'constant-latency', label: 'Constant Latency', desc: '(50 VUs, 4 ms source schema delay)' },
+              { key: 'ramping', label: 'Ramping', desc: '(50-500-50 VUs)' },
             ];
             const runners = [
               { group: 'benchmarking-1', label: '1' },
             ];
 
             let md = '### Fusion Gateway Performance Results\n\n';
-            if (completed < 6) {
-              md += `> **Progress: ${completed}/6 benchmarks completed** — this report updates as each job finishes.\n\n`;
+            if (completed < 8) {
+              md += `> **Progress: ${completed}/8 benchmarks completed** — this report updates as each job finishes.\n\n`;
             }
 
             for (const test of tests) {
               md += `#### ${test.title}\n\n`;
               md += '| | Req/s | Err% |\n|:--|--:|--:|\n';
               for (const mode of modes) {
+                if (test.key === 'variable-batch' && mode.key === 'constant-latency') {
+                  continue;
+                }
                 for (const runner of runners) {
                   const k = `${test.key}|${mode.key}|${runner.group}`;
                   const r = allResults[k];
                   const lbl = `**${mode.label} ${runner.label}**`;
                   if (r) {
-                    md += `| ${lbl} ${mode.desc} | ${fmt(r.throughput.requests_per_second)} | ${fmt(r.reliability.error_rate)}% |\n`;
+                    md += `| ${lbl} ${mode.desc} | ${fmt(r.throughput.requests_per_second)} | ${fmt(r.reliability.error_rate * 100)}% |\n`;
                   } else {
                     md += `| ${lbl} ${mode.desc} | *pending* | *pending* |\n`;
                   }
@@ -451,6 +474,9 @@ jobs:
               md += '\n<details>\n<summary>Response Times</summary>\n\n';
               md += '| | Min | Med | Avg | P90 | P95 | Max |\n|:--|--:|--:|--:|--:|--:|--:|\n';
               for (const mode of modes) {
+                if (test.key === 'variable-batch' && mode.key === 'constant-latency') {
+                  continue;
+                }
                 for (const runner of runners) {
                   const k = `${test.key}|${mode.key}|${runner.group}`;
                   const r = allResults[k];
@@ -490,7 +516,7 @@ jobs:
                 comment_id: existing.id,
                 body: commentBody,
               });
-              console.log(`Updated final report (${completed}/6 completed)`);
+              console.log(`Updated final report (${completed}/8 completed)`);
             } else {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
@@ -498,14 +524,14 @@ jobs:
                 issue_number: context.issue.number,
                 body: commentBody,
               });
-              console.log(`Created final report (${completed}/6 completed)`);
+              console.log(`Created final report (${completed}/8 completed)`);
             }
 
   store-results:
     name: "Store Baseline Results"
     needs: benchmark
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: write
 

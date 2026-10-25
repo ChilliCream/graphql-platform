@@ -25,17 +25,17 @@ response:
           "reviews": [
             {
               "author": {
-                "name": "User: VXNlcjo1"
+                "name": "User: VXNlcjozNTcxODUzNTkw"
               }
             },
             {
               "author": {
-                "name": "User: VXNlcjo2"
+                "name": "User: VXNlcjoxMzczMDIyNzIz"
               }
             },
             {
               "author": {
-                "name": "User: VXNlcjo3"
+                "name": "User: VXNlcjozNzk3NTEwMTM0"
               }
             }
           ]
@@ -151,17 +151,17 @@ sourceSchemas:
                     "reviews": [
                       {
                         "author": {
-                          "userId": "VXNlcjo1"
+                          "userId": "VXNlcjozNTcxODUzNTkw"
                         }
                       },
                       {
                         "author": {
-                          "userId": "VXNlcjo2"
+                          "userId": "VXNlcjoxMzczMDIyNzIz"
                         }
                       },
                       {
                         "author": {
-                          "userId": "VXNlcjo3"
+                          "userId": "VXNlcjozNzk3NTEwMTM0"
                         }
                       }
                     ]
@@ -194,13 +194,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_4_id": "VXNlcjo1"
+                "__fusion_4_id": "VXNlcjozNTcxODUzNTkw"
               },
               {
-                "__fusion_4_id": "VXNlcjo2"
+                "__fusion_4_id": "VXNlcjoxMzczMDIyNzIz"
               },
               {
-                "__fusion_4_id": "VXNlcjo3"
+                "__fusion_4_id": "VXNlcjozNzk3NTEwMTM0"
               }
             ]
         response:
@@ -210,7 +210,7 @@ sourceSchemas:
               {
                 "data": {
                   "userById": {
-                    "name": "User: VXNlcjo1"
+                    "name": "User: VXNlcjozNTcxODUzNTkw"
                   }
                 }
               }
@@ -218,7 +218,7 @@ sourceSchemas:
               {
                 "data": {
                   "userById": {
-                    "name": "User: VXNlcjo2"
+                    "name": "User: VXNlcjoxMzczMDIyNzIz"
                   }
                 }
               }
@@ -226,7 +226,7 @@ sourceSchemas:
               {
                 "data": {
                   "userById": {
-                    "name": "User: VXNlcjo3"
+                    "name": "User: VXNlcjozNzk3NTEwMTM0"
                   }
                 }
               }

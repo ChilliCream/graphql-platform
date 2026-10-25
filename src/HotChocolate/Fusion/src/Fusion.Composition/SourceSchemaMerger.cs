@@ -1800,7 +1800,10 @@ internal sealed partial class SourceSchemaMerger
             assumedSizes.Add(parsed.AssumedSize);
             slicingArgumentsPerSource.Add(parsed.SlicingArguments);
             sizedFieldsPerSource.Add(parsed.SizedFields);
-            slicingArgumentDefaultValues.Add(parsed.SlicingArgumentDefaultValue);
+            slicingArgumentDefaultValues.Add(
+                ListSizeDirectiveFold.CapSlicingArgumentDefaultValue(
+                    parsed.SlicingArgumentDefaultValue,
+                    parsed.AssumedSize));
             requireOneSlicingArgumentPerSource.Add(
                 parsed.RequireOneSlicingArgument
                     ?? GetSourceDeclaredRequireOneSlicingArgumentDefault(sourceSchema));

@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using Microsoft.Data.Sqlite;
@@ -12,6 +13,39 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 /// </summary>
 public sealed class AgentDatabaseTests : IDisposable
 {
+    /// <summary>
+    /// The <c>agents</c> table and index exactly as schema v18 created them.
+    /// </summary>
+    private const string V18AgentRegistrySchema =
+        """
+        CREATE TABLE IF NOT EXISTS agents (
+            name TEXT PRIMARY KEY,
+            role TEXT NOT NULL DEFAULT '',
+            harness TEXT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot', 'opencode')),
+            harness_version TEXT NOT NULL DEFAULT '',
+            session_id TEXT NULL,
+            cwd TEXT NOT NULL DEFAULT '',
+            workspace_path TEXT NOT NULL DEFAULT '',
+            registered_at TEXT NOT NULL,
+            started_at TEXT NOT NULL,
+            last_seen_at TEXT NOT NULL,
+            ended_at TEXT NULL,
+            deleted_at TEXT NULL,
+            endpoint_kind TEXT NOT NULL DEFAULT 'none' CHECK (endpoint_kind IN ('claude-peer', 'codex-thread', 'copilot-extension', 'opencode-server', 'db-watch', 'none')),
+            endpoint_addr TEXT NOT NULL DEFAULT '',
+            endpoint_secret TEXT NULL,
+            block_budget_used INTEGER NOT NULL DEFAULT 0,
+            last_ping_at TEXT NULL,
+            last_ping_attempt TEXT NULL,
+            last_ping_result TEXT NULL CHECK (last_ping_result IN ('ok', 'spawn-failed', 'endpoint-gone', 'timeout', 'capacity-dropped', 'error', 'unsupported') OR last_ping_result IS NULL),
+            last_ping_detail TEXT NULL CHECK (last_ping_detail IS NULL OR length(last_ping_detail) <= 200),
+            announcement_pending INTEGER NOT NULL DEFAULT 0,
+            idle_push_armed INTEGER NOT NULL DEFAULT 0
+        );
+
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_agents_session ON agents (harness, session_id) WHERE harness IS NOT NULL;
+        """;
+
     private readonly DirectoryInfo _tempRoot;
     private readonly string _workspaceDirectory;
     private readonly AgentDatabase _database;
@@ -136,7 +170,7 @@ public sealed class AgentDatabaseTests : IDisposable
         state.MatchInlineSnapshot(
             """
             {
-              "Version": 18,
+              "Version": 19,
               "Tasks": 1,
               "Messages": 1,
               "MessageRecipients": 1,
@@ -246,7 +280,7 @@ public sealed class AgentDatabaseTests : IDisposable
         state.MatchInlineSnapshot(
             """
             {
-              "Version": 18,
+              "Version": 19,
               "Sender": "ghost",
               "Subject": "Old mail",
               "ReadAt": "2026-01-11T09:00:00+00:00"
@@ -344,7 +378,7 @@ public sealed class AgentDatabaseTests : IDisposable
         state.MatchInlineSnapshot(
             """
             {
-              "Version": 18,
+              "Version": 19,
               "OutboxColumns": [
                 "actor",
                 "requested_generation",
@@ -489,7 +523,7 @@ public sealed class AgentDatabaseTests : IDisposable
         state.MatchInlineSnapshot(
             """
             {
-              "Version": 18,
+              "Version": 19,
               "Messages": 1,
               "MessageRecipients": 1,
               "Agents": 0,
@@ -520,6 +554,141 @@ public sealed class AgentDatabaseTests : IDisposable
               "SessionTables": 0
             }
             """);
+    }
+
+    /// <summary>
+    /// Seeds a v18 database exactly as v18 laid it down, with every agent-domain table
+    /// populated. The upgrade must keep every row and reference while the rebuilt
+    /// <c>agents</c> table accepts the <c>venti</c> harness.
+    /// </summary>
+    [Fact]
+    public async Task InitializeAsync_Should_PreserveEveryAgentDomainRow_When_ExistingVersionIsV18()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using (var connection = new SqliteConnection(
+            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False"))
+        {
+            await connection.OpenAsync(cancellationToken);
+            await ExecuteAsync(connection, "PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;", cancellationToken);
+            await ExecuteAsync(connection, TaskStoreSchema.Create, cancellationToken);
+            await ExecuteAsync(connection, V18AgentRegistrySchema, cancellationToken);
+            await ExecuteAsync(connection, MailStoreSchema.Create, cancellationToken);
+            await ExecuteAsync(connection, PingLeaseSchema.Create, cancellationToken);
+            await ExecuteAsync(connection, MailWakeSchema.Create, cancellationToken);
+            await ExecuteAsync(connection, AgentDeliverySchema.Create, cancellationToken);
+            await ExecuteAsync(connection, AgentPingGateSchema.Create, cancellationToken);
+            await ExecuteAsync(connection, MemoryStoreSchema.Create, cancellationToken);
+            await ExecuteAsync(connection, TakeoverLedgerSchema.Create, cancellationToken);
+            await ExecuteAsync(
+                connection,
+                """
+                INSERT INTO agents (
+                    name, role, harness, harness_version, session_id, cwd, workspace_path,
+                    registered_at, started_at, last_seen_at, ended_at, deleted_at,
+                    endpoint_kind, endpoint_addr, endpoint_secret, block_budget_used,
+                    last_ping_at, last_ping_attempt, last_ping_result, last_ping_detail,
+                    announcement_pending, idle_push_armed)
+                VALUES
+                    ('maya', 'backend', 'claude-code', '2.1.241', 'session-1', '/repo', '/repo/.git/nitro',
+                     '2026-01-10T12:00:00+00:00', '2026-01-10T12:01:00+00:00', '2026-01-10T12:02:00+00:00',
+                     NULL, NULL, 'claude-peer', 'peer-maya', NULL, 2,
+                     '2026-01-10T12:03:00+00:00', 'attempt-1', 'endpoint-gone', 'socket gone', 1, 1),
+                    ('nova', 'reviewer', 'opencode', '1.0.0', 'session-2', '/repo', '/repo/.git/nitro',
+                     '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00',
+                     '2026-01-10T12:05:00+00:00', '2026-01-10T12:06:00+00:00', 'opencode-server',
+                     'http://127.0.0.1:4096', 'secret', 0, NULL, NULL, NULL, NULL, 0, 0),
+                    ('lena', '', NULL, '', NULL, '', '',
+                     '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00',
+                     NULL, NULL, 'none', '', NULL, 0, NULL, NULL, NULL, NULL, 0, 0);
+
+                INSERT INTO tasks (id, title, assignee, created_at, updated_at)
+                VALUES ('task-1', 'Keep me', 'maya', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
+
+                INSERT INTO messages (id, thread_id, sender, subject, body, created_at)
+                VALUES ('mail-1', 'mail-1', 'nova', 'Old mail', 'Keep me too', '2026-01-10T12:00:00+00:00');
+                INSERT INTO message_recipients (message_id, recipient, ordinal)
+                VALUES ('mail-1', 'maya', 0);
+
+                INSERT INTO memory_journal (id, body, created_at, created_by)
+                VALUES ('memory-1', 'Remember me', '2026-01-10T12:00:00+00:00', 'maya');
+
+                INSERT INTO agent_deliveries (agent, message_id, channel, delivered_at)
+                VALUES ('maya', 'mail-1', 'digest', '2026-01-10T12:04:00+00:00');
+
+                INSERT INTO agent_ping_gates (agent, attempt_id, acquired_at, expires_at)
+                VALUES ('maya', 'attempt-1', '2026-01-10T12:03:00+00:00', '2026-01-10T12:04:00+00:00');
+
+                INSERT INTO ping_leases (slot, attempt_id, acquired_at, expires_at)
+                VALUES (1, 'attempt-1', '2026-01-10T12:03:00+00:00', '2026-01-10T12:04:00+00:00');
+
+                INSERT INTO mail_wake_outbox (actor, requested_generation, settled_generation, due_at, updated_at)
+                VALUES ('maya', 2, 1, '2026-01-10T12:03:00+00:00', '2026-01-10T12:03:00+00:00');
+
+                INSERT INTO mail_wake_batches (
+                    batch_id, actor, claimed_generation, owner_id, attempt_id, claimed_at, expires_at)
+                VALUES ('batch-1', 'maya', 2, 'leader', 'batch-attempt-1',
+                    '2026-01-10T12:03:00+00:00', '2026-01-10T12:04:00+00:00');
+
+                INSERT INTO mail_wake_targets (batch_id, agent, status, updated_at)
+                VALUES ('batch-1', 'maya', 'pending', '2026-01-10T12:03:00+00:00');
+
+                PRAGMA user_version = 18;
+                """,
+                cancellationToken);
+        }
+
+        // act
+        await using var upgraded = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        // assert
+        var agents = await QueryRowsAsync(upgraded, "SELECT * FROM agents ORDER BY name", cancellationToken);
+        var rowCounts = new Dictionary<string, long>();
+
+        foreach (var table in new[]
+        {
+            "tasks", "messages", "message_recipients", "memory_journal", "agent_deliveries",
+            "agent_ping_gates", "ping_leases", "mail_wake_outbox", "mail_wake_batches", "mail_wake_targets"
+        })
+        {
+            rowCounts[table] = await QueryScalarLongAsync(upgraded, $"SELECT COUNT(*) FROM {table}", cancellationToken);
+        }
+
+        var agentIndexes = await QueryRowsAsync(
+            upgraded,
+            "SELECT name, sql FROM sqlite_master WHERE type = 'index' AND tbl_name = 'agents' AND sql IS NOT NULL",
+            cancellationToken);
+        var foreignKeyViolations = await QueryRowsAsync(upgraded, "PRAGMA foreign_key_check", cancellationToken);
+        var integrity = await QueryScalarStringAsync(upgraded, "PRAGMA integrity_check", cancellationToken);
+        await ExecuteAsync(
+            upgraded,
+            """
+            INSERT INTO agents (name, harness, session_id, registered_at, started_at, last_seen_at)
+            VALUES ('vera', 'venti', 'session-1', '2026-01-10T13:00:00+00:00', '2026-01-10T13:00:00+00:00',
+                '2026-01-10T13:00:00+00:00')
+            """,
+            cancellationToken);
+        var ventiAgents = await QueryRowsAsync(
+            upgraded, "SELECT name, harness, session_id FROM agents WHERE harness = 'venti'", cancellationToken);
+        var orphanDelivery = await Record.ExceptionAsync(
+            () => ExecuteAsync(
+                upgraded,
+                """
+                INSERT INTO agent_deliveries (agent, message_id, channel, delivered_at)
+                VALUES ('ghost', 'mail-1', 'gate', '2026-01-10T13:00:00+00:00')
+                """,
+                cancellationToken));
+
+        Snapshot.Create()
+            .Add(await QueryScalarLongAsync(upgraded, "PRAGMA user_version", cancellationToken), "Version")
+            .Add(agents, "Agents")
+            .Add(rowCounts, "RowCounts")
+            .Add(agentIndexes, "AgentIndexes")
+            .Add(foreignKeyViolations, "ForeignKeyViolations")
+            .Add(integrity, "IntegrityCheck")
+            .Add(ventiAgents, "VentiAgentsAfterInsert")
+            .Add((orphanDelivery as SqliteException)?.Message, "OrphanDeliveryError")
+            .MatchMarkdownSnapshot();
     }
 
     /// <summary>
@@ -796,6 +965,7 @@ public sealed class AgentDatabaseTests : IDisposable
     [InlineData(6)]
     [InlineData(7)]
     [InlineData(17)]
+    [InlineData(18)]
     public async Task ConnectAsync_Should_Throw_When_VersionIsUpgradable(int upgradableVersion)
     {
         // arrange
@@ -1397,6 +1567,36 @@ public sealed class AgentDatabaseTests : IDisposable
         }
 
         return names;
+    }
+
+    /// <summary>
+    /// Returns every row of <paramref name="sql"/> as column-name-to-value pairs in column order.
+    /// </summary>
+    private static async Task<List<Dictionary<string, object?>>> QueryRowsAsync(
+        SqliteConnection connection,
+        string sql,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+
+        var rows = new List<Dictionary<string, object?>>();
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            var row = new Dictionary<string, object?>();
+
+            for (var i = 0; i < reader.FieldCount; i++)
+            {
+                row[reader.GetName(i)] = reader.IsDBNull(i) ? null : reader.GetValue(i);
+            }
+
+            rows.Add(row);
+        }
+
+        return rows;
     }
 
     private static async Task ExecuteAsync(

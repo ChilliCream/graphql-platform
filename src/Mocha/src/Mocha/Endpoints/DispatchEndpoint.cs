@@ -51,6 +51,7 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
 {
     private TaskCompletionSource<bool> _completed;
     private DispatchDelegate _pipeline;
+    private TimeProvider _timeProvider = null!;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DispatchEndpoint"/> class bound to
@@ -192,6 +193,7 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
     public void Complete(IMessagingConfigurationContext context)
     {
         OnComplete(context, Configuration);
+        _timeProvider = context.Services.GetTimeProvider();
 
         var pipeline = MiddlewareCompiler.CompileDispatch(
             new DispatchMiddlewareFactoryContext
@@ -200,7 +202,7 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
                 Endpoint = this,
                 Transport = Transport
             },
-            DispatchAsync,
+            DispatchInternalAsync,
             [Transport.GetDispatchMiddlewares(), Configuration.DispatchMiddlewares],
             [Transport.GetDispatchPipelineModifiers(), Configuration.DispatchPipelineModifiers]);
 
@@ -249,6 +251,15 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
     /// <param name="context">The dispatch context containing the fully prepared message.</param>
     /// <returns>A <see cref="ValueTask"/> that completes when the transport-level send is finished.</returns>
     protected abstract ValueTask DispatchAsync(IDispatchContext context);
+
+    private ValueTask DispatchInternalAsync(IDispatchContext context)
+    {
+        var sentAt = context.SentAt ?? context.Envelope?.SentAt ?? _timeProvider.GetUtcNow();
+        context.SentAt = sentAt;
+        context.Envelope?.SetSentAt(sentAt);
+
+        return DispatchAsync(context);
+    }
 
     // TODO complete lifecyle
     private void AssertUninitialized()

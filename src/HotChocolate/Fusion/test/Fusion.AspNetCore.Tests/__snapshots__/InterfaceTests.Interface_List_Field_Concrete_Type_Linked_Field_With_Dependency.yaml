@@ -19,7 +19,7 @@ response:
           {
             "viewerCanVote": true,
             "author": {
-              "displayName": "Author: QXV0aG9yOjQ="
+              "displayName": "Author: QXV0aG9yOjQwNjM5NDMxMjk="
             }
           },
           {
@@ -28,7 +28,7 @@ response:
           {
             "viewerCanVote": true,
             "author": {
-              "displayName": "Author: QXV0aG9yOjU="
+              "displayName": "Author: QXV0aG9yOjYwMTI1NTU3"
             }
           }
         ]
@@ -88,7 +88,7 @@ sourceSchemas:
                       "__typename": "Discussion",
                       "viewerCanVote": true,
                       "author": {
-                        "id": "QXV0aG9yOjQ="
+                        "id": "QXV0aG9yOjQwNjM5NDMxMjk="
                       }
                     },
                     {
@@ -99,7 +99,7 @@ sourceSchemas:
                       "__typename": "Discussion",
                       "viewerCanVote": true,
                       "author": {
-                        "id": "QXV0aG9yOjU="
+                        "id": "QXV0aG9yOjYwMTI1NTU3"
                       }
                     }
                   ]
@@ -131,10 +131,10 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "QXV0aG9yOjQ="
+                "__fusion_1_id": "QXV0aG9yOjQwNjM5NDMxMjk="
               },
               {
-                "__fusion_1_id": "QXV0aG9yOjU="
+                "__fusion_1_id": "QXV0aG9yOjYwMTI1NTU3"
               }
             ]
         response:
@@ -144,7 +144,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "displayName": "Author: QXV0aG9yOjQ="
+                    "displayName": "Author: QXV0aG9yOjQwNjM5NDMxMjk="
                   }
                 }
               }
@@ -152,7 +152,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "displayName": "Author: QXV0aG9yOjU="
+                    "displayName": "Author: QXV0aG9yOjYwMTI1NTU3"
                   }
                 }
               }

@@ -13,6 +13,9 @@ the conventions in [README.md → Authoring Markdown Content](./README.md#author
 It covers frontmatter, `structure.yaml` sidebars, links, images, YouTube videos,
 admonitions, Mermaid diagrams, and MDX gotchas.
 
+When creating or editing a video under `content/videos/`, also follow
+[README.md → Videos](./README.md#videos) for the file name and frontmatter.
+
 # Components
 
 This site is built to be extended agent-first: adding a page or component should
@@ -73,7 +76,7 @@ helper classes. Avoid ad-hoc `text-4xl`-style sizes for display headings.
 
 ## Before you finish
 
-- Verify visually against the running dev server (`yarn dev`).
+- Verify visually against the running dev server (`npm run dev`).
 - `npx eslint <changed files>` must pass.
-- `yarn format` must be run and `yarn format:check` must pass (Prettier
+- `npm run format` must be run and `npm run format:check` must pass (Prettier
   formatting, including Tailwind class sorting, is enforced in CI).

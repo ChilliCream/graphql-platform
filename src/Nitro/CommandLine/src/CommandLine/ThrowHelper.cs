@@ -1,3 +1,5 @@
+using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering;
+using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering.Nodes;
 using System.Globalization;
 
 namespace ChilliCream.Nitro.CommandLine;
@@ -29,6 +31,19 @@ internal static class ThrowHelper
     public static ArgumentOutOfRangeException NegativeLimit(int limit)
         => new(nameof(limit), limit, "Limit must be zero or greater.");
 
+    public static ArgumentOutOfRangeException UnsupportedSeverityLevel(string severity)
+        => new(nameof(severity), severity, "Unsupported severity level.");
+
+    public static ArgumentOutOfRangeException UnsupportedFilterNode(FilterNode? node)
+        => new(nameof(node));
+
+    public static ArgumentOutOfRangeException UnsupportedFilterComparisonOperator(
+        FilterComparisonOperator comparison)
+        => new(nameof(comparison));
+
+    public static FilterParseException InvalidFilterSyntax(string message, int position)
+        => new(message, position + 1);
+
     public static ArgumentException UnknownAgentHarness(string harness)
         => new($"'{harness}' is not an agent harness.", nameof(harness));
 
@@ -47,6 +62,25 @@ internal static class ThrowHelper
 
         return Exit($"No recipients left: {string.Join(", ", reasons)}.");
     }
+
+    public static ExitException NoAgentWorkspaceFound()
+        => Exit("No agent workspace found. Run `nitro agent init` first.");
+
+    public static ExitException UserHomeDirectoryNotResolved()
+        => Exit("Could not resolve the current user's home directory.");
+
+    public static ExitException ConflictingHookEntries(
+        string conflictingSettingsPath,
+        string settingsPath,
+        string conflictingCommand,
+        string command,
+        IReadOnlyList<string> events)
+        => Exit(
+            $"'{conflictingSettingsPath}' already runs Nitro's `{conflictingCommand}` hooks under "
+            + $"{string.Join(", ", events)}. Next to the `{command}` hooks in '{settingsPath}' they would "
+            + $"handle every event twice. Remove the `{conflictingCommand}` entries from "
+            + $"'{conflictingSettingsPath}', keeping any other hooks, then run the command again. "
+            + "Nothing was written.");
 
     public static ExitException NoAgentWorkspaceToBackUp()
         => Exit(

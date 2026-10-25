@@ -20,7 +20,7 @@ response:
         },
         "viewer": {
           "subType": {
-            "subgraphB": "SubType: U3ViVHlwZToy"
+            "subgraphB": "SubType: U3ViVHlwZTo4MjQyMjA4MzY="
           }
         }
       }
@@ -102,7 +102,7 @@ sourceSchemas:
                 "data": {
                   "viewer": {
                     "subType": {
-                      "subgraphB": "SubType: U3ViVHlwZToy"
+                      "subgraphB": "SubType: U3ViVHlwZTo4MjQyMjA4MzY="
                     }
                   }
                 }
