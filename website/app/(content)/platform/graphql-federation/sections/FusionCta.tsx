@@ -1,12 +1,10 @@
 import { Band } from "@/src/components/Band";
 import { ButtonRow } from "@/src/components/ButtonRow";
 import { SectionHeading } from "@/src/components/SectionHeading";
-import { OutlineButton, SolidButton } from "@/src/design-system/Button";
+import { SolidButton } from "@/src/design-system/Button";
+import { ArrowRightIcon } from "@/src/icons/ArrowRight";
 
 import { Section } from "./shared";
-
-const CONTACT_HREF =
-  "/services/support/contact?subject=Sales&context=GraphQL%20Federation";
 
 export function FusionCta() {
   return (
@@ -14,12 +12,32 @@ export function FusionCta() {
       <Band skin="accent" layout="centered">
         <SectionHeading
           align="center"
-          title="One gateway for both federations."
-          description="Fusion composes source schemas written for the GraphQL Federation specification or Apollo Federation, plus OpenAPI and gRPC sources, into one composite schema, and Nitro tells your teams which schema changes are safe for real clients."
+          title="Get started with GraphQL Federation"
         />
+        <div className="text-cc-ink mx-auto mt-4 max-w-3xl space-y-4 text-base text-pretty">
+          <p>
+            Getting started with GraphQL Federation doesn&apos;t require
+            rebuilding your existing APIs. With Fusion, you can bring together
+            GraphQL, REST, and gRPC services into one unified graph.
+          </p>
+          <p>
+            Fusion supports both Apollo Federation and the GraphQL Federation
+            specification, allowing you to use existing subgraphs without
+            modification and adopt the open standard at your own pace.
+          </p>
+          <p>
+            Start with a single subgraph, connect additional services as your
+            architecture grows, and let Fusion handle schema composition and
+            distributed query execution.
+          </p>
+        </div>
         <ButtonRow align="center" className="mt-9">
-          <SolidButton href="/products/fusion">Meet Fusion</SolidButton>
-          <OutlineButton href={CONTACT_HREF}>Contact an Expert</OutlineButton>
+          <SolidButton href="/docs/fusion/getting-started">
+            <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+              Get started with Fusion
+              <ArrowRightIcon className="size-3.5" />
+            </span>
+          </SolidButton>
         </ButtonRow>
       </Band>
     </Section>
