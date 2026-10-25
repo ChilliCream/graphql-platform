@@ -1,12 +1,5 @@
 import Link from "next/link";
-import type { ArticleSummary } from "@/src/helpers/contentCollection";
-
-interface BlogSidebarProps {
-  readonly posts: ArticleSummary[];
-  readonly currentHref: string;
-  /** Heading above the list. Defaults to the blog wording. */
-  readonly label?: string;
-}
+import type { BlogPostSummary } from "@/src/helpers/blogPosts";
 
 /**
  * Left rail for blog posts mirroring the docs sidebar, listing the most recent
@@ -16,12 +9,14 @@ interface BlogSidebarProps {
 export function BlogSidebar({
   posts,
   currentHref,
-  label = "Latest posts",
-}: BlogSidebarProps) {
+}: {
+  posts: BlogPostSummary[];
+  currentHref: string;
+}) {
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2 px-5 py-6 text-sm">
       <p className="text-cc-ink-dim px-3 text-xs font-semibold tracking-widest uppercase">
-        {label}
+        Latest posts
       </p>
       <nav className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto">
         <ul className="flex flex-col gap-1">

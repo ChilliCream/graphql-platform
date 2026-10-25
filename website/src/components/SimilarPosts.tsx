@@ -1,17 +1,12 @@
 import { ArrowLink } from "@/src/components/ArrowLink";
 import { BlogTeaserGrid } from "./BlogTeaserGrid";
-import type { ArticleSummary } from "@/src/helpers/contentCollection";
+import type { BlogPostSummary } from "@/src/helpers/blogPosts";
 
-interface SimilarPostsProps {
-  readonly posts: ArticleSummary[];
-  /** Target of the "View all" link. Defaults to the blog index. */
-  readonly viewAllHref?: string;
-}
+type SimilarPostsProps = {
+  posts: BlogPostSummary[];
+};
 
-export function SimilarPosts({
-  posts,
-  viewAllHref = "/blog",
-}: SimilarPostsProps) {
+export function SimilarPosts({ posts }: SimilarPostsProps) {
   if (posts.length === 0) {
     return null;
   }
@@ -22,7 +17,7 @@ export function SimilarPosts({
         <h2 className="text-cc-heading m-0 text-2xl font-semibold">
           You might also like
         </h2>
-        <ArrowLink href={viewAllHref}>View all</ArrowLink>
+        <ArrowLink href="/blog">View all</ArrowLink>
       </div>
       <BlogTeaserGrid posts={posts} />
     </section>

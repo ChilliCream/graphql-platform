@@ -8,9 +8,7 @@ import { MOCHA_ARTWORK, Mocha } from "@/src/icons/Mocha";
 import {
   BuildingIcon,
   CloudIcon,
-  ColumnsCompareIcon,
   HandshakeAngleIcon,
-  NetworkIcon,
   NewspaperIcon,
   ServerIcon,
   SparklesIcon,
@@ -31,7 +29,6 @@ import type { ComponentType, SVGProps } from "react";
 
 export const TOOLS = {
   blog: "/blog",
-  comparison: "/comparison",
   github: GITHUB_REPO_URL,
   linkedIn: "https://www.linkedin.com/company/chillicream",
   nitro: "https://nitro.chillicream.com",
@@ -94,22 +91,16 @@ export const NAV_ITEMS: NavItem[] = [
             icon: SparklesIcon,
           },
           {
-            href: "/platform/agentic-coding",
-            label: "Agentic Development",
-            description: "Consistently Good Code, from Any Agent.",
-            icon: RobotIcon,
-          },
-          {
-            href: "/platform/graphql-federation",
-            label: "GraphQL Federation",
-            description: "Many Services. One Graph.",
-            icon: NetworkIcon,
-          },
-          {
             href: "/platform/ecosystem",
             label: "Ecosystem",
             description: "An Ecosystem You Trust and Love.",
             icon: CloudIcon,
+          },
+          {
+            href: "/platform/agentic-coding",
+            label: "Agentic Development",
+            description: "Consistently Good Code, from Any Agent.",
+            icon: RobotIcon,
           },
         ],
       },
@@ -122,13 +113,6 @@ export const NAV_ITEMS: NavItem[] = [
             description: "Observability, governance, and delivery.",
             icon: Nitro,
             iconSize: NITRO_ARTWORK,
-          },
-          {
-            href: "/products/fusion",
-            label: "Fusion",
-            description: "The gateway for GraphQL Federation.",
-            icon: Fusion,
-            iconSize: FUSION_ARTWORK,
           },
           {
             href: "/products/mocha",
@@ -223,11 +207,6 @@ export const NAV_ITEMS: NavItem[] = [
         title: "Additional Resources",
         links: [
           { href: TOOLS.blog, label: "Blog", icon: BlogIcon },
-          {
-            href: TOOLS.comparison,
-            label: "Comparison",
-            icon: ColumnsCompareIcon,
-          },
           { href: TOOLS.github, label: "GitHub", icon: GitHubIcon },
           { href: TOOLS.slack, label: "Slack / Community", icon: SlackIcon },
           { href: TOOLS.youtube, label: "YouTube Channel", icon: YouTubeIcon },

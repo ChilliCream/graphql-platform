@@ -18,7 +18,6 @@ const SUBJECTS = [
 
 const REQUEST_CONTEXTS = [
   "GraphQL Services",
-  "GraphQL Federation",
   "Private Nitro Deployment",
   "GraphQL Support",
   "Startup Support",

@@ -22,16 +22,14 @@ const KIND_STYLE: Record<
 
 interface KindPillProps {
   readonly kind: ChangeKind;
-  readonly comfortable: boolean;
 }
 
-function KindPill({ kind, comfortable }: KindPillProps) {
+function KindPill({ kind }: KindPillProps) {
   const s = KIND_STYLE[kind];
-  const size = comfortable ? "text-[0.7rem]" : "text-[10px]";
   return (
     <span
       className={[
-        `rounded border px-1.5 py-0.5 font-mono ${size} tracking-[0.12em]`,
+        "rounded border px-1.5 py-0.5 font-mono text-[10px] tracking-[0.12em]",
         s.className,
       ].join(" ")}
     >
@@ -51,7 +49,6 @@ interface ClassificationCardProps {
   readonly verdict: string;
   readonly changes: readonly ClassificationChange[];
   readonly footer: string;
-  readonly density?: "compact" | "comfortable";
 }
 
 export function ClassificationCard({
@@ -60,10 +57,7 @@ export function ClassificationCard({
   verdict,
   changes,
   footer,
-  density = "compact",
 }: ClassificationCardProps) {
-  const comfortable = density === "comfortable";
-  const footerSize = comfortable ? "text-[0.7rem]" : "text-[11px]";
   return (
     <Card className="mt-1">
       <div className="relative z-10 flex h-full flex-col">
@@ -81,22 +75,14 @@ export function ClassificationCard({
               key={c.text}
               className="flex items-center justify-between gap-3 px-4 py-2.5"
             >
-              <code
-                className={
-                  comfortable
-                    ? "text-cc-ink min-w-0 font-mono text-xs break-words"
-                    : "text-cc-ink truncate font-mono text-xs"
-                }
-              >
+              <code className="text-cc-ink truncate font-mono text-xs">
                 {c.text}
               </code>
-              <KindPill kind={c.kind} comfortable={comfortable} />
+              <KindPill kind={c.kind} />
             </div>
           ))}
         </div>
-        <div
-          className={`text-cc-ink-dim border-cc-card-border border-t px-4 py-2.5 font-mono ${footerSize}`}
-        >
+        <div className="text-cc-ink-dim border-cc-card-border border-t px-4 py-2.5 font-mono text-[11px]">
           {footer}
         </div>
       </div>

@@ -12,7 +12,6 @@ const meta = {
     className: { control: "text" },
     eyebrow: { control: "text" },
     heading: { control: "text" },
-    align: { control: "select", options: ["left", "center"] },
     items: { control: "object" },
   },
   args: {
@@ -63,15 +62,6 @@ export const SingleItem: Story = {
           "Every plan starts with a 14-day free trial. No credit card is required to get going.",
       },
     ],
-  },
-};
-
-export const WithoutEyebrow: Story = {
-  args: {
-    id: "faq-without-eyebrow",
-    eyebrow: undefined,
-    heading: "Common questions.",
-    align: "left",
   },
 };
 
