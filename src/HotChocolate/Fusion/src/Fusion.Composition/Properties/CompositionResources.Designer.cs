@@ -1664,6 +1664,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; in schema &apos;{1}&apos; cannot be resolved, because the type &apos;{2}&apos; is not reachable from the root types of schema &apos;{1}&apos; and no other schema resolves the field..
+        /// </summary>
+        internal static string LogEntryHelper_UnreachableSourceField {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_UnreachableSourceField", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The @lookup directive is used within a source schema to specify output fields that can be used by the distributed GraphQL executor to resolve an entity by a stable key..
         /// </summary>
         internal static string LookupMutableDirectiveDefinition_Description {

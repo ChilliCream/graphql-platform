@@ -102,5 +102,6 @@ public static class LogEntryCodes
         "EVENT_STREAM_MESSAGE_ABSTRACT_TYPE_REQUIRES_TYPENAME";
     public const string EventStreamTopicsEmpty = "EVENT_STREAM_TOPICS_EMPTY";
     public const string TypeKindMismatch = "TYPE_KIND_MISMATCH";
+    public const string UnreachableSourceField = "UNREACHABLE_SOURCE_FIELD";
     public const string UnsatisfiableQueryPath = "UNSATISFIABLE_QUERY_PATH";
 }
