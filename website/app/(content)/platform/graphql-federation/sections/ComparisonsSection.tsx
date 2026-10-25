@@ -1,250 +1,59 @@
-import Link from "next/link";
-
-import { CardGrid } from "@/src/components/CardGrid";
-import { Card } from "@/src/design-system/Card";
-
-import { COMPARISONS } from "../comparisons";
-import { InPractice, LINK_CLASS, Section, SubHeading, Table } from "./shared";
-
-const ALTERNATIVES: readonly (readonly string[])[] = [
-  [
-    "Individual APIs per service",
-    "Every service exposes its own API; each client calls the services it needs and assembles the pieces itself.",
-    "A client that needs one or two services and little assembly.",
-    "Every client repeats the same assembly, and every client changes when a service does.",
-  ],
-  [
-    "Single GraphQL server",
-    "One server exposes one schema; one codebase, one deploy.",
-    "One team and one API. Where almost everyone starts.",
-    "Coordination happens in code review and scales only as far as one codebase.",
-  ],
-  [
-    "Federation",
-    "Each team publishes a source schema; composition merges them into one composite schema before deploy; the gateway's distributed executor plans each request across subgraphs. Conflicts fail the build.",
-    "Several teams need to ship one coherent API on their own schedules.",
-    "A gateway to run, a composition pipeline to own, one extra hop per request; entities need deliberate keys.",
-  ],
-  [
-    "Schema stitching",
-    "A gateway merges schemas at runtime with hand-written resolvers (the functions that produce each field's value) gluing types together.",
-    "Quick aggregation of a few services you control.",
-    "Glue resolvers drift silently as the underlying schemas change.",
-  ],
-  [
-    "BFF (backend for frontend) per client",
-    "Each frontend team builds its own backend that hand-aggregates the services it needs.",
-    "One or two clients with very different needs.",
-    "One backend per client to build, secure, and monitor.",
-  ],
-  [
-    "Modular monolith",
-    "One deployable exposes one schema; modules keep code ownership internal.",
-    "One team, or several teams that ship together. Often the right start.",
-    "One deploy train; coupling creeps back as teams multiply.",
-  ],
-];
-
-/**
- * A comparison entry as a linked tile. `LinkCard` is the shared version of this
- * card, but its title is an `h2`; this page keeps one `h2` per section, so the
- * title has to sit below the `h3` of the surrounding sub-heading.
- */
-function ComparisonCard({
-  href,
-  title,
-  summary,
-}: {
-  readonly href: string;
-  readonly title: string;
-  readonly summary: string;
-}) {
-  return (
-    <Card
-      as="a"
-      href={href}
-      variant="tile"
-      hoverBorder
-      className="flex h-full flex-col no-underline"
-    >
-      <h4 className="font-heading text-cc-heading text-lg font-semibold text-balance">
-        {title}
-      </h4>
-      <p className="text-cc-ink-dim mt-3 text-sm">{summary}</p>
-    </Card>
-  );
-}
+import { Section } from "./shared";
 
 export function ComparisonsSection() {
   return (
     <Section id="federation-comparisons">
-      <div>
-        <SubHeading id="comparisons">
+      <div className="max-w-2xl">
+        <h2 className="font-heading text-cc-heading text-h4 sm:text-h3 font-semibold text-balance">
           How GraphQL Federation compares
-        </SubHeading>
-        <p className="text-cc-ink mt-4 max-w-2xl text-base">
-          Federation is one answer among several to the same question: how does
-          a client get data that lives in more than one service? Each comparison
-          below says when the alternative is the better buy.
+        </h2>
+        <p className="text-cc-ink mt-4 text-base">
+          GraphQL Federation is particularly well suited to large APIs with
+          multiple independently developed services. Other approaches may be
+          simpler depending on your architecture and requirements.
         </p>
-        <div className="mt-8">
-          <CardGrid cols={2}>
-            {COMPARISONS.map((comparison) => (
-              <ComparisonCard
-                key={comparison.slug}
-                href={comparison.href}
-                title={comparison.title}
-                summary={comparison.summary}
-              />
-            ))}
-          </CardGrid>
-        </div>
       </div>
-
-      <div
-        id="alternatives"
-        className="border-cc-card-border mt-16 scroll-mt-24 border-t pt-16 sm:mt-24 sm:pt-24"
-      >
-        <SubHeading id="alternatives-heading">
-          GraphQL Federation vs schema stitching, BFFs, and a single server
-        </SubHeading>
-        <div className="text-cc-ink mt-4 max-w-2xl space-y-4 text-base">
-          <p>
-            Federation adds a gateway to run, a composition pipeline to own, and
-            one extra network hop on every request. That is a fair price when
-            several teams must ship one coherent API on their own schedules.
+      <div className="mt-10 grid gap-10 sm:grid-cols-2">
+        <div id="vs-single-server" className="scroll-mt-24">
+          <h3 className="font-heading text-cc-heading text-lg font-semibold text-balance">
+            GraphQL Federation vs. a single GraphQL server
+          </h3>
+          <p className="text-cc-ink mt-2 text-base">
+            A single GraphQL server is often the simplest choice for smaller
+            applications. Federation becomes valuable as APIs grow and teams
+            need independent ownership, development, and deployment.
           </p>
         </div>
-        <div className="mt-10">
-          <Table
-            caption="Federation compared with the alternatives"
-            columns={[
-              { header: "Approach", mono: true },
-              { header: "How it works" },
-              { header: "When it fits" },
-              { header: "The cost" },
-            ]}
-            rows={ALTERNATIVES}
-            minWidth="min-w-[840px]"
-          />
-        </div>
-        <div className="mt-10 max-w-2xl">
-          <SubHeading id="when-not">
-            When you do not need GraphQL Federation
-          </SubHeading>
-          <div className="text-cc-ink mt-4 space-y-4 text-base">
-            <p>
-              It is a poor price for one team, one service, or an early product
-              whose domain boundaries are still moving. Those cases are better
-              served by a single GraphQL server, and because every GraphQL
-              server is already a valid subgraph, that server can join a
-              composite schema later by declaring keys and lookups in its
-              schema, without changing its clients.
-            </p>
-            <InPractice href="/docs/fusion/migration/migrating-from-schema-stitching">
-              moving from schema stitching to federation
-            </InPractice>
-          </div>
-        </div>
-      </div>
-
-      <div
-        id="vs-bff"
-        className="border-cc-card-border mt-16 max-w-2xl scroll-mt-24 border-t pt-16 sm:mt-24 sm:pt-24"
-      >
-        <SubHeading id="vs-bff-heading">
-          GraphQL Federation vs BFF (backend for frontend)
-        </SubHeading>
-        <div className="text-cc-ink mt-4 space-y-4 text-base">
-          <p>
-            A backend for frontend is a service one client team builds and owns,
-            whose only job is to call the services that team needs and shape the
-            result for its screens. It is the right answer when one
-            client&apos;s needs are unusual enough that no other client would
-            want the same aggregation. When several clients want the same data,
-            each backend for frontend re-implements the same joins, and every
-            change to a service lands on every one of those teams. Federation
-            turns that around: the teams that own the data publish their source
-            schemas, composition produces one composite schema, and every client
-            asks it for exactly the fields that client needs.
+        <div id="vs-schema-stitching" className="scroll-mt-24">
+          <h3 className="font-heading text-cc-heading text-lg font-semibold text-balance">
+            GraphQL Federation vs. Schema Stitching
+          </h3>
+          <p className="text-cc-ink mt-2 text-base">
+            Both approaches combine multiple GraphQL schemas into one API.
+            Federation emphasizes explicit ownership and relationships defined
+            by subgraphs, making it a natural fit for independently evolving
+            services.
           </p>
         </div>
-      </div>
-
-      <div
-        id="vs-individual-apis"
-        className="border-cc-card-border mt-16 max-w-2xl scroll-mt-24 border-t pt-16 sm:mt-24 sm:pt-24"
-      >
-        <SubHeading id="vs-individual-apis-heading">
-          GraphQL Federation vs individual APIs
-        </SubHeading>
-        <div className="text-cc-ink mt-4 space-y-4 text-base">
-          <p>
-            With no aggregation layer at all, each client calls every service it
-            needs and joins the results itself: one request for the order,
-            another for the products in it, another for the customer. That is
-            fine while a screen touches one or two services. It stops being fine
-            when a screen touches five, because every client, web and mobile and
-            partner integration alike, writes the same joining code, pays a
-            round trip per service, and has to change whenever any of those
-            services does. Federation moves that work behind the gateway: the
-            client sends one query and gets one response.
+        <div id="vs-bff" className="scroll-mt-24">
+          <h3 className="font-heading text-cc-heading text-lg font-semibold text-balance">
+            GraphQL Federation vs. Backend for Frontend (BFF)
+          </h3>
+          <p className="text-cc-ink mt-2 text-base">
+            BFFs create APIs tailored to individual applications, while
+            federation provides a shared graph across backend services. The two
+            approaches can complement each other.
           </p>
         </div>
-      </div>
-
-      <div
-        id="vs-graphql-monolith"
-        className="border-cc-card-border mt-16 max-w-2xl scroll-mt-24 border-t pt-16 sm:mt-24 sm:pt-24"
-      >
-        <SubHeading id="vs-graphql-monolith-heading">
-          GraphQL Federation vs a GraphQL monolith
-        </SubHeading>
-        <div className="text-cc-ink mt-4 space-y-4 text-base">
-          <p>
-            A GraphQL monolith is one server exposing one schema: one codebase,
-            one deploy, one place to look. A modular monolith stretches that
-            model by keeping ownership internal to modules. Both are excellent
-            while every team can ship on the same release train, and starting
-            there is rarely a mistake. Once those teams need separate schedules,
-            the shared codebase becomes the queue: every change waits for the
-            same review and the same deploy. Federation gives each team a
-            subgraph it deploys on its own, and moves the coordination into
-            composition, which fails the build when two teams describe the same
-            field in incompatible ways.
+        <div id="vs-api-gateways" className="scroll-mt-24">
+          <h3 className="font-heading text-cc-heading text-lg font-semibold text-balance">
+            GraphQL Federation vs. traditional API gateways
+          </h3>
+          <p className="text-cc-ink mt-2 text-base">
+            Traditional API gateways focus on routing, security, and traffic
+            management. GraphQL federation gateways additionally understand
+            relationships between services and execute queries across them.
           </p>
-        </div>
-      </div>
-
-      <div
-        id="apollo-federation-vs-graphql-federation"
-        className="border-cc-card-border mt-16 max-w-2xl scroll-mt-24 border-t pt-16 sm:mt-24 sm:pt-24"
-      >
-        <div id="vs-apollo-federation" className="scroll-mt-24">
-          <SubHeading id="vs-apollo-federation-heading">
-            GraphQL Federation vs Apollo Federation
-          </SubHeading>
-          <div className="text-cc-ink mt-4 space-y-4 text-base">
-            <p>
-              Apollo Federation describes the same architecture in a different
-              vocabulary: where it says supergraph and router, the specification
-              says composite schema and gateway. The two differ in what a server
-              has to implement to join &mdash; Apollo Federation asks a subgraph
-              to implement its subgraph specification, while the GraphQL
-              Federation specification asks for nothing beyond the schema a
-              server already publishes.
-            </p>
-            <p className="text-cc-ink-dim text-sm">
-              <Link
-                className={LINK_CLASS}
-                href="/comparison/graphql-federation-vs-apollo-federation"
-              >
-                The full comparison: the vocabulary table, the design difference
-                and how one gateway composes both
-              </Link>
-              .
-            </p>
-          </div>
         </div>
       </div>
     </Section>
