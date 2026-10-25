@@ -115,6 +115,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 @$"Headers:
                 Vary: Accept
                 Content-Type: {expectedContentType}
+                Content-Length: 31
                 -------------------------->
                 Status Code: OK
                 -------------------------->
@@ -244,6 +245,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: {{{expectedContentType}}}
+                Content-Length: 80
                 -------------------------->
                 Status Code: {{{expectedStatusCode}}}
                 -------------------------->
@@ -286,6 +288,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 @$"Headers:
                 Vary: Accept
                 Content-Type: {expectedContentType}
+                Content-Length: 146
                 -------------------------->
                 Status Code: {expectedStatusCode}
                 -------------------------->
@@ -353,6 +356,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 140
                 -------------------------->
                 Status Code: BadRequest
                 -------------------------->
@@ -709,6 +713,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: {{{expectedContentType}}}
+                Content-Length: 156
                 -------------------------->
                 Status Code: {{{expectedStatusCode}}}
                 -------------------------->
@@ -751,6 +756,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 129
                 -------------------------->
                 Status Code: {{{expectedStatusCode}}}
                 -------------------------->
@@ -1388,6 +1394,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 80
                 -------------------------->
                 Status Code: BadRequest
                 -------------------------->
@@ -1468,6 +1475,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 115
                 -------------------------->
                 Status Code: InternalServerError
                 -------------------------->
@@ -1522,6 +1530,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 115
                 -------------------------->
                 Status Code: InternalServerError
                 -------------------------->
@@ -1567,6 +1576,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 115
                 -------------------------->
                 Status Code: {{{expectedStatusCode}}}
                 -------------------------->
@@ -1601,6 +1611,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 104
                 -------------------------->
                 Status Code: InternalServerError
                 -------------------------->
@@ -1635,6 +1646,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 105
                 -------------------------->
                 Status Code: InternalServerError
                 -------------------------->
@@ -1672,6 +1684,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 105
                 -------------------------->
                 Status Code: InternalServerError
                 -------------------------->
@@ -1713,6 +1726,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 122
                 -------------------------->
                 Status Code: {{{expectedStatusCode}}}
                 -------------------------->
@@ -1773,6 +1787,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 122
                 -------------------------->
                 Status Code: {{{expectedStatusCode}}}
                 -------------------------->
@@ -1813,6 +1828,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 122
                 -------------------------->
                 Status Code: {{{expectedStatusCode}}}
                 -------------------------->
@@ -1850,6 +1866,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 122
                 -------------------------->
                 Status Code: {{{expectedStatusCode}}}
                 -------------------------->
@@ -1883,6 +1900,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 122
                 -------------------------->
                 Status Code: {{{expectedStatusCode}}}
                 -------------------------->
@@ -1918,6 +1936,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 122
                 -------------------------->
                 Status Code: BadRequest
                 -------------------------->
@@ -1953,6 +1972,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 31
                 -------------------------->
                 Status Code: OK
                 -------------------------->
@@ -2868,6 +2888,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 122
                 -------------------------->
                 Status Code: {{{expectedStatusCode}}}
                 -------------------------->
@@ -2926,6 +2947,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 80
                 -------------------------->
                 Status Code: BadRequest
                 -------------------------->

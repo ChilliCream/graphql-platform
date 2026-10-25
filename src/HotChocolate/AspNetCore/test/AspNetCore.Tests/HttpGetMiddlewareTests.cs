@@ -770,6 +770,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 34
                 -------------------------->
                 Status Code: OK
                 -------------------------->
