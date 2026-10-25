@@ -146,6 +146,7 @@ file sealed class LoopbackHttpListener : IAsyncDisposable
         }
 
         _source.Task.Dispose();
+        await _app.StopAsync();
         await _app.DisposeAsync();
     }
 
