@@ -2,7 +2,6 @@ using System.Reflection;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
-using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.CostAnalysis;
@@ -31,11 +30,11 @@ public sealed class OptionsTests
         // assert
         Assert.Equal(1_000, options.MaxFieldCost);
         Assert.Equal(10_000, options.MaxTypeCost);
-        Assert.Equal(PagingDefaults.MaxPageSize, options.DefaultListSize);
+        Assert.Equal(1, options.DefaultListSize);
     }
 
     [Fact]
-    public async Task DefaultListSize_Should_BePagingMaxPageSize_When_FieldHasNoListSizeAnnotation()
+    public async Task DefaultListSize_Should_BeOne_When_FieldHasNoListSizeAnnotation()
     {
         // arrange
         var requestExecutor = await CreateUnannotatedListRequestExecutorBuilder()
@@ -53,7 +52,7 @@ public sealed class OptionsTests
 
         // assert
         Assert.Empty(result.Errors);
-        Assert.Equal(1 + PagingDefaults.MaxPageSize, Convert.ToDouble(operationCost["typeCost"]));
+        Assert.Equal(2, Convert.ToDouble(operationCost["typeCost"]));
     }
 
     [Fact]
@@ -242,7 +241,7 @@ public sealed class OptionsTests
         else
         {
             Assert.IsType<ArgumentOutOfRangeException>(exception);
-            Assert.Equal(PagingDefaults.MaxPageSize, options.DefaultListSize);
+            Assert.Equal(1, options.DefaultListSize);
         }
     }
 

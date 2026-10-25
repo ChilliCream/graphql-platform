@@ -101,7 +101,7 @@ builder
 | `ApplyCostDefaults`                | `bool`                        | `true`    | Applies Hot Chocolate cost metadata to the schema.                                                                       |
 | `ApplySlicingArgumentDefaultValue` | `bool`                        | `true`    | Writes the paging default size for argument-less evaluated requests.                                                     |
 | `DefaultResolverCost`              | `double?`                     | `10.0`    | Weight for fields without a pure resolver. `null` disables the default.                                                  |
-| `DefaultListSize`                  | `double`                      | `50`      | Size for lists without applicable `@listSize` metadata, sourced from `PagingDefaults.MaxPageSize`.                       |
+| `DefaultListSize`                  | `double`                      | `1`       | Size for lists without applicable `@listSize` metadata.                                                                  |
 | `CostPlanCacheSize`                | `int`                         | `256`     | Maximum compiled cost plans cached per schema.                                                                           |
 | `MaxResponseSize`                  | `double?`                     | `null`    | Maximum response-object-field count. `null` disables the check.                                                          |
 | `CaseBudget`                       | `int?`                        | `null`    | Exact cases evaluated per operation before falling back per `CaseBudgetExceededBehavior`. `null` uses the default (510). |
