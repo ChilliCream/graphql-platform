@@ -1,5 +1,5 @@
 ---
-title: "GraphQL Federation vs Apollo Federation"
+title: "GraphQL Federation vs. Apollo Federation"
 description: "Apollo Federation and the GraphQL Federation specification describe one architecture in two vocabularies. What differs, and how one gateway runs both."
 date: "2026-09-08"
 tags: ["graphql-federation", "comparison", "apollo-federation"]
@@ -8,72 +8,196 @@ authorUrl: https://github.com/rstaib
 authorImageUrl: https://avatars0.githubusercontent.com/u/4325318?s=100&v=4
 ---
 
-Apollo Federation is the model most teams meet first, and it is widely deployed, so its words are the words the industry reaches for: supergraph, router, subgraph. The GraphQL Federation specification describes the same architecture with a different vocabulary — and with a different answer to one question: what does a server have to implement in order to take part?
+Apollo Federation established the foundation for building distributed GraphQL APIs. GraphQL Federation takes that architecture forward, combining ideas from Apollo Federation and GraphQL Fusion into an open, vendor-neutral specification developed under the GraphQL Foundation.
 
-This page puts them side by side: the architecture they share, the terms that map onto each other, the design difference underneath the names, who each specification belongs to, and how one gateway composes subgraphs written to either of them.
+**GraphQL Federation is an evolution of Apollo Federation, not a replacement.** It preserves the fundamental architecture of independent subgraphs, schema composition, and distributed query execution while simplifying how GraphQL services participate in a federated graph.
 
-# The architecture they share
+Backward compatibility is an important part of this evolution. Existing Apollo Federation subgraphs can continue operating without modification through gateways that support both approaches. Fusion already provides this interoperability, allowing Apollo Federation and GraphQL Federation subgraphs to participate in the same graph.
 
-Both start from the same premise. Each team runs its own service — a subgraph — and publishes a source schema describing the part of the API it owns. A build step, composition, validates those source schemas against each other and produces one composite schema. A gateway serves that composite schema, and its distributed executor plans every incoming query across the subgraphs the query touches, fetches from each and returns one response.
+Meanwhile, Apollo, ChilliCream, The Guild, WunderGraph, and other contributors are helping advance the new specification, creating a shared foundation for the future of GraphQL federation.
 
-Both answer the cross-service problem the same way as well. A type that more than one subgraph contributes to is an entity; it is identified by a key, and one subgraph fetches it on behalf of another when a query spans both. Draw the topology for either one and you get the same picture: clients, a gateway, several subgraphs behind it, and a composition step in CI. Team boundaries, ownership and the request path are unchanged between them.
+# From Apollo Federation to an open standard
 
-# Two vocabularies, one architecture
+Apollo introduced federation in 2019, allowing organizations to distribute ownership of a GraphQL API across independent teams and services. Instead of maintaining one large GraphQL server, teams could develop and deploy their own subgraphs while exposing a single unified API to clients.
 
-Because Apollo Federation is so widely deployed, you will meet its words as often as the specification's. Where Apollo says supergraph, the specification says composite schema; where Apollo says router, it says gateway. Most of the distance between the two is a translation table.
+GraphQL Fusion subsequently explored another approach to federation, emphasizing the existing GraphQL type system, explicit schema relationships, and reducing the need for specialized subgraph protocols.
 
-| Concept                                                | Apollo Federation                                                             | GraphQL Federation                                                              |
-| ------------------------------------------------------ | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| The service behind the gateway                         | Subgraph                                                                      | Subgraph                                                                        |
-| The schema document a subgraph publishes               | Subgraph schema                                                               | Source schema                                                                   |
-| The build step that validates and merges the schemas   | Composition                                                                   | Composition                                                                     |
-| The single client-facing schema                        | Supergraph                                                                    | Composite schema                                                                |
-| The public entry point that receives queries           | Router                                                                        | Gateway                                                                         |
-| The part that plans a query and assembles one response | Router (query planner and executor)                                           | Distributed executor                                                            |
-| A type with a stable key, referenced across subgraphs  | Entity                                                                        | Entity                                                                          |
-| The fields that identify an entity                     | @key                                                                          | @key                                                                            |
-| Fetching an entity by one of its keys                  | \_entities(representations:) with a reference resolver                        | An ordinary query field marked @lookup                                          |
-| A field that needs data from another subgraph          | @requires (on the field)                                                      | @require (on an argument)                                                       |
-| Moving a field to another subgraph                     | @override(from:)                                                              | @override(from:)                                                                |
-| What a server implements to join                       | The Apollo subgraph specification: \_entities, \_service, reference resolvers | Nothing beyond its schema; any GraphQL server                                   |
-| Fetching many entities at once                         | A list of representations passed to \_entities                                | Variable batching for GraphQL over HTTP: one query with a list of variable sets |
+Both approaches addressed the same architectural challenge but made different technical choices. A subgraph designed for one federation system could not necessarily participate in another without additional integration.
 
-Not every row is a rename, though. The last few describe the one place where the two models genuinely differ.
+In 2023, Apollo, ChilliCream, and The Guild established the Composite Schemas Working Group to develop a common specification under the GraphQL Foundation. The effort has since brought together contributors from across the GraphQL ecosystem, including IBM, Netflix, WunderGraph and the broader GraphQL community.
 
-# What a server has to implement to join
+What began as the Composite Schemas specification has now become the **GraphQL Federation specification**, bringing together the experience gained from both Apollo Federation and GraphQL Fusion.
 
-Apollo Federation asks a subgraph to implement its subgraph specification. The gateway resolves entities by calling a hidden `_entities` root field with typed representations, so each subgraph adds that field, a reference resolver per entity type, and a `_service` field that returns its SDL. In practice that means a federation library for the language the service is written in; a server without one cannot join.
+The goal is a shared standard that different GraphQL servers, gateways, and tooling providers can implement independently, without tying federation to a single vendor.
 
-The GraphQL Federation specification asks for ordinary schema instead. An entity is fetched through a normal query field marked `@lookup`, and a field that needs data from another subgraph declares that on an argument marked `@require`. There is no hidden root field and no reference-resolver protocol, so any GraphQL server, in any language, can be a subgraph with nothing beyond the schema it already publishes.
+# What stays the same?
 
-Two things follow from that. Teams keep the servers they already run, including the ones no federation library was ever written for. And entity resolution stops being an internal protocol: a lookup is a field like any other, so it can be queried, reviewed and tested from any GraphQL client instead of only through the gateway.
+GraphQL Federation preserves the fundamental architectural concepts that made Apollo Federation successful.
 
-# Who each specification belongs to
+- **Subgraphs:** Independent GraphQL services contribute types and fields to a larger graph.
+- **Entities and keys:** Types can be identified and referenced across service boundaries.
+- **Schema composition:** Source schemas are validated and combined into one unified schema.
+- **Distributed execution:** A gateway coordinates queries across the necessary subgraphs and assembles a single response.
 
-Apollo Federation is Apollo's specification. Apollo defines the directives and the subgraph protocol, and ships the router and the subgraph libraries that implement them. What the model does next, and on what terms it is used, follows Apollo's roadmap and licensing.
+The terminology has evolved slightly. What Apollo Federation calls a _supergraph_, GraphQL Federation calls a _composite schema_. Apollo commonly uses the term _router_, while the open specification uses _gateway_.
 
-The GraphQL Federation specification is developed in the open under the GraphQL Foundation, the same home as the GraphQL specification itself. It is written for implementers rather than for one product: the directives and the execution model are the contract, and anyone can implement either side of it. For an organization choosing where to put a decade of API surface, that is the difference between an architecture defined by a vendor and one defined by a standard that vendors compete inside.
+But the underlying architecture remains familiar.
 
-# Running both in one graph
+Each team owns its services, schemas, and deployment lifecycle. Clients interact with one coherent GraphQL API without needing to know which subgraph provides each field.
 
-At the gateway the two are not an either/or. Fusion is the only gateway that supports both the GraphQL Federation specification and Apollo Federation: composition reads each source schema, detects which of the two it is written to, and composes Apollo Federation subgraphs and GraphQL Federation subgraphs into one composite schema. At runtime the distributed executor speaks Apollo's `_entities` protocol to the subgraphs that expect it and calls lookup fields on the ones that publish them, inside the same query plan.
+# What changes with GraphQL Federation?
 
-That turns the choice between the two into a schedule rather than a cutover. Existing Apollo Federation subgraphs keep their SDL, their reference resolvers and their deployment model and run behind the gateway unchanged; a team that wants the open specification converts one subgraph at a time, and the graph keeps answering queries throughout.
+The most significant changes concern how subgraphs expose entities, declare dependencies, and communicate with the gateway.
 
-In practice: [moving a subgraph from Apollo Federation to the GraphQL Federation protocol](/docs/fusion/migration/coming-from-apollo-federation).
+Apollo Federation introduced a dedicated subgraph protocol to support distributed execution. GraphQL Federation builds on standard GraphQL capabilities instead, making federation possible without requiring every server to implement specialized federation infrastructure.
 
-# When to pick which
+## Entity resolution through standard GraphQL fields
 
-## Pick GraphQL Federation when
+Apollo Federation resolves entities through a special `_entities` field. Subgraphs implement reference resolvers that accept entity representations containing the information needed to locate an entity.
 
-- The graph should rest on an open standard, developed under the GraphQL Foundation, rather than on one vendor's model.
-- Subgraphs run on servers or in languages with no Apollo Federation library, and adding one is not on anyone's plan.
-- Teams want entity resolution they can call and test as an ordinary query field, instead of through a hidden protocol field.
-- The graph is new, and nothing is invested in Apollo's router, its subgraph libraries or its registry yet.
+GraphQL Federation introduces a more explicit approach using ordinary GraphQL query fields marked with `@lookup`.
 
-## Pick Apollo Federation when
+```graphql
+type Query {
+  productById(id: ID!): Product @lookup
+}
 
-- Subgraphs, CI and the schema registry are already built on Apollo Federation and are running well.
-- The team depends on specific Apollo Router or GraphOS features that would have to be replaced first.
-- The people on call know Apollo's tooling, and their time is better spent on the product right now.
-- Nothing is forcing the question: subgraphs can move to the open specification one at a time later, behind a gateway that speaks both.
+type Product @key(fields: "id") {
+  id: ID!
+  name: String!
+}
+```
+
+The `@key` directive identifies an entity, while `@lookup` tells the distributed executor how that entity can be retrieved.
+
+Unlike Apollo's specialized `_entities` field, `productById` is a regular GraphQL query field. Developers can query it directly, test it independently, and understand its purpose without knowing anything about federation.
+
+An entity can also expose multiple lookups, allowing it to be retrieved through different keys.
+
+This approach eliminates the need for dedicated reference resolvers and allows existing GraphQL query fields to participate directly in federation.
+
+## Dependencies through field arguments
+
+Federated queries often require data owned by one subgraph to resolve a field in another.
+
+Apollo Federation expresses these dependencies using directives such as `@requires`, with the required information supplied through entity representations.
+
+GraphQL Federation introduces `@require`, which declares dependencies directly on field arguments.
+
+Consider a shipping service that calculates delivery costs using product information owned by another service.
+
+```graphql
+type Product @key(fields: "id") {
+  id: ID!
+  estimateShippingCost(
+    zipCode: String!
+    dimensions: DimensionsInput!
+      @require(
+        field: """
+        {
+          width: dimensions.width
+          height: dimensions.height
+          weight
+        }
+        """
+      )
+  ): Float
+}
+
+input DimensionsInput {
+  width: Int!
+  height: Int!
+  weight: Int!
+}
+```
+
+The shipping service declares exactly which information it needs. The distributed executor retrieves that information from the appropriate subgraph and passes it through an ordinary GraphQL argument.
+
+The service receives a strongly typed input object rather than a specialized federation representation.
+
+This keeps dependencies explicit, allows composition to validate them, and makes the resolver easier to understand and test.
+
+## Batching as a transport capability
+
+Apollo Federation uses the `_entities` field to resolve multiple entity representations within a single request.
+
+GraphQL Federation resolves entities through ordinary query fields. To support efficient execution when many entities must be fetched, the standardization effort is also introducing additional GraphQL-over-HTTP transport capabilities.
+
+One of these is variable batching, which allows the same GraphQL operation to execute with multiple sets of variables.
+
+```json
+{
+  "query": "query GetProduct($id: ID!) { productById(id: $id) { name } }",
+  "variables": [{ "id": "1" }, { "id": "2" }, { "id": "3" }]
+}
+```
+
+Instead of constructing different operations for different batch sizes, the gateway can reuse the same query with multiple variable sets.
+
+The important architectural distinction is that batching becomes a transport capability rather than something built into a specialized entity-resolution protocol.
+
+These capabilities can also benefit ordinary GraphQL clients, extending their usefulness beyond federation.
+
+# Technical differences at a glance
+
+| Capability           | Apollo Federation                   | GraphQL Federation                      |
+| -------------------- | ----------------------------------- | --------------------------------------- |
+| Architecture         | Independent subgraphs               | Independent subgraphs                   |
+| Unified schema       | Supergraph                          | Composite schema                        |
+| Public entry point   | Router                              | Gateway                                 |
+| Schema composition   | Supported                           | Supported                               |
+| Entity identity      | `@key`                              | `@key`                                  |
+| Entity resolution    | `_entities` and reference resolvers | Standard query fields with `@lookup`    |
+| Field dependencies   | `@requires` on fields               | `@require` on arguments                 |
+| Subgraph integration | Apollo Federation subgraph protocol | Standard GraphQL schema and execution   |
+| Entity batching      | Entity representations              | GraphQL-over-HTTP batching capabilities |
+
+Some differences are primarily terminology. Others represent meaningful changes to how services participate in federation.
+
+The underlying architectural principles remain consistent.
+
+# Backward compatibility: Keep the subgraphs you already have
+
+Moving toward GraphQL Federation does not have to mean rewriting existing Apollo Federation services.
+
+**Fusion already supports both Apollo Federation and GraphQL Federation within the same graph.**
+
+Existing Apollo Federation subgraphs can retain their schemas, reference resolvers, and federation protocols. New subgraphs can adopt the GraphQL Federation specification, and both can participate in the same composite schema.
+
+At composition time, Fusion recognizes the federation model used by each subgraph and combines their schemas into one graph.
+
+At runtime, Fusion communicates with each subgraph using its existing protocol. Apollo Federation subgraphs continue using `_entities`, while GraphQL Federation subgraphs use ordinary lookup fields.
+
+Both can participate in the same distributed query execution plan, allowing a single client query to move between subgraphs using different federation protocols.
+
+This means organizations can adopt the new specification incrementally, without a coordinated migration or disruption to existing services.
+
+Teams can preserve their investment in Apollo Federation while introducing new subgraphs using the open specification.
+
+**Keep the graph you have. Build the graph you want.**
+
+# One federation ecosystem, built together
+
+GraphQL Federation represents the next chapter of an architecture that Apollo introduced in 2019.
+
+By bringing together the experience of Apollo Federation and ChilliCream's GraphQL Fusion, the GraphQL community is developing a shared specification that preserves existing architectural investments while opening federation to a broader ecosystem of implementations.
+
+Apollo, ChilliCream, The Guild, WunderGraph, and other contributors are actively shaping this direction through the GraphQL Foundation.
+
+The specification is still evolving, but implementations are already bringing its ideas into production. Fusion supports both federation models today, demonstrating how existing Apollo Federation subgraphs and services adopting GraphQL Federation can work together in one graph.
+
+The future of federation is **not** about choosing between Apollo Federation and GraphQL Federation. It is about moving toward a common standard that the entire ecosystem can build on.
+
+**The future of federation is open.**
+
+# Get started with GraphQL Federation
+
+You don't need to rebuild your existing APIs to get started.
+
+Fusion is a high-performance GraphQL gateway that supports both Apollo Federation and GraphQL Federation, allowing you to connect existing subgraphs and adopt the open specification at your own pace.
+
+Whether you're starting a new federated graph or already running Apollo Federation, Fusion lets you bring your services together without locking your architecture into a single federation ecosystem.
+
+Performance matters, too. Our [open GraphQL Federation benchmarks](/benchmarks/graphql-federation) compare gateways under identical conditions, measuring throughput, latency, memory consumption, and CPU usage. Explore the results and see how your gateway stacks up.
+
+[Explore Fusion](/products/fusion) | [View Benchmarks](/benchmarks/graphql-federation)
