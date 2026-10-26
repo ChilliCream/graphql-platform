@@ -4,6 +4,7 @@ import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 
 import { FEDERATION_FAQ_ITEMS } from "./faq";
 import { GraphBackdrop } from "./hero/GraphBackdrop";
+import { AiDevelopmentSection } from "./sections/AiDevelopmentSection";
 import { BuildingBlocksSection } from "./sections/BuildingBlocksSection";
 import { ComparisonsSection } from "./sections/ComparisonsSection";
 import { FromApolloSection } from "./sections/FromApolloSection";
@@ -56,6 +57,7 @@ export function ExplainerPage() {
       <ProblemSection />
       <BuildingBlocksSection />
       <FromApolloSection />
+      <AiDevelopmentSection />
       <ComparisonsSection />
       <FusionCta />
 
