@@ -1,7 +1,5 @@
-using System.Data.Common;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Mocha.EntityFrameworkCore;
 using Mocha.Middlewares;
 using Mocha.Utils;
@@ -10,40 +8,11 @@ namespace Mocha.Outbox;
 
 internal sealed class PostgresDbContextOutboxProvider(
     PostgresOutboxTracker tracker,
-    Func<PostgresMessageOutboxOptions> getOptions,
     TimeProvider timeProvider)
     : IDbContextOutboxProvider, IDisposable
 {
     private PooledArrayWriter? _arrayWriter;
     private Utf8JsonWriter? _jsonWriter;
-    private DbConnection? _validatedConnection;
-    private string? _validatedConnectionString;
-    private IModel? _validatedModel;
-    private PostgresMessageOutboxOptions? _validatedOptions;
-
-    public void Validate(DbContext context)
-    {
-        var options = getOptions();
-        var connection = context.Database.GetDbConnection();
-        var connectionString = connection.ConnectionString;
-        if (ReferenceEquals(_validatedConnection, connection)
-            && _validatedConnectionString == connectionString
-            && ReferenceEquals(_validatedModel, context.Model)
-            && ReferenceEquals(_validatedOptions, options))
-        {
-            return;
-        }
-
-        if (!options.MatchesDestination(context))
-        {
-            throw Mocha.EntityFrameworkCore.Postgres.ThrowHelper.OutboxDestinationNotRegistered(context.GetType());
-        }
-
-        _validatedConnection = connection;
-        _validatedConnectionString = connectionString;
-        _validatedModel = context.Model;
-        _validatedOptions = options;
-    }
 
     public int CreateCheckpoint() => tracker.CreateCheckpoint();
 

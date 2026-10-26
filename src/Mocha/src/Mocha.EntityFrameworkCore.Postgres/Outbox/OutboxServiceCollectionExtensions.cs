@@ -72,7 +72,7 @@ public static class OutboxServiceCollectionExtensions
 
         builder
             .Services.AddOptions<PostgresMessageOutboxOptions>(builder.Name)
-            .Configure<IOptionsMonitor<PostgresTableInfo>, IServiceProvider>((options, tableInfoMonitor, provider) =>
+            .Configure<IOptionsMonitor<PostgresTableInfo>>((options, tableInfoMonitor) =>
             {
                 options.CreateConnection = services =>
                 {
@@ -82,35 +82,6 @@ public static class OutboxServiceCollectionExtensions
 
                 var tableInfo = tableInfoMonitor.Get(builder.Name);
                 options.Queries = PostgresMessageOutboxQueries.From(tableInfo.Outbox);
-
-                using var scope = provider.CreateScope();
-                var configuredContext = (DbContext)scope.ServiceProvider.GetRequiredService(contextType);
-                var configuredConnection = (NpgsqlConnection)configuredContext.Database.GetDbConnection();
-                var configuredSettings = new NpgsqlConnectionStringBuilder(configuredConnection.ConnectionString);
-                var host = configuredSettings.Host;
-                var port = configuredSettings.Port;
-                var database = configuredSettings.Database;
-                var searchPath = configuredSettings.SearchPath;
-                var username = configuredSettings.Username;
-                var connectionOptions = configuredSettings.Options;
-                var configuredModel = configuredContext.Model;
-
-                options.MatchesDestination = context =>
-                {
-                    if (!ReferenceEquals(context.Model, configuredModel)
-                        || context.Database.GetDbConnection() is not NpgsqlConnection connection)
-                    {
-                        return false;
-                    }
-
-                    var settings = new NpgsqlConnectionStringBuilder(connection.ConnectionString);
-                    return settings.Host == host
-                        && settings.Port == port
-                        && settings.Database == database
-                        && settings.SearchPath == searchPath
-                        && settings.Username == username
-                        && settings.Options == connectionOptions;
-                };
             });
 
         builder.Services.AddKeyedSingleton<PostgresOutboxProcessor>(contextType, (sp, _) =>
@@ -143,8 +114,6 @@ public static class OutboxServiceCollectionExtensions
             services.AddScoped<IResettableService>(sp => sp.GetRequiredService<PostgresOutboxTracker>());
             services.AddScoped<IDbContextOutboxProvider>(sp => new PostgresDbContextOutboxProvider(
                 sp.GetRequiredService<PostgresOutboxTracker>(),
-                () => applicationServices.GetRequiredService<IOptionsMonitor<PostgresMessageOutboxOptions>>()
-                    .Get(builder.Name),
                 applicationServices.GetTimeProvider()));
         });
 

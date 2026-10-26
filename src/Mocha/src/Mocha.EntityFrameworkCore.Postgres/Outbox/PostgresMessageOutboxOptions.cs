@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
 namespace Mocha.Outbox;
@@ -18,9 +17,4 @@ internal sealed class PostgresMessageOutboxOptions
     /// Gets or sets a factory that creates a closed connection using services from the current scope.
     /// </summary>
     public Func<IServiceProvider, NpgsqlConnection> CreateConnection { get; set; } = null!;
-
-    /// <summary>
-    /// Gets or sets the predicate that accepts DbContexts served by this outbox worker.
-    /// </summary>
-    public Func<DbContext, bool> MatchesDestination { get; set; } = null!;
 }

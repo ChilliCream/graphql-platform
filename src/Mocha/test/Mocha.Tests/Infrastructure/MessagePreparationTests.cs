@@ -722,7 +722,7 @@ public class MessagePreparationTests(ITestOutputHelper output)
                     "CancelAfterNext")));
         });
         using var scope = provider.CreateScope();
-        var bus = (IMessageDispatcher)scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var bus = (DefaultMessageBus)scope.ServiceProvider.GetRequiredService<IMessageBus>();
         if (!afterNext)
         {
             cancellation.Cancel();
@@ -776,7 +776,7 @@ public class MessagePreparationTests(ITestOutputHelper output)
             }
         });
         using var scope = provider.CreateScope();
-        var dispatcher = (IMessageDispatcher)scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var dispatcher = (DefaultMessageBus)scope.ServiceProvider.GetRequiredService<IMessageBus>();
         DateTimeOffset? optionsScheduledTime = scheduledByMiddleware ? null : scheduledTime;
 
         // act
@@ -810,7 +810,7 @@ public class MessagePreparationTests(ITestOutputHelper output)
                 },
                 "ChangeScheduleAfterNext"))));
         using var scope = provider.CreateScope();
-        var dispatcher = (IMessageDispatcher)scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var dispatcher = (DefaultMessageBus)scope.ServiceProvider.GetRequiredService<IMessageBus>();
         MessageEnvelope? captured = null;
         var store = new CallbackMessageStore((envelope, _) => captured = MessageEnvelope.CopyWithOwnedBody(envelope));
 
@@ -851,7 +851,7 @@ public class MessagePreparationTests(ITestOutputHelper output)
         await using var provider = await CreateProviderAsync(outbox: true,
             builder => builder.Services.RemoveAll<ScheduledMessageStoreRegistration>());
         using var scope = provider.CreateScope();
-        var dispatcher = (IMessageDispatcher)scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var dispatcher = (DefaultMessageBus)scope.ServiceProvider.GetRequiredService<IMessageBus>();
         var staged = false;
         var store = new CallbackMessageStore((_, _) => staged = true);
 
@@ -1010,7 +1010,7 @@ public class MessagePreparationTests(ITestOutputHelper output)
     {
         if (prepare)
         {
-            ((IMessageDispatcher)bus).PublishAsync(message, PublishOptions.Default, s_noopStore, CancellationToken.None)
+            ((DefaultMessageBus)bus).PublishAsync(message, PublishOptions.Default, s_noopStore, CancellationToken.None)
                 .GetAwaiter().GetResult();
         }
         else
@@ -1032,8 +1032,8 @@ public class MessagePreparationTests(ITestOutputHelper output)
         bool send,
         Action<MessageEnvelope, CancellationToken> onPrepared)
         => send
-            ? ((IMessageDispatcher)bus).SendAsync(message, SendOptions.Default, new CallbackMessageStore(onPrepared), CancellationToken.None)
-            : ((IMessageDispatcher)bus).PublishAsync(message, PublishOptions.Default, new CallbackMessageStore(onPrepared), CancellationToken.None);
+            ? ((DefaultMessageBus)bus).SendAsync(message, SendOptions.Default, new CallbackMessageStore(onPrepared), CancellationToken.None)
+            : ((DefaultMessageBus)bus).PublishAsync(message, PublishOptions.Default, new CallbackMessageStore(onPrepared), CancellationToken.None);
 
     private static TargetMessage Deserialize(MessageEnvelope envelope)
         => JsonSerializer.Deserialize<TargetMessage>(envelope.Body.Span, JsonSerializerOptions.Web)!;

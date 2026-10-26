@@ -22,7 +22,7 @@ public sealed class DefaultMessageBus(
     IMessagingRuntime runtime,
     IServiceProvider services,
     IMessagingPools pools,
-    ConsumeContextAccessor consumeContextAccessor) : IMessageBus, IMessageDispatcher
+    ConsumeContextAccessor consumeContextAccessor) : IMessageBus
 {
     private readonly ObjectPool<DispatchContext> _contextPool = pools.DispatchContext;
 
@@ -60,11 +60,12 @@ public sealed class DefaultMessageBus(
         where T : notnull
         => await PublishCoreAsync(message, options, options.ScheduledTime, null, cancellationToken);
 
-    async ValueTask IMessageDispatcher.PublishAsync<T>(
+    internal async ValueTask PublishAsync<T>(
         T message,
         PublishOptions options,
         IDispatchMessageStore store,
         CancellationToken cancellationToken)
+        where T : notnull
         => await PublishCoreAsync(message, options, options.ScheduledTime, store, cancellationToken);
 
     private async ValueTask<(string? Token, DateTimeOffset ScheduledTime)> PublishCoreAsync<T>(
@@ -137,11 +138,12 @@ public sealed class DefaultMessageBus(
         where T : notnull
         => await SendCoreAsync(message, options, options.ScheduledTime, null, cancellationToken);
 
-    async ValueTask IMessageDispatcher.SendAsync<T>(
+    internal async ValueTask SendAsync<T>(
         T message,
         SendOptions options,
         IDispatchMessageStore store,
         CancellationToken cancellationToken)
+        where T : notnull
         => await SendCoreAsync(message, options, options.ScheduledTime, store, cancellationToken);
 
     private async ValueTask<(string? Token, DateTimeOffset ScheduledTime)> SendCoreAsync<T>(

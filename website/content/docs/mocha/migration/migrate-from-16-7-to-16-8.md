@@ -63,6 +63,8 @@ await db.SaveChangesAsync(cancellationToken);
 
 Factory lifetimes are unchanged. Call `UseOutbox(bus)` for each context created directly through a factory, including each pooled lease. Contexts resolved from scoped DI attach automatically.
 
+Context instances must use the database and outbox table mapping configured for their relay. Configure a relay for every additional database or outbox table used by the application.
+
 ## Use the caller's messaging scope
 
 `DbContext.Outbox` runs middleware with the attached caller's messaging services. It does not create a separate application scope. Returning a pooled context clears its attachment; using that instance again requires attachment to the new caller.

@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
 using Mocha.Middlewares;
 using Mocha.Outbox;
@@ -502,7 +501,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
 
         // act
         var store = new CapturingMessageStore();
-        await ((IMessageDispatcher)bus).PublishAsync(
+        await ((DefaultMessageBus)bus).PublishAsync(
             new StartFactoryWork(), PublishOptions.Default, store, TestToken);
         var incoming = store.Envelope;
         var runtime = provider.GetRequiredService<IMessagingRuntime>();
@@ -1374,117 +1373,48 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         Assert.Equal(1, await CountOutboxRowsAsync(connectionString));
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task Outbox_Should_RejectUnregisteredDestination_When_ContextConnectionChanges(bool afterPublish)
+    [Fact]
+    public async Task OutboxPublishAsync_Should_SaveMessage_When_ContextUsesAnEquivalentModelInstance()
     {
         // arrange
         var connectionString = await CreateDatabaseAsync();
-        var otherConnection = await CreateDatabaseAsync();
         await using var provider = await CreateProviderAsync(
             connectionString, new StubOutboxSignal(), useFactory: true);
         await EnsureCreatedAsync(provider);
-        await using var caller = provider.CreateAsyncScope();
-        await using var db = await caller.ServiceProvider.GetRequiredService<IDbContextFactory<UnitOfWorkDbContext>>()
-            .CreateDbContextAsync(TestToken);
-        var bus = caller.ServiceProvider.GetRequiredService<IMessageBus>();
-        db.UseOutbox(bus);
-        if (afterPublish)
-        {
-            await db.Outbox.PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken);
-        }
-
-        db.Database.SetConnectionString(otherConnection);
-
-        // act
-        var exception = afterPublish
-            ? await Assert.ThrowsAsync<InvalidOperationException>(() => db.SaveChangesAsync(TestToken))
-            : await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-                await db.Outbox.PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken));
-
-        // assert
-        Assert.Contains("not served by its outbox worker", exception.Message);
-        Assert.Equal(0, await CountOutboxRowsAsync(connectionString));
-    }
-
-    [Fact]
-    public async Task OutboxPublishAsync_Should_ReuseDestinationValidation_When_PooledContextIsLeasedAgain()
-    {
-        // arrange
-        var connectionString = await CreateDatabaseAsync();
-        var otherConnection = await CreateDatabaseAsync();
-        await using var provider = await CreateProviderAsync(
-            connectionString, new StubOutboxSignal(), pooled: true);
-        await EnsureCreatedAsync(provider);
-        var options = provider.GetRequiredService<IOptionsMonitor<PostgresMessageOutboxOptions>>()
-            .Get(typeof(UnitOfWorkDbContext).FullName);
-        var matchesDestination = options.MatchesDestination;
-        var validations = 0;
-        options.MatchesDestination = context =>
-        {
-            validations++;
-            return matchesDestination(context);
-        };
-        UnitOfWorkDbContext leased;
-        await using (var scope = provider.CreateAsyncScope())
-        {
-            leased = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
-            await leased.Outbox.PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken);
-            await leased.SaveChangesAsync(TestToken);
-        }
+        await using var scope = provider.CreateAsyncScope();
+        var registered = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
+        await using var modelContext = new UnitOfWorkDbContext(
+            new DbContextOptionsBuilder<UnitOfWorkDbContext>().UseTestNpgsql(connectionString).Options);
+        var options = new DbContextOptionsBuilder<UnitOfWorkDbContext>(
+            provider.GetRequiredService<DbContextOptions<UnitOfWorkDbContext>>())
+            .UseModel(modelContext.Model)
+            .Options;
+        await using var db = new UnitOfWorkDbContext(options);
+        db.UseOutbox(scope.ServiceProvider.GetRequiredService<IMessageBus>());
+        db.Orders.Add(new Order { Id = 1 });
 
         // act
-        await using var caller = provider.CreateAsyncScope();
-        var db = caller.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
-        await db.Outbox.PublishAsync(new OrderPlaced { OrderId = 2 }, TestToken);
-        await db.SaveChangesAsync(TestToken);
-        var validationsAfterReuse = validations;
-        var registeredConnection = db.Database.GetConnectionString();
-        db.Database.SetConnectionString(otherConnection);
-        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            await db.Outbox.PublishAsync(new OrderPlaced { OrderId = 3 }, TestToken));
-        var validationsAfterRejection = validations;
-        db.Database.SetConnectionString(registeredConnection);
-        await db.Outbox.PublishAsync(new OrderPlaced { OrderId = 4 }, TestToken);
-        await db.SaveChangesAsync(TestToken);
-
-        // assert
-        Assert.Same(leased, db);
-        Assert.Equal(
-            (1, 2, 3L),
-            (validationsAfterReuse, validationsAfterRejection, await CountOutboxRowsAsync(connectionString)));
-    }
-
-    [Fact]
-    public async Task OutboxPublishAsync_Should_RevalidateDestination_When_OptionsAreReloaded()
-    {
-        // arrange
-        var connectionString = await CreateDatabaseAsync();
-        await using var provider = await CreateProviderAsync(
-            connectionString, new StubOutboxSignal(), pooled: true);
-        await EnsureCreatedAsync(provider);
-        await using var caller = provider.CreateAsyncScope();
-        var db = caller.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
         await db.Outbox.PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken);
+        var beforeSave = await CountOutboxRowsAsync(connectionString);
         await db.SaveChangesAsync(TestToken);
-        var optionsName = typeof(UnitOfWorkDbContext).FullName;
-        provider.GetRequiredService<IOptionsMonitorCache<PostgresMessageOutboxOptions>>().TryRemove(optionsName);
-        var options = provider.GetRequiredService<IOptionsMonitor<PostgresMessageOutboxOptions>>().Get(optionsName);
-        var matchesDestination = options.MatchesDestination;
-        var validations = 0;
-        options.MatchesDestination = context =>
-        {
-            validations++;
-            return matchesDestination(context);
-        };
-
-        // act
-        await db.Outbox.PublishAsync(new OrderPlaced { OrderId = 2 }, TestToken);
-        await db.SaveChangesAsync(TestToken);
+        using var envelope = await registered.Set<OutboxMessage>().Select(message => message.Envelope).SingleAsync(TestToken);
 
         // assert
-        Assert.Equal((1, 2L), (validations, await CountOutboxRowsAsync(connectionString)));
+        new
+        {
+            SeparateModel = !ReferenceEquals(registered.Model, db.Model),
+            BeforeSave = beforeSave,
+            OrderId = await registered.Orders.Select(order => order.Id).SingleAsync(TestToken),
+            MessageOrderId = envelope.RootElement.GetProperty("body").Deserialize<OrderPlaced>()!.OrderId
+        }.MatchInlineSnapshot(
+            """
+            {
+              "SeparateModel": true,
+              "BeforeSave": 0,
+              "OrderId": 1,
+              "MessageOrderId": 1
+            }
+            """);
     }
 
     [Fact]
@@ -2072,14 +2002,6 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
     private sealed class CustomOutboxProvider : IDbContextOutboxProvider, IDisposable
     {
         private readonly List<OutboxMessage> _messages = [];
-
-        public void Validate(DbContext context)
-        {
-            if (context is not UnitOfWorkDbContext)
-            {
-                throw new InvalidOperationException("Unsupported context.");
-            }
-        }
 
         public void Stage(DbContext context, MessageEnvelope envelope, CancellationToken cancellationToken)
         {

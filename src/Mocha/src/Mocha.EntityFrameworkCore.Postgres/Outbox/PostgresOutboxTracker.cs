@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Mocha.EntityFrameworkCore;
 
 namespace Mocha.Outbox;
 
@@ -47,11 +46,6 @@ internal sealed class PostgresOutboxTracker : SaveChangesInterceptor, IResettabl
     {
         var context = eventData.Context!;
         PruneMessages(context);
-        if (_entries.Count > 0)
-        {
-            context.GetService<IDbContextOutboxProvider>().Validate(context);
-        }
-
         if (_entries.Count > 0)
         {
             EnsureAtomicSave(context);

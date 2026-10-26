@@ -133,7 +133,7 @@ public class OutboxIntegrationTests
 
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-        var dispatcher = (IMessageDispatcher)bus;
+        var dispatcher = (DefaultMessageBus)bus;
         MessageEnvelope first = null!;
         MessageEnvelope second = null!;
         await dispatcher.PublishAsync(

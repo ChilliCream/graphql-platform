@@ -6,12 +6,8 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
-using Mocha.Inbox;
 using Mocha.Outbox;
-using Mocha.Sagas.EfCore;
-using Mocha.Scheduling;
 using Mocha.Transport.InMemory;
-using Npgsql;
 
 namespace Mocha.EntityFrameworkCore.Postgres.Tests;
 
@@ -294,119 +290,6 @@ public sealed class OutboxServiceRegistrationTests
             Assert.Equal(1, createdContext.DisposeCount);
             Assert.Same(otherBus, otherScope.ServiceProvider.GetRequiredService<IMessageBus>());
         }
-    }
-
-    [Theory]
-    [InlineData("Username")]
-    [InlineData("Options")]
-    [InlineData("Search Path")]
-    public async Task OutboxPublishAsync_Should_RejectDifferentDestinationSettings_When_ContextConnectionChanges(
-        string setting)
-    {
-        // arrange
-        var services = new ServiceCollection();
-        services.AddLogging();
-        services.AddDbContextFactory<TestDbContext>(options => options.UseTestNpgsql(ConnectionString));
-        services.AddMessageBus()
-            .AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox())
-            .AddInMemory();
-        await using var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
-        await using var scope = provider.CreateAsyncScope();
-        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-        var factory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<TestDbContext>>();
-        await using var context = await factory.CreateDbContextAsync(TestContext.Current.CancellationToken);
-        var settings = new NpgsqlConnectionStringBuilder(ConnectionString)
-        {
-            [setting] = setting == "Options" ? "-c search_path=other" : "other"
-        };
-        context.Database.SetConnectionString(settings.ConnectionString);
-        context.UseOutbox(bus);
-
-        // act
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            context.Outbox.PublishAsync("unused", TestContext.Current.CancellationToken).AsTask());
-
-        // assert
-        Assert.Equal(
-            $"The DbContext '{typeof(TestDbContext).FullName}' targets a database or table that is not served by its outbox worker. "
-            + "Configure a separate outbox registration for this destination before publishing.",
-            exception.Message);
-        Assert.Empty(context.ChangeTracker.Entries<OutboxMessage>());
-    }
-
-    [Fact]
-    public async Task OutboxPublishAsync_Should_RejectDifferentModel_When_ContextUsesCustomOutboxMapping()
-    {
-        // arrange
-        var services = new ServiceCollection();
-        services.AddLogging();
-        services.AddDbContextFactory<TestDbContext>(options => options.UseTestNpgsql(ConnectionString));
-        services.AddMessageBus()
-            .AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox())
-            .AddInMemory();
-        await using var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
-        await using var scope = provider.CreateAsyncScope();
-        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-        await using var mappingContext = new RenamedOutboxDbContext(
-            new DbContextOptionsBuilder<RenamedOutboxDbContext>().UseTestNpgsql(ConnectionString).Options);
-        var options = new DbContextOptionsBuilder<TestDbContext>(
-            provider.GetRequiredService<DbContextOptions<TestDbContext>>())
-            .UseModel(mappingContext.Model)
-            .Options;
-        await using var context = new TestDbContext(options);
-        context.UseOutbox(bus);
-
-        // act
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            context.Outbox.PublishAsync("unused", TestContext.Current.CancellationToken).AsTask());
-
-        // assert
-        Assert.Equal(
-            $"The DbContext '{typeof(TestDbContext).FullName}' targets a database or table that is not served by its outbox worker. "
-            + "Configure a separate outbox registration for this destination before publishing.",
-            exception.Message);
-        Assert.Empty(context.ChangeTracker.Entries<OutboxMessage>());
-    }
-
-    [Fact]
-    public async Task OutboxPublishAsync_Should_RejectDifferentModel_When_OnlyScheduledMappingChanges()
-    {
-        // arrange
-        var services = new ServiceCollection();
-        services.AddLogging();
-        services.AddDbContextFactory<TestDbContext>(options => options.UseTestNpgsql(ConnectionString));
-        services.AddMessageBus()
-            .AddEntityFramework<TestDbContext>(ef =>
-            {
-                ef.UsePostgresOutbox();
-                ef.UsePostgresScheduling();
-            })
-            .AddInMemory();
-        await using var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
-        await using var scope = provider.CreateAsyncScope();
-        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-        await using var mappingContext = new RenamedScheduledMessagesDbContext(
-            new DbContextOptionsBuilder<RenamedScheduledMessagesDbContext>().UseTestNpgsql(ConnectionString).Options);
-        var options = new DbContextOptionsBuilder<TestDbContext>(
-            provider.GetRequiredService<DbContextOptions<TestDbContext>>())
-            .UseModel(mappingContext.Model)
-            .Options;
-        await using var context = new TestDbContext(options);
-        context.UseOutbox(bus);
-
-        // act
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            context.Outbox.PublishAsync(
-                "unused",
-                new PublishOptions { ScheduledTime = DateTimeOffset.UtcNow.AddHours(1) },
-                TestContext.Current.CancellationToken).AsTask());
-
-        // assert
-        Assert.Equal(
-            $"The DbContext '{typeof(TestDbContext).FullName}' targets a database or table that is not served by its outbox worker. "
-            + "Configure a separate outbox registration for this destination before publishing.",
-            exception.Message);
-        Assert.Empty(context.ChangeTracker.Entries<OutboxMessage>());
     }
 
     [Theory]
@@ -828,28 +711,6 @@ public sealed class OutboxServiceRegistrationTests
         {
             DisposeCount++;
             base.Dispose();
-        }
-    }
-
-    private sealed class RenamedOutboxDbContext(DbContextOptions<RenamedOutboxDbContext> options) : DbContext(options)
-    {
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.AddPostgresOutbox();
-            modelBuilder.Entity<OutboxMessage>().Property(message => message.Envelope).HasColumnName("other_envelope");
-        }
-    }
-
-    private sealed class RenamedScheduledMessagesDbContext(DbContextOptions<RenamedScheduledMessagesDbContext> options)
-        : DbContext(options)
-    {
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.AddPostgresInbox();
-            modelBuilder.AddPostgresOutbox();
-            modelBuilder.AddPostgresSagas();
-            modelBuilder.AddPostgresScheduledMessages();
-            modelBuilder.Entity<ScheduledMessage>().Property(message => message.Envelope).HasColumnName("other_envelope");
         }
     }
 }

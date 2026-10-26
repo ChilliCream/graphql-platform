@@ -41,10 +41,10 @@ public sealed class DbContextOutbox : IResettableService, IDisposable, IDispatch
         where T : notnull
     {
         ArgumentNullException.ThrowIfNull(message);
-        var (dispatcher, provider, checkpoint) = BeginOperation(cancellationToken);
+        var (bus, provider, checkpoint) = BeginOperation(cancellationToken);
         try
         {
-            await dispatcher.PublishAsync(message, options, this, cancellationToken);
+            await bus.PublishAsync(message, options, this, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
         }
         catch
@@ -75,10 +75,10 @@ public sealed class DbContextOutbox : IResettableService, IDisposable, IDispatch
         where T : notnull
     {
         ArgumentNullException.ThrowIfNull(message);
-        var (dispatcher, provider, checkpoint) = BeginOperation(cancellationToken);
+        var (bus, provider, checkpoint) = BeginOperation(cancellationToken);
         try
         {
-            await dispatcher.SendAsync(message, options, this, cancellationToken);
+            await bus.SendAsync(message, options, this, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
         }
         catch
@@ -115,7 +115,7 @@ public sealed class DbContextOutbox : IResettableService, IDisposable, IDispatch
 
     internal void Attach(IMessageBus bus)
     {
-        if (bus is not IMessageDispatcher)
+        if (bus is not DefaultMessageBus)
         {
             throw ThrowHelper.OutboxBusNotSupported(bus.GetType());
         }
@@ -137,14 +137,12 @@ public sealed class DbContextOutbox : IResettableService, IDisposable, IDispatch
     ValueTask IDispatchMessageStore.PersistAsync(IDispatchContext context)
     {
         context.CancellationToken.ThrowIfCancellationRequested();
-        var provider = _provider!;
-        provider.Validate(_context);
-        provider.Stage(_context, context.Envelope!, context.CancellationToken);
+        _provider!.Stage(_context, context.Envelope!, context.CancellationToken);
 
         return default;
     }
 
-    private (IMessageDispatcher Dispatcher, IDbContextOutboxProvider Provider, int Checkpoint)
+    private (DefaultMessageBus Bus, IDbContextOutboxProvider Provider, int Checkpoint)
         BeginOperation(CancellationToken cancellationToken)
     {
         if (Interlocked.CompareExchange(ref _preparing, 1, 0) != 0)
@@ -155,10 +153,14 @@ public sealed class DbContextOutbox : IResettableService, IDisposable, IDispatch
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var dispatcher = GetDispatcher(GetBus());
+            var bus = GetBus();
+            if (bus is not DefaultMessageBus defaultBus)
+            {
+                throw ThrowHelper.OutboxBusNotSupported(bus.GetType());
+            }
+
             var provider = _provider ??= GetProvider();
-            provider.Validate(_context);
-            return (dispatcher, provider, provider.CreateCheckpoint());
+            return (defaultBus, provider, provider.CreateCheckpoint());
         }
         catch
         {
@@ -178,7 +180,4 @@ public sealed class DbContextOutbox : IResettableService, IDisposable, IDispatch
     private IDbContextOutboxProvider GetProvider()
         => _context.GetInfrastructure().GetService<IDbContextOutboxProvider>()
             ?? throw ThrowHelper.OutboxProviderNotSupported(_context.GetType());
-
-    private static IMessageDispatcher GetDispatcher(IMessageBus bus)
-        => bus as IMessageDispatcher ?? throw ThrowHelper.OutboxBusNotSupported(bus.GetType());
 }

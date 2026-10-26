@@ -863,7 +863,9 @@ await db.SaveChangesAsync(cancellationToken);
 
 The same API works with `AddDbContextFactory<TContext>()` and manually constructed contexts configured with Mocha EF services. Call `db.UseOutbox(bus)` once for each created context or pooled lease. If attachment is missing, `PublishAsync` and `SendAsync` throw before preparing or writing a message. Reattaching the same bus is allowed; switching to another bus within the same lease throws.
 
-Multiple DbContext types can each register their own outbox. Messages belong to the exact instance used through `db.Outbox`; this API does not need a default context. Each registered context type has its own relay and options. Context instances must use the registered EF model and database destination; replacing the model or switching destinations throws before message preparation. Repeating registration for the same type is idempotent.
+Multiple DbContext types can each register their own outbox. Messages belong to the exact instance used through `db.Outbox`; this API does not need a default context. Each registered context type has its own relay and options. Repeating registration for the same type is idempotent.
+
+Context instances, including factory-created contexts, must use the database and outbox table mapping configured for their relay. If the application writes to another database or outbox table, configure a relay for that destination.
 
 Contexts resolved from scoped DI attach automatically to that scope. Factory-created contexts use the bus passed to `UseOutbox`; middleware and correlation use the caller's messaging services. Mocha does not create or own another application scope. Complete publications and saves before disposing the context or caller scope. Returning a pooled context clears its attachment. Use the context and its outbox only until the context is disposed or returned to the pool.
 

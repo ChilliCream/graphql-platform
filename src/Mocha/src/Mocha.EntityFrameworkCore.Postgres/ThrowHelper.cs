@@ -13,9 +13,4 @@ internal static class ThrowHelper
         => new(
             $"The outbox for DbContext '{contextType.FullName}' requires an atomic save. "
             + "Enable automatic transactions or begin an explicit or ambient transaction before saving.");
-
-    public static InvalidOperationException OutboxDestinationNotRegistered(Type contextType)
-        => new(
-            $"The DbContext '{contextType.FullName}' targets a database or table that is not served by its outbox worker. "
-            + "Configure a separate outbox registration for this destination before publishing.");
 }
