@@ -1,0 +1,75 @@
+operation:
+  - document: |
+      subscription {
+        doSomething {
+          something
+          viewer {
+            t {
+              f
+              id @fusion__requirement
+              x @fusion__requirement
+            }
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 2
+    expandedNodes: 6
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      subscription Op_123456789101112_1 {
+        doSomething {
+          something
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_2($__fusion_1_x: String, $__fusion_2_id: ID!) {
+        tById(id: $__fusion_2_id) {
+          f(x: $__fusion_1_x)
+        }
+      }
+    source: $.tById
+    target: $.doSomething.viewer.t
+    requirements:
+      - name: __fusion_1_x
+        selectionMap: >-
+          x
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 5
+  - id: 3
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_3 {
+        viewer {
+          t {
+            x
+          }
+        }
+      }
+    source: $.viewer
+    target: $.doSomething.viewer.t
+    batchingGroupId: 5
+  - id: 4
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_4 {
+        viewer {
+          t {
+            id
+          }
+        }
+      }
+    source: $.viewer
+    target: $.doSomething.viewer.t
+    batchingGroupId: 5

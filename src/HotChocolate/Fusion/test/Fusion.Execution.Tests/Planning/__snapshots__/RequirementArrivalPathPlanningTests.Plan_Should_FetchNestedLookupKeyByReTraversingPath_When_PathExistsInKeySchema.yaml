@@ -1,0 +1,108 @@
+operation:
+  - document: |
+      {
+        viaA {
+          q {
+            p {
+              f
+              id @fusion__requirement
+              x @fusion__requirement
+              k @fusion__requirement
+            }
+            kU @fusion__requirement
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 4
+    expandedNodes: 19
+nodes:
+  - id: 1
+    type: Operation
+    schema: x
+    operation: |
+      query Op_123456789101112_1 {
+        viaA {
+          q {
+            kU
+          }
+        }
+      }
+  - id: 3
+    type: Operation
+    schema: main
+    operation: |
+      query Op_123456789101112_3($__fusion_1_x: String, $__fusion_2_id: ID!) {
+        tById(id: $__fusion_2_id) {
+          f(x: $__fusion_1_x)
+        }
+      }
+    source: $.tById
+    target: $.viaA.q.p
+    requirements:
+      - name: __fusion_1_x
+        selectionMap: >-
+          x
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 4
+      - id: 7
+  - id: 4
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_4($__fusion_3_k: String!) {
+        tByK(k: $__fusion_3_k) {
+          x
+        }
+      }
+    source: $.tByK
+    target: $.viaA.q.p
+    requirements:
+      - name: __fusion_3_k
+        selectionMap: >-
+          k
+    dependencies:
+      - id: 7
+  - id: 5
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_5($__fusion_4_kU: String!) {
+        uByKU(kU: $__fusion_4_kU) {
+          p {
+            k
+          }
+        }
+      }
+    source: $.uByKU
+    target: $.viaA.q
+    batchingGroupId: 7
+    requirements:
+      - name: __fusion_4_kU
+        selectionMap: >-
+          kU
+    dependencies:
+      - id: 1
+  - id: 6
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_6($__fusion_5_kU: String!) {
+        uByKU(kU: $__fusion_5_kU) {
+          p {
+            id
+          }
+        }
+      }
+    source: $.uByKU
+    target: $.viaA.q
+    batchingGroupId: 7
+    requirements:
+      - name: __fusion_5_kU
+        selectionMap: >-
+          kU
+    dependencies:
+      - id: 1
