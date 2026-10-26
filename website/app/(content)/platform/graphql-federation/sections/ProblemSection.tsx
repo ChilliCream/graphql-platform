@@ -8,7 +8,7 @@ export function ProblemSection() {
   return (
     <Section id="problem">
       <div className="grid lg:grid-cols-12 lg:gap-16">
-        <h2 className="font-heading text-cc-heading text-h4 sm:text-h3 font-semibold text-balance lg:col-span-5">
+        <h2 className="font-heading text-cc-heading text-h4 sm:text-h3 text-center font-semibold text-balance lg:col-span-12">
           What problem does GraphQL Federation solve?
         </h2>
       </div>

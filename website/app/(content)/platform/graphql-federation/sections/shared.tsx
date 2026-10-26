@@ -13,7 +13,7 @@ interface SectionProps {
 export function Section({ id, children }: SectionProps) {
   return (
     <section id={id} className="border-cc-card-border scroll-mt-24 border-t">
-      <PageSection maxWidth="6xl" className="py-16 sm:py-24">
+      <PageSection maxWidth="7xl" className="py-16 sm:py-24">
         {children}
       </PageSection>
     </section>
