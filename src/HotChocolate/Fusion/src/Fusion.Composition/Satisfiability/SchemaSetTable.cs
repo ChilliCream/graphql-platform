@@ -1,3 +1,4 @@
+using System.Numerics;
 using HotChocolate.Fusion.Options;
 
 namespace HotChocolate.Fusion.Satisfiability;
@@ -91,6 +92,32 @@ internal sealed class SchemaSetTable
         members.CopyTo(_buffer, 0);
         Array.Clear(_buffer, members.Length, _buffer.Length - members.Length);
         return _buffer;
+    }
+
+    /// <summary>
+    /// Creates a buffer that is not shared, sized for every schema of the table and holding the members
+    /// of <paramref name="set"/>.
+    /// </summary>
+    public ulong[] CreateBuffer(SchemaSet set)
+    {
+        var buffer = new ulong[_buffer.Length];
+        _members[set.Id].CopyTo(buffer, 0);
+        return buffer;
+    }
+
+    /// <summary>
+    /// Gets the number of schemas in <paramref name="set"/>.
+    /// </summary>
+    public int Count(SchemaSet set)
+    {
+        var count = 0;
+
+        foreach (var word in _members[set.Id])
+        {
+            count += BitOperations.PopCount(word);
+        }
+
+        return count;
     }
 
     /// <summary>

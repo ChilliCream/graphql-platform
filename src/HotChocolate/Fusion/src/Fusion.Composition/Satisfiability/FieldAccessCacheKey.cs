@@ -6,13 +6,15 @@ internal sealed class FieldAccessCacheKey(
     MutableOutputFieldDefinition field,
     MutableObjectTypeDefinition type,
     string? schemaName,
-    string? excludedSchemaName)
+    string? excludedSchemaName,
+    bool isAccessPathItem)
 {
     private readonly MutableOutputFieldDefinition _field = field;
     private readonly MutableObjectTypeDefinition _type = type;
     private readonly string? _schemaName = schemaName;
     private readonly string? _excludedSchemaName = excludedSchemaName;
-    private readonly int _hashCode = HashCode.Combine(field, type, schemaName, excludedSchemaName);
+    private readonly bool _isAccessPathItem = isAccessPathItem;
+    private readonly int _hashCode = HashCode.Combine(field, type, schemaName, excludedSchemaName, isAccessPathItem);
 
     public override int GetHashCode() => _hashCode;
 
@@ -26,6 +28,7 @@ internal sealed class FieldAccessCacheKey(
         return _field == other._field
             && _type == other._type
             && _schemaName == other._schemaName
-            && _excludedSchemaName == other._excludedSchemaName;
+            && _excludedSchemaName == other._excludedSchemaName
+            && _isAccessPathItem == other._isAccessPathItem;
     }
 }

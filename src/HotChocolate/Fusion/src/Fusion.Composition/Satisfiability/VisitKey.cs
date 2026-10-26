@@ -16,6 +16,14 @@ namespace HotChocolate.Fusion.Satisfiability;
 /// The selection sets that the schemas of <paramref name="Reach"/> provide for the object when they
 /// re-traverse its path, or <c>null</c> if none provides one.
 /// </param>
+/// <param name="Exclusions">
+/// The reaches of the object without the data of the schemas that a requirement check of the object
+/// or of an object below it can make unavailable, or <c>null</c> if no such check exists.
+/// </param>
+/// <param name="ViewerOnly">
+/// The schemas, among the holding schema and those of <paramref name="Reach"/>, that hold the object
+/// only through a viewer field re-rooted at <c>Query.viewer</c>.
+/// </param>
 /// <param name="Leaf">
 /// The path item holding the object when the visit reads more of it than its schema; otherwise <c>null</c>.
 /// </param>
@@ -24,10 +32,17 @@ namespace HotChocolate.Fusion.Satisfiability;
 /// and subscription paths of objects that reach a viewer field missing in a schema of <c>Query.viewer</c>;
 /// otherwise <c>false</c>.
 /// </param>
+/// <param name="HolderReentry">
+/// Whether a new call can enter the holding schema at the object when the path item holding the object
+/// provides a selection set; otherwise <c>false</c>.
+/// </param>
 internal sealed record VisitKey(
     MutableObjectTypeDefinition ObjectType,
     string? SchemaName,
     SchemaSet Reach,
     SchemaSelectionSets? ReachProvides,
+    ExclusionReaches? Exclusions,
+    SchemaSet ViewerOnly,
     VisitLeaf? Leaf,
-    bool ViewerFallback);
+    bool ViewerFallback,
+    bool HolderReentry);
