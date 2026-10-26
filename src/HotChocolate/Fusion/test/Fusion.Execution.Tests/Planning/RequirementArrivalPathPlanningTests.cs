@@ -1159,6 +1159,146 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
             """);
     }
 
+    [Fact]
+    public void Plan_Should_Fail_When_ReRootedViewerCallTakesRequirementThroughLookupKeyedByOtherReRootedCall()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            options => options.Satisfiability.IgnoredNonAccessibleFields["T2.rqD"] =
+            [
+                "B:Mutation.doB<Payload> -> B:Payload.viewer<Viewer> -> D:Viewer.vt<T0> -> D:T0.f2<T2>",
+                "B:Mutation.doB<Payload> -> B:Payload.viewer<Viewer> -> D:Viewer.vt<T0> -> E:T0.f2<T2>"
+            ],
+            ViewerRequirementSchemaB,
+            """
+            # name: D
+            type Query {
+              viewer: Viewer @shareable
+            }
+
+            type Viewer {
+              vid: String @shareable
+              vt: T0 @shareable
+            }
+
+            type T0 {
+              f2: T2 @shareable
+            }
+
+            type T2 {
+              id: ID! @shareable
+              rqD(v: String @require(field: "s")): String
+            }
+            """,
+            """
+            # name: E
+            type Query {
+              viewer: Viewer @shareable
+            }
+
+            type Viewer {
+              vid: String @shareable
+              vt: T0 @shareable
+            }
+
+            type T0 {
+              f2: T2 @shareable
+            }
+
+            type T2 {
+              id: ID! @shareable
+              s: String @shareable
+            }
+            """,
+            """
+            # name: G
+            type Query {
+              t2ById(id: ID!): T2 @lookup @internal
+            }
+
+            type T2 {
+              id: ID! @shareable
+              s: String @shareable
+            }
+            """);
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => PlanOperation(schema, "mutation { doB { viewer { vt { f2 { rqD } } } } }"));
+
+        // assert
+        Assert.Equal("No possible plan was found.", exception.Message);
+    }
+
+    [Fact]
+    public void Plan_Should_Fail_When_MutationCallTakesRequirementFromReRootedCall()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            options => options.Satisfiability.IgnoredNonAccessibleFields["T2.rqB"] =
+            [
+                "E:Query.viewer<Viewer> -> E:Viewer.vt<T0> -> E:T0.f2<T2>",
+                "B:Mutation.doB<Payload> -> B:Payload.viewer<Viewer> -> B:Viewer.vt<T0> -> B:T0.f2<T2>",
+                "B:Mutation.doB<Payload> -> B:Payload.viewer<Viewer> -> B:Viewer.vt<T0> -> E:T0.f2<T2>"
+            ],
+            """
+            # name: B
+            type Query {
+              ping: String @shareable
+            }
+
+            type Mutation {
+              doB: Payload
+            }
+
+            type Payload {
+              ok: Boolean
+              viewer: Viewer
+            }
+
+            type Viewer {
+              vid: String @shareable
+              vt: T0 @shareable
+            }
+
+            type T0 {
+              f2: T2 @shareable
+            }
+
+            type T2 {
+              id: ID! @shareable
+              rqB(v: String @require(field: "s")): String
+            }
+            """,
+            """
+            # name: E
+            type Query {
+              viewer: Viewer @shareable
+            }
+
+            type Viewer {
+              vid: String @shareable
+              vt: T0 @shareable
+            }
+
+            type T0 {
+              f2: T2 @shareable
+            }
+
+            type T2 {
+              id: ID! @shareable
+              s: String
+            }
+            """);
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => PlanOperation(schema, "mutation { doB { viewer { vt { f2 { rqB } } } } }"));
+
+        // assert
+        Assert.Equal("No possible plan was found.", exception.Message);
+    }
+
     private static FusionSchemaDefinition ComposeLookupKeySchema()
         => ComposeSchema(
             options =>

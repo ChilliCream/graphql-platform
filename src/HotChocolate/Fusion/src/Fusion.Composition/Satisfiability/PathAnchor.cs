@@ -42,12 +42,14 @@ internal abstract class PathAnchor
 
     /// <summary>
     /// Determines whether <paramref name="schemaName"/> holds the object without data from
-    /// <paramref name="unavailableSchemaNames"/> only through a call re-rooted at <c>Query.viewer</c>.
+    /// <paramref name="unavailableSchemaNames"/> only through calls that depend on a call re-rooted at
+    /// <c>Query.viewer</c>.
     /// </summary>
     public abstract bool IsViewerOnly(string schemaName, ImmutableHashSet<string> unavailableSchemaNames);
 
     /// <summary>
-    /// Gets an anchor that answers like this one for calls that are not re-rooted at <c>Query.viewer</c>.
+    /// Gets an anchor that answers like this one for calls that do not depend on a call re-rooted at
+    /// <c>Query.viewer</c>.
     /// </summary>
     public PathAnchor WithoutReRootedCalls() => new NotReRootedAnchor(this);
 

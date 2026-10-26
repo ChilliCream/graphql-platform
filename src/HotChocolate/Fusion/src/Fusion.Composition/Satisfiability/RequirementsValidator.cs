@@ -340,7 +340,6 @@ internal sealed class RequirementsValidator(
                             RequirementsValidator_NoLookupForRequiringField,
                             RequirementsValidator_UnableToSatisfyRequirementForLookup,
                             context.Budget,
-                            holdingCallIsReRooted: false,
                             cycleDetectionPath: context.CycleDetectionPath,
                             unavailableSchemaNames: context.UnavailableSchemaNames);
                 }
@@ -568,7 +567,7 @@ internal sealed class RequirementsValidator(
     /// Validates that <paramref name="schemaName"/> can resolve <paramref name="field"/> once its
     /// requirements have been fetched from other schemas. This holds when the schema has a lookup for
     /// <paramref name="type"/> whose key is resolvable while the type is held on the schema, or when the
-    /// requirements can be resolved without data from the schema.
+    /// requirements can be resolved without data from the schema or from calls re-rooted at <c>Query.viewer</c>.
     /// </summary>
     /// <param name="requirements">The requirement selection set of the field.</param>
     /// <param name="type">The object type declaring the field.</param>
@@ -585,10 +584,6 @@ internal sealed class RequirementsValidator(
     /// The message format used when a lookup key cannot be satisfied.
     /// </param>
     /// <param name="budget">The budget for the explanation entries of the search.</param>
-    /// <param name="holdingCallIsReRooted">
-    /// Whether the call that already holds the type in the schema is re-rooted at <c>Query.viewer</c>, so
-    /// that it takes no requirement data from another re-rooted call.
-    /// </param>
     /// <param name="cycleDetectionPath">The shared cycle detection path, or null to start a new one.</param>
     /// <param name="unavailableSchemaNames">
     /// Schemas whose data is unavailable at the position for any purpose.
@@ -605,7 +600,6 @@ internal sealed class RequirementsValidator(
         string noLookupMessageFormat,
         string unableToSatisfyRequirementForLookupMessageFormat,
         SatisfiabilityExplanationBudget budget,
-        bool holdingCallIsReRooted,
         SatisfiabilityPath? cycleDetectionPath = null,
         ImmutableHashSet<string>? unavailableSchemaNames = null)
     {
@@ -665,14 +659,14 @@ internal sealed class RequirementsValidator(
         }
 
         // Without a lookup the field can only be resolved by the call that already holds the type,
-        // which works when the requirements do not depend on data produced by that call. A call
-        // re-rooted at Query.viewer takes no requirement data from another re-rooted call.
+        // which works when the requirements depend neither on data produced by that call nor on a call
+        // re-rooted at Query.viewer.
         if (Validate(
                 requirements,
                 type,
                 parentPathItem,
                 ancestors,
-                holdingCallIsReRooted ? scope.WithoutReRootedCalls() : scope,
+                scope.WithoutReRootedCalls(),
                 excludeSchemaName: schemaName,
                 budget,
                 cycleDetectionPath: cycleDetectionPath,

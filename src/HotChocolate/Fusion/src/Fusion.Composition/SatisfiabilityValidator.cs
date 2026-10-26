@@ -352,8 +352,7 @@ internal sealed partial class SatisfiabilityValidator
                         path,
                         schemaName,
                         budget,
-                        transitionFails: false,
-                        reroutesViewerFields: true).IsEmpty),
+                        transitionFails: false).IsEmpty),
                 "The reach of the visit key disagrees with the source schema transition helper.");
 
             if (!canTransition)
@@ -846,8 +845,7 @@ internal sealed partial class SatisfiabilityValidator
                 path,
                 schemaName,
                 budget,
-                transitionFails: true,
-                reroutesViewerFields: true);
+                transitionFails: true);
             _explanationEntryCount += budget.EntryCount;
             _transitionExplanations.Add(schemaName, explanation);
         }
@@ -933,12 +931,6 @@ internal sealed partial class SatisfiabilityValidator
         // either without its own data or by re-entering the type through a lookup.
         if (errors.IsEmpty)
         {
-            var holdingCallIsReRooted =
-                path is not null
-                && (anchored
-                    ? _schemaSets.Contains(work.Key.ViewerOnly, schemaName)
-                    : IsViewerOnlyOnPath(type, path, schemaName));
-
             errors =
                 _requirementsValidator.ValidateReentry(
                     requirements,
@@ -950,35 +942,10 @@ internal sealed partial class SatisfiabilityValidator
                     scope,
                     SatisfiabilityValidator_NoLookupForRequiringField,
                     SatisfiabilityValidator_UnableToSatisfyRequirementForLookup,
-                    budget,
-                    holdingCallIsReRooted);
+                    budget);
         }
 
         return errors;
-    }
-
-    /// <summary>
-    /// Determines whether <paramref name="schemaName"/> holds <paramref name="type"/> on
-    /// <paramref name="path"/> only through a viewer field re-rooted at <c>Query.viewer</c>.
-    /// </summary>
-    private bool IsViewerOnlyOnPath(MutableObjectTypeDefinition type, PathNode path, string schemaName)
-    {
-        if (GetQueryViewerFieldForPath([.. path.EnumerateFromLeaf()]) is null)
-        {
-            return false;
-        }
-
-        // A walk that the budget cuts does not decide, which counts as a call that is not re-rooted.
-        var budget = SatisfiabilityExplanationBudget.DecisionOnly(MaxExplanationEntries);
-        var errors = ValidateSourceSchemaTransition(
-            type,
-            path,
-            schemaName,
-            budget,
-            transitionFails: false,
-            reroutesViewerFields: false);
-
-        return !errors.IsEmpty && !budget.IsExhausted;
     }
 
     /// <summary>
@@ -1028,8 +995,7 @@ internal sealed partial class SatisfiabilityValidator
                     parentPath,
                     holder,
                     budget,
-                    transitionFails: false,
-                    reroutesViewerFields: true).IsEmpty;
+                    transitionFails: false).IsEmpty;
     }
 
     /// <summary>
@@ -1051,16 +1017,14 @@ internal sealed partial class SatisfiabilityValidator
     /// <summary>
     /// Validates that <paramref name="type"/>, held on <paramref name="path"/>, can be entered in
     /// <paramref name="transitionToSchemaName"/> by walking the whole path, which re-roots viewer fields at
-    /// <c>Query.viewer</c> on mutation and subscription paths when <paramref name="reroutesViewerFields"/>
-    /// is set.
+    /// <c>Query.viewer</c> on mutation and subscription paths.
     /// </summary>
     private ImmutableArray<SatisfiabilityError> ValidateSourceSchemaTransition(
         MutableObjectTypeDefinition type,
         PathNode? path,
         string transitionToSchemaName,
         SatisfiabilityExplanationBudget budget,
-        bool transitionFails,
-        bool reroutesViewerFields)
+        bool transitionFails)
     {
         SatisfiabilityPathItem[] pathFromLeaf = [.. path.EnumerateFromLeaf()];
 
@@ -1081,7 +1045,7 @@ internal sealed partial class SatisfiabilityValidator
                     budget),
             SatisfiabilityValidator_NoLookupsFoundForType,
             SatisfiabilityValidator_UnableToSatisfyRequirementForLookup,
-            reroutesViewerFields ? GetQueryViewerFieldForPath(pathFromLeaf) : null,
+            GetQueryViewerFieldForPath(pathFromLeaf),
             anchor: null,
             unavailableSchemaNames: [],
             budget,

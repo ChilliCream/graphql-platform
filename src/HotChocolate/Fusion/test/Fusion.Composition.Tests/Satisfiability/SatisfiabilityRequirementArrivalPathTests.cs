@@ -987,6 +987,189 @@ public sealed class SatisfiabilityRequirementArrivalPathTests
     }
 
     [Fact]
+    public void Compose_Should_Fail_When_ReRootedViewerCallTakesRequirementThroughLookupKeyedByOtherReRootedCall()
+    {
+        // arrange
+        // D holds T2 below doB only through the re-rooted doB.viewer, and T2.s comes from G, keyed by E's call.
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "B",
+                """
+                type Query {
+                    ping: String @shareable
+                }
+
+                type Mutation {
+                    doB: Payload
+                }
+
+                type Payload {
+                    ok: Boolean
+                    viewer: Viewer
+                }
+
+                type Viewer {
+                    vid: String @shareable
+                }
+                """),
+            new SourceSchemaText(
+                "D",
+                """
+                type Query {
+                    viewer: Viewer @shareable
+                }
+
+                type Viewer {
+                    vid: String @shareable
+                    vt: T0 @shareable
+                }
+
+                type T0 {
+                    f2: T2 @shareable
+                }
+
+                type T2 {
+                    id: ID! @shareable
+                    rqD(v: String @require(field: "s")): String
+                }
+                """),
+            new SourceSchemaText(
+                "E",
+                """
+                type Query {
+                    viewer: Viewer @shareable
+                }
+
+                type Viewer {
+                    vid: String @shareable
+                    vt: T0 @shareable
+                }
+
+                type T0 {
+                    f2: T2 @shareable
+                }
+
+                type T2 {
+                    id: ID! @shareable
+                    s: String @shareable
+                }
+                """),
+            new SourceSchemaText(
+                "G",
+                """
+                type Query {
+                    t2ById(id: ID!): T2 @lookup @internal
+                }
+
+                type T2 {
+                    id: ID! @shareable
+                    s: String @shareable
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.False(result.IsSuccess);
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'T2.rqD' on path 'B:Mutation.doB<Payload> -> B:Payload.viewer<Viewer> -> D:Viewer.vt<T0> -> D:T0.f2<T2>'.
+              Unable to satisfy the requirement '{ s }' on field 'D:T2.rqD<String>'.
+                The field 'T2.rqD' in schema 'D' requires data from another schema, but schema 'D' has no lookup for type 'T2' that could resolve the field once the required data has been fetched.
+            """,
+            """
+            Unable to access the field 'T2.rqD' on path 'B:Mutation.doB<Payload> -> B:Payload.viewer<Viewer> -> D:Viewer.vt<T0> -> E:T0.f2<T2>'.
+              Unable to satisfy the requirement '{ s }' on field 'D:T2.rqD<String>'.
+                The field 'T2.rqD' in schema 'D' requires data from another schema, but schema 'D' has no lookup for type 'T2' that could resolve the field once the required data has been fetched.
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_MutationCallTakesRequirementFromReRootedCall()
+    {
+        // arrange
+        // B holds T2 in the call of doB, and T2.s only comes from doB.viewer re-rooted at Query.viewer in E.
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "B",
+                """
+                type Query {
+                    ping: String @shareable
+                }
+
+                type Mutation {
+                    doB: Payload
+                }
+
+                type Payload {
+                    ok: Boolean
+                    viewer: Viewer
+                }
+
+                type Viewer {
+                    vid: String @shareable
+                    vt: T0 @shareable
+                }
+
+                type T0 {
+                    f2: T2 @shareable
+                }
+
+                type T2 {
+                    id: ID! @shareable
+                    rqB(v: String @require(field: "s")): String
+                }
+                """),
+            new SourceSchemaText(
+                "E",
+                """
+                type Query {
+                    viewer: Viewer @shareable
+                }
+
+                type Viewer {
+                    vid: String @shareable
+                    vt: T0 @shareable
+                }
+
+                type T0 {
+                    f2: T2 @shareable
+                }
+
+                type T2 {
+                    id: ID! @shareable
+                    s: String
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.False(result.IsSuccess);
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'T2.rqB' on path 'E:Query.viewer<Viewer> -> E:Viewer.vt<T0> -> E:T0.f2<T2>'.
+              Unable to transition between schemas 'E' and 'B' for access to field 'B:T2.rqB<String>'.
+                No lookups found for type 'T2' in schema 'B'.
+            """,
+            """
+            Unable to access the field 'T2.rqB' on path 'B:Mutation.doB<Payload> -> B:Payload.viewer<Viewer> -> B:Viewer.vt<T0> -> B:T0.f2<T2>'.
+              Unable to satisfy the requirement '{ s }' on field 'B:T2.rqB<String>'.
+                The field 'T2.rqB' in schema 'B' requires data from another schema, but schema 'B' has no lookup for type 'T2' that could resolve the field once the required data has been fetched.
+            """
+        ]);
+    }
+
+    [Fact]
     public void Compose_Should_Succeed_When_LookupKeyBelowRequirementSelectsRequiringField()
     {
         // arrange

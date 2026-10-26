@@ -106,29 +106,12 @@ internal sealed partial class SatisfiabilityValidator
                 item.ProvidedByEventStream);
         }
 
-        var viewerOnly = CreateViewerOnly(
-            type,
-            info,
-            item,
-            parentKey,
-            new ExclusionReach(
-                SchemaSet.Empty,
-                parentKey.Reach,
-                parentKey.ReachProvides,
-                HolderAvailable: true,
-                parentKey.ViewerOnly),
-            transitionFacts,
-            reach,
-            holderAvailable: true,
-            anchor);
-
         return new VisitKey(
             type,
             item.SchemaName,
             reach,
             reachProvides,
             exclusions,
-            viewerOnly,
             leaf,
             viewerFallback,
             item.ProvidedSelectionSet is not null && CanReenterHolder(type, item, parentKey, anchor));
@@ -322,7 +305,6 @@ internal sealed partial class SatisfiabilityValidator
             reaches.Reach,
             null,
             reaches.Exclusions,
-            SchemaSet.Empty,
             leaf,
             viewerFallback,
             HolderReentry: false);
@@ -338,7 +320,6 @@ internal sealed partial class SatisfiabilityValidator
             SchemaSet.Empty,
             null,
             null,
-            SchemaSet.Empty,
             null,
             !ReferenceEquals(rootType, _schema.QueryType) && _viewerFallbackTypes.Contains(rootType),
             HolderReentry: false);
@@ -414,9 +395,10 @@ internal sealed partial class SatisfiabilityValidator
     }
 
     /// <summary>
-    /// Creates the schemas, among the holding schema and those of <paramref name="reach"/>, that hold
-    /// the object of <paramref name="item"/> only through a viewer field re-rooted at <c>Query.viewer</c>
-    /// at the item's field or above it, given the reach of the parent without the same data.
+    /// Creates the schemas, among the holding schema and those of <paramref name="reach"/>, that hold the
+    /// object of <paramref name="item"/> without the data of the exclusion of <paramref name="anchor"/>
+    /// only through calls that depend on a call re-rooted at <c>Query.viewer</c>, given the reach of the
+    /// parent of <paramref name="parentKey"/> without the same data.
     /// </summary>
     private SchemaSet CreateViewerOnly(
         MutableObjectTypeDefinition type,
@@ -424,85 +406,86 @@ internal sealed partial class SatisfiabilityValidator
         SatisfiabilityPathItem item,
         VisitKey parentKey,
         ExclusionReach parentReach,
-        SchemaSet transitionFacts,
         SchemaSet reach,
         bool holderAvailable,
         ReachAnchor anchor)
     {
-        var isViewerFallback = IsViewerFallback(item, parentKey);
-
-        if (parentReach.ViewerOnly == SchemaSet.Empty && !isViewerFallback)
+        if (parentReach.ViewerOnly == SchemaSet.Empty && !IsViewerFallback(item, parentKey))
         {
             return SchemaSet.Empty;
         }
 
+        var holder = _schemaSets.GetIndex(item.SchemaName);
         var fieldSchemas = GetFieldSchemas(item.Field);
         var candidates = _schemaSets.CreateBuffer(reach);
-        var indexes = new List<int>();
+        var independent = _schemaSets.CreateBuffer(SchemaSet.Empty);
 
         if (holderAvailable)
         {
-            SchemaSetTable.Add(candidates, _schemaSets.GetIndex(item.SchemaName));
+            SchemaSetTable.Add(candidates, holder);
         }
 
+        // A schema that holds the parent without depending on a re-rooted call, and serves the item's
+        // field, re-traverses it without depending on one. A schema that only the re-rooted viewer field
+        // adds depends on its call.
         for (var word = 0; word < candidates.Length; word++)
         {
             for (var bits = candidates[word]; bits != 0; bits &= bits - 1)
             {
                 var index = (word << 6) + BitOperations.TrailingZeroCount(bits);
-                var schemaName = _schemaSets.GetSchemaName(index);
-                var isClean = false;
-                var isReRooted =
-                    isViewerFallback
-                    && _queryViewerSchemas.Contains(index)
-                    && !_schemaSets.Contains(fieldSchemas, index);
 
-                // A schema that holds the parent and serves the item's field re-traverses it, and its
-                // call is re-rooted when the parent's call in that schema is.
-                if (parentKey.SchemaName is null)
+                if (parentKey.SchemaName is null
+                    ? _schemaSets.Contains(fieldSchemas, index)
+                    : (_schemaSets.Contains(parentReach.Reach, index)
+                            || (parentKey.SchemaName == _schemaSets.GetSchemaName(index)
+                                && parentReach.HolderAvailable))
+                        && !_schemaSets.Contains(parentReach.ViewerOnly, index)
+                        && (_schemaSets.Contains(fieldSchemas, index)
+                            || (parentReach.ReachProvides?.Find(index) is { } selectionSet
+                                && SourceSchemaTransitionHelper.ServesOnRetraversal(
+                                    _schema,
+                                    item.Field,
+                                    item.Type,
+                                    _schemaSets.GetSchemaName(index),
+                                    selectionSet,
+                                    fieldProvides: null,
+                                    out _))))
                 {
-                    isClean = _schemaSets.Contains(fieldSchemas, index);
+                    SchemaSetTable.Add(independent, index);
                 }
-                else if ((_schemaSets.Contains(parentReach.Reach, index)
-                        || (parentKey.SchemaName == schemaName && parentReach.HolderAvailable))
-                    && (_schemaSets.Contains(fieldSchemas, index)
-                        || (parentReach.ReachProvides?.Find(index) is { } selectionSet
-                            && SourceSchemaTransitionHelper.ServesOnRetraversal(
-                                _schema,
-                                item.Field,
-                                item.Type,
-                                schemaName,
-                                selectionSet,
-                                fieldProvides: null,
-                                out _))))
-                {
-                    if (_schemaSets.Contains(parentReach.ViewerOnly, index))
-                    {
-                        isReRooted = true;
-                    }
-                    else
-                    {
-                        isClean = true;
-                    }
-                }
-
-                if (isClean || !isReRooted)
-                {
-                    continue;
-                }
-
-                if (_schemaSets.Contains(transitionFacts, index)
-                    || (info.LookupSchemas.Contains(index)
-                        && CanEnterWithLookup(type, schemaName, item, anchor)))
-                {
-                    continue;
-                }
-
-                indexes.Add(index);
             }
         }
 
-        return _schemaSets.Create(indexes);
+        // A lookup enters the type without depending on a re-rooted call when its key resolves from the
+        // schemas that hold the object without depending on one.
+        var independentAnchor = anchor.WithoutReRootedCalls(
+            independent,
+            SchemaSetTable.Contains(independent, holder));
+        bool added;
+
+        do
+        {
+            added = false;
+
+            foreach (var index in info.LookupSchemas)
+            {
+                if (SchemaSetTable.Contains(candidates, index)
+                    && !SchemaSetTable.Contains(independent, index)
+                    && CanEnterWithLookup(type, _schemaSets.GetSchemaName(index), item, independentAnchor))
+                {
+                    SchemaSetTable.Add(independent, index);
+                    added = true;
+                }
+            }
+        }
+        while (added);
+
+        for (var word = 0; word < candidates.Length; word++)
+        {
+            candidates[word] &= ~independent[word];
+        }
+
+        return _schemaSets.Intern(candidates);
     }
 
     /// <summary>
@@ -742,16 +725,17 @@ internal sealed partial class SatisfiabilityValidator
         {
             var key = _lookupCache.GetLookupKey(lookup);
 
-            // The facts are computed with the data of every schema available.
+            // The facts are computed with the data of every schema available, from the holding call.
             if ((item.ProvidedSelectionSet is null
                     && anchor.UnavailableSchemaNames.IsEmpty
+                    && anchor.IsHolderAvailable(anchor.UnavailableSchemaNames)
                     && CanResolveLeafSelections(key, type, item.SchemaName, excludeSchemaName))
                 || _requirementsValidator.Validate(
                     key,
                     type,
                     item,
                     ancestors: [],
-                    new RequirementScope(anchor, ArrivalPath: null, AllowsReRootedCalls: true),
+                    new RequirementScope(anchor, ArrivalPath: null, anchor.AllowsReRootedCalls),
                     excludeSchemaName,
                     _decisionBudget,
                     unavailableSchemaNames: anchor.UnavailableSchemaNames).IsEmpty)
@@ -844,6 +828,7 @@ internal sealed partial class SatisfiabilityValidator
         SchemaSet Unavailable,
         bool HolderAvailable,
         bool ViewerFallback,
+        bool AllowsReRootedCalls,
         ExclusionReaches? Exclusions);
 
     /// <summary>
@@ -863,13 +848,19 @@ internal sealed partial class SatisfiabilityValidator
     {
         public override SatisfiabilityPathItem Item => item;
 
-        public override bool ReroutesViewerFields => viewerFallback;
+        public override bool ReroutesViewerFields => viewerFallback && AllowsReRootedCalls;
 
         /// <summary>
         /// Gets whether the call holding the object was made without the unavailable data, before the
         /// reach adds the holding schema.
         /// </summary>
         public bool HolderAvailable { get; init; } = exclusion is null;
+
+        /// <summary>
+        /// Gets whether the walk may take data that depends on calls re-rooted at <c>Query.viewer</c>, which
+        /// the reach being created holds otherwise only without such calls.
+        /// </summary>
+        public bool AllowsReRootedCalls { get; private init; } = true;
 
         public bool HasProvides => provides is not null;
 
@@ -883,6 +874,19 @@ internal sealed partial class SatisfiabilityValidator
                 && (!validator._schemaSets.Contains(exclusion.Relevant, index)
                     || validator._schemaSets.Contains(exclusion.Schemas, index));
 
+        /// <summary>
+        /// Creates an anchor for the same reach that holds the object in the schemas of
+        /// <paramref name="independentBuffer"/>, and in the holding schema when
+        /// <paramref name="holderAvailable"/> is set, and takes no data that depends on calls re-rooted
+        /// at <c>Query.viewer</c>.
+        /// </summary>
+        public ReachAnchor WithoutReRootedCalls(ulong[] independentBuffer, bool holderAvailable)
+            => new(validator, type, item, viewerFallback, exclusion, independentBuffer, provides, exclusions)
+            {
+                HolderAvailable = holderAvailable,
+                AllowsReRootedCalls = false
+            };
+
         public LookupEntryKey CreateLookupEntryKey(string schemaName)
             => new(
                 type,
@@ -892,6 +896,7 @@ internal sealed partial class SatisfiabilityValidator
                 exclusion?.Schemas ?? SchemaSet.Empty,
                 IsCurrentHolderAvailable(),
                 viewerFallback,
+                AllowsReRootedCalls,
                 exclusions);
 
         public override bool CanHold(string schemaName, ImmutableHashSet<string> unavailableSchemaNames)
@@ -900,12 +905,13 @@ internal sealed partial class SatisfiabilityValidator
 
             if (IsCurrent(unavailableSchemaNames))
             {
-                return (exclusion is null && schemaName == item.SchemaName)
+                return (exclusion is null && HolderAvailable && schemaName == item.SchemaName)
                     || SchemaSetTable.Contains(buffer, schemaSets.GetIndex(schemaName));
             }
 
             return GetExclusionReach(unavailableSchemaNames) is { } entry
-                && schemaSets.Contains(entry.Reach, schemaName);
+                && schemaSets.Contains(entry.Reach, schemaName)
+                && (AllowsReRootedCalls || !schemaSets.Contains(entry.ViewerOnly, schemaName));
         }
 
         public override SelectionSetNode? GetProvidedSelectionSet(
@@ -934,11 +940,19 @@ internal sealed partial class SatisfiabilityValidator
         }
 
         public override bool IsHolderAvailable(ImmutableHashSet<string> unavailableSchemaNames)
-            => IsCurrent(unavailableSchemaNames)
-                ? IsCurrentHolderAvailable()
-                : GetExclusionReach(unavailableSchemaNames)?.HolderAvailable ?? false;
+        {
+            if (IsCurrent(unavailableSchemaNames))
+            {
+                return IsCurrentHolderAvailable();
+            }
 
-        // A walk that takes no data from re-rooted calls starts only at the anchor of a complete visit key.
+            return GetExclusionReach(unavailableSchemaNames) is { } entry
+                && entry.HolderAvailable
+                && (AllowsReRootedCalls || !validator._schemaSets.Contains(entry.ViewerOnly, item.SchemaName));
+        }
+
+        // Answers for the reaches created before. An anchor that takes no data that depends on re-rooted
+        // calls holds the object in the reach being created only in schemas without such calls.
         public override bool IsViewerOnly(string schemaName, ImmutableHashSet<string> unavailableSchemaNames)
             => !IsCurrent(unavailableSchemaNames)
                 && GetExclusionReach(unavailableSchemaNames) is { } entry
@@ -1003,11 +1017,11 @@ internal sealed partial class SatisfiabilityValidator
             => unavailableSchemaNames.IsEmpty
                 || validator.FindExclusionReach(key, key.Exclusions, unavailableSchemaNames)?.HolderAvailable == true;
 
+        // Answers for a reach without the data of some schemas, the only reach that a walk taking no data
+        // that depends on re-rooted calls asks for.
         public override bool IsViewerOnly(string schemaName, ImmutableHashSet<string> unavailableSchemaNames)
-            => unavailableSchemaNames.IsEmpty
-                ? validator._schemaSets.Contains(key.ViewerOnly, schemaName)
-                : validator.FindExclusionReach(key, key.Exclusions, unavailableSchemaNames) is { } entry
-                    && validator._schemaSets.Contains(entry.ViewerOnly, schemaName);
+            => validator.FindExclusionReach(key, key.Exclusions, unavailableSchemaNames) is { } entry
+                && validator._schemaSets.Contains(entry.ViewerOnly, schemaName);
     }
 
     /// <summary>

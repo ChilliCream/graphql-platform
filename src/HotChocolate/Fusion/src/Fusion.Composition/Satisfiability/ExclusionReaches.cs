@@ -71,7 +71,7 @@ internal sealed class ExclusionReaches : IEquatable<ExclusionReaches>
 /// </param>
 /// <param name="ViewerOnly">
 /// The schemas, among the holding schema and those of <paramref name="Reach"/>, that hold the object
-/// without that data only through a call re-rooted at <c>Query.viewer</c>.
+/// without that data only through calls that depend on a call re-rooted at <c>Query.viewer</c>.
 /// </param>
 internal readonly record struct ExclusionReach(
     SchemaSet Unavailable,

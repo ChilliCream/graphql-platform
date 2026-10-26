@@ -20,10 +20,6 @@ namespace HotChocolate.Fusion.Satisfiability;
 /// The reaches of the object without the data of the schemas that a requirement check of the object
 /// or of an object below it can make unavailable, or <c>null</c> if no such check exists.
 /// </param>
-/// <param name="ViewerOnly">
-/// The schemas, among the holding schema and those of <paramref name="Reach"/>, that hold the object
-/// only through a viewer field re-rooted at <c>Query.viewer</c>.
-/// </param>
 /// <param name="Leaf">
 /// The path item holding the object when the visit reads more of it than its schema; otherwise <c>null</c>.
 /// </param>
@@ -42,7 +38,6 @@ internal sealed record VisitKey(
     SchemaSet Reach,
     SchemaSelectionSets? ReachProvides,
     ExclusionReaches? Exclusions,
-    SchemaSet ViewerOnly,
     VisitLeaf? Leaf,
     bool ViewerFallback,
     bool HolderReentry);
