@@ -169,6 +169,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
         Action<IMcpServerBuilder>? configureMcpServer = null)
     {
         var subgraph = StartSubgraph(additionalTypes);
+        StopAndDisposeAfterTest(subgraph);
         var schemaDocument = await subgraph.Services.GetSchemaAsync();
         var schemaComposer =
             new SchemaComposer(
@@ -212,6 +213,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
         app.UseAuthentication();
         app.MapGraphQLMcp();
         app.Start();
+        StopAndDisposeAfterTest(app);
 
         return app.GetTestServer();
     }

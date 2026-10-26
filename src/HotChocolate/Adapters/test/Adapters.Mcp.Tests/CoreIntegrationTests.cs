@@ -270,6 +270,7 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
         app.UseAuthentication();
         app.MapGraphQLMcp();
         app.Start();
+        StopAndDisposeAfterTest(app);
 
         return Task.FromResult(app.GetTestServer());
     }
