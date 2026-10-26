@@ -5,6 +5,7 @@ using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Policies;
+using HotChocolate.Fusion.Policies.Audit;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -17,6 +18,7 @@ internal sealed class OperationPolicyMiddleware
     private const string Key = "FusionOperationPolicyMiddleware";
 
     private readonly PolicyEvaluator _evaluator;
+    private readonly IAuditProvider _auditProvider;
     private readonly FusionAuthorizationOptions _options;
     private readonly AuthenticationSchemeResolver _schemeResolver;
     private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
@@ -24,12 +26,14 @@ internal sealed class OperationPolicyMiddleware
 
     private OperationPolicyMiddleware(
         PolicyEvaluator evaluator,
+        IAuditProvider auditProvider,
         FusionAuthorizationOptions options,
         AuthenticationSchemeResolver schemeResolver,
         IFusionExecutionDiagnosticEvents diagnosticEvents,
         IInputType booleanType)
     {
         _evaluator = evaluator;
+        _auditProvider = auditProvider;
         _options = options;
         _schemeResolver = schemeResolver;
         _diagnosticEvents = diagnosticEvents;
@@ -60,21 +64,54 @@ internal sealed class OperationPolicyMiddleware
         }
 
         var user = GetUser(context);
+        var trail = context.Features.TryGet(out AuditInvocation? auditInvocation)
+            ? auditInvocation.GetOrCreateTrail(_auditProvider, context.RequestServices)
+            : _auditProvider.CreateTrail(context.RequestServices);
         PolicyDecisions?[]? decisionSets = null;
         IVariableValueCollection[]? updatedVariableSets = null;
 
         for (var i = 0; i < variableSets.Length; i++)
         {
-            var evaluation = await _evaluator.EvaluateAsync(
-                context,
-                user,
-                plan,
-                policies,
-                variableSets[i],
-                i,
-                context.RequestAborted);
+            var scope = trail.BeginRequest(
+                new AuditScopeInfo(plan.Operation.Id, plan.Id, context.RequestIndex, i),
+                user);
 
-            if (evaluation.Failure is { } failure)
+            PolicyEvaluation evaluation;
+
+            try
+            {
+                evaluation = await _evaluator.EvaluateAsync(
+                    context,
+                    user,
+                    plan,
+                    policies,
+                    variableSets[i],
+                    scope,
+                    i,
+                    context.RequestAborted);
+            }
+            catch (Exception ex) when (PolicyEvaluator.IsFault(ex, context.RequestAborted))
+            {
+                await CommitFaultedScopeAsync(context, scope, ex);
+
+                if (ex is OperationCanceledException)
+                {
+                    throw ThrowHelper.OperationPolicyFaulted(ex);
+                }
+
+                throw;
+            }
+
+            var failure = evaluation.Failure;
+
+            if (failure is not null)
+            {
+                scope.Fail(failure);
+            }
+
+            await scope.CommitAsync(context.RequestAborted);
+
+            if (failure is not null)
             {
                 _diagnosticEvents.RequestError(context, failure);
                 context.Result = ErrorHelper.AuthorizationFailed();
@@ -123,6 +160,27 @@ internal sealed class OperationPolicyMiddleware
         }
 
         await next(context);
+    }
+
+    private async ValueTask CommitFaultedScopeAsync(RequestContext context, IAuditScope scope, Exception fault)
+    {
+        try
+        {
+            scope.Fail(fault);
+        }
+        catch (Exception failFailure)
+        {
+            _diagnosticEvents.RequestError(context, failFailure);
+        }
+
+        try
+        {
+            await scope.CommitAsync(context.RequestAborted);
+        }
+        catch (Exception commitFailure)
+        {
+            _diagnosticEvents.RequestError(context, commitFailure);
+        }
     }
 
     private async ValueTask RejectAsync(RequestContext context, SelectionDenial denial)
@@ -175,9 +233,11 @@ internal sealed class OperationPolicyMiddleware
                 var options = fc.SchemaServices.GetRequiredService<FusionAuthorizationOptions>();
                 var schemeResolver = fc.SchemaServices.GetRequiredService<AuthenticationSchemeResolver>();
                 var diagnosticEvents = fc.SchemaServices.GetRequiredService<IFusionExecutionDiagnosticEvents>();
+                var auditProvider = fc.SchemaServices.GetRequiredService<IAuditProvider>();
                 var booleanType = GetBooleanType(schema);
                 var middleware = new OperationPolicyMiddleware(
-                    new PolicyEvaluator(options),
+                    new PolicyEvaluator(options, diagnosticEvents),
+                    auditProvider,
                     options,
                     schemeResolver,
                     diagnosticEvents,

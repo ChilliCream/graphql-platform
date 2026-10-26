@@ -23,6 +23,7 @@ using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Pipeline;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Policies;
+using HotChocolate.Fusion.Policies.Audit;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Fusion.Types.Metadata;
@@ -501,6 +502,7 @@ internal sealed class FusionRequestExecutorManager
             static sp => new AuthenticationSchemeResolver(
                 sp.GetRequiredService<FusionAuthorizationOptions>(),
                 sp.GetService<IAuthenticationSchemeLookup>()));
+        services.TryAddSingleton<IAuditProvider>(NoOpAuditProvider.Instance);
         services.TryAddSingleton<IPolicyResolver>(
             static sp =>
             {

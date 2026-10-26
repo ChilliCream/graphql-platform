@@ -213,4 +213,10 @@
   <data name="PolicyPlan_OperandNotFound" xml:space="preserve">
     <value>The policy variable '{0}' combines the variable '{1}', which is not defined before it.</value>
   </data>
+  <data name="AuditScope_AlreadyCommitted" xml:space="preserve">
+    <value>The audit scope is already committed and cannot be changed or committed again.</value>
+  </data>
+  <data name="OperationPolicy_EvaluationFaulted" xml:space="preserve">
+    <value>The policy evaluation of the request faulted without the request being canceled.</value>
+  </data>
 </root>

@@ -1,9 +1,12 @@
 using System.Collections.Immutable;
 using System.Security.Claims;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Policies.Audit;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Policies;
@@ -13,6 +16,8 @@ namespace HotChocolate.Fusion.Policies;
 /// </summary>
 internal sealed class PolicyEvaluator
 {
+    private const string UnauthenticatedReason = "unauthenticated";
+
     private static readonly ImmutableDictionary<string, object?> s_noArguments =
 #if NET10_0_OR_GREATER
         [];
@@ -20,7 +25,15 @@ internal sealed class PolicyEvaluator
         ImmutableDictionary<string, object?>.Empty;
 #endif
 
+    private static readonly ImmutableDictionary<string, string> s_noArgumentValues =
+#if NET10_0_OR_GREATER
+        [];
+#else
+        ImmutableDictionary<string, string>.Empty;
+#endif
+
     private readonly FusionAuthorizationOptions _options;
+    private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
 
     /// <summary>
     /// Initializes a new instance of <see cref="PolicyEvaluator"/>.
@@ -28,11 +41,18 @@ internal sealed class PolicyEvaluator
     /// <param name="options">
     /// The authorization options.
     /// </param>
-    public PolicyEvaluator(FusionAuthorizationOptions options)
+    /// <param name="diagnosticEvents">
+    /// The diagnostic events that receive the failures that must not replace an original fault.
+    /// </param>
+    public PolicyEvaluator(
+        FusionAuthorizationOptions options,
+        IFusionExecutionDiagnosticEvents diagnosticEvents)
     {
         ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(diagnosticEvents);
 
         _options = options;
+        _diagnosticEvents = diagnosticEvents;
     }
 
     /// <summary>
@@ -53,6 +73,9 @@ internal sealed class PolicyEvaluator
     /// <param name="variables">
     /// The coerced variable values of the variable set.
     /// </param>
+    /// <param name="scope">
+    /// The audit scope of the variable set that receives one entry per evaluated occurrence.
+    /// </param>
     /// <param name="requestIndex">
     /// The index of the variable set within the request.
     /// </param>
@@ -65,6 +88,7 @@ internal sealed class PolicyEvaluator
         OperationPlan plan,
         PolicyPlan policies,
         IVariableValueCollection variables,
+        IAuditScope scope,
         int requestIndex,
         CancellationToken cancellationToken)
     {
@@ -73,71 +97,131 @@ internal sealed class PolicyEvaluator
         ArgumentNullException.ThrowIfNull(plan);
         ArgumentNullException.ThrowIfNull(policies);
         ArgumentNullException.ThrowIfNull(variables);
+        ArgumentNullException.ThrowIfNull(scope);
 
         var isAuthenticated = user.Identity?.IsAuthenticated is true;
         var occurrences = GetOccurrences(plan, policies.Descriptors, variables);
         var deniedDescriptors = new HashSet<PolicyDescriptor>();
         var groups = new List<PolicyGroup>();
         var groupsByPolicy = new Dictionary<IPolicy, PolicyGroup>();
+        var answered = scope.IsRecording ? new HashSet<PolicyDescriptor>() : null;
+        PolicyEvaluationContext? evaluating = null;
 
-        foreach (var descriptor in occurrences)
+        try
         {
-            // An anonymous principal never reaches the scope and named policies, except an
-            // unresolved policy, which fails the request as a configuration error.
-            if (!isAuthenticated
-                && descriptor.DirectiveName != DirectiveNames.Authenticated.Name
-                && !(policies.HasUnresolvedPolicies && descriptor.Policy is UnresolvedPolicy))
+            foreach (var descriptor in occurrences)
             {
-                deniedDescriptors.Add(descriptor);
-                continue;
+                // An anonymous principal never reaches the scope and named policies, except an
+                // unresolved policy, which fails the request as a configuration error.
+                if (!isAuthenticated
+                    && descriptor.DirectiveName != DirectiveNames.Authenticated.Name
+                    && !(policies.HasUnresolvedPolicies && descriptor.Policy is UnresolvedPolicy))
+                {
+                    deniedDescriptors.Add(descriptor);
+
+                    if (answered is not null)
+                    {
+                        var entry = new PolicyEvaluationEntry(
+                            descriptor,
+                            CoerceArguments((Selection)descriptor.Selection, variables));
+
+                        scope.Record(
+                            CreateAuditEntry(
+                                entry,
+                                new PolicyVerdict(PolicyOutcome.Denied, UnauthenticatedReason, null)));
+                        answered.Add(descriptor);
+                    }
+
+                    continue;
+                }
+
+                if (!groupsByPolicy.TryGetValue(descriptor.Policy, out var group))
+                {
+                    group = new PolicyGroup(descriptor.Policy);
+                    groupsByPolicy.Add(descriptor.Policy, group);
+                    groups.Add(group);
+                }
+
+                group.Add(descriptor, PolicyEvaluationOrder.Get(descriptor.DirectiveName));
             }
 
-            if (!groupsByPolicy.TryGetValue(descriptor.Policy, out var group))
+            foreach (var group in groups.OrderBy(static g => g.Order))
             {
-                group = new PolicyGroup(descriptor.Policy);
-                groupsByPolicy.Add(descriptor.Policy, group);
-                groups.Add(group);
+                var entries = new PolicyEvaluationEntry[group.Descriptors.Count];
+
+                for (var i = 0; i < entries.Length; i++)
+                {
+                    var descriptor = group.Descriptors[i];
+                    entries[i] = new PolicyEvaluationEntry(
+                        descriptor,
+                        CoerceArguments((Selection)descriptor.Selection, variables));
+                }
+
+                var policyContext = new PolicyEvaluationContext(
+                    user,
+                    context.Features,
+                    context.RequestServices,
+                    plan,
+                    requestIndex,
+                    entries);
+
+                evaluating = policyContext;
+
+                try
+                {
+                    await group.Policy.EvaluateAsync(policyContext, cancellationToken);
+                }
+                catch (InvalidOperationException ex) when (group.Policy is UnresolvedPolicy)
+                {
+                    if (answered is not null)
+                    {
+                        foreach (var entry in policyContext.Entries)
+                        {
+                            scope.Record(
+                                CreateAuditEntry(
+                                    entry,
+                                    new PolicyVerdict(PolicyOutcome.Unanswered, ex.Message, null)));
+                            answered.Add(entry.Descriptor);
+                        }
+
+                        RecordUnanswered(scope, occurrences, groups, answered, variables);
+                    }
+
+                    return new PolicyEvaluation(null, ex);
+                }
+
+                if (answered is not null)
+                {
+                    Record(scope, policyContext, isAuthenticated, answered);
+                }
+
+                evaluating = null;
+                CollectDenied(policyContext, deniedDescriptors);
             }
 
-            group.Add(descriptor, PolicyEvaluationOrder.Get(descriptor.DirectiveName));
+            return new PolicyEvaluation(
+                CreateDecisions(occurrences, deniedDescriptors, isAuthenticated),
+                null);
         }
-
-        foreach (var group in groups.OrderBy(static g => g.Order))
+        catch (Exception ex) when (answered is not null && IsFault(ex, cancellationToken))
         {
-            var entries = new PolicyEvaluationEntry[group.Descriptors.Count];
-
-            for (var i = 0; i < entries.Length; i++)
-            {
-                var descriptor = group.Descriptors[i];
-                entries[i] = new PolicyEvaluationEntry(
-                    descriptor,
-                    CoerceArguments((Selection)descriptor.Selection, variables));
-            }
-
-            var policyContext = new PolicyEvaluationContext(
-                user,
-                context.Features,
-                context.RequestServices,
-                plan,
-                requestIndex,
-                entries);
-
-            try
-            {
-                await group.Policy.EvaluateAsync(policyContext, cancellationToken);
-            }
-            catch (InvalidOperationException ex) when (group.Policy is UnresolvedPolicy)
-            {
-                return new PolicyEvaluation(null, ex);
-            }
-
-            CollectDenied(policyContext, deniedDescriptors);
+            RecordFault(context, scope, evaluating, isAuthenticated, occurrences, groups, answered, variables);
+            throw;
         }
-
-        return new PolicyEvaluation(
-            CreateDecisions(occurrences, deniedDescriptors, isAuthenticated),
-            null);
     }
+
+    /// <summary>
+    /// Determines whether an exception that ended the evaluation is a fault of the evaluation
+    /// instead of the cancellation of the request.
+    /// </summary>
+    /// <param name="exception">
+    /// The exception that ended the evaluation.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The token that signals that the request was aborted.
+    /// </param>
+    public static bool IsFault(Exception exception, CancellationToken cancellationToken)
+        => exception is not OperationCanceledException || !cancellationToken.IsCancellationRequested;
 
     private PolicyDecisions? CreateDecisions(
         ImmutableArray<PolicyDescriptor> occurrences,
@@ -236,6 +320,141 @@ internal sealed class PolicyEvaluator
         }
 
         return firstDenied;
+    }
+
+    private static void Record(
+        IAuditScope scope,
+        PolicyEvaluationContext policyContext,
+        bool isAuthenticated,
+        HashSet<PolicyDescriptor> answered)
+    {
+        var entries = policyContext.Entries;
+        var verdicts = policyContext.Verdicts;
+
+        for (var i = 0; i < entries.Length; i++)
+        {
+            if (answered.Contains(entries[i].Descriptor))
+            {
+                continue;
+            }
+
+            var verdict = verdicts[i];
+
+            if (!isAuthenticated
+                && entries[i].Descriptor.DirectiveName == DirectiveNames.Authenticated.Name
+                && verdict is { Outcome: PolicyOutcome.Denied, Reason: null })
+            {
+                verdict = verdict with { Reason = UnauthenticatedReason };
+            }
+
+            scope.Record(CreateAuditEntry(entries[i], verdict));
+            answered.Add(entries[i].Descriptor);
+        }
+    }
+
+    private void RecordFault(
+        RequestContext context,
+        IAuditScope scope,
+        PolicyEvaluationContext? evaluating,
+        bool isAuthenticated,
+        ImmutableArray<PolicyDescriptor> occurrences,
+        List<PolicyGroup> groups,
+        HashSet<PolicyDescriptor> answered,
+        IVariableValueCollection variables)
+    {
+        try
+        {
+            if (evaluating is not null)
+            {
+                Record(scope, evaluating, isAuthenticated, answered);
+            }
+
+            RecordUnanswered(scope, occurrences, groups, answered, variables);
+        }
+        catch (Exception recordingFailure)
+        {
+            _diagnosticEvents.RequestError(context, recordingFailure);
+        }
+    }
+
+    private static void RecordUnanswered(
+        IAuditScope scope,
+        ImmutableArray<PolicyDescriptor> occurrences,
+        List<PolicyGroup> groups,
+        HashSet<PolicyDescriptor> answered,
+        IVariableValueCollection variables)
+    {
+        foreach (var group in groups.OrderBy(static g => g.Order))
+        {
+            foreach (var descriptor in group.Descriptors)
+            {
+                RecordUnanswered(scope, descriptor, answered, variables);
+            }
+        }
+
+        foreach (var descriptor in occurrences)
+        {
+            RecordUnanswered(scope, descriptor, answered, variables);
+        }
+    }
+
+    private static void RecordUnanswered(
+        IAuditScope scope,
+        PolicyDescriptor descriptor,
+        HashSet<PolicyDescriptor> answered,
+        IVariableValueCollection variables)
+    {
+        if (answered.Contains(descriptor))
+        {
+            return;
+        }
+
+        var entry = new PolicyEvaluationEntry(
+            descriptor,
+            CoerceArguments((Selection)descriptor.Selection, variables));
+
+        scope.Record(CreateAuditEntry(entry, default));
+        answered.Add(descriptor);
+    }
+
+    private static AuditLogEntry CreateAuditEntry(PolicyEvaluationEntry entry, PolicyVerdict verdict)
+    {
+        var descriptor = entry.Descriptor;
+
+        return new AuditLogEntry(
+            descriptor.Selection.Field.Coordinate,
+            descriptor.DirectiveName,
+            descriptor.PolicyName,
+            descriptor.Scopes,
+            CreateArgumentValues(entry.Arguments),
+            verdict.Outcome,
+            verdict.Reason,
+            verdict.AuditData);
+    }
+
+    private static ImmutableDictionary<string, string> CreateArgumentValues(
+        IReadOnlyDictionary<string, object?> arguments)
+    {
+        if (arguments.Count == 0)
+        {
+            return s_noArgumentValues;
+        }
+
+        var values = ImmutableDictionary.CreateBuilder<string, string>(StringComparer.Ordinal);
+
+        foreach (var (name, value) in arguments)
+        {
+            values.Add(
+                name,
+                value switch
+                {
+                    IValueNode node => node.Print(indented: false),
+                    null => NullValueNode.Default.Print(indented: false),
+                    _ => value.ToString() ?? string.Empty
+                });
+        }
+
+        return values.ToImmutable();
     }
 
     private static void CollectDenied(

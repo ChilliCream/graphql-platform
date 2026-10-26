@@ -22,6 +22,12 @@ internal static class ThrowHelper
     public static InvalidOperationException OperationPolicyRequiresPlan()
         => new(FusionExecutionResources.OperationPolicy_OperationPlanMissing);
 
+    public static InvalidOperationException AuditScopeAlreadyCommitted()
+        => new(FusionExecutionResources.AuditScope_AlreadyCommitted);
+
+    public static InvalidOperationException OperationPolicyFaulted(Exception fault)
+        => new(FusionExecutionResources.OperationPolicy_EvaluationFaulted, fault);
+
     public static InvalidOperationException OperationPolicyRequiresBooleanType()
         => new(FusionExecutionResources.OperationPolicy_BooleanTypeMissing);
 
