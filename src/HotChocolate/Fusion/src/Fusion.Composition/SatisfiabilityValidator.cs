@@ -411,6 +411,32 @@ internal sealed partial class SatisfiabilityValidator
             }
         }
 
+        // A field that the provided selection set omits is resolved through a lookup in any schema that
+        // serves it, which reads the key fields that the holding schema serves from the holding call.
+        if (path?.Item.ProvidedSelectionSet is not null
+            && !path.Item.TryGetProvidedSelectionSet(field, type, path.Item.SchemaName, _schema, out _)
+            && FindLookupReadingOmittedHolderKeyField(field, type, path.Item) is var (lookup, lookupSchemaName))
+        {
+            if (errors is not null)
+            {
+                var message = string.Format(
+                    SatisfiabilityValidator_ProvidedSelectionSetOmitsLookupKey,
+                    GetLookupName(lookup),
+                    lookupSchemaName,
+                    _lookupCache.GetLookupKey(lookup).ToString(indented: false),
+                    path.Item.SchemaName,
+                    type.Name);
+
+                // Every option of the field finds the same lookup, which is explained once.
+                if (!errors.Exists(error => error.Message == message))
+                {
+                    errors.Add(new SatisfiabilityError(message));
+                }
+            }
+
+            return null;
+        }
+
         return pathItem;
     }
 
@@ -950,8 +976,8 @@ internal sealed partial class SatisfiabilityValidator
 
     /// <summary>
     /// Determines whether a new call can enter the holding schema at <paramref name="type"/> held on
-    /// <paramref name="path"/>, through a lookup of the type, or by entering the holding schema at an
-    /// object above it and re-traversing the path.
+    /// <paramref name="path"/>, through a lookup of the type, or by entering the holding schema at an object
+    /// above it and re-traversing the path. A lookup of the type whose key the holding call omits prevents it.
     /// </summary>
     private bool CanReenterHolderOnPath(
         MutableObjectTypeDefinition type,
@@ -961,20 +987,31 @@ internal sealed partial class SatisfiabilityValidator
         var item = path.Item;
         var holder = item.SchemaName;
         SatisfiabilityPathItem[] arrivalPath = [.. path.EnumerateFromLeaf()];
+        var hasLookup = false;
 
         foreach (var lookup in _lookupCache.GetPossibleFusionLookupDirectives(type, holder))
         {
-            if (_requirementsValidator.Validate(
-                _lookupCache.GetLookupKey(lookup),
-                type,
-                item,
-                arrivalPath[1..],
-                new RequirementScope(Anchor: null, arrivalPath, AllowsReRootedCalls: true),
-                excludeSchemaName: null,
-                budget).IsEmpty)
+            var key = _lookupCache.GetLookupKey(lookup);
+
+            if (!ProvidesHolderKeyFields(key, type, item))
             {
-                return true;
+                return false;
             }
+
+            hasLookup = hasLookup
+                || _requirementsValidator.Validate(
+                    key,
+                    type,
+                    item,
+                    arrivalPath[1..],
+                    new RequirementScope(Anchor: null, arrivalPath, AllowsReRootedCalls: true),
+                    excludeSchemaName: null,
+                    budget).IsEmpty;
+        }
+
+        if (hasLookup)
+        {
+            return true;
         }
 
         if (path.Parent is not { } parentPath

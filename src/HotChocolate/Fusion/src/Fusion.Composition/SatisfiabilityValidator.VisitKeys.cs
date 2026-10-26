@@ -7,6 +7,7 @@ using HotChocolate.Fusion.Satisfiability;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
+using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
 
 namespace HotChocolate.Fusion;
 
@@ -492,7 +493,7 @@ internal sealed partial class SatisfiabilityValidator
     /// Determines whether a new call can enter the holding schema at <paramref name="type"/>, held
     /// through <paramref name="item"/>, whose selection set the holding call provides: through a lookup of
     /// the type, or by entering the holding schema at the parent of <paramref name="parentKey"/> and
-    /// re-traversing the item's field.
+    /// re-traversing the item's field. A lookup of the type whose key the holding call omits prevents it.
     /// </summary>
     private bool CanReenterHolder(
         MutableObjectTypeDefinition type,
@@ -501,8 +502,29 @@ internal sealed partial class SatisfiabilityValidator
         ReachAnchor anchor)
     {
         var holder = item.SchemaName;
+        var hasLookup = false;
 
-        if (HasSatisfiableLookup(type, holder, item, excludeSchemaName: null, anchor))
+        foreach (var lookup in _lookupCache.GetPossibleFusionLookupDirectives(type, holder))
+        {
+            var key = _lookupCache.GetLookupKey(lookup);
+
+            if (!ProvidesHolderKeyFields(key, type, item))
+            {
+                return false;
+            }
+
+            hasLookup = hasLookup
+                || _requirementsValidator.Validate(
+                    key,
+                    type,
+                    item,
+                    ancestors: [],
+                    new RequirementScope(anchor, ArrivalPath: null, AllowsReRootedCalls: true),
+                    excludeSchemaName: null,
+                    _decisionBudget).IsEmpty;
+        }
+
+        if (hasLookup)
         {
             return true;
         }
@@ -519,6 +541,137 @@ internal sealed partial class SatisfiabilityValidator
         return parentKey.Leaf?.ProvidedSelectionSet is not null
             ? parentKey.SchemaName == holder && parentKey.HolderReentry
             : parentKey.SchemaName == holder || _schemaSets.Contains(parentKey.Reach, holder);
+    }
+
+    /// <summary>
+    /// Finds a lookup of <paramref name="type"/>, in a schema that serves <paramref name="field"/>, that reads
+    /// a key field the holding schema serves and the selection set that <paramref name="item"/> provides
+    /// omits, or returns <c>null</c> when there is none.
+    /// </summary>
+    private (IDirective Lookup, string SchemaName)? FindLookupReadingOmittedHolderKeyField(
+        MutableOutputFieldDefinition field,
+        MutableObjectTypeDefinition type,
+        SatisfiabilityPathItem item)
+    {
+        var fieldSchemas = GetFieldSchemas(field);
+
+        foreach (var index in GetVisitTypeInfo(type).LookupSchemas)
+        {
+            if (!_schemaSets.Contains(fieldSchemas, index))
+            {
+                continue;
+            }
+
+            var schemaName = _schemaSets.GetSchemaName(index);
+
+            foreach (var lookup in _lookupCache.GetPossibleFusionLookupDirectives(type, schemaName))
+            {
+                if (!ProvidesHolderKeyFields(_lookupCache.GetLookupKey(lookup), type, item))
+                {
+                    return (lookup, schemaName);
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Gets the name of the field of <paramref name="lookup"/>, qualified with its path when it has one.
+    /// </summary>
+    private static string GetLookupName(IDirective lookup)
+    {
+        var fieldArgument = (string)lookup.Arguments[WellKnownArgumentNames.Field].Value!;
+        var fieldName = ParseFieldDefinition(fieldArgument).Name.Value;
+
+        return lookup.Arguments[WellKnownArgumentNames.Path].Value is string path
+            ? $"{path}.{fieldName}"
+            : fieldName;
+    }
+
+    /// <summary>
+    /// Determines whether the selection set that <paramref name="item"/> provides for
+    /// <paramref name="type"/> selects every field of <paramref name="key"/> that the holding schema
+    /// serves, which a lookup then reads from the holding call.
+    /// </summary>
+    private bool ProvidesHolderKeyFields(
+        SelectionSetNode key,
+        MutableObjectTypeDefinition type,
+        SatisfiabilityPathItem item)
+        => ProvidesServedFields(key, type, item.SchemaName, item.FieldType, item.ProvidedSelectionSet);
+
+    /// <summary>
+    /// Determines whether <paramref name="providedSelectionSet"/>, selected on <paramref name="providedType"/>,
+    /// selects every field of <paramref name="selectionSet"/> on <paramref name="type"/> that
+    /// <paramref name="schemaName"/> serves. A <c>null</c> provided selection set selects no field.
+    /// </summary>
+    private bool ProvidesServedFields(
+        SelectionSetNode selectionSet,
+        MutableObjectTypeDefinition type,
+        string schemaName,
+        ITypeDefinition providedType,
+        SelectionSetNode? providedSelectionSet)
+    {
+        foreach (var selection in selectionSet.Selections)
+        {
+            switch (selection)
+            {
+                case FieldNode fieldNode when type.Fields.TryGetField(fieldNode.Name.Value, out var field):
+                    if (!field.ExistsInSchema(schemaName) || field.IsPartial(schemaName))
+                    {
+                        continue;
+                    }
+
+                    if (providedSelectionSet is null
+                        || !SatisfiabilityPathItemExtensions.TryGetFieldSelectionSet(
+                            _schema,
+                            providedSelectionSet,
+                            providedType,
+                            field,
+                            type,
+                            out var fieldProvidedSelectionSet))
+                    {
+                        return false;
+                    }
+
+                    if (fieldNode.SelectionSet is { } fieldSelectionSet
+                        && field.Type.AsTypeDefinition() is MutableComplexTypeDefinition or MutableUnionTypeDefinition)
+                    {
+                        foreach (var possibleType in _schema.GetPossibleTypes(field.Type.AsTypeDefinition()))
+                        {
+                            if (!ProvidesServedFields(
+                                fieldSelectionSet,
+                                possibleType,
+                                schemaName,
+                                field.Type.AsTypeDefinition(),
+                                fieldProvidedSelectionSet))
+                            {
+                                return false;
+                            }
+                        }
+                    }
+
+                    break;
+
+                case InlineFragmentNode inlineFragment
+                    when inlineFragment.TypeCondition is null
+                        || (_schema.Types.TryGetType(inlineFragment.TypeCondition.Name.Value, out var fragmentType)
+                            && _schema.GetPossibleTypes(fragmentType).Contains(type)):
+                    if (!ProvidesServedFields(
+                        inlineFragment.SelectionSet,
+                        type,
+                        schemaName,
+                        providedType,
+                        providedSelectionSet))
+                    {
+                        return false;
+                    }
+
+                    break;
+            }
+        }
+
+        return true;
     }
 
     private VisitTypeInfo GetVisitTypeInfo(MutableObjectTypeDefinition type)

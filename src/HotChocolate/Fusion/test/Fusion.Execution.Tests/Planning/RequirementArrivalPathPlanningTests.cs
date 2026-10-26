@@ -1299,6 +1299,486 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
         Assert.Equal("No possible plan was found.", exception.Message);
     }
 
+    [Fact]
+    public void Plan_Should_ReadOmittedLookupKeyFromMessage_When_EventStreamObjectHasOwnLookup()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            options =>
+            {
+                var ignored = options.Satisfiability.IgnoredNonAccessibleFields;
+                ignored["T3.id"] = ["A:Subscription.ev<T2> -> A:T2.f2<T3>"];
+                ignored["T3.s0"] = ["A:Subscription.ev<T2> -> A:T2.f2<T3>"];
+            },
+            """
+            # name: a
+            type Query {
+              t2ById(id: ID!): T2 @lookup @internal
+              t3ById(id: ID!): T3 @lookup @internal
+            }
+
+            type Subscription {
+              ev: T2 @eventStream(topics: ["e"], message: "{ id f2 { __typename } }")
+            }
+
+            type T2 {
+              id: ID!
+              s0: String
+              f2: T3
+            }
+
+            type T3 {
+              id: ID!
+              s0: String
+            }
+            """,
+            """
+            # name: b
+            type Query {
+              ping: String
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(schema, "subscription { ev { f2 { s0 } } }");
+
+        // assert
+        MatchInline(
+            plan,
+            """
+            operation:
+              - document: |
+                  subscription {
+                    ev {
+                      f2 {
+                        s0
+                        id @fusion__requirement
+                      }
+                    }
+                  }
+                hash: 123456789101112
+                searchSpace: 1
+                expandedNodes: 2
+            nodes:
+              - id: 1
+                type: EventStream
+                fieldName: ev
+                resultSelectionSet: >-
+                  { ev }
+                eventStream:
+                  schema: a
+                  topics: [e]
+                  message: { id f2 { __typename } }
+              - id: 2
+                type: Operation
+                schema: a
+                operation: |
+                  query Op_123456789101112_2($__fusion_1_id: ID!) {
+                    t3ById(id: $__fusion_1_id) {
+                      s0
+                    }
+                  }
+                source: $.t3ById
+                target: $.ev.f2
+                requirements:
+                  - name: __fusion_1_id
+                    selectionMap: >-
+                      id
+                dependencies:
+                  - id: 1
+            """);
+    }
+
+    [Fact]
+    public void Plan_Should_ReadOmittedLookupKeyFromMessage_When_HoldingSchemaServesLookupKey()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            options =>
+            {
+                var ignored = options.Satisfiability.IgnoredNonAccessibleFields;
+                ignored["T1.k"] = ["A:Subscription.ev<T1>"];
+                ignored["T3.s0"] = ["A:Subscription.ev<T1> -> A:T1.f1<T2> -> A:T2.f2<T3>"];
+            },
+            """
+            # name: a
+            type Query {
+              ping: String @shareable
+              t1ByK(k: String!): T1 @lookup @internal
+            }
+
+            type Subscription {
+              ev: T1 @eventStream(topics: ["e"], message: "{ id f1 { f2 { __typename } } }")
+            }
+
+            type T1 {
+              id: ID! @shareable
+              k: String! @shareable
+              f1: T2
+            }
+
+            type T2 {
+              f2: T3
+            }
+
+            type T3 {
+              s0: String
+            }
+            """,
+            """
+            # name: x
+            type Query {
+              ping: String @shareable
+              t1ById(id: ID!): T1 @lookup @internal
+            }
+
+            type T1 {
+              id: ID! @shareable
+              k: String! @shareable
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(schema, "subscription { ev { f1 { f2 { s0 } } } }");
+
+        // assert
+        MatchInline(
+            plan,
+            """
+            operation:
+              - document: |
+                  subscription {
+                    ev {
+                      f1 {
+                        f2 {
+                          s0
+                        }
+                      }
+                      k @fusion__requirement
+                    }
+                  }
+                hash: 123456789101112
+                searchSpace: 1
+                expandedNodes: 2
+            nodes:
+              - id: 1
+                type: EventStream
+                fieldName: ev
+                resultSelectionSet: >-
+                  { ev }
+                eventStream:
+                  schema: a
+                  topics: [e]
+                  message: { id f1 { f2 { __typename } } }
+              - id: 2
+                type: Operation
+                schema: a
+                operation: |
+                  query Op_123456789101112_2($__fusion_1_k: String!) {
+                    t1ByK(k: $__fusion_1_k) {
+                      f1 {
+                        f2 {
+                          s0
+                        }
+                      }
+                    }
+                  }
+                source: $.t1ByK
+                target: $.ev
+                requirements:
+                  - name: __fusion_1_k
+                    selectionMap: >-
+                      k
+                dependencies:
+                  - id: 1
+            """);
+    }
+
+    [Fact]
+    public void Plan_Should_ReadOmittedLookupKeyFromMessage_When_LookupOfOtherSchemaHasKeyServedByHoldingSchema()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            options =>
+            {
+                var ignored = options.Satisfiability.IgnoredNonAccessibleFields;
+                ignored["T1.id"] = ["A:Subscription.ev<T0> -> A:T0.f1<T1>"];
+                ignored["T1.z"] = ["A:Subscription.ev<T0> -> A:T0.f1<T1>"];
+            },
+            """
+            # name: a
+            type Query {
+              ping: String @shareable
+              t0ById(id: ID!): T0 @lookup @internal
+            }
+
+            type Subscription {
+              ev: T0 @eventStream(topics: ["e"], message: "{ id f1 { __typename } }")
+            }
+
+            type T0 {
+              id: ID!
+              f1: T1
+            }
+
+            type T1 {
+              id: ID! @shareable
+              z: String @shareable
+              f2: T0
+            }
+            """,
+            """
+            # name: x
+            type Query {
+              ping: String @shareable
+              t1ById(id: ID!): T1 @lookup @internal
+            }
+
+            type T1 {
+              id: ID! @shareable
+              z: String @shareable
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(schema, "subscription { ev { f1 { z } } }");
+
+        // assert
+        MatchInline(
+            plan,
+            """
+            operation:
+              - document: |
+                  subscription {
+                    ev {
+                      f1 {
+                        z
+                        id @fusion__requirement
+                      }
+                    }
+                  }
+                hash: 123456789101112
+                searchSpace: 2
+                expandedNodes: 3
+            nodes:
+              - id: 1
+                type: EventStream
+                fieldName: ev
+                resultSelectionSet: >-
+                  { ev }
+                eventStream:
+                  schema: a
+                  topics: [e]
+                  message: { id f1 { __typename } }
+              - id: 2
+                type: Operation
+                schema: x
+                operation: |
+                  query Op_123456789101112_2($__fusion_1_id: ID!) {
+                    t1ById(id: $__fusion_1_id) {
+                      z
+                    }
+                  }
+                source: $.t1ById
+                target: $.ev.f1
+                requirements:
+                  - name: __fusion_1_id
+                    selectionMap: >-
+                      id
+                dependencies:
+                  - id: 1
+            """);
+    }
+
+    [Fact]
+    public void Plan_Should_ReadOmittedLookupKeyFromMessage_When_LookupOfOtherSchemaSortsBeforeHoldingSchemaLookup()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            options =>
+            {
+                var ignored = options.Satisfiability.IgnoredNonAccessibleFields;
+                ignored["T.f"] = ["B:Subscription.ev<T>"];
+                ignored["T.s"] = ["B:Subscription.ev<T>"];
+            },
+            """
+            # name: a
+            type Query {
+              ping: String @shareable
+              tByS(s: String!): T @lookup @internal
+            }
+
+            type T {
+              s: String @shareable
+              f: String @shareable
+            }
+            """,
+            """
+            # name: b
+            type Query {
+              ping: String @shareable
+              tById(id: ID!): T @lookup @internal
+            }
+
+            type Subscription {
+              ev: T @eventStream(topics: ["e"], message: "{ id }")
+            }
+
+            type T {
+              id: ID! @shareable
+              s: String @shareable
+              f: String @shareable
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(schema, "subscription { ev { f } }");
+
+        // assert
+        MatchInline(
+            plan,
+            """
+            operation:
+              - document: |
+                  subscription {
+                    ev {
+                      f
+                      s @fusion__requirement
+                    }
+                  }
+                hash: 123456789101112
+                searchSpace: 2
+                expandedNodes: 3
+            nodes:
+              - id: 1
+                type: EventStream
+                fieldName: ev
+                resultSelectionSet: >-
+                  { ev }
+                eventStream:
+                  schema: b
+                  topics: [e]
+                  message: { id }
+              - id: 2
+                type: Operation
+                schema: a
+                operation: |
+                  query Op_123456789101112_2($__fusion_1_s: String!) {
+                    tByS(s: $__fusion_1_s) {
+                      f
+                    }
+                  }
+                source: $.tByS
+                target: $.ev
+                requirements:
+                  - name: __fusion_1_s
+                    selectionMap: >-
+                      s
+                dependencies:
+                  - id: 1
+            """);
+    }
+
+    [Fact]
+    public void Plan_Should_ReadOmittedLookupKeyFromMessage_When_LookupWithHeldKeySortsAfterLookupReadingOmittedKey()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            options =>
+            {
+                var ignored = options.Satisfiability.IgnoredNonAccessibleFields;
+                ignored["T.f"] = ["A:Subscription.ev<T>"];
+                ignored["T.s"] = ["A:Subscription.ev<T>"];
+            },
+            """
+            # name: a
+            type Query {
+              ping: String @shareable
+              holderById(id: ID!): T @lookup @internal
+            }
+
+            type Subscription {
+              ev: T @eventStream(topics: ["e"], message: "{ id }")
+            }
+
+            type T {
+              id: ID! @shareable
+              s: String @shareable
+            }
+            """,
+            """
+            # name: b
+            type Query {
+              ping: String @shareable
+              tByS(s: String!): T @lookup @internal
+            }
+
+            type T {
+              s: String @shareable
+              f: String @shareable
+            }
+            """,
+            """
+            # name: c
+            type Query {
+              ping: String @shareable
+              tById(id: ID!): T @lookup @internal
+            }
+
+            type T {
+              id: ID! @shareable
+              f: String @shareable
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(schema, "subscription { ev { f } }");
+
+        // assert
+        MatchInline(
+            plan,
+            """
+            operation:
+              - document: |
+                  subscription {
+                    ev {
+                      f
+                      s @fusion__requirement
+                    }
+                  }
+                hash: 123456789101112
+                searchSpace: 2
+                expandedNodes: 3
+            nodes:
+              - id: 1
+                type: EventStream
+                fieldName: ev
+                resultSelectionSet: >-
+                  { ev }
+                eventStream:
+                  schema: a
+                  topics: [e]
+                  message: { id }
+              - id: 2
+                type: Operation
+                schema: b
+                operation: |
+                  query Op_123456789101112_2($__fusion_1_s: String!) {
+                    tByS(s: $__fusion_1_s) {
+                      f
+                    }
+                  }
+                source: $.tByS
+                target: $.ev
+                requirements:
+                  - name: __fusion_1_s
+                    selectionMap: >-
+                      s
+                dependencies:
+                  - id: 1
+            """);
+    }
+
     private static FusionSchemaDefinition ComposeLookupKeySchema()
         => ComposeSchema(
             options =>
