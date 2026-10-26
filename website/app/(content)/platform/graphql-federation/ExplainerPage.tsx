@@ -6,6 +6,7 @@ import { FEDERATION_FAQ_ITEMS } from "./faq";
 import { GraphBackdrop } from "./hero/GraphBackdrop";
 import { BuildingBlocksSection } from "./sections/BuildingBlocksSection";
 import { ComparisonsSection } from "./sections/ComparisonsSection";
+import { FromApolloSection } from "./sections/FromApolloSection";
 import { FusionCta } from "./sections/FusionCta";
 import { ProblemSection } from "./sections/ProblemSection";
 import { GRADIENT, Section } from "./sections/shared";
@@ -54,6 +55,7 @@ export function ExplainerPage() {
       <WhatIsSection />
       <ProblemSection />
       <BuildingBlocksSection />
+      <FromApolloSection />
       <ComparisonsSection />
       <FusionCta />
 
