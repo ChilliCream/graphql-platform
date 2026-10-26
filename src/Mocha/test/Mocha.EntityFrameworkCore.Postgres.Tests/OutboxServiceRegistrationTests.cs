@@ -366,7 +366,7 @@ public sealed class OutboxServiceRegistrationTests
 
         // assert
         Assert.Same(contextDescriptor, services.Single(s => s.ServiceType == typeof(TestDbContext)));
-        Assert.Single(provider.GetServices<PostgresOutboxProcessor>());
+        Assert.Single(provider.GetKeyedServices<PostgresOutboxProcessor>(typeof(TestDbContext)));
         Assert.Single(provider.GetServices<IHostedService>().OfType<PostgresMessageBusOutboxWorker>());
         Assert.Equal(
             [typeof(OutboxDbTransactionInterceptor), typeof(OutboxSaveChangesInterceptor), typeof(PostgresOutboxTracker)],
@@ -556,16 +556,20 @@ public sealed class OutboxServiceRegistrationTests
     }
 
     [Fact]
-    public async Task UsePostgresOutbox_Should_RegisterProcessor_When_Called()
+    public async Task UsePostgresOutbox_Should_RegisterKeyedSingletonProcessor_When_Called()
     {
-        // Arrange
+        // arrange
         await using var provider = BuildProvider();
+        await using var scope = provider.CreateAsyncScope();
 
-        // Act
-        var processor = provider.GetService<PostgresOutboxProcessor>();
+        // act
+        var processor = provider.GetRequiredKeyedService<PostgresOutboxProcessor>(typeof(TestDbContext));
 
-        // Assert
-        Assert.NotNull(processor);
+        // assert
+        Assert.Same(
+            processor,
+            scope.ServiceProvider.GetRequiredKeyedService<PostgresOutboxProcessor>(typeof(TestDbContext)));
+        Assert.Null(provider.GetService<PostgresOutboxProcessor>());
     }
 
     [Fact]

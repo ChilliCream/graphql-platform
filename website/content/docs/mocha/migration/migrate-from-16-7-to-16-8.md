@@ -25,6 +25,20 @@ For a new message, `context.Envelope` is unset before serialization unless middl
 
 Multiple DbContext types can register their own outboxes. Direct `IMessageBus` publication now requires `UseDefaultOutbox<TContext>()` when more than one outbox context is configured; it previously used the first registration. Publication through `db.Outbox` always selects that exact context instance and does not require a default. Repeating outbox registration for the same type does not duplicate its services.
 
+## Resolve PostgreSQL outbox processors by DbContext type
+
+`PostgresOutboxProcessor` is now registered only as a keyed singleton, with the registered DbContext type as its key. Replace unkeyed calls such as `GetRequiredService<PostgresOutboxProcessor>()` with:
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using Mocha.Outbox;
+
+var processor = serviceProvider.GetRequiredKeyedService<PostgresOutboxProcessor>(
+    typeof(AppDbContext));
+```
+
+The host continues to start an outbox worker for each registered context automatically.
+
 # Publish with SaveChanges
 
 Version 16.8 adds `DbContext.Outbox.PublishAsync` for staging messages until that exact context saves:

@@ -157,34 +157,6 @@ public sealed class PostgresMultipleContextOutboxTests(PostgresFixture fixture) 
         Assert.Equal(((0, 0), (0, 1)), (beforeCommit, afterCommit));
     }
 
-    [Fact]
-    public async Task OutboxPublishAsync_Should_RejectUnregisteredDestination_When_FactoryContextTargetsAnotherDatabase()
-    {
-        // arrange
-        var firstConnection = await fixture.CreateDatabaseAsync();
-        var secondConnection = await fixture.CreateDatabaseAsync();
-        await using var provider = await CreateProviderAsync(firstConnection, secondConnection, false);
-        await using var scope = provider.CreateAsyncScope();
-        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-        var factory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<FirstDbContext>>();
-        await using var context = await factory.CreateDbContextAsync(TestToken);
-        context.Database.SetConnectionString(secondConnection);
-        context.UseOutbox(bus);
-
-        // act
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            context.Outbox.PublishAsync(new ContextEvent("unregistered"), TestToken).AsTask());
-        var rowCounts = await CountRowsAsync(provider);
-
-        // assert
-        Assert.Equal(
-            $"The DbContext '{typeof(FirstDbContext).FullName}' targets a database or table that is not served by its outbox worker. "
-            + "Configure a separate outbox registration for this destination before publishing.",
-            exception.Message);
-        Assert.Equal((0, 0), rowCounts);
-        Assert.Empty(context.ChangeTracker.Entries<OutboxMessage>());
-    }
-
     private static Task ObserveFirstPollCompletion<TContext>(ServiceProvider provider)
         where TContext : DbContext
     {

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
 using Mocha.Outbox;
 using Mocha.Transport.InMemory;
@@ -28,7 +29,7 @@ public sealed class PostgresOutboxDataSourceTests(PasswordPostgresResource postg
         await using var provider = await CreateProviderAsync(
             connectionString, configuration == ConnectionConfiguration.ConnectionString ? null : dataSource);
         var delivered = provider.GetRequiredService<TaskCompletionSource<string>>();
-        var worker = provider.GetRequiredService<PostgresMessageBusOutboxWorker>();
+        var worker = provider.GetServices<IHostedService>().OfType<PostgresMessageBusOutboxWorker>().Single();
 
         // act
         int committedCount;
@@ -88,7 +89,7 @@ public sealed class PostgresOutboxDataSourceTests(PasswordPostgresResource postg
         }.ConnectionString;
         await using var provider = await CreateProviderAsync(connectionString, dataSource: null);
         var delivered = provider.GetRequiredService<TaskCompletionSource<string>>();
-        var worker = provider.GetRequiredService<PostgresMessageBusOutboxWorker>();
+        var worker = provider.GetServices<IHostedService>().OfType<PostgresMessageBusOutboxWorker>().Single();
         await using (var scope = provider.CreateAsyncScope())
         {
             await scope.ServiceProvider.GetRequiredService<IMessageBus>()

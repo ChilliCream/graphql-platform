@@ -145,7 +145,7 @@ public sealed class PostgresOutboxSchedulingTests(PostgresFixture fixture) : ICl
             "ALTER TABLE mocha_message ADD CONSTRAINT reject_handoff CHECK (false) NOT VALID");
 
         // act
-        var processor = provider.GetRequiredService<PostgresOutboxProcessor>();
+        var processor = provider.GetRequiredKeyedService<PostgresOutboxProcessor>(typeof(TestDbContext));
         var exception = await Assert.ThrowsAsync<PostgresException>(() => processor.ProcessAsync(TestToken));
         var afterFailure = await ReadCountsAsync(connectionString, Scheduler.Postgres);
         using var retained = await db.Set<OutboxMessage>().AsNoTracking().SingleAsync(TestToken);

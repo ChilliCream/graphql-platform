@@ -50,7 +50,8 @@ public static class OutboxServiceCollectionExtensions
 
         if (builder.Services.Any(descriptor =>
             descriptor.ServiceType == typeof(PostgresOutboxRegistration)
-            && ((PostgresOutboxRegistration)descriptor.ImplementationInstance!).ContextType == builder.ContextType))
+            && descriptor.ImplementationInstance is PostgresOutboxRegistration registration
+            && registration.ContextType == builder.ContextType))
         {
             return builder;
         }
@@ -97,13 +98,8 @@ public static class OutboxServiceCollectionExtensions
                 options);
         });
 
-        builder.Services.AddSingleton(sp => sp.GetRequiredKeyedService<PostgresOutboxProcessor>(contextType));
-        builder.Services.AddKeyedSingleton<PostgresMessageBusOutboxWorker>(contextType, (sp, _) =>
-            new PostgresMessageBusOutboxWorker(sp.GetRequiredKeyedService<PostgresOutboxProcessor>(contextType)));
-        builder.Services.AddSingleton(sp => sp.GetRequiredKeyedService<PostgresMessageBusOutboxWorker>(contextType));
-
         builder.Services.AddSingleton<IHostedService>(sp =>
-            sp.GetRequiredKeyedService<PostgresMessageBusOutboxWorker>(contextType));
+            new PostgresMessageBusOutboxWorker(sp.GetRequiredKeyedService<PostgresOutboxProcessor>(contextType)));
 
         builder.Services.TryAddScoped<IMessageOutbox>(CreateDefaultOutbox);
 
