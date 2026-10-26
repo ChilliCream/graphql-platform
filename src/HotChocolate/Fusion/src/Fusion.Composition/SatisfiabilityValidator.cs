@@ -18,7 +18,10 @@ namespace HotChocolate.Fusion;
 
 internal sealed partial class SatisfiabilityValidator
 {
-    private const int MaxTransitionExplanationEntries = 1000;
+    /// <summary>
+    /// The number of entries after which a transition or requirement explanation is cut.
+    /// </summary>
+    private const int MaxExplanationEntries = 1000;
 
     private readonly SatisfiabilityOptions _options;
     private readonly ApolloFederationCompatibilityOptions _apolloFederationCompatibility;
@@ -34,12 +37,10 @@ internal sealed partial class SatisfiabilityValidator
         _dispatchedNodeFields = [];
     private readonly HashSet<(MutableObjectTypeDefinition, MutableOutputFieldDefinition, string?)>
         _reportedFields = [];
-    private readonly SatisfiabilityExplanationBudget _requirementExplanationBudget =
-        SatisfiabilityExplanationBudget.Unlimited();
     private readonly SatisfiabilityExplanationBudget _decisionBudget =
         SatisfiabilityExplanationBudget.DecisionOnly(maxEntries: null);
     private readonly Dictionary<string, ImmutableArray<SatisfiabilityError>> _transitionExplanations = [];
-    private long _transitionExplanationEntryCount;
+    private long _explanationEntryCount;
 
     public SatisfiabilityValidator(
         MutableSchemaDefinition schema,
@@ -70,8 +71,7 @@ internal sealed partial class SatisfiabilityValidator
     /// Gets the number of explanation entries that the source schema transition and requirement
     /// explanations created.
     /// </summary>
-    internal long ExplanationEntryCount
-        => _requirementExplanationBudget.EntryCount + _transitionExplanationEntryCount;
+    internal long ExplanationEntryCount => _explanationEntryCount;
 
     public CompositionResult Validate()
     {
@@ -377,35 +377,10 @@ internal sealed partial class SatisfiabilityValidator
             // the holding item.
             IReadOnlyList<SatisfiabilityPathItem> ancestors =
                 path?.Parent is { } parentPath ? [.. parentPath.EnumerateFromLeaf()] : [];
-            var budget = errors is null ? _decisionBudget : _requirementExplanationBudget;
 
-            var requirementErrors =
-                _requirementsValidator.Validate(
-                    requirements,
-                    type,
-                    path?.Item,
-                    ancestors,
-                    excludeSchemaName: schemaName,
-                    budget,
-                    allowNestedFieldsFromExcludedSchema: true);
-
-            // The requirement data is fetched from other schemas, so the schema must be able
-            // to resolve the field afterwards, either without its own data or by re-entering
-            // the type through a lookup.
-            if (requirementErrors.IsEmpty)
-            {
-                requirementErrors =
-                    _requirementsValidator.ValidateReentry(
-                        requirements,
-                        type,
-                        field,
-                        schemaName,
-                        path?.Item,
-                        ancestors,
-                        SatisfiabilityValidator_NoLookupForRequiringField,
-                        SatisfiabilityValidator_UnableToSatisfyRequirementForLookup,
-                        budget);
-            }
+            var requirementErrors = errors is null
+                ? ValidateRequirements(requirements, type, field, schemaName, path?.Item, ancestors, _decisionBudget)
+                : GetRequirementExplanation(requirements, type, field, schemaName, path?.Item, ancestors);
 
             if (requirementErrors.Length != 0)
             {
@@ -846,13 +821,81 @@ internal sealed partial class SatisfiabilityValidator
     {
         if (!_transitionExplanations.TryGetValue(schemaName, out var explanation))
         {
-            var budget = SatisfiabilityExplanationBudget.Limited(MaxTransitionExplanationEntries);
+            // The reach decides the transition, so the budget stops the search.
+            var budget = SatisfiabilityExplanationBudget.Limited(MaxExplanationEntries, stopsSearch: true);
             explanation = ValidateSourceSchemaTransition(type, path, schemaName, budget);
-            _transitionExplanationEntryCount += budget.EntryCount;
+            _explanationEntryCount += budget.EntryCount;
             _transitionExplanations.Add(schemaName, explanation);
         }
 
         return explanation;
+    }
+
+    /// <summary>
+    /// Gets the explanation of why <paramref name="schemaName"/> cannot resolve <paramref name="field"/>
+    /// with its <paramref name="requirements"/>, which is empty when it can. Past its entry budget, the
+    /// explanation only keeps the entries that hold entries created before.
+    /// </summary>
+    private ImmutableArray<SatisfiabilityError> GetRequirementExplanation(
+        SelectionSetNode requirements,
+        MutableObjectTypeDefinition type,
+        MutableOutputFieldDefinition field,
+        string schemaName,
+        SatisfiabilityPathItem? parentPathItem,
+        IReadOnlyList<SatisfiabilityPathItem> ancestors)
+    {
+        // The search decides whether the requirement holds, so the budget lets it finish.
+        var budget = SatisfiabilityExplanationBudget.Limited(MaxExplanationEntries, stopsSearch: false);
+        var explanation =
+            ValidateRequirements(requirements, type, field, schemaName, parentPathItem, ancestors, budget);
+        _explanationEntryCount += budget.EntryCount;
+
+        return explanation;
+    }
+
+    /// <summary>
+    /// Validates that <paramref name="schemaName"/> can resolve <paramref name="field"/> of
+    /// <paramref name="type"/>, held by <paramref name="parentPathItem"/>, with its
+    /// <paramref name="requirements"/>, and returns the errors, which are empty when it can.
+    /// </summary>
+    private ImmutableArray<SatisfiabilityError> ValidateRequirements(
+        SelectionSetNode requirements,
+        MutableObjectTypeDefinition type,
+        MutableOutputFieldDefinition field,
+        string schemaName,
+        SatisfiabilityPathItem? parentPathItem,
+        IReadOnlyList<SatisfiabilityPathItem> ancestors,
+        SatisfiabilityExplanationBudget budget)
+    {
+        var errors =
+            _requirementsValidator.Validate(
+                requirements,
+                type,
+                parentPathItem,
+                ancestors,
+                excludeSchemaName: schemaName,
+                budget,
+                allowNestedFieldsFromExcludedSchema: true);
+
+        // The requirement data is fetched from other schemas, so the schema must be able
+        // to resolve the field afterwards, either without its own data or by re-entering
+        // the type through a lookup.
+        if (errors.IsEmpty)
+        {
+            errors =
+                _requirementsValidator.ValidateReentry(
+                    requirements,
+                    type,
+                    field,
+                    schemaName,
+                    parentPathItem,
+                    ancestors,
+                    SatisfiabilityValidator_NoLookupForRequiringField,
+                    SatisfiabilityValidator_UnableToSatisfyRequirementForLookup,
+                    budget);
+        }
+
+        return errors;
     }
 
     /// <summary>
@@ -866,7 +909,7 @@ internal sealed partial class SatisfiabilityValidator
         PathNode? path,
         string schemaName)
     {
-        var budget = SatisfiabilityExplanationBudget.DecisionOnly(MaxTransitionExplanationEntries);
+        var budget = SatisfiabilityExplanationBudget.DecisionOnly(MaxExplanationEntries);
         var errors = ValidateSourceSchemaTransition(type, path, schemaName, budget);
 
         return budget.IsExhausted || canTransition == errors.IsEmpty;
