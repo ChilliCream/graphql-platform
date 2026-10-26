@@ -20,6 +20,7 @@ internal sealed partial class SatisfiabilityValidator
         _lookupEntries = [];
     private readonly List<int> _schemaIndexes = [];
     private readonly List<int> _compositeFieldSchemaIndexes = [];
+    private readonly HashSet<string> _lookupSchemaNames = new(StringComparer.Ordinal);
 
     /// <summary>
     /// Gets the names of the source schemas that the fusion directives on the types of
@@ -342,13 +343,23 @@ internal sealed partial class SatisfiabilityValidator
         var members = _schemaSets.GetMembers(schemas);
         _schemaIndexes.Clear();
 
-        for (var word = 0; word < members.Length; word++)
+        // Only the schemas named by the type's lookups can have a lookup for the type.
+        _lookupSchemaNames.Clear();
+
+        foreach (var lookup in _lookupCache.GetPossibleFusionLookupDirectives(type))
+        {
+            _lookupSchemaNames.Add((string)lookup.Arguments[WellKnownArgumentNames.Schema].Value!);
+        }
+
+        for (var word = 0; word < members.Length && _lookupSchemaNames.Count > 0; word++)
         {
             for (var bits = members[word]; bits != 0; bits &= bits - 1)
             {
                 var index = (word << 6) + BitOperations.TrailingZeroCount(bits);
+                var schemaName = _schemaSets.GetSchemaName(index);
 
-                if (_lookupCache.GetPossibleFusionLookupDirectives(type, _schemaSets.GetSchemaName(index)).Count > 0)
+                if (_lookupSchemaNames.Contains(schemaName)
+                    && _lookupCache.GetPossibleFusionLookupDirectives(type, schemaName).Count > 0)
                 {
                     _schemaIndexes.Add(index);
                 }
