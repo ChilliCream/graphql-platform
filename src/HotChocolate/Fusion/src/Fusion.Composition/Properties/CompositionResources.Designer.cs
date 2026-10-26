@@ -1925,6 +1925,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The lookup &apos;{0}&apos; in schema &apos;{1}&apos; reads its key &apos;{2}&apos; from the selection set that schema &apos;{3}&apos; provides for type &apos;{4}&apos;, which omits it..
+        /// </summary>
+        internal static string SatisfiabilityValidator_ProvidedSelectionSetOmitsLookupKey {
+            get {
+                return ResourceManager.GetString("SatisfiabilityValidator_ProvidedSelectionSetOmitsLookupKey", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to No lookups found for type &apos;{0}&apos; in schema &apos;{1}&apos;..
         /// </summary>
         internal static string SatisfiabilityValidator_NoLookupsFoundForType {

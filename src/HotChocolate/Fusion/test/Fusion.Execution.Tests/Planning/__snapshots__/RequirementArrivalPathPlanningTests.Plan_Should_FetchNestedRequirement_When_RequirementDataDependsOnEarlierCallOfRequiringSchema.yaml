@@ -1,0 +1,123 @@
+operation:
+  - document: |
+      {
+        root {
+          a {
+            b {
+              l {
+                f
+                m @fusion__requirement {
+                  x @fusion__requirement
+                  id @fusion__requirement
+                }
+              }
+              id @fusion__requirement
+            }
+            id @fusion__requirement
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 4
+    expandedNodes: 17
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        root {
+          a {
+            id
+          }
+        }
+      }
+  - id: 3
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_3($__fusion_2_id: ID!, $__fusion_3_v: String) {
+        h2ById(id: $__fusion_2_id) {
+          l {
+            f(v: $__fusion_3_v)
+          }
+        }
+      }
+    source: $.h2ById
+    target: $.root.a.b
+    requirements:
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+      - name: __fusion_3_v
+        selectionMap: >-
+          m.x
+    dependencies:
+      - id: 4
+      - id: 6
+  - id: 4
+    type: Operation
+    schema: d
+    operation: |
+      query Op_123456789101112_4($__fusion_4_id: ID!) {
+        mById(id: $__fusion_4_id) {
+          x
+        }
+      }
+    source: $.mById
+    target: $.root.a.b.l.m
+    requirements:
+      - name: __fusion_4_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 6
+  - id: 2
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_2($__fusion_1_id: ID!) {
+        h1ById(id: $__fusion_1_id) {
+          b {
+            l {
+              m {
+                __typename
+              }
+            }
+            id
+          }
+        }
+      }
+    source: $.h1ById
+    target: $.root.a
+    batchingGroupId: 6
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 5
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_5($__fusion_5_id: ID!) {
+        h1ById(id: $__fusion_5_id) {
+          b {
+            l {
+              m {
+                id
+              }
+            }
+          }
+        }
+      }
+    source: $.h1ById
+    target: $.root.a
+    batchingGroupId: 6
+    requirements:
+      - name: __fusion_5_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1

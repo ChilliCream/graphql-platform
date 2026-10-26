@@ -1,0 +1,110 @@
+operation:
+  - document: |
+      {
+        root {
+          b {
+            l {
+              f
+              x @fusion__requirement
+            }
+            id @fusion__requirement
+            z @fusion__requirement
+          }
+          id @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 3
+    expandedNodes: 11
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        root {
+          id
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_2($__fusion_1_id: ID!) {
+        h0ById(id: $__fusion_1_id) {
+          b {
+            id
+          }
+        }
+      }
+    source: $.h0ById
+    target: $.root
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 3
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_3($__fusion_2_z: String, $__fusion_3_id: ID!) {
+        h1ById(id: $__fusion_3_id) {
+          l(z: $__fusion_2_z) {
+            x
+          }
+        }
+      }
+    source: $.h1ById
+    target: $.root.b
+    requirements:
+      - name: __fusion_2_z
+        selectionMap: >-
+          z
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 2
+      - id: 5
+  - id: 4
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_4($__fusion_4_id: ID!, $__fusion_5_v: String) {
+        h1ById(id: $__fusion_4_id) {
+          l {
+            f(v: $__fusion_5_v)
+          }
+        }
+      }
+    source: $.h1ById
+    target: $.root.b
+    requirements:
+      - name: __fusion_4_id
+        selectionMap: >-
+          id
+      - name: __fusion_5_v
+        selectionMap: >-
+          x
+    dependencies:
+      - id: 2
+      - id: 3
+  - id: 5
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_5($__fusion_6_id: ID!) {
+        h1ById(id: $__fusion_6_id) {
+          z
+        }
+      }
+    source: $.h1ById
+    target: $.root.b
+    requirements:
+      - name: __fusion_6_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 2

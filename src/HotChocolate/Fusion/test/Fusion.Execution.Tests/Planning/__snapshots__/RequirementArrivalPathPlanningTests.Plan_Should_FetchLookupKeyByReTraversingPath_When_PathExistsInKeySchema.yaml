@@ -1,0 +1,66 @@
+operation:
+  - document: |
+      {
+        good {
+          p {
+            t {
+              f
+              q @fusion__requirement
+            }
+            k @fusion__requirement
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 2
+    expandedNodes: 9
+nodes:
+  - id: 1
+    type: Operation
+    schema: d
+    operation: |
+      query Op_123456789101112_1 {
+        good {
+          p {
+            k
+          }
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: c
+    operation: |
+      query Op_123456789101112_2($__fusion_1_k: String!) {
+        pByK(k: $__fusion_1_k) {
+          t {
+            q
+          }
+        }
+      }
+    source: $.pByK
+    target: $.good.p
+    requirements:
+      - name: __fusion_1_k
+        selectionMap: >-
+          k
+    dependencies:
+      - id: 1
+  - id: 3
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_3($__fusion_2_q: String) {
+        good {
+          p {
+            t {
+              f(q: $__fusion_2_q)
+            }
+          }
+        }
+      }
+    requirements:
+      - name: __fusion_2_q
+        selectionMap: >-
+          q
+    dependencies:
+      - id: 2
