@@ -29,6 +29,13 @@ public interface INatsReceiveEndpointDescriptor
     /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.MaxConcurrency" />
     new INatsReceiveEndpointDescriptor MaxConcurrency(int maxConcurrency);
 
+    /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.Temporary" />
+    /// <remarks>
+    /// The durable consumer is given an inactive threshold, so the server deletes it once no
+    /// instance has read from it for <see cref="NatsConsumer.DefaultTemporaryInactiveThreshold"/>.
+    /// </remarks>
+    new INatsReceiveEndpointDescriptor Temporary();
+
     /// <summary>
     /// Reads from a specific stream instead of resolving the owning stream at start-up.
     /// </summary>

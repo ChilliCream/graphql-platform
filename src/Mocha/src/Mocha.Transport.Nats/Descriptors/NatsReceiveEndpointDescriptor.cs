@@ -70,6 +70,12 @@ internal sealed class NatsReceiveEndpointDescriptor
         return this;
     }
 
+    public new INatsReceiveEndpointDescriptor Temporary()
+    {
+        base.Temporary();
+        return this;
+    }
+
     public new INatsReceiveEndpointDescriptor UseReceive(
         ReceiveMiddlewareConfiguration configuration,
         string? before = null,

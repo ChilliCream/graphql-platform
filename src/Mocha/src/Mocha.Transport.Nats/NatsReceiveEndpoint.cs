@@ -114,9 +114,27 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
             streamName,
             consumer.Name,
             cancellationToken);
+        var restarting = false;
 
         _consumeLoop = RunAsync(
-            token => ConsumeAsync(jsConsumer, token, _aborting.Token),
+            async token =>
+            {
+                if (restarting)
+                {
+                    // A temporary consumer may have been deleted by the server while nothing read
+                    // it, so it is recreated rather than looked up.
+                    if (consumer.IsTemporary)
+                    {
+                        await consumer.ProvisionAsync(transport.JetStream, token);
+                    }
+
+                    jsConsumer = await transport.JetStream.GetConsumerAsync(streamName, consumer.Name, token);
+                }
+
+                restarting = true;
+
+                await ConsumeAsync(jsConsumer, token, _aborting.Token);
+            },
             _stopping.Token);
     }
 

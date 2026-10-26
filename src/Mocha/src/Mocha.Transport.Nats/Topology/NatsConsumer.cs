@@ -40,6 +40,22 @@ public sealed class NatsConsumer : TopologyResource<NatsConsumerConfiguration>, 
     public const ConsumerConfigDeliverPolicy DefaultDeliverPolicy = ConsumerConfigDeliverPolicy.New;
 
     /// <summary>
+    /// How long a temporary endpoint's consumer may go unread before the server deletes it.
+    /// </summary>
+    public static readonly TimeSpan DefaultTemporaryInactiveThreshold = TimeSpan.FromSeconds(10);
+
+    /// <summary>
+    /// Gets how long this consumer may go unread before the server deletes it, or
+    /// <see langword="null"/> when it persists.
+    /// </summary>
+    public TimeSpan? InactiveThreshold { get; private set; }
+
+    /// <summary>
+    /// Gets a value indicating whether the server deletes this consumer once nothing reads it.
+    /// </summary>
+    public bool IsTemporary => InactiveThreshold is not null;
+
+    /// <summary>
     /// Gets the maximum number of unacknowledged messages in flight across every instance reading
     /// this consumer.
     /// </summary>
@@ -101,6 +117,12 @@ public sealed class NatsConsumer : TopologyResource<NatsConsumerConfiguration>, 
         if (configuration.Backoff is { Count: > 0 } backoff)
         {
             _config.Backoff = [.. backoff];
+        }
+
+        if (configuration.InactiveThreshold is { } inactiveThreshold)
+        {
+            InactiveThreshold = inactiveThreshold;
+            _config.InactiveThreshold = inactiveThreshold;
         }
     }
 
