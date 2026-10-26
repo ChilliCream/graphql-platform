@@ -1167,4 +1167,37 @@ Type: `{0}`</value>
   <data name="ErrorHelper_UndefinedInputFieldDefaultEnumValue" xml:space="preserve">
     <value>The default value '{0}' of field '{1}' is not defined in the enum '{2}'.</value>
   </data>
+  <data name="ErrorHelper_ExecutionGroup_NoEntries" xml:space="preserve">
+    <value>The execution group of field `{0}` is invalid: it must declare at least one entry.</value>
+  </data>
+  <data name="ErrorHelper_ExecutionGroup_DuplicateEntry" xml:space="preserve">
+    <value>The execution group of field `{0}` is invalid: the entry `{1}` is declared more than once.</value>
+  </data>
+  <data name="ErrorHelper_ExecutionGroup_NestedEntry" xml:space="preserve">
+    <value>The execution group of field `{0}` is invalid: the entry `{1}` is nested below the entry `{2}`.</value>
+  </data>
+  <data name="ErrorHelper_ExecutionGroup_InvalidFieldName" xml:space="preserve">
+    <value>The execution group of field `{0}` is invalid: the entry `{1}` contains the invalid field name `{2}`.</value>
+  </data>
+  <data name="ErrorHelper_ExecutionGroup_RootTypeNotComposite" xml:space="preserve">
+    <value>The execution group of field `{0}` is invalid: the entry `{1}` cannot be resolved because the type of the group root must be an object type or interface type.</value>
+  </data>
+  <data name="ErrorHelper_ExecutionGroup_FieldNotFound" xml:space="preserve">
+    <value>The execution group of field `{0}` is invalid: the entry `{1}` references the field `{3}` that does not exist on type `{2}`.</value>
+  </data>
+  <data name="ErrorHelper_ExecutionGroup_BatchResolverField" xml:space="preserve">
+    <value>The execution group of field `{0}` is invalid: the entry `{1}` references the field `{2}.{3}` that uses a batch resolver.</value>
+  </data>
+  <data name="ErrorHelper_ExecutionGroup_NotParallelExecutableField" xml:space="preserve">
+    <value>The execution group of field `{0}` is invalid: the entry `{1}` references the field `{2}.{3}` that is not parallel executable.</value>
+  </data>
+  <data name="ErrorHelper_ExecutionGroup_ListField" xml:space="preserve">
+    <value>The execution group of field `{0}` is invalid: the entry `{1}` passes through the list field `{2}.{3}`.</value>
+  </data>
+  <data name="ErrorHelper_ExecutionGroup_GroupRootField" xml:space="preserve">
+    <value>The execution group of field `{0}` is invalid: the entry `{1}` passes through the field `{2}.{3}` that is an execution group root.</value>
+  </data>
+  <data name="ErrorHelper_ExecutionGroup_NonObjectField" xml:space="preserve">
+    <value>The execution group of field `{0}` is invalid: the entry `{1}` passes through the field `{2}.{3}` that is not of an object type.</value>
+  </data>
 </root>

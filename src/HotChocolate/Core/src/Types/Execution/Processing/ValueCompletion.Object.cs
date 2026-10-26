@@ -29,6 +29,36 @@ internal static partial class ValueCompletion
                 runtimeValue = converted;
             }
 
+            if (selection.IsExecutionGroupRoot)
+            {
+                var plan = selectionSet.ExecutionGroupPlan!;
+                var scope = operationContext.Scheduler.OpenExecutionGroupScope(
+                    plan,
+                    operationContext.IncludeConditionFlags);
+
+                try
+                {
+                    EnqueueOrInlineResolverTasks(
+                        new ValueCompletionContext(
+                            operationContext,
+                            context.ResolverContext,
+                            context.Tasks,
+                            context.ParentBranchId,
+                            scope),
+                        selectionSet,
+                        objectType,
+                        resultValue,
+                        runtimeValue);
+                }
+                catch
+                {
+                    scope?.Abandon();
+                    throw;
+                }
+
+                return;
+            }
+
             EnqueueOrInlineResolverTasks(
                 context,
                 selectionSet,

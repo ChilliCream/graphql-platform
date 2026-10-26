@@ -90,6 +90,7 @@ internal sealed partial class OperationContext
         Path selectionPath,
         object? parent,
         IImmutableDictionary<string, object?> scopedContextData,
+        ExecutionGroupScope? groupScope,
         int executionBranchId,
         DeferUsage deferUsage)
     {
@@ -101,6 +102,7 @@ internal sealed partial class OperationContext
             this,
             parent,
             scopedContextData,
+            groupScope,
             selectionSet,
             selectionPath,
             executionBranchId,

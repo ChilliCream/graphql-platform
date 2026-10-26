@@ -458,5 +458,23 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ErrorHelper_IncrementalDeliveryNotAcceptable", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The field `{0}` uses a batch resolver and cannot take part in an execution group..
+        /// </summary>
+        internal static string ThrowHelper_ExecutionGroup_BatchSelectionNotSupported {
+            get {
+                return ResourceManager.GetString("ThrowHelper_ExecutionGroup_BatchSelectionNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The field `{0}` is not parallel executable and cannot take part in an execution group..
+        /// </summary>
+        internal static string ThrowHelper_ExecutionGroup_SerialSelectionNotSupported {
+            get {
+                return ResourceManager.GetString("ThrowHelper_ExecutionGroup_SerialSelectionNotSupported", resourceCulture);
+            }
+        }
     }
 }

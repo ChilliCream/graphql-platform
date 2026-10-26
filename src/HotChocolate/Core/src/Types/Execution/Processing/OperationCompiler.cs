@@ -176,7 +176,7 @@ public sealed partial class OperationCompiler
                 compilationContext.ElementsById,
                 hasIncrementalParts: hasIncrementalParts);
 
-            selectionSet.Complete(operation);
+            selectionSet.Complete(operation, executionGroup: null);
 
             if (_optimizers.OperationOptimizers.Length > 0)
             {
@@ -257,7 +257,12 @@ public sealed partial class OperationCompiler
                 ref lastId);
             compilationContext.Register(selectionSet, selectionSet.Id);
             elementsById = compilationContext.ElementsById;
-            selectionSet.Complete(operation);
+
+            // the plan of a group root compiles nested selection sets, so this selection set has to be registered
+            // before it is completed.
+            selectionSet.Complete(
+                operation,
+                selection.IsExecutionGroupRoot ? selection.Field.ExecutionGroup : null);
 
             if ((selection.Field.Flags & CoreFieldFlags.HasSelectionSetHandler) != 0
                 && selection.Field.Features.TryGet<ISelectionSetHandler>(out var handler))

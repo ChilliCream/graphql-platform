@@ -89,6 +89,11 @@ public sealed class Selection : ISelection, IFeatureProvider
             _flags |= Flags.List;
         }
 
+        if (field.IsExecutionGroupRoot)
+        {
+            _flags |= Flags.ExecutionGroupRoot;
+        }
+
         _utf8ResponseName = Utf8StringCache.GetUtf8String(responseName);
     }
 
@@ -186,6 +191,11 @@ public sealed class Selection : ISelection, IFeatureProvider
 
     /// <inheritdoc />
     public bool IsLeaf => (_flags & Flags.Leaf) == Flags.Leaf;
+
+    /// <summary>
+    /// Gets a value indicating whether the field of this selection is the root of an execution group.
+    /// </summary>
+    internal bool IsExecutionGroupRoot => (_flags & Flags.ExecutionGroupRoot) == Flags.ExecutionGroupRoot;
 
     /// <summary>
     /// Gets a value indicating whether this selection has child selections.
@@ -996,7 +1006,9 @@ nextItem:
             _deferUsage,
             _deferMask,
             _wideDeferMask,
-            _flags,
+            field.IsExecutionGroupRoot
+                ? _flags | Flags.ExecutionGroupRoot
+                : _flags & ~Flags.ExecutionGroupRoot,
             Arguments,
             Strategy,
             ResolverPipeline,
@@ -1133,6 +1145,7 @@ nextItem:
         Leaf = 16,
         ProjectionRequirement = 32,
         RequiresWideIncludeFlags = 64,
-        RequiresWideDeferFlags = 128
+        RequiresWideDeferFlags = 128,
+        ExecutionGroupRoot = 256
     }
 }

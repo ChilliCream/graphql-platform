@@ -19,7 +19,13 @@ internal sealed partial class ResolverTask
             // we will only try to complete the resolver value if there are no known errors.
             if (success)
             {
-                var completionContext = new ValueCompletionContext(_operationContext, _context, _taskBuffer, BranchId);
+                var completionContext =
+                    new ValueCompletionContext(
+                        _operationContext,
+                        _context,
+                        _taskBuffer,
+                        BranchId,
+                        _groupSlot < 0 ? _groupScope : null);
                 Complete(completionContext, _selection, resultValue, result);
             }
         }

@@ -29,6 +29,11 @@ internal sealed partial class ResolverTask
                             CollectionsMarshal.AsSpan(_taskBuffer));
                         break;
                 }
+
+                if (_groupScope is not null)
+                {
+                    _childTasksRegistered = _taskBuffer.Count > 0;
+                }
             }
 
             Status = _completionStatus;
@@ -58,6 +63,11 @@ internal sealed partial class ResolverTask
             }
             finally
             {
+                if (_groupScope is not null)
+                {
+                    EndGroupTurn();
+                }
+
                 _operationContext.Scheduler.Complete(this);
                 objectPool.Return(this);
             }
@@ -123,6 +133,23 @@ internal sealed partial class ResolverTask
         }
 
         return false;
+    }
+
+    private void EndGroupTurn()
+    {
+        var scope = _groupScope!;
+        var childTasksRegistered = _childTasksRegistered;
+        _childTasksRegistered = false;
+
+        if (_groupSlot >= 0)
+        {
+            scope.Release(_groupSlot);
+        }
+        else if (!childTasksRegistered)
+        {
+            // without registered child tasks nothing below this selection can ever start, so its members are skipped.
+            scope.ReleaseSlotsBelow(_selection);
+        }
     }
 
     private async ValueTask ExecuteResolverPipelineAsync(CancellationToken cancellationToken)

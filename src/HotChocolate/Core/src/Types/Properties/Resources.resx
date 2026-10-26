@@ -324,4 +324,10 @@
   <data name="ErrorHelper_IncrementalDeliveryNotAcceptable" xml:space="preserve">
     <value>The client does not accept a response content type that supports incremental delivery.</value>
   </data>
+  <data name="ThrowHelper_ExecutionGroup_BatchSelectionNotSupported" xml:space="preserve">
+    <value>The field `{0}` uses a batch resolver and cannot take part in an execution group.</value>
+  </data>
+  <data name="ThrowHelper_ExecutionGroup_SerialSelectionNotSupported" xml:space="preserve">
+    <value>The field `{0}` is not parallel executable and cannot take part in an execution group.</value>
+  </data>
 </root>

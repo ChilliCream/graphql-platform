@@ -1,3 +1,4 @@
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using static HotChocolate.Properties.Resources;
@@ -14,6 +15,12 @@ internal static class ThrowHelper
 
     public static InvalidOperationException Selection_NotFullyInitialized()
         => new InvalidOperationException("The selection is not fully initialized.");
+
+    public static InvalidOperationException ExecutionGroup_BatchSelectionNotSupported(Selection selection)
+        => new(string.Format(ThrowHelper_ExecutionGroup_BatchSelectionNotSupported, selection.Field.Coordinate));
+
+    public static InvalidOperationException ExecutionGroup_SerialSelectionNotSupported(Selection selection)
+        => new(string.Format(ThrowHelper_ExecutionGroup_SerialSelectionNotSupported, selection.Field.Coordinate));
 
     public static GraphQLException VariableIsNotAnInputType(
         VariableDefinitionNode variableDefinition)

@@ -37,6 +37,18 @@ internal sealed partial class WorkScheduler
     {
         AssertNotPooled();
 
+        if (_hasExecutionGroups && task is Tasks.ResolverTask { IsGroupMember: true } member)
+        {
+            RegisterMember(member);
+            return;
+        }
+
+        RegisterCore(task);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void RegisterCore(IExecutionTask task)
+    {
         var work = task.IsSerial ? _serial : _work;
         task.IsRegistered = true;
         task.Id = Interlocked.Increment(ref _nextId);
@@ -61,6 +73,12 @@ internal sealed partial class WorkScheduler
     public void Register(ReadOnlySpan<IExecutionTask> tasks)
     {
         AssertNotPooled();
+
+        if (_hasExecutionGroups && ContainsMember(tasks))
+        {
+            RegisterWithMembers(tasks);
+            return;
+        }
 
         lock (_sync)
         {
