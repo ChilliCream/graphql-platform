@@ -19,5 +19,5 @@ internal static partial class ThrowHelper
             + "or publish through db.Outbox to select a context instance.");
 
     public static InvalidOperationException DefaultOutboxDbContextNotRegistered(Type contextType)
-        => new($"The default outbox DbContext '{contextType.FullName}' has no registered outbox provider.");
+        => new($"The default outbox DbContext '{contextType.FullName}' has no registered outbox.");
 }

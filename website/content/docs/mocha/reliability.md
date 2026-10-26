@@ -909,7 +909,7 @@ Messages published from a `SavedChangesAsync` interceptor are written by a subse
 
 Messages that are never followed by a save are not sent. `ChangeTracker.Clear()`, context disposal, and returning a pooled context discard unsaved messages.
 
-`DbContext.Outbox` throws an `InvalidOperationException` when the DbContext has no outbox registered through `AddEntityFramework<TContext>()`. Custom providers must register `IDbContextOutboxProvider` in the context's messaging services. Implementing `IMessageOutbox` alone supports immediate persistence and does not enable staging; using it through `db.Outbox` throws before dispatch.
+`DbContext.Outbox` throws an `InvalidOperationException` when the DbContext has no outbox registered through `AddEntityFramework<TContext>()`. Custom outbox implementations must register `IDbContextOutbox` in the context's messaging services. Implementing `IMessageOutbox` alone supports immediate persistence and does not enable staging; using it through `db.Outbox` throws before dispatch.
 
 > [!NOTE]
 > The outbox guarantees at-least-once delivery. Your handlers may be invoked more than once for the same message if the outbox dispatches successfully but the transport acknowledgment is lost before the message is deleted from the outbox table. You can handle this in two ways: design handlers to be idempotent manually (see the [Idempotent Consumer](https://microservices.io/patterns/communication-style/idempotent-consumer.html) pattern), or enable the [inbox](#deduplicate-messages-with-the-transactional-inbox) on the receiving side to let Mocha deduplicate automatically.

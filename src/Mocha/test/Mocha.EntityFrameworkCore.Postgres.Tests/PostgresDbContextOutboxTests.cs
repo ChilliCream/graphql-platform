@@ -1555,7 +1555,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task OutboxPublishAsync_Should_StageWithPublicProvider_When_CustomStagingIsRegistered(bool save)
+    public async Task OutboxPublishAsync_Should_StageWithCustomOutbox_When_CustomStagingIsRegistered(bool save)
     {
         // arrange
         var connectionString = await CreateDatabaseAsync();
@@ -1722,7 +1722,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
                     if (customStaging)
                     {
                         ef.ConfigureEntityFrameworkServices((_, internalServices) =>
-                            internalServices.AddScoped<IDbContextOutboxProvider, CustomOutboxProvider>());
+                            internalServices.AddScoped<IDbContextOutbox, CustomDbContextOutbox>());
                     }
                 }
             });
@@ -1769,7 +1769,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
                     if (customStaging)
                     {
                         ef.ConfigureEntityFrameworkServices((_, internalServices) =>
-                            internalServices.AddScoped<IDbContextOutboxProvider, CustomOutboxProvider>());
+                            internalServices.AddScoped<IDbContextOutbox, CustomDbContextOutbox>());
                     }
                 }
             });
@@ -2000,7 +2000,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         }
     }
 
-    private sealed class CustomOutboxProvider : IDbContextOutboxProvider, IDisposable
+    private sealed class CustomDbContextOutbox : IDbContextOutbox, IDisposable
     {
         private readonly List<OutboxMessage> _messages = [];
 

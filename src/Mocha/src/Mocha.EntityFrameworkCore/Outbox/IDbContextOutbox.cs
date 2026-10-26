@@ -6,7 +6,7 @@ namespace Mocha.EntityFrameworkCore;
 /// <summary>
 /// Prepares messages for persistence by the owning DbContext's next save.
 /// </summary>
-public interface IDbContextOutboxProvider
+public interface IDbContextOutbox
 {
     /// <summary>
     /// Serializes and attaches an envelope to the specified context for its next save.
@@ -15,7 +15,7 @@ public interface IDbContextOutboxProvider
     void Stage(DbContext context, MessageEnvelope envelope, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Returns a marker for the messages currently staged by this provider.
+    /// Returns a marker for the messages currently staged by this outbox.
     /// </summary>
     int CreateCheckpoint();
 

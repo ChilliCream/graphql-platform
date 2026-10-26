@@ -26,20 +26,12 @@ public static class MessageBusHostBuilderExtensions
         Action<IEntityFrameworkCoreBuilder> configure)
         where TContext : DbContext
     {
-        var persistenceBuilder = new EntityFrameworkCoreBuilder
-        {
-            Services = builder.Services,
-            HostBuilder = builder,
-            ContextType = typeof(TContext),
-            Name = typeof(TContext).FullName ?? typeof(TContext).Name
-        };
+        var efBuilder = new EntityFrameworkCoreBuilder<TContext>(builder);
 
-        configure(persistenceBuilder);
-
-        builder.Services.AttachOutboxDbContext<TContext>();
+        configure(efBuilder);
 
         builder
-            .Services.AddOptions<MessagingDbContextOptions>(persistenceBuilder.Name)
+            .Services.AddOptions<MessagingDbContextOptions>(efBuilder.Name)
             .Configure<IServiceProvider>((options, serviceProvider) => options.ServiceProvider = serviceProvider);
 
         builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<

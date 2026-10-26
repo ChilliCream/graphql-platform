@@ -108,7 +108,7 @@ public static class OutboxServiceCollectionExtensions
             services.AddScoped(_ => new PostgresDbContextOutbox(applicationServices.GetTimeProvider()));
             services.AddScoped<IInterceptor>(sp => sp.GetRequiredService<PostgresDbContextOutbox>());
             services.AddScoped<IResettableService>(sp => sp.GetRequiredService<PostgresDbContextOutbox>());
-            services.AddScoped<IDbContextOutboxProvider>(sp => sp.GetRequiredService<PostgresDbContextOutbox>());
+            services.AddScoped<IDbContextOutbox>(sp => sp.GetRequiredService<PostgresDbContextOutbox>());
         });
 
         return builder;

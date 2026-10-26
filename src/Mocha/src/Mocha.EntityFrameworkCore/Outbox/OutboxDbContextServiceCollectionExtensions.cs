@@ -8,38 +8,19 @@ namespace Mocha.EntityFrameworkCore;
 
 internal static class OutboxDbContextServiceCollectionExtensions
 {
-    public static bool AddOutboxDbContext(this IServiceCollection services, Type contextType)
-    {
-        foreach (var descriptor in services)
-        {
-            if (descriptor.ServiceType == typeof(OutboxDbContextRegistration))
-            {
-                var registration = (OutboxDbContextRegistration)descriptor.ImplementationInstance!;
-
-                if (registration.ContextType == contextType)
-                {
-                    return false;
-                }
-            }
-        }
-
-        services.AddSingleton(new OutboxDbContextRegistration(contextType));
-        return true;
-    }
-
-    public static void AttachOutboxDbContext<
+    public static bool AddOutboxDbContext<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TContext>(
         this IServiceCollection services)
         where TContext : DbContext
     {
-        var registration = services
-            .Where(d => d.ServiceType == typeof(OutboxDbContextRegistration))
-            .Select(d => (OutboxDbContextRegistration)d.ImplementationInstance!)
-            .FirstOrDefault(r => r.ContextType == typeof(TContext));
-
-        if (registration is null || registration.AttachmentRegistered)
+        foreach (var service in services)
         {
-            return;
+            if (service.ServiceType == typeof(OutboxDbContextRegistration)
+                && service.ImplementationInstance is OutboxDbContextRegistration registration
+                && registration.ContextType == typeof(TContext))
+            {
+                return false;
+            }
         }
 
         var descriptor = services.LastOrDefault(d => !d.IsKeyedService && d.ServiceType == typeof(TContext));
@@ -48,7 +29,6 @@ internal static class OutboxDbContextServiceCollectionExtensions
             throw ThrowHelper.SingletonOutboxDbContext(typeof(TContext));
         }
 
-        registration.AttachmentRegistered = true;
         if (descriptor is not null)
         {
             services.Remove(descriptor);
@@ -76,6 +56,9 @@ internal static class OutboxDbContextServiceCollectionExtensions
                 }
             },
             descriptor?.Lifetime ?? ServiceLifetime.Scoped));
+
+        services.AddSingleton(new OutboxDbContextRegistration(typeof(TContext)));
+        return true;
     }
 
     private static TContext CreateContext<
@@ -104,12 +87,3 @@ internal static class OutboxDbContextServiceCollectionExtensions
         return ActivatorUtilities.CreateInstance<TContext>(services);
     }
 }
-
-internal sealed class OutboxDbContextRegistration(Type contextType)
-{
-    public Type ContextType { get; } = contextType;
-
-    public bool AttachmentRegistered { get; set; }
-}
-
-internal sealed record DefaultOutboxDbContextRegistration(Type ContextType);

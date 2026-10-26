@@ -60,6 +60,36 @@ public sealed class OutboxServiceRegistrationTests
     }
 
     [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task UseOutboxCore_Should_AttachContext_When_EnabledAfterConfigurationCallback(bool usePostgresOutbox)
+    {
+        // arrange
+        var services = CreateServices();
+        IEntityFrameworkCoreBuilder efBuilder = null!;
+        services.AddMessageBus()
+            .AddEntityFramework<TestDbContext>(ef => efBuilder = ef)
+            .AddInMemory();
+
+        // act
+        if (usePostgresOutbox)
+        {
+            efBuilder.UsePostgresOutbox();
+        }
+        else
+        {
+            efBuilder.UseOutboxCore();
+        }
+
+        await using var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
+        await using var scope = provider.CreateAsyncScope();
+        var context = scope.ServiceProvider.GetRequiredService<TestDbContext>();
+
+        // assert
+        Assert.Same(scope.ServiceProvider.GetRequiredService<IMessageBus>(), context.Outbox.GetBus());
+    }
+
+    [Theory]
     [InlineData("Context", false)]
     [InlineData("Context", true)]
     [InlineData("Pool", false)]
@@ -400,8 +430,8 @@ public sealed class OutboxServiceRegistrationTests
             provider.GetRequiredKeyedService<PostgresOutboxProcessor>(typeof(OtherDbContext)));
         Assert.Equal(2, provider.GetServices<IHostedService>().OfType<PostgresMessageBusOutboxWorker>().Count());
         Assert.NotSame(
-            context.GetService<IDbContextOutboxProvider>(),
-            otherContext.GetService<IDbContextOutboxProvider>());
+            context.GetService<IDbContextOutbox>(),
+            otherContext.GetService<IDbContextOutbox>());
         Assert.Same(otherContext.GetService<DbContextOutbox>(), otherContext.Outbox);
     }
 
@@ -471,6 +501,7 @@ public sealed class OutboxServiceRegistrationTests
         // arrange
         var services = CreateServices();
         services.AddDbContext<OtherDbContext>(o => o.UseTestNpgsql(ConnectionString));
+        var contextDescriptor = services.Single(s => s.ServiceType == typeof(OtherDbContext));
         var builder = services.AddMessageBus();
         builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox());
 
@@ -482,6 +513,7 @@ public sealed class OutboxServiceRegistrationTests
         var otherContext = scope.ServiceProvider.GetRequiredService<OtherDbContext>();
 
         // assert
+        Assert.Same(contextDescriptor, services.Single(s => s.ServiceType == typeof(OtherDbContext)));
         Assert.Same(context.GetService<DbContextOutbox>(), context.Outbox);
         Assert.Empty(otherContext.GetInfrastructure().GetServices<IInterceptor>());
     }

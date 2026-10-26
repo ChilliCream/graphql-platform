@@ -19,7 +19,7 @@ public static class OutboxEntityFrameworkCorePersistenceBuilderExtensions
     /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
     public static IEntityFrameworkCoreBuilder UseOutboxCore(this IEntityFrameworkCoreBuilder builder)
     {
-        if (!builder.Services.AddOutboxDbContext(builder.ContextType))
+        if (!builder.AddOutboxDbContext())
         {
             return builder;
         }
@@ -34,6 +34,7 @@ public static class OutboxEntityFrameworkCorePersistenceBuilderExtensions
             services.AddScoped(static s => new DbContextOutbox(s.GetRequiredService<ICurrentDbContext>().Context));
             services.AddScoped<IResettableService>(static s => s.GetRequiredService<DbContextOutbox>());
         });
+
         return builder;
     }
 }

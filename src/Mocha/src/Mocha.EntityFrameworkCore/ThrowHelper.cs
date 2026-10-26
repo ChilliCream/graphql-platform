@@ -14,9 +14,9 @@ internal static partial class ThrowHelper
     public static InvalidOperationException OutboxAlreadyAttached()
         => new("This DbContext is already attached to a different messaging scope.");
 
-    public static InvalidOperationException OutboxProviderNotSupported(Type type)
-        => new($"The outbox provider for '{type.Name}' does not support DbContext staging. "
-            + "Register an IDbContextOutboxProvider with the DbContext's messaging services.");
+    public static InvalidOperationException OutboxStagingNotSupported(Type type)
+        => new($"The outbox for '{type.Name}' does not support DbContext staging. "
+            + "Register an IDbContextOutbox with the DbContext's messaging services.");
 
     public static InvalidOperationException OutboxBusNotSupported(Type type)
         => new($"The message bus '{type.Name}' does not support preparing messages for a DbContext outbox.");

@@ -11,7 +11,7 @@ using Mocha.Utils;
 namespace Mocha.Outbox;
 
 internal sealed class PostgresDbContextOutbox(TimeProvider timeProvider)
-    : SaveChangesInterceptor, IDbContextOutboxProvider, IResettableService, IDisposable
+    : SaveChangesInterceptor, IDbContextOutbox, IResettableService, IDisposable
 {
     private readonly List<EntityEntry<OutboxMessage>> _entries = [];
     private PooledArrayWriter? _arrayWriter;
