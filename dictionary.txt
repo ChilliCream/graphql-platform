@@ -13,8 +13,6 @@ anthropics
 Antiforgery
 apphost
 appsettings
-ASPDEPR004
-ASPDEPR008
 aspnet
 aspnetcore
 Astromech

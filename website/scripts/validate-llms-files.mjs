@@ -111,7 +111,7 @@ function outputPathForPublicUrl(url) {
   if (relative === "") {
     return path.join(OUTPUT_ROOT, "index.html");
   }
-  if (/\.(?:md|txt|xml)$/.test(relative)) {
+  if (/\.(?:md|txt|xml|json)$/.test(relative)) {
     return path.join(OUTPUT_ROOT, relative);
   }
   return path.join(OUTPUT_ROOT, `${relative}.html`);

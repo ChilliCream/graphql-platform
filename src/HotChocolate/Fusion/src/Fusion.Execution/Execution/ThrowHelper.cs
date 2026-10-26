@@ -3,6 +3,7 @@ using HotChocolate.Execution;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Properties;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -96,6 +97,12 @@ internal static class ThrowHelper
 
     public static InvalidOperationException UnknownOperationDefinition(Type definitionType)
         => new($"Unknown operation definition type: {definitionType.Name}");
+
+    public static NotSupportedException ValueCompletionTypeNotSupported(IType type)
+        => new($"The type {type} is not supported.");
+
+    public static NotSupportedException ValueCompletionDepthNotAllowed(int depth)
+        => new($"The depth {depth} is not allowed.");
 
     public static ArgumentOutOfRangeException InvalidCostOptionValue(
         string optionName,

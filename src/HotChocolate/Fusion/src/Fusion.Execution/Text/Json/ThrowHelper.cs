@@ -30,6 +30,18 @@ internal static class ThrowHelper
         return new FormatException { Source = Rethrowable };
     }
 
+    public static InvalidOperationException SourceElementIsNotAnObject()
+        => new();
+
+    public static InvalidOperationException SourceElementIsNotAnArray(JsonTokenType tokenType)
+        => new(string.Format(
+            "The requested operation requires an element of type '{0}', but the target element has type '{1}'.",
+            JsonTokenType.StartArray,
+            tokenType))
+        {
+            Source = Rethrowable
+        };
+
     [DoesNotReturn]
     public static void ThrowArgumentException_ValueTooLarge(int length)
     {

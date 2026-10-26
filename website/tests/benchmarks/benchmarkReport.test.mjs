@@ -678,11 +678,7 @@ test("uses explicit variant labels and preview metadata", () => {
       return {
         id,
         name: variantName(entry),
-        preview: isPreview(
-          entry.variant.version,
-          entry.variant.platform,
-          entry.variant.preview,
-        ),
+        preview: isPreview(entry.variant),
       };
     }),
     [
