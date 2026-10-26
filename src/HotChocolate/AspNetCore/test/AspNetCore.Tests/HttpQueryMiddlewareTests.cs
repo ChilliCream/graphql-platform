@@ -36,6 +36,7 @@ public class HttpQueryMiddlewareTests(TestServerFactory serverFactory)
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 31
                 -------------------------->
                 Status Code: OK
                 -------------------------->
@@ -70,6 +71,7 @@ public class HttpQueryMiddlewareTests(TestServerFactory serverFactory)
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 34
                 -------------------------->
                 Status Code: OK
                 -------------------------->
@@ -183,6 +185,7 @@ public class HttpQueryMiddlewareTests(TestServerFactory serverFactory)
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 82
                 -------------------------->
                 Status Code: BadRequest
                 -------------------------->
@@ -219,6 +222,7 @@ public class HttpQueryMiddlewareTests(TestServerFactory serverFactory)
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 82
                 -------------------------->
                 Status Code: BadRequest
                 -------------------------->
@@ -257,6 +261,7 @@ public class HttpQueryMiddlewareTests(TestServerFactory serverFactory)
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 82
                 -------------------------->
                 Status Code: BadRequest
                 -------------------------->
@@ -299,6 +304,7 @@ public class HttpQueryMiddlewareTests(TestServerFactory serverFactory)
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 82
                 -------------------------->
                 Status Code: BadRequest
                 -------------------------->
@@ -353,6 +359,7 @@ public class HttpQueryMiddlewareTests(TestServerFactory serverFactory)
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 40
                 -------------------------->
                 Status Code: BadRequest
                 -------------------------->

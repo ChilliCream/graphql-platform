@@ -281,6 +281,7 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 82
                 -------------------------->
                 Status Code: BadRequest
                 -------------------------->
@@ -319,6 +320,7 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 117
                 -------------------------->
                 Status Code: BadRequest
                 -------------------------->
@@ -360,6 +362,7 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 82
                 -------------------------->
                 Status Code: BadRequest
                 -------------------------->
@@ -401,6 +404,7 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 117
                 -------------------------->
                 Status Code: BadRequest
                 -------------------------->
@@ -476,6 +480,7 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 34
                 -------------------------->
                 Status Code: OK
                 -------------------------->
@@ -513,6 +518,7 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 20
                 -------------------------->
                 Status Code: OK
                 -------------------------->
@@ -547,6 +553,7 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 71
                 -------------------------->
                 Status Code: UnprocessableEntity
                 -------------------------->
@@ -584,6 +591,7 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 82
                 -------------------------->
                 Status Code: BadRequest
                 -------------------------->
