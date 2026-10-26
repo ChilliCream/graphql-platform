@@ -1101,7 +1101,7 @@ AddErrors_Next:
                 return [];
             }
 
-            return BuildVariableValueSetsUnsafe(elements, requestVariables, requiredData);
+            return BuildVariableValueSetsUnsafe(elements, selectionSet.Length, requestVariables, requiredData);
         }
     }
 
@@ -1137,6 +1137,7 @@ AddErrors_Next:
 
             return BuildVariableValueSetsUnsafe(
                 _collectTargetCombined.AsSpan(0, combinedCount),
+                selectionSets[0].Length,
                 requestVariables,
                 requiredData);
         }
@@ -1183,6 +1184,7 @@ AddErrors_Next:
             {
                 return BuildVariableValueSetsUnsafe(
                     _collectTargetCombined.AsSpan(0, targetCount),
+                    selectionSets[0].Length,
                     requestVariables,
                     requiredData);
             }
@@ -1197,7 +1199,11 @@ AddErrors_Next:
                 return [];
             }
 
-            var variableValueSets = BuildVariableValueSetsUnsafe(targets, requestVariables, requiredData);
+            var variableValueSets = BuildVariableValueSetsUnsafe(
+                targets,
+                selectionSets[0].Length,
+                requestVariables,
+                requiredData);
 
             if (variableValueSets.IsEmpty)
             {
@@ -1213,6 +1219,7 @@ AddErrors_Next:
 
             var producerValueSets = BuildVariableValueSetsUnsafe(
                 producers[..producerCount],
+                selectionSets[0].Length,
                 requestVariables,
                 requiredData);
 
@@ -1935,13 +1942,17 @@ AddErrors_Next:
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsUnsafe(
         ReadOnlySpan<CompositeResultElement> elements,
+        int targetPathLength,
         IReadOnlyList<ObjectFieldNode> requestVariables,
         ReadOnlySpan<OperationRequirement> requiredData)
     {
         _variableDedupTable.Initialize(elements.Length);
         PooledArrayWriter? buffer = null;
+        var anchorSegmentCount = CountRequirementAnchorSegments(requiredData, targetPathLength);
 
-        if (requestVariables.Count == 0)
+        // The fast paths map requirements from the target elements, so requirements
+        // anchored below the target take the general path.
+        if (requestVariables.Count == 0 && anchorSegmentCount == 0)
         {
             var fastPathResult = requiredData.Length switch
             {
@@ -1980,6 +1991,7 @@ AddErrors_Next:
         var additionalPaths = new AdditionalPathAccumulator(elements.Length);
         var nextIndex = 0;
         var forwardedVariables = SerializeForwardedVariablesUnsafe(requestVariables, elements.Length);
+        var anchorSegments = RentRequirementAnchorSegments(requiredData, targetPathLength, anchorSegmentCount);
 
         foreach (var result in elements)
         {
@@ -1992,19 +2004,27 @@ AddErrors_Next:
 
             // Write requirement fields.
             var failed = false;
+            var anchorSegmentOffset = 0;
 
             for (var i = 0; i < requiredData.Length; i++)
             {
                 var requirement = requiredData[i];
+                var requirementAnchorSegmentCount = Math.Max(requirement.Path.Length - targetPathLength, 0);
+                var requirementAnchorSegments = anchorSegments.AsSpan(
+                    anchorSegmentOffset,
+                    requirementAnchorSegmentCount);
+                anchorSegmentOffset += requirementAnchorSegmentCount;
+
                 _jsonWriter.WritePropertyName(requirement.Key);
 
-                if (!ResultDataMapper.TryMap(
-                    result,
-                    requirement.Map,
-                    requirement.Type,
-                    _schema,
-                    requirement.InternalAlias,
-                    _jsonWriter))
+                if (!TryGetRequirementAnchor(result, requirementAnchorSegments, out var anchor)
+                    || !ResultDataMapper.TryMap(
+                        anchor,
+                        requirement.Map,
+                        requirement.Type,
+                        _schema,
+                        requirement.InternalAlias,
+                        _jsonWriter))
                 {
                     failed = true;
                     break;
@@ -2030,6 +2050,11 @@ AddErrors_Next:
             variableValueSets[nextIndex++] = entry.Value;
         }
 
+        if (anchorSegmentCount > 0)
+        {
+            ArrayPool<RequirementAnchorSegment>.Shared.Return(anchorSegments, clearArray: true);
+        }
+
         if (buffer is not null)
         {
             lock (_lock)
@@ -2039,6 +2064,89 @@ AddErrors_Next:
         }
 
         return FinalizeVariableValueSetsUnsafe(variableValueSets, ref additionalPaths, nextIndex);
+    }
+
+    private static int CountRequirementAnchorSegments(
+        ReadOnlySpan<OperationRequirement> requiredData,
+        int targetPathLength)
+    {
+        var count = 0;
+
+        foreach (var requirement in requiredData)
+        {
+            count += Math.Max(requirement.Path.Length - targetPathLength, 0);
+        }
+
+        return count;
+    }
+
+    private RequirementAnchorSegment[] RentRequirementAnchorSegments(
+        ReadOnlySpan<OperationRequirement> requiredData,
+        int targetPathLength,
+        int anchorSegmentCount)
+    {
+        if (anchorSegmentCount == 0)
+        {
+            return [];
+        }
+
+        var anchorSegments = ArrayPool<RequirementAnchorSegment>.Shared.Rent(anchorSegmentCount);
+        var next = 0;
+
+        foreach (var requirement in requiredData)
+        {
+            for (var i = targetPathLength; i < requirement.Path.Length; i++)
+            {
+                var segment = requirement.Path[i];
+
+                anchorSegments[next++] = new RequirementAnchorSegment
+                {
+                    Name = segment.Name,
+                    TypeCondition = segment.Kind is SelectionPathSegmentKind.InlineFragment
+                        ? _schema.Types.GetType<IOutputTypeDefinition>(segment.Name)
+                        : null
+                };
+            }
+        }
+
+        return anchorSegments;
+    }
+
+    /// <summary>
+    /// Follows <paramref name="segments"/> from <paramref name="target"/> to the element a requirement
+    /// is anchored at, and returns <c>false</c> when the target has no object at that path.
+    /// </summary>
+    private static bool TryGetRequirementAnchor(
+        CompositeResultElement target,
+        Span<RequirementAnchorSegment> segments,
+        out CompositeResultElement anchor)
+    {
+        anchor = target;
+
+        for (var i = 0; i < segments.Length; i++)
+        {
+            ref var segment = ref segments[i];
+
+            if (segment.TypeCondition is not null)
+            {
+                if (!segment.TypeCondition.IsAssignableFrom(anchor.AssertSelectionSet().Type))
+                {
+                    return false;
+                }
+
+                continue;
+            }
+
+            if (!anchor.TryGetProperty(segment.Name, ref segment.LookupMemo, out var value)
+                || value.ValueKind is not JsonValueKind.Object)
+            {
+                return false;
+            }
+
+            anchor = value;
+        }
+
+        return true;
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirementUnsafe(
@@ -3692,6 +3800,24 @@ AddErrors_Next:
     }
 
     private readonly record struct LeafValue(Selection Selection, CompositeResultElement Value);
+
+    /// <summary>
+    /// A segment of the path from a lookup target to the element a requirement is anchored at.
+    /// </summary>
+    private struct RequirementAnchorSegment
+    {
+        /// <summary>
+        /// The response name of a field segment, or the type name of a type condition segment.
+        /// </summary>
+        public string Name;
+
+        /// <summary>
+        /// The type of a type condition segment, or <c>null</c> for a field segment.
+        /// </summary>
+        public IOutputTypeDefinition? TypeCondition;
+
+        public PropertyLookupMemo LookupMemo;
+    }
 
     /// <summary>
     /// Resolves the additional targets of a source schema result to the elements currently at their
