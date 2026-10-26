@@ -67,14 +67,21 @@ export function ComparisonsSection() {
             approaches can complement each other.
           </p>
         </div>
-        <div id="vs-api-gateways" className="scroll-mt-24">
+        <div id="vs-individual-apis" className="scroll-mt-24">
           <h3 className="font-heading text-cc-heading text-lg font-semibold text-balance">
-            GraphQL Federation vs. traditional API gateways
+            <NextLink
+              href="/comparison/graphql-federation-vs-individual-apis"
+              className="hover:text-cc-accent text-inherit no-underline transition-colors"
+            >
+              GraphQL Federation vs. individual APIs
+              <ArrowRightIcon className="ml-1.5 inline size-3.5 align-baseline" />
+            </NextLink>
           </h3>
           <p className="text-cc-ink mt-2 text-base">
-            Traditional API gateways focus on routing, security, and traffic
-            management. GraphQL federation gateways additionally understand
-            relationships between services and execute queries across them.
+            Calling each service&apos;s API directly is often simplest when
+            clients need only a few services. Federation brings those APIs
+            together into one unified GraphQL API, so clients no longer
+            coordinate data across services themselves.
           </p>
         </div>
       </div>
