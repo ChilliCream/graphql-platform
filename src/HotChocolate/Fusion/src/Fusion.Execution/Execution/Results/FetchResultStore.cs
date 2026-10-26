@@ -71,10 +71,17 @@ internal sealed partial class FetchResultStore : IDisposable
     private ulong[]? _wideIncludeFlags;
     private ulong[]? _wideDeferFlags;
     private CompositeResultElement[] _collectTargetA = ArrayPool<CompositeResultElement>.Shared.Rent(64);
-    private CompositeResultElement[] _collectTargetB = ArrayPool<CompositeResultElement>.Shared.Rent(64);
+    private int[] _collectCursorsA = ArrayPool<int>.Shared.Rent(64);
+    private int[] _collectCursorsB = ArrayPool<int>.Shared.Rent(64);
     private CompositeResultElement[] _collectTargetCombined = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private CompositeResultElement[] _collectProducerCombined = ArrayPool<CompositeResultElement>.Shared.Rent(64);
     private ReuseObject[] _reuseProducers = [];
+    private CompositeResultDocument? _collectMemoDocument;
+    private int _collectMemoShapeVersion;
+    private CollectMemoNode[] _collectMemoNodes = [];
+    private int _collectMemoNodeCount;
+    private int[] _collectMemoCursors = [];
+    private int _collectMemoCursorCount;
     private ReuseObject[] _reuseTargetObjects = [];
     private int[] _reuseMatches = [];
     private bool[] _reuseProducerHits = [];
@@ -1235,16 +1242,16 @@ AddErrors_Next:
 
         foreach (var selectionSet in selectionSets)
         {
-            var elements = CollectTargetElementsUnsafe(selectionSet);
+            var cursors = CollectTargetCursorsUnsafe(selectionSet);
 
-            if (!elements.IsEmpty)
+            if (!cursors.IsEmpty)
             {
                 EnsureCapacity(
                     ref buffer,
-                    combinedCount + elements.Length,
+                    combinedCount + cursors.Length,
                     combinedCount);
-                elements.CopyTo(buffer.AsSpan(combinedCount));
-                combinedCount += elements.Length;
+                CreateElements(cursors, buffer.AsSpan(combinedCount));
+                combinedCount += cursors.Length;
             }
         }
 
@@ -1758,102 +1765,293 @@ AddErrors_Next:
 
     private ReadOnlySpan<CompositeResultElement> CollectTargetElementsUnsafe(SelectionPath selectionSet)
     {
-        var current = _collectTargetA;
-        var currentCount = 0;
-        var next = _collectTargetB;
-        var nextCount = 0;
+        var cursors = CollectTargetCursorsUnsafe(selectionSet);
+        EnsureCapacity(ref _collectTargetA, cursors.Length, 0);
+        var elements = _collectTargetA.AsSpan(0, cursors.Length);
+        CreateElements(cursors, elements);
+        return elements;
+    }
 
-        current[currentCount++] = _result.Data;
+    private void CreateElements(ReadOnlySpan<int> cursors, Span<CompositeResultElement> elements)
+    {
+        var result = _result;
 
+        for (var i = 0; i < cursors.Length; i++)
+        {
+            elements[i] = new CompositeResultElement(result, new CompositeResultDocument.Cursor(cursors[i]));
+        }
+    }
+
+    private ReadOnlySpan<int> CollectTargetCursorsUnsafe(SelectionPath selectionSet)
+    {
+        PrepareCollectMemoUnsafe();
+
+        // A field path continues from the elements of its longest prefix that an earlier walk
+        // reached while the shape of the result was the same.
+        var memoDepth = GetMemoizableDepth(selectionSet);
+        var node = 0;
+        var depth = 0;
+
+        while (depth < memoDepth)
+        {
+            var child = FindCollectMemoChild(node, selectionSet[depth].Name);
+
+            if (child == 0)
+            {
+                break;
+            }
+
+            node = child;
+            depth++;
+        }
+
+        if (depth > 0 && depth == selectionSet.Length)
+        {
+            var entry = _collectMemoNodes[node];
+            return _collectMemoCursors.AsSpan(entry.Start, entry.Length);
+        }
+
+        return WalkTargetCursorsUnsafe(selectionSet, depth, node, memoDepth);
+    }
+
+    // Forgets the kept elements when the result document or its shape changed.
+    private void PrepareCollectMemoUnsafe()
+    {
+        var result = _result;
+        var shapeVersion = result.ShapeVersion;
+
+        if (ReferenceEquals(_collectMemoDocument, result) && _collectMemoShapeVersion == shapeVersion)
+        {
+            return;
+        }
+
+        _collectMemoDocument = result;
+        _collectMemoShapeVersion = shapeVersion;
+
+        if (_collectMemoNodes.Length == 0)
+        {
+            _collectMemoNodes = new CollectMemoNode[16];
+        }
+
+        // Clears the earlier walks so no field names stay referenced past the live nodes;
+        // the first node is the root path, which has no kept elements.
+        _collectMemoNodes.AsSpan(0, Math.Max(_collectMemoNodeCount, 1)).Clear();
+        _collectMemoNodeCount = 1;
+        _collectMemoCursorCount = 0;
+    }
+
+    // Gets the number of leading field segments before the first type condition.
+    private static int GetMemoizableDepth(SelectionPath selectionSet)
+    {
         for (var i = 0; i < selectionSet.Length; i++)
         {
+            if (selectionSet[i].Kind is not SelectionPathSegmentKind.Field)
+            {
+                return i;
+            }
+        }
+
+        return selectionSet.Length;
+    }
+
+    private int FindCollectMemoChild(int parent, string fieldName)
+    {
+        var nodes = _collectMemoNodes;
+        var child = nodes[parent].FirstChild;
+
+        while (child != 0)
+        {
+            if (string.Equals(nodes[child].FieldName, fieldName, StringComparison.Ordinal))
+            {
+                return child;
+            }
+
+            child = nodes[child].NextSibling;
+        }
+
+        return 0;
+    }
+
+    private int AddCollectMemoNode(int parent, string fieldName, ReadOnlySpan<int> cursors)
+    {
+        var index = _collectMemoNodeCount;
+
+        if (index == _collectMemoNodes.Length)
+        {
+            Array.Resize(ref _collectMemoNodes, index * 2);
+        }
+
+        var start = _collectMemoCursorCount;
+        EnsureLength(ref _collectMemoCursors, start + cursors.Length, start);
+        cursors.CopyTo(_collectMemoCursors.AsSpan(start));
+
+        ref var parentNode = ref _collectMemoNodes[parent];
+        _collectMemoNodes[index] = new CollectMemoNode(fieldName, parentNode.FirstChild, start, cursors.Length);
+        parentNode.FirstChild = index;
+
+        _collectMemoNodeCount = index + 1;
+        _collectMemoCursorCount = start + cursors.Length;
+        return index;
+    }
+
+    // The cursors of the elements a field path from the root reached, kept at Start in the memo
+    // cursor buffer. The children of a node extend its path by one field.
+    private struct CollectMemoNode(string fieldName, int nextSibling, int start, int length)
+    {
+        public readonly string FieldName = fieldName;
+        public readonly int NextSibling = nextSibling;
+        public readonly int Start = start;
+        public readonly int Length = length;
+        public int FirstChild;
+    }
+
+    private ReadOnlySpan<int> WalkTargetCursorsUnsafe(
+        SelectionPath selectionSet,
+        int startDepth,
+        int memoNode,
+        int memoDepth)
+    {
+        int count;
+
+        if (startDepth == 0)
+        {
+            _collectCursorsA[0] = _result.Data.Cursor.Value;
+            count = 1;
+        }
+        else
+        {
+            var entry = _collectMemoNodes[memoNode];
+
+            if (entry.Length == 0)
+            {
+                return [];
+            }
+
+            EnsureLength(ref _collectCursorsA, entry.Length);
+            _collectMemoCursors.AsSpan(entry.Start, entry.Length).CopyTo(_collectCursorsA);
+            count = entry.Length;
+        }
+
+        for (var i = startDepth; i < selectionSet.Length; i++)
+        {
             var segment = selectionSet[i];
+            var current = _collectCursorsA.AsSpan(0, count);
+            var nextCount = 0;
 
             if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
             {
-                IOutputTypeDefinition? segmentType = null;
-
-                for (var j = 0; j < currentCount; j++)
-                {
-                    var element = current[j];
-
-                    if (!element.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var value)
-                        || value.ValueKind is not JsonValueKind.String)
-                    {
-                        continue;
-                    }
-
-                    // Fast path: the runtime __typename equals the type condition exactly.
-                    if (value.TextEqualsHelper(segment.Name, isPropertyName: false))
-                    {
-                        AddToBuffer(ref next, ref nextCount, element);
-                        continue;
-                    }
-
-                    // The type condition names an abstract type; accept elements whose
-                    // runtime type is a subtype of it.
-                    segmentType ??= _schema.Types.GetType<IOutputTypeDefinition>(segment.Name);
-
-                    if (segmentType.IsAssignableFrom(element.AssertSelectionSet().Type))
-                    {
-                        AddToBuffer(ref next, ref nextCount, element);
-                    }
-                }
+                AppendTypeConditionMatchesUnsafe(segment.Name, current, ref _collectCursorsB, ref nextCount);
             }
             else if (segment.Kind is SelectionPathSegmentKind.Field)
             {
-                var lookupMemo = default(PropertyLookupMemo);
-
-                for (var j = 0; j < currentCount; j++)
-                {
-                    var element = current[j];
-                    if (!element.TryGetProperty(segment.Name, ref lookupMemo, out var value))
-                    {
-                        continue;
-                    }
-
-                    var valueKind = value.ValueKind;
-
-                    if (valueKind is JsonValueKind.Null or JsonValueKind.Undefined)
-                    {
-                        continue;
-                    }
-
-                    if (valueKind is JsonValueKind.Array)
-                    {
-                        AppendUnrolledListsUnsafe(value, ref next, ref nextCount);
-                        continue;
-                    }
-
-                    if (valueKind is JsonValueKind.Object)
-                    {
-                        AddToBuffer(ref next, ref nextCount, value);
-                        continue;
-                    }
-
-                    throw ThrowHelper.InvalidTargetValueKind(
-                        selectionSet.Slice(i + 1),
-                        value.Path,
-                        valueKind);
-                }
+                AppendFieldValuesUnsafe(selectionSet, i, current, ref _collectCursorsB, ref nextCount);
             }
 
-            (current, next) = (next, current);
-            (currentCount, nextCount) = (nextCount, 0);
+            (_collectCursorsA, _collectCursorsB) = (_collectCursorsB, _collectCursorsA);
+            count = nextCount;
 
-            if (currentCount == 0)
+            if (i < memoDepth)
             {
-                // Update collection state.
-                _collectTargetA = current;
-                _collectTargetB = next;
+                memoNode = AddCollectMemoNode(memoNode, segment.Name, _collectCursorsA.AsSpan(0, count));
+            }
+
+            if (count == 0)
+            {
                 return [];
             }
         }
 
-        // Update collection state.
-        _collectTargetA = current;
-        _collectTargetB = next;
-        return current.AsSpan(0, currentCount);
+        return _collectCursorsA.AsSpan(0, count);
+    }
+
+    private void AppendTypeConditionMatchesUnsafe(
+        string typeName,
+        ReadOnlySpan<int> current,
+        ref int[] next,
+        ref int nextCount)
+    {
+        IOutputTypeDefinition? segmentType = null;
+
+        foreach (var cursor in current)
+        {
+            var element = new CompositeResultElement(_result, new CompositeResultDocument.Cursor(cursor));
+
+            if (!element.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var value)
+                || value.ValueKind is not JsonValueKind.String)
+            {
+                continue;
+            }
+
+            // Fast path: the runtime __typename equals the type condition exactly.
+            if (value.TextEqualsHelper(typeName, isPropertyName: false))
+            {
+                AddToBuffer(ref next, ref nextCount, cursor);
+                continue;
+            }
+
+            // The type condition names an abstract type; accept elements whose
+            // runtime type is a subtype of it.
+            segmentType ??= _schema.Types.GetType<IOutputTypeDefinition>(typeName);
+
+            if (segmentType.IsAssignableFrom(element.AssertSelectionSet().Type))
+            {
+                AddToBuffer(ref next, ref nextCount, cursor);
+            }
+        }
+    }
+
+    private void AppendFieldValuesUnsafe(
+        SelectionPath selectionSet,
+        int segmentIndex,
+        ReadOnlySpan<int> current,
+        ref int[] next,
+        ref int nextCount)
+    {
+        var fieldName = selectionSet[segmentIndex].Name;
+        var lookupMemo = default(PropertyLookupMemo);
+        var index = 0;
+
+        while (true)
+        {
+            index = _result.AppendFieldValues(current, index, fieldName, ref lookupMemo, ref next, ref nextCount);
+
+            if (index == current.Length)
+            {
+                return;
+            }
+
+            // The object has no selection set or its field holds a leaf value.
+            var element = new CompositeResultElement(_result, new CompositeResultDocument.Cursor(current[index++]));
+
+            if (!element.TryGetProperty(fieldName, ref lookupMemo, out var value))
+            {
+                continue;
+            }
+
+            var valueKind = value.ValueKind;
+
+            if (valueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+            {
+                continue;
+            }
+
+            if (valueKind is JsonValueKind.Array)
+            {
+                AppendUnrolledListsUnsafe(value, ref next, ref nextCount);
+                continue;
+            }
+
+            if (valueKind is JsonValueKind.Object)
+            {
+                AddToBuffer(ref next, ref nextCount, value.Cursor.Value);
+                continue;
+            }
+
+            throw ThrowHelper.InvalidTargetValueKind(
+                selectionSet.Slice(segmentIndex + 1),
+                value.Path,
+                valueKind);
+        }
     }
 
     public ImmutableArray<CompactPath> GetResultPaths(SelectionPath selectionSet)
@@ -3174,7 +3372,7 @@ AddErrors_Next:
 
     private static void AppendUnrolledListsUnsafe(
         CompositeResultElement list,
-        ref CompositeResultElement[] destination,
+        ref int[] destination,
         ref int destinationCount)
     {
         foreach (var element in list.EnumerateArray())
@@ -3192,33 +3390,20 @@ AddErrors_Next:
             }
             else
             {
-                AddToBuffer(ref destination, ref destinationCount, element);
+                AddToBuffer(ref destination, ref destinationCount, element.Cursor.Value);
             }
         }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void AddToBuffer(
-        ref CompositeResultElement[] buffer,
-        ref int count,
-        CompositeResultElement value)
+    private static void AddToBuffer(ref int[] buffer, ref int count, int value)
     {
         if (count == buffer.Length)
         {
-            GrowBuffer(ref buffer, count);
+            EnsureLength(ref buffer, buffer.Length * 2, count);
         }
 
         buffer[count++] = value;
-    }
-
-    private static void GrowBuffer(
-        ref CompositeResultElement[] buffer,
-        int count)
-    {
-        var newBuffer = ArrayPool<CompositeResultElement>.Shared.Rent(buffer.Length * 2);
-        buffer.AsSpan(0, count).CopyTo(newBuffer);
-        ArrayPool<CompositeResultElement>.Shared.Return(buffer, clearArray: true);
-        buffer = newBuffer;
     }
 
     private static void EnsureCapacity(
@@ -3705,7 +3890,9 @@ AddErrors_Next:
         _disposed = true;
 
         ArrayPool<CompositeResultElement>.Shared.Return(_collectTargetA, clearArray: true);
-        ArrayPool<CompositeResultElement>.Shared.Return(_collectTargetB, clearArray: true);
+        ArrayPool<int>.Shared.Return(_collectCursorsA);
+        ArrayPool<int>.Shared.Return(_collectCursorsB);
+        ReturnPooled(ref _collectMemoCursors);
         ArrayPool<CompositeResultElement>.Shared.Return(_collectTargetCombined, clearArray: true);
         ArrayPool<CompositeResultElement>.Shared.Return(_collectProducerCombined, clearArray: true);
         ReturnPooled(ref _reuseProducers);

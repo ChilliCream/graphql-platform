@@ -21,6 +21,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     internal MetaDb _metaDb;
     private NullMarkerState _nullMarkerState;
     private int _layoutVersion;
+    private int _shapeVersion;
     private int _disposed;
 
     internal CompositeResultDocument(
@@ -69,6 +70,13 @@ public sealed partial class CompositeResultDocument : IDisposable
     /// replaced. While it is unchanged, every element keeps the path it had when it was read.
     /// </summary>
     internal int LayoutVersion => _layoutVersion;
+
+    /// <summary>
+    /// Gets a version that changes whenever an object or a list is assigned to a value or a value
+    /// that references an object or a list is replaced. While it is unchanged, walking the same
+    /// field path from the root reaches the same objects.
+    /// </summary>
+    internal int ShapeVersion => _shapeVersion;
 
     /// <summary>
     /// Stops this document from renting path segment arrays from the request scoped pool.
@@ -596,6 +604,7 @@ public sealed partial class CompositeResultDocument : IDisposable
             "Only an undefined slot can be initialized.");
 
         var obj = CreateObject(target, selectionSet, out objectContext);
+        _shapeVersion++;
 
         _metaDb.ReplacePreserveParent(
             cursor: target,
@@ -617,6 +626,7 @@ public sealed partial class CompositeResultDocument : IDisposable
             "Only an undefined slot can be initialized.");
 
         var array = CreateArray(target, length);
+        _shapeVersion++;
 
         _metaDb.ReplacePreserveParent(
             cursor: target,
@@ -630,6 +640,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     internal void AssignCompositeValue(CompositeResultElement target, CompositeResultElement value)
     {
         TrackValueReplacement(target.Cursor);
+        _shapeVersion++;
         _metaDb.ReplacePreserveParent(
             cursor: target.Cursor,
             tokenType: ElementTokenType.Reference,
@@ -663,6 +674,7 @@ public sealed partial class CompositeResultDocument : IDisposable
 
         if (tokenType is ElementTokenType.StartObject or ElementTokenType.StartArray)
         {
+            _shapeVersion++;
             _metaDb.ReplacePreserveParent(
                 cursor: target.Cursor,
                 tokenType: tokenType,
@@ -837,6 +849,7 @@ public sealed partial class CompositeResultDocument : IDisposable
             is ElementTokenType.Reference or ElementTokenType.StartObject or ElementTokenType.StartArray)
         {
             _layoutVersion++;
+            _shapeVersion++;
         }
     }
 
