@@ -87,7 +87,8 @@ public sealed class RequirementsValidatorTests
                 (MutableObjectTypeDefinition)productByIdField.Type,
                 parentPathItem,
                 ancestors: [],
-                excludeSchemaName: "A");
+                excludeSchemaName: "A",
+                SatisfiabilityExplanationBudget.Unlimited());
 
         // assert
         Assert.Empty(errors);
@@ -178,7 +179,8 @@ public sealed class RequirementsValidatorTests
                 (MutableObjectTypeDefinition)e0Field.Type,
                 parentPathItem,
                 ancestors: [],
-                excludeSchemaName: "C");
+                excludeSchemaName: "C",
+                SatisfiabilityExplanationBudget.Unlimited());
 
         // assert
         errors.Select(e => e.ToString()).MatchInlineSnapshots(

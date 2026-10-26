@@ -18,6 +18,8 @@ namespace HotChocolate.Fusion;
 
 internal sealed partial class SatisfiabilityValidator
 {
+    private const int MaxTransitionExplanationEntries = 1000;
+
     private readonly SatisfiabilityOptions _options;
     private readonly ApolloFederationCompatibilityOptions _apolloFederationCompatibility;
     private readonly IReadOnlySet<string> _apolloFederationSchemaNames;
@@ -32,6 +34,12 @@ internal sealed partial class SatisfiabilityValidator
         _dispatchedNodeFields = [];
     private readonly HashSet<(MutableObjectTypeDefinition, MutableOutputFieldDefinition, string?)>
         _reportedFields = [];
+    private readonly SatisfiabilityExplanationBudget _requirementExplanationBudget =
+        SatisfiabilityExplanationBudget.Unlimited();
+    private readonly SatisfiabilityExplanationBudget _decisionBudget =
+        SatisfiabilityExplanationBudget.DecisionOnly(maxEntries: null);
+    private readonly Dictionary<string, ImmutableArray<SatisfiabilityError>> _transitionExplanations = [];
+    private long _transitionExplanationEntryCount;
 
     public SatisfiabilityValidator(
         MutableSchemaDefinition schema,
@@ -57,6 +65,13 @@ internal sealed partial class SatisfiabilityValidator
                 _facts,
                 _options.IncludeSatisfiabilityPaths);
     }
+
+    /// <summary>
+    /// Gets the number of explanation entries that the source schema transition and requirement
+    /// explanations created.
+    /// </summary>
+    internal long ExplanationEntryCount
+        => _requirementExplanationBudget.EntryCount + _transitionExplanationEntryCount;
 
     public CompositionResult Validate()
     {
@@ -108,6 +123,7 @@ internal sealed partial class SatisfiabilityValidator
     {
         var objectType = work.Key.ObjectType;
         bool? canReenterWithLookup = null;
+        _transitionExplanations.Clear();
 
         foreach (var field in objectType.Fields)
         {
@@ -330,7 +346,7 @@ internal sealed partial class SatisfiabilityValidator
             var canTransition = _schemaSets.Contains(work.Key.Reach, schemaName);
 
             Debug.Assert(
-                canTransition == ValidateSourceSchemaTransition(type, path, schemaName).IsEmpty,
+                AgreesWithTransitionHelper(canTransition, type, path, schemaName),
                 "The reach of the visit key disagrees with the source schema transition helper.");
 
             if (!canTransition)
@@ -342,7 +358,7 @@ internal sealed partial class SatisfiabilityValidator
                             previousSchemaName,
                             schemaName,
                             pathItem),
-                        ValidateSourceSchemaTransition(type, path, schemaName)));
+                        GetTransitionExplanation(type, path, schemaName)));
 
                 return null;
             }
@@ -361,6 +377,7 @@ internal sealed partial class SatisfiabilityValidator
             // the holding item.
             IReadOnlyList<SatisfiabilityPathItem> ancestors =
                 path?.Parent is { } parentPath ? [.. parentPath.EnumerateFromLeaf()] : [];
+            var budget = errors is null ? _decisionBudget : _requirementExplanationBudget;
 
             var requirementErrors =
                 _requirementsValidator.Validate(
@@ -369,6 +386,7 @@ internal sealed partial class SatisfiabilityValidator
                     path?.Item,
                     ancestors,
                     excludeSchemaName: schemaName,
+                    budget,
                     allowNestedFieldsFromExcludedSchema: true);
 
             // The requirement data is fetched from other schemas, so the schema must be able
@@ -385,7 +403,8 @@ internal sealed partial class SatisfiabilityValidator
                         path?.Item,
                         ancestors,
                         SatisfiabilityValidator_NoLookupForRequiringField,
-                        SatisfiabilityValidator_UnableToSatisfyRequirementForLookup);
+                        SatisfiabilityValidator_UnableToSatisfyRequirementForLookup,
+                        budget);
             }
 
             if (requirementErrors.Length != 0)
@@ -815,10 +834,49 @@ internal sealed partial class SatisfiabilityValidator
                 .Build());
     }
 
+    /// <summary>
+    /// Gets the explanation of why the object of the visited work item, held on
+    /// <paramref name="path"/>, cannot be held in <paramref name="schemaName"/>. The explanation is
+    /// computed once for each schema in a visit and is cut when it exceeds its entry budget.
+    /// </summary>
+    private ImmutableArray<SatisfiabilityError> GetTransitionExplanation(
+        MutableObjectTypeDefinition type,
+        PathNode? path,
+        string schemaName)
+    {
+        if (!_transitionExplanations.TryGetValue(schemaName, out var explanation))
+        {
+            var budget = SatisfiabilityExplanationBudget.Limited(MaxTransitionExplanationEntries);
+            explanation = ValidateSourceSchemaTransition(type, path, schemaName, budget);
+            _transitionExplanationEntryCount += budget.EntryCount;
+            _transitionExplanations.Add(schemaName, explanation);
+        }
+
+        return explanation;
+    }
+
+    /// <summary>
+    /// Determines whether the source schema transition helper agrees with
+    /// <paramref name="canTransition"/>, which is assumed when it cannot decide within the entry budget
+    /// of an explanation.
+    /// </summary>
+    private bool AgreesWithTransitionHelper(
+        bool canTransition,
+        MutableObjectTypeDefinition type,
+        PathNode? path,
+        string schemaName)
+    {
+        var budget = SatisfiabilityExplanationBudget.DecisionOnly(MaxTransitionExplanationEntries);
+        var errors = ValidateSourceSchemaTransition(type, path, schemaName, budget);
+
+        return budget.IsExhausted || canTransition == errors.IsEmpty;
+    }
+
     private ImmutableArray<SatisfiabilityError> ValidateSourceSchemaTransition(
         MutableObjectTypeDefinition type,
         PathNode? path,
-        string transitionToSchemaName)
+        string transitionToSchemaName,
+        SatisfiabilityExplanationBudget budget)
     {
         SatisfiabilityPathItem[] pathFromLeaf = [.. path.EnumerateFromLeaf()];
 
@@ -834,10 +892,12 @@ internal sealed partial class SatisfiabilityValidator
                     contextType,
                     pathFromParent.Count > 0 ? pathFromParent[0] : null,
                     ancestors: [],
-                    excludeSchemaName: transitionToSchemaName),
+                    excludeSchemaName: transitionToSchemaName,
+                    budget),
             SatisfiabilityValidator_NoLookupsFoundForType,
             SatisfiabilityValidator_UnableToSatisfyRequirementForLookup,
-            GetQueryViewerField(pathFromLeaf));
+            GetQueryViewerField(pathFromLeaf),
+            budget);
     }
 
     /// <summary>
