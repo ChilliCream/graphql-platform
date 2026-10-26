@@ -9,13 +9,8 @@ namespace Mocha.Outbox;
 public static class OutboxCoreServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers the core outbox services and persists outgoing messages before transport dispatch.
+    /// Registers the core outbox services and dispatch middleware.
     /// </summary>
-    /// <remarks>
-    /// Adds <see cref="IOutboxSignal"/> as a singleton and configures the dispatch pipeline
-    /// to persist outgoing messages (Publish, Send, Reply, Fault) through <see cref="IMessageOutbox"/>
-    /// instead of dispatching them directly.
-    /// </remarks>
     /// <param name="builder">The message bus host builder to configure.</param>
     /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
     public static IMessageBusHostBuilder UseOutboxCore(this IMessageBusHostBuilder builder)

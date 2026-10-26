@@ -228,7 +228,7 @@ dotnet ef database update
 
 # Schedule with SaveChanges
 
-Set `ScheduledTime` on the options passed to `db.Outbox.PublishAsync` or `SendAsync`. The message is staged as an ordinary outbox entry on the owning DbContext. Its next `SaveChanges` writes the entry in the same transaction as your entity changes.
+Set `ScheduledTime` on the options passed to `db.Outbox.PublishAsync` or `SendAsync`. The DbContext's next `SaveChanges` writes the message in the same transaction as your entity changes.
 
 With the PostgreSQL transport, the standard outbox and transport registrations support scheduling:
 
@@ -270,11 +270,9 @@ Use `db.Outbox.SendAsync` with `SendOptions.ScheduledTime` for a directed messag
 
 After the transaction commits, the outbox processor submits the stored envelope to the transport's scheduling store, or to the configured fallback if the transport has no native store. The outbox entry is deleted after a successful handoff; the scheduler handles delivery at the scheduled time. Application dispatch middleware does not run again during handoff or delivery.
 
-`AddPostgres()` registers native scheduling automatically. It requires neither `UsePostgresScheduling()` nor `AddPostgresScheduledMessages()`, and scheduling through the outbox requires no additional schema changes. For RabbitMQ, configure the existing [Postgres fallback](#set-up-store-based-scheduling-for-rabbitmq). If no scheduling store is available for the destination transport, publication throws before staging the message.
+`AddPostgres()` registers native scheduling. For RabbitMQ, configure the [Postgres fallback](#set-up-store-based-scheduling-for-rabbitmq). If no scheduling store is available for the destination transport, publication throws before staging the message.
 
-If the context is disposed without saving, its staged messages are discarded. A failed save retains them for a retry.
-
-Contexts resolved from DI attach to the caller's messaging scope automatically. For a context created directly through a factory, call `db.UseOutbox(bus)` before scheduling. Context and Mocha registrations can appear in either order. See [Publish with SaveChanges](./reliability.md#publish-with-savechanges) for scope, pooling, and transaction behavior.
+For a context created directly through a factory, call `db.UseOutbox(bus)` before scheduling. See [Publish with SaveChanges](./reliability.md#publish-with-savechanges) for attachment, retry, and transaction behavior.
 
 # Transport scheduling behavior
 

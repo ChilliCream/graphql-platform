@@ -9,8 +9,7 @@ namespace Mocha.EntityFrameworkCore;
 public interface IDbContextOutbox
 {
     /// <summary>
-    /// Serializes and attaches an envelope to the specified context for its next save.
-    /// On failure, the context must retain no changes from this operation.
+    /// Stages an envelope for the specified context's next save.
     /// </summary>
     void Stage(DbContext context, MessageEnvelope envelope, CancellationToken cancellationToken);
 
@@ -20,7 +19,7 @@ public interface IDbContextOutbox
     int CreateCheckpoint();
 
     /// <summary>
-    /// Detaches and releases messages staged after the specified marker.
+    /// Discards messages staged after the specified checkpoint.
     /// </summary>
     void Discard(DbContext context, int checkpoint);
 }

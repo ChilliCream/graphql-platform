@@ -105,11 +105,9 @@ builder.Services
     });
 ```
 
-`TenantDispatchMiddleware` is defined in [Middleware and Pipelines](../middleware-and-pipelines.md#dispatch-middleware). Dispatch ordering keys include `"Instrumentation"`, `"Scheduling"`, `"Serialization"`, and `"Outbox"` when enabled. Place message enrichment before `"Scheduling"`; scheduling and outbox middleware serialize and persist their messages without invoking downstream middleware.
+`TenantDispatchMiddleware` and dispatch ordering are covered in [Middleware and Pipelines](../middleware-and-pipelines.md#dispatch-middleware).
 
 Transport middleware applies only to endpoints on that transport.
-
-After commit, the outbox processor sends immediate messages directly through the transport and submits scheduled messages to its native scheduling store or the configured fallback. Application dispatch middleware does not run again during handoff or delivery. The PostgreSQL transport registers native scheduling automatically through `AddPostgres()`.
 
 # Customize queues and binding
 

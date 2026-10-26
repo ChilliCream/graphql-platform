@@ -1,7 +1,7 @@
 namespace Mocha.Middlewares;
 
 /// <summary>
-/// Persists a dispatch envelope without sending it to the transport.
+/// Persists a dispatch envelope.
 /// </summary>
 internal interface IDispatchMessageStore
 {

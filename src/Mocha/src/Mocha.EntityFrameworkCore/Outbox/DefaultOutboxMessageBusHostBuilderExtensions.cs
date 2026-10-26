@@ -10,7 +10,7 @@ namespace Mocha.EntityFrameworkCore;
 public static class DefaultOutboxMessageBusHostBuilderExtensions
 {
     /// <summary>
-    /// Selects the DbContext type used for message bus publishes when multiple outbox contexts are registered.
+    /// Selects the DbContext outbox used by the message bus.
     /// </summary>
     public static IMessageBusHostBuilder UseDefaultOutbox<TContext>(this IMessageBusHostBuilder builder)
         where TContext : DbContext

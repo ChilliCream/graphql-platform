@@ -7,7 +7,6 @@ namespace Mocha.EntityFrameworkCore;
 
 /// <summary>
 /// Stages messages for persistence in the same transaction as the owning DbContext's next save.
-/// The outbox must not be used after the context is disposed or returned to its pool.
 /// </summary>
 public sealed class DbContextOutbox : IResettableService, IDisposable, IDispatchMessageStore
 {
@@ -25,7 +24,7 @@ public sealed class DbContextOutbox : IResettableService, IDisposable, IDispatch
     internal bool IsPreparing => _preparing != 0;
 
     /// <summary>
-    /// Stages a publication for the next save using the attached messaging scope.
+    /// Stages a publication for the next save.
     /// </summary>
     public ValueTask PublishAsync<T>(T message, CancellationToken cancellationToken)
         where T : notnull
@@ -75,7 +74,7 @@ public sealed class DbContextOutbox : IResettableService, IDisposable, IDispatch
     }
 
     /// <summary>
-    /// Stages a directed message for the next save using the attached messaging scope.
+    /// Stages a directed message for the next save.
     /// </summary>
     public ValueTask SendAsync<T>(T message, CancellationToken cancellationToken)
         where T : notnull

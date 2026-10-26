@@ -638,7 +638,6 @@ public sealed class OutboxServiceRegistrationTests
 
         var provider = services.BuildServiceProvider();
 
-        // Build the runtime so that all singleton factories resolve
         _ = provider.GetRequiredService<IMessagingRuntime>();
 
         return provider;

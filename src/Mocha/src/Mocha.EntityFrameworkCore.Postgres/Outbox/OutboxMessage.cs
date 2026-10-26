@@ -17,7 +17,6 @@ public sealed class OutboxMessage(Guid id, JsonDocument envelope, DateTime creat
 
     /// <summary>
     /// Gets the serialized message envelope containing headers, body, and routing information.
-    /// The document remains valid until this entity is disposed.
     /// </summary>
     public JsonDocument Envelope { get; private set; } = envelope;
 

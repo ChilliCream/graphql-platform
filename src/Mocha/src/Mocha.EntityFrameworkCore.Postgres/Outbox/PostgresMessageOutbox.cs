@@ -13,15 +13,8 @@ using NpgsqlTypes;
 namespace Mocha.Outbox;
 
 /// <summary>
-/// Implements <see cref="IMessageOutbox"/> for Postgres by storing serialized message envelopes
-/// in the outbox table.
+/// Stores message envelopes in the PostgreSQL outbox.
 /// </summary>
-/// <remarks>
-/// Direct publishes participate in the DbContext transaction or ambient <see cref="System.Transactions.Transaction"/>
-/// and signal after commit. A direct publish or send without a transaction throws when a transaction is required,
-/// and otherwise signals immediately after insertion.
-/// Messages prepared with <see cref="DbContextOutbox"/> are persisted and signaled by its save.
-/// </remarks>
 internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
 {
     private readonly DbContext _dbContext;
@@ -38,7 +31,7 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
     /// <param name="dbContext">The DbContext whose connection is used for outbox inserts.</param>
     /// <param name="signal">The signal used to wake the outbox processor after a message is persisted.</param>
     /// <param name="insertSql">The parameterized SQL insert statement for the outbox table.</param>
-    /// <param name="requireTransaction">Whether a direct publish or send without an active transaction throws.</param>
+    /// <param name="requireTransaction">Whether a publish or send without an active transaction throws.</param>
     public PostgresMessageOutbox(
         DbContext dbContext,
         IOutboxSignal signal,

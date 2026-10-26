@@ -264,7 +264,7 @@ For each message type registration, the generator computes an "enclosed types" a
 
 **Fires when (AOT mode):** A message type used in a dispatch call (`PublishAsync`, `SendAsync`, etc.) is not found in the local `JsonSerializerContext` or imported module types.
 
-**Scope:** Messaging dispatch calls on `IMessageBus` and `DbContextOutbox`, including `db.Outbox.PublishAsync` and `db.Outbox.SendAsync`. Mediator dispatch (`ISender.SendAsync`, `ISender.QueryAsync`, `IPublisher.PublishAsync`) is excluded.
+**Scope:** Dispatch calls on `IMessageBus` and `DbContextOutbox`. Mediator dispatch is excluded.
 
 > **Note:** MO0017 is reserved and not currently used.
 

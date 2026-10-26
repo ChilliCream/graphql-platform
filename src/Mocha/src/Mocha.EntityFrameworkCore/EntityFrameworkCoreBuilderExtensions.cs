@@ -1,14 +1,12 @@
 namespace Mocha.EntityFrameworkCore;
 
 /// <summary>
-/// Provides extension methods on <see cref="IEntityFrameworkCoreBuilder"/> for configuring
-/// resilience and transaction middleware for Entity Framework Core consumers.
+/// Configures Entity Framework Core resilience and transaction middleware.
 /// </summary>
 public static class EntityFrameworkCoreBuilderExtensions
 {
     /// <summary>
-    /// Wraps consumer execution with the DbContext execution strategy, enabling automatic retry
-    /// for transient database failures such as connection drops or deadlocks.
+    /// Runs consumers with the DbContext execution strategy.
     /// </summary>
     /// <param name="builder">The Entity Framework Core builder to configure.</param>
     /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>

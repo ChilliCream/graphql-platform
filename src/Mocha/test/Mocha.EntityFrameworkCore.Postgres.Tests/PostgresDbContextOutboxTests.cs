@@ -1663,7 +1663,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
             await service.StopAsync(CancellationToken.None);
         }
 
-        // the processor loop is cancelled but not awaited, so let in-flight commits drain
+        // Allow pending commits to finish.
         await Task.Delay(250, CancellationToken.None);
     }
 

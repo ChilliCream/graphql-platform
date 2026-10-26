@@ -4,13 +4,9 @@ using Mocha.Middlewares;
 namespace Mocha.Outbox;
 
 /// <summary>
-/// Dispatch middleware that intercepts outgoing messages and persists them to the outbox store
-/// instead of forwarding them to the next pipeline stage.
-/// </summary>
-/// <remarks>
-/// Messages of kind Publish, Send, Reply, or Fault are redirected to <see cref="IMessageOutbox"/>.
+/// Persists outgoing publications, sends, replies, and faults in the outbox.
 /// All other message kinds pass through to the next middleware.
-/// </remarks>
+/// </summary>
 public sealed class DispatchOutboxMiddleware
 {
     /// <summary>

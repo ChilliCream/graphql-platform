@@ -5,13 +5,9 @@ using Mocha.Middlewares;
 namespace Mocha.Scheduling;
 
 /// <summary>
-/// Dispatch middleware that persists outgoing messages with a scheduled time and
-/// short-circuits the dispatch pipeline.
+/// Persists scheduled messages for later delivery.
+/// Unscheduled messages pass through to the next middleware.
 /// </summary>
-/// <remarks>
-/// Messages without a <see cref="IDispatchContext.ScheduledTime"/> pass through to the next middleware.
-/// Scheduled messages use the registered store for the current transport or an explicit outbox store.
-/// </remarks>
 public sealed class DispatchSchedulingMiddleware
 {
     /// <summary>
