@@ -32,6 +32,4 @@ public interface IEntityFrameworkCoreBuilder
     /// Gets the logical name used to identify this builder's configuration, typically the DbContext full type name.
     /// </summary>
     string Name { get; }
-
-    internal bool AddOutboxDbContext();
 }

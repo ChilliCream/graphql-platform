@@ -28,6 +28,7 @@ public sealed class DbContextOutboxSchedulingTests(PostgresFixture fixture) : IC
         var connectionString = await fixture.CreateDatabaseAsync();
         await using var provider = await CreateProviderAsync(connectionString);
         await using var scope = provider.CreateAsyncScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
         var db = scope.ServiceProvider.GetRequiredService<SchedulingDbContext>();
         var scheduledTime = new DateTimeOffset(2050, 1, 1, 0, 0, 0, TimeSpan.Zero);
         db.Orders.Add(new Order { Id = 1 });
@@ -35,12 +36,12 @@ public sealed class DbContextOutboxSchedulingTests(PostgresFixture fixture) : IC
         // act
         if (send)
         {
-            await db.Outbox.SendAsync(
+            await db.Outbox(bus).SendAsync(
                 new ScheduledCommand("scheduled"), new SendOptions { ScheduledTime = scheduledTime }, TestToken);
         }
         else
         {
-            await db.Outbox.PublishAsync(
+            await db.Outbox(bus).PublishAsync(
                 new ScheduledEvent("scheduled"), new PublishOptions { ScheduledTime = scheduledTime }, TestToken);
         }
 
@@ -99,13 +100,14 @@ public sealed class DbContextOutboxSchedulingTests(PostgresFixture fixture) : IC
         }, "FailAfterNext");
         await using var provider = await CreateProviderAsync(connectionString, middleware: middleware);
         await using var scope = provider.CreateAsyncScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
         var db = scope.ServiceProvider.GetRequiredService<SchedulingDbContext>();
-        await db.Outbox.PublishAsync(new ScheduledEvent("keep"), TestToken);
+        await db.Outbox(bus).PublishAsync(new ScheduledEvent("keep"), TestToken);
 
         // act
         fail = true;
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            await db.Outbox.PublishAsync(
+            await db.Outbox(bus).PublishAsync(
                 new ScheduledEvent("discard"), new PublishOptions { ScheduledTime = DateTimeOffset.UtcNow }, TestToken));
         await db.SaveChangesAsync(TestToken);
 
@@ -130,12 +132,13 @@ public sealed class DbContextOutboxSchedulingTests(PostgresFixture fixture) : IC
         var connectionString = await fixture.CreateDatabaseAsync();
         await using var provider = await CreateProviderAsync(connectionString);
         await using var scope = provider.CreateAsyncScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
         var db = scope.ServiceProvider.GetRequiredService<SchedulingDbContext>();
         db.Orders.Add(new Order { Id = 1 });
         await db.SaveChangesAsync(TestToken);
         db.ChangeTracker.Clear();
         var duplicate = db.Orders.Add(new Order { Id = 1 });
-        await db.Outbox.PublishAsync(
+        await db.Outbox(bus).PublishAsync(
             new ScheduledEvent("retry"), new PublishOptions { ScheduledTime = DateTimeOffset.UtcNow }, TestToken);
         var staged = db.ChangeTracker.Entries<OutboxMessage>().Single().Entity;
         var id = staged.Id;
@@ -173,9 +176,10 @@ public sealed class DbContextOutboxSchedulingTests(PostgresFixture fixture) : IC
         var connectionString = await fixture.CreateDatabaseAsync();
         await using var provider = await CreateProviderAsync(connectionString);
         await using var scope = provider.CreateAsyncScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
         var db = scope.ServiceProvider.GetRequiredService<SchedulingDbContext>();
         db.Orders.Add(new Order { Id = 1 });
-        await db.Outbox.PublishAsync(
+        await db.Outbox(bus).PublishAsync(
             new ScheduledEvent("rollback"), new PublishOptions { ScheduledTime = DateTimeOffset.UtcNow }, TestToken);
         var entry = db.ChangeTracker.Entries<OutboxMessage>().Single();
 
@@ -220,8 +224,9 @@ public sealed class DbContextOutboxSchedulingTests(PostgresFixture fixture) : IC
         using (var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
             await using var scope = provider.CreateAsyncScope();
+            var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
             var db = scope.ServiceProvider.GetRequiredService<SchedulingDbContext>();
-            await db.Outbox.PublishAsync(
+            await db.Outbox(bus).PublishAsync(
                 new ScheduledEvent("ambient"), new PublishOptions { ScheduledTime = DateTimeOffset.UtcNow }, TestToken);
             await db.SaveChangesAsync(TestToken);
             signal.Events.Enqueue("before-complete");
@@ -248,8 +253,9 @@ public sealed class DbContextOutboxSchedulingTests(PostgresFixture fixture) : IC
         JsonDocument document;
         await using (var scope = provider.CreateAsyncScope())
         {
+            var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
             first = scope.ServiceProvider.GetRequiredService<SchedulingDbContext>();
-            await first.Outbox.PublishAsync(
+            await first.Outbox(bus).PublishAsync(
                 new ScheduledEvent("discard"), new PublishOptions { ScheduledTime = DateTimeOffset.UtcNow }, TestToken);
             document = first.ChangeTracker.Entries<OutboxMessage>().Single().Entity.Envelope;
         }
@@ -273,11 +279,12 @@ public sealed class DbContextOutboxSchedulingTests(PostgresFixture fixture) : IC
         var connectionString = await fixture.CreateDatabaseAsync();
         await using var provider = await CreateProviderAsync(connectionString);
         await using var scope = provider.CreateAsyncScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
         var db = scope.ServiceProvider.GetRequiredService<SchedulingDbContext>();
         var recorder = provider.GetRequiredService<Recorder>();
 
         // act
-        await db.Outbox.PublishAsync(
+        await db.Outbox(bus).PublishAsync(
             new ScheduledEvent("delivered"),
             new PublishOptions { ScheduledTime = DateTimeOffset.UtcNow.AddSeconds(-1) },
             TestToken);

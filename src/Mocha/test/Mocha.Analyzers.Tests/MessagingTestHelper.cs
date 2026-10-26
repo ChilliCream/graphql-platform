@@ -206,7 +206,7 @@ internal static class MessagingTestHelper
             // Mocha.Mediator (IPublisher and ISender)
             MetadataReference.CreateFromFile(typeof(Mediator.IPublisher).Assembly.Location),
 
-            // Mocha.EntityFrameworkCore (DbContextOutbox and DbContext.Outbox)
+            // Mocha.EntityFrameworkCore (DbContextOutbox and DbContext.Outbox(bus))
             MetadataReference.CreateFromFile(typeof(EntityFrameworkCore.DbContextOutbox).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Microsoft.EntityFrameworkCore.DbContext).Assembly.Location),
 

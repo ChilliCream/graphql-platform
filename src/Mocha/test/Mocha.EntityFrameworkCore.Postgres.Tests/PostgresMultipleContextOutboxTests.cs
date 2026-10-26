@@ -89,13 +89,14 @@ public sealed class PostgresMultipleContextOutboxTests(PostgresFixture fixture) 
         var secondConnection = await fixture.CreateDatabaseAsync();
         await using var provider = await CreateProviderAsync(firstConnection, secondConnection, false);
         await using var scope = provider.CreateAsyncScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
         var first = scope.ServiceProvider.GetRequiredService<FirstDbContext>();
         var second = scope.ServiceProvider.GetRequiredService<SecondDbContext>();
         var counts = new List<(int First, int Second)>();
 
         // act
-        await first.Outbox.PublishAsync(new ContextEvent("first"), TestToken);
-        await second.Outbox.PublishAsync(new ContextEvent("second"), TestToken);
+        await first.Outbox(bus).PublishAsync(new ContextEvent("first"), TestToken);
+        await second.Outbox(bus).PublishAsync(new ContextEvent("second"), TestToken);
         counts.Add(await CountRowsAsync(provider));
         await first.SaveChangesAsync(TestToken);
         counts.Add(await CountRowsAsync(provider));

@@ -2,7 +2,6 @@ using CookieCrumble;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
-using Mocha.Middlewares;
 using Mocha.Outbox;
 using Mocha.Scheduling;
 using Mocha.Transport.InMemory;
@@ -26,6 +25,7 @@ public sealed class PostgresOutboxSchedulingTests(PostgresFixture fixture) : ICl
         var connectionString = await fixture.CreateDatabaseAsync();
         await using var provider = await CreateProviderAsync<TestDbContext>(connectionString, Scheduler.Postgres);
         await using var scope = provider.CreateAsyncScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
         var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
         var recorder = provider.GetRequiredService<Recorder>();
         var scheduledTime = DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 5);
@@ -33,12 +33,12 @@ public sealed class PostgresOutboxSchedulingTests(PostgresFixture fixture) : ICl
         // act
         if (send)
         {
-            await db.Outbox.SendAsync(
+            await db.Outbox(bus).SendAsync(
                 new SendReminderCommand("scheduled"), new SendOptions { ScheduledTime = scheduledTime }, TestToken);
         }
         else
         {
-            await db.Outbox.PublishAsync(
+            await db.Outbox(bus).PublishAsync(
                 new ReminderDueEvent("scheduled"), new PublishOptions { ScheduledTime = scheduledTime }, TestToken);
         }
 
@@ -87,11 +87,12 @@ public sealed class PostgresOutboxSchedulingTests(PostgresFixture fixture) : ICl
         var connectionString = await fixture.CreateDatabaseAsync();
         await using var provider = await CreateProviderAsync<TestDbContext>(connectionString, Scheduler.Postgres);
         await using var scope = provider.CreateAsyncScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
         var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
         var recorder = provider.GetRequiredService<Recorder>();
 
         // act
-        await db.Outbox.PublishAsync(
+        await db.Outbox(bus).PublishAsync(
             new ReminderDueEvent("rolled-back"),
             new PublishOptions { ScheduledTime = DateTimeOffset.UtcNow.AddSeconds(-1) },
             TestToken);
@@ -133,9 +134,10 @@ public sealed class PostgresOutboxSchedulingTests(PostgresFixture fixture) : ICl
         var connectionString = await fixture.CreateDatabaseAsync();
         await using var provider = await CreateProviderAsync<TestDbContext>(connectionString, Scheduler.Postgres);
         await using var scope = provider.CreateAsyncScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
         var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
         var recorder = provider.GetRequiredService<Recorder>();
-        await db.Outbox.SendAsync(
+        await db.Outbox(bus).SendAsync(
             new SendReminderCommand("retried"),
             new SendOptions { ScheduledTime = DateTimeOffset.UtcNow.AddSeconds(-1) },
             TestToken);
@@ -164,7 +166,7 @@ public sealed class PostgresOutboxSchedulingTests(PostgresFixture fixture) : ICl
             retained.TimesSent,
             delivered.Payload,
             recorder.MiddlewareCalls,
-            OutboxEmpty = await db.Set<OutboxMessage>().CountAsync(TestToken) == 0
+            OutboxEmpty = !await db.Set<OutboxMessage>().AnyAsync(TestToken)
         }.MatchInlineSnapshot(
             """
             {
@@ -186,11 +188,12 @@ public sealed class PostgresOutboxSchedulingTests(PostgresFixture fixture) : ICl
         var connectionString = await fixture.CreateDatabaseAsync();
         await using var provider = await CreateProviderAsync<TestDbContext>(connectionString, Scheduler.None);
         await using var scope = provider.CreateAsyncScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
         var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
 
         // act
         var exception = await Assert.ThrowsAsync<NotSupportedException>(async () =>
-            await db.Outbox.PublishAsync(
+            await db.Outbox(bus).PublishAsync(
                 new ReminderDueEvent("unsupported"),
                 new PublishOptions { ScheduledTime = DateTimeOffset.UtcNow },
                 TestToken));
@@ -212,12 +215,13 @@ public sealed class PostgresOutboxSchedulingTests(PostgresFixture fixture) : ICl
         var connectionString = await fixture.CreateDatabaseAsync();
         await using var provider = await CreateProviderAsync<FallbackDbContext>(connectionString, Scheduler.Fallback);
         await using var scope = provider.CreateAsyncScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
         var db = scope.ServiceProvider.GetRequiredService<FallbackDbContext>();
         var recorder = provider.GetRequiredService<Recorder>();
         var scheduledTime = DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 5);
 
         // act
-        await db.Outbox.PublishAsync(
+        await db.Outbox(bus).PublishAsync(
             new ReminderDueEvent("fallback"), new PublishOptions { ScheduledTime = scheduledTime }, TestToken);
         var beforeSave = await ReadCountsAsync(connectionString, Scheduler.Fallback);
         await db.SaveChangesAsync(TestToken);

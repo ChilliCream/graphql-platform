@@ -19,11 +19,15 @@ public static class OutboxEntityFrameworkCorePersistenceBuilderExtensions
     /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
     public static IEntityFrameworkCoreBuilder UseOutboxCore(this IEntityFrameworkCoreBuilder builder)
     {
-        if (!builder.AddOutboxDbContext())
+        if (builder.Services.Any(descriptor =>
+            descriptor.ServiceType == typeof(OutboxDbContextRegistration)
+            && descriptor.ImplementationInstance is OutboxDbContextRegistration registration
+            && registration.ContextType == builder.ContextType))
         {
             return builder;
         }
 
+        builder.Services.AddSingleton(new OutboxDbContextRegistration(builder.ContextType));
         builder.HostBuilder.UseOutboxCore();
 
         builder.ConfigureEntityFrameworkServices((sp, services) =>
@@ -31,8 +35,8 @@ public static class OutboxEntityFrameworkCorePersistenceBuilderExtensions
             var signal = sp.GetRequiredService<IOutboxSignal>();
             services.AddSingleton<IInterceptor>(new OutboxDbTransactionInterceptor(signal));
             services.AddSingleton<IInterceptor>(new OutboxSaveChangesInterceptor(signal));
-            services.AddScoped(static s => new DbContextOutbox(s.GetRequiredService<ICurrentDbContext>().Context));
-            services.AddScoped<IResettableService>(static s => s.GetRequiredService<DbContextOutbox>());
+            services.AddScoped<DbContextOutboxState>();
+            services.AddScoped<IResettableService>(static s => s.GetRequiredService<DbContextOutboxState>());
         });
 
         return builder;

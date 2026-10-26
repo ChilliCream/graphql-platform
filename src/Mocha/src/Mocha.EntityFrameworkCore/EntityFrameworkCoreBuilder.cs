@@ -23,7 +23,4 @@ internal sealed class EntityFrameworkCoreBuilder<
 
     /// <inheritdoc />
     public string Name { get; } = typeof(TContext).FullName ?? typeof(TContext).Name;
-
-    bool IEntityFrameworkCoreBuilder.AddOutboxDbContext()
-        => Services.AddOutboxDbContext<TContext>();
 }

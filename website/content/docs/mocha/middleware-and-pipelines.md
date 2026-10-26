@@ -217,7 +217,7 @@ Dispatch middleware wraps the outbound path. Use it for concerns on every outgoi
 
 The default dispatch order is instrumentation, application middleware, scheduling, outbox persistence when enabled, serialization, and transport dispatch. Scheduling and outbox middleware serialize the messages they persist and return without calling the next middleware. Other messages continue to serialization and transport dispatch.
 
-`DbContext.Outbox` uses this pipeline to stage messages for its next save, including scheduled messages. Place enrichment middleware before `"Scheduling"` and change message data and headers before calling `next(context)`. Later changes do not affect the serialized message.
+`db.Outbox(bus)` uses this pipeline to stage messages for its next save, including scheduled messages. Place enrichment middleware before `"Scheduling"` and change message data and headers before calling `next(context)`. Later changes do not affect the serialized message.
 
 Outbox and scheduler workers deliver stored envelopes without running dispatch middleware again.
 

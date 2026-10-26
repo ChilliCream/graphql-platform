@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Features;
 using Mocha.Middlewares;
+using Mocha.Outbox;
 
 namespace Mocha.Scheduling;
 
@@ -33,6 +34,13 @@ public sealed class DispatchSchedulingMiddleware
         }
 
         var store = ResolveStore(context);
+
+        if (context.Features.Get<IMessageOutbox>() is { } outbox)
+        {
+            await outbox.PersistAsync(context.Envelope, context.CancellationToken);
+            return;
+        }
+
         var token = await store.PersistAsync(context, context.CancellationToken);
 
         context.Features.Configure<ScheduledMessageFeature>(f => f.Token = token);

@@ -1,6 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.Extensions.DependencyInjection;
 using Mocha.Middlewares;
 using Mocha.Outbox;
 
@@ -9,22 +7,28 @@ namespace Mocha.EntityFrameworkCore;
 /// <summary>
 /// Stages messages for persistence in the same transaction as the owning DbContext's next save.
 /// </summary>
-public sealed class DbContextOutbox : IResettableService, IDisposable, IMessageOutbox
+public sealed class DbContextOutbox : IMessageOutbox
 {
     private readonly DbContext _context;
+    private readonly DefaultMessageBus _bus;
+    private readonly IDbContextOutbox _outbox;
+    private readonly DbContextOutboxState _state;
+    private readonly int _version;
     private readonly Action<IDispatchContext> _configureDispatch;
-    private IServiceProvider? _services;
-    private IMessageBus? _bus;
-    private IDbContextOutbox? _outbox;
-    private int _preparing;
 
-    internal DbContextOutbox(DbContext context)
+    internal DbContextOutbox(
+        DbContext context,
+        DefaultMessageBus bus,
+        IDbContextOutbox outbox,
+        DbContextOutboxState state)
     {
         _context = context;
+        _bus = bus;
+        _outbox = outbox;
+        _state = state;
+        _version = state.Version;
         _configureDispatch = dispatchContext => dispatchContext.Features.Set<IMessageOutbox>(this);
     }
-
-    internal bool IsPreparing => _preparing != 0;
 
     /// <summary>
     /// Stages a publication for the next save.
@@ -43,7 +47,12 @@ public sealed class DbContextOutbox : IResettableService, IDisposable, IMessageO
         where T : notnull
     {
         ArgumentNullException.ThrowIfNull(message);
-        if (Interlocked.CompareExchange(ref _preparing, 1, 0) != 0)
+        if (_version != _state.Version)
+        {
+            throw ThrowHelper.OutboxContextDisposed();
+        }
+
+        if (Interlocked.CompareExchange(ref _state.Preparing, 1, 0) != 0)
         {
             throw ThrowHelper.ConcurrentOutboxOperation();
         }
@@ -51,28 +60,21 @@ public sealed class DbContextOutbox : IResettableService, IDisposable, IMessageO
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var bus = GetBus();
-            if (bus is not DefaultMessageBus defaultBus)
-            {
-                throw ThrowHelper.OutboxBusNotSupported(bus.GetType());
-            }
-
-            var outbox = _outbox ??= GetOutbox();
-            var checkpoint = outbox.CreateCheckpoint();
+            var checkpoint = _outbox.CreateCheckpoint();
             try
             {
-                await defaultBus.PublishAsync(message, options, _configureDispatch, cancellationToken);
+                await _bus.PublishAsync(message, options, _configureDispatch, cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
             }
             catch
             {
-                outbox.Discard(_context, checkpoint);
+                _outbox.Discard(_context, checkpoint);
                 throw;
             }
         }
         finally
         {
-            _preparing = 0;
+            Volatile.Write(ref _state.Preparing, 0);
         }
     }
 
@@ -93,7 +95,12 @@ public sealed class DbContextOutbox : IResettableService, IDisposable, IMessageO
         where T : notnull
     {
         ArgumentNullException.ThrowIfNull(message);
-        if (Interlocked.CompareExchange(ref _preparing, 1, 0) != 0)
+        if (_version != _state.Version)
+        {
+            throw ThrowHelper.OutboxContextDisposed();
+        }
+
+        if (Interlocked.CompareExchange(ref _state.Preparing, 1, 0) != 0)
         {
             throw ThrowHelper.ConcurrentOutboxOperation();
         }
@@ -101,90 +108,34 @@ public sealed class DbContextOutbox : IResettableService, IDisposable, IMessageO
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var bus = GetBus();
-            if (bus is not DefaultMessageBus defaultBus)
-            {
-                throw ThrowHelper.OutboxBusNotSupported(bus.GetType());
-            }
-
-            var outbox = _outbox ??= GetOutbox();
-            var checkpoint = outbox.CreateCheckpoint();
+            var checkpoint = _outbox.CreateCheckpoint();
             try
             {
-                await defaultBus.SendAsync(message, options, _configureDispatch, cancellationToken);
+                await _bus.SendAsync(message, options, _configureDispatch, cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
             }
             catch
             {
-                outbox.Discard(_context, checkpoint);
+                _outbox.Discard(_context, checkpoint);
                 throw;
             }
         }
         finally
         {
-            _preparing = 0;
+            Volatile.Write(ref _state.Preparing, 0);
         }
     }
-
-    void IResettableService.ResetState() => Reset();
-
-    Task IResettableService.ResetStateAsync(CancellationToken cancellationToken)
-    {
-        Reset();
-        return Task.CompletedTask;
-    }
-
-    void IDisposable.Dispose() => Reset();
-
-    internal void Attach(IServiceProvider services)
-    {
-        if ((_services is not null && !ReferenceEquals(_services, services))
-            || (_bus is not null && !ReferenceEquals(_bus, services.GetRequiredService<IMessageBus>())))
-        {
-            throw ThrowHelper.OutboxAlreadyAttached();
-        }
-
-        _services = services;
-    }
-
-    internal void Attach(IMessageBus bus)
-    {
-        if (bus is not DefaultMessageBus)
-        {
-            throw ThrowHelper.OutboxBusNotSupported(bus.GetType());
-        }
-
-        var current = _bus ?? _services?.GetRequiredService<IMessageBus>();
-        if (current is not null && !ReferenceEquals(current, bus))
-        {
-            throw ThrowHelper.OutboxAlreadyAttached();
-        }
-
-        _outbox ??= GetOutbox();
-        _bus = bus;
-    }
-
-    internal IMessageBus GetBus()
-        => _bus ??= _services?.GetRequiredService<IMessageBus>()
-            ?? throw ThrowHelper.OutboxNotAttached(_context.GetType());
 
     ValueTask IMessageOutbox.PersistAsync(MessageEnvelope envelope, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        (_outbox ??= GetOutbox()).Stage(_context, envelope, cancellationToken);
+        if (_version != _state.Version)
+        {
+            throw ThrowHelper.OutboxContextDisposed();
+        }
+
+        _outbox.Stage(_context, envelope, cancellationToken);
 
         return default;
     }
-
-    private void Reset()
-    {
-        _services = null;
-        _bus = null;
-        _outbox = null;
-        _preparing = 0;
-    }
-
-    private IDbContextOutbox GetOutbox()
-        => _context.GetInfrastructure().GetService<IDbContextOutbox>()
-            ?? throw ThrowHelper.OutboxStagingNotSupported(_context.GetType());
 }

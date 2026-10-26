@@ -15,7 +15,7 @@ internal sealed class OutboxSaveChangesInterceptor(IOutboxSignal signal) : SaveC
         DbContextEventData eventData,
         InterceptionResult<int> result)
     {
-        if (eventData.Context?.GetInfrastructure().GetService<DbContextOutbox>()?.IsPreparing is true)
+        if (eventData.Context?.GetInfrastructure().GetService<DbContextOutboxState>()?.IsPreparing is true)
         {
             throw ThrowHelper.ConcurrentOutboxOperation();
         }

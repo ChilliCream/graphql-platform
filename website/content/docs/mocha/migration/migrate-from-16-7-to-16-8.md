@@ -19,11 +19,11 @@ Dispatch middleware runs when a message is published or sent, including schedule
 
 The built-in ordering keys are `"Instrumentation"`, `"Scheduling"`, `"Serialization"`, and `"Outbox"` when enabled. Place enrichment middleware before `"Scheduling"`. The scheduling and outbox middleware serialize and persist their messages without invoking downstream middleware.
 
-For a new message, `context.Envelope` is unset before serialization unless middleware supplies one. Update the message and metadata before calling `next(context)`. Changes made after `await next(context)` do not affect the stored message, including when publishing through `db.Outbox`.
+For a new message, `context.Envelope` is unset before serialization unless middleware supplies one. Update the message and metadata before calling `next(context)`. Changes made after `await next(context)` do not affect the stored message, including when publishing through `db.Outbox(bus)`.
 
 ## Select a default when configuring multiple outbox contexts
 
-Direct `IMessageBus` publication now requires `UseDefaultOutbox<TContext>()` when more than one outbox context is configured; it previously used the first registration. Publication through `db.Outbox` uses that context instance and does not require a default.
+Direct `IMessageBus` publication now requires `UseDefaultOutbox<TContext>()` when more than one outbox context is configured; it previously used the first registration. Publication through `db.Outbox(bus)` uses that context instance and does not require a default.
 
 ## Resolve PostgreSQL outbox processors by DbContext type
 
@@ -41,12 +41,13 @@ The host continues to start an outbox worker for each registered context automat
 
 # Publish with SaveChanges
 
-Version 16.8 adds `DbContext.Outbox.PublishAsync` for staging messages until that exact context saves:
+Version 16.8 adds `db.Outbox(bus)`, which returns a `DbContextOutbox` for staging messages until that exact context saves:
 
 ```csharp
 using Mocha.EntityFrameworkCore;
 
-await db.Outbox.PublishAsync(message, cancellationToken);
+DbContextOutbox outbox = db.Outbox(bus);
+await outbox.PublishAsync(message, cancellationToken);
 await db.SaveChangesAsync(cancellationToken);
 ```
 
@@ -67,26 +68,26 @@ builder.Services.AddPooledDbContextFactory<AppDbContext>(options =>
 
 ```csharp
 await using var db = await factory.CreateDbContextAsync(cancellationToken);
-db.UseOutbox(bus);
+DbContextOutbox outbox = db.Outbox(bus);
 
 db.Orders.Add(order);
 
-await db.Outbox.PublishAsync(message, cancellationToken);
+await outbox.PublishAsync(message, cancellationToken);
 await db.SaveChangesAsync(cancellationToken);
 ```
 
-Call `UseOutbox(bus)` for each context created directly through a factory, including each pooled lease. Contexts resolved from scoped DI attach automatically.
+Use the same `db.Outbox(bus)` call for scoped contexts and contexts created through regular or pooled factories. Use the returned outbox only during that context's lifetime or pooled lease.
 
 Context instances must use the database and outbox table mapping configured for their relay. Configure a relay for every additional database or outbox table used by the application.
 
 ## Use the caller's messaging scope
 
-`DbContext.Outbox` runs middleware with the attached caller's messaging services. Returning a pooled context clears its attachment.
+`db.Outbox(bus)` runs middleware with the supplied bus's messaging services.
 
 The active consumer's conversation and causation identifiers flow into published message metadata. Middleware can resolve caller-scoped services. You can also supply message metadata explicitly:
 
 ```csharp
-await db.Outbox.PublishAsync(
+await db.Outbox(bus).PublishAsync(
     message,
     new PublishOptions
     {
@@ -103,10 +104,10 @@ See [Publish with SaveChanges](../reliability.md#publish-with-savechanges) for r
 
 ## Schedule with SaveChanges
 
-Set `ScheduledTime` on the options passed to `db.Outbox.PublishAsync` or `SendAsync`:
+Set `ScheduledTime` on the options passed to `db.Outbox(bus).PublishAsync` or `SendAsync`:
 
 ```csharp
-await db.Outbox.PublishAsync(
+await db.Outbox(bus).PublishAsync(
     message,
     new PublishOptions
     {

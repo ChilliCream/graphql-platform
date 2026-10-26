@@ -9,26 +9,26 @@ namespace Mocha.EntityFrameworkCore;
 /// </summary>
 public static class DbContextOutboxExtensions
 {
-    extension(DbContext context)
+    /// <summary>
+    /// Creates an outbox for this context using the specified message bus.
+    /// The outbox is valid for the current lifetime of the context.
+    /// </summary>
+    public static DbContextOutbox Outbox(this DbContext context, IMessageBus bus)
     {
-        /// <summary>
-        /// Attaches the caller's messaging scope to this DbContext.
-        /// </summary>
-        public void UseOutbox(IMessageBus bus)
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(bus);
+
+        if (bus is not DefaultMessageBus defaultBus)
         {
-            ArgumentNullException.ThrowIfNull(context);
-            ArgumentNullException.ThrowIfNull(bus);
-            context.Outbox.Attach(bus);
+            throw ThrowHelper.OutboxBusNotSupported(bus.GetType());
         }
 
-        /// <summary>
-        /// Gets the outbox whose messages are written by the next save of this DbContext.
-        /// </summary>
-        /// <exception cref="InvalidOperationException">
-        /// The DbContext is not registered with an outbox through <c>AddEntityFramework</c>.
-        /// </exception>
-        public DbContextOutbox Outbox
-            => context.GetInfrastructure().GetService<DbContextOutbox>()
-                ?? throw ThrowHelper.OutboxNotConfigured(context.GetType());
+        var services = context.GetInfrastructure();
+        var state = services.GetService<DbContextOutboxState>()
+            ?? throw ThrowHelper.OutboxNotConfigured(context.GetType());
+        var outbox = services.GetService<IDbContextOutbox>()
+            ?? throw ThrowHelper.OutboxStagingNotSupported(context.GetType());
+
+        return new DbContextOutbox(context, defaultBus, outbox, state);
     }
 }

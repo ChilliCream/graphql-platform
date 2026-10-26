@@ -6,18 +6,26 @@ namespace Mocha.Analyzers.Tests;
 public class OutboxCallSiteTests
 {
     [Theory]
-    [InlineData("db.Outbox.PublishAsync(new OutboundMessage(), cancellationToken)")]
-    [InlineData("db.Outbox.PublishAsync<OutboundMessage>(new(), cancellationToken)")]
-    [InlineData("db.Outbox.PublishAsync(new OutboundMessage(), PublishOptions.Default, cancellationToken)")]
+    [InlineData("db.Outbox(bus).PublishAsync(new OutboundMessage(), cancellationToken)")]
+    [InlineData("db.Outbox(bus).PublishAsync<OutboundMessage>(new(), cancellationToken)")]
+    [InlineData("db.Outbox(bus).PublishAsync(new OutboundMessage(), PublishOptions.Default, cancellationToken)")]
+    [InlineData("outbox.PublishAsync(new OutboundMessage(), cancellationToken)")]
     [InlineData("outbox.PublishAsync<OutboundMessage>(new(), PublishOptions.Default, cancellationToken)")]
-    [InlineData("db.Outbox.SendAsync(new OutboundMessage(), cancellationToken)")]
-    [InlineData("db.Outbox.SendAsync<OutboundMessage>(new(), cancellationToken)")]
-    [InlineData("db.Outbox.SendAsync(new OutboundMessage(), SendOptions.Default, cancellationToken)")]
+    [InlineData("typedOutbox.PublishAsync(new OutboundMessage(), cancellationToken)")]
+    [InlineData("typedOutbox.PublishAsync<OutboundMessage>(new(), PublishOptions.Default, cancellationToken)")]
+    [InlineData("db.Outbox(bus).SendAsync(new OutboundMessage(), cancellationToken)")]
+    [InlineData("db.Outbox(bus).SendAsync<OutboundMessage>(new(), cancellationToken)")]
+    [InlineData("db.Outbox(bus).SendAsync(new OutboundMessage(), SendOptions.Default, cancellationToken)")]
+    [InlineData("outbox.SendAsync(new OutboundMessage(), cancellationToken)")]
     [InlineData("outbox.SendAsync<OutboundMessage>(new(), SendOptions.Default, cancellationToken)")]
-    [InlineData("db.Outbox.PublishAsync(new OutboundMessage(), new PublishOptions { ScheduledTime = System.DateTimeOffset.UtcNow }, cancellationToken)")]
-    [InlineData("db.Outbox.SendAsync(new OutboundMessage(), new SendOptions { ScheduledTime = System.DateTimeOffset.UtcNow }, cancellationToken)")]
+    [InlineData("typedOutbox.SendAsync(new OutboundMessage(), cancellationToken)")]
+    [InlineData("typedOutbox.SendAsync<OutboundMessage>(new(), SendOptions.Default, cancellationToken)")]
+    [InlineData("db.Outbox(bus).PublishAsync(new OutboundMessage(), new PublishOptions { ScheduledTime = System.DateTimeOffset.UtcNow }, cancellationToken)")]
+    [InlineData("db.Outbox(bus).SendAsync(new OutboundMessage(), new SendOptions { ScheduledTime = System.DateTimeOffset.UtcNow }, cancellationToken)")]
     [InlineData("outbox.PublishAsync<OutboundMessage>(new(), new PublishOptions { ScheduledTime = System.DateTimeOffset.UtcNow }, cancellationToken)")]
     [InlineData("outbox.SendAsync<OutboundMessage>(new(), new SendOptions { ScheduledTime = System.DateTimeOffset.UtcNow }, cancellationToken)")]
+    [InlineData("typedOutbox.PublishAsync(new OutboundMessage(), new PublishOptions { ScheduledTime = System.DateTimeOffset.UtcNow }, cancellationToken)")]
+    [InlineData("typedOutbox.SendAsync(new OutboundMessage(), new SendOptions { ScheduledTime = System.DateTimeOffset.UtcNow }, cancellationToken)")]
     public void Generate_Should_RegisterOutboundMessage_When_OutboxDispatches(string expression)
     {
         // arrange
@@ -39,16 +47,21 @@ public class OutboxCallSiteTests
     }
 
     [Theory]
-    [InlineData("PublishAsync", "Publish", "PublishOptions")]
-    [InlineData("SendAsync", "Send", "SendOptions")]
+    [InlineData("db.Outbox(bus)", "PublishAsync", "Publish", "PublishOptions")]
+    [InlineData("db.Outbox(bus)", "SendAsync", "Send", "SendOptions")]
+    [InlineData("outbox", "PublishAsync", "Publish", "PublishOptions")]
+    [InlineData("outbox", "SendAsync", "Send", "SendOptions")]
+    [InlineData("typedOutbox", "PublishAsync", "Publish", "PublishOptions")]
+    [InlineData("typedOutbox", "SendAsync", "Send", "SendOptions")]
     public void Generate_Should_ReportMissingJsonType_When_OutboxDispatchesInAotMode(
+        string receiver,
         string method,
         string kind,
         string options)
     {
         // arrange
         var source = CreateSource(
-            $"db.Outbox.{method}(new OutboundMessage(), {options}.Default, cancellationToken)",
+            $"{receiver}.{method}(new OutboundMessage(), {options}.Default, cancellationToken)",
             jsonContext: true);
 
         // act
@@ -65,13 +78,17 @@ public class OutboxCallSiteTests
     }
 
     [Theory]
-    [InlineData("PublishAsync")]
-    [InlineData("SendAsync")]
-    public void Generate_Should_AcceptJsonType_When_OutboxMessageIsRegistered(string method)
+    [InlineData("db.Outbox(bus)", "PublishAsync")]
+    [InlineData("db.Outbox(bus)", "SendAsync")]
+    [InlineData("outbox", "PublishAsync")]
+    [InlineData("outbox", "SendAsync")]
+    [InlineData("typedOutbox", "PublishAsync")]
+    [InlineData("typedOutbox", "SendAsync")]
+    public void Generate_Should_AcceptJsonType_When_OutboxMessageIsRegistered(string receiver, string method)
     {
         // arrange
         var source = CreateSource(
-            $"db.Outbox.{method}(new OutboundMessage(), cancellationToken)",
+            $"{receiver}.{method}(new OutboundMessage(), cancellationToken)",
             jsonContext: true,
             registerOutboundMessage: true);
 
@@ -125,8 +142,8 @@ public class OutboxCallSiteTests
 
             public sealed class Dispatcher
             {
-                public ValueTask DispatchAsync(DbContext db, CancellationToken cancellationToken)
-                    => db.Outbox.{{method}}(new OutboundMessage(), cancellationToken);
+                public ValueTask DispatchAsync(DbContext db, IMessageBus bus, CancellationToken cancellationToken)
+                    => db.Outbox(bus).{{method}}(new OutboundMessage(), cancellationToken);
             }
             """;
 
@@ -229,10 +246,14 @@ public class OutboxCallSiteTests
             {
                 public async ValueTask DispatchAsync(
                     DbContext db,
-                    Mocha.EntityFrameworkCore.DbContextOutbox outbox,
+                    IMessageBus bus,
                     DbContextOutbox unrelated,
                     CancellationToken cancellationToken)
-                    => await {{expression}};
+                {
+                    var outbox = db.Outbox(bus);
+                    Mocha.EntityFrameworkCore.DbContextOutbox typedOutbox = db.Outbox(bus);
+                    await {{expression}};
+                }
             }
 
             public sealed class DbContextOutbox

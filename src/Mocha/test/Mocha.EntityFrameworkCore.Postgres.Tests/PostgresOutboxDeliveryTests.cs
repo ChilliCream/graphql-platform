@@ -33,8 +33,9 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
         int preparationAtInvocation;
         await using (var scope = provider.CreateAsyncScope())
         {
+            var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
             var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
-            await db.Outbox.PublishAsync(new PreparedEvent { Value = "before-next" }, TestToken);
+            await db.Outbox(bus).PublishAsync(new PreparedEvent { Value = "before-next" }, TestToken);
             preparationAtInvocation = recorder.PreparationCount;
             await db.SaveChangesAsync(TestToken);
             using var json = await db.Set<OutboxMessage>().Select(x => x.Envelope).SingleAsync(TestToken);
@@ -137,11 +138,12 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
         var recorder = new DeliveryRecorder { FailSerialization = true };
         await using var provider = await CreateProviderAsync(connectionString, recorder, scheduling: true);
         await using var scope = provider.CreateAsyncScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
         var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
 
         // act
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            await db.Outbox.PublishAsync(new PreparedEvent { Value = "before-next" }, TestToken));
+            await db.Outbox(bus).PublishAsync(new PreparedEvent { Value = "before-next" }, TestToken));
         await db.SaveChangesAsync(TestToken);
 
         // assert

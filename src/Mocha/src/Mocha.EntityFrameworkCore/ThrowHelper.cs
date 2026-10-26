@@ -7,12 +7,8 @@ internal static partial class ThrowHelper
             + $"Register an outbox for it with AddEntityFramework<{type.Name}>(), "
             + "for example by calling UsePostgresOutbox().");
 
-    public static InvalidOperationException OutboxNotAttached(Type type)
-        => new($"The outbox for '{type.Name}' is not attached to a messaging scope. "
-            + "Call db.UseOutbox(bus) before publishing.");
-
-    public static InvalidOperationException OutboxAlreadyAttached()
-        => new("This DbContext is already attached to a different messaging scope.");
+    public static ObjectDisposedException OutboxContextDisposed()
+        => new(nameof(DbContextOutbox), "The DbContext owning this outbox has been disposed or returned to its pool.");
 
     public static InvalidOperationException OutboxStagingNotSupported(Type type)
         => new($"The outbox for '{type.Name}' does not support DbContext staging. "
