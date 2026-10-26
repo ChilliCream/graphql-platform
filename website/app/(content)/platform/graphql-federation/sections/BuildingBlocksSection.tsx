@@ -1,8 +1,10 @@
+import { CardGrid } from "@/src/components/CardGrid";
+import { Card } from "@/src/design-system/Card";
 import { DistributedExecutionIcon } from "@/src/icons/DistributedExecutionIcon";
 import { SchemaCompositionIcon } from "@/src/icons/SchemaCompositionIcon";
 import { SubgraphsIcon } from "@/src/icons/SubgraphsIcon";
 
-import { Intro, Section } from "./shared";
+import { Section } from "./shared";
 
 const BUILDING_BLOCKS = [
   {
@@ -25,18 +27,24 @@ const BUILDING_BLOCKS = [
 export function BuildingBlocksSection() {
   return (
     <Section id="how-it-works">
-      <Intro title="How does GraphQL Federation work?" />
-      <ul className="mt-10 grid gap-8 lg:grid-cols-3">
+      <h2 className="text-cc-ink mb-10 text-center text-3xl font-semibold tracking-tight sm:text-4xl">
+        How does GraphQL Federation work?
+      </h2>
+      <CardGrid cols={3} step="progressive" gap={6}>
         {BUILDING_BLOCKS.map(({ title, text, Icon }) => (
-          <li key={title} className="flex items-start gap-4">
-            <Icon className="size-16 flex-none" />
-            <div className="min-w-0">
-              <h3 className="text-cc-ink text-lg font-semibold">{title}</h3>
-              <p className="text-cc-ink-dim mt-2 text-sm">{text}</p>
+          <Card key={title} variant="tile" className="@container">
+            <div className="flex flex-col gap-4 @[16rem]:flex-row @[16rem]:items-start">
+              <span className="flex-none">
+                <Icon className="size-20" />
+              </span>
+              <div className="min-w-0">
+                <h3 className="text-cc-ink text-lg font-semibold">{title}</h3>
+                <p className="text-cc-ink-dim mt-2 text-sm">{text}</p>
+              </div>
             </div>
-          </li>
+          </Card>
         ))}
-      </ul>
+      </CardGrid>
     </Section>
   );
 }
