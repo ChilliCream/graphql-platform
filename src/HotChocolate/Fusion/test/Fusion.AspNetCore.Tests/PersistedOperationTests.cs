@@ -550,6 +550,7 @@ public class PersistedOperationTests : FusionTestBase
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 82
                 -------------------------->
                 Status Code: BadRequest
                 -------------------------->

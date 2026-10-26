@@ -242,7 +242,7 @@ public class PagingTotalCountTests
 
     private sealed class PagingContext(DbContextOptions<PagingContext> options) : DbContext(options)
     {
-        public DbSet<Item> Items => Set<Item>();
+        public DbSet<Item> Items { get; set; }
     }
 
     private sealed class Item
