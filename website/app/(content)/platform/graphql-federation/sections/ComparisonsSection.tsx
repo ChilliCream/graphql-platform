@@ -1,3 +1,7 @@
+import NextLink from "next/link";
+
+import { ArrowRightIcon } from "@/src/icons/ArrowRight";
+
 import { Section } from "./shared";
 
 export function ComparisonsSection() {
@@ -16,7 +20,13 @@ export function ComparisonsSection() {
       <div className="mt-10 grid gap-10 sm:grid-cols-2">
         <div id="vs-single-server" className="scroll-mt-24">
           <h3 className="font-heading text-cc-heading text-lg font-semibold text-balance">
-            GraphQL Federation vs. a single GraphQL server
+            <NextLink
+              href="/comparison/graphql-federation-vs-monolith"
+              className="hover:text-cc-accent text-inherit no-underline transition-colors"
+            >
+              GraphQL Federation vs. a single GraphQL server
+              <ArrowRightIcon className="ml-1.5 inline size-3.5 align-baseline" />
+            </NextLink>
           </h3>
           <p className="text-cc-ink mt-2 text-base">
             A single GraphQL server is often the simplest choice for smaller
@@ -26,7 +36,13 @@ export function ComparisonsSection() {
         </div>
         <div id="vs-schema-stitching" className="scroll-mt-24">
           <h3 className="font-heading text-cc-heading text-lg font-semibold text-balance">
-            GraphQL Federation vs. Schema Stitching
+            <NextLink
+              href="/comparison/graphql-federation-vs-schema-stitching"
+              className="hover:text-cc-accent text-inherit no-underline transition-colors"
+            >
+              GraphQL Federation vs. Schema Stitching
+              <ArrowRightIcon className="ml-1.5 inline size-3.5 align-baseline" />
+            </NextLink>
           </h3>
           <p className="text-cc-ink mt-2 text-base">
             Both approaches combine multiple GraphQL schemas into one API.
@@ -37,7 +53,13 @@ export function ComparisonsSection() {
         </div>
         <div id="vs-bff" className="scroll-mt-24">
           <h3 className="font-heading text-cc-heading text-lg font-semibold text-balance">
-            GraphQL Federation vs. Backend for Frontend (BFF)
+            <NextLink
+              href="/comparison/graphql-federation-vs-bff"
+              className="hover:text-cc-accent text-inherit no-underline transition-colors"
+            >
+              GraphQL Federation vs. Backend for Frontend (BFF)
+              <ArrowRightIcon className="ml-1.5 inline size-3.5 align-baseline" />
+            </NextLink>
           </h3>
           <p className="text-cc-ink mt-2 text-base">
             BFFs create APIs tailored to individual applications, while
