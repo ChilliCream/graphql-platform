@@ -23,6 +23,7 @@ internal sealed partial class SatisfiabilityValidator
     private readonly List<int> _schemaIndexes = [];
     private readonly List<int> _compositeFieldSchemaIndexes = [];
     private readonly HashSet<string> _lookupSchemaNames = new(StringComparer.Ordinal);
+    private readonly Stack<ReachAnchor> _reachAnchors = new();
 
     /// <summary>
     /// Gets the names of the source schemas that the fusion directives on the types of
@@ -80,7 +81,7 @@ internal sealed partial class SatisfiabilityValidator
         // The reaches without the data of some schemas are created first, and the lookup keys of the
         // reach read them.
         var exclusions = CreateExclusionReaches(type, info, item, parentKey, viewerFallback);
-        var buffer = _schemaSets.CreateBuffer(SchemaSet.Empty);
+        var buffer = _schemaSets.RentBuffer(SchemaSet.Empty);
         List<(int SchemaIndex, SelectionSetNode SelectionSet)>? provides = null;
 
         AddRetraversals(
@@ -91,9 +92,23 @@ internal sealed partial class SatisfiabilityValidator
             buffer,
             ref provides);
 
-        var anchor = new ReachAnchor(this, type, item, viewerFallback, exclusion: null, buffer, provides, exclusions);
+        var anchor = RentReachAnchor().Initialize(
+            type,
+            item,
+            viewerFallback,
+            exclusion: null,
+            buffer,
+            provides,
+            exclusions,
+            holderAvailable: true,
+            allowsReRootedCalls: true);
         var reach = CompleteReach(type, info, item, transitionFacts, buffer, anchor);
         var reachProvides = CreateReachProvides(provides, reach);
+        var holderReentry = item.ProvidedSelectionSet is not null && CanReenterHolder(type, item, parentKey, anchor);
+
+        ReturnReachAnchor(anchor);
+        _schemaSets.ReturnBuffer(buffer);
+
         VisitLeaf? leaf = null;
 
         if (item.ProvidedSelectionSet is not null || info.ReadsLeaf)
@@ -115,7 +130,7 @@ internal sealed partial class SatisfiabilityValidator
             exclusions,
             leaf,
             viewerFallback,
-            item.ProvidedSelectionSet is not null && CanReenterHolder(type, item, parentKey, anchor));
+            holderReentry);
     }
 
     /// <summary>
@@ -279,21 +294,24 @@ internal sealed partial class SatisfiabilityValidator
         if (!_nodeReaches.TryGetValue((type, lookupItem.SchemaName, viewerFallback), out var reaches))
         {
             var exclusions = CreateExclusionReaches(type, info, lookupItem, parentKey: null, viewerFallback);
-            var buffer = _schemaSets.CreateBuffer(SchemaSet.Empty);
-            var anchor = new ReachAnchor(
-                this,
+            var buffer = _schemaSets.RentBuffer(SchemaSet.Empty);
+            var anchor = RentReachAnchor().Initialize(
                 type,
                 lookupItem,
                 viewerFallback,
                 exclusion: null,
                 buffer,
                 provides: null,
-                exclusions);
+                exclusions,
+                holderAvailable: true,
+                allowsReRootedCalls: true);
             var transitionFacts = GetTransitionFacts(type, info, lookupItem.SchemaName);
             reaches = new NodeReaches(
                 CompleteReach(type, info, lookupItem, transitionFacts, buffer, anchor),
                 exclusions);
             _nodeReaches.Add((type, lookupItem.SchemaName, viewerFallback), reaches);
+            ReturnReachAnchor(anchor);
+            _schemaSets.ReturnBuffer(buffer);
         }
 
         var leaf = info.ReadsLeaf
@@ -418,8 +436,8 @@ internal sealed partial class SatisfiabilityValidator
 
         var holder = _schemaSets.GetIndex(item.SchemaName);
         var fieldSchemas = GetFieldSchemas(item.Field);
-        var candidates = _schemaSets.CreateBuffer(reach);
-        var independent = _schemaSets.CreateBuffer(SchemaSet.Empty);
+        var candidates = _schemaSets.RentBuffer(reach);
+        var independent = _schemaSets.RentBuffer(SchemaSet.Empty);
 
         if (holderAvailable)
         {
@@ -481,12 +499,17 @@ internal sealed partial class SatisfiabilityValidator
         }
         while (added);
 
+        ReturnReachAnchor(independentAnchor);
+
         for (var word = 0; word < candidates.Length; word++)
         {
             candidates[word] &= ~independent[word];
         }
 
-        return _schemaSets.Intern(candidates);
+        var viewerOnly = _schemaSets.Intern(candidates);
+        _schemaSets.ReturnBuffer(independent);
+        _schemaSets.ReturnBuffer(candidates);
+        return viewerOnly;
     }
 
     /// <summary>
@@ -985,72 +1008,133 @@ internal sealed partial class SatisfiabilityValidator
         ExclusionReaches? Exclusions);
 
     /// <summary>
+    /// Rents an anchor that no other caller uses until it is returned with <see cref="ReturnReachAnchor"/>.
+    /// </summary>
+    private ReachAnchor RentReachAnchor()
+        => _reachAnchors.TryPop(out var anchor) ? anchor : new ReachAnchor(this);
+
+    /// <summary>
+    /// Returns an anchor of <see cref="RentReachAnchor"/>, which the caller must not use afterwards.
+    /// </summary>
+    private void ReturnReachAnchor(ReachAnchor anchor)
+    {
+        anchor.Clear();
+        _reachAnchors.Push(anchor);
+    }
+
+    /// <summary>
     /// The anchor of a key walk while the reach of a visit key is created. It answers for the reach
     /// being created from the schemas added so far, and for the reaches without the data of more schemas
     /// from those created before.
     /// </summary>
-    private sealed class ReachAnchor(
-        SatisfiabilityValidator validator,
-        MutableObjectTypeDefinition type,
-        SatisfiabilityPathItem item,
-        bool viewerFallback,
-        Exclusion? exclusion,
-        ulong[] buffer,
-        List<(int SchemaIndex, SelectionSetNode SelectionSet)>? provides,
-        ExclusionReaches? exclusions) : PathAnchor
+    private sealed class ReachAnchor(SatisfiabilityValidator validator) : PathAnchor
     {
-        public override SatisfiabilityPathItem Item => item;
+        private MutableObjectTypeDefinition _type = null!;
+        private SatisfiabilityPathItem _item = null!;
+        private bool _viewerFallback;
+        private Exclusion? _exclusion;
+        private ulong[] _buffer = null!;
+        private List<(int SchemaIndex, SelectionSetNode SelectionSet)>? _provides;
+        private ExclusionReaches? _exclusions;
 
-        public override bool ReroutesViewerFields => viewerFallback && AllowsReRootedCalls;
+        public override SatisfiabilityPathItem Item => _item;
+
+        public override bool ReroutesViewerFields => _viewerFallback && AllowsReRootedCalls;
 
         /// <summary>
         /// Gets whether the call holding the object was made without the unavailable data, before the
         /// reach adds the holding schema.
         /// </summary>
-        public bool HolderAvailable { get; init; } = exclusion is null;
+        public bool HolderAvailable { get; private set; }
 
         /// <summary>
         /// Gets whether the walk may take data that depends on calls re-rooted at <c>Query.viewer</c>, which
         /// the reach being created holds otherwise only without such calls.
         /// </summary>
-        public bool AllowsReRootedCalls { get; private init; } = true;
+        public bool AllowsReRootedCalls { get; private set; }
 
-        public bool HasProvides => provides is not null;
+        public bool HasProvides => _provides is not null;
 
-        public ImmutableHashSet<string> UnavailableSchemaNames => exclusion?.SchemaNames ?? [];
+        public ImmutableHashSet<string> UnavailableSchemaNames => _exclusion?.SchemaNames ?? [];
+
+        /// <summary>
+        /// Sets the anchor to the reach of <paramref name="type"/>, held through <paramref name="item"/>,
+        /// without the data of <paramref name="exclusion"/>, or with the data of every schema if it is
+        /// <c>null</c>, whose schemas added so far <paramref name="buffer"/> holds, and returns the anchor.
+        /// </summary>
+        public ReachAnchor Initialize(
+            MutableObjectTypeDefinition type,
+            SatisfiabilityPathItem item,
+            bool viewerFallback,
+            Exclusion? exclusion,
+            ulong[] buffer,
+            List<(int SchemaIndex, SelectionSetNode SelectionSet)>? provides,
+            ExclusionReaches? exclusions,
+            bool holderAvailable,
+            bool allowsReRootedCalls)
+        {
+            _type = type;
+            _item = item;
+            _viewerFallback = viewerFallback;
+            _exclusion = exclusion;
+            _buffer = buffer;
+            _provides = provides;
+            _exclusions = exclusions;
+            HolderAvailable = holderAvailable;
+            AllowsReRootedCalls = allowsReRootedCalls;
+            return this;
+        }
+
+        /// <summary>
+        /// Clears the anchor, which answers for no reach until it is initialized again.
+        /// </summary>
+        public void Clear()
+        {
+            _type = null!;
+            _item = null!;
+            _exclusion = null;
+            _buffer = null!;
+            _provides = null;
+            _exclusions = null;
+        }
 
         /// <summary>
         /// Determines whether the reach being created leaves out the schema with the given index.
         /// </summary>
         public bool IsExcluded(int index)
-            => exclusion is not null
-                && (!validator._schemaSets.Contains(exclusion.Relevant, index)
-                    || validator._schemaSets.Contains(exclusion.Schemas, index));
+            => _exclusion is not null
+                && (!validator._schemaSets.Contains(_exclusion.Relevant, index)
+                    || validator._schemaSets.Contains(_exclusion.Schemas, index));
 
         /// <summary>
-        /// Creates an anchor for the same reach that holds the object in the schemas of
+        /// Rents an anchor for the same reach that holds the object in the schemas of
         /// <paramref name="independentBuffer"/>, and in the holding schema when
         /// <paramref name="holderAvailable"/> is set, and takes no data that depends on calls re-rooted
         /// at <c>Query.viewer</c>.
         /// </summary>
         public ReachAnchor WithoutReRootedCalls(ulong[] independentBuffer, bool holderAvailable)
-            => new(validator, type, item, viewerFallback, exclusion, independentBuffer, provides, exclusions)
-            {
-                HolderAvailable = holderAvailable,
-                AllowsReRootedCalls = false
-            };
+            => validator.RentReachAnchor().Initialize(
+                _type,
+                _item,
+                _viewerFallback,
+                _exclusion,
+                independentBuffer,
+                _provides,
+                _exclusions,
+                holderAvailable,
+                allowsReRootedCalls: false);
 
         public LookupEntryKey CreateLookupEntryKey(string schemaName)
             => new(
-                type,
+                _type,
                 schemaName,
-                item,
-                validator._schemaSets.Intern(buffer),
-                exclusion?.Schemas ?? SchemaSet.Empty,
+                _item,
+                validator._schemaSets.Intern(_buffer),
+                _exclusion?.Schemas ?? SchemaSet.Empty,
                 IsCurrentHolderAvailable(),
-                viewerFallback,
+                _viewerFallback,
                 AllowsReRootedCalls,
-                exclusions);
+                _exclusions);
 
         public override bool CanHold(string schemaName, ImmutableHashSet<string> unavailableSchemaNames)
         {
@@ -1058,8 +1142,8 @@ internal sealed partial class SatisfiabilityValidator
 
             if (IsCurrent(unavailableSchemaNames))
             {
-                return (exclusion is null && HolderAvailable && schemaName == item.SchemaName)
-                    || SchemaSetTable.Contains(buffer, schemaSets.GetIndex(schemaName));
+                return (_exclusion is null && HolderAvailable && schemaName == _item.SchemaName)
+                    || SchemaSetTable.Contains(_buffer, schemaSets.GetIndex(schemaName));
             }
 
             return GetExclusionReach(unavailableSchemaNames) is { } entry
@@ -1078,9 +1162,9 @@ internal sealed partial class SatisfiabilityValidator
                 return GetExclusionReach(unavailableSchemaNames)?.ReachProvides?.Find(index);
             }
 
-            if (provides is not null)
+            if (_provides is not null)
             {
-                foreach (var entry in provides)
+                foreach (var entry in _provides)
                 {
                     if (entry.SchemaIndex == index)
                     {
@@ -1101,7 +1185,7 @@ internal sealed partial class SatisfiabilityValidator
 
             return GetExclusionReach(unavailableSchemaNames) is { } entry
                 && entry.HolderAvailable
-                && (AllowsReRootedCalls || !validator._schemaSets.Contains(entry.ViewerOnly, item.SchemaName));
+                && (AllowsReRootedCalls || !validator._schemaSets.Contains(entry.ViewerOnly, _item.SchemaName));
         }
 
         // Answers for the reaches created before. An anchor that takes no data that depends on re-rooted
@@ -1113,21 +1197,21 @@ internal sealed partial class SatisfiabilityValidator
 
         private bool IsCurrentHolderAvailable()
             => HolderAvailable
-                || SchemaSetTable.Contains(buffer, validator._schemaSets.GetIndex(item.SchemaName));
+                || SchemaSetTable.Contains(_buffer, validator._schemaSets.GetIndex(_item.SchemaName));
 
         private bool IsCurrent(ImmutableHashSet<string> unavailableSchemaNames)
-            => exclusion is null
+            => _exclusion is null
                 ? unavailableSchemaNames.IsEmpty
-                : exclusion.Matches(unavailableSchemaNames);
+                : _exclusion.Matches(unavailableSchemaNames);
 
         private ExclusionReach? GetExclusionReach(ImmutableHashSet<string> unavailableSchemaNames)
         {
-            var other = validator.FindExclusion(type, unavailableSchemaNames);
-            var entry = other is null ? null : exclusions?.Find(other.Schemas);
+            var other = validator.FindExclusion(_type, unavailableSchemaNames);
+            var entry = other is null ? null : _exclusions?.Find(other.Schemas);
 
             Debug.Assert(
                 entry is not null,
-                $"The reach of '{type.Name}' was created before the reach without "
+                $"The reach of '{_type.Name}' was created before the reach without "
                 + $"'{string.Join(",", unavailableSchemaNames.Order(StringComparer.Ordinal))}'.");
 
             return entry;

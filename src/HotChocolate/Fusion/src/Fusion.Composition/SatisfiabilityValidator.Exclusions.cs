@@ -13,6 +13,7 @@ namespace HotChocolate.Fusion;
 internal sealed partial class SatisfiabilityValidator
 {
     private readonly Dictionary<MutableObjectTypeDefinition, Exclusion[]> _exclusions = [];
+    private readonly Dictionary<(ExclusionReaches?, ExclusionReach), ExclusionReaches> _exclusionReaches = [];
 
     /// <summary>
     /// Finds, for each object type, the sets of schemas whose data a requirement check at the type or
@@ -479,12 +480,12 @@ internal sealed partial class SatisfiabilityValidator
         }
 
         var holder = _schemaSets.GetIndex(item.SchemaName);
-        var entries = new ExclusionReach[exclusions.Length];
+        var anchor = RentReachAnchor();
+        ExclusionReaches? reaches = null;
 
-        for (var i = 0; i < exclusions.Length; i++)
+        foreach (var exclusion in exclusions)
         {
-            var exclusion = exclusions[i];
-            var buffer = _schemaSets.CreateBuffer(SchemaSet.Empty);
+            var buffer = _schemaSets.RentBuffer(SchemaSet.Empty);
             List<(int SchemaIndex, SelectionSetNode SelectionSet)>? provides = null;
 
             // The call holding the object was made without the unavailable data when it is a root call,
@@ -516,18 +517,16 @@ internal sealed partial class SatisfiabilityValidator
             _schemaSets.IntersectWith(buffer, info.Schemas);
             _schemaSets.IntersectWith(buffer, exclusion.Relevant);
 
-            var anchor = new ReachAnchor(
-                this,
+            anchor.Initialize(
                 type,
                 item,
                 viewerFallback,
                 exclusion,
                 buffer,
                 provides,
-                i == 0 ? null : new ExclusionReaches(entries[..i]))
-            {
-                HolderAvailable = holderAvailable
-            };
+                reaches,
+                holderAvailable,
+                allowsReRootedCalls: true);
 
             AddLookupEntries(type, info, item, buffer, skippedIndex: -1, anchor);
 
@@ -549,15 +548,34 @@ internal sealed partial class SatisfiabilityValidator
                     holderAvailable,
                     anchor);
 
-            entries[i] = new ExclusionReach(
-                exclusion.Schemas,
-                reach,
-                CreateReachProvides(provides, reach),
-                holderAvailable,
-                viewerOnly);
+            reaches = AddExclusionReach(
+                reaches,
+                new ExclusionReach(
+                    exclusion.Schemas,
+                    reach,
+                    CreateReachProvides(provides, reach),
+                    holderAvailable,
+                    viewerOnly));
+            _schemaSets.ReturnBuffer(buffer);
         }
 
-        return new ExclusionReaches(entries);
+        ReturnReachAnchor(anchor);
+        return reaches;
+    }
+
+    /// <summary>
+    /// Gets the reaches with the entries of <paramref name="reaches"/>, or with none if it is <c>null</c>,
+    /// followed by <paramref name="entry"/>, which is the same instance for equal entries.
+    /// </summary>
+    private ExclusionReaches AddExclusionReach(ExclusionReaches? reaches, ExclusionReach entry)
+    {
+        if (!_exclusionReaches.TryGetValue((reaches, entry), out var extended))
+        {
+            extended = new ExclusionReaches(reaches, entry);
+            _exclusionReaches.Add((reaches, entry), extended);
+        }
+
+        return extended;
     }
 
     /// <summary>
@@ -584,7 +602,7 @@ internal sealed partial class SatisfiabilityValidator
 
     private SchemaSet AddToSchemaSet(SchemaSet set, string schemaName)
     {
-        var buffer = _schemaSets.CreateBuffer(set);
+        var buffer = _schemaSets.GetBuffer(set);
         SchemaSetTable.Add(buffer, _schemaSets.GetIndex(schemaName));
         return _schemaSets.Intern(buffer);
     }

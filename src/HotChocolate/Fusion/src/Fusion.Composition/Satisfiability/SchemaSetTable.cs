@@ -14,6 +14,7 @@ internal sealed class SchemaSetTable
     private readonly List<ulong[]> _members = [[]];
     private readonly Dictionary<ulong[], SchemaSet> _sets = new(MembersComparer.Instance);
     private readonly ulong[] _buffer;
+    private readonly Stack<ulong[]> _bufferPool = new();
 
     /// <summary>
     /// Creates a table that assigns each of the distinct <paramref name="schemaNames"/> its
@@ -95,15 +96,26 @@ internal sealed class SchemaSetTable
     }
 
     /// <summary>
-    /// Creates a buffer that is not shared, sized for every schema of the table and holding the members
-    /// of <paramref name="set"/>.
+    /// Rents a buffer that is not shared until it is returned with <see cref="ReturnBuffer"/>, sized for
+    /// every schema of the table and holding the members of <paramref name="set"/>.
     /// </summary>
-    public ulong[] CreateBuffer(SchemaSet set)
+    public ulong[] RentBuffer(SchemaSet set)
     {
-        var buffer = new ulong[_buffer.Length];
-        _members[set.Id].CopyTo(buffer, 0);
+        if (!_bufferPool.TryPop(out var buffer))
+        {
+            buffer = new ulong[_buffer.Length];
+        }
+
+        var members = _members[set.Id];
+        members.CopyTo(buffer, 0);
+        Array.Clear(buffer, members.Length, buffer.Length - members.Length);
         return buffer;
     }
+
+    /// <summary>
+    /// Returns a buffer of <see cref="RentBuffer"/>, which the caller must not use afterwards.
+    /// </summary>
+    public void ReturnBuffer(ulong[] buffer) => _bufferPool.Push(buffer);
 
     /// <summary>
     /// Gets the number of schemas in <paramref name="set"/>.
