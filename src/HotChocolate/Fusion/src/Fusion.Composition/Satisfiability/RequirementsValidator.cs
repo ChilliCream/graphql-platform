@@ -118,7 +118,7 @@ internal sealed class RequirementsValidator(
                                     RequirementsValidator_UnableToAccessFieldOnPath,
                                     type.Name,
                                     fieldNode.Name.Value,
-                                    context.Path)
+                                    string.Join(" -> ", context.Path.Reverse()))
                                 : string.Format(
                                     RequirementsValidator_UnableToAccessField,
                                     type.Name,
@@ -591,7 +591,11 @@ internal sealed class RequirementsValidatorContext
 
     public Stack<MutableObjectTypeDefinition> TypeContext { get; } = [];
 
-    public SatisfiabilityPath Path { get; } = [];
+    /// <summary>
+    /// Gets the requirement path, from the item holding the type being visited down to the item holding
+    /// the context type, which may repeat an item.
+    /// </summary>
+    public Stack<SatisfiabilityPathItem> Path { get; } = [];
 
     /// <summary>
     /// Gets the path items above the first item of <see cref="Path"/>, from the nearest to the root.
