@@ -16,15 +16,26 @@ namespace HotChocolate.Fusion.Satisfiability;
 /// <param name="AllowsReRootedCalls">
 /// Whether the walk may take data that depends on calls re-rooted at <c>Query.viewer</c>.
 /// </param>
+/// <param name="BelowReRootedViewer">
+/// For each item of <paramref name="ArrivalPath"/>, whether a viewer field at or above it, below the last node
+/// lookup, is re-rooted at <c>Query.viewer</c>, or <c>null</c> without an arrival path.
+/// </param>
+/// <param name="ResolvesFieldAtParent">
+/// Determines, for the index of an item of <paramref name="ArrivalPath"/> below another item and a schema, whether
+/// the schema resolves the field of the item as an option at the visit of the object that declares the field, or
+/// <c>null</c> without an arrival path.
+/// </param>
 internal sealed record RequirementScope(
     PathAnchor? Anchor,
     SatisfiabilityPathItem[]? ArrivalPath,
-    bool AllowsReRootedCalls)
+    bool AllowsReRootedCalls,
+    bool[]? BelowReRootedViewer,
+    Func<int, string, SatisfiabilityExplanationBudget, bool>? ResolvesFieldAtParent)
 {
     /// <summary>
     /// Gets the scope of a walk without an anchor that treats every call on the path as available.
     /// </summary>
-    public static RequirementScope Unanchored { get; } = new(null, null, true);
+    public static RequirementScope Unanchored { get; } = new(null, null, true, null, null);
 
     /// <summary>
     /// Gets this scope for a walk that takes no data that depends on calls re-rooted at <c>Query.viewer</c>.

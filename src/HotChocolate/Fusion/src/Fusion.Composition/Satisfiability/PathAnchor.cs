@@ -48,6 +48,13 @@ internal abstract class PathAnchor
     public abstract bool IsViewerOnly(string schemaName, ImmutableHashSet<string> unavailableSchemaNames);
 
     /// <summary>
+    /// Gets the call of the access path that a requirement read at the object without data from
+    /// <paramref name="unavailableSchemaNames"/> takes the data of <paramref name="schemaName"/> from, or
+    /// <see cref="ArrivalRead.None"/>, also for a schema that holds the object without that data otherwise.
+    /// </summary>
+    public abstract ArrivalRead GetArrivalRead(string schemaName, ImmutableHashSet<string> unavailableSchemaNames);
+
+    /// <summary>
     /// Gets an anchor that answers like this one for calls that do not depend on a call re-rooted at
     /// <c>Query.viewer</c>.
     /// </summary>
@@ -74,5 +81,9 @@ internal abstract class PathAnchor
 
         public override bool IsViewerOnly(string schemaName, ImmutableHashSet<string> unavailableSchemaNames)
             => anchor.IsViewerOnly(schemaName, unavailableSchemaNames);
+
+        // The calls of the access path are read only when no viewer field on the path is re-rooted.
+        public override ArrivalRead GetArrivalRead(string schemaName, ImmutableHashSet<string> unavailableSchemaNames)
+            => anchor.GetArrivalRead(schemaName, unavailableSchemaNames);
     }
 }
