@@ -783,6 +783,207 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
     }
 
     [Fact]
+    public void Plan_Should_FetchRequiredDataThroughLookup_When_LookupKeyBelowRequirementSelectsRequiringField()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+              xById(id: ID!): X @lookup @internal
+            }
+
+            type X {
+              id: ID! @shareable
+              t: T @shareable
+            }
+
+            type T {
+              id: ID! @shareable
+              f(z: String @require(field: "n.z")): String
+            }
+            """,
+            """
+            # name: b
+            type Query {
+              x: X @shareable
+            }
+
+            type X {
+              id: ID! @shareable
+              t: T @shareable
+            }
+
+            type T {
+              id: ID! @shareable
+              n: N @shareable
+            }
+
+            type N {
+              id: ID! @shareable
+            }
+            """,
+            """
+            # name: c
+            type Query {
+              nByK(k: String!): N @lookup @internal
+            }
+
+            type N {
+              k: String! @shareable
+              z: String @shareable
+            }
+            """,
+            """
+            # name: d
+            type Query {
+              xById(id: ID!): X @lookup @internal
+            }
+
+            type X {
+              id: ID! @shareable
+              t: T @shareable
+            }
+
+            type T {
+              id: ID! @shareable
+              n: N @shareable
+            }
+
+            type N {
+              k(w: String @require(field: "w")): String! @shareable
+            }
+            """,
+            """
+            # name: e
+            type Query {
+              x: X @shareable
+            }
+
+            type X {
+              id: ID! @shareable
+              t: T @shareable
+            }
+
+            type T {
+              id: ID! @shareable
+              n: N @shareable
+            }
+
+            type N {
+              w: String
+            }
+            """,
+            """
+            # name: g
+            type Query {
+              nById(id: ID!): N @lookup @internal
+            }
+
+            type N {
+              id: ID! @shareable
+              z: String @shareable
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(schema, "{ x { t { f } } }");
+
+        // assert
+        MatchInline(
+            plan,
+            """
+            operation:
+              - document: |
+                  {
+                    x {
+                      t {
+                        f
+                        n @fusion__requirement {
+                          z @fusion__requirement
+                          id @fusion__requirement
+                        }
+                      }
+                      id @fusion__requirement
+                    }
+                  }
+                hash: 123456789101112
+                searchSpace: 3
+                expandedNodes: 10
+            nodes:
+              - id: 2
+                type: Operation
+                schema: a
+                operation: |
+                  query Op_123456789101112_2($__fusion_1_id: ID!, $__fusion_2_z: String) {
+                    xById(id: $__fusion_1_id) {
+                      t {
+                        f(z: $__fusion_2_z)
+                      }
+                    }
+                  }
+                source: $.xById
+                target: $.x
+                requirements:
+                  - name: __fusion_1_id
+                    selectionMap: >-
+                      id
+                  - name: __fusion_2_z
+                    selectionMap: >-
+                      n.z
+                dependencies:
+                  - id: 3
+                  - id: 5
+              - id: 3
+                type: Operation
+                schema: g
+                operation: |
+                  query Op_123456789101112_3($__fusion_3_id: ID!) {
+                    nById(id: $__fusion_3_id) {
+                      z
+                    }
+                  }
+                source: $.nById
+                target: $.x.t.n
+                requirements:
+                  - name: __fusion_3_id
+                    selectionMap: >-
+                      id
+                dependencies:
+                  - id: 5
+              - id: 1
+                type: Operation
+                schema: b
+                operation: |
+                  query Op_123456789101112_1 {
+                    x {
+                      t {
+                        n {
+                          __typename
+                        }
+                      }
+                      id
+                    }
+                  }
+                batchingGroupId: 5
+              - id: 4
+                type: Operation
+                schema: b
+                operation: |
+                  query Op_123456789101112_4 {
+                    x {
+                      t {
+                        n {
+                          id
+                        }
+                      }
+                    }
+                  }
+                batchingGroupId: 5
+            """);
+    }
+
+    [Fact]
     public void Plan_Should_EnterEventStreamObjectAgain_When_MessageHoldsLookupKey()
     {
         // arrange

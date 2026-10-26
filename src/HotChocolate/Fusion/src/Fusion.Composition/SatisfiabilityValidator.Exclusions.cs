@@ -25,9 +25,8 @@ internal sealed partial class SatisfiabilityValidator
 
         var relevant = new Dictionary<MutableObjectTypeDefinition, Dictionary<SchemaSet, HashSet<int>>>();
         var pending = new Queue<MutableObjectTypeDefinition>();
-        var sets = new HashSet<SchemaSet>();
-        var visited = new HashSet<(MutableObjectTypeDefinition, MutableOutputFieldDefinition, string, SchemaSet)>();
-        var anchorSchemas = new HashSet<int>();
+        var scan = new ExclusionScan();
+        var scannedKeys = new HashSet<(MutableObjectTypeDefinition, SchemaSet)>();
 
         // A visit validates a requirement on a type that an event stream message provides, and on any
         // other type only when the facts cannot confirm it.
@@ -47,11 +46,9 @@ internal sealed partial class SatisfiabilityValidator
                         continue;
                     }
 
-                    sets.Clear();
-                    visited.Clear();
-                    anchorSchemas.Clear();
-                    CollectFirstLevelSchemas(requirements, type, anchorSchemas);
-                    CollectExclusions(requirements, type, SchemaSet.Empty, true, sets, visited, anchorSchemas);
+                    scan.Clear();
+                    CollectFirstLevelSchemas(requirements, type, scan.AnchorSchemas);
+                    CollectExclusions(requirements, type, SchemaSet.Empty, true, scan);
 
                     // A requiring field whose schema cannot always re-enter the type through a lookup is
                     // resolved without the data of its schema.
@@ -59,26 +56,17 @@ internal sealed partial class SatisfiabilityValidator
                         && (isProvided || !HasSelfServedLookup(type, schemaName)))
                     {
                         var unavailable = AddToSchemaSet(SchemaSet.Empty, schemaName);
-                        sets.Add(unavailable);
-                        CollectExclusions(requirements, type, unavailable, true, sets, visited, anchorSchemas);
+                        scan.Sets.Add(unavailable);
+                        CollectExclusions(requirements, type, unavailable, true, scan);
                     }
 
-                    AddRelevantSchemas(relevant, type, sets, anchorSchemas, pending);
+                    AddRelevantSchemas(relevant, type, scan.Sets, scan.AnchorSchemas, pending);
                 }
             }
 
             // A lookup key that selects a requiring field makes the schema of that field unavailable.
-            foreach (var lookup in _lookupCache.GetPossibleFusionLookupDirectives(type))
-            {
-                var key = _lookupCache.GetLookupKey(lookup);
-
-                sets.Clear();
-                visited.Clear();
-                anchorSchemas.Clear();
-                CollectFirstLevelSchemas(key, type, anchorSchemas);
-                CollectExclusions(key, type, SchemaSet.Empty, true, sets, visited, anchorSchemas);
-                AddRelevantSchemas(relevant, type, sets, anchorSchemas, pending);
-            }
+            scannedKeys.Add((type, SchemaSet.Empty));
+            CollectLookupKeyExclusions(type, SchemaSet.Empty, relevant, scan, pending);
         }
 
         // A parent carries every set of its children, with the schemas that serve the field returning
@@ -88,6 +76,16 @@ internal sealed partial class SatisfiabilityValidator
         while (pending.TryDequeue(out var type))
         {
             var typeRelevant = relevant[type];
+
+            // A check without the data of a set validates the lookup keys of the type without the
+            // same data, which makes the schemas of the requiring fields they select unavailable too.
+            foreach (var set in typeRelevant.Keys.ToArray())
+            {
+                if (scannedKeys.Add((type, set)))
+                {
+                    CollectLookupKeyExclusions(type, set, relevant, scan, pending);
+                }
+            }
 
             foreach (var (set, indexes) in typeRelevant)
             {
@@ -133,6 +131,28 @@ internal sealed partial class SatisfiabilityValidator
                             GetSchemaNames(entry.Key),
                             _schemaSets.Create([.. entry.Value])))
                 ]);
+        }
+    }
+
+    /// <summary>
+    /// Adds the sets of unavailable schemas that the lookup keys of <paramref name="type"/> create when
+    /// they are validated without the data of <paramref name="unavailable"/> to the exclusions of the type.
+    /// </summary>
+    private void CollectLookupKeyExclusions(
+        MutableObjectTypeDefinition type,
+        SchemaSet unavailable,
+        Dictionary<MutableObjectTypeDefinition, Dictionary<SchemaSet, HashSet<int>>> relevant,
+        ExclusionScan scan,
+        Queue<MutableObjectTypeDefinition> pending)
+    {
+        foreach (var lookup in _lookupCache.GetPossibleFusionLookupDirectives(type))
+        {
+            var key = _lookupCache.GetLookupKey(lookup);
+
+            scan.Clear();
+            CollectFirstLevelSchemas(key, type, scan.AnchorSchemas);
+            CollectExclusions(key, type, unavailable, true, scan);
+            AddRelevantSchemas(relevant, type, scan.Sets, scan.AnchorSchemas, pending);
         }
     }
 
@@ -363,20 +383,19 @@ internal sealed partial class SatisfiabilityValidator
     }
 
     /// <summary>
-    /// Adds to <paramref name="sets"/> the unavailable schemas of the requiring fields that
+    /// Adds to the sets of <paramref name="scan"/> the unavailable schemas of the requiring fields that
     /// <paramref name="selectionSet"/> selects on <paramref name="type"/> while the schemas of
-    /// <paramref name="unavailable"/> are unavailable. When the selection set is validated at the
-    /// object (<paramref name="atAnchor"/>), the schemas that serve the first level of a nested
-    /// requirement are added to <paramref name="anchorSchemas"/>.
+    /// <paramref name="unavailable"/> are unavailable, also through the lookup keys of the types below
+    /// the type. When the selection set is validated at the object (<paramref name="atAnchor"/>), the
+    /// schemas that serve the first level of a nested requirement are added to the anchor schemas of
+    /// <paramref name="scan"/>.
     /// </summary>
     private void CollectExclusions(
         SelectionSetNode selectionSet,
         MutableObjectTypeDefinition type,
         SchemaSet unavailable,
         bool atAnchor,
-        HashSet<SchemaSet> sets,
-        HashSet<(MutableObjectTypeDefinition, MutableOutputFieldDefinition, string, SchemaSet)> visited,
-        HashSet<int> anchorSchemas)
+        ExclusionScan scan)
     {
         foreach (var selection in selectionSet.Selections)
         {
@@ -386,20 +405,20 @@ internal sealed partial class SatisfiabilityValidator
                     foreach (var schemaName in field.GetSchemaNames())
                     {
                         if (field.GetFusionRequiresRequirements(schemaName) is not { } requirements
-                            || !visited.Add((type, field, schemaName, unavailable)))
+                            || !scan.VisitedFields.Add((type, field, schemaName, unavailable)))
                         {
                             continue;
                         }
 
                         if (atAnchor)
                         {
-                            CollectFirstLevelSchemas(requirements, type, anchorSchemas);
+                            CollectFirstLevelSchemas(requirements, type, scan.AnchorSchemas);
                         }
 
                         var extended = AddToSchemaSet(unavailable, schemaName);
-                        sets.Add(extended);
-                        CollectExclusions(requirements, type, unavailable, atAnchor, sets, visited, anchorSchemas);
-                        CollectExclusions(requirements, type, extended, atAnchor, sets, visited, anchorSchemas);
+                        scan.Sets.Add(extended);
+                        CollectExclusions(requirements, type, unavailable, atAnchor, scan);
+                        CollectExclusions(requirements, type, extended, atAnchor, scan);
                     }
 
                     if (fieldNode.SelectionSet is { } fieldSelectionSet
@@ -407,27 +426,35 @@ internal sealed partial class SatisfiabilityValidator
                     {
                         foreach (var possibleType in _schema.GetPossibleTypes(field.Type.AsTypeDefinition()))
                         {
-                            CollectExclusions(
-                                fieldSelectionSet,
-                                possibleType,
-                                unavailable,
-                                atAnchor: false,
-                                sets,
-                                visited,
-                                anchorSchemas);
+                            CollectExclusions(fieldSelectionSet, possibleType, unavailable, atAnchor: false, scan);
+
+                            // A walk that enters the type below the object in another schema validates the
+                            // keys of its lookups without the same data.
+                            if (scan.VisitedLookupTypes.Add((possibleType, unavailable)))
+                            {
+                                foreach (var lookup in _lookupCache.GetPossibleFusionLookupDirectives(possibleType))
+                                {
+                                    CollectExclusions(
+                                        _lookupCache.GetLookupKey(lookup),
+                                        possibleType,
+                                        unavailable,
+                                        atAnchor: false,
+                                        scan);
+                                }
+                            }
                         }
                     }
 
                     break;
 
                 case InlineFragmentNode { TypeCondition: null } inlineFragment:
-                    CollectExclusions(inlineFragment.SelectionSet, type, unavailable, atAnchor, sets, visited, anchorSchemas);
+                    CollectExclusions(inlineFragment.SelectionSet, type, unavailable, atAnchor, scan);
                     break;
 
                 case InlineFragmentNode inlineFragment
                     when _schema.Types.TryGetType(inlineFragment.TypeCondition.Name.Value, out var fragmentType)
                         && _schema.GetPossibleTypes(fragmentType).Contains(type):
-                    CollectExclusions(inlineFragment.SelectionSet, type, unavailable, atAnchor, sets, visited, anchorSchemas);
+                    CollectExclusions(inlineFragment.SelectionSet, type, unavailable, atAnchor, scan);
                     break;
             }
         }
@@ -610,6 +637,43 @@ internal sealed partial class SatisfiabilityValidator
             }
 
             return true;
+        }
+    }
+
+    /// <summary>
+    /// The state of a scan of one requirement or lookup key for the sets of unavailable schemas it creates.
+    /// </summary>
+    private sealed class ExclusionScan
+    {
+        /// <summary>
+        /// Gets the sets of unavailable schemas that the scan found.
+        /// </summary>
+        public HashSet<SchemaSet> Sets { get; } = [];
+
+        /// <summary>
+        /// Gets the schemas that serve the first level of the scanned selection sets at the object.
+        /// </summary>
+        public HashSet<int> AnchorSchemas { get; } = [];
+
+        /// <summary>
+        /// Gets the requiring fields that the scan visited for each set of unavailable schemas.
+        /// </summary>
+        public HashSet<(MutableObjectTypeDefinition, MutableOutputFieldDefinition, string, SchemaSet)> VisitedFields
+        {
+            get;
+        } = [];
+
+        /// <summary>
+        /// Gets the types whose lookup keys the scan visited for each set of unavailable schemas.
+        /// </summary>
+        public HashSet<(MutableObjectTypeDefinition, SchemaSet)> VisitedLookupTypes { get; } = [];
+
+        public void Clear()
+        {
+            Sets.Clear();
+            AnchorSchemas.Clear();
+            VisitedFields.Clear();
+            VisitedLookupTypes.Clear();
         }
     }
 }
