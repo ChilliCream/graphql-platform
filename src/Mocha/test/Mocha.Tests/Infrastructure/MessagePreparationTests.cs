@@ -102,7 +102,7 @@ public class MessagePreparationTests(ITestOutputHelper output)
     [InlineData(false, true)]
     [InlineData(true, false)]
     [InlineData(true, true)]
-    public async Task PublishAsync_Should_AllowMiddlewareToCatchFailure_When_FinalizationFails(bool serialization, bool explicitStore)
+    public async Task PublishAsync_Should_AllowMiddlewareToCatchFailure_When_FinalizationFails(bool serialization, bool explicitOutbox)
     {
         // arrange
         Exception? caught = null;
@@ -131,7 +131,7 @@ public class MessagePreparationTests(ITestOutputHelper output)
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act
-        if (explicitStore)
+        if (explicitOutbox)
         {
             await PrepareAsync(bus, new TargetMessage("failed"), send: false,
                 static (_, _) => throw new InvalidOperationException("Persistence failed."));
@@ -316,14 +316,12 @@ public class MessagePreparationTests(ITestOutputHelper output)
     }
 
     [Theory]
-    [InlineData(false, false)]
-    [InlineData(false, true)]
-    [InlineData(true, false)]
-    [InlineData(true, true)]
-    public async Task PrepareAsync_Should_UseCallerScopeAndCorrelation_When_MessageIsPrepared(bool send, bool outbox)
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PrepareAsync_Should_UseCallerScopeAndCorrelation_When_MessageIsPrepared(bool send)
     {
         // arrange
-        await using var provider = await CreateProviderAsync(outbox, builder =>
+        await using var provider = await CreateProviderAsync(outbox: true, builder =>
         {
             builder.Services.AddScoped<ScopedState>();
             builder.ConfigureMessageBus(b => b.UseDispatch(
@@ -373,7 +371,7 @@ public class MessagePreparationTests(ITestOutputHelper output)
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task PrepareAsync_Should_SerializeAtStore_When_MiddlewareChangesMessageAfterNext(bool send)
+    public async Task PrepareAsync_Should_SerializeAtOutbox_When_MiddlewareChangesMessageAfterNext(bool send)
     {
         // arrange
         var time = new DateTimeOffset(2030, 1, 1, 0, 0, 0, TimeSpan.Zero);
@@ -483,7 +481,7 @@ public class MessagePreparationTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task DispatchAsync_Should_ReportPersistenceFailure_When_ExplicitStoreThrows()
+    public async Task DispatchAsync_Should_ReportPersistenceFailure_When_ExplicitOutboxThrows()
     {
         // arrange
         var diagnostics = new RecordingDiagnostics();
@@ -643,7 +641,7 @@ public class MessagePreparationTests(ITestOutputHelper output)
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task PrepareAsync_Should_SkipStore_When_MiddlewareShortCircuits(bool send)
+    public async Task PrepareAsync_Should_SkipOutbox_When_MiddlewareShortCircuits(bool send)
     {
         // arrange
         var pool = new TrackingContextPool();
@@ -723,22 +721,20 @@ public class MessagePreparationTests(ITestOutputHelper output)
         });
         using var scope = provider.CreateScope();
         var bus = (DefaultMessageBus)scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var outbox = new CallbackOutbox((_, _) => callbackCalled = true);
         if (!afterNext)
         {
             cancellation.Cancel();
         }
 
         // act
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
-        {
-            await (send
-                ? bus.SendAsync(new TargetMessage("cancelled"), SendOptions.Default,
-                    new CallbackMessageStore((_, _) => callbackCalled = true), cancellation.Token)
-                : bus.PublishAsync(new TargetMessage("cancelled"), PublishOptions.Default,
-                    new CallbackMessageStore((_, _) => callbackCalled = true), cancellation.Token));
-        });
+        var exception = await Record.ExceptionAsync(async () => await (send
+            ? bus.SendAsync(new TargetMessage("cancelled"), SendOptions.Default, outbox.Configure, cancellation.Token)
+            : bus.PublishAsync(new TargetMessage("cancelled"), PublishOptions.Default, outbox.Configure,
+                cancellation.Token)));
 
         // assert
+        Assert.Equal(afterNext ? null : typeof(OperationCanceledException), exception?.GetType());
         Assert.Equal(afterNext, entered);
         Assert.Equal(afterNext, callbackCalled);
         Assert.Empty(provider.GetRequiredService<CapturingOutbox>().Envelopes);
@@ -750,13 +746,13 @@ public class MessagePreparationTests(ITestOutputHelper output)
     [InlineData(false, true)]
     [InlineData(true, false)]
     [InlineData(true, true)]
-    public async Task PrepareAsync_Should_UseExplicitStore_When_TimeIsSpecified(bool send, bool scheduledByMiddleware)
+    public async Task PrepareAsync_Should_UseExplicitOutbox_When_TimeIsSpecified(bool send, bool scheduledByMiddleware)
     {
         // arrange
         var store = new CapturingScheduledMessageStore();
         var scheduledTime = new DateTimeOffset(2030, 1, 1, 0, 0, 0, TimeSpan.Zero);
         MessageEnvelope? captured = null;
-        var target = new CallbackMessageStore((envelope, _) => captured = MessageEnvelope.CopyWithOwnedBody(envelope));
+        var target = new CallbackOutbox((envelope, _) => captured = MessageEnvelope.CopyWithOwnedBody(envelope));
         await using var provider = await CreateProviderAsync(outbox: true, builder =>
         {
             builder.Services.RemoveAll<ScheduledMessageStoreRegistration>();
@@ -782,9 +778,9 @@ public class MessagePreparationTests(ITestOutputHelper output)
         // act
         await (send
             ? dispatcher.SendAsync(new TargetMessage("scheduled"),
-                new SendOptions { ScheduledTime = optionsScheduledTime }, target, CancellationToken.None)
+                new SendOptions { ScheduledTime = optionsScheduledTime }, target.Configure, CancellationToken.None)
             : dispatcher.PublishAsync(new TargetMessage("scheduled"),
-                new PublishOptions { ScheduledTime = optionsScheduledTime }, target, CancellationToken.None));
+                new PublishOptions { ScheduledTime = optionsScheduledTime }, target.Configure, CancellationToken.None));
 
         // assert
         Assert.Equal(scheduledTime, captured!.ScheduledTime);
@@ -812,14 +808,14 @@ public class MessagePreparationTests(ITestOutputHelper output)
         using var scope = provider.CreateScope();
         var dispatcher = (DefaultMessageBus)scope.ServiceProvider.GetRequiredService<IMessageBus>();
         MessageEnvelope? captured = null;
-        var store = new CallbackMessageStore((envelope, _) => captured = MessageEnvelope.CopyWithOwnedBody(envelope));
+        var outbox = new CallbackOutbox((envelope, _) => captured = MessageEnvelope.CopyWithOwnedBody(envelope));
 
         // act
         await (send
             ? dispatcher.SendAsync(new TargetMessage("scheduled"),
-                new SendOptions { ScheduledTime = time }, store, CancellationToken.None)
+                new SendOptions { ScheduledTime = time }, outbox.Configure, CancellationToken.None)
             : dispatcher.PublishAsync(new TargetMessage("scheduled"),
-                new PublishOptions { ScheduledTime = time }, store, CancellationToken.None));
+                new PublishOptions { ScheduledTime = time }, outbox.Configure, CancellationToken.None));
 
         // assert
         new
@@ -853,14 +849,14 @@ public class MessagePreparationTests(ITestOutputHelper output)
         using var scope = provider.CreateScope();
         var dispatcher = (DefaultMessageBus)scope.ServiceProvider.GetRequiredService<IMessageBus>();
         var staged = false;
-        var store = new CallbackMessageStore((_, _) => staged = true);
+        var outbox = new CallbackOutbox((_, _) => staged = true);
 
         // act
         await Assert.ThrowsAsync<NotSupportedException>(async () => await (send
             ? dispatcher.SendAsync(new TargetMessage("scheduled"),
-                new SendOptions { ScheduledTime = time }, store, CancellationToken.None)
+                new SendOptions { ScheduledTime = time }, outbox.Configure, CancellationToken.None)
             : dispatcher.PublishAsync(new TargetMessage("scheduled"),
-                new PublishOptions { ScheduledTime = time }, store, CancellationToken.None)));
+                new PublishOptions { ScheduledTime = time }, outbox.Configure, CancellationToken.None)));
 
         // assert
         Assert.False(staged);
@@ -1010,7 +1006,7 @@ public class MessagePreparationTests(ITestOutputHelper output)
     {
         if (prepare)
         {
-            ((DefaultMessageBus)bus).PublishAsync(message, PublishOptions.Default, s_noopStore, CancellationToken.None)
+            ((DefaultMessageBus)bus).PublishAsync(message, PublishOptions.Default, s_noopOutbox.Configure, CancellationToken.None)
                 .GetAwaiter().GetResult();
         }
         else
@@ -1032,8 +1028,8 @@ public class MessagePreparationTests(ITestOutputHelper output)
         bool send,
         Action<MessageEnvelope, CancellationToken> onPrepared)
         => send
-            ? ((DefaultMessageBus)bus).SendAsync(message, SendOptions.Default, new CallbackMessageStore(onPrepared), CancellationToken.None)
-            : ((DefaultMessageBus)bus).PublishAsync(message, PublishOptions.Default, new CallbackMessageStore(onPrepared), CancellationToken.None);
+            ? ((DefaultMessageBus)bus).SendAsync(message, SendOptions.Default, new CallbackOutbox(onPrepared).Configure, CancellationToken.None)
+            : ((DefaultMessageBus)bus).PublishAsync(message, PublishOptions.Default, new CallbackOutbox(onPrepared).Configure, CancellationToken.None);
 
     private static TargetMessage Deserialize(MessageEnvelope envelope)
         => JsonSerializer.Deserialize<TargetMessage>(envelope.Body.Span, JsonSerializerOptions.Web)!;
@@ -1115,13 +1111,23 @@ public class MessagePreparationTests(ITestOutputHelper output)
         }
     }
 
-    private static readonly CallbackMessageStore s_noopStore = new(static (_, _) => { });
+    private static readonly CallbackOutbox s_noopOutbox = new(static (_, _) => { });
 
-    private sealed class CallbackMessageStore(Action<MessageEnvelope, CancellationToken> callback) : IDispatchMessageStore
+    private sealed class CallbackOutbox : IMessageOutbox
     {
-        public ValueTask PersistAsync(IDispatchContext context)
+        private readonly Action<MessageEnvelope, CancellationToken> _callback;
+
+        public CallbackOutbox(Action<MessageEnvelope, CancellationToken> callback)
         {
-            callback(context.Envelope!, context.CancellationToken);
+            _callback = callback;
+            Configure = context => context.Features.Set<IMessageOutbox>(this);
+        }
+
+        public Action<IDispatchContext> Configure { get; }
+
+        public ValueTask PersistAsync(MessageEnvelope envelope, CancellationToken cancellationToken)
+        {
+            _callback(envelope, cancellationToken);
             return default;
         }
     }

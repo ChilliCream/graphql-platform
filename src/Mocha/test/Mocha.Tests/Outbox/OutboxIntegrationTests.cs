@@ -139,12 +139,12 @@ public class OutboxIntegrationTests
         await dispatcher.PublishAsync(
             new OutboxBatchInputEvent { Payload = "batch-1" },
             PublishOptions.Default,
-            new CapturingMessageStore(envelope => first = MessageEnvelope.CopyWithOwnedBody(envelope)),
+            new CapturingOutbox(envelope => first = MessageEnvelope.CopyWithOwnedBody(envelope)).Configure,
             CancellationToken.None);
         await dispatcher.PublishAsync(
             new OutboxBatchInputEvent { Payload = "batch-2" },
             PublishOptions.Default,
-            new CapturingMessageStore(envelope => second = MessageEnvelope.CopyWithOwnedBody(envelope)),
+            new CapturingOutbox(envelope => second = MessageEnvelope.CopyWithOwnedBody(envelope)).Configure,
             CancellationToken.None);
 
         // act
@@ -161,11 +161,13 @@ public class OutboxIntegrationTests
         Assert.Equal(recorder.BatchId, envelope.CausationId);
     }
 
-    private sealed class CapturingMessageStore(Action<MessageEnvelope> callback) : IDispatchMessageStore
+    private sealed class CapturingOutbox(Action<MessageEnvelope> callback) : IMessageOutbox
     {
-        public ValueTask PersistAsync(IDispatchContext context)
+        public Action<IDispatchContext> Configure => context => context.Features.Set<IMessageOutbox>(this);
+
+        public ValueTask PersistAsync(MessageEnvelope envelope, CancellationToken cancellationToken)
         {
-            callback(context.Envelope!);
+            callback(envelope);
             return default;
         }
     }

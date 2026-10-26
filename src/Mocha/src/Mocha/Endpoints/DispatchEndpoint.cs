@@ -261,10 +261,6 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
     internal ValueTask DispatchInternalAsync(IDispatchContext context)
     {
         DispatchSerializerMiddleware.Serialize(context);
-        if (context is DispatchContext { MessageStore: { } store })
-        {
-            return store.PersistAsync(context);
-        }
 
         var sentAt = context.SentAt ?? context.Envelope?.SentAt ?? _timeProvider.GetUtcNow();
         context.SentAt = sentAt;

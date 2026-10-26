@@ -501,10 +501,10 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         var bus = caller.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act
-        var store = new CapturingMessageStore();
+        var outbox = new CapturingOutbox();
         await ((DefaultMessageBus)bus).PublishAsync(
-            new StartFactoryWork(), PublishOptions.Default, store, TestToken);
-        var incoming = store.Envelope;
+            new StartFactoryWork(), PublishOptions.Default, outbox.Configure, TestToken);
+        var incoming = outbox.Envelope;
         var runtime = provider.GetRequiredService<IMessagingRuntime>();
         var endpoint = (InMemoryDispatchEndpoint)runtime.GetDispatchEndpoint(
             new Uri(incoming.DestinationAddress!));
@@ -1989,13 +1989,15 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         public DateTimeOffset? ScheduledEnvelopeTime { get; init; }
     }
 
-    private sealed class CapturingMessageStore : IDispatchMessageStore
+    private sealed class CapturingOutbox : IMessageOutbox
     {
         public MessageEnvelope Envelope { get; private set; } = null!;
 
-        public ValueTask PersistAsync(IDispatchContext context)
+        public Action<IDispatchContext> Configure => context => context.Features.Set<IMessageOutbox>(this);
+
+        public ValueTask PersistAsync(MessageEnvelope envelope, CancellationToken cancellationToken)
         {
-            Envelope = MessageEnvelope.CopyWithOwnedBody(context.Envelope!);
+            Envelope = MessageEnvelope.CopyWithOwnedBody(envelope);
             return default;
         }
     }

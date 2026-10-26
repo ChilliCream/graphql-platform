@@ -2,15 +2,17 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Middlewares;
+using Mocha.Outbox;
 
 namespace Mocha.EntityFrameworkCore;
 
 /// <summary>
 /// Stages messages for persistence in the same transaction as the owning DbContext's next save.
 /// </summary>
-public sealed class DbContextOutbox : IResettableService, IDisposable, IDispatchMessageStore
+public sealed class DbContextOutbox : IResettableService, IDisposable, IMessageOutbox
 {
     private readonly DbContext _context;
+    private readonly Action<IDispatchContext> _configureDispatch;
     private IServiceProvider? _services;
     private IMessageBus? _bus;
     private IDbContextOutbox? _outbox;
@@ -19,6 +21,7 @@ public sealed class DbContextOutbox : IResettableService, IDisposable, IDispatch
     internal DbContextOutbox(DbContext context)
     {
         _context = context;
+        _configureDispatch = dispatchContext => dispatchContext.Features.Set<IMessageOutbox>(this);
     }
 
     internal bool IsPreparing => _preparing != 0;
@@ -58,7 +61,7 @@ public sealed class DbContextOutbox : IResettableService, IDisposable, IDispatch
             var checkpoint = outbox.CreateCheckpoint();
             try
             {
-                await defaultBus.PublishAsync(message, options, this, cancellationToken);
+                await defaultBus.PublishAsync(message, options, _configureDispatch, cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
             }
             catch
@@ -108,7 +111,7 @@ public sealed class DbContextOutbox : IResettableService, IDisposable, IDispatch
             var checkpoint = outbox.CreateCheckpoint();
             try
             {
-                await defaultBus.SendAsync(message, options, this, cancellationToken);
+                await defaultBus.SendAsync(message, options, _configureDispatch, cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
             }
             catch
@@ -165,10 +168,10 @@ public sealed class DbContextOutbox : IResettableService, IDisposable, IDispatch
         => _bus ??= _services?.GetRequiredService<IMessageBus>()
             ?? throw ThrowHelper.OutboxNotAttached(_context.GetType());
 
-    ValueTask IDispatchMessageStore.PersistAsync(IDispatchContext context)
+    ValueTask IMessageOutbox.PersistAsync(MessageEnvelope envelope, CancellationToken cancellationToken)
     {
-        context.CancellationToken.ThrowIfCancellationRequested();
-        _outbox!.Stage(_context, context.Envelope!, context.CancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        (_outbox ??= GetOutbox()).Stage(_context, envelope, cancellationToken);
 
         return default;
     }

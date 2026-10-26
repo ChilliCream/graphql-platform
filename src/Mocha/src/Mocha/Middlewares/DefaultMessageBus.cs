@@ -63,16 +63,16 @@ public sealed class DefaultMessageBus(
     internal async ValueTask PublishAsync<T>(
         T message,
         PublishOptions options,
-        IDispatchMessageStore store,
+        Action<IDispatchContext> configure,
         CancellationToken cancellationToken)
         where T : notnull
-        => await PublishCoreAsync(message, options, options.ScheduledTime, store, cancellationToken);
+        => await PublishCoreAsync(message, options, options.ScheduledTime, configure, cancellationToken);
 
     private async ValueTask<(string? Token, DateTimeOffset ScheduledTime)> PublishCoreAsync<T>(
         T message,
         PublishOptions options,
         DateTimeOffset? scheduledTime,
-        IDispatchMessageStore? store,
+        Action<IDispatchContext>? configure,
         CancellationToken cancellationToken)
         where T : notnull
     {
@@ -85,18 +85,14 @@ public sealed class DefaultMessageBus(
             PropagateCorrelationIds(context);
             context.Initialize(services, endpoint, runtime, messageType, cancellationToken);
             context.Message = message;
-            context.MessageStore = store;
             context.AddHeaders(options.Headers);
             context.Headers.SetMessageKind(MessageKind.Publish);
             context.FaultAddress = options.FaultEndpoint;
             context.ScheduledTime = scheduledTime;
             context.DeliverBy = options.ExpirationTime;
+            configure?.Invoke(context);
 
             await endpoint.ExecuteAsync(context);
-            if (store is not null)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-            }
 
             var feature = context.Features.Get<ScheduledMessageFeature>();
             return (feature?.Token, context.Envelope?.ScheduledTime ?? scheduledTime ?? default);
@@ -141,16 +137,16 @@ public sealed class DefaultMessageBus(
     internal async ValueTask SendAsync<T>(
         T message,
         SendOptions options,
-        IDispatchMessageStore store,
+        Action<IDispatchContext> configure,
         CancellationToken cancellationToken)
         where T : notnull
-        => await SendCoreAsync(message, options, options.ScheduledTime, store, cancellationToken);
+        => await SendCoreAsync(message, options, options.ScheduledTime, configure, cancellationToken);
 
     private async ValueTask<(string? Token, DateTimeOffset ScheduledTime)> SendCoreAsync<T>(
         T message,
         SendOptions options,
         DateTimeOffset? scheduledTime,
-        IDispatchMessageStore? store,
+        Action<IDispatchContext>? configure,
         CancellationToken cancellationToken)
         where T : notnull
     {
@@ -165,19 +161,15 @@ public sealed class DefaultMessageBus(
             PropagateCorrelationIds(context);
             context.Initialize(services, endpoint, runtime, messageType, cancellationToken);
             context.Message = message;
-            context.MessageStore = store;
             context.AddHeaders(options.Headers);
             context.Headers.SetMessageKind(MessageKind.Send);
             context.ResponseAddress = options.ReplyEndpoint;
             context.FaultAddress = options.FaultEndpoint;
             context.ScheduledTime = scheduledTime;
             context.DeliverBy = options.ExpirationTime;
+            configure?.Invoke(context);
 
             await endpoint.ExecuteAsync(context);
-            if (store is not null)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-            }
 
             var feature = context.Features.Get<ScheduledMessageFeature>();
             return (feature?.Token, context.Envelope?.ScheduledTime ?? scheduledTime ?? default);

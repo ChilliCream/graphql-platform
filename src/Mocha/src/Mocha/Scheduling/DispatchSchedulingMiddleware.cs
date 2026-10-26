@@ -19,15 +19,12 @@ public sealed class DispatchSchedulingMiddleware
     /// <returns>A value task that completes when the message has been persisted or forwarded.</returns>
     public async ValueTask InvokeAsync(IDispatchContext context, DispatchDelegate next)
     {
-        var store = (context as DispatchContext)?.MessageStore;
-        var requestedTime = context.ScheduledTime ?? (store is not null ? context.Envelope?.ScheduledTime : null);
-        if (requestedTime is not { } scheduledTime)
+        if (context.ScheduledTime is not { } scheduledTime)
         {
             await next(context);
             return;
         }
 
-        context.ScheduledTime = scheduledTime;
         DispatchSerializerMiddleware.Serialize(context);
 
         if (context.Envelope!.ScheduledTime != scheduledTime)
@@ -35,15 +32,8 @@ public sealed class DispatchSchedulingMiddleware
             context.Envelope = context.Envelope.WithScheduledTime(scheduledTime);
         }
 
-        var scheduledStore = ResolveStore(context);
-
-        if (store is not null)
-        {
-            await store.PersistAsync(context);
-            return;
-        }
-
-        var token = await scheduledStore.PersistAsync(context, context.CancellationToken);
+        var store = ResolveStore(context);
+        var token = await store.PersistAsync(context, context.CancellationToken);
 
         context.Features.Configure<ScheduledMessageFeature>(f => f.Token = token);
     }

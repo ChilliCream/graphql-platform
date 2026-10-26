@@ -19,8 +19,6 @@ public sealed class DispatchContext : IDispatchContext
     private readonly PooledArrayWriter _writer = new();
     private readonly Headers _headers = new();
 
-    internal IDispatchMessageStore? MessageStore { get; set; }
-
     /// <summary>
     /// Creates a new instance of the <see cref="DispatchContext"/> with pooled internal storage.
     /// </summary>
@@ -198,7 +196,6 @@ public sealed class DispatchContext : IDispatchContext
         ScheduledTime = null;
         Host = null!;
         Envelope = null!;
-        MessageStore = null;
         _headers.Clear();
         _features.Reset();
         _writer.Reset();

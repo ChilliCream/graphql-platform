@@ -4,7 +4,8 @@ using Mocha.Middlewares;
 namespace Mocha.Outbox;
 
 /// <summary>
-/// Persists outgoing publications, sends, replies, and faults in the outbox.
+/// Persists outgoing publications, sends, replies, and faults in the <see cref="IMessageOutbox"/> feature of the
+/// dispatch context, or in the registered <see cref="IMessageOutbox"/> when the feature is not set.
 /// All other message kinds pass through to the next middleware.
 /// </summary>
 public sealed class DispatchOutboxMiddleware
@@ -17,13 +18,6 @@ public sealed class DispatchOutboxMiddleware
     /// <returns>A value task that completes when the message has been persisted or forwarded.</returns>
     public async ValueTask InvokeAsync(IDispatchContext context, DispatchDelegate next)
     {
-        if (context is DispatchContext { MessageStore: { } store })
-        {
-            DispatchSerializerMiddleware.Serialize(context);
-            await store.PersistAsync(context);
-            return;
-        }
-
         var messageKind = context.Headers.Get(MessageHeaders.MessageKind);
         if (messageKind is not MessageKind.Publish
             and not MessageKind.Send
@@ -34,7 +28,8 @@ public sealed class DispatchOutboxMiddleware
         }
         else
         {
-            var outbox = context.Services.GetRequiredService<IMessageOutbox>();
+            var outbox = context.Features.Get<IMessageOutbox>()
+                ?? context.Services.GetRequiredService<IMessageOutbox>();
             DispatchSerializerMiddleware.Serialize(context);
             await outbox.PersistAsync(context.Envelope!, context.CancellationToken);
         }
