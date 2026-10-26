@@ -23,6 +23,11 @@ internal sealed partial class SatisfiabilityValidator
     /// </summary>
     private const int MaxExplanationEntries = 1000;
 
+    /// <summary>
+    /// The number of failures after which the search of a requirement explanation stops.
+    /// </summary>
+    private const int MaxExplanationFailures = 100 * MaxExplanationEntries;
+
     private readonly SatisfiabilityOptions _options;
     private readonly ApolloFederationCompatibilityOptions _apolloFederationCompatibility;
     private readonly IReadOnlySet<string> _apolloFederationSchemaNames;
@@ -865,7 +870,7 @@ internal sealed partial class SatisfiabilityValidator
         if (!_transitionExplanations.TryGetValue(schemaName, out var explanation))
         {
             // The reach decides the transition, so the budget stops the search.
-            var budget = SatisfiabilityExplanationBudget.Limited(MaxExplanationEntries, stopsSearch: true);
+            var budget = SatisfiabilityExplanationBudget.Limited(MaxExplanationEntries);
             explanation = ValidateSourceSchemaTransition(
                 type,
                 path,
@@ -882,7 +887,8 @@ internal sealed partial class SatisfiabilityValidator
     /// <summary>
     /// Gets the explanation of why <paramref name="schemaName"/> cannot resolve <paramref name="field"/>
     /// on the object of <paramref name="work"/> with its <paramref name="requirements"/>. Past its entry
-    /// budget, the explanation only keeps the entries that hold entries created before.
+    /// budget, the explanation only keeps the entries that hold entries created before, and past its
+    /// failure budget, the search stops.
     /// </summary>
     private ImmutableArray<SatisfiabilityError> GetRequirementExplanation(
         SelectionSetNode requirements,
@@ -890,15 +896,14 @@ internal sealed partial class SatisfiabilityValidator
         string schemaName,
         in WorkItem work)
     {
-        // The search walks the whole path, and the budget lets it finish.
-        var budget = SatisfiabilityExplanationBudget.Limited(MaxExplanationEntries, stopsSearch: false);
+        var budget = SatisfiabilityExplanationBudget.Pruning(MaxExplanationEntries, MaxExplanationFailures);
         var explanation = ValidateRequirements(requirements, field, schemaName, work, anchored: false, budget);
         _explanationEntryCount += budget.EntryCount;
 
         // A walk of the path that finds no failure is explained by the walk anchored at the visit key.
         if (explanation.IsEmpty)
         {
-            budget = SatisfiabilityExplanationBudget.Limited(MaxExplanationEntries, stopsSearch: false);
+            budget = SatisfiabilityExplanationBudget.Pruning(MaxExplanationEntries, MaxExplanationFailures);
             explanation = ValidateRequirements(requirements, field, schemaName, work, anchored: true, budget);
             _explanationEntryCount += budget.EntryCount;
         }
