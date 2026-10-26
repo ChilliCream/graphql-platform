@@ -100,11 +100,15 @@ export function WhatIsSection() {
         visual={
           <div className={`${PANEL_CLASS} overflow-hidden`}>
             <LayeredDiagram
-              gatewayLabel="GATEWAY"
-              compositionLine="Composite schema · 7 subgraphs · one endpoint"
+              gatewayLabel="Gateway"
+              caption="Distributed executor"
               clients={CLIENT_NODES}
               tiers={WHAT_IS_TIERS}
               requests={WHAT_IS_REQUESTS}
+              dense
+              busCentered
+              shortSpecTags
+              captionInline
             />
           </div>
         }
