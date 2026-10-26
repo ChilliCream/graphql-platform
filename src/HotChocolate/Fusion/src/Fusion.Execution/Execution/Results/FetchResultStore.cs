@@ -1832,8 +1832,7 @@ AddErrors_Next:
         _collectMemoCursorCount = 0;
     }
 
-    // Gets the number of leading field segments. Elements reached through a type condition are not
-    // kept because they also depend on the __typename leaf values.
+    // Gets the number of leading field segments before the first type condition.
     private static int GetMemoizableDepth(SelectionPath selectionSet)
     {
         for (var i = 0; i < selectionSet.Length; i++)

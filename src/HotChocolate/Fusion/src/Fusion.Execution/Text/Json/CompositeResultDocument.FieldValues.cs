@@ -6,10 +6,9 @@ namespace HotChocolate.Fusion.Text.Json;
 public sealed partial class CompositeResultDocument
 {
     /// <summary>
-    /// Appends the cursors of the values of the field <paramref name="fieldName"/> of the objects
-    /// at <paramref name="objects"/>, starting at <paramref name="start"/>, to
-    /// <paramref name="values"/>. An object value is appended as its cursor and a list value as the
-    /// cursors of its elements, with nested lists flattened. Null and undefined values are skipped.
+    /// Appends the cursors of the non-null values of the field <paramref name="fieldName"/> of the
+    /// objects in <paramref name="objects"/>, from <paramref name="start"/> on, to <paramref name="values"/>.
+    /// A list value adds the cursors of its non-null elements, with nested lists flattened.
     /// </summary>
     /// <returns>
     /// The index of the first object that has no selection set or whose field holds a leaf value,
