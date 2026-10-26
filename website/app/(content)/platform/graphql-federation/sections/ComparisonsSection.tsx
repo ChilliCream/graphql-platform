@@ -1,7 +1,5 @@
 import NextLink from "next/link";
 
-import { ArrowRightIcon } from "@/src/icons/ArrowRight";
-
 import { Section } from "./shared";
 
 export function ComparisonsSection() {
@@ -25,7 +23,6 @@ export function ComparisonsSection() {
         >
           <h3 className="font-heading text-cc-heading text-lg font-semibold text-balance">
             GraphQL Federation vs. a single GraphQL server
-            <ArrowRightIcon className="ml-1.5 inline size-3.5 align-baseline" />
           </h3>
           <p className="text-cc-ink mt-2 text-base">
             A single GraphQL server is often the simplest choice for smaller
@@ -40,7 +37,6 @@ export function ComparisonsSection() {
         >
           <h3 className="font-heading text-cc-heading text-lg font-semibold text-balance">
             GraphQL Federation vs. Schema Stitching
-            <ArrowRightIcon className="ml-1.5 inline size-3.5 align-baseline" />
           </h3>
           <p className="text-cc-ink mt-2 text-base">
             Both approaches combine multiple GraphQL schemas into one API.
@@ -56,7 +52,6 @@ export function ComparisonsSection() {
         >
           <h3 className="font-heading text-cc-heading text-lg font-semibold text-balance">
             GraphQL Federation vs. Backend for Frontend (BFF)
-            <ArrowRightIcon className="ml-1.5 inline size-3.5 align-baseline" />
           </h3>
           <p className="text-cc-ink mt-2 text-base">
             BFFs create APIs tailored to individual applications, while
@@ -71,7 +66,6 @@ export function ComparisonsSection() {
         >
           <h3 className="font-heading text-cc-heading text-lg font-semibold text-balance">
             GraphQL Federation vs. individual APIs
-            <ArrowRightIcon className="ml-1.5 inline size-3.5 align-baseline" />
           </h3>
           <p className="text-cc-ink mt-2 text-base">
             Calling each service&apos;s API directly is often simplest when

@@ -52,9 +52,13 @@ export const WholeCardLinks: Story = {
     for (const [index, comparison] of comparisons.entries()) {
       const link = links[index];
       const card = within(link);
-      expect(
-        card.getByRole("heading", { level: 3, name: comparison.heading }),
-      ).toBeVisible();
+      const heading = card.getByRole("heading", {
+        level: 3,
+        name: comparison.heading,
+      });
+      expect(heading).toBeVisible();
+      expect(heading.textContent).toBe(comparison.heading);
+      expect(heading.childElementCount).toBe(0);
       const paragraph = card.getByText(comparison.paragraph, {
         exact: true,
         selector: "p",
