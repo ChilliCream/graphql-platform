@@ -10,7 +10,7 @@ namespace HotChocolate.Fusion;
 
 internal sealed partial class SatisfiabilityValidator
 {
-    private readonly SchemaSetTable _schemaSets = new();
+    private readonly SchemaSetTable _schemaSets;
     private readonly Dictionary<MutableOutputFieldDefinition, SchemaSet> _fieldSchemas = [];
     private readonly Dictionary<MutableOutputFieldDefinition, SchemaSelectionSets?> _fieldProvides = [];
     private readonly Dictionary<MutableObjectTypeDefinition, VisitTypeInfo> _visitTypeInfos = [];
@@ -20,6 +20,44 @@ internal sealed partial class SatisfiabilityValidator
         _lookupEntries = [];
     private readonly List<int> _schemaIndexes = [];
     private readonly List<int> _compositeFieldSchemaIndexes = [];
+    private readonly HashSet<string> _lookupSchemaNames = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Gets the names of the source schemas that the fusion directives on the types of
+    /// <paramref name="schema"/> and on their fields refer to, in ordinal order.
+    /// </summary>
+    private static SortedSet<string> GetSourceSchemaNames(MutableSchemaDefinition schema)
+    {
+        var schemaNames = new SortedSet<string>(StringComparer.Ordinal);
+
+        foreach (var type in schema.Types)
+        {
+            AddSchemaNames(type.Directives.AsEnumerable(), schemaNames);
+
+            if (type is MutableComplexTypeDefinition complexType)
+            {
+                foreach (var field in complexType.Fields)
+                {
+                    AddSchemaNames(field.Directives.AsEnumerable(), schemaNames);
+                }
+            }
+        }
+
+        return schemaNames;
+
+        static void AddSchemaNames(IEnumerable<IDirective> directives, SortedSet<string> schemaNames)
+        {
+            foreach (var directive in directives)
+            {
+                if (directive.Name.StartsWith("fusion__", StringComparison.Ordinal)
+                    && directive.Arguments.TryGetValue(WellKnownArgumentNames.Schema, out var schemaName)
+                    && schemaName.Value is string name)
+                {
+                    schemaNames.Add(name);
+                }
+            }
+        }
+    }
 
     /// <summary>
     /// Creates the key of the visit of <paramref name="type"/> held through <paramref name="item"/>,
@@ -305,13 +343,23 @@ internal sealed partial class SatisfiabilityValidator
         var members = _schemaSets.GetMembers(schemas);
         _schemaIndexes.Clear();
 
-        for (var word = 0; word < members.Length; word++)
+        // Only the schemas named by the type's lookups can have a lookup for the type.
+        _lookupSchemaNames.Clear();
+
+        foreach (var lookup in _lookupCache.GetPossibleFusionLookupDirectives(type))
+        {
+            _lookupSchemaNames.Add((string)lookup.Arguments[WellKnownArgumentNames.Schema].Value!);
+        }
+
+        for (var word = 0; word < members.Length && _lookupSchemaNames.Count > 0; word++)
         {
             for (var bits = members[word]; bits != 0; bits &= bits - 1)
             {
                 var index = (word << 6) + BitOperations.TrailingZeroCount(bits);
+                var schemaName = _schemaSets.GetSchemaName(index);
 
-                if (_lookupCache.GetPossibleFusionLookupDirectives(type, _schemaSets.GetSchemaName(index)).Count > 0)
+                if (_lookupSchemaNames.Contains(schemaName)
+                    && _lookupCache.GetPossibleFusionLookupDirectives(type, schemaName).Count > 0)
                 {
                     _schemaIndexes.Add(index);
                 }
