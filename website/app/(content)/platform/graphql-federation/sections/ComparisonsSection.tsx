@@ -17,32 +17,30 @@ export function ComparisonsSection() {
           simpler depending on your architecture and requirements.
         </p>
       </div>
-      <div className="mt-10 grid gap-10 sm:grid-cols-2">
-        <div id="vs-single-server" className="scroll-mt-24">
+      <div className="mt-10 grid gap-6 sm:grid-cols-2">
+        <NextLink
+          id="vs-single-server"
+          href="/comparison/graphql-federation-vs-monolith"
+          className="border-cc-card-border bg-cc-card-bg hover:border-cc-card-border-hover hover:bg-cc-surface focus-visible:outline-cc-accent block scroll-mt-24 rounded-2xl border p-6 no-underline transition-colors focus-visible:outline-2 focus-visible:outline-offset-4"
+        >
           <h3 className="font-heading text-cc-heading text-lg font-semibold text-balance">
-            <NextLink
-              href="/comparison/graphql-federation-vs-monolith"
-              className="hover:text-cc-accent text-inherit no-underline transition-colors"
-            >
-              GraphQL Federation vs. a single GraphQL server
-              <ArrowRightIcon className="ml-1.5 inline size-3.5 align-baseline" />
-            </NextLink>
+            GraphQL Federation vs. a single GraphQL server
+            <ArrowRightIcon className="ml-1.5 inline size-3.5 align-baseline" />
           </h3>
           <p className="text-cc-ink mt-2 text-base">
             A single GraphQL server is often the simplest choice for smaller
             applications. Federation becomes valuable as APIs grow and teams
             need independent ownership, development, and deployment.
           </p>
-        </div>
-        <div id="vs-schema-stitching" className="scroll-mt-24">
+        </NextLink>
+        <NextLink
+          id="vs-schema-stitching"
+          href="/comparison/graphql-federation-vs-schema-stitching"
+          className="border-cc-card-border bg-cc-card-bg hover:border-cc-card-border-hover hover:bg-cc-surface focus-visible:outline-cc-accent block scroll-mt-24 rounded-2xl border p-6 no-underline transition-colors focus-visible:outline-2 focus-visible:outline-offset-4"
+        >
           <h3 className="font-heading text-cc-heading text-lg font-semibold text-balance">
-            <NextLink
-              href="/comparison/graphql-federation-vs-schema-stitching"
-              className="hover:text-cc-accent text-inherit no-underline transition-colors"
-            >
-              GraphQL Federation vs. Schema Stitching
-              <ArrowRightIcon className="ml-1.5 inline size-3.5 align-baseline" />
-            </NextLink>
+            GraphQL Federation vs. Schema Stitching
+            <ArrowRightIcon className="ml-1.5 inline size-3.5 align-baseline" />
           </h3>
           <p className="text-cc-ink mt-2 text-base">
             Both approaches combine multiple GraphQL schemas into one API.
@@ -50,32 +48,30 @@ export function ComparisonsSection() {
             by subgraphs, making it a natural fit for independently evolving
             services.
           </p>
-        </div>
-        <div id="vs-bff" className="scroll-mt-24">
+        </NextLink>
+        <NextLink
+          id="vs-bff"
+          href="/comparison/graphql-federation-vs-bff"
+          className="border-cc-card-border bg-cc-card-bg hover:border-cc-card-border-hover hover:bg-cc-surface focus-visible:outline-cc-accent block scroll-mt-24 rounded-2xl border p-6 no-underline transition-colors focus-visible:outline-2 focus-visible:outline-offset-4"
+        >
           <h3 className="font-heading text-cc-heading text-lg font-semibold text-balance">
-            <NextLink
-              href="/comparison/graphql-federation-vs-bff"
-              className="hover:text-cc-accent text-inherit no-underline transition-colors"
-            >
-              GraphQL Federation vs. Backend for Frontend (BFF)
-              <ArrowRightIcon className="ml-1.5 inline size-3.5 align-baseline" />
-            </NextLink>
+            GraphQL Federation vs. Backend for Frontend (BFF)
+            <ArrowRightIcon className="ml-1.5 inline size-3.5 align-baseline" />
           </h3>
           <p className="text-cc-ink mt-2 text-base">
             BFFs create APIs tailored to individual applications, while
             federation provides a shared graph across backend services. The two
             approaches can complement each other.
           </p>
-        </div>
-        <div id="vs-individual-apis" className="scroll-mt-24">
+        </NextLink>
+        <NextLink
+          id="vs-individual-apis"
+          href="/comparison/graphql-federation-vs-individual-apis"
+          className="border-cc-card-border bg-cc-card-bg hover:border-cc-card-border-hover hover:bg-cc-surface focus-visible:outline-cc-accent block scroll-mt-24 rounded-2xl border p-6 no-underline transition-colors focus-visible:outline-2 focus-visible:outline-offset-4"
+        >
           <h3 className="font-heading text-cc-heading text-lg font-semibold text-balance">
-            <NextLink
-              href="/comparison/graphql-federation-vs-individual-apis"
-              className="hover:text-cc-accent text-inherit no-underline transition-colors"
-            >
-              GraphQL Federation vs. individual APIs
-              <ArrowRightIcon className="ml-1.5 inline size-3.5 align-baseline" />
-            </NextLink>
+            GraphQL Federation vs. individual APIs
+            <ArrowRightIcon className="ml-1.5 inline size-3.5 align-baseline" />
           </h3>
           <p className="text-cc-ink mt-2 text-base">
             Calling each service&apos;s API directly is often simplest when
@@ -83,7 +79,7 @@ export function ComparisonsSection() {
             together into one unified GraphQL API, so clients no longer
             coordinate data across services themselves.
           </p>
-        </div>
+        </NextLink>
       </div>
     </Section>
   );
