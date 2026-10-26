@@ -207,6 +207,84 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
         }
         """;
 
+    private const string EarlierCallSchemaA =
+        """
+        # name: a
+        type Query {
+          root: H0 @shareable
+          h2ById(id: ID!): H2 @lookup @internal
+        }
+
+        type H0 {
+          id: ID! @shareable
+          a: H1
+        }
+
+        type H1 {
+          id: ID! @shareable
+        }
+
+        type H2 {
+          id: ID! @shareable
+          l: L @shareable
+        }
+
+        type L {
+          f(v: String @require(field: "x")): String
+        }
+        """;
+
+    private const string EarlierCallSchemaB =
+        """
+        # name: b
+        type Query {
+          root: H0 @shareable
+          h1ById(id: ID!): H1 @lookup @internal
+          h2ById(id: ID!): H2 @lookup @internal
+        }
+
+        type H0 {
+          id: ID! @shareable
+        }
+
+        type H1 {
+          id: ID! @shareable
+          b: H2
+        }
+
+        type H2 {
+          id: ID! @shareable
+          l: L @shareable
+        }
+
+        type L {
+          x: String
+        }
+        """;
+
+    private const string ParentRequirementSchemaA =
+        """
+        # name: a
+        type Query {
+          root: H0
+          h1ById(id: ID!): H1 @lookup @internal
+        }
+
+        type H0 {
+          id: ID! @shareable
+        }
+
+        type H1 {
+          id: ID! @shareable
+          z: String
+          l: L @shareable
+        }
+
+        type L {
+          f(v: String @require(field: "x")): String
+        }
+        """;
+
     private static readonly string[] s_holderDataSchemas =
     [
         """
@@ -1779,6 +1857,605 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
             """);
     }
 
+    [Fact]
+    public void Plan_Should_FetchRequirement_When_RequirementDataDependsOnEarlierCallOfRequiringSchema()
+    {
+        // arrange
+        var schema = ComposeSchema(EarlierCallSchemaA, EarlierCallSchemaB);
+
+        // act
+        var plan = PlanOperation(schema, "{ root { a { b { l { f } } } } }");
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_FetchNestedRequirement_When_RequirementDataDependsOnEarlierCallOfRequiringSchema()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+              root: H0 @shareable
+              h2ById(id: ID!): H2 @lookup @internal
+            }
+
+            type H0 {
+              id: ID! @shareable
+              a: H1
+            }
+
+            type H1 {
+              id: ID! @shareable
+            }
+
+            type H2 {
+              id: ID! @shareable
+              l: L @shareable
+            }
+
+            type L {
+              f(v: String @require(field: "m.x")): String
+            }
+            """,
+            """
+            # name: b
+            type Query {
+              root: H0 @shareable
+              h1ById(id: ID!): H1 @lookup @internal
+              h2ById(id: ID!): H2 @lookup @internal
+            }
+
+            type H0 {
+              id: ID! @shareable
+            }
+
+            type H1 {
+              id: ID! @shareable
+              b: H2
+            }
+
+            type H2 {
+              id: ID! @shareable
+              l: L @shareable
+            }
+
+            type L {
+              m: M
+            }
+
+            type M {
+              id: ID! @shareable
+            }
+            """,
+            """
+            # name: d
+            type Query {
+              mById(id: ID!): M @lookup @internal
+            }
+
+            type M {
+              id: ID! @shareable
+              x: String
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(schema, "{ root { a { b { l { f } } } } }");
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_Fail_When_RequirementDataDependsOnCallOfRequiringSchemaThatServesTheField()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            options => options.Satisfiability.IgnoredNonAccessibleFields["L.f"] =
+            [
+                "A:Query.root<H0> -> A:H0.a<H1> -> A:H1.l<L>",
+                "A:Query.root<H0> -> A:H0.a<H1> -> B:H1.l<L>"
+            ],
+            """
+            # name: a
+            type Query {
+              root: H0 @shareable
+              h1ById(id: ID!): H1 @lookup @internal
+            }
+
+            type H0 {
+              id: ID! @shareable
+              a: H1
+            }
+
+            type H1 {
+              id: ID! @shareable
+              l: L @shareable
+            }
+
+            type L {
+              f(v: String @require(field: "x")): String
+            }
+            """,
+            """
+            # name: b
+            type Query {
+              root: H0 @shareable
+              h1ById(id: ID!): H1 @lookup @internal
+            }
+
+            type H0 {
+              id: ID! @shareable
+            }
+
+            type H1 {
+              id: ID! @shareable
+              l: L @shareable
+            }
+
+            type L {
+              x: String
+            }
+            """);
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => PlanOperation(schema, "{ root { a { l { f } } } }"));
+
+        // assert
+        Assert.Equal("No possible plan was found.", exception.Message);
+    }
+
+    [Fact]
+    public void Plan_Should_Fail_When_RequirementDataNeedsLookupKeyedByCallAfterEarlierCallOfRequiringSchema()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            options => options.Satisfiability.IgnoredNonAccessibleFields["L.f"] =
+            [
+                "A:Query.root<H0> -> A:H0.a<H1> -> C:H1.c<H2> -> C:H2.l<L>",
+                "A:Query.root<H0> -> A:H0.a<H1> -> C:H1.c<H2> -> A:H2.l<L>"
+            ],
+            EarlierCallSchemaA,
+            """
+            # name: b
+            type Query {
+              h2ById(id: ID!): H2 @lookup @internal
+            }
+
+            type H2 {
+              id: ID! @shareable
+              l: L @shareable
+            }
+
+            type L {
+              x: String
+            }
+            """,
+            """
+            # name: c
+            type Query {
+              h1ById(id: ID!): H1 @lookup @internal
+            }
+
+            type H1 {
+              id: ID! @shareable
+              c: H2
+            }
+
+            type H2 {
+              id: ID! @shareable
+              l: L @shareable
+            }
+
+            type L {
+              y: String
+            }
+            """);
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => PlanOperation(schema, "{ root { a { c { l { f } } } } }"));
+
+        // assert
+        Assert.Equal("No possible plan was found.", exception.Message);
+    }
+
+    [Fact]
+    public void Plan_Should_Fail_When_ParentSchemaCannotResolveFieldReturningObject()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            options => options.Satisfiability.IgnoredNonAccessibleFields["L.f"] =
+            [
+                "A:Query.root<H0> -> B:H0.b<H1> -> A:H1.l<L>"
+            ],
+            ParentRequirementSchemaA,
+            """
+            # name: b
+            type Query {
+              h0ById(id: ID!): H0 @lookup @internal
+            }
+
+            type H0 {
+              id: ID! @shareable
+              b: H1
+            }
+
+            type H1 {
+              id: ID! @shareable
+              l(z: String @require(field: "z")): L @shareable
+            }
+
+            type L {
+              x: String
+            }
+            """);
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => PlanOperation(schema, "{ root { b { l { f } } } }"));
+
+        // assert
+        Assert.Equal("No possible plan was found.", exception.Message);
+    }
+
+    [Fact]
+    public void Plan_Should_FetchRequirementThroughLookupOfParentSchema_When_FieldReturningObjectHasRequirement()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            ParentRequirementSchemaA,
+            """
+            # name: b
+            type Query {
+              h0ById(id: ID!): H0 @lookup @internal
+              h1ById(id: ID!): H1 @lookup @internal
+            }
+
+            type H0 {
+              id: ID! @shareable
+              b: H1
+            }
+
+            type H1 {
+              id: ID! @shareable
+              l(z: String @require(field: "z")): L @shareable
+            }
+
+            type L {
+              x: String
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(schema, "{ root { b { l { f } } } }");
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_FetchRequirementFromOtherSchema_When_ParentSchemaLacksFieldReturningObject()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            EarlierCallSchemaA,
+            """
+            # name: b
+            type Query {
+              h2ById(id: ID!): H2 @lookup @internal
+            }
+
+            type H2 {
+              id: ID! @shareable
+              l: L @shareable
+            }
+
+            type L {
+              x: String
+            }
+            """,
+            """
+            # name: c
+            type Query {
+              h1ById(id: ID!): H1 @lookup @internal
+            }
+
+            type H1 {
+              id: ID! @shareable
+              c: H2
+            }
+
+            type H2 {
+              id: ID! @shareable
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(schema, "{ root { a { c { l { f } } } } }");
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_Fail_When_ParentCallProvidesFieldReturningObject()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            options => options.Satisfiability.IgnoredNonAccessibleFields["L.f"] =
+            [
+                "A:Query.root<H0> -> A:H0.a<H1> -> B:H1.b<H2> -> A:H2.l<L>"
+            ],
+            EarlierCallSchemaA,
+            """
+            # name: b
+            type Query {
+              h1ById(id: ID!): H1 @lookup @internal
+            }
+
+            type H1 {
+              id: ID! @shareable
+              b: H2 @provides(fields: "l { x }")
+            }
+
+            type H2 {
+              id: ID! @shareable
+              l: L @external
+            }
+
+            type L {
+              x: String @external
+            }
+            """,
+            """
+            # name: c
+            type Query {
+              h2ById(id: ID!): H2 @lookup @internal
+            }
+
+            type H2 {
+              id: ID! @shareable
+              l: L @shareable
+            }
+
+            type L {
+              x: String
+            }
+            """);
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => PlanOperation(schema, "{ root { a { b { l { f } } } } }"));
+
+        // assert
+        Assert.Equal("No possible plan was found.", exception.Message);
+    }
+
+    [Fact]
+    public void Plan_Should_Fail_When_OtherSchemaWithRequirementEntersParentBelowLookupOfAncestor()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            options => options.Satisfiability.IgnoredNonAccessibleFields["L.f"] =
+            [
+                "A:Query.root<H0> -> A:H0.a<H1> -> C:H1.c<H2> -> A:H2.l<L>"
+            ],
+            [.. CreateOtherSchemaWithRequirementSchemas(otherSchemaHasLookup: false)]);
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => PlanOperation(schema, "{ root { a { c { l { f } } } } }"));
+
+        // assert
+        Assert.Equal("No possible plan was found.", exception.Message);
+    }
+
+    [Fact]
+    public void Plan_Should_FetchRequirementFromOtherSchema_When_ItEntersParentThroughLookup()
+    {
+        // arrange
+        var schema = ComposeSchema([.. CreateOtherSchemaWithRequirementSchemas(otherSchemaHasLookup: true)]);
+
+        // act
+        var plan = PlanOperation(schema, "{ root { a { c { l { f } } } } }");
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_Fail_When_RequirementDataNeedsCallsOfTwoSchemasResolvingFieldReturningObject()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            options => options.Satisfiability.IgnoredNonAccessibleFields["L.f"] =
+            [
+                "A:Query.root<H0> -> A:H0.a<H1> -> C:H1.c<H2> -> A:H2.l<L>",
+                "A:Query.root<H0> -> A:H0.a<H1> -> C:H1.c<H2> -> B:H2.l<L>",
+                "A:Query.root<H0> -> A:H0.a<H1> -> C:H1.c<H2> -> D:H2.l<L>"
+            ],
+            """
+            # name: a
+            type Query {
+              root: H0 @shareable
+              h2ById(id: ID!): H2 @lookup @internal
+            }
+
+            type H0 {
+              id: ID! @shareable
+              a: H1
+            }
+
+            type H1 {
+              id: ID! @shareable
+            }
+
+            type H2 {
+              id: ID! @shareable
+              l: L @shareable
+            }
+
+            type L {
+              f(v: String @require(field: "x"), w: String @require(field: "y")): String
+            }
+            """,
+            """
+            # name: b
+            type Query {
+              h2ById(id: ID!): H2 @lookup @internal
+            }
+
+            type H2 {
+              id: ID! @shareable
+              l: L @shareable
+            }
+
+            type L {
+              x: String
+            }
+            """,
+            """
+            # name: c
+            type Query {
+              h1ById(id: ID!): H1 @lookup @internal
+            }
+
+            type H1 {
+              id: ID! @shareable
+              c: H2
+            }
+
+            type H2 {
+              id: ID! @shareable
+            }
+            """,
+            """
+            # name: d
+            type Query {
+              h2ById(id: ID!): H2 @lookup @internal
+            }
+
+            type H2 {
+              id: ID! @shareable
+              l: L @shareable
+            }
+
+            type L {
+              y: String
+            }
+            """);
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => PlanOperation(schema, "{ root { a { c { l { f } } } } }"));
+
+        // assert
+        Assert.Equal("No possible plan was found.", exception.Message);
+    }
+
+    [Fact]
+    public void Plan_Should_Fail_When_RequirementDataComesFromCallBelowReRootedViewer()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            options => options.Satisfiability.IgnoredNonAccessibleFields["L.f"] =
+            [
+                "M:Mutation.doIt<Payload> -> M:Payload.viewer<Viewer> -> V:Viewer.h<H> -> A:H.k<K> -> C:K.m<Mo> -> C:Mo.l<L>",
+                "M:Mutation.doIt<Payload> -> M:Payload.viewer<Viewer> -> V:Viewer.h<H> -> A:H.k<K> -> C:K.m<Mo> -> A:Mo.l<L>"
+            ],
+            """
+            # name: m
+            type Query {
+              ping: String
+            }
+
+            type Mutation {
+              doIt: Payload
+            }
+
+            type Payload {
+              ok: Boolean
+              viewer: Viewer @shareable
+            }
+
+            type Viewer {
+              id: ID! @shareable
+            }
+            """,
+            """
+            # name: v
+            type Query {
+              viewer: Viewer @shareable
+            }
+
+            type Viewer {
+              id: ID! @shareable
+              h: H
+            }
+
+            type H {
+              id: ID! @shareable
+            }
+            """,
+            """
+            # name: a
+            type Query {
+              hById(id: ID!): H @lookup @internal
+              mById(id: ID!): Mo @lookup @internal
+            }
+
+            type H {
+              id: ID! @shareable
+              k: K
+            }
+
+            type K {
+              id: ID! @shareable
+            }
+
+            type Mo {
+              id: ID! @shareable
+              l: L @shareable
+            }
+
+            type L {
+              f(v: String @require(field: "x")): String
+            }
+            """,
+            """
+            # name: c
+            type Query {
+              kById(id: ID!): K @lookup @internal
+            }
+
+            type K {
+              id: ID! @shareable
+              m: Mo
+            }
+
+            type Mo {
+              id: ID! @shareable
+              l: L @shareable
+            }
+
+            type L {
+              x: String
+            }
+            """);
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => PlanOperation(schema, "mutation { doIt { viewer { h { k { m { l { f } } } } } } }"));
+
+        // assert
+        Assert.Equal("No possible plan was found.", exception.Message);
+    }
+
     private static FusionSchemaDefinition ComposeLookupKeySchema()
         => ComposeSchema(
             options =>
@@ -1865,4 +2542,76 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
             options => options.Satisfiability.IgnoredNonAccessibleFields["T.f"] =
                 ["R:Query.y<Y> -> G2:Y.p<P> -> S:P.fp<T>"],
             s_holderDataSchemas);
+
+    private static string[] CreateOtherSchemaWithRequirementSchemas(bool otherSchemaHasLookup)
+    {
+        var lookups = otherSchemaHasLookup
+            ? "h1ById(id: ID!): H1 @lookup @internal\n  h2ById(id: ID!): H2 @lookup @internal"
+            : "h1ById(id: ID!): H1 @lookup @internal";
+
+        return
+        [
+            """
+            # name: a
+            type Query {
+              root: H0 @shareable
+              h2ById(id: ID!): H2 @lookup @internal
+            }
+
+            type H0 {
+              id: ID! @shareable
+              a: H1
+            }
+
+            type H1 {
+              id: ID! @shareable
+            }
+
+            type H2 {
+              id: ID! @shareable
+              l: L @shareable
+              pz: String
+            }
+
+            type L {
+              f(v: String @require(field: "x")): String
+            }
+            """,
+            $$"""
+            # name: b
+            type Query {
+              {{lookups}}
+            }
+
+            type H1 {
+              id: ID! @shareable
+              c: H2 @shareable
+            }
+
+            type H2 {
+              id: ID! @shareable
+              l(p: String @require(field: "pz")): L @shareable
+            }
+
+            type L {
+              x: String
+            }
+            """,
+            """
+            # name: c
+            type Query {
+              h1ById(id: ID!): H1 @lookup @internal
+            }
+
+            type H1 {
+              id: ID! @shareable
+              c: H2 @shareable
+            }
+
+            type H2 {
+              id: ID! @shareable
+            }
+            """
+        ];
+    }
 }

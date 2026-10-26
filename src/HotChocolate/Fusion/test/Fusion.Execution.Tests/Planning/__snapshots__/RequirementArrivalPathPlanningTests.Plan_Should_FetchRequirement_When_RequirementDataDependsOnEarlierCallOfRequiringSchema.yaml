@@ -1,0 +1,75 @@
+operation:
+  - document: |
+      {
+        root {
+          a {
+            b {
+              l {
+                f
+                x @fusion__requirement
+              }
+              id @fusion__requirement
+            }
+            id @fusion__requirement
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 2
+    expandedNodes: 7
+nodes:
+  - id: 2
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_2 {
+        root {
+          a {
+            id
+          }
+        }
+      }
+  - id: 3
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_3($__fusion_1_id: ID!) {
+        h1ById(id: $__fusion_1_id) {
+          b {
+            l {
+              x
+            }
+            id
+          }
+        }
+      }
+    source: $.h1ById
+    target: $.root.a
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 2
+  - id: 4
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_4($__fusion_2_id: ID!, $__fusion_3_v: String) {
+        h2ById(id: $__fusion_2_id) {
+          l {
+            f(v: $__fusion_3_v)
+          }
+        }
+      }
+    source: $.h2ById
+    target: $.root.a.b
+    requirements:
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+      - name: __fusion_3_v
+        selectionMap: >-
+          x
+    dependencies:
+      - id: 3
