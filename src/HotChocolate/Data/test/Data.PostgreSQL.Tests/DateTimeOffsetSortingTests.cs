@@ -94,7 +94,7 @@ public sealed class DateTimeOffsetSortingTests(PostgreSqlResource resource)
     private sealed class EventContext(DbContextOptions<EventContext> options)
         : DbContext(options)
     {
-        public DbSet<EventEntity> Events { get; set; } = null!;
+        public DbSet<EventEntity> Events { get; set; }
     }
 
     private sealed class EventEntity

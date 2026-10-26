@@ -243,7 +243,7 @@ public class IsProjectedSelectorTests : IDisposable
 
     public class ProductDbContext(DbContextOptions<ProductDbContext> options) : DbContext(options)
     {
-        public DbSet<Product> Products => Set<Product>();
+        public DbSet<Product> Products { get; set; }
     }
 
     public class ProductQuery

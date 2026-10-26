@@ -221,7 +221,7 @@ public sealed class Issue8252UnionProjectionTests(PostgreSqlResource resource)
 
     public sealed class Issue8252Context(DbContextOptions<Issue8252Context> options) : DbContext(options)
     {
-        public DbSet<PostContent> Content => Set<PostContent>();
+        public DbSet<PostContent> Content { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
