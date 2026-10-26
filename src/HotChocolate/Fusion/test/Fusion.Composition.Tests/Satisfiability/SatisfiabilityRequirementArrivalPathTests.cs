@@ -1170,6 +1170,341 @@ public sealed class SatisfiabilityRequirementArrivalPathTests
     }
 
     [Fact]
+    public void Compose_Should_Fail_When_EventStreamObjectHasLookupWhoseKeyTheMessageLacks()
+    {
+        // arrange
+        // The message omits T3.s0 and T3.id, and A enters T3 again through its own lookup, keyed by T3.id.
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "a",
+                """
+                type Query {
+                    t2ById(id: ID!): T2 @lookup @internal
+                    t3ById(id: ID!): T3 @lookup @internal
+                }
+
+                type Subscription {
+                    ev: T2 @eventStream(topics: ["e"], message: "{ id f2 { __typename } }")
+                }
+
+                type T2 {
+                    id: ID!
+                    s0: String
+                    f2: T3
+                }
+
+                type T3 {
+                    id: ID!
+                    s0: String
+                }
+                """),
+            new SourceSchemaText(
+                "b",
+                """
+                type Query {
+                    ping: String
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.False(result.IsSuccess);
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            "Unable to access the field 'T3.id' on path 'A:Subscription.ev<T2> -> A:T2.f2<T3>'.",
+            "Unable to access the field 'T3.s0' on path 'A:Subscription.ev<T2> -> A:T2.f2<T3>'."
+        ]);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_HoldingSchemaServesLookupKeyThatTheMessageLacks()
+    {
+        // arrange
+        // A enters T1 again through t1ByK and serves T1.k, which the message lacks, though X could fetch it.
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "a",
+                """
+                type Query {
+                    ping: String @shareable
+                    t1ByK(k: String!): T1 @lookup @internal
+                }
+
+                type Subscription {
+                    ev: T1 @eventStream(topics: ["e"], message: "{ id f1 { f2 { __typename } } }")
+                }
+
+                type T1 {
+                    id: ID! @shareable
+                    k: String! @shareable
+                    f1: T2
+                }
+
+                type T2 {
+                    f2: T3
+                }
+
+                type T3 {
+                    s0: String
+                }
+                """),
+            new SourceSchemaText(
+                "x",
+                """
+                type Query {
+                    ping: String @shareable
+                    t1ById(id: ID!): T1 @lookup @internal
+                }
+
+                type T1 {
+                    id: ID! @shareable
+                    k: String! @shareable
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.False(result.IsSuccess);
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'T1.k' on path 'A:Subscription.ev<T1>'.
+              The lookup 't1ByK' in schema 'A' reads its key '{ k }' from the selection set that schema 'A' provides for type 'T1', which omits it.
+            """,
+            "Unable to access the field 'T3.s0' on path 'A:Subscription.ev<T1> -> A:T1.f1<T2> -> A:T2.f2<T3>'."
+        ]);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_LookupOfOtherSchemaReadsKeyThatTheMessageLacks()
+    {
+        // arrange
+        // X enters T1 by T1.id, which A serves and the message lacks, and only A serves T1.f2, entering T0 again.
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "a",
+                """
+                type Query {
+                    ping: String @shareable
+                    t0ById(id: ID!): T0 @lookup @internal
+                }
+
+                type Subscription {
+                    ev: T0 @eventStream(topics: ["e"], message: "{ id f1 { __typename } }")
+                }
+
+                type T0 {
+                    id: ID!
+                    f1: T1
+                }
+
+                type T1 {
+                    id: ID! @shareable
+                    z: String @shareable
+                    f2: T0
+                }
+                """),
+            new SourceSchemaText(
+                "x",
+                """
+                type Query {
+                    ping: String @shareable
+                    t1ById(id: ID!): T1 @lookup @internal
+                }
+
+                type T1 {
+                    id: ID! @shareable
+                    z: String @shareable
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.False(result.IsSuccess);
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'T1.id' on path 'A:Subscription.ev<T0> -> A:T0.f1<T1>'.
+              The lookup 't1ById' in schema 'X' reads its key '{ id }' from the selection set that schema 'A' provides for type 'T1', which omits it.
+              Unable to transition between schemas 'A' and 'X' for access to field 'X:T1.id<ID>'.
+                Unable to satisfy the requirement '{ id }' for lookup 't1ById' in schema 'X'.
+                  Unable to satisfy the requirement 'id'.
+                    Unable to access the required field 'T1.id' on path 'A:T0.f1<T1>'.
+                      No other schemas contain the field 'T1.id'.
+            """,
+            """
+            Unable to access the field 'T1.z' on path 'A:Subscription.ev<T0> -> A:T0.f1<T1>'.
+              The lookup 't1ById' in schema 'X' reads its key '{ id }' from the selection set that schema 'A' provides for type 'T1', which omits it.
+              Unable to transition between schemas 'A' and 'X' for access to field 'X:T1.z<String>'.
+                Unable to satisfy the requirement '{ id }' for lookup 't1ById' in schema 'X'.
+                  Unable to satisfy the requirement 'id'.
+                    Unable to access the required field 'T1.id' on path 'A:T0.f1<T1>'.
+                      No other schemas contain the field 'T1.id'.
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_HoldingSchemaHasLookupAndLookupOfOtherSchemaReadsKeyThatTheMessageLacks()
+    {
+        // arrange
+        // B enters T again by the id of the message, and A enters T by T.s, which B serves and the message lacks.
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "a",
+                """
+                type Query {
+                    ping: String @shareable
+                    tByS(s: String!): T @lookup @internal
+                }
+
+                type T {
+                    s: String @shareable
+                    f: String @shareable
+                }
+                """),
+            new SourceSchemaText(
+                "b",
+                """
+                type Query {
+                    ping: String @shareable
+                    tById(id: ID!): T @lookup @internal
+                }
+
+                type Subscription {
+                    ev: T @eventStream(topics: ["e"], message: "{ id }")
+                }
+
+                type T {
+                    id: ID! @shareable
+                    s: String @shareable
+                    f: String @shareable
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.False(result.IsSuccess);
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'T.s' on path 'B:Subscription.ev<T>'.
+              The lookup 'tByS' in schema 'A' reads its key '{ s }' from the selection set that schema 'B' provides for type 'T', which omits it.
+              Unable to transition between schemas 'B' and 'A' for access to field 'A:T.s<String>'.
+                Unable to satisfy the requirement '{ s }' for lookup 'tByS' in schema 'A'.
+                  Unable to satisfy the requirement 's'.
+                    Unable to access the required field 'T.s' on path 'B:Subscription.ev<T>'.
+                      No other schemas contain the field 'T.s'.
+            """,
+            """
+            Unable to access the field 'T.f' on path 'B:Subscription.ev<T>'.
+              The lookup 'tByS' in schema 'A' reads its key '{ s }' from the selection set that schema 'B' provides for type 'T', which omits it.
+              Unable to transition between schemas 'B' and 'A' for access to field 'A:T.f<String>'.
+                Unable to satisfy the requirement '{ s }' for lookup 'tByS' in schema 'A'.
+                  Unable to satisfy the requirement 's'.
+                    Unable to access the required field 'T.s' on path 'B:Subscription.ev<T>'.
+                      No other schemas contain the field 'T.s'.
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_LookupWithHeldKeyAndLookupReadingKeyThatTheMessageLacksServeTheField()
+    {
+        // arrange
+        // C enters T by T.id, which the message holds, and B enters T by T.s, which A serves and the message lacks.
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "a",
+                """
+                type Query {
+                    ping: String @shareable
+                    holderById(id: ID!): T @lookup @internal
+                }
+
+                type Subscription {
+                    ev: T @eventStream(topics: ["e"], message: "{ id }")
+                }
+
+                type T {
+                    id: ID! @shareable
+                    s: String @shareable
+                }
+                """),
+            new SourceSchemaText(
+                "b",
+                """
+                type Query {
+                    ping: String @shareable
+                    tByS(s: String!): T @lookup @internal
+                }
+
+                type T {
+                    s: String @shareable
+                    f: String @shareable
+                }
+                """),
+            new SourceSchemaText(
+                "c",
+                """
+                type Query {
+                    ping: String @shareable
+                    tById(id: ID!): T @lookup @internal
+                }
+
+                type T {
+                    id: ID! @shareable
+                    f: String @shareable
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.False(result.IsSuccess);
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'T.s' on path 'A:Subscription.ev<T>'.
+              The lookup 'tByS' in schema 'B' reads its key '{ s }' from the selection set that schema 'A' provides for type 'T', which omits it.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:T.s<String>'.
+                Unable to satisfy the requirement '{ s }' for lookup 'tByS' in schema 'B'.
+                  Unable to satisfy the requirement 's'.
+                    Unable to access the required field 'T.s' on path 'A:Subscription.ev<T>'.
+                      No other schemas contain the field 'T.s'.
+            """,
+            """
+            Unable to access the field 'T.f' on path 'A:Subscription.ev<T>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:T.f<String>'.
+                Unable to satisfy the requirement '{ s }' for lookup 'tByS' in schema 'B'.
+                  Unable to satisfy the requirement 's'.
+                    Unable to access the required field 'T.s' on path 'A:Subscription.ev<T>'.
+                      No other schemas contain the field 'T.s'.
+              The lookup 'tByS' in schema 'B' reads its key '{ s }' from the selection set that schema 'A' provides for type 'T', which omits it.
+            """
+        ]);
+    }
+
+    [Fact]
     public void Compose_Should_Succeed_When_LookupKeyBelowRequirementSelectsRequiringField()
     {
         // arrange
