@@ -22,7 +22,8 @@ internal sealed class NatsParsingMiddleware
         var envelope = NatsMessageEnvelopeParser.Instance.Parse(
             feature.Headers,
             feature.Body,
-            feature.DeliveryCount);
+            feature.DeliveryCount,
+            feature.Message?.Metadata?.Timestamp);
 
         context.SetEnvelope(envelope);
 

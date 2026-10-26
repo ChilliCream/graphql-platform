@@ -23,8 +23,15 @@ internal sealed class NatsMessageEnvelopeParser
     /// <param name="deliveryCount">
     /// The JetStream redelivery count taken from the message metadata, not from a header.
     /// </param>
+    /// <param name="storedAt">
+    /// When JetStream stored the message, used as the send time when the sender set none.
+    /// </param>
     /// <returns>A fully populated message envelope ready for the receive middleware pipeline.</returns>
-    public MessageEnvelope Parse(NatsHeaders? headers, ReadOnlyMemory<byte> body, int deliveryCount)
+    public MessageEnvelope Parse(
+        NatsHeaders? headers,
+        ReadOnlyMemory<byte> body,
+        int deliveryCount,
+        DateTimeOffset? storedAt = null)
     {
         return new MessageEnvelope
         {
@@ -38,7 +45,7 @@ internal sealed class NatsMessageEnvelopeParser
             FaultAddress = Get(headers, NatsMessageHeaders.FaultAddress),
             MessageType = Get(headers, NatsMessageHeaders.MessageType),
             ContentType = Get(headers, NatsMessageHeaders.ContentType),
-            SentAt = GetTimestamp(headers, NatsMessageHeaders.SentAt),
+            SentAt = GetTimestamp(headers, NatsMessageHeaders.SentAt) ?? storedAt,
             DeliverBy = GetTimestamp(headers, NatsMessageHeaders.DeliverBy),
             ScheduledTime = GetTimestamp(headers, NatsMessageHeaders.ScheduledTime),
             DeliveryCount = deliveryCount,

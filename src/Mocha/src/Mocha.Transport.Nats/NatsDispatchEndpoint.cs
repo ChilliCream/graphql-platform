@@ -66,7 +66,7 @@ public sealed class NatsDispatchEndpoint(NatsMessagingTransport transport)
             return;
         }
 
-        var subject = ApplyScheduling(envelope, headers);
+        var subject = ApplyScheduling(envelope, headers, context.Services.GetTimeProvider().GetUtcNow());
 
         await PublishAsync(subject, envelope, headers, cancellationToken);
     }
@@ -86,7 +86,7 @@ public sealed class NatsDispatchEndpoint(NatsMessagingTransport transport)
         }
 
         var headers = NatsMessageHeadersWriter.Instance.Write(envelope);
-        var subject = ApplyScheduling(envelope, headers);
+        var subject = ApplyScheduling(envelope, headers, context.Services.GetTimeProvider().GetUtcNow());
 
         await PublishAsync(subject, envelope, headers, cancellationToken);
 
@@ -98,10 +98,11 @@ public sealed class NatsDispatchEndpoint(NatsMessagingTransport transport)
     /// </summary>
     /// <param name="envelope">The envelope being dispatched.</param>
     /// <param name="headers">The headers being sent.</param>
+    /// <param name="now">The current time, from the bus's time provider.</param>
     /// <returns>
     /// The scheduling subject when the message is scheduled, otherwise the endpoint's own subject.
     /// </returns>
-    private string ApplyScheduling(MessageEnvelope envelope, NatsHeaders headers)
+    private string ApplyScheduling(MessageEnvelope envelope, NatsHeaders headers, DateTimeOffset now)
     {
         if (envelope.DeliverBy is { } deliverBy)
         {
@@ -110,10 +111,10 @@ public sealed class NatsDispatchEndpoint(NatsMessagingTransport transport)
                 "per-message TTL",
                 "2.11");
 
-            headers.Add(NatsScheduling.TtlHeader, NatsScheduling.ToTtlValue(deliverBy - DateTimeOffset.UtcNow));
+            headers.Add(NatsScheduling.TtlHeader, NatsScheduling.ToTtlValue(deliverBy - now));
         }
 
-        if (envelope.ScheduledTime is not { } scheduledTime || scheduledTime <= DateTimeOffset.UtcNow)
+        if (envelope.ScheduledTime is not { } scheduledTime || scheduledTime <= now)
         {
             return Subject.Subject;
         }
