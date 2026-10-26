@@ -35,7 +35,6 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
                 Utf8GraphQLParser.Parse("query GetBooks { books { title } }")),
             TestContext.Current.CancellationToken);
         var subgraph = StartSubgraph([]);
-        StopAndDisposeAfterTest(subgraph);
         var schemaDocument = await subgraph.Services.GetSchemaAsync(
             cancellationToken: TestContext.Current.CancellationToken);
         var schemaComposer =
@@ -55,9 +54,9 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
             .AddOptions<McpSetup>("NamedSchema")
             .PostConfigure(setup => setup.StorageFactory = _ => storage);
         var webApp = webAppBuilder.Build();
+        StopAndDisposeAfterTest(webApp);
         webApp.MapGraphQLMcp();
         webApp.Start();
-        StopAndDisposeAfterTest(webApp);
         var mcpClient = await CreateMcpClientAsync(webApp.GetTestClient());
 
         // act
@@ -80,7 +79,6 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
                         TestContext.Current.CancellationToken))),
             TestContext.Current.CancellationToken);
         var subgraph = StartSubgraph([]);
-        StopAndDisposeAfterTest(subgraph);
         var schemaDocument = await subgraph.Services.GetSchemaAsync(
             cancellationToken: TestContext.Current.CancellationToken);
         var schemaComposer =
@@ -104,9 +102,9 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
             .AddMcp()
             .AddMcpStorage(storage);
         var webApp = webAppBuilder.Build();
+        StopAndDisposeAfterTest(webApp);
         webApp.MapGraphQLMcp();
         webApp.Start();
-        StopAndDisposeAfterTest(webApp);
         var mcpClient1 = await CreateMcpClientAsync(webApp.GetTestClient());
         var mcpClient2 = await CreateMcpClientAsync(webApp.GetTestClient());
         var listChangedResetEvent1 = new ManualResetEventSlim(false);
@@ -173,7 +171,6 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
         Action<IMcpServerBuilder>? configureMcpServer = null)
     {
         var subgraph = StartSubgraph(additionalTypes);
-        StopAndDisposeAfterTest(subgraph);
         var schemaDocument = await subgraph.Services.GetSchemaAsync();
         var schemaComposer =
             new SchemaComposer(
@@ -212,17 +209,17 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
         }
 
         var app = webAppBuilder.Build();
+        StopAndDisposeAfterTest(app);
         app.UseRouting();
         app.UseHeaderPropagation();
         app.UseAuthentication();
         app.MapGraphQLMcp();
         app.Start();
-        StopAndDisposeAfterTest(app);
 
         return app.GetTestServer();
     }
 
-    private static WebApplication StartSubgraph(ITypeDefinition[]? additionalTypes)
+    private WebApplication StartSubgraph(ITypeDefinition[]? additionalTypes)
     {
         var webAppBuilder = WebApplication.CreateSlimBuilder();
         webAppBuilder.WebHost.UseTestServer();
@@ -258,6 +255,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
         }
 
         var app = webAppBuilder.Build();
+        StopAndDisposeAfterTest(app);
         app.UseRouting();
         app.UseAuthentication();
         app.MapGraphQL();

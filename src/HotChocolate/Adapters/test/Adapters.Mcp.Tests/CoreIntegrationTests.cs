@@ -44,9 +44,9 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
             .AddMcp()
             .AddMcpStorage(storage);
         var webApp = webAppBuilder.Build();
+        StopAndDisposeAfterTest(webApp);
         webApp.MapGraphQLMcp();
         webApp.Start();
-        StopAndDisposeAfterTest(webApp);
         var mcpClient = await CreateMcpClientAsync(webApp.GetTestClient());
 
         // act
@@ -82,9 +82,9 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
             .AddOptions<McpSetup>("NamedSchema")
             .PostConfigure(setup => setup.StorageFactory = _ => storage);
         var webApp = webAppBuilder.Build();
+        StopAndDisposeAfterTest(webApp);
         webApp.MapGraphQLMcp();
         webApp.Start();
-        StopAndDisposeAfterTest(webApp);
         var mcpClient = await CreateMcpClientAsync(webApp.GetTestClient());
 
         // act
@@ -168,9 +168,9 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
             .AddMcp()
             .AddMcpStorage(storage);
         var webApp = webAppBuilder.Build();
+        StopAndDisposeAfterTest(webApp);
         webApp.MapGraphQLMcp();
         webApp.Start();
-        StopAndDisposeAfterTest(webApp);
         var mcpClient1 = await CreateMcpClientAsync(webApp.GetTestClient());
         var mcpClient2 = await CreateMcpClientAsync(webApp.GetTestClient());
         var listChangedResetEvent1 = new ManualResetEventSlim(false);
@@ -271,11 +271,11 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
         }
 
         var app = webAppBuilder.Build();
+        StopAndDisposeAfterTest(app);
         app.UseRouting();
         app.UseAuthentication();
         app.MapGraphQLMcp();
         app.Start();
-        StopAndDisposeAfterTest(app);
 
         return Task.FromResult(app.GetTestServer());
     }
