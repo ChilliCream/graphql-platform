@@ -3,7 +3,7 @@ title: telemetry Command
 description: "Inspect traces, logs, services, and telemetry attributes with the Nitro CLI, including filtering, time ranges, and cursor pagination."
 ---
 
-Nitro: 16.7.0
+Since: 16.7.0
 
 The `nitro telemetry` commands inspect traces, logs, services, and telemetry attributes in a workspace.
 
