@@ -50,4 +50,25 @@ public sealed class AzureServiceBusReceiveEndpointConfiguration : ReceiveEndpoin
     /// the endpoint default of five minutes is used.
     /// </summary>
     public TimeSpan? MaxAutoLockRenewalDuration { get; set; }
+
+    /// <summary>
+    /// Gets or sets the idle window after which a temporary endpoint's queue may be deleted by
+    /// the broker. When <see langword="null"/> and <see cref="ReceiveEndpointConfiguration.IsTemporary"/>
+    /// is set, <see cref="TemporaryDefaults.AutoDeleteOnIdle"/> applies.
+    /// </summary>
+    public TimeSpan? TemporaryIdleTimeout { get; set; }
+
+    public static class TemporaryDefaults
+    {
+        /// <summary>
+        /// The default idle window applied to a temporary endpoint marked via the parameterless
+        /// <c>Temporary()</c> overload.
+        /// </summary>
+        public static readonly TimeSpan AutoDeleteOnIdle = TimeSpan.FromHours(24);
+
+        /// <summary>
+        /// The minimum idle window Azure Service Bus accepts for <c>AutoDeleteOnIdle</c>.
+        /// </summary>
+        public static readonly TimeSpan MinimumAutoDeleteOnIdle = TimeSpan.FromMinutes(5);
+    }
 }

@@ -56,8 +56,16 @@ export async function collectRemoteImages(cwd) {
       }
     }
 
-    // YouTube ids from the body.
-    for (const id of extractYouTubeIds(parsed.content)) {
+    // YouTube ids from the body and from a video page's `youtubeId`.
+    const ids = extractYouTubeIds(parsed.content);
+    const frontmatterId = parsed.data?.youtubeId;
+    if (
+      typeof frontmatterId === "string" &&
+      /^[A-Za-z0-9_-]{11}$/.test(frontmatterId)
+    ) {
+      ids.add(frontmatterId);
+    }
+    for (const id of ids) {
       const key = `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`;
       if (!byKey.has(key)) {
         byKey.set(key, {

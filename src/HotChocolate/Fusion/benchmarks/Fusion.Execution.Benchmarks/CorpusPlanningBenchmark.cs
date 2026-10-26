@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
@@ -27,9 +24,9 @@ namespace HotChocolate.Fusion.Execution.Benchmarks;
 [Config(typeof(InProcessConfig))]
 public class CorpusPlanningBenchmark
 {
-    private static readonly string SchemaPath = CorpusPaths.SchemaPath;
-    private static readonly string Query1Path = CorpusPaths.Query1Path;
-    private static readonly string Query2Path = CorpusPaths.Query2Path;
+    private static readonly string s_schemaPath = CorpusPaths.SchemaPath;
+    private static readonly string s_query1Path = CorpusPaths.Query1Path;
+    private static readonly string s_query2Path = CorpusPaths.Query2Path;
 
     // A name-safe, at-least-eight-character identifier: it is threaded into the
     // names of synthesized lookup operations (Op_{shortHash}_{stepId}) and sliced
@@ -43,7 +40,7 @@ public class CorpusPlanningBenchmark
     [GlobalSetup]
     public void GlobalSetup()
     {
-        var schemaDoc = Utf8GraphQLParser.Parse(File.ReadAllText(SchemaPath));
+        var schemaDoc = Utf8GraphQLParser.Parse(File.ReadAllText(s_schemaPath));
 
         var sw = Stopwatch.StartNew();
         var schema = FusionSchemaDefinition.Create(schemaDoc);
@@ -56,8 +53,8 @@ public class CorpusPlanningBenchmark
         var compiler = new OperationCompiler(schema, pool);
         _planner = new OperationPlanner(schema, compiler);
 
-        _operation1 = LoadOperation(rewriter, Query1Path);
-        _operation2 = LoadOperation(rewriter, Query2Path);
+        _operation1 = LoadOperation(rewriter, s_query1Path);
+        _operation2 = LoadOperation(rewriter, s_query2Path);
     }
 
     [Benchmark]

@@ -1,0 +1,16 @@
+interface Location {
+  countryCode: String
+}
+
+type Port implements Location {
+  countryCode: String!
+}
+
+type Warehouse implements Location {
+  countryCode: String
+}
+
+type Query {
+  location: Location
+  port: Port
+}

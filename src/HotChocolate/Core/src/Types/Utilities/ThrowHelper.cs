@@ -616,22 +616,17 @@ internal static class ThrowHelper
         ITypeSystemMember type,
         IInputValueInfo inputField,
         Path inputFieldPath,
-        Language.Location? location,
         Exception conversionException)
     {
-        var builder = ErrorBuilder.New()
+        var error = ErrorBuilder.New()
             .SetMessage(ThrowHelper_InvalidTypeConversion, inputField.Name)
             .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-            .TryAddLocation(location)
             .SetException(conversionException)
-            .SetCoordinate(inputField.Coordinate);
+            .SetCoordinate(inputField.Coordinate)
+            .SetInputPath(inputFieldPath)
+            .Build();
 
-        if (inputFieldPath.Length > 1)
-        {
-            builder.SetInputPath(inputFieldPath);
-        }
-
-        return new(builder.Build(), type);
+        return new(error, type);
     }
 
     public static LeafCoercionException Scalar_Cannot_CoerceInputLiteral(

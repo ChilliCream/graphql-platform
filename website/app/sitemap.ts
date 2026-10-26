@@ -10,6 +10,7 @@ import { listBlogPostSummaries } from "@/src/helpers/blogPosts";
 import { getLastModifiedFromGit } from "@/src/helpers/gitMetadata";
 import { readFrontmatter } from "@/src/helpers/readFrontmatter";
 import { SITE_URL } from "@/src/helpers/siteUrl";
+import { listVideos, VIDEOS_PATH } from "@/src/helpers/videos";
 import { AUTHOR_PROFILES, authorPageUrl } from "@/src/data/authors";
 
 export const dynamic = "force-static";
@@ -23,6 +24,8 @@ const DOCS_CONTENT_ROOT = path.join(process.cwd(), "content", "docs");
 
 // Pages that exist for a user flow but should not be indexed.
 const EXCLUDED_PATHS = new Set([
+  "/benchmarks/graphql-federation/synthetic",
+  "/benchmarks/graphql-federation/burst-traffic",
   "/platform/continuous-integration",
   "/services/support/thank-you",
 ]);
@@ -34,6 +37,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...(await docsPages()),
     ...blogArchivePages(),
     ...(await blogPosts()),
+    ...(await videoPages()),
     ...authorPages(),
   ];
 
@@ -130,6 +134,17 @@ async function blogPosts(): Promise<MetadataRoute.Sitemap> {
       );
     }),
   );
+}
+
+async function videoPages(): Promise<MetadataRoute.Sitemap> {
+  return [
+    sitemapEntry(VIDEOS_PATH),
+    ...(await Promise.all(
+      listVideos().map(async (video) =>
+        sitemapEntry(video.href, await getLastModifiedFromGit(video.file)),
+      ),
+    )),
+  ];
 }
 
 function sitemapEntry(

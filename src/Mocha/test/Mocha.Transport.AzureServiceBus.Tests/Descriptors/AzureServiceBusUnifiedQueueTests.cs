@@ -81,6 +81,53 @@ public class AzureServiceBusUnifiedQueueTests
     }
 
     [Fact]
+    public void Queue_Should_PropagateTemporaryToEndpointAndQueue_When_ConfiguredWithDefaultIdleTimeout()
+    {
+        var (transport, configuration) = CreateTransport(t =>
+        {
+            t.BindExplicitly();
+            t.Queue("audit").Temporary();
+        });
+        var topology = (AzureServiceBusMessagingTopology)transport.Topology;
+        var queue = topology.Queues.Single(q => q.Name == "audit");
+        var endpoint = configuration
+            .ReceiveEndpoints.OfType<AzureServiceBusReceiveEndpointConfiguration>()
+            .Single(e => e.Name == "audit");
+
+        Assert.True(endpoint.IsTemporary);
+        Assert.Equal(TimeSpan.FromHours(24), queue.AutoDeleteOnIdle);
+    }
+
+    [Fact]
+    public void Queue_Should_PropagateTemporaryIdleTimeoutToQueue_When_ConfiguredWithExplicitIdleTimeout()
+    {
+        var (transport, _) = CreateTransport(t =>
+        {
+            t.BindExplicitly();
+            t.Queue("audit").Temporary(TimeSpan.FromMinutes(15));
+        });
+        var topology = (AzureServiceBusMessagingTopology)transport.Topology;
+        var queue = topology.Queues.Single(q => q.Name == "audit");
+
+        Assert.Equal(TimeSpan.FromMinutes(15), queue.AutoDeleteOnIdle);
+    }
+
+    [Fact]
+    public void Queue_Should_Throw_When_TemporaryIdleTimeoutBelowMinimum()
+    {
+        // arrange
+        Action action = () =>
+            CreateTransport(t =>
+            {
+                t.BindExplicitly();
+                t.Queue("audit").Temporary(TimeSpan.FromMinutes(1));
+            });
+
+        // act & assert
+        Assert.Throws<ArgumentOutOfRangeException>(action);
+    }
+
+    [Fact]
     public void Queue_Should_DeclareExplicitSubscription_When_BindFromTopicConfigured()
     {
         var (transport, _) = CreateTransport(t =>
@@ -311,6 +358,182 @@ public class AzureServiceBusUnifiedQueueTests
 
         // assert
         AzureServiceBusDescribeSnapshot.Create(description).MatchSnapshot();
+    }
+
+    [Fact]
+    public void Queue_Should_InheritAutoProvisionOnSubscription_When_QueueOptsIn()
+    {
+        // arrange
+        // With the transport deny-by-default, a queue that opts in to provisioning must carry that
+        // opt-in onto the subscription its BindFrom derives; the foreign source topic stays opted out.
+        var (transport, _) = CreateTransport(t =>
+        {
+            t.AutoProvision(false);
+            t.BindExplicitly();
+            t.Queue("orders").AutoProvision(true).BindFrom(new Uri("topic:incoming-orders"));
+        });
+        var topology = (AzureServiceBusMessagingTopology)transport.Topology;
+
+        // act
+        var subscription = topology.Subscriptions.Single();
+        var topic = topology.Topics.Single(e => e.Name == "incoming-orders");
+
+        // assert
+        Assert.True(subscription.AutoProvision);
+        Assert.Null(topic.AutoProvision);
+    }
+
+    [Fact]
+    public void Queue_Should_LeaveSubscriptionAutoProvisionUnset_When_QueueDoesNotOptIn()
+    {
+        // arrange
+        var (transport, _) = CreateTransport(t =>
+        {
+            t.BindExplicitly();
+            t.Queue("orders").BindFrom(new Uri("topic:incoming-orders"));
+        });
+        var topology = (AzureServiceBusMessagingTopology)transport.Topology;
+
+        // act
+        var subscription = topology.Subscriptions.Single();
+
+        // assert
+        Assert.Null(subscription.AutoProvision);
+    }
+
+    [Fact]
+    public void Queue_Should_KeepExplicitSubscriptionAutoProvision_When_QueueOptsIn()
+    {
+        // arrange
+        // DeclareSubscription is get-or-add, so an explicitly configured subscription must not be
+        // overridden by the inheritance a later BindFrom applies.
+        var (transport, _) = CreateTransport(t =>
+        {
+            t.AutoProvision(false);
+            t.BindExplicitly();
+            t.DeclareSubscription("incoming-orders", "orders").AutoProvision(false);
+            t.Queue("orders").AutoProvision(true).BindFrom(new Uri("topic:incoming-orders"));
+        });
+        var topology = (AzureServiceBusMessagingTopology)transport.Topology;
+
+        // act
+        var subscription = topology.Subscriptions.Single();
+
+        // assert
+        Assert.False(subscription.AutoProvision);
+    }
+
+    [Fact]
+    public void Queue_Should_KeepSubscriptionOptOut_When_QueueOptsIn()
+    {
+        // arrange
+        // A binding can opt out of provisioning individually even though its queue opts in.
+        var (transport, _) = CreateTransport(t =>
+        {
+            t.AutoProvision(false);
+            t.BindExplicitly();
+            t.Queue("orders")
+                .AutoProvision(true)
+                .BindFrom(new Uri("topic:incoming-orders"), autoProvision: false);
+        });
+        var topology = (AzureServiceBusMessagingTopology)transport.Topology;
+
+        // act
+        var subscription = topology.Subscriptions.Single();
+
+        // assert
+        Assert.False(subscription.AutoProvision);
+    }
+
+    [Fact]
+    public void Queue_Should_ProvisionSubscription_When_OnlyBindingOptsIn()
+    {
+        // arrange
+        // A binding can opt in individually even though its queue does not.
+        var (transport, _) = CreateTransport(t =>
+        {
+            t.AutoProvision(false);
+            t.BindExplicitly();
+            t.Queue("orders").BindFrom(new Uri("topic:incoming-orders"), autoProvision: true);
+        });
+        var topology = (AzureServiceBusMessagingTopology)transport.Topology;
+
+        // act
+        var subscription = topology.Subscriptions.Single();
+
+        // assert
+        Assert.True(subscription.AutoProvision);
+    }
+
+    [Fact]
+    public void Queue_Should_InheritQueueOptOut_When_TransportProvisionsByDefault()
+    {
+        // arrange
+        // Inheritance also carries an opt-out: a queue that is managed externally drags its
+        // BindFrom subscription out of provisioning even though the transport provisions by default.
+        var (transport, _) = CreateTransport(t =>
+        {
+            t.BindExplicitly();
+            t.Queue("orders").AutoProvision(false).BindFrom(new Uri("topic:incoming-orders"));
+        });
+        var topology = (AzureServiceBusMessagingTopology)transport.Topology;
+
+        // act
+        var subscription = topology.Subscriptions.Single();
+
+        // assert
+        Assert.False(subscription.AutoProvision);
+    }
+
+    [Fact]
+    public void Queue_Should_ConfigureEndpointReceiveFeatures_When_ResilienceConfiguredOnQueue()
+    {
+        // arrange
+        var (transport, _) = CreateTransport(t =>
+        {
+            t.BindExplicitly();
+            t.Queue("orders")
+                .AddResilience(p => p.On<InvalidOperationException>().Discard())
+                .AddCircuitBreaker(o => o.FailureRatio = 0.5)
+                .AddConcurrencyLimiter(o => o.MaxConcurrency = 4);
+        });
+
+        // act
+        var endpoint = transport
+            .ReceiveEndpoints.OfType<AzureServiceBusReceiveEndpoint>()
+            .Single(e => e.Name == "orders");
+
+        // assert
+        Type[] expectedRules = [typeof(Exception), typeof(InvalidOperationException)];
+        Assert.Equal(
+            expectedRules,
+            endpoint.Features.Get<ExceptionPolicyFeature>()?.Rules.Select(r => r.ExceptionType));
+        Assert.Equal(0.5, endpoint.Features.Get<CircuitBreakerFeature>()?.FailureRatio);
+        Assert.Equal(4, endpoint.Features.Get<ConcurrencyLimiterFeature>()?.MaxConcurrency);
+    }
+
+    [Fact]
+    public void Queue_Should_CombineExceptionPolicies_When_EndpointWithSameNameConfiguresResilience()
+    {
+        // arrange
+        var (transport, _) = CreateTransport(t =>
+        {
+            t.BindExplicitly();
+            t.Queue("orders").AddResilience(p => p.On<InvalidOperationException>().Discard());
+            t.Endpoint("orders").AddResilience(p => p.On<TimeoutException>().Discard());
+        });
+
+        // act
+        var endpoint = transport
+            .ReceiveEndpoints.OfType<AzureServiceBusReceiveEndpoint>()
+            .Single(e => e.Name == "orders");
+
+        // assert
+        // endpoint callbacks run first, queue callbacks replay onto the same feature afterwards
+        Type[] expectedRules = [typeof(TimeoutException), typeof(Exception), typeof(InvalidOperationException)];
+        Assert.Equal(
+            expectedRules,
+            endpoint.Features.Get<ExceptionPolicyFeature>()?.Rules.Select(r => r.ExceptionType));
     }
 
     private static (

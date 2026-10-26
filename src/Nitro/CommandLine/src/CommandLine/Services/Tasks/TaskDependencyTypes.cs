@@ -18,8 +18,9 @@ internal static class TaskDependencyTypes
     public const string CausedBy = "caused-by";
 
     /// <summary>
-    /// A blocking dependency gates readiness of the dependent task until the
-    /// target task reaches a terminal state.
+    /// True for dependency types used in blocking and cycle calculations.
+    /// Parent-child edges propagate blocked-parent state and contribute to epic completion
+    /// rather than requiring the parent to reach a terminal state.
     /// </summary>
     public static bool IsBlocking(string type)
         => type is Blocks or ParentChild or ConditionalBlocks or WaitsFor;

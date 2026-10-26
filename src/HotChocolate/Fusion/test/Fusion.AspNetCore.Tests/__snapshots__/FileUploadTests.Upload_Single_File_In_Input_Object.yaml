@@ -92,7 +92,7 @@ sourceSchemas:
             Content-Type: application/json; charset=utf-8
             Content-Disposition: form-data; name=operations
 
-            {"query":"query Op_6888e670_1($input: FileInput!) {\n  singleUploadWithInput(input: $input) {\n    fileName\n    contentType\n    content\n  }\n}","variables":{"input":{"file":null}}}
+            {"query":"query Op_6888e670_1($input: FileInput!) { singleUploadWithInput(input: $input) { fileName contentType content } }","variables":{"input":{"file":null}}}
             --f56524ab-5626-4955-b296-234a097b44f6
             Content-Type: application/json; charset=utf-8
             Content-Disposition: form-data; name=map
@@ -126,7 +126,7 @@ operationPlan:
             content
           }
         }
-      hash: 6888e670bcc6d6c1216b1773bd8868b0
+      hash: 622001e689daabb9c3bb25f3e51fbafe
       searchSpace: 1
       expandedNodes: 1
   nodes:

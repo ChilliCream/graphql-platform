@@ -3,39 +3,6 @@ using ChilliCream.Nitro.CommandLine.Services.Tasks;
 namespace ChilliCream.Nitro.CommandLine.Tui.Tree;
 
 /// <summary>
-/// Which dependency edges a tree traversal follows.
-/// </summary>
-internal enum TreeEdgeMode
-{
-    /// <summary>
-    /// Edges whose type gates readiness, per
-    /// <see cref="TaskDependencyTypes.IsBlocking"/>.
-    /// </summary>
-    Blocking,
-
-    /// <summary>
-    /// Only <see cref="TaskDependencyTypes.ParentChild"/> edges.
-    /// </summary>
-    ParentChild
-}
-
-/// <summary>
-/// Which way a tree traversal walks a dependency edge from a node.
-/// </summary>
-internal enum TreeDirection
-{
-    /// <summary>
-    /// Toward what the node depends on.
-    /// </summary>
-    Up,
-
-    /// <summary>
-    /// Toward what depends on the node.
-    /// </summary>
-    Down
-}
-
-/// <summary>
 /// Expands a task's dependency graph into a tree rooted at a given task, and
 /// flattens it into <see cref="TreeNodeRow"/> for display.
 /// </summary>

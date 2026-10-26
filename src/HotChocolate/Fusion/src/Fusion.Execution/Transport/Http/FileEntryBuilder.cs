@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Collections.Immutable;
 using System.Text;
 using System.Text.Json;
@@ -73,7 +74,9 @@ internal static class FileEntryBuilder
                     break;
 
                 case JsonTokenType.String:
-                    if (TryExtractFileKey(reader.ValueSpan, out var fileKey)
+                    var value = GetValueBytes(ref reader);
+
+                    if (TryExtractFileKey(value, out var fileKey)
                         && fileLookup.TryGetFile(fileKey, out var file))
                     {
                         fileEntries.Add(new FileEntry(fileKey, PrintPath(path), file));
@@ -82,13 +85,13 @@ internal static class FileEntryBuilder
                     }
                     else
                     {
-                        jsonWriter.WriteStringValue(reader.ValueSpan, skipEscaping: true);
+                        jsonWriter.WriteStringValue(value, skipEscaping: true);
                     }
                     path = PopAfterValue(path);
                     break;
 
                 case JsonTokenType.Number:
-                    jsonWriter.WriteRawValue(reader.ValueSpan);
+                    jsonWriter.WriteRawValue(GetValueBytes(ref reader));
                     path = PopAfterValue(path);
                     break;
 
@@ -115,8 +118,12 @@ internal static class FileEntryBuilder
             return variables;
         }
 
-        return JsonSegment.Create(writer, startPosition, writer.Position - startPosition);
+        return JsonSegment.Create(writer.GetSequence(startPosition, writer.Position - startPosition));
     }
+
+    // a token that spans memory segments is copied into one span
+    private static ReadOnlySpan<byte> GetValueBytes(ref Utf8JsonReader reader)
+        => reader.HasValueSequence ? reader.ValueSequence.ToArray() : reader.ValueSpan;
 
     private static Path ParsePrefix(string pathPrefix)
     {
@@ -160,35 +167,62 @@ internal static class FileEntryBuilder
     /// </summary>
     private static string PrintPath(Path path)
     {
-        var segments = path.ToList();
-
-        if (segments.Count == 0)
+        if (path.IsRoot)
         {
             return string.Empty;
         }
 
-        var sb = new StringBuilder();
+        var length = path.Length - 1;
+        var current = path;
 
-        for (var i = 0; i < segments.Count; i++)
+        while (!current.IsRoot)
         {
-            if (i > 0)
-            {
-                sb.Append('.');
-            }
-
-            switch (segments[i])
-            {
-                case string name:
-                    sb.Append(name);
-                    break;
-
-                case int index:
-                    sb.Append(index);
-                    break;
-            }
+            length += current is NamePathSegment name
+                ? name.Name.Length
+                : CountDigits(((IndexerPathSegment)current).Index);
+            current = current.Parent;
         }
 
-        return sb.ToString();
+        return string.Create(length, path, static (span, current) =>
+        {
+            var position = span.Length;
+
+            while (!current.IsRoot)
+            {
+                if (current is NamePathSegment name)
+                {
+                    position -= name.Name.Length;
+                    name.Name.AsSpan().CopyTo(span[position..]);
+                }
+                else
+                {
+                    var index = ((IndexerPathSegment)current).Index;
+                    var digits = CountDigits(index);
+                    position -= digits;
+                    index.TryFormat(span.Slice(position, digits), out _, format: default, provider: null);
+                }
+
+                current = current.Parent;
+
+                if (!current.IsRoot)
+                {
+                    span[--position] = '.';
+                }
+            }
+        });
+    }
+
+    private static int CountDigits(int value)
+    {
+        var digits = 1;
+
+        while (value >= 10)
+        {
+            value /= 10;
+            digits++;
+        }
+
+        return digits;
     }
 
     private static bool TryExtractFileKey(ReadOnlySpan<byte> value, out string key)

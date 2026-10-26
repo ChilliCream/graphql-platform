@@ -60,13 +60,13 @@ Core contributors will review your pull request and provide feedback.
 
 ## How to launch and build the solution
 
-To work on Hot Chocolate, you will need the .NET 10 SDK (or use the devcontainer which has everything pre-installed).
+The easiest way to work on the platform is the [devcontainer](./.devcontainer/devcontainer.json). It has the .NET SDKs, Node.js, and all other tools pre-installed, and runs `init.sh` when it is created.
 
-After cloning the repository, run `init.sh` (or `init.ps1` on Windows) from the repository root to restore .NET packages and install the website's [Yarn](https://yarnpkg.com/) dependencies. [src/All.slnx](./src/All.slnx) is the root solution.
+To work outside the devcontainer, you will need the .NET SDK version from [global.json](./global.json) and Node.js. After cloning the repository, run `init.sh` (or `init.ps1` on Windows) from the repository root to restore .NET packages and install the website's npm dependencies.
 
-More focused per-area solution files exist if you want to narrow in on a particular part of the platform. They're great when working with [VS Code](https://code.visualstudio.com/).
+[src/All.slnx](./src/All.slnx) is the root solution. More focused per-area solution files exist if you want to narrow in on a particular part of the platform. They're great when working with [VS Code](https://code.visualstudio.com/).
 
-The documentation is located in the `website` directory and can be started with `yarn dev`.
+The documentation is located in the `website` directory and can be started with `npm run dev` (served on port 3002).
 
 ## How to Check the docs
 

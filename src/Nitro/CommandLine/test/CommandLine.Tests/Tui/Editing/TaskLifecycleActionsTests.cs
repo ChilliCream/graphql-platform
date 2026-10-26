@@ -126,7 +126,8 @@ public sealed class TaskLifecycleActionsTests
     [InlineData(TaskStates.Open, false)]
     [InlineData(TaskStates.InProgress, false)]
     [InlineData(TaskStates.Closed, true)]
-    public void CanReopen_Should_ReturnTrue_OnlyWhenClosed(string status, bool expected)
+    [InlineData(TaskStates.Archived, true)]
+    public void CanReopen_Should_ReturnTrue_OnlyWhenClosedOrArchived(string status, bool expected)
     {
         // arrange
         var task = TaskItemBuilder.Create("a1", "Title", status);

@@ -21,21 +21,21 @@ response:
         "trendingMedia": [
           {
             "__typename": "Book",
-            "id": "TWVkaWE6MQ==",
+            "id": "TWVkaWE6MzYwMDExMzk5Mg==",
             "views": 123,
-            "isbn": "Book: TWVkaWE6MQ=="
+            "isbn": "Book: TWVkaWE6MzYwMDExMzk5Mg=="
           },
           {
             "__typename": "Book",
-            "id": "TWVkaWE6Mg==",
+            "id": "TWVkaWE6Mzg1ODYyNDc0NA==",
             "views": 123,
-            "isbn": "Book: TWVkaWE6Mg=="
+            "isbn": "Book: TWVkaWE6Mzg1ODYyNDc0NA=="
           },
           {
             "__typename": "Book",
-            "id": "TWVkaWE6Mw==",
+            "id": "TWVkaWE6MTQ5MDg3Nzcy",
             "views": 123,
-            "isbn": "Book: TWVkaWE6Mw=="
+            "isbn": "Book: TWVkaWE6MTQ5MDg3Nzcy"
           }
         ]
       }
@@ -85,13 +85,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "TWVkaWE6MQ=="
+                "__fusion_1_id": "TWVkaWE6MzYwMDExMzk5Mg=="
               },
               {
-                "__fusion_1_id": "TWVkaWE6Mg=="
+                "__fusion_1_id": "TWVkaWE6Mzg1ODYyNDc0NA=="
               },
               {
-                "__fusion_1_id": "TWVkaWE6Mw=="
+                "__fusion_1_id": "TWVkaWE6MTQ5MDg3Nzcy"
               }
             ]
         response:
@@ -102,7 +102,7 @@ sourceSchemas:
                 "data": {
                   "mediaById": {
                     "__typename": "Book",
-                    "isbn": "Book: TWVkaWE6MQ=="
+                    "isbn": "Book: TWVkaWE6MzYwMDExMzk5Mg=="
                   }
                 }
               }
@@ -111,7 +111,7 @@ sourceSchemas:
                 "data": {
                   "mediaById": {
                     "__typename": "Book",
-                    "isbn": "Book: TWVkaWE6Mg=="
+                    "isbn": "Book: TWVkaWE6Mzg1ODYyNDc0NA=="
                   }
                 }
               }
@@ -120,7 +120,7 @@ sourceSchemas:
                 "data": {
                   "mediaById": {
                     "__typename": "Book",
-                    "isbn": "Book: TWVkaWE6Mw=="
+                    "isbn": "Book: TWVkaWE6MTQ5MDg3Nzcy"
                   }
                 }
               }
@@ -156,15 +156,15 @@ sourceSchemas:
                 "data": {
                   "trendingMedia": [
                     {
-                      "id": "TWVkaWE6MQ==",
+                      "id": "TWVkaWE6MzYwMDExMzk5Mg==",
                       "views": 123
                     },
                     {
-                      "id": "TWVkaWE6Mg==",
+                      "id": "TWVkaWE6Mzg1ODYyNDc0NA==",
                       "views": 123
                     },
                     {
-                      "id": "TWVkaWE6Mw==",
+                      "id": "TWVkaWE6MTQ5MDg3Nzcy",
                       "views": 123
                     }
                   ]
@@ -188,7 +188,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 236f64a0eb63ca8efc0a62035aca0f99
+      hash: e441aa3d8c393525cde45a5d2b10a1a1
       searchSpace: 1
       expandedNodes: 2
   nodes:

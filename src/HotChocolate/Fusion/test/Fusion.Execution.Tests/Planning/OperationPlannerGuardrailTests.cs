@@ -122,6 +122,259 @@ public sealed class OperationPlannerGuardrailTests : FusionTestBase
         Assert.True(error.Observed > error.Limit);
     }
 
+    [Fact]
+    public void CreatePlan_Should_Throw_When_GreedyExpansionExceedsMaxExpandedNodes()
+    {
+        // arrange
+        var planner = CreatePlanner(
+            CreateSerialMutationSchema(),
+            new OperationPlannerOptions { MaxExpandedNodes = 1 });
+        var operation = ParseOperation(SerialMutationText);
+
+        // act
+        var error = Assert.Throws<OperationPlannerGuardrailException>(
+            () => planner.CreatePlan(
+                "guardrail-greedy-expanded",
+                "hash",
+                "12345678",
+                operation,
+                TestContext.Current.CancellationToken));
+
+        // assert
+        Assert.Equal(OperationPlannerGuardrailReason.MaxExpandedNodesExceeded, error.Reason);
+        Assert.Equal(1, error.Limit);
+        Assert.Equal(2, error.Observed);
+    }
+
+    [Fact]
+    public void CreatePlan_Should_PlanSerialMutations_When_ExpansionBudgetIsSufficient()
+    {
+        // arrange
+        var planner = CreatePlanner(
+            CreateSerialMutationSchema(),
+            new OperationPlannerOptions { MaxExpandedNodes = 32 });
+        var operation = ParseOperation(SerialMutationText);
+
+        // act
+        var plan = planner.CreatePlan(
+            "guardrail-greedy-expanded-control",
+            "hash",
+            "12345678",
+            operation,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(3, plan.AllNodes.OfType<OperationExecutionNode>().Count());
+    }
+
+    [Fact]
+    public void CreatePlan_Should_Throw_When_GreedyAndSearchExpansionsTogetherExceedMaxExpandedNodes()
+    {
+        // arrange
+        // the limit equals the nodes the main search expands on its own, so only the greedy expansions can exceed it
+        var schema = CreateSerialMutationSchema();
+        var operation = ParseOperation(SerialMutationText);
+        var searchExpandedNodes = CreatePlanner(schema, new OperationPlannerOptions())
+            .CreatePlan(
+                "guardrail-greedy-shared-baseline",
+                "hash",
+                "12345678",
+                operation,
+                TestContext.Current.CancellationToken)
+            .ExpandedNodes;
+        var planner = CreatePlanner(
+            schema,
+            new OperationPlannerOptions { MaxExpandedNodes = searchExpandedNodes });
+
+        // act
+        var error = Assert.Throws<OperationPlannerGuardrailException>(
+            () => planner.CreatePlan(
+                "guardrail-greedy-shared",
+                "hash",
+                "12345678",
+                operation,
+                TestContext.Current.CancellationToken));
+
+        // assert
+        Assert.Equal(OperationPlannerGuardrailReason.MaxExpandedNodesExceeded, error.Reason);
+        Assert.Equal(searchExpandedNodes, error.Limit);
+        Assert.Equal(searchExpandedNodes + 1, error.Observed);
+    }
+
+    [Fact]
+    public void CreatePlan_Should_Throw_When_InitialQueueExceedsMaxQueueSizeByOne()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query { value: Int @shareable }
+            """,
+            """
+            # name: b
+            type Query { value: Int @shareable }
+            """);
+        var planner = CreatePlanner(schema, new OperationPlannerOptions { MaxQueueSize = 1 });
+        var operation = ParseOperation("{ value }");
+
+        // act
+        var error = Assert.Throws<OperationPlannerGuardrailException>(
+            () => planner.CreatePlan(
+                "guardrail-initial-queue",
+                "hash",
+                "12345678",
+                operation,
+                TestContext.Current.CancellationToken));
+
+        // assert
+        Assert.Equal(OperationPlannerGuardrailReason.MaxQueueSizeExceeded, error.Reason);
+        Assert.Equal(1, error.Limit);
+        Assert.Equal(2, error.Observed);
+    }
+
+    [Fact]
+    public void CreatePlan_Should_Throw_When_GreedyExpansionExceedsMaxGeneratedOptions()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                f1: Int @shareable
+                f2: Int @shareable
+                f3: Int @shareable
+                f4: Int @shareable
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                f1: Int @shareable
+                f2: Int @shareable
+                f5: Int
+            }
+            """,
+            """
+            # name: c
+            type Query {
+                f3: Int @shareable
+                f4: Int @shareable
+                f6: Int
+            }
+            """);
+        var planner = CreatePlanner(
+            schema,
+            new OperationPlannerOptions { MaxGeneratedOptionsPerWorkItem = 1 });
+        var operation = ParseOperation("{ f1 f2 f3 f4 f5 f6 }");
+
+        // act
+        var error = Assert.Throws<OperationPlannerGuardrailException>(
+            () => planner.CreatePlan(
+                "guardrail-greedy-generated",
+                "hash",
+                "12345678",
+                operation,
+                TestContext.Current.CancellationToken));
+
+        // assert
+        Assert.Equal(
+            OperationPlannerGuardrailReason.MaxGeneratedOptionsPerWorkItemExceeded,
+            error.Reason);
+        Assert.Equal(1, error.Limit);
+        Assert.Equal(2, error.Observed);
+    }
+
+    [Fact]
+    public void CreatePlan_Should_Throw_When_DeferredPlansTogetherExceedMaxExpandedNodes()
+    {
+        // arrange
+        var planner = CreatePlanner(
+            CreateDeferredRootSchema(),
+            new OperationPlannerOptions { EnableDefer = true, MaxExpandedNodes = 4 });
+        var operation = ParseOperation(DeferredRootOperationText);
+
+        // act
+        var error = Assert.Throws<OperationPlannerGuardrailException>(
+            () => planner.CreatePlan(
+                "guardrail-deferred-expanded",
+                "hash",
+                "12345678",
+                operation,
+                TestContext.Current.CancellationToken));
+
+        // assert
+        Assert.Equal(OperationPlannerGuardrailReason.MaxExpandedNodesExceeded, error.Reason);
+        Assert.Equal(4, error.Limit);
+        Assert.Equal(5, error.Observed);
+    }
+
+    [Fact]
+    public void CreatePlan_Should_PlanDeferredGroups_When_ExpansionBudgetIsSufficient()
+    {
+        // arrange
+        var planner = CreatePlanner(
+            CreateDeferredRootSchema(),
+            new OperationPlannerOptions { EnableDefer = true, MaxExpandedNodes = 32 });
+        var operation = ParseOperation(DeferredRootOperationText);
+
+        // act
+        var plan = planner.CreatePlan(
+            "guardrail-deferred-expanded-control",
+            "hash",
+            "12345678",
+            operation,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Single(plan.AllNodes.OfType<OperationExecutionNode>());
+        Assert.Equal(5, plan.IncrementalPlans.Length);
+    }
+
+    private static FusionSchemaDefinition CreateSerialMutationSchema()
+        => ComposeSchema(
+            """
+            # name: a
+            type Query { a: Int }
+            type Mutation { first: Int }
+            """,
+            """
+            # name: b
+            type Query { b: Int }
+            type Mutation { second: Int }
+            """,
+            """
+            # name: c
+            type Query { c: Int }
+            type Mutation { third: Int }
+            """);
+
+    private const string SerialMutationText = "mutation { first second third }";
+
+    private static FusionSchemaDefinition CreateDeferredRootSchema()
+        => ComposeSchema(
+            """
+            type Query {
+                immediate: Int
+                first: Int
+                second: Int
+                third: Int
+                fourth: Int
+                fifth: Int
+            }
+            """);
+
+    private const string DeferredRootOperationText =
+        """
+        {
+            immediate
+            ... @defer(label: "first") { first }
+            ... @defer(label: "second") { second }
+            ... @defer(label: "third") { third }
+            ... @defer(label: "fourth") { fourth }
+            ... @defer(label: "fifth") { fifth }
+        }
+        """;
+
     private static OperationPlanner CreatePlanner(
         FusionSchemaDefinition schema,
         OperationPlannerOptions options)

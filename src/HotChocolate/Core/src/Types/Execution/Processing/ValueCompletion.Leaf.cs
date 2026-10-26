@@ -9,7 +9,6 @@ internal static partial class ValueCompletion
 {
     private static void CompleteLeafValue(
         ValueCompletionContext context,
-        Selection selection,
         ILeafType type,
         ResultElement resultValue,
         object runtimeValue)
@@ -33,13 +32,13 @@ internal static partial class ValueCompletion
         catch (LeafCoercionException ex)
         {
             var errorPath = resultValue.Path;
-            var error = InvalidLeafValue(ex, selection, errorPath);
+            var error = InvalidLeafValue(ex, errorPath);
             operationContext.ReportError(error, resolverContext);
         }
         catch (Exception ex)
         {
             var errorPath = resultValue.Path;
-            var error = UnexpectedLeafValueSerializationError(ex, selection, errorPath);
+            var error = UnexpectedLeafValueSerializationError(ex, errorPath);
             operationContext.ReportError(error, resolverContext);
         }
 

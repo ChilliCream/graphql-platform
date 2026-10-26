@@ -36,11 +36,8 @@ internal static class TaskPriorities
     }
 
     /// <summary>
-    /// Parses a single priority or an inclusive range "N-M" / "pN-pM"
-    /// (each bound accepted in the same forms as <see cref="Parse"/>). A
-    /// single value returns a range with equal bounds. Throws
-    /// <see cref="ExitException"/> when a bound is invalid or the low
-    /// bound is greater than the high bound.
+    /// Parses a priority or an inclusive hyphen-separated range, with a single value
+    /// producing equal bounds. Throws <see cref="ExitException"/> for invalid or descending bounds.
     /// </summary>
     public static (int Min, int Max) ParseRange(string value)
     {

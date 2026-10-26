@@ -60,7 +60,15 @@ type Author implements Entity & Node {
   ): BooksConnection
   "This is some information."
   someInfo: String
-  additionalInfo(someArg: String!): String!
+  """
+  Gets the additional info.
+  
+  
+  **Returns:**
+  
+  Returns a string.
+  """
+  additionalInfo("Some argument" someArg: String!): String!
   additionalInfo1(someArg1: String!, someArg2: String!): String!
   authorsPure: [Author!]!
   authorsQuery: [Author!]!

@@ -5,13 +5,14 @@ schema {
 type Query {
   compositeField(
     inputArg: Input @cost(weight: "0")
-    listArg: [Scalar] @cost(weight: "0")
+    listArg: [Scalar] @cost(weight: "1")
     scalarArg: Scalar @cost(weight: "1")
   ): CompositeType @cost(weight: "0")
 }
 
 type CompositeType @cost(weight: "0") {
   listField: [ElementType] @cost(weight: "0")
+  listOfScalarsField: [Scalar] @cost(weight: "2")
 }
 
 type ElementType {
@@ -20,7 +21,7 @@ type ElementType {
 
 input Input {
   inputField: Input @cost(weight: "0")
-  listField: [Scalar] @cost(weight: "0")
+  listField: [Scalar] @cost(weight: "1")
   scalarField: Scalar @cost(weight: "1")
 }
 

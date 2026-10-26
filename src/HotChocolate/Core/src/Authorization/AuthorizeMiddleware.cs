@@ -69,7 +69,6 @@ internal sealed class AuthorizeMiddleware(
                     .SetMessage(AuthorizeMiddleware_NoDefaultPolicy)
                     .SetCode(ErrorCodes.Authentication.NoDefaultPolicy)
                     .SetPath(context.Path)
-                    .AddLocations(context.Selection)
                     .Build(),
             AuthorizeResult.PolicyNotFound
                 => ErrorBuilder.New()
@@ -78,7 +77,6 @@ internal sealed class AuthorizeMiddleware(
                         _directive.Policy)
                     .SetCode(ErrorCodes.Authentication.PolicyNotFound)
                     .SetPath(context.Path)
-                    .AddLocations(context.Selection)
                     .Build(),
             _
                 => ErrorBuilder.New()
@@ -88,7 +86,6 @@ internal sealed class AuthorizeMiddleware(
                             ? ErrorCodes.Authentication.NotAuthorized
                             : ErrorCodes.Authentication.NotAuthenticated)
                     .SetPath(context.Path)
-                    .AddLocations(context.Selection)
                     .Build()
         };
 }

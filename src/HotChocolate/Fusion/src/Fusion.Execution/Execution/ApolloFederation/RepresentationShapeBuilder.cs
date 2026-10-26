@@ -1053,7 +1053,7 @@ internal static class RepresentationShapeBuilder
     {
         if (nodes.Count == 0)
         {
-            return ImmutableArray<RepresentationShapeNode>.Empty;
+            return [];
         }
 
         var builder = ImmutableArray.CreateBuilder<RepresentationShapeNode>(nodes.Count);
@@ -1084,7 +1084,7 @@ internal static class RepresentationShapeBuilder
     {
         if (branches is null || branches.Count == 0)
         {
-            return ImmutableArray<RepresentationShapeBranch>.Empty;
+            return [];
         }
 
         var builder = ImmutableArray.CreateBuilder<RepresentationShapeBranch>(branches.Count);

@@ -18,7 +18,7 @@ response:
         "node": {
           "shared": {
             "a": null,
-            "b": "SharedData: U2hhcmVkRGF0YToy"
+            "b": "SharedData: U2hhcmVkRGF0YToyMTc5NTYzMDYw"
           }
         }
       },
@@ -136,7 +136,7 @@ sourceSchemas:
                   "node": {
                     "__typename": "Product",
                     "shared": {
-                      "b": "SharedData: U2hhcmVkRGF0YToy"
+                      "b": "SharedData: U2hhcmVkRGF0YToyMTc5NTYzMDYw"
                     }
                   }
                 }
@@ -155,7 +155,7 @@ operationPlan:
             }
           }
         }
-      hash: 854c0b2123f005940cd054f30953d09d
+      hash: 84b8b775521dec48dcac91a391fdc449
       searchSpace: 2
       expandedNodes: 2
   nodes:

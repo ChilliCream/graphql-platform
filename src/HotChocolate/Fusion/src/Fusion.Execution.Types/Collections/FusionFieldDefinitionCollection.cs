@@ -1,7 +1,11 @@
+#if NET9_0_OR_GREATER
+using System.Buffers;
+#endif
 using System.Collections;
 using System.Collections.Frozen;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Types.Collections;
@@ -16,9 +20,17 @@ namespace HotChocolate.Fusion.Types.Collections;
 public abstract class FusionFieldDefinitionCollection<TField>
     : IEnumerable<TField> where TField : IFieldDefinition, IInaccessibleProvider
 {
+#if NET9_0_OR_GREATER
+    private const int CharStackallocThreshold = 128;
+    private const int LinearScanThreshold = 8;
+#endif
+
     private readonly TField[] _fields;
     private readonly FrozenDictionary<string, TField> _map;
     private readonly int _length;
+#if NET9_0_OR_GREATER
+    private readonly FrozenDictionary<string, TField>.AlternateLookup<ReadOnlySpan<char>> _spanLookup;
+#endif
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FusionFieldDefinitionCollection{TField}"/> class.
@@ -33,6 +45,9 @@ public abstract class FusionFieldDefinitionCollection<TField>
         _map = fields.ToFrozenDictionary(t => t.Name);
         _fields = fields;
         _fields.PartitionByAccessibility(out _length);
+#if NET9_0_OR_GREATER
+        _spanLookup = _map.GetAlternateLookup<ReadOnlySpan<char>>();
+#endif
     }
 
     /// <summary>
@@ -175,6 +190,58 @@ public abstract class FusionFieldDefinitionCollection<TField>
         if (_map.TryGetValue(name, out field) && !field.IsInaccessible)
         {
             return true;
+        }
+
+        field = default;
+        return false;
+    }
+
+    /// <summary>
+    /// Attempts to get an accessible field by its UTF-8 encoded name.
+    /// </summary>
+    /// <param name="utf8Name">
+    /// The GraphQL field name as UTF-8 bytes.
+    /// </param>
+    /// <param name="field">
+    /// When this method returns, contains the field with the specified name if found;
+    /// otherwise, the default value.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the field was found; otherwise, <c>false</c>.
+    /// </returns>
+    public bool TryGetField(
+        ReadOnlySpan<byte> utf8Name,
+        [NotNullWhen(true)] out TField? field)
+    {
+#if NET9_0_OR_GREATER
+        if (_length > LinearScanThreshold && utf8Name.Length <= CharStackallocThreshold)
+        {
+            Span<char> buffer = stackalloc char[CharStackallocThreshold];
+
+            // Field names are validated GraphQL identifiers and therefore ASCII,
+            // so a non-ASCII byte can never match a field name.
+            if (Ascii.ToUtf16(utf8Name, buffer, out var written) is OperationStatus.Done
+                && _spanLookup.TryGetValue(buffer[..written], out field)
+                && !field.IsInaccessible)
+            {
+                return true;
+            }
+
+            field = default;
+            return false;
+        }
+#endif
+
+        // a few names compare faster than they transcode and hash.
+        for (var i = 0; i < _length; i++)
+        {
+            var candidate = _fields[i];
+
+            if (Ascii.Equals(utf8Name, candidate.Name.AsSpan()))
+            {
+                field = candidate;
+                return true;
+            }
         }
 
         field = default;

@@ -57,12 +57,6 @@ null
   "errors": [
     {
       "message": "The provided value for filter `gt` of type ShortOperationFilterInput is invalid. Null values are not supported.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 33
-        }
-      ],
       "path": [
         "root"
       ],

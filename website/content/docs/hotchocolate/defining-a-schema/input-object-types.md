@@ -160,7 +160,7 @@ descriptor
 
 # Optional Properties
 
-Use `Optional<T>` to distinguish between a field that was not provided and a field explicitly set to `null`. This is important for partial updates where you need to know whether the client intended to clear a value.
+Use `Optional<T>` to distinguish between a field that was not provided and a field explicitly set to `null`. This is important for partial updates where you need to know whether the client intended to clear a value. A field set to a variable that the request does not provide counts as not provided.
 
 ```csharp
 public class UpdateBookInput
@@ -246,6 +246,8 @@ public class PetInputType : InputObjectType<PetInput>
 </ExampleTabs>
 
 All fields on a `@oneOf` input must be nullable. Hot Chocolate validates at runtime that exactly one field is provided.
+
+A `@oneOf` input must also have at least one field that can hold a finite value, that is, a scalar, an enum, a list, or an input object that is itself finite. `#!sdl input A @oneOf { self: A }` is rejected when the schema is built.
 
 # Next Steps
 

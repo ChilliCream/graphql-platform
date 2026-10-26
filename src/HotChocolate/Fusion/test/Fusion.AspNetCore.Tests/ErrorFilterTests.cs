@@ -320,6 +320,38 @@ public class ErrorFilterTests : FusionTestBase
             """);
     }
 
+    [Fact]
+    public async Task AddErrorFilter_Should_NotDisposeErrorFilter_When_EvictedExecutorIsDisposed()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              field: String
+            }
+            """
+        );
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("A", server1)
+            ],
+            configureGatewayBuilder: b => b.AddErrorFilter<DisposableErrorFilter>());
+        var errorFilter = gateway.Services.GetRequiredService<DisposableErrorFilter>();
+        var executor = await gateway.Services.GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        var schemaErrorFilter = Assert.Single(
+            executor.Schema.Services.GetServices<IErrorFilter>().OfType<DisposableErrorFilter>());
+
+        // act
+        await ((IAsyncDisposable)executor).DisposeAsync();
+
+        // assert
+        Assert.Same(errorFilter, schemaErrorFilter);
+        Assert.False(errorFilter.IsDisposed);
+    }
+
     public class DummyErrorFilter : IErrorFilter
     {
         public IError OnError(IError error)
@@ -339,4 +371,13 @@ public class ErrorFilterTests : FusionTestBase
 #pragma warning restore CS9113 // Parameter is unread.
 
     public class SomeService;
+
+    private sealed class DisposableErrorFilter : IErrorFilter, IDisposable
+    {
+        public bool IsDisposed { get; private set; }
+
+        public IError OnError(IError error) => error;
+
+        public void Dispose() => IsDisposed = true;
+    }
 }

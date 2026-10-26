@@ -19,10 +19,15 @@ public class RequireCrossProviderChainTests : FusionTestBase
             "b",
             b => b.AddQueryType<ByExpertChainCrossProvider.SchemaB.Query>());
 
+        using var server3 = CreateSourceSchema(
+            "c",
+            b => b.AddQueryType<ByExpertChainCrossProvider.SchemaC.Query>());
+
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("a", server1),
-            ("b", server2)
+            ("b", server2),
+            ("c", server3)
         ],
         configureGatewayBuilder: b => b.ModifyRequestOptions(o => o.AllowOperationPlanRequests = false));
 
@@ -88,14 +93,27 @@ public class RequireCrossProviderChainTests : FusionTestBase
             public record Post([property: ID] int Id)
             {
                 public Author GetAuthor() => new(10);
-
-                public bool GetByNovice(
-                    [Require("author.yearsOfExperience")] int yearsOfExperience)
-                    => yearsOfExperience >= 3;
             }
 
             [EntityKey("id")]
             public record Author([property: ID] int Id);
+        }
+
+        public static class SchemaC
+        {
+            public class Query
+            {
+                [Lookup]
+                [Internal]
+                public Post? GetPostById([ID] int id) => new Post(id);
+            }
+
+            public record Post([property: ID] int Id)
+            {
+                public bool GetByNovice(
+                    [Require("author.yearsOfExperience")] int yearsOfExperience)
+                    => yearsOfExperience >= 3;
+            }
         }
     }
 }

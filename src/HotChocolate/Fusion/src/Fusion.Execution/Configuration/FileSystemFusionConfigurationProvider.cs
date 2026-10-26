@@ -38,6 +38,7 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
     private ulong _schemaDocumentHash;
     private ulong _settingsHash;
     private ulong _packageHash;
+    private string? _planningFingerprint;
     private bool _disposed;
 
     public FileSystemFusionConfigurationProvider(string fileName)
@@ -137,6 +138,7 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
                 DocumentNode schema;
                 ulong settingsHash;
                 ulong schemaHash;
+                string? planningFingerprint = null;
 
                 if (_isPackage)
                 {
@@ -170,6 +172,7 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
                     buffer.Write(settingsSpan);
                     settingsHash = XxHash64.HashToUInt64(settingsSpan);
                     settings = new JsonDocumentOwner(JsonDocument.Parse(buffer.WrittenMemory), buffer);
+                    planningFingerprint = config.PlanningFingerprint;
                 }
                 else
                 {
@@ -178,7 +181,9 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
                     settingsHash = defaultSettingsHash;
                 }
 
-                if (_schemaDocumentHash == schemaHash && _settingsHash == settingsHash)
+                if (_schemaDocumentHash == schemaHash
+                    && _settingsHash == settingsHash
+                    && _planningFingerprint == planningFingerprint)
                 {
                     settings.Dispose();
                     continue;
@@ -186,7 +191,11 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
 
                 _settingsHash = settingsHash;
                 _schemaDocumentHash = schemaHash;
-                NotifyObservers(new FusionConfiguration(schema, settings));
+                _planningFingerprint = planningFingerprint;
+                NotifyObservers(new FusionConfiguration(schema, settings)
+                {
+                    PlanningFingerprint = planningFingerprint
+                });
             }
             catch
             {

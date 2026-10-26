@@ -1,3 +1,5 @@
+using System.Buffers;
+using System.Runtime.CompilerServices;
 using System.Text;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -48,7 +50,7 @@ public class OperationCompilerTests : FusionTestBase
 
         var product = root.Selections[0];
         Assert.Equal("product", product.Field.Name);
-        Assert.True(product.IsIncluded(0));
+        Assert.True(product.IsIncluded(new ConditionFlags(0)));
 
         var productSelectionSet =
             operation.GetSelectionSet(
@@ -58,7 +60,7 @@ public class OperationCompilerTests : FusionTestBase
 
         var id = productSelectionSet.Selections[0];
         Assert.Equal("id", id.Field.Name);
-        Assert.True(id.IsIncluded(0));
+        Assert.True(id.IsIncluded(new ConditionFlags(0)));
     }
 
     [Fact]
@@ -90,7 +92,7 @@ public class OperationCompilerTests : FusionTestBase
         // act
         var compiler = new OperationCompiler(schema, _fieldMapPool);
         var operation = compiler.Compile("1", "1", "1", operationDefinition);
-        var flags = operation.CreateIncludeFlags(variableValues);
+        var flags = operation.CreateIncludeConditionFlags(variableValues);
 
         // assert
         Assert.Equal("1", operation.Id);
@@ -139,7 +141,7 @@ public class OperationCompilerTests : FusionTestBase
         // act
         var compiler = new OperationCompiler(schema, _fieldMapPool);
         var operation = compiler.Compile("1", "1", "1", operationDefinition);
-        var flags = operation.CreateIncludeFlags(variableValues);
+        var flags = operation.CreateIncludeConditionFlags(variableValues);
 
         // assert
         Assert.Equal("1", operation.Id);
@@ -226,7 +228,7 @@ public class OperationCompilerTests : FusionTestBase
         // act
         var compiler = new OperationCompiler(schema, _fieldMapPool);
         var operation = compiler.Compile("1", "1", "1", operationDefinition);
-        var flags = operation.CreateIncludeFlags(variableValues);
+        var flags = operation.CreateIncludeConditionFlags(variableValues);
 
         // assert
         var product = GetSelection(operation.RootSelectionSet, "product");
@@ -266,7 +268,7 @@ public class OperationCompilerTests : FusionTestBase
         // act
         var compiler = new OperationCompiler(schema, _fieldMapPool);
         var operation = compiler.Compile("1", "1", "1", operationDefinition);
-        var flags = operation.CreateIncludeFlags(variableValues);
+        var flags = operation.CreateIncludeConditionFlags(variableValues);
 
         // assert
         var product = GetSelection(operation.RootSelectionSet, "product");
@@ -353,6 +355,116 @@ public class OperationCompilerTests : FusionTestBase
         Assert.True(interfaceType.TypeNameLookupTypes.IsEmpty);
         Assert.False(ValueCompletion.TryResolveType(default, interfaceType, out _));
     }
+
+    [Fact]
+    public void Compile_Should_KeepTheShortHash_When_ItHoldsANonNameCharacter()
+    {
+        // arrange
+        var schema = CreateSchema();
+        var operationDefinition = Utf8GraphQLParser.Parse("{ product { id } }")
+            .Definitions
+            .OfType<OperationDefinitionNode>()
+            .First();
+        var compiler = new OperationCompiler(schema, _fieldMapPool);
+
+        // act
+        var operation = compiler.Compile("1", "0123456789abcdef", "BnjEJe8-", operationDefinition);
+
+        // assert
+        Assert.Equal("BnjEJe8-", operation.ShortHash);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void GetSelectionById_Should_ReturnSelection_When_ElementStorageGrows(bool lazy)
+    {
+        // arrange
+        var compiler = new OperationCompiler(CreateSchema(), _fieldMapPool);
+        var definition = CreateStorageGrowthDefinition(lazy, selectionCount: 160);
+        var operation = compiler.Compile("large", "large", "large", definition);
+        var rootSelection = operation.RootSelectionSet.Selections[0];
+
+        // act
+        var selections = lazy
+            ? operation.GetSelectionSet(rootSelection).Selections
+            : operation.RootSelectionSet.Selections;
+
+        // assert
+        Assert.Equal(160, selections.Length);
+        Assert.Same(rootSelection, operation.GetSelectionById(rootSelection.Id));
+        Assert.Same(selections[^1], operation.GetSelectionById(selections[^1].Id));
+    }
+
+    [Fact]
+    public void GetSelectionSet_Should_KeepPreviousElementStorage_When_StorageGrows()
+    {
+        // arrange
+        var compiler = new OperationCompiler(CreateSchema(), _fieldMapPool);
+        var definition = CreateStorageGrowthDefinition(lazy: true, selectionCount: 160);
+        var operation = compiler.Compile("large", "large", "large", definition);
+        var rootSelection = operation.RootSelectionSet.Selections[0];
+        var previousStorage = GetElementsById(operation);
+
+        // act
+        operation.GetSelectionSet(rootSelection);
+        OverwritePooledArray(previousStorage.Length);
+
+        // assert
+        Assert.NotSame(previousStorage, GetElementsById(operation));
+        Assert.Same(rootSelection, previousStorage[rootSelection.Id]);
+    }
+
+    [Fact]
+    public async Task Compile_Should_ReleasePreviousSchema_When_SchemaIsReplaced()
+    {
+        // arrange
+        var previousSchema = CompileLargeOperationWithDiscardedSchema();
+        await using var schema = CreateSchema();
+        var compiler = new OperationCompiler(schema, _fieldMapPool);
+        var definition = Utf8GraphQLParser.Parse("{ __typename }")
+            .Definitions.OfType<OperationDefinitionNode>().Single();
+
+        // act
+        var operation = compiler.Compile("current", "current", "current", definition);
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+
+        // assert
+        Assert.False(previousSchema.IsAlive);
+        GC.KeepAlive(operation);
+    }
+
+    private static OperationDefinitionNode CreateStorageGrowthDefinition(bool lazy, int selectionCount)
+    {
+        var fields = string.Join(
+            " ",
+            Enumerable.Range(0, selectionCount).Select(i => lazy ? $"f{i}:id" : $"f{i}:__typename"));
+        var document = lazy ? $"{{ product {{ {fields} }} }}" : $"{{ {fields} }}";
+        return Utf8GraphQLParser.Parse(document).Definitions.OfType<OperationDefinitionNode>().Single();
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private WeakReference CompileLargeOperationWithDiscardedSchema()
+    {
+        var schema = CreateSchema();
+        var compiler = new OperationCompiler(schema, _fieldMapPool);
+        var definition = CreateStorageGrowthDefinition(lazy: false, selectionCount: 160);
+        compiler.Compile("previous", "previous", "previous", definition);
+        schema.DisposeAsync().AsTask().GetAwaiter().GetResult();
+        return new WeakReference(schema);
+    }
+
+    private static void OverwritePooledArray(int length)
+    {
+        var array = ArrayPool<object>.Shared.Rent(length);
+        Array.Fill(array, new object());
+        ArrayPool<object>.Shared.Return(array, clearArray: true);
+    }
+
+    [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_elementsById")]
+    private static extern ref object[] GetElementsById(Operation operation);
 
     public static FusionSchemaDefinition CreateSchema()
     {
@@ -450,7 +562,7 @@ public class OperationCompilerTests : FusionTestBase
 
         var compiler = new OperationCompiler(schema, _fieldMapPool);
         var operation = compiler.Compile("1", "1", "1", operationDefinition);
-        var flags = operation.CreateIncludeFlags(variableValues);
+        var flags = operation.CreateIncludeConditionFlags(variableValues);
 
         var series = GetSelection(operation.RootSelectionSet, "series");
         var seriesSelectionSet = operation.GetSelectionSet(series);
@@ -471,7 +583,7 @@ public class OperationCompilerTests : FusionTestBase
             $"The selection set does not contain a `{responseName}` selection.");
     }
 
-    private static string GetIncludedResponseNames(SelectionSet selectionSet, ulong flags)
+    private static string GetIncludedResponseNames(SelectionSet selectionSet, ConditionFlags flags)
     {
         var result = new StringBuilder();
 

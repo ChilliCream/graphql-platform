@@ -1,4 +1,6 @@
+#if !NET10_0_OR_GREATER
 using System.Collections.Immutable;
+#endif
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Planning.Partitioners;
 using HotChocolate.Language;
@@ -40,7 +42,11 @@ public sealed partial class OperationPlanner
             PlannerCostEstimator.EstimateRemainingCost(
                 _options,
                 currentMaxDepth: 0,
+#if NET10_0_OR_GREATER
+                [],
+#else
                 ImmutableDictionary<int, int>.Empty,
+#endif
                 backlog.Cost);
 
         var node = new PlanNode
@@ -104,7 +110,11 @@ public sealed partial class OperationPlanner
             PlannerCostEstimator.EstimateRemainingCost(
                 _options,
                 currentMaxDepth: 0,
+#if NET10_0_OR_GREATER
+                [],
+#else
                 ImmutableDictionary<int, int>.Empty,
+#endif
                 backlog.Cost);
 
         var node = new PlanNode
@@ -139,7 +149,11 @@ public sealed partial class OperationPlanner
             PlannerCostEstimator.EstimateRemainingCost(
                 _options,
                 currentMaxDepth: 0,
+#if NET10_0_OR_GREATER
+                [],
+#else
                 ImmutableDictionary<int, int>.Empty,
+#endif
                 backlog.Cost);
 
         var node = new PlanNode

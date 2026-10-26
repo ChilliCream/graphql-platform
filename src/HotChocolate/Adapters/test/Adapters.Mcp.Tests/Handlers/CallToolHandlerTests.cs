@@ -14,10 +14,13 @@ public sealed class CallToolHandlerTests
     public async Task HandleAsync_MissingTool_ReturnsCallToolResultWithError()
     {
         // arrange
-        var context = await CreateRequestContextAsync("unknown");
+        var (context, schemaServices) = await CreateRequestContextAsync("unknown");
 
         // act
-        var result = await CallToolHandler.HandleAsync(context, CancellationToken.None);
+        var result = await CallToolHandler.HandleAsync(
+            context,
+            schemaServices,
+            CancellationToken.None);
 
         // assert
         Assert.True(result.IsError);
@@ -25,8 +28,8 @@ public sealed class CallToolHandlerTests
         Assert.Equal("The tool 'unknown' was not found.", textContentBlock.Text);
     }
 
-    private static async Task<RequestContext<CallToolRequestParams>> CreateRequestContextAsync(
-        string toolName)
+    private static async Task<(RequestContext<CallToolRequestParams>, IServiceProvider)>
+        CreateRequestContextAsync(string toolName)
     {
         var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
@@ -49,15 +52,16 @@ public sealed class CallToolHandlerTests
         var executorProvider = serviceProvider.GetRequiredService<IRequestExecutorProvider>();
         var executor = await executorProvider.GetExecutorAsync();
         Mock<McpServer> mockServer = new();
-        mockServer.SetupGet(s => s.Services).Returns(executor.Schema.Services);
         var request = new JsonRpcRequest { Method = RequestMethods.ToolsCall };
 
-        return new RequestContext<CallToolRequestParams>(
-            mockServer.Object,
-            request,
-            new CallToolRequestParams
-            {
-                Name = toolName
-            });
+        return (
+            new RequestContext<CallToolRequestParams>(
+                mockServer.Object,
+                request,
+                new CallToolRequestParams
+                {
+                    Name = toolName
+                }),
+            executor.Schema.Services);
     }
 }

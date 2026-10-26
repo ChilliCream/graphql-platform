@@ -13,7 +13,7 @@ This page teaches you to scaffold a skill, write a correct `SKILL.md`, add suppo
 
 To create a new skill in its own folder, run `dnx skills init` with a name.
 
-```bash
+```shell
 dnx skills init my-skill
 ```
 
@@ -36,7 +36,7 @@ This creates `my-skill/SKILL.md`. If everything worked, you have a folder named 
 
 To scaffold a skill in the current directory instead, run `dnx skills init` with no name. The CLI derives the skill name from the folder you are in and writes `SKILL.md` next to your other files.
 
-```bash
+```shell
 dnx skills init
 ```
 
@@ -170,7 +170,7 @@ A skill is a folder in a git repo, so publishing is committing and pushing. Any 
 
 To publish, commit your skill folder and push it to GitHub, GitLab, or any git remote. Then anyone installs it with `dnx skills add` pointed at the repo. The forms below show what an installer runs against your published skill; for the full add workflow, including expected output, scoping, and agent targeting, see [Installing Skills](./installing-skills.md).
 
-```bash
+```shell
 # install every skill in the repo
 dnx skills add my-org/my-skills
 
@@ -198,7 +198,7 @@ metadata:
 
 To check a skill against the open spec before you publish, use the reference validator `skills-ref` from the [agentskills/agentskills](https://github.com/agentskills/agentskills) repository. It validates your frontmatter and naming conventions.
 
-```bash
+```shell
 skills-ref validate ./my-skill
 ```
 

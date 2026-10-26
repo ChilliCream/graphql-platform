@@ -8,6 +8,7 @@ namespace HotChocolate.Fusion.Text.Json;
 public readonly struct CompactPathSegment
 {
     private readonly CompactPath[]? _array;
+    private readonly CompactPathSource? _source;
     private readonly int _offset;
     private readonly int _count;
 
@@ -17,6 +18,24 @@ public readonly struct CompactPathSegment
         _offset = offset;
         _count = count;
     }
+
+    internal CompactPathSegment(CompactPathSource source, int offset, int count)
+    {
+        _source = source;
+        _offset = offset;
+        _count = count;
+    }
+
+    /// <summary>
+    /// Gets the source that creates the paths of this segment on first access,
+    /// or <c>null</c> if the paths already exist.
+    /// </summary>
+    internal CompactPathSource? Source => _source;
+
+    /// <summary>
+    /// Gets the offset of this segment within its backing array or source.
+    /// </summary>
+    internal int Offset => _offset;
 
     /// <summary>
     /// Gets the number of paths in this segment.
@@ -32,9 +51,9 @@ public readonly struct CompactPathSegment
     /// Gets the paths as a read-only span.
     /// </summary>
     public ReadOnlySpan<CompactPath> AsSpan()
-        => _array is null
-            ? ReadOnlySpan<CompactPath>.Empty
-            : _array.AsSpan(_offset, _count);
+        => GetArray() is { } array
+            ? array.AsSpan(_offset, _count)
+            : ReadOnlySpan<CompactPath>.Empty;
 
     /// <summary>
     /// Gets the path at the specified index.
@@ -48,14 +67,39 @@ public readonly struct CompactPathSegment
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
 
-            return _array![_offset + index];
+            return GetArray()![_offset + index];
         }
+    }
+
+    /// <summary>
+    /// Returns a copy of this segment whose paths are backed by freshly allocated
+    /// arrays, so they stay valid after the original backing buffers are reused.
+    /// </summary>
+    internal CompactPathSegment Detach()
+    {
+        if (_count == 0)
+        {
+            return default;
+        }
+
+        var array = GetArray()!;
+        var paths = new CompactPath[_count];
+
+        for (var i = 0; i < _count; i++)
+        {
+            paths[i] = array[_offset + i].Detach();
+        }
+
+        return new CompactPathSegment(paths, 0, _count);
     }
 
     /// <summary>
     /// Returns an enumerator that iterates through the paths.
     /// </summary>
-    public Enumerator GetEnumerator() => new(_array, _offset, _count);
+    public Enumerator GetEnumerator() => new(GetArray(), _offset, _count);
+
+    private CompactPath[]? GetArray()
+        => _array ?? (_count == 0 ? null : _source?.GetPaths());
 
     /// <summary>
     /// Enumerates the paths in a <see cref="CompactPathSegment"/>.

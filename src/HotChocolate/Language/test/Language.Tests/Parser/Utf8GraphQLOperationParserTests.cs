@@ -348,6 +348,30 @@ public class Utf8GraphQLOperationParserTests
         Assert.IsType<Utf8EncodingException>(packed);
     }
 
+    [Fact]
+    public void ParseOperationDocument_Should_KeepBlockStringBackslashesLiteral_When_ArgumentIsBlockString()
+    {
+        // arrange
+        const string source =
+            """"
+            { field(arg: """pattern \d and \n""") }
+            """";
+        var sourceBytes = Encoding.UTF8.GetBytes(source);
+
+        // act
+        var classic = Utf8GraphQLParser.Parse(sourceBytes);
+        var packed = Record.Exception(() => Utf8GraphQLOperationParser.Parse(sourceBytes));
+        var operation = (OperationDefinitionNode)classic.Definitions[0];
+        var field = (FieldNode)operation.SelectionSet.Selections[0];
+
+        // assert
+        Assert.Null(packed);
+        Assert.IsType<StringValueNode>(field.Arguments[0].Value).Value.MatchInlineSnapshot(
+            """
+            pattern \d and \n
+            """);
+    }
+
     [Theory]
     [InlineData("query Q($value: String = \"abc\") { field }", "\"abc\"")]
     [InlineData("query Q($value: String = \"\"\"abc\"\"\") { field }", "\"\"\"abc\"\"\"")]

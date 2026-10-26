@@ -1,5 +1,6 @@
 using System.Text;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
 
@@ -208,6 +209,9 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         writer.Unindent();
     }
 
+    private static string FormatSourceText(ReadOnlyMemory<byte> value)
+        => Utf8GraphQLParser.Parse(value.Span).ToString(indented: true);
+
     private static void WriteOperationNode(OperationExecutionNode node, ExecutionNodeTrace? trace, CodeWriter writer)
     {
         writer.WriteLine("- id: {0}", node.Id);
@@ -222,8 +226,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         writer.WriteLine("operation: |");
         writer.Indent();
-        // Decode the UTF-8 operation text for line-by-line YAML output (cold diagnostic path).
-        var reader = new StringReader(Encoding.UTF8.GetString(node.Operation.Value.Span));
+        var reader = new StringReader(FormatSourceText(node.Operation.Value));
         var line = reader.ReadLine();
         while (line != null)
         {
@@ -292,22 +295,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.WriteLine("requiresFileUpload: true");
         }
 
-        if (node.Dependencies.Length > 0 || node.ParentDependencies.Length > 0)
-        {
-            writer.WriteLine("dependencies:");
-            writer.Indent();
-            foreach (var dependency in node.Dependencies)
-            {
-                writer.WriteLine("- id: {0}", dependency.Id);
-            }
-
-            foreach (var parentStepId in node.ParentDependencies)
-            {
-                writer.WriteLine("- parentNodeId: {0}", parentStepId);
-            }
-
-            writer.Unindent();
-        }
+        WriteDependencies(node.Dependencies, node.OptionalDependencies, node.ParentDependencies, writer);
 
         TryWriteNodeTrace(writer, trace);
 
@@ -374,7 +362,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         writer.Unindent();
 
-        WriteDependencies(node.Dependencies, node.ParentDependencies, writer);
+        WriteDependencies(node.Dependencies, node.OptionalDependencies, node.ParentDependencies, writer);
         TryWriteNodeTrace(writer, trace);
 
         writer.Unindent();
@@ -415,8 +403,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         writer.WriteLine("operation: |");
         writer.Indent();
-        // Decode the UTF-8 operation text for line-by-line YAML output (cold diagnostic path).
-        var reader = new StringReader(Encoding.UTF8.GetString(opDef.SourceText.Value.Span));
+        var reader = new StringReader(FormatSourceText(opDef.SourceText.Value));
         var line = reader.ReadLine();
         while (line != null)
         {
@@ -446,7 +433,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.WriteLine("requiresFileUpload: true");
         }
 
-        WriteDependencies(opDef.Dependencies, opDef.ParentDependencies, writer);
+        WriteDependencies(opDef.Dependencies, opDef.OptionalDependencies, opDef.ParentDependencies, writer);
         TryWriteNodeTrace(writer, trace);
 
         writer.Unindent();
@@ -470,8 +457,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         writer.WriteLine("operation: |");
         writer.Indent();
-        // Decode the UTF-8 operation text for line-by-line YAML output (cold diagnostic path).
-        var reader = new StringReader(Encoding.UTF8.GetString(opDef.SourceText.Value.Span));
+        var reader = new StringReader(FormatSourceText(opDef.SourceText.Value));
         var line = reader.ReadLine();
         while (line != null)
         {
@@ -507,7 +493,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.WriteLine("requiresFileUpload: true");
         }
 
-        WriteDependencies(opDef.Dependencies, opDef.ParentDependencies, writer);
+        WriteDependencies(opDef.Dependencies, opDef.OptionalDependencies, opDef.ParentDependencies, writer);
         TryWriteNodeTrace(writer, trace);
 
         writer.Unindent();
@@ -530,8 +516,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         writer.WriteLine("operation: |");
         writer.Indent();
-        // Decode the UTF-8 operation text for line-by-line YAML output (cold diagnostic path).
-        var reader = new StringReader(Encoding.UTF8.GetString(node.Operation.Value.Span));
+        var reader = new StringReader(FormatSourceText(node.Operation.Value));
         var line = reader.ReadLine();
         while (line != null)
         {
@@ -559,7 +544,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.WriteLine("requiresFileUpload: true");
         }
 
-        WriteDependencies(node.Dependencies, node.ParentDependencies, writer);
+        WriteDependencies(node.Dependencies, node.OptionalDependencies, node.ParentDependencies, writer);
         TryWriteNodeTrace(writer, trace);
 
         writer.Unindent();
@@ -586,7 +571,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
     private static void WriteApolloOperationDefinitionAsNode(
         ApolloOperationBatchExecutionNode batchNode,
-        SingleOperationDefinition opDef,
+        OperationDefinition opDef,
         OperationSourceText operation,
         ExecutionNodeTrace? trace,
         CodeWriter writer)
@@ -603,8 +588,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         writer.WriteLine("operation: |");
         writer.Indent();
-        // Decode the UTF-8 operation text for line-by-line YAML output (cold diagnostic path).
-        var reader = new StringReader(Encoding.UTF8.GetString(operation.Value.Span));
+        var reader = new StringReader(FormatSourceText(operation.Value));
         var line = reader.ReadLine();
         while (line != null)
         {
@@ -618,9 +602,21 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.WriteLine("source: {0}", opDef.Source.ToString());
         }
 
-        if (!opDef.Target.IsRoot)
+        switch (opDef)
         {
-            writer.WriteLine("target: {0}", opDef.Target.ToString());
+            case SingleOperationDefinition { Target.IsRoot: false } single:
+                writer.WriteLine("target: {0}", single.Target.ToString());
+                break;
+
+            case BatchOperationDefinition batch:
+                writer.WriteLine("targets:");
+                writer.Indent();
+                foreach (var target in batch.Targets)
+                {
+                    writer.WriteLine("- {0}", target.ToString());
+                }
+                writer.Unindent();
+                break;
         }
 
         writer.WriteLine("batchingGroupId: {0}", batchNode.Id);
@@ -634,7 +630,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.WriteLine("requiresFileUpload: true");
         }
 
-        WriteDependencies(opDef.Dependencies, opDef.ParentDependencies, writer);
+        WriteDependencies(opDef.Dependencies, opDef.OptionalDependencies, opDef.ParentDependencies, writer);
         TryWriteNodeTrace(writer, trace);
 
         writer.Unindent();
@@ -710,10 +706,11 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
     private static void WriteDependencies(
         ReadOnlySpan<IOperationPlanNode> dependencies,
+        ReadOnlySpan<IOperationPlanNode> optionalDependencies,
         ReadOnlySpan<int> parentDependencies,
         CodeWriter writer)
     {
-        if (dependencies.Length == 0 && parentDependencies.Length == 0)
+        if (dependencies.Length == 0 && optionalDependencies.Length == 0 && parentDependencies.Length == 0)
         {
             return;
         }
@@ -721,9 +718,20 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         writer.WriteLine("dependencies:");
         writer.Indent();
 
-        foreach (var dependency in dependencies)
+        var i = 0;
+        var j = 0;
+
+        while (i < dependencies.Length || j < optionalDependencies.Length)
         {
-            writer.WriteLine("- id: {0}", dependency.Id);
+            if (j == optionalDependencies.Length
+                || (i < dependencies.Length && dependencies[i].Id < optionalDependencies[j].Id))
+            {
+                writer.WriteLine("- id: {0}", dependencies[i++].Id);
+            }
+            else
+            {
+                writer.WriteLine("- id: {0}", optionalDependencies[j++].Id);
+            }
         }
 
         foreach (var parentStepId in parentDependencies)

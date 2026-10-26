@@ -1,8 +1,8 @@
+using CookieCrumble.Resources;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 
 namespace HotChocolate.Data;
 
@@ -152,6 +152,7 @@ public sealed class Issue8252UnionProjectionTests(PostgreSqlResource resource)
         var services = new ServiceCollection()
             .AddDbContext<Issue8252Context>(c => c.UseNpgsql(connectionString))
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Issue8252Query>()
             .AddUnionType<PostContent>()
             .AddType<TextContent>()

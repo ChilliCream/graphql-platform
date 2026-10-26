@@ -10,6 +10,7 @@ namespace HotChocolate.Execution.Options;
 /// </summary>
 public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
 {
+    internal const int DefaultMaxAllowedConditions = 1024;
     private static readonly TimeSpan s_minExecutionTimeout = TimeSpan.FromMilliseconds(100);
     private TimeSpan _executionTimeout;
 
@@ -81,4 +82,20 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
     /// <c>false</c> by default.
     /// </summary>
     public bool AllowErrorHandlingModeOverride { get; set; }
+
+    /// <summary>
+    /// Gets or sets the maximum number of distinct <c>@skip</c>/<c>@include</c>
+    /// conditions an operation may declare. Exceeding it produces a GraphQL
+    /// request error at operation compile time.
+    /// <c>1024</c> by default.
+    /// </summary>
+    public int MaxAllowedIncludeConditions { get; set; } = DefaultMaxAllowedConditions;
+
+    /// <summary>
+    /// Gets or sets the maximum number of distinct <c>@defer</c> conditions
+    /// an operation may declare. Exceeding it produces a GraphQL
+    /// request error at operation compile time.
+    /// <c>1024</c> by default.
+    /// </summary>
+    public int MaxAllowedDeferConditions { get; set; } = DefaultMaxAllowedConditions;
 }

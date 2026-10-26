@@ -1,0 +1,192 @@
+using System.Text.Json;
+
+namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
+
+public sealed class RegisterAgentCommandTests(NitroCommandFixture fixture)
+    : AgentCommandTestBase(fixture)
+{
+    [Fact]
+    public async Task Help_ReturnsSimplifiedOptions()
+    {
+        // arrange & act
+        var result = await ExecuteCommandAsync("agent", "register", "--help");
+
+        // assert
+        result.AssertHelpOutput(
+            """
+            Description:
+              Set the role of an actor allocated by `agent login` or a session-start hook.
+
+            Usage:
+              nitro agent register [options]
+
+            Options:
+              --actor <actor> (REQUIRED)  The actor to register; allocate one with `nitro agent login`
+              --role <role>               The actor role, normalized lowercase. Known roles: orchestrator, planner, implementer, reviewer, researcher; any other value is accepted.
+              --output <json>             The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help              Show help and usage information
+
+            Example:
+              nitro agent register --actor "maya"
+              nitro agent register --actor "maya" --role "researcher"
+            """);
+    }
+
+    [Fact]
+    public async Task Register_Should_SetTheRole_When_TheActorWasAllocated()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await SeedAgentAsync("maya");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "register", "--actor", "maya", "--role", "Backend");
+
+        // assert
+        result.AssertSuccess("✓ Actor 'maya', role 'backend'.");
+        Assert.Equal("backend", await QueryScalarAsync("SELECT role FROM agents WHERE name = 'maya'"));
+    }
+
+    [Fact]
+    public async Task Register_Should_ReportTheActorAlone_When_NoRoleIsGiven()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await SeedAgentAsync("maya");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "register", "--actor", "maya");
+
+        // assert
+        result.AssertSuccess("✓ Actor 'maya'.");
+        Assert.Equal("", await QueryScalarAsync("SELECT role FROM agents WHERE name = 'maya'"));
+    }
+
+    [Fact]
+    public async Task Register_Should_KeepTheRole_When_NoRoleIsGiven()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await SeedAgentAsync("maya", "planner");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "register", "--actor", "maya");
+
+        // assert
+        // Omitting --role touches the beat only, the stored role survives.
+        result.AssertSuccess("✓ Actor 'maya', role 'planner'.");
+        Assert.Equal("planner", await QueryScalarAsync("SELECT role FROM agents WHERE name = 'maya'"));
+    }
+
+    [Fact]
+    public async Task Register_Should_BumpLastSeenAt_When_NoRoleIsGiven()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await SeedAgentAsync("maya");
+        var before = await QueryScalarAsync("SELECT last_seen_at FROM agents WHERE name = 'maya'");
+        FakeTime.Advance(TimeSpan.FromMinutes(5));
+
+        // act
+        await ExecuteCommandAsync("agent", "register", "--actor", "maya");
+
+        // assert
+        var after = await QueryScalarAsync("SELECT last_seen_at FROM agents WHERE name = 'maya'");
+        Assert.NotEqual(before, after);
+    }
+
+    [Fact]
+    public async Task Register_Should_ClearTheRole_When_TheRoleIsExplicitlyEmpty()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await SeedAgentAsync("maya");
+        await ExecuteCommandAsync("agent", "register", "--actor", "maya", "--role", "planner");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "register", "--actor", "maya", "--role", "");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal("", await QueryScalarAsync("SELECT role FROM agents WHERE name = 'maya'"));
+    }
+
+    [Fact]
+    public async Task Register_Should_Fail_When_TheActorWasNeverAllocated()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "register", "--actor", "maya");
+
+        // assert
+        result.AssertError(
+            "Unknown actor 'maya'. Run `nitro agent login` to allocate one, "
+            + "or `nitro agent list` to see the actors this workspace knows.");
+        Assert.Equal("0", await QueryScalarAsync("SELECT COUNT(*) FROM agents"));
+    }
+
+    [Fact]
+    public async Task Register_Should_Fail_When_TheActorWasDeleted()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await SeedAgentAsync("maya");
+        await MarkAgentDeletedAsync("maya");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "register", "--actor", "maya");
+
+        // assert
+        result.AssertError("Agent 'maya' was deleted.");
+    }
+
+    [Fact]
+    public async Task Register_Should_Fail_When_ActorIsOmitted()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        DefaultActor = null;
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "register");
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains("Option '--actor' is required", result.StdErr);
+    }
+
+    [Fact]
+    public async Task JsonOutput_Should_CarryActorAndRole()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await SeedAgentAsync("maya");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "register", "--actor", "maya", "--role", "worker");
+
+        // assert
+        using var document = JsonDocument.Parse(result.StdOut);
+        var root = document.RootElement;
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal("maya", root.GetProperty("actor").GetString());
+        Assert.Equal("worker", root.GetProperty("role").GetString());
+    }
+
+    [Theory]
+    [InlineData("--client")]
+    [InlineData("--force")]
+    [InlineData("--force-rebind")]
+    public async Task Register_RemovedOptionsAreRejected(string option)
+    {
+        // arrange & act
+        var result = await ExecuteCommandAsync("agent", "register", option, "value");
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains($"Unrecognized command or argument '{option}'", result.StdErr);
+    }
+}

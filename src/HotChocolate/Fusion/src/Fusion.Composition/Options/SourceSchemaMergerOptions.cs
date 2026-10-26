@@ -16,6 +16,28 @@ public sealed class SourceSchemaMergerOptions
     public DirectiveMergeBehavior CacheControlMergeBehavior { get; set; } = DirectiveMergeBehavior.Include;
 
     /// <summary>
+    /// Gets or sets the default assumed size for list fields without more specific
+    /// list-size information. The default is <see langword="null"/>, which represents
+    /// an unbounded list size.
+    /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// The assigned value is negative.
+    /// </exception>
+    public int? DefaultListSize
+    {
+        get;
+        set
+        {
+            if (value is { } size && size < 0)
+            {
+                throw ThrowHelper.InvalidDefaultListSize(size);
+            }
+
+            field = value;
+        }
+    }
+
+    /// <summary>
     /// Enables the inclusion of Global Object Identification fields.
     /// </summary>
     public bool EnableGlobalObjectIdentification { get; set; }

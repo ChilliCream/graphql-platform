@@ -1,5 +1,4 @@
 using Mocha.Features;
-using Mocha.Middlewares;
 using static System.StringSplitOptions;
 
 namespace Mocha.Transport.Postgres;
@@ -212,14 +211,26 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
             throw new InvalidOperationException("Queue name is required");
         }
 
-        _topology.GetOrAddQueue(
+        var queue = _topology.GetOrAddQueue(
             postgresConfiguration.QueueName,
             _ => new PostgresQueueConfiguration
             {
-                AutoDelete = postgresEndpoint.Kind == ReceiveEndpointKind.Reply,
+                AutoDelete = postgresConfiguration.IsTemporary,
                 AutoProvision = postgresConfiguration.AutoProvision,
                 Origin = TopologyOrigin.Endpoint
             });
+
+        if (postgresConfiguration.IsTemporary && queue.AutoDelete == false)
+        {
+            throw new InvalidOperationException(
+                $"Receive endpoint '{postgresConfiguration.Name}' is marked Temporary(), but its queue "
+                    + $"'{postgresConfiguration.QueueName}' is explicitly configured with AutoDelete(false).");
+        }
+
+        if (postgresConfiguration.IsTemporary && queue.AutoDelete is null)
+        {
+            queue.MarkTemporary();
+        }
 
         if (postgresEndpoint.Kind == ReceiveEndpointKind.Default)
         {
@@ -305,20 +316,37 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
             return;
         }
 
-        if (postgresConfiguration.TopicName is not null
-            && _topology.Topics.FirstOrDefault(t => t.Name == postgresConfiguration.TopicName) is null)
+        // Under explicit binding, a target that is not declared is recorded in the topology
+        // but never provisioned. The sender does not own it.
+        var bindImplicitly = Transport.BindMode == MessagingBindMode.Implicit;
+
+        if (postgresConfiguration.TopicName is not null)
         {
-            _topology.GetOrAddTopic(postgresConfiguration.TopicName, static _ => new PostgresTopicConfiguration());
+            _topology.GetOrAddTopic(
+                postgresConfiguration.TopicName,
+                bindImplicitly
+                    ? static _ => new PostgresTopicConfiguration()
+                    : static _ => new PostgresTopicConfiguration
+                    {
+                        AutoProvision = false,
+                        Origin = TopologyOrigin.Endpoint
+                    });
         }
 
-        if (postgresConfiguration.QueueName is not null
-            && _topology.Queues.FirstOrDefault(q => q.Name == postgresConfiguration.QueueName) is null)
+        if (postgresConfiguration.QueueName is not null)
         {
-            _topology.GetOrAddQueue(postgresConfiguration.QueueName, static _ => new PostgresQueueConfiguration());
+            _topology.GetOrAddQueue(
+                postgresConfiguration.QueueName,
+                bindImplicitly
+                    ? static _ => new PostgresQueueConfiguration()
+                    : static _ => new PostgresQueueConfiguration
+                    {
+                        AutoProvision = false,
+                        Origin = TopologyOrigin.Endpoint
+                    });
         }
 
-        if (postgresConfiguration.TopicName is not null
-            && Transport.BindMode == MessagingBindMode.Implicit)
+        if (postgresConfiguration.TopicName is not null && bindImplicitly)
         {
             var schema = Transport.Schema;
 

@@ -29,22 +29,3 @@ internal sealed record TaskCreation
 
     public required string Actor { get; init; }
 }
-
-/// <summary>
-/// One dependency to create between a new task and an existing one.
-/// </summary>
-internal sealed record TaskDependencyRequest(string DependsOnId, string Type);
-
-/// <summary>
-/// The outcome of <see cref="ITaskStore.CreateTaskAsync"/>.
-/// </summary>
-internal sealed record TaskCreationResult
-{
-    public required string Id { get; init; }
-
-    /// <summary>
-    /// The IDs of tasks that block the new task, per the same rules as
-    /// ComputeBlockedAsync.
-    /// </summary>
-    public IReadOnlyList<string> BlockedBy { get; init; } = [];
-}

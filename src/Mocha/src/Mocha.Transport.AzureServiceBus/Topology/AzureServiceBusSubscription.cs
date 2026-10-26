@@ -205,4 +205,21 @@ public sealed class AzureServiceBusSubscription
             // Already provisioned by another instance, safe to ignore.
         }
     }
+
+    /// <summary>
+    /// Deletes this subscription from Azure Service Bus.
+    /// </summary>
+    internal async Task DeprovisionAsync(
+        AzureServiceBusClientManager clientManager,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await clientManager.DeleteSubscriptionAsync(Source.Name, Name, cancellationToken);
+        }
+        catch (ServiceBusException ex) when (ex.Reason == ServiceBusFailureReason.MessagingEntityNotFound)
+        {
+            // Already removed by another instance or a previous cleanup attempt, safe to ignore.
+        }
+    }
 }

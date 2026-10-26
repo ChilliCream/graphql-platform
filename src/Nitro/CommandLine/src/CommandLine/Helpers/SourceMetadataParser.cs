@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using ChilliCream.Nitro.Client;
 
 namespace ChilliCream.Nitro.CommandLine.Helpers;
@@ -26,7 +25,7 @@ internal static class SourceMetadataParser
                 throw new InvalidOperationException("Expected a JSON object.");
             }
 
-            // When no 'type' marker is present we assume GitHub for backwards compatibility.
+            // Defaults to GitHub when no 'type' marker is present.
             var type = GitHubType;
             if (document.RootElement.TryGetProperty(TypePropertyName, out var typeElement))
             {
@@ -66,7 +65,9 @@ internal static class SourceMetadataParser
             dto.RunNumber,
             dto.RunId,
             dto.JobId,
-            new Uri(dto.RepositoryUrl));
+            new Uri(dto.RepositoryUrl),
+            dto.Ref,
+            dto.PullRequestNumber);
     }
 
     private static SourceAzureDevOpsMetadata ParseAzureDevOps(JsonElement element)
@@ -83,35 +84,8 @@ internal static class SourceMetadataParser
             dto.CommitHash,
             dto.JobId,
             dto.TaskId,
-            dto.RepositoryUrl is null ? null : new Uri(dto.RepositoryUrl));
+            dto.RepositoryUrl is null ? null : new Uri(dto.RepositoryUrl),
+            dto.Ref,
+            dto.PullRequestNumber);
     }
 }
-
-internal sealed record GitHubSourceMetadataDto(
-    [property: JsonRequired] string Actor,
-    [property: JsonRequired] string CommitHash,
-    [property: JsonRequired] string WorkflowName,
-    [property: JsonRequired] string RunNumber,
-    [property: JsonRequired] string RunId,
-    string? JobId,
-    [property: JsonRequired] string RepositoryUrl);
-
-internal sealed record AzureDevOpsSourceMetadataDto(
-    [property: JsonRequired] AzureDevOpsActorDto Actor,
-    [property: JsonRequired] string PipelineName,
-    [property: JsonRequired] string RunNumber,
-    [property: JsonRequired] string RunId,
-    [property: JsonRequired] string ProjectUrl,
-    string? CommitHash,
-    string? JobId,
-    string? TaskId,
-    string? RepositoryUrl);
-
-internal sealed record AzureDevOpsActorDto(
-    [property: JsonRequired] string Name,
-    string? Email);
-
-[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
-[JsonSerializable(typeof(GitHubSourceMetadataDto))]
-[JsonSerializable(typeof(AzureDevOpsSourceMetadataDto))]
-internal partial class SourceMetadataJsonContext : JsonSerializerContext;

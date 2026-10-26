@@ -11,7 +11,7 @@ namespace HotChocolate.Transport.Http;
 #endif
 
 #if FUSION
-internal sealed class SseReader(HttpResponseMessage message, IMemoryArenaSource arenaSource)
+internal sealed class SseReader(HttpResponseMessage message, IMemoryArenaSource arenaSource, TimeSpan readTimeout)
     : IAsyncEnumerable<SourceResultDocument>
 #else
 internal sealed class SseReader(HttpResponseMessage message)
@@ -42,7 +42,14 @@ internal sealed class SseReader(HttpResponseMessage message)
 #endif
         CancellationToken cancellationToken = default)
     {
+#if FUSION
+        var responseStream = await message.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+        await using var stream = readTimeout == Timeout.InfiniteTimeSpan
+            ? responseStream
+            : new ReadTimeoutStream(responseStream, readTimeout);
+#else
         await using var stream = await message.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+#endif
 
 #if FUSION
         // Only a "next" event produces a document: its payload bytes are filled exactly once into a
@@ -55,7 +62,7 @@ internal sealed class SseReader(HttpResponseMessage message)
             {
                 if (eventType != NextEvent || data.Length == 0)
                 {
-                    return (SourceResultDocument?)null;
+                    return null;
                 }
 
                 return FillAndParse(arenaSource.GetNextArena(), data);
@@ -114,7 +121,7 @@ internal sealed class SseReader(HttpResponseMessage message)
             var spaceInCurrentChunk = chunkSize - currentChunkPosition;
             var bytesToCopy = Math.Min(spaceInCurrentChunk, data.Length - dataOffset);
 
-            data.Slice(dataOffset, bytesToCopy).CopyTo(current.Span.Slice(currentChunkPosition));
+            data.Slice(dataOffset, bytesToCopy).CopyTo(current.Span[currentChunkPosition..]);
             currentChunkPosition += bytesToCopy;
             dataOffset += bytesToCopy;
 

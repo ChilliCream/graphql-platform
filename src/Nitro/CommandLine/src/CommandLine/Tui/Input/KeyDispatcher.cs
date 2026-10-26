@@ -13,9 +13,7 @@ internal sealed class KeyDispatcher
     }
 
     /// <summary>
-    /// The global key table every dispatch falls back to. Exposed so the
-    /// footer can append its hints after whichever context-specific hints
-    /// are active.
+    /// The global key table every dispatch falls back to.
     /// </summary>
     public KeyMap GlobalKeyMap => _globalKeyMap;
 
@@ -34,5 +32,47 @@ internal sealed class KeyDispatcher
         }
 
         return _globalKeyMap.TryResolve(chord, out var globalMessage) ? globalMessage : null;
+    }
+
+    /// <summary>
+    /// Returns context hints followed by global hints that are neither suppressed
+    /// nor already included. Context hints retain their original order and duplicates.
+    /// </summary>
+    public IReadOnlyList<KeyHint> CombineHints(
+        IReadOnlyList<KeyHint> contextHints, IReadOnlyCollection<KeyHint> suppressedGlobalHints)
+    {
+        ArgumentNullException.ThrowIfNull(contextHints);
+        ArgumentNullException.ThrowIfNull(suppressedGlobalHints);
+
+        var globalHints = _globalKeyMap.Hints;
+
+        if (globalHints.Count == 0)
+        {
+            return contextHints;
+        }
+
+        if (contextHints.Count == 0 && suppressedGlobalHints.Count == 0)
+        {
+            return globalHints;
+        }
+
+        var seen = new HashSet<KeyHint>(contextHints);
+        var combined = new List<KeyHint>(contextHints.Count + globalHints.Count);
+        combined.AddRange(contextHints);
+
+        foreach (var hint in globalHints)
+        {
+            if (suppressedGlobalHints.Count > 0 && suppressedGlobalHints.Contains(hint))
+            {
+                continue;
+            }
+
+            if (seen.Add(hint))
+            {
+                combined.Add(hint);
+            }
+        }
+
+        return combined;
     }
 }

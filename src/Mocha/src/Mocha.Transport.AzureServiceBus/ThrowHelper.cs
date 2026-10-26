@@ -85,6 +85,16 @@ internal static class ThrowHelper
     public static Exception TopologyQueueNotFound(string queueName)
         => new InvalidOperationException($"Queue '{queueName}' not found in topology");
 
+    public static Exception TemporaryEndpointQueueAutoDeleteOnIdleConflict(
+        string endpointName,
+        string queueName,
+        TimeSpan? declaredAutoDeleteOnIdle)
+        => new InvalidOperationException(
+            $"Endpoint '{endpointName}' is marked Temporary(), but queue '{queueName}' was already declared "
+            + $"with AutoDeleteOnIdle '{declaredAutoDeleteOnIdle?.ToString() ?? "unset"}', which does not "
+            + "match the endpoint's resolved idle timeout. Align the queue declaration's AutoDeleteOnIdle "
+            + "with the endpoint's Temporary() idle timeout.");
+
     public static Exception SubscriptionAlreadyExists(string source, string destination)
         => new InvalidOperationException(
             $"Subscription from topic '{source}' to queue '{destination}' already exists");

@@ -137,27 +137,6 @@
                   "event": []
                 },
                 {
-                  "OperationName": "GraphQL Complexity Analysis",
-                  "DisplayName": "GraphQL Complexity Analysis",
-                  "Kind": "Internal",
-                  "Status": "Ok",
-                  "tags": [
-                    {
-                      "Key": "graphql.document.hash",
-                      "Value": "md5:668e9631148921208d08dbb69513fa8e"
-                    },
-                    {
-                      "Key": "graphql.operation.fieldCost",
-                      "Value": 23.0
-                    },
-                    {
-                      "Key": "graphql.operation.typeCost",
-                      "Value": 6.0
-                    }
-                  ],
-                  "event": []
-                },
-                {
                   "OperationName": "GraphQL Operation Planning",
                   "DisplayName": "GraphQL Operation Planning",
                   "Kind": "Internal",
@@ -174,6 +153,27 @@
                     {
                       "Key": "graphql.operation.type",
                       "Value": "query"
+                    }
+                  ],
+                  "event": []
+                },
+                {
+                  "OperationName": "GraphQL Complexity Analysis",
+                  "DisplayName": "GraphQL Complexity Analysis",
+                  "Kind": "Internal",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:668e9631148921208d08dbb69513fa8e"
+                    },
+                    {
+                      "Key": "graphql.operation.fieldCost",
+                      "Value": 122.0
+                    },
+                    {
+                      "Key": "graphql.operation.typeCost",
+                      "Value": 123.0
                     }
                   ],
                   "event": []

@@ -80,7 +80,7 @@ public class AzureServiceBusForwardingProvisioningTests
 
         // act
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => builder.BuildTestBusAsync());
+            builder.BuildTestBusAsync);
 
         // assert
         Assert.Equal(

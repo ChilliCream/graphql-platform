@@ -194,13 +194,15 @@ internal sealed class ClientsClient(
         string clientId,
         string stageName,
         string tag,
+        bool force,
         CancellationToken cancellationToken)
     {
         var input = new UnpublishClientInput
         {
             ClientId = clientId,
             Stage = stageName,
-            Tag = tag
+            Tag = tag,
+            Force = force
         };
 
         var result = await apiClient.UnpublishClient.ExecuteAsync(input, cancellationToken);

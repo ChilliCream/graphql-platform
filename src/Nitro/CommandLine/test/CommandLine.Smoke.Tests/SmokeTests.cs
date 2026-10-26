@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Runtime.Versioning;
 using CliWrap;
 using CliWrap.Buffered;
@@ -7,9 +8,9 @@ namespace ChilliCream.Nitro.CommandLine.Smoke.Tests;
 
 public class SmokeTests
 {
-    private static readonly string ProjectPath = ResolveProjectPath();
-    private static readonly string TargetFramework = ResolveTargetFramework();
-    private static readonly string Configuration = ResolveConfiguration();
+    private static readonly string s_projectPath = ResolveProjectPath();
+    private static readonly string s_targetFramework = ResolveTargetFramework();
+    private static readonly string s_configuration = ResolveConfiguration();
 
     [Fact]
     public async Task Version_Flag_Prints_Version()
@@ -34,6 +35,20 @@ public class SmokeTests
     }
 
     [Fact]
+    public async Task Skills_Help_Lists_Skills_Commands()
+    {
+        // act
+        var result = await RunNitroAsync("skills --help");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        var normalizedOutput = result.StandardOutput.Replace("\r\n", "\n", StringComparison.Ordinal);
+        Assert.Contains("Usage:\n  nitro skills [command] [options]", normalizedOutput, StringComparison.Ordinal);
+        Assert.Contains("add <source>", result.StandardOutput, StringComparison.Ordinal);
+        Assert.Contains("Manage AI agent skills", result.StandardOutput, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Task_Init_Creates_Workspace_In_Fresh_Directory()
     {
         // arrange
@@ -41,11 +56,11 @@ public class SmokeTests
         try
         {
             // act
-            var result = await RunNitroAsync("agent tasks init", workingDirectory: tempDir);
+            var result = await RunNitroAsync("agent init", workingDirectory: tempDir);
 
             // assert
             Assert.Equal(0, result.ExitCode);
-            Assert.Contains("Initialized task workspace", result.StandardOutput);
+            Assert.Contains("Initialized agent workspace", result.StandardOutput);
         }
         finally
         {
@@ -60,7 +75,7 @@ public class SmokeTests
         var tempDir = CreateTempDirectory();
         try
         {
-            var initResult = await RunNitroAsync("agent tasks init", workingDirectory: tempDir);
+            var initResult = await RunNitroAsync("agent init", workingDirectory: tempDir);
             Assert.Equal(0, initResult.ExitCode);
 
             // act
@@ -68,6 +83,54 @@ public class SmokeTests
 
             // assert
             Assert.Equal(0, result.ExitCode);
+        }
+        finally
+        {
+            DeleteDirectory(tempDir);
+        }
+    }
+
+    [Fact]
+    public async Task Mail_Init_Register_Send_Inbox_Round_Trips()
+    {
+        // arrange: a fresh mail workspace and one actor, minted by `agent
+        // login` the way a harness without a session-start hook does, then
+        // self-addressed so the round trip needs no second agent. Runs
+        // against the real published-DI binary in a fresh temp directory
+        // (CliWrap pattern of Task_Init_Creates_Workspace_In_Fresh_Directory).
+        var tempDir = CreateTempDirectory();
+        try
+        {
+            var initResult = await RunNitroAsync("agent init", workingDirectory: tempDir);
+            Assert.Equal(0, initResult.ExitCode);
+            Assert.Contains("Initialized agent workspace", initResult.StandardOutput);
+
+            var loginResult = await RunNitroAsync(
+                "agent login --output json", workingDirectory: tempDir);
+            Assert.Equal(0, loginResult.ExitCode);
+            var actor = JsonDocument.Parse(loginResult.StandardOutput)
+                .RootElement.GetProperty("actor").GetString()!;
+
+            var registerResult = await RunNitroAsync(
+                $"agent register --actor {actor}", workingDirectory: tempDir);
+            Assert.Equal(0, registerResult.ExitCode);
+            Assert.Contains($"Actor '{actor}'", registerResult.StandardOutput);
+
+            var sendResult = await RunNitroAsync(
+                $"agent mail send --to {actor} --subject Smoke-round-trip --body Round-trip-ok "
+                + $"--actor {actor}",
+                workingDirectory: tempDir);
+            Assert.Equal(0, sendResult.ExitCode);
+            Assert.Contains("Sent '", sendResult.StandardOutput);
+
+            // act
+            var inboxResult = await RunNitroAsync(
+                $"agent mail inbox --actor {actor}", workingDirectory: tempDir);
+
+            // assert
+            Assert.Equal(0, inboxResult.ExitCode);
+            Assert.Contains("Smoke-round-trip", inboxResult.StandardOutput);
+            Assert.Contains("1 message(s)", inboxResult.StandardOutput);
         }
         finally
         {
@@ -83,13 +146,20 @@ public class SmokeTests
         // not exist and every smoke test would fail with exit code 1.
         var args = new[]
         {
-            "run", "--project", ProjectPath, "-c", Configuration, "--framework", TargetFramework, "--no-build", "--"
+            "run",
+            "--project",
+            s_projectPath,
+            "-c",
+            s_configuration,
+            "--framework",
+            s_targetFramework,
+            "--no-build",
+            "--"
         }.Concat(SplitArguments(arguments));
 
         var command = Cli.Wrap("dotnet")
             .WithArguments(args)
-            .WithValidation(CommandResultValidation.None)
-            .WithEnvironmentVariables(env => env.Set("NITRO_TASK_ACTOR", "smoke-test"));
+            .WithValidation(CommandResultValidation.None);
 
         if (workingDirectory is not null)
         {

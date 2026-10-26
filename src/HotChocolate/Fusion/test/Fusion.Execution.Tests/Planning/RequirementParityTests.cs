@@ -522,7 +522,7 @@ public class RequirementParityTests : FusionTestBase
 
             type User @key(fields: "id") {
               id: ID!
-              profile: Profile! @shareable
+              profile: Profile! @external
               permissions(
                 displayName: String! @require(field: "profile.displayName")
                 accountType: String

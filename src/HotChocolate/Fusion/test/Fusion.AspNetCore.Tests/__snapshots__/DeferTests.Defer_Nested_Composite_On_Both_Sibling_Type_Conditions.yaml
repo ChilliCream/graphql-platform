@@ -82,7 +82,7 @@ stableResponseStream: |
                 "__typename": "VideoFeature",
                 "file": {
                   "clip": {
-                    "duration": "VideoClip: VmlkZW9DbGlwOjU="
+                    "duration": "VideoClip: VmlkZW9DbGlwOjI1NzM0NDI2NTY="
                   }
                 }
               }
@@ -108,7 +108,7 @@ stableResponseStream: |
                 "__typename": "VideoFeature",
                 "file": {
                   "clip": {
-                    "duration": "VideoClip: VmlkZW9DbGlwOjU="
+                    "duration": "VideoClip: VmlkZW9DbGlwOjI1NzM0NDI2NTY="
                   }
                 }
               }
@@ -268,7 +268,7 @@ sourceSchemas:
                           "__typename": "VideoFeature",
                           "file": {
                             "clip": {
-                              "duration": "VideoClip: VmlkZW9DbGlwOjU="
+                              "duration": "VideoClip: VmlkZW9DbGlwOjI1NzM0NDI2NTY="
                             }
                           }
                         }
@@ -287,7 +287,7 @@ operationPlan:
           }
         }
       name: DashboardQuery
-      hash: 3a95016805ae34699575f2b6b920f9a9
+      hash: 87b8579dd09cc316f6b3b954d6f3c284
       searchSpace: 1
       expandedNodes: 1
   nodes:

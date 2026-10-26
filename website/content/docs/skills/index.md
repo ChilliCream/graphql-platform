@@ -8,7 +8,7 @@ description: "The `skills` .NET CLI installs, updates, and authors Agent Skills:
 
 Run it with `dnx`, which ships with the .NET 10 SDK, so there is nothing to install first:
 
-```bash
+```shell
 dnx skills add anthropics/skills --agent claude-code
 ```
 
@@ -32,7 +32,7 @@ Done!  Review skills before use; they run with full agent permissions.
 
 The CLI detects the agents you have installed, then symlinks the skill into each one from a single canonical store. The agent loads the skill on its own when a task matches.
 
-These docs show every command as `dnx skills`. Prefer `skills` on your `PATH`? Install the global tool with `dotnet tool install -g skills`, then drop the `dnx` prefix and run `skills` directly.
+These docs show every command as `dnx skills`. Prefer `skills` on your `PATH`? Install the global tool with `#!shell dotnet tool install -g skills`, then drop the `dnx` prefix and run `skills` directly.
 
 Need the prerequisites or a step-by-step walkthrough? See [Get started](./getting-started.md). The [source repository](https://github.com/ChilliCream/skills) and [`skills` package on NuGet](https://www.nuget.org/packages/skills) are public.
 

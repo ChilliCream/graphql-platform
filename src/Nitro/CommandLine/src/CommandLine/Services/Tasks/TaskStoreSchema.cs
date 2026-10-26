@@ -2,11 +2,8 @@ namespace ChilliCream.Nitro.CommandLine.Services.Tasks;
 
 internal static class TaskStoreSchema
 {
-    public const int CurrentVersion = 1;
-
     /// <summary>
-    /// The complete schema. Statements are idempotent so applying them to an
-    /// existing database is non-destructive.
+    /// Creates missing task tables and indexes without modifying existing ones.
     /// </summary>
     public const string Create =
         """
@@ -66,6 +63,7 @@ internal static class TaskStoreSchema
         );
 
         CREATE INDEX IF NOT EXISTS idx_comments_task ON comments (task_id);
+        CREATE INDEX IF NOT EXISTS idx_comments_author ON comments (author);
 
         CREATE TABLE IF NOT EXISTS events (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -79,6 +77,7 @@ internal static class TaskStoreSchema
         );
 
         CREATE INDEX IF NOT EXISTS idx_events_task ON events (task_id);
+        CREATE INDEX IF NOT EXISTS idx_events_actor_created ON events (actor, created_at);
 
         CREATE TABLE IF NOT EXISTS config (
             key TEXT PRIMARY KEY,

@@ -181,9 +181,9 @@ internal static class MutableSchemaDefinitionExtensions
     }
 
     /// <summary>
-    /// Removes type system definitions that are not reachable from operation roots or preserved
-    /// types, then removes any <c>@external</c> fields the removals left unreferenced, repeating
-    /// until the schema is stable.
+    /// Removes type system definitions that are not reachable from operation roots, preserved
+    /// directive definitions or preserved types, then removes any <c>@external</c> fields the
+    /// removals left unreferenced, repeating until the schema is stable.
     /// </summary>
     /// <param name="schema">
     /// The schema from which unreferenced definitions are removed.
@@ -191,18 +191,32 @@ internal static class MutableSchemaDefinitionExtensions
     /// <param name="preservedTypeNames">
     /// Type names that are always treated as reachable.
     /// </param>
+    /// <param name="preservedDirectiveNames">
+    /// Directive names whose definitions are always treated as reachable.
+    /// </param>
     /// <param name="seedUnionsAsRoots">
     /// A source schema's union definition is a piecewise contribution to the merged union.
     /// Reachability of a union is a merged-schema property, so per-source pruning must seed
     /// union definitions as roots. The merged-schema prune passes false and remains the cleanup
     /// for genuinely dead unions.
     /// </param>
-    public static void RemoveUnreferencedDefinitions(
+    /// <returns>
+    /// The type definitions that were removed, in schema order.
+    /// </returns>
+    public static List<ITypeDefinition> RemoveUnreferencedDefinitions(
         this MutableSchemaDefinition schema,
         IReadOnlySet<string> preservedTypeNames,
+        IReadOnlySet<string> preservedDirectiveNames,
         bool seedUnionsAsRoots)
     {
-        RemoveUnreachableDefinitions(schema, preservedTypeNames, seedUnionsAsRoots);
+        var removedTypes = new List<ITypeDefinition>();
+
+        RemoveUnreachableDefinitions(
+            schema,
+            preservedTypeNames,
+            preservedDirectiveNames,
+            seedUnionsAsRoots,
+            removedTypes);
 
         // Removing an unreachable type also removes the @require/@provides selections it carried.
         // An @external field whose only references came from those selections is now dead, so
@@ -211,14 +225,23 @@ internal static class MutableSchemaDefinitionExtensions
         // and schemas with no dead externals never re-run reachability.
         while (RemoveExternalFields.RemoveDeadExternalFields(schema))
         {
-            RemoveUnreachableDefinitions(schema, preservedTypeNames, seedUnionsAsRoots);
+            RemoveUnreachableDefinitions(
+                schema,
+                preservedTypeNames,
+                preservedDirectiveNames,
+                seedUnionsAsRoots,
+                removedTypes);
         }
+
+        return removedTypes;
     }
 
     private static void RemoveUnreachableDefinitions(
         MutableSchemaDefinition schema,
         IReadOnlySet<string> preservedTypeNames,
-        bool seedUnionsAsRoots)
+        IReadOnlySet<string> preservedDirectiveNames,
+        bool seedUnionsAsRoots,
+        List<ITypeDefinition> removedTypes)
     {
         var touchedDefinitions = new HashSet<ITypeSystemMember>();
         var backlog = new Stack<ITypeSystemMember>();
@@ -226,6 +249,14 @@ internal static class MutableSchemaDefinitionExtensions
         foreach (var directive in schema.Directives)
         {
             backlog.Push(directive.Definition);
+        }
+
+        foreach (var directiveName in preservedDirectiveNames)
+        {
+            if (schema.DirectiveDefinitions.TryGetDirective(directiveName, out var directiveDefinition))
+            {
+                backlog.Push(directiveDefinition);
+            }
         }
 
         if (schema.QueryType is not null)
@@ -316,6 +347,7 @@ internal static class MutableSchemaDefinitionExtensions
             }
 
             definitionsToRemove.Add(type);
+            removedTypes.Add(type);
         }
 
         foreach (var directiveDefinition in schema.DirectiveDefinitions)
@@ -415,13 +447,12 @@ internal static class MutableSchemaDefinitionExtensions
                 {
                     foreach (var argument in field.Arguments)
                     {
-                        var argumentInnerType = argument.Type.InnerType();
+                        var argumentNamedType = argument.Type.NamedType();
 
                         if ((argument.HasRequireDirective || field.IsLookup)
-                            && argumentInnerType is INameProvider { Name: var name }
-                            && !SpecScalarNames.IsSpecScalar(name))
+                            && !SpecScalarNames.IsSpecScalar(argumentNamedType.Name))
                         {
-                            preservedTypeNames.Add(name);
+                            preservedTypeNames.Add(argumentNamedType.Name);
                         }
                     }
                 }
@@ -429,6 +460,199 @@ internal static class MutableSchemaDefinitionExtensions
         }
 
         return preservedTypeNames;
+    }
+
+    /// <summary>
+    /// Returns the names of the client directives that every source schema defines with at least
+    /// one shared forwarded executable location, and whose argument types, including the input
+    /// types they reach, have the same definition without <c>@inaccessible</c> elements in every
+    /// source schema that defines them.
+    /// </summary>
+    public static HashSet<string> GetPreservedDirectiveNames(
+        ImmutableSortedSet<MutableSchemaDefinition> sourceSchemas)
+    {
+        var preservedDirectiveNames = new HashSet<string>(StringComparer.Ordinal);
+
+        if (sourceSchemas.Count == 0)
+        {
+            return preservedDirectiveNames;
+        }
+
+        foreach (var directiveDefinition in sourceSchemas[0].DirectiveDefinitions)
+        {
+            if (IsSharedClientDirective(directiveDefinition.Name, sourceSchemas)
+                && HasSharedArgumentTypes(directiveDefinition.Name, sourceSchemas))
+            {
+                preservedDirectiveNames.Add(directiveDefinition.Name);
+            }
+        }
+
+        return preservedDirectiveNames;
+    }
+
+    private static bool IsSharedClientDirective(
+        string directiveName,
+        ImmutableSortedSet<MutableSchemaDefinition> sourceSchemas)
+    {
+        var locations = DirectiveDefinitionExtensions.ForwardedExecutableLocations;
+
+        foreach (var schema in sourceSchemas)
+        {
+            if (!schema.DirectiveDefinitions.TryGetDirective(directiveName, out var definition)
+                || !definition.IsComposableExecutableDirective)
+            {
+                return false;
+            }
+
+            locations &= definition.Locations;
+        }
+
+        return locations != 0;
+    }
+
+    /// <summary>
+    /// Determines whether every type that the arguments of the directive reach, directly or through
+    /// input object fields, has the same definition without <c>@inaccessible</c> elements in every
+    /// source schema that defines it.
+    /// </summary>
+    private static bool HasSharedArgumentTypes(
+        string directiveName,
+        ImmutableSortedSet<MutableSchemaDefinition> sourceSchemas)
+    {
+        var visitedTypeNames = new HashSet<string>(StringComparer.Ordinal);
+        var backlog = new Stack<string>();
+
+        foreach (var schema in sourceSchemas)
+        {
+            foreach (var argument in schema.DirectiveDefinitions[directiveName].Arguments)
+            {
+                backlog.Push(argument.Type.NamedType().Name);
+            }
+        }
+
+        while (backlog.TryPop(out var typeName))
+        {
+            if (SpecScalarNames.IsSpecScalar(typeName) || !visitedTypeNames.Add(typeName))
+            {
+                continue;
+            }
+
+            ITypeDefinition? firstType = null;
+
+            foreach (var schema in sourceSchemas)
+            {
+                if (!schema.Types.TryGetType(typeName, out var type))
+                {
+                    continue;
+                }
+
+                if (HasInaccessibleElement(type))
+                {
+                    return false;
+                }
+
+                if (firstType is null)
+                {
+                    firstType = type;
+                }
+                else if (!HaveSameDefinition(firstType, type))
+                {
+                    return false;
+                }
+
+                if (type is MutableInputObjectTypeDefinition inputObjectType)
+                {
+                    foreach (var field in inputObjectType.Fields)
+                    {
+                        backlog.Push(field.Type.NamedType().Name);
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private static bool HasInaccessibleElement(ITypeDefinition type)
+    {
+        if (type is IDirectivesProvider directivesProvider && directivesProvider.HasInaccessibleDirective())
+        {
+            return true;
+        }
+
+        switch (type)
+        {
+            case MutableEnumTypeDefinition enumType:
+                foreach (var value in enumType.Values)
+                {
+                    if (value.HasInaccessibleDirective())
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+
+            case MutableInputObjectTypeDefinition inputObjectType:
+                foreach (var field in inputObjectType.Fields)
+                {
+                    if (field.HasInaccessibleDirective())
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+
+            default:
+                return false;
+        }
+    }
+
+    private static bool HaveSameDefinition(ITypeDefinition typeA, ITypeDefinition typeB)
+    {
+        switch (typeA, typeB)
+        {
+            case (MutableEnumTypeDefinition enumA, MutableEnumTypeDefinition enumB):
+                if (enumA.Values.Count != enumB.Values.Count)
+                {
+                    return false;
+                }
+
+                foreach (var value in enumA.Values)
+                {
+                    if (!enumB.Values.ContainsName(value.Name))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+
+            case (MutableInputObjectTypeDefinition inputA, MutableInputObjectTypeDefinition inputB):
+                if (inputA.IsOneOf != inputB.IsOneOf || inputA.Fields.Count != inputB.Fields.Count)
+                {
+                    return false;
+                }
+
+                foreach (var fieldA in inputA.Fields)
+                {
+                    if (!inputB.Fields.TryGetField(fieldA.Name, out var fieldB)
+                        || !fieldA.Type.Equals(fieldB.Type, TypeComparison.Structural)
+                        || !SyntaxComparer.BySyntax.Equals(fieldA.DefaultValue, fieldB.DefaultValue))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+
+            case (MutableScalarTypeDefinition scalarA, MutableScalarTypeDefinition scalarB):
+                return string.Equals(scalarA.SpecifiedBy, scalarB.SpecifiedBy, StringComparison.Ordinal);
+
+            default:
+                return false;
+        }
     }
 
     private static void InspectComplexType(

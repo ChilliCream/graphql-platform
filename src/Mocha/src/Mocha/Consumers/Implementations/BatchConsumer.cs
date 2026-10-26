@@ -1,7 +1,7 @@
+using System.Collections.Concurrent;
 using System.Threading.Channels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Mocha.Features;
 using Mocha.Middlewares;
 using Mocha.Threading;
 
@@ -14,18 +14,25 @@ namespace Mocha;
 /// Uses a TCS-based pattern to hold each per-message pipeline open until the batch handler
 /// completes. This preserves existing middleware semantics (ACK, fault, circuit breaker)
 /// without any modifications to the middleware chain.
+/// Each receive endpoint collects and processes its own batches.
 /// </remarks>
 internal sealed class BatchConsumer<THandler, TEvent> : Consumer
     where THandler : class, IBatchEventHandler<TEvent>
 {
     public BatchConsumer() : base(typeof(THandler)) { }
 
-    private BatchCollector<TEvent> _collector = null!;
-    private Channel<MessageBatch<TEvent>> _channel = null!;
-    private ChannelProcessor<MessageBatch<TEvent>> _processor = null!;
+#if NET9_0_OR_GREATER
+    private readonly Lock _sync = new();
+#else
+    private readonly object _sync = new();
+#endif
+    private readonly ConcurrentDictionary<ReceiveEndpoint, EndpointBatches> _endpoints = new();
+    private BatchOptions _options = null!;
+    private TimeProvider _timeProvider = null!;
     private IServiceProvider _applicationServices = null!;
     private ILogger _logger = null!;
     private MessageType? _itemMessageType;
+    private bool _disposed;
 
     protected override void Configure(IConsumerDescriptor descriptor)
     {
@@ -40,25 +47,11 @@ internal sealed class BatchConsumer<THandler, TEvent> : Consumer
 
         var options = Configuration!.Features.Get<BatchOptions>() ?? new BatchOptions();
         options.Validate();
+        _options = options;
 
         _applicationServices = context.Services.GetRequiredService<IRootServiceProviderAccessor>().ServiceProvider;
         _logger = context.Services.GetRequiredService<ILogger<BatchConsumer<THandler, TEvent>>>();
-
-        var timeProvider = context.Services.GetRequiredService<TimeProvider>();
-
-        _channel =
-            Channel.CreateBounded<MessageBatch<TEvent>>(
-                new BoundedChannelOptions(options.MaxConcurrentBatches)
-                {
-                    SingleReader = options.MaxConcurrentBatches == 1
-                });
-
-        _processor = new ChannelProcessor<MessageBatch<TEvent>>(
-            _channel.Reader.ReadAllAsync,
-            ProcessBatchAsync,
-            options.MaxConcurrentBatches);
-
-        _collector = new BatchCollector<TEvent>(options, batch => _channel.Writer.WriteAsync(batch), timeProvider);
+        _timeProvider = context.Services.GetRequiredService<TimeProvider>();
         _itemMessageType = context.Messages.GetMessageType(typeof(TEvent));
     }
 
@@ -84,16 +77,60 @@ internal sealed class BatchConsumer<THandler, TEvent> : Consumer
         // the message can be deserialized before adding to the batch
         _ = batchContext.Message;
 
-        var entry = await _collector.Add(batchContext);
-        await entry.Task;
+        var cancellationToken = context.CancellationToken;
+        var collector = GetEndpointBatches(context.Endpoint).Collector;
+        var entry = await collector.Add(batchContext);
+
+        try
+        {
+            await entry.Task.WaitAsync(cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            if (collector.TryRemove(entry))
+            {
+                throw;
+            }
+
+            // A dispatched batch observes the same cancellation and uses the context until it completes.
+            await entry.Task;
+        }
+    }
+
+    private EndpointBatches GetEndpointBatches(ReceiveEndpoint endpoint)
+    {
+        if (_endpoints.TryGetValue(endpoint, out var batches))
+        {
+            return batches;
+        }
+
+        lock (_sync)
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+
+            if (!_endpoints.TryGetValue(endpoint, out batches))
+            {
+                batches = new EndpointBatches(_options, _timeProvider, ProcessBatchAsync);
+                _endpoints[endpoint] = batches;
+            }
+
+            return batches;
+        }
     }
 
     private async Task ProcessBatchAsync(MessageBatch<TEvent> batch, CancellationToken cancellationToken)
     {
+        using var cancellation = batch.LinkCancellation(cancellationToken);
+        var batchToken = cancellation.Token;
+
         try
         {
+            batchToken.ThrowIfCancellationRequested();
+
             _logger.DispatchingBatch(batch.Count, batch.CompletionMode);
 
+            // The batch has no receive scope of its own, so it gets one here, mirroring the scope
+            // ReceiveEndpoint creates per receive context. Each consumer attempt then runs in a child scope.
             await using var scope = _applicationServices.CreateAsyncScope();
 
             var batchContext = new BatchConsumeContext<TEvent>(
@@ -102,33 +139,17 @@ internal sealed class BatchConsumer<THandler, TEvent> : Consumer
                 batch.GetContext(0),
                 Guid.NewGuid().ToString(),
                 _itemMessageType,
-                cancellationToken);
+                batchToken);
 
-            var consumerFeature = batchContext.Features.GetOrSet<ReceiveConsumerFeature>();
-            consumerFeature.CurrentConsumer = this;
-
-            var accessor = scope.ServiceProvider.GetRequiredService<ConsumeContextAccessor>();
-            var previousContext = accessor.Context;
-            accessor.Context = batchContext;
-
-            try
-            {
-                await Pipeline(batchContext);
-            }
-            finally
-            {
-                accessor.Context = previousContext;
-            }
+            await Pipeline(batchContext);
 
             foreach (var entry in batch.Entries)
             {
                 entry.Complete();
             }
         }
-        catch (OperationCanceledException)
+        catch (Exception) when (batchToken.IsCancellationRequested)
         {
-            // Handler observed cancellation - cancel all entries so per-message pipelines
-            // unblock for NACK/redelivery
             foreach (var entry in batch.Entries)
             {
                 entry.Cancel();
@@ -167,22 +188,66 @@ internal sealed class BatchConsumer<THandler, TEvent> : Consumer
 
     public override async ValueTask DisposeAsync()
     {
-        await _collector.DisposeAsync();
+        EndpointBatches[] endpoints;
 
-        _channel.Writer.Complete();
-        await _processor.DisposeAsync();
-
-        while (_channel.Reader.TryRead(out var batch))
+        lock (_sync)
         {
-            foreach (var entry in batch.Entries)
+            _disposed = true;
+            endpoints = [.. _endpoints.Values];
+        }
+
+        foreach (var batches in endpoints)
+        {
+            await batches.DisposeAsync();
+        }
+    }
+
+    /// <summary>
+    /// The batch collector, channel and processor of one receive endpoint.
+    /// </summary>
+    private sealed class EndpointBatches : IAsyncDisposable
+    {
+        private readonly Channel<MessageBatch<TEvent>> _channel;
+        private readonly ChannelProcessor<MessageBatch<TEvent>> _processor;
+
+        public EndpointBatches(
+            BatchOptions options,
+            TimeProvider timeProvider,
+            Func<MessageBatch<TEvent>, CancellationToken, Task> processBatch)
+        {
+            _channel = Channel.CreateBounded<MessageBatch<TEvent>>(
+                new BoundedChannelOptions(options.MaxConcurrentBatches)
+                {
+                    SingleReader = options.MaxConcurrentBatches == 1
+                });
+            _processor = new ChannelProcessor<MessageBatch<TEvent>>(
+                _channel.Reader.ReadAllAsync,
+                processBatch,
+                options.MaxConcurrentBatches);
+            Collector = new BatchCollector<TEvent>(options, batch => _channel.Writer.WriteAsync(batch), timeProvider);
+        }
+
+        public BatchCollector<TEvent> Collector { get; }
+
+        public async ValueTask DisposeAsync()
+        {
+            await Collector.DisposeAsync();
+
+            _channel.Writer.Complete();
+            await _processor.DisposeAsync();
+
+            while (_channel.Reader.TryRead(out var batch))
             {
-                try
+                foreach (var entry in batch.Entries)
                 {
-                    entry.Cancel();
-                }
-                catch
-                {
-                    // Best-effort cancellation
+                    try
+                    {
+                        entry.Cancel();
+                    }
+                    catch
+                    {
+                        // Best-effort cancellation
+                    }
                 }
             }
         }

@@ -26,13 +26,13 @@ response:
             },
             "reviews": [
               {
-                "body": "Review: UmV2aWV3OjE="
+                "body": "Review: UmV2aWV3OjEzODg5NDgzNjQ="
               },
               {
-                "body": "Review: UmV2aWV3OjI="
+                "body": "Review: UmV2aWV3OjM2MjgzNDA1NDQ="
               },
               {
-                "body": "Review: UmV2aWV3OjM="
+                "body": "Review: UmV2aWV3OjE2Mzg1ODM0NDg="
               }
             ]
           },
@@ -44,13 +44,13 @@ response:
             },
             "reviews": [
               {
-                "body": "Review: UmV2aWV3OjQ="
+                "body": "Review: UmV2aWV3OjM5NTE5NzIzMTc="
               },
               {
-                "body": "Review: UmV2aWV3OjU="
+                "body": "Review: UmV2aWV3Ojk4MjAwMjQxMQ=="
               },
               {
-                "body": "Review: UmV2aWV3OjY="
+                "body": "Review: UmV2aWV3OjQyMDIwNjM4Nzk="
               }
             ]
           },
@@ -62,13 +62,13 @@ response:
             },
             "reviews": [
               {
-                "body": "Review: UmV2aWV3Ojc="
+                "body": "Review: UmV2aWV3OjM4MjYxNDU5MzQ="
               },
               {
-                "body": "Review: UmV2aWV3Ojg="
+                "body": "Review: UmV2aWV3OjMxOTk3NzA4ODg="
               },
               {
-                "body": "Review: UmV2aWV3Ojk="
+                "body": "Review: UmV2aWV3OjEwNzUzNzgzNDg="
               }
             ]
           }
@@ -151,13 +151,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_2_id": "UHJvZHVjdDox"
+                "__fusion_2_id": "UHJvZHVjdDozMjA5OTQ3NDY1"
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDoy"
+                "__fusion_2_id": "UHJvZHVjdDo0MTU0MzgyNTYx"
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDoz"
+                "__fusion_2_id": "UHJvZHVjdDoyMDY1OTY3NTEw"
               }
             ]
         response:
@@ -170,13 +170,13 @@ sourceSchemas:
                     "__typename": "Product",
                     "reviews": [
                       {
-                        "body": "Review: UmV2aWV3OjE="
+                        "body": "Review: UmV2aWV3OjEzODg5NDgzNjQ="
                       },
                       {
-                        "body": "Review: UmV2aWV3OjI="
+                        "body": "Review: UmV2aWV3OjM2MjgzNDA1NDQ="
                       },
                       {
-                        "body": "Review: UmV2aWV3OjM="
+                        "body": "Review: UmV2aWV3OjE2Mzg1ODM0NDg="
                       }
                     ]
                   }
@@ -189,13 +189,13 @@ sourceSchemas:
                     "__typename": "Product",
                     "reviews": [
                       {
-                        "body": "Review: UmV2aWV3OjQ="
+                        "body": "Review: UmV2aWV3OjM5NTE5NzIzMTc="
                       },
                       {
-                        "body": "Review: UmV2aWV3OjU="
+                        "body": "Review: UmV2aWV3Ojk4MjAwMjQxMQ=="
                       },
                       {
-                        "body": "Review: UmV2aWV3OjY="
+                        "body": "Review: UmV2aWV3OjQyMDIwNjM4Nzk="
                       }
                     ]
                   }
@@ -208,13 +208,13 @@ sourceSchemas:
                     "__typename": "Product",
                     "reviews": [
                       {
-                        "body": "Review: UmV2aWV3Ojc="
+                        "body": "Review: UmV2aWV3OjM4MjYxNDU5MzQ="
                       },
                       {
-                        "body": "Review: UmV2aWV3Ojg="
+                        "body": "Review: UmV2aWV3OjMxOTk3NzA4ODg="
                       },
                       {
-                        "body": "Review: UmV2aWV3Ojk="
+                        "body": "Review: UmV2aWV3OjEwNzUzNzgzNDg="
                       }
                     ]
                   }
@@ -279,15 +279,15 @@ sourceSchemas:
                   "topProducts": [
                     {
                       "weight": 123,
-                      "id": "UHJvZHVjdDox"
+                      "id": "UHJvZHVjdDozMjA5OTQ3NDY1"
                     },
                     {
                       "weight": 123,
-                      "id": "UHJvZHVjdDoy"
+                      "id": "UHJvZHVjdDo0MTU0MzgyNTYx"
                     },
                     {
                       "weight": 123,
-                      "id": "UHJvZHVjdDoz"
+                      "id": "UHJvZHVjdDoyMDY1OTY3NTEw"
                     }
                   ]
                 }
@@ -336,13 +336,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "UHJvZHVjdDox"
+                "__fusion_1_id": "UHJvZHVjdDozMjA5OTQ3NDY1"
               },
               {
-                "__fusion_1_id": "UHJvZHVjdDoy"
+                "__fusion_1_id": "UHJvZHVjdDo0MTU0MzgyNTYx"
               },
               {
-                "__fusion_1_id": "UHJvZHVjdDoz"
+                "__fusion_1_id": "UHJvZHVjdDoyMDY1OTY3NTEw"
               }
             ]
         response:
@@ -401,7 +401,7 @@ operationPlan:
           }
         }
       name: TopProducts
-      hash: ca09eae12d7fcd12534855b54bb04f05
+      hash: 4a544b60aaeb90cab08d4d28d93b1c06
       searchSpace: 2
       expandedNodes: 5
   nodes:

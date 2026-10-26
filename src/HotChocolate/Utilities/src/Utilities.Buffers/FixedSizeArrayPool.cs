@@ -135,7 +135,9 @@ internal sealed class FixedSizeArrayPool : IDisposable
             _index = 0;
             _inUse = 0;
 
+#pragma warning disable IDE0370 // Remove unnecessary suppression -- Required for netstandard2.0.
             _trimTimer = new Timer(static b => ((Bucket)b!).Trim(), this, trimInterval, trimInterval);
+#pragma warning restore IDE0370 // Remove unnecessary suppression
         }
 
         internal int InUse => _inUse;

@@ -1,5 +1,7 @@
 title: Migrating
 items:
+  - path: migrate-from-16-6-to-16-7
+    title: Migrate from 16.6 to 16.7
   - path: migrate-from-15-to-16
     title: Migrate from 15 to 16
   - path: migrate-from-14-to-15

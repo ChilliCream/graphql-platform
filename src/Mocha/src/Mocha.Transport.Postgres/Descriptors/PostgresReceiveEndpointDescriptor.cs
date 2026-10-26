@@ -98,6 +98,14 @@ internal sealed class PostgresReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
+    public new IPostgresReceiveEndpointDescriptor Temporary()
+    {
+        base.Temporary();
+
+        return this;
+    }
+
+    /// <inheritdoc />
     public IPostgresReceiveEndpointDescriptor FaultEndpoint(Uri address)
     {
         ArgumentNullException.ThrowIfNull(address);

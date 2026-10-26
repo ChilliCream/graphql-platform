@@ -1,0 +1,348 @@
+title: Execute_Should_Resolve_Name_At_Every_Depth_When_Requires_Selects_External_Self_Reference
+request:
+  document: |
+    {
+      entity {
+        name
+        entity {
+          name
+          entity {
+            name
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "entity": {
+          "name": "1:20",
+          "entity": {
+            "name": "2:30",
+            "entity": {
+              "name": "3:40"
+            }
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema
+        @link(
+          url: "https://specs.apollo.dev/federation/v2.6"
+          import: ["@external", "@key", "@requires", "@shareable", "@tag", "FieldSet"]
+        ) {
+        query: Query
+      }
+
+      type Query {
+        entity: Entity! @shareable
+        _service: _Service!
+        _entities(representations: [_Any!]!): [_Entity]!
+      }
+
+      "This type provides a field named sdl: String! which exposes the SDL of the service's schema. This SDL (schema definition language) is a printed version of the service's schema including the annotations of federation directives. This SDL does not include the additions of the federation spec."
+      type _Service {
+        sdl: String!
+      }
+
+      type Entity @key(fields: "id") @shareable {
+        name: String! @requires(fields: "entity { age }")
+        id: ID
+        age: Int! @external
+        entity: Entity! @external
+      }
+
+      "Union of all types that key directive applied. This information is needed by the Apollo federation gateway."
+      union _Entity = Entity
+
+      "Defines the possible serialization types for GraphQL scalar values."
+      enum ScalarSerializationType {
+        "The scalar serializes to a string value."
+        STRING
+        "The scalar serializes to a boolean value."
+        BOOLEAN
+        "The scalar serializes to an integer value."
+        INT
+        "The scalar serializes to a floating-point value."
+        FLOAT
+        "The scalar serializes to an object value."
+        OBJECT
+        "The scalar serializes to a list value."
+        LIST
+      }
+
+      "The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
+      scalar _Any @serializeAs(type: OBJECT)
+
+      "Scalar representing a set of fields."
+      scalar FieldSet @serializeAs(type: STRING)
+
+      "Links definitions within the document to external schemas."
+      directive @link(
+        "Gets imported specification url."
+        url: String!
+        "Gets optional list of imported element names."
+        import: [String!]
+      ) repeatable on SCHEMA
+
+      "Used to annotate the required input fieldset from a base type for a resolver."
+      directive @requires(fields: FieldSet!) on FIELD_DEFINITION
+
+      directive @serializeAs(
+        "The primitive type a scalar is serialized to."
+        type: [ScalarSerializationType!]!
+        "The ECMA-262 regex pattern that the serialized scalar value conforms to."
+        pattern: String
+      ) on SCALAR
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query($representations: [_Any!]!) {
+              _entities(representations: $representations) {
+                ... on Entity {
+                  name
+                }
+              }
+            }
+          variables: |
+            {
+              "representations": [
+                {
+                  "__typename": "Entity",
+                  "id": "1",
+                  "entity": {
+                    "age": 20
+                  }
+                },
+                {
+                  "__typename": "Entity",
+                  "id": "2",
+                  "entity": {
+                    "age": 30
+                  }
+                },
+                {
+                  "__typename": "Entity",
+                  "id": "3",
+                  "entity": {
+                    "age": 40
+                  }
+                }
+              ]
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "_entities": [
+                    {
+                      "name": "1:20"
+                    },
+                    {
+                      "name": "2:30"
+                    },
+                    {
+                      "name": "3:40"
+                    }
+                  ]
+                }
+              }
+  - name: b
+    schema: |
+      schema
+        @link(
+          url: "https://specs.apollo.dev/federation/v2.6"
+          import: ["@shareable", "@tag", "FieldSet"]
+        ) {
+        query: Query
+      }
+
+      type Query {
+        entity: Entity @shareable
+        _service: _Service!
+      }
+
+      "This type provides a field named sdl: String! which exposes the SDL of the service's schema. This SDL (schema definition language) is a printed version of the service's schema including the annotations of federation directives. This SDL does not include the additions of the federation spec."
+      type _Service {
+        sdl: String!
+      }
+
+      type Entity @shareable {
+        entity: Entity!
+        id: ID
+        age: Int!
+      }
+
+      "Defines the possible serialization types for GraphQL scalar values."
+      enum ScalarSerializationType {
+        "The scalar serializes to a string value."
+        STRING
+        "The scalar serializes to a boolean value."
+        BOOLEAN
+        "The scalar serializes to an integer value."
+        INT
+        "The scalar serializes to a floating-point value."
+        FLOAT
+        "The scalar serializes to an object value."
+        OBJECT
+        "The scalar serializes to a list value."
+        LIST
+      }
+
+      "The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
+      scalar _Any @serializeAs(type: OBJECT)
+
+      "Scalar representing a set of fields."
+      scalar FieldSet @serializeAs(type: STRING)
+
+      "Links definitions within the document to external schemas."
+      directive @link(
+        "Gets imported specification url."
+        url: String!
+        "Gets optional list of imported element names."
+        import: [String!]
+      ) repeatable on SCHEMA
+
+      directive @serializeAs(
+        "The primitive type a scalar is serialized to."
+        type: [ScalarSerializationType!]!
+        "The ECMA-262 regex pattern that the serialized scalar value conforms to."
+        pattern: String
+      ) on SCALAR
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_58c26fe9_1 {
+              entity {
+                entity {
+                  entity {
+                    age
+                    id
+                    entity {
+                      age
+                    }
+                  }
+                  age
+                  id
+                }
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "entity": {
+                    "entity": {
+                      "entity": {
+                        "age": 30,
+                        "id": "3",
+                        "entity": {
+                          "age": 40
+                        }
+                      },
+                      "age": 20,
+                      "id": "2"
+                    },
+                    "id": "1"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          entity {
+            name
+            entity {
+              name
+              entity {
+                name
+                id @fusion__requirement
+                entity @fusion__requirement {
+                  age @fusion__requirement
+                }
+              }
+              entity @fusion__requirement {
+                age @fusion__requirement
+                id @fusion__requirement
+                entity @fusion__requirement {
+                  age @fusion__requirement
+                }
+              }
+              id @fusion__requirement
+            }
+            entity @fusion__requirement {
+              age @fusion__requirement
+              id @fusion__requirement
+              entity @fusion__requirement {
+                age @fusion__requirement
+                id @fusion__requirement
+                entity @fusion__requirement {
+                  age @fusion__requirement
+                }
+              }
+            }
+            id @fusion__requirement
+          }
+        }
+      hash: c87d0ad280a6ed5c169e04793af5bcb4
+      searchSpace: 5
+      expandedNodes: 15
+  nodes:
+    - id: 1
+      type: Operation
+      schema: b
+      operation: |
+        query Op_58c26fe9_1 {
+          entity {
+            entity {
+              entity {
+                age
+                id
+                entity {
+                  age
+                }
+              }
+              age
+              id
+            }
+            id
+          }
+        }
+    - id: 2
+      type: ApolloOperationBatch
+      schema: a
+      operation: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Entity {
+              name
+            }
+          }
+        }
+      source: $._entities
+      targets:
+        - $.entity
+        - $.entity.entity
+        - $.entity.entity.entity
+      batchingGroupId: 5
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+        - name: __fusion_2_entity
+          selectionMap: >-
+            {
+              age: entity.age
+            }
+      dependencies:
+        - id: 1

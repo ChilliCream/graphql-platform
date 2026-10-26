@@ -52,6 +52,62 @@ public class RelaySchemaTests
     }
 
     [Fact]
+    public async Task AddGlobalObjectIdentification_Without_Node_Field()
+    {
+        // arrange
+        var builder = new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryType>()
+            .AddGlobalObjectIdentification(o => o.AddNodeField = false);
+
+        // act
+        var schema = await builder.BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task AddGlobalObjectIdentification_Without_Node_And_Nodes_Fields()
+    {
+        // arrange
+        var builder = new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryType>()
+            .AddGlobalObjectIdentification(o =>
+            {
+                o.AddNodeField = false;
+                o.AddNodesField = false;
+            });
+
+        // act
+        var schema = await builder.BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task AddGlobalObjectIdentification_Without_Node_Field_MarkNodeFieldAsLookup_Is_NoOp()
+    {
+        // arrange
+        var builder = new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryType>()
+            .AddGlobalObjectIdentification(o =>
+            {
+                o.AddNodeField = false;
+                o.MarkNodeFieldAsLookup = true;
+            });
+
+        // act
+        var schema = await builder.BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
     public async Task AddQueryFieldToMutationPayloads_QueryField_On_MutationPayload_Exists()
     {
         await new ServiceCollection()

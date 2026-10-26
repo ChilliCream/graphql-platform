@@ -95,23 +95,26 @@ public class AzureServiceBusReceiveTopologyTests
     public void DiscoverTopology_Should_NotProvisionTopic_When_QueueBindsExplicitlyAndTopicIsUndeclared()
     {
         // arrange
-        // Receive topology discovery runs before dispatch topology discovery, so an unguarded
-        // EnsureTopic on the receive side would implicitly create "custom-orders" and mask the
-        // fact that it was never declared, letting the explicit-mode dispatch endpoint complete
-        // successfully against a topic the user never provisioned.
-
-        // act
-        var exception = Record.Exception(() => CreateRuntime(
+        var runtime = CreateRuntime(
             b => b.AddConsumer<OrderSpyConsumer>(),
             t =>
             {
                 t.BindExplicitly();
                 t.Queue("orders").Consumer<OrderSpyConsumer>();
                 t.DispatchEndpoint("custom-orders-endpoint").ToTopic("custom-orders").Publish<OrderCreated>();
-            }));
+            });
+        var (topology, endpoint) = ResolveConsumerEndpoint(runtime);
+
+        // act
+        var topic = topology.Topics.Single(t => t.Name == "custom-orders");
+        var subscriptions = topology.Subscriptions
+            .Where(s => s.Source.Name == "custom-orders" && s.Destination.Name == endpoint.Queue.Name)
+            .ToList();
 
         // assert
-        Assert.Equal("Topic not found", Assert.IsType<InvalidOperationException>(exception).Message);
+        Assert.False(topic.AutoProvision);
+        Assert.Equal(TopologyOrigin.Endpoint, topic.Origin);
+        Assert.Empty(subscriptions);
     }
 
     [Fact]
@@ -201,6 +204,117 @@ public class AzureServiceBusReceiveTopologyTests
 
         Assert.Equal("published-orders", dispatchEndpoint.Queue?.Name);
         Assert.Empty(subscriptions);
+    }
+
+    [Fact]
+    public void DiscoverTopology_Should_SetDefaultAutoDeleteOnIdle_When_EndpointIsTemporary()
+    {
+        // arrange & act
+        var runtime = CreateRuntime(
+            b => b.AddConsumer<OrderSpyConsumer>(),
+            t =>
+            {
+                t.BindExplicitly();
+                t.Endpoint("orders").Consumer<OrderSpyConsumer>().Temporary();
+            });
+        var (topology, endpoint) = ResolveConsumerEndpoint(runtime);
+
+        // assert
+        Assert.Equal(TimeSpan.FromHours(24), topology.Queues.Single(q => q.Name == endpoint.Queue.Name).AutoDeleteOnIdle);
+    }
+
+    [Fact]
+    public void DiscoverTopology_Should_SetExplicitAutoDeleteOnIdle_When_EndpointIsTemporaryWithIdleTimeout()
+    {
+        // arrange & act
+        var runtime = CreateRuntime(
+            b => b.AddConsumer<OrderSpyConsumer>(),
+            t =>
+            {
+                t.BindExplicitly();
+                t.Endpoint("orders").Consumer<OrderSpyConsumer>().Temporary(TimeSpan.FromMinutes(10));
+            });
+        var (topology, endpoint) = ResolveConsumerEndpoint(runtime);
+
+        // assert
+        Assert.Equal(TimeSpan.FromMinutes(10), topology.Queues.Single(q => q.Name == endpoint.Queue.Name).AutoDeleteOnIdle);
+    }
+
+    [Fact]
+    public void DiscoverTopology_Should_Throw_When_TemporaryEndpointConflictsWithDeclaredQueueAutoDeleteOnIdle()
+    {
+        // arrange
+        Action action = () => CreateRuntime(
+            b => b.AddConsumer<OrderSpyConsumer>(),
+            t =>
+            {
+                t.BindExplicitly();
+                t.DeclareQueue("orders").AutoDeleteOnIdle(TimeSpan.FromHours(1));
+                t.Endpoint("orders").Consumer<OrderSpyConsumer>().Temporary();
+            });
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(action);
+
+        // assert
+        Assert.Equal(
+            "Endpoint 'orders' is marked Temporary(), but queue 'orders' was already declared "
+                + "with AutoDeleteOnIdle '01:00:00', which does not match the endpoint's resolved idle timeout. "
+                + "Align the queue declaration's AutoDeleteOnIdle with the endpoint's Temporary() idle timeout.",
+            exception.Message);
+    }
+
+    [Fact]
+    public void DiscoverTopology_Should_NotThrow_When_DeclaredQueueAutoDeleteOnIdleMatchesTemporaryEndpoint()
+    {
+        // arrange & act
+        var runtime = CreateRuntime(
+            b => b.AddConsumer<OrderSpyConsumer>(),
+            t =>
+            {
+                t.BindExplicitly();
+                t.DeclareQueue("orders").AutoDeleteOnIdle(TimeSpan.FromHours(24));
+                t.Endpoint("orders").Consumer<OrderSpyConsumer>().Temporary();
+            });
+        var (topology, endpoint) = ResolveConsumerEndpoint(runtime);
+
+        // assert
+        Assert.Equal(TimeSpan.FromHours(24), topology.Queues.Single(q => q.Name == endpoint.Queue.Name).AutoDeleteOnIdle);
+    }
+
+    [Fact]
+    public void DiscoverTopology_Should_BackfillAutoDeleteOnIdle_When_DeclaredQueueDidNotSetIt()
+    {
+        // arrange & act
+        var runtime = CreateRuntime(
+            b => b.AddConsumer<OrderSpyConsumer>(),
+            t =>
+            {
+                t.BindExplicitly();
+                t.DeclareQueue("orders");
+                t.Endpoint("orders").Consumer<OrderSpyConsumer>().Temporary();
+            });
+        var (topology, endpoint) = ResolveConsumerEndpoint(runtime);
+
+        // assert
+        Assert.Equal(TimeSpan.FromHours(24), topology.Queues.Single(q => q.Name == endpoint.Queue.Name).AutoDeleteOnIdle);
+    }
+
+    [Fact]
+    public void Temporary_Should_Throw_When_IdleTimeoutBelowMinimum()
+    {
+        // arrange
+        Action action = () =>
+            CreateRuntime(
+                b => b.AddConsumer<OrderSpyConsumer>(),
+                t =>
+                {
+                    t.BindExplicitly();
+                    t.Endpoint("orders").Consumer<OrderSpyConsumer>().Temporary(TimeSpan.FromMinutes(1));
+                });
+
+        // act & assert
+        Assert.Throws<ArgumentOutOfRangeException>(action);
     }
 
     private static (AzureServiceBusMessagingTopology Topology, AzureServiceBusReceiveEndpoint Endpoint)

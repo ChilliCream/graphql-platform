@@ -1,8 +1,10 @@
+using GreenDonut;
 using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 
 [assembly: Module("IntegrationTestTypesCore")]
+[assembly: DataLoaderModule("IntegrationTestTypesCore")]
 
 namespace Microsoft.Extensions.DependencyInjection;
 

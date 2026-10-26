@@ -1,9 +1,14 @@
+using System.Buffers;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
+using HotChocolate.Execution.Internal;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using EmptyServiceProvider = HotChocolate.Utilities.EmptyServiceProvider;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -86,8 +91,9 @@ public class OperationCompilerTests
         MatchSnapshot(document, operation);
     }
 
+    // The compiler preserves an empty root selection set in the compiled operation.
     [Fact]
-    public void Prepare_Empty_Operation_SelectionSet()
+    public void Compile_Should_CreateOperationWithEmptySelectionSet_When_RootSelectionSetIsEmpty()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -943,8 +949,182 @@ public class OperationCompilerTests
             schema);
 
         // assert
+        Assert.False(operation.HasIncrementalParts);
         MatchSnapshot(document, operation);
     }
+
+    [Fact]
+    public void Stream_With_Statically_True_Skip_Does_Not_Report_Incremental_Parts()
+    {
+        // arrange
+        // @stream on a field that is itself statically excluded via @skip(if: true) never
+        // reaches the compiled operation, so it must not be reported as incremental either.
+        var schema = SchemaBuilder.New()
+            .AddStarWarsTypes()
+            .Create();
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+              hero(episode: EMPIRE) {
+                appearsIn @stream @skip(if: true)
+              }
+            }
+            """);
+
+        // act
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
+
+        // assert
+        Assert.False(operation.HasIncrementalParts);
+    }
+
+    [Fact]
+    public void Stream_If_False_Does_Not_Report_Incremental_Parts()
+    {
+        // arrange
+        // @stream(if: false) is a literal false if argument, so the field must not be
+        // reported as incremental even though it is not statically excluded.
+        var schema = SchemaBuilder.New()
+            .AddStarWarsTypes()
+            .Create();
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+              hero(episode: EMPIRE) {
+                appearsIn @stream(if: false)
+              }
+            }
+            """);
+
+        // act
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
+
+        // assert
+        Assert.False(operation.HasIncrementalParts);
+    }
+
+    [Fact]
+    public void Defer_On_Statically_Skipped_Fragment_Does_Not_Report_Incremental_Parts()
+    {
+        // arrange
+        // The fragment spread itself is statically excluded via @skip(if: true), so the
+        // @defer nested inside its definition never reaches the compiled operation.
+        var schema = SchemaBuilder.New()
+            .AddStarWarsTypes()
+            .Create();
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            query Q {
+              hero(episode: EMPIRE) {
+                ...F @skip(if: true)
+              }
+            }
+
+            fragment F on Character {
+              ... @defer {
+                name
+              }
+            }
+            """);
+
+        // act
+        var operation = OperationCompiler.Compile(
+            "opid",
+            "Q",
+            document,
+            schema);
+
+        // assert
+        Assert.False(operation.HasIncrementalParts);
+    }
+
+    [Fact]
+    public async Task Compile_PreNormalized_Document_Reports_Incremental_Parts_Correctly()
+    {
+        // arrange
+        // Both documents contain @defer, but only one carries the normalization marker.
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddStarWarsTypes()
+            .AddStarWarsRepositories()
+            .UseDefaultPipeline()
+            .Services
+            .BuildServiceProvider()
+            .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var operationCompiler = executor.Schema.Services.GetRequiredService<OperationCompiler>();
+
+        var unmarkedDocument = Utf8GraphQLParser.Parse(
+            """
+            {
+              hero(episode: EMPIRE) {
+                ... @defer {
+                  name
+                }
+              }
+            }
+            """);
+
+        var unmarkedDefinition = (OperationDefinitionNode)unmarkedDocument.Definitions[0];
+        var markedDefinition = unmarkedDefinition.WithDirectives(
+            [.. unmarkedDefinition.Directives, new DirectiveNode(InternalDirectiveNames.HasIncrementalParts)]);
+        var markedDocument = unmarkedDocument.WithDefinitions([markedDefinition]);
+
+        // act
+        var notIncremental = operationCompiler.Compile(
+            "opid-1",
+            "opid-1",
+            operationName: null,
+            unmarkedDocument,
+            executor);
+
+        var incremental = operationCompiler.Compile(
+            "opid-2",
+            "opid-2",
+            operationName: null,
+            markedDocument,
+            executor);
+
+        // assert
+        Assert.False(notIncremental.HasIncrementalParts);
+        Assert.True(incremental.HasIncrementalParts);
+    }
+
+    [Fact]
+    public void Compile_TakesOnlyNormalizedDocuments_OnTheInstanceOverload()
+    {
+        // arrange
+        var actualSignatures = typeof(OperationCompiler)
+            .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+            .Where(m => m.Name == nameof(OperationCompiler.Compile))
+            .Select(DescribeSignature)
+            .ToHashSet();
+
+        var expectedSignatures = new HashSet<string>
+        {
+            "static(String, DocumentNode, Schema, IFeatureProvider)",
+            "static(String, String, DocumentNode, Schema, IFeatureProvider)",
+            "static(String, String, String, DocumentNode, Schema, IFeatureProvider)",
+
+            "instance(String, String, String, DocumentNode, IFeatureProvider)"
+        };
+
+        // act & assert
+        Assert.Equal(expectedSignatures, actualSignatures);
+    }
+
+    private static string DescribeSignature(MethodInfo method)
+        => $"{(method.IsStatic ? "static" : "instance")}"
+            + $"({string.Join(", ", method.GetParameters().Select(p => p.ParameterType.Name))})";
 
     [Fact]
     public async Task Defer_Different_Branches_Overlapping_Fields()
@@ -1448,89 +1628,6 @@ public class OperationCompilerTests
     }
 
     [Fact]
-    public void FragmentSpread_SelectionsSet_Empty()
-    {
-        // arrange
-        var schema = SchemaBuilder.New()
-            .AddStarWarsTypes()
-            .Create();
-
-        var document = Utf8GraphQLParser.Parse(
-            """
-            query foo($v: Boolean){
-              hero(episode: EMPIRE) {
-                name @include(if: $v)
-                ... abc
-              }
-            }
-
-            fragment abc on Droid { }
-            """);
-
-        // act
-        var operation = OperationCompiler.Compile(
-            "opid",
-            document,
-            schema);
-
-        // assert
-        MatchSnapshot(document, operation);
-    }
-
-    [Fact]
-    public void InlineFragment_SelectionsSet_Empty()
-    {
-        // arrange
-        var schema = SchemaBuilder.New()
-            .AddStarWarsTypes()
-            .Create();
-
-        var document = Utf8GraphQLParser.Parse(
-            """
-            query foo($v: Boolean){
-              hero(episode: EMPIRE) {
-                name @include(if: $v)
-                ... on Droid { }
-              }
-            }
-            """);
-
-        // act
-        var operation = OperationCompiler.Compile(
-            "opid",
-            document,
-            schema);
-
-        // assert
-        MatchSnapshot(document, operation);
-    }
-
-    [Fact]
-    public void CompositeType_SelectionsSet_Empty()
-    {
-        // arrange
-        var schema = SchemaBuilder.New()
-            .AddStarWarsTypes()
-            .Create();
-
-        var document = Utf8GraphQLParser.Parse(
-            """
-            query foo($v: Boolean) {
-              hero(episode: EMPIRE) { }
-            }
-            """);
-
-        // act
-        var operation = OperationCompiler.Compile(
-            "opid",
-            document,
-            schema);
-
-        // assert
-        MatchSnapshot(document, operation);
-    }
-
-    [Fact]
     public async Task Large_Query_Test()
     {
         // arrange
@@ -1963,6 +2060,145 @@ public class OperationCompilerTests
         result.MatchSnapshot();
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task GetSelectionById_Should_ReturnSelection_When_ElementStorageGrows(bool lazy)
+    {
+        // arrange
+        var schema = await CreateFooBarSchemaAsync();
+        var fields = string.Join(
+            " ",
+            Enumerable.Range(0, 160).Select(i => lazy ? $"f{i}: bar" : $"f{i}: __typename"));
+        var document = Utf8GraphQLParser.Parse(lazy ? $"{{ foo {{ {fields} }} }}" : $"{{ {fields} }}");
+        var operation = OperationCompiler.Compile("opid", document, schema);
+        var rootSelection = operation.RootSelectionSet.Selections[0];
+
+        // act
+        var selections = lazy
+            ? operation.GetSelectionSet(rootSelection).Selections
+            : operation.RootSelectionSet.Selections;
+
+        // assert
+        Assert.Equal(160, selections.Length);
+        Assert.Same(rootSelection, operation.GetSelectionById(rootSelection.Id));
+        Assert.Same(selections[^1], operation.GetSelectionById(selections[^1].Id));
+    }
+
+    [Fact]
+    public async Task GetSelectionSet_Should_KeepPreviousElementStorage_When_StorageGrows()
+    {
+        // arrange
+        var schema = await CreateFooBarSchemaAsync();
+        var fields = string.Join(" ", Enumerable.Range(0, 160).Select(i => $"f{i}: bar"));
+        var document = Utf8GraphQLParser.Parse($"{{ foo {{ {fields} }} }}");
+        var operation = OperationCompiler.Compile("opid", document, schema);
+        var rootSelection = operation.RootSelectionSet.Selections[0];
+        var previousStorage = GetElementsById(operation);
+
+        // act
+        operation.GetSelectionSet(rootSelection);
+        OverwritePooledArray(previousStorage.Length);
+
+        // assert
+        Assert.NotSame(previousStorage, GetElementsById(operation));
+        Assert.Same(rootSelection, previousStorage[rootSelection.Id]);
+    }
+
+    [Fact]
+    public void GetSelectionSet_Should_CompileSelectionSet_When_PreviousCompilationFailed()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType(
+                d =>
+                {
+                    d.Name("Query");
+                    d.Field("failing").Resolve(new Foo()).UseOptimizer(new ThrowingOptimizer());
+                    d.Field("foo").Resolve(new Foo());
+                })
+            .Create();
+        var fields = string.Join(" ", Enumerable.Range(0, 300).Select(i => $"f{i}: bar {{ text }}"));
+        var document = Utf8GraphQLParser.Parse($"{{ failing {{ {fields} }} foo {{ bar {{ text }} }} }}");
+        var operation = OperationCompiler.Compile("opid", document, schema);
+        var failing = operation.RootSelectionSet.Selections[0];
+        var foo = operation.RootSelectionSet.Selections[1];
+
+        // act
+        var failure = Record.Exception(() => operation.GetSelectionSet(failing));
+        var selectionSet = operation.GetSelectionSet(foo);
+
+        // assert
+        Assert.IsType<InvalidOperationException>(failure);
+        var selection = Assert.Single(selectionSet.Selections.ToArray());
+        Assert.Same(selection, operation.GetSelectionById(selection.Id));
+    }
+
+    [Fact]
+    public void Compile_Should_ReleasePreviousSchema_When_SchemaIsReplaced()
+    {
+        // arrange
+        var previousSchema = CompileLargeOperationWithDiscardedSchema();
+        var document = Utf8GraphQLParser.Parse("{ foo }");
+
+        // act
+        var operation = OperationCompiler.Compile("current", document, CreateFooSchema());
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+
+        // assert
+        Assert.False(previousSchema.IsAlive);
+        GC.KeepAlive(operation);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static WeakReference CompileLargeOperationWithDiscardedSchema()
+    {
+        var schema = CreateFooSchema();
+        var fields = string.Join(" ", Enumerable.Range(0, 160).Select(i => $"f{i}: foo"));
+        var document = Utf8GraphQLParser.Parse($"{{ {fields} }}");
+        OperationCompiler.Compile("previous", document, schema);
+        return new WeakReference(schema);
+    }
+
+    private static void OverwritePooledArray(int length)
+    {
+        var array = ArrayPool<object>.Shared.Rent(length);
+        Array.Fill(array, new object());
+        ArrayPool<object>.Shared.Return(array, clearArray: true);
+    }
+
+    [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_elementsById")]
+    private static extern ref object[] GetElementsById(Operation operation);
+
+    private static async Task<Schema> CreateFooBarSchemaAsync()
+        => await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddDocumentFromString(
+                """
+                type Query {
+                  foo: Foo
+                }
+
+                type Foo {
+                  bar: String
+                }
+                """)
+            .UseField(next => next)
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+    private static Schema CreateFooSchema()
+        => SchemaBuilder.New()
+            .AddServices(EmptyServiceProvider.Instance)
+            .AddQueryType(
+                c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolve("foo"))
+            .Create();
+
     private static void MatchSnapshot(DocumentNode original, IOperation compiled)
     {
         var sb = new StringBuilder();
@@ -1991,6 +2227,12 @@ public class OperationCompilerTests
         public string Text => "Baz";
     }
 
+    public class ThrowingOptimizer : ISelectionSetOptimizer
+    {
+        public void OptimizeSelectionSet(SelectionSetOptimizerContext context)
+            => throw new InvalidOperationException();
+    }
+
     public class SimpleOptimizer : ISelectionSetOptimizer
     {
         public void OptimizeSelectionSet(SelectionSetOptimizerContext context)
@@ -2006,7 +2248,7 @@ public class OperationCompilerTests
                     "someName",
                     SelectionPath.Root,
                     baz,
-                    [new FieldSelectionNode(bazSelection, 0)],
+                    [new FieldSelectionNode(bazSelection, default(ConditionFlags))],
                     [],
                     isProjectionRequirement: false,
                     isInternal: true,

@@ -1,7 +1,7 @@
 #if NET9_0_OR_GREATER
 using System.ComponentModel.DataAnnotations;
+using CookieCrumble.Resources;
 using Microsoft.EntityFrameworkCore;
-using Squadron;
 
 namespace GreenDonut.Data;
 

@@ -19,7 +19,9 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
     private const int BufferMask = BufferSize - 1;
     private const int BufferShift = 17; // log2(131072) = 17
     private const int DefaultScratchSize = 128;
+#if NET8_0_OR_GREATER
     private const int SimdThreshold = 64;
+#endif
 
     private readonly JsonMemoryKind _memoryKind;
     private byte[][] _chunks;
@@ -63,7 +65,7 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
 #if NETSTANDARD2_0
         if (_disposed)
         {
-            throw new ObjectDisposedException(typeof(ChunkedArrayWriter).FullName!);
+            throw new ObjectDisposedException(typeof(ChunkedArrayWriter).FullName);
         }
 #else
         ObjectDisposedException.ThrowIf(_disposed, this);
@@ -88,9 +90,11 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
         while (!remaining.IsEmpty)
         {
             var length = Math.Min(remaining.Length, BufferSize - offsetInChunk);
+#pragma warning disable IDE0057 // Use range operator -- Not available in netstandard2.0.
             remaining.Slice(0, length).CopyTo(
                 _chunks[chunkIndex].AsSpan(offsetInChunk, length));
             remaining = remaining.Slice(length);
+#pragma warning restore IDE0057 // Use range operator
             chunkIndex++;
             offsetInChunk = 0;
         }
@@ -231,6 +235,31 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
         start = (chunkIndex + 1) << BufferShift;
         length -= available;
         return _chunks[chunkIndex].AsMemory(offsetInChunk, available);
+    }
+
+    /// <summary>
+    /// Gets <paramref name="length"/> written bytes at <paramref name="start"/> as a sequence over
+    /// the chunks that hold them.
+    /// </summary>
+    public ReadOnlySequence<byte> GetSequence(int start, int length)
+    {
+        var first = ReadMemory(ref start, ref length);
+
+        if (length == 0)
+        {
+            return new ReadOnlySequence<byte>(first);
+        }
+
+        var firstSegment = new MemorySequenceSegment(first);
+        var lastSegment = firstSegment;
+
+        do
+        {
+            lastSegment = lastSegment.Append(ReadMemory(ref start, ref length));
+        }
+        while (length > 0);
+
+        return new ReadOnlySequence<byte>(firstSegment, 0, lastSegment, lastSegment.Memory.Length);
     }
 
     /// <summary>
@@ -404,8 +433,12 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
         return (int)(hash & 0x7FFFFFFF);
     }
 
+    /// <summary>
+    /// Continues <paramref name="hash"/> with <paramref name="bytes"/> using <c>hash * 31 + b</c>,
+    /// so hashing a sequence piecewise gives the same result as hashing it at once.
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static uint ComputeHashCore(uint hash, ReadOnlySpan<byte> bytes)
+    internal static uint ComputeHashCore(uint hash, ReadOnlySpan<byte> bytes)
     {
 #if NET8_0_OR_GREATER
         if (bytes.Length >= SimdThreshold)

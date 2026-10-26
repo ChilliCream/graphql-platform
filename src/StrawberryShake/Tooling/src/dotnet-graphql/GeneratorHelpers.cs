@@ -77,6 +77,7 @@ internal static class GeneratorHelpers
             AccessModifier = GetAccessModifier(configSettings.AccessModifier),
             StrictSchemaValidation =
                 configSettings.StrictSchemaValidation ?? args.StrictSchemaValidation,
+            EnableCovariantFieldMerging = configSettings.EnableCovariantFieldMerging ?? false,
             NoStore = configSettings.NoStore ?? args.NoStore,
             InputRecords = configSettings.Records.Inputs,
             EntityRecords = configSettings.Records.Entities,

@@ -10,10 +10,8 @@ internal static class OperationContextExtensions
         public OperationContext ReportError(
             Exception exception,
             MiddlewareContext resolverContext,
-            ISelection? selection = null,
             Path? path = null)
         {
-            selection ??= resolverContext.Selection;
             path ??= resolverContext.Path;
 
             ArgumentNullException.ThrowIfNull(exception);
@@ -32,7 +30,6 @@ internal static class OperationContextExtensions
                 var error = ErrorBuilder
                     .FromException(exception)
                     .SetPath(path)
-                    .AddLocations(selection.GetSyntaxNodes())
                     .Build();
 
                 context.ReportError(error, resolverContext);

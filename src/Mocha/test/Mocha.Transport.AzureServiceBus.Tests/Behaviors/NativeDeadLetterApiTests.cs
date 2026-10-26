@@ -187,7 +187,7 @@ public class NativeDeadLetterApiTests
             var args = context.GetAzureServiceBusEventArgs();
             var message = args.Message;
             var hasMarker = message.ApplicationProperties.ContainsKey(MarkerKey);
-            capture.Record((int)message.DeliveryCount, hasMarker);
+            capture.Record(message.DeliveryCount, hasMarker);
 
             if (!hasMarker)
             {

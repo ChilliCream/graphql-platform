@@ -243,8 +243,13 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
             httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
             context.TrackTransport(request.Node, httpRequest.Uri, httpResponse.RawContentType);
 
-            await foreach (var document in httpResponse.ReadAsResultStreamAsync(arenaSource, requireStreaming: true)
-                .WithCancellation(cancellationToken).ConfigureAwait(false))
+            // The read timeout bounds the wait for the next bytes of the event stream, keep-alives included.
+            var documents = httpResponse.ReadAsResultStreamAsync(
+                arenaSource,
+                requireStreaming: true,
+                _configuration.SubscriptionReadTimeout);
+
+            await foreach (var document in documents.WithCancellation(cancellationToken).ConfigureAwait(false))
             {
                 var result = new SourceSchemaResult(CompactPath.Root, document);
                 _configuration.OnSourceSchemaResult?.Invoke(context, request.Node, result);

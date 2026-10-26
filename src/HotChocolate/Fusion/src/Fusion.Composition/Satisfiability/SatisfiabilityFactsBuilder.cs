@@ -2,7 +2,6 @@ using HotChocolate.Fusion.Extensions;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
-using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
 
 namespace HotChocolate.Fusion.Satisfiability;
 
@@ -15,7 +14,6 @@ internal sealed class SatisfiabilityFactsBuilder
     private readonly HashSet<SatisfiabilityFacts.CanTransitionFactKey> _canTransitionFacts = [];
     private readonly HashSet<SatisfiabilityFacts.FieldAccessibleFactKey> _fieldAccessibleFacts = [];
     private readonly HashSet<ExpandedFieldAccessKey> _expandedFieldAccesses = [];
-    private readonly Dictionary<IDirective, SelectionSetNode> _lookupKeySelectionSets = [];
     private readonly Dictionary<MutableObjectTypeDefinition, string[]> _candidateTargetsByType = [];
 
     /// <summary>
@@ -90,12 +88,13 @@ internal sealed class SatisfiabilityFactsBuilder
                 var requirements = field.GetFusionRequiresRequirements(schemaName);
 
                 if (requirements is not null
-                    && !CanResolveSelectionSet(
-                        requirements,
-                        type,
-                        fromSchema: schemaName,
-                        excludeSchema: schemaName,
-                        SelectionSetResolutionMode.FieldRequire))
+                    && (!CanResolveSelectionSet(
+                            requirements,
+                            type,
+                            fromSchema: schemaName,
+                            excludeSchema: schemaName,
+                            SelectionSetResolutionMode.FieldRequire)
+                        || !CanReenterSchema(type, schemaName)))
                 {
                     continue;
                 }
@@ -106,6 +105,34 @@ internal sealed class SatisfiabilityFactsBuilder
         }
 
         return changed;
+    }
+
+    /// <summary>
+    /// Determines whether <paramref name="schemaName"/> can be re-entered at <paramref name="type"/>
+    /// once requirement data has been fetched from other schemas, that is the schema declares a
+    /// lookup for the type whose key is resolvable while the type is held on the schema.
+    /// </summary>
+    private bool CanReenterSchema(MutableObjectTypeDefinition type, string schemaName)
+    {
+        if (_schema.IsRootOperationType(type))
+        {
+            return true;
+        }
+
+        foreach (var lookup in _lookupCache.GetPossibleFusionLookupDirectives(type, schemaName))
+        {
+            if (CanResolveSelectionSet(
+                _lookupCache.GetLookupKey(lookup),
+                type,
+                fromSchema: schemaName,
+                excludeSchema: null,
+                SelectionSetResolutionMode.LookupKey))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private bool DeriveTransitions(MutableObjectTypeDefinition type, string fromSchema)
@@ -126,7 +153,7 @@ internal sealed class SatisfiabilityFactsBuilder
 
             foreach (var lookup in _lookupCache.GetPossibleFusionLookupDirectives(type, targetSchema))
             {
-                var keySelectionSet = GetLookupKeySelectionSet(lookup);
+                var keySelectionSet = _lookupCache.GetLookupKey(lookup);
 
                 if (!CanResolveSelectionSet(
                     keySelectionSet,
@@ -242,7 +269,7 @@ internal sealed class SatisfiabilityFactsBuilder
         SelectionSetNode selectionSet,
         MutableObjectTypeDefinition contextType,
         string fromSchema,
-        string excludeSchema,
+        string? excludeSchema,
         SelectionSetResolutionMode mode)
     {
         foreach (var selection in selectionSet.Selections)
@@ -260,7 +287,7 @@ internal sealed class SatisfiabilityFactsBuilder
         ISelectionNode selection,
         MutableObjectTypeDefinition contextType,
         string fromSchema,
-        string excludeSchema,
+        string? excludeSchema,
         SelectionSetResolutionMode mode)
     {
         switch (selection)
@@ -303,7 +330,7 @@ internal sealed class SatisfiabilityFactsBuilder
         FieldNode fieldNode,
         MutableObjectTypeDefinition contextType,
         string fromSchema,
-        string excludeSchema,
+        string? excludeSchema,
         SelectionSetResolutionMode mode)
     {
         if (!contextType.Fields.TryGetField(fieldNode.Name.Value, out var field))
@@ -311,9 +338,14 @@ internal sealed class SatisfiabilityFactsBuilder
             return false;
         }
 
-        foreach (var schemaName in GetCandidateSchemaNames(field, excludeSchema, fieldNode, mode))
+        // A field-level @require may resolve the fields below the first level from the excluded
+        // schema, while a lookup key must avoid it at every level.
+        var childExcludeSchema = mode == SelectionSetResolutionMode.FieldRequire ? null : excludeSchema;
+
+        foreach (var schemaName in field.GetSchemaNames())
         {
-            if (!IsFieldAccessibleVia(contextType, field, schemaName, fromSchema))
+            if (schemaName == excludeSchema
+                || !IsFieldAccessibleVia(contextType, field, schemaName, fromSchema))
             {
                 continue;
             }
@@ -327,7 +359,7 @@ internal sealed class SatisfiabilityFactsBuilder
                 field,
                 schemaName,
                 fieldNode.SelectionSet,
-                excludeSchema,
+                childExcludeSchema,
                 mode))
             {
                 return true;
@@ -341,7 +373,7 @@ internal sealed class SatisfiabilityFactsBuilder
         MutableOutputFieldDefinition field,
         string schemaName,
         SelectionSetNode selectionSet,
-        string excludeSchema,
+        string? excludeSchema,
         SelectionSetResolutionMode mode)
     {
         var fieldType = field.Type.AsTypeDefinition();
@@ -360,38 +392,6 @@ internal sealed class SatisfiabilityFactsBuilder
         }
 
         return true;
-    }
-
-    private static IEnumerable<string> GetCandidateSchemaNames(
-        MutableOutputFieldDefinition field,
-        string excludeSchema,
-        FieldNode fieldNode,
-        SelectionSetResolutionMode mode)
-    {
-        var excludeCandidate =
-            fieldNode.SelectionSet is null || mode == SelectionSetResolutionMode.LookupKey;
-
-        foreach (var schemaName in field.GetSchemaNames())
-        {
-            if (excludeCandidate && schemaName == excludeSchema)
-            {
-                continue;
-            }
-
-            yield return schemaName;
-        }
-    }
-
-    private SelectionSetNode GetLookupKeySelectionSet(IDirective lookup)
-    {
-        if (!_lookupKeySelectionSets.TryGetValue(lookup, out var selectionSet))
-        {
-            var lookupKey = (string)lookup.Arguments[WellKnownArgumentNames.Key].Value!;
-            selectionSet = ParseSelectionSet($"{{ {lookupKey} }}");
-            _lookupKeySelectionSets.Add(lookup, selectionSet);
-        }
-
-        return selectionSet;
     }
 
     private void SeedRootPositions()

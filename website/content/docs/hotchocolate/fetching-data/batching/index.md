@@ -47,7 +47,7 @@ The per-field resolver model is what makes the N+1 pattern visible and measurabl
 
 # DataLoader
 
-A DataLoader batches by key. Resolvers ask the DataLoader for a value by key, the DataLoader collects all requested keys while the engine executes resolvers, and then fetches all of them in one call (for example a single `WHERE id IN (...)` query). DataLoaders also cache and deduplicate within a request: the same key requested from anywhere in the query tree is fetched once, and every resolver sees the same result.
+A DataLoader batches by key. Resolvers ask the DataLoader for a value by key, the DataLoader collects all requested keys while the engine executes resolvers, and then fetches all of them in one call (for example a single `#!sql WHERE id IN (...)` query). DataLoaders also cache and deduplicate within a request: the same key requested from anywhere in the query tree is fetched once, and every resolver sees the same result.
 
 DataLoaders are the default choice for batching in Hot Chocolate. Use them whenever data is loaded by key and may be requested from more than one place in a query.
 

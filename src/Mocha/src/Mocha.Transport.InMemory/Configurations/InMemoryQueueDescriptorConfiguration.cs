@@ -42,6 +42,11 @@ public sealed class InMemoryQueueDescriptorConfiguration : MessagingConfiguratio
     public ReceiveEndpointKind? Kind { get; set; }
 
     /// <summary>
+    /// Gets or sets whether the receive endpoint materialized for this queue is temporary.
+    /// </summary>
+    public bool IsTemporary { get; set; }
+
+    /// <summary>
     /// Gets or sets the receive endpoint maximum concurrency.
     /// </summary>
     public int? MaxConcurrency { get; set; }
@@ -55,6 +60,11 @@ public sealed class InMemoryQueueDescriptorConfiguration : MessagingConfiguratio
     /// Gets the receive pipeline modifiers applied when this queue materializes an endpoint.
     /// </summary>
     public List<Action<List<ReceiveMiddlewareConfiguration>>> ReceivePipelineModifiers { get; } = [];
+
+    /// <summary>
+    /// Gets the configuration callbacks applied to this queue's receive endpoint, in registration order.
+    /// </summary>
+    public List<Action<IReceiveMiddlewareProvider>> ConfigureReceiveEndpoint { get; } = [];
 
     /// <summary>
     /// Gets the source topic bindings declared from this queue descriptor.

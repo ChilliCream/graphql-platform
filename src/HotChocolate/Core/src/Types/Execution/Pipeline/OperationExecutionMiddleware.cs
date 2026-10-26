@@ -51,9 +51,18 @@ internal sealed class OperationExecutionMiddleware
 
         if (context.TryGetOperation(out var operation) && context.VariableValues.Length > 0)
         {
-            if (!IsOperationAllowed(operation, context.Request))
+            // The incremental delivery constraint comes from the accepted response content types
+            // alone, so no change of request method can resolve it. It is evaluated first so that
+            // its 406 wins over the 405 an operation kind refusal would otherwise produce.
+            if (!IsIncrementalDeliveryAllowed(operation, context.Request))
             {
-                context.Result = ErrorHelper.OperationKindNotAllowed();
+                context.Result = ErrorHelper.IncrementalDeliveryNotAcceptable();
+                return;
+            }
+
+            if (!IsOperationKindAllowed(operation, context.Request))
+            {
+                context.Result = ErrorHelper.OperationKindNotAllowed(GetRequiredFlag(operation));
                 return;
             }
 
@@ -88,6 +97,11 @@ internal sealed class OperationExecutionMiddleware
             }
 
             await _next(context).ConfigureAwait(false);
+        }
+        else if (context.Request is VariableBatchRequest variableBatchRequest
+            && variableBatchRequest.VariableValues.Document.RootElement.GetArrayLength() == 0)
+        {
+            context.Result = ErrorHelper.EmptyVariableBatch();
         }
         else
         {
@@ -128,6 +142,12 @@ internal sealed class OperationExecutionMiddleware
                 operationContextBuffer,
                 resultBuffer,
                 variableSets.Length);
+
+            // Incremental batch items return response streams that are consumed after the request
+            // pipeline has completed. We transfer ownership of each streamed item's operation
+            // context into its stream so the context is only cleaned and returned to the pool once
+            // the stream has been fully consumed, mirroring the single operation path.
+            TransferStreamedContextOwnership(operationContextBuffer, resultBuffer, variableSets.Length);
 
             context.Result = new OperationResultBatch([.. resultBuffer.AsSpan(0, variableSets.Length)]);
         }
@@ -172,6 +192,24 @@ internal sealed class OperationExecutionMiddleware
             operationContexts[variableIndex] = operationContextOwner;
         }
 
+        static void TransferStreamedContextOwnership(
+            OperationContextOwner[] operationContextBuffer,
+            IExecutionResult[] resultBuffer,
+            int length)
+        {
+            for (var i = 0; i < length; i++)
+            {
+                if (resultBuffer[i].IsStreamResult() && operationContextBuffer[i] is { } contextOwner)
+                {
+                    resultBuffer[i].RegisterForCleanup(contextOwner);
+
+                    // Ownership now belongs to the stream, so we drop it from the buffer to keep
+                    // ReleaseResources from disposing (and pooling) the context a second time.
+                    operationContextBuffer[i] = null!;
+                }
+            }
+        }
+
         static void AbandonContexts(ref OperationContextOwner[]? operationContextBuffer, int length)
         {
             if (operationContextBuffer is not null)
@@ -201,7 +239,9 @@ internal sealed class OperationExecutionMiddleware
 
             foreach (var contextOwner in contextOwners)
             {
-                contextOwner.Dispose();
+                // Owners transferred to a response stream are cleared from the buffer and are
+                // disposed by that stream once it has been consumed, so we skip them here.
+                contextOwner?.Dispose();
             }
 
             contextOwners.Clear();
@@ -293,27 +333,42 @@ internal sealed class OperationExecutionMiddleware
             ref _cachedMutation);
     }
 
-    private static bool IsOperationAllowed(Operation operation, IOperationRequest request)
+    private static bool IsOperationKindAllowed(Operation operation, IOperationRequest request)
     {
         if (request.Flags is AllowAll)
         {
             return true;
         }
 
-        var allowed = operation.Definition.Operation switch
+        var requiredFlag = GetRequiredFlag(operation);
+
+        return requiredFlag is None || (request.Flags & requiredFlag) == requiredFlag;
+    }
+
+    /// <summary>
+    /// Translates an operation kind into the <see cref="RequestFlags"/> value that permits it.
+    /// This is the only place the two vocabularies meet, so a refusal is reported as the flag the
+    /// operation required rather than as its kind.
+    /// </summary>
+    private static RequestFlags GetRequiredFlag(Operation operation)
+        => operation.Definition.Operation switch
         {
-            OperationType.Query => (request.Flags & AllowQuery) == AllowQuery,
-            OperationType.Mutation => (request.Flags & AllowMutation) == AllowMutation,
-            OperationType.Subscription => (request.Flags & AllowSubscription) == AllowSubscription,
-            _ => true
+            OperationType.Query => AllowQuery,
+            OperationType.Mutation => AllowMutation,
+            OperationType.Subscription => AllowSubscription,
+            _ => None
         };
 
-        if (allowed && operation.HasIncrementalParts)
+    // AllowStreams is granted by the accepted response content types alone, so a refusal here
+    // is a content negotiation failure rather than one the request method can resolve.
+    private static bool IsIncrementalDeliveryAllowed(Operation operation, IOperationRequest request)
+    {
+        if (request.Flags is AllowAll || !operation.HasIncrementalParts)
         {
-            return (request.Flags & AllowStreams) == AllowStreams;
+            return true;
         }
 
-        return allowed;
+        return (request.Flags & AllowStreams) == AllowStreams;
     }
 
     private static bool IsRequestTypeAllowed(

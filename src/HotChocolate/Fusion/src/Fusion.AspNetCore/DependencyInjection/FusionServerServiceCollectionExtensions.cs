@@ -44,6 +44,10 @@ public static class FusionServerServiceCollectionExtensions
                 });
             builder.AddMaxAllowedFieldCycleDepthRule();
         }
+        else
+        {
+            builder.ModifyCostOptions(o => o.EnforceCostLimits = false);
+        }
 
         return builder;
     }
@@ -68,6 +72,7 @@ public static class FusionServerServiceCollectionExtensions
                     sp.GetRequiredService<IDocumentHashProvider>(),
                     maxAllowedRequestSize,
                     sp.GetRequiredService<ParserOptions>()));
+            sc.TryAddSingleton(new HttpRequestLimits(maxAllowedRequestSize));
 
             sc.TryAddSingleton<IServerDiagnosticEvents>(sp =>
             {
@@ -88,6 +93,9 @@ public static class FusionServerServiceCollectionExtensions
                     .Get(schemaName);
                 return new ExecutionConcurrencyGate(serverOptions.MaxConcurrentExecutions);
             });
+
+            sc.TryAddSingleton(
+                static sp => new ExecutorSession(sp.GetRequiredService<IRequestExecutor>()));
         });
 
         return builder;
@@ -123,7 +131,8 @@ public static class FusionServerServiceCollectionExtensions
             (_, s) => s.AddSingleton<IProtocolHandler>(
                 sp => new ApolloSubscriptionProtocolHandler(
                     sp.GetRequiredService<ISocketSessionInterceptor>(),
-                    sp.GetRequiredService<IWebSocketPayloadFormatter>())));
+                    sp.GetRequiredService<IWebSocketPayloadFormatter>(),
+                    sp.GetRequiredService<IServerDiagnosticEvents>())));
 
     private static IFusionGatewayBuilder AddGraphQLOverWebSocketProtocol(
         this IFusionGatewayBuilder builder)
@@ -134,5 +143,6 @@ public static class FusionServerServiceCollectionExtensions
                     sp.GetRequiredService<IWebSocketPayloadFormatter>(),
                     sp.GetRequiredService<IDocumentCache>(),
                     sp.GetRequiredService<IDocumentHashProvider>(),
-                    sp.GetRequiredService<ParserOptions>())));
+                    sp.GetRequiredService<ParserOptions>(),
+                    sp.GetRequiredService<IServerDiagnosticEvents>())));
 }
