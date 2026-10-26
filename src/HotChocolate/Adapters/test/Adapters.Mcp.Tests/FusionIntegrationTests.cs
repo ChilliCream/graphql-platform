@@ -34,7 +34,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse("query GetBooks { books { title } }")),
             TestContext.Current.CancellationToken);
-        await using var subgraph = StartSubgraph([]);
+        var subgraph = StartSubgraph([]);
         var schemaDocument = await subgraph.Services.GetSchemaAsync(
             cancellationToken: TestContext.Current.CancellationToken);
         var schemaComposer =
@@ -53,7 +53,8 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
         webAppBuilder.Services
             .AddOptions<McpSetup>("NamedSchema")
             .PostConfigure(setup => setup.StorageFactory = _ => storage);
-        await using var webApp = webAppBuilder.Build();
+        var webApp = webAppBuilder.Build();
+        StopAndDisposeAfterTest(webApp);
         webApp.MapGraphQLMcp();
         webApp.Start();
         var mcpClient = await CreateMcpClientAsync(webApp.GetTestClient());
@@ -77,7 +78,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
                         "__resources__/GetBooksWithTitle1.graphql",
                         TestContext.Current.CancellationToken))),
             TestContext.Current.CancellationToken);
-        await using var subgraph = StartSubgraph([]);
+        var subgraph = StartSubgraph([]);
         var schemaDocument = await subgraph.Services.GetSchemaAsync(
             cancellationToken: TestContext.Current.CancellationToken);
         var schemaComposer =
@@ -100,7 +101,8 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
             .AddConfigurationProvider(_ => configProvider)
             .AddMcp()
             .AddMcpStorage(storage);
-        await using var webApp = webAppBuilder.Build();
+        var webApp = webAppBuilder.Build();
+        StopAndDisposeAfterTest(webApp);
         webApp.MapGraphQLMcp();
         webApp.Start();
         var mcpClient1 = await CreateMcpClientAsync(webApp.GetTestClient());
@@ -207,6 +209,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
         }
 
         var app = webAppBuilder.Build();
+        StopAndDisposeAfterTest(app);
         app.UseRouting();
         app.UseHeaderPropagation();
         app.UseAuthentication();
@@ -216,7 +219,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
         return app.GetTestServer();
     }
 
-    private static WebApplication StartSubgraph(ITypeDefinition[]? additionalTypes)
+    private WebApplication StartSubgraph(ITypeDefinition[]? additionalTypes)
     {
         var webAppBuilder = WebApplication.CreateSlimBuilder();
         webAppBuilder.WebHost.UseTestServer();
@@ -252,6 +255,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
         }
 
         var app = webAppBuilder.Build();
+        StopAndDisposeAfterTest(app);
         app.UseRouting();
         app.UseAuthentication();
         app.MapGraphQL();
