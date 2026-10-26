@@ -1826,8 +1826,9 @@ AddErrors_Next:
             _collectMemoNodes = new CollectMemoNode[16];
         }
 
-        // The first node is the root path, which has no kept elements.
-        _collectMemoNodes[0] = default;
+        // Clears the earlier walks so no field names stay referenced past the live nodes;
+        // the first node is the root path, which has no kept elements.
+        _collectMemoNodes.AsSpan(0, Math.Max(_collectMemoNodeCount, 1)).Clear();
         _collectMemoNodeCount = 1;
         _collectMemoCursorCount = 0;
     }

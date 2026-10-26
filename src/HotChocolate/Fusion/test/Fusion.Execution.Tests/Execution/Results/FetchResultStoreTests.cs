@@ -2935,6 +2935,22 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void Clean_Should_ReleaseCollectedFieldNames_When_ShorterPathWasCollectedAfterShapeChange()
+    {
+        // arrange
+        var (store, fieldName) = CreateCleanedStoreAfterShorterCollection();
+        using var retainedStore = store;
+
+        // act
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+
+        // assert
+        Assert.False(fieldName.IsAlive);
+    }
+
+    [Fact]
     public void CreateVariableValueSets_Should_KeepDistinctTargets_When_VariableHashesCollide()
     {
         // arrange
@@ -3792,6 +3808,47 @@ public sealed class FetchResultStoreTests : FusionTestBase
         var page = new WeakReference(resultArena.Rent(0).Buffer);
         store.Clean(maxCollectTargetRetainLength: 256, maxDictionaryRetainCapacity: 256);
         return (store, page);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static (FetchResultStore Store, WeakReference FieldName) CreateCleanedStoreAfterShorterCollection()
+    {
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+              bar: Bar
+            }
+
+            type Bar {
+              id: ID!
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        var store = CreateLiveStore(
+            schema,
+            "{ foos { id bar { id } } }",
+            """{"data":{"foos":[{"id":"1","bar":{"id":"b1"}},{"id":"2","bar":{"id":"b2"}}]}}""",
+            resultArena,
+            sourceArena);
+
+        // a field name instance that only the store can keep alive after this method returns
+        var barName = new string("bar".AsSpan());
+        var foos = SelectionPath.Root.AppendField("foos");
+        Assert.Equal(2, store.GetResultPaths(foos.AppendField(barName)).Length);
+        store.Result.Data.GetProperty("foos").SetArrayValue(1);
+        Assert.Empty(store.GetResultPaths(foos));
+
+        var fieldName = new WeakReference(barName);
+        store.Clean(maxCollectTargetRetainLength: 256, maxDictionaryRetainCapacity: 256);
+        return (store, fieldName);
     }
 
     private static void AddKeyResults(
