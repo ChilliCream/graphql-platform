@@ -60,6 +60,10 @@ internal static class SourceSchemaTransitionHelper
     /// <paramref name="transitionToSchemaName"/>, is re-rooted at, or <c>null</c> when the path
     /// cannot be re-rooted.
     /// </param>
+    /// <param name="budget">
+    /// The budget for the explanation entries of the search. A lookup whose key search exhausts the
+    /// budget, or that comes after it is exhausted, is not explained and stands for one omitted entry.
+    /// </param>
     /// <returns>
     /// An empty array if the transition is satisfiable; otherwise the
     /// accumulated errors describing every direct and parent-call lookup that
@@ -77,7 +81,8 @@ internal static class SourceSchemaTransitionHelper
             ImmutableArray<SatisfiabilityError>> validateLookupRequirements,
         string noLookupsFoundForTypeMessageFormat,
         string unableToSatisfyRequirementForLookupMessageFormat,
-        MutableOutputFieldDefinition? queryViewerField)
+        MutableOutputFieldDefinition? queryViewerField,
+        SatisfiabilityExplanationBudget budget)
     {
         var errors = new List<SatisfiabilityError>();
 
@@ -214,7 +219,7 @@ internal static class SourceSchemaTransitionHelper
         if (errors.Count == 0)
         {
             errors.Add(
-                new SatisfiabilityError(
+                budget.CreateError(
                     string.Format(
                         noLookupsFoundForTypeMessageFormat,
                         type.Name,
@@ -259,6 +264,12 @@ internal static class SourceSchemaTransitionHelper
             int parentIndex,
             List<SatisfiabilityError> sink)
         {
+            if (budget.IsExhausted)
+            {
+                sink.Add(SatisfiabilityError.Unexplained);
+                return false;
+            }
+
             var lookupKeyArg = (string)lookupDirective.Arguments["key"].Value!;
             var lookupFieldArg = (string)lookupDirective.Arguments["field"].Value!;
             var lookupPathArg = (string?)lookupDirective.Arguments["path"].Value;
@@ -272,6 +283,13 @@ internal static class SourceSchemaTransitionHelper
             var requirementErrors =
                 validateLookupRequirements(contextType, pathFromParent, lookupRequirements);
 
+            // The search of the lookup key stopped when the budget was used up, so its outcome is unknown.
+            if (budget.IsExhausted)
+            {
+                sink.Add(SatisfiabilityError.Unexplained);
+                return false;
+            }
+
             if (requirementErrors.IsEmpty)
             {
                 return true;
@@ -282,7 +300,7 @@ internal static class SourceSchemaTransitionHelper
                 : $"{lookupPathArg}.{lookupFieldName}";
 
             sink.Add(
-                new SatisfiabilityError(
+                budget.CreateError(
                     string.Format(
                         unableToSatisfyRequirementForLookupMessageFormat,
                         lookupRequirements.ToString(indented: false),
