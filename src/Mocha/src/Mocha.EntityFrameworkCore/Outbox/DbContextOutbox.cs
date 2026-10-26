@@ -6,13 +6,12 @@ using Mocha.Middlewares;
 namespace Mocha.EntityFrameworkCore;
 
 /// <summary>
-/// Prepares messages for persistence in the same transaction as the owning DbContext's next save.
+/// Stages messages for persistence in the same transaction as the owning DbContext's next save.
 /// The outbox must not be used after the context is disposed or returned to its pool.
 /// </summary>
-public sealed class DbContextOutbox : IResettableService, IDisposable
+public sealed class DbContextOutbox : IResettableService, IDisposable, IDispatchMessageStore
 {
     private readonly DbContext _context;
-    private readonly Action<MessageEnvelope, CancellationToken> _stage;
     private IServiceProvider? _services;
     private IMessageBus? _bus;
     private IDbContextOutboxProvider? _provider;
@@ -21,21 +20,19 @@ public sealed class DbContextOutbox : IResettableService, IDisposable
     internal DbContextOutbox(DbContext context)
     {
         _context = context;
-        _stage = Stage;
     }
 
     internal bool IsPreparing => _preparing != 0;
 
     /// <summary>
-    /// Prepares a publication for the next save using the attached messaging scope.
+    /// Stages a publication for the next save using the attached messaging scope.
     /// </summary>
     public ValueTask PublishAsync<T>(T message, CancellationToken cancellationToken)
         where T : notnull
         => PublishAsync(message, PublishOptions.Default, cancellationToken);
 
     /// <summary>
-    /// Prepares a publication with the specified options for the next save.
-    /// Scheduled messages are not supported.
+    /// Stages a publication with the specified options for the next save.
     /// </summary>
     public async ValueTask PublishAsync<T>(
         T message,
@@ -44,26 +41,16 @@ public sealed class DbContextOutbox : IResettableService, IDisposable
         where T : notnull
     {
         ArgumentNullException.ThrowIfNull(message);
-        if (options.ScheduledTime is not null)
-        {
-            throw ThrowHelper.ScheduledOutboxMessage(nameof(options));
-        }
-
-        if (Interlocked.CompareExchange(ref _preparing, 1, 0) != 0)
-        {
-            throw ThrowHelper.ConcurrentOutboxOperation();
-        }
-
+        var (dispatcher, provider, checkpoint) = BeginOperation(cancellationToken);
         try
         {
+            await dispatcher.PublishAsync(message, options, this, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
-
-            var bus = GetBus();
-            var dispatcher = GetDispatcher(bus);
-            var provider = _provider ??= GetProvider();
-            provider.Validate(_context);
-
-            await dispatcher.PreparePublishAsync(message, options, _stage, cancellationToken);
+        }
+        catch
+        {
+            provider.Discard(_context, checkpoint);
+            throw;
         }
         finally
         {
@@ -72,15 +59,14 @@ public sealed class DbContextOutbox : IResettableService, IDisposable
     }
 
     /// <summary>
-    /// Prepares a directed message for the next save using the attached messaging scope.
+    /// Stages a directed message for the next save using the attached messaging scope.
     /// </summary>
     public ValueTask SendAsync<T>(T message, CancellationToken cancellationToken)
         where T : notnull
         => SendAsync(message, SendOptions.Default, cancellationToken);
 
     /// <summary>
-    /// Prepares a directed message with the specified options for the next save.
-    /// Scheduled messages are not supported.
+    /// Stages a directed message with the specified options for the next save.
     /// </summary>
     public async ValueTask SendAsync<T>(
         T message,
@@ -89,26 +75,16 @@ public sealed class DbContextOutbox : IResettableService, IDisposable
         where T : notnull
     {
         ArgumentNullException.ThrowIfNull(message);
-        if (options.ScheduledTime is not null)
-        {
-            throw ThrowHelper.ScheduledOutboxMessage(nameof(options));
-        }
-
-        if (Interlocked.CompareExchange(ref _preparing, 1, 0) != 0)
-        {
-            throw ThrowHelper.ConcurrentOutboxOperation();
-        }
-
+        var (dispatcher, provider, checkpoint) = BeginOperation(cancellationToken);
         try
         {
+            await dispatcher.SendAsync(message, options, this, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
-
-            var bus = GetBus();
-            var dispatcher = GetDispatcher(bus);
-            var provider = _provider ??= GetProvider();
-            provider.Validate(_context);
-
-            await dispatcher.PrepareSendAsync(message, options, _stage, cancellationToken);
+        }
+        catch
+        {
+            provider.Discard(_context, checkpoint);
+            throw;
         }
         finally
         {
@@ -158,17 +134,37 @@ public sealed class DbContextOutbox : IResettableService, IDisposable
         => _bus ??= _services?.GetRequiredService<IMessageBus>()
             ?? throw ThrowHelper.OutboxNotAttached(_context.GetType());
 
-    private void Stage(MessageEnvelope envelope, CancellationToken cancellationToken)
+    ValueTask IDispatchMessageStore.PersistAsync(IDispatchContext context)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        if (envelope.ScheduledTime is not null)
+        context.CancellationToken.ThrowIfCancellationRequested();
+        var provider = _provider!;
+        provider.Validate(_context);
+        provider.Stage(_context, context.Envelope!, context.CancellationToken);
+
+        return default;
+    }
+
+    private (IMessageDispatcher Dispatcher, IDbContextOutboxProvider Provider, int Checkpoint)
+        BeginOperation(CancellationToken cancellationToken)
+    {
+        if (Interlocked.CompareExchange(ref _preparing, 1, 0) != 0)
         {
-            throw ThrowHelper.ScheduledOutboxMessage(nameof(envelope));
+            throw ThrowHelper.ConcurrentOutboxOperation();
         }
 
-        var provider = _provider ??= GetProvider();
-        provider.Validate(_context);
-        provider.Stage(_context, envelope, cancellationToken);
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var dispatcher = GetDispatcher(GetBus());
+            var provider = _provider ??= GetProvider();
+            provider.Validate(_context);
+            return (dispatcher, provider, provider.CreateCheckpoint());
+        }
+        catch
+        {
+            _preparing = 0;
+            throw;
+        }
     }
 
     private void Reset()

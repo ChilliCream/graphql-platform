@@ -14,6 +14,8 @@ internal sealed class PostgresOutboxTracker : SaveChangesInterceptor, IResettabl
 {
     private readonly List<EntityEntry<OutboxMessage>> _entries = [];
 
+    public int CreateCheckpoint() => _entries.Count;
+
     public void Track(DbContext context, OutboxMessage message)
     {
         EnsureAtomicSave(context);
@@ -25,6 +27,17 @@ internal sealed class PostgresOutboxTracker : SaveChangesInterceptor, IResettabl
         {
             context.Entry(message).State = EntityState.Detached;
             throw;
+        }
+    }
+
+    public void Discard(DbContext context, int checkpoint)
+    {
+        for (var i = _entries.Count - 1; i >= checkpoint; i--)
+        {
+            var entry = _entries[i];
+            context.Entry(entry.Entity).State = EntityState.Detached;
+            entry.Entity.Dispose();
+            _entries.RemoveAt(i);
         }
     }
 

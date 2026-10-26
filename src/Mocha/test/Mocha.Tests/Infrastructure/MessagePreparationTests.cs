@@ -1,6 +1,7 @@
 using System.Text.Json;
 using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 using Mocha.Middlewares;
 using Mocha.Outbox;
@@ -97,9 +98,11 @@ public class MessagePreparationTests(ITestOutputHelper output)
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task PublishAsync_Should_AllowMiddlewareToCatchFailure_When_FinalizationFails(bool serialization)
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task PublishAsync_Should_AllowMiddlewareToCatchFailure_When_FinalizationFails(bool serialization, bool explicitStore)
     {
         // arrange
         Exception? caught = null;
@@ -128,7 +131,15 @@ public class MessagePreparationTests(ITestOutputHelper output)
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act
-        await bus.PublishAsync(new TargetMessage("failed"), CancellationToken.None);
+        if (explicitStore)
+        {
+            await PrepareAsync(bus, new TargetMessage("failed"), send: false,
+                static (_, _) => throw new InvalidOperationException("Persistence failed."));
+        }
+        else
+        {
+            await bus.PublishAsync(new TargetMessage("failed"), CancellationToken.None);
+        }
 
         // assert
         new
@@ -183,10 +194,10 @@ public class MessagePreparationTests(ITestOutputHelper output)
                   "first:before",
                   "middle:before",
                   "last:before",
+                  "stage",
                   "last:after",
                   "middle:after",
-                  "first:after",
-                  "stage"
+                  "first:after"
                 ]
                 """);
         }
@@ -224,23 +235,24 @@ public class MessagePreparationTests(ITestOutputHelper output)
     [InlineData("Scheduling", true)]
     [InlineData("Outbox", false)]
     [InlineData("Outbox", true)]
-    public async Task Configure_Should_RejectMissingAnchor_When_MiddlewareReferencesBuiltInStage(string key, bool before)
+    public async Task Configure_Should_AcceptAnchor_When_MiddlewareReferencesBuiltInStage(string key, bool before)
     {
         // arrange
         var middleware = new DispatchMiddlewareConfiguration(static (_, next) => next, "ApplicationMiddleware");
 
         // act
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-        {
-            await using var provider = await CreateProviderAsync(outbox: true, builder =>
-                builder.ConfigureMessageBus(bus => bus.UseDispatch(
-                    middleware,
-                    before: before ? key : null,
-                    after: before ? null : key)));
-        });
+        await using var provider = await CreateProviderAsync(outbox: true, builder =>
+            builder.ConfigureMessageBus(bus => bus.UseDispatch(
+                middleware,
+                before: before ? key : null,
+                after: before ? null : key)));
+        using var scope = provider.CreateScope();
+        await scope.ServiceProvider.GetRequiredService<IMessageBus>()
+            .PublishAsync(new TargetMessage("anchored"), CancellationToken.None);
 
         // assert
-        Assert.Equal($"Middleware with key {key} not found", exception.Message);
+        var envelope = Assert.Single(provider.GetRequiredService<CapturingOutbox>().Envelopes);
+        Assert.Equal("anchored", Deserialize(envelope).Value);
     }
 
     [Theory]
@@ -361,7 +373,7 @@ public class MessagePreparationTests(ITestOutputHelper output)
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task PrepareAsync_Should_SerializeFinalState_When_MiddlewareChangesMessageAfterNext(bool send)
+    public async Task PrepareAsync_Should_SerializeAtStore_When_MiddlewareChangesMessageAfterNext(bool send)
     {
         // arrange
         var time = new DateTimeOffset(2030, 1, 1, 0, 0, 0, TimeSpan.Zero);
@@ -370,6 +382,7 @@ public class MessagePreparationTests(ITestOutputHelper output)
                 new DispatchMiddlewareConfiguration(
                     (_, next) => async context =>
                     {
+                        context.CorrelationId = "initial-correlation";
                         await next(context);
                         context.Message = new TargetMessage("after-next");
                         context.CorrelationId = "final-correlation";
@@ -397,11 +410,11 @@ public class MessagePreparationTests(ITestOutputHelper output)
         }.MatchInlineSnapshot(
             """
             {
-              "Message": "after-next",
-              "CorrelationId": "final-correlation",
-              "SentAt": "2030-01-01T00:00:00+00:00",
-              "DeliverBy": "2030-01-01T00:05:00+00:00",
-              "Header": "after-next",
+              "Message": "before-next",
+              "CorrelationId": "initial-correlation",
+              "SentAt": null,
+              "DeliverBy": null,
+              "Header": null,
               "DefaultOutboxMessages": 0,
               "TransportCalls": 0
             }
@@ -451,7 +464,7 @@ public class MessagePreparationTests(ITestOutputHelper output)
         new
         {
             Error = exception.Message,
-            CallbackCalled = callbackCalled,
+            CallbackMatchedBoundary = callbackCalled == afterNext,
             Persisted = provider.GetRequiredService<CapturingOutbox>().Envelopes.Select(envelope => Deserialize(envelope).Value),
             pool.ContextCount,
             pool.ReturnCount
@@ -459,12 +472,82 @@ public class MessagePreparationTests(ITestOutputHelper output)
             """
             {
               "Error": "preparation failed",
-              "CallbackCalled": false,
+              "CallbackMatchedBoundary": true,
               "Persisted": [
                 "ordinary"
               ],
               "ContextCount": 1,
               "ReturnCount": 2
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task DispatchAsync_Should_ReportPersistenceFailure_When_ExplicitStoreThrows()
+    {
+        // arrange
+        var diagnostics = new RecordingDiagnostics();
+        await using var provider = await CreateProviderAsync(outbox: true, builder =>
+            builder.Services.AddSingleton<IMessagingDiagnosticEventListener>(diagnostics));
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await PrepareAsync(bus, new TargetMessage("failed"), send: false,
+                static (_, _) => throw new InvalidOperationException("Persistence failed.")));
+
+        // assert
+        Assert.Equal("Persistence failed.", exception.Message);
+        diagnostics.Events.MatchInlineSnapshot(
+            """
+            [
+              "begin",
+              "error",
+              "end"
+            ]
+            """);
+    }
+
+    [Fact]
+    public async Task Complete_Should_CreateMiddlewareOnce_When_MultipleDispatchTargetsAreUsed()
+    {
+        // arrange
+        var factories = new Dictionary<DispatchEndpoint, int>();
+        var calls = 0;
+        await using var provider = await CreateProviderAsync(outbox: true, builder =>
+            builder.ConfigureMessageBus(bus => bus.UseDispatch(new DispatchMiddlewareConfiguration(
+                (factory, next) =>
+                {
+                    factories[factory.Endpoint] = factories.GetValueOrDefault(factory.Endpoint) + 1;
+                    return context =>
+                    {
+                        calls++;
+                        return next(context);
+                    };
+                },
+                "CountFactories"))));
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        await bus.PublishAsync(new TargetMessage("ordinary"), CancellationToken.None);
+        var stored = await CaptureAsync(bus, new TargetMessage("explicit"), send: false);
+
+        // assert
+        new
+        {
+            FactoryCallsPerEndpoint = factories.Values.Distinct().Order().ToArray(),
+            DispatchCalls = calls,
+            Stored = Deserialize(stored).Value
+        }.MatchInlineSnapshot(
+            """
+            {
+              "FactoryCallsPerEndpoint": [
+                1
+              ],
+              "DispatchCalls": 2,
+              "Stored": "explicit"
             }
             """);
     }
@@ -560,10 +643,11 @@ public class MessagePreparationTests(ITestOutputHelper output)
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task PrepareAsync_Should_RejectShortCircuit_When_MiddlewareDoesNotComplete(bool send)
+    public async Task PrepareAsync_Should_SkipStore_When_MiddlewareShortCircuits(bool send)
     {
         // arrange
         var pool = new TrackingContextPool();
+        var persisted = false;
         await using var provider = await CreateProviderAsync(outbox: true, builder =>
         {
             builder.Services.AddSingleton<ObjectPool<DispatchContext>>(pool);
@@ -574,13 +658,42 @@ public class MessagePreparationTests(ITestOutputHelper output)
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            await PrepareAsync(bus, new TargetMessage("incomplete"), send, static (_, _) => { }));
+        await PrepareAsync(bus, new TargetMessage("incomplete"), send, (_, _) => persisted = true);
 
         // assert
-        Assert.Equal("The message preparation pipeline must complete before a message can be staged.", exception.Message);
+        Assert.False(persisted);
         Assert.Empty(provider.GetRequiredService<CapturingOutbox>().Envelopes);
+        Assert.Equal(0, provider.GetRequiredService<TransportCounter>().Calls);
         Assert.Equal(1, pool.ReturnCount);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PublishAsync_Should_Complete_When_MiddlewareCancelsAfterDispatch(bool outbox)
+    {
+        // arrange
+        using var cancellation = new CancellationTokenSource();
+        await using var provider = await CreateProviderAsync(outbox, builder =>
+            builder.ConfigureMessageBus(bus => bus.UseDispatch(new DispatchMiddlewareConfiguration(
+                (_, next) => async context =>
+                {
+                    await next(context);
+                    cancellation.Cancel();
+                },
+                "CancelAfterDispatch"))));
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        await bus.PublishAsync(new TargetMessage("dispatched"), cancellation.Token);
+
+        // assert
+        var envelopes = outbox
+            ? provider.GetRequiredService<CapturingOutbox>().Envelopes
+            : provider.GetRequiredService<TransportCounter>().Envelopes;
+        Assert.Equal("dispatched", Deserialize(Assert.Single(envelopes)).Value);
+        Assert.True(cancellation.IsCancellationRequested);
     }
 
     [Theory]
@@ -619,17 +732,17 @@ public class MessagePreparationTests(ITestOutputHelper output)
         await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
         {
             await (send
-                ? bus.PrepareSendAsync(new TargetMessage("cancelled"), SendOptions.Default,
-                    (_, _) => callbackCalled = true, cancellation.Token)
-                : bus.PreparePublishAsync(new TargetMessage("cancelled"), PublishOptions.Default,
-                    (_, _) => callbackCalled = true, cancellation.Token));
+                ? bus.SendAsync(new TargetMessage("cancelled"), SendOptions.Default,
+                    new CallbackMessageStore((_, _) => callbackCalled = true), cancellation.Token)
+                : bus.PublishAsync(new TargetMessage("cancelled"), PublishOptions.Default,
+                    new CallbackMessageStore((_, _) => callbackCalled = true), cancellation.Token));
         });
 
         // assert
         Assert.Equal(afterNext, entered);
-        Assert.False(callbackCalled);
+        Assert.Equal(afterNext, callbackCalled);
         Assert.Empty(provider.GetRequiredService<CapturingOutbox>().Envelopes);
-        Assert.Equal(1, pool.ReturnCount);
+        Assert.Equal(afterNext ? 1 : 0, pool.ReturnCount);
     }
 
     [Theory]
@@ -637,13 +750,16 @@ public class MessagePreparationTests(ITestOutputHelper output)
     [InlineData(false, true)]
     [InlineData(true, false)]
     [InlineData(true, true)]
-    public async Task PrepareAsync_Should_RejectScheduledMessage_When_TimeIsSpecified(bool send, bool scheduledByMiddleware)
+    public async Task PrepareAsync_Should_UseExplicitStore_When_TimeIsSpecified(bool send, bool scheduledByMiddleware)
     {
         // arrange
         var store = new CapturingScheduledMessageStore();
         var scheduledTime = new DateTimeOffset(2030, 1, 1, 0, 0, 0, TimeSpan.Zero);
+        MessageEnvelope? captured = null;
+        var target = new CallbackMessageStore((envelope, _) => captured = MessageEnvelope.CopyWithOwnedBody(envelope));
         await using var provider = await CreateProviderAsync(outbox: true, builder =>
         {
+            builder.Services.RemoveAll<ScheduledMessageStoreRegistration>();
             builder.Services.AddSingleton(store);
             builder.Services.AddSingleton(new ScheduledMessageStoreRegistration(
                 typeof(InMemoryMessagingTransport), "test:", typeof(CapturingScheduledMessageStore)));
@@ -651,10 +767,10 @@ public class MessagePreparationTests(ITestOutputHelper output)
             {
                 builder.ConfigureMessageBus(b => b.UseDispatch(
                     new DispatchMiddlewareConfiguration(
-                        (_, next) => async context =>
+                        (_, next) => context =>
                         {
-                            await next(context);
                             context.ScheduledTime = scheduledTime;
+                            return next(context);
                         },
                         "ScheduleMessage")));
             }
@@ -664,19 +780,145 @@ public class MessagePreparationTests(ITestOutputHelper output)
         DateTimeOffset? optionsScheduledTime = scheduledByMiddleware ? null : scheduledTime;
 
         // act
-        var exception = await Assert.ThrowsAsync<NotSupportedException>(async () =>
-        {
-            await (send
-                ? dispatcher.PrepareSendAsync(new TargetMessage("scheduled"),
-                    new SendOptions { ScheduledTime = optionsScheduledTime }, static (_, _) => { }, CancellationToken.None)
-                : dispatcher.PreparePublishAsync(new TargetMessage("scheduled"),
-                    new PublishOptions { ScheduledTime = optionsScheduledTime }, static (_, _) => { }, CancellationToken.None));
-        });
+        await (send
+            ? dispatcher.SendAsync(new TargetMessage("scheduled"),
+                new SendOptions { ScheduledTime = optionsScheduledTime }, target, CancellationToken.None)
+            : dispatcher.PublishAsync(new TargetMessage("scheduled"),
+                new PublishOptions { ScheduledTime = optionsScheduledTime }, target, CancellationToken.None));
 
         // assert
-        Assert.Equal("Scheduled messages cannot be prepared for an outbox.", exception.Message);
+        Assert.Equal(scheduledTime, captured!.ScheduledTime);
+        Assert.Equal("scheduled", Deserialize(captured).Value);
         Assert.Empty(store.Envelopes);
         Assert.Empty(provider.GetRequiredService<CapturingOutbox>().Envelopes);
+        Assert.Equal(0, provider.GetRequiredService<TransportCounter>().Calls);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PrepareAsync_Should_PreserveScheduledTime_When_MiddlewareChangesTimeAfterNext(bool send)
+    {
+        // arrange
+        var time = new DateTimeOffset(2030, 1, 1, 0, 0, 0, TimeSpan.Zero);
+        await using var provider = await CreateProviderAsync(outbox: true, builder =>
+            builder.ConfigureMessageBus(bus => bus.UseDispatch(new DispatchMiddlewareConfiguration(
+                (_, next) => async context =>
+                {
+                    await next(context);
+                    context.ScheduledTime = time.AddDays(1);
+                },
+                "ChangeScheduleAfterNext"))));
+        using var scope = provider.CreateScope();
+        var dispatcher = (IMessageDispatcher)scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        MessageEnvelope? captured = null;
+        var store = new CallbackMessageStore((envelope, _) => captured = MessageEnvelope.CopyWithOwnedBody(envelope));
+
+        // act
+        await (send
+            ? dispatcher.SendAsync(new TargetMessage("scheduled"),
+                new SendOptions { ScheduledTime = time }, store, CancellationToken.None)
+            : dispatcher.PublishAsync(new TargetMessage("scheduled"),
+                new PublishOptions { ScheduledTime = time }, store, CancellationToken.None));
+
+        // assert
+        new
+        {
+            Message = Deserialize(captured!).Value,
+            captured!.ScheduledTime,
+            captured.SentAt,
+            OutboxMessages = provider.GetRequiredService<CapturingOutbox>().Envelopes.Count,
+            TransportCalls = provider.GetRequiredService<TransportCounter>().Calls
+        }.MatchInlineSnapshot(
+            """
+            {
+              "Message": "scheduled",
+              "ScheduledTime": "2030-01-01T00:00:00+00:00",
+              "SentAt": null,
+              "OutboxMessages": 0,
+              "TransportCalls": 0
+            }
+            """);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PrepareAsync_Should_RejectBeforeStaging_When_NoSchedulerMatchesTransport(bool send)
+    {
+        // arrange
+        var time = new DateTimeOffset(2030, 1, 1, 0, 0, 0, TimeSpan.Zero);
+        await using var provider = await CreateProviderAsync(outbox: true,
+            builder => builder.Services.RemoveAll<ScheduledMessageStoreRegistration>());
+        using var scope = provider.CreateScope();
+        var dispatcher = (IMessageDispatcher)scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var staged = false;
+        var store = new CallbackMessageStore((_, _) => staged = true);
+
+        // act
+        await Assert.ThrowsAsync<NotSupportedException>(async () => await (send
+            ? dispatcher.SendAsync(new TargetMessage("scheduled"),
+                new SendOptions { ScheduledTime = time }, store, CancellationToken.None)
+            : dispatcher.PublishAsync(new TargetMessage("scheduled"),
+                new PublishOptions { ScheduledTime = time }, store, CancellationToken.None)));
+
+        // assert
+        Assert.False(staged);
+        Assert.Empty(provider.GetRequiredService<CapturingOutbox>().Envelopes);
+        Assert.Equal(0, provider.GetRequiredService<TransportCounter>().Calls);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ScheduleAsync_Should_ReturnPersistedTime_When_MiddlewareChangesTimeAfterNext(bool send)
+    {
+        // arrange
+        var time = new DateTimeOffset(2030, 1, 1, 0, 0, 0, TimeSpan.Zero);
+        var store = new CapturingScheduledMessageStore();
+        await using var provider = await CreateProviderAsync(outbox: true, builder =>
+        {
+            builder.Services.RemoveAll<ScheduledMessageStoreRegistration>();
+            builder.Services.AddSingleton(store);
+            builder.Services.AddSingleton(new ScheduledMessageStoreRegistration(
+                typeof(InMemoryMessagingTransport), "test:", typeof(CapturingScheduledMessageStore)));
+            builder.ConfigureMessageBus(bus => bus.UseDispatch(new DispatchMiddlewareConfiguration(
+                (_, next) => async context =>
+                {
+                    await next(context);
+                    context.ScheduledTime = time.AddDays(1);
+                },
+                "ChangeScheduleAfterNext")));
+        });
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        var result = await (send
+            ? bus.ScheduleSendAsync(new TargetMessage("scheduled"), time, CancellationToken.None)
+            : bus.SchedulePublishAsync(new TargetMessage("scheduled"), time, CancellationToken.None));
+
+        // assert
+        var envelope = Assert.Single(store.Envelopes);
+        new
+        {
+            result,
+            envelope.ScheduledTime,
+            Message = Deserialize(envelope).Value
+        }.MatchInlineSnapshot(
+            """
+            {
+              "result": {
+                "Token": "test:scheduled",
+                "ScheduledTime": "2030-01-01T00:00:00+00:00",
+                "IsCancellable": true
+              },
+              "ScheduledTime": "2030-01-01T00:00:00+00:00",
+              "Message": "scheduled"
+            }
+            """);
+        Assert.Empty(provider.GetRequiredService<CapturingOutbox>().Envelopes);
+        Assert.Equal(0, provider.GetRequiredService<TransportCounter>().Calls);
     }
 
     [Fact]
@@ -768,7 +1010,8 @@ public class MessagePreparationTests(ITestOutputHelper output)
     {
         if (prepare)
         {
-            PrepareAsync(bus, message, send: false, static (_, _) => { }).GetAwaiter().GetResult();
+            ((IMessageDispatcher)bus).PublishAsync(message, PublishOptions.Default, s_noopStore, CancellationToken.None)
+                .GetAwaiter().GetResult();
         }
         else
         {
@@ -789,8 +1032,8 @@ public class MessagePreparationTests(ITestOutputHelper output)
         bool send,
         Action<MessageEnvelope, CancellationToken> onPrepared)
         => send
-            ? ((IMessageDispatcher)bus).PrepareSendAsync(message, SendOptions.Default, onPrepared, CancellationToken.None)
-            : ((IMessageDispatcher)bus).PreparePublishAsync(message, PublishOptions.Default, onPrepared, CancellationToken.None);
+            ? ((IMessageDispatcher)bus).SendAsync(message, SendOptions.Default, new CallbackMessageStore(onPrepared), CancellationToken.None)
+            : ((IMessageDispatcher)bus).PublishAsync(message, PublishOptions.Default, new CallbackMessageStore(onPrepared), CancellationToken.None);
 
     private static TargetMessage Deserialize(MessageEnvelope envelope)
         => JsonSerializer.Deserialize<TargetMessage>(envelope.Body.Span, JsonSerializerOptions.Web)!;
@@ -868,6 +1111,17 @@ public class MessagePreparationTests(ITestOutputHelper output)
                 counter.Envelopes.Add(MessageEnvelope.CopyWithOwnedBody(context.Envelope!));
             }
 
+            return default;
+        }
+    }
+
+    private static readonly CallbackMessageStore s_noopStore = new(static (_, _) => { });
+
+    private sealed class CallbackMessageStore(Action<MessageEnvelope, CancellationToken> callback) : IDispatchMessageStore
+    {
+        public ValueTask PersistAsync(IDispatchContext context)
+        {
+            callback(context.Envelope!, context.CancellationToken);
             return default;
         }
     }

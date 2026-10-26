@@ -1,29 +1,27 @@
 namespace Mocha.Middlewares;
 
 /// <summary>
-/// Prepares outgoing messages through the messaging pipeline without delivering them.
+/// Dispatches outgoing messages through the messaging pipeline to a supplied store.
 /// </summary>
 internal interface IMessageDispatcher
 {
     /// <summary>
-    /// Prepares a publication using the caller's messaging scope.
-    /// The envelope is valid only during the callback.
+    /// Publishes a message to the supplied store using the caller's messaging scope.
     /// </summary>
-    ValueTask PreparePublishAsync<T>(
+    ValueTask PublishAsync<T>(
         T message,
         PublishOptions options,
-        Action<MessageEnvelope, CancellationToken> onPrepared,
+        IDispatchMessageStore store,
         CancellationToken cancellationToken)
         where T : notnull;
 
     /// <summary>
-    /// Prepares a directed message using the caller's messaging scope.
-    /// The envelope is valid only during the callback.
+    /// Sends a message to the supplied store using the caller's messaging scope.
     /// </summary>
-    ValueTask PrepareSendAsync<T>(
+    ValueTask SendAsync<T>(
         T message,
         SendOptions options,
-        Action<MessageEnvelope, CancellationToken> onPrepared,
+        IDispatchMessageStore store,
         CancellationToken cancellationToken)
         where T : notnull;
 }

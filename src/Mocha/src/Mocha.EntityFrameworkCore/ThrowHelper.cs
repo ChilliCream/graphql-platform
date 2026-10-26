@@ -24,7 +24,4 @@ internal static partial class ThrowHelper
     public static InvalidOperationException ConcurrentOutboxOperation()
         => new("A message is already being prepared for this DbContext. "
             + "Await the operation before publishing another message or saving changes.");
-
-    public static ArgumentException ScheduledOutboxMessage(string parameterName)
-        => new("DbContext.Outbox does not support scheduled messages.", parameterName);
 }

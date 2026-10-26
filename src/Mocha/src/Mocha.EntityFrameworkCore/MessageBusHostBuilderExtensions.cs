@@ -1,10 +1,8 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using System.Runtime.ExceptionServices;
 
 namespace Mocha.EntityFrameworkCore;
 
@@ -40,10 +38,6 @@ public static class MessageBusHostBuilderExtensions
 
         builder.Services.AttachOutboxDbContext<TContext>();
 
-        builder.Services.TryAddKeyedScoped<DbContextAccessor>(
-            typeof(TContext),
-            static (services, _) => DbContextAccessor.Create<TContext>(services));
-
         builder
             .Services.AddOptions<MessagingDbContextOptions>(persistenceBuilder.Name)
             .Configure<IServiceProvider>((options, serviceProvider) => options.ServiceProvider = serviceProvider);
@@ -55,102 +49,4 @@ public static class MessageBusHostBuilderExtensions
 
         return builder;
     }
-}
-
-/// <summary>
-/// Provides extension methods on <see cref="IEntityFrameworkCoreBuilder"/> for configuring
-/// resilience and transaction middleware for Entity Framework Core consumers.
-/// </summary>
-public static class EntityFrameworkCoreBuilderExtensions
-{
-    /// <summary>
-    /// Wraps consumer execution with the DbContext execution strategy, enabling automatic retry
-    /// for transient database failures such as connection drops or deadlocks.
-    /// </summary>
-    /// <param name="builder">The Entity Framework Core builder to configure.</param>
-    /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
-    public static IEntityFrameworkCoreBuilder UseResilience(this IEntityFrameworkCoreBuilder builder)
-    {
-        builder.HostBuilder.ConfigureMessageBus(x =>
-            x.ConfigureFeature(f =>
-                f.Set(new ConsumerExecutionStrategyFeature
-                {
-                    Strategy = new EntityFrameworkConsumerExecutionStrategy(builder.ContextType)
-                })));
-
-        return builder;
-    }
-
-    /// <summary>
-    /// Wraps each consumer invocation in a database transaction, committing on success
-    /// and rolling back on failure.
-    /// </summary>
-    /// <param name="builder">The Entity Framework Core builder to configure.</param>
-    /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
-    public static IEntityFrameworkCoreBuilder UseTransaction(this IEntityFrameworkCoreBuilder builder)
-    {
-        builder.HostBuilder.ConfigureMessageBus(x =>
-            x.UseConsume(EntityFrameworkTransactionConsumeMiddleware.Create(builder.ContextType))
-        );
-        return builder;
-    }
-}
-
-internal sealed class EntityFrameworkConsumerExecutionStrategy(Type contextType) : IConsumerExecutionStrategy
-{
-    public async ValueTask ExecuteAsync(IConsumeContext context, Func<CancellationToken, ValueTask> executeAttempt)
-    {
-        await using var scope = context.Services.CreateAsyncScope();
-        var dbContext = scope.ServiceProvider.GetRequiredKeyedService<DbContextAccessor>(contextType).Context;
-        var strategy = dbContext.Database.CreateExecutionStrategy();
-
-        if (!strategy.RetriesOnFailure)
-        {
-            await executeAttempt(context.CancellationToken);
-            return;
-        }
-
-        try
-        {
-            await strategy.ExecuteAsync(
-                executeAttemptToken => executeAttempt(executeAttemptToken).AsTask(),
-                context.CancellationToken);
-        }
-        catch (RetryLimitExceededException exception) when (exception.InnerException is not null)
-        {
-            ExceptionDispatchInfo.Capture(exception.InnerException).Throw();
-            throw;
-        }
-    }
-}
-
-internal sealed class EntityFrameworkTransactionConsumeMiddleware(Type contextType)
-{
-    public async ValueTask InvokeAsync(IConsumeContext context, ConsumerDelegate next)
-    {
-        var dbContext = context.Services.GetRequiredKeyedService<DbContextAccessor>(contextType).Context;
-
-        await using var transaction = await dbContext.Database.BeginTransactionAsync(context.CancellationToken);
-
-        try
-        {
-            await next(context);
-
-            await transaction.CommitAsync(context.CancellationToken);
-        }
-        catch (Exception)
-        {
-            await transaction.RollbackAsync(context.CancellationToken);
-            throw;
-        }
-    }
-
-    public static ConsumerMiddlewareConfiguration Create(Type contextType)
-        => new(
-            (_, next) =>
-            {
-                var middleware = new EntityFrameworkTransactionConsumeMiddleware(contextType);
-                return ctx => middleware.InvokeAsync(ctx, next);
-            },
-            "EntityFrameworkTransaction");
 }

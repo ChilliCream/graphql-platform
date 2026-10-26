@@ -136,15 +136,15 @@ public class OutboxIntegrationTests
         var dispatcher = (IMessageDispatcher)bus;
         MessageEnvelope first = null!;
         MessageEnvelope second = null!;
-        await dispatcher.PreparePublishAsync(
+        await dispatcher.PublishAsync(
             new OutboxBatchInputEvent { Payload = "batch-1" },
             PublishOptions.Default,
-            (envelope, _) => first = MessageEnvelope.CopyWithOwnedBody(envelope),
+            new CapturingMessageStore(envelope => first = MessageEnvelope.CopyWithOwnedBody(envelope)),
             CancellationToken.None);
-        await dispatcher.PreparePublishAsync(
+        await dispatcher.PublishAsync(
             new OutboxBatchInputEvent { Payload = "batch-2" },
             PublishOptions.Default,
-            (envelope, _) => second = MessageEnvelope.CopyWithOwnedBody(envelope),
+            new CapturingMessageStore(envelope => second = MessageEnvelope.CopyWithOwnedBody(envelope)),
             CancellationToken.None);
 
         // act
@@ -159,6 +159,15 @@ public class OutboxIntegrationTests
         Assert.NotNull(recorder.BatchId);
         Assert.Equal(2, recorder.BatchCount);
         Assert.Equal(recorder.BatchId, envelope.CausationId);
+    }
+
+    private sealed class CapturingMessageStore(Action<MessageEnvelope> callback) : IDispatchMessageStore
+    {
+        public ValueTask PersistAsync(IDispatchContext context)
+        {
+            callback(context.Envelope!);
+            return default;
+        }
     }
 
     private static async ValueTask DeliverAsync(IServiceProvider services, MessageEnvelope envelope)

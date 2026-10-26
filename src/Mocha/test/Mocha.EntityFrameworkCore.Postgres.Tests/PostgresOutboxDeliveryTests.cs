@@ -3,9 +3,11 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
 using Mocha.Middlewares;
 using Mocha.Outbox;
+using Mocha.Scheduling;
 using Mocha.Transport.InMemory;
 using Npgsql;
 
@@ -26,7 +28,7 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
         // arrange
         var connectionString = await fixture.CreateDatabaseAsync();
         var recorder = new DeliveryRecorder { FailFirstDelivery = retry };
-        await using var provider = await CreateProviderAsync(connectionString, recorder);
+        await using var provider = await CreateProviderAsync(connectionString, recorder, scheduling: true);
         MessageEnvelope stored;
         int preparationAtInvocation;
         await using (var scope = provider.CreateAsyncScope())
@@ -53,8 +55,8 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
             Encoding.UTF8.GetString(stored.Body.Span));
         Assert.Equal(Enumerable.Repeat(expected, retry ? 2 : 1), recorder.Attempts);
         Assert.Equal((1, 1, 1), (preparationAtInvocation, recorder.PreparationCount, recorder.DispatchCount));
-        Assert.Equal("after-next", delivered.Value);
-        Assert.Equal("after-next", JsonSerializer.Deserialize<PreparedEvent>(stored.Body.Span)!.Value);
+        Assert.Equal("prepared", delivered.Value);
+        Assert.Equal("prepared", JsonSerializer.Deserialize<PreparedEvent>(stored.Body.Span)!.Value);
     }
 
     [Fact]
@@ -63,7 +65,7 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
         // arrange
         var connectionString = await fixture.CreateDatabaseAsync();
         var recorder = new DeliveryRecorder();
-        await using var provider = await CreateProviderAsync(connectionString, recorder);
+        await using var provider = await CreateProviderAsync(connectionString, recorder, scheduling: true);
         var runtime = provider.GetRequiredService<IMessagingRuntime>();
         var type = runtime.GetMessageType(typeof(PreparedEvent));
         var endpoint = runtime.GetPublishEndpoint(type);
@@ -94,12 +96,46 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
     }
 
     [Fact]
+    public async Task ProcessAsync_Should_DeliverDirectly_When_ScheduledTimeBelongsToPreviousDelivery()
+    {
+        // arrange
+        var connectionString = await fixture.CreateDatabaseAsync();
+        var recorder = new DeliveryRecorder();
+        await using var provider = await CreateProviderAsync(connectionString, recorder, scheduling: false);
+        var runtime = provider.GetRequiredService<IMessagingRuntime>();
+        var type = runtime.GetMessageType(typeof(PreparedEvent));
+        var endpoint = runtime.GetPublishEndpoint(type);
+        var sentAt = new DateTimeOffset(2020, 1, 1, 12, 0, 0, TimeSpan.Zero);
+        await MessageRows.InsertOutboxAsync(connectionString, new MessageEnvelope
+        {
+            MessageId = "previously-scheduled",
+            MessageType = type.Identity,
+            ContentType = MessageContentType.Json.Value,
+            DestinationAddress = endpoint.Address.ToString(),
+            SentAt = sentAt,
+            ScheduledTime = sentAt.AddMinutes(-1),
+            Body = JsonSerializer.SerializeToUtf8Bytes(new PreparedEvent { Value = "replayed" })
+        }, TestToken);
+
+        // act
+        await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
+        var delivered = await recorder.Delivered.Task.WaitAsync(s_timeout, TestToken);
+        await WaitForEmptyOutboxAsync(connectionString);
+
+        // assert
+        var attempt = Assert.Single(recorder.Attempts);
+        Assert.Equal(sentAt, attempt.SentAt);
+        Assert.Equal("replayed", delivered.Value);
+        Assert.Equal((0, 0), (recorder.PreparationCount, recorder.DispatchCount));
+    }
+
+    [Fact]
     public async Task OutboxPublishAsync_Should_ReportPreparationFailure_When_SerializationFails()
     {
         // arrange
         var connectionString = await fixture.CreateDatabaseAsync();
         var recorder = new DeliveryRecorder { FailSerialization = true };
-        await using var provider = await CreateProviderAsync(connectionString, recorder);
+        await using var provider = await CreateProviderAsync(connectionString, recorder, scheduling: true);
         await using var scope = provider.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
 
@@ -117,7 +153,8 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
 
     private static async Task<ServiceProvider> CreateProviderAsync(
         string connectionString,
-        DeliveryRecorder recorder)
+        DeliveryRecorder recorder,
+        bool scheduling)
     {
         var services = new ServiceCollection();
         services.AddSingleton(recorder);
@@ -128,12 +165,16 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
         builder.AddEntityFramework<TestDbContext>(options => options.UsePostgresOutbox());
         builder.AddEventHandler<PreparedEventHandler>();
         builder.AddInMemory();
+        if (!scheduling)
+        {
+            services.RemoveAll<ScheduledMessageStoreRegistration>();
+        }
+
         builder.ConfigureMessageBus(bus => bus.UseDispatch(new DispatchMiddlewareConfiguration(
             (_, next) => async context =>
             {
                 recorder.PreparationCount++;
-                await next(context);
-                ((PreparedEvent)context.Message!).Value = "after-next";
+                ((PreparedEvent)context.Message!).Value = "prepared";
                 context.MessageId = "stable-message";
                 context.CorrelationId = "stable-correlation";
                 context.ConversationId = "stable-conversation";
@@ -148,6 +189,8 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
                 {
                     context.ContentType = new MessageContentType("application/unsupported");
                 }
+
+                await next(context);
             },
             "PrepareOriginalMessage")));
 

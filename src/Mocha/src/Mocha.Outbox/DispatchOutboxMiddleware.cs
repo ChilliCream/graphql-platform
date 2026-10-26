@@ -21,6 +21,13 @@ public sealed class DispatchOutboxMiddleware
     /// <returns>A value task that completes when the message has been persisted or forwarded.</returns>
     public async ValueTask InvokeAsync(IDispatchContext context, DispatchDelegate next)
     {
+        if (context is DispatchContext { MessageStore: { } store })
+        {
+            DispatchSerializerMiddleware.Serialize(context);
+            await store.PersistAsync(context);
+            return;
+        }
+
         var messageKind = context.Headers.Get(MessageHeaders.MessageKind);
         if (messageKind is not MessageKind.Publish
             and not MessageKind.Send
@@ -32,10 +39,20 @@ public sealed class DispatchOutboxMiddleware
         else
         {
             var outbox = context.Services.GetRequiredService<IMessageOutbox>();
-            if (context.Envelope is not null)
-            {
-                await outbox.PersistAsync(context.Envelope, context.CancellationToken);
-            }
+            DispatchSerializerMiddleware.Serialize(context);
+            await outbox.PersistAsync(context.Envelope!, context.CancellationToken);
         }
     }
+
+    /// <summary>
+    /// Creates the outbox middleware configuration.
+    /// </summary>
+    public static DispatchMiddlewareConfiguration Create()
+        => new(
+            static (_, next) =>
+            {
+                var middleware = new DispatchOutboxMiddleware();
+                return context => middleware.InvokeAsync(context, next);
+            },
+            "Outbox");
 }

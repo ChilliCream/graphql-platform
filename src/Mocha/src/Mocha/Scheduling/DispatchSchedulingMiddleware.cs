@@ -5,12 +5,12 @@ using Mocha.Middlewares;
 namespace Mocha.Scheduling;
 
 /// <summary>
-/// Dispatch middleware that intercepts outgoing messages with a scheduled time and persists them
-/// to the scheduled message store instead of forwarding them to the next pipeline stage.
+/// Dispatch middleware that persists outgoing messages with a scheduled time and
+/// short-circuits the dispatch pipeline.
 /// </summary>
 /// <remarks>
 /// Messages without a <see cref="IDispatchContext.ScheduledTime"/> pass through to the next middleware.
-/// Scheduled messages are routed to the registered store for the current transport.
+/// Scheduled messages use the registered store for the current transport or an explicit outbox store.
 /// </remarks>
 public sealed class DispatchSchedulingMiddleware
 {
@@ -23,33 +23,45 @@ public sealed class DispatchSchedulingMiddleware
     /// <returns>A value task that completes when the message has been persisted or forwarded.</returns>
     public async ValueTask InvokeAsync(IDispatchContext context, DispatchDelegate next)
     {
-        if (context.ScheduledTime is not { } scheduledTime)
+        var store = (context as DispatchContext)?.MessageStore;
+        var requestedTime = context.ScheduledTime ?? (store is not null ? context.Envelope?.ScheduledTime : null);
+        if (requestedTime is not { } scheduledTime)
         {
             await next(context);
             return;
         }
 
-        if (context.Envelope is null)
-        {
-            await next(context);
-            return;
-        }
+        context.ScheduledTime = scheduledTime;
+        DispatchSerializerMiddleware.Serialize(context);
 
-        if (context.Envelope.ScheduledTime != scheduledTime)
+        if (context.Envelope!.ScheduledTime != scheduledTime)
         {
             context.Envelope = context.Envelope.WithScheduledTime(scheduledTime);
         }
 
+        var scheduledStore = ResolveStore(context);
+
+        if (store is not null)
+        {
+            await store.PersistAsync(context);
+            return;
+        }
+
+        var token = await scheduledStore.PersistAsync(context, context.CancellationToken);
+
+        context.Features.Configure<ScheduledMessageFeature>(f => f.Token = token);
+    }
+
+    internal static IScheduledMessageStore ResolveStore(IDispatchContext context)
+    {
         var resolver = context.Services.GetRequiredService<ScheduledMessageStoreResolver>();
 
-        if (!resolver.TryResolve(context, out var store))
+        if (!resolver.TryResolve(context, out var scheduledStore))
         {
             throw ThrowHelper.ScheduledDispatchUnsupported(context.Transport.GetType());
         }
 
-        var token = await store.PersistAsync(context, context.CancellationToken);
-
-        context.Features.Configure<ScheduledMessageFeature>(f => f.Token = token);
+        return scheduledStore;
     }
 
     internal static DispatchDelegate Create(DispatchDelegate next)

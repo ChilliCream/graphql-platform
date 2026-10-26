@@ -64,7 +64,7 @@ public static class OutboxServiceCollectionExtensions
             .Configure<IServiceProvider>((options, sp) =>
             {
                 using var scope = sp.CreateScope();
-                var dbContext = scope.ServiceProvider.GetRequiredKeyedService<DbContextAccessor>(contextType).Context;
+                var dbContext = (DbContext)scope.ServiceProvider.GetRequiredService(contextType);
                 var model = dbContext.Model;
 
                 ConfigureOutboxTableInfo(options.Outbox, model);
@@ -76,7 +76,7 @@ public static class OutboxServiceCollectionExtensions
             {
                 options.CreateConnection = services =>
                 {
-                    var dbContext = services.GetRequiredKeyedService<DbContextAccessor>(contextType).Context;
+                    var dbContext = (DbContext)services.GetRequiredService(contextType);
                     return (NpgsqlConnection)((ICloneable)dbContext.Database.GetDbConnection()).Clone();
                 };
 
@@ -84,8 +84,7 @@ public static class OutboxServiceCollectionExtensions
                 options.Queries = PostgresMessageOutboxQueries.From(tableInfo.Outbox);
 
                 using var scope = provider.CreateScope();
-                var configuredContext = scope.ServiceProvider
-                    .GetRequiredKeyedService<DbContextAccessor>(contextType).Context;
+                var configuredContext = (DbContext)scope.ServiceProvider.GetRequiredService(contextType);
                 var configuredConnection = (NpgsqlConnection)configuredContext.Database.GetDbConnection();
                 var configuredSettings = new NpgsqlConnectionStringBuilder(configuredConnection.ConnectionString);
                 var host = configuredSettings.Host;
@@ -94,51 +93,23 @@ public static class OutboxServiceCollectionExtensions
                 var searchPath = configuredSettings.SearchPath;
                 var username = configuredSettings.Username;
                 var connectionOptions = configuredSettings.Options;
-                var configuredEntity = configuredContext.Model.FindEntityType(typeof(OutboxMessage));
-                var tableName = configuredEntity?.GetTableName();
-                var schema = configuredEntity?.GetSchema();
-                var columns = new (string Property, string Column)[]
-                {
-                    (nameof(OutboxMessage.Id), tableInfo.Outbox.Id),
-                    (nameof(OutboxMessage.Envelope), tableInfo.Outbox.Envelope),
-                    (nameof(OutboxMessage.TimesSent), tableInfo.Outbox.TimesSent),
-                    (nameof(OutboxMessage.CreatedAt), tableInfo.Outbox.CreatedAt)
-                };
+                var configuredModel = configuredContext.Model;
 
                 options.MatchesDestination = context =>
                 {
-                    if (context.Database.GetDbConnection() is not NpgsqlConnection connection)
+                    if (!ReferenceEquals(context.Model, configuredModel)
+                        || context.Database.GetDbConnection() is not NpgsqlConnection connection)
                     {
                         return false;
                     }
 
                     var settings = new NpgsqlConnectionStringBuilder(connection.ConnectionString);
-                    if (settings.Host != host
-                        || settings.Port != port
-                        || settings.Database != database
-                        || settings.SearchPath != searchPath
-                        || settings.Username != username
-                        || settings.Options != connectionOptions)
-                    {
-                        return false;
-                    }
-
-                    var entity = context.Model.FindEntityType(typeof(OutboxMessage));
-                    if (entity is null || entity.GetTableName() != tableName || entity.GetSchema() != schema
-                        || StoreObjectIdentifier.Create(entity, StoreObjectType.Table) is not { } table)
-                    {
-                        return false;
-                    }
-
-                    foreach (var (property, column) in columns)
-                    {
-                        if (entity.FindProperty(property)?.GetColumnName(table) != column)
-                        {
-                            return false;
-                        }
-                    }
-
-                    return true;
+                    return settings.Host == host
+                        && settings.Port == port
+                        && settings.Database == database
+                        && settings.SearchPath == searchPath
+                        && settings.Username == username
+                        && settings.Options == connectionOptions;
                 };
             });
 

@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.ObjectPool;
 using Mocha.Middlewares;
+using Mocha.Scheduling;
 using Npgsql;
 
 namespace Mocha.Outbox;
@@ -343,7 +344,15 @@ public sealed class PostgresOutboxProcessor
             context.InitializeFromEnvelope(
                 scope.ServiceProvider, endpoint, _runtime, messageType, envelope, cancellationToken);
 
-            await endpoint.DispatchInternalAsync(context);
+            if (envelope is { ScheduledTime: not null, SentAt: null })
+            {
+                var store = DispatchSchedulingMiddleware.ResolveStore(context);
+                await store.PersistAsync(context, cancellationToken);
+            }
+            else
+            {
+                await endpoint.DispatchInternalAsync(context);
+            }
         }
         finally
         {

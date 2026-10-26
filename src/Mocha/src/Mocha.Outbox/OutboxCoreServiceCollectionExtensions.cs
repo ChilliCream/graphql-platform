@@ -27,12 +27,8 @@ public static class OutboxCoreServiceCollectionExtensions
 
         builder.Services.AddSingleton<OutboxCoreRegistration>();
         builder.Services.TryAddSingleton<IOutboxSignal, MessageBusOutboxSignal>();
-        builder.ConfigureMessageBus(b => b.ConfigureFeature(features =>
-            features.Set(new DispatchFinalizationFeature(static (_, next) =>
-            {
-                var middleware = new DispatchOutboxMiddleware();
-                return context => middleware.InvokeAsync(context, next);
-            }))));
+        builder.ConfigureMessageBus(b => b.UseDispatch(
+            DispatchOutboxMiddleware.Create(), before: DispatchMiddlewares.Serialization.Key));
 
         return builder;
     }

@@ -45,6 +45,10 @@ internal sealed class PostgresDbContextOutboxProvider(
         _validatedOptions = options;
     }
 
+    public int CreateCheckpoint() => tracker.CreateCheckpoint();
+
+    public void Discard(DbContext context, int checkpoint) => tracker.Discard(context, checkpoint);
+
     public void Stage(DbContext context, MessageEnvelope envelope, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();

@@ -14,6 +14,10 @@ public class OutboxCallSiteTests
     [InlineData("db.Outbox.SendAsync<OutboundMessage>(new(), cancellationToken)")]
     [InlineData("db.Outbox.SendAsync(new OutboundMessage(), SendOptions.Default, cancellationToken)")]
     [InlineData("outbox.SendAsync<OutboundMessage>(new(), SendOptions.Default, cancellationToken)")]
+    [InlineData("db.Outbox.PublishAsync(new OutboundMessage(), new PublishOptions { ScheduledTime = System.DateTimeOffset.UtcNow }, cancellationToken)")]
+    [InlineData("db.Outbox.SendAsync(new OutboundMessage(), new SendOptions { ScheduledTime = System.DateTimeOffset.UtcNow }, cancellationToken)")]
+    [InlineData("outbox.PublishAsync<OutboundMessage>(new(), new PublishOptions { ScheduledTime = System.DateTimeOffset.UtcNow }, cancellationToken)")]
+    [InlineData("outbox.SendAsync<OutboundMessage>(new(), new SendOptions { ScheduledTime = System.DateTimeOffset.UtcNow }, cancellationToken)")]
     public void Generate_Should_RegisterOutboundMessage_When_OutboxDispatches(string expression)
     {
         // arrange
@@ -223,12 +227,12 @@ public class OutboxCallSiteTests
 
             public sealed class Dispatcher
             {
-                public ValueTask DispatchAsync(
+                public async ValueTask DispatchAsync(
                     DbContext db,
                     Mocha.EntityFrameworkCore.DbContextOutbox outbox,
                     DbContextOutbox unrelated,
                     CancellationToken cancellationToken)
-                    => {{expression}};
+                    => await {{expression}};
             }
 
             public sealed class DbContextOutbox

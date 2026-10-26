@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
+using CookieCrumble;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
@@ -500,12 +501,10 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         var bus = caller.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act
-        MessageEnvelope incoming = null!;
-        await ((IMessageDispatcher)bus).PreparePublishAsync(
-            new StartFactoryWork(),
-            PublishOptions.Default,
-            (envelope, _) => incoming = MessageEnvelope.CopyWithOwnedBody(envelope),
-            TestToken);
+        var store = new CapturingMessageStore();
+        await ((IMessageDispatcher)bus).PublishAsync(
+            new StartFactoryWork(), PublishOptions.Default, store, TestToken);
+        var incoming = store.Envelope;
         var runtime = provider.GetRequiredService<IMessagingRuntime>();
         var endpoint = (InMemoryDispatchEndpoint)runtime.GetDispatchEndpoint(
             new Uri(incoming.DestinationAddress!));
@@ -582,7 +581,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task OutboxDispatch_Should_RejectScheduledMessage_When_OptionsSpecifyScheduledTime(bool send)
+    public async Task OutboxDispatch_Should_StageScheduledMessage_When_TransportSupportsScheduling(bool send)
     {
         // arrange
         var connectionString = await CreateDatabaseAsync();
@@ -595,32 +594,29 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         var due = DateTimeOffset.UtcNow.AddHours(1);
 
         // act
-        var exception = await Assert.ThrowsAsync<ArgumentException>(async () =>
+        if (send)
         {
-            if (send)
-            {
-                await db.Outbox.SendAsync(
-                    new FulfillOrder(1), new SendOptions { ScheduledTime = due }, TestToken);
-            }
-            else
-            {
-                await db.Outbox.PublishAsync(
-                    new OrderPlaced { OrderId = 1 }, new PublishOptions { ScheduledTime = due }, TestToken);
-            }
-        });
+            await db.Outbox.SendAsync(
+                new FulfillOrder(1), new SendOptions { ScheduledTime = due }, TestToken);
+        }
+        else
+        {
+            await db.Outbox.PublishAsync(
+                new OrderPlaced { OrderId = 1 }, new PublishOptions { ScheduledTime = due }, TestToken);
+        }
         await db.SaveChangesAsync(TestToken);
 
         // assert
-        Assert.Equal("options", exception.ParamName);
-        Assert.Empty(recorder.Messages);
-        Assert.Empty(db.ChangeTracker.Entries<OutboxMessage>());
-        Assert.Equal(0, await CountOutboxRowsAsync(connectionString));
+        Assert.Single(recorder.Messages);
+        using var envelope = await db.Set<OutboxMessage>().Select(x => x.Envelope).SingleAsync(TestToken);
+        Assert.Equal(due, envelope.RootElement.GetProperty("scheduledTime").GetDateTimeOffset());
+        Assert.Equal(1, await CountOutboxRowsAsync(connectionString));
     }
 
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task OutboxDispatch_Should_RejectScheduledMessage_When_MiddlewareSuppliesScheduledEnvelope(bool send)
+    public async Task OutboxDispatch_Should_StageScheduledMessage_When_MiddlewareSuppliesScheduledEnvelope(bool send)
     {
         // arrange
         var connectionString = await CreateDatabaseAsync();
@@ -632,23 +628,23 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         var db = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
 
         // act
-        await Assert.ThrowsAsync<NotSupportedException>(async () =>
+        if (send)
         {
-            if (send)
-            {
-                await db.Outbox.SendAsync(new FulfillOrder(1), TestToken);
-            }
-            else
-            {
-                await db.Outbox.PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken);
-            }
-        });
+            await db.Outbox.SendAsync(new FulfillOrder(1), TestToken);
+        }
+        else
+        {
+            await db.Outbox.PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken);
+        }
         await db.SaveChangesAsync(TestToken);
 
         // assert
         Assert.Single(recorder.Messages);
-        Assert.Empty(db.ChangeTracker.Entries<OutboxMessage>());
-        Assert.Equal(0, await CountOutboxRowsAsync(connectionString));
+        using var envelope = await db.Set<OutboxMessage>().Select(x => x.Envelope).SingleAsync(TestToken);
+        Assert.Equal(
+            recorder.ScheduledEnvelopeTime,
+            envelope.RootElement.GetProperty("scheduledTime").GetDateTimeOffset());
+        Assert.Equal(1, await CountOutboxRowsAsync(connectionString));
     }
 
     [Theory]
@@ -1144,7 +1140,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
     }
 
     [Fact]
-    public async Task OutboxPublishAsync_Should_SnapshotFinalMessage_When_MiddlewareChangesMessageAfterNext()
+    public async Task OutboxPublishAsync_Should_SnapshotAtPersistence_When_MiddlewareChangesMessageAfterNext()
     {
         // arrange
         var connectionString = await CreateDatabaseAsync();
@@ -1176,10 +1172,21 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         var envelope = MessageEnvelopeReader.Parse(System.Text.Encoding.UTF8.GetBytes(stored.RootElement.GetRawText()));
 
         // assert
-        Assert.Equal(42, JsonSerializer.Deserialize<OrderPlaced>(envelope.Body.Span)!.OrderId);
-        Assert.Equal("final-message", envelope.MessageId);
-        Assert.Equal("final-value", envelope.Headers!.GetValue("final-header"));
-        Assert.Equal((sentAt, sentAt.AddHours(1)), (envelope.SentAt, envelope.DeliverBy));
+        new
+        {
+            JsonSerializer.Deserialize<OrderPlaced>(envelope.Body.Span)!.OrderId,
+            AfterNextHeader = envelope.Headers!.GetValue("final-header"),
+            envelope.SentAt,
+            envelope.DeliverBy
+        }.MatchInlineSnapshot(
+            """
+            {
+              "OrderId": 1,
+              "AfterNextHeader": null,
+              "SentAt": null,
+              "DeliverBy": null
+            }
+            """);
     }
 
     [Fact]
@@ -2051,6 +2058,17 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         public DateTimeOffset? ScheduledEnvelopeTime { get; init; }
     }
 
+    private sealed class CapturingMessageStore : IDispatchMessageStore
+    {
+        public MessageEnvelope Envelope { get; private set; } = null!;
+
+        public ValueTask PersistAsync(IDispatchContext context)
+        {
+            Envelope = MessageEnvelope.CopyWithOwnedBody(context.Envelope!);
+            return default;
+        }
+    }
+
     private sealed class CustomOutboxProvider : IDbContextOutboxProvider, IDisposable
     {
         private readonly List<OutboxMessage> _messages = [];
@@ -2073,6 +2091,19 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
                 TimeProvider.System.GetUtcNow().UtcDateTime);
             _messages.Add(message);
             context.Add(message);
+        }
+
+        public int CreateCheckpoint() => _messages.Count;
+
+        public void Discard(DbContext context, int checkpoint)
+        {
+            for (var i = _messages.Count - 1; i >= checkpoint; i--)
+            {
+                var message = _messages[i];
+                context.Entry(message).State = EntityState.Detached;
+                message.Dispose();
+                _messages.RemoveAt(i);
+            }
         }
 
         public void Dispose()
@@ -2117,8 +2148,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         {
             recorder.HandlerScope = marker;
             marker.Name = "handler";
-            var managed = (UnitOfWorkDbContext)services
-                .GetRequiredKeyedService<DbContextAccessor>(typeof(UnitOfWorkDbContext)).Context;
+            var managed = services.GetRequiredService<UnitOfWorkDbContext>();
             managed.Orders.Add(new Order { Id = 3 });
             await managed.SaveChangesAsync(cancellationToken);
             await using var first = await factory.CreateDbContextAsync(cancellationToken);

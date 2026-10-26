@@ -1,7 +1,5 @@
 using System.Diagnostics;
-using Microsoft.Extensions.DependencyInjection;
 using Mocha.Middlewares;
-using Mocha.Scheduling;
 
 namespace Mocha;
 
@@ -54,7 +52,6 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
     private readonly TaskCompletionSource<bool> _completed;
     private DispatchDelegate _pipeline;
     private TimeProvider _timeProvider = null!;
-    private DispatchDelegate _preparationPipeline;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DispatchEndpoint"/> class bound to
@@ -71,13 +68,8 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
         var completed = _completed.Task;
         _pipeline = async context =>
         {
-            await completed;
-            await Volatile.Read(ref _pipeline!)(context);
-        };
-        _preparationPipeline = async context =>
-        {
             await completed.WaitAsync(context.CancellationToken);
-            await Volatile.Read(ref _preparationPipeline!)(context);
+            await Volatile.Read(ref _pipeline!)(context);
         };
         Transport = transport;
     }
@@ -175,32 +167,6 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
     /// <returns>A <see cref="ValueTask"/> that completes when the message has been dispatched.</returns>
     public ValueTask ExecuteAsync(IDispatchContext context) => _pipeline(context);
 
-    internal ValueTask PrepareAsync(DispatchContext context)
-    {
-        context.CancellationToken.ThrowIfCancellationRequested();
-        return _preparationPipeline(context);
-    }
-
-    private static async ValueTask PrepareAsync(DispatchContext context, DispatchDelegate pipeline)
-    {
-        context.PreparationCompleted = false;
-        await pipeline(context);
-        context.CancellationToken.ThrowIfCancellationRequested();
-
-        if (!context.PreparationCompleted)
-        {
-            throw ThrowHelper.MessagePreparationIncomplete();
-        }
-
-        if (context.ScheduledTime is not null || context.Envelope?.ScheduledTime is not null)
-        {
-            throw ThrowHelper.ScheduledPreparationUnsupported();
-        }
-
-        DispatchSerializerMiddleware.Serialize(context);
-        context.CancellationToken.ThrowIfCancellationRequested();
-    }
-
     /// <summary>
     /// Runs topology discovery conventions to resolve the destination resources for this endpoint
     /// and registers the endpoint in the endpoint collection.
@@ -229,7 +195,6 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
     {
         OnComplete(context, Configuration);
         _timeProvider = context.Services.GetTimeProvider();
-        var diagnosticEvents = context.Services.GetRequiredService<IMessagingDiagnosticEvents>();
         var factoryContext = new DispatchMiddlewareFactoryContext
         {
             Services = context.Services,
@@ -237,31 +202,18 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
             Transport = Transport
         };
 
-        DispatchDelegate dispatch = DispatchInternalAsync;
-        if (context.Features.Get<DispatchFinalizationFeature>() is { } finalization)
-        {
-            dispatch = finalization.Middleware(factoryContext, dispatch);
-        }
-
-        dispatch = DispatchSchedulingMiddleware.Create(dispatch);
-        dispatch = DispatchSerializerMiddleware.Create(dispatch);
-
         var pipeline = MiddlewareCompiler.CompileDispatch(
             factoryContext,
-            dispatch,
-            static context =>
-            {
-                ((DispatchContext)context).PreparationCompleted = true;
-                return default;
-            },
-            [Transport.GetDispatchMiddlewares(), Configuration.DispatchMiddlewares],
+            DispatchInternalAsync,
+            [
+                [DispatchMiddlewares.Instrumentation],
+                Transport.GetDispatchMiddlewares(),
+                Configuration.DispatchMiddlewares,
+                [DispatchMiddlewares.Scheduling, DispatchMiddlewares.Serialization]
+            ],
             [Transport.GetDispatchPipelineModifiers(), Configuration.DispatchPipelineModifiers]);
 
-        Volatile.Write(ref _pipeline, DispatchInstrumentationMiddleware.Create(diagnosticEvents, pipeline.Dispatch));
-        var preparation = pipeline.Preparation;
-        Volatile.Write(ref _preparationPipeline, DispatchInstrumentationMiddleware.Create(
-            diagnosticEvents,
-            context => PrepareAsync((DispatchContext)context, preparation)));
+        Volatile.Write(ref _pipeline, pipeline);
 
         Configuration = null!;
         _completed.SetResult(true);
@@ -308,6 +260,12 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
 
     internal ValueTask DispatchInternalAsync(IDispatchContext context)
     {
+        DispatchSerializerMiddleware.Serialize(context);
+        if (context is DispatchContext { MessageStore: { } store })
+        {
+            return store.PersistAsync(context);
+        }
+
         var sentAt = context.SentAt ?? context.Envelope?.SentAt ?? _timeProvider.GetUtcNow();
         context.SentAt = sentAt;
         context.Envelope?.SetSentAt(sentAt);

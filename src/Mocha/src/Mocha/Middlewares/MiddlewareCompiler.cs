@@ -12,10 +12,9 @@ internal static class MiddlewareCompiler
     private static List<ReceiveMiddlewareConfiguration>? s_receiveMiddlewares;
     private static List<ConsumerMiddlewareConfiguration>? s_handlerMiddlewares;
 
-    public static (DispatchDelegate Dispatch, DispatchDelegate Preparation) CompileDispatch(
+    public static DispatchDelegate CompileDispatch(
         DispatchMiddlewareFactoryContext context,
         DispatchDelegate dispatch,
-        DispatchDelegate prepare,
         ReadOnlySpan<IReadOnlyList<DispatchMiddlewareConfiguration>> middlewareConfigurations,
         ReadOnlySpan<IReadOnlyList<Action<List<DispatchMiddlewareConfiguration>>>> pipelineModifiers)
     {
@@ -40,18 +39,16 @@ internal static class MiddlewareCompiler
         middlewares.Reverse();
 
         var pipeline = dispatch;
-        var preparation = prepare;
         foreach (var middleware in middlewares)
         {
             pipeline = middleware.Middleware(context, pipeline);
-            preparation = middleware.Middleware(context, preparation);
         }
 
         middlewares.Clear();
 
         Interlocked.CompareExchange(ref s_dispatchMiddlewares, middlewares, null);
 
-        return (pipeline, preparation);
+        return pipeline;
     }
 
     public static ReceiveDelegate CompileReceive(
