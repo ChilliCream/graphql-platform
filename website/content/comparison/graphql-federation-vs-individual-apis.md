@@ -1,6 +1,7 @@
 ---
-title: "GraphQL Federation vs individual APIs"
-description: "Calling each service directly works until one screen needs four. How GraphQL Federation moves the joins behind one gateway, and when to keep direct calls."
+title: "GraphQL Federation vs. Individual APIs"
+metaTitle: "GraphQL Federation vs Multiple APIs: Benefits & Tradeoffs"
+description: "Learn how GraphQL Federation unifies multiple APIs into one graph. Compare direct API integration, performance, service ownership, and tradeoffs."
 date: "2026-09-08"
 tags: ["graphql-federation", "comparison", "individual-apis"]
 author: Rafael Staib
@@ -8,58 +9,132 @@ authorUrl: https://github.com/rstaib
 authorImageUrl: https://avatars0.githubusercontent.com/u/4325318?s=100&v=4
 ---
 
-Calling each service directly is where almost every system starts, and for a long while there is nothing wrong with it. The client knows which services it needs, talks to each of them, and puts the answers together itself.
+Modern applications rarely rely on a single backend service. Product information, customer accounts, orders, and inventory often live in separate systems, each exposing its own API.
 
-The question is not whether that works. It is what happens to the clients once a single screen needs four services instead of one, and who ends up paying for the assembly.
+Clients can integrate with these APIs directly, but as applications grow, coordinating data across multiple services becomes increasingly complex.
 
-# What calling services directly looks like
+GraphQL Federation offers a different approach. Instead of requiring every client to understand and integrate with individual services, federation brings them together into one unified GraphQL API.
 
-With no aggregation layer, every client is an integration client. It holds a base URL per service, authenticates against each of them, and carries the retry, timeout, paging and error handling each one expects. Whether those services speak REST or GraphQL changes the shape of the calls, not the amount of work: the client is still the only place that knows how the pieces fit together.
+**The goal isn't to replace individual APIs. It's to make them work together as one coherent graph.**
 
-It also owns the joins. An order id comes back from one service, the customer behind it from a second, the shipping status from a third, and the client stitches the three into the object its screen actually wanted. Nothing describes that relationship except the code that walks it, so each client walks it again.
+# Working with individual APIs
 
-# Where it stays the right call
+Connecting clients directly to backend APIs is often the simplest architecture.
 
-A handful of services, one serious client, contracts that barely move: at that size the direct calls are the simplest thing that can work, and adding an aggregation layer would buy nothing that is not already cheap. A screen that reads one service does not need a gateway to read one service.
+Each service exposes its capabilities through REST, GraphQL, gRPC, or another protocol. Clients communicate with the services they need and process the responses.
 
-Direct calls also stay right where the traffic is not screen-shaped at all — a batch job pulling a full export, a service-to-service call on a hot path, a webhook receiver. Those callers want one endpoint, one payload and no negotiation, and federation is not trying to take them away.
+This approach works particularly well when applications depend on only a few services or when those services expose clearly defined, independent functionality.
 
-# What it costs as the services multiply
+It also avoids introducing an additional gateway or aggregation layer.
 
-The arithmetic turns on you quietly. Each new service is another integration in every client that touches it, and every client that assembles the same view assembles it independently. Two clients that ought to resolve a permission, compute a total or page a list identically end up slightly out of step, and the difference reads like a bug in the data rather than in the client that got it wrong.
+However, as the number of services and clients grows, applications may need to understand more of the underlying architecture.
 
-Screens get chatty in the same motion. The client cannot ask for a shape it does not have an endpoint for, so it fetches a list, then loops over it to fetch the details, then fetches what those details reference — a sequence of dependent round trips that is fine on a laptop and painful on a phone. Over-fetching arrives with it: whole payloads are pulled down for the two fields the screen shows.
+# The challenge of integrating multiple APIs
 
-And every service change becomes a client change. A renamed field, a split resource, a new required parameter: the team that owns the data cannot finish that change, because the code that depends on it lives in applications they do not own and cannot deploy. Versioning turns into the tool for that, and now each service carries its own version timeline that every client has to track separately.
+Consider an application that displays an order with customer information, purchased products, and shipping details.
+
+If this information lives in separate services, the client may need to coordinate several API requests to assemble the complete view.
+
+As more clients consume these services, several challenges can emerge:
+
+- **Multiple integrations:** Every client must understand which services provide the data it needs.
+- **Repeated aggregation:** Different applications may implement the same relationships between services.
+- **Network overhead:** Dependent requests can introduce additional round trips, particularly on mobile connections.
+- **Tighter coupling:** Changes to backend APIs may require updates across multiple clients.
+
+These challenges don't make individual APIs a bad architectural choice. They arise when clients become responsible for coordinating data across an increasingly distributed system.
 
 # How GraphQL Federation changes the picture
 
-Federation puts one API in front of the services instead of one integration in front of each. Every team publishes a source schema for the service it owns; composition validates those source schemas against each other and merges them into one composite schema before deploy; the gateway's distributed executor plans each incoming query across the subgraphs it needs, fetches from each of them, and returns one response. The client makes one call and asks for exactly the fields its screen renders.
+GraphQL Federation introduces a unified GraphQL API in front of independently developed services.
 
-The joins move with it. A type with a key (`@key`) declared in one subgraph is referenced from another, and the gateway resolves it through a lookup (`@lookup`), so the traversal the client used to hand-write is described once, in the schemas themselves, and executed server-side across fast internal links rather than over a mobile connection.
+Each participating service contributes a source schema describing the types and fields it provides. Schema composition combines these definitions into one composite schema, while a GraphQL gateway coordinates requests across the services behind it.
 
-Ownership does not move. Each team keeps its service, its database and its deployment schedule, and any GraphQL server, in any language, can be a subgraph. Fusion also composes OpenAPI-based REST services and gRPC services into the same composite schema, so a service does not have to be rewritten to take part.
+Instead of knowing which services provide particular pieces of information, clients query a single, connected graph.
 
-In practice: [composing your services into one composite schema](/docs/fusion).
+For example, a client can retrieve an order, its customer, and the purchased products through one GraphQL query:
 
-# What it does not do
+```graphql
+query {
+  orderById(id: "123") {
+    total
+    customer {
+      name
+    }
+    items {
+      product {
+        name
+        price
+      }
+    }
+  }
+}
+```
 
-A composite schema is not a fix for service boundaries drawn in the wrong place. If two services both half-own the same concept, composition surfaces that as a conflict rather than hiding it, and the answer is to settle who owns the type — the schemas will keep asking until someone does. Federation makes good boundaries visible and legible to clients; it does not supply them.
+The gateway determines which services are responsible for the requested fields, executes the necessary operations, and assembles one response.
 
-It is also one more thing to run. There is a gateway in the request path to deploy, scale and observe, and a composition step in CI that has to pass before a subgraph ships. That is a real cost, paid once for all clients rather than repeatedly in each of them, but a team with three services and one client has not yet reached the point where it pays for itself.
+Clients no longer need to implement the relationships between these services themselves.
 
-# When to pick which
+Because GraphQL allows clients to select the fields they need, different applications can consume the same graph without requiring separate endpoints for every use case.
 
-## Pick GraphQL Federation when
+**The complexity of connecting services moves out of individual clients and into a shared API architecture.**
 
-- A single screen needs data from several services, and every client would otherwise assemble the same pieces itself.
-- Dependent round trips and over-fetching are what makes screens slow, especially on mobile connections.
-- The teams that own the data want to evolve it without a coordinated change in every client that reads it.
-- The same aggregation logic is drifting apart across clients, and the differences surface as data bugs.
+# Keep your existing services and APIs
 
-## Pick individual APIs when
+Adopting GraphQL Federation doesn't mean abandoning your existing APIs or technology stack.
 
-- A screen reads one or two services, and the contracts between them barely move.
-- There is one serious client, so nothing about the assembly would be reused if it were shared.
-- The callers are not screens at all: batch exports, service-to-service calls, webhook receivers.
-- A gateway to run and a composition step to keep green is a price the team is not ready to pay yet.
+Services can continue to be developed, deployed, and maintained independently. Their teams retain ownership of their implementations, databases, and release schedules.
+
+GraphQL Federation defines how these services participate in a unified graph, rather than prescribing how they must be implemented internally.
+
+With Fusion, this extends beyond GraphQL services.
+
+Fusion can integrate existing GraphQL, REST, and gRPC APIs into the same graph, allowing organizations to connect services built with different technologies without rewriting them as GraphQL servers.
+
+This makes federation particularly valuable for organizations with established API landscapes, where replacing existing services would be expensive or unnecessary.
+
+# Federation doesn't replace every API interaction
+
+Not every interaction benefits from going through a federated GraphQL gateway.
+
+Direct API calls remain useful for service-to-service communication, event processing, bulk data transfers, and integrations that need access to a particular service.
+
+Federation also introduces additional infrastructure, including a gateway and a schema composition process. Distributed queries can involve multiple network requests and require careful consideration of performance and service boundaries.
+
+For applications consuming only a small number of independent APIs, this additional complexity may not be justified.
+
+The value of federation grows when multiple clients need access to connected data distributed across independently owned services.
+
+# GraphQL Federation vs. individual APIs at a glance
+
+| Capability              | Individual APIs                              | GraphQL Federation                                |
+| ----------------------- | -------------------------------------------- | ------------------------------------------------- |
+| Client integration      | Multiple service endpoints                   | One unified GraphQL API                           |
+| Data relationships      | Coordinated by clients or integration layers | Defined within the graph                          |
+| Data fetching           | Service-specific requests                    | Client-selected GraphQL fields                    |
+| Service ownership       | Independent                                  | Independent                                       |
+| API technologies        | REST, GraphQL, gRPC, etc.                    | GraphQL subgraphs and supported API connectors    |
+| Cross-service execution | Managed by consumers or other services       | Coordinated by the gateway                        |
+| Operational complexity  | Lower without an aggregation layer           | Additional gateway and composition infrastructure |
+
+# When should you use GraphQL Federation?
+
+**Use individual APIs directly** when clients interact with a small number of services, their data requirements are straightforward, and introducing a unified API would add unnecessary complexity.
+
+**Consider GraphQL Federation** when multiple applications need connected data from independently owned services, and maintaining those relationships separately in every client becomes expensive.
+
+The two approaches can also coexist. Services can continue exposing their APIs directly while participating in a federated graph for applications that benefit from a unified data model.
+
+Ultimately, federation is about making distributed systems easier to consume without sacrificing the independence of the services behind them.
+
+# Bring your APIs together with Fusion
+
+Fusion is a high-performance GraphQL gateway that connects GraphQL, REST, and gRPC APIs into one coherent graph.
+
+It supports both the GraphQL Federation specification and Apollo Federation, allowing organizations to federate existing services while preserving their technology investments.
+
+With Fusion, teams can continue developing their services independently while clients benefit from a single, connected API.
+
+Explore how Fusion brings your existing APIs together, or see how it performs in our open GraphQL Federation benchmarks.
+
+[Explore Fusion](/products/fusion) | [View Benchmarks](/benchmarks/graphql-federation)
