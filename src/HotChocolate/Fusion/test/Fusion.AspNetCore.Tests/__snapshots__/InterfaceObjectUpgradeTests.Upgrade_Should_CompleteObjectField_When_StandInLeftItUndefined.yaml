@@ -1,0 +1,227 @@
+title: Upgrade_Should_CompleteObjectField_When_StandInLeftItUndefined
+request:
+  document: |
+    query testQuery {
+      trendingMedia {
+        __typename
+        views
+        credits {
+          director
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "trendingMedia": [
+          {
+            "__typename": "Book",
+            "views": 123,
+            "credits": {
+              "director": "Credits: Q3JlZGl0czoxNTQ3NzkyMzAw"
+            }
+          },
+          {
+            "__typename": "Book",
+            "views": 123,
+            "credits": {
+              "director": "Credits: Q3JlZGl0czoyOTA1MzU1MTE2"
+            }
+          },
+          {
+            "__typename": "Book",
+            "views": 123,
+            "credits": {
+              "director": "Credits: Q3JlZGl0czozODYzNzI3MTQz"
+            }
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        mediaById(id: ID!): Media @lookup
+      }
+
+      type Book implements Media @key(fields: "id") {
+        id: ID!
+        credits: Credits!
+        tags: [String!]!
+      }
+
+      type Credits {
+        director: String!
+      }
+
+      type Movie implements Media @key(fields: "id") {
+        id: ID!
+        credits: Credits!
+        tags: [String!]!
+      }
+
+      interface Media {
+        id: ID!
+        credits: Credits!
+        tags: [String!]!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query testQuery_9ccb5e0c_2($__fusion_1_id: ID!) {
+              mediaById(id: $__fusion_1_id) {
+                __typename
+                credits {
+                  director
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "TWVkaWE6MzYwMDExMzk5Mg=="
+              },
+              {
+                "__fusion_1_id": "TWVkaWE6Mzg1ODYyNDc0NA=="
+              },
+              {
+                "__fusion_1_id": "TWVkaWE6MTQ5MDg3Nzcy"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "mediaById": {
+                    "__typename": "Book",
+                    "credits": {
+                      "director": "Credits: Q3JlZGl0czoxNTQ3NzkyMzAw"
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "mediaById": {
+                    "__typename": "Book",
+                    "credits": {
+                      "director": "Credits: Q3JlZGl0czoyOTA1MzU1MTE2"
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "mediaById": {
+                    "__typename": "Book",
+                    "credits": {
+                      "director": "Credits: Q3JlZGl0czozODYzNzI3MTQz"
+                    }
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        trendingMedia: [Media!]!
+        mediaByKey(id: ID!): Media @lookup @internal
+      }
+
+      type Media @interfaceObject @key(fields: "id") {
+        id: ID!
+        views: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_9ccb5e0c_1 {
+              trendingMedia {
+                views
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "trendingMedia": [
+                    {
+                      "views": 123,
+                      "id": "TWVkaWE6MzYwMDExMzk5Mg=="
+                    },
+                    {
+                      "views": 123,
+                      "id": "TWVkaWE6Mzg1ODYyNDc0NA=="
+                    },
+                    {
+                      "views": 123,
+                      "id": "TWVkaWE6MTQ5MDg3Nzcy"
+                    }
+                  ]
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          trendingMedia {
+            __typename
+            views
+            credits {
+              director
+            }
+            id @fusion__requirement
+          }
+        }
+      name: testQuery
+      hash: 2082d79df286f1a633e00325db98f0ac
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_9ccb5e0c_1 {
+          trendingMedia {
+            views
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_9ccb5e0c_2($__fusion_1_id: ID!) {
+          mediaById(id: $__fusion_1_id) {
+            __typename
+            credits {
+              director
+            }
+          }
+        }
+      source: $.mediaById
+      target: $.trendingMedia
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
