@@ -23,6 +23,7 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
 
     private CancellationTokenSource? _stopping;
     private CancellationTokenSource? _aborting;
+    private DateTimeOffset? _drainDeadline;
     private Task? _consumeLoop;
     private ILogger _logger = null!;
     private string? _replySubject;
@@ -158,6 +159,17 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
         }
     }
 
+    /// <summary>
+    /// Stops pulling and starts draining against the transport-wide deadline, ahead of the endpoint
+    /// itself being stopped.
+    /// </summary>
+    /// <param name="deadline">When handlers still running are cancelled.</param>
+    internal void BeginStop(DateTimeOffset deadline)
+    {
+        _drainDeadline ??= deadline;
+        _stopping?.Cancel();
+    }
+
     /// <inheritdoc />
     protected override async ValueTask OnStopAsync(
         IMessagingRuntimeContext context,
@@ -168,17 +180,24 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
             return;
         }
 
+        var deadline = _drainDeadline ?? TimeProvider.System.GetUtcNow() + transport.DrainTimeout;
+        _drainDeadline = null;
+
         await _stopping.CancelAsync();
 
         if (_consumeLoop is not null)
         {
+            var remaining = deadline - TimeProvider.System.GetUtcNow();
+
             try
             {
-                // Bounded by the host's shutdown token: draining should finish in-flight work, not
-                // hold shutdown open indefinitely behind a slow handler.
-                await _consumeLoop.WaitAsync(cancellationToken);
+                // Whichever comes first, the drain deadline or the caller's token: in-flight work
+                // gets a chance to finish, but never holds shutdown open behind a slow handler.
+                await _consumeLoop.WaitAsync(
+                    remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero,
+                    cancellationToken);
             }
-            catch (OperationCanceledException)
+            catch (Exception exception) when (exception is TimeoutException or OperationCanceledException)
             {
                 await AbortAsync();
             }
@@ -236,6 +255,7 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
         await ForEachAsync(
             messages,
             stopping,
+            processing,
             message => ExecuteAsync(
                 static (context, state) =>
                 {
@@ -244,7 +264,8 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
                     feature.Body = state.Data;
                 },
                 message,
-                processing));
+                processing),
+            static _ => ValueTask.CompletedTask);
     }
 
     private static int DeliveryCountOf(INatsJSMsg<ReadOnlyMemory<byte>> message)
@@ -272,6 +293,7 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
         await ForEachAsync(
             consumer.ConsumeAsync(s_deserializer, options, stopping),
             stopping,
+            processing,
             message => ExecuteAsync(
                 static (context, state) =>
                 {
@@ -283,7 +305,27 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
                     feature.AckProgressInterval = state.AckProgressInterval;
                 },
                 (Message: message, AckProgressInterval: ackProgressInterval),
-                processing));
+                processing),
+            ReleaseAsync);
+    }
+
+    /// <summary>
+    /// Releases a message whose handling was aborted, so it is redelivered now rather than once its
+    /// acknowledgement deadline expires.
+    /// </summary>
+    /// <param name="message">The aborted message.</param>
+    // Covers the messages the pipeline never reached, which no acknowledgement middleware settled. A
+    // second NAK for a message the middleware already released is ignored by the server.
+    private async ValueTask ReleaseAsync(INatsJSMsg<ReadOnlyMemory<byte>> message)
+    {
+        try
+        {
+            await message.NakAsync(cancellationToken: CancellationToken.None);
+        }
+        catch (Exception exception)
+        {
+            _logger.ReleaseFailed(exception, Name);
+        }
     }
 
     /// <summary>
@@ -303,7 +345,9 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
     private async Task ForEachAsync<T>(
         IAsyncEnumerable<T> source,
         CancellationToken stopping,
-        Func<T, ValueTask> handle)
+        CancellationToken processing,
+        Func<T, ValueTask> handle,
+        Func<T, ValueTask> release)
     {
         try
         {
@@ -313,7 +357,19 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
             await Parallel.ForEachAsync(
                 source,
                 new ParallelOptions { MaxDegreeOfParallelism = _maxConcurrency },
-                async (message, _) => await handle(message));
+                async (message, _) =>
+                {
+                    try
+                    {
+                        await handle(message);
+                    }
+                    catch (Exception) when (processing.IsCancellationRequested)
+                    {
+                        // Aborted: one cancelled handler must not end the loop, or the messages
+                        // buffered behind it would wait out their acknowledgement deadline.
+                        await release(message);
+                    }
+                });
         }
         catch (OperationCanceledException) when (stopping.IsCancellationRequested)
         {

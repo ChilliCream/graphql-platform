@@ -10,10 +10,6 @@ public sealed record BatchedReading(string ReadingId);
 // and the second durable would replay the first test's message from the stream.
 public sealed record TimedReading(string ReadingId);
 
-// Teardown is deliberately left to the host rather than calling StopAsync: stopping disposes the
-// runtime, the host then disposes it again, and every consumer is disposed twice. BatchConsumer is
-// the one that notices, throwing ChannelClosedException on the second pass. That is a core defect
-// rather than a transport one.
 [Collection(JetStreamCollection.Name)]
 public class BatchingTests(JetStreamFixture fixture)
 {

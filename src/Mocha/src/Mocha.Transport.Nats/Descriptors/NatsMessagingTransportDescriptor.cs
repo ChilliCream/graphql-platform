@@ -146,6 +146,15 @@ public sealed class NatsMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
+    public INatsMessagingTransportDescriptor DrainTimeout(TimeSpan timeout)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(timeout, TimeSpan.Zero);
+
+        Configuration.DrainTimeout = timeout;
+        return this;
+    }
+
+    /// <inheritdoc />
     public INatsMessagingTransportDescriptor AutoProvision(bool autoProvision = true)
     {
         Configuration.AutoProvision = autoProvision;

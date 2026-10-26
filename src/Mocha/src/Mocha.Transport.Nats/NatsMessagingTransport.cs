@@ -67,6 +67,7 @@ public sealed class NatsMessagingTransport : MessagingTransport
 
         SchedulingEnabled = configuration.EnableScheduling;
         PublishDeduplicationEnabled = configuration.EnablePublishDeduplication;
+        DrainTimeout = configuration.DrainTimeout ?? NatsTransportConfiguration.DefaultDrainTimeout;
 
         WarnOnLossySubscriptionDefaults();
 
@@ -168,6 +169,33 @@ public sealed class NatsMessagingTransport : MessagingTransport
     /// Gets a value indicating whether a publish carries the header JetStream deduplicates on.
     /// </summary>
     public bool PublishDeduplicationEnabled { get; private set; }
+
+    /// <summary>
+    /// Gets how long a stopping transport lets in-flight handlers finish before cancelling them.
+    /// </summary>
+    public TimeSpan DrainTimeout { get; private set; } = NatsTransportConfiguration.DefaultDrainTimeout;
+
+    /// <summary>
+    /// Stops every receive endpoint pulling at once, so that they drain side by side against one
+    /// deadline rather than one after another.
+    /// </summary>
+    /// <param name="cancellationToken">A token that ends the drain early.</param>
+    // The base class stops endpoints sequentially; without this the drain timeout would apply per
+    // endpoint and shutdown would grow with the number of endpoints.
+    protected override ValueTask OnBeforeStopAsync(CancellationToken cancellationToken)
+    {
+        var deadline = TimeProvider.System.GetUtcNow() + DrainTimeout;
+
+        foreach (var endpoint in ReceiveEndpoints)
+        {
+            if (endpoint is NatsReceiveEndpoint natsEndpoint)
+            {
+                natsEndpoint.BeginStop(deadline);
+            }
+        }
+
+        return ValueTask.CompletedTask;
+    }
 
     /// <summary>
     /// Provisions streams, binds each consumer to the stream capturing its subjects, and then
