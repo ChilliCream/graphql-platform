@@ -92,6 +92,11 @@ internal sealed record SatisfiabilityPathItem(
     MutableComplexTypeDefinition Type,
     string SchemaName)
 {
+    /// <summary>
+    /// The schema name of a path item for a field that the gateway resolves.
+    /// </summary>
+    public const string GatewaySchemaName = "*";
+
     public ITypeDefinition FieldType { get; } = Field.Type.AsTypeDefinition();
 
     public SelectionSetNode? ProvidedSelectionSet { get; init; }

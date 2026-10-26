@@ -564,9 +564,9 @@ public sealed class SatisfiabilityCycleTests
                 The field 'T.f' in schema 'A' requires data from another schema, but schema 'A' has no lookup for type 'T' that could resolve the field once the required data has been fetched.
             """,
             """
-            Unable to access the field 'T.f' on path 'A:Query.t<T> -> B:T.n<T>'.
-              Unable to transition between schemas 'B' and 'A' for access to field 'A:T.f<String>'.
-                No lookups found for type 'T' in schema 'A'.
+            Unable to access the field 'T.f' on path 'A:Query.t<T> -> B:T.next<T>'.
+              Unable to satisfy the requirement '{ n { next { next { x } } } }' on field 'A:T.f<String>'.
+                The field 'T.f' in schema 'A' requires data from another schema, but schema 'A' has no lookup for type 'T' that could resolve the field once the required data has been fetched.
             """
         ]);
     }
