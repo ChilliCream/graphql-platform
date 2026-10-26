@@ -1,33 +1,23 @@
+using System.Text.Json;
 using System.Transactions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Mocha.EntityFrameworkCore;
+using Mocha.Middlewares;
+using Mocha.Utils;
 
 namespace Mocha.Outbox;
 
-/// <summary>
-/// Tracks outbox messages prepared for a DbContext save.
-/// </summary>
-internal sealed class PostgresOutboxTracker : SaveChangesInterceptor, IResettableService, IDisposable
+internal sealed class PostgresDbContextOutbox(TimeProvider timeProvider)
+    : SaveChangesInterceptor, IDbContextOutboxProvider, IResettableService, IDisposable
 {
     private readonly List<EntityEntry<OutboxMessage>> _entries = [];
+    private PooledArrayWriter? _arrayWriter;
+    private Utf8JsonWriter? _jsonWriter;
 
     public int CreateCheckpoint() => _entries.Count;
-
-    public void Track(DbContext context, OutboxMessage message)
-    {
-        EnsureAtomicSave(context);
-        try
-        {
-            _entries.Add(context.Add(message));
-        }
-        catch
-        {
-            context.Entry(message).State = EntityState.Detached;
-            throw;
-        }
-    }
 
     public void Discard(DbContext context, int checkpoint)
     {
@@ -37,6 +27,38 @@ internal sealed class PostgresOutboxTracker : SaveChangesInterceptor, IResettabl
             context.Entry(entry.Entity).State = EntityState.Detached;
             entry.Entity.Dispose();
             _entries.RemoveAt(i);
+        }
+    }
+
+    public void Stage(DbContext context, MessageEnvelope envelope, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        _arrayWriter ??= new PooledArrayWriter();
+        _jsonWriter ??= new Utf8JsonWriter(_arrayWriter);
+        JsonDocument? document = null;
+
+        try
+        {
+            var writer = new MessageEnvelopeWriter(_jsonWriter);
+            writer.WriteMessage(envelope);
+            _jsonWriter.Flush();
+            var reader = new Utf8JsonReader(_arrayWriter.WrittenMemory.Span);
+            document = JsonDocument.ParseValue(ref reader);
+            cancellationToken.ThrowIfCancellationRequested();
+
+#if NET9_0_OR_GREATER
+            var id = Guid.CreateVersion7();
+#else
+            var id = Guid.NewGuid();
+#endif
+            Track(context, new OutboxMessage(id, document, timeProvider.GetUtcNow().UtcDateTime));
+            document = null;
+        }
+        finally
+        {
+            document?.Dispose();
+            _jsonWriter.Reset();
+            _arrayWriter.Reset();
         }
     }
 
@@ -80,7 +102,26 @@ internal sealed class PostgresOutboxTracker : SaveChangesInterceptor, IResettabl
         return Task.CompletedTask;
     }
 
-    void IDisposable.Dispose() => ReleaseMessages();
+    public void Dispose()
+    {
+        ReleaseMessages();
+        _jsonWriter?.Dispose();
+        _arrayWriter?.Dispose();
+    }
+
+    private void Track(DbContext context, OutboxMessage message)
+    {
+        EnsureAtomicSave(context);
+        try
+        {
+            _entries.Add(context.Add(message));
+        }
+        catch
+        {
+            context.Entry(message).State = EntityState.Detached;
+            throw;
+        }
+    }
 
     private static void EnsureAtomicSave(DbContext context)
     {

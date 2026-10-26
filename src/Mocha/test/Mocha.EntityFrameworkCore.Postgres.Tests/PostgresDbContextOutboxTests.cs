@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
 using Mocha.Middlewares;
 using Mocha.Outbox;
@@ -1876,8 +1877,8 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         if (pooled)
         {
             // Complete table metadata discovery before testing context leases.
-            await using var scope = provider.CreateAsyncScope();
-            scope.ServiceProvider.GetRequiredService<IMessageOutbox>();
+            provider.GetRequiredService<IOptionsMonitor<PostgresMessageOutboxOptions>>()
+                .Get(typeof(UnitOfWorkDbContext).FullName);
         }
 
         return provider;

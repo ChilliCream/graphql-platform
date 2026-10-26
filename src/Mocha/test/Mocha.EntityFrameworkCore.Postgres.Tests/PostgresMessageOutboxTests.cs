@@ -47,8 +47,7 @@ public sealed class PostgresMessageOutboxTests : IClassFixture<PostgresFixture>
     public async Task PersistAsync_Should_InsertRow_When_Called()
     {
         // arrange
-        var (context, outbox, _, services) = await CreateOutboxAsync();
-        await using var serviceProvider = services;
+        var (context, outbox, _) = await CreateOutboxAsync();
         await using var _ = context;
         using var __ = outbox;
 
@@ -75,8 +74,7 @@ public sealed class PostgresMessageOutboxTests : IClassFixture<PostgresFixture>
     public async Task PersistAsync_Should_SignalOutbox_When_NoTransaction()
     {
         // arrange
-        var (context, outbox, signal, services) = await CreateOutboxAsync();
-        await using var serviceProvider = services;
+        var (context, outbox, signal) = await CreateOutboxAsync();
         await using var _ = context;
         using var __ = outbox;
 
@@ -94,8 +92,7 @@ public sealed class PostgresMessageOutboxTests : IClassFixture<PostgresFixture>
     public async Task PersistAsync_Should_NotSignal_When_TransactionActive()
     {
         // arrange
-        var (context, outbox, signal, services) = await CreateOutboxAsync();
-        await using var serviceProvider = services;
+        var (context, outbox, signal) = await CreateOutboxAsync();
         await using var _ = context;
         using var __ = outbox;
 
@@ -115,8 +112,7 @@ public sealed class PostgresMessageOutboxTests : IClassFixture<PostgresFixture>
     public async Task PersistAsync_Should_SerializeEnvelopeAsJson_When_Called()
     {
         // arrange
-        var (context, outbox, _, services) = await CreateOutboxAsync();
-        await using var serviceProvider = services;
+        var (context, outbox, _) = await CreateOutboxAsync();
         await using var _ = context;
         using var __ = outbox;
 
@@ -149,10 +145,8 @@ public sealed class PostgresMessageOutboxTests : IClassFixture<PostgresFixture>
         using var context = new TestDbContext(options);
         var queries = PostgresMessageOutboxQueries.From(new OutboxTableInfo());
         var signal = new StubOutboxSignal();
-        using var services = new ServiceCollection().AddSingleton(context).BuildServiceProvider();
         var outbox = new PostgresMessageOutbox(
-            services,
-            typeof(TestDbContext),
+            context,
             signal,
             queries.InsertEnvelope,
             requireTransaction: false);
@@ -167,8 +161,7 @@ public sealed class PostgresMessageOutboxTests : IClassFixture<PostgresFixture>
     private async Task<(
         TestDbContext Context,
         PostgresMessageOutbox Outbox,
-        StubOutboxSignal Signal,
-        ServiceProvider Services)> CreateOutboxAsync()
+        StubOutboxSignal Signal)> CreateOutboxAsync()
     {
         var connectionString = await _fixture.CreateDatabaseAsync();
         var options = new DbContextOptionsBuilder<TestDbContext>().UseTestNpgsql(connectionString).Options;
@@ -176,14 +169,12 @@ public sealed class PostgresMessageOutboxTests : IClassFixture<PostgresFixture>
         await context.Database.EnsureCreatedAsync();
         var queries = PostgresMessageOutboxQueries.From(new OutboxTableInfo());
         var signal = new StubOutboxSignal();
-        var services = new ServiceCollection().AddSingleton(context).BuildServiceProvider();
         var outbox = new PostgresMessageOutbox(
-            services,
-            typeof(TestDbContext),
+            context,
             signal,
             queries.InsertEnvelope,
             requireTransaction: false);
-        return (context, outbox, signal, services);
+        return (context, outbox, signal);
     }
 
     private static MessageEnvelope CreateTestEnvelope()

@@ -105,12 +105,10 @@ public static class OutboxServiceCollectionExtensions
 
         builder.ConfigureEntityFrameworkServices((applicationServices, services) =>
         {
-            services.AddScoped<PostgresOutboxTracker>();
-            services.AddScoped<IInterceptor>(sp => sp.GetRequiredService<PostgresOutboxTracker>());
-            services.AddScoped<IResettableService>(sp => sp.GetRequiredService<PostgresOutboxTracker>());
-            services.AddScoped<IDbContextOutboxProvider>(sp => new PostgresDbContextOutboxProvider(
-                sp.GetRequiredService<PostgresOutboxTracker>(),
-                applicationServices.GetTimeProvider()));
+            services.AddScoped(_ => new PostgresDbContextOutbox(applicationServices.GetTimeProvider()));
+            services.AddScoped<IInterceptor>(sp => sp.GetRequiredService<PostgresDbContextOutbox>());
+            services.AddScoped<IResettableService>(sp => sp.GetRequiredService<PostgresDbContextOutbox>());
+            services.AddScoped<IDbContextOutboxProvider>(sp => sp.GetRequiredService<PostgresDbContextOutbox>());
         });
 
         return builder;

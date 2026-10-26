@@ -369,7 +369,11 @@ public sealed class OutboxServiceRegistrationTests
         Assert.Single(provider.GetKeyedServices<PostgresOutboxProcessor>(typeof(TestDbContext)));
         Assert.Single(provider.GetServices<IHostedService>().OfType<PostgresMessageBusOutboxWorker>());
         Assert.Equal(
-            [typeof(OutboxDbTransactionInterceptor), typeof(OutboxSaveChangesInterceptor), typeof(PostgresOutboxTracker)],
+            [
+                typeof(OutboxDbTransactionInterceptor),
+                typeof(OutboxSaveChangesInterceptor),
+                typeof(PostgresDbContextOutbox)
+            ],
             interceptors.Select(i => i.GetType()));
     }
 

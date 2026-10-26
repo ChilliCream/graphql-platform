@@ -24,9 +24,7 @@ namespace Mocha.Outbox;
 /// </remarks>
 internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
 {
-    private readonly IServiceProvider _services;
-    private readonly Type _contextType;
-    private DbContext? _originalDbContext;
+    private readonly DbContext _dbContext;
     private readonly IOutboxSignal _signal;
     private readonly bool _requireTransaction;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
@@ -37,27 +35,24 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
     /// Creates a new <see cref="PostgresMessageOutbox"/> using the provided DbContext connection,
     /// outbox signal, and pre-built insert SQL.
     /// </summary>
-    /// <param name="services">The scoped service provider used to resolve the DbContext.</param>
-    /// <param name="contextType">The DbContext type whose connection is used for outbox inserts.</param>
+    /// <param name="dbContext">The DbContext whose connection is used for outbox inserts.</param>
     /// <param name="signal">The signal used to wake the outbox processor after a message is persisted.</param>
     /// <param name="insertSql">The parameterized SQL insert statement for the outbox table.</param>
     /// <param name="requireTransaction">Whether a direct publish or send without an active transaction throws.</param>
     public PostgresMessageOutbox(
-        IServiceProvider services,
-        Type contextType,
+        DbContext dbContext,
         IOutboxSignal signal,
         string insertSql,
         bool requireTransaction)
     {
-        _services = services;
-        _contextType = contextType;
+        _dbContext = dbContext;
         _signal = signal;
         _insertSql = insertSql;
         _requireTransaction = requireTransaction;
     }
 
     /// <summary>
-    /// Creates a new <see cref="PostgresMessageOutbox"/> by resolving the outbox signal
+    /// Creates a new <see cref="PostgresMessageOutbox"/> by resolving the DbContext, outbox signal,
     /// and named outbox options from the scoped service provider.
     /// </summary>
     /// <param name="contextType">The <see cref="Type"/> of the DbContext to resolve.</param>
@@ -66,13 +61,14 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
     /// <returns>A new <see cref="PostgresMessageOutbox"/> configured for the specified DbContext.</returns>
     public static PostgresMessageOutbox Create(Type contextType, string optionsName, IServiceProvider services)
     {
+        var dbContext = (DbContext)services.GetRequiredService(contextType);
         var signal = services.GetRequiredService<IOutboxSignal>();
         var outboxOptionsMonitor = services.GetRequiredService<IOptionsMonitor<PostgresMessageOutboxOptions>>();
         var outboxOptions = outboxOptionsMonitor.Get(optionsName);
         var insertSql = outboxOptions.Queries.InsertEnvelope;
         var options = services.GetRequiredService<IOptionsMonitor<PostgresOutboxOptions>>().Get(optionsName);
 
-        return new PostgresMessageOutbox(services, contextType, signal, insertSql, options.RequireTransaction);
+        return new PostgresMessageOutbox(dbContext, signal, insertSql, options.RequireTransaction);
     }
 
     /// <summary>
@@ -92,7 +88,7 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
     {
         if (_requireTransaction && RequiresTransaction(envelope) && !HasTransaction())
         {
-            throw Mocha.EntityFrameworkCore.Postgres.ThrowHelper.OutboxRequiresTransaction(_contextType);
+            throw Mocha.EntityFrameworkCore.Postgres.ThrowHelper.OutboxRequiresTransaction(_dbContext.GetType());
         }
 
         await _semaphore.WaitAsync(cancellationToken);
@@ -100,12 +96,11 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
         {
             _arrayWriter ??= new PooledArrayWriter();
 
-            var dbContext = OriginalDbContext;
-            var connection = (NpgsqlConnection)dbContext.Database.GetDbConnection();
+            var connection = (NpgsqlConnection)_dbContext.Database.GetDbConnection();
 
             try
             {
-                await dbContext.Database.OpenConnectionAsync(cancellationToken);
+                await _dbContext.Database.OpenConnectionAsync(cancellationToken);
 
                 await using var writer = new Utf8JsonWriter(_arrayWriter);
                 writer.WriteEnvelope(envelope);
@@ -121,14 +116,14 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
 
                 await command.ExecuteNonQueryAsync(cancellationToken);
 
-                if (dbContext.Database.CurrentTransaction?.GetDbTransaction() is not NpgsqlTransaction)
+                if (_dbContext.Database.CurrentTransaction?.GetDbTransaction() is not NpgsqlTransaction)
                 {
                     _signal.SetAfterAmbientTransaction();
                 }
             }
             finally
             {
-                await dbContext.Database.CloseConnectionAsync();
+                await _dbContext.Database.CloseConnectionAsync();
             }
         }
         finally
@@ -138,11 +133,8 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
         }
     }
 
-    private DbContext OriginalDbContext
-        => _originalDbContext ??= (DbContext)_services.GetRequiredService(_contextType);
-
     private bool HasTransaction()
-        => Transaction.Current is not null || OriginalDbContext.Database.CurrentTransaction is not null;
+        => Transaction.Current is not null || _dbContext.Database.CurrentTransaction is not null;
 
     // Replies and faults can be dispatched after the handler transaction rolls back.
     private static bool RequiresTransaction(MessageEnvelope envelope)
