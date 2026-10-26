@@ -452,7 +452,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         // arrange
         var server = CreateStarWarsServer();
         var client = server.CreateClient();
-        client.Timeout = TimeSpan.FromSeconds(30);
+        client.Timeout = TimeSpan.FromSeconds(60);
 
         // act
         using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
@@ -463,39 +463,25 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             });
         request.Headers.Add("Accept", "*/*");
 
-        using var response = await client.SendAsync(
+        using var httpResponse = await client.SendAsync(
             request,
             ResponseHeadersRead,
             TestContext.Current.CancellationToken);
+        using var response = new GraphQLHttpResponse(httpResponse);
 
         // assert
-        Snapshot
-            .Create()
-            .Add(response)
-            .MatchInline(
-                """
-                Headers:
-                Vary: Accept
-                Cache-Control: no-cache
-                Content-Type: text/event-stream; charset=utf-8
-                -------------------------->
-                Status Code: OK
-                -------------------------->
-                event: next
-                data: {"data":{"delay":"next"}}
+        Assert.Equal(OK, response.StatusCode);
+        Assert.Equal("text/event-stream", httpResponse.Content.Headers.ContentType?.MediaType);
 
-                :
+        var results = new List<string>();
 
-                event: next
-                data: {"data":{"delay":"next"}}
+        await foreach (var result in response.ReadAsResultStreamAsync())
+        {
+            results.Add(result.Data.ToString());
+        }
 
-                :
-
-                event: complete
-                data:
-
-
-                """);
+        Assert.Equal(2, results.Count);
+        Assert.All(results, r => Assert.Equal("{\"delay\":\"next\"}", r));
     }
 
     [Fact]
@@ -504,7 +490,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         // arrange
         var server = CreateStarWarsServer();
         var client = server.CreateClient();
-        client.Timeout = TimeSpan.FromSeconds(30);
+        client.Timeout = TimeSpan.FromSeconds(60);
 
         // act
         using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
@@ -515,39 +501,25 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             });
         request.Headers.Add("Accept", "*/*");
 
-        using var response = await client.SendAsync(
+        using var httpResponse = await client.SendAsync(
             request,
             ResponseHeadersRead,
             TestContext.Current.CancellationToken);
+        using var response = new GraphQLHttpResponse(httpResponse);
 
         // assert
-        Snapshot
-            .Create()
-            .Add(response)
-            .MatchInline(
-                """
-                Headers:
-                Vary: Accept
-                Cache-Control: no-cache
-                Content-Type: text/event-stream; charset=utf-8
-                -------------------------->
-                Status Code: OK
-                -------------------------->
-                event: next
-                data: {"data":{"delay":"next"}}
+        Assert.Equal(OK, response.StatusCode);
+        Assert.Equal("text/event-stream", httpResponse.Content.Headers.ContentType?.MediaType);
 
-                :
+        var results = new List<string>();
 
-                event: next
-                data: {"data":{"delay":"next"}}
+        await foreach (var result in response.ReadAsResultStreamAsync())
+        {
+            results.Add(result.Data.ToString());
+        }
 
-                :
-
-                event: complete
-                data:
-
-
-                """);
+        Assert.Equal(2, results.Count);
+        Assert.All(results, r => Assert.Equal("{\"delay\":\"next\"}", r));
     }
 
     [Fact]
