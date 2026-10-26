@@ -1,0 +1,157 @@
+title: Execute_Should_Resolve_Nested_Name_When_Require_Selects_Self_Reference_From_Other_Schema
+request:
+  document: |
+    {
+      entity {
+        entity {
+          name
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "entity": {
+          "entity": {
+            "name": "2:30"
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        entity: Entity! @shareable
+        entityById(id: ID!): Entity @lookup @internal
+      }
+
+      type Entity @key(fields: "id") @shareable {
+        name(entityAge: Int! @require(field: "entity.age")): String!
+        id: ID
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_289f866e_2($__fusion_1_id: ID!, $__fusion_2_entityAge: Int!) {
+              entityById(id: $__fusion_1_id) {
+                name(entityAge: $__fusion_2_entityAge)
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "2",
+              "__fusion_2_entityAge": 30
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "entityById": {
+                    "name": "2:30"
+                  }
+                }
+              }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        entity: Entity @shareable
+      }
+
+      type Entity @shareable {
+        entity: Entity!
+        id: ID
+        age: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_289f866e_1 {
+              entity {
+                entity {
+                  id
+                  entity {
+                    age
+                  }
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "entity": {
+                    "entity": {
+                      "id": "2",
+                      "entity": {
+                        "age": 30
+                      }
+                    }
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          entity {
+            entity {
+              name
+              id @fusion__requirement
+              entity @fusion__requirement {
+                age @fusion__requirement
+              }
+            }
+          }
+        }
+      hash: 0812d14ce12cd33f0859855a22897ec4
+      searchSpace: 2
+      expandedNodes: 5
+  nodes:
+    - id: 1
+      type: Operation
+      schema: b
+      operation: |
+        query Op_289f866e_1 {
+          entity {
+            entity {
+              id
+              entity {
+                age
+              }
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: a
+      operation: |
+        query Op_289f866e_2($__fusion_1_id: ID!, $__fusion_2_entityAge: Int!) {
+          entityById(id: $__fusion_1_id) {
+            name(entityAge: $__fusion_2_entityAge)
+          }
+        }
+      source: $.entityById
+      target: $.entity.entity
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+        - name: __fusion_2_entityAge
+          selectionMap: >-
+            entity.age
+      dependencies:
+        - id: 1

@@ -261,6 +261,12 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
 
+        internal static string DocumentRewriter_MutationFieldHasTooManyConditionVariants {
+            get {
+                return ResourceManager.GetString("DocumentRewriter_MutationFieldHasTooManyConditionVariants", resourceCulture);
+            }
+        }
+
         internal static string ErrorHelper_MaxFieldCostReached {
             get {
                 return ResourceManager.GetString("ErrorHelper_MaxFieldCostReached", resourceCulture);

@@ -4,9 +4,9 @@ using HotChocolate.Adapters.Mcp.Storage;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using ModelContextProtocol.Client;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -23,8 +23,8 @@ public partial class McpAdapterActivityTests
     public async Task Mcp_CallTool()
     {
         // arrange
-        using var server = CreateServer("query GetBook { book { title } }");
-        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+        await using var app = StartApp("query GetBook { book { title } }");
+        var mcpClient = await CreateMcpClientAsync(app.GetTestClient());
         await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         using (CaptureActivities(out var activities))
@@ -41,8 +41,8 @@ public partial class McpAdapterActivityTests
     public async Task Mcp_CallTool_Field_Does_Not_Exist()
     {
         // arrange
-        using var server = CreateServer("query InvalidGraphqlQuery { doesNotExist }");
-        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+        await using var app = StartApp("query InvalidGraphqlQuery { doesNotExist }");
+        var mcpClient = await CreateMcpClientAsync(app.GetTestClient());
         await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         using (CaptureActivities(out var activities))
@@ -61,8 +61,8 @@ public partial class McpAdapterActivityTests
     public async Task Mcp_CallTool_Tool_Does_Not_Exist()
     {
         // arrange
-        using var server = CreateServer("query GetBook { book { title } }");
-        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+        await using var app = StartApp("query GetBook { book { title } }");
+        var mcpClient = await CreateMcpClientAsync(app.GetTestClient());
         await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         using (CaptureActivities(out var activities))
@@ -79,8 +79,8 @@ public partial class McpAdapterActivityTests
     public async Task Mcp_CallTool_GraphQL_Field_Error()
     {
         // arrange
-        using var server = CreateServer("query GetFaultyBook { faultyBook { title } }");
-        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+        await using var app = StartApp("query GetFaultyBook { faultyBook { title } }");
+        var mcpClient = await CreateMcpClientAsync(app.GetTestClient());
         await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         using (CaptureActivities(out var activities))
@@ -97,8 +97,8 @@ public partial class McpAdapterActivityTests
     public async Task Mcp_GetPrompt()
     {
         // arrange
-        using var server = CreateServer(prompt: CreateGreetingPrompt());
-        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+        await using var app = StartApp(prompt: CreateGreetingPrompt());
+        var mcpClient = await CreateMcpClientAsync(app.GetTestClient());
         await mcpClient.ListPromptsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         using (CaptureActivities(out var activities))
@@ -159,28 +159,25 @@ public partial class McpAdapterActivityTests
             ]
         };
 
-    private static TestServer CreateServer(string? toolDocument = null, PromptDefinition? prompt = null)
+    private static WebApplication StartApp(string? toolDocument = null, PromptDefinition? prompt = null)
     {
         var storage = new InMemoryMcpStorage(toolDocument, prompt);
 
-        var builder = new WebHostBuilder()
-            .ConfigureServices(services =>
-            {
-                services.AddRouting();
-                services
-                    .AddGraphQLServer()
-                    .AddInstrumentation()
-                    .AddMcp()
-                    .AddMcpStorage(storage)
-                    .AddQueryType<Query>();
-            })
-            .Configure(app =>
-            {
-                app.UseRouting();
-                app.UseEndpoints(endpoints => endpoints.MapGraphQLMcp());
-            });
+        var builder = WebApplication.CreateSlimBuilder();
+        builder.WebHost.UseTestServer();
+        builder.Services.AddRouting();
+        builder.Services
+            .AddGraphQLServer()
+            .AddInstrumentation()
+            .AddMcp()
+            .AddMcpStorage(storage)
+            .AddQueryType<Query>();
 
-        return new TestServer(builder);
+        var app = builder.Build();
+        app.MapGraphQLMcp();
+        app.Start();
+
+        return app;
     }
 
     private static async Task<McpClient> CreateMcpClientAsync(HttpClient httpClient)

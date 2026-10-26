@@ -97,6 +97,6 @@ public sealed class ComputedExpressionProjectionTests(PostgreSqlResource resourc
     public sealed class ExpressionPersonContext(DbContextOptions<ExpressionPersonContext> options)
         : DbContext(options)
     {
-        public DbSet<ExpressionPerson> People => Set<ExpressionPerson>();
+        public DbSet<ExpressionPerson> People { get; set; }
     }
 }

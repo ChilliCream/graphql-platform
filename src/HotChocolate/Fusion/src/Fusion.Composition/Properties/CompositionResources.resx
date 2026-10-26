@@ -567,6 +567,9 @@
   <data name="LogEntryHelper_TypeKindMismatch" xml:space="preserve">
     <value>The type '{0}' has a different kind in schema '{1}' ({2}) than it does in schema '{3}' ({4}).</value>
   </data>
+  <data name="LogEntryHelper_UnreachableSourceField" xml:space="preserve">
+    <value>The field '{0}' in schema '{1}' cannot be resolved, because the type '{2}' is not reachable from the root types of schema '{1}' and no other schema resolves the field.</value>
+  </data>
   <data name="LookupMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @lookup directive is used within a source schema to specify output fields that can be used by the distributed GraphQL executor to resolve an entity by a stable key.</value>
   </data>
@@ -591,8 +594,8 @@
   <data name="RequiresMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @requires directive expresses that a field depends on the given selection of fields from the same entity, resolved by another source schema.</value>
   </data>
-  <data name="RequireInvalidFieldsRule_RequiredFieldMustNotBeDefinedInSameSchema" xml:space="preserve">
-    <value>The required field '{0}' must not be defined in schema '{1}'.</value>
+  <data name="RequireInvalidFieldsRule_RequiredFieldServedByRequiringSchema" xml:space="preserve">
+    <value>The required field '{0}' must not be served by the requiring source schema '{1}'.</value>
   </data>
   <data name="RequirementsValidator_CycleDetected" xml:space="preserve">
     <value>Cycle detected in requirement: {0} -&gt; {1}.</value>
