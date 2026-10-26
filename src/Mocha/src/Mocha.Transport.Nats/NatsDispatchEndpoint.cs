@@ -1,7 +1,6 @@
 using System.Globalization;
 using Mocha.Middlewares;
 using NATS.Client.Core;
-using NATS.Client.JetStream;
 using NATS.Client.JetStream.Models;
 
 namespace Mocha.Transport.Nats;

@@ -1,5 +1,4 @@
 using Mocha.Features;
-using Mocha.Middlewares;
 using NATS.Client.JetStream.Models;
 
 namespace Mocha.Transport.Nats;

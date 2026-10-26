@@ -1,7 +1,6 @@
 using CookieCrumble;
 using Moq;
 using NATS.Client.JetStream.Models;
-using Xunit;
 
 namespace Mocha.Transport.Nats.Tests;
 

@@ -1,5 +1,4 @@
 using Moq;
-using Xunit;
 
 namespace Mocha.Transport.Nats.Tests;
 

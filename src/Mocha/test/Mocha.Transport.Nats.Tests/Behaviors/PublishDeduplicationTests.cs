@@ -1,8 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
-using Mocha.Middlewares;
 using Mocha.Transport.Nats.Tests.Fixtures;
 using Mocha.Transport.Nats.Tests.Helpers;
-using Xunit;
 
 namespace Mocha.Transport.Nats.Tests.Behaviors;
 

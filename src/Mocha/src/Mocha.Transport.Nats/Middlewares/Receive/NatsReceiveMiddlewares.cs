@@ -1,4 +1,3 @@
-using Mocha.Middlewares;
 
 namespace Mocha.Transport.Nats.Middlewares;
 

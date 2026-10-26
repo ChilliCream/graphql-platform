@@ -1,11 +1,9 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
-using Mocha.Features;
 using Mocha.Inbox;
 using Mocha.Middlewares;
 using Mocha.Transport.Nats.Tests.Fixtures;
 using Mocha.Transport.Nats.Tests.Helpers;
-using Xunit;
 
 namespace Mocha.Transport.Nats.Tests.Behaviors;
 

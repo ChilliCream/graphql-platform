@@ -4,7 +4,6 @@ using Microsoft.Extensions.Hosting;
 using Mocha.Sagas;
 using Mocha.Transport.Nats.Tests.Fixtures;
 using Timeouts.Contracts;
-using Xunit;
 
 namespace Mocha.Transport.Nats.Tests.Behaviors;
 
