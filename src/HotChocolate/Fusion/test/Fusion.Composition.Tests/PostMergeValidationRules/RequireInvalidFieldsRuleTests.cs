@@ -1,3 +1,6 @@
+using HotChocolate.Fusion.Logging;
+using static HotChocolate.Fusion.CompositionTestHelper;
+
 namespace HotChocolate.Fusion.PostMergeValidationRules;
 
 public sealed class RequireInvalidFieldsRuleTests : RuleTestBase
@@ -191,7 +194,7 @@ public sealed class RequireInvalidFieldsRuleTests : RuleTestBase
                     "schema": "A",
                     "extensions": {
                         "errors": [
-                            "The required field 'Book.size' must not be defined in schema 'A'."
+                            "The required field 'Book.size' must not be served by the requiring source schema 'A'."
                         ]
                     }
                 }
@@ -300,11 +303,579 @@ public sealed class RequireInvalidFieldsRuleTests : RuleTestBase
                     "schema": "A",
                     "extensions": {
                         "errors": [
-                            "The required field 'Book.size' must not be defined in schema 'A'."
+                            "The required field 'Book.size' must not be served by the requiring source schema 'A'."
                         ]
                     }
                 }
                 """
             ]);
+    }
+
+    [Fact]
+    public void Validate_Should_Succeed_When_FirstLevelFieldIsExternalInRequiringSchema()
+    {
+        AssertValid(
+        [
+            """
+            type Book {
+                id: ID!
+                size: Int @external
+                pages(pageSize: Int @require(field: "size")): Int
+            }
+            """,
+            """
+            type Book {
+                id: ID!
+                size: Int
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Validate_Should_Succeed_When_NestedFieldIsServedByRequiringSchema()
+    {
+        AssertValid(
+        [
+            """
+            type Order {
+                id: ID!
+                price(discount: Int @require(field: "customer.discount")): Int
+            }
+
+            type Customer {
+                id: ID!
+                discount: Int
+            }
+            """,
+            """
+            type Order {
+                id: ID!
+                customer: Customer
+            }
+
+            type Customer {
+                id: ID!
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Validate_Should_Succeed_When_FirstLevelIntermediateIsExternalInRequiringSchema()
+    {
+        AssertValid(
+        [
+            """
+            type Order {
+                id: ID!
+                customer: Customer @external
+                price(discount: Int @require(field: "customer.discount")): Int
+            }
+
+            type Customer {
+                id: ID!
+                discount: Int
+            }
+            """,
+            """
+            type Order {
+                id: ID!
+                customer: Customer
+            }
+
+            type Customer {
+                id: ID!
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_RequiringSchemaServesFirstLevelIntermediateAndNestedField()
+    {
+        AssertInvalid(
+            [
+                """
+                type Order {
+                    id: ID!
+                    customer: Customer
+                    price(discount: Int @require(field: "customer.discount")): Int
+                }
+
+                type Customer {
+                    id: ID!
+                    discount: Int
+                }
+                """,
+                """
+                type Customer {
+                    id: ID!
+                    name: String
+                }
+                """
+            ],
+            [
+                """
+                {
+                    "message": "The @require directive on argument 'Order.price(discount:)' in schema 'A' specifies an invalid field selection against the composed schema.",
+                    "code": "REQUIRE_INVALID_FIELDS",
+                    "severity": "Error",
+                    "coordinate": "Order.price(discount:)",
+                    "member": "require",
+                    "schema": "A",
+                    "extensions": {
+                        "errors": [
+                            "The required field 'Order.customer' must not be served by the requiring source schema 'A'."
+                        ]
+                    }
+                }
+                """
+            ]);
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_RequiringSchemaServesFirstLevelIntermediateOnly()
+    {
+        AssertInvalid(
+            [
+                """
+                type Order {
+                    id: ID!
+                    customer: Customer
+                    price(discount: Int @require(field: "customer.discount")): Int
+                }
+
+                type Customer {
+                    id: ID!
+                }
+                """,
+                """
+                type Customer {
+                    id: ID!
+                    discount: Int
+                }
+                """
+            ],
+            [
+                """
+                {
+                    "message": "The @require directive on argument 'Order.price(discount:)' in schema 'A' specifies an invalid field selection against the composed schema.",
+                    "code": "REQUIRE_INVALID_FIELDS",
+                    "severity": "Error",
+                    "coordinate": "Order.price(discount:)",
+                    "member": "require",
+                    "schema": "A",
+                    "extensions": {
+                        "errors": [
+                            "The required field 'Order.customer' must not be served by the requiring source schema 'A'."
+                        ]
+                    }
+                }
+                """
+            ]);
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_FirstLevelIntermediateIsServedByRequiringAndOtherSchema()
+    {
+        AssertInvalid(
+            [
+                """
+                type Order {
+                    id: ID!
+                    customer: Customer
+                    price(discount: Int @require(field: "customer.discount")): Int
+                }
+
+                type Customer {
+                    id: ID!
+                    discount: Int
+                }
+                """,
+                """
+                type Order {
+                    id: ID!
+                    customer: Customer
+                }
+
+                type Customer {
+                    id: ID!
+                }
+                """
+            ],
+            [
+                """
+                {
+                    "message": "The @require directive on argument 'Order.price(discount:)' in schema 'A' specifies an invalid field selection against the composed schema.",
+                    "code": "REQUIRE_INVALID_FIELDS",
+                    "severity": "Error",
+                    "coordinate": "Order.price(discount:)",
+                    "member": "require",
+                    "schema": "A",
+                    "extensions": {
+                        "errors": [
+                            "The required field 'Order.customer' must not be served by the requiring source schema 'A'."
+                        ]
+                    }
+                }
+                """
+            ]);
+    }
+
+    [Fact]
+    public void Validate_Should_ReportFirstLevelFieldsInSelectionOrder_When_RequiringSchemaServesSeveral()
+    {
+        AssertInvalid(
+            [
+                """
+                type Product {
+                    id: ID!
+                    weight: Int
+                    dimension: Dimension
+                    shippingCost(
+                        input: ShippingInput
+                            @require(field: "{ weight: weight, size: dimension.size }")
+                    ): Int
+                }
+
+                type Dimension {
+                    size: Int
+                }
+
+                input ShippingInput {
+                    weight: Int
+                    size: Int
+                }
+                """,
+                """
+                type Product {
+                    id: ID!
+                    weight: Int
+                    dimension: Dimension
+                }
+
+                type Dimension {
+                    size: Int
+                }
+                """
+            ],
+            [
+                """
+                {
+                    "message": "The @require directive on argument 'Product.shippingCost(input:)' in schema 'A' specifies an invalid field selection against the composed schema.",
+                    "code": "REQUIRE_INVALID_FIELDS",
+                    "severity": "Error",
+                    "coordinate": "Product.shippingCost(input:)",
+                    "member": "require",
+                    "schema": "A",
+                    "extensions": {
+                        "errors": [
+                            "The required field 'Product.weight' must not be served by the requiring source schema 'A'.",
+                            "The required field 'Product.dimension' must not be served by the requiring source schema 'A'."
+                        ]
+                    }
+                }
+                """
+            ]);
+    }
+
+    [Theory]
+    [InlineData("a", "b")]
+    [InlineData("A", "B")]
+    [InlineData("orderService", "customerService")]
+    public void Compose_Should_ReportRequiredField_When_RequiringSchemaServesIt(
+        string requiringSchemaName,
+        string otherSchemaName)
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                requiringSchemaName,
+                """
+                type Query {
+                    itemBySku(sku: String!): Item @lookup @internal
+                }
+
+                type Item @key(fields: "sku") {
+                    sku: String!
+                    weight: Int @shareable
+                    shippingCost(weight: Int @require(field: "weight")): Float
+                }
+                """),
+            new SourceSchemaText(
+                otherSchemaName,
+                """
+                type Query {
+                    items: [Item]
+                    itemBySku(sku: String!): Item @lookup @internal
+                }
+
+                type Item @key(fields: "sku") {
+                    sku: String!
+                    weight: Int @shareable
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsFailure);
+        var entry = Assert.Single(log);
+        Assert.Equal(LogEntryCodes.RequireInvalidFields, entry.Code);
+        Assert.Equal(
+            [
+                "The required field 'Item.weight' must not be served by the requiring source schema "
+                + $"'{requiringSchemaName}'."
+            ],
+            (IEnumerable<string>)entry.Extensions["errors"]!);
+    }
+
+    [Theory]
+    [InlineData("a", "b")]
+    [InlineData("A", "B")]
+    [InlineData("orderService", "customerService")]
+    public void Compose_Should_Succeed_When_RequiredFieldIsExternalInRequiringSchema(
+        string requiringSchemaName,
+        string otherSchemaName)
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                requiringSchemaName,
+                """
+                type Query {
+                    itemBySku(sku: String!): Item @lookup @internal
+                }
+
+                type Item @key(fields: "sku") {
+                    sku: String!
+                    weight: Int @external
+                    shippingCost(weight: Int @require(field: "weight")): Float
+                }
+                """),
+            new SourceSchemaText(
+                otherSchemaName,
+                """
+                type Query {
+                    items: [Item]
+                    itemBySku(sku: String!): Item @lookup @internal
+                }
+
+                type Item @key(fields: "sku") {
+                    sku: String!
+                    weight: Int
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Compose_Should_ReportFirstLevelIntermediate_When_RequiringSchemaServesItAndNestedField()
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "a",
+                """
+                type Query {
+                    orderById(id: ID!): Order @lookup @internal
+                    customerById(id: ID!): Customer @lookup @internal
+                }
+
+                type Order {
+                    id: ID! @shareable
+                    customer: Customer
+                    price(discount: Int @require(field: "customer.discount")): Int
+                }
+
+                type Customer {
+                    id: ID! @shareable
+                    discount: Int
+                }
+                """),
+            new SourceSchemaText(
+                "b",
+                """
+                type Query {
+                    orders: [Order]
+                }
+
+                type Order {
+                    id: ID! @shareable
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsFailure);
+        log.Select(e => e.ToString()).MatchInlineSnapshots(
+        [
+            """
+            {
+                "message": "The @require directive on argument 'Order.price(discount:)' in schema 'a' specifies an invalid field selection against the composed schema.",
+                "code": "REQUIRE_INVALID_FIELDS",
+                "severity": "Error",
+                "coordinate": "Order.price(discount:)",
+                "member": "require",
+                "schema": "a",
+                "extensions": {
+                    "errors": [
+                        "The required field 'Order.customer' must not be served by the requiring source schema 'a'."
+                    ]
+                }
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Compose_Should_ReportFirstLevelIntermediate_When_RequiringSchemaServesItAndOtherSchemaServesNestedField()
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "a",
+                """
+                type Query {
+                    orderById(id: ID!): Order @lookup @internal
+                }
+
+                type Order {
+                    id: ID! @shareable
+                    customer: Customer
+                    price(discount: Int @require(field: "customer.discount")): Int
+                }
+
+                type Customer {
+                    id: ID! @shareable
+                }
+                """),
+            new SourceSchemaText(
+                "b",
+                """
+                type Query {
+                    orders: [Order]
+                    customerById(id: ID!): Customer @lookup @internal
+                }
+
+                type Order {
+                    id: ID! @shareable
+                }
+
+                type Customer {
+                    id: ID! @shareable
+                    discount: Int
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsFailure);
+        log.Select(e => e.ToString()).MatchInlineSnapshots(
+        [
+            """
+            {
+                "message": "The @require directive on argument 'Order.price(discount:)' in schema 'a' specifies an invalid field selection against the composed schema.",
+                "code": "REQUIRE_INVALID_FIELDS",
+                "severity": "Error",
+                "coordinate": "Order.price(discount:)",
+                "member": "require",
+                "schema": "a",
+                "extensions": {
+                    "errors": [
+                        "The required field 'Order.customer' must not be served by the requiring source schema 'a'."
+                    ]
+                }
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Compose_Should_ReportFirstLevelIntermediate_When_RequiringAndOtherSchemaServeIt()
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "a",
+                """
+                type Query {
+                    orderById(id: ID!): Order @lookup @internal
+                    customerById(id: ID!): Customer @lookup @internal
+                }
+
+                type Order {
+                    id: ID! @shareable
+                    customer: Customer @shareable
+                    price(discount: Int @require(field: "customer.discount")): Int
+                }
+
+                type Customer {
+                    id: ID! @shareable
+                    discount: Int
+                }
+                """),
+            new SourceSchemaText(
+                "b",
+                """
+                type Query {
+                    orders: [Order]
+                }
+
+                type Order {
+                    id: ID! @shareable
+                    customer: Customer @shareable
+                }
+
+                type Customer {
+                    id: ID! @shareable
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsFailure);
+        log.Select(e => e.ToString()).MatchInlineSnapshots(
+        [
+            """
+            {
+                "message": "The @require directive on argument 'Order.price(discount:)' in schema 'a' specifies an invalid field selection against the composed schema.",
+                "code": "REQUIRE_INVALID_FIELDS",
+                "severity": "Error",
+                "coordinate": "Order.price(discount:)",
+                "member": "require",
+                "schema": "a",
+                "extensions": {
+                    "errors": [
+                        "The required field 'Order.customer' must not be served by the requiring source schema 'a'."
+                    ]
+                }
+            }
+            """
+        ]);
     }
 }

@@ -1,8 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
-import { Fusion } from "@/src/icons/Fusion";
+import { Fusion, FUSION_ARTWORK } from "@/src/icons/Fusion";
 
 import { LinkCard } from "./LinkCard";
+import { ProductArtworkIcon } from "./ProductArtworkIcon";
 
 const meta = {
   title: "Components/LinkCard",
@@ -61,13 +62,22 @@ export const PlainExternal: Story = {
   },
 };
 
+/** Matches the docs index cards: the sheet scale their icon tiles use. */
+const PRODUCT_ICON_SHEET_REM = 2;
+
 export const Icon: Story = {
   args: {
     variant: "icon",
     href: "/docs/fusion",
     title: "Fusion",
     description: "Compose services into one unified GraphQL API.",
-    icon: <Fusion className="h-8 w-8" />,
+    icon: (
+      <ProductArtworkIcon
+        Icon={Fusion}
+        artwork={FUSION_ARTWORK}
+        slotHeightRem={PRODUCT_ICON_SHEET_REM}
+      />
+    ),
   },
   render: (args) => (
     <ul>

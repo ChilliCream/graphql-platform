@@ -1,5 +1,7 @@
 import { BenchmarkExplorer } from "@/src/components/benchmarks/BenchmarkExplorer";
+import { benchmarkTechnology } from "@/src/components/benchmarks/benchmarkFilters";
 import { BenchmarkHeader } from "@/src/components/benchmarks/BenchmarkHeader";
+import { BenchmarkHistoryChart } from "@/src/components/benchmarks/BenchmarkHistoryChart";
 import { BenchmarkTestSetup } from "@/src/components/benchmarks/BenchmarkTestSetup";
 import { PageStructuredData } from "@/src/components/PageStructuredData";
 import {
@@ -7,7 +9,14 @@ import {
   federationBenchmarks as report,
 } from "@/src/data/federationBenchmarks";
 import { BENCHMARK_PAGE as PAGE } from "@/src/components/benchmarks/benchmarkRoutes";
-import type { ScenarioId } from "@/src/helpers/benchmarkReport";
+import {
+  benchmarkPageDescription,
+  isShownVariant,
+} from "@/src/components/benchmarks/benchmarkView";
+import {
+  benchmarkVariants,
+  type ScenarioId,
+} from "@/src/helpers/benchmarkReport";
 import {
   BENCHMARK_DATASET_ID,
   createBenchmarkDatasetNode,
@@ -19,10 +28,34 @@ interface BenchmarkPageProps {
 }
 
 export function BenchmarkPage({ initialScenario }: BenchmarkPageProps) {
+  const historyVariants = benchmarkVariants(history);
+  const charts = Object.fromEntries(
+    history.scenarios.flatMap((scenario) => {
+      const shown = scenario.variants.filter((item) => {
+        const entry = historyVariants.get(item.variant);
+        return entry && isShownVariant(entry) && item.results.length > 0;
+      });
+      return shown.length > 0
+        ? [
+            [
+              scenario.id,
+              <BenchmarkHistoryChart
+                key={scenario.id}
+                id={`benchmark-${scenario.id}`}
+                scenario={{ ...scenario, variants: shown }}
+                variants={historyVariants}
+              />,
+            ],
+          ]
+        : [];
+    }),
+  );
+
   return (
     <>
       <PageStructuredData
         {...PAGE}
+        description={benchmarkPageDescription(report)}
         dateModified={
           report.run.completedAt ?? report.run.startedAt ?? undefined
         }
@@ -38,11 +71,16 @@ export function BenchmarkPage({ initialScenario }: BenchmarkPageProps) {
         <div className="mt-10">
           <BenchmarkExplorer
             report={report}
-            history={history}
+            historyTechnologies={[
+              ...new Set(
+                [...historyVariants.values()].map(benchmarkTechnology),
+              ),
+            ]}
+            charts={charts}
             initialScenario={initialScenario}
           />
         </div>
-        <BenchmarkTestSetup report={report} />
+        <BenchmarkTestSetup report={report} history={history} />
       </article>
     </>
   );

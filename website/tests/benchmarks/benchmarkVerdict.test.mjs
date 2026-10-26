@@ -44,8 +44,8 @@ const result = (variant, medianRps, cvPercent = 1) => ({
   throughput: { medianRps, cvPercent },
   requests: { total: 100, successful: 100, failed: 0 },
 });
-const verdict = (rows, stableOnly = false) =>
-  scenarioVerdict({ results: [{ variants: rows }] }, variants, stableOnly);
+const verdict = (rows) =>
+  scenarioVerdict({ results: [{ variants: rows }] }, variants);
 const summary = (value) =>
   value && {
     leader: value.leader.variant,
@@ -72,16 +72,6 @@ test("compares the fastest variant of each gateway", () => {
       tied: false,
     },
   );
-});
-
-test("respects the stable release filter before selecting a gateway's variant", () => {
-  const rows = [
-    result("router-a-preview", 1200),
-    result("router-a", 900),
-    result("router-b", 1000),
-  ];
-  assert.equal(verdict(rows, true).leader.variant, "router-b");
-  assert.equal(verdict(rows, true).runnerUp.variant, "router-a");
 });
 
 test("retains ties within variance between different gateways", () => {
