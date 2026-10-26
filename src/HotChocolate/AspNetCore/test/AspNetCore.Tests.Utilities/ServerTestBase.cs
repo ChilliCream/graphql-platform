@@ -169,12 +169,7 @@ public abstract class ServerTestBase(TestServerFactory serverFactory)
     /// <summary>
     /// Disposes the servers the current test created.
     /// </summary>
-    public virtual ValueTask DisposeAsync()
-    {
-        ServerFactory.DisposeServers();
-
-        return ValueTask.CompletedTask;
-    }
+    public virtual ValueTask DisposeAsync() => ServerFactory.DisposeServersAsync();
 
     [DirectiveType(DirectiveLocation.Subscription)]
     public class Foo

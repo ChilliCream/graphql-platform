@@ -245,4 +245,21 @@ internal static class ThrowHelper
                 .AddLocation(fragmentSpread)
                 .Build());
     }
+
+    public static GraphQLException MutationFieldHasTooManyConditionVariants(
+        FieldNode fieldNode,
+        int maxConditions)
+    {
+        var responseName = fieldNode.Alias?.Value ?? fieldNode.Name.Value;
+
+        return new(
+            ErrorBuilder.New()
+                .SetMessage(
+                    FusionExecutionResources.DocumentRewriter_MutationFieldHasTooManyConditionVariants,
+                    responseName,
+                    maxConditions)
+                .SetExtension("responseName", responseName)
+                .AddLocation(fieldNode)
+                .Build());
+    }
 }

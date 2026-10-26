@@ -686,8 +686,8 @@ public class RequireTests : FusionTestBase
     public async Task Require_Should_Fulfill_List_Requirement_When_Path_Traverses_Connection_With_Nested_Require()
     {
         // arrange
-        // cart owns items and subtotal; subtotal requires items(first: 50).nodes[product.discountedPrice].
-        // discountedPrice is owned by promotions and itself requires price, which is owned by products.
+        // checkout owns subtotal, which requires items(first: 50).nodes[product.discountedPrice] from
+        // cart. discountedPrice is owned by promotions and itself requires price, owned by products.
         using var server1 = CreateSourceSchema(
             "cart",
             b => b.AddQueryType<CartService.Query>());
@@ -700,11 +700,16 @@ public class RequireTests : FusionTestBase
             "promotions",
             b => b.AddQueryType<ProductPromotions.Query>());
 
+        using var server4 = CreateSourceSchema(
+            "checkout",
+            b => b.AddQueryType<CartCheckout.Query>());
+
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("cart", server1),
             ("products", server2),
-            ("promotions", server3)
+            ("promotions", server3),
+            ("checkout", server4)
         ]);
 
         // act
@@ -759,11 +764,16 @@ public class RequireTests : FusionTestBase
             "promotions",
             b => b.AddQueryType<ProductPromotions.Query>());
 
+        using var server4 = CreateSourceSchema(
+            "checkout",
+            b => b.AddQueryType<CartCheckout.Query>());
+
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("cart", server1),
             ("products", server2),
-            ("promotions", server3)
+            ("promotions", server3),
+            ("checkout", server4)
         ]);
 
         // act
@@ -804,8 +814,9 @@ public class RequireTests : FusionTestBase
     public async Task Require_Should_Fulfill_Nested_Requirement_When_Two_Fields_Require_It_Next_To_Required_Parent()
     {
         // arrange
-        // unitPrice and lineTotal both require product.discountedPrice, which is owned by
-        // promotions, while the client also selects product next to them.
+        // unitPrice and lineTotal both require product.discountedPrice; product is owned by
+        // catalog and discountedPrice by promotions, while the client also selects product
+        // next to them.
         using var server1 = CreateSourceSchema(
             "cart",
             b => b.AddQueryType<CartItemPricing.Query>());
@@ -814,10 +825,15 @@ public class RequireTests : FusionTestBase
             "promotions",
             b => b.AddQueryType<CartItemPromotions.Query>());
 
+        using var server3 = CreateSourceSchema(
+            "catalog",
+            b => b.AddQueryType<CartItemCatalog.Query>());
+
         using var gateway = await CreateCompositeSchemaAsync(
         [
             ("cart", server1),
-            ("promotions", server2)
+            ("promotions", server2),
+            ("catalog", server3)
         ]);
 
         // act
@@ -1104,14 +1120,6 @@ public class RequireTests : FusionTestBase
                 new CartItem { Product = new Product { Id = 1 } },
                 new CartItem { Product = new Product { Id = 2 } }
             ];
-
-            public double GetSubtotal(
-                [Require("items(first: 50).nodes[product.discountedPrice]")] List<double>? lines)
-                => lines?.Sum() ?? -1;
-
-            public double GetLineTotal(
-                [Require("items(first: 50).nodes[{ unitPrice: product.discountedPrice }]")] List<CartLineInput>? lines)
-                => lines?.Sum(line => line.UnitPrice) ?? -1;
         }
 
         public class CartItem
@@ -1122,6 +1130,29 @@ public class RequireTests : FusionTestBase
         public class Product
         {
             public int Id { get; set; }
+        }
+    }
+
+    public static class CartCheckout
+    {
+        public class Query
+        {
+            [Lookup]
+            [Internal]
+            public Cart? GetCartById(int id) => new() { Id = id };
+        }
+
+        public class Cart
+        {
+            public int Id { get; set; }
+
+            public double GetSubtotal(
+                [Require("items(first: 50).nodes[product.discountedPrice]")] List<double>? lines)
+                => lines?.Sum() ?? -1;
+
+            public double GetLineTotal(
+                [Require("items(first: 50).nodes[{ unitPrice: product.discountedPrice }]")] List<CartLineInput>? lines)
+                => lines?.Sum(line => line.UnitPrice) ?? -1;
         }
 
         public class CartLineInput
@@ -1168,12 +1199,11 @@ public class RequireTests : FusionTestBase
     {
         public class Query
         {
-            public CartItem GetItem() => new() { Id = 1, Quantity = 3, Product = new Product { Id = 1 } };
+            public CartItem GetItem() => new() { Id = 1, Quantity = 3 };
 
             [Lookup]
             [Internal]
-            public CartItem? GetCartItemById(int id)
-                => new() { Id = id, Quantity = 3, Product = new Product { Id = id } };
+            public CartItem? GetCartItemById(int id) => new() { Id = id, Quantity = 3 };
         }
 
         public class CartItem
@@ -1182,11 +1212,26 @@ public class RequireTests : FusionTestBase
 
             public int Quantity { get; set; }
 
-            public required Product Product { get; set; }
-
             public double GetUnitPrice([Require("product.discountedPrice")] double price) => price;
 
             public double GetLineTotal([Require("product.discountedPrice")] double price) => price * Quantity;
+        }
+    }
+
+    public static class CartItemCatalog
+    {
+        public class Query
+        {
+            [Lookup]
+            [Internal]
+            public CartItem? GetCartItemById(int id) => new() { Id = id, Product = new Product { Id = id } };
+        }
+
+        public class CartItem
+        {
+            public int Id { get; set; }
+
+            public required Product Product { get; set; }
         }
 
         public class Product

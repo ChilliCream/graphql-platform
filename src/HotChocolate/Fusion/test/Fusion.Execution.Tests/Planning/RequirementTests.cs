@@ -307,4 +307,176 @@ public class RequirementTests : FusionTestBase
         // assert
         MatchSnapshot(plan);
     }
+
+    [Fact]
+    public void Plan_Should_ResolveFieldsFromSecondSchema_When_SecondSchemaServesTwoRequiringFields()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+              products: [Product]
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              estimate(weight: Int @require(field: "weight")): Int @shareable
+              quote(weight: Int @require(field: "weight")): Int @shareable
+            }
+            """,
+            """
+            # name: b
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              estimate: Int @shareable
+              quote: Int @shareable
+            }
+            """,
+            """
+            # name: c
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              weight: Int
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products {
+                id
+                estimate
+                quote
+              }
+            }
+            """);
+
+        // assert
+        MatchInline(
+            plan,
+            """
+            operation:
+              - document: |
+                  {
+                    products {
+                      id
+                      id @fusion__requirement
+                      estimate
+                      quote
+                    }
+                  }
+                hash: 123456789101112
+                searchSpace: 4
+                expandedNodes: 9
+            nodes:
+              - id: 1
+                type: Operation
+                schema: a
+                operation: |
+                  query Op_123456789101112_1 {
+                    products {
+                      id
+                    }
+                  }
+              - id: 2
+                type: Operation
+                schema: b
+                operation: |
+                  query Op_123456789101112_2($__fusion_2_id: ID!) {
+                    productById(id: $__fusion_2_id) {
+                      quote
+                      estimate
+                    }
+                  }
+                source: $.productById
+                target: $.products
+                requirements:
+                  - name: __fusion_2_id
+                    selectionMap: >-
+                      id
+                dependencies:
+                  - id: 1
+            """);
+    }
+
+    [Fact]
+    public void Plan_Should_MakeEstimateWaitForWeight_When_ClientSelectsWeightOfThreeHopRequireChain()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: p
+            type Query {
+              products: [Product]
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              name: String
+              dimensions: [Int!]
+            }
+            """,
+            """
+            # name: g
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              volume(dimensions: [Int!] @require(field: "dimensions")): Int!
+            }
+            """,
+            """
+            # name: m
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              weight(volume: Int @require(field: "volume")): Int
+            }
+            """,
+            """
+            # name: s
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              estimate(weight: Int @require(field: "weight")): Int
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products {
+                id
+                weight
+                estimate
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
 }

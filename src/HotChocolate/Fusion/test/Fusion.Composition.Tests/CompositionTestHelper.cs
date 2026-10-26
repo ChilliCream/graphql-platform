@@ -3,12 +3,38 @@ using HotChocolate.Fusion.Comparers;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
+using HotChocolate.Fusion.Results;
 using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion;
 
 internal static class CompositionTestHelper
 {
+    internal static (CompositionResult<MutableSchemaDefinition> Result, CompositionLog Log) ComposeSourceSchemas(
+        SourceSchemaText[] sourceSchemas)
+        => ComposeSourceSchemas(ShareableFieldRuntimeTypeRouting.SourceLocal, sourceSchemas);
+
+    internal static (CompositionResult<MutableSchemaDefinition> Result, CompositionLog Log) ComposeSourceSchemas(
+        ShareableFieldRuntimeTypeRouting shareableFieldRuntimeTypeRouting,
+        SourceSchemaText[] sourceSchemas)
+    {
+        var log = new CompositionLog();
+        var schemaComposer = new SchemaComposer(
+            sourceSchemas,
+            new SchemaComposerOptions
+            {
+                ApolloFederationCompatibility =
+                {
+                    ShareableFieldRuntimeTypeRouting = shareableFieldRuntimeTypeRouting
+                },
+                Merger = { AddFusionDefinitions = false },
+                Satisfiability = { IncludeSatisfiabilityPaths = true }
+            },
+            log);
+
+        return (schemaComposer.Compose(), log);
+    }
+
     internal static ImmutableSortedSet<MutableSchemaDefinition> CreateSchemaDefinitions(
         string[] sdl)
     {

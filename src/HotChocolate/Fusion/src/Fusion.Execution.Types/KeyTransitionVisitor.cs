@@ -35,7 +35,7 @@ internal sealed class KeyTransitionVisitor : SyntaxWalker<KeyTransitionVisitor.C
 
         if (node.TypeCondition is { Name: { } typeName })
         {
-            context.Types.Push(context.CompositeSchema.Types[typeName.Value]);
+            context.Types.Push(context.CompositeSchema.Types.GetType(typeName.Value, allowInaccessibleFields: true));
         }
 
         return base.Enter(node, context);
