@@ -57,6 +57,7 @@ internal sealed partial class SatisfiabilityValidator
         _apolloFederationCompatibility =
             apolloFederationCompatibility ?? new ApolloFederationCompatibilityOptions();
         _apolloFederationSchemaNames = apolloFederationSchemaNames ?? new HashSet<string>();
+        _schemaSets = new SchemaSetTable(GetSourceSchemaNames(schema));
         _lookupCache = new FusionLookupDirectiveCache(schema);
         _facts = new SatisfiabilityFactsBuilder(schema, _lookupCache).Build();
         _requirementsValidator =
