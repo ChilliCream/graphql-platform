@@ -60,9 +60,10 @@ internal static class SourceSchemaTransitionHelper
     /// <paramref name="transitionToSchemaName"/>, is re-rooted at, or <c>null</c> when the path
     /// cannot be re-rooted.
     /// </param>
-    /// <param name="budget">
-    /// The budget for the explanation entries of the search. A lookup whose key search exhausts the
-    /// budget, or that comes after it is exhausted, is not explained and stands for one omitted entry.
+    /// <param name="budget">The budget for the explanation entries of the search.</param>
+    /// <param name="transitionFails">
+    /// Whether the transition is known to fail, so that every lookup it tries is listed even when the
+    /// budget is used up. Otherwise, a lookup that the budget cuts stands for one omitted entry.
     /// </param>
     /// <returns>
     /// An empty array if the transition is satisfiable; otherwise the
@@ -82,7 +83,8 @@ internal static class SourceSchemaTransitionHelper
         string noLookupsFoundForTypeMessageFormat,
         string unableToSatisfyRequirementForLookupMessageFormat,
         MutableOutputFieldDefinition? queryViewerField,
-        SatisfiabilityExplanationBudget budget)
+        SatisfiabilityExplanationBudget budget,
+        bool transitionFails)
     {
         var errors = new List<SatisfiabilityError>();
 
@@ -264,49 +266,50 @@ internal static class SourceSchemaTransitionHelper
             int parentIndex,
             List<SatisfiabilityError> sink)
         {
-            if (budget.IsExhausted)
-            {
-                sink.Add(SatisfiabilityError.Unexplained);
-                return false;
-            }
-
             var lookupKeyArg = (string)lookupDirective.Arguments["key"].Value!;
             var lookupFieldArg = (string)lookupDirective.Arguments["field"].Value!;
             var lookupPathArg = (string?)lookupDirective.Arguments["path"].Value;
 
             var lookupRequirements = ParseSelectionSet($"{{ {lookupKeyArg} }}");
             var lookupFieldName = ParseFieldDefinition(lookupFieldArg).Name.Value;
+            ImmutableArray<SatisfiabilityError> requirementErrors = [];
 
-            IReadOnlyList<SatisfiabilityPathItem> pathFromParent =
-                parentIndex < pathFromLeaf.Count ? [.. pathFromLeaf.Skip(parentIndex)] : [];
+            if (!budget.IsExhausted)
+            {
+                IReadOnlyList<SatisfiabilityPathItem> pathFromParent =
+                    parentIndex < pathFromLeaf.Count ? [.. pathFromLeaf.Skip(parentIndex)] : [];
 
-            var requirementErrors =
-                validateLookupRequirements(contextType, pathFromParent, lookupRequirements);
+                requirementErrors =
+                    validateLookupRequirements(contextType, pathFromParent, lookupRequirements);
 
-            // The search of the lookup key stopped when the budget was used up, so its outcome is unknown.
-            if (budget.IsExhausted)
+                if (requirementErrors.IsEmpty && !budget.IsExhausted)
+                {
+                    return true;
+                }
+            }
+
+            // Once the budget is used up, the search of the lookup key does not decide whether the
+            // lookup works, which is only known when the transition fails.
+            if (budget.IsExhausted && !transitionFails)
             {
                 sink.Add(SatisfiabilityError.Unexplained);
                 return false;
             }
 
-            if (requirementErrors.IsEmpty)
-            {
-                return true;
-            }
-
             var lookupName = lookupPathArg is null
                 ? lookupFieldName
                 : $"{lookupPathArg}.{lookupFieldName}";
+            var message =
+                string.Format(
+                    unableToSatisfyRequirementForLookupMessageFormat,
+                    lookupRequirements.ToString(indented: false),
+                    lookupName,
+                    transitionToSchemaName);
 
             sink.Add(
-                budget.CreateError(
-                    string.Format(
-                        unableToSatisfyRequirementForLookupMessageFormat,
-                        lookupRequirements.ToString(indented: false),
-                        lookupName,
-                        transitionToSchemaName),
-                    requirementErrors));
+                transitionFails
+                    ? budget.CreateKnownError(message, requirementErrors)
+                    : budget.CreateError(message, requirementErrors));
 
             return false;
         }

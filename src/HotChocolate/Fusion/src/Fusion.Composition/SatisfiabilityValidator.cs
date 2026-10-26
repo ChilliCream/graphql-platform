@@ -823,7 +823,7 @@ internal sealed partial class SatisfiabilityValidator
         {
             // The reach decides the transition, so the budget stops the search.
             var budget = SatisfiabilityExplanationBudget.Limited(MaxExplanationEntries, stopsSearch: true);
-            explanation = ValidateSourceSchemaTransition(type, path, schemaName, budget);
+            explanation = ValidateSourceSchemaTransition(type, path, schemaName, budget, transitionFails: true);
             _explanationEntryCount += budget.EntryCount;
             _transitionExplanations.Add(schemaName, explanation);
         }
@@ -910,7 +910,7 @@ internal sealed partial class SatisfiabilityValidator
         string schemaName)
     {
         var budget = SatisfiabilityExplanationBudget.DecisionOnly(MaxExplanationEntries);
-        var errors = ValidateSourceSchemaTransition(type, path, schemaName, budget);
+        var errors = ValidateSourceSchemaTransition(type, path, schemaName, budget, transitionFails: false);
 
         return budget.IsExhausted || canTransition == errors.IsEmpty;
     }
@@ -919,7 +919,8 @@ internal sealed partial class SatisfiabilityValidator
         MutableObjectTypeDefinition type,
         PathNode? path,
         string transitionToSchemaName,
-        SatisfiabilityExplanationBudget budget)
+        SatisfiabilityExplanationBudget budget,
+        bool transitionFails)
     {
         SatisfiabilityPathItem[] pathFromLeaf = [.. path.EnumerateFromLeaf()];
 
@@ -940,7 +941,8 @@ internal sealed partial class SatisfiabilityValidator
             SatisfiabilityValidator_NoLookupsFoundForType,
             SatisfiabilityValidator_UnableToSatisfyRequirementForLookup,
             GetQueryViewerField(pathFromLeaf),
-            budget);
+            budget,
+            transitionFails);
     }
 
     /// <summary>

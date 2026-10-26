@@ -75,6 +75,29 @@ internal sealed class SatisfiabilityExplanationBudget
         return _createsEntries ? new SatisfiabilityError(message, errors) : SatisfiabilityError.Unexplained;
     }
 
+    /// <summary>
+    /// Creates an entry with <paramref name="message"/> and <paramref name="errors"/> for a failure that is
+    /// known without its search, also when the budget is exhausted, which adds
+    /// <see cref="SatisfiabilityError.Unexplained"/> to <paramref name="errors"/> unless they hold it.
+    /// Returns <see cref="SatisfiabilityError.Unexplained"/> when the budget creates no entries.
+    /// </summary>
+    public SatisfiabilityError CreateKnownError(string message, ImmutableArray<SatisfiabilityError> errors)
+    {
+        EntryCount++;
+
+        if (!_createsEntries)
+        {
+            return SatisfiabilityError.Unexplained;
+        }
+
+        if (IsExhausted && !errors.Contains(SatisfiabilityError.Unexplained))
+        {
+            errors = errors.Add(SatisfiabilityError.Unexplained);
+        }
+
+        return new SatisfiabilityError(message, errors);
+    }
+
     private static bool HoldsCreatedEntry(ImmutableArray<SatisfiabilityError> errors)
     {
         foreach (var error in errors)
