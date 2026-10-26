@@ -1,3 +1,5 @@
+using HotChocolate.Fusion.Options;
+
 namespace HotChocolate.Fusion.Satisfiability;
 
 /// <summary>
@@ -7,26 +9,36 @@ namespace HotChocolate.Fusion.Satisfiability;
 internal sealed class SchemaSetTable
 {
     private readonly Dictionary<string, int> _indexes = new(StringComparer.Ordinal);
-    private readonly List<string> _names = [];
+    private readonly string[] _names;
     private readonly List<ulong[]> _members = [[]];
     private readonly Dictionary<ulong[], SchemaSet> _sets = new(MembersComparer.Instance);
-    private ulong[] _buffer = [];
+    private readonly ulong[] _buffer;
 
-    public SchemaSetTable()
+    /// <summary>
+    /// Creates a table that assigns each of the distinct <paramref name="schemaNames"/> its
+    /// position as index.
+    /// </summary>
+    public SchemaSetTable(IEnumerable<string> schemaNames)
     {
+        _names = [.. schemaNames];
+
+        for (var i = 0; i < _names.Length; i++)
+        {
+            _indexes.Add(_names[i], i);
+        }
+
+        _buffer = new ulong[(_names.Length + 63) >> 6];
         _sets.Add(_members[0], SchemaSet.Empty);
     }
 
     /// <summary>
-    /// Gets the index of <paramref name="schemaName"/>, assigning the next free index on first use.
+    /// Gets the index of <paramref name="schemaName"/>, which must be one of the schemas of the table.
     /// </summary>
     public int GetIndex(string schemaName)
     {
         if (!_indexes.TryGetValue(schemaName, out var index))
         {
-            index = _names.Count;
-            _indexes.Add(schemaName, index);
-            _names.Add(schemaName);
+            throw ThrowHelper.UnknownSourceSchema(schemaName);
         }
 
         return index;
@@ -69,19 +81,12 @@ internal sealed class SchemaSetTable
     public bool Contains(SchemaSet set, int index) => Contains(_members[set.Id], index);
 
     /// <summary>
-    /// Gets the shared scratch buffer, sized for every known schema and holding the members of
-    /// <paramref name="set"/>. The next call to <see cref="GetBuffer"/> or <see cref="Create"/>
+    /// Gets the shared scratch buffer, sized for every schema of the table and holding the members
+    /// of <paramref name="set"/>. The next call to <see cref="GetBuffer"/> or <see cref="Create"/>
     /// overwrites the buffer.
     /// </summary>
     public ulong[] GetBuffer(SchemaSet set)
     {
-        var length = (_names.Count + 63) >> 6;
-
-        if (_buffer.Length < length)
-        {
-            _buffer = new ulong[length];
-        }
-
         var members = _members[set.Id];
         members.CopyTo(_buffer, 0);
         Array.Clear(_buffer, members.Length, _buffer.Length - members.Length);
