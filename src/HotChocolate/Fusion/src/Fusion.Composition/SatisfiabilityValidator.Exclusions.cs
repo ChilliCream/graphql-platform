@@ -545,7 +545,6 @@ internal sealed partial class SatisfiabilityValidator
                     item,
                     parentKey,
                     parentReach,
-                    SchemaSetRef.Empty,
                     reach,
                     holderAvailable,
                     anchor);
