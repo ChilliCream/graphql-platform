@@ -2138,6 +2138,297 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void CreateVariableValueSets_Should_MapFromRequirementPath_When_RequirementIsAnchoredBelowTarget()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              products: [Product]
+            }
+
+            type Product {
+              id: Int!
+              details: Details
+            }
+
+            type Details {
+              weight: Int
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ products { id details { weight } } }",
+            """{"data":{"products":[{"id":1,"details":{"weight":10}},{"id":2,"details":{"weight":20}}]}}""",
+            resultArena,
+            sourceArena);
+
+        var products = SelectionPath.Root.AppendField("products");
+
+        // act
+        var result = store.CreateVariableValueSets(
+            products,
+            [],
+            [
+                new OperationRequirement(
+                    "__fusion_1_id",
+                    new NonNullTypeNode(new NamedTypeNode("Int")),
+                    products,
+                    new FieldSelectionMapParser("id").Parse()),
+                new OperationRequirement(
+                    "__fusion_2_weight",
+                    new NamedTypeNode("Int"),
+                    products.AppendField("details"),
+                    new FieldSelectionMapParser("weight").Parse())
+            ]);
+
+        // assert
+        RenderVariableValueSets(store, result).MatchInlineSnapshot(
+            """
+            Path: products[0]
+            Additional paths: []
+            Variables: {"__fusion_1_id":1,"__fusion_2_weight":10}
+            Path: products[1]
+            Additional paths: []
+            Variables: {"__fusion_1_id":2,"__fusion_2_weight":20}
+            """);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void CreateVariableValueSets_Should_SkipElement_When_RequirementAnchorIsNull(bool nonNullRequirement)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              products: [Product]
+            }
+
+            type Product {
+              id: Int!
+              details: Details
+            }
+
+            type Details {
+              weight: Int
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ products { id details { weight } } }",
+            """{"data":{"products":[{"id":1,"details":{"weight":10}},{"id":2,"details":null}]}}""",
+            resultArena,
+            sourceArena);
+
+        var products = SelectionPath.Root.AppendField("products");
+
+        // act
+        var result = store.CreateVariableValueSets(
+            products,
+            [],
+            [
+                new OperationRequirement(
+                    "__fusion_1_id",
+                    new NonNullTypeNode(new NamedTypeNode("Int")),
+                    products,
+                    new FieldSelectionMapParser("id").Parse()),
+                new OperationRequirement(
+                    "__fusion_2_weight",
+                    nonNullRequirement ? new NonNullTypeNode(new NamedTypeNode("Int")) : new NamedTypeNode("Int"),
+                    products.AppendField("details"),
+                    new FieldSelectionMapParser("weight").Parse())
+            ]);
+
+        // assert
+        RenderVariableValueSets(store, result).MatchInlineSnapshot(
+            """
+            Path: products[0]
+            Additional paths: []
+            Variables: {"__fusion_1_id":1,"__fusion_2_weight":10}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSets_Should_MapFromRequirementPath_When_AnchorIsBelowTypeCondition()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              items: [Item]
+            }
+
+            interface Item {
+              id: Int!
+            }
+
+            type Book implements Item {
+              id: Int!
+              pages: Int
+            }
+
+            type Movie implements Item {
+              id: Int!
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ items { __typename id ... on Book { pages } } }",
+            """{"data":{"items":[{"__typename":"Book","id":1,"pages":100},{"__typename":"Movie","id":2}]}}""",
+            resultArena,
+            sourceArena);
+
+        var items = SelectionPath.Root.AppendField("items");
+
+        // act
+        var result = store.CreateVariableValueSets(
+            items,
+            [],
+            [
+                new OperationRequirement(
+                    "__fusion_1_pages",
+                    new NamedTypeNode("Int"),
+                    items.AppendFragment("Book"),
+                    new FieldSelectionMapParser("pages").Parse())
+            ]);
+
+        // assert
+        RenderVariableValueSets(store, result).MatchInlineSnapshot(
+            """
+            Path: items[0]
+            Additional paths: []
+            Variables: {"__fusion_1_pages":100}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSets_Should_MapFromRequirementPath_When_TargetsAreMerged()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              products: [Product]
+              featured: Product
+            }
+
+            type Product {
+              id: Int!
+              details: Details
+            }
+
+            type Details {
+              weight: Int
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ products { id details { weight } } featured { id details { weight } } }",
+            """
+            {"data":{
+              "products":[{"id":1,"details":{"weight":10}},{"id":2,"details":{"weight":20}}],
+              "featured":{"id":3,"details":{"weight":30}}
+            }}
+            """,
+            resultArena,
+            sourceArena);
+
+        var products = SelectionPath.Root.AppendField("products");
+
+        // act
+        var result = store.CreateVariableValueSets(
+            [products, SelectionPath.Root.AppendField("featured")],
+            [],
+            [
+                new OperationRequirement(
+                    "__fusion_1_weight",
+                    new NamedTypeNode("Int"),
+                    products.AppendField("details"),
+                    new FieldSelectionMapParser("weight").Parse())
+            ]);
+
+        // assert
+        RenderVariableValueSets(store, result).MatchInlineSnapshot(
+            """
+            Path: products[0]
+            Additional paths: []
+            Variables: {"__fusion_1_weight":10}
+            Path: products[1]
+            Additional paths: []
+            Variables: {"__fusion_1_weight":20}
+            Path: featured
+            Additional paths: []
+            Variables: {"__fusion_1_weight":30}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSets_Should_SkipElement_When_RequirementAnchorIsBelowList()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              products: [Product]
+            }
+
+            type Product {
+              id: Int!
+              details: [Details]
+            }
+
+            type Details {
+              weight: Int
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ products { id details { weight } } }",
+            """{"data":{"products":[{"id":1,"details":[{"weight":10},{"weight":20}]}]}}""",
+            resultArena,
+            sourceArena);
+
+        var products = SelectionPath.Root.AppendField("products");
+
+        // act
+        var result = store.CreateVariableValueSets(
+            products,
+            [],
+            [
+                new OperationRequirement(
+                    "__fusion_1_weight",
+                    new NamedTypeNode("Int"),
+                    products.AppendField("details"),
+                    new FieldSelectionMapParser("weight").Parse())
+            ]);
+
+        // assert
+        Assert.Empty(result);
+    }
+
+    [Fact]
     public void CreateVariableValueSets_Should_SkipElement_When_NonNullListElementValueIsNull()
     {
         // arrange
