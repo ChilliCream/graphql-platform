@@ -480,14 +480,16 @@ internal sealed class PolicyEvaluator
     {
         var occurrences = ImmutableArray.CreateBuilder<PolicyDescriptor>(descriptors.Length);
         var flagsByOperation = new Dictionary<Operation, ConditionFlags>();
-        var operationsThatDoNotRun = plan.IncrementalPlans.IsEmpty
-            ? null
-            : IncrementalPlan.GetOperationsThatDoNotRun(plan.IncrementalPlans, variables);
+        var activeDeliveryGroups = DeliveryGroup.GetActive(plan.DeliveryGroups, variables);
+        var runningIncrementalPlans = IncrementalPlan.GetRunningPlans(
+            plan.IncrementalPlans,
+            activeDeliveryGroups);
 
         foreach (var descriptor in descriptors)
         {
-            if (operationsThatDoNotRun?.Contains(
-                    ((Selection)descriptor.Selection).DeclaringSelectionSet.DeclaringOperation) is true)
+            if (plan.DoesNotRun(
+                    runningIncrementalPlans,
+                    ((Selection)descriptor.Selection).DeclaringSelectionSet.DeclaringOperation))
             {
                 continue;
             }

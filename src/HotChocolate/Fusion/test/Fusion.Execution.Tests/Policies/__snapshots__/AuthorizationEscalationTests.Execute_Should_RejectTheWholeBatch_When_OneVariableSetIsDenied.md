@@ -20,7 +20,7 @@
 ```json
 {
   "Status": "Forbidden",
-  "Challenge": null
+  "Challenge": "<absent>"
 }
 ```
 

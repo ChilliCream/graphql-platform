@@ -195,10 +195,15 @@ public class AuthorizationEscalationTests : AuthorizationExecutionTestBase
 
         return new
         {
-            Status = contextData.GetValueOrDefault(ExecutionContextData.HttpStatusCode)?.ToString(),
-            Challenge = contextData.GetValueOrDefault(ExecutionContextData.WwwAuthenticateHeaderValue)?.ToString()
+            Status = DescribeContextValue(contextData, ExecutionContextData.HttpStatusCode),
+            Challenge = DescribeContextValue(contextData, ExecutionContextData.WwwAuthenticateHeaderValue)
         };
     }
+
+    private static string DescribeContextValue(IReadOnlyDictionary<string, object?> contextData, string key)
+        => contextData.TryGetValue(key, out var value)
+            ? value?.ToString() ?? "<null>"
+            : "<absent>";
 
     private static Task<IRequestExecutor> CreateEscalatingExecutorAsync(
         AuthorizationTestClient client,

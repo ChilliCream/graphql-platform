@@ -107,11 +107,8 @@ internal static partial class OperationPlanExecutor
             // Compute the active delivery groups (one per @defer occurrence whose
             // @defer(if:) evaluates to true) and the incremental plans that will actually run.
             // The running plans come from the rule the policy evaluator shares.
-            var activeDeliveryGroups = GetActiveDeliveryGroups(operationPlan, variables);
-
-            var runningIncrementalPlans = IncrementalPlan.GetRunningPlans(
-                operationPlan.IncrementalPlans,
-                variables);
+            rootContext.ActivateIncrementalPlans(operationPlan, variables);
+            var activeDeliveryGroups = rootContext.ActiveDeliveryGroups;
 
             // Mark top-level active delivery groups as pending on the initial
             // result. Nested delivery groups are marked pending after their
@@ -124,7 +121,7 @@ internal static partial class OperationPlanExecutor
                     continue;
                 }
 
-                if (!activeDeliveryGroups[deliveryGroup.Id])
+                if (!activeDeliveryGroups.IsSet(deliveryGroup.Id))
                 {
                     continue;
                 }
@@ -159,8 +156,6 @@ internal static partial class OperationPlanExecutor
                     policyDecisions,
                     operationPlan,
                     initialResult,
-                    activeDeliveryGroups,
-                    runningIncrementalPlans,
                     rootContext,
                     cancellationToken),
                 ExecutionResultKind.DeferredResult);
@@ -188,8 +183,6 @@ internal static partial class OperationPlanExecutor
         PolicyDecisions? policyDecisions,
         OperationPlan operationPlan,
         OperationResult initialResult,
-        bool[] activeDeliveryGroups,
-        bool[] runningIncrementalPlans,
         OperationPlanContext rootContext,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
@@ -198,6 +191,8 @@ internal static partial class OperationPlanExecutor
 
         var requestArena = rootContext.Memory;
         var incrementalPlans = operationPlan.IncrementalPlans;
+        var activeDeliveryGroups = rootContext.ActiveDeliveryGroups;
+        var runningIncrementalPlans = rootContext.RunningIncrementalPlans;
 
         // Per-delivery-group completion tracking. A delivery group is considered
         // complete when every incremental plan whose DeliveryGroups contains it has
@@ -206,14 +201,14 @@ internal static partial class OperationPlanExecutor
         var pendingCountByDeliveryGroup = new Dictionary<int, int>();
         for (var i = 0; i < incrementalPlans.Length; i++)
         {
-            if (!runningIncrementalPlans[i])
+            if (!runningIncrementalPlans.IsSet(i))
             {
                 continue;
             }
 
             foreach (var deliveryGroup in incrementalPlans[i].DeliveryGroups)
             {
-                if (!activeDeliveryGroups[deliveryGroup.Id])
+                if (!activeDeliveryGroups.IsSet(deliveryGroup.Id))
                 {
                     continue;
                 }
@@ -240,7 +235,7 @@ internal static partial class OperationPlanExecutor
             {
                 var incrementalPlan = incrementalPlans[i];
 
-                if (!runningIncrementalPlans[i] || incrementalPlan.DeliveryGroups[0].Parent is not null)
+                if (!runningIncrementalPlans.IsSet(i) || incrementalPlan.DeliveryGroups[0].Parent is not null)
                 {
                     continue;
                 }
@@ -264,7 +259,7 @@ internal static partial class OperationPlanExecutor
             var announcedDeliveryGroupIds = new HashSet<int>();
             foreach (var deliveryGroup in operationPlan.DeliveryGroups)
             {
-                if (deliveryGroup.Parent is null && activeDeliveryGroups[deliveryGroup.Id])
+                if (deliveryGroup.Parent is null && activeDeliveryGroups.IsSet(deliveryGroup.Id))
                 {
                     announcedDeliveryGroupIds.Add(deliveryGroup.Id);
                 }
@@ -292,7 +287,7 @@ internal static partial class OperationPlanExecutor
                 {
                     var candidate = incrementalPlans[i];
 
-                    if (!runningIncrementalPlans[i])
+                    if (!runningIncrementalPlans.IsSet(i))
                     {
                         continue;
                     }
@@ -342,7 +337,7 @@ internal static partial class OperationPlanExecutor
 
                     foreach (var deliveryGroup in candidate.DeliveryGroups)
                     {
-                        if (!activeDeliveryGroups[deliveryGroup.Id])
+                        if (!activeDeliveryGroups.IsSet(deliveryGroup.Id))
                         {
                             continue;
                         }
@@ -675,38 +670,16 @@ internal static partial class OperationPlanExecutor
         return best;
     }
 
-    private static bool[] GetActiveDeliveryGroups(
-        OperationPlan operationPlan,
-        IVariableValueCollection variables)
-    {
-        var deliveryGroups = operationPlan.DeliveryGroups;
-        var maxId = -1;
-
-        foreach (var deliveryGroup in deliveryGroups)
-        {
-            maxId = Math.Max(maxId, deliveryGroup.Id);
-        }
-
-        var active = new bool[maxId + 1];
-
-        foreach (var deliveryGroup in deliveryGroups)
-        {
-            active[deliveryGroup.Id] = deliveryGroup.IsActive(variables);
-        }
-
-        return active;
-    }
-
     private static void CompleteDeliveryGroupsForIncrementalPlan(
         IncrementalPlan incrementalPlan,
-        bool[] activeDeliveryGroups,
+        ConditionFlags activeDeliveryGroups,
         Dictionary<int, int> pendingCountByDeliveryGroup,
         ImmutableList<CompletedResult>.Builder completed,
         IReadOnlyList<IError>? errors)
     {
         foreach (var deliveryGroup in incrementalPlan.DeliveryGroups)
         {
-            if (!activeDeliveryGroups[deliveryGroup.Id])
+            if (!activeDeliveryGroups.IsSet(deliveryGroup.Id))
             {
                 continue;
             }

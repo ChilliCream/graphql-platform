@@ -3,6 +3,6 @@
 ```json
 {
   "Status": "Unauthorized",
-  "Challenge": null
+  "Challenge": "<absent>"
 }
 ```

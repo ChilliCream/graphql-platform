@@ -17,8 +17,8 @@
 
 ```json
 {
-  "Status": null,
-  "Challenge": null
+  "Status": "<absent>",
+  "Challenge": "<absent>"
 }
 ```
 

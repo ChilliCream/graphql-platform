@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Security.Cryptography;
 using HotChocolate.Buffers;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Fusion.Policies;
@@ -16,6 +17,7 @@ public sealed partial record OperationPlan : IOperationPlan
 {
     private static readonly JsonOperationPlanFormatter s_formatter = new();
     private readonly ExecutionNode?[] _nodesById = [];
+    private readonly Dictionary<Operation, int>? _incrementalPlanIndexes;
 
     private OperationPlan(
         string id,
@@ -45,6 +47,7 @@ public sealed partial record OperationPlan : IOperationPlan
         UsesDynamicSchemaNames = usesDynamicSchemaNames;
         UsesBatchNodes = usesBatchNodes;
         Policies = policies;
+        _incrementalPlanIndexes = CreateIncrementalPlanIndexes(incrementalPlans);
 
         if (EntityReuseCandidateMap.Create(this) is { } entityReuseCandidateMap)
         {
@@ -124,6 +127,15 @@ public sealed partial record OperationPlan : IOperationPlan
     /// or <c>null</c> if nothing is protected.
     /// </summary>
     public PolicyPlan? Policies { get; }
+
+    /// <summary>
+    /// Determines whether the operation belongs to an incremental plan of this plan that is not set in
+    /// <paramref name="runningIncrementalPlans"/>.
+    /// </summary>
+    internal bool DoesNotRun(ConditionFlags runningIncrementalPlans, Operation operation)
+        => _incrementalPlanIndexes is not null
+            && _incrementalPlanIndexes.TryGetValue(operation, out var index)
+            && !runningIncrementalPlans.IsSet(index);
 
     /// <summary>
     /// Retrieves the execution node associated with a plan node identifier.
@@ -279,6 +291,24 @@ public sealed partial record OperationPlan : IOperationPlan
             policies,
             searchSpace,
             expandedNodes);
+    }
+
+    private static Dictionary<Operation, int>? CreateIncrementalPlanIndexes(
+        ImmutableArray<IncrementalPlan> incrementalPlans)
+    {
+        if (incrementalPlans.IsDefaultOrEmpty)
+        {
+            return null;
+        }
+
+        var indexes = new Dictionary<Operation, int>(incrementalPlans.Length);
+
+        for (var i = 0; i < incrementalPlans.Length; i++)
+        {
+            indexes[incrementalPlans[i].Operation] = i;
+        }
+
+        return indexes;
     }
 
     private static ExecutionNode?[] CreateNodeLookup(
