@@ -1,7 +1,6 @@
 import { PageStructuredData } from "@/src/components/PageStructuredData";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
 import {
-  createFaqNode,
   LOGO_ID,
   ORGANIZATION_ID,
   schemaId,
@@ -9,7 +8,6 @@ import {
 } from "@/src/helpers/structuredData";
 
 import { ExplainerPage } from "./ExplainerPage";
-import { FEDERATION_FAQ_ITEMS } from "./faq";
 import { FEDERATION_DEFINITION } from "./terms";
 
 const PAGE = {
@@ -65,8 +63,6 @@ const ARTICLE = {
   about: schemaRef(TERM_ID),
 };
 
-const FAQ = createFaqNode(PAGE.path, FEDERATION_FAQ_ITEMS);
-
 export default function GraphQLFederationPage() {
   return (
     <>
@@ -81,7 +77,7 @@ export default function GraphQLFederationPage() {
         ]}
         mainEntity={schemaRef(ARTICLE_ID)}
         about={schemaRef(TERM_ID)}
-        additionalNodes={[ARTICLE, GRAPHQL_FEDERATION_TERM, FAQ]}
+        additionalNodes={[ARTICLE, GRAPHQL_FEDERATION_TERM]}
       />
       <ExplainerPage />
     </>

@@ -1,8 +1,6 @@
 import { ButtonRow } from "@/src/components/ButtonRow";
-import { FaqSection } from "@/src/components/FaqSection";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 
-import { FEDERATION_FAQ_ITEMS } from "./faq";
 import { GraphBackdrop } from "./hero/GraphBackdrop";
 import { AiDevelopmentSection } from "./sections/AiDevelopmentSection";
 import { BuildingBlocksSection } from "./sections/BuildingBlocksSection";
@@ -10,7 +8,7 @@ import { ComparisonsSection } from "./sections/ComparisonsSection";
 import { FromApolloSection } from "./sections/FromApolloSection";
 import { FusionCta } from "./sections/FusionCta";
 import { ProblemSection } from "./sections/ProblemSection";
-import { GRADIENT, Section } from "./sections/shared";
+import { GRADIENT } from "./sections/shared";
 import { WhatIsSection } from "./sections/WhatIsSection";
 
 export function ExplainerPage() {
@@ -60,15 +58,6 @@ export function ExplainerPage() {
       <AiDevelopmentSection />
       <ComparisonsSection />
       <FusionCta />
-
-      <Section id="faq">
-        <FaqSection
-          id="federation-faq"
-          align="left"
-          heading="Common questions about GraphQL Federation."
-          items={FEDERATION_FAQ_ITEMS}
-        />
-      </Section>
     </div>
   );
 }
