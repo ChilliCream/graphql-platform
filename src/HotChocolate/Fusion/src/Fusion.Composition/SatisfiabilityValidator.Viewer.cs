@@ -202,6 +202,58 @@ internal sealed partial class SatisfiabilityValidator
     }
 
     /// <summary>
+    /// Gets, for each item of <paramref name="arrivalPath"/>, given from the leaf to the root, whether a viewer
+    /// field at or above it, below the last node lookup, is re-rooted at <c>Query.viewer</c>.
+    /// </summary>
+    private bool[] GetBelowReRootedViewer(SatisfiabilityPathItem[] arrivalPath)
+    {
+        var belowReRootedViewer = new bool[arrivalPath.Length];
+
+        if (arrivalPath.Length == 0)
+        {
+            return belowReRootedViewer;
+        }
+
+        // The viewer fallback of the object that declares the field of an item, as its visit key holds it.
+        var rootType = arrivalPath[^1].Type;
+        var viewerFallback =
+            !ReferenceEquals(rootType, _schema.QueryType)
+            && rootType is MutableObjectTypeDefinition rootObjectType
+            && _viewerFallbackTypes.Contains(rootObjectType);
+        var reRooted = false;
+
+        for (var i = arrivalPath.Length - 1; i >= 0; i--)
+        {
+            var item = arrivalPath[i];
+
+            // A node lookup starts new calls that depend on no call above it.
+            if (i + 1 < arrivalPath.Length
+                && arrivalPath[i + 1].SchemaName == SatisfiabilityPathItem.GatewaySchemaName)
+            {
+                reRooted = false;
+            }
+            else if (viewerFallback
+                && _queryViewerField is not null
+                && item.Field.IsViewerFieldFor(_queryViewerField))
+            {
+                reRooted = true;
+            }
+
+            belowReRootedViewer[i] = reRooted;
+
+            if (i > 0)
+            {
+                viewerFallback =
+                    viewerFallback
+                    && arrivalPath[i - 1].Type is MutableObjectTypeDefinition objectType
+                    && _viewerFallbackTypes.Contains(objectType);
+            }
+        }
+
+        return belowReRootedViewer;
+    }
+
+    /// <summary>
     /// Gets the <c>Query.viewer</c> field when <paramref name="pathFromLeaf"/> starts at a mutation
     /// or subscription root; otherwise <c>null</c>.
     /// </summary>

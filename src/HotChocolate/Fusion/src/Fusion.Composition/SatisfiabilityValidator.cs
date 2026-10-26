@@ -925,33 +925,73 @@ internal sealed partial class SatisfiabilityValidator
         bool anchored,
         SatisfiabilityExplanationBudget budget)
     {
-        var type = work.Key.ObjectType;
         var path = work.Path;
-        var scope = RequirementScope.Unanchored;
-        IReadOnlyList<SatisfiabilityPathItem> ancestors = [];
 
-        if (path is not null)
+        if (path is not null && !anchored)
         {
-            if (anchored)
-            {
-                scope = new RequirementScope(
-                    new VisitAnchor(this, work.Key, path.Item),
-                    ArrivalPath: null,
-                    AllowsReRootedCalls: true);
-            }
-            else
-            {
-                SatisfiabilityPathItem[] arrivalPath = [.. path.EnumerateFromLeaf()];
-                scope = new RequirementScope(Anchor: null, arrivalPath, AllowsReRootedCalls: true);
-                ancestors = arrivalPath[1..];
-            }
+            return ValidateRequirementsOnPath(
+                requirements,
+                field,
+                schemaName,
+                work.Key.ObjectType,
+                [.. path.EnumerateFromLeaf()],
+                budget);
         }
 
+        var scope = path is null
+            ? RequirementScope.Unanchored
+            : new RequirementScope(
+                new VisitAnchor(this, work.Key, path.Item),
+                ArrivalPath: null,
+                AllowsReRootedCalls: true,
+                BelowReRootedViewer: null,
+                ResolvesFieldAtParent: null);
+
+        return ValidateRequirements(requirements, field, schemaName, work.Key.ObjectType, path?.Item, [], scope, budget);
+    }
+
+    /// <summary>
+    /// Validates that <paramref name="schemaName"/> can resolve <paramref name="field"/> on <paramref name="type"/>,
+    /// held on <paramref name="arrivalPath"/>, given from the leaf to the root, with its
+    /// <paramref name="requirements"/> by walking the whole path, and returns the errors, which are empty when it can.
+    /// </summary>
+    private ImmutableArray<SatisfiabilityError> ValidateRequirementsOnPath(
+        SelectionSetNode requirements,
+        MutableOutputFieldDefinition field,
+        string schemaName,
+        MutableObjectTypeDefinition type,
+        SatisfiabilityPathItem[] arrivalPath,
+        SatisfiabilityExplanationBudget budget)
+        => ValidateRequirements(
+            requirements,
+            field,
+            schemaName,
+            type,
+            arrivalPath[0],
+            arrivalPath[1..],
+            CreateArrivalScope(arrivalPath),
+            budget);
+
+    /// <summary>
+    /// Validates that <paramref name="schemaName"/> can resolve <paramref name="field"/> on <paramref name="type"/>,
+    /// held by <paramref name="parentPathItem"/> below <paramref name="ancestors"/>, with its
+    /// <paramref name="requirements"/> in <paramref name="scope"/>, and returns the errors, which are empty when it can.
+    /// </summary>
+    private ImmutableArray<SatisfiabilityError> ValidateRequirements(
+        SelectionSetNode requirements,
+        MutableOutputFieldDefinition field,
+        string schemaName,
+        MutableObjectTypeDefinition type,
+        SatisfiabilityPathItem? parentPathItem,
+        IReadOnlyList<SatisfiabilityPathItem> ancestors,
+        RequirementScope scope,
+        SatisfiabilityExplanationBudget budget)
+    {
         var errors =
             _requirementsValidator.Validate(
                 requirements,
                 type,
-                path?.Item,
+                parentPathItem,
                 ancestors,
                 scope,
                 excludeSchemaName: schemaName,
@@ -968,7 +1008,7 @@ internal sealed partial class SatisfiabilityValidator
                     type,
                     field,
                     schemaName,
-                    path?.Item,
+                    parentPathItem,
                     ancestors,
                     scope,
                     SatisfiabilityValidator_NoLookupForRequiringField,
@@ -978,6 +1018,107 @@ internal sealed partial class SatisfiabilityValidator
 
         return errors;
     }
+
+    /// <summary>
+    /// Creates the scope of a walk of <paramref name="arrivalPath"/>, given from the leaf to the root, that may
+    /// take data that depends on calls re-rooted at <c>Query.viewer</c>.
+    /// </summary>
+    private RequirementScope CreateArrivalScope(SatisfiabilityPathItem[] arrivalPath)
+    {
+        Dictionary<(int, string), bool>? resolutions = null;
+
+        return new RequirementScope(
+            Anchor: null,
+            arrivalPath,
+            AllowsReRootedCalls: true,
+            GetBelowReRootedViewer(arrivalPath),
+            (index, schemaName, budget) =>
+            {
+                resolutions ??= [];
+
+                if (!resolutions.TryGetValue((index, schemaName), out var resolves))
+                {
+                    resolves = ResolvesFieldOnPath(arrivalPath, index, schemaName, budget);
+                    resolutions.Add((index, schemaName), resolves);
+                }
+
+                return resolves;
+            });
+    }
+
+    /// <summary>
+    /// Determines whether <paramref name="schemaName"/> resolves the field of <c>arrivalPath[index]</c> as an option
+    /// at the visit of the object that declares it, held on the items above it, a schema other than the holding
+    /// schema with requirements only through one of its lookups for that object.
+    /// </summary>
+    private bool ResolvesFieldOnPath(
+        SatisfiabilityPathItem[] arrivalPath,
+        int index,
+        string schemaName,
+        SatisfiabilityExplanationBudget budget)
+    {
+        var item = arrivalPath[index];
+        var parentPath = arrivalPath[(index + 1)..];
+        var parentSchemaName = parentPath[0].SchemaName;
+
+        if (item.Type is not MutableObjectTypeDefinition type
+            || (schemaName != parentSchemaName
+                && !_facts.CanTransition(type, schemaName, parentSchemaName)
+                && !ValidateSourceSchemaTransition(type, parentPath, schemaName, budget, transitionFails: false)
+                    .IsEmpty))
+        {
+            return false;
+        }
+
+        var requirements = item.Field.GetFusionRequiresRequirements(schemaName);
+
+        if (requirements is null || _facts.IsFieldResolvableOn(type, item.Field, schemaName))
+        {
+            return true;
+        }
+
+        return schemaName == parentSchemaName
+            ? ValidateRequirementsOnPath(requirements, item.Field, schemaName, type, parentPath, budget).IsEmpty
+            : ResolvesThroughLookup(
+                requirements,
+                schemaName,
+                type,
+                parentPath[0],
+                parentPath[1..],
+                CreateArrivalScope(parentPath),
+                budget);
+    }
+
+    /// <summary>
+    /// Determines whether <paramref name="schemaName"/> resolves a field of <paramref name="type"/>, held by
+    /// <paramref name="parentPathItem"/> below <paramref name="ancestors"/>, with its
+    /// <paramref name="requirements"/> fetched from other schemas in <paramref name="scope"/>, by entering the
+    /// type again through one of its lookups.
+    /// </summary>
+    private bool ResolvesThroughLookup(
+        SelectionSetNode requirements,
+        string schemaName,
+        MutableObjectTypeDefinition type,
+        SatisfiabilityPathItem parentPathItem,
+        IReadOnlyList<SatisfiabilityPathItem> ancestors,
+        RequirementScope scope,
+        SatisfiabilityExplanationBudget budget)
+        => _requirementsValidator.Validate(
+                requirements,
+                type,
+                parentPathItem,
+                ancestors,
+                scope,
+                excludeSchemaName: schemaName,
+                budget,
+                allowNestedFieldsFromExcludedSchema: true).IsEmpty
+            && _requirementsValidator.CanReenterThroughLookup(
+                type,
+                schemaName,
+                parentPathItem,
+                ancestors,
+                scope,
+                budget);
 
     /// <summary>
     /// Determines whether a new call can enter the holding schema at <paramref name="type"/> held on
@@ -1009,7 +1150,7 @@ internal sealed partial class SatisfiabilityValidator
                     type,
                     item,
                     arrivalPath[1..],
-                    new RequirementScope(Anchor: null, arrivalPath, AllowsReRootedCalls: true),
+                    CreateArrivalScope(arrivalPath),
                     excludeSchemaName: null,
                     budget).IsEmpty;
         }
@@ -1067,8 +1208,26 @@ internal sealed partial class SatisfiabilityValidator
         string transitionToSchemaName,
         SatisfiabilityExplanationBudget budget,
         bool transitionFails)
+        => ValidateSourceSchemaTransition(
+            type,
+            [.. path.EnumerateFromLeaf()],
+            transitionToSchemaName,
+            budget,
+            transitionFails);
+
+    /// <summary>
+    /// Validates that <paramref name="type"/>, held on <paramref name="pathFromLeaf"/>, can be entered in
+    /// <paramref name="transitionToSchemaName"/> by walking the whole path, which re-roots viewer fields at
+    /// <c>Query.viewer</c> on mutation and subscription paths.
+    /// </summary>
+    private ImmutableArray<SatisfiabilityError> ValidateSourceSchemaTransition(
+        MutableObjectTypeDefinition type,
+        SatisfiabilityPathItem[] pathFromLeaf,
+        string transitionToSchemaName,
+        SatisfiabilityExplanationBudget budget,
+        bool transitionFails)
     {
-        SatisfiabilityPathItem[] pathFromLeaf = [.. path.EnumerateFromLeaf()];
+        var scope = CreateArrivalScope(pathFromLeaf);
 
         return SourceSchemaTransitionHelper.ValidateSourceSchemaTransition(
             _schema,
@@ -1082,7 +1241,7 @@ internal sealed partial class SatisfiabilityValidator
                     contextType,
                     pathFromParent.Count > 0 ? pathFromParent[0] : null,
                     pathFromParent.Count > 1 ? [.. pathFromParent.Skip(1)] : [],
-                    new RequirementScope(Anchor: null, pathFromLeaf, AllowsReRootedCalls: true),
+                    scope,
                     excludeSchemaName: transitionToSchemaName,
                     budget),
             SatisfiabilityValidator_NoLookupsFoundForType,

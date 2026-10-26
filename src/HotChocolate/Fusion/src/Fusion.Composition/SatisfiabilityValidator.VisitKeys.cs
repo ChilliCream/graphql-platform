@@ -80,7 +80,7 @@ internal sealed partial class SatisfiabilityValidator
 
         // The reaches without the data of some schemas are created first, and the lookup keys of the
         // reach read them.
-        var exclusions = CreateExclusionReaches(type, info, item, parentKey, viewerFallback);
+        var exclusions = CreateExclusionReaches(type, info, item, parent, viewerFallback);
         var buffer = _schemaSets.RentBuffer(SchemaSet.Empty);
         List<(int SchemaIndex, SelectionSetNode SelectionSet)>? provides = null;
 
@@ -111,7 +111,10 @@ internal sealed partial class SatisfiabilityValidator
 
         VisitLeaf? leaf = null;
 
-        if (item.ProvidedSelectionSet is not null || info.ReadsLeaf)
+        // The children read the @provides of the field holding the object in the holding schema.
+        if (item.ProvidedSelectionSet is not null
+            || info.ReadsLeaf
+            || GetFieldProvides(item.Field)?.Find(_schemaSets.GetIndex(item.SchemaName)) is not null)
         {
             leaf = new VisitLeaf(
                 item.Field,
@@ -293,7 +296,7 @@ internal sealed partial class SatisfiabilityValidator
         // The reaches of a node item depend only on the type, the lookup schema and the viewer fallback.
         if (!_nodeReaches.TryGetValue((type, lookupItem.SchemaName, viewerFallback), out var reaches))
         {
-            var exclusions = CreateExclusionReaches(type, info, lookupItem, parentKey: null, viewerFallback);
+            var exclusions = CreateExclusionReaches(type, info, lookupItem, parent: null, viewerFallback);
             var buffer = _schemaSets.RentBuffer(SchemaSet.Empty);
             var anchor = RentReachAnchor().Initialize(
                 type,
@@ -542,7 +545,12 @@ internal sealed partial class SatisfiabilityValidator
                     type,
                     item,
                     ancestors: [],
-                    new RequirementScope(anchor, ArrivalPath: null, AllowsReRootedCalls: true),
+                    new RequirementScope(
+                        anchor,
+                        ArrivalPath: null,
+                        AllowsReRootedCalls: true,
+                        BelowReRootedViewer: null,
+                        ResolvesFieldAtParent: null),
                     excludeSchemaName: null,
                     _decisionBudget).IsEmpty;
         }
@@ -911,7 +919,12 @@ internal sealed partial class SatisfiabilityValidator
                     type,
                     item,
                     ancestors: [],
-                    new RequirementScope(anchor, ArrivalPath: null, anchor.AllowsReRootedCalls),
+                    new RequirementScope(
+                        anchor,
+                        ArrivalPath: null,
+                        anchor.AllowsReRootedCalls,
+                        BelowReRootedViewer: null,
+                        ResolvesFieldAtParent: null),
                     excludeSchemaName,
                     _decisionBudget,
                     unavailableSchemaNames: anchor.UnavailableSchemaNames).IsEmpty)
@@ -990,6 +1003,28 @@ internal sealed partial class SatisfiabilityValidator
             + $"'{string.Join(",", unavailableSchemaNames.Order(StringComparer.Ordinal))}'.");
 
         return entry;
+    }
+
+    /// <summary>
+    /// Gets the call of the access path that a requirement read at an object without the data of the unavailable
+    /// schemas of <paramref name="entry"/>, held in <paramref name="holderSchemaName"/>, takes the data of
+    /// <paramref name="schemaName"/> from.
+    /// </summary>
+    private ArrivalRead GetArrivalRead(ExclusionReach entry, string holderSchemaName, string schemaName)
+    {
+        if (entry.Arrival.HolderReadable && holderSchemaName == schemaName)
+        {
+            return ArrivalRead.Holder;
+        }
+
+        if (_schemaSets.Contains(entry.Arrival.ParentReadable, schemaName))
+        {
+            return ArrivalRead.Parent;
+        }
+
+        return _schemaSets.Contains(entry.Arrival.RouteReadable, schemaName)
+            ? ArrivalRead.Route
+            : ArrivalRead.None;
     }
 
     /// <summary>
@@ -1195,6 +1230,14 @@ internal sealed partial class SatisfiabilityValidator
                 && GetExclusionReach(unavailableSchemaNames) is { } entry
                 && validator._schemaSets.Contains(entry.ViewerOnly, schemaName);
 
+        // Answers for the reaches created before; the calls of the reach being created are not read.
+        public override ArrivalRead GetArrivalRead(string schemaName, ImmutableHashSet<string> unavailableSchemaNames)
+            => !unavailableSchemaNames.IsEmpty
+                && !IsCurrent(unavailableSchemaNames)
+                && GetExclusionReach(unavailableSchemaNames) is { } entry
+                    ? validator.GetArrivalRead(entry, _item.SchemaName, schemaName)
+                    : ArrivalRead.None;
+
         private bool IsCurrentHolderAvailable()
             => HolderAvailable
                 || SchemaSetTable.Contains(_buffer, validator._schemaSets.GetIndex(_item.SchemaName));
@@ -1259,6 +1302,12 @@ internal sealed partial class SatisfiabilityValidator
         public override bool IsViewerOnly(string schemaName, ImmutableHashSet<string> unavailableSchemaNames)
             => validator.FindExclusionReach(key, key.Exclusions, unavailableSchemaNames) is { } entry
                 && validator._schemaSets.Contains(entry.ViewerOnly, schemaName);
+
+        public override ArrivalRead GetArrivalRead(string schemaName, ImmutableHashSet<string> unavailableSchemaNames)
+            => !unavailableSchemaNames.IsEmpty
+                && validator.FindExclusionReach(key, key.Exclusions, unavailableSchemaNames) is { } entry
+                    ? validator.GetArrivalRead(entry, item.SchemaName, schemaName)
+                    : ArrivalRead.None;
     }
 
     /// <summary>

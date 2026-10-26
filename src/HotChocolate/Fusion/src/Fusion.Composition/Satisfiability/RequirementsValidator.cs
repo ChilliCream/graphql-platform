@@ -60,6 +60,43 @@ internal sealed class RequirementsValidator(
         bool allowNestedFieldsFromExcludedSchema = false,
         SatisfiabilityPath? cycleDetectionPath = null,
         ImmutableHashSet<string>? unavailableSchemaNames = null)
+        => Validate(
+            requirements,
+            contextType,
+            parentPathItem,
+            ancestors,
+            scope,
+            excludeSchemaName,
+            budget,
+            allowNestedFieldsFromExcludedSchema,
+            cycleDetectionPath,
+            unavailableSchemaNames ?? [],
+            readsArrivalData: false,
+            routeRestriction: null,
+            out _);
+
+    /// <summary>
+    /// Validates that <paramref name="requirements"/> can be resolved for <paramref name="contextType"/> at the
+    /// position described by <paramref name="parentPathItem"/>, reading first-level fields from the calls of the
+    /// access path when <paramref name="readsArrivalData"/> is set, and from the holding call or a call of another
+    /// schema that resolves the field returning the object only in <paramref name="routeRestriction"/> unless it is
+    /// <c>null</c>. <paramref name="routes"/> receives the schemas of the calls of either kind that the walk read
+    /// when it read more than one and one of another schema, and <c>null</c> otherwise.
+    /// </summary>
+    private ImmutableArray<SatisfiabilityError> Validate(
+        SelectionSetNode requirements,
+        MutableObjectTypeDefinition contextType,
+        SatisfiabilityPathItem? parentPathItem,
+        IReadOnlyList<SatisfiabilityPathItem> ancestors,
+        RequirementScope scope,
+        string? excludeSchemaName,
+        SatisfiabilityExplanationBudget budget,
+        bool allowNestedFieldsFromExcludedSchema,
+        SatisfiabilityPath? cycleDetectionPath,
+        ImmutableHashSet<string> unavailableSchemaNames,
+        bool readsArrivalData,
+        string? routeRestriction,
+        out SortedSet<string>? routes)
     {
         var context = new RequirementsValidatorContext(
             contextType,
@@ -69,7 +106,9 @@ internal sealed class RequirementsValidator(
             excludeSchemaName,
             allowNestedFieldsFromExcludedSchema,
             cycleDetectionPath,
-            unavailableSchemaNames ?? [],
+            unavailableSchemaNames,
+            readsArrivalData,
+            routeRestriction,
             budget);
 
         var errors = new List<SatisfiabilityError>();
@@ -97,6 +136,7 @@ internal sealed class RequirementsValidator(
             }
         }
 
+        routes = context.ReadsFieldRoute && context.RouteReads.Count > 1 ? context.RouteReads : null;
         return [.. errors];
     }
 
@@ -265,7 +305,8 @@ internal sealed class RequirementsValidator(
             // the direct-lookup route in O(1); only when it cannot confirm the transition, or when a
             // provided selection set narrows the context, do we fall back to the full recursion that
             // builds the error.
-            if ((previousSchemaName != schemaName
+            var transitionRequired =
+                (previousSchemaName != schemaName
                     && (previousSchemaName is null
                         || previousPathItem?.ProvidedSelectionSet is not null
                         || !canUseFacts
@@ -273,7 +314,25 @@ internal sealed class RequirementsValidator(
                 || (previousIsArrival
                     && previousSchemaName == schemaName
                     && !canUseFacts
-                    && !IsHoldingCallAvailable(previousPathItem!, context)))
+                    && !IsHoldingCallAvailable(previousPathItem!, context));
+            var arrivalRead = ArrivalRead.None;
+
+            // A first-level field of requirement data is also read from a call of the access path that holds the
+            // object, or from a call that resolves the field returning it, if the walk may read that call.
+            if (previousIsArrival && context.ReadsArrivalData && context.Depth == 0)
+            {
+                arrivalRead = transitionRequired
+                    ? GetArrivalRead(previousPathItem!, schemaName, context)
+                    : previousSchemaName == schemaName ? ArrivalRead.Holder : ArrivalRead.None;
+
+                if (arrivalRead is not ArrivalRead.None)
+                {
+                    transitionRequired = !context.AllowsRoute(arrivalRead, schemaName);
+                    arrivalRead = transitionRequired ? ArrivalRead.None : arrivalRead;
+                }
+            }
+
+            if (transitionRequired)
             {
                 var transitionErrors = ValidateSourceSchemaTransition(
                     type,
@@ -369,6 +428,7 @@ internal sealed class RequirementsValidator(
             {
                 context.Path.Pop();
                 errors.Clear();
+                context.AddRoute(arrivalRead, schemaName);
                 break;
             }
 
@@ -414,6 +474,7 @@ internal sealed class RequirementsValidator(
 
             if (errors.Count == 0)
             {
+                context.AddRoute(arrivalRead, schemaName);
                 break;
             }
         }
@@ -564,6 +625,198 @@ internal sealed class RequirementsValidator(
     }
 
     /// <summary>
+    /// Gets the call of the access path that a requirement read at the object held by the access path item
+    /// <paramref name="item"/> takes the data of <paramref name="schemaName"/> from without the unavailable data of
+    /// <paramref name="context"/>: the call that holds the object, the call that holds its parent and serves the
+    /// field returning it without requirements, or, when the schema holding the parent does not serve that field so
+    /// and a single schema is unavailable, a call of a schema that resolves that field from the parent. A call made
+    /// with the unavailable data is read only when a single schema is unavailable and the call does not depend on
+    /// the last call of that schema on the path, which resolves the requiring field while the schema serves every
+    /// field below it.
+    /// </summary>
+    private ArrivalRead GetArrivalRead(
+        SatisfiabilityPathItem item,
+        string schemaName,
+        RequirementsValidatorContext context)
+    {
+        if (context.Anchor is { } anchor)
+        {
+            return anchor.GetArrivalRead(schemaName, context.UnavailableSchemaNames);
+        }
+
+        var arrivalPath = context.ArrivalPath!;
+        var index = IndexOf(arrivalPath, item);
+
+        if (context.Scope.BelowReRootedViewer![index])
+        {
+            return ArrivalRead.None;
+        }
+
+        if (item.SchemaName == schemaName)
+        {
+            return GetCallState(arrivalPath, index, context) is ArrivalCallState.Readable
+                ? ArrivalRead.Holder
+                : ArrivalRead.None;
+        }
+
+        if (GetParentItem(arrivalPath, index) is not { ProvidedSelectionSet: null } parentItem
+            || item.Type is not MutableObjectTypeDefinition parentType)
+        {
+            return ArrivalRead.None;
+        }
+
+        var parentSchemaName = parentItem.SchemaName;
+        var parentServesField = ServesField(item.Field, parentSchemaName);
+
+        // The call that holds the parent continues to the object when its schema serves the field without
+        // requirements.
+        if (parentServesField && item.Field.GetFusionRequiresRequirements(parentSchemaName) is null)
+        {
+            return parentSchemaName == schemaName && IsParentCallReadable(arrivalPath, index, context)
+                ? ArrivalRead.Parent
+                : ArrivalRead.None;
+        }
+
+        return context.UnavailableSchemaNames.Count == 1
+            && (parentServesField || !parentItem.Provides(item.Field, parentType, parentSchemaName, schema))
+            && ServesField(item.Field, schemaName)
+            && (parentSchemaName != schemaName || IsParentCallReadable(arrivalPath, index, context))
+            && ResolvesFieldAtParent(index, schemaName, context)
+                ? ArrivalRead.Route
+                : ArrivalRead.None;
+    }
+
+    /// <summary>
+    /// Determines whether a requirement read at the object of <c>arrivalPath[index]</c> without the unavailable
+    /// data of <paramref name="context"/> takes data from the call that holds its parent.
+    /// </summary>
+    private bool IsParentCallReadable(
+        SatisfiabilityPathItem[] arrivalPath,
+        int index,
+        RequirementsValidatorContext context)
+        => GetCallState(arrivalPath, index + 1, context) switch
+        {
+            ArrivalCallState.Readable => true,
+            ArrivalCallState.Pending => IsPendingCallReleased(arrivalPath, index, context),
+            _ => false
+        };
+
+    /// <summary>
+    /// Determines whether <paramref name="schemaName"/> resolves the field of the access path item at
+    /// <paramref name="index"/> as an option at the visit of the object that declares the field.
+    /// </summary>
+    private static bool ResolvesFieldAtParent(int index, string schemaName, RequirementsValidatorContext context)
+        => context.Scope.ResolvesFieldAtParent!(index, schemaName, context.Budget);
+
+    /// <summary>
+    /// Determines whether <paramref name="schemaName"/> serves <paramref name="field"/> without it being partial.
+    /// </summary>
+    private static bool ServesField(MutableOutputFieldDefinition field, string schemaName)
+        => field.ExistsInSchema(schemaName) && !field.IsPartial(schemaName);
+
+    /// <summary>
+    /// Gets whether a requirement read without the unavailable data of <paramref name="context"/> takes data from
+    /// the call that holds the object of <c>arrivalPath[index]</c>.
+    /// </summary>
+    private ArrivalCallState GetCallState(
+        SatisfiabilityPathItem[] arrivalPath,
+        int index,
+        RequirementsValidatorContext context)
+    {
+        var item = arrivalPath[index];
+        var unavailableSchemaNames = context.UnavailableSchemaNames;
+
+        if (unavailableSchemaNames.Contains(item.SchemaName) || item.ProvidedSelectionSet is not null)
+        {
+            return ArrivalCallState.None;
+        }
+
+        if (IsCallMadeWithoutUnavailableData(arrivalPath, index, context))
+        {
+            return ArrivalCallState.Readable;
+        }
+
+        var parentItem = GetParentItem(arrivalPath, index);
+
+        if (parentItem?.SchemaName == item.SchemaName)
+        {
+            return GetCallState(arrivalPath, index + 1, context) switch
+            {
+                ArrivalCallState.Readable => ArrivalCallState.Readable,
+                ArrivalCallState.Pending when IsPendingCallReleased(arrivalPath, index, context)
+                    => ArrivalCallState.Readable,
+                ArrivalCallState.Pending => ArrivalCallState.Pending,
+                _ => ArrivalCallState.None
+            };
+        }
+
+        if (unavailableSchemaNames.Count != 1)
+        {
+            return ArrivalCallState.None;
+        }
+
+        return parentItem?.SchemaName == unavailableSchemaNames.First()
+            && !IsPendingCallReleased(arrivalPath, index, context)
+                ? ArrivalCallState.Pending
+                : ArrivalCallState.Readable;
+    }
+
+    /// <summary>
+    /// Determines whether a call above <c>arrivalPath[index]</c> that depends on the last call of the only
+    /// unavailable schema of <paramref name="context"/> no longer depends on the call that resolves the requiring
+    /// field at the object of the item, because that schema does not serve the field of the item or holds the
+    /// object.
+    /// </summary>
+    private static bool IsPendingCallReleased(
+        SatisfiabilityPathItem[] arrivalPath,
+        int index,
+        RequirementsValidatorContext context)
+    {
+        var item = arrivalPath[index];
+        var unavailableSchemaNames = context.UnavailableSchemaNames;
+
+        return unavailableSchemaNames.Count != 1
+            || unavailableSchemaNames.Contains(item.SchemaName)
+            || !item.Field.ExistsInSchema(unavailableSchemaNames.First());
+    }
+
+    /// <summary>
+    /// Gets the item above <c>arrivalPath[index]</c>, or <c>null</c> at a root field or a node lookup.
+    /// </summary>
+    private static SatisfiabilityPathItem? GetParentItem(SatisfiabilityPathItem[] arrivalPath, int index)
+        => index + 1 < arrivalPath.Length
+            && arrivalPath[index + 1].SchemaName != SatisfiabilityPathItem.GatewaySchemaName
+                ? arrivalPath[index + 1]
+                : null;
+
+    /// <summary>
+    /// Determines whether the schema of <c>arrivalPath[index]</c> holds its object without the unavailable data
+    /// of <paramref name="context"/>, through the call that holds it or by entering the object again.
+    /// </summary>
+    private bool IsCallMadeWithoutUnavailableData(
+        SatisfiabilityPathItem[] arrivalPath,
+        int index,
+        RequirementsValidatorContext context)
+    {
+        var item = arrivalPath[index];
+
+        if (IsCallAvailable(arrivalPath, index, context))
+        {
+            return true;
+        }
+
+        var objectType = index > 0 ? arrivalPath[index - 1].Type : context.TypeContext.Peek();
+
+        return !context.UnavailableSchemaNames.Contains(item.SchemaName)
+            && objectType is MutableObjectTypeDefinition objectTypeDefinition
+            && ValidateSourceSchemaTransition(
+                objectTypeDefinition,
+                context,
+                item.SchemaName,
+                arrivalPath[index..]).IsEmpty;
+    }
+
+    /// <summary>
     /// Validates that <paramref name="schemaName"/> can resolve <paramref name="field"/> once its
     /// requirements have been fetched from other schemas. This holds when the schema has a lookup for
     /// <paramref name="type"/> whose key is resolvable while the type is held on the schema, or when the
@@ -658,19 +911,18 @@ internal sealed class RequirementsValidator(
                     keyErrors));
         }
 
-        // Without a lookup the field can only be resolved by the call that already holds the type,
-        // which works when the requirements depend neither on data produced by that call nor on a call
-        // re-rooted at Query.viewer.
-        if (Validate(
+        // Without a lookup the field can only be resolved by a call that holds the type, which works when
+        // the requirements depend neither on that call nor on a call re-rooted at Query.viewer.
+        if (CanResolveInHoldingCall(
                 requirements,
                 type,
+                schemaName,
                 parentPathItem,
                 ancestors,
                 scope.WithoutReRootedCalls(),
-                excludeSchemaName: schemaName,
                 budget,
-                cycleDetectionPath: cycleDetectionPath,
-                unavailableSchemaNames: unavailableSchemaNames.Add(schemaName)).IsEmpty)
+                cycleDetectionPath,
+                unavailableSchemaNames.Add(schemaName)))
         {
             return [];
         }
@@ -682,10 +934,108 @@ internal sealed class RequirementsValidator(
                 [.. lookupErrors])
         ];
     }
+
+    /// <summary>
+    /// Determines whether <paramref name="schemaName"/> can enter <paramref name="type"/> again through one of its
+    /// lookups whose key resolves at the position described by <paramref name="parentPathItem"/>.
+    /// </summary>
+    public bool CanReenterThroughLookup(
+        MutableObjectTypeDefinition type,
+        string schemaName,
+        SatisfiabilityPathItem? parentPathItem,
+        IReadOnlyList<SatisfiabilityPathItem> ancestors,
+        RequirementScope scope,
+        SatisfiabilityExplanationBudget budget)
+    {
+        foreach (var lookup in _lookupCache.GetPossibleFusionLookupDirectives(type, schemaName))
+        {
+            if (Validate(
+                    _lookupCache.GetLookupKey(lookup),
+                    type,
+                    parentPathItem,
+                    ancestors,
+                    scope,
+                    excludeSchemaName: null,
+                    budget).IsEmpty)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determines whether <paramref name="requirements"/> can be resolved for <paramref name="type"/> without the
+    /// data of <paramref name="unavailableSchemaNames"/>, which include the requiring schema
+    /// <paramref name="schemaName"/>, so that a call of that schema holding the type resolves the requiring field.
+    /// First-level fields read from the call that holds the object and from calls of other schemas that resolve
+    /// the field returning it all come from one of these calls.
+    /// </summary>
+    private bool CanResolveInHoldingCall(
+        SelectionSetNode requirements,
+        MutableObjectTypeDefinition type,
+        string schemaName,
+        SatisfiabilityPathItem? parentPathItem,
+        IReadOnlyList<SatisfiabilityPathItem> ancestors,
+        RequirementScope scope,
+        SatisfiabilityExplanationBudget budget,
+        SatisfiabilityPath? cycleDetectionPath,
+        ImmutableHashSet<string> unavailableSchemaNames)
+    {
+        if (!Validate(
+                requirements,
+                type,
+                parentPathItem,
+                ancestors,
+                scope,
+                excludeSchemaName: schemaName,
+                budget,
+                allowNestedFieldsFromExcludedSchema: false,
+                cycleDetectionPath,
+                unavailableSchemaNames,
+                readsArrivalData: true,
+                routeRestriction: null,
+                out var routes).IsEmpty)
+        {
+            return false;
+        }
+
+        if (routes is null)
+        {
+            return true;
+        }
+
+        // First-level fields read from these calls must all come from the calls of one schema.
+        foreach (var route in routes)
+        {
+            if (Validate(
+                    requirements,
+                    type,
+                    parentPathItem,
+                    ancestors,
+                    scope,
+                    excludeSchemaName: schemaName,
+                    budget,
+                    allowNestedFieldsFromExcludedSchema: false,
+                    cycleDetectionPath,
+                    unavailableSchemaNames,
+                    readsArrivalData: true,
+                    routeRestriction: route,
+                    out _).IsEmpty)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
 
 internal sealed class RequirementsValidatorContext
 {
+    private readonly string? _routeRestriction;
+
     public RequirementsValidatorContext(
         MutableObjectTypeDefinition contextType,
         SatisfiabilityPathItem? parentPathItem,
@@ -695,6 +1045,8 @@ internal sealed class RequirementsValidatorContext
         bool allowNestedFieldsFromExcludedSchema,
         SatisfiabilityPath? cycleDetectionPath,
         ImmutableHashSet<string> unavailableSchemaNames,
+        bool readsArrivalData,
+        string? routeRestriction,
         SatisfiabilityExplanationBudget budget)
     {
         TypeContext.Push(contextType);
@@ -710,6 +1062,8 @@ internal sealed class RequirementsValidatorContext
         AllowNestedFieldsFromExcludedSchema = allowNestedFieldsFromExcludedSchema;
         CycleDetectionPath = cycleDetectionPath ?? [];
         UnavailableSchemaNames = unavailableSchemaNames;
+        ReadsArrivalData = readsArrivalData;
+        _routeRestriction = routeRestriction;
         Budget = budget;
     }
 
@@ -766,6 +1120,44 @@ internal sealed class RequirementsValidatorContext
     /// lookup keys and nested requirements.
     /// </summary>
     public ImmutableHashSet<string> UnavailableSchemaNames { get; }
+
+    /// <summary>
+    /// Gets whether a first-level field of the requirement is read from a call of the access path that holds
+    /// the object, or from a call that resolves the field returning it.
+    /// </summary>
+    public bool ReadsArrivalData { get; }
+
+    /// <summary>
+    /// Gets the schemas of the calls that hold the object, or of other schemas that resolve the field returning
+    /// it, that the walk read a first-level field from.
+    /// </summary>
+    public SortedSet<string> RouteReads { get; } = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Gets whether the walk read a first-level field from a call of a schema that resolves the field returning
+    /// the object as one of several schemas that can.
+    /// </summary>
+    public bool ReadsFieldRoute { get; private set; }
+
+    /// <summary>
+    /// Determines whether the walk may read a first-level field of <paramref name="schemaName"/> from the call
+    /// that <paramref name="read"/> identifies.
+    /// </summary>
+    public bool AllowsRoute(ArrivalRead read, string schemaName)
+        => read is ArrivalRead.Parent || _routeRestriction is null || _routeRestriction == schemaName;
+
+    /// <summary>
+    /// Records that the walk read a first-level field of <paramref name="schemaName"/> from the call that
+    /// <paramref name="read"/> identifies.
+    /// </summary>
+    public void AddRoute(ArrivalRead read, string schemaName)
+    {
+        if (read is ArrivalRead.Holder or ArrivalRead.Route)
+        {
+            RouteReads.Add(schemaName);
+            ReadsFieldRoute |= read is ArrivalRead.Route;
+        }
+    }
 
     /// <summary>
     /// Gets the budget for the explanation entries of the search.

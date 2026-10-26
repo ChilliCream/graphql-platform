@@ -1624,4 +1624,958 @@ public sealed class SatisfiabilityRequirementArrivalPathTests
         Assert.True(result.IsSuccess);
         Assert.Empty(log);
     }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Compose_Should_Succeed_When_RequirementDataDependsOnEarlierCallOfRequiringSchema(
+        bool requiringSchemaFieldDeclaredFirst)
+    {
+        // arrange
+        // B fetches L.x keyed by data of the root call of A, and a later call of A resolves L.f.
+        var fields = requiringSchemaFieldDeclaredFirst
+            ? "a: H1\n    id: ID! @shareable"
+            : "id: ID! @shareable\n    a: H1";
+
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "a",
+                $$"""
+                type Query {
+                    root: H0 @shareable
+                    h2ById(id: ID!): H2 @lookup @internal
+                }
+
+                type H0 {
+                    {{fields}}
+                }
+
+                type H1 {
+                    id: ID! @shareable
+                }
+
+                type H2 {
+                    id: ID! @shareable
+                    l: L @shareable
+                }
+
+                type L {
+                    f(v: String @require(field: "x")): String
+                }
+                """),
+            new SourceSchemaText(
+                "b",
+                """
+                type Query {
+                    root: H0 @shareable
+                    h1ById(id: ID!): H1 @lookup @internal
+                    h2ById(id: ID!): H2 @lookup @internal
+                }
+
+                type H0 {
+                    id: ID! @shareable
+                }
+
+                type H1 {
+                    id: ID! @shareable
+                    b: H2
+                }
+
+                type H2 {
+                    id: ID! @shareable
+                    l: L @shareable
+                }
+
+                type L {
+                    x: String
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Compose_Should_Succeed_When_NestedRequirementDataDependsOnEarlierCallOfRequiringSchema()
+    {
+        // arrange
+        // B holds L.m keyed by data of the root call of A, and D fetches M.x through a lookup keyed by L.m.id.
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "a",
+                """
+                type Query {
+                    root: H0 @shareable
+                    h2ById(id: ID!): H2 @lookup @internal
+                }
+
+                type H0 {
+                    id: ID! @shareable
+                    a: H1
+                }
+
+                type H1 {
+                    id: ID! @shareable
+                }
+
+                type H2 {
+                    id: ID! @shareable
+                    l: L @shareable
+                }
+
+                type L {
+                    f(v: String @require(field: "m.x")): String
+                }
+                """),
+            new SourceSchemaText(
+                "b",
+                """
+                type Query {
+                    root: H0 @shareable
+                    h1ById(id: ID!): H1 @lookup @internal
+                    h2ById(id: ID!): H2 @lookup @internal
+                }
+
+                type H0 {
+                    id: ID! @shareable
+                }
+
+                type H1 {
+                    id: ID! @shareable
+                    b: H2
+                }
+
+                type H2 {
+                    id: ID! @shareable
+                    l: L @shareable
+                }
+
+                type L {
+                    m: M
+                }
+
+                type M {
+                    id: ID! @shareable
+                }
+                """),
+            new SourceSchemaText(
+                "d",
+                """
+                type Query {
+                    mById(id: ID!): M @lookup @internal
+                }
+
+                type M {
+                    id: ID! @shareable
+                    x: String
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Compose_Should_Fail_When_RequirementDataDependsOnCallOfRequiringSchemaThatServesTheField(
+        bool requiringSchemaFieldDeclaredFirst)
+    {
+        // arrange
+        // A holds H1 in its root call and serves H1.l, so the call that resolves L.f is the one B needs H1.id from.
+        var fields = requiringSchemaFieldDeclaredFirst
+            ? "a: H1\n    id: ID! @shareable"
+            : "id: ID! @shareable\n    a: H1";
+
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "a",
+                $$"""
+                type Query {
+                    root: H0 @shareable
+                    h1ById(id: ID!): H1 @lookup @internal
+                }
+
+                type H0 {
+                    {{fields}}
+                }
+
+                type H1 {
+                    id: ID! @shareable
+                    l: L @shareable
+                }
+
+                type L {
+                    f(v: String @require(field: "x")): String
+                }
+                """),
+            new SourceSchemaText(
+                "b",
+                """
+                type Query {
+                    root: H0 @shareable
+                    h1ById(id: ID!): H1 @lookup @internal
+                }
+
+                type H0 {
+                    id: ID! @shareable
+                }
+
+                type H1 {
+                    id: ID! @shareable
+                    l: L @shareable
+                }
+
+                type L {
+                    x: String
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.False(result.IsSuccess);
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'L.f' on path 'A:Query.root<H0> -> A:H0.a<H1> -> A:H1.l<L>'.
+              Unable to satisfy the requirement '{ x }' on field 'A:L.f<String>'.
+                The field 'L.f' in schema 'A' requires data from another schema, but schema 'A' has no lookup for type 'L' that could resolve the field once the required data has been fetched.
+            """,
+            """
+            Unable to access the field 'L.f' on path 'A:Query.root<H0> -> A:H0.a<H1> -> B:H1.l<L>'.
+              Unable to satisfy the requirement '{ x }' on field 'A:L.f<String>'.
+                The field 'L.f' in schema 'A' requires data from another schema, but schema 'A' has no lookup for type 'L' that could resolve the field once the required data has been fetched.
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_RequirementDataNeedsLookupKeyedByCallAfterEarlierCallOfRequiringSchema()
+    {
+        // arrange
+        // C holds H2 keyed by data of the root call of A, and only a lookup of B keyed by H2.id serves L.x.
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "a",
+                """
+                type Query {
+                    root: H0 @shareable
+                    h2ById(id: ID!): H2 @lookup @internal
+                }
+
+                type H0 {
+                    id: ID! @shareable
+                    a: H1
+                }
+
+                type H1 {
+                    id: ID! @shareable
+                }
+
+                type H2 {
+                    id: ID! @shareable
+                    l: L @shareable
+                }
+
+                type L {
+                    f(v: String @require(field: "x")): String
+                }
+                """),
+            new SourceSchemaText(
+                "b",
+                """
+                type Query {
+                    h2ById(id: ID!): H2 @lookup @internal
+                }
+
+                type H2 {
+                    id: ID! @shareable
+                    l: L @shareable
+                }
+
+                type L {
+                    x: String
+                }
+                """),
+            new SourceSchemaText(
+                "c",
+                """
+                type Query {
+                    h1ById(id: ID!): H1 @lookup @internal
+                }
+
+                type H1 {
+                    id: ID! @shareable
+                    c: H2
+                }
+
+                type H2 {
+                    id: ID! @shareable
+                    l: L @shareable
+                }
+
+                type L {
+                    y: String
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.False(result.IsSuccess);
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'L.f' on path 'A:Query.root<H0> -> A:H0.a<H1> -> C:H1.c<H2> -> C:H2.l<L>'.
+              Unable to satisfy the requirement '{ x }' on field 'A:L.f<String>'.
+                The field 'L.f' in schema 'A' requires data from another schema, but schema 'A' has no lookup for type 'L' that could resolve the field once the required data has been fetched.
+            """,
+            """
+            Unable to access the field 'L.f' on path 'A:Query.root<H0> -> A:H0.a<H1> -> C:H1.c<H2> -> A:H2.l<L>'.
+              Unable to satisfy the requirement '{ x }' on field 'A:L.f<String>'.
+                The field 'L.f' in schema 'A' requires data from another schema, but schema 'A' has no lookup for type 'L' that could resolve the field once the required data has been fetched.
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_ParentSchemaCannotResolveFieldReturningObject()
+    {
+        // arrange
+        // B holds H1 and serves H1.l, but its requirement z needs H1.id from the same call of B.
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "a",
+                """
+                type Query {
+                    root: H0
+                    h1ById(id: ID!): H1 @lookup @internal
+                }
+
+                type H0 {
+                    id: ID! @shareable
+                }
+
+                type H1 {
+                    id: ID! @shareable
+                    z: String
+                    l: L @shareable
+                }
+
+                type L {
+                    f(v: String @require(field: "x")): String
+                }
+                """),
+            new SourceSchemaText(
+                "b",
+                """
+                type Query {
+                    h0ById(id: ID!): H0 @lookup @internal
+                }
+
+                type H0 {
+                    id: ID! @shareable
+                    b: H1
+                }
+
+                type H1 {
+                    id: ID! @shareable
+                    l(z: String @require(field: "z")): L @shareable
+                }
+
+                type L {
+                    x: String
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.False(result.IsSuccess);
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'L.f' on path 'A:Query.root<H0> -> B:H0.b<H1> -> A:H1.l<L>'.
+              Unable to satisfy the requirement '{ x }' on field 'A:L.f<String>'.
+                The field 'L.f' in schema 'A' requires data from another schema, but schema 'A' has no lookup for type 'L' that could resolve the field once the required data has been fetched.
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Compose_Should_Succeed_When_ParentSchemaResolvesFieldReturningObjectThroughLookup()
+    {
+        // arrange
+        // B resolves H1.l with z from A through its own lookup for H1, which also fetches L.x.
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "a",
+                """
+                type Query {
+                    root: H0
+                    h1ById(id: ID!): H1 @lookup @internal
+                }
+
+                type H0 {
+                    id: ID! @shareable
+                }
+
+                type H1 {
+                    id: ID! @shareable
+                    z: String
+                    l: L @shareable
+                }
+
+                type L {
+                    f(v: String @require(field: "x")): String
+                }
+                """),
+            new SourceSchemaText(
+                "b",
+                """
+                type Query {
+                    h0ById(id: ID!): H0 @lookup @internal
+                    h1ById(id: ID!): H1 @lookup @internal
+                }
+
+                type H0 {
+                    id: ID! @shareable
+                    b: H1
+                }
+
+                type H1 {
+                    id: ID! @shareable
+                    l(z: String @require(field: "z")): L @shareable
+                }
+
+                type L {
+                    x: String
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Compose_Should_Succeed_When_OtherSchemaResolvesFieldReturningObjectThatParentSchemaLacks()
+    {
+        // arrange
+        // C holds H2 without serving H2.l, so B resolves H2.l through its lookup keyed by C data and fetches L.x.
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "a",
+                """
+                type Query {
+                    root: H0 @shareable
+                    h2ById(id: ID!): H2 @lookup @internal
+                }
+
+                type H0 {
+                    id: ID! @shareable
+                    a: H1
+                }
+
+                type H1 {
+                    id: ID! @shareable
+                }
+
+                type H2 {
+                    id: ID! @shareable
+                    l: L @shareable
+                }
+
+                type L {
+                    f(v: String @require(field: "x")): String
+                }
+                """),
+            new SourceSchemaText(
+                "b",
+                """
+                type Query {
+                    h2ById(id: ID!): H2 @lookup @internal
+                }
+
+                type H2 {
+                    id: ID! @shareable
+                    l: L @shareable
+                }
+
+                type L {
+                    x: String
+                }
+                """),
+            new SourceSchemaText(
+                "c",
+                """
+                type Query {
+                    h1ById(id: ID!): H1 @lookup @internal
+                }
+
+                type H1 {
+                    id: ID! @shareable
+                    c: H2
+                }
+
+                type H2 {
+                    id: ID! @shareable
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_ParentCallProvidesFieldReturningObject()
+    {
+        // arrange
+        // B provides H2.l { x } from its call holding H2, and C serves H2.l and L.x through a lookup for H2.
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "a",
+                """
+                type Query {
+                    root: H0 @shareable
+                    h2ById(id: ID!): H2 @lookup @internal
+                }
+
+                type H0 {
+                    id: ID! @shareable
+                    a: H1
+                }
+
+                type H1 {
+                    id: ID! @shareable
+                }
+
+                type H2 {
+                    id: ID! @shareable
+                    l: L @shareable
+                }
+
+                type L {
+                    f(v: String @require(field: "x")): String
+                }
+                """),
+            new SourceSchemaText(
+                "b",
+                """
+                type Query {
+                    h1ById(id: ID!): H1 @lookup @internal
+                }
+
+                type H1 {
+                    id: ID! @shareable
+                    b: H2 @provides(fields: "l { x }")
+                }
+
+                type H2 {
+                    id: ID! @shareable
+                    l: L @external
+                }
+
+                type L {
+                    x: String @external
+                }
+                """),
+            new SourceSchemaText(
+                "c",
+                """
+                type Query {
+                    h2ById(id: ID!): H2 @lookup @internal
+                }
+
+                type H2 {
+                    id: ID! @shareable
+                    l: L @shareable
+                }
+
+                type L {
+                    x: String
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.False(result.IsSuccess);
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'L.f' on path 'A:Query.root<H0> -> A:H0.a<H1> -> B:H1.b<H2> -> A:H2.l<L>'.
+              Unable to satisfy the requirement '{ x }' on field 'A:L.f<String>'.
+                The field 'L.f' in schema 'A' requires data from another schema, but schema 'A' has no lookup for type 'L' that could resolve the field once the required data has been fetched.
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_OtherSchemaWithRequirementEntersParentBelowLookupOfAncestor()
+    {
+        // arrange
+        // B serves H2.l with requirement pz and L.x, but enters H2 only below its lookup for H1.
+        var sourceSchemas = CreateOtherSchemaWithRequirementSchemas(otherSchemaHasLookup: false);
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.False(result.IsSuccess);
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'L.f' on path 'A:Query.root<H0> -> A:H0.a<H1> -> C:H1.c<H2> -> A:H2.l<L>'.
+              Unable to satisfy the requirement '{ x }' on field 'A:L.f<String>'.
+                The field 'L.f' in schema 'A' requires data from another schema, but schema 'A' has no lookup for type 'L' that could resolve the field once the required data has been fetched.
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Compose_Should_Succeed_When_OtherSchemaWithRequirementEntersParentThroughLookup()
+    {
+        // arrange
+        // B serves H2.l with requirement pz and L.x, and enters H2 through its lookup for H2.
+        var sourceSchemas = CreateOtherSchemaWithRequirementSchemas(otherSchemaHasLookup: true);
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_RequirementDataNeedsCallsOfTwoSchemasResolvingFieldReturningObject()
+    {
+        // arrange
+        // B serves L.x and D serves L.y, and each resolves H2.l through its own lookup for H2.
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "a",
+                """
+                type Query {
+                    root: H0 @shareable
+                    h2ById(id: ID!): H2 @lookup @internal
+                }
+
+                type H0 {
+                    id: ID! @shareable
+                    a: H1
+                }
+
+                type H1 {
+                    id: ID! @shareable
+                }
+
+                type H2 {
+                    id: ID! @shareable
+                    l: L @shareable
+                }
+
+                type L {
+                    f(v: String @require(field: "x"), w: String @require(field: "y")): String
+                }
+                """),
+            new SourceSchemaText(
+                "b",
+                """
+                type Query {
+                    h2ById(id: ID!): H2 @lookup @internal
+                }
+
+                type H2 {
+                    id: ID! @shareable
+                    l: L @shareable
+                }
+
+                type L {
+                    x: String
+                }
+                """),
+            new SourceSchemaText(
+                "c",
+                """
+                type Query {
+                    h1ById(id: ID!): H1 @lookup @internal
+                }
+
+                type H1 {
+                    id: ID! @shareable
+                    c: H2
+                }
+
+                type H2 {
+                    id: ID! @shareable
+                }
+                """),
+            new SourceSchemaText(
+                "d",
+                """
+                type Query {
+                    h2ById(id: ID!): H2 @lookup @internal
+                }
+
+                type H2 {
+                    id: ID! @shareable
+                    l: L @shareable
+                }
+
+                type L {
+                    y: String
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.False(result.IsSuccess);
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'L.f' on path 'A:Query.root<H0> -> A:H0.a<H1> -> C:H1.c<H2> -> A:H2.l<L>'.
+              Unable to satisfy the requirement '{ x y }' on field 'A:L.f<String>'.
+                The field 'L.f' in schema 'A' requires data from another schema, but schema 'A' has no lookup for type 'L' that could resolve the field once the required data has been fetched.
+            """,
+            """
+            Unable to access the field 'L.f' on path 'A:Query.root<H0> -> A:H0.a<H1> -> C:H1.c<H2> -> B:H2.l<L>'.
+              Unable to satisfy the requirement '{ x y }' on field 'A:L.f<String>'.
+                The field 'L.f' in schema 'A' requires data from another schema, but schema 'A' has no lookup for type 'L' that could resolve the field once the required data has been fetched.
+            """,
+            """
+            Unable to access the field 'L.f' on path 'A:Query.root<H0> -> A:H0.a<H1> -> C:H1.c<H2> -> D:H2.l<L>'.
+              Unable to satisfy the requirement '{ x y }' on field 'A:L.f<String>'.
+                The field 'L.f' in schema 'A' requires data from another schema, but schema 'A' has no lookup for type 'L' that could resolve the field once the required data has been fetched.
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_RequirementDataComesFromCallBelowReRootedViewer()
+    {
+        // arrange
+        // V serves Viewer.h only through Query.viewer, which a mutation path re-roots below Payload.viewer.
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "m",
+                """
+                type Query {
+                    ping: String
+                }
+
+                type Mutation {
+                    doIt: Payload
+                }
+
+                type Payload {
+                    ok: Boolean
+                    viewer: Viewer @shareable
+                }
+
+                type Viewer {
+                    id: ID! @shareable
+                }
+                """),
+            new SourceSchemaText(
+                "v",
+                """
+                type Query {
+                    viewer: Viewer @shareable
+                }
+
+                type Viewer {
+                    id: ID! @shareable
+                    h: H
+                }
+
+                type H {
+                    id: ID! @shareable
+                }
+                """),
+            new SourceSchemaText(
+                "a",
+                """
+                type Query {
+                    hById(id: ID!): H @lookup @internal
+                    mById(id: ID!): Mo @lookup @internal
+                }
+
+                type H {
+                    id: ID! @shareable
+                    k: K
+                }
+
+                type K {
+                    id: ID! @shareable
+                }
+
+                type Mo {
+                    id: ID! @shareable
+                    l: L @shareable
+                }
+
+                type L {
+                    f(v: String @require(field: "x")): String
+                }
+                """),
+            new SourceSchemaText(
+                "c",
+                """
+                type Query {
+                    kById(id: ID!): K @lookup @internal
+                }
+
+                type K {
+                    id: ID! @shareable
+                    m: Mo
+                }
+
+                type Mo {
+                    id: ID! @shareable
+                    l: L @shareable
+                }
+
+                type L {
+                    x: String
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.False(result.IsSuccess);
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'L.f' on path 'M:Mutation.doIt<Payload> -> M:Payload.viewer<Viewer> -> V:Viewer.h<H> -> A:H.k<K> -> C:K.m<Mo> -> C:Mo.l<L>'.
+              Unable to satisfy the requirement '{ x }' on field 'A:L.f<String>'.
+                The field 'L.f' in schema 'A' requires data from another schema, but schema 'A' has no lookup for type 'L' that could resolve the field once the required data has been fetched.
+            """,
+            """
+            Unable to access the field 'L.f' on path 'M:Mutation.doIt<Payload> -> M:Payload.viewer<Viewer> -> V:Viewer.h<H> -> A:H.k<K> -> C:K.m<Mo> -> A:Mo.l<L>'.
+              Unable to satisfy the requirement '{ x }' on field 'A:L.f<String>'.
+                The field 'L.f' in schema 'A' requires data from another schema, but schema 'A' has no lookup for type 'L' that could resolve the field once the required data has been fetched.
+            """
+        ]);
+    }
+
+    private static SourceSchemaText[] CreateOtherSchemaWithRequirementSchemas(bool otherSchemaHasLookup)
+    {
+        var lookups = otherSchemaHasLookup
+            ? "h1ById(id: ID!): H1 @lookup @internal\n    h2ById(id: ID!): H2 @lookup @internal"
+            : "h1ById(id: ID!): H1 @lookup @internal";
+
+        return
+        [
+            new SourceSchemaText(
+                "a",
+                """
+                type Query {
+                    root: H0 @shareable
+                    h2ById(id: ID!): H2 @lookup @internal
+                }
+
+                type H0 {
+                    id: ID! @shareable
+                    a: H1
+                }
+
+                type H1 {
+                    id: ID! @shareable
+                }
+
+                type H2 {
+                    id: ID! @shareable
+                    l: L @shareable
+                    pz: String
+                }
+
+                type L {
+                    f(v: String @require(field: "x")): String
+                }
+                """),
+            new SourceSchemaText(
+                "b",
+                $$"""
+                type Query {
+                    {{lookups}}
+                }
+
+                type H1 {
+                    id: ID! @shareable
+                    c: H2 @shareable
+                }
+
+                type H2 {
+                    id: ID! @shareable
+                    l(p: String @require(field: "pz")): L @shareable
+                }
+
+                type L {
+                    x: String
+                }
+                """),
+            new SourceSchemaText(
+                "c",
+                """
+                type Query {
+                    h1ById(id: ID!): H1 @lookup @internal
+                }
+
+                type H1 {
+                    id: ID! @shareable
+                    c: H2 @shareable
+                }
+
+                type H2 {
+                    id: ID! @shareable
+                }
+                """)
+        ];
+    }
 }

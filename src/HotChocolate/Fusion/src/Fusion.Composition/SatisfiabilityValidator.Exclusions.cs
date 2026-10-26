@@ -18,13 +18,14 @@ internal sealed partial class SatisfiabilityValidator
     /// <summary>
     /// Finds, for each object type, the sets of schemas whose data a requirement check at the type or
     /// below it may treat as unavailable, and for each set the schemas that such a check may ask to
-    /// hold the type in.
+    /// hold the type in and those it may read requirement data from.
     /// </summary>
     private void InitializeExclusions()
     {
         _exclusions.Clear();
 
         var relevant = new Dictionary<MutableObjectTypeDefinition, Dictionary<SchemaSet, HashSet<int>>>();
+        var readRelevant = new Dictionary<MutableObjectTypeDefinition, Dictionary<SchemaSet, HashSet<int>>>();
         var pending = new Queue<MutableObjectTypeDefinition>();
         var scan = new ExclusionScan();
         var scannedKeys = new HashSet<(MutableObjectTypeDefinition, SchemaSet)>();
@@ -49,6 +50,7 @@ internal sealed partial class SatisfiabilityValidator
 
                     scan.Clear();
                     CollectFirstLevelSchemas(requirements, type, scan.AnchorSchemas);
+                    CollectFirstLevelSchemas(requirements, type, scan.ReadSchemas);
                     CollectExclusions(requirements, type, SchemaSet.Empty, true, scan);
 
                     // A requiring field whose schema cannot always re-enter the type through a lookup is
@@ -62,12 +64,13 @@ internal sealed partial class SatisfiabilityValidator
                     }
 
                     AddRelevantSchemas(relevant, type, scan.Sets, scan.AnchorSchemas, pending);
+                    AddReadSchemas(readRelevant, type, scan);
                 }
             }
 
             // A lookup key that selects a requiring field makes the schema of that field unavailable.
             scannedKeys.Add((type, SchemaSet.Empty));
-            CollectLookupKeyExclusions(type, SchemaSet.Empty, relevant, scan, pending);
+            CollectLookupKeyExclusions(type, SchemaSet.Empty, relevant, readRelevant, scan, pending);
         }
 
         // A parent carries every set of its children, with the schemas that serve the field returning
@@ -84,7 +87,7 @@ internal sealed partial class SatisfiabilityValidator
             {
                 if (scannedKeys.Add((type, set)))
                 {
-                    CollectLookupKeyExclusions(type, set, relevant, scan, pending);
+                    CollectLookupKeyExclusions(type, set, relevant, readRelevant, scan, pending);
                 }
             }
 
@@ -118,8 +121,47 @@ internal sealed partial class SatisfiabilityValidator
             }
         }
 
+        // A check at a type reads requirement data at the type itself from these schemas.
+        var localReadRelevant = readRelevant.ToDictionary(
+            entry => entry.Key,
+            entry => entry.Value.ToDictionary(set => set.Key, set => _schemaSets.Create([.. set.Value])));
+
+        // A parent may read requirement data from the schemas of its children that serve the field
+        // returning the child.
+        var pendingRead = new Queue<MutableObjectTypeDefinition>(readRelevant.Keys);
+
+        while (pendingRead.TryDequeue(out var type))
+        {
+            if (!parentFields.TryGetValue(type, out var parents))
+            {
+                continue;
+            }
+
+            foreach (var (parent, field) in parents)
+            {
+                var changed = false;
+
+                foreach (var (set, indexes) in readRelevant[type])
+                {
+                    changed |= AddRelevantSchemas(
+                        readRelevant,
+                        parent,
+                        set,
+                        indexes.Where(index => field.ExistsInSchema(_schemaSets.GetSchemaName(index))));
+                }
+
+                if (changed)
+                {
+                    pendingRead.Enqueue(parent);
+                }
+            }
+        }
+
         foreach (var (type, typeRelevant) in relevant)
         {
+            readRelevant.TryGetValue(type, out var typeReadRelevant);
+            localReadRelevant.TryGetValue(type, out var typeLocalReadRelevant);
+
             // A reach without the data of more schemas is created first.
             _exclusions.Add(
                 type,
@@ -130,8 +172,27 @@ internal sealed partial class SatisfiabilityValidator
                         .Select(entry => new Exclusion(
                             entry.Key,
                             GetSchemaNames(entry.Key),
-                            _schemaSets.Create([.. entry.Value])))
+                            _schemaSets.Create([.. entry.Value]),
+                            typeReadRelevant?.TryGetValue(entry.Key, out var readIndexes) == true
+                                ? _schemaSets.Create([.. readIndexes])
+                                : SchemaSet.Empty,
+                            typeLocalReadRelevant?.GetValueOrDefault(entry.Key) ?? SchemaSet.Empty))
                 ]);
+        }
+    }
+
+    /// <summary>
+    /// Adds the schemas that <paramref name="scan"/> may read requirement data from to the schemas that a check
+    /// at <paramref name="type"/> without the data of each set of the scan may read requirement data from.
+    /// </summary>
+    private void AddReadSchemas(
+        Dictionary<MutableObjectTypeDefinition, Dictionary<SchemaSet, HashSet<int>>> readRelevant,
+        MutableObjectTypeDefinition type,
+        ExclusionScan scan)
+    {
+        foreach (var set in scan.Sets)
+        {
+            AddRelevantSchemas(readRelevant, type, set, scan.ReadSchemas);
         }
     }
 
@@ -143,6 +204,7 @@ internal sealed partial class SatisfiabilityValidator
         MutableObjectTypeDefinition type,
         SchemaSet unavailable,
         Dictionary<MutableObjectTypeDefinition, Dictionary<SchemaSet, HashSet<int>>> relevant,
+        Dictionary<MutableObjectTypeDefinition, Dictionary<SchemaSet, HashSet<int>>> readRelevant,
         ExclusionScan scan,
         Queue<MutableObjectTypeDefinition> pending)
     {
@@ -154,6 +216,7 @@ internal sealed partial class SatisfiabilityValidator
             CollectFirstLevelSchemas(key, type, scan.AnchorSchemas);
             CollectExclusions(key, type, unavailable, true, scan);
             AddRelevantSchemas(relevant, type, scan.Sets, scan.AnchorSchemas, pending);
+            AddReadSchemas(readRelevant, type, scan);
         }
     }
 
@@ -414,6 +477,7 @@ internal sealed partial class SatisfiabilityValidator
                         if (atAnchor)
                         {
                             CollectFirstLevelSchemas(requirements, type, scan.AnchorSchemas);
+                            CollectFirstLevelSchemas(requirements, type, scan.ReadSchemas);
                         }
 
                         var extended = AddToSchemaSet(unavailable, schemaName);
@@ -464,14 +528,14 @@ internal sealed partial class SatisfiabilityValidator
     /// <summary>
     /// Creates the reaches of <paramref name="type"/>, held through <paramref name="item"/>, without the
     /// data of each set of the type's exclusions, or returns <c>null</c> if the type has no exclusions.
-    /// Each reach extends the reach of <paramref name="parentKey"/> without the same data, or, when
-    /// <paramref name="parentKey"/> is <c>null</c>, is created for a node lookup.
+    /// Each reach extends the reach of the visit of <paramref name="parent"/> without the same data, or, when
+    /// <paramref name="parent"/> is <c>null</c>, is created for a node lookup.
     /// </summary>
     private ExclusionReaches? CreateExclusionReaches(
         MutableObjectTypeDefinition type,
         VisitTypeInfo info,
         SatisfiabilityPathItem item,
-        VisitKey? parentKey,
+        WorkItem? parent,
         bool viewerFallback)
     {
         if (!_exclusions.TryGetValue(type, out var exclusions))
@@ -479,9 +543,11 @@ internal sealed partial class SatisfiabilityValidator
             return null;
         }
 
+        var parentKey = parent?.Key;
         var holder = _schemaSets.GetIndex(item.SchemaName);
         var anchor = RentReachAnchor();
         ExclusionReaches? reaches = null;
+        Dictionary<int, bool>? parentResolutions = null;
 
         foreach (var exclusion in exclusions)
         {
@@ -491,7 +557,8 @@ internal sealed partial class SatisfiabilityValidator
             // The call holding the object was made without the unavailable data when it is a root call,
             // a node lookup, or the call holding the parent in the same schema made without it.
             var holderAvailable = !_schemaSets.Contains(exclusion.Schemas, holder);
-            var parentReach = new ExclusionReach(exclusion.Schemas, SchemaSet.Empty, null, false, SchemaSet.Empty);
+            var parentReach =
+                new ExclusionReach(exclusion.Schemas, SchemaSet.Empty, null, false, SchemaSet.Empty, default);
 
             if (parentKey is not null)
             {
@@ -555,13 +622,239 @@ internal sealed partial class SatisfiabilityValidator
                     reach,
                     CreateReachProvides(provides, reach),
                     holderAvailable,
-                    viewerOnly));
+                    viewerOnly,
+                    CreateArrivalCalls(
+                        item,
+                        parent,
+                        parentReach,
+                        exclusion,
+                        reach,
+                        holderAvailable,
+                        ref parentResolutions)));
             _schemaSets.ReturnBuffer(buffer);
         }
 
         ReturnReachAnchor(anchor);
         return reaches;
     }
+
+    /// <summary>
+    /// Creates the calls of the access path that hold the object of <paramref name="item"/>, or its parent, without
+    /// the data of <paramref name="exclusion"/>, from those of the visit of <paramref name="parent"/> in
+    /// <paramref name="parentReach"/>, or for a node lookup when <paramref name="parent"/> is <c>null</c>.
+    /// <paramref name="reach"/> and <paramref name="holderAvailable"/> are the reach of the object without that
+    /// data and whether the holding call is made without it. <paramref name="parentResolutions"/> holds, by schema
+    /// index, whether a schema resolves the field of <paramref name="item"/> at the visit of the parent.
+    /// </summary>
+    private ArrivalCalls CreateArrivalCalls(
+        SatisfiabilityPathItem item,
+        WorkItem? parent,
+        ExclusionReach parentReach,
+        Exclusion exclusion,
+        SchemaSet reach,
+        bool holderAvailable,
+        ref Dictionary<int, bool>? parentResolutions)
+    {
+        var parentKey = parent?.Key;
+        var parentCalls = parentReach.Arrival;
+
+        if (parentKey is not null && (parentCalls.BelowReRootedViewer || IsViewerFallback(item, parentKey)))
+        {
+            return new ArrivalCalls(false, false, SchemaSet.Empty, SchemaSet.Empty, BelowReRootedViewer: true);
+        }
+
+        var holder = _schemaSets.GetIndex(item.SchemaName);
+        var parentHolder = parentKey?.SchemaName;
+        var unavailableSchemaName = exclusion.SchemaNames.Count == 1 ? exclusion.SchemaNames.First() : null;
+        var holderIsUnavailable = _schemaSets.Contains(exclusion.Schemas, holder);
+        var holderReadable = false;
+        var holderPending = false;
+        var parentReadable = SchemaSet.Empty;
+        var routeReadable = SchemaSet.Empty;
+
+        // A pending call of the parent no longer depends on the call that resolves the requiring field when
+        // the unavailable schema does not serve the field or holds the object in a later call.
+        var released =
+            unavailableSchemaName is null
+            || holderIsUnavailable
+            || !item.Field.ExistsInSchema(unavailableSchemaName);
+        var parentHolderReadable =
+            parentHolder is not null
+            && (parentReach.HolderAvailable
+                || parentCalls.HolderReadable
+                || (parentCalls.HolderPending && released));
+
+        if (parentHolder is not null && parentKey!.Leaf?.ProvidedSelectionSet is null)
+        {
+            var parentServesField = ServesField(item.Field, parentHolder);
+            var parentServesFieldPlainly =
+                parentServesField && item.Field.GetFusionRequiresRequirements(parentHolder) is null;
+
+            if (parentServesFieldPlainly)
+            {
+                // The call that holds the parent continues to the object when its schema serves the field without
+                // requirements.
+                var parentIndex = _schemaSets.GetIndex(parentHolder);
+
+                if (parentHolderReadable
+                    && parentHolder != item.SchemaName
+                    && _schemaSets.Contains(exclusion.LocalReadRelevant, parentIndex)
+                    && !_schemaSets.Contains(reach, parentIndex))
+                {
+                    parentReadable = _schemaSets.Create([parentIndex]);
+                }
+            }
+            else if (unavailableSchemaName is not null
+                && (parentServesField || !HolderProvidesField(parentKey, item.Field)))
+            {
+                // Otherwise a call of each schema that resolves the field from the parent can hold the object, and
+                // that call does not depend on the call that resolves the requiring field of the unavailable schema.
+                routeReadable = CreateRouteReadable(
+                    item,
+                    parent!.Value,
+                    exclusion,
+                    reach,
+                    parentHolderReadable,
+                    ref parentResolutions);
+            }
+        }
+
+        // A holding call made with the unavailable data is read unless it depends on the call that resolves the
+        // requiring field, which a single unavailable schema identifies as its last call on the path while the
+        // schema serves the fields below it.
+        if (!holderAvailable
+            && !holderIsUnavailable
+            && item.ProvidedSelectionSet is null
+            && _schemaSets.Contains(exclusion.ReadRelevant, holder)
+            && !_schemaSets.Contains(reach, holder))
+        {
+            if (parentHolder == item.SchemaName)
+            {
+                holderReadable = parentHolderReadable;
+                holderPending = !parentHolderReadable && parentCalls.HolderPending;
+            }
+            else if (unavailableSchemaName is not null)
+            {
+                holderPending = !released && parentHolder == unavailableSchemaName;
+                holderReadable = !holderPending;
+            }
+        }
+
+        return new ArrivalCalls(
+            holderReadable,
+            holderPending,
+            parentReadable,
+            routeReadable,
+            BelowReRootedViewer: false);
+    }
+
+    /// <summary>
+    /// Creates the schemas, other than the holding schema of <paramref name="item"/> and among those that a check at
+    /// the object without the data of <paramref name="exclusion"/> reads requirement data from and that are not
+    /// in <paramref name="reach"/>, that resolve the field of <paramref name="item"/> at the visit of
+    /// <paramref name="parent"/>, the schema holding the parent only if <paramref name="parentHolderReadable"/>.
+    /// </summary>
+    private SchemaSet CreateRouteReadable(
+        SatisfiabilityPathItem item,
+        in WorkItem parent,
+        Exclusion exclusion,
+        SchemaSet reach,
+        bool parentHolderReadable,
+        ref Dictionary<int, bool>? parentResolutions)
+    {
+        var holder = _schemaSets.GetIndex(item.SchemaName);
+        var parentHolder = _schemaSets.GetIndex(parent.Key.SchemaName!);
+        var members = _schemaSets.GetMembers(exclusion.LocalReadRelevant);
+        List<int>? indexes = null;
+
+        for (var word = 0; word < members.Length; word++)
+        {
+            for (var bits = members[word]; bits != 0; bits &= bits - 1)
+            {
+                var index = (word << 6) + BitOperations.TrailingZeroCount(bits);
+
+                if (index != holder
+                    && (index != parentHolder || parentHolderReadable)
+                    && !_schemaSets.Contains(reach, index)
+                    && ServesField(item.Field, _schemaSets.GetSchemaName(index))
+                    && ResolvesFieldAtParent(parent, item.Field, index, ref parentResolutions))
+                {
+                    (indexes ??= []).Add(index);
+                }
+            }
+        }
+
+        return indexes is null ? SchemaSet.Empty : _schemaSets.Create(indexes);
+    }
+
+    /// <summary>
+    /// Determines whether the schema with index <paramref name="schemaIndex"/> resolves <paramref name="field"/> as
+    /// an option at the visit of <paramref name="parent"/>, a schema other than the holding schema with requirements
+    /// only through one of its lookups for the object, and caches the answer in <paramref name="parentResolutions"/>.
+    /// </summary>
+    private bool ResolvesFieldAtParent(
+        in WorkItem parent,
+        MutableOutputFieldDefinition field,
+        int schemaIndex,
+        ref Dictionary<int, bool>? parentResolutions)
+    {
+        parentResolutions ??= [];
+
+        if (!parentResolutions.TryGetValue(schemaIndex, out var resolves))
+        {
+            var schemaName = _schemaSets.GetSchemaName(schemaIndex);
+            var type = parent.Key.ObjectType;
+            var parentHolder = parent.Key.SchemaName!;
+            var requirements = field.GetFusionRequiresRequirements(schemaName);
+
+            resolves =
+                (schemaName == parentHolder
+                    || _facts.CanTransition(type, schemaName, parentHolder)
+                    || _schemaSets.Contains(parent.Key.Reach, schemaIndex))
+                && (requirements is null
+                    || _facts.IsFieldResolvableOn(type, field, schemaName)
+                    || (schemaName == parentHolder
+                        ? ValidateRequirements(requirements, field, schemaName, parent, anchored: true, _decisionBudget)
+                            .IsEmpty
+                        : ResolvesThroughLookup(
+                            requirements,
+                            schemaName,
+                            type,
+                            parent.Path!.Item,
+                            [],
+                            new RequirementScope(
+                                new VisitAnchor(this, parent.Key, parent.Path.Item),
+                                ArrivalPath: null,
+                                AllowsReRootedCalls: true,
+                                BelowReRootedViewer: null,
+                                ResolvesFieldAtParent: null),
+                            _decisionBudget)));
+            parentResolutions.Add(schemaIndex, resolves);
+        }
+
+        return resolves;
+    }
+
+    /// <summary>
+    /// Determines whether <paramref name="schemaName"/> serves <paramref name="field"/> without it being partial.
+    /// </summary>
+    private static bool ServesField(MutableOutputFieldDefinition field, string schemaName)
+        => field.ExistsInSchema(schemaName) && !field.IsPartial(schemaName);
+
+    /// <summary>
+    /// Determines whether the <c>@provides</c> selection set of the field holding the object of
+    /// <paramref name="key"/>, in its holding schema, selects <paramref name="field"/>.
+    /// </summary>
+    private bool HolderProvidesField(VisitKey key, MutableOutputFieldDefinition field)
+        => key.Leaf is { } leaf
+            && GetFieldProvides(leaf.Field)?.Find(_schemaSets.GetIndex(key.SchemaName!)) is { } provides
+            && SatisfiabilityPathItemExtensions.TryGetFieldSelectionSet(
+                _schema,
+                provides,
+                leaf.Field.Type.AsTypeDefinition(),
+                field,
+                key.ObjectType,
+                out _);
 
     /// <summary>
     /// Gets the reaches with the entries of <paramref name="reaches"/>, or with none if it is <c>null</c>,
@@ -625,9 +918,15 @@ internal sealed partial class SatisfiabilityValidator
 
     /// <summary>
     /// A set of unavailable schemas, as a schema set and by name, with the schemas that a check at a
-    /// type without their data may ask to hold the type in.
+    /// type without their data may ask to hold the type in, those it may read requirement data from at the
+    /// type or below it, and those it may read requirement data from at the type itself.
     /// </summary>
-    private sealed record Exclusion(SchemaSet Schemas, ImmutableHashSet<string> SchemaNames, SchemaSet Relevant)
+    private sealed record Exclusion(
+        SchemaSet Schemas,
+        ImmutableHashSet<string> SchemaNames,
+        SchemaSet Relevant,
+        SchemaSet ReadRelevant,
+        SchemaSet LocalReadRelevant)
     {
         /// <summary>
         /// Determines whether the unavailable schemas are exactly those of
@@ -673,6 +972,11 @@ internal sealed partial class SatisfiabilityValidator
         public HashSet<int> AnchorSchemas { get; } = [];
 
         /// <summary>
+        /// Gets the schemas that serve the first level of the scanned requirements at the object.
+        /// </summary>
+        public HashSet<int> ReadSchemas { get; } = [];
+
+        /// <summary>
         /// Gets the requiring fields that the scan visited for each set of unavailable schemas.
         /// </summary>
         public HashSet<(MutableObjectTypeDefinition, MutableOutputFieldDefinition, string, SchemaSet)> VisitedFields
@@ -689,6 +993,7 @@ internal sealed partial class SatisfiabilityValidator
         {
             Sets.Clear();
             AnchorSchemas.Clear();
+            ReadSchemas.Clear();
             VisitedFields.Clear();
             VisitedLookupTypes.Clear();
         }
