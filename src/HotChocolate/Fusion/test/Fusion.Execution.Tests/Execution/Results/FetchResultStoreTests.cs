@@ -3274,6 +3274,149 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void GetResultPaths_Should_SkipObjectsBelowNulledParent_When_LookupErrorPropagatedNull()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+              bar: Bar!
+            }
+
+            type Bar {
+              id: ID!
+              name: String!
+              qux: Qux
+            }
+
+            type Qux {
+              id: ID!
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id bar { id name qux { id } } } }",
+            """
+            {"data":{"foos":[
+              {"id":"1","bar":{"id":"b1","qux":{"id":"q1"}}},
+              {"id":"2","bar":{"id":"b2","name":"Two","qux":{"id":"q2"}}}]}}
+            """,
+            resultArena,
+            sourceArena);
+        var bars = SelectionPath.Root.AppendField("foos").AppendField("bar");
+        var quxs = bars.AppendField("qux");
+        var before = store.GetResultPaths(quxs);
+        var resultSelectionSet = ResultSelectionSet.Create(
+            Utf8GraphQLParser.Parse("{ name }")
+                .Definitions
+                .OfType<OperationDefinitionNode>()
+                .Single()
+                .SelectionSet,
+            schema);
+        // the non-null name invalidates the non-null bar and nulls the first list element
+        var payload = """{"data":{"name":null},"errors":[{"message":"boom","path":["name"]}]}"""u8.ToArray();
+        var document = SourceResultDocument.Parse(sourceArena, payload, payload.Length);
+        store.AddPartialResult(
+            SelectionPath.Root,
+            new SourceSchemaResult(store.GetResultPaths(bars)[0], document),
+            resultSelectionSet,
+            containsErrors: true);
+
+        // act
+        var after = store.GetResultPaths(quxs);
+
+        // assert
+        RenderResultPaths(store, [before, after]).MatchInlineSnapshot(
+            """
+            [foos[0].bar.qux, foos[1].bar.qux]
+            [foos[1].bar.qux]
+            """);
+        RenderData(store).MatchInlineSnapshot(
+            """
+            {"foos":[null,{"id":"2","bar":{"id":"b2","name":"Two","qux":{"id":"q2"}}}]}
+            """);
+    }
+
+    [Fact]
+    public void GetResultPaths_Should_SkipObjectsBelowNulledField_When_LookupRequestFailed()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+            }
+
+            type Foo {
+              id: ID!
+              bar: Bar
+            }
+
+            type Bar {
+              id: ID!
+              name: String!
+              qux: Qux
+            }
+
+            type Qux {
+              id: ID!
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ foos { id bar { id name qux { id } } } }",
+            """
+            {"data":{"foos":[
+              {"id":"1","bar":{"id":"b1","qux":{"id":"q1"}}},
+              {"id":"2","bar":{"id":"b2","name":"Two","qux":{"id":"q2"}}}]}}
+            """,
+            resultArena,
+            sourceArena);
+        var bars = SelectionPath.Root.AppendField("foos").AppendField("bar");
+        var quxs = bars.AppendField("qux");
+        var before = store.GetResultPaths(quxs);
+        var resultSelectionSet = ResultSelectionSet.Create(
+            Utf8GraphQLParser.Parse("{ name }")
+                .Definitions
+                .OfType<OperationDefinitionNode>()
+                .Single()
+                .SelectionSet,
+            schema);
+        var error = ErrorBuilder.New()
+            .SetMessage("boom")
+            .Build();
+        // the error on the non-null name nulls the nullable bar of the first foo
+        store.AddErrors(error, resultSelectionSet, [store.GetResultPaths(bars)[0]]);
+
+        // act
+        var after = store.GetResultPaths(quxs);
+
+        // assert
+        RenderResultPaths(store, [before, after]).MatchInlineSnapshot(
+            """
+            [foos[0].bar.qux, foos[1].bar.qux]
+            [foos[1].bar.qux]
+            """);
+        RenderData(store).MatchInlineSnapshot(
+            """
+            {"foos":[{"id":"1","bar":null},{"id":"2","bar":{"id":"b2","name":"Two","qux":{"id":"q2"}}}]}
+            """);
+    }
+
+    [Fact]
     public void AdditionalPaths_Should_Throw_When_StoreWasCleaned()
     {
         // arrange
