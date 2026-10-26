@@ -10,17 +10,21 @@ internal sealed class ExclusionReaches : IEquatable<ExclusionReaches>
     private readonly int _hashCode;
 
     /// <summary>
-    /// Creates the reaches with the given entries, each for a different set of unavailable schemas.
+    /// Creates the reaches with the entries of <paramref name="reaches"/>, or with none if it is
+    /// <c>null</c>, followed by <paramref name="entry"/>, whose set of unavailable schemas no other entry has.
     /// </summary>
-    public ExclusionReaches(ExclusionReach[] entries)
+    public ExclusionReaches(ExclusionReaches? reaches, ExclusionReach entry)
     {
-        _entries = entries;
+        var count = reaches?._entries.Length ?? 0;
+        _entries = new ExclusionReach[count + 1];
+        reaches?._entries.CopyTo(_entries, 0);
+        _entries[count] = entry;
 
         var hashCode = new HashCode();
 
-        foreach (var entry in entries)
+        foreach (var exclusionReach in _entries)
         {
-            hashCode.Add(entry);
+            hashCode.Add(exclusionReach);
         }
 
         _hashCode = hashCode.ToHashCode();
@@ -43,9 +47,10 @@ internal sealed class ExclusionReaches : IEquatable<ExclusionReaches>
     }
 
     public bool Equals(ExclusionReaches? other)
-        => other is not null
-            && _hashCode == other._hashCode
-            && _entries.AsSpan().SequenceEqual(other._entries);
+        => ReferenceEquals(this, other)
+            || (other is not null
+                && _hashCode == other._hashCode
+                && _entries.AsSpan().SequenceEqual(other._entries));
 
     public override bool Equals(object? obj) => obj is ExclusionReaches other && Equals(other);
 
