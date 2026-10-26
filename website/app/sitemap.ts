@@ -37,18 +37,6 @@ const EXCLUDED_PATHS = new Set([
   "/services/support/thank-you",
 ]);
 
-// Un-indexed, unlinked prototype routes: /platform/graphql-federation/vN
-// compares backbone concepts before one is picked. Path-based rather than
-// an exact-match set, since new vN routes are added over time.
-const EXCLUDED_PATH_PATTERNS = [/^\/platform\/graphql-federation\/v\d+$/];
-
-function isExcludedPath(urlPath: string): boolean {
-  return (
-    EXCLUDED_PATHS.has(urlPath) ||
-    EXCLUDED_PATH_PATTERNS.some((pattern) => pattern.test(urlPath))
-  );
-}
-
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries = [
     ...rootPages(),
@@ -94,7 +82,7 @@ function staticPages(): MetadataRoute.Sitemap {
         const rel = path.relative(CONTENT_PAGES_ROOT, path.dirname(file));
         return rel === "" ? "/" : `/${rel.split(path.sep).join("/")}`;
       })
-      .filter((urlPath) => !isExcludedPath(urlPath))
+      .filter((urlPath) => !EXCLUDED_PATHS.has(urlPath))
       // Visible content commonly lives in imported components, so page.tsx's
       // commit date alone is not an accurate modification date for these routes.
       .map((urlPath) => sitemapEntry(urlPath))
