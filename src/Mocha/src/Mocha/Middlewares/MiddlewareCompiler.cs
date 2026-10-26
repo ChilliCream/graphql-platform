@@ -6,13 +6,6 @@ namespace Mocha;
 /// Compiles ordered middleware configurations into executable delegates for dispatch, receive, and
 /// consume pipelines.
 /// </summary>
-/// <remarks>
-/// Middleware lists are materialized, modified, reversed, and then folded right-to-left so
-/// registration order remains intuitive while execution follows the standard nested middleware
-/// pattern.
-/// Without this compile step, each receive/dispatch would need repeated per-message composition and
-/// ordering could drift when modifiers are applied.
-/// </remarks>
 internal static class MiddlewareCompiler
 {
     private static List<DispatchMiddlewareConfiguration>? s_dispatchMiddlewares;
@@ -46,11 +39,9 @@ internal static class MiddlewareCompiler
         middlewares.Reverse();
 
         var pipeline = dispatch;
-
         foreach (var middleware in middlewares)
         {
-            var next = pipeline;
-            pipeline = middleware.Middleware(context, next);
+            pipeline = middleware.Middleware(context, pipeline);
         }
 
         middlewares.Clear();

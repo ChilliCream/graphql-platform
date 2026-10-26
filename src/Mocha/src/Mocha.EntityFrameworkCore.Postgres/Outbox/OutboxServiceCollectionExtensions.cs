@@ -1,7 +1,10 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Mocha.EntityFrameworkCore;
@@ -42,8 +45,19 @@ public static class OutboxServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(configure);
 
-        var contextType = builder.ContextType;
+        builder.UseOutboxCore();
         builder.Services.AddOptions<PostgresOutboxOptions>(builder.Name).Configure(configure);
+
+        if (builder.Services.Any(descriptor =>
+            descriptor.ServiceType == typeof(PostgresOutboxRegistration)
+            && ((PostgresOutboxRegistration)descriptor.ImplementationInstance!).ContextType == builder.ContextType))
+        {
+            return builder;
+        }
+
+        builder.Services.AddSingleton(new PostgresOutboxRegistration(builder.ContextType, builder.Name));
+
+        var contextType = builder.ContextType;
 
         builder
             .Services.AddOptions<PostgresTableInfo>(builder.Name)
@@ -58,7 +72,7 @@ public static class OutboxServiceCollectionExtensions
 
         builder
             .Services.AddOptions<PostgresMessageOutboxOptions>(builder.Name)
-            .Configure<IOptionsMonitor<PostgresTableInfo>>((options, tableInfoMonitor) =>
+            .Configure<IOptionsMonitor<PostgresTableInfo>, IServiceProvider>((options, tableInfoMonitor, provider) =>
             {
                 options.CreateConnection = services =>
                 {
@@ -68,9 +82,38 @@ public static class OutboxServiceCollectionExtensions
 
                 var tableInfo = tableInfoMonitor.Get(builder.Name);
                 options.Queries = PostgresMessageOutboxQueries.From(tableInfo.Outbox);
+
+                using var scope = provider.CreateScope();
+                var configuredContext = (DbContext)scope.ServiceProvider.GetRequiredService(contextType);
+                var configuredConnection = (NpgsqlConnection)configuredContext.Database.GetDbConnection();
+                var configuredSettings = new NpgsqlConnectionStringBuilder(configuredConnection.ConnectionString);
+                var host = configuredSettings.Host;
+                var port = configuredSettings.Port;
+                var database = configuredSettings.Database;
+                var searchPath = configuredSettings.SearchPath;
+                var username = configuredSettings.Username;
+                var connectionOptions = configuredSettings.Options;
+                var configuredModel = configuredContext.Model;
+
+                options.MatchesDestination = context =>
+                {
+                    if (!ReferenceEquals(context.Model, configuredModel)
+                        || context.Database.GetDbConnection() is not NpgsqlConnection connection)
+                    {
+                        return false;
+                    }
+
+                    var settings = new NpgsqlConnectionStringBuilder(connection.ConnectionString);
+                    return settings.Host == host
+                        && settings.Port == port
+                        && settings.Database == database
+                        && settings.SearchPath == searchPath
+                        && settings.Username == username
+                        && settings.Options == connectionOptions;
+                };
             });
 
-        builder.Services.AddSingleton(sp =>
+        builder.Services.AddKeyedSingleton<PostgresOutboxProcessor>(contextType, (sp, _) =>
         {
             var optionsMonitor = sp.GetRequiredService<IOptionsMonitor<PostgresMessageOutboxOptions>>();
             var options = optionsMonitor.Get(builder.Name);
@@ -83,17 +126,53 @@ public static class OutboxServiceCollectionExtensions
                 options);
         });
 
-        builder.Services.AddSingleton<PostgresMessageBusOutboxWorker>();
+        builder.Services.AddSingleton(sp => sp.GetRequiredKeyedService<PostgresOutboxProcessor>(contextType));
+        builder.Services.AddKeyedSingleton<PostgresMessageBusOutboxWorker>(contextType, (sp, _) =>
+            new PostgresMessageBusOutboxWorker(sp.GetRequiredKeyedService<PostgresOutboxProcessor>(contextType)));
+        builder.Services.AddSingleton(sp => sp.GetRequiredKeyedService<PostgresMessageBusOutboxWorker>(contextType));
 
-        builder.Services.AddHostedService(sp => sp.GetRequiredService<PostgresMessageBusOutboxWorker>());
+        builder.Services.AddSingleton<IHostedService>(sp =>
+            sp.GetRequiredKeyedService<PostgresMessageBusOutboxWorker>(contextType));
 
-        builder.Services.TryAddScoped<IMessageOutbox>(sp =>
-            PostgresMessageOutbox.Create(contextType, builder.Name, sp)
-        );
+        builder.Services.TryAddScoped<IMessageOutbox>(CreateDefaultOutbox);
 
-        builder.UseOutboxCore();
+        builder.ConfigureEntityFrameworkServices((applicationServices, services) =>
+        {
+            services.AddScoped<PostgresOutboxTracker>();
+            services.AddScoped<IInterceptor>(sp => sp.GetRequiredService<PostgresOutboxTracker>());
+            services.AddScoped<IResettableService>(sp => sp.GetRequiredService<PostgresOutboxTracker>());
+            services.AddScoped<IDbContextOutboxProvider>(sp => new PostgresDbContextOutboxProvider(
+                sp.GetRequiredService<PostgresOutboxTracker>(),
+                () => applicationServices.GetRequiredService<IOptionsMonitor<PostgresMessageOutboxOptions>>()
+                    .Get(builder.Name),
+                applicationServices.GetTimeProvider()));
+        });
 
         return builder;
+    }
+
+    private static IMessageOutbox CreateDefaultOutbox(IServiceProvider services)
+    {
+        var registrations = services.GetServices<PostgresOutboxRegistration>().ToArray();
+        var defaultContext = services.GetService<DefaultOutboxDbContextRegistration>();
+        PostgresOutboxRegistration registration;
+
+        if (defaultContext is not null)
+        {
+            registration = registrations.FirstOrDefault(r => r.ContextType == defaultContext.ContextType)
+                ?? throw Mocha.EntityFrameworkCore.ThrowHelper.DefaultOutboxDbContextNotRegistered(
+                    defaultContext.ContextType);
+        }
+        else if (registrations.Length == 1)
+        {
+            registration = registrations[0];
+        }
+        else
+        {
+            throw Mocha.EntityFrameworkCore.ThrowHelper.AmbiguousOutboxDbContext();
+        }
+
+        return PostgresMessageOutbox.Create(registration.ContextType, registration.Name, services);
     }
 
     private static void ConfigureOutboxTableInfo(OutboxTableInfo outbox, IModel model)
@@ -163,4 +242,6 @@ public static class OutboxServiceCollectionExtensions
             }
         }
     }
+
+    private sealed record PostgresOutboxRegistration(Type ContextType, string Name);
 }

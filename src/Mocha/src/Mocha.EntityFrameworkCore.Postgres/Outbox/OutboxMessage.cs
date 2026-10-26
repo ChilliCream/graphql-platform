@@ -6,8 +6,9 @@ namespace Mocha.Outbox;
 /// Represents a message stored in the Postgres outbox table, awaiting dispatch by the outbox processor.
 /// </summary>
 /// <param name="id">The unique identifier for this outbox message.</param>
-/// <param name="envelope">The serialized message envelope containing headers, body, and routing information.</param>
-public sealed class OutboxMessage(Guid id, JsonDocument envelope)
+/// <param name="envelope">The serialized message envelope owned by this entity.</param>
+/// <param name="createdAt">The UTC timestamp when this outbox message was created.</param>
+public sealed class OutboxMessage(Guid id, JsonDocument envelope, DateTime createdAt) : IDisposable
 {
     /// <summary>
     /// Gets the unique identifier for this outbox message.
@@ -16,6 +17,7 @@ public sealed class OutboxMessage(Guid id, JsonDocument envelope)
 
     /// <summary>
     /// Gets the serialized message envelope containing headers, body, and routing information.
+    /// The document remains valid until this entity is disposed.
     /// </summary>
     public JsonDocument Envelope { get; private set; } = envelope;
 
@@ -27,5 +29,10 @@ public sealed class OutboxMessage(Guid id, JsonDocument envelope)
     /// <summary>
     /// Gets the UTC timestamp when this outbox message was created.
     /// </summary>
-    public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; private set; } = createdAt;
+
+    /// <summary>
+    /// Releases the serialized envelope owned by this message.
+    /// </summary>
+    public void Dispose() => Envelope.Dispose();
 }

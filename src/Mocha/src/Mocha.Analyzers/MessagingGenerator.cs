@@ -458,7 +458,8 @@ public sealed class MessagingGenerator : IIncrementalGenerator
         // Sources B and C: dispatch call sites and explicit AddMessage registrations.
         foreach (var info in callSiteInfos)
         {
-            if (info is CallSiteMessageTypeInfo callSite)
+            if (info is CallSiteMessageTypeInfo callSite
+                && callSite.Kind is not (CallSiteKind.MediatorSend or CallSiteKind.MediatorQuery or CallSiteKind.MediatorPublish))
             {
                 AddDeclaration(byTypeName, callSite.DeclaredMessageType);
                 AddDeclaration(byTypeName, callSite.DeclaredResponseType);

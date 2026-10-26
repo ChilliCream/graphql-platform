@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.ObjectPool;
 using Mocha.Middlewares;
-using Mocha.Outbox;
 using Npgsql;
 using NpgsqlTypes;
 
@@ -330,14 +329,15 @@ public sealed class ScheduledMessageDispatcher
         {
             await using var scope = _services.CreateAsyncScope();
 
-            context.Initialize(scope.ServiceProvider, endpoint, _runtime, messageType, cancellationToken);
+            context.InitializeFromEnvelope(
+                scope.ServiceProvider,
+                endpoint,
+                _runtime,
+                messageType,
+                envelope,
+                cancellationToken);
 
-            context.SkipScheduler();
-            context.SkipOutbox();
-
-            context.Envelope = envelope;
-
-            await endpoint.ExecuteAsync(context);
+            await endpoint.DispatchInternalAsync(context);
         }
         finally
         {

@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
-using Mocha.Features;
 using Mocha.Middlewares;
 using Mocha.Scheduling;
 
@@ -11,23 +10,22 @@ namespace Mocha.Tests.Scheduling;
 public class DispatchSchedulingMiddlewareTests
 {
     [Fact]
-    public void Create_Should_ReturnMiddleware()
+    public async Task Create_Should_CallNext_When_MessageIsNotScheduled()
     {
         // arrange
-        DispatchDelegate next = _ => ValueTask.CompletedTask;
-        var config = DispatchSchedulingMiddleware.Create();
-        var factoryContext = new DispatchMiddlewareFactoryContext
+        var nextCalled = false;
+        DispatchDelegate next = _ =>
         {
-            Services = new ServiceCollection().BuildServiceProvider(),
-            Endpoint = null!,
-            Transport = new StubTransport()
+            nextCalled = true;
+            return ValueTask.CompletedTask;
         };
 
         // act
-        var result = config.Middleware(factoryContext, next);
+        var pipeline = DispatchSchedulingMiddleware.Create(next);
+        await pipeline(new DispatchContext());
 
         // assert
-        Assert.NotSame(next, result);
+        Assert.True(nextCalled);
     }
 
     [Fact]
@@ -52,42 +50,32 @@ public class DispatchSchedulingMiddlewareTests
     }
 
     [Fact]
-    public async Task InvokeAsync_Should_CallNext_When_SkipSchedulerIsTrue()
+    public async Task InvokeAsync_Should_CallNext_When_OnlyHistoricalEnvelopeHasScheduledTime()
     {
         // arrange
-        var timeProvider = new FakeTimeProvider();
         var middleware = new DispatchSchedulingMiddleware();
-        var store = new InMemoryScheduledMessageStore();
-        await using var provider = BuildProvider(store);
-        using var scope = provider.CreateScope();
-
-        var context = new DispatchContext
+        var envelope = new MessageEnvelope
         {
-            ScheduledTime = timeProvider.GetUtcNow().AddMinutes(10),
-            Services = scope.ServiceProvider,
-            Envelope = new MessageEnvelope { MessageId = "msg-skip" },
-            Transport = new StubTransport()
+            MessageId = "previously-scheduled",
+            ScheduledTime = new DateTimeOffset(2020, 1, 1, 0, 0, 0, TimeSpan.Zero)
         };
-
-        context.Features.Configure<SchedulingMiddlewareFeature>(f => f.SkipScheduler = true);
-
-        var nextCalled = false;
-        DispatchDelegate next = _ =>
-        {
-            nextCalled = true;
-            return ValueTask.CompletedTask;
-        };
+        var context = new DispatchContext { Envelope = envelope };
+        MessageEnvelope? forwarded = null;
 
         // act
-        await middleware.InvokeAsync(context, next);
+        await middleware.InvokeAsync(context, dispatch =>
+        {
+            forwarded = dispatch.Envelope;
+            return default;
+        });
 
         // assert
-        Assert.True(nextCalled);
-        Assert.Empty(store.Entries);
+        Assert.Same(envelope, forwarded);
+        Assert.Null(context.ScheduledTime);
     }
 
     [Fact]
-    public async Task InvokeAsync_Should_PersistToStore_When_ScheduledTimeSetAndNotSkipped()
+    public async Task InvokeAsync_Should_PersistToStore_When_ScheduledTimeSet()
     {
         // arrange
         var timeProvider = new FakeTimeProvider();
@@ -210,7 +198,7 @@ public class DispatchSchedulingMiddlewareTests
     }
 
     [Fact]
-    public async Task InvokeAsync_Should_ForwardToNext_When_EnvelopeIsNull()
+    public async Task InvokeAsync_Should_RejectIncompleteMessage_When_EnvelopeIsNull()
     {
         // arrange
         var timeProvider = new FakeTimeProvider();
@@ -235,10 +223,12 @@ public class DispatchSchedulingMiddlewareTests
         };
 
         // act
-        await middleware.InvokeAsync(context, next);
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await middleware.InvokeAsync(context, next));
 
         // assert
-        Assert.True(nextCalled);
+        Assert.Equal("To send a message either the body must be set or the message must be set", exception.Message);
+        Assert.False(nextCalled);
         Assert.Empty(store.Entries);
     }
 

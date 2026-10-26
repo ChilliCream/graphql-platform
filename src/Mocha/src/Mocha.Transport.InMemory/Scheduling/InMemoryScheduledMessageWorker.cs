@@ -4,16 +4,12 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.ObjectPool;
 using Mocha.Middlewares;
-using Mocha.Outbox;
-using Mocha.Scheduling;
 using Mocha.Threading;
 
 namespace Mocha.Transport.InMemory.Scheduling;
 
 /// <summary>
-/// A hosted background worker that drains due entries from the in-memory scheduled message store and
-/// dispatches them through the normal endpoint pipeline. It sleeps on the store's dedicated signal
-/// until the next entry is due.
+/// Dispatches prepared envelopes from the in-memory scheduled message store when they become due.
 /// </summary>
 internal sealed class InMemoryScheduledMessageWorker(
     IServiceProvider services,
@@ -135,12 +131,15 @@ internal sealed class InMemoryScheduledMessageWorker(
         {
             await using var scope = services.CreateAsyncScope();
 
-            context.Initialize(scope.ServiceProvider, endpoint, runtime, messageType, cancellationToken);
-            context.SkipScheduler();
-            context.SkipOutbox();
-            context.Envelope = envelope;
+            context.InitializeFromEnvelope(
+                scope.ServiceProvider,
+                endpoint,
+                runtime,
+                messageType,
+                envelope,
+                cancellationToken);
 
-            await endpoint.ExecuteAsync(context);
+            await endpoint.DispatchInternalAsync(context);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {

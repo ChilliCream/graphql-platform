@@ -1,14 +1,35 @@
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
 using Mocha.Outbox;
 
 namespace Mocha.EntityFrameworkCore;
 
 /// <summary>
-/// Intercepts Entity Framework Core save changes events to signal the outbox processor
-/// that messages are ready for dispatch.
+/// Signals the outbox processor after saves.
 /// </summary>
 internal sealed class OutboxSaveChangesInterceptor(IOutboxSignal signal) : SaveChangesInterceptor, ISingletonInterceptor
 {
+    /// <inheritdoc />
+    public override InterceptionResult<int> SavingChanges(
+        DbContextEventData eventData,
+        InterceptionResult<int> result)
+    {
+        if (eventData.Context?.GetInfrastructure().GetService<DbContextOutbox>()?.IsPreparing is true)
+        {
+            throw ThrowHelper.ConcurrentOutboxOperation();
+        }
+
+        return result;
+    }
+
+    /// <inheritdoc />
+    public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
+        DbContextEventData eventData,
+        InterceptionResult<int> result,
+        CancellationToken cancellationToken = default)
+        => new(SavingChanges(eventData, result));
+
     /// <inheritdoc />
     public override ValueTask<int> SavedChangesAsync(
         SaveChangesCompletedEventData eventData,

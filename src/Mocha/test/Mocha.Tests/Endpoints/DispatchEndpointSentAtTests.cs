@@ -13,15 +13,13 @@ public class DispatchEndpointSentAtTests
         // arrange
         var timeProvider = new FakeTimeProvider();
         var sentAt = timeProvider.GetUtcNow().AddMinutes(5);
-        MessageEnvelope? serializedEnvelope = null;
+        MessageEnvelope? envelopeBeforeDispatch = null;
         DateTimeOffset? contextSentAtBeforeDispatch = sentAt;
-        DateTimeOffset? envelopeSentAtBeforeDispatch = sentAt;
         var middleware = new DispatchMiddlewareConfiguration(
             (_, next) => context =>
             {
-                serializedEnvelope = context.Envelope;
+                envelopeBeforeDispatch = context.Envelope;
                 contextSentAtBeforeDispatch = context.SentAt;
-                envelopeSentAtBeforeDispatch = context.Envelope!.SentAt;
                 timeProvider.Advance(TimeSpan.FromMinutes(5));
                 return next(context);
             },
@@ -35,8 +33,8 @@ public class DispatchEndpointSentAtTests
         using var item = await ReadQueueItemAsync(context);
 
         // assert
-        Assert.Equal((null, null), (contextSentAtBeforeDispatch, envelopeSentAtBeforeDispatch));
-        Assert.Same(serializedEnvelope, context.Envelope);
+        Assert.Null(envelopeBeforeDispatch);
+        Assert.Null(contextSentAtBeforeDispatch);
         Assert.Equal(sentAt, context.SentAt);
         Assert.Equal(sentAt, context.Envelope!.SentAt);
         Assert.Equal(sentAt, item.Envelope.SentAt);
@@ -111,7 +109,7 @@ public class DispatchEndpointSentAtTests
 
         // assert
         Assert.Null(context.SentAt);
-        Assert.Null(context.Envelope!.SentAt);
+        Assert.Null(context.Envelope);
     }
 
     [Fact]
@@ -195,7 +193,7 @@ public class DispatchEndpointSentAtTests
         });
         if (middleware is not null)
         {
-            builder.ConfigureMessageBus(b => b.UseDispatch(middleware, after: "Serialization"));
+            builder.ConfigureMessageBus(b => b.UseDispatch(middleware));
         }
 
         return services.BuildServiceProvider();

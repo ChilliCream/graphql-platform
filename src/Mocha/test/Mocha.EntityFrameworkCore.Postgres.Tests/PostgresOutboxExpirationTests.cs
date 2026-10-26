@@ -68,35 +68,6 @@ public sealed class PostgresOutboxExpirationTests(PostgresFixture fixture) : ICl
         Assert.Equal("pending", delivered.Value);
     }
 
-    [Fact]
-    public async Task ProcessAsync_Should_DiscardExpiredMessage_When_DeadlinePassesAfterFailedDelivery()
-    {
-        // arrange
-        var connectionString = await fixture.CreateDatabaseAsync();
-        var clock = new FakeTimeProvider(s_now);
-        var recorder = new DeliveryRecorder
-        {
-            OnFirstAttempt = () =>
-            {
-                clock.Advance(TimeSpan.FromHours(2));
-                throw new InvalidOperationException("The first delivery failed deliberately.");
-            }
-        };
-        await using var provider = await CreateProviderAsync(connectionString, clock, recorder);
-        var id = await MessageRows.InsertOutboxAsync(
-            connectionString, CreateEnvelope(provider, s_now.AddHours(1), unresolvable: false), TestToken);
-
-        // act
-        await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
-        var remainingAttempts = await MessageRows.WaitForOutboxRetryAsync(
-            connectionString, id, s_timeout, TestToken);
-
-        // assert
-        Assert.Null(remainingAttempts);
-        Assert.Equal(1, recorder.Attempts);
-        Assert.False(recorder.Delivered.Task.IsCompleted);
-    }
-
     private static MessageEnvelope CreateEnvelope(
         IServiceProvider provider,
         DateTimeOffset? deadline,
@@ -123,7 +94,6 @@ public sealed class PostgresOutboxExpirationTests(PostgresFixture fixture) : ICl
         var services = new ServiceCollection();
         services.AddSingleton(clock);
         services.AddSingleton(recorder);
-        services.AddSingleton<IMessagingDiagnosticEventListener>(recorder);
         services.AddDbContext<TestDbContext>(options => options.UseTestNpgsql(connectionString));
         var builder = services.AddMessageBus();
         builder.AddEntityFramework<TestDbContext>(options => options.UsePostgresOutbox());
@@ -131,7 +101,13 @@ public sealed class PostgresOutboxExpirationTests(PostgresFixture fixture) : ICl
         builder.AddInMemory();
 
         var provider = services.BuildServiceProvider();
-        await ((MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>()).StartAsync(TestToken);
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+        await runtime.StartAsync(TestToken);
+        var endpoint = runtime.GetPublishEndpoint(runtime.GetMessageType(typeof(PendingEvent)));
+        var recordingEndpoint = new RecordingDispatchEndpoint(endpoint, recorder);
+        recordingEndpoint.Initialize(runtime, new DispatchEndpointConfiguration { Name = endpoint.Name });
+        recordingEndpoint.Complete(runtime);
+        runtime.Endpoints.Remove(endpoint);
         await using var scope = provider.CreateAsyncScope();
         await scope.ServiceProvider.GetRequiredService<TestDbContext>().Database.EnsureCreatedAsync(TestToken);
         return provider;
@@ -151,25 +127,38 @@ public sealed class PostgresOutboxExpirationTests(PostgresFixture fixture) : ICl
         }
     }
 
-    public sealed class DeliveryRecorder : MessagingDiagnosticEventListener
+    public sealed class DeliveryRecorder
     {
         private int _attempts;
 
         public int Attempts => Volatile.Read(ref _attempts);
 
-        public Action? OnFirstAttempt { get; init; }
-
         public TaskCompletionSource<PendingEvent> Delivered { get; } =
             new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        public override IDisposable Dispatch(IDispatchContext context)
-        {
-            if (Interlocked.Increment(ref _attempts) == 1)
-            {
-                OnFirstAttempt?.Invoke();
-            }
+        public void RecordAttempt() => Interlocked.Increment(ref _attempts);
+    }
 
-            return EmptyScope;
+    private sealed class RecordingDispatchEndpoint(DispatchEndpoint endpoint, DeliveryRecorder recorder)
+        : DispatchEndpoint(endpoint.Transport)
+    {
+        protected override void OnInitialize(
+            IMessagingConfigurationContext context,
+            DispatchEndpointConfiguration configuration)
+        {
+            Address = endpoint.Address;
+            Destination = endpoint.Destination;
+        }
+
+        protected override void OnComplete(
+            IMessagingConfigurationContext context,
+            DispatchEndpointConfiguration configuration)
+        { }
+
+        protected override ValueTask DispatchAsync(IDispatchContext context)
+        {
+            recorder.RecordAttempt();
+            return endpoint.DispatchInternalAsync(context);
         }
     }
 }

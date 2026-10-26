@@ -41,8 +41,11 @@ PublishAsync / SendAsync / RequestAsync
 ┌─────────────────────────┐
 │   Dispatch Pipeline      │
 │  Instrumentation         │
+│  Application middleware  │
+│  Scheduling              │
+│  Outbox (optional)       │
 │  Serialization           │
-│  → Transport sends       │
+│  → Transport             │
 └─────────────────────────┘
         │
         ▼  (wire / InMemory)
@@ -72,7 +75,7 @@ PublishAsync / SendAsync / RequestAsync
 
 Each pipeline operates on a different context:
 
-- **Dispatch** (`IDispatchContext`) - operates on the unserialized message object. Has the CLR message, headers, and destination address. Serialization happens at the end.
+- **Dispatch** (`IDispatchContext`) - operates on the outgoing message object, headers, and destination address. The message is serialized before persistence or transport dispatch.
 - **Receive** (`IReceiveContext`) - operates on the raw envelope from the transport. Has the serialized body, headers, and transport metadata. Message type resolution and routing happen here.
 - **Consumer** (`IConsumeContext`) - operates on the deserialized message inside a specific consumer. Has the typed message, envelope metadata, and scoped services.
 
@@ -212,6 +215,12 @@ builder.Services
 
 Dispatch middleware wraps the outbound path. Use it for concerns on every outgoing message: adding headers, enforcing message schemas, or enriching with correlation context.
 
+The default dispatch order is instrumentation, application middleware, scheduling, outbox persistence when enabled, serialization, and transport dispatch. Scheduling and outbox middleware serialize the messages they persist and return without calling the next middleware. Other messages continue to serialization and transport dispatch.
+
+`DbContext.Outbox` uses the same pipeline and stages messages on its owning context for the next save, including messages with `PublishOptions.ScheduledTime` or `SendOptions.ScheduledTime`. Place enrichment middleware before `"Scheduling"` and change message data and headers before calling `next(context)`. Changes made after `await next(context)` do not affect the serialized message. If the call fails, messages staged by that call are removed.
+
+After commit, outbox delivery sends immediate messages directly through the transport and hands scheduled messages to the native scheduling store or configured fallback. Scheduled delivery sends the stored envelope through the transport. Neither handoff nor delivery runs application dispatch middleware again.
+
 ```csharp
 internal sealed class TenantDispatchMiddleware
 {
@@ -243,15 +252,13 @@ internal sealed class TenantDispatchMiddleware
 }
 ```
 
-Register before all other dispatch middleware so every outgoing message carries the header:
+Register the middleware on the bus to add the header to outgoing messages:
 
 ```csharp
 builder.Services
     .AddMessageBus(bus =>
     {
-        bus.UseDispatch(
-            TenantDispatchMiddleware.Create("acme"),
-            before: "Instrumentation");
+        bus.UseDispatch(TenantDispatchMiddleware.Create("acme"));
     })
     .AddEventHandler<OrderPlacedHandler>()
     .AddInMemory();
@@ -299,7 +306,9 @@ Each pipeline type has a single registration method with optional `before` and `
 | `UseConsume(config, before: "key")`  | Consumer | Insert before the middleware with the given key |
 | `UseConsume(config, after: "key")`   | Consumer | Insert after the middleware with the given key  |
 
-Only one of `before` or `after` can be specified at the same time. If neither is specified, the middleware is appended after the built-in defaults.
+Only one of `before` or `after` can be specified at the same time. If neither is specified, the middleware is appended to the configured middleware list.
+
+Dispatch ordering keys include `"Instrumentation"`, `"Scheduling"`, `"Serialization"`, and `"Outbox"` when the outbox is enabled. For example, `UseDispatch(config, before: "Scheduling")` places middleware before either scheduling or outbox persistence. Middleware after a step that short-circuits does not run for that message. Referencing a key that has not been registered throws during bus initialization.
 
 Middleware is compiled once at startup into a single delegate chain. Register all middleware during bus configuration, before the service provider is built. Middleware added after the bus starts has no effect.
 

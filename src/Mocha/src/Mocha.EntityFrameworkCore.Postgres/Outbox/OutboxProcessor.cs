@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.ObjectPool;
 using Mocha.Middlewares;
+using Mocha.Scheduling;
 using Npgsql;
 
 namespace Mocha.Outbox;
@@ -56,7 +57,7 @@ public sealed class PostgresOutboxProcessor
         _signal = signal;
         _contextPool = pools.DispatchContext;
         _options = options;
-        _timeProvider = services.GetService<TimeProvider>() ?? TimeProvider.System;
+        _timeProvider = services.GetTimeProvider();
     }
 
     /// <summary>
@@ -80,7 +81,7 @@ public sealed class PostgresOutboxProcessor
                 {
                     _logger.OutboxProcessorSleeping(nextPollingInterval.Value);
 
-                    await Task.WhenAny(Task.Delay(nextPollingInterval.Value, cancellationToken), signaled);
+                    await Task.WhenAny(Task.Delay(nextPollingInterval.Value, _timeProvider, cancellationToken), signaled);
                 }
                 else
                 {
@@ -131,7 +132,7 @@ public sealed class PostgresOutboxProcessor
 
         var result = await command.ExecuteScalarAsync(cancellationToken);
 
-        return result is not null and not DBNull ? ((DateTime)result - DateTimeOffset.UtcNow).Duration() : null;
+        return result is not null and not DBNull ? ((DateTime)result - _timeProvider.GetUtcNow()).Duration() : null;
     }
 
     private async Task<bool> ProcessEventAsync(NpgsqlConnection connection, CancellationToken cancellationToken)
@@ -340,13 +341,18 @@ public sealed class PostgresOutboxProcessor
         {
             await using var scope = _services.CreateAsyncScope();
 
-            context.Initialize(scope.ServiceProvider, endpoint, _runtime, messageType, cancellationToken);
+            context.InitializeFromEnvelope(
+                scope.ServiceProvider, endpoint, _runtime, messageType, envelope, cancellationToken);
 
-            context.SkipOutbox();
-
-            context.Envelope = envelope;
-
-            await endpoint.ExecuteAsync(context);
+            if (envelope is { ScheduledTime: not null, SentAt: null })
+            {
+                var store = DispatchSchedulingMiddleware.ResolveStore(context);
+                await store.PersistAsync(context, cancellationToken);
+            }
+            else
+            {
+                await endpoint.DispatchInternalAsync(context);
+            }
         }
         finally
         {

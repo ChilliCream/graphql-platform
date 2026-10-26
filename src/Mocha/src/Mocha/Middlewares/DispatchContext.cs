@@ -19,6 +19,8 @@ public sealed class DispatchContext : IDispatchContext
     private readonly PooledArrayWriter _writer = new();
     private readonly Headers _headers = new();
 
+    internal IDispatchMessageStore? MessageStore { get; set; }
+
     /// <summary>
     /// Creates a new instance of the <see cref="DispatchContext"/> with pooled internal storage.
     /// </summary>
@@ -196,6 +198,7 @@ public sealed class DispatchContext : IDispatchContext
         ScheduledTime = null;
         Host = null!;
         Envelope = null!;
+        MessageStore = null;
         _headers.Clear();
         _features.Reset();
         _writer.Reset();
@@ -224,6 +227,7 @@ public sealed class DispatchContext : IDispatchContext
         CancellationToken cancellationToken)
     {
         Services = services;
+        Runtime = runtime;
         Endpoint = endpoint;
         Transport = endpoint.Transport;
         Host = runtime.Host;
@@ -239,4 +243,44 @@ public sealed class DispatchContext : IDispatchContext
 
         _features.Initialize();
     }
+
+    internal void InitializeFromEnvelope(
+        IServiceProvider services,
+        DispatchEndpoint endpoint,
+        IMessagingRuntime runtime,
+        MessageType? messageType,
+        MessageEnvelope envelope,
+        CancellationToken cancellationToken)
+    {
+        Services = services;
+        Runtime = runtime;
+        Endpoint = endpoint;
+        Transport = endpoint.Transport;
+        Host = envelope.Host ?? runtime.Host;
+        CancellationToken = cancellationToken;
+        MessageType = messageType;
+        ContentType = MessageContentType.Parse(envelope.ContentType);
+        MessageId = envelope.MessageId;
+        CorrelationId = envelope.CorrelationId;
+        ConversationId = envelope.ConversationId;
+        CausationId = envelope.CausationId;
+        SourceAddress = ParseAddress(envelope.SourceAddress);
+        DestinationAddress = ParseAddress(envelope.DestinationAddress);
+        ResponseAddress = ParseAddress(envelope.ResponseAddress);
+        FaultAddress = ParseAddress(envelope.FaultAddress);
+        SentAt = envelope.SentAt;
+        DeliverBy = envelope.DeliverBy;
+        ScheduledTime = envelope.ScheduledTime;
+        Envelope = envelope;
+
+        if (envelope.Headers is { } headers)
+        {
+            _headers.AddRange(headers);
+        }
+
+        _features.Initialize();
+    }
+
+    private static Uri? ParseAddress(string? address)
+        => Uri.TryCreate(address, UriKind.Absolute, out var parsed) ? parsed : null;
 }

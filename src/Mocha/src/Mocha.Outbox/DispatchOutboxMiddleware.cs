@@ -9,8 +9,7 @@ namespace Mocha.Outbox;
 /// </summary>
 /// <remarks>
 /// Messages of kind Publish, Send, Reply, or Fault are redirected to <see cref="IMessageOutbox"/>.
-/// All other message kinds (e.g., system messages) and dispatches marked with
-/// <see cref="OutboxMiddlewareFeature.SkipOutbox"/> pass through to the next middleware.
+/// All other message kinds pass through to the next middleware.
 /// </remarks>
 public sealed class DispatchOutboxMiddleware
 {
@@ -22,37 +21,38 @@ public sealed class DispatchOutboxMiddleware
     /// <returns>A value task that completes when the message has been persisted or forwarded.</returns>
     public async ValueTask InvokeAsync(IDispatchContext context, DispatchDelegate next)
     {
-        var feature = context.Features.GetOrSet<OutboxMiddlewareFeature>();
+        if (context is DispatchContext { MessageStore: { } store })
+        {
+            DispatchSerializerMiddleware.Serialize(context);
+            await store.PersistAsync(context);
+            return;
+        }
+
         var messageKind = context.Headers.Get(MessageHeaders.MessageKind);
-        if (feature.SkipOutbox
-            || messageKind
-                is not MessageKind.Publish
-                and not MessageKind.Send
-                and not MessageKind.Reply
-                and not MessageKind.Fault)
+        if (messageKind is not MessageKind.Publish
+            and not MessageKind.Send
+            and not MessageKind.Reply
+            and not MessageKind.Fault)
         {
             await next(context);
         }
         else
         {
             var outbox = context.Services.GetRequiredService<IMessageOutbox>();
-            if (context.Envelope is not null)
-            {
-                await outbox.PersistAsync(context.Envelope, context.CancellationToken);
-            }
+            DispatchSerializerMiddleware.Serialize(context);
+            await outbox.PersistAsync(context.Envelope!, context.CancellationToken);
         }
     }
 
     /// <summary>
-    /// Creates the middleware configuration that wires the outbox middleware into the dispatch pipeline.
+    /// Creates the outbox middleware configuration.
     /// </summary>
-    /// <returns>A <see cref="DispatchMiddlewareConfiguration"/> named "Outbox" for pipeline registration.</returns>
     public static DispatchMiddlewareConfiguration Create()
         => new(
             static (_, next) =>
             {
                 var middleware = new DispatchOutboxMiddleware();
-                return ctx => middleware.InvokeAsync(ctx, next);
+                return context => middleware.InvokeAsync(context, next);
             },
             "Outbox");
 }

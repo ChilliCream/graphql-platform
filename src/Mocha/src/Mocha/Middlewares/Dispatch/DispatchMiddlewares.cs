@@ -1,24 +1,32 @@
+using Microsoft.Extensions.DependencyInjection;
 using Mocha.Scheduling;
 
 namespace Mocha;
 
 /// <summary>
-/// Provides the built-in dispatch middleware configurations that form the default dispatch pipeline.
+/// Provides the built-in dispatch middleware configurations.
 /// </summary>
 public static class DispatchMiddlewares
 {
     /// <summary>
-    /// The instrumentation middleware configuration that emits telemetry for dispatch operations.
+    /// Instruments dispatch operations and propagates trace headers.
     /// </summary>
-    public static readonly DispatchMiddlewareConfiguration Instrumentation = DispatchInstrumentationMiddleware.Create();
+    public static readonly DispatchMiddlewareConfiguration Instrumentation = new(
+        static (context, next) => DispatchInstrumentationMiddleware.Create(
+            context.Services.GetRequiredService<IMessagingDiagnosticEvents>(), next),
+        "Instrumentation");
 
     /// <summary>
-    /// The serialization middleware configuration that serializes messages into transport envelopes.
+    /// Persists scheduled messages before transport dispatch.
     /// </summary>
-    public static readonly DispatchMiddlewareConfiguration Serialization = DispatchSerializerMiddleware.Create();
+    public static readonly DispatchMiddlewareConfiguration Scheduling = new(
+        static (_, next) => DispatchSchedulingMiddleware.Create(next),
+        "Scheduling");
 
     /// <summary>
-    /// The scheduling middleware configuration that persists scheduled dispatches before transport send.
+    /// Serializes messages before transport dispatch.
     /// </summary>
-    public static readonly DispatchMiddlewareConfiguration Scheduling = DispatchSchedulingMiddleware.Create();
+    public static readonly DispatchMiddlewareConfiguration Serialization = new(
+        static (_, next) => DispatchSerializerMiddleware.Create(next),
+        "Serialization");
 }

@@ -94,18 +94,22 @@ builder.Services
     .AddRabbitMQ(transport =>
     {
         // Add dispatch middleware scoped to this transport
-        transport.UseDispatch(myDispatchMiddleware);
+        transport.UseDispatch(TenantDispatchMiddleware.Create("acme"));
 
         // Add receive middleware scoped to this transport
         transport.UseReceive(myReceiveMiddleware);
 
         // Insert middleware relative to existing ones
         transport.UseReceive(myMiddleware, after: "ConcurrencyLimiter");
-        transport.UseDispatch(myMiddleware, before: "Serialization");
+        transport.UseDispatch(myDispatchMiddleware, after: "TenantDispatch");
     });
 ```
 
-This scoping model lets you run different middleware configurations per transport without affecting other transports in a multi-transport setup.
+`TenantDispatchMiddleware` is defined in [Middleware and Pipelines](../middleware-and-pipelines.md#dispatch-middleware). Dispatch ordering keys include `"Instrumentation"`, `"Scheduling"`, `"Serialization"`, and `"Outbox"` when enabled. Place message enrichment before `"Scheduling"`; scheduling and outbox middleware serialize and persist their messages without invoking downstream middleware.
+
+Transport middleware applies only to endpoints on that transport.
+
+After commit, the outbox processor sends immediate messages directly through the transport and submits scheduled messages to its native scheduling store or the configured fallback. Application dispatch middleware does not run again during handoff or delivery. The PostgreSQL transport registers native scheduling automatically through `AddPostgres()`.
 
 # Customize queues and binding
 
