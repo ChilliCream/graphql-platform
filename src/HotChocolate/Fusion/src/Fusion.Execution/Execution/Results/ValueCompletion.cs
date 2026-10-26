@@ -1426,8 +1426,6 @@ TryCompleteList_MoveNext:
                     continue;
                 }
 
-                // Without errors, object and list values that match the field type are
-                // completed directly, as TryCompleteValue would dispatch them.
                 if (propertyValueKind is JsonValueKind.Object
                     && selection.UnwrappedKind is TypeKind.Object)
                 {

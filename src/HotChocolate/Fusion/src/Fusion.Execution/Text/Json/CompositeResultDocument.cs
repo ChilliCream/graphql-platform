@@ -480,8 +480,6 @@ public sealed partial class CompositeResultDocument : IDisposable
 
         var selections = selectionSet.Selections;
 
-        // An object without conditional selections never excludes a property row, so the
-        // template block is appended as is.
         var startObjectCursor = template.ConditionalSelections.IsEmpty
             ? _metaDb.AppendObjectBlock(template.Rows, parent.Value, excludedRowOffsets: [])
             : AppendConditionalObjectBlock(parent, template, selections);
@@ -602,13 +600,12 @@ public sealed partial class CompositeResultDocument : IDisposable
         out CompositeObjectContext objectContext)
     {
         Debug.Assert(
-            _metaDb.GetElementTokenType(target, resolveReferences: false) is ElementTokenType.None,
+            _metaDb.GetElementTokenType(target) is ElementTokenType.None,
             "Only an undefined slot can be initialized.");
 
         var obj = CreateObject(target, selectionSet, out objectContext);
         _shapeVersion++;
 
-        // The slot is undefined, so no layout is replaced and the layout version stays unchanged.
         _metaDb.ReplacePreserveParent(
             cursor: target,
             tokenType: ElementTokenType.Reference,
@@ -625,13 +622,12 @@ public sealed partial class CompositeResultDocument : IDisposable
     internal CompositeResultElement.ArrayEnumerator InitializeArray(Cursor target, int length)
     {
         Debug.Assert(
-            _metaDb.GetElementTokenType(target, resolveReferences: false) is ElementTokenType.None,
+            _metaDb.GetElementTokenType(target) is ElementTokenType.None,
             "Only an undefined slot can be initialized.");
 
         var array = CreateArray(target, length);
         _shapeVersion++;
 
-        // The slot is undefined, so no layout is replaced and the layout version stays unchanged.
         _metaDb.ReplacePreserveParent(
             cursor: target,
             tokenType: ElementTokenType.Reference,
