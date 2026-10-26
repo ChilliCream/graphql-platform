@@ -107,8 +107,6 @@ internal sealed class ResponseBodyBuffer : PipeWriter, IDisposable
         _completed = true;
         _completionException = exception;
 
-        // Without a current chunk every later write ends up in Grow or ThrowAdvanceOutOfRange,
-        // which reject it.
         SealCurrent();
     }
 

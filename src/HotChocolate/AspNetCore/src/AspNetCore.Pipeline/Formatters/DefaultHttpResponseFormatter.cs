@@ -511,7 +511,6 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
             response.ContentLength = buffer.Length;
 
-            // The response starts before the copy so the body is written straight into the transport.
             await response.StartAsync(cancellationToken);
 
             var bodyWriter = response.BodyWriter;
