@@ -1,7 +1,7 @@
+using CookieCrumble.Resources;
 using NATS.Client.Core;
 using NATS.Client.JetStream;
-using Squadron;
-using Xunit;
+using Testcontainers.Nats;
 
 namespace Mocha.Transport.Nats.Tests.Fixtures;
 
@@ -10,7 +10,15 @@ namespace Mocha.Transport.Nats.Tests.Fixtures;
 /// </summary>
 public sealed partial class JetStreamFixture : IAsyncLifetime
 {
-    private readonly NatsResource<JetStreamOptions> _resource = new();
+    /// <summary>
+    /// The lowest server version supporting everything the transport offers: per-message TTL landed
+    /// in 2.11 and message schedules in 2.12. Pinned to the floor rather than to a moving tag, so
+    /// the version-gated tests actually run and so a new dependency on a later server shows up as a
+    /// failure here rather than in production.
+    /// </summary>
+    public const string Image = "nats:2.12-alpine";
+
+    private readonly JetStreamResource _resource = new();
 
     private NatsConnection? _connection;
 
@@ -55,6 +63,11 @@ public sealed partial class JetStreamFixture : IAsyncLifetime
         }
 
         await _resource.DisposeAsync();
+    }
+
+    private sealed class JetStreamResource : NatsResource
+    {
+        protected override NatsBuilder Configure(NatsBuilder builder) => builder.WithImage(Image);
     }
 }
 
