@@ -6,11 +6,9 @@ import { FEDERATION_FAQ_ITEMS } from "./faq";
 import { GraphBackdrop } from "./hero/GraphBackdrop";
 import { ComparisonsSection } from "./sections/ComparisonsSection";
 import { FusionCta } from "./sections/FusionCta";
-import { HowItWorksSection } from "./sections/HowItWorksSection";
 import { ProblemSection } from "./sections/ProblemSection";
 import { GRADIENT, Section } from "./sections/shared";
 import { WhatIsSection } from "./sections/WhatIsSection";
-import { WhySection } from "./sections/WhySection";
 
 export function ExplainerPage() {
   return (
@@ -55,8 +53,6 @@ export function ExplainerPage() {
       <WhatIsSection />
       <ProblemSection />
       <ComparisonsSection />
-      <WhySection />
-      <HowItWorksSection />
       <FusionCta />
 
       <Section id="faq">

@@ -10,7 +10,7 @@ import {
 
 import { ExplainerPage } from "./ExplainerPage";
 import { FEDERATION_FAQ_ITEMS } from "./faq";
-import { FEDERATION_DEFINITION, FEDERATION_TERMS } from "./terms";
+import { FEDERATION_DEFINITION } from "./terms";
 
 const PAGE = {
   title: "GraphQL Federation: what, why, and how",
@@ -40,7 +40,6 @@ const PAGE = {
 export const metadata = pageMetadata(PAGE);
 
 const TERM_ID = schemaId(PAGE.path, "graphql-federation");
-const GLOSSARY_ID = schemaId(PAGE.path, "glossary");
 const ARTICLE_ID = schemaId(PAGE.path, "article");
 
 const GRAPHQL_FEDERATION_TERM = {
@@ -52,18 +51,6 @@ const GRAPHQL_FEDERATION_TERM = {
     "https://graphql.github.io/graphql-federation-spec/draft/",
     "https://graphql.org/learn/federation/",
   ],
-};
-
-const GLOSSARY = {
-  "@type": "DefinedTermSet",
-  "@id": GLOSSARY_ID,
-  name: "GraphQL Federation terminology",
-  hasDefinedTerm: FEDERATION_TERMS.map(({ term, meaning }) => ({
-    "@type": "DefinedTerm",
-    name: term,
-    description: meaning,
-    inDefinedTermSet: schemaRef(GLOSSARY_ID),
-  })),
 };
 
 const ARTICLE = {
@@ -94,7 +81,7 @@ export default function GraphQLFederationPage() {
         ]}
         mainEntity={schemaRef(ARTICLE_ID)}
         about={schemaRef(TERM_ID)}
-        additionalNodes={[ARTICLE, GRAPHQL_FEDERATION_TERM, GLOSSARY, FAQ]}
+        additionalNodes={[ARTICLE, GRAPHQL_FEDERATION_TERM, FAQ]}
       />
       <ExplainerPage />
     </>
