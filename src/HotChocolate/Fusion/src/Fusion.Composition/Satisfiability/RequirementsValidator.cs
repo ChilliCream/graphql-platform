@@ -440,7 +440,8 @@ internal sealed class RequirementsValidator(
             RequirementsValidator_NoLookupsFoundForType,
             RequirementsValidator_UnableToSatisfyRequirementForLookup,
             queryViewerField: null,
-            context.Budget);
+            context.Budget,
+            transitionFails: false);
     }
 
     /// <summary>

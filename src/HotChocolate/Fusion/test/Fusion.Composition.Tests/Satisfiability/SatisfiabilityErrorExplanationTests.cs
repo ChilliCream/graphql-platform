@@ -25,21 +25,31 @@ public sealed class SatisfiabilityErrorExplanationTests
         // assert
         Assert.True(result.IsFailure);
         Assert.InRange(satisfiabilityValidator.ExplanationEntryCount, 1, 20_000);
-        Assert.InRange(log.Sum(e => e.Message.Length), 1, 20_000);
+        Assert.InRange(log.Sum(e => e.Message.Length), 1, 25_000);
         var message = GetMessage(log, "Unable to access the field 'T1.id' on path 'C:");
         message.MatchInlineSnapshot(
             """
             Unable to access the field 'T1.id' on path 'C:Subscription.ev<T1>'.
               Unable to transition between schemas 'C' and 'A' for access to field 'A:T1.id<ID>'.
-                ... and 1 more
+                Unable to satisfy the requirement '{ id }' for lookup 'iById' in schema 'A'.
+                  ... and 1 more
               Unable to transition between schemas 'C' and 'B' for access to field 'B:T1.id<ID>'.
-                ... and 2 more
+                Unable to satisfy the requirement '{ f0 { id } }' for lookup 't1ByF0' in schema 'B'.
+                  ... and 1 more
+                Unable to satisfy the requirement '{ id }' for lookup 'iById' in schema 'B'.
+                  ... and 1 more
               Unable to transition between schemas 'C' and 'E' for access to field 'E:T1.id<ID>'.
                 No lookups found for type 'T1' in schema 'E'.
               Unable to transition between schemas 'C' and 'F' for access to field 'F:T1.id<ID>'.
-                ... and 2 more
+                Unable to satisfy the requirement '{ id }' for lookup 't1ById' in schema 'F'.
+                  ... and 1 more
+                Unable to satisfy the requirement '{ id }' for lookup 'iById' in schema 'F'.
+                  ... and 1 more
               Unable to transition between schemas 'C' and 'G' for access to field 'G:T1.id<ID>'.
-                ... and 2 more
+                Unable to satisfy the requirement '{ f0 { id } }' for lookup 't1ByF0' in schema 'G'.
+                  ... and 1 more
+                Unable to satisfy the requirement '{ id }' for lookup 'iById' in schema 'G'.
+                  ... and 1 more
             """);
     }
 
