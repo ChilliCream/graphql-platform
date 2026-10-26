@@ -2,6 +2,7 @@
 title: "GraphQL Federation vs. a GraphQL Monolith"
 metaTitle: "GraphQL Federation vs Monolith: Architecture & Tradeoffs"
 description: "Compare GraphQL Federation and monolithic GraphQL APIs. Explore modular monoliths, independent deployments, domain boundaries, and migration strategies."
+featuredImage: "graphql-federation-vs-graphql-monolith.png"
 date: "2026-10-26"
 tags: ["graphql-federation", "comparison", "graphql-monolith"]
 author: Rafael Staib

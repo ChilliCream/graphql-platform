@@ -2,6 +2,7 @@
 title: "GraphQL Federation vs. Schema Stitching"
 metaTitle: "GraphQL Federation vs Schema Stitching: Key Differences"
 description: "Compare GraphQL Federation and Schema Stitching. Discover how they differ in team isolation, schema composition, distributed execution, and API ownership."
+featuredImage: "graphql-federation-vs-schema-stitching.png"
 date: "2026-10-26"
 tags: ["graphql-federation", "comparison", "schema-stitching"]
 author: Rafael Staib

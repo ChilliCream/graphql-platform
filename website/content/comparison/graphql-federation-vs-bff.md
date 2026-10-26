@@ -2,6 +2,7 @@
 title: "GraphQL Federation vs. Backend for Frontend (BFF)"
 metaTitle: "GraphQL Federation vs BFF: Differences & When to Use Each"
 description: "Compare GraphQL Federation and the Backend for Frontend (BFF) pattern. Learn how they differ, when to use each, and how they work together."
+featuredImage: "graphql-federation-vs-backend-for-frontend.png"
 date: "2026-10-26"
 tags: ["graphql-federation", "comparison", "bff"]
 author: Rafael Staib

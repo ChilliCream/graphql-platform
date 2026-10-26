@@ -2,6 +2,7 @@
 title: "GraphQL Federation vs. Apollo Federation"
 metaTitle: "GraphQL Federation vs Apollo Federation: Key Differences"
 description: "Learn how GraphQL Federation evolves Apollo Federation into an open standard. Explore technical differences, backward compatibility, and Fusion support."
+featuredImage: "graphql-federation-vs-apollo-federation.png"
 date: "2026-10-26"
 tags: ["graphql-federation", "comparison", "apollo-federation"]
 author: Rafael Staib

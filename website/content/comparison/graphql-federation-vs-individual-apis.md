@@ -2,6 +2,7 @@
 title: "GraphQL Federation vs. Individual APIs"
 metaTitle: "GraphQL Federation vs Multiple APIs: Benefits & Tradeoffs"
 description: "Learn how GraphQL Federation unifies multiple APIs into one graph. Compare direct API integration, performance, service ownership, and tradeoffs."
+featuredImage: "graphql-federation-vs-individual-apis.png"
 date: "2026-10-26"
 tags: ["graphql-federation", "comparison", "individual-apis"]
 author: Rafael Staib
