@@ -160,7 +160,7 @@ internal sealed class FusionRequestExecutorManager
                 cancellationToken)
                 .ConfigureAwait(false);
 
-        var executor = CreateRequestExecutor(schemaName, configuration);
+        var executor = await CreateRequestExecutorAsync(schemaName, configuration).ConfigureAwait(false);
 
         await ValidateAuthorizationAsync(executor, cancellationToken).ConfigureAwait(false);
         await WarmupExecutorAsync(executor, true, cancellationToken).ConfigureAwait(false);
@@ -173,7 +173,7 @@ internal sealed class FusionRequestExecutorManager
             configuration);
     }
 
-    private FusionRequestExecutor CreateRequestExecutor(
+    private async ValueTask<FusionRequestExecutor> CreateRequestExecutorAsync(
         string schemaName,
         FusionConfiguration configuration)
     {
@@ -207,16 +207,24 @@ internal sealed class FusionRequestExecutorManager
             costOptions,
             authorizationOptions);
 
-        var schema = CreateSchema(schemaName, configuration.Schema, schemaServices, features);
-        _ = schemaServices.GetRequiredService<CostSchemaIndex>();
-        var pipeline = CreatePipeline(setup, schema, schemaServices, requestOptions);
+        try
+        {
+            var schema = CreateSchema(schemaName, configuration.Schema, schemaServices, features);
+            _ = schemaServices.GetRequiredService<CostSchemaIndex>();
+            var pipeline = CreatePipeline(setup, schema, schemaServices, requestOptions);
 
-        var contextPool = schemaServices.GetRequiredService<ObjectPool<PooledRequestContext>>();
-        var executor = new FusionRequestExecutor(schema, _applicationServices, pipeline, contextPool, version);
-        var requestExecutorAccessor = schemaServices.GetRequiredService<RequestExecutorAccessor>();
-        requestExecutorAccessor.RequestExecutor = executor;
+            var contextPool = schemaServices.GetRequiredService<ObjectPool<PooledRequestContext>>();
+            var executor = new FusionRequestExecutor(schema, _applicationServices, pipeline, contextPool, version);
+            var requestExecutorAccessor = schemaServices.GetRequiredService<RequestExecutorAccessor>();
+            requestExecutorAccessor.RequestExecutor = executor;
 
-        return executor;
+            return executor;
+        }
+        catch
+        {
+            await schemaServices.DisposeAsync().ConfigureAwait(false);
+            throw;
+        }
     }
 
     private static ValueTask ValidateAuthorizationAsync(
@@ -806,17 +814,40 @@ internal sealed class FusionRequestExecutorManager
                     continue;
                 }
 
+                var previousExecutor = Executor;
+                var previousConfiguration = _currentConfiguration;
+                FusionRequestExecutor? nextExecutor = null;
+
+                try
+                {
+                    nextExecutor = await _manager
+                        .CreateRequestExecutorAsync(Executor.Schema.Name, configuration)
+                        .ConfigureAwait(false);
+
+                    await ValidateAuthorizationAsync(nextExecutor, _cancellationToken).ConfigureAwait(false);
+                    await WarmupExecutorAsync(nextExecutor, false, _cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    if (nextExecutor is not null)
+                    {
+                        await nextExecutor.DisposeAsync().ConfigureAwait(false);
+                    }
+
+                    configuration.Dispose();
+
+                    if (_cancellationToken.IsCancellationRequested)
+                    {
+                        break;
+                    }
+
+                    DiagnosticEvents.ExecutorUpdateFailed(Executor.Schema.Name, ex);
+                    continue;
+                }
+
                 _documentHash = documentHash;
                 _settingsHash = settingsHash;
                 _planningFingerprint = configuration.PlanningFingerprint;
-
-                var previousExecutor = Executor;
-                var previousConfiguration = _currentConfiguration;
-                var nextExecutor = _manager.CreateRequestExecutor(Executor.Schema.Name, configuration);
-
-                await ValidateAuthorizationAsync(nextExecutor, _cancellationToken).ConfigureAwait(false);
-                await WarmupExecutorAsync(nextExecutor, false, _cancellationToken).ConfigureAwait(false);
-
                 Executor = nextExecutor;
                 _currentConfiguration = configuration;
 
