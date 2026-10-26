@@ -20,9 +20,9 @@ public class NullableTestsContext(Provider provider, string connectionString) : 
         }
     }
 
-    public DbSet<Record> Records { get; set; } = null!;
+    public DbSet<Record> Records { get; set; }
 
-    public DbSet<Item> Items { get; set; } = null!;
+    public DbSet<Item> Items { get; set; }
 }
 
 public class Record
