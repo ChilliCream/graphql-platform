@@ -1,3 +1,5 @@
+using System.Buffers;
+using System.Text;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -6,6 +8,9 @@ namespace HotChocolate.Execution.Pipeline;
 
 internal sealed class DocumentCacheMiddleware
 {
+    private static readonly Encoding s_utf8 = Encoding.UTF8;
+    private static readonly ArrayPool<byte> s_pool = ArrayPool<byte>.Shared;
+
     private readonly RequestDelegate _next;
     private readonly ICoreExecutionDiagnosticEvents _diagnosticEvents;
     private readonly IDocumentCache _documentCache;
@@ -39,40 +44,34 @@ internal sealed class DocumentCacheMiddleware
             if (!request.DocumentId.IsEmpty
                 && _documentCache.TryGetDocument(request.DocumentId.Value, out var document))
             {
-                documentInfo.Id = request.DocumentId;
-                documentInfo.Hash = document.Hash;
-                documentInfo.Document = document.Body;
-                documentInfo.IsValidated = true;
-                documentInfo.IsCached = true;
-                documentInfo.IsPersisted = document.IsPersisted;
+                UseCachedDocument(context, request.DocumentId, document);
                 addToCache = false;
-                _diagnosticEvents.RetrievedDocumentFromCache(context);
             }
             else if (!request.DocumentHash.IsEmpty
                 && _documentCache.TryGetDocument(request.DocumentHash.Value, out document))
             {
-                documentInfo.Id = new OperationDocumentId(request.DocumentHash.Value);
-                documentInfo.Hash = document.Hash;
-                documentInfo.Document = document.Body;
-                documentInfo.IsValidated = true;
-                documentInfo.IsCached = true;
-                documentInfo.IsPersisted = document.IsPersisted;
+                UseCachedDocument(context, new OperationDocumentId(request.DocumentHash.Value), document);
                 addToCache = false;
-                _diagnosticEvents.RetrievedDocumentFromCache(context);
             }
             else if (!request.DocumentHash.IsEmpty && request.Document is not null)
             {
                 documentInfo.Hash = _hashProvider.ComputeHash(request.Document.AsSpan());
                 if (_documentCache.TryGetDocument(documentInfo.Hash.Value, out document))
                 {
-                    documentInfo.Id = new OperationDocumentId(documentInfo.Hash.Value);
-                    documentInfo.Hash = document.Hash;
-                    documentInfo.Document = document.Body;
-                    documentInfo.IsValidated = true;
-                    documentInfo.IsCached = true;
-                    documentInfo.IsPersisted = document.IsPersisted;
+                    UseCachedDocument(context, new OperationDocumentId(documentInfo.Hash.Value), document);
                     addToCache = false;
-                    _diagnosticEvents.RetrievedDocumentFromCache(context);
+                }
+            }
+            else if (request.DocumentId.IsEmpty
+                && request.Document is OperationDocumentSourceText sourceText)
+            {
+                // Source text without an id or hash is looked up by the hash of the text,
+                // which is the id the document is cached under after its first validation.
+                var hash = ComputeHash(sourceText.SourceText);
+                if (_documentCache.TryGetDocument(hash.Value, out document))
+                {
+                    UseCachedDocument(context, new OperationDocumentId(hash.Value), document);
+                    addToCache = false;
                 }
             }
         }
@@ -83,6 +82,33 @@ internal sealed class DocumentCacheMiddleware
         }
 
         return InvokeAndAddToCacheAsync(context, documentInfo);
+    }
+
+    private void UseCachedDocument(RequestContext context, OperationDocumentId id, CachedDocument document)
+    {
+        var documentInfo = context.OperationDocumentInfo;
+        documentInfo.Id = id;
+        documentInfo.Hash = document.Hash;
+        documentInfo.Document = document.Body;
+        documentInfo.IsValidated = true;
+        documentInfo.IsCached = true;
+        documentInfo.IsPersisted = document.IsPersisted;
+        _diagnosticEvents.RetrievedDocumentFromCache(context);
+    }
+
+    private OperationDocumentHash ComputeHash(string sourceText)
+    {
+        var buffer = s_pool.Rent(s_utf8.GetMaxByteCount(sourceText.Length));
+
+        try
+        {
+            var written = s_utf8.GetBytes(sourceText, buffer);
+            return _hashProvider.ComputeHash(buffer.AsSpan(0, written));
+        }
+        finally
+        {
+            s_pool.Return(buffer);
+        }
     }
 
     private async ValueTask InvokeAndAddToCacheAsync(RequestContext context, OperationDocumentInfo documentInfo)
