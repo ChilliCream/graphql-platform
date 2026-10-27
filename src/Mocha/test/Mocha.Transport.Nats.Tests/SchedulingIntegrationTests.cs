@@ -44,10 +44,7 @@ public class SchedulingIntegrationTests(JetStreamFixture fixture)
 
             var stream = Assert.Single(((NatsMessagingTopology)transport.Topology).Streams);
 
-            // The server refuses a schedule whose target is the subject it arrived on, so enabling
-            // scheduling has to add a scheduling namespace alongside each real subject. It is captured
-            // as a filter rather than one subject, because each scheduled message gets its own subject
-            // within it.
+            // Scheduling adds a scheduling filter alongside each subject.
             Assert.Contains(
                 stream.Subjects,
                 s => s.EndsWith($".{NatsScheduling.SchedulingSuffix}.>", StringComparison.Ordinal));

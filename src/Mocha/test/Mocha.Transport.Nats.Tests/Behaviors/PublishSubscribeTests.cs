@@ -41,8 +41,6 @@ public class PublishSubscribeTests(JetStreamFixture fixture)
     public async Task PublishAsync_Should_FanOutToAllHandlers_When_MultipleHandlersRegistered()
     {
         // arrange
-        // Two handlers of the same type become two durables on one stream, so each has to get its own
-        // copy rather than the two competing for one.
         var recorder1 = new MessageRecorder();
         var recorder2 = new MessageRecorder();
         await using var scope = await fixture.CreateScopeAsync();

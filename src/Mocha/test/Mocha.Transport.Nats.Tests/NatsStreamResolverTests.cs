@@ -119,8 +119,12 @@ public class NatsStreamResolverTests
                 CancellationToken.None));
 
         // assert
-        Assert.Contains("No stream captures subject", exception.Message, StringComparison.Ordinal);
-        Assert.Contains("FromStream", exception.Message, StringComparison.Ordinal);
+        Assert.Equal(
+            "No stream captures subject 'order-service.order-created', required by consumer "
+            + "'order-service_order-created'. The publishing service may not have been deployed yet, "
+            + "or its stream was never provisioned. Declare the stream with FromStream so this "
+            + "service provisions it regardless of start-up order.",
+            exception.Message);
     }
 
     [Fact]
@@ -137,7 +141,12 @@ public class NatsStreamResolverTests
                 CancellationToken.None));
 
         // assert
-        Assert.Contains("captured by 2 streams", exception.Message, StringComparison.Ordinal);
+        Assert.Equal(
+            "Subject 'order-service.order-created' is captured by 2 streams (ORDER_SERVICE, "
+            + "ORDER_ARCHIVE), required by consumer 'order-service_order-created'. The publishing "
+            + "service may not have been deployed yet, or its stream was never provisioned. Declare "
+            + "the stream with FromStream so this service provisions it regardless of start-up order.",
+            exception.Message);
     }
 
     [Fact]
@@ -154,6 +163,9 @@ public class NatsStreamResolverTests
                 CancellationToken.None));
 
         // assert
-        Assert.Contains("has no subjects", exception.Message, StringComparison.Ordinal);
+        Assert.Equal(
+            "Consumer 'order-service_order-created' has no subjects, so its stream cannot be "
+            + "resolved. Declare the stream explicitly with FromStream.",
+            exception.Message);
     }
 }

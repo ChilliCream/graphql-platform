@@ -42,7 +42,7 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
     {
         if (configuration.ConsumerName is null)
         {
-            throw new InvalidOperationException("Consumer name is required.");
+            throw ThrowHelper.ConsumerNameRequired();
         }
 
         _maxConcurrency = Math.Clamp(
@@ -59,13 +59,13 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
         if (Kind is ReceiveEndpointKind.Reply)
         {
             _replySubject = configuration.FilterSubjects.FirstOrDefault()
-                ?? throw new InvalidOperationException("The reply endpoint has no subject.");
+                ?? throw ThrowHelper.ReplyEndpointHasNoSubject();
 
             Address = new Uri($"{Transport.Schema}:{NatsAddress.SubjectSegment}/{_replySubject}");
 
             Source = ((NatsMessagingTopology)Transport.Topology)
                 .Subjects.FirstOrDefault(s => s.Subject == _replySubject)
-                ?? throw new InvalidOperationException($"Reply subject '{_replySubject}' not found.");
+                ?? throw ThrowHelper.ReplySubjectNotFound(_replySubject);
 
             return;
         }
@@ -74,7 +74,7 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
 
         Consumer =
             topology.Consumers.FirstOrDefault(c => c.Name == configuration.ConsumerName)
-            ?? throw new InvalidOperationException($"Consumer '{configuration.ConsumerName}' not found.");
+            ?? throw ThrowHelper.ConsumerNotFound(configuration.ConsumerName);
 
         Source = Consumer;
     }
@@ -84,9 +84,7 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
         IMessagingRuntimeContext context,
         CancellationToken cancellationToken)
     {
-        // Two tokens, because stopping and aborting are different things. Cancelling _stopping stops
-        // pulling and lets the buffer drain; _aborting is only cancelled once shutdown has run out
-        // of patience, and is what the handlers themselves observe.
+        // _stopping stops pulling and lets the buffer drain; _aborting is what the handlers observe.
         _logger = context.Services.GetRequiredService<ILogger<NatsReceiveEndpoint>>();
 
         _stopping = new CancellationTokenSource();
@@ -103,8 +101,6 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
 
         if (Consumer is not { StreamName: { } streamName } consumer)
         {
-            // Nothing to consume from. Provisioning fails start-up before this point, so reaching
-            // here means the endpoint is inert and would otherwise be silently deaf.
             _logger.EndpointHasNoStream(Name, Consumer?.Name);
 
             return;
@@ -142,9 +138,7 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
     /// </summary>
     /// <param name="consume">Starts a consume loop bound to the supplied token.</param>
     /// <param name="stopping">Signals that the endpoint is stopping.</param>
-    // Without this a terminal error leaves the endpoint alive but deaf, with nothing logged until
-    // shutdown, because the loop is only awaited when the endpoint stops. NATS.Net recovers the
-    // connection on its own, but not a consumer deleted or altered on the server.
+    // NATS.Net recovers the connection on its own, but not a consumer deleted or altered on the server.
     private async Task RunAsync(Func<CancellationToken, Task> consume, CancellationToken stopping)
     {
         while (!stopping.IsCancellationRequested)
@@ -255,8 +249,8 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
     }
 
     /// <summary>
-    /// Cancels the handlers still running once shutdown has run out of time, so they stop promptly
-    /// instead of being left behind. Their messages are released for redelivery.
+    /// Cancels the handlers still running once shutdown has run out of time. Their messages are
+    /// released for redelivery.
     /// </summary>
     private async Task AbortAsync()
     {
@@ -268,8 +262,7 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
         }
         catch (TimeoutException)
         {
-            // Nothing left to do: a handler is ignoring cancellation, and its message will be
-            // redelivered once the acknowledgement deadline expires.
+            // A handler ignoring cancellation; its message is redelivered after its ack deadline.
         }
         catch (OperationCanceledException)
         {
@@ -282,8 +275,7 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
         CancellationToken stopping,
         CancellationToken processing)
     {
-        // Replies are correlated over a core subscription, so the connection-level DropNewest
-        // default would silently discard responses under load. Wait applies back pressure instead.
+        // Wait, not the connection's DropNewest default, which discards replies under load.
         var options = new NatsSubOpts
         {
             ChannelOpts = new NatsSubChannelOpts { FullMode = BoundedChannelFullMode.Wait }
@@ -324,8 +316,7 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
         CancellationToken stopping,
         CancellationToken processing)
     {
-        // DrainOnCancel turns stopping into a drain: no new messages are pulled, but everything
-        // already buffered is still handled and acknowledged instead of being abandoned mid-flight.
+        // DrainOnCancel: cancelling stops pulling, and the buffered messages are still handled.
         var options = new NatsJSConsumeOpts
         {
             MaxMsgs = PrefetchCount,
@@ -370,12 +361,9 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
     }
 
     /// <summary>
-    /// Gets how many messages are buffered locally, which is what bounds parallel handling.
+    /// Gets how many messages are buffered locally: the endpoint's concurrency, never more than
+    /// <c>MaxAckPending</c>.
     /// </summary>
-    /// <remarks>
-    /// Bounded by concurrency rather than by <c>MaxAckPending</c>, since a buffered message is
-    /// already counting against its acknowledgement deadline. Never exceeds the server ceiling.
-    /// </remarks>
     private int PrefetchCount
         => (int)Math.Clamp(Math.Min(_maxConcurrency, Consumer!.MaxAckPending), 1, int.MaxValue);
 
@@ -392,9 +380,7 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
     {
         try
         {
-            // The parallel loop itself is deliberately not cancellable: cancelling the source is
-            // what ends the enumeration, and the loop then has to run the drained messages to
-            // completion rather than abandoning them.
+            // Not cancellable: cancelling the source ends the enumeration, and drained messages still run.
             await Parallel.ForEachAsync(
                 source,
                 new ParallelOptions { MaxDegreeOfParallelism = _maxConcurrency },

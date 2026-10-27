@@ -27,8 +27,7 @@ public class NatsStreamTests
     public void Initialize_Should_LeaveTheWindowToTheServer_When_NoneIsDeclared()
     {
         // arrange
-        // Zero is not "deduplication off": the client omits a zero window from the request and the
-        // server applies its own default. There is no way to disable it from here.
+        // A zero window is omitted from the request, so the server applies its own default.
         var configuration = new NatsStreamConfiguration { Name = "ORDER_SERVICE" };
 
         // act
@@ -48,7 +47,10 @@ public class NatsStreamTests
         var exception = Assert.Throws<InvalidOperationException>(() => CreateStream(configuration));
 
         // assert
-        Assert.Contains("not a valid JetStream stream name", exception.Message, StringComparison.Ordinal);
+        Assert.Equal(
+            "'order.service' is not a valid JetStream stream name. Stream names cannot contain "
+            + "'.', '*', '>', whitespace or path separators.",
+            exception.Message);
     }
 
     [Fact]
@@ -109,7 +111,10 @@ public class NatsConsumerTests
         var exception = Assert.Throws<InvalidOperationException>(() => CreateConsumer(configuration));
 
         // assert
-        Assert.Contains("not a valid JetStream consumer name", exception.Message, StringComparison.Ordinal);
+        Assert.Equal(
+            "'order-service.order-created' is not a valid JetStream consumer name. Durable names "
+            + "cannot contain '.', '*', '>', whitespace or path separators.",
+            exception.Message);
     }
 
     [Fact]
@@ -127,15 +132,16 @@ public class NatsConsumerTests
             async () => await consumer.ProvisionAsync(null!, CancellationToken.None));
 
         // assert
-        Assert.Contains("has not been resolved", exception.Message, StringComparison.Ordinal);
+        Assert.Equal(
+            "The stream for consumer 'order-service_order-created' has not been resolved. Either "
+            + "declare the stream explicitly or ensure a stream capturing its subjects exists.",
+            exception.Message);
     }
 
     [Fact]
     public void Merge_Should_UnionFilterSubjects_When_TheConsumerIsDeclaredTwice()
     {
         // arrange
-        // An explicit declaration and an endpoint-derived one can resolve to the same durable name,
-        // and the endpoint's subjects must survive the fold.
         var topology = TestTopology.Create();
 
         topology.AddConsumer(new NatsConsumerConfiguration

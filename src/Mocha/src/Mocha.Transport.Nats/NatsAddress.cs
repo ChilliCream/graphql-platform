@@ -6,8 +6,6 @@ namespace Mocha.Transport.Nats;
 /// Builds and parses transport addresses of the form
 /// <c>nats://host:port/&lt;stream&gt;/{s|c}/&lt;name&gt;</c>.
 /// </summary>
-// The s and c discriminators mirror the e and q segments the RabbitMQ transport uses, so reply
-// addresses parse back the same way.
 public static class NatsAddress
 {
     /// <summary>
@@ -74,9 +72,7 @@ public static class NatsAddress
 
         var path = address.AbsolutePath.AsSpan();
 
-        // One slot more than the three segments wanted: Split puts everything left over into the
-        // final range instead of reporting an overflow, so a longer path would otherwise look like a
-        // match with a trailing segment glued on.
+        // Split folds any extra segments into the last range, so one spare slot detects them.
         Span<Range> ranges = stackalloc Range[4];
 
         if (path.Split(ranges, '/', StringSplitOptions.RemoveEmptyEntries) != 3)

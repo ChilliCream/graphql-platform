@@ -6,8 +6,7 @@ namespace Mocha.Transport.Nats.Tests.Behaviors;
 
 public sealed record BatchedReading(string ReadingId);
 
-// A second type for the timeout test. Sharing one type would put both tests on the same subject,
-// and the second durable would replay the first test's message from the stream.
+// A separate type, so the timeout test has a subject of its own.
 public sealed record TimedReading(string ReadingId);
 
 [Collection(JetStreamCollection.Name)]

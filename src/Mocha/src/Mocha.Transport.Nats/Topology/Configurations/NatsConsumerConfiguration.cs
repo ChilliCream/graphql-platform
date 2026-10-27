@@ -17,7 +17,7 @@ public sealed class NatsConsumerConfiguration : TopologyConfiguration<NatsMessag
     /// </summary>
     /// <remarks>
     /// When left unset the transport resolves the owning stream from the consumer's filter subjects
-    /// at start-up, because the stream capturing a subject belongs to the publishing service.
+    /// at start-up.
     /// </remarks>
     public string? StreamName { get; set; }
 
@@ -35,14 +35,12 @@ public sealed class NatsConsumerConfiguration : TopologyConfiguration<NatsMessag
     /// Gets or sets the maximum number of delivery attempts.
     /// </summary>
     /// <remarks>
-    /// Mocha owns the retry decision, so this acts as a safety net above Mocha's own retry policy
-    /// rather than as the primary limit.
+    /// A ceiling above Mocha's own retry policy, which makes the retry decision.
     /// </remarks>
     public long? MaxDeliver { get; set; }
 
     /// <summary>
-    /// Gets or sets the maximum number of unacknowledged messages in flight, which is how this
-    /// transport applies back pressure instead of a prefetch count.
+    /// Gets or sets the maximum number of unacknowledged messages in flight across every instance.
     /// </summary>
     public long? MaxAckPending { get; set; }
 
@@ -55,10 +53,6 @@ public sealed class NatsConsumerConfiguration : TopologyConfiguration<NatsMessag
     /// Gets or sets how often an in-flight message reports progress to extend its acknowledgement
     /// deadline, or <see langword="null"/> to never report progress.
     /// </summary>
-    /// <remarks>
-    /// Set this for handlers that can legitimately run longer than <see cref="AckWait"/>, which
-    /// would otherwise be redelivered while still working.
-    /// </remarks>
     public TimeSpan? AckProgressInterval { get; set; }
 
     /// <summary>

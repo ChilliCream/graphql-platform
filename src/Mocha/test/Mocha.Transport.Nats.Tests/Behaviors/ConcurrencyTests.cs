@@ -104,8 +104,7 @@ public class ConcurrencyTests(JetStreamFixture fixture)
     public async Task Handler_Should_LimitConcurrency_When_ConcurrencyLimiterConfigured()
     {
         // arrange
-        // The bus-level concurrency limiter sits in front of the endpoint's own parallelism, so the
-        // tighter of the two wins.
+        // The tighter of the bus-level limiter and the endpoint's own parallelism wins.
         var tracker = new ConcurrencyTracker();
         var recorder = new MessageRecorder();
         var cancellationToken = TestContext.Current.CancellationToken;

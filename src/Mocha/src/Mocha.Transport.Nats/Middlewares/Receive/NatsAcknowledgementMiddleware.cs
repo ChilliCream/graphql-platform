@@ -48,15 +48,11 @@ internal sealed class NatsAcknowledgementMiddleware
         {
             try
             {
-                // Settled without the pipeline token: when a handler fails because the host is
-                // shutting down, the message should still be released for redelivery straight away
-                // rather than waiting out AckWait.
+                // A failed handler's message is released even when shutdown aborts the pipeline.
                 await message.NakAsync(cancellationToken: CancellationToken.None);
             }
             catch (Exception exception)
             {
-                // Settling is secondary to why the pipeline failed, and the message is redelivered
-                // once its acknowledgement deadline expires either way.
                 context.Services
                     .GetRequiredService<ILogger<NatsAcknowledgementMiddleware>>()
                     .SettlementFailed(exception);
@@ -93,8 +89,6 @@ internal sealed class NatsAcknowledgementMiddleware
                 return null;
             }
 
-            // Resolved only once progress reporting is actually in use, to keep it off the path every
-            // other message takes.
             var logger = services.GetRequiredService<ILogger<NatsAcknowledgementMiddleware>>();
 
             var cancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -131,9 +125,7 @@ internal sealed class NatsAcknowledgementMiddleware
             }
             catch (Exception exception)
             {
-                // Logged rather than rethrown: nobody awaits this task, so an escaping exception
-                // would surface only as an unobserved one. The handler keeps running, and its message
-                // is redelivered once the deadline expires.
+                // Nothing awaits this task, so the failure is logged and the handler keeps running.
                 logger.AckProgressFailed(exception);
             }
         }

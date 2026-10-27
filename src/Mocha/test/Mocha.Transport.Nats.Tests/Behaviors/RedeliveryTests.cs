@@ -11,9 +11,6 @@ public class RedeliveryTests(JetStreamFixture fixture)
     public async Task Handler_Should_StopBeingRedelivered_When_TheMessageHasBeenDeadLettered()
     {
         // arrange
-        // A failed pipeline negatively acknowledges so the message is released rather than waiting out
-        // AckWait. Once it has been dead-lettered it has to be settled instead, because the broker's
-        // own delivery limit is unlimited by default and an unbounded redelivery loop would spin.
         var counter = new InvocationCounter();
         await using var scope = await fixture.CreateScopeAsync();
         await using var bus = await new ServiceCollection()
@@ -36,8 +33,7 @@ public class RedeliveryTests(JetStreamFixture fixture)
             await WaitForAtLeastAsync(counter, 2, TimeSpan.FromSeconds(30)),
             $"The handler ran {counter.Count} times, expected at least 2.");
 
-        // Long enough for another redelivery to arrive if the message was left unsettled. AckWait
-        // defaults to 30 seconds, and a negative acknowledgement releases immediately.
+        // Long enough for another redelivery to arrive if the message were left unsettled.
         await Task.Delay(TimeSpan.FromSeconds(10), CancellationToken.None);
 
         // assert

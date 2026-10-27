@@ -37,8 +37,6 @@ public class RequestReplyTests(JetStreamFixture fixture)
                 .WaitAsync(s_timeout, cancellationToken);
 
             // assert
-            // Separated from the response so a failure says which half broke: the request never
-            // reaching the handler, or the reply never getting back over the core subscription.
             Assert.Equal(new ProcessRefund(refundId, 49.99m), Assert.Single(recorder.Messages));
             Assert.Equal(new RefundProcessed(refundId, "refunded"), response);
         }
@@ -52,8 +50,6 @@ public class RequestReplyTests(JetStreamFixture fixture)
     public async Task DiscoverTopology_Should_KeepReplySubjectsOutOfEveryStream_When_RequestHandlerRegistered()
     {
         // arrange
-        // Reply inboxes are ephemeral. Capturing one in a stream would persist every response for
-        // the stream's whole retention period.
         var cancellationToken = TestContext.Current.CancellationToken;
         var recorder = new MessageRecorder();
 

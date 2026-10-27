@@ -12,9 +12,6 @@ public class WildcardFunnelTests(JetStreamFixture fixture)
     public async Task Subject_Should_FunnelAWholeFamily_When_GivenAWildcardFilter()
     {
         // arrange
-        // Naming each concrete subject means editing the endpoint whenever a command is added. One
-        // wildcard covering the family's namespace does the same job and stays correct as it grows,
-        // and it is still a single durable, so the family stays ordered relative to itself.
         var cancellationToken = TestContext.Current.CancellationToken;
         var recorder = new MessageRecorder();
 
@@ -28,8 +25,7 @@ public class WildcardFunnelTests(JetStreamFixture fixture)
             {
                 nats.StreamName("wildcard-service");
 
-                // No stream declaration: a subject the endpoint filters has to be captured, so the
-                // convention stream claims the wildcard on its own.
+                // No stream declaration: the convention stream claims the filtered wildcard.
                 nats.Endpoint("wildcard-commands")
                     .Handler<WildcardCommandHandler>()
                     .Subject("mocha.wildcard.commands.>")
@@ -53,8 +49,7 @@ public class WildcardFunnelTests(JetStreamFixture fixture)
                 await recorder.WaitAsync(TimeSpan.FromSeconds(30), expectedCount: 3),
                 $"Only {recorder.Messages.Count} of 3 commands reached the handler.");
 
-            // The interface subject the transport derives is covered by the wildcard, so it has to be
-            // collapsed away: JetStream rejects a consumer whose filter subjects overlap.
+            // JetStream rejects a consumer whose filter subjects overlap.
             var consumer = Assert.Single(
                 ((NatsMessagingTopology)host.Services
                     .GetRequiredService<IMessagingRuntime>()

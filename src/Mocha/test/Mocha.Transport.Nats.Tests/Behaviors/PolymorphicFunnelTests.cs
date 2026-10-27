@@ -15,8 +15,6 @@ public class PolymorphicFunnelTests(JetStreamFixture fixture)
     public async Task Subject_Should_FunnelAWholeFamilyToOneDurable_When_TheConcreteSubjectsAreNamed()
     {
         // arrange
-        // A publish resolves its subject from the concrete runtime type, so an interface-bound handler
-        // has to name the concrete subjects; one durable then keeps the family ordered.
         var cancellationToken = TestContext.Current.CancellationToken;
         var recorder = new OrderedRecorder();
 
@@ -34,8 +32,7 @@ public class PolymorphicFunnelTests(JetStreamFixture fixture)
                     .Handler<LockerCommandHandler>()
                     .Subject("mocha.polymorphic.contracts.delete-admin")
                     .Subject("mocha.polymorphic.contracts.create-admin")
-                    // One durable orders delivery, but handling is parallel by default. Ordered
-                    // processing across the family needs the concurrency pinned to one.
+                    // Ordered processing across the family needs a concurrency of one.
                     .MaxConcurrency(1);
 
                 nats.DeclareStream("POLYMORPHIC_FUNNEL")

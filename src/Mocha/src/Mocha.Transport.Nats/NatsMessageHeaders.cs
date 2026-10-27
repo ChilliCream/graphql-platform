@@ -14,9 +14,6 @@ internal static class NatsMessageHeaders
     /// The JetStream deduplication key, which is qualified by destination subject and is not the
     /// message identifier. The identifier travels in <see cref="MessageId"/>.
     /// </summary>
-    // Deduplication is scoped to the stream rather than to the subject, so republishing an envelope
-    // to a second subject in the same stream under its own identifier would be discarded as a
-    // duplicate. Dead-lettering to an error subject does exactly that, hence the qualification.
     public const string DeduplicationKey = "Nats-Msg-Id";
 
     /// <summary>

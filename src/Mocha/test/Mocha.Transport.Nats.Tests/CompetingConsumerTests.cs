@@ -15,9 +15,6 @@ public class CompetingConsumerTests(JetStreamFixture fixture)
     public async Task StartAsync_Should_ShareOneDurable_When_TwoInstancesOfAServiceRun()
     {
         // arrange
-        // Competing consumption on JetStream is two instances pulling from the same durable, so the
-        // durable name has to be derived identically on both rather than per instance, and each
-        // message must still be handled exactly once.
         var cancellationToken = TestContext.Current.CancellationToken;
         var recorder = new MessageRecorder();
 

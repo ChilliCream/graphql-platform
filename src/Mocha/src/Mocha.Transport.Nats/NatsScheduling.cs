@@ -38,9 +38,7 @@ public static class NatsScheduling
     /// <param name="scheduleId">An identifier unique to this scheduled message.</param>
     /// <returns>The scheduling subject.</returns>
     /// <remarks>
-    /// The identifier is part of the subject because a subject holds at most one schedule. Deriving
-    /// the subject from the target alone would make each scheduled message replace the last one aimed
-    /// at the same target, and the replaced message is never delivered.
+    /// A subject holds at most one schedule, so each scheduled message gets its own subject.
     /// </remarks>
     public static string ToSchedulingSubject(string subject, string scheduleId)
     {

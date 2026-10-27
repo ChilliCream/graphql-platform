@@ -25,8 +25,7 @@ public class ProvisioningOverrideTests(JetStreamFixture fixture)
             .AddEventHandler<PreProvisionedHandler>()
             .AddNats(nats => nats
                 .StreamName("e2e-declared")
-                // Narrow subjects on purpose: JetStream rejects a stream whose subjects overlap an
-                // existing one, so a wildcard here would collide with every other test's stream.
+                // Narrow subjects, since JetStream rejects a stream overlapping another test's stream.
                 .DeclareStream("E2E_DECLARED")
                     .Subject("mocha.transport.nats.tests.pre-provisioned")
                     .Subject("mocha.transport.nats.tests.pre-provisioned_error")
@@ -49,8 +48,6 @@ public class ProvisioningOverrideTests(JetStreamFixture fixture)
                 .PublishAsync(new PreProvisioned(Guid.NewGuid()), cancellationToken);
 
             // assert
-            // The declared subjects cover everything routing produces, so no convention stream is
-            // needed alongside it.
             var stream = Assert.Single(topology.Streams);
 
             Assert.Equal("E2E_DECLARED", stream.Name);
@@ -104,8 +101,6 @@ public class ProvisioningOverrideTests(JetStreamFixture fixture)
                 cancellationToken: cancellationToken);
 
             // assert
-            // With no handlers there is nothing to publish, and auto-provisioning is off, so the
-            // transport must not have touched the server's topology.
             Assert.Empty(((NatsMessagingTopology)transport.Topology).Streams);
             Assert.Equal(["external-service.>"], external.Info.Config.Subjects);
         }

@@ -15,8 +15,6 @@ public class DeclaredConsumerTests(JetStreamFixture fixture)
     public async Task DeclareConsumer_Should_KeepEndpointSubjects_When_ItNamesAnEndpointsDurable()
     {
         // arrange
-        // Naming a durable an endpoint already derives must not discard the subjects that endpoint
-        // contributes, which would leave the consumer with none and fail start-up.
         var cancellationToken = TestContext.Current.CancellationToken;
         var recorder = new MessageRecorder();
 
@@ -28,8 +26,7 @@ public class DeclaredConsumerTests(JetStreamFixture fixture)
             .AddEventHandler<LabelPrintedHandler>()
             .AddNats(nats =>
             {
-                // A named endpoint so the durable name is predictable rather than derived from the
-                // entry assembly name.
+                // A named endpoint, so the durable name is predictable.
                 nats.StreamName("declared-consumer")
                     .Endpoint("label-printing")
                     .Handler<LabelPrintedHandler>();

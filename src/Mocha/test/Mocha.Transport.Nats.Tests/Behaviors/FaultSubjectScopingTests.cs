@@ -13,8 +13,6 @@ public class FaultSubjectScopingTests(JetStreamFixture fixture)
     public async Task FaultSubjects_Should_BeScopedToTheService_When_TheEndpointIsNamedExplicitly()
     {
         // arrange
-        // A name the caller chose carries no namespace of its own, and stream subjects have to be
-        // disjoint, so an unscoped fault subject is claimed by whichever service provisions first.
         await using var scope = await fixture.CreateScopeAsync();
         await using var bus = await BuildAsync(scope, endpointName: "order-commands");
 
@@ -54,8 +52,6 @@ public class FaultSubjectScopingTests(JetStreamFixture fixture)
     public async Task FaultSubjects_Should_NotBePrefixed_When_TheEndpointNameIsAlreadyNamespaced()
     {
         // arrange
-        // A caller who namespaced the endpoint keeps that namespace rather than having the service
-        // prepended to it.
         await using var scope = await fixture.CreateScopeAsync();
         await using var bus = await BuildAsync(scope, endpointName: "contracts.orders.commands");
 

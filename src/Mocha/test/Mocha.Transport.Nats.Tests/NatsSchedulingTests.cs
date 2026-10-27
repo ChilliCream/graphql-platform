@@ -21,8 +21,7 @@ public class NatsSchedulingTests
     public void ToSchedulingSubject_Should_DifferPerMessage_When_TargetingTheSameSubject()
     {
         // arrange
-        // A subject holds at most one schedule, so two messages aimed at one target must not share a
-        // scheduling subject or the second silently replaces the first.
+        // A subject holds at most one schedule.
         const string target = "order-service.order-created";
 
         // act
@@ -76,8 +75,7 @@ public class NatsSchedulingTests
     public void ToTtlValue_Should_ClampToOneSecond_When_TheDurationHasAlreadyPassed()
     {
         // act and assert
-        // A zero or negative TTL would be rejected, and an already-expired message should expire
-        // promptly rather than never.
+        // The server rejects a zero or negative TTL.
         Assert.Equal("1s", NatsScheduling.ToTtlValue(TimeSpan.FromSeconds(-5)));
     }
 }

@@ -53,9 +53,6 @@ public class SendTests(JetStreamFixture fixture)
     public async Task SendAsync_Should_DeliverToHandler_When_EventHandlerRegistered()
     {
         // arrange
-        // Send and Publish must converge on the same endpoint. The naming conventions give a Send
-        // route the bare message name and a Publish route a namespace-qualified one, so a transport
-        // that binds only one of the two silently drops the other.
         var recorder = new MessageRecorder();
         var cancellationToken = TestContext.Current.CancellationToken;
 

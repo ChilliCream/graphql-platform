@@ -14,8 +14,7 @@ public class OpenTelemetryTests(JetStreamFixture fixture)
     public async Task PublishAsync_Should_EmitOnlyNatsClientSpans_When_AnEventIsHandled()
     {
         // arrange
-        // The NATS client always registers its own ActivitySource, so this fails if Mocha ever starts
-        // tracing here too, rather than silently shipping duplicate spans.
+        // The NATS client always registers its own ActivitySource.
         var cancellationToken = TestContext.Current.CancellationToken;
         var recorder = new MessageRecorder();
         var activities = new List<Activity>();

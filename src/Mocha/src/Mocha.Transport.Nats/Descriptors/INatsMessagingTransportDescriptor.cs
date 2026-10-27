@@ -82,9 +82,7 @@ public interface INatsMessagingTransportDescriptor
     /// <returns>The descriptor for method chaining.</returns>
     /// <remarks>
     /// A stream discards a repeated identifier within its deduplication window and acknowledges the
-    /// publish as though it had been stored, so a deliberate republish of the same message is
-    /// suppressed as silently as an accidental one. Message deduplication otherwise belongs to the
-    /// inbox, which is transport independent and scoped per consumer rather than per subject.
+    /// publish as though it had been stored, including a deliberate republish of the same message.
     /// </remarks>
     INatsMessagingTransportDescriptor EnablePublishDeduplication(bool enable = true);
 

@@ -46,8 +46,6 @@ public class DeadLetterTests(JetStreamFixture fixture)
                 topology.Subjects.Select(s => s.Subject),
                 s => s.EndsWith("_error", StringComparison.Ordinal));
 
-            // Publishing to a subject no stream captures does not fail fast on JetStream, it times
-            // out waiting for an acknowledgement, so coverage is worth asserting directly.
             Assert.Contains(errorSubject, stream.Subjects);
 
             // act
@@ -57,8 +55,6 @@ public class DeadLetterTests(JetStreamFixture fixture)
             Assert.True(await recorder.WaitAsync(TimeSpan.FromSeconds(30)), "The handler never ran.");
 
             // assert
-            // The dead-lettered copy reuses the original identifier, so under publish deduplication
-            // it only arrives if that identifier stays qualified by subject.
             var delivered = await WaitForSubjectAsync(
                 fixture.JetStream,
                 stream.Name,
@@ -77,8 +73,6 @@ public class DeadLetterTests(JetStreamFixture fixture)
     /// <summary>
     /// Polls the stream's per-subject message counts until the subject holds a message.
     /// </summary>
-    // Asserting on stream state rather than consuming keeps the test from competing with the
-    // transport's own durable consumer for the message.
     private static async Task<long> WaitForSubjectAsync(
         INatsJSContext jetStream,
         string streamName,

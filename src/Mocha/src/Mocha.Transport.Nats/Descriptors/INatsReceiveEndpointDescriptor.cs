@@ -105,7 +105,7 @@ public interface INatsReceiveEndpointDescriptor
     /// <param name="interval">How often to report progress.</param>
     /// <returns>The descriptor for method chaining.</returns>
     /// <remarks>
-    /// Off by default, because it costs a background task per in-flight message.
+    /// Off by default. When on, each in-flight message runs a background task.
     /// </remarks>
     INatsReceiveEndpointDescriptor AckProgressEvery(TimeSpan interval);
 

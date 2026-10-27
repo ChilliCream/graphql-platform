@@ -13,9 +13,7 @@ public class DeclaredStreamRebootTests(JetStreamFixture fixture)
     public async Task ProvisionAsync_Should_KeepDerivedSubjects_When_ADeclaredStreamIsProvisionedTwice()
     {
         // arrange
-        // The declaration covers the contracts namespace but not the fault subjects, which the
-        // transport contributes to the same stream. Restarting must not drop what the first start-up
-        // added.
+        // The declaration covers the contracts namespace; the transport adds the fault subjects.
         var cancellationToken = TestContext.Current.CancellationToken;
         await using var scope = await fixture.CreateScopeAsync();
 
@@ -25,8 +23,6 @@ public class DeclaredStreamRebootTests(JetStreamFixture fixture)
         var third = await BootAndReadSubjectsAsync(cancellationToken);
 
         // assert
-        // A third boot too, because the loss alternated: provisioning replaced the stream's subject
-        // list with the declaration alone, and the next start-up put the rest back.
         Assert.Equal(
             [
                 "mocha.reboot.contracts.>",
