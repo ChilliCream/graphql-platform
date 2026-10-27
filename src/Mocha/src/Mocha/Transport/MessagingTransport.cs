@@ -188,6 +188,14 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     public virtual IChangeToken GetChangeToken() => NullChangeToken.Singleton;
 
     /// <summary>
+    /// Gets the current health of the transport's connections and receive endpoints.
+    /// </summary>
+    /// <returns>
+    /// The health of each component, or <see cref="TransportHealth.Healthy"/> when the transport does not report health.
+    /// </returns>
+    public virtual TransportHealth GetHealth() => TransportHealth.Healthy;
+
+    /// <summary>
     /// Attempts to retrieve an existing dispatch endpoint for the specified address.
     /// </summary>
     /// <param name="address">The destination URI to look up.</param>

@@ -54,7 +54,10 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
         Source = Queue;
     }
 
-    private IAsyncDisposable? _consumer;
+    private const int CompletedDeliveriesCapacity = 1000;
+
+    private readonly RabbitMQCompletedDeliveries _completedDeliveries = new(CompletedDeliveriesCapacity);
+    private RabbitMQConsumerManager.RegisteredConsumer? _consumer;
 
     protected override async ValueTask OnStartAsync(
         IMessagingRuntimeContext context,
@@ -67,10 +70,36 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
 
         _consumer = await rabbitMQMessagingTransport.ConsumerManager.RegisterConsumerAsync(
             Queue.Name,
+            ProvisionQueueAsync,
             ProcessMessageAsync,
             _maxPrefetch,
             _consumerDispatchConcurrency,
             cancellationToken);
+    }
+
+    private async Task ProvisionQueueAsync(IChannel channel, CancellationToken cancellationToken)
+    {
+        var autoProvision = ((RabbitMQMessagingTopology)Transport.Topology).AutoProvision;
+
+        if (Queue.AutoProvision ?? autoProvision)
+        {
+            await Queue.ProvisionAsync(channel, cancellationToken);
+        }
+
+        foreach (var binding in Queue.Bindings)
+        {
+            if (!(binding.AutoProvision ?? autoProvision))
+            {
+                continue;
+            }
+
+            if (binding.Source.AutoProvision ?? autoProvision)
+            {
+                await binding.Source.ProvisionAsync(channel, cancellationToken);
+            }
+
+            await binding.ProvisionAsync(channel, cancellationToken);
+        }
     }
 
     private async ValueTask ProcessMessageAsync(
@@ -86,8 +115,9 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
                     var feature = context.Features.GetOrSet<RabbitMQReceiveFeature>();
                     feature.Channel = state.channel;
                     feature.EventArgs = state.eventArgs;
+                    feature.CompletedDeliveries = state.completedDeliveries;
                 },
-                (channel, eventArgs),
+                (channel, eventArgs, completedDeliveries: _completedDeliveries),
                 cancellationToken);
         }
         catch (Exception) when (cancellationToken.IsCancellationRequested)
@@ -102,9 +132,15 @@ public sealed class RabbitMQReceiveEndpoint(RabbitMQMessagingTransport transport
     {
         if (_consumer is not null)
         {
-            await _consumer.DisposeAsync();
+            await _consumer.StopAsync(cancellationToken);
         }
 
         _consumer = null;
+
+        // A reply queue expires instead of being deleted with its last consumer, so a graceful stop deletes it.
+        if (Kind == ReceiveEndpointKind.Reply && Transport is RabbitMQMessagingTransport rabbitMQMessagingTransport)
+        {
+            await rabbitMQMessagingTransport.ConsumerManager.DeleteQueueAsync(Queue.Name, cancellationToken);
+        }
     }
 }

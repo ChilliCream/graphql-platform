@@ -30,8 +30,8 @@ public sealed class RabbitMQDefaultQueueOptions
 
     /// <summary>
     /// Applies these defaults to a queue configuration, without overriding explicitly set values.
-    /// Quorum and stream queue types are not applied to queues that have auto-delete or exclusive
-    /// set, since those properties are incompatible with these queue types. Default arguments are
+    /// Quorum and stream queue types are not applied to queues that are auto-delete, exclusive or
+    /// non-durable, since those properties are incompatible with these queue types. Default arguments are
     /// also skipped for incompatible queues because they may contain queue-type-specific settings
     /// (e.g. <c>x-delivery-limit</c> is only valid for quorum queues).
     /// </summary>
@@ -40,11 +40,11 @@ public sealed class RabbitMQDefaultQueueOptions
         configuration.Durable ??= Durable;
         configuration.AutoDelete ??= AutoDelete;
 
-        // Quorum and stream queues do not support auto-delete or exclusive properties.
+        // Quorum and stream queues must be durable and do not support auto-delete or exclusive properties.
         // Skip applying queue type and default arguments for incompatible configurations
         // (e.g. reply queues) since default arguments are often queue-type-specific.
         var isIncompatibleWithQueueType =
-            configuration.AutoDelete is true || configuration.Exclusive is true;
+            configuration.AutoDelete is true || configuration.Exclusive is true || configuration.Durable is false;
 
         if (isIncompatibleWithQueueType)
         {

@@ -56,7 +56,7 @@ public class ExternalDestinationTests(RabbitMQFixture fixture)
     }
 
     [Fact]
-    public async Task SendAsync_Should_NotDeclareQueue_When_QueueNotDeclaredUnderExplicitBinding()
+    public async Task SendAsync_Should_ThrowWithoutDeclaringQueue_When_QueueNotDeclaredUnderExplicitBinding()
     {
         // arrange
         const string queueName = "reporting.missing";
@@ -72,10 +72,11 @@ public class ExternalDestinationTests(RabbitMQFixture fixture)
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act
-        await messageBus.SendAsync(
+        // the broker returns a message sent to a missing queue instead of dropping it
+        var sendException = await Record.ExceptionAsync(async () => await messageBus.SendAsync(
             new OrderCreated { OrderId = "EXTERNAL-2" },
             new SendOptions { Endpoint = new Uri($"rabbitmq:q/{queueName}") },
-            cancellationToken);
+            cancellationToken));
 
         // assert
         // a passive declare only succeeds for a queue that exists, so a 404 proves the send
@@ -84,6 +85,8 @@ public class ExternalDestinationTests(RabbitMQFixture fixture)
         await using var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken);
         var exception = await Assert.ThrowsAsync<OperationInterruptedException>(
             () => channel.QueueDeclarePassiveAsync(queueName, cancellationToken));
+        Assert.IsType<InvalidOperationException>(sendException);
+        Assert.IsType<PublishReturnException>(sendException.InnerException);
         Assert.Equal<ushort?>(404, exception.ShutdownReason?.ReplyCode);
     }
 
