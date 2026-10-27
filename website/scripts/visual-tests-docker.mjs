@@ -155,7 +155,92 @@ function stageInputs() {
   };
 }
 
+function outputPathError(value, message) {
+  throw new Error(`Unsafe visual output path ${value}: ${message}`);
+}
+
+function tryLstat(target) {
+  try {
+    return lstatSync(target);
+  } catch (error) {
+    if (error && typeof error === "object" && error.code === "ENOENT") {
+      return undefined;
+    }
+    throw error;
+  }
+}
+
+function inspectOutputPath(target, value, create) {
+  const relative = path.relative(website, target);
+  if (
+    path.isAbsolute(relative) ||
+    relative === ".." ||
+    relative.startsWith(`..${path.sep}`)
+  ) {
+    outputPathError(value, "it is outside the website directory.");
+  }
+
+  let current = website;
+  for (const part of relative.split(path.sep)) {
+    current = path.join(current, part);
+    let info = tryLstat(current);
+    if (!info && !create) {
+      return;
+    }
+    if (!info) {
+      mkdirSync(current);
+      info = lstatSync(current);
+    }
+    if (info.isSymbolicLink()) {
+      outputPathError(value, "symbolic links are not supported.");
+    }
+    if (!info.isDirectory()) {
+      outputPathError(value, "each path component must be a directory.");
+    }
+  }
+}
+
+function outputRootsOverlap(first, second) {
+  const relative = path.relative(first, second);
+  return (
+    !relative ||
+    (!path.isAbsolute(relative) &&
+      relative !== ".." &&
+      !relative.startsWith(`..${path.sep}`))
+  );
+}
+
+function validateOutputRoots(outputs) {
+  const roots = outputs.flatMap(({ source, target }) => {
+    const info = tryLstat(source);
+    if (!info) {
+      return [];
+    }
+    try {
+      return [{ source, target, realpath: realpathSync(source), info }];
+    } catch {
+      return [];
+    }
+  });
+
+  for (let i = 0; i < roots.length; i++) {
+    for (let j = i + 1; j < roots.length; j++) {
+      if (
+        (roots[i].info.dev === roots[j].info.dev &&
+          roots[i].info.ino === roots[j].info.ino) ||
+        outputRootsOverlap(roots[i].realpath, roots[j].realpath)
+      ) {
+        outputPathError(
+          `${roots[i].target} and ${roots[j].target}`,
+          "output roots must not overlap or alias each other.",
+        );
+      }
+    }
+  }
+}
+
 function outputMounts(args) {
+  const customOutputs = [];
   for (let i = 0; i < args.length; i++) {
     let value;
     if (args[i] === "--output") {
@@ -173,6 +258,7 @@ function outputMounts(args) {
     const normalized = path.posix.normalize(value);
     if (
       value.includes("\\") ||
+      value.split("/").includes("..") ||
       path.posix.isAbsolute(value) ||
       normalized === "." ||
       normalized === ".." ||
@@ -185,6 +271,7 @@ function outputMounts(args) {
         `Unsupported Playwright --output path: ${value}. Use a relative path inside test-results or playwright-report.`,
       );
     }
+    customOutputs.push({ target: path.join(website, normalized), value });
   }
 
   const outputs = [
@@ -201,8 +288,19 @@ function outputMounts(args) {
       target: "/repo/website/tests/visual/__screenshots__",
     },
   ];
+  validateOutputRoots(outputs);
   for (const output of outputs) {
-    mkdirSync(output.source, { recursive: true });
+    inspectOutputPath(output.source, output.target, false);
+  }
+  for (const output of customOutputs) {
+    inspectOutputPath(output.target, output.value, false);
+  }
+  for (const output of outputs) {
+    inspectOutputPath(output.source, output.target, true);
+  }
+  validateOutputRoots(outputs);
+  for (const output of customOutputs) {
+    inspectOutputPath(output.target, output.value, false);
   }
   return outputs;
 }
@@ -286,8 +384,8 @@ try {
       `Playwright image is pinned to ${version}; package, lockfile and installed @playwright/test must match. Update and verify visual-tests.Dockerfile and the runner pin together when upgrading Playwright.`,
     );
   }
-  const stage = stageInputs();
   const outputs = outputMounts(process.argv.slice(2));
+  const stage = stageInputs();
   try {
     await docker(["info"], true);
   } catch (error) {

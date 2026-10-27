@@ -292,6 +292,22 @@ function inventory(directory) {
   return entries;
 }
 
+function assertUnsafeOutputFailsBeforeDocker(f, args) {
+  const dependencies = path.join(f.app, "node_modules");
+  const before = inventory(dependencies);
+
+  const result = f.run(args);
+
+  assert.equal(result.status, 1, result.stderr);
+  assert.match(result.stderr, /Unsafe visual output path/);
+  assert.deepEqual(f.calls(), []);
+  assert.equal(
+    readFileSync(path.join(dependencies, ".store/sentinel"), "utf8"),
+    "host only",
+  );
+  assert.deepEqual(inventory(dependencies), before);
+}
+
 test("canonical Docker argv stages a finite read-only input and isolates the Linux worktree", (t) => {
   // arrange
   const f = fixture(t);
@@ -481,6 +497,54 @@ test("custom output paths retain argv and stay inside explicit artifact roots", 
     mounts(render).some(({ source: mountSource }) => mountSource === f.root),
     false,
   );
+});
+
+test("a symbolic output root fails before Docker and keeps dependencies intact", (t) => {
+  // arrange
+  const f = fixture(t);
+  const outside = path.join(f.root, "outside-output-root");
+  mkdirSync(outside);
+  symlinkSync(outside, path.join(f.app, "test-results"));
+
+  // act and assert
+  assertUnsafeOutputFailsBeforeDocker(f, []);
+});
+
+test("a symbolic output ancestor fails before Docker and keeps dependencies intact", (t) => {
+  // arrange
+  const f = fixture(t);
+  const outside = path.join(f.root, "outside-output-ancestor");
+  mkdirSync(outside);
+  rmSync(path.join(f.app, "tests"), { recursive: true });
+  symlinkSync(outside, path.join(f.app, "tests"));
+
+  // act and assert
+  assertUnsafeOutputFailsBeforeDocker(f, []);
+});
+
+test("a symbolic custom output fails before Docker and keeps dependencies intact", (t) => {
+  // arrange
+  const f = fixture(t);
+  const outside = path.join(f.root, "outside-custom-output");
+  mkdirSync(outside);
+  mkdirSync(path.join(f.app, "test-results"));
+  symlinkSync(outside, path.join(f.app, "test-results/custom-output"));
+
+  // act and assert
+  assertUnsafeOutputFailsBeforeDocker(f, [
+    "--output",
+    "test-results/custom-output",
+  ]);
+});
+
+test("aliased output roots fail before Docker and keep dependencies intact", (t) => {
+  // arrange
+  const f = fixture(t);
+  mkdirSync(path.join(f.app, "test-results"));
+  symlinkSync("test-results", path.join(f.app, "playwright-report"));
+
+  // act and assert
+  assertUnsafeOutputFailsBeforeDocker(f, []);
 });
 
 test(
