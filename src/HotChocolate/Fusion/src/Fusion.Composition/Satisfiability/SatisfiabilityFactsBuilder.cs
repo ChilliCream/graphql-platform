@@ -338,9 +338,14 @@ internal sealed class SatisfiabilityFactsBuilder
             return false;
         }
 
-        foreach (var schemaName in GetCandidateSchemaNames(field, excludeSchema, fieldNode, mode))
+        // A field-level @require may resolve the fields below the first level from the excluded
+        // schema, while a lookup key must avoid it at every level.
+        var childExcludeSchema = mode == SelectionSetResolutionMode.FieldRequire ? null : excludeSchema;
+
+        foreach (var schemaName in field.GetSchemaNames())
         {
-            if (!IsFieldAccessibleVia(contextType, field, schemaName, fromSchema))
+            if (schemaName == excludeSchema
+                || !IsFieldAccessibleVia(contextType, field, schemaName, fromSchema))
             {
                 continue;
             }
@@ -354,7 +359,7 @@ internal sealed class SatisfiabilityFactsBuilder
                 field,
                 schemaName,
                 fieldNode.SelectionSet,
-                excludeSchema,
+                childExcludeSchema,
                 mode))
             {
                 return true;
@@ -387,26 +392,6 @@ internal sealed class SatisfiabilityFactsBuilder
         }
 
         return true;
-    }
-
-    private static IEnumerable<string> GetCandidateSchemaNames(
-        MutableOutputFieldDefinition field,
-        string? excludeSchema,
-        FieldNode fieldNode,
-        SelectionSetResolutionMode mode)
-    {
-        var excludeCandidate =
-            fieldNode.SelectionSet is null || mode == SelectionSetResolutionMode.LookupKey;
-
-        foreach (var schemaName in field.GetSchemaNames())
-        {
-            if (excludeCandidate && schemaName == excludeSchema)
-            {
-                continue;
-            }
-
-            yield return schemaName;
-        }
     }
 
     private void SeedRootPositions()

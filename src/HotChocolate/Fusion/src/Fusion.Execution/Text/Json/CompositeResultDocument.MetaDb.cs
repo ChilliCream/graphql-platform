@@ -678,7 +678,7 @@ public sealed partial class CompositeResultDocument
             private int _chunkIndex;
             private int _row;
             private int _byteOffset;
-            private int _chunkLength;
+            private int _rowsInChunk;
             private int _segmentOffset;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -689,7 +689,7 @@ public sealed partial class CompositeResultDocument
                 _chunkIndex = 0;
                 _row = 0;
                 _byteOffset = 0;
-                _chunkLength = 0;
+                _rowsInChunk = 0;
                 _segmentOffset = 0;
                 MoveTo(cursor);
             }
@@ -724,7 +724,7 @@ public sealed partial class CompositeResultDocument
                 Debug.Assert(rowCount > 0);
                 var nextRow = _row + rowCount;
 
-                if ((uint)nextRow < (uint)(_chunkLength / DbRow.Size))
+                if ((uint)nextRow < (uint)_rowsInChunk)
                 {
                     _row = nextRow;
                     _byteOffset += rowCount * DbRow.Size;
@@ -743,7 +743,7 @@ public sealed partial class CompositeResultDocument
                 _chunkIndex = cursor.Chunk;
                 _row = cursor.Row;
                 _byteOffset = cursor.ByteOffset;
-                _chunkLength = segment.Length;
+                _rowsInChunk = segment.Length / DbRow.Size;
                 _segmentOffset = segment.Offset;
                 _chunkBase = ref MemoryMarshal.GetArrayDataReference(segment.Buffer);
             }

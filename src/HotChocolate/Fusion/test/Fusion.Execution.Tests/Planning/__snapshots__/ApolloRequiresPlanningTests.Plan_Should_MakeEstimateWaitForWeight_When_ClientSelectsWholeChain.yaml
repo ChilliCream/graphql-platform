@@ -1,0 +1,106 @@
+operation:
+  - document: |
+      {
+        products {
+          id
+          id @fusion__requirement
+          name
+          dimensions
+          dimensions @fusion__requirement
+          volume
+          volume @fusion__requirement
+          weight
+          weight @fusion__requirement
+          estimate
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 14
+    expandedNodes: 88
+nodes:
+  - id: 1
+    type: Operation
+    schema: products
+    operation: |
+      query Op_123456789101112_1 {
+        products {
+          id
+          name
+          dimensions
+        }
+      }
+  - id: 6
+    type: ApolloOperation
+    schema: shipping
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Product {
+            estimate
+          }
+        }
+      }
+    source: $._entities
+    target: $.products
+    requirements:
+      - name: __fusion_7_weight
+        selectionMap: >-
+          weight
+      - name: __fusion_8_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+      - id: 11
+  - id: 4
+    type: ApolloOperationBatch
+    schema: geometry
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Product {
+            volume
+          }
+        }
+      }
+    source: $._entities
+    targets:
+      - $.products
+      - $.products
+      - $.products
+    batchingGroupId: 10
+    requirements:
+      - name: __fusion_4_id
+        selectionMap: >-
+          id
+      - name: __fusion_5_dimensions
+        selectionMap: >-
+          dimensions
+    dependencies:
+      - id: 1
+  - id: 2
+    type: ApolloOperationBatch
+    schema: metrics
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Product {
+            weight
+          }
+        }
+      }
+    source: $._entities
+    targets:
+      - $.products
+      - $.products
+    batchingGroupId: 11
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+      - name: __fusion_10_volume
+        selectionMap: >-
+          volume
+    dependencies:
+      - id: 1
+      - id: 4

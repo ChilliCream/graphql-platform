@@ -68,11 +68,15 @@ public sealed partial class OperationPlanner
             && operationDefinition.Operation is OperationType.Query
             && deliveryGroups.IsDefaultOrEmpty
             && incrementalPlans.IsDefaultOrEmpty;
+        var serialScopes = operationDefinition.Operation is OperationType.Mutation
+            ? CreateSerialScopes(planSteps, ctx)
+            : null;
         MergeAndBatchOperations(
             ctx,
             _options.EnableRequestGrouping,
             _options.MergePolicy,
             splitForEntityReuse,
+            serialScopes,
             _schema);
         WireExecutionDependencies(ctx);
 
@@ -995,11 +999,70 @@ public sealed partial class OperationPlanner
         return node;
     }
 
+    /// <summary>
+    /// Maps every execution node of a mutation plan to the serial phase it runs in, which is the
+    /// position of the last root node it transitively depends on.
+    /// </summary>
+    private static Dictionary<int, int> CreateSerialScopes(
+        ImmutableList<PlanStep> planSteps,
+        ExecutionPlanBuildContext ctx)
+    {
+        var scopes = new Dictionary<int, int>(ctx.ExecutionNodes.Count);
+        var rootPosition = 0;
+
+        foreach (var step in planSteps)
+        {
+            if (ctx.ExecutionNodes.ContainsKey(step.Id) && !ctx.DependenciesByStepId.ContainsKey(step.Id))
+            {
+                scopes[step.Id] = rootPosition++;
+            }
+        }
+
+        // A node runs after all of its dependencies, so visiting nodes by dependency depth
+        // resolves the scope of every dependency before the scope of its dependents.
+        var depthLookup = new Dictionary<int, int>();
+        var recursionStack = new HashSet<int>();
+
+        foreach (var nodeId in ctx.ExecutionNodes.Keys)
+        {
+            GetDependencyDepth(nodeId, ctx.DependenciesByStepId, depthLookup, recursionStack);
+        }
+
+        foreach (var (nodeId, _) in depthLookup.OrderBy(t => t.Value))
+        {
+            if (scopes.ContainsKey(nodeId))
+            {
+                continue;
+            }
+
+            var scope = 0;
+
+            if (ctx.DependenciesByStepId.TryGetValue(nodeId, out var dependencies))
+            {
+                foreach (var dependency in dependencies)
+                {
+                    if (scopes.TryGetValue(dependency, out var dependencyScope))
+                    {
+                        scope = Math.Max(scope, dependencyScope);
+                    }
+                }
+            }
+
+            scopes[nodeId] = scope;
+        }
+
+        return scopes;
+    }
+
+    private static int GetSerialScope(Dictionary<int, int>? serialScopes, int nodeId)
+        => serialScopes is not null && serialScopes.TryGetValue(nodeId, out var scope) ? scope : 0;
+
     private static void MergeAndBatchOperations(
         ExecutionPlanBuildContext ctx,
         bool enableRequestGrouping,
         OperationMergePolicy mergePolicy,
         bool splitForEntityReuse,
+        Dictionary<int, int>? serialScopes,
         FusionSchemaDefinition schema)
     {
         var nodeFieldBoundCache = new Dictionary<int, bool>();
@@ -1008,8 +1071,13 @@ public sealed partial class OperationPlanner
             nodeFieldBoundCache,
             mergePolicy,
             splitForEntityReuse,
+            serialScopes,
             schema);
-        var apolloMergeResults = MergeStructurallyIdenticalApolloLookups(ctx, nodeFieldBoundCache, mergePolicy);
+        var apolloMergeResults = MergeStructurallyIdenticalApolloLookups(
+            ctx,
+            nodeFieldBoundCache,
+            mergePolicy,
+            serialScopes);
 
         // Capture each node's dependency identifiers now, because the batching
         // step below will rewrite the dependency lookup as it merges nodes.
@@ -1021,10 +1089,16 @@ public sealed partial class OperationPlanner
         }
 
         var perOperationDependencies = GroupBySchemaAndDepthIntoBatches(
-            ctx, nodeFieldBoundCache, mergeResults, originalDependencies, enableRequestGrouping);
+            ctx, nodeFieldBoundCache, mergeResults, originalDependencies, enableRequestGrouping, serialScopes);
 
         foreach (var (batchNode, memberDependencies) in GroupApolloLookupsIntoBatches(
-            ctx, nodeFieldBoundCache, apolloMergeResults, originalDependencies, enableRequestGrouping, schema))
+            ctx,
+            nodeFieldBoundCache,
+            apolloMergeResults,
+            originalDependencies,
+            enableRequestGrouping,
+            serialScopes,
+            schema))
         {
             perOperationDependencies.Add(batchNode, memberDependencies);
         }
@@ -1040,12 +1114,14 @@ public sealed partial class OperationPlanner
     /// When <paramref name="splitForEntityReuse"/> is set, identical lookups at
     /// different dependency depths stay apart and each deeper lookup depends on
     /// the next shallower one, so that entity reuse can serve it.
+    /// Operations in different <paramref name="serialScopes"/> are never merged.
     /// </summary>
     private static Dictionary<int, MergeResult> MergeStructurallyIdenticalOperations(
         ExecutionPlanBuildContext ctx,
         Dictionary<int, bool> nodeFieldBoundCache,
         OperationMergePolicy mergePolicy,
         bool splitForEntityReuse,
+        Dictionary<int, int>? serialScopes,
         FusionSchemaDefinition schema)
     {
         if (mergePolicy is OperationMergePolicy.None)
@@ -1067,7 +1143,9 @@ public sealed partial class OperationPlanner
                 continue;
             }
 
-            var signature = ComputeCanonicalSignature(node);
+            var signature = serialScopes is null
+                ? ComputeCanonicalSignature(node)
+                : $"{GetSerialScope(serialScopes, node.Id)}|{ComputeCanonicalSignature(node)}";
 
             if (!candidates.TryGetValue(signature, out var list))
             {
@@ -1129,12 +1207,14 @@ public sealed partial class OperationPlanner
     /// Merges Apollo Federation entity lookups that are structurally identical and share
     /// a source schema into one lookup with a target per merged node, subject to the merge policy.
     /// Cross-depth merges require the shallower lookup to have no dependents and the deeper
-    /// lookup to already wait for all of its dependencies.
+    /// lookup to already wait for all of its dependencies. Lookups in different
+    /// <paramref name="serialScopes"/> are never merged.
     /// </summary>
     private static Dictionary<int, ApolloOperationExecutionNode[]> MergeStructurallyIdenticalApolloLookups(
         ExecutionPlanBuildContext ctx,
         Dictionary<int, bool> nodeFieldBoundCache,
-        OperationMergePolicy mergePolicy)
+        OperationMergePolicy mergePolicy,
+        Dictionary<int, int>? serialScopes)
     {
         if (mergePolicy is OperationMergePolicy.None)
         {
@@ -1167,7 +1247,9 @@ public sealed partial class OperationPlanner
         foreach (var node in lookupNodes)
         {
             var depth = depthLookup.TryGetValue(node.Id, out var d) ? d : 0;
-            var signature = ComputeApolloCanonicalSignature(ctx, node);
+            var signature = serialScopes is null
+                ? ComputeApolloCanonicalSignature(ctx, node)
+                : $"{GetSerialScope(serialScopes, node.Id)}|{ComputeApolloCanonicalSignature(ctx, node)}";
 
             if (!groupsBySignature.TryGetValue(signature, out var groups))
             {
@@ -1477,13 +1559,15 @@ public sealed partial class OperationPlanner
     /// batch execution nodes. Nodes at the same depth targeting the same
     /// source schema are independent of each other, so the executor can
     /// send them together in a single batched network request.
+    /// Nodes in different <paramref name="serialScopes"/> are never batched.
     /// </summary>
     private static Dictionary<ExecutionNode, Dictionary<int, int[]>> GroupBySchemaAndDepthIntoBatches(
         ExecutionPlanBuildContext ctx,
         Dictionary<int, bool> nodeFieldBoundCache,
         Dictionary<int, MergeResult> mergeResults,
         Dictionary<int, int[]> originalDependencies,
-        bool enableRequestGrouping)
+        bool enableRequestGrouping,
+        Dictionary<int, int>? serialScopes)
     {
         var consumedMergeIds = new HashSet<int>();
         var perOperationDependencies = new Dictionary<ExecutionNode, Dictionary<int, int[]>>();
@@ -1507,13 +1591,13 @@ public sealed partial class OperationPlanner
             GetDependencyDepth(node.Id, ctx.DependenciesByStepId, depthLookup, recursionStack);
         }
 
-        var batchGroups = new Dictionary<(string schema, int depth), List<OperationExecutionNode>>();
+        var batchGroups = new Dictionary<(string schema, int depth, int scope), List<OperationExecutionNode>>();
 
         foreach (var node in queryNodes)
         {
             var schemaKey = node.SchemaName ?? DynamicSchemaNameMarker;
             var depth = depthLookup.TryGetValue(node.Id, out var d) ? d : 0;
-            var key = (schemaKey, depth);
+            var key = (schemaKey, depth, GetSerialScope(serialScopes, node.Id));
 
             if (!batchGroups.TryGetValue(key, out var group))
             {
@@ -1591,6 +1675,7 @@ public sealed partial class OperationPlanner
     /// dependency depth into batch execution nodes. Lookups at the same depth
     /// targeting the same source schema are independent of each other, so the
     /// executor can send them together in a single batched network request.
+    /// Lookups in different <paramref name="serialScopes"/> are never batched.
     /// </summary>
     private static Dictionary<ExecutionNode, Dictionary<int, int[]>> GroupApolloLookupsIntoBatches(
         ExecutionPlanBuildContext ctx,
@@ -1598,6 +1683,7 @@ public sealed partial class OperationPlanner
         Dictionary<int, ApolloOperationExecutionNode[]> mergeResults,
         Dictionary<int, int[]> originalDependencies,
         bool enableRequestGrouping,
+        Dictionary<int, int>? serialScopes,
         FusionSchemaDefinition schema)
     {
         var perOperationDependencies = new Dictionary<ExecutionNode, Dictionary<int, int[]>>();
@@ -1617,14 +1703,19 @@ public sealed partial class OperationPlanner
             GetDependencyDepth(node.Id, ctx.DependenciesByStepId, depthLookup, recursionStack);
         }
 
-        var batchGroups = new Dictionary<(string schema, int depth, int operationId), List<ApolloOperationExecutionNode>>();
+        var batchGroups =
+            new Dictionary<(string schema, int depth, int scope, int operationId), List<ApolloOperationExecutionNode>>();
 
         foreach (var node in lookupNodes)
         {
             // Apollo lookup nodes always carry a concrete schema name because
             // the routing in CreateOperationExecutionNode rejects dynamic ones.
             var depth = depthLookup.TryGetValue(node.Id, out var d) ? d : 0;
-            var key = (node.SchemaName, depth, enableRequestGrouping ? 0 : node.Id);
+            var key = (
+                node.SchemaName,
+                depth,
+                GetSerialScope(serialScopes, node.Id),
+                enableRequestGrouping ? 0 : node.Id);
 
             if (!batchGroups.TryGetValue(key, out var group))
             {

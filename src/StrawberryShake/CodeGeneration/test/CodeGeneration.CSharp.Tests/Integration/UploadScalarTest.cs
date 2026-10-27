@@ -1,5 +1,5 @@
 using HotChocolate.AspNetCore.Tests.Utilities;
-using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.Transport.WebSockets;
 using static StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar.UploadSchemaHelpers;
@@ -19,8 +19,8 @@ public class UploadScalarTest : ServerTestBase
     {
         // arrange
         var ct = new CancellationTokenSource(20_000).Token;
-        using var host = TestServerHelper.CreateServer(Configure, out var port);
-        var client = CreateClient(host, port);
+        await using var app = TestServerHelper.StartApp(Configure, out var port);
+        var client = CreateClient(app, port);
         await using var data = CreateStream("a");
 
         // act
@@ -45,8 +45,8 @@ public class UploadScalarTest : ServerTestBase
     {
         // arrange
         var ct = new CancellationTokenSource(20_000).Token;
-        using var host = TestServerHelper.CreateServer(Configure, out var port);
-        var client = CreateClient(host, port);
+        await using var app = TestServerHelper.StartApp(Configure, out var port);
+        var client = CreateClient(app, port);
         await using var dataA = CreateStream("a");
         await using var dataB = CreateStream("b");
 
@@ -72,8 +72,8 @@ public class UploadScalarTest : ServerTestBase
     {
         // arrange
         var ct = new CancellationTokenSource(20_000).Token;
-        using var host = TestServerHelper.CreateServer(Configure, out var port);
-        var client = CreateClient(host, port);
+        await using var app = TestServerHelper.StartApp(Configure, out var port);
+        var client = CreateClient(app, port);
         await using var dataA = CreateStream("a");
         await using var dataB = CreateStream("b");
 
@@ -99,8 +99,8 @@ public class UploadScalarTest : ServerTestBase
     {
         // arrange
         var ct = new CancellationTokenSource(20_000).Token;
-        using var host = TestServerHelper.CreateServer(Configure, out var port);
-        var client = CreateClient(host, port);
+        await using var app = TestServerHelper.StartApp(Configure, out var port);
+        var client = CreateClient(app, port);
         await using var data = CreateStream("a");
 
         // act
@@ -131,8 +131,8 @@ public class UploadScalarTest : ServerTestBase
     {
         // arrange
         var ct = new CancellationTokenSource(20_000).Token;
-        using var host = TestServerHelper.CreateServer(Configure, out var port);
-        var client = CreateClient(host, port);
+        await using var app = TestServerHelper.StartApp(Configure, out var port);
+        var client = CreateClient(app, port);
         await using var dataA = CreateStream("a");
         await using var dataB = CreateStream("b");
         // act
@@ -173,8 +173,8 @@ public class UploadScalarTest : ServerTestBase
     {
         // arrange
         var ct = new CancellationTokenSource(20_000).Token;
-        using var host = TestServerHelper.CreateServer(Configure, out var port);
-        var client = CreateClient(host, port);
+        await using var app = TestServerHelper.StartApp(Configure, out var port);
+        var client = CreateClient(app, port);
         await using var dataA = CreateStream("a");
         await using var dataB = CreateStream("b");
 
@@ -212,7 +212,7 @@ public class UploadScalarTest : ServerTestBase
         Assert.Equal($"[A:a|{contentType}],[B:b|{contentType}]", result.Data!.Upload);
     }
 
-    public static UploadScalarClient CreateClient(IWebHost host, int port)
+    public static UploadScalarClient CreateClient(WebApplication app, int port)
     {
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddHttpClient(
@@ -237,8 +237,8 @@ public class UploadScalarTest : ServerTestBase
     {
         // arrange
         var ct = new CancellationTokenSource(20_000).Token;
-        using var host = TestServerHelper.CreateServer(Configure, out var port);
-        var client = CreateClient(host, port);
+        await using var app = TestServerHelper.StartApp(Configure, out var port);
+        var client = CreateClient(app, port);
         await using var dataA = CreateStream("a");
         await using var dataB = CreateStream("b");
 

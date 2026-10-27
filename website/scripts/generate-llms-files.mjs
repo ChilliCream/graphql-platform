@@ -294,6 +294,13 @@ async function readPage(url) {
       .querySelector('meta[name="description"]')
       ?.getAttribute("content") ?? "",
   );
+  const datasets = document
+    .querySelectorAll('link[rel="alternate"][type="application/json"]')
+    .map((link) => ({
+      title: cleanInlineText(link.getAttribute("title") ?? ""),
+      url: new URL(link.getAttribute("href") ?? "", url).href,
+    }))
+    .filter((dataset) => dataset.title !== "");
   const renderedMarkdown = normalizeMarkdown(
     markdownConverter.translate(root.innerHTML),
   );
@@ -304,6 +311,7 @@ async function readPage(url) {
 
   const page = {
     body,
+    datasets,
     description,
     markdownUrl: markdownUrl(url),
     title,
@@ -368,6 +376,29 @@ function comparePages(left, right) {
 function pageListItem(page) {
   const description = page.description ? `: ${page.description}` : "";
   return `- [${escapeLinkLabel(page.title)}](${page.markdownUrl})${description}`;
+}
+
+function formatFileSize(bytes) {
+  return bytes < 1024 * 1024
+    ? `${Math.ceil(bytes / 1024)} KiB`
+    : `${(bytes / 1024 / 1024).toFixed(1)} MiB`;
+}
+
+async function datasetListItem(dataset) {
+  const pathname = decodeURIComponent(new URL(dataset.url).pathname);
+  const { size } = await fs.stat(path.join(OUTPUT_ROOT, pathname.slice(1)));
+  return `- [${escapeLinkLabel(dataset.title)}](${dataset.url}): JSON data, ${formatFileSize(size)}.`;
+}
+
+async function benchmarkListItems(pages) {
+  const items = [];
+  for (const page of pages) {
+    items.push(pageListItem(page));
+    for (const dataset of page.datasets) {
+      items.push(await datasetListItem(dataset));
+    }
+  }
+  return items;
 }
 
 function catalog(title, summary, sections, details = []) {
@@ -474,6 +505,7 @@ export async function generateLlmsFiles() {
   const docs = pagesUnder(pages, "/docs");
   const blog = pagesUnder(pages, "/blog");
   const videos = pagesUnder(pages, "/videos");
+  const benchmarks = pagesUnder(pages, "/benchmarks");
   const products = pagesUnder(pages, "/products");
   const platform = pagesUnder(pages, "/platform");
   const services = [
@@ -489,6 +521,7 @@ export async function generateLlmsFiles() {
       ...docs,
       ...blog,
       ...videos,
+      ...benchmarks,
       ...products,
       ...platform,
       ...services,
@@ -582,6 +615,7 @@ export async function generateLlmsFiles() {
           `- [Services catalog](${origin}/services/llms.txt): Training, advisory, support, and help pages.`,
         ],
       },
+      { title: "Benchmarks", items: await benchmarkListItems(benchmarks) },
       {
         title: "Documentation",
         items: [

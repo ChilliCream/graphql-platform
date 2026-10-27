@@ -129,9 +129,9 @@ public sealed partial class SourceResultDocument
     /// </summary>
     internal void WriteRawStringValueTo(ref MinimizedJsonEmitter emitter, int location, int size)
     {
-        if (TryGetSingleChunkValue(location, size, out var value))
+        if (TryGetSingleChunkValue(location, size, out var buffer))
         {
-            emitter.WriteStringValue(value);
+            emitter.WriteStringValue(buffer, size);
             return;
         }
 
@@ -143,9 +143,9 @@ public sealed partial class SourceResultDocument
     /// </summary>
     internal void WriteRawNumberValueTo(ref MinimizedJsonEmitter emitter, int location, int size)
     {
-        if (TryGetSingleChunkValue(location, size, out var value))
+        if (TryGetSingleChunkValue(location, size, out var buffer))
         {
-            emitter.WriteRawValue(value);
+            emitter.WriteRawValue(buffer, size);
             return;
         }
 
@@ -158,8 +158,12 @@ public sealed partial class SourceResultDocument
     internal void WriteValueTo(ref MinimizedJsonEmitter emitter, Cursor cursor)
         => WriteValueTo(ref emitter, cursor, _parsedData.Get(cursor));
 
+    /// <summary>
+    /// Gets the data from <paramref name="location"/> to the end of its chunk when the
+    /// value of <paramref name="size"/> bytes at that location lies within a single chunk.
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private bool TryGetSingleChunkValue(int location, int size, out ReadOnlySpan<byte> value)
+    private bool TryGetSingleChunkValue(int location, int size, out ReadOnlySpan<byte> buffer)
     {
         if (size > JsonConstants.MaxUnescapedTokenSize)
         {
@@ -174,16 +178,18 @@ public sealed partial class SourceResultDocument
             ref MemoryMarshal.GetArrayDataReference(_segments),
             startChunkIndex);
 
-        if (offsetInStartChunk + size <= startSeg.Length)
+        var available = startSeg.Length - offsetInStartChunk;
+
+        if (size <= available)
         {
             ref var start = ref Unsafe.Add(
                 ref MemoryMarshal.GetArrayDataReference(startSeg.Buffer),
                 startSeg.Offset + offsetInStartChunk);
-            value = MemoryMarshal.CreateReadOnlySpan(ref start, size);
+            buffer = MemoryMarshal.CreateReadOnlySpan(ref start, available);
             return true;
         }
 
-        value = default;
+        buffer = default;
         return false;
     }
 

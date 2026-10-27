@@ -684,20 +684,9 @@ export function gatewayLink(gateway: BenchmarkGateway): string | undefined {
     : undefined;
 }
 
-const PRERELEASE = /^\d+(\.\d+)*-/;
-
-/** Returns the explicit preview flag, or infers preview status from the gateway and runtime versions when absent. */
-export function isPreview(
-  version: string | null,
-  platform: BenchmarkPlatform,
-  preview: boolean | undefined,
-): boolean {
-  return (
-    preview ??
-    ((version !== null && PRERELEASE.test(version)) ||
-      (platform.runtime?.version !== undefined &&
-        PRERELEASE.test(platform.runtime.version)))
-  );
+/** Returns whether a variant is a preview release. Only the report's explicit flag marks one. */
+export function isPreview(variant: Pick<BenchmarkVariant, "preview">): boolean {
+  return variant.preview === true;
 }
 
 /** Formats a platform as its runtime name and major version (major and minor for 0.x and 1.x), or its language when it has no runtime. */

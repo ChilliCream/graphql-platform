@@ -121,6 +121,86 @@ public class GlobalObjectIdentificationTests : FusionTestBase
     }
 
     [Fact]
+    public async Task Node_Should_ResolveRequiringField_When_OnlyRequiringSchemaOwnsKey()
+    {
+        // arrange
+        using var a = CreateSourceSchema(
+            "a",
+            """
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Chat implements Node @key(fields: "id") {
+              id: ID!
+              title: String
+              summary(text: String @require(field: "text")): String
+            }
+            """);
+        using var b = CreateSourceSchema(
+            "b",
+            """
+            type Query {
+              chatById(id: ID!): Chat @lookup @internal
+            }
+
+            type Chat @key(fields: "id") {
+              id: ID! @external
+              text: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", a),
+            ("b", b)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query GetChat($id: ID!) {
+              node(id: $id) {
+                ... on Chat {
+                  summary
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?>
+            {
+                ["id"] = /* Chat:1 */ "Q2hhdDox"
+            });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await AssertAndMatchSnapshotAsync(
+            gateway,
+            request,
+            result,
+            results =>
+            {
+                var response = Assert.Single(results);
+                Assert.Equal(JsonValueKind.Undefined, response.Errors.ValueKind);
+                Assert.Equal(
+                    """
+                    {"node":{"summary":"Chat: Q2hhdDox"}}
+                    """,
+                    response.Data.GetRawText());
+            });
+    }
+
+    [Fact]
     public async Task Node_Entry_Should_Resolve_When_Required_Field_Is_In_Conditional_Fragment()
     {
         // arrange

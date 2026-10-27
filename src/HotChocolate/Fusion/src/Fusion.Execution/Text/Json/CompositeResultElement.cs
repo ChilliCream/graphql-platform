@@ -1048,6 +1048,33 @@ public readonly partial struct CompositeResultElement
         _parent.AssignCompositeValue(this, obj);
     }
 
+    /// <summary>
+    /// Creates an object for <paramref name="selectionSet"/> in this undefined element.
+    /// </summary>
+    internal void InitializeObjectValue(
+        SelectionSet selectionSet,
+        out CompositeObjectContext objectContext)
+    {
+        CheckValidInstance();
+
+        _parent.InitializeObject(_cursor, selectionSet, out objectContext);
+    }
+
+    /// <summary>
+    /// Creates an array of <paramref name="length"/> undefined elements in this undefined element.
+    /// </summary>
+    /// <returns>
+    /// An enumerator over the elements of the new array.
+    /// </returns>
+    internal ArrayEnumerator InitializeArrayValue(int length)
+    {
+        CheckValidInstance();
+
+        ArgumentOutOfRangeException.ThrowIfNegative(length);
+
+        return _parent.InitializeArray(_cursor, length);
+    }
+
     internal void SetArrayValue(int length)
     {
         CheckValidInstance();

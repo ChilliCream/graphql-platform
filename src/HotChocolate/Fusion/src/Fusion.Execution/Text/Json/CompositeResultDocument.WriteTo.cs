@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using HotChocolate.Execution;
@@ -255,7 +256,7 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
 
             writer.WriteRawValueStart([]);
             var emitter = new MinimizedJsonEmitter(writer.InnerWriter, writer.CurrentDepth, maxDepth);
-            WriteObject(ref emitter, root, row);
+            WriteObject(ref emitter, root, row.NumberOfRows);
             emitter.Flush();
             writer.WriteRawValueEnd(JsonTokenType.EndObject);
         }
@@ -285,7 +286,7 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
                     }
                     else
                     {
-                        WriteObject(ref emitter, cursor, row);
+                        WriteObject(ref emitter, cursor, row.NumberOfRows);
                     }
                     break;
 
@@ -296,7 +297,7 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
                     }
                     else
                     {
-                        WriteArray(ref emitter, cursor, row);
+                        WriteArray(ref emitter, cursor, row.NumberOfRows);
                     }
                     break;
 
@@ -349,50 +350,41 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
             sourceDocument.WriteValueTo(ref emitter, sourceCursor);
         }
 
-        private void WriteObject(ref MinimizedJsonEmitter emitter, Cursor start, DbRow startRow)
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void WriteObject(ref MinimizedJsonEmitter emitter, Cursor start, int numberOfRows)
         {
-            Debug.Assert(startRow.TokenType is ElementTokenType.StartObject);
+            Debug.Assert(document._metaDb.Get(start).TokenType is ElementTokenType.StartObject);
 
-            var remainingRows = startRow.NumberOfRows - 1;
-            var operation = document._operation;
+            var remainingRows = numberOfRows - 1;
 
             emitter.WriteStartObject();
 
-            if (remainingRows == 0)
+            if (remainingRows > 0)
             {
-                emitter.WriteEndObject();
-                return;
-            }
+                var operation = document._operation;
+                var reader = document._metaDb.CreateSequentialReader(start + 1);
 
-            var reader = document._metaDb.CreateSequentialReader(start + 1);
-
-            while (remainingRows > 0)
-            {
-                var property = reader.ReadProperty();
-
-                if ((ElementFlags.IsInternal & property.Flags) == ElementFlags.IsInternal
-                    || (ElementFlags.IsExcluded & property.Flags) == ElementFlags.IsExcluded)
+                while (true)
                 {
-                    remainingRows -= 2;
+                    var property = reader.ReadProperty();
 
-                    if (remainingRows > 0)
+                    if ((property.Flags & (ElementFlags.IsInternal | ElementFlags.IsExcluded)) == ElementFlags.None)
                     {
-                        reader.Advance(1);
+                        var selection = operation.GetSelectionById(property.SelectionId);
+                        emitter.WritePropertyName(
+                            selection.PaddedUtf8JsonPropertyName,
+                            selection.Utf8JsonPropertyNameLength);
+
+                        WriteElementValue(ref emitter, ref reader);
                     }
 
-                    continue;
-                }
+                    remainingRows -= 2;
 
-                emitter.WritePropertyName(
-                    operation
-                        .GetSelectionById(property.SelectionId)
-                        .Utf8JsonPropertyName);
+                    if (remainingRows <= 0)
+                    {
+                        break;
+                    }
 
-                WriteValue(ref emitter, reader.Cursor, reader.PeekRow());
-                remainingRows -= 2;
-
-                if (remainingRows > 0)
-                {
                     reader.Advance(1);
                 }
             }
@@ -400,34 +392,96 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
             emitter.WriteEndObject();
         }
 
-        private void WriteArray(ref MinimizedJsonEmitter emitter, Cursor start, DbRow startRow)
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void WriteArray(ref MinimizedJsonEmitter emitter, Cursor start, int numberOfRows)
         {
-            Debug.Assert(startRow.TokenType is ElementTokenType.StartArray);
+            Debug.Assert(document._metaDb.Get(start).TokenType is ElementTokenType.StartArray);
 
-            var remainingRows = startRow.NumberOfRows - 1;
+            var remainingRows = numberOfRows - 1;
 
             emitter.WriteStartArray();
 
-            if (remainingRows == 0)
+            if (remainingRows > 0)
             {
-                emitter.WriteEndArray();
-                return;
-            }
+                var reader = document._metaDb.CreateSequentialReader(start + 1);
 
-            var reader = document._metaDb.CreateSequentialReader(start + 1);
-
-            while (remainingRows > 0)
-            {
-                WriteValue(ref emitter, reader.Cursor, reader.PeekRow());
-                remainingRows--;
-
-                if (remainingRows > 0)
+                while (true)
                 {
+                    WriteElementValue(ref emitter, ref reader);
+
+                    if (--remainingRows == 0)
+                    {
+                        break;
+                    }
+
                     reader.Advance(1);
                 }
             }
 
             emitter.WriteEndArray();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void WriteElementValue(ref MinimizedJsonEmitter emitter, ref MetaDb.SequentialReader reader)
+        {
+            var row = reader.PeekRow();
+
+            switch (row.TokenType)
+            {
+                case ElementTokenType.Reference:
+                    WriteReferencedValue(ref emitter, new Cursor(row.Location));
+                    break;
+
+                case ElementTokenType.String
+                    when (ElementFlags.SourceResult & row.Flags) == ElementFlags.SourceResult:
+                    document._sources[row.SourceDocumentId]
+                        .WriteRawStringValueTo(ref emitter, row.Location, row.SizeOrLength);
+                    break;
+
+                case ElementTokenType.Number
+                    when (ElementFlags.SourceResult & row.Flags) == ElementFlags.SourceResult:
+                    document._sources[row.SourceDocumentId]
+                        .WriteRawNumberValueTo(ref emitter, row.Location, row.SizeOrLength);
+                    break;
+
+                case ElementTokenType.True:
+                    emitter.WriteRawValue(JsonConstants.TrueValue);
+                    break;
+
+                case ElementTokenType.False:
+                    emitter.WriteRawValue(JsonConstants.FalseValue);
+                    break;
+
+                case ElementTokenType.None:
+                case ElementTokenType.Null:
+                    emitter.WriteRawValue(JsonConstants.NullValue);
+                    break;
+
+                default:
+                    WriteValue(ref emitter, reader.Cursor, row);
+                    break;
+            }
+        }
+
+        private void WriteReferencedValue(ref MinimizedJsonEmitter emitter, Cursor cursor)
+        {
+            var row = document._metaDb.Get(cursor);
+
+            if ((ElementFlags.SourceResult & row.Flags) == ElementFlags.None)
+            {
+                switch (row.TokenType)
+                {
+                    case ElementTokenType.StartObject:
+                        WriteObject(ref emitter, cursor, row.NumberOfRows);
+                        return;
+
+                    case ElementTokenType.StartArray:
+                        WriteArray(ref emitter, cursor, row.NumberOfRows);
+                        return;
+                }
+            }
+
+            WriteValue(ref emitter, cursor, row);
         }
     }
 
