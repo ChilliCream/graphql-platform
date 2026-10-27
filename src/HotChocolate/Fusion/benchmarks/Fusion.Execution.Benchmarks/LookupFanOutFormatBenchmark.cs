@@ -58,7 +58,17 @@ public class LookupFanOutFormatBenchmark
     }
 
     [GlobalCleanup]
-    public async Task CleanupAsync() => await _result.DisposeAsync();
+    public async Task CleanupAsync()
+    {
+        try
+        {
+            await _result.DisposeAsync();
+        }
+        finally
+        {
+            _output.Dispose();
+        }
+    }
 
     [Benchmark]
     public int FormatResult() => Format();
