@@ -20,5 +20,5 @@ internal readonly struct SourceResponseNameMapping(
     public ReadOnlySpan<byte> ResponseNameUtf8
         => MemoryMarshal.CreateReadOnlySpan(
             ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(_utf8JsonPropertyName), 1),
-            _utf8JsonPropertyName.Length - 3);
+            _utf8JsonPropertyName.Length - Utf8StringCache.JsonPropertyNamePadding - 3);
 }

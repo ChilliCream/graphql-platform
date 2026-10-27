@@ -18,29 +18,52 @@ namespace HotChocolate.Fusion.Execution.Results;
 internal sealed class ValueCompletion
 {
     private readonly FetchResultStore _store;
-    private readonly FusionSchemaDefinition _schema;
-    private readonly IErrorHandler _errorHandler;
-    private readonly ErrorHandlingMode _errorHandlingMode;
-    private readonly bool _propagateNullValues;
     private readonly int _maxDepth;
+    private FusionSchemaDefinition _schema = default!;
+    private IErrorHandler _errorHandler = default!;
+    private ErrorHandlingMode _errorHandlingMode;
+    private bool _propagateNullValues;
     private IObjectTypeDefinition? _typeMemoA;
     private IObjectTypeDefinition? _typeMemoB;
 
-    public ValueCompletion(
-        FetchResultStore store,
+    public ValueCompletion(FetchResultStore store, int maxDepth)
+    {
+        ArgumentNullException.ThrowIfNull(store);
+
+        _store = store;
+        _maxDepth = maxDepth;
+    }
+
+    /// <summary>
+    /// Prepares the value completion for a request or subscription event
+    /// that completes values against <paramref name="schema"/>.
+    /// </summary>
+    public void Initialize(
         FusionSchemaDefinition schema,
         IErrorHandler errorHandler,
-        ErrorHandlingMode errorHandlingMode,
-        int maxDepth)
+        ErrorHandlingMode errorHandlingMode)
     {
         ArgumentNullException.ThrowIfNull(schema);
 
-        _store = store;
         _schema = schema;
         _errorHandler = errorHandler;
         _errorHandlingMode = errorHandlingMode;
         _propagateNullValues = errorHandlingMode is not ErrorHandlingMode.Null;
-        _maxDepth = maxDepth;
+        _typeMemoA = null;
+        _typeMemoB = null;
+    }
+
+    /// <summary>
+    /// Releases the request state so that the value completion can be initialized again.
+    /// </summary>
+    public void Clean()
+    {
+        _schema = default!;
+        _errorHandler = default!;
+        _errorHandlingMode = default;
+        _propagateNullValues = false;
+        _typeMemoA = null;
+        _typeMemoB = null;
     }
 
     /// <summary>

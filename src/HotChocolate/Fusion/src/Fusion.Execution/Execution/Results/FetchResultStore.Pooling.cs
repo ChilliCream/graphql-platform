@@ -46,19 +46,16 @@ internal sealed partial class FetchResultStore
             deferFlags,
             _pathPool);
 
-        _valueCompletion = new ValueCompletion(
-            this,
-            _schema,
-            _errorHandler,
-            _errorHandlingMode,
-            maxDepth: 32);
+        _valueCompletion.Initialize(_schema, _errorHandler, _errorHandlingMode);
 
         _memory.Push(_result);
     }
 
     /// <summary>
     /// Resets the store for the next subscription event onto <paramref name="arena"/>.
-    /// This rebuilds the pending result document and clears accumulated errors.
+    /// This rebuilds the pending result document, clears accumulated errors and invalidates
+    /// the variable value sets created for the previous event, while the variable value sets
+    /// created before the first event stay valid until the store is cleaned.
     /// </summary>
     public void Reset(IMemoryArena arena)
     {
@@ -79,6 +76,9 @@ internal sealed partial class FetchResultStore
             pending.Dispose();
         }
 
+        // the variable value sets of the previous event are no longer referenced
+        RecycleEventVariableValueArrays();
+
         // the variable and leaf key writers move to the new arena on their next use
         _variableWriter.Release();
         _variableWriterHasArena = false;
@@ -96,12 +96,7 @@ internal sealed partial class FetchResultStore
         _errors?.Clear();
         _pocketedErrors?.Clear();
 
-        _valueCompletion = new ValueCompletion(
-            this,
-            _schema,
-            _errorHandler,
-            _errorHandlingMode,
-            maxDepth: 32);
+        _valueCompletion.Initialize(_schema, _errorHandler, _errorHandlingMode);
 
         // The arena is a disposable instance whose lifetime travels with the result it backs.
         _memory.Push((IDisposable)arena);
@@ -144,6 +139,9 @@ internal sealed partial class FetchResultStore
         // free this request's path segment arrays for the next request
         _pathPool?.Reset();
 
+        // free this request's variable value set arrays for the next request
+        RecycleRequestVariableValueArrays();
+
         // clear errors
         _errors?.Clear();
         _pocketedErrors?.Clear();
@@ -164,9 +162,22 @@ internal sealed partial class FetchResultStore
         // clear collect target arrays to unroot CompositeResultDocument references;
         // if they grew too large during a burst, swap them for smaller ones.
         TrimOrClearBuffer(ref _collectTargetA, maxCollectTargetRetainLength);
-        TrimOrClearBuffer(ref _collectTargetB, maxCollectTargetRetainLength);
         TrimOrClearBuffer(ref _collectTargetCombined, maxCollectTargetRetainLength);
         TrimOrClearBuffer(ref _collectProducerCombined, maxCollectTargetRetainLength);
+
+        // forget the kept target cursors to unroot the result document and the plan;
+        // drop the cursor buffers if a wide result made them grow.
+        _collectMemoNodes.AsSpan(0, _collectMemoNodeCount).Clear();
+        _collectMemoNodeCount = 0;
+        _collectMemoCursorCount = 0;
+        _collectMemoDocument = null;
+        TrimCursorBuffer(ref _collectCursorsA, maxCollectTargetRetainLength);
+        TrimCursorBuffer(ref _collectCursorsB, maxCollectTargetRetainLength);
+
+        if (_collectMemoCursors.Length > maxCollectTargetRetainLength * 4)
+        {
+            ReturnPooled(ref _collectMemoCursors);
+        }
 
         // clear the entity reuse buffers to unroot the result document and the plan;
         // drop them if a wide lookup made them grow.
@@ -193,7 +204,7 @@ internal sealed partial class FetchResultStore
 
         // null out per-request references
         _result = default!;
-        _valueCompletion = default!;
+        _valueCompletion.Clean();
         _schema = default!;
         _errorHandler = default!;
         _operation = default!;
@@ -212,6 +223,15 @@ internal sealed partial class FetchResultStore
         else
         {
             buffer.AsSpan().Clear();
+        }
+    }
+
+    private static void TrimCursorBuffer(ref int[] buffer, int maxRetainLength)
+    {
+        if (buffer.Length > maxRetainLength)
+        {
+            ArrayPool<int>.Shared.Return(buffer);
+            buffer = ArrayPool<int>.Shared.Rent(64);
         }
     }
 
