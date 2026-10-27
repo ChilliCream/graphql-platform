@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Buffers;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using HotChocolate.Text.Json;
 using HotChocolate.Types;
 using static HotChocolate.Execution.Processing.ValueCompletion;
@@ -168,7 +169,9 @@ internal static class ResolverTaskFactory
         Debug.Assert(resultValue.Type?.NamedType()?.IsAssignableFrom(selectionSetType) ?? false);
 
         var operationContext = context.OperationContext;
-        var parentDeferUsage = context.ResolverContext.DeferUsage;
+        var resolverContext = context.ResolverContext;
+        var groupScope = context.GroupScope;
+        var parentDeferUsage = resolverContext.DeferUsage;
 
         resultValue.SetObjectValue(selectionSet);
 
@@ -179,7 +182,7 @@ internal static class ResolverTaskFactory
             var branches = ImmutableDictionary<DeferUsage, int>.Empty;
             Path? currentPath = null;
 
-            var parentBranchId = context.ParentBranchId;
+            var parentBranchId = resolverContext.BranchId;
 
             foreach (var field in resultValue.EnumerateObject())
             {
@@ -212,14 +215,14 @@ internal static class ResolverTaskFactory
                                     selectionSet,
                                     currentPath,
                                     parent,
-                                    context.ResolverContext.ScopedContextData,
-                                    context.GroupScope,
+                                    resolverContext.ScopedContextData,
+                                    groupScope,
                                     branchId,
                                     deferUsage));
                         }
                     }
                 }
-                else if (IsInline(context, selection))
+                else if (IsInline(selection, groupScope))
                 {
                     ResolveAndCompleteInline(
                         context,
@@ -234,19 +237,27 @@ internal static class ResolverTaskFactory
                         selection,
                         parent,
                         field.Value,
-                        context.ResolverContext.ScopedContextData,
-                        context.ParentBranchId,
+                        resolverContext.ScopedContextData,
+                        parentBranchId,
                         parentDeferUsage);
                 }
                 else
                 {
-                    context.Tasks.Add(
-                        CreateChildTask(
-                            context,
+                    var task =
+                        operationContext.CreateResolverTask(
                             parent,
                             selection,
                             field.Value,
-                            parentDeferUsage));
+                            resolverContext.ScopedContextData,
+                            parentBranchId,
+                            parentDeferUsage);
+
+                    if (groupScope is not null)
+                    {
+                        task.JoinExecutionGroup(groupScope);
+                    }
+
+                    context.Tasks.Add(task);
                 }
             }
         }
@@ -256,7 +267,7 @@ internal static class ResolverTaskFactory
             {
                 var selection = field.AssertSelection();
 
-                if (IsInline(context, selection))
+                if (IsInline(selection, groupScope))
                 {
                     ResolveAndCompleteInline(
                         context,
@@ -271,47 +282,34 @@ internal static class ResolverTaskFactory
                         selection,
                         parent,
                         field.Value,
-                        context.ResolverContext.ScopedContextData,
-                        context.ParentBranchId);
+                        resolverContext.ScopedContextData,
+                        resolverContext.BranchId);
                 }
                 else
                 {
-                    context.Tasks.Add(
-                        CreateChildTask(
-                            context,
+                    var task =
+                        operationContext.CreateResolverTask(
                             parent,
                             selection,
                             field.Value,
-                            deferUsage: null));
+                            resolverContext.ScopedContextData,
+                            resolverContext.BranchId);
+
+                    if (groupScope is not null)
+                    {
+                        task.JoinExecutionGroup(groupScope);
+                    }
+
+                    context.Tasks.Add(task);
                 }
             }
         }
     }
 
-    private static bool IsInline(ValueCompletionContext context, Selection selection)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsInline(Selection selection, ExecutionGroupScope? groupScope)
         => selection.Strategy is SelectionExecutionStrategy.Pure
-            && (context.GroupScope is null || !context.GroupScope.IsMember(selection));
-
-    private static ResolverTask CreateChildTask(
-        ValueCompletionContext context,
-        object parent,
-        Selection selection,
-        ResultElement resultValue,
-        DeferUsage? deferUsage)
-    {
-        var task =
-            context.OperationContext.CreateResolverTask(
-                parent,
-                selection,
-                resultValue,
-                context.ResolverContext.ScopedContextData,
-                context.ParentBranchId,
-                deferUsage);
-
-        task.JoinExecutionGroup(context.GroupScope);
-
-        return task;
-    }
+            && (groupScope is null || !groupScope.IsMember(selection));
 
     private static void ResolveAndCompleteInline(
         ValueCompletionContext context,
@@ -348,7 +346,11 @@ internal static class ResolverTaskFactory
         {
             // If we run into this exception the request was aborted.
             // In this case we do nothing and just return.
-            ReleaseWhenNoChildTasks(context, groupScope, selection, taskCount);
+            if (groupScope is not null)
+            {
+                ReleaseWhenNoChildTasks(context.Tasks, groupScope, selection, taskCount);
+            }
+
             return;
         }
         catch (Exception ex)
@@ -369,7 +371,11 @@ internal static class ResolverTaskFactory
         {
             // If we run into this exception the request was aborted.
             // In this case we do nothing and just return.
-            ReleaseWhenNoChildTasks(context, groupScope, selection, taskCount);
+            if (groupScope is not null)
+            {
+                ReleaseWhenNoChildTasks(context.Tasks, groupScope, selection, taskCount);
+            }
+
             return;
         }
         catch (Exception ex)
@@ -377,7 +383,10 @@ internal static class ResolverTaskFactory
             operationContext.ReportError(ex, resolverContext, fieldValue.Path);
         }
 
-        ReleaseWhenNoChildTasks(context, groupScope, selection, taskCount);
+        if (groupScope is not null)
+        {
+            ReleaseWhenNoChildTasks(context.Tasks, groupScope, selection, taskCount);
+        }
 
         if (fieldValue is { IsNullable: false, IsNullOrInvalidated: true })
         {
@@ -395,12 +404,12 @@ internal static class ResolverTaskFactory
     }
 
     private static void ReleaseWhenNoChildTasks(
-        ValueCompletionContext context,
-        ExecutionGroupScope? groupScope,
+        List<IExecutionTask> tasks,
+        ExecutionGroupScope groupScope,
         Selection selection,
         int taskCount)
     {
-        if (groupScope is not null && context.Tasks.Count == taskCount)
+        if (tasks.Count == taskCount)
         {
             // without child tasks nothing below this selection can ever start, so its members are skipped.
             groupScope.ReleaseSlotsBelow(selection);

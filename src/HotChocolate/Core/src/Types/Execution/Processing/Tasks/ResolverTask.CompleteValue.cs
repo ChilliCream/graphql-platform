@@ -24,7 +24,6 @@ internal sealed partial class ResolverTask
                         _operationContext,
                         _context,
                         _taskBuffer,
-                        BranchId,
                         _groupSlot < 0 ? _groupScope : null);
                 Complete(completionContext, _selection, resultValue, result);
             }

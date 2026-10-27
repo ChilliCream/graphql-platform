@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using HotChocolate.Text.Json;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -29,33 +30,9 @@ internal static partial class ValueCompletion
                 runtimeValue = converted;
             }
 
-            if (selection.IsExecutionGroupRoot)
+            if (selectionSet.ExecutionGroupPlan is not null)
             {
-                var plan = selectionSet.ExecutionGroupPlan!;
-                var scope = operationContext.Scheduler.OpenExecutionGroupScope(
-                    plan,
-                    operationContext.IncludeConditionFlags);
-
-                try
-                {
-                    EnqueueOrInlineResolverTasks(
-                        new ValueCompletionContext(
-                            operationContext,
-                            context.ResolverContext,
-                            context.Tasks,
-                            context.ParentBranchId,
-                            scope),
-                        selectionSet,
-                        objectType,
-                        resultValue,
-                        runtimeValue);
-                }
-                catch
-                {
-                    scope?.Abandon();
-                    throw;
-                }
-
+                EnqueueExecutionGroupRoot(context, selectionSet, objectType, resultValue, runtimeValue);
                 return;
             }
 
@@ -70,6 +47,39 @@ internal static partial class ValueCompletion
 
         var error = ValueCompletion_CouldNotResolveAbstractType(selection, resultValue.Path, runtimeValue);
         operationContext.ReportError(error, context.ResolverContext);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void EnqueueExecutionGroupRoot(
+        ValueCompletionContext context,
+        SelectionSet selectionSet,
+        ObjectType objectType,
+        ResultElement resultValue,
+        object runtimeValue)
+    {
+        var operationContext = context.OperationContext;
+        var scope = operationContext.Scheduler.OpenExecutionGroupScope(
+            selectionSet.ExecutionGroupPlan!,
+            operationContext.IncludeConditionFlags);
+
+        try
+        {
+            EnqueueOrInlineResolverTasks(
+                new ValueCompletionContext(
+                    operationContext,
+                    context.ResolverContext,
+                    context.Tasks,
+                    scope),
+                selectionSet,
+                objectType,
+                resultValue,
+                runtimeValue);
+        }
+        catch
+        {
+            scope?.Abandon();
+            throw;
+        }
     }
 
     private static bool TryResolveObjectType(
