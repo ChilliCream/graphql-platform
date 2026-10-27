@@ -160,8 +160,6 @@ public sealed class NatsConsumer : TopologyResource<NatsConsumerConfiguration>, 
     /// Binds this consumer to the stream that captures its filter subjects.
     /// </summary>
     /// <param name="streamName">The resolved stream name.</param>
-    // Called during start-up once the owning stream has been resolved, which may be a stream this
-    // service neither declares nor owns.
     public void BindToStream(string streamName)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(streamName);

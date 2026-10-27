@@ -53,8 +53,7 @@ public sealed class NatsTransportConfiguration : MessagingTransportConfiguration
     /// </summary>
     /// <remarks>
     /// Enabling this turns on per-message TTL and message schedules on the stream, and captures an
-    /// extra scheduling subject alongside each subject. The scheduling subject is required because
-    /// the server refuses a schedule whose target subject is the one it was published to.
+    /// extra scheduling subject alongside each subject.
     /// </remarks>
     public bool EnableScheduling { get; set; }
 
@@ -63,8 +62,7 @@ public sealed class NatsTransportConfiguration : MessagingTransportConfiguration
     /// </summary>
     /// <remarks>
     /// Off by default. The stream discards a repeated identifier within its deduplication window
-    /// without reporting an error, which suppresses a deliberate republish of the same message as
-    /// well as an accidental one.
+    /// without reporting an error, including a deliberate republish of the same message.
     /// </remarks>
     public bool EnablePublishDeduplication { get; set; }
 

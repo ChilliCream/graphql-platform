@@ -5,8 +5,6 @@ namespace Mocha.Transport.Nats;
 /// <summary>
 /// Supplies the NATS connection the transport publishes and consumes over.
 /// </summary>
-// There is no connection manager with retry and backoff, as the RabbitMQ transport has: NATS.Net
-// owns reconnection internally, so the transport only needs the connection itself.
 public interface INatsConnectionProvider
 {
     /// <summary>
@@ -65,8 +63,6 @@ public sealed class NatsConnectionProvider : INatsConnectionProvider
     /// </summary>
     /// <param name="url">The connection string, which may list several comma-separated servers.</param>
     /// <returns>The host and port of the first entry.</returns>
-    // Only the first server is used: the transport base address has to be a single stable value that
-    // endpoint addresses are built from.
     public static (string Host, int Port) ParseFirstServer(string url)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(url);

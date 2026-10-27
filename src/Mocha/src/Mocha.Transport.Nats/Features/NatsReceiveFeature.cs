@@ -5,11 +5,8 @@ using NATS.Client.JetStream;
 namespace Mocha.Transport.Nats.Features;
 
 /// <summary>
-/// Carries the message being processed through the receive pipeline, so that the parsing and
-/// acknowledgement middlewares can reach it.
+/// Carries the message being processed to the parsing and acknowledgement middlewares.
 /// </summary>
-// The payload is exposed separately from Message because reply endpoints receive over core NATS,
-// where there is no JetStream message and nothing to acknowledge.
 public sealed class NatsReceiveFeature : IPooledFeature
 {
     /// <summary>

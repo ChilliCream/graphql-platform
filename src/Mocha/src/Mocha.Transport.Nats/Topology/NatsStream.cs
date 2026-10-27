@@ -117,8 +117,7 @@ public sealed class NatsStream : TopologyResource<NatsStreamConfiguration>, INat
 
         AutoProvision ??= configuration.AutoProvision;
 
-        // Only ever turned on: a stream that has to hold scheduled or expiring messages for one
-        // caller must keep doing so for the other.
+        // Only ever turned on.
         if (configuration.AllowMsgTtl == true)
         {
             AllowMsgTtl = true;
@@ -145,14 +144,10 @@ public sealed class NatsStream : TopologyResource<NatsStreamConfiguration>, INat
 
     /// <summary>
     /// Rebases this stream on the configuration the server already holds, adding its own subjects to
-    /// it rather than replacing anything.
+    /// the existing ones and keeping the existing settings.
     /// </summary>
     /// <param name="context">The JetStream context used to query the server.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <remarks>
-    /// Keeps the subjects and settings the owning service chose, since an update sends the whole
-    /// configuration. Convention streams only; a declaration stays authoritative.
-    /// </remarks>
     private async ValueTask AdoptExistingConfigurationAsync(
         INatsJSContext context,
         CancellationToken cancellationToken)
@@ -173,7 +168,7 @@ public sealed class NatsStream : TopologyResource<NatsStreamConfiguration>, INat
 
         adopted.Subjects = [.. subjects];
 
-        // Only ever turned on, never off: a peer bound to this stream may depend on them.
+        // Only ever turned on.
         adopted.AllowMsgTTL = adopted.AllowMsgTTL || AllowMsgTtl;
         adopted.AllowMsgSchedules = adopted.AllowMsgSchedules || AllowMsgSchedules;
 

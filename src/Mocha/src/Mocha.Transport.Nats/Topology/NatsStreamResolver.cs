@@ -5,9 +5,6 @@ namespace Mocha.Transport.Nats;
 /// <summary>
 /// Binds each durable consumer and published subject to the stream that captures it.
 /// </summary>
-// A JetStream consumer has to be created on the stream capturing its subject, and that stream may
-// belong to another service. Resolving it here is what lets a subscriber declare what it consumes
-// rather than where it lives.
 internal static class NatsStreamResolver
 {
     /// <summary>
@@ -41,11 +38,6 @@ internal static class NatsStreamResolver
     /// <param name="jetStream">The JetStream context used to query the server.</param>
     /// <param name="topology">The topology whose subjects are checked.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <remarks>
-    /// Checked at start-up because a JetStream publish to an uncaptured subject does not fail
-    /// immediately: it waits for an acknowledgement that never arrives and surfaces as a timeout,
-    /// which is considerably harder to diagnose than a boot failure naming the subject.
-    /// </remarks>
     public static async ValueTask VerifySubjectsAsync(
         INatsJSContext jetStream,
         NatsMessagingTopology topology,
@@ -131,8 +123,7 @@ internal static class NatsStreamResolver
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The capturing stream's name, or <see langword="null"/>.</returns>
     /// <remarks>
-    /// A concrete subject belongs to at most one stream, because the server keeps stream subjects
-    /// disjoint.
+    /// A concrete subject belongs to at most one stream.
     /// </remarks>
     public static async ValueTask<string?> FindCapturingStreamAsync(
         INatsJSContext jetStream,
@@ -186,10 +177,7 @@ internal static class NatsStreamResolver
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The name of the capturing stream.</returns>
     /// <remarks>
-    /// Ambiguity is rejected rather than resolved by picking one, because which stream came back
-    /// first is not something the caller can predict or control. The server refuses to create streams
-    /// with overlapping subjects, so more than one match means the subject is a wildcard reaching
-    /// across stream boundaries.
+    /// More than one match means the subject is a wildcard reaching across stream boundaries.
     /// </remarks>
     private static async ValueTask<string> ResolveSingleStreamAsync(
         INatsJSContext jetStream,

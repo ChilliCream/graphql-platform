@@ -21,8 +21,7 @@ internal sealed class NatsMessageHeadersWriter
     /// </summary>
     /// <param name="envelope">The envelope to write.</param>
     /// <returns>A new <see cref="NatsHeaders"/> instance owned by the caller.</returns>
-    // A fresh instance per call: NATS.Net 3.0 no longer makes headers read-only after publishing, so
-    // sharing one across concurrent publishes is unsafe.
+    // NATS.Net 3.0 headers stay mutable after publishing, so an instance is never shared.
     public NatsHeaders Write(MessageEnvelope envelope)
     {
         var headers = new NatsHeaders();
@@ -78,10 +77,6 @@ internal sealed class NatsMessageHeadersWriter
     /// <exception cref="InvalidOperationException">
     /// The key contains a colon, whitespace or a control character.
     /// </exception>
-    /// <remarks>
-    /// Rejected rather than sanitized, because an illegal key desynchronises header framing for the
-    /// whole connection rather than for this message alone.
-    /// </remarks>
     private static string ValidateKey(string key)
     {
         foreach (var character in key)
@@ -100,8 +95,7 @@ internal sealed class NatsMessageHeadersWriter
     /// </summary>
     /// <param name="value">The value to sanitize.</param>
     /// <returns>The value with line breaks and control characters collapsed to spaces.</returns>
-    // The wire protocol is line-based, so a value containing CRLF is rejected. Mocha's fault
-    // middleware puts a multi-line stack trace in a header, which reaches here on every fault.
+    // The NATS wire protocol is line-based and rejects a header value containing CRLF.
     private static string Sanitize(string value)
     {
         var needsSanitizing = false;
@@ -134,17 +128,10 @@ internal sealed class NatsMessageHeadersWriter
         => value?.ToString("O", CultureInfo.InvariantCulture);
 
     /// <summary>
-    /// Formats a user-defined header value, preserving a multi-valued header as several values
-    /// rather than collapsing it into one.
+    /// Formats a user-defined header value, writing a multi-valued header as several values.
     /// </summary>
     /// <param name="value">The value to format.</param>
     /// <returns>The values to write under the header key.</returns>
-    /// <remarks>
-    /// A header parsed from an inbound message keeps its repeated values as an array, so an envelope
-    /// that is republished (forwarded, or dead-lettered to an error subject) passes one back through
-    /// here. Without this case the array would stringify to its type name and the values would be
-    /// lost.
-    /// </remarks>
     private static StringValues FormatValues(object value)
     {
         if (value is string text)

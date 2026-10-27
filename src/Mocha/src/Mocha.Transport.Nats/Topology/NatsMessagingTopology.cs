@@ -150,10 +150,6 @@ public sealed class NatsMessagingTopology(
     /// </summary>
     /// <param name="stream">The stream to remove.</param>
     /// <returns><see langword="true"/> when the stream was present.</returns>
-    /// <remarks>
-    /// Used when a convention stream turns out not to be this service's to create, so that the
-    /// subjects it would have claimed resolve to the stream that already owns them.
-    /// </remarks>
     public bool RemoveStream(NatsStream stream)
     {
         ArgumentNullException.ThrowIfNull(stream);

@@ -77,9 +77,6 @@ public sealed class NatsRoutingStrategy : RoutingStrategy<NatsMessagingTransport
                 IsTemporary = true,
                 Kind = ReceiveEndpointKind.Reply,
                 AutoProvision = true,
-
-                // Without this the response arrives on the inbox subscription but is never
-                // correlated back to the pending request, so the caller waits out its timeout.
                 ReceiveMiddlewares = [ReplyReceiveMiddleware.Create()]
             };
         }
@@ -128,10 +125,6 @@ public sealed class NatsRoutingStrategy : RoutingStrategy<NatsMessagingTransport
     /// <summary>
     /// Builds the address faults or skipped messages are forwarded to, scoped to this service.
     /// </summary>
-    // The name an endpoint derives from its handler already carries the service, but one the caller
-    // named does not, and an unscoped subject sits at the root of the subject space where every
-    // service naming an endpoint the same way claims it. Stream subjects have to be disjoint, so that
-    // is a start-up failure for whoever provisions second, or shared fault traffic if they do not.
     private Uri FaultAddress(
         IMessagingConfigurationContext context,
         string endpointName,
@@ -141,8 +134,7 @@ public sealed class NatsRoutingStrategy : RoutingStrategy<NatsMessagingTransport
 
         if (!name.Contains('.') && context.Host is { } host)
         {
-            // Through the naming conventions rather than formatted here, so the prefix matches the one
-            // a handler-derived endpoint name already carries.
+            // The same prefix a handler-derived endpoint name carries.
             var scope = context.Naming.GetReceiveEndpointName(
                 host.EffectiveServiceName,
                 ReceiveEndpointKind.Default);
@@ -184,15 +176,13 @@ public sealed class NatsRoutingStrategy : RoutingStrategy<NatsMessagingTransport
             return;
         }
 
-        // A filter subject derived from a route is the JetStream equivalent of a convention bind, so
-        // explicit binding suppresses it and the consumer reads only what Subject() named.
+        // Under explicit binding the consumer reads only the subjects Subject() named.
         if (ResolveBindMode(natsConfiguration) is MessagingBindMode.Implicit)
         {
             CollectFilterSubjects(context, endpoint, natsConfiguration);
         }
 
-        // A consumer can only read subjects its stream captures, so what an endpoint filters has to be
-        // captured too, including a subject no dispatch endpoint happens to produce.
+        // A consumer can only read subjects its stream captures.
         foreach (var subject in natsConfiguration.FilterSubjects)
         {
             Topology.AddSubject(new NatsSubjectConfiguration
@@ -211,8 +201,7 @@ public sealed class NatsRoutingStrategy : RoutingStrategy<NatsMessagingTransport
             EnsureNoPersistentConsumerConflict(natsConfiguration);
         }
 
-        // MaxConcurrency is deliberately not mapped onto MaxAckPending: one bounds this process, the
-        // other is the ceiling shared by every instance reading the durable.
+        // MaxConcurrency bounds this process; MaxAckPending is shared by every instance.
         Topology.AddConsumer(new NatsConsumerConfiguration
         {
             InactiveThreshold = natsConfiguration.IsTemporary
@@ -245,9 +234,7 @@ public sealed class NatsRoutingStrategy : RoutingStrategy<NatsMessagingTransport
 
         var isReply = endpoint.Kind is DispatchEndpointKind.Reply;
 
-        // Registered whatever the bind mode, because the endpoint resolves its destination from the
-        // subject. Under explicit binding it is the convention stream that stands down, so the subject
-        // exists without anything claiming it.
+        // Registered whatever the bind mode: the endpoint resolves its destination from the subject.
         Topology.AddSubject(new NatsSubjectConfiguration
         {
             Subject = subject,
@@ -304,13 +291,8 @@ public sealed class NatsRoutingStrategy : RoutingStrategy<NatsMessagingTransport
                 continue;
             }
 
-            // Deliberately independent of the route kind. The kind records how the handler was
-            // registered, not how a sender dispatches, so deriving the subject from it would filter
-            // the wrong one whenever an event handler is sent to, or a request handler published to.
-            //
-            // The route's own message type only. A handler bound to an interface gets that type's
-            // subject, which nothing publishes to, so such an endpoint has to name the concrete
-            // subjects with Subject(): message types are not completed until after this runs.
+            // Independent of the route kind, which records how the handler was registered. An
+            // interface-bound handler needs Subject(): message types are completed after this runs.
             var subject = NatsDestinations.ResolveConvention(
                 context.Naming,
                 OutboundRouteKind.Publish,

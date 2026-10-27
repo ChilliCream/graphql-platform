@@ -4,8 +4,7 @@ namespace Mocha.Transport.Nats;
 /// Represents a subject a dispatch endpoint publishes to.
 /// </summary>
 /// <remarks>
-/// Subjects are not provisioned in their own right; they exist because a stream's subject filter
-/// captures them, which is why this resource does not implement <see cref="INatsResource"/>.
+/// Subjects are not provisioned in their own right: a stream's subject filter captures them.
 /// </remarks>
 public sealed class NatsSubject : TopologyResource<NatsSubjectConfiguration>
 {

@@ -222,8 +222,6 @@ internal sealed class NatsReceiveEndpointDescriptor
             throw ThrowHelper.EndpointAddressNotAbsolute(nameof(address));
         }
 
-        // Rejected here rather than at start-up: an address the transport cannot turn into a subject
-        // would otherwise be dropped silently and faulted messages would go nowhere.
         if (!NatsDestinations.TryResolveExplicit(NatsTransportConfiguration.DefaultSchema, address, out _))
         {
             throw ThrowHelper.EndpointAddressNotASubject(address, nameof(address));

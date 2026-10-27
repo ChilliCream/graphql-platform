@@ -19,10 +19,6 @@ public interface INatsConsumerTopologyDescriptor : IMessagingDescriptor<NatsCons
     /// </summary>
     /// <param name="streamName">The stream name.</param>
     /// <returns>The descriptor for method chaining.</returns>
-    /// <remarks>
-    /// Declaring the stream also makes start-up order irrelevant, because whichever service starts
-    /// first provisions it.
-    /// </remarks>
     INatsConsumerTopologyDescriptor FromStream(string streamName);
 
     /// <summary>
@@ -45,8 +41,7 @@ public interface INatsConsumerTopologyDescriptor : IMessagingDescriptor<NatsCons
     /// <param name="maxDeliver">The maximum number of delivery attempts.</param>
     /// <returns>The descriptor for method chaining.</returns>
     /// <remarks>
-    /// Mocha owns the retry decision, so this should sit above Mocha's own retry policy and act as
-    /// a safety net rather than the primary limit.
+    /// A ceiling above Mocha's own retry policy, which makes the retry decision.
     /// </remarks>
     INatsConsumerTopologyDescriptor MaxDeliver(long maxDeliver);
 
@@ -64,9 +59,7 @@ public interface INatsConsumerTopologyDescriptor : IMessagingDescriptor<NatsCons
     /// <param name="interval">The reporting interval, typically a fraction of the acknowledgement deadline.</param>
     /// <returns>The descriptor for method chaining.</returns>
     /// <remarks>
-    /// Off by default because it costs a background task per in-flight message. Enable it for
-    /// handlers that can legitimately run longer than the acknowledgement deadline, which would
-    /// otherwise be redelivered while still being processed.
+    /// Off by default. When on, each in-flight message runs a background task.
     /// </remarks>
     INatsConsumerTopologyDescriptor AckProgressEvery(TimeSpan interval);
 

@@ -26,8 +26,6 @@ public static class MessageBusBuilderExtensions
 
         busBuilder.ConfigureMessageBus(b => b.AddTransport(transport));
 
-        // JetStream holds a scheduled message itself, so the store publishes immediately with the
-        // schedule headers rather than persisting anything of its own.
         busBuilder.Services.AddSingleton(
             new ScheduledMessageStoreRegistration(
                 transport,

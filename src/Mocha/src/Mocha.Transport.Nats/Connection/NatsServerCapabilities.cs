@@ -38,8 +38,6 @@ public sealed partial class NatsServerCapabilities
     /// <returns>
     /// The capabilities. An unparsable or absent version reports every feature as supported.
     /// </returns>
-    // Assuming capable means a server reporting an unfamiliar version string fails on the real
-    // JetStream call with the server's own error, rather than being pre-emptively rejected here.
     public static NatsServerCapabilities FromServerVersion(string? serverVersion)
     {
         if (string.IsNullOrWhiteSpace(serverVersion))

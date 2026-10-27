@@ -74,7 +74,7 @@ Supply your own provider when the connection is not resolvable from dependency i
     new NatsConnectionProvider(services.GetRequiredKeyedService<INatsConnection>("primary"))))
 ```
 
-Only the first server in a multi-server connection string is used for endpoint addresses, because the transport base address has to be a single stable value.
+Only the first server in a multi-server connection string is used for endpoint addresses.
 
 ## Verify it works
 
@@ -205,7 +205,7 @@ Whatever an endpoint filters is also captured by a stream, so no stream declarat
 
 A JetStream consumer must be created on the stream that captures its subject, and that stream may belong to another service entirely.
 
-The transport resolves this at start-up by asking the server which stream captures each subscribed subject, so an endpoint declares what it consumes rather than where it lives. Resolution fails at start-up when:
+The transport resolves this at start-up by asking the server which stream captures each subscribed subject. Resolution fails at start-up when:
 
 - No stream captures the subject, because the publishing service has not been deployed or its stream was never provisioned.
 - Several streams capture it, so the choice would be arbitrary.
@@ -395,7 +395,7 @@ To opt into the broker's own deduplication:
     .EnablePublishDeduplication())
 ```
 
-That sends a `Nats-Msg-Id` with every publish, qualified by destination subject. The qualification is required because deduplication is scoped to the stream rather than the subject: without it, republishing a message inside the same stream, which is what dead-lettering does, is discarded as a duplicate.
+That sends a `Nats-Msg-Id` with every publish, qualified by destination subject, so a message republished to another subject in the same stream (as dead-lettering does) is not discarded as a duplicate.
 
 The window comes from the stream, and it cannot be turned off from the client once the header is being sent: a zero `DuplicateWindow` is omitted from the request and the server applies its own default.
 
@@ -426,7 +426,7 @@ JetStream holds scheduled messages itself, so the transport does not run a sched
 .AddNats(nats => nats.StreamName("order-service").EnableScheduling());
 ```
 
-Enabling scheduling turns on per-message TTL and message schedules on the stream, and captures a scheduling namespace alongside each subject. A separate subject is required because the server refuses a schedule whose target is the subject it was published to.
+Enabling scheduling turns on per-message TTL and message schedules on the stream, and captures a scheduling namespace alongside each subject.
 
 Each scheduled message gets its own subject inside that namespace, so the stream captures it as a filter such as `contracts.orders.order-created._schedule.>`. A subject holds at most one schedule, so messages sharing a scheduling subject would replace one another and only the last would ever be delivered.
 

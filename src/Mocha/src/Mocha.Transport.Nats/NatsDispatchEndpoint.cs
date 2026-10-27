@@ -44,8 +44,7 @@ public sealed class NatsDispatchEndpoint(NatsMessagingTransport transport)
 
         Destination = Subject;
 
-        // Not Subject.Address: the stream a subject belongs to is only bound later during start-up,
-        // so taking it here would freeze a placeholder into the endpoint address.
+        // Not Subject.Address, which holds a placeholder stream until start-up binds the subject.
         Address = new Uri($"{Transport.Schema}:{NatsAddress.SubjectSegment}/{configuration.Subject}");
     }
 
@@ -149,9 +148,7 @@ public sealed class NatsDispatchEndpoint(NatsMessagingTransport transport)
         NatsHeaders headers,
         CancellationToken cancellationToken)
     {
-        // Qualified by subject because deduplication is stream-scoped: dead-lettering republishes the
-        // same envelope to another subject in the same stream, which an unqualified identifier would
-        // discard as a duplicate.
+        // Qualified by subject, because JetStream deduplicates per stream rather than per subject.
         if (transport.PublishDeduplicationEnabled && envelope.MessageId is { Length: > 0 } messageId)
         {
             headers[NatsMessageHeaders.DeduplicationKey] = $"{subject}:{messageId}";
@@ -174,9 +171,7 @@ public sealed class NatsDispatchEndpoint(NatsMessagingTransport transport)
             throw ThrowHelper.PublishFailed(subject, exception);
         }
 
-        // Not IsSuccess(), which also reports duplicates as failures. A duplicate means the stream
-        // already holds this message id inside its deduplication window, so the publish achieved
-        // what it set out to; treating it as an error would make retrying a publish throw.
+        // Not IsSuccess(), which also reports a duplicate as a failure.
         if (ack.Error is { } error)
         {
             throw ThrowHelper.PublishRejected(

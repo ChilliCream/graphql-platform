@@ -6,8 +6,6 @@ namespace Mocha.Transport.Nats;
 /// <summary>
 /// Resolves outbound routes to the subject they publish to.
 /// </summary>
-// NATS has a single destination kind, so this collapses the exchange and queue distinction the
-// RabbitMQ transport has to make into one subject.
 internal static class NatsDestinations
 {
     /// <summary>
@@ -37,8 +35,6 @@ internal static class NatsDestinations
     /// <param name="kind">The outbound route kind.</param>
     /// <param name="messageType">The message type.</param>
     /// <returns>The subject to publish to.</returns>
-    // Converging on the publish name rather than the send name, because the send name is a single
-    // bare token and would put every message type in one flat global namespace.
     public static string ResolveConvention(
         IBusNamingConventions naming,
         OutboundRouteKind kind,
@@ -71,8 +67,7 @@ internal static class NatsDestinations
 
         var path = destination.AbsolutePath.AsSpan();
 
-        // One slot spare, so a path with more segments than expected is rejected rather than having
-        // the remainder folded into the last range.
+        // Split folds any extra segments into the last range, so one spare slot detects them.
         Span<Range> ranges = stackalloc Range[3];
         var segmentCount = path.Split(ranges, '/', RemoveEmptyEntries | TrimEntries);
 

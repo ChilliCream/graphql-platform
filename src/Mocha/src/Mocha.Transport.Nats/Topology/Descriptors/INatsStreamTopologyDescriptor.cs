@@ -63,9 +63,8 @@ public interface INatsStreamTopologyDescriptor : IMessagingDescriptor<NatsStream
     /// <param name="window">The deduplication window.</param>
     /// <returns>The descriptor for method chaining.</returns>
     /// <remarks>
-    /// The window has no effect unless publishes carry the header the server deduplicates on, which
-    /// they do only under <c>EnablePublishDeduplication</c>. Leaving the window unset makes the
-    /// server apply its own default rather than disabling it.
+    /// Has no effect unless <c>EnablePublishDeduplication</c> is on. When unset, the server applies
+    /// its own default window.
     /// </remarks>
     INatsStreamTopologyDescriptor DeduplicateWithin(TimeSpan window);
 

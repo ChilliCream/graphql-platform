@@ -8,9 +8,7 @@ namespace Mocha.Transport.Nats;
 /// <summary>
 /// Hands scheduled messages to JetStream rather than storing them.
 /// </summary>
-// JetStream holds the message itself, so this publishes straight away with the schedule headers and
-// lets the server release it when due. A store is still registered because the dispatch pipeline
-// refuses a scheduled send for a transport without one.
+// Registered because the dispatch pipeline refuses a scheduled send for a transport without a store.
 internal sealed class NatsScheduledMessageStore(NatsMessagingTransport transport) : IScheduledMessageStore
 {
     /// <summary>
@@ -43,8 +41,7 @@ internal sealed class NatsScheduledMessageStore(NatsMessagingTransport transport
             throw ThrowHelper.ScheduledTimeNotSet();
         }
 
-        // The subject is the handle: it holds exactly this one scheduled message, so removing it
-        // cancels that message and nothing else.
+        // The scheduling subject holds only this message, so it is the cancellation handle.
         var subject = await endpoint.DispatchScheduledAsync(context, cancellationToken);
 
         return TokenPrefix + subject;
@@ -53,8 +50,7 @@ internal sealed class NatsScheduledMessageStore(NatsMessagingTransport transport
     /// <inheritdoc />
     /// <remarks>
     /// Removes the message still waiting on its scheduling subject. Returns <see langword="false"/>
-    /// once it has been released to its target, because at that point there is no schedule left to
-    /// withdraw.
+    /// once it has been released to its target.
     /// </remarks>
     public async ValueTask<bool> CancelAsync(string token, CancellationToken cancellationToken)
     {
@@ -97,8 +93,7 @@ internal sealed class NatsScheduledMessageStore(NatsMessagingTransport transport
         }
     }
 
-    // The first match is the only match: the server keeps stream subjects disjoint, so a concrete
-    // subject belongs to exactly one stream. Wildcards are rejected before reaching here.
+    // Stream subjects are disjoint, so a concrete subject has at most one match.
     private async ValueTask<string?> ResolveStreamAsync(
         string subject,
         CancellationToken cancellationToken)

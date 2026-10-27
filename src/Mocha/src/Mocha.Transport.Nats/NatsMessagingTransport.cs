@@ -218,9 +218,7 @@ public sealed class NatsMessagingTransport : MessagingTransport
     /// </summary>
     /// <param name="context">The configuration context for the current start-up phase.</param>
     /// <param name="cancellationToken">A token to cancel start-up.</param>
-    // The ordering is load-bearing. A JetStream publish to a subject no stream captures fails with
-    // no-responders rather than silently succeeding the way RabbitMQ does, and consumers can only be
-    // created once their stream exists.
+    // The order matters: a consumer can only be created once its stream exists.
     protected override async ValueTask OnBeforeStartAsync(
         IMessagingConfigurationContext context,
         CancellationToken cancellationToken)
@@ -244,14 +242,9 @@ public sealed class NatsMessagingTransport : MessagingTransport
     /// Creates a stream for the subjects this service publishes that nothing else already captures.
     /// </summary>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    // Stream subjects must be disjoint, so a service claims only what nothing else has claimed and
-    // binds to the owning stream for the rest. Deferred to start-up because whether a subject is
-    // already captured is a question only the server can answer.
     private async ValueTask EnsureConventionStreamAsync(CancellationToken cancellationToken)
     {
-        // Under explicit binding the caller owns the topology, so nothing is claimed on their behalf.
-        // Subjects are still registered, because the endpoints resolve their destinations from them,
-        // but the stream capturing them has to be declared or already exist on the server.
+        // Under explicit binding the stream capturing the subjects is declared or already exists.
         if (BindMode is not MessagingBindMode.Implicit)
         {
             return;
@@ -269,16 +262,13 @@ public sealed class NatsMessagingTransport : MessagingTransport
                 continue;
             }
 
-            // A stream declared on this bus is authoritative, so no round trip is needed for it.
             if (_topology.FindStreamForSubject(subject.Subject) is not null)
             {
                 continue;
             }
 
-            // Only a peer's claim counts. A subject this service's own stream already captures still
-            // has to be listed, because provisioning replaces that stream's whole subject list: leaving
-            // it out deletes it from the server, and the next start-up puts it back, so a stream shared
-            // with a declaration loses and regains subjects on alternate boots.
+            // A subject this service's own stream captures stays listed: provisioning replaces the
+            // stream's whole subject list.
             var owner = await NatsStreamResolver.FindCapturingStreamAsync(
                 JetStream,
                 subject.Subject,
@@ -299,8 +289,7 @@ public sealed class NatsMessagingTransport : MessagingTransport
 
         if (SchedulingEnabled)
         {
-            // A filter, since each scheduled message gets its own subject in the namespace. Wildcards
-            // are skipped: a token after '>' is rejected, and the filters covering them already apply.
+            // Wildcards are skipped, because the server rejects a token after '>'.
             unclaimed.AddRange([
                 .. unclaimed
                     .Where(static subject => !SubjectMatcher.IsWildcard(subject))
@@ -312,8 +301,7 @@ public sealed class NatsMessagingTransport : MessagingTransport
         {
             Name = streamName,
 
-            // Collapsed because an endpoint may filter a wildcard that covers subjects derived from
-            // message types, and the server rejects a stream holding both.
+            // The server rejects a stream holding a wildcard together with subjects it covers.
             Subjects = SubjectMatcher.Collapse(unclaimed),
             AllowMsgTtl = SchedulingEnabled,
             AllowMsgSchedules = SchedulingEnabled,
@@ -362,9 +350,7 @@ public sealed class NatsMessagingTransport : MessagingTransport
             catch (NatsJSApiException exception)
                 when (stream.Origin is TopologyOrigin.Convention && IsSubjectOverlap(exception))
             {
-                // Another service claimed these subjects between the check and the create, so they
-                // resolve to the stream that won. Convention streams only: discarding a declared one
-                // would defer a configuration error to a much later publish failure.
+                // Another service claimed these subjects between the check and the create.
                 _logger.YieldedConventionStream(stream.Name, exception.Error.Description);
 
                 _topology.RemoveStream(stream);
@@ -471,8 +457,7 @@ public sealed class NatsMessagingTransport : MessagingTransport
                     {
                         ["subjects"] = string.Join(", ", stream.Subjects),
 
-                        // Zero means the server's default applies rather than deduplication being
-                        // off, so reporting the number would misdescribe the stream.
+                        // Zero means the server's default window applies.
                         ["duplicateWindow"] = stream.DuplicateWindow == TimeSpan.Zero
                             ? "server default"
                             : stream.DuplicateWindow.ToString(),

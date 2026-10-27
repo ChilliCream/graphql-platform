@@ -17,9 +17,7 @@ public sealed class NatsStreamTopologyDescriptor
             Name = name,
             Subjects = [],
 
-            // Declared, not convention. The transport treats a convention stream as shared and
-            // yields it when something else already owns its subjects, which must never happen
-            // silently to a stream the caller asked for by name.
+            // Declared, so the transport never yields it to a stream that already owns its subjects.
             Origin = TopologyOrigin.Declared
         };
     }
