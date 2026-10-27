@@ -49,7 +49,7 @@ export const SECTIONS: readonly CopySection[] = [
     id: "what-is-fusion",
     title: "What is Fusion?",
     paragraphs: [
-      "Fusion is a GraphQL gateway that sits between your clients and the APIs owned by your teams. Each team can independently develop and deploy its services using the languages, frameworks, and API technologies that best fit its needs.",
+      "Fusion is a GraphQL Federation router that sits between your clients and the APIs owned by your teams. Each team can independently develop and deploy its services using the languages, frameworks, and API technologies that best fit its needs.",
       "When a client sends a query, Fusion determines which services are needed, coordinates requests across them, and combines the results into a single response. These services can expose GraphQL, REST, or gRPC APIs, all participating in the same unified graph.",
       "Fusion composes your graph at build time, detecting schema conflicts before deployment. It supports both the GraphQL Federation specification and Apollo Federation, allowing you to connect existing subgraphs without rewriting them. If federation is new to you, start with the GraphQL Federation page.",
     ],
