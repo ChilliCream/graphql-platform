@@ -1,9 +1,7 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Mocha.Middlewares;
 using Mocha.Transport.Nats.Tests.Fixtures;
-using Xunit;
 
 namespace Mocha.Transport.Nats.Tests.Behaviors;
 

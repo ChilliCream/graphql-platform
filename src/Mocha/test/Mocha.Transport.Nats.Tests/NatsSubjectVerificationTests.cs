@@ -1,6 +1,5 @@
 using Moq;
 using NATS.Client.JetStream;
-using Xunit;
 
 namespace Mocha.Transport.Nats.Tests;
 

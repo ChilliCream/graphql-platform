@@ -5,7 +5,6 @@ using Mocha.Transport.Nats.Tests.Fixtures;
 using Mocha.Transport.Nats.Tests.Helpers;
 using NATS.Client.JetStream;
 using NATS.Client.JetStream.Models;
-using Xunit;
 
 namespace Mocha.Transport.Nats.Tests.Behaviors;
 

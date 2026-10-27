@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Mocha.Features;
 using Mocha.Middlewares;
 using Mocha.Transport.Nats.Features;
 using NATS.Client.JetStream;

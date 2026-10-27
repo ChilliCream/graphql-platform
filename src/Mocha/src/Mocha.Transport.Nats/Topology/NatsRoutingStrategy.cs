@@ -230,7 +230,7 @@ public sealed class NatsRoutingStrategy : RoutingStrategy<NatsMessagingTransport
         DispatchEndpoint endpoint,
         DispatchEndpointConfiguration configuration)
     {
-        if (configuration is not NatsDispatchEndpointConfiguration { Subject: { } subject } natsConfiguration)
+        if (configuration is not NatsDispatchEndpointConfiguration { Subject: { } subject })
         {
             return;
         }

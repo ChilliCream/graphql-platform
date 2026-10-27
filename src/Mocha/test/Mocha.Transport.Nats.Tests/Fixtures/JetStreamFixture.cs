@@ -1,7 +1,7 @@
+using CookieCrumble.Resources;
 using NATS.Client.Core;
 using NATS.Client.JetStream;
-using Squadron;
-using Xunit;
+using Testcontainers.Nats;
 
 namespace Mocha.Transport.Nats.Tests.Fixtures;
 
@@ -10,7 +10,12 @@ namespace Mocha.Transport.Nats.Tests.Fixtures;
 /// </summary>
 public sealed partial class JetStreamFixture : IAsyncLifetime
 {
-    private readonly NatsResource<JetStreamOptions> _resource = new();
+    /// <summary>
+    /// The NATS server image: the lowest version with per-message TTL (2.11) and message schedules (2.12).
+    /// </summary>
+    public const string Image = "nats:2.12-alpine";
+
+    private readonly JetStreamResource _resource = new();
 
     private NatsConnection? _connection;
 
@@ -55,6 +60,11 @@ public sealed partial class JetStreamFixture : IAsyncLifetime
         }
 
         await _resource.DisposeAsync();
+    }
+
+    private sealed class JetStreamResource : NatsResource
+    {
+        protected override NatsBuilder Configure(NatsBuilder builder) => builder.WithImage(Image);
     }
 }
 

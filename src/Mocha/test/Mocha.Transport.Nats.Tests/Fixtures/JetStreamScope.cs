@@ -11,7 +11,7 @@ namespace Mocha.Transport.Nats.Tests.Fixtures;
 /// <remarks>
 /// NATS has no equivalent of a RabbitMQ vhost or a Postgres database, so isolation is achieved by
 /// removing every stream the server holds. Two things make that necessary rather than tidy: a new
-/// durable defaults to <see cref="ConsumerConfigDeliverPolicy.All"/> and so replays whatever an
+/// durable defaults to <see cref="NATS.Client.JetStream.Models.ConsumerConfigDeliverPolicy.All"/> and so replays whatever an
 /// earlier test left behind, and a convention stream binds to any stream that already captures its
 /// subjects, so one test's stream silently becomes the next test's.
 /// </remarks>

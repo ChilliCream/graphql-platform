@@ -4,7 +4,6 @@ using Mocha.Conflict.Contracts;
 using Mocha.Narrow.Contracts;
 using Mocha.Transport.Nats.Tests.Fixtures;
 using NATS.Client.JetStream.Models;
-using Xunit;
 
 namespace Mocha.Transport.Nats.Tests.Behaviors;
 

@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace Mocha.Transport.Nats.Tests;
 
 public class NatsAddressTests
