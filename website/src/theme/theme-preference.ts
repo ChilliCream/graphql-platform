@@ -51,7 +51,7 @@ export function createThemeStore(
       .querySelector('meta[name="theme-color"]')
       ?.setAttribute(
         "content",
-        state.resolvedTheme === "dark" ? "#0b0f1a" : "#f7f8fc",
+        state.resolvedTheme === "dark" ? "#0b0f1a" : "#f5f1ea",
       );
   }
 

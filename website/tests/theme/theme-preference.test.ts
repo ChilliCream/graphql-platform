@@ -25,7 +25,7 @@ function environment(saved: string | null, dark: boolean) {
     },
   };
   const meta = {
-    content: "#f7f8fc",
+    content: "#f5f1ea",
     setAttribute(name: string, value: string) {
       assert.equal(name, "content");
       this.content = value;
@@ -139,7 +139,7 @@ for (const bootstrap of [false, true]) {
         assert.deepEqual(env.appearance(), {
           theme: resolvedTheme,
           colorScheme: resolvedTheme,
-          themeColor: resolvedTheme === "dark" ? "#0b0f1a" : "#f7f8fc",
+          themeColor: resolvedTheme === "dark" ? "#0b0f1a" : "#f5f1ea",
         });
         assert.equal(env.values.get("cc-theme"), saved ?? undefined);
       });
