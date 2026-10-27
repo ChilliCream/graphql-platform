@@ -35,8 +35,8 @@ export function BlogSidebar({
                   aria-current={isActive ? "page" : undefined}
                   className={`block rounded px-3 py-1.5 transition-colors ${
                     isActive
-                      ? "bg-cc-white/10 text-cc-white font-medium"
-                      : "text-cc-nav-text hover:bg-cc-white/5 hover:text-cc-white"
+                      ? "bg-cc-heading/10 text-cc-heading font-medium"
+                      : "text-cc-nav-text hover:bg-cc-heading/5 hover:text-cc-heading"
                   }`}
                 >
                   {post.title}

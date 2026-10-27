@@ -52,8 +52,8 @@ function NodeView({
       aria-current={isActive ? "page" : undefined}
       className={`block flex-1 rounded px-3 py-1.5 transition-colors ${
         isActive
-          ? "bg-cc-white/10 text-cc-white font-medium"
-          : "text-cc-nav-text hover:bg-cc-white/5 hover:text-cc-white"
+          ? "bg-cc-heading/10 text-cc-heading font-medium"
+          : "text-cc-nav-text hover:bg-cc-heading/5 hover:text-cc-heading"
       }`}
       style={{ paddingLeft: padLeft }}
     >
@@ -61,7 +61,7 @@ function NodeView({
     </Link>
   ) : (
     <span
-      className="text-cc-nav-text hover:bg-cc-white/5 hover:text-cc-white block flex-1 cursor-pointer rounded px-3 py-1.5 text-left transition-colors"
+      className="text-cc-nav-text hover:bg-cc-heading/5 hover:text-cc-heading block flex-1 cursor-pointer rounded px-3 py-1.5 text-left transition-colors"
       style={{ paddingLeft: padLeft }}
     >
       {node.title}
@@ -79,7 +79,7 @@ function NodeView({
           {label}
           <span
             aria-hidden="true"
-            className="text-cc-nav-text hover:bg-cc-white/5 hover:text-cc-white inline-flex w-7 cursor-pointer items-center justify-center rounded"
+            className="text-cc-nav-text hover:bg-cc-heading/5 hover:text-cc-heading inline-flex w-7 cursor-pointer items-center justify-center rounded"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

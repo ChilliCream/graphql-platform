@@ -11,6 +11,7 @@ import { HeaderNav } from "./header/HeaderNav";
 import { CONTACT_HREF, MOBILE_ITEMS, TOOLS } from "./header/navData";
 import { MobileNav } from "./MobileNav";
 import { Search } from "./Search";
+import { ThemeSelector } from "./ThemeSelector";
 
 export default async function Header() {
   const latestBlog = getLatestBlogPost();
@@ -27,8 +28,8 @@ export default async function Header() {
   ) : null;
 
   return (
-    <header className="border-cc-white/10 bg-cc-card-bg sticky top-0 z-40 flex h-18 w-full justify-center border-b shadow-[inset_0_1px_0_var(--cc-highlight)] backdrop-blur-[18px] backdrop-saturate-150">
-      <div className="relative flex h-full w-full max-w-7xl items-center justify-between px-4 min-[1060px]:max-[1200px]:gap-3! lg:gap-8">
+    <header className="border-cc-card-border bg-cc-card-bg sticky top-0 z-40 flex h-18 w-full justify-center border-b shadow-[inset_0_1px_0_var(--cc-highlight)] backdrop-blur-[18px] backdrop-saturate-150">
+      <div className="relative flex h-full w-full max-w-7xl items-center justify-between px-4 min-[1060px]:max-[1280px]:gap-3! lg:gap-8">
         <Link
           href="/"
           prefetch={false}
@@ -41,7 +42,7 @@ export default async function Header() {
 
         <HeaderNav latestBlog={latestBlog} blogImage={blogImage} />
 
-        <div className="hidden flex-none items-center gap-5 max-[1200px]:gap-3 min-[1060px]:flex">
+        <div className="hidden flex-none items-center gap-5 max-[1280px]:gap-3 min-[1060px]:flex">
           <GitHubStarButton />
           <Link
             href={CONTACT_HREF}
@@ -53,6 +54,7 @@ export default async function Header() {
           <SolidButton href={TOOLS.nitro} className="h-10 py-0">
             Launch Nitro
           </SolidButton>
+          <ThemeSelector size="compact" />
           <Search
             ariaLabel="Search"
             className="text-cc-heading flex h-full cursor-pointer items-center"
