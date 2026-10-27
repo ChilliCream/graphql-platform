@@ -17,6 +17,7 @@ internal static partial class OperationPlanExecutor
     public static async Task<IExecutionResult> ExecuteAsync(
         RequestContext requestContext,
         IVariableValueCollection variables,
+        int variableIndex,
         OperationPlan operationPlan,
         CancellationToken cancellationToken)
     {
@@ -29,7 +30,12 @@ internal static partial class OperationPlanExecutor
 
         try
         {
-            context.Initialize(requestContext, variables, operationPlan, executionCts);
+            context.Initialize(
+                requestContext,
+                variables,
+                variableIndex,
+                operationPlan,
+                executionCts);
 
             // The engine token is linked to the request token, so it shares the request deadline.
             context.HasExecutionDeadline =
@@ -81,7 +87,12 @@ internal static partial class OperationPlanExecutor
         try
         {
             rootContext = requestContext.Schema.Services.GetRequiredService<OperationPlanContextPool>().Rent();
-            rootContext.Initialize(requestContext, variables, operationPlan, executionCts);
+            rootContext.Initialize(
+                requestContext,
+                variables,
+                variableIndex: -1,
+                operationPlan,
+                executionCts);
 
             rootContext.Begin();
 
@@ -492,7 +503,13 @@ internal static partial class OperationPlanExecutor
             // Reuse the single request arena instead of minting a per-plan arena: the request
             // executor has already detached it from the request context, so it is supplied
             // explicitly here.
-            context.Initialize(requestContext, variables, incrementalPlan, executionCts, requestArena);
+            context.Initialize(
+                requestContext,
+                variables,
+                variableIndex: -1,
+                incrementalPlan,
+                executionCts,
+                requestArena);
 
             // Copy parent-scope requirements into the child context.
             CollectIncrementalPlanRequirements(parentResultStore, incrementalPlan, context);
@@ -914,7 +931,12 @@ internal static partial class OperationPlanExecutor
         try
         {
             context = requestContext.Schema.Services.GetRequiredService<OperationPlanContextPool>().Rent();
-            context.Initialize(requestContext, requestContext.VariableValues[0], operationPlan, executionCts);
+            context.Initialize(
+                requestContext,
+                requestContext.VariableValues[0],
+                variableIndex: -1,
+                operationPlan,
+                executionCts);
 
             var subscriptionResult = root switch
             {

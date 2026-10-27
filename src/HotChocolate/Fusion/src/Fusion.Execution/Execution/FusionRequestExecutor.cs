@@ -110,6 +110,13 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
                     "The request pipeline is expected to produce an execution result.");
             }
 
+            // a request batch item refused before execution carries its request index.
+            if (requestIndex.HasValue
+                && context.Result is OperationResult { RequestIndex: null } operationResult)
+            {
+                operationResult.SetRequestIndex(requestIndex.Value);
+            }
+
             // Transfer request memory to the result. Non-deferred executions are done writing, so
             // seal the shared arena here; deferred streams keep it open sp incremental plans can
             // still write to the arena as they execute.
