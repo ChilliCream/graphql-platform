@@ -1,3 +1,4 @@
+using System.Text.Json;
 using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
@@ -156,27 +157,34 @@ public class RequestReplyTests
                 "arguments",
                 "-p",
                 vhost.VhostName,
-                "--no-table-headers"
+                "--quiet",
+                "--formatter",
+                "json"
             ]);
-        var replyQueue = output
-            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Single(line => line.StartsWith("response-", StringComparison.Ordinal))
-            .Split('\t');
+        var replyQueue = JsonDocument.Parse(output).RootElement
+            .EnumerateArray()
+            .Single(queue => queue.GetProperty("name").GetString()!.StartsWith("response-", StringComparison.Ordinal));
+
+        // each argument is listed as [name, type, value], and RabbitMQ 4 also lists the queue type it applied
+        var expires = replyQueue.GetProperty("arguments")
+            .EnumerateArray()
+            .Single(argument => argument[0].GetString() == "x-expires")[2]
+            .GetInt32();
 
         // assert
         new
         {
-            Durable = replyQueue[1],
-            AutoDelete = replyQueue[2],
-            Exclusive = replyQueue[3],
-            Arguments = replyQueue[4]
+            Durable = replyQueue.GetProperty("durable").GetBoolean(),
+            AutoDelete = replyQueue.GetProperty("auto_delete").GetBoolean(),
+            Exclusive = replyQueue.GetProperty("exclusive").GetBoolean(),
+            Expires = expires
         }.MatchInlineSnapshot(
             """
             {
-              "Durable": "true",
-              "AutoDelete": "true",
-              "Exclusive": "false",
-              "Arguments": "[{\"x-expires\",1800000},{\"x-queue-type\",\"classic\"}]"
+              "Durable": true,
+              "AutoDelete": true,
+              "Exclusive": false,
+              "Expires": 1800000
             }
             """);
     }

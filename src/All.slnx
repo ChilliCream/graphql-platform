@@ -407,6 +407,7 @@
     <Project Path="Mocha/test/Mocha.Transport.InMemory.Tests/Mocha.Transport.InMemory.Tests.csproj" />
     <Project Path="Mocha/test/Mocha.Transport.Postgres.Tests/Mocha.Transport.Postgres.Tests.csproj" />
     <Project Path="Mocha/test/Mocha.Transport.RabbitMQ.Tests/Mocha.Transport.RabbitMQ.Tests.csproj" />
+    <Project Path="Mocha/test/Mocha.Transport.RabbitMQ3.Tests/Mocha.Transport.RabbitMQ3.Tests.csproj" />
   </Folder>
   <Folder Name="/Nitro/" />
   <Folder Name="/Nitro/CommandLine/" />

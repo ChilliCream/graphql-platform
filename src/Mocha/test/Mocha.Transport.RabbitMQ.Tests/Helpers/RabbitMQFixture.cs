@@ -8,7 +8,12 @@ namespace Mocha.Transport.RabbitMQ.Tests.Helpers;
 
 public sealed class RabbitMQFixture : IAsyncLifetime
 {
+#if RABBITMQ_3
+    // Mocha.Transport.RabbitMQ3.Tests.csproj runs these tests against the last RabbitMQ 3 release line.
+    private readonly RabbitMQResource _resource = new() { Image = "rabbitmq:3.13" };
+#else
     private readonly RabbitMQResource _resource = new();
+#endif
 
     public async ValueTask InitializeAsync()
     {

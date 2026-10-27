@@ -4,6 +4,11 @@ namespace CookieCrumble.Resources;
 
 public class RabbitMQResource : ContainerResource<RabbitMqContainer>
 {
+    /// <summary>
+    /// Gets the broker image the resource runs. Defaults to <c>rabbitmq:4.3</c>.
+    /// </summary>
+    public string Image { get; init; } = "rabbitmq:4.3";
+
     public string ConnectionString => Container.GetConnectionString();
 
     public string Hostname => Container.Hostname;
@@ -27,7 +32,7 @@ public class RabbitMQResource : ContainerResource<RabbitMqContainer>
 
     protected override RabbitMqContainer Build()
         => Configure(
-            new RabbitMqBuilder("rabbitmq:4.3")
+            new RabbitMqBuilder(Image)
                 .WithUsername("guest")
                 .WithPassword("guest"))
             .Build();
