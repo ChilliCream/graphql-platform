@@ -327,14 +327,17 @@ public sealed class AzureServiceBusMessagingTransportDescriptor
         var schema = Configuration.Schema ?? AzureServiceBusTransportConfiguration.DefaultSchema;
         foreach (var source in configuration.SourceTopics)
         {
-            if (!AzureServiceBusDestinations.TryResolveSourceTopic(schema, source, out var topicName))
+            if (!AzureServiceBusDestinations.TryResolveSourceTopic(schema, source.Source, out var topicName))
             {
                 throw new InvalidOperationException(
-                    $"BindFrom source '{source}' could not be resolved to an Azure Service Bus topic name.");
+                    $"BindFrom source '{source.Source}' could not be resolved to an Azure Service Bus topic name.");
             }
 
             DeclareTopic(topicName);
-            DeclareSubscription(topicName, configuration.Name);
+            var subscriptionConfiguration = DeclareSubscription(topicName, configuration.Name).Extend().Configuration;
+
+            // Keep AutoProvision if DeclareSubscription set it, otherwise take it from BindFrom, then from the queue.
+            subscriptionConfiguration.AutoProvision ??= source.AutoProvision ?? configuration.Queue.AutoProvision;
         }
     }
 
@@ -363,6 +366,8 @@ public sealed class AzureServiceBusMessagingTransportDescriptor
         }
 
         target.UseNativeDeadLetterForwarding |= configuration.UseNativeDeadLetterForwarding;
+        target.IsTemporary |= configuration.IsTemporary;
+        target.TemporaryIdleTimeout ??= configuration.TemporaryIdleTimeout;
         target.MaxConcurrentSessions ??= configuration.MaxConcurrentSessions;
         target.MaxConcurrentCallsPerSession ??= configuration.MaxConcurrentCallsPerSession;
         target.SessionIdleTimeout ??= configuration.SessionIdleTimeout;
@@ -372,6 +377,11 @@ public sealed class AzureServiceBusMessagingTransportDescriptor
 
         CopyFaultEndpointFeature(configuration, target);
         CopySkippedEndpointFeature(configuration, target);
+
+        foreach (var configure in configuration.ConfigureReceiveEndpoint)
+        {
+            configure(endpoint);
+        }
     }
 
     private static void CopyFaultEndpointFeature(

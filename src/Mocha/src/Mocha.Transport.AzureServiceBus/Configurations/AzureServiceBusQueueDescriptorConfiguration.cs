@@ -46,6 +46,16 @@ public sealed class AzureServiceBusQueueDescriptorConfiguration : MessagingConfi
     public ReceiveEndpointKind? Kind { get; set; }
 
     /// <summary>
+    /// Gets or sets whether the queue's receive endpoint is temporary.
+    /// </summary>
+    public bool IsTemporary { get; set; }
+
+    /// <summary>
+    /// Gets or sets the idle window after which a temporary queue may be deleted by the broker.
+    /// </summary>
+    public TimeSpan? TemporaryIdleTimeout { get; set; }
+
+    /// <summary>
     /// Gets or sets the receive endpoint maximum concurrency.
     /// </summary>
     public int? MaxConcurrency { get; set; }
@@ -91,7 +101,12 @@ public sealed class AzureServiceBusQueueDescriptorConfiguration : MessagingConfi
     public List<Action<List<ReceiveMiddlewareConfiguration>>> ReceivePipelineModifiers { get; } = [];
 
     /// <summary>
+    /// Gets the configuration callbacks applied to the materialized endpoint, in registration order.
+    /// </summary>
+    public List<Action<IReceiveMiddlewareProvider>> ConfigureReceiveEndpoint { get; } = [];
+
+    /// <summary>
     /// Gets the explicitly declared source topics.
     /// </summary>
-    public List<Uri> SourceTopics { get; } = [];
+    public List<AzureServiceBusQueueSourceTopicConfiguration> SourceTopics { get; } = [];
 }

@@ -22,7 +22,7 @@ stableResponseStream: |
     "initial": {
       "data": {
         "user": {
-          "id": "VXNlcjox"
+          "id": "VXNlcjoyMDkyMTcyNjc2"
         }
       }
     },
@@ -44,13 +44,13 @@ stableResponseStream: |
         "data": {
           "posts": [
             {
-              "id": "UG9zdDox"
+              "id": "UG9zdDo1NTk5ODA5Nzg="
             },
             {
-              "id": "UG9zdDoy"
+              "id": "UG9zdDozMzg1NjI0OTAy"
             },
             {
-              "id": "UG9zdDoz"
+              "id": "UG9zdDozMjQwNTk2NDQ2"
             }
           ]
         }
@@ -64,16 +64,16 @@ stableResponseStream: |
     "final": {
       "data": {
         "user": {
-          "id": "VXNlcjox",
+          "id": "VXNlcjoyMDkyMTcyNjc2",
           "posts": [
             {
-              "id": "UG9zdDox"
+              "id": "UG9zdDo1NTk5ODA5Nzg="
             },
             {
-              "id": "UG9zdDoy"
+              "id": "UG9zdDozMzg1NjI0OTAy"
             },
             {
-              "id": "UG9zdDoz"
+              "id": "UG9zdDozMjQwNTk2NDQ2"
             }
           ]
         }
@@ -109,7 +109,7 @@ sourceSchemas:
               {
                 "data": {
                   "user": {
-                    "id": "VXNlcjox"
+                    "id": "VXNlcjoyMDkyMTcyNjc2"
                   }
                 }
               }
@@ -135,7 +135,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query GetUserPosts_defer_2($limit: Int!, $__fusion_1_id: ID!) {
+            query GetUserPosts_defer_1($limit: Int!, $__fusion_1_id: ID!) {
               userById(id: $__fusion_1_id) {
                 posts(first: $limit) {
                   id
@@ -145,7 +145,7 @@ sourceSchemas:
           variables: |
             {
               "limit": 5,
-              "__fusion_1_id": "VXNlcjox"
+              "__fusion_1_id": "VXNlcjoyMDkyMTcyNjc2"
             }
         response:
           results:
@@ -155,13 +155,13 @@ sourceSchemas:
                   "userById": {
                     "posts": [
                       {
-                        "id": "UG9zdDox"
+                        "id": "UG9zdDo1NTk5ODA5Nzg="
                       },
                       {
-                        "id": "UG9zdDoy"
+                        "id": "UG9zdDozMzg1NjI0OTAy"
                       },
                       {
-                        "id": "UG9zdDoz"
+                        "id": "UG9zdDozMjQwNTk2NDQ2"
                       }
                     ]
                   }
@@ -177,7 +177,7 @@ operationPlan:
           }
         }
       name: GetUserPosts
-      hash: ca2711340198d8fa233e951d2350091a
+      hash: d9872ffc29342a6f4b82f81a63858cff
       searchSpace: 1
       expandedNodes: 1
   nodes:
@@ -207,7 +207,7 @@ operationPlan:
           type: Operation
           schema: B
           operation: |
-            query GetUserPosts_defer_2($limit: Int!, $__fusion_1_id: ID!) {
+            query GetUserPosts_defer_1($limit: Int!, $__fusion_1_id: ID!) {
               userById(id: $__fusion_1_id) {
                 posts(first: $limit) {
                   id

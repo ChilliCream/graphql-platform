@@ -275,11 +275,247 @@ public class VariableCoercionIntegrationTests
         await executor.ExecuteAsync(request, TestContext.Current.CancellationToken).MatchSnapshotAsync();
     }
 
+    [Fact]
+    public async Task ExecuteAsync_Should_Report_Input_Path_Without_Path_When_Mutation_Input_Object_Variable_Has_Invalid_Leaf()
+    {
+        // arrange
+        var executor = await CreateSchemaAsync();
+
+        var request =
+            OperationRequestBuilder
+                .New()
+                .SetDocument(
+                    """
+                    mutation($input: UpdateUserInput!) {
+                        updateUser(input: $input)
+                    }
+                    """)
+                .SetVariableValues(
+                    """
+                    {
+                        "input": {
+                            "avatar": ""
+                        }
+                    }
+                    """)
+                .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The value is not a valid image data URL.",
+                  "extensions": {
+                    "inputPath": [
+                      "input",
+                      "avatar"
+                    ],
+                    "coordinate": "UpdateUserInput.avatar",
+                    "fieldType": "ImageDataUrl"
+                  }
+                }
+              ]
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_Report_Input_Path_Without_Path_When_Mutation_Scalar_Variable_Is_Invalid()
+    {
+        // arrange
+        var executor = await CreateSchemaAsync();
+
+        var request =
+            OperationRequestBuilder
+                .New()
+                .SetDocument(
+                    """
+                    mutation($avatar: ImageDataUrl) {
+                        updateUser(input: { avatar: $avatar })
+                    }
+                    """)
+                .SetVariableValues(
+                    """
+                    {
+                        "avatar": ""
+                    }
+                    """)
+                .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The value is not a valid image data URL.",
+                  "extensions": {
+                    "inputPath": [
+                      "avatar"
+                    ],
+                    "fieldType": "ImageDataUrl"
+                  }
+                }
+              ]
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_Report_Input_Path_Without_Path_When_Query_Input_Object_Variable_Has_Invalid_Leaf()
+    {
+        // arrange
+        var executor = await CreateSchemaAsync();
+
+        var request =
+            OperationRequestBuilder
+                .New()
+                .SetDocument(
+                    """
+                    query($input: UpdateUserInput!) {
+                        avatarPreview(input: $input)
+                    }
+                    """)
+                .SetVariableValues(
+                    """
+                    {
+                        "input": {
+                            "avatar": ""
+                        }
+                    }
+                    """)
+                .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The value is not a valid image data URL.",
+                  "extensions": {
+                    "inputPath": [
+                      "input",
+                      "avatar"
+                    ],
+                    "coordinate": "UpdateUserInput.avatar",
+                    "fieldType": "ImageDataUrl"
+                  }
+                }
+              ]
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_Report_Input_Path_Without_Path_When_Query_Scalar_Variable_Is_Invalid()
+    {
+        // arrange
+        var executor = await CreateSchemaAsync();
+
+        var request =
+            OperationRequestBuilder
+                .New()
+                .SetDocument(
+                    """
+                    query($image: ImageDataUrl) {
+                        avatarPreview(input: { avatar: $image })
+                    }
+                    """)
+                .SetVariableValues(
+                    """
+                    {
+                        "image": ""
+                    }
+                    """)
+                .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The value is not a valid image data URL.",
+                  "extensions": {
+                    "inputPath": [
+                      "image"
+                    ],
+                    "fieldType": "ImageDataUrl"
+                  }
+                }
+              ]
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_Report_Input_Path_Without_Path_When_Query_Scalar_Variable_Default_Is_Invalid()
+    {
+        // arrange
+        var executor = await CreateSchemaAsync();
+
+        var request =
+            OperationRequestBuilder
+                .New()
+                .SetDocument(
+                    """
+                    query($image: ImageDataUrl = "") {
+                        avatarPreview(input: { avatar: $image })
+                    }
+                    """)
+                .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The value is not a valid image data URL.",
+                  "extensions": {
+                    "inputPath": [
+                      "image"
+                    ],
+                    "fieldType": "ImageDataUrl"
+                  }
+                }
+              ]
+            }
+            """);
+    }
+
     private static async Task<IRequestExecutor> CreateSchemaAsync()
     {
         return await new ServiceCollection()
             .AddGraphQL()
-            .AddQueryType(t => t.Field("a").Resolve("b"))
+            .AddQueryType(
+                t =>
+                {
+                    t.Field("a").Resolve("b");
+
+                    t.Field("avatarPreview")
+                        .Argument("input", a => a.Type<NonNullType<InputObjectType<UpdateUserInput>>>())
+                        .Type<StringType>()
+                        .Resolve(ctx => ctx.ArgumentValue<UpdateUserInput>("input").Avatar);
+                })
             .AddMutationType<UserMutationType>()
             .BuildRequestExecutorAsync();
     }
@@ -289,6 +525,11 @@ public class VariableCoercionIntegrationTests
         public string AddUser(User user)
         {
             return $"{user.Name} {user.Surname} ({user.Gender}) was added!";
+        }
+
+        public string UpdateUser(UpdateUserInput input)
+        {
+            return $"{input.Avatar} was updated!";
         }
     }
 
@@ -301,6 +542,10 @@ public class VariableCoercionIntegrationTests
                 .Description("Add user to db")
                 .Argument("user", d => d.Type<NonNullType<UserInputType>>()
                     .Description("User input type, required"));
+
+            descriptor
+                .Field(um => um.UpdateUser(default!))
+                .Argument("input", d => d.Type<NonNullType<InputObjectType<UpdateUserInput>>>());
         }
     }
 

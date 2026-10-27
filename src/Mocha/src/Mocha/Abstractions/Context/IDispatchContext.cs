@@ -80,8 +80,9 @@ public interface IDispatchContext : IExecutionContext, IFeatureProvider
 
     /// <summary>
     /// Gets or sets the timestamp indicating when the message was sent.
+    /// If null, it is set immediately before transport dispatch.
     /// </summary>
-    DateTimeOffset SentAt { get; set; }
+    DateTimeOffset? SentAt { get; set; }
 
     /// <summary>
     /// Gets or sets the optional deadline by which the message must be delivered before it is considered expired.

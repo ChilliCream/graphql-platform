@@ -122,7 +122,7 @@ public abstract class Consumer
         Name = Configuration.Name ?? throw ThrowHelper.ConsumerNameRequired();
         Urn = MochaUrn.Consumer(context.Host.EffectiveServiceName, Name);
 
-        foreach (var route in Configuration!.Routes)
+        foreach (var route in Configuration.Routes)
         {
             route.Consumer = this;
 

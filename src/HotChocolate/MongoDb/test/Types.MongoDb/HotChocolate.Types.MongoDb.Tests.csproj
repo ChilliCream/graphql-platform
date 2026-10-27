@@ -14,7 +14,6 @@
 
   <ItemGroup>
     <PackageReference Include="MongoDB.Driver" />
-    <PackageReference Include="Squadron.Mongo" />
   </ItemGroup>
 
 </Project>

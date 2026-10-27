@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="xunit.v3.assert" />
-    <PackageReference Include="xunit.v3.extensibility.core" />
+    <PackageReference Include="xunit.v3.assert" VersionOverride="3.2.2" />
+    <PackageReference Include="xunit.v3.extensibility.core" VersionOverride="3.2.2" />
   </ItemGroup>
 
   <ItemGroup>

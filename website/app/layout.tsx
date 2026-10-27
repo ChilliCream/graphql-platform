@@ -1,6 +1,6 @@
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
-import { Inter, Josefin_Sans } from "next/font/google";
+import { Josefin_Sans } from "next/font/google";
 import { Analytics } from "@/src/components/Analytics";
 import { AnalyticsScripts } from "@/src/components/AnalyticsScripts";
 import { EnableSmoothScroll } from "@/src/components/EnableSmoothScroll";
@@ -15,12 +15,6 @@ import {
   TWITTER_HANDLE,
 } from "@/src/helpers/site";
 import { SITE_URL } from "@/src/helpers/siteUrl";
-
-const inter = Inter({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-inter",
-});
 
 const josefinSans = Josefin_Sans({
   subsets: ["latin"],
@@ -75,10 +69,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${inter.variable} ${josefinSans.variable} font-sans`}
-    >
+    <html lang="en" className={`${josefinSans.variable} font-sans`}>
       <head>
         <link rel="preconnect" href="https://consent.cookiebot.com" />
         <link rel="preconnect" href="https://consentcdn.cookiebot.com" />

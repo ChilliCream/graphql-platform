@@ -2,8 +2,11 @@ namespace Mocha.Transport.InMemory;
 
 /// <summary>
 /// Fluent descriptor for configuring an in-memory queue and its receive endpoint.
+/// Receive configuration callbacks apply to the queue's receive endpoint.
 /// </summary>
-public interface IInMemoryQueueDescriptor : IMessagingDescriptor<InMemoryQueueDescriptorConfiguration>
+public interface IInMemoryQueueDescriptor
+    : IMessagingDescriptor<InMemoryQueueDescriptorConfiguration>
+    , IConfigurable<IReceiveMiddlewareProvider>
 {
     /// <summary>
     /// Registers a handler type on this queue's receive endpoint.
@@ -74,6 +77,14 @@ public interface IInMemoryQueueDescriptor : IMessagingDescriptor<InMemoryQueueDe
     /// <param name="kind">The endpoint kind.</param>
     /// <returns>The descriptor for method chaining.</returns>
     IInMemoryQueueDescriptor Kind(ReceiveEndpointKind kind);
+
+    /// <summary>
+    /// Marks this queue's receive endpoint as temporary, signaling that its underlying
+    /// infrastructure is scoped to the lifetime of the consuming process rather than
+    /// provisioned durably.
+    /// </summary>
+    /// <returns>The descriptor for method chaining.</returns>
+    IInMemoryQueueDescriptor Temporary();
 
     /// <summary>
     /// Adds receive middleware to this queue's endpoint pipeline.

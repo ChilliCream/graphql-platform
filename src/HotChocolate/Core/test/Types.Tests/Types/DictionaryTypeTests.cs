@@ -248,6 +248,7 @@ public class DictionaryTypeTests
         // arrange
         var executor = await new ServiceCollection()
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<DictionaryOutputQueryWithObliviousObjectValuesExecution>()
             .AddJsonTypeConverter()
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);

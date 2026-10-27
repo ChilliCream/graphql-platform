@@ -67,4 +67,51 @@ public class ErrorGeneratorTests
             FileResource.Open("PaymentQuery.graphql"));
     }
     */
+
+    [Fact]
+    public void Generate_Should_ReportFieldConflicts_When_CovariantMergingDisabled()
+    {
+        Assert.Collection(
+            AssertError(
+                Path.Combine("__resources__", "CovariantFieldsQuery.graphql"),
+                Path.Combine("__resources__", "CovariantFieldsSchema.graphql"),
+                Path.Combine("__resources__", "Schema.extensions.graphql")),
+            error =>
+            {
+                Assert.Equal("SS0002", error.Code);
+                Assert.Equal(
+                    "Fields `countryCode` conflict because they return conflicting types "
+                    + "`String!` and `String`. Use different aliases on the fields to fetch "
+                    + "both if this was intentional.",
+                    error.Message);
+            },
+            error =>
+            {
+                Assert.Equal("SS0002", error.Code);
+                Assert.Equal(
+                    "Fields `countryCode` conflict because they return conflicting types "
+                    + "`String` and `String!`. Use different aliases on the fields to fetch "
+                    + "both if this was intentional.",
+                    error.Message);
+            });
+    }
+
+    [Fact]
+    public void Generate_Should_AcceptCovariantFields_When_CovariantMergingEnabled()
+    {
+        // arrange
+        var settings = new CSharpGeneratorSettings { EnableCovariantFieldMerging = true };
+
+        // act
+        var result = CSharpGenerator.Generate(
+            [
+                Path.Combine("__resources__", "CovariantFieldsQuery.graphql"),
+                Path.Combine("__resources__", "CovariantFieldsSchema.graphql"),
+                Path.Combine("__resources__", "Schema.extensions.graphql")
+            ],
+            settings);
+
+        // assert
+        Assert.Empty(result.Errors);
+    }
 }

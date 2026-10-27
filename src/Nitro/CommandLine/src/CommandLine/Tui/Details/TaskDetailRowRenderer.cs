@@ -4,19 +4,17 @@ using ChilliCream.Nitro.CommandLine.Tui.Widgets;
 namespace ChilliCream.Nitro.CommandLine.Tui.Details;
 
 /// <summary>
-/// Renders one dependency or blocks row as a single Spectre markup line:
-/// selection prefix, status glyph, dependency type, direction arrow, target
-/// id, and title, mirroring <see cref="TaskBadge"/>'s row conventions.
-/// Blocking dependency types are rendered bold to distinguish them from
-/// non-blocking ones.
+/// Renders one dependency or blocks row as a single Spectre markup line: selection prefix, status
+/// glyph, dependency type, direction arrow, target id, and title. Blocking dependency types render
+/// bold.
 /// </summary>
 internal static class TaskDetailRowRenderer
 {
-    private const string Ellipsis = "…";
     private const string SelectedPrefix = "> ";
     private const string UnselectedPrefix = "  ";
     private const string DependencyArrow = "->";
     private const string BlocksArrow = "<-";
+    private const string Ellipsis = "…";
 
     /// <summary>
     /// Builds the markup line for one row, truncating the title with an
@@ -36,17 +34,18 @@ internal static class TaskDetailRowRenderer
         var arrow = row.Kind == TaskDetailRowKind.Dependency ? DependencyArrow : BlocksArrow;
         var title = row.Title ?? "(deleted)";
 
-        var fixedPlainLength = prefix.Length + TaskGlyphs.Status(status).Length + 1
-            + row.Type.Length + 1 + arrow.Length + 1
-            + row.TargetId.Length + 1;
+        var fixedPlainWidth = DisplayWidth.Measure(prefix) + DisplayWidth.Measure(TaskGlyphs.Status(status)) + 1
+            + DisplayWidth.Measure(row.Type) + 1 + DisplayWidth.Measure(arrow) + 1
+            + DisplayWidth.Measure(row.TargetId) + 1;
 
-        var titleBudget = Math.Max(0, maxWidth - fixedPlainLength);
-        var truncatedTitle = Truncate(title, titleBudget);
+        var titleBudget = Math.Max(0, maxWidth - fixedPlainWidth);
+        var truncatedTitle = DisplayWidth.Truncate(title, titleBudget);
 
-        var line =
-            $"{Markup.Escape(prefix)}{TaskGlyphs.StatusMarkup(status)} "
-            + $"{Markup.Escape(row.Type)} {Markup.Escape(arrow)} "
-            + $"{Markup.Escape(row.TargetId)} {Markup.Escape(truncatedTitle)}";
+        var line = fixedPlainWidth > maxWidth
+            ? RenderNarrow(prefix, status, row.Type, arrow, row.TargetId, maxWidth)
+            : $"{Markup.Escape(prefix)}{TaskGlyphs.StatusMarkup(status)} "
+                + $"{Markup.Escape(row.Type)} {Markup.Escape(arrow)} "
+                + $"{Markup.Escape(row.TargetId)} {Markup.Escape(truncatedTitle)}";
 
         if (row.IsBlocking)
         {
@@ -62,23 +61,78 @@ internal static class TaskDetailRowRenderer
         return line;
     }
 
-    private static string Truncate(string value, int width)
+    private static string RenderNarrow(
+        string prefix,
+        string status,
+        string type,
+        string arrow,
+        string targetId,
+        int maxWidth)
     {
-        if (width <= 0)
+        var remaining = maxWidth - DisplayWidth.Measure(Ellipsis);
+        var line = string.Empty;
+
+        if (!AppendNarrowPart(ref line, ref remaining, prefix, string.Empty))
         {
-            return string.Empty;
+            return line + Ellipsis;
         }
 
-        if (value.Length <= width)
+        var glyph = TaskGlyphs.Status(status);
+        if (!AppendNarrowPart(
+                ref line,
+                ref remaining,
+                glyph,
+                ThemeTokens.GetStyle($"status.glyph.{status}").ToMarkup()))
         {
-            return value;
+            return line + Ellipsis;
         }
 
-        if (width == 1)
+        if (!AppendNarrowPart(ref line, ref remaining, " ", string.Empty))
         {
-            return Ellipsis;
+            return line + Ellipsis;
         }
 
-        return string.Concat(value.AsSpan(0, width - 1), Ellipsis);
+        if (!AppendNarrowPart(ref line, ref remaining, type, string.Empty))
+        {
+            return line + Ellipsis;
+        }
+
+        if (!AppendNarrowPart(ref line, ref remaining, " ", string.Empty))
+        {
+            return line + Ellipsis;
+        }
+
+        if (!AppendNarrowPart(ref line, ref remaining, arrow, string.Empty))
+        {
+            return line + Ellipsis;
+        }
+
+        if (!AppendNarrowPart(ref line, ref remaining, " ", string.Empty))
+        {
+            return line + Ellipsis;
+        }
+
+        if (!AppendNarrowPart(ref line, ref remaining, targetId, string.Empty))
+        {
+            return line + Ellipsis;
+        }
+
+        return line + Ellipsis;
+    }
+
+    private static bool AppendNarrowPart(ref string line, ref int remaining, string value, string styleMarkup)
+    {
+        var truncatedValue = DisplayWidth.Slice(value, remaining);
+
+        if (truncatedValue.Length == 0)
+        {
+            return value.Length == 0;
+        }
+
+        line += styleMarkup.Length == 0
+            ? Markup.Escape(truncatedValue)
+            : $"[{styleMarkup}]{Markup.Escape(truncatedValue)}[/]";
+        remaining -= DisplayWidth.Measure(truncatedValue);
+        return truncatedValue.Length == value.Length;
     }
 }

@@ -1,0 +1,17 @@
+{
+  "id": "ibm_users_example_costs_eleven",
+  "source": "rust-unit",
+  "sdl": "directive @cost(weight: String!) on ARGUMENT_DEFINITION | ENUM | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | OBJECT | SCALAR\ndirective @listSize(\n  assumedSize: Int\n  slicingArguments: [String!]\n  sizedFields: [String!]\n  requireOneSlicingArgument: Boolean = true\n) on FIELD_DEFINITION\ntype User { age: Int @cost(weight: \"2.0\") }\ntype Query { users(max: Int): [User] @listSize(slicingArguments: [\"max\"]) }\n",
+  "operation": "query Example($max: Int!) { users(max: $max) { age } }",
+  "operationName": "Example",
+  "variables": {
+    "max": 5
+  },
+  "defaultListSize": "Infinity",
+  "backend": "exact-case",
+  "expected": {
+    "typeCost": 6,
+    "fieldCost": 11
+  },
+  "notes": "Port of estimator.rs test `ibm_users_example_costs_eleven` at line 1235, commit fec57fd7a980b5399637fa464a9bdce0781d91dd."
+}

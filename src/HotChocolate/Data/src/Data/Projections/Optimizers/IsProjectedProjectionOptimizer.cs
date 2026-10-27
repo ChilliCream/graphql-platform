@@ -63,7 +63,7 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
                 alias,
                 SelectionPath.Root,
                 field,
-                [new FieldSelectionNode(fieldNode, 0)],
+                [new FieldSelectionNode(fieldNode, default(ConditionFlags))],
                 [],
                 isProjectionRequirement: false,
                 isInternal: true,

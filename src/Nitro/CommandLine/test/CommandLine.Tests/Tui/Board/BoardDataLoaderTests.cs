@@ -6,7 +6,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Board;
 
 public sealed class BoardDataLoaderTests
 {
-    private static readonly DateTimeOffset Now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset s_now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
     [Fact]
     public async Task LoadColumnAsync_Should_ReturnOnlyBlockedNonTerminalTasks_When_ComputedFilterIsBlocked()
@@ -18,7 +18,7 @@ public sealed class BoardDataLoaderTests
         store.Tasks.Add(TaskItemBuilder.Create("a-3", status: TaskStates.Closed));
         store.Blocked["a-1"] = ["a-9:open"];
         store.Blocked["a-3"] = ["a-9:open"];
-        var loader = new BoardDataLoader(store, new FakeTimeProvider(Now));
+        var loader = new BoardDataLoader(store, new FakeTimeProvider(s_now));
         var column = new ColumnDefinition { Name = "Blocked", ComputedFilter = ColumnComputedFilter.Blocked };
 
         // act
@@ -35,7 +35,7 @@ public sealed class BoardDataLoaderTests
         var store = new FakeTaskStore();
         store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Blocked));
         store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Open));
-        var loader = new BoardDataLoader(store, new FakeTimeProvider(Now));
+        var loader = new BoardDataLoader(store, new FakeTimeProvider(s_now));
         var column = new ColumnDefinition { Name = "Blocked", ComputedFilter = ColumnComputedFilter.Blocked };
 
         // act
@@ -52,7 +52,7 @@ public sealed class BoardDataLoaderTests
         var store = new FakeTaskStore();
         store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Blocked));
         store.Blocked["a-1"] = ["a-9:open"];
-        var loader = new BoardDataLoader(store, new FakeTimeProvider(Now));
+        var loader = new BoardDataLoader(store, new FakeTimeProvider(s_now));
         var column = new ColumnDefinition { Name = "Blocked", ComputedFilter = ColumnComputedFilter.Blocked };
 
         // act
@@ -86,7 +86,7 @@ public sealed class BoardDataLoaderTests
             store.Blocked[dependencyBlockedId] = ["dep-1:open"];
         }
 
-        var loader = new BoardDataLoader(store, new FakeTimeProvider(Now));
+        var loader = new BoardDataLoader(store, new FakeTimeProvider(s_now));
 
         // act
         var visible = new HashSet<string>();
@@ -114,12 +114,12 @@ public sealed class BoardDataLoaderTests
         var store = new FakeTaskStore();
         store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Deferred));
         store.Tasks.Add(
-            TaskItemBuilder.Create("a-2", status: TaskStates.Open, deferUntil: Now.AddDays(1)));
+            TaskItemBuilder.Create("a-2", status: TaskStates.Open, deferUntil: s_now.AddDays(1)));
         store.Tasks.Add(
-            TaskItemBuilder.Create("a-3", status: TaskStates.Open, deferUntil: Now.AddDays(-1)));
+            TaskItemBuilder.Create("a-3", status: TaskStates.Open, deferUntil: s_now.AddDays(-1)));
         store.Tasks.Add(TaskItemBuilder.Create("a-4", status: TaskStates.Open));
         store.Tasks.Add(TaskItemBuilder.Create("a-5", status: TaskStates.Closed));
-        var loader = new BoardDataLoader(store, new FakeTimeProvider(Now));
+        var loader = new BoardDataLoader(store, new FakeTimeProvider(s_now));
         var column = new ColumnDefinition { Name = "Deferred", ComputedFilter = ColumnComputedFilter.Deferred };
 
         // act
@@ -138,7 +138,7 @@ public sealed class BoardDataLoaderTests
         store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Open));
         store.Tasks.Add(TaskItemBuilder.Create("a-3", status: TaskStates.InProgress));
         store.Blocked["a-2"] = ["a-9:open"];
-        var loader = new BoardDataLoader(store, new FakeTimeProvider(Now));
+        var loader = new BoardDataLoader(store, new FakeTimeProvider(s_now));
         var column = new ColumnDefinition
         {
             Name = "Ready",
@@ -160,7 +160,7 @@ public sealed class BoardDataLoaderTests
         var store = new FakeTaskStore();
         store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.InProgress));
         store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Open));
-        var loader = new BoardDataLoader(store, new FakeTimeProvider(Now));
+        var loader = new BoardDataLoader(store, new FakeTimeProvider(s_now));
         var column = new ColumnDefinition { Name = "In Progress", Statuses = [TaskStates.InProgress] };
 
         // act
@@ -175,10 +175,10 @@ public sealed class BoardDataLoaderTests
     {
         // arrange
         var store = new FakeTaskStore();
-        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Closed, closedAt: Now.AddDays(-3)));
-        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Closed, closedAt: Now.AddDays(-1)));
-        store.Tasks.Add(TaskItemBuilder.Create("a-3", status: TaskStates.Closed, closedAt: Now.AddDays(-2)));
-        var loader = new BoardDataLoader(store, new FakeTimeProvider(Now));
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Closed, closedAt: s_now.AddDays(-3)));
+        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Closed, closedAt: s_now.AddDays(-1)));
+        store.Tasks.Add(TaskItemBuilder.Create("a-3", status: TaskStates.Closed, closedAt: s_now.AddDays(-2)));
+        var loader = new BoardDataLoader(store, new FakeTimeProvider(s_now));
         var column = new ColumnDefinition
         {
             Name = "Closed",
@@ -200,12 +200,12 @@ public sealed class BoardDataLoaderTests
         // arrange
         var store = new FakeTaskStore();
         store.Tasks.Add(TaskItemBuilder.Create(
-            "b-1", priority: TaskPriorities.Medium, createdAt: Now));
+            "b-1", priority: TaskPriorities.Medium, createdAt: s_now));
         store.Tasks.Add(TaskItemBuilder.Create(
-            "a-1", priority: TaskPriorities.Medium, createdAt: Now));
+            "a-1", priority: TaskPriorities.Medium, createdAt: s_now));
         store.Tasks.Add(TaskItemBuilder.Create(
-            "z-1", priority: TaskPriorities.High, createdAt: Now.AddDays(1)));
-        var loader = new BoardDataLoader(store, new FakeTimeProvider(Now));
+            "z-1", priority: TaskPriorities.High, createdAt: s_now.AddDays(1)));
+        var loader = new BoardDataLoader(store, new FakeTimeProvider(s_now));
         var column = new ColumnDefinition { Name = "All" };
 
         // act
@@ -221,7 +221,7 @@ public sealed class BoardDataLoaderTests
         // arrange
         var store = new FakeTaskStore();
         store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
-        var loader = new BoardDataLoader(store, new FakeTimeProvider(Now));
+        var loader = new BoardDataLoader(store, new FakeTimeProvider(s_now));
         var column = new ColumnDefinition { Name = "In Progress", Statuses = [TaskStates.InProgress] };
 
         // act
@@ -242,7 +242,7 @@ public sealed class BoardDataLoaderTests
             "a-2", priority: TaskPriorities.High, type: TaskTypes.Task));
         store.Tasks.Add(TaskItemBuilder.Create(
             "a-3", priority: TaskPriorities.Low, type: TaskTypes.Bug));
-        var loader = new BoardDataLoader(store, new FakeTimeProvider(Now));
+        var loader = new BoardDataLoader(store, new FakeTimeProvider(s_now));
         var column = new ColumnDefinition
         {
             Name = "Bugs",

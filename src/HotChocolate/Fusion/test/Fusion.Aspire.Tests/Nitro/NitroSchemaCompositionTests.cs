@@ -184,6 +184,7 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
               "merger": {
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Include",
+                "defaultListSize": null,
                 "enableGlobalObjectIdentification": false,
                 "enumValuesMergeBehavior": null,
                 "nodeResolution": "Gateway",
@@ -750,7 +751,8 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
             CreateCoordinator(validator),
             notifier: new NoopValidationNotifier(),
             waitForRunningState: true);
-        var (model, gateway) = await CreateModelAsync(harness, 
+        var (model, gateway) = await CreateModelAsync(
+            harness,
             GatewayApiId,
             disableSchemaValidation: true);
         using var compositionGate = new SemaphoreSlim(1, 1);

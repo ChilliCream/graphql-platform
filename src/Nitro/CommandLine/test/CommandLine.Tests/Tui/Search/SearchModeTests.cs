@@ -7,7 +7,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Search;
 
 public sealed class SearchModeTests
 {
-    private static readonly DateTimeOffset Now = DateTimeOffset.UnixEpoch;
+    private static readonly DateTimeOffset s_now = DateTimeOffset.UnixEpoch;
 
     [Fact]
     public void Constructor_Should_Throw_When_StoreIsNull()
@@ -39,7 +39,7 @@ public sealed class SearchModeTests
 
         // act
         mode.OnEnter();
-        var ran = await mode.TickAsync(Now, CancellationToken.None);
+        var ran = await mode.TickAsync(s_now, CancellationToken.None);
 
         // assert
         Assert.True(ran);
@@ -55,18 +55,18 @@ public sealed class SearchModeTests
         store.Tasks.Add(TaskItemBuilder.Create("t-1"));
         var mode = new SearchMode(store);
         mode.OnEnter();
-        await mode.TickAsync(Now, CancellationToken.None);
+        await mode.TickAsync(s_now, CancellationToken.None);
         Assert.Equal(1, store.QueryCount);
 
         // act
-        TypeChar(mode, 'p', Now);
-        TypeChar(mode, '0', Now);
+        TypeChar(mode, 'p', s_now);
+        TypeChar(mode, '0', s_now);
 
-        var beforeDue = await mode.TickAsync(Now + SearchMode.DebounceWindow - TimeSpan.FromMilliseconds(1), CancellationToken.None);
+        var beforeDue = await mode.TickAsync(s_now + SearchMode.DebounceWindow - TimeSpan.FromMilliseconds(1), CancellationToken.None);
         Assert.False(beforeDue);
         Assert.Equal(1, store.QueryCount);
 
-        var afterDue = await mode.TickAsync(Now + SearchMode.DebounceWindow, CancellationToken.None);
+        var afterDue = await mode.TickAsync(s_now + SearchMode.DebounceWindow, CancellationToken.None);
 
         // assert
         Assert.True(afterDue);
@@ -82,7 +82,7 @@ public sealed class SearchModeTests
         var mode = new SearchMode(new FakeTaskStore());
 
         // act
-        TypeText(mode, "priority:9", Now);
+        TypeText(mode, "priority:9", s_now);
 
         // assert
         Assert.NotNull(mode.ParseError);
@@ -96,12 +96,12 @@ public sealed class SearchModeTests
         var store = new FakeTaskStore();
         var mode = new SearchMode(store);
         mode.OnEnter();
-        await mode.TickAsync(Now, CancellationToken.None);
+        await mode.TickAsync(s_now, CancellationToken.None);
         var queriesAfterEntry = store.QueryCount;
 
         // act
-        TypeText(mode, "priority:9", Now);
-        var ran = await mode.TickAsync(Now + SearchMode.DebounceWindow, CancellationToken.None);
+        TypeText(mode, "priority:9", s_now);
+        var ran = await mode.TickAsync(s_now + SearchMode.DebounceWindow, CancellationToken.None);
 
         // assert
         Assert.False(ran);
@@ -117,7 +117,7 @@ public sealed class SearchModeTests
         Assert.Equal(SearchFocus.List, mode.Focus);
 
         // act
-        TypeChar(mode, 'x', Now);
+        TypeChar(mode, 'x', s_now);
 
         // assert
         Assert.Equal("", mode.QueryText);
@@ -130,16 +130,22 @@ public sealed class SearchModeTests
         var mode = new SearchMode(new FakeTaskStore());
         Assert.Equal(SearchFocus.Input, mode.Focus);
 
-        // act & assert: Input -> List
+        // act
         mode.Handle(new TuiMessage.OpenSelected());
+
+        // assert
         Assert.Equal(SearchFocus.List, mode.Focus);
 
-        // act & assert: List -> Detail
+        // act
         mode.Handle(new TuiMessage.OpenSelected());
+
+        // assert
         Assert.Equal(SearchFocus.Detail, mode.Focus);
 
-        // act & assert: Detail stays put
+        // act
         mode.Handle(new TuiMessage.OpenSelected());
+
+        // assert
         Assert.Equal(SearchFocus.Detail, mode.Focus);
     }
 
@@ -152,16 +158,22 @@ public sealed class SearchModeTests
         mode.Handle(new TuiMessage.OpenSelected());
         Assert.Equal(SearchFocus.Detail, mode.Focus);
 
-        // act & assert: Detail -> List
+        // act
         mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Left));
+
+        // assert
         Assert.Equal(SearchFocus.List, mode.Focus);
 
-        // act & assert: List -> Input
+        // act
         mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Left));
+
+        // assert
         Assert.Equal(SearchFocus.Input, mode.Focus);
 
-        // act & assert: Input stays put
+        // act
         mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Left));
+
+        // assert
         Assert.Equal(SearchFocus.Input, mode.Focus);
     }
 
@@ -190,7 +202,7 @@ public sealed class SearchModeTests
         store.Tasks.Add(TaskItemBuilder.Create("t-3"));
         var mode = new SearchMode(store);
         mode.OnEnter();
-        await mode.TickAsync(Now, CancellationToken.None);
+        await mode.TickAsync(s_now, CancellationToken.None);
         mode.Handle(new TuiMessage.OpenSelected());
         Assert.Equal(SearchFocus.List, mode.Focus);
         Assert.Equal("t-1", mode.SelectedTaskId);
@@ -215,7 +227,7 @@ public sealed class SearchModeTests
         store.Tasks.Add(TaskItemBuilder.Create("t-2"));
         var mode = new SearchMode(store);
         mode.OnEnter();
-        await mode.TickAsync(Now, CancellationToken.None);
+        await mode.TickAsync(s_now, CancellationToken.None);
         Assert.Equal(SearchFocus.Input, mode.Focus);
 
         // act
@@ -235,7 +247,7 @@ public sealed class SearchModeTests
         store.Tasks.Add(TaskItemBuilder.Create("t-3"));
         var mode = new SearchMode(store);
         mode.OnEnter();
-        await mode.TickAsync(Now, CancellationToken.None);
+        await mode.TickAsync(s_now, CancellationToken.None);
         mode.Handle(new TuiMessage.OpenSelected());
 
         // act & assert
@@ -254,16 +266,125 @@ public sealed class SearchModeTests
         store.Tasks.Add(TaskItemBuilder.Create("t-1"));
         var mode = new SearchMode(store);
         mode.OnEnter();
-        await mode.TickAsync(Now, CancellationToken.None);
+        await mode.TickAsync(s_now, CancellationToken.None);
         Assert.Equal(1, store.QueryCount);
 
         // act
         mode.Handle(new TuiMessage.RefreshRequested());
-        var ran = await mode.TickAsync(Now, CancellationToken.None);
+        var ran = await mode.TickAsync(s_now, CancellationToken.None);
 
         // assert
         Assert.True(ran);
         Assert.Equal(2, store.QueryCount);
+    }
+
+    [Fact]
+    public async Task TickAsync_Should_RerunLastAppliedQuery_Without_DiscardingPendingEdit_When_RefreshArrivesFirst()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("t-1", "Alpha"));
+        store.Tasks.Add(TaskItemBuilder.Create("t-2", "Beta"));
+        var mode = new SearchMode(store);
+        mode.OnEnter();
+        await mode.TickAsync(s_now, CancellationToken.None);
+        Assert.Equal(1, store.QueryCount);
+
+        TypeText(mode, "Beta", s_now);
+        Assert.Null(mode.ParseError);
+
+        // act
+        // Request a refresh before the pending query is due.
+        mode.Handle(new TuiMessage.RefreshRequested());
+        var refreshedAt = s_now + SearchMode.DebounceWindow - TimeSpan.FromMilliseconds(1);
+        var refreshRan = await mode.TickAsync(refreshedAt, CancellationToken.None);
+
+        // assert
+        Assert.True(refreshRan);
+        Assert.Equal(2, store.QueryCount);
+        Assert.Null(store.LastFilter!.Text);
+        Assert.Equal("Beta", mode.QueryText);
+    }
+
+    [Fact]
+    public async Task TickAsync_Should_StillApplyPendingEdit_When_ItsDueTimeArrives_AfterARefresh()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("t-1", "Alpha"));
+        store.Tasks.Add(TaskItemBuilder.Create("t-2", "Beta"));
+        var mode = new SearchMode(store);
+        mode.OnEnter();
+        await mode.TickAsync(s_now, CancellationToken.None);
+
+        TypeText(mode, "Beta", s_now);
+        mode.Handle(new TuiMessage.RefreshRequested());
+        await mode.TickAsync(s_now + SearchMode.DebounceWindow - TimeSpan.FromMilliseconds(1), CancellationToken.None);
+
+        // act
+        // Advance to the original query deadline.
+        var ran = await mode.TickAsync(s_now + SearchMode.DebounceWindow, CancellationToken.None);
+
+        // assert
+        Assert.True(ran);
+        Assert.Equal("Beta", store.LastFilter!.Text);
+        Assert.Equal(["t-2"], mode.Results.Select(t => t.Id));
+    }
+
+    [Fact]
+    public async Task Render_Should_ReloadDetailValues_When_SelectedTaskIsEdited()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        var originalTask = TaskItemBuilder.Create("t-1", "Task title");
+        originalTask.Description = "Original description";
+        store.Tasks.Add(originalTask);
+        var mode = new SearchMode(store);
+        mode.OnEnter();
+        await mode.TickAsync(s_now, CancellationToken.None);
+
+        var initialConsole = new TestConsole().Width(100);
+        initialConsole.Write(mode.Render(100, 24));
+        var updatedTask = TaskItemBuilder.Create(
+            "t-1",
+            "Task title",
+            updatedAt: s_now + TimeSpan.FromSeconds(1));
+        updatedTask.Description = "Updated description";
+        store.Tasks[0] = updatedTask;
+
+        // act
+        mode.Handle(new TuiMessage.RefreshRequested());
+        await mode.TickAsync(s_now, CancellationToken.None);
+        var refreshedConsole = new TestConsole().Width(100);
+        refreshedConsole.Write(mode.Render(100, 24));
+
+        // assert
+        Assert.Equal("t-1", mode.SelectedTaskId);
+        Assert.Contains("Original description", initialConsole.Output);
+        Assert.Contains("Updated description", refreshedConsole.Output);
+    }
+
+    [Fact]
+    public async Task TickAsync_Should_ApplyPendingQuery_When_ReenteringSearch()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("t-1", "Alpha"));
+        store.Tasks.Add(TaskItemBuilder.Create("t-2", "Beta"));
+        var mode = new SearchMode(store);
+        mode.OnEnter();
+        await mode.TickAsync(s_now, CancellationToken.None);
+
+        TypeText(mode, "Beta", s_now);
+
+        // act
+        mode.OnEnter();
+        var ran = await mode.TickAsync(s_now + SearchMode.DebounceWindow, CancellationToken.None);
+
+        // assert
+        Assert.True(ran);
+        Assert.Equal("Beta", store.LastFilter!.Text);
+        Assert.Equal(["t-2"], mode.Results.Select(t => t.Id));
     }
 
     [Fact]
@@ -324,7 +445,7 @@ public sealed class SearchModeTests
         store.Tasks.Add(TaskItemBuilder.Create("t-1", "My task title"));
         var mode = new SearchMode(store);
         mode.OnEnter();
-        await mode.TickAsync(Now, CancellationToken.None);
+        await mode.TickAsync(s_now, CancellationToken.None);
         mode.Handle(new TuiMessage.OpenSelected());
         mode.Handle(new TuiMessage.OpenSelected());
         Assert.Equal(SearchFocus.Detail, mode.Focus);

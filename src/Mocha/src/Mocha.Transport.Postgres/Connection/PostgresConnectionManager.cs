@@ -50,8 +50,7 @@ public sealed class PostgresConnectionManager : IAsyncDisposable
         }
 
         await using var connection = await OpenConnectionAsync(cancellationToken);
-        var migrator = new PostgresSchemaMigrator(_schemaOptions);
-        await migrator.MigrateAsync(connection);
+        await PostgresTransportSchema.MigrateAsync(connection, _schemaOptions, cancellationToken);
         _isMigrated = true;
 
         _logger.SchemaMigrated();

@@ -12,7 +12,7 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Editing;
 /// </summary>
 internal static class StatusPicker
 {
-    private static readonly (string Id, string Label)[] WellKnownStatuses =
+    private static readonly (string Id, string Label)[] s_wellKnownStatuses =
     [
         (TaskStates.Open, "Open"),
         (TaskStates.InProgress, "In Progress"),
@@ -28,7 +28,7 @@ internal static class StatusPicker
     public static QuickPicker Create(TaskItem task)
         => new(
             "Status",
-            [.. WellKnownStatuses.Select(status => new QuickPickerOption(status.Id, RenderOption(status.Id, status.Label)))],
+            [.. s_wellKnownStatuses.Select(status => new QuickPickerOption(status.Id, RenderOption(status.Id, status.Label)))],
             initialSelectedId: task.Status);
 
     /// <summary>
@@ -58,7 +58,7 @@ internal static class StatusPicker
 
             var result = await store.UpdateTaskAsync(task.Id, update, cancellationToken);
 
-            var toastText = result.ChangedFields.Count == 0
+            var toastText = status == task.Status
                 ? $"No changes to task '{task.Id}'."
                 : $"Status set to '{status}' for task '{task.Id}'.";
 

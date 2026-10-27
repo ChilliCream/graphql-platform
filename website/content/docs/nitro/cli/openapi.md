@@ -44,6 +44,8 @@ nitro openapi create --name "<name>" --api-id "<api-id>"
 
 # `nitro openapi upload`
 
+Nitro: 10.6.0
+
 Upload a new version of an OpenAPI collection.
 
 ```shell
@@ -73,6 +75,8 @@ nitro openapi upload \
 ```
 
 # `nitro openapi publish`
+
+Nitro: 10.6.0
 
 Publish a previously uploaded OpenAPI collection version to a stage. The version is identified by its tag.
 
@@ -115,6 +119,8 @@ nitro openapi publish \
 ```
 
 # `nitro openapi validate`
+
+Nitro: 10.6.0
 
 Validate a new OpenAPI collection version against a stage without publishing it. Run this in your pull request validation workflow to catch breaking changes before they are merged.
 

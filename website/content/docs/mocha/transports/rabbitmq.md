@@ -11,7 +11,7 @@ By the end of this section, you will have a Mocha bus connected to RabbitMQ with
 
 ## Install the package
 
-```bash
+```shell
 dotnet add package Mocha.Transport.RabbitMQ
 ```
 
@@ -19,7 +19,7 @@ dotnet add package Mocha.Transport.RabbitMQ
 
 The most common setup uses the Aspire RabbitMQ component for connection management:
 
-```bash
+```shell
 dotnet add package Aspire.RabbitMQ.Client
 ```
 
@@ -156,7 +156,7 @@ graph LR
 
 ## Publisher confirms
 
-Mocha's RabbitMQ transport uses publisher confirms on dispatch, which means the broker acknowledges each published message before the publish call completes. This provides at-least-once delivery guarantees for outbound messages: if the broker does not confirm, the publish fails with an exception. See the [RabbitMQ Reliability Guide](https://www.rabbitmq.com/docs/reliability) for a full treatment of delivery guarantees.
+Mocha's RabbitMQ transport does not use publisher confirms on dispatch. A publish completes once the message is handed to the broker, and a message the broker cannot route is dropped. See the [RabbitMQ Reliability Guide](https://www.rabbitmq.com/docs/reliability) for a full treatment of delivery guarantees.
 
 ## Default topology for event handlers
 
@@ -319,6 +319,20 @@ builder.Services
 ```
 
 All declared topology is provisioned when the transport starts, before receive endpoints begin consuming.
+
+# Temporary receive endpoints
+
+Call `Temporary()` on a queue or receive endpoint descriptor to scope its backing queue to the lifetime of the consuming process:
+
+```csharp
+transport.Queue($"tenant-events-{instanceId}")
+    .Temporary()
+    .Receives<TenantEvent>();
+```
+
+`Temporary()` marks the queue non-durable and auto-delete (`Durable = false`, `AutoDelete = true`). The broker removes the queue once its last consumer disconnects, independent of any idle-time window.
+
+If the queue is already explicitly declared as durable or non-auto-delete, for example through `DeclareQueue(...)` without matching settings, startup fails with an explicit configuration error instead of silently ignoring `Temporary()`.
 
 # Control auto-provisioning
 

@@ -122,11 +122,15 @@ public sealed class OperationExecutionNode : ExecutionNode
         CancellationToken cancellationToken = default)
     {
         var diagnosticEvents = context.DiagnosticEvents;
-        var variables = context.CreateVariableValueSets(_target, _forwardedVariables, _requirements);
+        var reusedCount = 0;
+        var variables = context.GetEntityReuseCandidates(Id) is { } candidates
+            ? context.CreateVariableValueSets([_target], _forwardedVariables, _requirements, candidates, out reusedCount)
+            : context.CreateVariableValueSets(_target, _forwardedVariables, _requirements);
 
         if (variables.Length == 0 && (_requirements.Length > 0 || _forwardedVariables.Length > 0))
         {
-            return ExecutionStatus.Skipped;
+            // When every entity was taken from the result, the node completed its work.
+            return reusedCount > 0 ? ExecutionStatus.Success : ExecutionStatus.Skipped;
         }
 
         var schemaName = _schemaName ?? context.GetDynamicSchemaName(this);
@@ -194,6 +198,21 @@ public sealed class OperationExecutionNode : ExecutionNode
             // If the execution of the node was cancelled, either the entire request was cancelled
             // or the execution was halted. In both cases we do not want to produce any errors
             // and just exit the node as quickly as possible.
+            if (buffer is not null && bufferLength > 0)
+            {
+                foreach (var result in buffer.AsSpan(0, index))
+                {
+                    result?.Dispose();
+                }
+
+                buffer.AsSpan(0, index).Clear();
+                ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
+            }
+            else
+            {
+                singleResult?.Dispose();
+            }
+
             return ExecutionStatus.Failed;
         }
         catch (Exception exception)
@@ -432,6 +451,7 @@ public sealed class OperationExecutionNode : ExecutionNode
 
             bool hasResult;
             var received = false;
+            var arenaBound = false;
             IDisposable? scope = null;
             long? start = null;
             var arenaBefore = _eventArenaSource.Arena;
@@ -446,11 +466,11 @@ public sealed class OperationExecutionNode : ExecutionNode
                 // the event arena being bound and registered as the active arena throws, the arena
                 // must be disposed on the failure path below.
                 received = hasResult;
-                scope = _diagnosticEvents.ExecuteSubscriptionNode(_context, _node, _schemaName, _subscriptionId);
-                start = Stopwatch.GetTimestamp();
 
                 if (hasResult)
                 {
+                    scope = _diagnosticEvents.ExecuteSubscriptionNode(_context, _node, _schemaName, _subscriptionId);
+                    start = Stopwatch.GetTimestamp();
                     _resultBuffer[0] = _eventEnumerator.Current;
 
                     // Bind the event arena as the active arena before adding the event's result, so the
@@ -459,6 +479,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                     // the try so a failure while binding the arena disposes it on the failure path
                     // instead of leaving it to the finalizer.
                     _context.SetActiveEventArena(_eventArenaSource.Arena);
+                    arenaBound = true;
 
                     _context.AddPartialResults(_node._source, _resultBuffer, _node._resultSelectionSet, containsErrors: true);
 
@@ -483,12 +504,11 @@ public sealed class OperationExecutionNode : ExecutionNode
                     _eventEnumerator.Current.Dispose();
                 }
 
-                // An arena minted during this failed iteration is owned by this enumerator. An
-                // arena carried over from a prior delivered event is still owned by that result.
-                if (!ReferenceEquals(_eventArenaSource.Arena, arenaBefore))
-                {
-                    ((IDisposable)_eventArenaSource.Arena).Dispose();
-                }
+                // An arena minted during this failed iteration is owned by this enumerator until it
+                // is bound as the active event arena. An arena carried over from a prior delivered
+                // event is still owned by that result.
+                var arena = _eventArenaSource.Arena;
+                var arenaMinted = !ReferenceEquals(arena, arenaBefore);
 
                 // A cancellation signalled on the subscription token while the transport read
                 // was in flight (client abort or shutdown) is the same graceful teardown as
@@ -496,11 +516,43 @@ public sealed class OperationExecutionNode : ExecutionNode
                 if (exception is OperationCanceledException
                     && _cancellationToken.IsCancellationRequested)
                 {
+                    if (arenaMinted)
+                    {
+                        ((IDisposable)arena).Dispose();
+                    }
+
                     scope?.Dispose();
                     _completed = true;
                     Current = null!;
                     return false;
                 }
+
+                // Any other failure ends the subscription with a single terminal error result. The
+                // error result is built on its own event arena, like every delivered event, so the
+                // arena travels with that result. A minted arena that was never bound is released
+                // and replaced by a fresh one; a bound arena stays the active arena.
+                _completed = true;
+
+                if (!arenaBound)
+                {
+                    if (arenaMinted)
+                    {
+                        ((IDisposable)arena).Dispose();
+                    }
+
+                    _context.SetActiveEventArena(_eventArenaSource.GetNextArena());
+                }
+
+                _context.DiagnosticEvents.SubscriptionEventError(
+                    _context,
+                    _node,
+                    _schemaName,
+                    _subscriptionId,
+                    exception);
+                _context.AddErrors(
+                    ErrorBuilder.FromException(exception).Build(),
+                    _node._resultSelectionSet,
+                    Path.Root);
 
                 Current = new EventMessageResult(
                     _node.Id,
@@ -511,16 +563,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                     Stopwatch.GetTimestamp(),
                     Exception: exception,
                     VariableValueSets: _context.GetVariableValueSets(_node));
-
-                var error = ErrorBuilder.FromException(exception).Build();
-                _context.DiagnosticEvents.SubscriptionEventError(
-                    _context,
-                    _node,
-                    _node.SchemaName ?? _context.GetDynamicSchemaName(_node),
-                    _subscriptionId,
-                    exception);
-                _context.AddErrors(error, _node._resultSelectionSet);
-                return false;
+                return true;
             }
 
             _completed = true;

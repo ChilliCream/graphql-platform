@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Pipeline;
 using HotChocolate.Language;
 
 namespace HotChocolate.Diagnostics;
@@ -41,6 +42,16 @@ internal sealed class ExecuteRequestSpan(
         {
             operationType = operation.Definition.Operation;
             operationName = operation.Name;
+            return true;
+        }
+
+        // Cost rejection can finish a request before planning.
+        // Use only validated documents when reporting operation details.
+        if (Context.OperationDocumentInfo is { IsValidated: true, Document: { } document }
+            && document.TryGetOperationDefinition(Context.Request.OperationName, out var operationDefinition))
+        {
+            operationType = operationDefinition.Operation;
+            operationName = operationDefinition.Name?.Value;
             return true;
         }
 

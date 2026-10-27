@@ -33,7 +33,7 @@ public sealed class MutableSchemaDefinitionExtensionsTests
             """);
 
         // act
-        schema.RemoveUnreferencedDefinitions(new HashSet<string>(), seedUnionsAsRoots: true);
+        schema.RemoveUnreferencedDefinitions(new HashSet<string>(), new HashSet<string>(), seedUnionsAsRoots: true);
 
         // assert
         Assert.False(schema.Types.ContainsName("Carrier"));
@@ -68,12 +68,56 @@ public sealed class MutableSchemaDefinitionExtensionsTests
             """);
 
         // act
-        schema.RemoveUnreferencedDefinitions(new HashSet<string>(), seedUnionsAsRoots: true);
+        schema.RemoveUnreferencedDefinitions(new HashSet<string>(), new HashSet<string>(), seedUnionsAsRoots: true);
 
         // assert
         Assert.True(schema.Types.ContainsName("Carrier"));
         Assert.True(schema.Types.TryGetType<MutableObjectTypeDefinition>("Entity", out var entity));
         Assert.True(entity.Fields.TryGetField("external", out _));
+    }
+
+    [Fact]
+    public void RemoveUnreferencedDefinitions_Should_ReturnTypesRemovedInEveryPass_When_RemovalOrphansMoreTypes()
+    {
+        // arrange
+        // Removing 'Carrier' leaves 'Entity.payload' dead, and removing that field orphans 'Payload'.
+        // 'String' is only used by the @provides definition, which goes away with 'Carrier'.
+        var schema = SchemaParser.Parse(
+            """
+            directive @external on FIELD_DEFINITION
+            directive @provides(fields: String!) on FIELD_DEFINITION
+
+            type Query {
+                entity: Entity
+            }
+
+            type Entity {
+                id: ID
+                payload: Payload @external
+            }
+
+            type Payload {
+                id: ID
+            }
+
+            type Carrier {
+                link: Entity @provides(fields: "payload { id }")
+            }
+
+            type Draft {
+                id: ID
+            }
+            """);
+
+        // act
+        var removedTypes =
+            schema.RemoveUnreferencedDefinitions(
+                new HashSet<string>(),
+                new HashSet<string>(),
+                seedUnionsAsRoots: true);
+
+        // assert
+        Assert.Equal(["Carrier", "Draft", "String", "Payload"], removedTypes.Select(t => t.Name));
     }
 
     [Fact]
@@ -83,7 +127,7 @@ public sealed class MutableSchemaDefinitionExtensionsTests
         var schema = CreateSchemaWithUnreferencedUnion();
 
         // act
-        schema.RemoveUnreferencedDefinitions(new HashSet<string>(), seedUnionsAsRoots: true);
+        schema.RemoveUnreferencedDefinitions(new HashSet<string>(), new HashSet<string>(), seedUnionsAsRoots: true);
 
         // assert
         Assert.True(schema.Types.ContainsName("Media"));
@@ -97,7 +141,7 @@ public sealed class MutableSchemaDefinitionExtensionsTests
         var schema = CreateSchemaWithUnreferencedUnion();
 
         // act
-        schema.RemoveUnreferencedDefinitions(new HashSet<string>(), seedUnionsAsRoots: false);
+        schema.RemoveUnreferencedDefinitions(new HashSet<string>(), new HashSet<string>(), seedUnionsAsRoots: false);
 
         // assert
         Assert.False(schema.Types.ContainsName("Media"));

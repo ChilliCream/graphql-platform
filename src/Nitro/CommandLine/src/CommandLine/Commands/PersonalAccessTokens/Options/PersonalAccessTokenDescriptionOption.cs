@@ -9,11 +9,3 @@ internal class PersonalAccessTokenDescriptionOption : Option<string>
         this.DefaultFromEnvironmentValue(EnvironmentVariables.Description);
     }
 }
-
-internal sealed class OptionalPersonalAccessTokenDescriptionOption : PersonalAccessTokenDescriptionOption
-{
-    public OptionalPersonalAccessTokenDescriptionOption() : base()
-    {
-        Required = false;
-    }
-}

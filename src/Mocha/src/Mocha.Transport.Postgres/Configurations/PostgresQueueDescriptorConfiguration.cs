@@ -22,6 +22,12 @@ public sealed class PostgresQueueDescriptorConfiguration : MessagingConfiguratio
     public PostgresQueueConfiguration Queue { get; }
 
     /// <summary>
+    /// Gets or sets whether this queue's receive endpoint is temporary, matching the shared
+    /// lifecycle intent exposed by <see cref="IReceiveEndpointDescriptor{T}.Temporary"/>.
+    /// </summary>
+    public bool IsTemporary { get; set; }
+
+    /// <summary>
     /// Gets the consumer identity types explicitly bound to this queue.
     /// </summary>
     public List<Type> ConsumerIdentities { get; } = [];
@@ -62,7 +68,12 @@ public sealed class PostgresQueueDescriptorConfiguration : MessagingConfiguratio
     public List<Action<List<ReceiveMiddlewareConfiguration>>> ReceivePipelineModifiers { get; } = [];
 
     /// <summary>
+    /// Gets the configuration callbacks applied to this queue's receive endpoint, in registration order.
+    /// </summary>
+    public List<Action<IReceiveMiddlewareProvider>> ConfigureReceiveEndpoint { get; } = [];
+
+    /// <summary>
     /// Gets the source topic bindings declared from this queue descriptor.
     /// </summary>
-    public List<Uri> SourceBindings { get; } = [];
+    public List<PostgresQueueSourceBindingConfiguration> SourceBindings { get; } = [];
 }

@@ -31,7 +31,7 @@ nodes:
     operation: |
       query Op_123456789101112_3(
         $__fusion_2_commentAuthorIds: [ID]
-          $__fusion_3_id: ID!
+        $__fusion_3_id: ID!
       ) {
         postById(id: $__fusion_3_id) {
           author(commentAuthorIds: $__fusion_2_commentAuthorIds) {
@@ -51,6 +51,7 @@ nodes:
     dependencies:
       - id: 1
       - id: 4
+      - id: 5
   - id: 4
     type: Operation
     schema: b

@@ -86,6 +86,13 @@ public abstract class ReceiveEndpointDescriptor<T>(IMessagingConfigurationContex
         return this;
     }
 
+    /// <inheritdoc />
+    public IReceiveEndpointDescriptor<T> Temporary()
+    {
+        Configuration.IsTemporary = true;
+        return this;
+    }
+
     public IReceiveEndpointDescriptor<T> UseReceive(
         ReceiveMiddlewareConfiguration configuration,
         string? before = null,

@@ -116,6 +116,10 @@ internal sealed class FakeTaskStore : ITaskStore
     public Task<TaskItem?> GetTaskAsync(string id, CancellationToken cancellationToken)
         => Task.FromResult(Tasks.FirstOrDefault(t => t.Id == id));
 
+    public Task<IReadOnlyList<TaskItem>> QueryParticipationAsync(
+        string agent, int? limit, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
     public Task<TaskItem> GetRequiredTaskAsync(string id, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
@@ -189,6 +193,9 @@ internal sealed class FakeTaskStore : ITaskStore
     public Task<TaskItem> DeleteTaskAsync(string id, string reason, string actor, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
+    public Task<int> ReleaseAssigneeAsync(string agent, string reason, CancellationToken cancellationToken)
+        => throw new NotSupportedException();
+
     public Task<IReadOnlyList<TaskEpicStatus>> CloseEligibleEpicsAsync(string actor, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
@@ -205,12 +212,6 @@ internal sealed class FakeTaskStore : ITaskStore
         => throw new NotSupportedException();
 
     public Task RemoveDependencyAsync(string id, string dependsOnId, string actor, CancellationToken cancellationToken)
-        => throw new NotSupportedException();
-
-    public Task<IReadOnlyList<TaskSyncRecord>> ExportTasksAsync(CancellationToken cancellationToken)
-        => throw new NotSupportedException();
-
-    public Task<TaskImportResult> ImportTasksAsync(IReadOnlyList<TaskSyncRecord> records, CancellationToken cancellationToken)
         => throw new NotSupportedException();
 
     public Task EnsureWorkspaceAsync(string workspaceDirectory, CancellationToken cancellationToken)

@@ -22,7 +22,7 @@ response:
             "votable": {
               "viewerCanVote": true,
               "author": {
-                "displayName": "Author: QXV0aG9yOjk="
+                "displayName": "Author: QXV0aG9yOjIxNzM4NTkzMTE="
               }
             }
           },
@@ -30,7 +30,7 @@ response:
             "votable": {
               "viewerCanVote": true,
               "author": {
-                "displayName": "Author: QXV0aG9yOjg="
+                "displayName": "Author: QXV0aG9yOjgwNDM2OTM2OA=="
               }
             }
           },
@@ -38,7 +38,7 @@ response:
             "votable": {
               "viewerCanVote": true,
               "author": {
-                "displayName": "Author: QXV0aG9yOjc="
+                "displayName": "Author: QXV0aG9yOjE5MDUxMjQ4Nzg="
               }
             }
           }
@@ -106,7 +106,7 @@ sourceSchemas:
                         "__typename": "Discussion",
                         "viewerCanVote": true,
                         "author": {
-                          "id": "QXV0aG9yOjk="
+                          "id": "QXV0aG9yOjIxNzM4NTkzMTE="
                         }
                       }
                     },
@@ -115,7 +115,7 @@ sourceSchemas:
                         "__typename": "Discussion",
                         "viewerCanVote": true,
                         "author": {
-                          "id": "QXV0aG9yOjg="
+                          "id": "QXV0aG9yOjgwNDM2OTM2OA=="
                         }
                       }
                     },
@@ -124,7 +124,7 @@ sourceSchemas:
                         "__typename": "Discussion",
                         "viewerCanVote": true,
                         "author": {
-                          "id": "QXV0aG9yOjc="
+                          "id": "QXV0aG9yOjE5MDUxMjQ4Nzg="
                         }
                       }
                     }
@@ -157,13 +157,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "QXV0aG9yOjk="
+                "__fusion_1_id": "QXV0aG9yOjIxNzM4NTkzMTE="
               },
               {
-                "__fusion_1_id": "QXV0aG9yOjg="
+                "__fusion_1_id": "QXV0aG9yOjgwNDM2OTM2OA=="
               },
               {
-                "__fusion_1_id": "QXV0aG9yOjc="
+                "__fusion_1_id": "QXV0aG9yOjE5MDUxMjQ4Nzg="
               }
             ]
         response:
@@ -173,7 +173,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "displayName": "Author: QXV0aG9yOjk="
+                    "displayName": "Author: QXV0aG9yOjIxNzM4NTkzMTE="
                   }
                 }
               }
@@ -181,7 +181,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "displayName": "Author: QXV0aG9yOjg="
+                    "displayName": "Author: QXV0aG9yOjgwNDM2OTM2OA=="
                   }
                 }
               }
@@ -189,7 +189,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "displayName": "Author: QXV0aG9yOjc="
+                    "displayName": "Author: QXV0aG9yOjE5MDUxMjQ4Nzg="
                   }
                 }
               }
@@ -211,7 +211,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 8c4ceb7d5d586957711457c466f93384
+      hash: be87a460e3d0117171bdca45c27fa7da
       searchSpace: 1
       expandedNodes: 2
   nodes:

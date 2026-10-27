@@ -28,7 +28,6 @@ public sealed class NitroConsoleActivityTests
         var console = new NitroConsole(
             outConsole,
             errConsole,
-            envProvider.Object,
             new SnapshotActivitySinkFactory());
         return (console, writer);
     }

@@ -18,9 +18,7 @@ internal delegate IRenderable TuiFrameRenderer();
 /// Runs until <paramref name="cancellationToken"/> is cancelled, writing
 /// <see cref="TuiEvent"/>s into <paramref name="writer"/> as they occur.
 /// Merged into the event loop alongside key input and ticks; a source that
-/// cannot start (for example an unsupported file system) should return
-/// without writing anything rather than throwing, so the loop degrades to
-/// its other event sources instead of failing to start.
+/// cannot start should return without writing anything rather than throwing.
 /// </summary>
 internal delegate Task TuiEventSource(ChannelWriter<TuiEvent> writer, CancellationToken cancellationToken);
 
@@ -33,21 +31,29 @@ internal sealed class TuiApplication
 {
     private const int EventChannelCapacity = 64;
 
-    private static readonly TimeSpan DefaultTickInterval = TimeSpan.FromMilliseconds(100);
-    private static readonly TimeSpan DefaultKeyPollInterval = TimeSpan.FromMilliseconds(15);
+    private static readonly TimeSpan s_defaultTickInterval = TimeSpan.FromMilliseconds(100);
+    private static readonly TimeSpan s_defaultKeyPollInterval = TimeSpan.FromMilliseconds(15);
+
+    /// <summary>
+    /// The default shutdown wait for background event-source tasks.
+    /// </summary>
+    private static readonly TimeSpan s_defaultShutdownDrainBound = TimeSpan.FromSeconds(5);
 
     private readonly IAnsiConsole _console;
     private readonly TimeSpan _tickInterval;
     private readonly TimeSpan _keyPollInterval;
+    private readonly TimeSpan _shutdownDrainBound;
 
     public TuiApplication(
         IAnsiConsole console,
         TimeSpan? tickInterval = null,
-        TimeSpan? keyPollInterval = null)
+        TimeSpan? keyPollInterval = null,
+        TimeSpan? shutdownDrainBound = null)
     {
         _console = console ?? throw new ArgumentNullException(nameof(console));
-        _tickInterval = tickInterval ?? DefaultTickInterval;
-        _keyPollInterval = keyPollInterval ?? DefaultKeyPollInterval;
+        _tickInterval = tickInterval ?? s_defaultTickInterval;
+        _keyPollInterval = keyPollInterval ?? s_defaultKeyPollInterval;
+        _shutdownDrainBound = shutdownDrainBound ?? s_defaultShutdownDrainBound;
     }
 
     /// <summary>
@@ -58,10 +64,9 @@ internal sealed class TuiApplication
     /// <param name="rootRenderer">Produces the renderable for the current frame.</param>
     /// <param name="cancellationToken">Stops the loop and restores the terminal when cancelled.</param>
     /// <param name="eventSources">
-    /// Additional event sources (for example a data-change watcher) merged into the
-    /// same channel as key input and ticks. Each runs for the lifetime of the loop
-    /// and is cancelled and awaited alongside the built-in sources on every exit
-    /// path, including when <paramref name="rootHandler"/> throws.
+    /// Additional event sources sharing the input channel; null adds none.
+    /// On exit, their cancellation is requested and they are awaited with the built-in
+    /// sources up to the configured shutdown bound.
     /// </param>
     public async Task RunAsync(
         TuiEventHandler rootHandler,
@@ -83,8 +88,7 @@ internal sealed class TuiApplication
 
         ConsoleCancelEventHandler onCancelKeyPress = (_, e) =>
         {
-            // Prevent the default behavior (immediate process termination) so the
-            // session below still gets to restore the terminal.
+            // Prevent the default behavior (immediate process termination).
             e.Cancel = true;
             loopCts.Cancel();
         };
@@ -112,9 +116,7 @@ internal sealed class TuiApplication
                     await _console.Live(rootRenderer())
                         .StartAsync(async ctx =>
                         {
-                            // Spectre's Live display only paints once something calls
-                            // Refresh/UpdateTarget; without this, the initial frame stays
-                            // blank until the root handler first reports a dirty event.
+                            // Paint the initial frame.
                             ctx.Refresh();
 
                             await foreach (var tuiEvent in channel.Reader.ReadAllAsync(loopCts.Token))
@@ -134,20 +136,24 @@ internal sealed class TuiApplication
             }
             finally
             {
-                // Ensure the background key-reader, tick, and additional event-source
-                // tasks are always stopped and awaited, even if the handler or
-                // renderer throws, so stdin is never left being consumed and no
-                // watcher outlives this loop after the method returns.
+                // Request cancellation of every event source on exit.
                 loopCts.Cancel();
                 channel.Writer.TryComplete();
 
                 try
                 {
-                    await Task.WhenAll([keyReaderTask, tickTask, .. additionalTasks]).ConfigureAwait(false);
+                    // Wait for event sources up to the configured shutdown bound.
+                    await Task.WhenAll([keyReaderTask, tickTask, .. additionalTasks])
+                        .WaitAsync(_shutdownDrainBound, CancellationToken.None)
+                        .ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
                     // Expected once loopCts is cancelled.
+                }
+                catch (TimeoutException)
+                {
+                    // The shutdown bound elapsed with a task still running; abandon it.
                 }
             }
         }

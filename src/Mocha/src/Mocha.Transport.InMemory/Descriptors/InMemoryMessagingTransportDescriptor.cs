@@ -293,11 +293,21 @@ public sealed class InMemoryMessagingTransportDescriptor
             target.MaxConcurrency ??= configuration.MaxConcurrency;
         }
 
+        if (configuration.IsTemporary)
+        {
+            target.IsTemporary = true;
+        }
+
         target.ReceiveMiddlewares.AddRange(configuration.ReceiveMiddlewares);
         target.ReceivePipelineModifiers.AddRange(configuration.ReceivePipelineModifiers);
 
         CopyFaultEndpointFeature(configuration, target);
         CopySkippedEndpointFeature(configuration, target);
+
+        foreach (var configure in configuration.ConfigureReceiveEndpoint)
+        {
+            configure(endpoint);
+        }
     }
 
     private static void CopyFaultEndpointFeature(

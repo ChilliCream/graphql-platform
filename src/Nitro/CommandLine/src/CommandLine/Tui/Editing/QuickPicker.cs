@@ -4,32 +4,6 @@ using Spectre.Console.Rendering;
 namespace ChilliCream.Nitro.CommandLine.Tui.Editing;
 
 /// <summary>
-/// One selectable choice in a <see cref="QuickPicker"/>: an id and the
-/// pre-styled Spectre markup fragment rendered for it.
-/// </summary>
-internal sealed record QuickPickerOption(string Id, string Markup);
-
-/// <summary>
-/// The outcome of a completed <see cref="QuickPicker"/> interaction.
-/// </summary>
-internal abstract record QuickPickerResult
-{
-    private QuickPickerResult()
-    {
-    }
-
-    /// <summary>
-    /// Enter was pressed: carries the id of the option that was selected.
-    /// </summary>
-    public sealed record Applied(string SelectedId) : QuickPickerResult;
-
-    /// <summary>
-    /// Escape was pressed; nothing should change.
-    /// </summary>
-    public sealed record Cancelled : QuickPickerResult;
-}
-
-/// <summary>
 /// A single-select overlay listing a fixed set of options with one
 /// pre-selected: j/k or the arrow keys move the selection, Enter applies it,
 /// Escape cancels. The host is expected to feed it raw key input and stop

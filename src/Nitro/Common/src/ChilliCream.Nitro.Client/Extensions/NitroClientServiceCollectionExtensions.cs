@@ -10,6 +10,7 @@ using ChilliCream.Nitro.Client.OpenApi;
 using ChilliCream.Nitro.Client.PersonalAccessTokens;
 using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.Client.Stages;
+using ChilliCream.Nitro.Client.Telemetry;
 using ChilliCream.Nitro.Client.Workspaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -35,6 +36,7 @@ public static class NitroClientServiceCollectionExtensions
             .AddNitroPersonalAccessTokensClient()
             .AddNitroSchemasClient()
             .AddNitroStagesClient()
+            .AddNitroTelemetryClient()
             .AddNitroWorkspacesClient()
             .AddNitroFusionConfigurationClient();
 
@@ -138,6 +140,16 @@ public static class NitroClientServiceCollectionExtensions
 
         TryAddNitroApiClient(services);
         services.TryAddSingleton<IStagesClient, StagesClient>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddNitroTelemetryClient(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        TryAddNitroApiClient(services);
+        services.TryAddSingleton<ITelemetryClient, TelemetryClient>();
 
         return services;
     }

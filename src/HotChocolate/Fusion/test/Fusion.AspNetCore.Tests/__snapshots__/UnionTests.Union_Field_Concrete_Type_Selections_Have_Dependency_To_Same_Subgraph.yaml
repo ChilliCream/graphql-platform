@@ -21,7 +21,7 @@ response:
       "data": {
         "post": {
           "product": {
-            "subgraph2": "Product: UHJvZHVjdDoy"
+            "subgraph2": "Product: UHJvZHVjdDoxODk0NzA4MjAy"
           }
         }
       }
@@ -83,7 +83,7 @@ sourceSchemas:
                   "post": {
                     "__typename": "Photo",
                     "product": {
-                      "id": "UHJvZHVjdDoy"
+                      "id": "UHJvZHVjdDoxODk0NzA4MjAy"
                     }
                   }
                 }
@@ -119,7 +119,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_2_id": "UHJvZHVjdDoy"
+              "__fusion_2_id": "UHJvZHVjdDoxODk0NzA4MjAy"
             }
         response:
           results:
@@ -127,7 +127,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDoy"
+                    "subgraph2": "Product: UHJvZHVjdDoxODk0NzA4MjAy"
                   }
                 }
               }
@@ -152,7 +152,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 8891193d6a2efd1415247828bc89c072
+      hash: 4b84ef3511c74827a98289c6769c9080
       searchSpace: 1
       expandedNodes: 2
   nodes:

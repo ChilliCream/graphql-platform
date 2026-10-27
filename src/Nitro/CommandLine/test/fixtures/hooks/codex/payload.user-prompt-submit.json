@@ -1,0 +1,10 @@
+{
+    "session_id": "session-1",
+    "turn_id": "turn-1",
+    "transcript_path": "/workspace/.codex/sessions/rollout-session-1.jsonl",
+    "cwd": "/workspace/project",
+    "hook_event_name": "UserPromptSubmit",
+    "model": "test-model",
+    "permission_mode": "default",
+    "prompt": "Run the tests"
+}

@@ -64,7 +64,7 @@ public static class HotChocolateExecutionRequestContextExtensions
 
             var operationInfo = context.Features.GetOrSet<OperationInfo>();
             operation = operationInfo.Operation;
-            operationId = operationInfo.Id;
+            context.TryGetOperationId(out operationId);
             return operation is not null;
         }
 
@@ -83,25 +83,9 @@ public static class HotChocolateExecutionRequestContextExtensions
 
             var operationInfo = context.Features.GetOrSet<OperationInfo>();
             operationInfo.Operation = operation;
-            operationInfo.Id = operation.Id;
             operationInfo.Definition = operation.Definition;
+            context.OperationDocumentInfo.OperationId = operation.Id;
             context.Features.Set<IOperation>(operation);
-        }
-
-        public bool TryGetOperationId([NotNullWhen(true)] out string? operationId)
-        {
-            ArgumentNullException.ThrowIfNull(context);
-
-            operationId = context.Features.GetOrSet<OperationInfo>().Id;
-            return operationId is not null;
-        }
-
-        public void SetOperationId(string operationId)
-        {
-            ArgumentNullException.ThrowIfNull(context);
-
-            var operationInfo = context.Features.GetOrSet<OperationInfo>();
-            operationInfo.Id = operationId;
         }
     }
 }

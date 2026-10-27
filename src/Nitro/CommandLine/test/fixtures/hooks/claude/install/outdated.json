@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/opt/old/nitro agent hook claude session-start",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

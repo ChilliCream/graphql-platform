@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import yaml from "js-yaml";
+import { load } from "js-yaml";
 
 export type TreeNode = {
   title: string;
@@ -39,7 +39,7 @@ function readMeta(dirRel: string): Meta {
   if (!fs.existsSync(metaPath)) {
     throw new Error(`Missing ${META_FILE} in ${dirRel}`);
   }
-  const parsed = yaml.load(fs.readFileSync(metaPath, "utf-8")) as Meta | null;
+  const parsed = load(fs.readFileSync(metaPath, "utf-8")) as Meta | null;
   if (!parsed || typeof parsed.title !== "string" || !parsed.title.trim()) {
     throw new Error(`Invalid ${META_FILE} in ${dirRel}: missing 'title'`);
   }

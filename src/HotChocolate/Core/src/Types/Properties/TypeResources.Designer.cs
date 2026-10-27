@@ -1133,11 +1133,11 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot reference Input Object `{0}` within itself through a series of non-null fields `{1}`..
+        ///   Looks up a localized string similar to Input Object &apos;{0}&apos; cannot be provided a finite value because it references itself through fields: {1}..
         /// </summary>
-        internal static string ErrorHelper_InputObjectMustNotHaveRecursiveNonNullableReferencesToSelf {
+        internal static string ErrorHelper_InputObjectMustNotHaveUnbreakableCycle {
             get {
-                return ResourceManager.GetString("ErrorHelper_InputObjectMustNotHaveRecursiveNonNullableReferencesToSelf", resourceCulture);
+                return ResourceManager.GetString("ErrorHelper_InputObjectMustNotHaveUnbreakableCycle", resourceCulture);
             }
         }
         

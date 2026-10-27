@@ -27,7 +27,12 @@ public abstract class RabbitMQBinding : TopologyResource<RabbitMQBindingConfigur
     /// <summary>
     /// Gets the additional binding arguments used for advanced routing (e.g., headers exchange matching).
     /// </summary>
-    public ImmutableDictionary<string, object?> Arguments { get; private protected set; } = ImmutableDictionary<string, object?>.Empty;
+    public ImmutableDictionary<string, object?> Arguments { get; private protected set; } =
+#if NET10_0_OR_GREATER
+        [];
+#else
+        ImmutableDictionary<string, object?>.Empty;
+#endif
 
     internal void SetSource(RabbitMQExchange source)
     {
@@ -65,7 +70,13 @@ public sealed class RabbitMQExchangeBinding : RabbitMQBinding
     protected override void OnInitialize(RabbitMQBindingConfiguration configuration)
     {
         RoutingKey = configuration.RoutingKey ?? string.Empty;
-        Arguments = configuration.Arguments?.ToImmutableDictionary(kv => kv.Key, kv => (object?)kv.Value) ?? ImmutableDictionary<string, object?>.Empty;
+        Arguments =
+            configuration.Arguments?.ToImmutableDictionary(kv => kv.Key, kv => (object?)kv.Value)
+#if NET10_0_OR_GREATER
+                ?? [];
+#else
+                ?? ImmutableDictionary<string, object?>.Empty;
+#endif
         AutoProvision = configuration.AutoProvision;
     }
 
@@ -107,7 +118,13 @@ public sealed class RabbitMQQueueBinding : RabbitMQBinding
     protected override void OnInitialize(RabbitMQBindingConfiguration configuration)
     {
         RoutingKey = configuration.RoutingKey ?? string.Empty;
-        Arguments = configuration.Arguments?.ToImmutableDictionary(kv => kv.Key, kv => (object?)kv.Value) ?? ImmutableDictionary<string, object?>.Empty;
+        Arguments =
+            configuration.Arguments?.ToImmutableDictionary(kv => kv.Key, kv => (object?)kv.Value)
+#if NET10_0_OR_GREATER
+                ?? [];
+#else
+                ?? ImmutableDictionary<string, object?>.Empty;
+#endif
         AutoProvision = configuration.AutoProvision;
     }
 

@@ -1,4 +1,7 @@
+using System.Net;
+using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.Json;
 using HotChocolate.Resolvers;
 using HotChocolate.Transport.Http;
@@ -6,6 +9,7 @@ using HotChocolate.Types;
 using HotChocolate.Types.Composite;
 using Microsoft.Extensions.DependencyInjection;
 using OperationRequest = HotChocolate.Transport.OperationRequest;
+using OperationResult = HotChocolate.Transport.OperationResult;
 
 namespace HotChocolate.Fusion;
 
@@ -251,6 +255,202 @@ public class CancellationTests : FusionTestBase
             $"The follow-up event was poisoned: title='{title}', trigger='{trigger}'.");
     }
 
+    [Theory]
+    [InlineData("text/event-stream")]
+    [InlineData("application/jsonl")]
+    public async Task Subscribe_Should_TerminateWithError_When_SourceSchemaStreamStalls(string mediaType)
+    {
+        // arrange
+        // the source schema answers with one event, then keeps the connection open without sending more bytes
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b
+                .AddQueryType<TickStream.Query>()
+                .AddSubscriptionType<TickStream.Subscription>(),
+            subscriptionReadTimeout: TimeSpan.FromMilliseconds(500),
+            subscriptionAcceptHeaderValues: [new MediaTypeWithQualityHeaderValue(mediaType) { CharSet = "utf-8" }],
+            mockHttpResponse: _ => Task.FromResult(CreateStalledStreamResponse(mediaType)));
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("A", server1)
+            ],
+            configureGatewayBuilder: builder =>
+                builder.ModifyRequestOptions(o => o.AllowOperationPlanRequests = false));
+
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        using var guard = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        guard.CancelAfter(TimeSpan.FromSeconds(10));
+
+        var request = new OperationRequest("subscription { onTick }");
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            guard.Token);
+
+        var results = await ReadUntilStreamEndsAsync(response, guard);
+
+        // assert
+        results.MatchInlineSnapshots(
+            [
+                """
+                {
+                  "data": {
+                    "onTick": 1
+                  }
+                }
+                """,
+                """
+                {
+                  "data": null,
+                  "errors": [
+                    {
+                      "message": "Unexpected Execution Error",
+                      "path": [
+                        "onTick"
+                      ]
+                    }
+                  ]
+                }
+                """
+            ]);
+    }
+
+    [Theory]
+    [InlineData("text/event-stream")]
+    [InlineData("application/jsonl")]
+    public async Task Subscribe_Should_StayAlive_When_SourceSchemaOnlySendsKeepAlives(string mediaType)
+    {
+        // arrange
+        // one event, then only keep-alive bytes for longer than the read timeout, then a second event, then a stall
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b
+                .AddQueryType<TickStream.Query>()
+                .AddSubscriptionType<TickStream.Subscription>(),
+            subscriptionReadTimeout: TimeSpan.FromMilliseconds(500),
+            subscriptionAcceptHeaderValues: [new MediaTypeWithQualityHeaderValue(mediaType) { CharSet = "utf-8" }],
+            mockHttpResponse: _ => Task.FromResult(CreateKeepAliveStreamResponse(mediaType)));
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("A", server1)
+            ],
+            configureGatewayBuilder: builder =>
+                builder.ModifyRequestOptions(o => o.AllowOperationPlanRequests = false));
+
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        using var guard = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        guard.CancelAfter(TimeSpan.FromSeconds(10));
+
+        var request = new OperationRequest("subscription { onTick }");
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            guard.Token);
+
+        var results = await ReadUntilStreamEndsAsync(response, guard);
+
+        // assert
+        // both events arrive because keep-alive bytes reset the read deadline; only the final stall ends the stream
+        results.MatchInlineSnapshots(
+            [
+                """
+                {
+                  "data": {
+                    "onTick": 1
+                  }
+                }
+                """,
+                """
+                {
+                  "data": {
+                    "onTick": 2
+                  }
+                }
+                """,
+                """
+                {
+                  "data": null,
+                  "errors": [
+                    {
+                      "message": "Unexpected Execution Error",
+                      "path": [
+                        "onTick"
+                      ]
+                    }
+                  ]
+                }
+                """
+            ]);
+    }
+
+    [Theory]
+    [InlineData("text/event-stream")]
+    [InlineData("application/jsonl")]
+    public async Task Subscribe_Should_CancelSourceSchemaStream_When_GatewayClientDisconnects(string mediaType)
+    {
+        // arrange
+        // The source schema delivers one event and then idles; it signals when its stream is torn down.
+        var signal = new SubscriptionTeardownSignal();
+
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b
+                .AddQueryType<IdleStream.Query>()
+                .AddSubscriptionType<IdleStream.Subscription>(),
+            configureServices: s => s.AddSingleton(signal),
+            subscriptionAcceptHeaderValues: [new MediaTypeWithQualityHeaderValue(mediaType) { CharSet = "utf-8" }]);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("A", server1)
+            ]);
+
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        using var guard = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        guard.CancelAfter(TimeSpan.FromSeconds(10));
+        using var requestCts = CancellationTokenSource.CreateLinkedTokenSource(guard.Token);
+
+        var request = new OperationRequest("subscription { onTick }");
+
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            requestCts.Token);
+
+        var results = response.ReadAsResultStreamAsync().GetAsyncEnumerator(requestCts.Token);
+
+        try
+        {
+            // receive one event while the connection is alive
+            Assert.True(await results.MoveNextAsync(), "Expected the first event to be delivered.");
+
+            // act
+            // the subscription is idle; drop the gateway client connection while the next read is pending
+            var next = results.MoveNextAsync().AsTask();
+            await requestCts.CancelAsync();
+            await IgnoreTeardownExceptionsAsync(next);
+        }
+        finally
+        {
+            await IgnoreTeardownExceptionsAsync(results.DisposeAsync().AsTask());
+        }
+
+        await Task.WhenAny(signal.TornDown.Task, Task.Delay(TimeSpan.FromSeconds(5), guard.Token));
+
+        // assert
+        Assert.True(
+            signal.TornDown.Task.IsCompleted,
+            "The source schema subscription stream was not torn down within 5 seconds "
+            + "after the gateway client disconnected.");
+        Assert.Equal($"{mediaType}; charset=utf-8", gateway.Interactions["A"].Values.Single().ContentType);
+    }
+
     private sealed class GatingHandler : DelegatingHandler
     {
         private readonly TaskCompletionSource _started;
@@ -281,6 +481,181 @@ public class CancellationTests : FusionTestBase
 
             return await base.SendAsync(request, cancellationToken);
         }
+    }
+
+    private static HttpResponseMessage CreateStalledStreamResponse(string mediaType)
+        => CreateScriptedStreamResponse(mediaType, [(TimeSpan.Zero, FormatTickEvent(mediaType, 1))]);
+
+    private static HttpResponseMessage CreateKeepAliveStreamResponse(string mediaType)
+    {
+        // the same keep-alive bytes a HotChocolate source schema emits while a stream is idle
+        var keepAlive = mediaType == "text/event-stream" ? ":\n\n" : " \n";
+        var interval = TimeSpan.FromMilliseconds(100);
+        var script = new List<(TimeSpan Delay, string Text)> { (TimeSpan.Zero, FormatTickEvent(mediaType, 1)) };
+
+        for (var i = 0; i < 20; i++)
+        {
+            script.Add((interval, keepAlive));
+        }
+
+        script.Add((interval, FormatTickEvent(mediaType, 2)));
+
+        return CreateScriptedStreamResponse(mediaType, script);
+    }
+
+    private static string FormatTickEvent(string mediaType, int tick)
+        => mediaType == "text/event-stream"
+            ? $"event: next\ndata: {{\"data\":{{\"onTick\":{tick}}}}}\n\n"
+            : $"{{\"data\":{{\"onTick\":{tick}}}}}\n";
+
+    private static HttpResponseMessage CreateScriptedStreamResponse(
+        string mediaType,
+        IReadOnlyList<(TimeSpan Delay, string Text)> script)
+    {
+        var chunks = new (TimeSpan Delay, byte[] Bytes)[script.Count];
+
+        for (var i = 0; i < script.Count; i++)
+        {
+            chunks[i] = (script[i].Delay, Encoding.UTF8.GetBytes(script[i].Text));
+        }
+
+        var content = new StreamContent(new ScriptedStream(chunks));
+        content.Headers.ContentType = new MediaTypeHeaderValue(mediaType) { CharSet = "utf-8" };
+
+        return new HttpResponseMessage(HttpStatusCode.OK) { Content = content };
+    }
+
+    private static async Task<List<OperationResult>> ReadUntilStreamEndsAsync(
+        GraphQLHttpResponse response,
+        CancellationTokenSource guard)
+    {
+        var results = new List<OperationResult>();
+
+        try
+        {
+            await foreach (var result in response.ReadAsResultStreamAsync().WithCancellation(guard.Token))
+            {
+                results.Add(result);
+            }
+        }
+        catch (OperationCanceledException) when (guard.IsCancellationRequested)
+        {
+            Assert.Fail(
+                "The gateway subscription stream did not end within 10 seconds after the source "
+                + $"schema stream stalled. Results received before the guard fired: {results.Count}.");
+        }
+
+        return results;
+    }
+
+    private static async Task IgnoreTeardownExceptionsAsync(Task task)
+    {
+        try
+        {
+            await task;
+        }
+        catch (OperationCanceledException)
+        {
+            // expected: the streamed read was aborted by the client
+        }
+        catch (IOException)
+        {
+            // expected: aborting an in-flight streamed read can surface as an I/O failure
+        }
+    }
+
+    // A read-only stream that delivers a scripted sequence of chunks, each one after its delay, and
+    // then never completes another read until that read is cancelled or the stream is disposed.
+    private sealed class ScriptedStream((TimeSpan Delay, byte[] Bytes)[] script) : Stream
+    {
+        private readonly TaskCompletionSource _disposed = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private int _index;
+        private int _offset;
+        private bool _delayElapsed;
+
+        public override bool CanRead => true;
+
+        public override bool CanSeek => false;
+
+        public override bool CanWrite => false;
+
+        public override long Length => throw new NotSupportedException();
+
+        public override long Position
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
+
+        public override async ValueTask<int> ReadAsync(
+            Memory<byte> buffer,
+            CancellationToken cancellationToken = default)
+        {
+            if (_index >= script.Length)
+            {
+                // stall until the read is cancelled or the stream is disposed
+                await _disposed.Task.WaitAsync(cancellationToken);
+                throw new ObjectDisposedException(nameof(ScriptedStream));
+            }
+
+            var (delay, bytes) = script[_index];
+
+            if (!_delayElapsed)
+            {
+                if (delay > TimeSpan.Zero)
+                {
+                    await Task.Delay(delay, cancellationToken);
+                }
+
+                _delayElapsed = true;
+            }
+
+            // a zero-byte read only probes for available data and completes once the chunk is due
+            var count = Math.Min(bytes.Length - _offset, buffer.Length);
+            bytes.AsSpan(_offset, count).CopyTo(buffer.Span);
+            _offset += count;
+
+            if (_offset == bytes.Length)
+            {
+                _index++;
+                _offset = 0;
+                _delayElapsed = false;
+            }
+
+            return count;
+        }
+
+        public override Task<int> ReadAsync(
+            byte[] buffer,
+            int offset,
+            int count,
+            CancellationToken cancellationToken)
+            => ReadAsync(buffer.AsMemory(offset, count), cancellationToken).AsTask();
+
+        public override int Read(byte[] buffer, int offset, int count)
+            => throw new NotSupportedException("Only asynchronous reads are supported.");
+
+        public override void Flush()
+        {
+        }
+
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+
+        public override void SetLength(long value) => throw new NotSupportedException();
+
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+
+        protected override void Dispose(bool disposing)
+        {
+            _disposed.TrySetResult();
+            base.Dispose(disposing);
+        }
+    }
+
+    public sealed class SubscriptionTeardownSignal
+    {
+        public TaskCompletionSource TornDown { get; } =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
     }
 
     public sealed class NullBubbleSchemaA
@@ -363,6 +738,56 @@ public class CancellationTests : FusionTestBase
 
                 return new Book(id, "ok");
             }
+        }
+    }
+
+    public static class TickStream
+    {
+        public class Query
+        {
+            public string Foo() => "Foo";
+        }
+
+        public class Subscription
+        {
+            public async IAsyncEnumerable<int> OnTickStream()
+            {
+                yield return 1;
+                await Task.CompletedTask;
+            }
+
+            [Subscribe(With = nameof(OnTickStream))]
+            public int OnTick([EventMessage] int tick) => tick;
+        }
+    }
+
+    public static class IdleStream
+    {
+        public class Query
+        {
+            public string Foo() => "Foo";
+        }
+
+        public class Subscription
+        {
+            public async IAsyncEnumerable<int> OnTickStream(
+                [Service] SubscriptionTeardownSignal signal,
+                [EnumeratorCancellation] CancellationToken cancellationToken)
+            {
+                try
+                {
+                    // deliver one event, then stay open and idle until the stream is torn down
+                    yield return 1;
+                    await Task.Delay(Timeout.Infinite, cancellationToken);
+                }
+                finally
+                {
+                    signal.TornDown.TrySetResult();
+                }
+            }
+
+            [Subscribe(With = nameof(OnTickStream))]
+            public int OnTick([EventMessage] int tick) => tick;
         }
     }
 

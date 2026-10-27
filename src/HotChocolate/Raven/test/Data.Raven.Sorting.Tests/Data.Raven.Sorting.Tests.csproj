@@ -9,9 +9,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Data\HotChocolate.Data.Raven.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Squadron.RavenDB" />
+    <ProjectReference
+      Include="..\..\..\..\CookieCrumble\src\CookieCrumble.Resources.RavenDB\CookieCrumble.Resources.RavenDB.csproj"
+    />
   </ItemGroup>
 </Project>

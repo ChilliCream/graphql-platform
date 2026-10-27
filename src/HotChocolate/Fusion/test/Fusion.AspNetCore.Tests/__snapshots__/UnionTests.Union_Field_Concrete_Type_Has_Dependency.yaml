@@ -16,7 +16,7 @@ response:
     {
       "data": {
         "post": {
-          "subgraph2": "Photo: UGhvdG86MQ=="
+          "subgraph2": "Photo: UGhvdG86MzA4NDYxMjE2MQ=="
         }
       }
     }
@@ -63,7 +63,7 @@ sourceSchemas:
                 "data": {
                   "post": {
                     "__typename": "Photo",
-                    "id": "UGhvdG86MQ=="
+                    "id": "UGhvdG86MzA4NDYxMjE2MQ=="
                   }
                 }
               }
@@ -92,7 +92,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_id": "UGhvdG86MQ=="
+              "__fusion_1_id": "UGhvdG86MzA4NDYxMjE2MQ=="
             }
         response:
           results:
@@ -100,7 +100,7 @@ sourceSchemas:
               {
                 "data": {
                   "photoById": {
-                    "subgraph2": "Photo: UGhvdG86MQ=="
+                    "subgraph2": "Photo: UGhvdG86MzA4NDYxMjE2MQ=="
                   }
                 }
               }
@@ -120,7 +120,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 3d3597da3d13ce32520baa0509869b36
+      hash: 75f456b779648a675bd7a9d0c39adda0
       searchSpace: 1
       expandedNodes: 2
   nodes:

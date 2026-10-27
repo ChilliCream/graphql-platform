@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Language;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Directives;
 using HotChocolate.Language;
@@ -349,7 +350,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
             if (groupMembers[0] is ParsedApolloOperationNodeInfo)
             {
-                var operationDefinitions = operations.Cast<SingleOperationDefinition>().ToArray();
+                var operationDefinitions = operations.ToArray();
                 var lookups = new ApolloEntityLookup[groupMembers.Count];
 
                 for (var i = 0; i < groupMembers.Count; i++)
@@ -434,7 +435,13 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                         {
                             node.AddOptionalDependency(dependencyNode);
                         }
-                        else if (node is ApolloOperationBatchExecutionNode { Operations.Length: > 1 })
+                        else if (node is ApolloOperationBatchExecutionNode apolloBatchNode
+                            && (apolloBatchNode.Operations.Length > 1
+                                || apolloBatchNode.Operations[0] is BatchOperationDefinition))
+                        {
+                            node.AddOptionalDependency(dependencyNode);
+                        }
+                        else if (OperationPlanner.IsEntityReuseOrderingDependency(node, dependencyNode))
                         {
                             node.AddOptionalDependency(dependencyNode);
                         }
@@ -546,7 +553,15 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                         {
                             if (planNodeMap.TryGetValue(depId, out var depNode))
                             {
-                                opDef.AddDependency(depNode);
+                                if (groupNode is OperationBatchExecutionNode
+                                    && OperationPlanner.IsEntityReuseOrderingDependency(opDef, depNode))
+                                {
+                                    opDef.AddOptionalDependency(depNode);
+                                }
+                                else
+                                {
+                                    opDef.AddDependency(depNode);
+                                }
                             }
                         }
                     }
@@ -627,6 +642,13 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             target = SelectionPath.Parse(targetElement.GetString()!);
         }
 
+        SelectionPath[]? targets = null;
+
+        if (nodeElement.TryGetProperty("targets", out var targetsElement))
+        {
+            targets = targetsElement.EnumerateArray().Select(e => SelectionPath.Parse(e.GetString()!)).ToArray();
+        }
+
         var entityTypeName = ParseApolloEntityType(nodeElement);
         var parentType = ResolveResultSelectionSetType(schema, opSource.Type, source ?? SelectionPath.Root);
 
@@ -637,6 +659,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             OperationSource = opSource,
             Source = source ?? SelectionPath.Root,
             Target = target ?? SelectionPath.Root,
+            Targets = targets,
             Requirements = requirements?.ToArray() ?? [],
             ForwardedVariables = forwardedVariables ?? [],
             ResultSelectionSet =
@@ -863,7 +886,6 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         string[]? forwardedVariables = null;
         SelectionSetNode? resultSelectionSet = null;
         int[]? dependencies = null;
-        int[]? parentDependencies = null;
         int? batchingGroupId = null;
 
         if (nodeElement.TryGetProperty("source", out var sourceElement))
@@ -921,7 +943,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             throw new InvalidOperationException("The resultSelectionSet is required in a valid operation plan.");
         }
 
-        dependencies = TryParseDependencies(nodeElement, out parentDependencies);
+        dependencies = TryParseDependencies(nodeElement, out var parentDependencies);
 
         if (nodeElement.TryGetProperty("batchingGroupId", out var batchingGroupIdElement))
         {
@@ -1176,6 +1198,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     {
         public required SelectionPath Target { get; init; }
 
+        public SelectionPath[]? Targets { get; init; }
+
         public required FusionSchemaDefinition FusionSchema { get; init; }
 
         public required string EntityTypeName { get; init; }
@@ -1189,18 +1213,31 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         public override OperationDefinition ToOperationDefinition()
         {
-            var definition = new SingleOperationDefinition(
-                Id,
-                OperationSource,
-                lookupTypeName: null,
-                SchemaName,
-                Target,
-                Source,
-                Requirements,
-                ForwardedVariables,
-                ResultSelectionSet,
-                Conditions,
-                RequiresFileUpload);
+            OperationDefinition definition = Targets is null
+                ? new SingleOperationDefinition(
+                    Id,
+                    OperationSource,
+                    lookupTypeName: null,
+                    SchemaName,
+                    Target,
+                    Source,
+                    Requirements,
+                    ForwardedVariables,
+                    ResultSelectionSet,
+                    Conditions,
+                    RequiresFileUpload)
+                : new BatchOperationDefinition(
+                    Id,
+                    OperationSource,
+                    lookupTypeName: null,
+                    SchemaName,
+                    Targets,
+                    Source,
+                    Requirements,
+                    ForwardedVariables,
+                    ResultSelectionSet,
+                    Conditions,
+                    RequiresFileUpload);
 
             if (ParentDependencies is not null)
             {

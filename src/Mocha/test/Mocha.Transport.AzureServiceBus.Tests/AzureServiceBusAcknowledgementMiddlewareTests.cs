@@ -26,7 +26,7 @@ public sealed class AzureServiceBusAcknowledgementMiddlewareTests
         // assert
         Assert.Equal(1, settlement.CompleteCallCount);
         Assert.Equal(0, settlement.AbandonCallCount);
-        Assert.Equal(cts.Token, settlement.LastCancellationToken);
+        Assert.Equal(CancellationToken.None, settlement.LastCancellationToken);
         Assert.Equal(entityPath, settlement.ObservedEntityPath);
     }
 
@@ -50,7 +50,7 @@ public sealed class AzureServiceBusAcknowledgementMiddlewareTests
         Assert.Same(handlerException, thrown);
         Assert.Equal(0, settlement.CompleteCallCount);
         Assert.Equal(1, settlement.AbandonCallCount);
-        Assert.Equal(cts.Token, settlement.LastCancellationToken);
+        Assert.Equal(CancellationToken.None, settlement.LastCancellationToken);
         Assert.Equal(entityPath, settlement.ObservedEntityPath);
     }
 

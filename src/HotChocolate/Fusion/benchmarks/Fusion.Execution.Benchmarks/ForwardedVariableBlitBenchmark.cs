@@ -1,6 +1,4 @@
-using System;
 using System.Buffers;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -12,8 +10,6 @@ using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Toolchains.InProcess.Emit;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
-using HotChocolate.Fusion;
-using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Fusion.Language;
@@ -282,7 +278,7 @@ public class ForwardedVariableBlitBenchmark
         dedupTable.Initialize(importedEntries.Length);
 
         VariableValues[]? variableValueSets = null;
-        var additionalPaths = new AdditionalPathAccumulator();
+        var additionalPaths = new AdditionalPathAccumulator(importedEntries.Length);
         var nextIndex = 0;
 
         foreach (var importedEntry in importedEntries)
@@ -354,7 +350,7 @@ public class ForwardedVariableBlitBenchmark
         dedupTable.Initialize(importedEntries.Length);
 
         VariableValues[]? variableValueSets = null;
-        var additionalPaths = new AdditionalPathAccumulator();
+        var additionalPaths = new AdditionalPathAccumulator(importedEntries.Length);
         var nextIndex = 0;
 
         // Rider: requirement keys are GraphQL names (always ASCII), so they are
@@ -415,7 +411,7 @@ public class ForwardedVariableBlitBenchmark
                         // (lines 487-523) for a contiguous span: no leading comma
                         // right after '{', and the list separator flag set so the
                         // next property name emits its comma.
-                        jsonWriter.WriteRawValue(prefix!.AsSpan(0, prefixLength));
+                        jsonWriter.WriteRawValue(prefix.AsSpan(0, prefixLength));
                     }
                 }
 
@@ -488,7 +484,7 @@ public class ForwardedVariableBlitBenchmark
 
         dedupIndex = nextIndex;
         dedupTable.Add(hash, nextIndex, startPosition, length);
-        return new VariableValues(path, JsonSegment.Create(variableWriter, startPosition, length));
+        return new VariableValues(path, JsonSegment.Create(variableWriter.GetSequence(startPosition, length)));
     }
 
     // Byte-faithful copy of FetchResultStore.TryWriteRequestedRequirementValues
@@ -740,7 +736,8 @@ public class ForwardedVariableBlitBenchmark
             return [];
         }
 
-        additionalPaths.ApplyTo(variableValueSets, nextIndex);
+        // The accumulator only holds paths here, so it never reads the store or the document.
+        additionalPaths.ApplyTo(variableValueSets, nextIndex, store: null!, document: null!);
         additionalPaths.Dispose();
 
         var span = variableValueSets.AsSpan(0, nextIndex);

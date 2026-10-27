@@ -2,6 +2,7 @@ using System.Data.Common;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using Dapper;
 using Microsoft.Data.Sqlite;
 
@@ -9,65 +10,56 @@ using Microsoft.Data.Sqlite;
 
 namespace ChilliCream.Nitro.CommandLine.Services.Tasks;
 
-internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvider) : ITaskStore
+internal sealed class TaskStore(
+    IFileSystem fileSystem,
+    TimeProvider timeProvider,
+    AgentDatabase database) : ITaskStore
 {
     private const string PrefixConfigKey = "prefix";
     private const string IdAlphabet = "0123456789abcdefghijklmnopqrstuvwxyz";
     private const int MinIdLength = 3;
     private const int MaxIdAttempts = 10;
 
-    private static readonly string[] StatusOrder =
+    private static readonly string[] s_statusOrder =
     [
         TaskStates.Open,
         TaskStates.InProgress,
         TaskStates.Blocked,
         TaskStates.Deferred,
         TaskStates.Closed,
+        TaskStates.Archived,
         TaskStates.Tombstone
     ];
 
-    static TaskStore() => SQLitePCL.Batteries_V2.Init();
+    internal Func<SqliteConnection, DbTransaction?, CancellationToken, Task>? AfterEligibleEpicsReadAsync
+    {
+        get;
+        init;
+    }
+
+    internal Func<IReadOnlyList<string>, SqliteConnection, DbTransaction?, CancellationToken, Task>?
+        AfterClosedTasksSelectedAsync
+    {
+        get;
+        init;
+    }
 
     public async Task<SqliteConnection> InitializeAsync(
         string workspaceDirectory,
         CancellationToken cancellationToken)
-    {
-        var connection = await OpenAsync(
-            TaskWorkspace.GetDatabasePath(workspaceDirectory),
-            cancellationToken);
-
-        await connection.ExecuteAsync(TaskStoreSchema.Create);
-        await connection.ExecuteAsync(
-            $"""PRAGMA user_version = {TaskStoreSchema.CurrentVersion};""");
-
-        return connection;
-    }
+        => await database.InitializeAsync(workspaceDirectory, cancellationToken);
 
     private async Task<SqliteConnection> ConnectAsync(CancellationToken cancellationToken)
     {
         var workspaceDirectory = FindWorkspaceDirectory()
             ?? throw new ExitException(
-                "No task workspace found. Run `nitro agent tasks init` first.");
+                "No agent workspace found. Run `nitro agent init` first.");
 
-        var connection = await OpenAsync(
-            TaskWorkspace.GetDatabasePath(workspaceDirectory),
-            cancellationToken);
-
-        var version = await connection.ExecuteScalarAsync<long>("PRAGMA user_version;");
-
-        if (version > TaskStoreSchema.CurrentVersion)
-        {
-            throw new ExitException(
-                "The task workspace was created by a newer version of the Nitro CLI "
-                + $"(schema v{version}, supported up to v{TaskStoreSchema.CurrentVersion}). "
-                + "Update the CLI to use it.");
-        }
-
-        return connection;
+        return await database.ConnectAsync(workspaceDirectory, cancellationToken);
     }
 
     public string? FindWorkspaceDirectory()
-        => TaskWorkspace.Find(fileSystem, fileSystem.GetCurrentDirectory());
+        => AgentWorkspace.Find(fileSystem, fileSystem.GetCurrentDirectory());
 
     private async Task<string?> GetConfigAsync(
         SqliteConnection connection,
@@ -99,7 +91,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         CancellationToken cancellationToken,
         DbTransaction? transaction = null)
         => await GetConfigAsync(connection, PrefixConfigKey, cancellationToken, transaction)
-            ?? TaskWorkspace.FallbackPrefix;
+            ?? AgentWorkspace.FallbackPrefix;
 
     private async Task<string> CreateTaskIdAsync(
         SqliteConnection connection,
@@ -146,7 +138,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         throw new ExitException("Could not allocate a unique task ID.");
     }
 
-    private async Task RecordEventAsync(
+    private static async Task RecordEventAsync(
         SqliteConnection connection,
         TaskEvent taskEvent,
         CancellationToken cancellationToken,
@@ -191,8 +183,6 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         CancellationToken cancellationToken,
         DbTransaction? transaction = null)
     {
-        // Materializes an all-primitives row and parses the timestamps
-        // itself, since the DateTimeOffset columns are stored as TEXT.
         var row = await connection.QueryFirstOrDefaultAsync<TaskRow>(
             $"SELECT {TaskItem.Columns} FROM tasks WHERE id = @id",
             new { id, cancellationToken },
@@ -223,10 +213,6 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         SqliteConnection connection,
         CancellationToken cancellationToken)
     {
-        // Both queries below run against the whole table and take no filter
-        // parameters, so there is nothing for @-placeholder analysis to key
-        // on; cancellation is checked up front instead of plumbed through a
-        // parameter object.
         cancellationToken.ThrowIfCancellationRequested();
 
         var taskRows = await connection.QueryAsync<TaskGraphNode>(
@@ -242,10 +228,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
 
         var blocked = new Dictionary<string, List<string>>();
 
-        // Pass 1: tasks with a blocking dependency on a non-terminal or
-        // missing target are blocked. Parent-child edges gate children only
-        // through pass 2 (blocked parents); a merely open parent does not
-        // block its children.
+        // Non-parent blocking edges block tasks when their targets are missing or non-terminal.
         foreach (var edge in dependencies)
         {
             if (edge.Type == TaskDependencyTypes.ParentChild
@@ -269,7 +252,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
             }
         }
 
-        // Pass 2: blocked parents propagate to their children, transitively.
+        // Blocked parents propagate their blocked state to descendants.
         var childrenByParent = dependencies
             .Where(e => e.Type == TaskDependencyTypes.ParentChild)
             .GroupBy(e => e.DependsOnId)
@@ -296,9 +279,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
             }
         }
 
-        // Pass 3: epics with non-terminal children are blocked. Runs after
-        // pass 2 so a parent blocked only by its children does not re-block
-        // those children.
+        // Epics with non-terminal children are blocked; this state does not propagate back to children.
         foreach (var edge in dependencies)
         {
             if (edge.Type != TaskDependencyTypes.ParentChild)
@@ -360,11 +341,46 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         return tasks.ToList();
     }
 
-    // The WHERE/ORDER/LIMIT clauses here are assembled at runtime from the
-    // filter, so the SQL text is never a call-site literal; Dapper.AOT can
-    // only intercept calls whose SQL it can read at compile time. Reading
-    // through plain ADO.NET instead of Dapper's reflection fallback keeps
-    // this path free of runtime code generation.
+    public async Task<IReadOnlyList<TaskItem>> QueryParticipationAsync(
+        string agent,
+        int? limit,
+        CancellationToken cancellationToken)
+    {
+        var parameters = new Dictionary<string, object?>
+        {
+            ["agent"] = agent,
+            ["tombstone"] = TaskStates.Tombstone
+        };
+
+        var sql = $"""
+            SELECT {TaskItem.Columns},
+                   COALESCE(
+                       (SELECT MAX(e.created_at) FROM events e
+                        WHERE e.task_id = tasks.id AND e.actor = @agent),
+                       tasks.updated_at
+                   ) AS RankAt
+            FROM tasks
+            WHERE status != @tombstone
+              AND (
+                  assignee = @agent
+                  OR EXISTS (
+                      SELECT 1 FROM events e2
+                      WHERE e2.task_id = tasks.id AND e2.actor = @agent)
+              )
+            ORDER BY RankAt DESC, id ASC
+            """;
+
+        if (limit is { } sqlLimit)
+        {
+            parameters["limit"] = sqlLimit;
+            sql += " LIMIT @limit";
+        }
+
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        return await ExecuteTaskQueryAsync(connection, sql, parameters, cancellationToken);
+    }
+
     private static async Task<List<TaskItem>> ExecuteTaskQueryAsync(
         SqliteConnection connection,
         string sql,
@@ -428,9 +444,6 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
-        // A row class, not the TaskLabelCount record, receives the COUNT(*)
-        // column: SQLite's COUNT(*) always reads back as Int64, not Int32. A
-        // settable property tolerates the narrowing.
         var rows = await connection.QueryAsync<LabelCountRow>(
             """
             SELECT l.label AS Label, COUNT(*) AS Count
@@ -451,9 +464,6 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
-        // The intercepted read path cannot convert the TEXT-stored timestamp
-        // column to DateTimeOffset, so this materializes an all-primitives
-        // row and parses the timestamp itself.
         var rows = await connection.QueryAsync<TaskCommentRow>(
             $"""
             SELECT {TaskComment.Columns} FROM comments WHERE task_id = @taskId
@@ -509,10 +519,6 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
-        // Materializes an all-primitives row and parses the timestamp
-        // itself, since the created_at column is stored as TEXT. The query
-        // takes no filter parameters, so cancellation here is best-effort
-        // rather than plumbed through a parameter object.
         var rows = await connection.QueryAsync<TaskDependencyRow>(
             $"""
             SELECT {TaskDependencyRow.Columns} FROM dependencies
@@ -542,13 +548,14 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
 
     private static async Task<IReadOnlyList<TaskEpicStatus>> QueryEpicStatusesAsync(
         SqliteConnection connection,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        DbTransaction? transaction = null)
     {
         var rows = await connection.QueryAsync<TaskEpicStatus>(
             """
             SELECT e.id AS Id, e.title AS Title, e.status AS Status,
                    COUNT(c.id) AS Total,
-                   SUM(CASE WHEN c.status = @closed THEN 1 ELSE 0 END) AS Closed
+                   SUM(CASE WHEN c.status IN (@closed, @archived) THEN 1 ELSE 0 END) AS Closed
             FROM tasks e
             LEFT JOIN dependencies d
                 ON d.depends_on_id = e.id AND d.dependency_type = @parentChild
@@ -561,11 +568,13 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
             new
             {
                 closed = TaskStates.Closed,
+                archived = TaskStates.Archived,
                 parentChild = TaskDependencyTypes.ParentChild,
                 tombstone = TaskStates.Tombstone,
                 epic = TaskTypes.Epic,
                 cancellationToken
-            });
+            },
+            transaction);
 
         return rows.ToList();
     }
@@ -586,9 +595,6 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
-        // A row class, not the TaskCount record, receives the COUNT(*)
-        // column in every branch: SQLite's COUNT(*) always reads back as
-        // Int64, not Int32. A settable property tolerates the narrowing.
         switch (dimension)
         {
             case TaskCountDimension.Status:
@@ -668,9 +674,6 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
-        // A row class, not the TaskCount record, receives the COUNT(*)
-        // column: SQLite's COUNT(*) always reads back as Int64, not Int32. A
-        // settable property tolerates the narrowing.
         var statusCountRows = await connection.QueryAsync<CountRow>(
             """
             SELECT status AS Value, COUNT(*) AS Count FROM tasks
@@ -691,9 +694,6 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
 
         var readyCount = readyIds.Count(id => !blocked.ContainsKey(id));
 
-        // Reuses the full task set ComputeBlockedAsync already loaded instead
-        // of a second "id IN (...)" query, whose parameter count varies with
-        // the blocked set and so is never a fixed, interceptable shape.
         var blockedTaskStatuses = new Dictionary<string, string>();
 
         foreach (var id in blocked.Keys)
@@ -948,8 +948,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
 
         await transaction.CommitAsync(cancellationToken);
 
-        // A parent-child edge alone does not block the new task; only the
-        // other blocking dependency types gate it (matching ComputeBlockedAsync).
+        // The creation result reports direct blockers, excluding parent-child edges.
         var blockedBy = resolvedDependencies
             .Where(d => d.Type != TaskDependencyTypes.ParentChild
                 && TaskDependencyTypes.IsBlocking(d.Type)
@@ -962,8 +961,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     }
 
     /// <summary>
-    /// The in-memory outcome of validating and applying a
-    /// <see cref="TaskUpdate"/> to a single task, before it is written.
+    /// The task after applying an update and the field transitions to record.
     /// </summary>
     private sealed record TaskUpdateChange(
         TaskItem Task,
@@ -997,12 +995,9 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     }
 
     /// <summary>
-    /// Applies the given field changes to every task and records the
-    /// corresponding events for each. Every task is loaded and validated
-    /// before any is written: either every task updates or none does,
-    /// mirroring <see cref="CloseTaskAsync"/>. Throws
-    /// <see cref="ExitException"/> when any task does not exist, is a
-    /// tombstone, or a status guard is violated.
+    /// Updates all supplied tasks and records their events atomically.
+    /// Throws <see cref="ExitException"/> before committing any changes for a missing
+    /// or tombstoned task or an invalid update.
     /// </summary>
     public async Task<IReadOnlyList<TaskItem>> UpdateTasksAsync(
         IReadOnlyList<string> ids,
@@ -1014,10 +1009,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         await using var connection = await ConnectAsync(cancellationToken);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
-        // Every task is loaded and validated (and has the update applied
-        // in-memory) before any write happens, which gives the bulk update
-        // its all-or-nothing behavior: nothing is written until every id has
-        // passed.
+        // All updates are validated before any task is written.
         var changes = new List<TaskUpdateChange>();
 
         foreach (var id in ids)
@@ -1039,11 +1031,65 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         return changes.Select(change => change.Task).ToArray();
     }
 
+    public async Task<IReadOnlyList<string>> ReassignAsync(
+        string from,
+        string to,
+        string actor,
+        string comment,
+        CancellationToken cancellationToken)
+    {
+        if (from == to)
+        {
+            throw new ExitException("The source and target assignees must differ.");
+        }
+
+        if (string.IsNullOrWhiteSpace(comment))
+        {
+            throw new ExitException("The comment text must not be empty.");
+        }
+
+        var now = timeProvider.GetUtcNow();
+        var update = new TaskUpdate { Actor = actor, Assignee = to, AssigneeGiven = true };
+
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+        var tasks = (await connection.QueryAsync<TaskRow>(
+            $"""
+            SELECT {TaskItem.Columns}
+            FROM tasks
+            WHERE assignee = @from
+              AND status NOT IN (@closed, @tombstone, @archived)
+            ORDER BY id ASC
+            """,
+            new
+            {
+                from,
+                closed = TaskStates.Closed,
+                tombstone = TaskStates.Tombstone,
+                archived = TaskStates.Archived,
+                cancellationToken
+            },
+            transaction)).Select(row => row.ToTaskItem()).ToList();
+
+        foreach (var task in tasks)
+        {
+            var change = ApplyUpdate(task, update);
+            task.UpdatedAt = now;
+
+            await WriteUpdateAsync(
+                connection, transaction, task, change, actor, now, cancellationToken);
+            await AddCommentAsync(
+                connection, transaction, task, comment, actor, now, cancellationToken);
+        }
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return tasks.Select(task => task.Id).ToArray();
+    }
+
     /// <summary>
-    /// Validates the given update against the task's current state and
-    /// applies the resulting field changes to <paramref name="task"/> in
-    /// memory. Performs no I/O. Throws <see cref="ExitException"/> when a
-    /// status guard is violated.
+    /// Applies the supplied update to the task object and returns its field transitions.
+    /// Throws <see cref="ExitException"/> for an invalid title or prohibited status change.
     /// </summary>
     private static TaskUpdateChange ApplyUpdate(TaskItem task, TaskUpdate update)
     {
@@ -1167,7 +1213,17 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
                 throw new ExitException("Use `nitro agent tasks delete` to delete a task.");
             }
 
+            if (status == TaskStates.Archived)
+            {
+                throw new ExitException("Archiving is automatic; tasks cannot be set to archived directly.");
+            }
+
             if (task.Status == TaskStates.Closed)
+            {
+                throw new ExitException("Use `nitro agent tasks reopen` to reopen a task.");
+            }
+
+            if (task.Status == TaskStates.Archived)
             {
                 throw new ExitException("Use `nitro agent tasks reopen` to reopen a task.");
             }
@@ -1209,10 +1265,8 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     }
 
     /// <summary>
-    /// Persists a previously-computed <see cref="TaskUpdateChange"/> and
-    /// records the corresponding events. Performs no validation, since
-    /// <see cref="ApplyUpdate"/> already validated and applied the change to
-    /// <paramref name="task"/> in memory.
+    /// Writes the task and records its previously computed field transitions
+    /// within the supplied transaction.
     /// </summary>
     private async Task WriteUpdateAsync(
         SqliteConnection connection,
@@ -1340,16 +1394,14 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         await using var connection = await ConnectAsync(cancellationToken);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
-        // Every task is loaded and validated before any write happens, which
-        // gives close its all-or-nothing behavior: nothing is written until
-        // every id has passed.
+        // All tasks are validated before any close is written.
         var tasks = new List<TaskItem>();
 
         foreach (var id in ids)
         {
             var task = await GetRequiredTaskAsync(connection, id, cancellationToken, transaction);
 
-            if (task.Status == TaskStates.Closed)
+            if (task.Status is TaskStates.Closed or TaskStates.Archived)
             {
                 throw new ExitException($"Task '{id}' is already closed.");
             }
@@ -1404,6 +1456,8 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
 
         await transaction.CommitAsync(cancellationToken);
 
+        await ArchiveExcessClosedTasksAsync(connection, actor, cancellationToken);
+
         return tasks;
     }
 
@@ -1419,9 +1473,9 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
         var task = await GetRequiredTaskAsync(connection, id, cancellationToken, transaction);
 
-        if (task.Status != TaskStates.Closed)
+        if (task.Status is not (TaskStates.Closed or TaskStates.Archived))
         {
-            throw new ExitException($"Task '{id}' is not closed.");
+            throw new ExitException($"Task '{id}' is not closed or archived.");
         }
 
         var oldStatus = task.Status;
@@ -1647,6 +1701,100 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         return task;
     }
 
+    public async Task<int> ReleaseAssigneeAsync(
+        string agent,
+        string reason,
+        CancellationToken cancellationToken)
+    {
+        var now = timeProvider.GetUtcNow();
+
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction =
+            (SqliteTransaction)await connection.BeginTransactionAsync(cancellationToken);
+
+        var count = await ReleaseAssigneeWithinTransactionAsync(
+            connection, transaction, agent, reason, now, cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return count;
+    }
+
+    /// <summary>
+    /// Releases every in-progress task assigned to the given agent within the supplied
+    /// transaction, moving each to open with no assignee and recording the reason.
+    /// Returns the number of tasks released.
+    /// </summary>
+    public static async Task<int> ReleaseAssigneeWithinTransactionAsync(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        string agent,
+        string reason,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        var ids = (await connection.QueryAsync<string>(
+            "SELECT id FROM tasks WHERE status = @status AND assignee = @agent",
+            new { status = TaskStates.InProgress, agent, cancellationToken },
+            transaction)).ToList();
+
+        if (ids.Count == 0)
+        {
+            return 0;
+        }
+
+        await connection.ExecuteAsync(
+            """
+            UPDATE tasks
+            SET status = @newStatus,
+                assignee = NULL,
+                updated_at = @now
+            WHERE status = @oldStatus AND assignee = @agent
+            """,
+            new
+            {
+                newStatus = TaskStates.Open,
+                oldStatus = TaskStates.InProgress,
+                agent,
+                now,
+                cancellationToken
+            },
+            transaction);
+
+        foreach (var id in ids)
+        {
+            await RecordEventAsync(
+                connection,
+                new TaskEvent
+                {
+                    TaskId = id,
+                    Type = TaskEventTypes.AssigneeChanged,
+                    OldValue = agent,
+                    NewValue = "",
+                    Comment = reason,
+                    CreatedAt = now
+                },
+                cancellationToken,
+                transaction);
+
+            await RecordEventAsync(
+                connection,
+                new TaskEvent
+                {
+                    TaskId = id,
+                    Type = TaskEventTypes.StatusChanged,
+                    OldValue = TaskStates.InProgress,
+                    NewValue = TaskStates.Open,
+                    Comment = reason,
+                    CreatedAt = now
+                },
+                cancellationToken,
+                transaction);
+        }
+
+        return ids.Count;
+    }
+
     public async Task<IReadOnlyList<TaskEpicStatus>> CloseEligibleEpicsAsync(
         string actor,
         CancellationToken cancellationToken)
@@ -1655,23 +1803,26 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         var now = timeProvider.GetUtcNow();
 
         await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
-        var epics = await QueryEpicStatusesAsync(connection, cancellationToken);
+        var epics = await QueryEpicStatusesAsync(connection, cancellationToken, transaction);
         var eligible = epics.Where(epic => epic.IsEligibleForClose).ToList();
+
+        if (AfterEligibleEpicsReadAsync is { } afterEligibleEpicsReadAsync)
+        {
+            await afterEligibleEpicsReadAsync(connection, transaction, cancellationToken);
+        }
 
         if (eligible.Count == 0)
         {
             return eligible;
         }
 
-        // Every epic is validated up front (IsEligibleForClose, checked
-        // against data read before the transaction opens); the update loop
-        // below is then all-or-nothing, matching CloseTaskCommand's pattern.
-        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+        var closed = new List<TaskEpicStatus>(eligible.Count);
 
         foreach (var epic in eligible)
         {
-            await connection.ExecuteAsync(
+            var affected = await connection.ExecuteAsync(
                 """
                 UPDATE tasks
                 SET status = @status,
@@ -1679,6 +1830,21 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
                     close_reason = @closeReason,
                     updated_at = @updatedAt
                 WHERE id = @id
+                  AND status = @currentStatus
+                  AND EXISTS (
+                      SELECT 1
+                      FROM dependencies d
+                      INNER JOIN tasks c ON c.id = d.task_id
+                      WHERE d.depends_on_id = tasks.id
+                        AND d.dependency_type = @parentChild
+                        AND c.status != @tombstone)
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM dependencies d
+                      INNER JOIN tasks c ON c.id = d.task_id
+                      WHERE d.depends_on_id = tasks.id
+                        AND d.dependency_type = @parentChild
+                        AND c.status NOT IN (@closed, @archived, @tombstone))
                 """,
                 new
                 {
@@ -1687,9 +1853,19 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
                     closeReason,
                     updatedAt = now,
                     id = epic.Id,
+                    currentStatus = epic.Status,
+                    parentChild = TaskDependencyTypes.ParentChild,
+                    closed = TaskStates.Closed,
+                    archived = TaskStates.Archived,
+                    tombstone = TaskStates.Tombstone,
                     cancellationToken
                 },
                 transaction);
+
+            if (affected == 0)
+            {
+                continue;
+            }
 
             await RecordEventAsync(
                 connection,
@@ -1705,11 +1881,150 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
                 },
                 cancellationToken,
                 transaction);
+
+            closed.Add(epic with { Status = TaskStates.Closed });
         }
 
         await transaction.CommitAsync(cancellationToken);
 
-        return eligible.Select(epic => epic with { Status = TaskStates.Closed }).ToList();
+        await ArchiveExcessClosedTasksAsync(connection, actor, cancellationToken);
+
+        return closed;
+    }
+
+    // Enforces TaskStates.ClosedTaskCap: when the closed count exceeds the
+    // cap, moves the oldest closed tasks (by closed_at, tie-break id) to
+    // Archived until exactly the cap remains. Runs in its own transaction,
+    // after the caller's close transaction has already committed.
+    private async Task ArchiveExcessClosedTasksAsync(
+        SqliteConnection connection,
+        string actor,
+        CancellationToken cancellationToken)
+    {
+        var now = timeProvider.GetUtcNow();
+
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+        List<string> idsToArchive;
+
+        if (AfterClosedTasksSelectedAsync is { } afterClosedTasksSelectedAsync)
+        {
+            var selectedIds = (await connection.QueryAsync<string>(
+                """
+                WITH excess AS (
+                    SELECT CASE
+                        WHEN COUNT(*) > @closedTaskCap THEN COUNT(*) - @closedTaskCap
+                        ELSE 0
+                    END AS count
+                    FROM tasks
+                    WHERE status = @closed
+                )
+                SELECT id
+                FROM tasks
+                WHERE status = @closed
+                ORDER BY closed_at ASC, id ASC
+                LIMIT (SELECT count FROM excess)
+                """,
+                new
+                {
+                    closed = TaskStates.Closed,
+                    closedTaskCap = TaskStates.ClosedTaskCap,
+                    cancellationToken
+                },
+                transaction)).ToList();
+
+            if (selectedIds.Count == 0)
+            {
+                idsToArchive = [];
+            }
+            else
+            {
+                await afterClosedTasksSelectedAsync(selectedIds, connection, transaction, cancellationToken);
+
+                idsToArchive = [];
+
+                foreach (var id in selectedIds)
+                {
+                    var affected = await connection.ExecuteAsync(
+                        """
+                        UPDATE tasks
+                        SET status = @archived,
+                            updated_at = @updatedAt
+                        WHERE status = @closed
+                          AND id = @id
+                        """,
+                        new
+                        {
+                            closed = TaskStates.Closed,
+                            archived = TaskStates.Archived,
+                            id,
+                            updatedAt = now,
+                            cancellationToken
+                        },
+                        transaction);
+
+                    if (affected != 0)
+                    {
+                        idsToArchive.Add(id);
+                    }
+                }
+            }
+        }
+        else
+        {
+            idsToArchive = (await connection.QueryAsync<string>(
+                """
+                WITH excess AS (
+                    SELECT CASE
+                        WHEN COUNT(*) > @closedTaskCap THEN COUNT(*) - @closedTaskCap
+                        ELSE 0
+                    END AS count
+                    FROM tasks
+                    WHERE status = @closed
+                ),
+                tasks_to_archive AS (
+                    SELECT id
+                    FROM tasks
+                    WHERE status = @closed
+                    ORDER BY closed_at ASC, id ASC
+                    LIMIT (SELECT count FROM excess)
+                )
+                UPDATE tasks
+                SET status = @archived,
+                    updated_at = @updatedAt
+                WHERE status = @closed
+                  AND id IN (SELECT id FROM tasks_to_archive)
+                RETURNING id
+                """,
+                new
+                {
+                    closed = TaskStates.Closed,
+                    archived = TaskStates.Archived,
+                    closedTaskCap = TaskStates.ClosedTaskCap,
+                    updatedAt = now,
+                    cancellationToken
+                },
+                transaction)).ToList();
+        }
+
+        foreach (var id in idsToArchive)
+        {
+            await RecordEventAsync(
+                connection,
+                new TaskEvent
+                {
+                    TaskId = id,
+                    Type = TaskEventTypes.Archived,
+                    Actor = actor,
+                    OldValue = TaskStates.Closed,
+                    NewValue = TaskStates.Archived,
+                    CreatedAt = now
+                },
+                cancellationToken,
+                transaction);
+        }
+
+        await transaction.CommitAsync(cancellationToken);
     }
 
     public async Task<TaskComment> AddCommentAsync(
@@ -1729,6 +2044,23 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
         var task = await GetRequiredTaskAsync(connection, id, cancellationToken, transaction);
 
+        var comment = await AddCommentAsync(
+            connection, transaction, task, text, actor, now, cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return comment;
+    }
+
+    private async Task<TaskComment> AddCommentAsync(
+        SqliteConnection connection,
+        DbTransaction transaction,
+        TaskItem task,
+        string text,
+        string actor,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
         var commentId = await connection.ExecuteScalarAsync<long>(
             """
             INSERT INTO comments (
@@ -1764,8 +2096,6 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
             },
             cancellationToken,
             transaction);
-
-        await transaction.CommitAsync(cancellationToken);
 
         return new TaskComment
         {
@@ -2190,7 +2520,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         string workspaceDirectory,
         CancellationToken cancellationToken)
     {
-        if (fileSystem.FileExists(TaskWorkspace.GetDatabasePath(workspaceDirectory)))
+        if (fileSystem.FileExists(AgentWorkspace.GetDatabasePath(workspaceDirectory)))
         {
             return;
         }
@@ -2203,356 +2533,9 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         await using var connection = await InitializeAsync(workspaceDirectory, cancellationToken);
     }
 
-    public async Task<IReadOnlyList<TaskSyncRecord>> ExportTasksAsync(
-        CancellationToken cancellationToken)
-    {
-        // Every query below runs against a whole table and takes no filter
-        // parameters, so there is nothing for @-placeholder analysis to key
-        // on; cancellation is checked up front instead of plumbed through a
-        // parameter object (see ComputeBlockedAsync).
-        cancellationToken.ThrowIfCancellationRequested();
-
-        await using var connection = await ConnectAsync(cancellationToken);
-
-        var taskRows = await connection.QueryAsync<TaskRow>(
-            $"SELECT {TaskItem.Columns} FROM tasks ORDER BY id");
-
-        var labelRows = await connection.QueryAsync<TaskLabelRow>(
-            "SELECT task_id AS TaskId, label AS Label FROM labels ORDER BY task_id, label");
-        var labelsByTask = labelRows
-            .GroupBy(row => row.TaskId)
-            .ToDictionary(
-                group => group.Key,
-                IReadOnlyList<string> (group) => [.. group.Select(row => row.Label)]);
-
-        var dependencyRows = await connection.QueryAsync<TaskDependencyRow>(
-            $"""
-            SELECT {TaskDependencyRow.Columns} FROM dependencies
-            ORDER BY task_id, depends_on_id
-            """);
-        var dependenciesByTask = dependencyRows
-            .GroupBy(row => row.TaskId)
-            .ToDictionary(
-                group => group.Key,
-                IReadOnlyList<TaskSyncDependency> (group) =>
-                    [.. group.Select(row => new TaskSyncDependency
-                    {
-                        DependsOnId = row.DependsOnId,
-                        Type = row.Type,
-                        CreatedAt = DateTimeOffset.Parse(row.CreatedAt, CultureInfo.InvariantCulture),
-                        CreatedBy = row.CreatedBy
-                    })]);
-
-        var commentRows = await connection.QueryAsync<TaskCommentRow>(
-            $"SELECT {TaskComment.Columns} FROM comments ORDER BY task_id, created_at, id");
-        var commentsByTask = commentRows
-            .GroupBy(row => row.TaskId)
-            .ToDictionary(
-                group => group.Key,
-                IReadOnlyList<TaskSyncComment> (group) =>
-                    [.. group.Select(row => new TaskSyncComment
-                    {
-                        Id = row.Id,
-                        Author = row.Author,
-                        Text = row.Text,
-                        CreatedAt = DateTimeOffset.Parse(row.CreatedAt, CultureInfo.InvariantCulture)
-                    })]);
-
-        return taskRows.Select(row =>
-        {
-            var task = row.ToTaskItem();
-
-            return new TaskSyncRecord
-            {
-                Id = task.Id,
-                Title = task.Title,
-                Description = task.Description,
-                Design = task.Design,
-                AcceptanceCriteria = task.AcceptanceCriteria,
-                Notes = task.Notes,
-                Status = task.Status,
-                Priority = task.Priority,
-                Type = task.Type,
-                Assignee = task.Assignee,
-                EstimatedMinutes = task.EstimatedMinutes,
-                DueAt = task.DueAt,
-                DeferUntil = task.DeferUntil,
-                CreatedAt = task.CreatedAt,
-                CreatedBy = task.CreatedBy,
-                UpdatedAt = task.UpdatedAt,
-                ClosedAt = task.ClosedAt,
-                CloseReason = task.CloseReason,
-                DeletedAt = task.DeletedAt,
-                DeleteReason = task.DeleteReason,
-                Labels = labelsByTask.GetValueOrDefault(task.Id, []),
-                Dependencies = dependenciesByTask.GetValueOrDefault(task.Id, []),
-                Comments = commentsByTask.GetValueOrDefault(task.Id, [])
-            };
-        }).ToList();
-    }
-
-    public async Task<TaskImportResult> ImportTasksAsync(
-        IReadOnlyList<TaskSyncRecord> records,
-        CancellationToken cancellationToken)
-    {
-        await using var connection = await ConnectAsync(cancellationToken);
-        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
-
-        var applied = 0;
-        var skipped = 0;
-
-        foreach (var record in records)
-        {
-            var existing = await GetTaskAsync(connection, record.Id, cancellationToken, transaction);
-
-            if (existing is not null && existing.UpdatedAt > record.UpdatedAt)
-            {
-                skipped++;
-                continue;
-            }
-
-            await connection.ExecuteAsync(
-                """
-                INSERT INTO tasks (id, title, description, design, acceptance_criteria, notes,
-                    status, priority, task_type, assignee, estimated_minutes, due_at, defer_until,
-                    created_at, created_by, updated_at, closed_at, close_reason, deleted_at,
-                    delete_reason)
-                VALUES (@Id, @Title, @Description, @Design, @AcceptanceCriteria, @Notes,
-                    @Status, @Priority, @Type, @Assignee, @EstimatedMinutes, @DueAt, @DeferUntil,
-                    @CreatedAt, @CreatedBy, @UpdatedAt, @ClosedAt, @CloseReason, @DeletedAt,
-                    @DeleteReason)
-                ON CONFLICT (id) DO UPDATE SET
-                    title = excluded.title,
-                    description = excluded.description,
-                    design = excluded.design,
-                    acceptance_criteria = excluded.acceptance_criteria,
-                    notes = excluded.notes,
-                    status = excluded.status,
-                    priority = excluded.priority,
-                    task_type = excluded.task_type,
-                    assignee = excluded.assignee,
-                    estimated_minutes = excluded.estimated_minutes,
-                    due_at = excluded.due_at,
-                    defer_until = excluded.defer_until,
-                    created_at = excluded.created_at,
-                    created_by = excluded.created_by,
-                    updated_at = excluded.updated_at,
-                    closed_at = excluded.closed_at,
-                    close_reason = excluded.close_reason,
-                    deleted_at = excluded.deleted_at,
-                    delete_reason = excluded.delete_reason
-                """,
-                record,
-                transaction);
-
-            await connection.ExecuteAsync(
-                "DELETE FROM labels WHERE task_id = @TaskId",
-                new { TaskId = record.Id, cancellationToken },
-                transaction);
-
-            foreach (var label in record.Labels)
-            {
-                await connection.ExecuteAsync(
-                    """
-                    INSERT INTO labels (
-                        task_id,
-                        label
-                    )
-                    VALUES (
-                        @TaskId,
-                        @Label
-                    )
-                    """,
-                    new { TaskId = record.Id, Label = label, cancellationToken },
-                    transaction);
-            }
-
-            await connection.ExecuteAsync(
-                "DELETE FROM dependencies WHERE task_id = @TaskId",
-                new { TaskId = record.Id, cancellationToken },
-                transaction);
-
-            foreach (var dependency in record.Dependencies)
-            {
-                await connection.ExecuteAsync(
-                    """
-                    INSERT INTO dependencies (
-                        task_id,
-                        depends_on_id,
-                        dependency_type,
-                        created_at,
-                        created_by
-                    )
-                    VALUES (
-                        @TaskId,
-                        @DependsOnId,
-                        @Type,
-                        @CreatedAt,
-                        @CreatedBy
-                    )
-                    """,
-                    new
-                    {
-                        TaskId = record.Id,
-                        dependency.DependsOnId,
-                        dependency.Type,
-                        dependency.CreatedAt,
-                        dependency.CreatedBy,
-                        cancellationToken
-                    },
-                    transaction);
-            }
-
-            await connection.ExecuteAsync(
-                "DELETE FROM comments WHERE task_id = @TaskId",
-                new { TaskId = record.Id, cancellationToken },
-                transaction);
-
-            foreach (var comment in record.Comments)
-            {
-                // comments.id is a database-global AUTOINCREMENT counter, so
-                // the same numeric id can be assigned independently by two
-                // clones to comments on different tasks. Reusing the
-                // exported id verbatim would collide with an unrelated
-                // comment already occupying that id in this database (from
-                // an earlier record in this same import or from a task
-                // outside the imported set); detect that case and let
-                // SQLite assign a fresh id instead of failing the import.
-                var idOwner = await connection.ExecuteScalarAsync<string?>(
-                    "SELECT task_id FROM comments WHERE id = @Id",
-                    new { comment.Id, cancellationToken },
-                    transaction);
-
-                if (idOwner is null || idOwner == record.Id)
-                {
-                    await connection.ExecuteAsync(
-                        """
-                        INSERT INTO comments (
-                            id,
-                            task_id,
-                            author,
-                            text,
-                            created_at
-                        )
-                        VALUES (
-                            @Id,
-                            @TaskId,
-                            @Author,
-                            @Text,
-                            @CreatedAt
-                        )
-                        """,
-                        new
-                        {
-                            comment.Id,
-                            TaskId = record.Id,
-                            comment.Author,
-                            comment.Text,
-                            comment.CreatedAt,
-                            cancellationToken
-                        },
-                        transaction);
-                }
-                else
-                {
-                    await connection.ExecuteAsync(
-                        """
-                        INSERT INTO comments (
-                            task_id,
-                            author,
-                            text,
-                            created_at
-                        )
-                        VALUES (
-                            @TaskId,
-                            @Author,
-                            @Text,
-                            @CreatedAt
-                        )
-                        """,
-                        new
-                        {
-                            TaskId = record.Id,
-                            comment.Author,
-                            comment.Text,
-                            comment.CreatedAt,
-                            cancellationToken
-                        },
-                        transaction);
-                }
-            }
-
-            applied++;
-        }
-
-        await RestoreChildCountersAsync(connection, transaction, cancellationToken);
-
-        await transaction.CommitAsync(cancellationToken);
-
-        return new TaskImportResult(applied, skipped, records.Count);
-    }
-
-    // Import writes task rows directly and never calls CreateTaskIdAsync, so
-    // child_counters is never populated for the imported tasks. Without this,
-    // the next child created for an imported parent collides with a child id
-    // that already exists (e.g. after "flush, delete db, import", creating a
-    // second child for the same parent reuses ".1"). Rebuild each parent's
-    // counter from the highest numeric child suffix present in the tasks
-    // table, never lowering a counter that is already ahead.
-    private static async Task RestoreChildCountersAsync(
-        SqliteConnection connection,
-        DbTransaction transaction,
-        CancellationToken cancellationToken)
-    {
-        var taskIds = await connection.QueryAsync<string>(
-            "SELECT id FROM tasks",
-            transaction: transaction);
-
-        var maxChildByParent = new Dictionary<string, long>();
-
-        foreach (var id in taskIds)
-        {
-            var dotIndex = id.LastIndexOf('.');
-
-            if (dotIndex <= 0
-                || !long.TryParse(
-                    id.AsSpan(dotIndex + 1),
-                    NumberStyles.None,
-                    CultureInfo.InvariantCulture,
-                    out var childNumber))
-            {
-                continue;
-            }
-
-            var parentId = id[..dotIndex];
-
-            if (!maxChildByParent.TryGetValue(parentId, out var current) || childNumber > current)
-            {
-                maxChildByParent[parentId] = childNumber;
-            }
-        }
-
-        foreach (var (parentId, lastChild) in maxChildByParent)
-        {
-            await connection.ExecuteAsync(
-                """
-                INSERT INTO child_counters (parent_id, last_child)
-                VALUES (@parentId, @lastChild)
-                ON CONFLICT (parent_id) DO UPDATE SET last_child = MAX(last_child, excluded.last_child)
-                """,
-                new { parentId, lastChild, cancellationToken },
-                transaction);
-        }
-    }
-
     public async Task<TaskIntegrityReport> CheckIntegrityAsync(
         CancellationToken cancellationToken)
     {
-        // Every query below except the tombstoned-parent-edge check runs
-        // against a whole table and takes no filter parameters, so there is
-        // nothing for @-placeholder analysis to key on; cancellation is
-        // checked up front instead of plumbed through a parameter object
-        // (see ComputeBlockedAsync).
         cancellationToken.ThrowIfCancellationRequested();
 
         await using var connection = await ConnectAsync(cancellationToken);
@@ -2623,10 +2606,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         };
     }
 
-    // Searches the blocking-dependency graph for a path from dependsOnId
-    // back to id. Combined with the edge just inserted (id -> dependsOnId),
-    // such a path closes a cycle. Runs inside the same transaction as the
-    // insert so the check sees a consistent snapshot.
+    // Returns a blocking cycle containing the new edge, or null when none exists.
     private static async Task<List<string>?> FindBlockingCycleAsync(
         SqliteConnection connection,
         DbTransaction transaction,
@@ -2656,7 +2636,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
             if (current == id)
             {
                 var path = new List<string>();
-                string? node = current;
+                var node = current;
 
                 while (node is not null)
                 {
@@ -2666,9 +2646,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
 
                 path.Reverse();
 
-                // path runs dependsOnId..id; drop the trailing id (already the
-                // list's head) and close the loop by repeating the dependent
-                // task at the end, so the cycle both starts and ends at id.
+                // The cycle starts and ends at the dependent task.
                 var cycle = new List<string> { id };
                 cycle.AddRange(path.Take(path.Count - 1));
                 cycle.Add(id);
@@ -2694,15 +2672,9 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         return null;
     }
 
-    // Formats a cycle as returned by FindBlockingCycleAsync, which already
-    // starts and ends at the dependent task.
     private static string FormatCycle(IReadOnlyList<string> cycle) => string.Join(" -> ", cycle);
 
-    // Builds a plain ADO.NET-ready SQL fragment and parameter map. The
-    // "statuses" filter expands its own IN-list placeholders (rather than
-    // relying on Dapper's array-parameter rewriting) because the resulting
-    // query executes through plain ADO.NET, not Dapper: see the comment on
-    // ExecuteTaskQueryAsync.
+    // Builds the task filter conditions and their parameter values.
     private static (string WhereClause, Dictionary<string, object?> Parameters) BuildTaskFilterClause(
         TaskFilter filter)
     {
@@ -2726,7 +2698,22 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         {
             parameters["closedStatus"] = TaskStates.Closed;
             parameters["tombstoneStatus"] = TaskStates.Tombstone;
-            conditions.Add("status NOT IN (@closedStatus, @tombstoneStatus)");
+
+            if (filter.IncludeArchived)
+            {
+                conditions.Add("status NOT IN (@closedStatus, @tombstoneStatus)");
+            }
+            else
+            {
+                parameters["archivedStatus"] = TaskStates.Archived;
+                conditions.Add("status NOT IN (@closedStatus, @tombstoneStatus, @archivedStatus)");
+            }
+        }
+        else if (!filter.IncludeArchived)
+        {
+            // Archived tasks require IncludeArchived or an explicit archived status filter.
+            parameters["archivedStatus"] = TaskStates.Archived;
+            conditions.Add("status != @archivedStatus");
         }
 
         if (filter.ExcludeTombstones)
@@ -2817,18 +2804,16 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     };
 
     /// <summary>
-    /// Escapes the LIKE wildcard characters '%' and '_' (and the escape
-    /// character itself) so search text is matched literally, other than the
-    /// wildcards callers wrap around it.
+    /// Escapes percent signs, underscores, and backslashes for literal LIKE matching.
     /// </summary>
     private static string EscapeLikeText(string value)
         => value.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
 
     private static int StatusOrderIndex(TaskCount statusCount)
     {
-        var index = Array.IndexOf(StatusOrder, statusCount.Value);
+        var index = Array.IndexOf(s_statusOrder, statusCount.Value);
 
-        return index < 0 ? StatusOrder.Length : index;
+        return index < 0 ? s_statusOrder.Length : index;
     }
 
     private static void AddBlocker(
@@ -2859,26 +2844,6 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
         return new string(suffix);
     }
 
-    private static async Task<SqliteConnection> OpenAsync(
-        string databasePath,
-        CancellationToken cancellationToken)
-    {
-        // Pooling would keep the database file open after the connection is
-        // disposed; a CLI process runs one command and exits, so it gains
-        // nothing from the pool.
-        var connection = new SqliteConnection($"Data Source={databasePath};Pooling=False");
-
-        await connection.OpenAsync(cancellationToken);
-        await connection.ExecuteAsync(
-            "PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;");
-
-        return connection;
-    }
-
-    // These nested row types are internal, not private: Dapper.AOT's
-    // generated interceptors live outside TaskStore and cannot reference a
-    // private nested type, so a private row type would silently fall back to
-    // Dapper's reflection-emit deserializer.
     internal sealed class TaskRow
     {
         public required string Id { get; init; }
@@ -2933,9 +2898,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     }
 
     /// <summary>
-    /// Column ordinals for <see cref="TaskRow"/>, captured once per reader
-    /// and reused for every row so <see cref="ExecuteTaskQueryAsync"/> reads
-    /// plain ADO.NET fields without any per-row reflection.
+    /// The field positions used to read a task row.
     /// </summary>
     private readonly struct TaskRowColumns(
         int id, int title, int description, int design, int acceptanceCriteria, int notes,
@@ -3007,8 +2970,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     }
 
     /// <summary>
-    /// A group-by-priority row, kept numeric so it can be formatted as
-    /// P0..P4.
+    /// A group-by-priority row; <c>Priority</c> is the numeric P0..P4 level.
     /// </summary>
     internal sealed class PriorityCountRow
     {
@@ -3036,9 +2998,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     }
 
     /// <summary>
-    /// A dependency edge's task pair and type, for the blocking-cycle walk in
-    /// <see cref="AddDependencyAsync"/> and the integrity checks in
-    /// <see cref="CheckIntegrityAsync"/>.
+    /// A dependency's task pair and type.
     /// </summary>
     internal sealed class DependencyEdgeRow
     {
@@ -3048,8 +3008,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     }
 
     /// <summary>
-    /// A comment's task ID and row ID, for the orphan-comment check in
-    /// <see cref="CheckIntegrityAsync"/>.
+    /// A comment id and its associated task id.
     /// </summary>
     internal sealed class CommentOrphanRow
     {
@@ -3058,8 +3017,7 @@ internal sealed class TaskStore(IFileSystem fileSystem, TimeProvider timeProvide
     }
 
     /// <summary>
-    /// A task-label pair, for grouping labels by task in
-    /// <see cref="ExportTasksAsync"/>.
+    /// A task id and its label.
     /// </summary>
     internal sealed class TaskLabelRow
     {

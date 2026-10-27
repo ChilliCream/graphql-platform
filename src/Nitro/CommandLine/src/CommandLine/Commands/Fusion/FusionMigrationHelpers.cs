@@ -21,7 +21,6 @@ internal static class FusionMigrationHelpers
 
         writer.WriteStartObject();
 
-        // Enable backwards compatibility
         if (!root.TryGetProperty("version", out _))
         {
             writer.WriteString("version", "1.0.0");
@@ -90,7 +89,6 @@ internal static class FusionMigrationHelpers
 
         writer.WriteStartObject();
 
-        // preprocessor
         writer.WriteStartObject("preprocessor");
 
         // tagDirective.exclude -> preprocessor.excludeByTag
@@ -105,7 +103,6 @@ internal static class FusionMigrationHelpers
 
         writer.WriteEndObject();
 
-        // merger
         writer.WriteStartObject("merger");
 
         // nodeField.enabled -> merger.enableGlobalObjectIdentification
@@ -125,7 +122,6 @@ internal static class FusionMigrationHelpers
 
         writer.WriteEndObject();
 
-        // satisfiability (empty default)
         writer.WriteStartObject("satisfiability");
         writer.WriteEndObject();
 

@@ -8,8 +8,8 @@ internal static class RabbitMQMessageEnvelopeFormatter
 {
     public static BasicProperties Format(MessageEnvelope envelope, TimeProvider timeProvider)
     {
-        var sentAt = timeProvider.GetUtcNow();
-        var headers = FormatHeaders(envelope);
+        var publishedAt = timeProvider.GetUtcNow();
+        var headers = FormatHeaders(envelope, envelope.SentAt ?? publishedAt);
         var messageType = envelope.MessageType ?? headers.Get(MessageHeaders.Transport.MessageType);
 
         return new BasicProperties
@@ -17,8 +17,8 @@ internal static class RabbitMQMessageEnvelopeFormatter
             MessageId = envelope.MessageId,
             CorrelationId = envelope.CorrelationId,
             Type = messageType,
-            Timestamp = sentAt.ToAmqpTimestamp(),
-            Expiration = envelope.DeliverBy.ToExpiration(sentAt),
+            Timestamp = publishedAt.ToAmqpTimestamp(),
+            Expiration = envelope.DeliverBy.ToExpiration(publishedAt),
             ReplyTo = envelope.ResponseAddress,
             Headers = headers,
             ContentType = envelope.ContentType,
@@ -26,10 +26,12 @@ internal static class RabbitMQMessageEnvelopeFormatter
         };
     }
 
-    private static IDictionary<string, object?> FormatHeaders(MessageEnvelope envelope)
+    private static IDictionary<string, object?> FormatHeaders(MessageEnvelope envelope, DateTimeOffset sentAt)
     {
         var headerCount =
-            (envelope.ConversationId is not null ? 1 : 0)
+            1 // x-sent-at
+            + (envelope.DeliverBy is not null ? 1 : 0)
+            + (envelope.ConversationId is not null ? 1 : 0)
             + (envelope.CausationId is not null ? 1 : 0)
             + (envelope.SourceAddress is not null ? 1 : 0)
             + (envelope.DestinationAddress is not null ? 1 : 0)
@@ -44,6 +46,11 @@ internal static class RabbitMQMessageEnvelopeFormatter
         {
             foreach (var header in envelope.Headers)
             {
+                if (RabbitMQMessageHeaders.IsEnvelopeProperty(header.Key))
+                {
+                    continue;
+                }
+
                 headers[header.Key] = header.Value.ToFieldTableValue(header.Key);
             }
         }
@@ -83,20 +90,29 @@ internal static class RabbitMQMessageEnvelopeFormatter
             headers.Set(MessageHeaders.Transport.MessageType, envelope.MessageType);
         }
 
+        // AMQP timestamps have whole seconds and expirations are relative to the publish,
+        // so the exact times travel as headers.
+        headers.Set(RabbitMQMessageHeaders.SentAt, sentAt.ToUnixTimeMilliseconds());
+
+        if (envelope.DeliverBy is { } deliverBy)
+        {
+            headers.Set(RabbitMQMessageHeaders.DeliverBy, deliverBy.ToUnixTimeMilliseconds());
+        }
+
         return headers;
     }
 }
 
 file static class Extensions
 {
-    public static string? ToExpiration(this DateTimeOffset? deliverBy, DateTimeOffset sentAt)
+    public static string? ToExpiration(this DateTimeOffset? deliverBy, DateTimeOffset publishedAt)
     {
         if (deliverBy is null)
         {
             return null;
         }
 
-        var timeToLive = deliverBy.Value - sentAt;
+        var timeToLive = deliverBy.Value - publishedAt;
         if (timeToLive <= TimeSpan.Zero)
         {
             return "0";

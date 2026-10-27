@@ -25,12 +25,12 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
               nitro fusion publish validate [options]
 
             Options:
-              --request-id <request-id>                            The ID of a request [env: NITRO_REQUEST_ID]
-              -a, --archive, --configuration <archive> (REQUIRED)  The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
-              --cloud-url <cloud-url>                              The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
-              --api-key <api-key>                                  The API key or PAT used for authentication [env: NITRO_API_KEY]
-              --output <json>                                      The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help                                       Show help and usage information
+              --request-id <request-id>           The ID of a request [env: NITRO_REQUEST_ID]
+              -a, --archive <archive> (REQUIRED)  The path to a Fusion archive file [env: NITRO_FUSION_CONFIG_FILE]
+              --cloud-url <cloud-url>             The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                 The API key or PAT used for authentication [env: NITRO_API_KEY]
+              --output <json>                     The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                      Show help and usage information
 
             Example:
               nitro fusion publish validate --archive ./gateway.far
@@ -157,14 +157,14 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
     public async Task Subscription_ValidationFailed_ReturnsError()
     {
         // arrange
-        var errorMock = new Mock<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_1>(MockBehavior.Strict);
+        var errorMock = new Mock<IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors>(MockBehavior.Strict);
         errorMock.As<IUnexpectedProcessingError>()
             .SetupGet(x => x.Message)
             .Returns("Something went wrong.");
 
         var failedEvent = new Mock<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_FusionConfigurationValidationFailed>(MockBehavior.Strict);
         failedEvent.SetupGet(x => x.Errors).Returns(
-            new IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_1[]
+            new IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors[]
             {
                 errorMock.Object
             });

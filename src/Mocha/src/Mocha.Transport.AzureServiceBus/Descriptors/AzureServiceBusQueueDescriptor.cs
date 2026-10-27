@@ -138,6 +138,23 @@ internal sealed class AzureServiceBusQueueDescriptor
         return this;
     }
 
+    public IAzureServiceBusQueueDescriptor Temporary()
+    {
+        Configuration.IsTemporary = true;
+        return this;
+    }
+
+    public IAzureServiceBusQueueDescriptor Temporary(TimeSpan idleTimeout)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(
+            idleTimeout,
+            AzureServiceBusReceiveEndpointConfiguration.TemporaryDefaults.MinimumAutoDeleteOnIdle);
+
+        Configuration.IsTemporary = true;
+        Configuration.TemporaryIdleTimeout = idleTimeout;
+        return this;
+    }
+
     public IAzureServiceBusQueueDescriptor MaxConcurrency(int maxConcurrency)
     {
         Configuration.MaxConcurrency = maxConcurrency;
@@ -174,6 +191,13 @@ internal sealed class AzureServiceBusQueueDescriptor
         }
 
         return this;
+    }
+
+    public void Configure(Action<IReceiveMiddlewareProvider> configure)
+    {
+        ArgumentNullException.ThrowIfNull(configure);
+
+        Configuration.ConfigureReceiveEndpoint.Add(configure);
     }
 
     public IAzureServiceBusQueueDescriptor FaultEndpoint(Uri address)
@@ -243,7 +267,15 @@ internal sealed class AzureServiceBusQueueDescriptor
     public IAzureServiceBusQueueDescriptor BindFrom(Uri source)
     {
         ArgumentNullException.ThrowIfNull(source);
-        Configuration.SourceTopics.Add(source);
+        Configuration.SourceTopics.Add(new AzureServiceBusQueueSourceTopicConfiguration { Source = source });
+        return this;
+    }
+
+    public IAzureServiceBusQueueDescriptor BindFrom(Uri source, bool autoProvision)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        Configuration.SourceTopics.Add(
+            new AzureServiceBusQueueSourceTopicConfiguration { Source = source, AutoProvision = autoProvision });
         return this;
     }
 

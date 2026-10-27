@@ -1,5 +1,3 @@
-using Mocha.Features;
-
 namespace Mocha;
 
 /// <summary>
@@ -75,12 +73,13 @@ public static class ResilienceConfigurationExtensions
     /// <param name="descriptor">The descriptor to configure.</param>
     /// <returns>The descriptor for method chaining.</returns>
     public static TDescriptor AddResilience<TDescriptor>(this TDescriptor descriptor)
-        where TDescriptor : IReceiveMiddlewareProvider
+        where TDescriptor : IConfigurable<IReceiveMiddlewareProvider>
     {
-        descriptor
-            .Extend()
-            .Configuration.Features.GetOrSet<ExceptionPolicyFeature>()
-            .Configure(p => p.AddDefaultPolicy());
+        descriptor.Configure(
+            static d => d
+                .Extend()
+                .Configuration.Features.GetOrSet<ExceptionPolicyFeature>()
+                .Configure(p => p.AddDefaultPolicy()));
 
         return descriptor;
     }
@@ -95,11 +94,14 @@ public static class ResilienceConfigurationExtensions
     public static TDescriptor AddResilience<TDescriptor>(
         this TDescriptor descriptor,
         Action<ExceptionPolicyOptions> configure)
-        where TDescriptor : IReceiveMiddlewareProvider
+        where TDescriptor : IConfigurable<IReceiveMiddlewareProvider>
     {
-        var feature = descriptor.Extend().Configuration.Features.GetOrSet<ExceptionPolicyFeature>();
-        feature.Configure(p => p.AddDefaultPolicy());
-        feature.Configure(configure);
+        descriptor.Configure(d =>
+        {
+            var feature = d.Extend().Configuration.Features.GetOrSet<ExceptionPolicyFeature>();
+            feature.Configure(p => p.AddDefaultPolicy());
+            feature.Configure(configure);
+        });
 
         return descriptor;
     }

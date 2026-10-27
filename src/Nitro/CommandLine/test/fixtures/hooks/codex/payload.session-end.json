@@ -1,0 +1,7 @@
+{
+    "session_id": "session-1",
+    "transcript_path": "/workspace/.codex/sessions/rollout-session-1.jsonl",
+    "cwd": "/workspace/project",
+    "hook_event_name": "SessionEnd",
+    "reason": "other"
+}

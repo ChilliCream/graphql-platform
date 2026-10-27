@@ -48,15 +48,15 @@ type AddressesEdge {
 }
 
 "Information about pagination in a connection."
-type PageInfo {
+type PageInfo @shareable {
   "Indicates whether more edges exist following the set defined by the clients arguments."
-  hasNextPage: Boolean! @shareable
+  hasNextPage: Boolean!
   "Indicates whether more edges exist prior the set defined by the clients arguments."
-  hasPreviousPage: Boolean! @shareable
+  hasPreviousPage: Boolean!
   "When paginating backwards, the cursor to continue."
-  startCursor: String @shareable
+  startCursor: String
   "When paginating forwards, the cursor to continue."
-  endCursor: String @shareable
+  endCursor: String
 }
 
 "The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."

@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using System.Text;
 using Mocha.Middlewares;
-using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 namespace Mocha.Transport.RabbitMQ;
@@ -22,10 +21,16 @@ internal sealed class RabbitMQMessageEnvelopeParser
     public MessageEnvelope Parse(BasicDeliverEventArgs eventArgs, TimeProvider timeProvider)
     {
         var props = eventArgs.BasicProperties;
-        var sentAt =
+        var publishedAt =
             props.Timestamp.UnixTime > 0
                 ? DateTimeOffset.FromUnixTimeSeconds(props.Timestamp.UnixTime)
                 : (DateTimeOffset?)null;
+
+        // other producers only send the AMQP timestamp and an expiration relative to it
+        var sentAt = props.Headers.GetUnixTimeMilliseconds(RabbitMQMessageHeaders.SentAt) ?? publishedAt;
+        var deliverBy =
+            props.Headers.GetUnixTimeMilliseconds(RabbitMQMessageHeaders.DeliverBy)
+            ?? props.Expiration.ParseExpiration(publishedAt, timeProvider);
 
         var headers = props.Headers.ParseHeaders();
 
@@ -42,7 +47,7 @@ internal sealed class RabbitMQMessageEnvelopeParser
             ContentType = props.ContentType,
             MessageType = props.Type ?? headers.GetString(MessageHeaders.Transport.MessageType),
             SentAt = sentAt,
-            DeliverBy = props.Expiration.ParseExpiration(sentAt, timeProvider),
+            DeliverBy = deliverBy,
             DeliveryCount = headers.GetDeliveryCount(eventArgs.Redelivered),
             Headers = headers,
             EnclosedMessageTypes = headers.GetStringArray(MessageHeaders.Transport.EnclosedMessageTypes),
@@ -60,6 +65,10 @@ internal sealed class RabbitMQMessageEnvelopeParser
 
 file static class Extensions
 {
+    private static readonly long s_minUnixTimeMilliseconds = DateTimeOffset.MinValue.ToUnixTimeMilliseconds();
+
+    private static readonly long s_maxUnixTimeMilliseconds = DateTimeOffset.MaxValue.ToUnixTimeMilliseconds();
+
     public static Headers ParseHeaders(this IDictionary<string, object?>? fieldTable)
     {
         if (fieldTable is null || fieldTable.Count == 0)
@@ -70,10 +79,30 @@ file static class Extensions
         var headers = new Headers(fieldTable.Count);
         foreach (var (key, value) in fieldTable)
         {
+            if (RabbitMQMessageHeaders.IsEnvelopeProperty(key))
+            {
+                continue;
+            }
+
             headers.Set(key, value.FromFieldTableValue(key));
         }
 
         return headers;
+    }
+
+    public static DateTimeOffset? GetUnixTimeMilliseconds(
+        this IDictionary<string, object?>? fieldTable,
+        ContextDataKey<long> key)
+    {
+        if (fieldTable is not null
+            && fieldTable.TryGet(key, out var milliseconds)
+            && milliseconds >= s_minUnixTimeMilliseconds
+            && milliseconds <= s_maxUnixTimeMilliseconds)
+        {
+            return DateTimeOffset.FromUnixTimeMilliseconds(milliseconds);
+        }
+
+        return null;
     }
 
     public static string? GetString(this Headers headers, ContextDataKey<string> key)

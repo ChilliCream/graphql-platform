@@ -63,7 +63,7 @@ public static partial class ZooType
 
     [BatchResolver]
     public static ValueTask<List<AnimalKind>> GetBatchAnimalsAsync([Parent] List<Zoo> zoos)
-        => ValueTask.FromResult<List<AnimalKind>>(
+        => ValueTask.FromResult(
             zoos.Select(_ => AnimalKind.Dog | AnimalKind.Cat).ToList());
 
     public static FauxFlagsKind GetFauxFlags([Parent] Zoo zoo)

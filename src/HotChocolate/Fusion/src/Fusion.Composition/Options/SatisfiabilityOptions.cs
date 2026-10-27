@@ -13,7 +13,8 @@ public sealed class SatisfiabilityOptions
     /// <summary>
     /// A collection of fields that should be ignored during the satisfiability analysis
     /// because they are known to be non-accessible. The key is the qualified field name (e.g.
-    /// "TypeName.fieldName") and the value is a list of paths to ignore for that field.
+    /// "TypeName.fieldName") and the value is a list of paths to ignore for that field. A listed
+    /// field is also exempt from the <c>UNREACHABLE_SOURCE_FIELD</c> error.
     /// </summary>
     public Dictionary<string, List<string>> IgnoredNonAccessibleFields { get; } = [];
 }

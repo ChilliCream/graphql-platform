@@ -26,7 +26,9 @@ public class ReceiveEndpointConfiguration : MessagingConfiguration
     public List<Type> ReceivedMessageTypes { get; set; } = [];
 
     /// <summary>
-    /// Gets or sets whether this is a temporary (auto-delete) endpoint.
+    /// Gets or sets whether this endpoint's infrastructure is scoped to the lifetime of the
+    /// consuming process rather than provisioned durably. The transport determines how this
+    /// lifecycle intent is realized.
     /// </summary>
     public bool IsTemporary { get; set; }
 

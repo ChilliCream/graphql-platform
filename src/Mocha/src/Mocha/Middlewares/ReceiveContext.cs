@@ -148,6 +148,44 @@ public sealed class ReceiveContext : IReceiveContext, IConsumeContext
     /// </summary>
     public CancellationToken CancellationToken { get; set; }
 
+    /// <inheritdoc />
+    public IConsumeContext Clone(IServiceProvider services)
+        => CopyTo(new ReceiveContext(), services);
+
+    /// <summary>
+    /// Copies this context into <paramref name="clone"/> using the specified services.
+    /// </summary>
+    /// <param name="clone">The target context, typically taken from a pool.</param>
+    /// <param name="services">The service provider for the cloned execution.</param>
+    /// <returns>The <paramref name="clone"/> instance.</returns>
+    public ReceiveContext CopyTo(ReceiveContext clone, IServiceProvider services)
+    {
+        clone.Services = services;
+        clone.Runtime = Runtime;
+        clone.Transport = Transport;
+        clone.Endpoint = Endpoint;
+        clone.Envelope = Envelope is { } envelope ? new MessageEnvelope(envelope) : null;
+        clone.ContentType = ContentType;
+        clone.MessageType = MessageType;
+        clone.MessageId = MessageId;
+        clone.CorrelationId = CorrelationId;
+        clone.ConversationId = ConversationId;
+        clone.CausationId = CausationId;
+        clone.SourceAddress = SourceAddress;
+        clone.DestinationAddress = DestinationAddress;
+        clone.ResponseAddress = ResponseAddress;
+        clone.FaultAddress = FaultAddress;
+        clone.SentAt = SentAt;
+        clone.DeliverBy = DeliverBy;
+        clone.DeliveryCount = DeliveryCount;
+        clone.Body = Body;
+        clone.Host = Host;
+        clone.CancellationToken = CancellationToken;
+        clone._features.Initialize(_features);
+        clone.Headers.AddRange(Headers);
+        return clone;
+    }
+
     /// <summary>
     /// Resets all properties, headers, features, and the body to their default state
     /// so the instance can be returned to the object pool.
@@ -223,24 +261,24 @@ public sealed class ReceiveContext : IReceiveContext, IConsumeContext
     /// </summary>
     /// <remarks>
     /// Sets the <see cref="Services"/>, <see cref="Endpoint"/>, <see cref="Transport"/>,
-    /// and <see cref="Runtime"/> properties and initializes the internal feature collection.
+    /// <see cref="Runtime"/> and <see cref="CancellationToken"/> properties and initializes the internal
+    /// feature collection.
     /// </remarks>
     /// <param name="services">The scoped service provider for this receive operation.</param>
     /// <param name="endpoint">The receive endpoint that owns this operation.</param>
     /// <param name="runtime">The messaging runtime providing host info and global options.</param>
-    /// <param name="cancellationToken">Reserved for future use; not currently consumed by this method.</param>
+    /// <param name="cancellationToken">The token that cancels the receive operation.</param>
     public void Initialize(
         IServiceProvider services,
         ReceiveEndpoint endpoint,
         IMessagingRuntime runtime,
-#pragma warning disable RCS1163 // Unused parameter
         CancellationToken cancellationToken)
-#pragma warning restore RCS1163 // Unused parameter
     {
         Services = services;
         Endpoint = endpoint;
         Transport = endpoint.Transport;
         Runtime = runtime;
+        CancellationToken = cancellationToken;
 
         _features.Initialize();
     }

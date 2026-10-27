@@ -1,0 +1,11 @@
+{
+  "errors": [
+    {
+      "message": "Variable `id` is required.",
+      "extensions": {
+        "code": "HC0018",
+        "variable": "id"
+      }
+    }
+  ]
+}

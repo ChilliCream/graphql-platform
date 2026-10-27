@@ -1,9 +1,9 @@
+using CookieCrumble.Resources;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 
 namespace HotChocolate.Data.MongoDb.Sorting;
 

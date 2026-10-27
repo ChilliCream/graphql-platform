@@ -8,7 +8,7 @@ namespace HotChocolate.Fusion;
 /// <c>subgraphs/*.graphql</c>) vendored from the federation-gateway-audit repository
 /// under each suite's <c>Reference/</c> directory. Reference resources are material
 /// for porting a suite; the live tests inline their query literals via
-/// <see cref="ComplianceTestBase.RunAsync"/>.
+/// <see cref="ComplianceTestBase.RunAsync(string, string?, bool?)"/>.
 /// </summary>
 internal static class AuditFixture
 {

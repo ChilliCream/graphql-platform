@@ -3,35 +3,6 @@ using ChilliCream.Nitro.CommandLine.Services.Tasks;
 namespace ChilliCream.Nitro.CommandLine.Tui.Board;
 
 /// <summary>
-/// One board column's live data: its definition, the tasks currently loaded
-/// for it, and which row is selected.
-/// </summary>
-internal sealed class BoardColumnState(ColumnDefinition definition)
-{
-    /// <summary>
-    /// The column's declarative filter and sort.
-    /// </summary>
-    public ColumnDefinition Definition { get; } = definition;
-
-    /// <summary>
-    /// The tasks currently loaded for this column, in display order.
-    /// </summary>
-    public IReadOnlyList<TaskItem> Tasks { get; internal set; } = [];
-
-    /// <summary>
-    /// The index of the selected row within <see cref="Tasks"/>.
-    /// </summary>
-    public int SelectedRow { get; internal set; }
-
-    /// <summary>
-    /// The id of the task at <see cref="SelectedRow"/>, or null when the
-    /// column is empty or the row is out of range.
-    /// </summary>
-    public string? SelectedTaskId
-        => SelectedRow >= 0 && SelectedRow < Tasks.Count ? Tasks[SelectedRow].Id : null;
-}
-
-/// <summary>
 /// The live state of a board: per-column task lists and selection, plus
 /// which column has focus.
 /// </summary>
@@ -57,6 +28,18 @@ internal sealed class BoardState
     public IReadOnlyList<BoardColumnState> Columns { get; }
 
     /// <summary>
+    /// The raw index of each column with at least one task, in display order.
+    /// </summary>
+    public IReadOnlyList<int> VisibleColumnIndices
+        => [.. Enumerable.Range(0, Columns.Count).Where(i => Columns[i].Tasks.Count > 0)];
+
+    /// <summary>
+    /// The columns with at least one task, in display order.
+    /// </summary>
+    public IReadOnlyList<BoardColumnState> VisibleColumns
+        => [.. VisibleColumnIndices.Select(i => Columns[i])];
+
+    /// <summary>
     /// The index of the column that has focus.
     /// </summary>
     public int FocusedColumnIndex { get; private set; }
@@ -70,9 +53,31 @@ internal sealed class BoardState
     }
 
     /// <summary>
+    /// Moves focus by <paramref name="delta"/> positions among the visible columns,
+    /// clamped to the first or last visible column. Does nothing when no column is visible.
+    /// </summary>
+    public void FocusAdjacentVisibleColumn(int delta)
+    {
+        var visibleIndices = VisibleColumnIndices;
+
+        if (visibleIndices.Count == 0)
+        {
+            return;
+        }
+
+        var currentPosition = IndexOf(visibleIndices, FocusedColumnIndex);
+        var position = currentPosition < 0
+            ? 0
+            : Math.Clamp(currentPosition + delta, 0, visibleIndices.Count - 1);
+
+        FocusedColumnIndex = visibleIndices[position];
+    }
+
+    /// <summary>
     /// Reloads every column from the task store. Each column's selected task
     /// stays selected when it is still present in the reloaded list;
-    /// otherwise the selected row is clamped to the new list's bounds.
+    /// otherwise the selected row is clamped to the new list's bounds. When the
+    /// focused column no longer has a task, focus moves to the first visible column.
     /// </summary>
     public async Task RefreshAsync(CancellationToken cancellationToken)
     {
@@ -89,6 +94,13 @@ internal sealed class BoardState
                 ? preservedIndex
                 : Math.Clamp(column.SelectedRow, 0, Math.Max(0, tasks.Count - 1));
         }
+
+        var visibleIndices = VisibleColumnIndices;
+
+        if (visibleIndices.Count > 0 && !visibleIndices.Contains(FocusedColumnIndex))
+        {
+            FocusedColumnIndex = visibleIndices[0];
+        }
     }
 
     private static int IndexOf(IReadOnlyList<TaskItem> tasks, string taskId)
@@ -96,6 +108,19 @@ internal sealed class BoardState
         for (var i = 0; i < tasks.Count; i++)
         {
             if (tasks[i].Id == taskId)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    private static int IndexOf(IReadOnlyList<int> values, int value)
+    {
+        for (var i = 0; i < values.Count; i++)
+        {
+            if (values[i] == value)
             {
                 return i;
             }

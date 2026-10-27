@@ -208,14 +208,25 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             throw new InvalidOperationException("Queue name is required");
         }
 
-        _topology.GetOrAddQueue(
+        if (rabbitConfiguration.IsTemporary)
+        {
+            EnsureNoDurableQueueConflict(rabbitConfiguration);
+        }
+
+        var queue = _topology.GetOrAddQueue(
             rabbitConfiguration.QueueName,
             _ => new RabbitMQQueueConfiguration
             {
-                AutoDelete = rabbitEndpoint.Kind == ReceiveEndpointKind.Reply,
+                Durable = rabbitConfiguration.IsTemporary ? false : null,
+                AutoDelete = rabbitConfiguration.IsTemporary,
                 AutoProvision = rabbitConfiguration.AutoProvision,
                 Origin = TopologyOrigin.Endpoint
             });
+
+        if (rabbitConfiguration.IsTemporary && queue.Origin is not TopologyOrigin.Declared)
+        {
+            queue.MarkTemporary();
+        }
 
         if (rabbitEndpoint.Kind == ReceiveEndpointKind.Default)
         {
@@ -324,25 +335,34 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
             return;
         }
 
-        // Under BindExplicitly, the dispatch endpoint must not materialize a destination
-        // exchange the user never declared: the user retains full ownership of the topology,
-        // and a default-config (fanout) shadow can collide with a previously-declared exchange
-        // on the broker (PRECONDITION_FAILED on declare). The user is expected to either
-        // DeclareExchange it explicitly or rely on a pre-existing broker entity.
+        // Under explicit binding, a target that is not declared is recorded in the topology
+        // but never provisioned or bound. The sender does not own it.
         var bindImplicitly = Transport.BindMode == MessagingBindMode.Implicit;
 
-        if (rabbitConfiguration.ExchangeName is not null && bindImplicitly)
+        if (rabbitConfiguration.ExchangeName is not null)
         {
             _topology.GetOrAddExchange(
                 rabbitConfiguration.ExchangeName,
-                static _ => new RabbitMQExchangeConfiguration());
+                bindImplicitly
+                    ? static _ => new RabbitMQExchangeConfiguration()
+                    : static _ => new RabbitMQExchangeConfiguration
+                    {
+                        AutoProvision = false,
+                        Origin = TopologyOrigin.Endpoint
+                    });
         }
 
-        if (rabbitConfiguration.QueueName is not null && bindImplicitly)
+        if (rabbitConfiguration.QueueName is not null)
         {
             _topology.GetOrAddQueue(
                 rabbitConfiguration.QueueName,
-                _ => new RabbitMQQueueConfiguration { AutoProvision = rabbitConfiguration.AutoProvision });
+                bindImplicitly
+                    ? _ => new RabbitMQQueueConfiguration { AutoProvision = rabbitConfiguration.AutoProvision }
+                    : static _ => new RabbitMQQueueConfiguration
+                    {
+                        AutoProvision = false,
+                        Origin = TopologyOrigin.Endpoint
+                    });
         }
 
         var schema = Transport.Schema;
@@ -451,6 +471,24 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
         {
             var name = context.Naming.GetReceiveEndpointName(queueName, kind);
             assign(new Uri($"{Transport.Schema}:q/{name}"));
+        }
+    }
+
+    private void EnsureNoDurableQueueConflict(RabbitMQReceiveEndpointConfiguration rabbitConfiguration)
+    {
+        var existingQueue = _topology.Queues.FirstOrDefault(q => q.Name == rabbitConfiguration.QueueName);
+        if (existingQueue is not { Origin: TopologyOrigin.Declared })
+        {
+            return;
+        }
+
+        if (existingQueue.Durable || !existingQueue.AutoDelete)
+        {
+            throw new InvalidOperationException(
+                $"Queue '{rabbitConfiguration.QueueName}' is explicitly declared as durable or "
+                + "non-auto-delete, which conflicts with receive endpoint "
+                + $"'{rabbitConfiguration.Name}' being marked Temporary(). Declare the queue as "
+                + "non-durable and auto-delete, or remove Temporary() from the endpoint.");
         }
     }
 

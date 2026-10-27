@@ -119,6 +119,90 @@ public class RabbitMQEndpointQueueOwnershipTests
         Assert.Equal("orders_dlx", queue.Arguments["x-dead-letter-exchange"]);
     }
 
+    [Fact]
+    public void EndpointQueue_Should_MaterializeNonDurableAutoDeleteQueue_When_EndpointMarkedTemporary()
+    {
+        // arrange
+        // Temporary() on an explicit receive endpoint must map to a non-durable, auto-delete queue.
+        var runtime = CreateRuntime(
+            b => b.AddConsumer<OrderSpyConsumer>(),
+            t =>
+            {
+                t.BindExplicitly();
+                t.Endpoint("temp-orders").Temporary().Consumer<OrderSpyConsumer>();
+            });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+        var topology = (RabbitMQMessagingTopology)transport.Topology;
+
+        // act
+        var queue = topology.Queues.SingleOrDefault(q => q.Name == "temp-orders");
+
+        // assert
+        Assert.NotNull(queue);
+        Assert.False(queue.Durable);
+        Assert.True(queue.AutoDelete);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void EndpointQueue_Should_MaterializeTemporaryQueue_When_SharedQueueDiscoveredInEitherOrder(
+        bool temporaryFirst)
+    {
+        // arrange
+        var runtime = CreateRuntime(
+            _ => { },
+            t =>
+            {
+                t.BindExplicitly();
+
+                var first = t.Endpoint("first");
+                first.Extend().Configuration.QueueName = "shared";
+                if (temporaryFirst)
+                {
+                    first.Temporary();
+                }
+            });
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var secondConfiguration = new RabbitMQReceiveEndpointConfiguration
+        {
+            Name = "second",
+            QueueName = "shared",
+            IsTemporary = !temporaryFirst
+        };
+
+        // act
+        var second = transport.AddEndpoint(runtime, secondConfiguration);
+        second.DiscoverTopology(runtime);
+        var queue = topology.Queues.Single(q => q.Name == "shared");
+
+        // assert
+        Assert.False(queue.Durable);
+        Assert.True(queue.AutoDelete);
+    }
+
+    [Fact]
+    public void EndpointQueue_Should_ThrowOnBuild_When_TemporaryEndpointConflictsWithDeclaredDurableQueue()
+    {
+        // arrange
+        // A queue explicitly declared as durable (the default) conflicts with a receive endpoint
+        // for the same queue name marked Temporary(): the broker-native lifecycle it requests can
+        // never be honored.
+        var exception = Assert.Throws<InvalidOperationException>(() => CreateRuntime(
+            b => b.AddConsumer<OrderSpyConsumer>(),
+            t =>
+            {
+                t.BindExplicitly();
+                t.DeclareQueue("orders");
+                t.Endpoint("orders").Temporary().Consumer<OrderSpyConsumer>();
+            }));
+
+        // assert
+        Assert.Contains("orders", exception.Message);
+        Assert.Contains("Temporary()", exception.Message);
+    }
+
     private static MessagingRuntime CreateRuntime(
         Action<IMessageBusHostBuilder> configureBuilder,
         Action<IRabbitMQMessagingTransportDescriptor> configureTransport)

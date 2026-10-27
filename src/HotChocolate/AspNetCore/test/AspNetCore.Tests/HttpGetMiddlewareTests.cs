@@ -750,6 +750,34 @@ public class HttpGetMiddlewareTests : ServerTestBase
     }
 
     [Fact]
+    public async Task Get_Should_ExecutePersistedOperation_When_DocumentIdIsSet()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = server.CreateClient();
+
+        // act
+        using var response = await client.GetAsync(
+            "http://localhost:5000/graphql?documentId=60ddx_GGk4FDObSa6eK0sg",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Vary: Accept
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: OK
+                -------------------------->
+                {"data":{"hero":{"name":"R2-D2"}}}
+                """);
+    }
+
+    [Fact]
     public async Task Throw_Custom_GraphQL_Error()
     {
         // arrange

@@ -90,6 +90,13 @@ internal sealed class InMemoryQueueDescriptor
     }
 
     /// <inheritdoc />
+    public IInMemoryQueueDescriptor Temporary()
+    {
+        Configuration.IsTemporary = true;
+        return this;
+    }
+
+    /// <inheritdoc />
     public IInMemoryQueueDescriptor UseReceive(
         ReceiveMiddlewareConfiguration configuration,
         string? before = null,
@@ -116,6 +123,14 @@ internal sealed class InMemoryQueueDescriptor
         }
 
         return this;
+    }
+
+    /// <inheritdoc />
+    public void Configure(Action<IReceiveMiddlewareProvider> configure)
+    {
+        ArgumentNullException.ThrowIfNull(configure);
+
+        Configuration.ConfigureReceiveEndpoint.Add(configure);
     }
 
     /// <inheritdoc />

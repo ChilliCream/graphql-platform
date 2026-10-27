@@ -608,6 +608,38 @@ public sealed class SourceSchemaParserTests
     }
 
     [Fact]
+    public void Parse_Should_PreserveBlockStringBackslashes_When_DescriptionContainsThem()
+    {
+        // arrange
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                """"
+                type Query {
+                    """
+                    Matches ^[A-Z]{2}-\d{4}$
+                    Literal sequences: \n and \\
+                    """
+                    code: String
+                }
+                """");
+        var log = new CompositionLog();
+        var parser = new SourceSchemaParser(sourceSchemaText, log);
+
+        // act
+        var result = parser.Parse();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+        result.Value.QueryType!.Fields["code"].Description.MatchInlineSnapshot(
+            """
+            Matches ^[A-Z]{2}-\d{4}$
+            Literal sequences: \n and \\
+            """);
+    }
+
+    [Fact]
     public void Parse_Should_ReportUndefinedUnionMemberType_When_UnionNamesMissingType()
     {
         // arrange

@@ -106,25 +106,27 @@ Instrument server events of the Hot Chocolate transport layer by creating a clas
 ```csharp
 public class MyServerEventListener : ServerDiagnosticEventListener
 {
-    public override IDisposable ExecuteHttpRequest(RequestContext context)
+    public override IDisposable ExecuteHttpRequest(HttpContext context,
+        HttpRequestKind kind)
     {
         // Omitted code for brevity
     }
 }
 ```
 
-| Method name                | Description                                                                                                  |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| ExecuteHttpRequest         | Called when starting to execute a GraphQL over HTTP request in the transport layer.                          |
-| StartSingleRequest         | Called within the ExecuteHttpRequest scope, signals that a single GraphQL request will be executed.          |
-| StartBatchRequest          | Called within the ExecuteHttpRequest scope, signals that a GraphQL batch request will be executed.           |
-| StartOperationBatchRequest | Called within the ExecuteHttpRequest scope, signals that an operation batch request will be executed.        |
-| HttpRequestError           | Called within the ExecuteHttpRequest scope, signals an error while processing the GraphQL over HTTP request. |
-| ParseHttpRequest           | Called when starting to parse a GraphQL HTTP request.                                                        |
-| ParserErrors               | Called within the ParseHttpRequest scope, signals an error while parsing the GraphQL request.                |
-| FormatHttpResponse         | Called when starting to format a GraphQL query result.                                                       |
-| WebSocketSession           | Called when starting to establish a GraphQL WebSocket session.                                               |
-| WebSocketSessionError      | Called within the WebSocketSession scope, signals an error that terminated the session.                      |
+| Method name                    | Description                                                                                                      |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| ExecuteHttpRequest             | Called when starting to execute a GraphQL over HTTP request in the transport layer.                              |
+| HttpRequestError               | Called within the ExecuteHttpRequest scope, signals an error while processing the GraphQL over HTTP request.     |
+| ParseHttpRequest               | Called when starting to parse a GraphQL HTTP request.                                                            |
+| ParserErrors                   | Called within the ParseHttpRequest scope, signals an error while parsing the GraphQL request.                    |
+| StartSingleRequest             | Called within the ExecuteHttpRequest scope, signals that a single GraphQL request will be executed.              |
+| StartBatchRequest              | Called within the ExecuteHttpRequest scope, signals that a GraphQL batch request will be executed.               |
+| StartOperationBatchRequest     | Called within the ExecuteHttpRequest scope, signals that an operation batch request will be executed.            |
+| FormatHttpResponse             | Called when starting to format a GraphQL query result.                                                           |
+| WebSocketSession               | Called when starting to establish a GraphQL WebSocket session.                                                   |
+| WebSocketConnectionInitialized | Called within the WebSocketSession scope once the server accepts the client's connection initialization message. |
+| WebSocketSessionError          | Called within the WebSocketSession scope, signals an error that terminated the session.                          |
 
 ## Execution Events
 
@@ -142,38 +144,38 @@ public class MyExecutionEventListener : ExecutionDiagnosticEventListener
 
 The following methods can be overridden:
 
-| Method name                         | Description                                                                                                                          |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| ExecuteRequest                      | Scope that encloses the entire GraphQL request execution. Also the first diagnostic event raised during a request.                   |
-| RequestError                        | Called if the GraphQL request produced an error. Called immediately before the scope of `ExecuteRequest` is disposed.                |
-| ExecuteSubscription                 | Scope that encloses the execution of a subscription query. Created when a client subscribes and disposed when the subscription ends. |
-| ParseDocument                       | Scope that encloses the parsing of a document.                                                                                       |
-| SyntaxError                         | Called if a document could not be parsed due to a syntax error.                                                                      |
-| ValidateDocument                    | Scope that encloses the validation of a document.                                                                                    |
-| ValidationErrors                    | Called if errors occurred during document validation.                                                                                |
-| AnalyzeOperationComplexity          | Called when starting to analyze operation complexity.                                                                                |
-| OperationComplexityAnalyzerCompiled | Called within AnalyzeOperationComplexity scope when an analyzer is compiled.                                                         |
-| OperationComplexityResult           | Called within AnalyzeOperationComplexity scope, reports the outcome of the analyzer.                                                 |
-| CoerceVariables                     | Called when starting to coerce variables for a request.                                                                              |
-| CompileOperation                    | Called when starting to compile the GraphQL operation from the syntax tree.                                                          |
-| ExecuteOperation                    | Called when starting to execute the GraphQL operation and its resolvers.                                                             |
-| StartProcessing                     | Scope that encloses the scheduling of work, such as invoking a DataLoader or starting execution tasks.                               |
-| StopProcessing                      | Called if the execution engine has to wait for resolvers to complete or whenever execution has completed.                            |
-| RunTask                             | Scope that encloses the execution of an execution task. A `ResolverExecutionTask` uses the `ResolveFieldValue` event instead.        |
-| TaskError                           | Called if an execution task produced an error.                                                                                       |
-| ResolveFieldValue                   | Scope that encloses the execution of a specific field resolver. (\*)                                                                 |
-| ResolverError                       | Called if a specific field resolver produces an error.                                                                               |
-| OnSubscriptionEvent                 | Scope that encloses the computation of a subscription result once the event stream yields a new payload.                             |
-| SubscriptionEventError              | Called if the computation of the subscription result produced an error.                                                              |
-| AddedDocumentToCache                | Called once a document has been added to `DocumentCache`.                                                                            |
-| RetrievedDocumentFromCache          | Called once a document has been retrieved from the `DocumentCache`.                                                                  |
-| AddedOperationToCache               | Called once an operation has been added to the `OperationCache`.                                                                     |
-| RetrievedOperationFromCache         | Called once an operation has been retrieved from the `OperationCache`.                                                               |
-| RetrievedDocumentFromStorage        | Called once a document has been retrieved from an operation document storage.                                                        |
-| ExecutorCreated                     | Called once a request executor has been created. Executors are created once per schema during the first request.                     |
-| ExecutorEvicted                     | Called once a request executor is evicted, which can happen if the schema or executor configuration changes.                         |
+| Method name                  | Description                                                                                                                                        |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ExecuteRequest               | Scope that encloses the entire GraphQL request execution. Also the first diagnostic event raised during a request.                                 |
+| RequestError                 | Called within the `ExecuteRequest` scope if an exception aborts the request, or within the `ParseDocument` scope if the document cannot be parsed. |
+| ParseDocument                | Scope that encloses the parsing of a document.                                                                                                     |
+| ValidateDocument             | Scope that encloses the validation of a document.                                                                                                  |
+| ValidationErrors             | Called if errors occurred during document validation.                                                                                              |
+| CoerceVariables              | Called when starting to coerce variables for a request.                                                                                            |
+| AnalyzeOperationCost         | Scope that encloses the cost analysis of an operation.                                                                                             |
+| OperationCost                | Called within the `AnalyzeOperationCost` scope, reports the field cost and type cost of the operation.                                             |
+| CompileOperation             | Called when starting to compile the GraphQL operation from the syntax tree.                                                                        |
+| ExecuteOperation             | Called when starting to execute the GraphQL operation and its resolvers.                                                                           |
+| StartProcessing              | Called when the execution engine starts or resumes running execution tasks.                                                                        |
+| StopProcessing               | Called if the execution engine pauses while execution tasks, such as resolvers, are still running.                                                 |
+| RunTask                      | Scope that encloses the execution of an execution task, such as a deferred fragment. Field resolvers raise `ResolveFieldValue` instead. (\*)       |
+| TaskError                    | Called if an execution task produced an error.                                                                                                     |
+| ResolveFieldValue            | Scope that encloses the execution of a specific field resolver. (\*)                                                                               |
+| ResolverError                | Called if a specific field resolver produces an error.                                                                                             |
+| ExecuteSubscription          | Scope that encloses the execution of a subscription query. Created when a client subscribes and disposed when the subscription ends.               |
+| OnSubscriptionEvent          | Scope that encloses the computation of a subscription result once the event stream yields a new payload.                                           |
+| SubscriptionEventError       | Called if the computation of the subscription result produced an error.                                                                            |
+| AddedDocumentToCache         | Called once a document has been added to `DocumentCache`.                                                                                          |
+| RetrievedDocumentFromCache   | Called once a document has been retrieved from the `DocumentCache`.                                                                                |
+| AddedOperationToCache        | Called once an operation has been added to the `OperationCache`.                                                                                   |
+| RetrievedOperationFromCache  | Called once an operation has been retrieved from the `OperationCache`.                                                                             |
+| RetrievedDocumentFromStorage | Called once a document has been retrieved from an operation document storage.                                                                      |
+| DocumentNotFoundInStorage    | Called if the document of a persisted operation cannot be found in the operation document storage.                                                 |
+| UntrustedDocumentRejected    | Called if a request is rejected because it carries a document that is not a persisted operation while only persisted operations are allowed.       |
+| ExecutorCreated              | Called once a request executor has been created. Executors are created once per schema during the first request.                                   |
+| ExecutorEvicted              | Called once a request executor is evicted, which can happen if the schema or executor configuration changes.                                       |
 
-(\*): The `ResolveFieldValue` event is not invoked by default because it would add too much overhead for each resolver in a query. Override the `EnableResolveFieldValue` property to enable it:
+(\*): The `ResolveFieldValue` and `RunTask` events are not invoked by default because they would add too much overhead for each resolver and task in a query. Override the `EnableResolveFieldValue` property to enable them:
 
 ```csharp
 public class MyExecutionEventListener : ExecutionDiagnosticEventListener
@@ -204,13 +206,17 @@ public class MyDataLoaderEventListener : DataLoaderDiagnosticEventListener
 
 The following methods can be overridden:
 
-| Method name           | Description                                                                                              |
-| --------------------- | -------------------------------------------------------------------------------------------------------- |
-| ExecuteBatch          | Scope that encloses a batch operation, resolving a specific set of keys.                                 |
-| BatchResults          | Called once a batch operation has completed and all items for a specific set of keys have been resolved. |
-| BatchError            | Called if a batch operation has failed.                                                                  |
-| BatchItemError        | Called for a specific item that contained an error within a batch operation.                             |
-| ResolvedTaskFromCache | Called once a task to resolve an item by its key has been added or retrieved from the `TaskCache`.       |
+| Method name                 | Description                                                                                                                                           |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ResolvedTaskFromCache       | Called once the task that resolves an item by its key has been retrieved from the `PromiseCache`.                                                     |
+| ExecuteBatch                | Scope that encloses a batch operation, resolving a specific set of keys.                                                                              |
+| BatchResults                | Called once a batch operation has completed and all items for a specific set of keys have been resolved.                                              |
+| BatchError                  | Called if a batch operation has failed.                                                                                                               |
+| BatchItemError              | Called for a specific item that contained an error within a batch operation.                                                                          |
+| RunBatchDispatchCoordinator | Scope that encloses a run of the batch dispatch coordinator, which decides when open batches are dispatched.                                          |
+| BatchEvaluated              | Called within the RunBatchDispatchCoordinator scope if an evaluation of the open batches dispatches none of them, reports the number of open batches. |
+| BatchDispatched             | Called within the RunBatchDispatchCoordinator scope once one or more batches have been dispatched, reports their number.                              |
+| BatchDispatchError          | Called if the batch dispatch coordinator fails with an exception.                                                                                     |
 
 # OpenTelemetry
 
@@ -237,7 +243,7 @@ builder
 
 Next, add OpenTelemetry to your project. In this example, you will use it with an OTLP exporter:
 
-```bash
+```shell
 dotnet add package OpenTelemetry.Extensions.Hosting
 dotnet add package OpenTelemetry.Instrumentation.AspNetCore
 dotnet add package OpenTelemetry.Instrumentation.Http

@@ -43,7 +43,7 @@ public abstract class MongoDbListOperationHandlerBase
         if (node.Value.IsNull())
         {
             context.ReportError(
-                ErrorHelper.CreateNonNullError(field, node.Value, context));
+                ErrorHelper.CreateNonNullError(field, context));
 
             action = SyntaxVisitor.Skip;
             return true;
@@ -73,7 +73,8 @@ public abstract class MongoDbListOperationHandlerBase
     {
         context.RuntimeTypes.Pop();
 
-        if (context.Scopes.Pop() is MongoDbFilterScope scope)
+        // an empty element filter produces no condition, so the list operation adds none.
+        if (context.Scopes.Pop() is MongoDbFilterScope scope && scope.Level.Peek().Count > 0)
         {
             var path = context.GetMongoFilterScope().GetPath();
             var combinedOperations = HandleListOperation(

@@ -232,7 +232,7 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                                 compilation,
                                 connectionType,
                                 null,
-                                edgeType.Name,
+                                edgeTypeInfo.Name,
                                 connectionName,
                                 connectionName);
 

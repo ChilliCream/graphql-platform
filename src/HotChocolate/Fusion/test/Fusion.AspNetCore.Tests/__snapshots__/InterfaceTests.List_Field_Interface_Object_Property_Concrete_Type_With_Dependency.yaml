@@ -91,21 +91,21 @@ sourceSchemas:
                       "votable": {
                         "__typename": "Discussion",
                         "viewerCanVote": true,
-                        "id": "RGlzY3Vzc2lvbjo0"
+                        "id": "RGlzY3Vzc2lvbjozMzcxMjEwMzU1"
                       }
                     },
                     {
                       "votable": {
                         "__typename": "Discussion",
                         "viewerCanVote": true,
-                        "id": "RGlzY3Vzc2lvbjo1"
+                        "id": "RGlzY3Vzc2lvbjoyNjYwMDg1Mzg1"
                       }
                     },
                     {
                       "votable": {
                         "__typename": "Discussion",
                         "viewerCanVote": true,
-                        "id": "RGlzY3Vzc2lvbjo2"
+                        "id": "RGlzY3Vzc2lvbjoyMzA2MzgxODg4"
                       }
                     }
                   ]
@@ -137,13 +137,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "RGlzY3Vzc2lvbjo0"
+                "__fusion_1_id": "RGlzY3Vzc2lvbjozMzcxMjEwMzU1"
               },
               {
-                "__fusion_1_id": "RGlzY3Vzc2lvbjo1"
+                "__fusion_1_id": "RGlzY3Vzc2lvbjoyNjYwMDg1Mzg1"
               },
               {
-                "__fusion_1_id": "RGlzY3Vzc2lvbjo2"
+                "__fusion_1_id": "RGlzY3Vzc2lvbjoyMzA2MzgxODg4"
               }
             ]
         response:
@@ -189,7 +189,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 7a8e1f91cae63ceca6e1f391c7b88847
+      hash: 0cf9df50674cb5138d4b9aba49396c35
       searchSpace: 1
       expandedNodes: 2
   nodes:

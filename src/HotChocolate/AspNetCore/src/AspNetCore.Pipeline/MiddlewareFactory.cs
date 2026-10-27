@@ -33,6 +33,16 @@ internal static class MiddlewareFactory
         };
     }
 
+    internal static Func<RequestDelegate, RequestDelegate> CreateHttpContentNegotiationMiddleware(
+        PathString? path)
+    {
+        return next =>
+        {
+            var middleware = new HttpContentNegotiationMiddleware(next, path);
+            return context => middleware.InvokeAsync(context);
+        };
+    }
+
     internal static Func<RequestDelegate, RequestDelegate> CreateHttpPostMiddleware(
         HttpRequestExecutorProxy executor,
         GraphQLServerOptions serverOptions)
@@ -52,6 +62,17 @@ internal static class MiddlewareFactory
         return next =>
         {
             var middleware = new HttpMultipartMiddleware(next, executor, serverOptions, formOptions);
+            return context => middleware.InvokeAsync(context);
+        };
+    }
+
+    internal static Func<RequestDelegate, RequestDelegate> CreateHttpQueryMiddleware(
+        HttpRequestExecutorProxy executor,
+        GraphQLServerOptions serverOptions)
+    {
+        return next =>
+        {
+            var middleware = new HttpQueryMiddleware(next, executor, serverOptions);
             return context => middleware.InvokeAsync(context);
         };
     }
@@ -87,6 +108,22 @@ internal static class MiddlewareFactory
         return next =>
         {
             var middleware = new HttpGetSemanticNonNullSchemaMiddleware(next, executor, serverOptions);
+            return context => middleware.InvokeAsync(context);
+        };
+    }
+
+    internal static Func<RequestDelegate, RequestDelegate> CreateHttpUnsupportedRequestMiddleware(
+        HttpRequestExecutorProxy executor,
+        GraphQLServerOptions serverOptions,
+        PathString? path)
+    {
+        return next =>
+        {
+            var middleware = new HttpUnsupportedRequestMiddleware(
+                next,
+                executor,
+                serverOptions,
+                path);
             return context => middleware.InvokeAsync(context);
         };
     }

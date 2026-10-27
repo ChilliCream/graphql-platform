@@ -94,9 +94,16 @@ internal static class NitroConsoleExtensions
         return await console.ConfirmAsync(question, cancellationToken);
     }
 
+    public static Task<bool> ConfirmAsync(
+        this INitroConsole console,
+        string question,
+        CancellationToken cancellationToken)
+        => console.ConfirmAsync(question, defaultValue: true, cancellationToken);
+
     public static async Task<bool> ConfirmAsync(
         this INitroConsole console,
         string question,
+        bool defaultValue,
         CancellationToken cancellationToken)
     {
         if (!console.IsInteractive)
@@ -105,8 +112,12 @@ internal static class NitroConsoleExtensions
                 "Attempted to prompt the user for confirmation, but the console is running in non-interactive mode.");
         }
 
-        return await new ConfirmationPrompt(question.AsQuestion())
-            .ShowAsync(console, cancellationToken);
+        var prompt = new ConfirmationPrompt(question.AsQuestion())
+        {
+            DefaultValue = defaultValue
+        };
+
+        return await prompt.ShowAsync(console, cancellationToken);
     }
 
     public static async Task<string> GetOrPromptForApiIdAsync(

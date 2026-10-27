@@ -35,6 +35,35 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
         }
     }
 
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    public async Task ExecuteAsync_Should_DisposeUnmergedResults_When_SourceStreamIsCanceled(
+        int resultCount)
+    {
+        // arrange
+        using var arena = new MemoryArena();
+        using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(
+            TestContext.Current.CancellationToken);
+        var client = new YieldThenCancelQueryClient(arena, cancellation, resultCount);
+        var executor = await CreateExecutorAsync(client, SupportedOperationType.Query);
+        var request = CreateQueryRequest();
+
+        // act
+        await using var result = await executor.ExecuteAsync(request, cancellation.Token);
+        var documentExceptions = client.Documents.Select(document =>
+            Record.Exception(() => document.Root.GetProperty("data"))?.GetType().Name);
+
+        // assert
+        Assert.Equal(
+            Enumerable.Repeat(nameof(ObjectDisposedException), resultCount),
+            documentExceptions);
+        Assert.True(client.EnumeratorDisposed);
+        Assert.Equal(
+            ErrorCodes.Execution.Canceled,
+            result.ExpectOperationResult().Errors!.Single().Extensions!["code"]);
+    }
+
     [Fact]
     public async Task MoveNextAsync_Should_DisposeEventArena_When_EventFailsAfterArenaMinted()
     {
@@ -51,13 +80,37 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
             .GetAsyncEnumerator(TestContext.Current.CancellationToken);
 
         var hasResult = await enumerator.MoveNextAsync();
+        Assert.True(hasResult);
+        var errorResult = enumerator.Current;
         var mintedArena = client.MintedArenas.Single();
+        var hasNextResult = await enumerator.MoveNextAsync();
 
         // assert
-        var arena = Assert.IsType<MemoryArena>(mintedArena);
-        Assert.False(hasResult);
-        Assert.Throws<ObjectDisposedException>(() => arena.Rent(1));
-        Assert.Equal(0, arena.RentedPageCount);
+        try
+        {
+            // the failure surfaces as one terminal error result and then the stream ends;
+            // the arena minted during the failed iteration was never bound, so the enumerator owns and releases it
+            var arena = (MemoryArena)mintedArena;
+            var exception = errorResult.Errors?.Single().Exception;
+
+            Snapshot.Create()
+                .Add(errorResult.ToJson(), "Terminal Error Result", MarkdownLanguages.Json)
+                .Add(
+                    new
+                    {
+                        ExceptionType = exception?.GetType().Name,
+                        ExceptionMessage = exception?.Message,
+                        StreamEnded = !hasNextResult,
+                        ArenaRentExceptionType = Record.Exception(() => arena.Rent(1))?.GetType().Name,
+                        ArenaRentedPageCount = arena.RentedPageCount
+                    },
+                    "Stream And Arena State")
+                .MatchMarkdownSnapshot();
+        }
+        finally
+        {
+            await errorResult.DisposeAsync();
+        }
     }
 
     [Fact]
@@ -76,21 +129,39 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
             .GetAsyncEnumerator(TestContext.Current.CancellationToken);
 
         var hasFirstResult = await enumerator.MoveNextAsync();
+        Assert.True(hasFirstResult);
         var firstResult = enumerator.Current;
         var mintedArena = client.MintedArenas.Single();
         var hasSecondResult = await enumerator.MoveNextAsync();
+        Assert.True(hasSecondResult);
+        var secondResult = enumerator.Current;
+        var hasThirdResult = await enumerator.MoveNextAsync();
 
         // assert
         try
         {
-            var firstArena = Assert.IsType<MemoryArena>(mintedArena);
-            Assert.True(hasFirstResult);
-            Assert.False(hasSecondResult);
-            Assert.False(firstArena.IsDisposed);
+            // the delivered event arrives, then one terminal error result, then the stream ends;
+            // the arena bound to the delivered event is still owned by that result
+            var firstArena = (MemoryArena)mintedArena;
+            var exception = secondResult.Errors?.Single().Exception;
+
+            Snapshot.Create()
+                .Add(secondResult.ToJson(), "Terminal Error Result", MarkdownLanguages.Json)
+                .Add(
+                    new
+                    {
+                        ExceptionType = exception?.GetType().Name,
+                        ExceptionMessage = exception?.Message,
+                        StreamEnded = !hasThirdResult,
+                        FirstEventArenaDisposed = firstArena.IsDisposed
+                    },
+                    "Stream And Arena State")
+                .MatchMarkdownSnapshot();
         }
         finally
         {
             await firstResult.DisposeAsync();
+            await secondResult.DisposeAsync();
         }
     }
 
@@ -180,6 +251,48 @@ public sealed class OperationExecutionNodeTests : FusionTestBase
         {
             await Task.Yield();
             yield break;
+        }
+
+        public override IAsyncEnumerable<SourceSchemaResult> SubscribeAsync(
+            OperationPlanContext context,
+            SourceSchemaClientRequest request,
+            CancellationToken cancellationToken)
+            => throw new NotSupportedException();
+    }
+
+    private sealed class YieldThenCancelQueryClient(
+        MemoryArena arena,
+        CancellationTokenSource cancellation,
+        int resultCount) : TestSubscriptionClient
+    {
+        private static readonly byte[] s_payload = """{"data":{"field":"value"}}"""u8.ToArray();
+
+        public List<SourceResultDocument> Documents { get; } = [];
+
+        public bool EnumeratorDisposed { get; private set; }
+
+        public override async IAsyncEnumerable<SourceSchemaResult> ExecuteAsync(
+            OperationPlanContext context,
+            SourceSchemaClientRequest request,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            try
+            {
+                for (var i = 0; i < resultCount; i++)
+                {
+                    var document = SourceResultDocument.Parse(arena, s_payload, s_payload.Length);
+                    Documents.Add(document);
+                    yield return new SourceSchemaResult(CompactPath.Root, document);
+                }
+
+                await Task.Yield();
+                cancellation.Cancel();
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+            finally
+            {
+                EnumeratorDisposed = true;
+            }
         }
 
         public override IAsyncEnumerable<SourceSchemaResult> SubscribeAsync(

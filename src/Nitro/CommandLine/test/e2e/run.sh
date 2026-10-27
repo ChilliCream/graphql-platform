@@ -45,19 +45,30 @@ VHS_IMAGE="${VHS_IMAGE:-ghcr.io/charmbracelet/vhs@sha256:9d5fc3dc0c160b0fb1d2212
 # against the deterministic fixture prepared below (out/fixture/acme).
 declare -A MARKERS=(
   [help]="List tasks."
-  [init]="Initialized task workspace"
+  [init]="Initialized agent workspace"
+  [agent-root]="agent-root-flow: back at the shell"
   [list]="acme-e5f"
   [show]="Draft new pricing copy"
   [create]="Created task '"
   [close-reopen]="Reopened task 'acme-a1b'."
   [dep-tree]="acme-epic1.1"
   [error]="[nitro exit: 1]"
-  [board]="> ● [T] P2 acme-epic1.1 Draft new pricing copy"
+  # The board's task table pads TYPE to a minimum of 8 cells (the type name
+  # spelled out) and PRIO to a constant 4 cells, and gutters every column
+  # with 4 spaces, so the 10 spaces before "P2" and the 4 before
+  # "acme-epic1.1" are exact regardless of which other tasks share this
+  # fixture's "In Progress" column.
+  [board]="> ● task          P2    acme-epic1.1    Draft new pricing copy"
   [board-maximize]="In Progress (1)"
   [search]="> ● parent-child <-"
   [detail]="acme-epic1 · blocking · depended on by"
+  [mail-send]="Thanks-noted"
+  [mail-error]="[nitro exit: 1]"
+  [mail-board]="Mail: bob (3)"
+  [agents]="Agents (1 online / 4)"
+  [memory-board]="Journal (4)"
 )
-ALL_FLOWS=(help init list show create close-reopen dep-tree error board board-maximize search detail)
+ALL_FLOWS=(help init agent-root list show create close-reopen dep-tree error board board-maximize search detail mail-send mail-error mail-board agents memory-board)
 
 # Per-flow sed expressions (extended regex, `sed -E`) applied to the extracted
 # frame before it is compared with (or written as) the golden. Empty by default.
@@ -67,8 +78,37 @@ ALL_FLOWS=(help init list show create close-reopen dep-tree error board board-ma
 # normalize it to a fixed placeholder before diffing. The expression is a
 # single literal substitution (no alternation/backreferences) so it cannot
 # fail on a well-formed frame.
+# `agents` and `mail-send`'s own `nitro agent list` step both show a live
+# agent's `last_seen_at`, refreshed to the real current time by
+# fixtures/agents-seed.sql (for `agents` to render Online/Unreachable
+# instead of stale-Offline, see that file's header) or by `register`
+# touching the row (for `mail-send`). Both render an age that grows with
+# however long the run takes to reach that flow, so it is normalized to a
+# fixed placeholder before diffing rather than pinned to a literal fixture
+# value the way every other timestamp in these fixtures is. `agents`'s TUI
+# rendering (AgentRowBadge/AgentPopoverView) shows "just now" for a fresh
+# timestamp, "N[mh] ago" for a relative one (e.g. "3m ago", "12h ago"), or
+# a bare date with no suffix once it is a week or more old; `mail-send`'s
+# `nitro agent list` line instead shows the unsuffixed "now"/"3m"/"2h" and
+# is anchored on the Online column ("yes"/"no") that always follows it, so
+# it cannot also match the deterministic "now" the same line's `mail inbox`
+# step prints for a just-sent message's own age. Both contexts pad this
+# value to a width computed from the real pre-scrub text (the popover
+# panel's own fixed border; `PadRight` against the widest column value for
+# the CLI table), so every substitution below keeps that padded span's
+# total length exactly what it was: for `agents`, "just now" is 8
+# characters and becomes "AG ago  ", a 2-digit unit plus " ago" (e.g.
+# "12m ago") is 7 characters and becomes "AG ago ", and a 1-digit unit
+# plus " ago" (e.g. "3m ago") is 6 characters already and becomes
+# "AG ago" alone. Getting this wrong still passes a same-run diff (both
+# sides of that recording agree with themselves) but fails the next run
+# the instant the live clock crosses a digit-count boundary a `--update`
+# run didn't happen to land on.
 declare -A SCRUBS=(
   [create]='s/acme-[a-z0-9.]+/acme-XXX/g'
+  [mail-send]='s/m-[a-z0-9]+/m-XXX/g; s/[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}/DATE/g; '\
+'s/(now|[0-9]{2}[mh])( +)(yes|no)$/AG \2\3/g; s/([0-9])[mh]( +)(yes|no)$/AG\2\3/g'
+  [agents]='s/just now/AG ago  /g; s/[0-9]{2}[mh] ago/AG ago /g; s/[0-9][mh] ago/AG ago/g'
 )
 
 # --- args: optional --update plus an optional subset of flow names ------------
@@ -122,38 +162,97 @@ mkdir -p "$REPORT_DIR"
 : > "$REPORT_DIR/status.tsv"
 : > "$REPORT_DIR/changed.txt"
 
-# 1b. Prepare a deterministic fixture task workspace (fixed IDs, timestamps,
+# 1b. Prepare a deterministic fixture agent workspace (fixed IDs, timestamps,
 #     actors: see fixtures/README.md) that tapes `cp -r` into their own
 #     throwaway /tmp/work rather than seeding state live inside a Hide block.
-#     Rebuilt unconditionally on every run (not cached like the binary) so
-#     schema drift between TaskStoreSchema and fixtures/seed.sql fails fast
-#     here, with a message pointing at fixtures/README.md, instead of turning
-#     into a confusing golden diff once a task flow tape lands.
+#     One unified .nitro/agents/agents.db serves both the task flows and the
+#     mail flows. Rebuilt unconditionally on every run (not cached like the
+#     binary) so schema drift between AgentDatabase/TaskStoreSchema/
+#     MailStoreSchema and fixtures/seed.sql|mail-seed.sql fails fast here,
+#     with a message pointing at fixtures/README.md, instead of turning into
+#     a confusing golden diff once a flow tape lands.
 if ! command -v sqlite3 >/dev/null 2>&1; then
   echo "sqlite3 is required to prepare the fixture workspace" >&2
   exit 3
 fi
 
 FIXTURE_DIR="$OUT_DIR/fixture/acme"
-# Matches TaskWorkspace.RootDirectoryName/TasksDirectoryName/DatabaseFileName.
-FIXTURE_DB="$FIXTURE_DIR/.nitro/tasks/tasks.db"
-FIXTURE_MARKER="acme-epic1"
+# Matches AgentWorkspace.RootDirectoryName/AgentsDirectoryName/DatabaseFileName.
+FIXTURE_DB="$FIXTURE_DIR/.nitro/agents/agents.db"
+# Read straight from AgentDatabase.CurrentVersion so this guard tracks the
+# binary's schema owner instead of drifting out of sync with a hardcoded
+# number. The binary is still the schema owner: this stays a version-number
+# guard, never a schema-shape comparison.
+AGENT_DATABASE_CS="$REPO_ROOT/src/Nitro/CommandLine/src/CommandLine/Services/Workspace/AgentDatabase.cs"
+FIXTURE_SCHEMA_VERSION="$(sed -n 's/^[[:space:]]*public const int CurrentVersion = \([0-9][0-9]*\);.*/\1/p' "$AGENT_DATABASE_CS" 2>/dev/null || true)"
+if [[ -z "$FIXTURE_SCHEMA_VERSION" ]]; then
+  echo "==> fixture prepare FAILED: could not read AgentDatabase.CurrentVersion from $AGENT_DATABASE_CS" >&2
+  exit 2
+fi
+FIXTURE_TASK_MARKER="acme-epic1"
+FIXTURE_MAIL_MARKER="Retro notes"
+FIXTURE_AGENTS_MARKER="planner"
+FIXTURE_MEMORY_MARKER="e2emem00000000000000000001"
 
 echo "==> preparing fixture workspace (out/fixture/acme)"
 rm -rf "$FIXTURE_DIR"
-mkdir -p "$FIXTURE_DIR"
-if ! ( cd "$FIXTURE_DIR" && NITRO_TASK_ACTOR=e2e-agent "$BIN_DIR/nitro" agent tasks init >/dev/null ); then
-  echo "==> fixture prepare FAILED: 'nitro agent tasks init' did not succeed" >&2
+# Pre-create the fallback workspace directory: the fixture lives inside this
+# repository's tree, and without it `nitro agent init` would walk up, find the
+# repo's .git, and initialize .git/nitro instead of the fixture directory.
+mkdir -p "$FIXTURE_DIR/.nitro/agents"
+if ! ( cd "$FIXTURE_DIR" && "$BIN_DIR/nitro" agent init >/dev/null ); then
+  echo "==> fixture prepare FAILED: 'nitro agent init' did not succeed" >&2
   exit 2
 fi
+
+fixture_version="$(sqlite3 "$FIXTURE_DB" 'PRAGMA user_version;')"
+if [[ "$fixture_version" != "$FIXTURE_SCHEMA_VERSION" ]]; then
+  echo "==> fixture prepare FAILED: agents.db has schema v$fixture_version, expected v$FIXTURE_SCHEMA_VERSION" >&2
+  echo "    the unified workspace schema version moved; see fixtures/README.md" >&2
+  exit 2
+fi
+
 if ! sqlite3 "$FIXTURE_DB" < "$SCRIPT_DIR/fixtures/seed.sql"; then
   echo "==> fixture prepare FAILED: seed.sql did not apply cleanly to $FIXTURE_DB" >&2
   echo "    the task schema likely drifted from fixtures/seed.sql; see fixtures/README.md" >&2
   exit 2
 fi
-if ! ( cd "$FIXTURE_DIR" && "$BIN_DIR/nitro" agent tasks list ) | grep -q "$FIXTURE_MARKER"; then
-  echo "==> fixture guard FAILED: 'nitro agent tasks list' did not show '$FIXTURE_MARKER'" >&2
+if ! sqlite3 "$FIXTURE_DB" < "$SCRIPT_DIR/fixtures/mail-seed.sql"; then
+  echo "==> fixture prepare FAILED: mail-seed.sql did not apply cleanly to $FIXTURE_DB" >&2
+  echo "    the mail schema likely drifted from fixtures/mail-seed.sql; see fixtures/README.md" >&2
+  exit 2
+fi
+if ! sqlite3 "$FIXTURE_DB" < "$SCRIPT_DIR/fixtures/agents-seed.sql"; then
+  echo "==> fixture prepare FAILED: agents-seed.sql did not apply cleanly to $FIXTURE_DB" >&2
+  echo "    the agents schema likely drifted from fixtures/agents-seed.sql; see fixtures/README.md" >&2
+  exit 2
+fi
+if ! sqlite3 "$FIXTURE_DB" < "$SCRIPT_DIR/fixtures/memory-seed.sql"; then
+  echo "==> fixture prepare FAILED: memory-seed.sql did not apply cleanly to $FIXTURE_DB" >&2
+  echo "    the memory schema likely drifted from fixtures/memory-seed.sql; see fixtures/README.md" >&2
+  exit 2
+fi
+
+if ! ( cd "$FIXTURE_DIR" && "$BIN_DIR/nitro" agent tasks list ) | grep -q "$FIXTURE_TASK_MARKER"; then
+  echo "==> fixture guard FAILED: 'nitro agent tasks list' did not show '$FIXTURE_TASK_MARKER'" >&2
   echo "    the task schema likely drifted from fixtures/seed.sql; see fixtures/README.md" >&2
+  exit 2
+fi
+if ! ( cd "$FIXTURE_DIR" && "$BIN_DIR/nitro" agent mail inbox --actor e2e-agent ) \
+    | grep -q "$FIXTURE_MAIL_MARKER"; then
+  echo "==> fixture guard FAILED: 'nitro agent mail inbox' did not show '$FIXTURE_MAIL_MARKER'" >&2
+  echo "    the mail schema likely drifted from fixtures/mail-seed.sql; see fixtures/README.md" >&2
+  exit 2
+fi
+if ! ( cd "$FIXTURE_DIR" && "$BIN_DIR/nitro" agent list ) | grep -q "$FIXTURE_AGENTS_MARKER"; then
+  echo "==> fixture guard FAILED: 'nitro agent list' did not show '$FIXTURE_AGENTS_MARKER'" >&2
+  echo "    the agents schema likely drifted from fixtures/agents-seed.sql; see fixtures/README.md" >&2
+  exit 2
+fi
+if ! ( cd "$FIXTURE_DIR" && "$BIN_DIR/nitro" agent memory recent --collection all ) \
+    | grep -q "$FIXTURE_MEMORY_MARKER"; then
+  echo "==> fixture guard FAILED: 'nitro agent memory recent' did not show '$FIXTURE_MEMORY_MARKER'" >&2
+  echo "    the memory schema likely drifted from fixtures/memory-seed.sql; see fixtures/README.md" >&2
   exit 2
 fi
 echo "    fixture ready, guard passed"
@@ -201,9 +300,10 @@ for flow in "${FLOWS[@]}"; do
     recorded_ok=1
   fi
 
-  # 3b. Normalize non-deterministic content (task IDs, dates) before compare/update.
+  # 3b. Portable in-place edit (GNU and BSD sed).
   if [[ "$recorded_ok" == "1" && -n "${SCRUBS[$flow]:-}" ]]; then
-    sed -E -i "${SCRUBS[$flow]}" "$frame"
+    sed -E "${SCRUBS[$flow]}" "$frame" > "$frame.tmp"
+    mv "$frame.tmp" "$frame"
   fi
 
   # 4. Update or verify.

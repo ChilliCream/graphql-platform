@@ -8,79 +8,9 @@ using Form = ChilliCream.Nitro.CommandLine.Tui.Widgets.Form.Form;
 namespace ChilliCream.Nitro.CommandLine.Tui.Editing;
 
 /// <summary>
-/// The task field values a <see cref="TaskEditorForm"/> was built from, used to
-/// diff the submitted values against what the store last had.
-/// </summary>
-internal sealed record TaskEditorSnapshot(
-    string Title,
-    string Status,
-    int Priority,
-    string Type,
-    IReadOnlyList<string> Labels,
-    string Description,
-    string Notes)
-{
-    /// <summary>
-    /// Captures a snapshot from a task and its labels, normalizing
-    /// <paramref name="task"/>'s description and notes line endings to match
-    /// what <see cref="TaskEditorForm"/>'s text areas will echo back
-    /// unmodified.
-    /// </summary>
-    public static TaskEditorSnapshot FromTask(TaskItem task, IReadOnlyList<string> labels)
-        => new(
-            task.Title,
-            task.Status,
-            task.Priority,
-            task.Type,
-            labels,
-            NormalizeLineEndings(task.Description),
-            NormalizeLineEndings(task.Notes));
-
-    private static string NormalizeLineEndings(string value)
-        => value.Contains('\r') ? value.Replace("\r\n", "\n").Replace('\r', '\n') : value;
-}
-
-/// <summary>
-/// The outcome of submitting a <see cref="TaskEditorForm"/> against the task
-/// store.
-/// </summary>
-internal abstract record TaskEditorOutcome
-{
-    private TaskEditorOutcome()
-    {
-    }
-
-    /// <summary>
-    /// Every field that differed from the snapshot was written. Carries the
-    /// changed store field names, empty when no field differed.
-    /// </summary>
-    public sealed record Succeeded(IReadOnlyList<string> ChangedFields, string ToastText) : TaskEditorOutcome;
-
-    /// <summary>
-    /// The store rejected a write, carrying its <see cref="ExitException"/> message.
-    /// </summary>
-    public sealed record Failed(string ToastText) : TaskEditorOutcome;
-
-    /// <summary>
-    /// The shell toast this outcome should show: success styled for
-    /// <see cref="Succeeded"/>, error styled for <see cref="Failed"/>.
-    /// </summary>
-    public TuiMessage.ShowToast ToShowToast() => this switch
-    {
-        Succeeded succeeded => new TuiMessage.ShowToast(succeeded.ToastText, ToastStyle.Success),
-        Failed failed => new TuiMessage.ShowToast(failed.ToastText, ToastStyle.Error),
-        _ => throw new NotSupportedException()
-    };
-}
-
-/// <summary>
-/// The task edit form: title, status, priority, type, labels, description,
-/// and notes, pre-populated from a task and its labels. Submitting computes
-/// the diff against the loaded snapshot and writes only the changed fields
-/// through the task store; label changes are applied as adds and removes
-/// against the unchanged set. The host is expected to feed it raw key input
-/// via <see cref="HandleKey"/> and call <see cref="SubmitAsync"/> once it
-/// returns <see cref="FormResult.Submitted"/> on the primary button.
+/// Edits a task's fields and labels from a loaded snapshot.
+/// Submits changed scalar fields and label additions and removals relative
+/// to that snapshot.
 /// </summary>
 internal sealed class TaskEditorForm
 {
@@ -96,10 +26,7 @@ internal sealed class TaskEditorForm
     public const string CancelButtonId = "cancel";
 
     /// <summary>
-    /// The footer hints for the task editor: its keys are consumed entirely
-    /// while it is active, so no global hints follow. The save hint advertises
-    /// Ctrl+S rather than Ctrl+Enter because it is the chord reliably
-    /// distinguishable from a plain Enter across terminals.
+    /// The footer hints shown while the editor captures input.
     /// </summary>
     public static readonly IReadOnlyList<KeyHint> Hints =
     [
@@ -108,7 +35,7 @@ internal sealed class TaskEditorForm
         new KeyHint("esc", "cancel")
     ];
 
-    private static readonly SelectOption[] WellKnownStatuses =
+    private static readonly SelectOption[] s_wellKnownStatuses =
     [
         new(TaskStates.Open, "Open"),
         new(TaskStates.InProgress, "In Progress"),
@@ -116,7 +43,7 @@ internal sealed class TaskEditorForm
         new(TaskStates.Deferred, "Deferred")
     ];
 
-    private static readonly SelectOption[] WellKnownPriorities =
+    private static readonly SelectOption[] s_wellKnownPriorities =
     [
         new("0", TaskPriorities.Format(0)),
         new("1", TaskPriorities.Format(1)),
@@ -125,7 +52,7 @@ internal sealed class TaskEditorForm
         new("4", TaskPriorities.Format(4))
     ];
 
-    private static readonly SelectOption[] WellKnownTypes =
+    private static readonly SelectOption[] s_wellKnownTypes =
     [
         new(TaskTypes.Task, "Task"),
         new(TaskTypes.Bug, "Bug"),
@@ -165,19 +92,19 @@ internal sealed class TaskEditorForm
         _statusField = new SelectField(
             StatusFieldId,
             "Status",
-            WithCurrentOption(WellKnownStatuses, _snapshot.Status),
+            WithCurrentOption(s_wellKnownStatuses, _snapshot.Status),
             initialSelectedId: _snapshot.Status);
 
         _priorityField = new SelectField(
             PriorityFieldId,
             "Priority",
-            WithCurrentOption(WellKnownPriorities, _snapshot.Priority.ToString(CultureInfo.InvariantCulture)),
+            WithCurrentOption(s_wellKnownPriorities, _snapshot.Priority.ToString(CultureInfo.InvariantCulture)),
             initialSelectedId: _snapshot.Priority.ToString(CultureInfo.InvariantCulture));
 
         _typeField = new SelectField(
             TypeFieldId,
             "Type",
-            WithCurrentOption(WellKnownTypes, _snapshot.Type),
+            WithCurrentOption(s_wellKnownTypes, _snapshot.Type),
             initialSelectedId: _snapshot.Type);
 
         _labelsField = new EditableListField(LabelsFieldId, "Labels", initialValues: _snapshot.Labels);
@@ -197,9 +124,8 @@ internal sealed class TaskEditorForm
     }
 
     /// <summary>
-    /// Whether any field's current value differs from the loaded snapshot:
-    /// gates whether Esc should ask for discard confirmation before
-    /// cancelling.
+    /// Whether a scalar field or the normalized label set differs from the
+    /// loaded snapshot.
     /// </summary>
     public bool IsDirty
         => Text(_titleField) != _snapshot.Title
@@ -230,11 +156,9 @@ internal sealed class TaskEditorForm
     public IRenderable Render(int width, int height) => _form.Render(width, height);
 
     /// <summary>
-    /// Applies the diff between <paramref name="values"/> (from a
-    /// <see cref="FormResult.Submitted"/>) and the loaded snapshot to the task
-    /// store: an <see cref="ITaskStore.UpdateTaskAsync"/> call carrying only
-    /// the scalar fields that changed, plus label adds and removes for the
-    /// labels that changed. Writes nothing when no field differs.
+    /// Applies scalar changes, then label additions and removals relative to the
+    /// loaded snapshot. Writes nothing when the submitted values are unchanged;
+    /// a later failure can leave earlier writes committed.
     /// </summary>
     public async Task<TaskEditorOutcome> SubmitAsync(
         ITaskStore store,
@@ -286,6 +210,16 @@ internal sealed class TaskEditorForm
 
                 var result = await store.UpdateTaskAsync(_taskId, update, cancellationToken);
                 changedFields.AddRange(result.ChangedFields);
+
+                if (statusGiven)
+                {
+                    changedFields.Add("status");
+                }
+
+                if (priorityGiven)
+                {
+                    changedFields.Add("priority");
+                }
             }
 
             var (added, removed) = DiffLabels(_snapshot.Labels, labels);
@@ -324,11 +258,8 @@ internal sealed class TaskEditorForm
             : null;
 
     /// <summary>
-    /// Returns <paramref name="wellKnown"/> as-is when it already contains
-    /// <paramref name="currentId"/>, otherwise appends it: keeps a task whose
-    /// status, priority, or type is a custom or terminal value round-tripping
-    /// as its own selected option instead of silently defaulting to the first
-    /// well-known choice.
+    /// Returns the options unchanged if they contain the current id, or appends
+    /// an option for that id otherwise.
     /// </summary>
     private static IReadOnlyList<SelectOption> WithCurrentOption(
         IReadOnlyList<SelectOption> wellKnown, string currentId)

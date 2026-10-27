@@ -6,6 +6,7 @@ namespace HotChocolate.Fusion.Execution;
 
 public sealed class FusionRequestOptions : ICloneable
 {
+    internal const int DefaultMaxAllowedConditions = 1024;
     private static readonly TimeSpan s_minExecutionTimeout = TimeSpan.FromMilliseconds(100);
     private bool _isReadOnly;
 
@@ -44,9 +45,9 @@ public sealed class FusionRequestOptions : ICloneable
 
     /// <summary>
     /// Gets or sets whether the GraphQL operation kind is annotated onto outgoing subgraph HTTP
-    /// requests via <see cref="System.Net.Http.HttpRequestMessage.Options"/>, so that delegating handlers (such as the
-    /// RequestDeduplicationHandler) can consume it. <c>false</c> by default because materializing the
-    /// request options bag allocates per request.
+    /// requests via <see cref="HttpRequestMessage.Options"/>, so that delegating handlers (such as
+    /// the RequestDeduplicationHandler) can consume it. <c>false</c> by default because
+    /// materializing the request options bag allocates per request.
     /// </summary>
     public bool AnnotateOperationKind
     {
@@ -97,6 +98,61 @@ public sealed class FusionRequestOptions : ICloneable
     /// <c>false</c> by default.
     /// </summary>
     public bool AllowOperationPlanRequests
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the maximum number of distinct <c>@skip</c>/<c>@include</c>
+    /// conditions an operation may declare. Exceeding it produces a GraphQL
+    /// request error at operation compile time.
+    /// <c>1024</c> by default.
+    /// </summary>
+    public int MaxAllowedIncludeConditions
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    } = DefaultMaxAllowedConditions;
+
+    /// <summary>
+    /// Gets or sets the maximum number of distinct <c>@defer</c> conditions
+    /// an operation may declare. Exceeding it produces a GraphQL
+    /// request error at operation compile time.
+    /// <c>1024</c> by default.
+    /// </summary>
+    public int MaxAllowedDeferConditions
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    } = DefaultMaxAllowedConditions;
+
+    /// <summary>
+    /// <para>
+    /// Gets or sets whether input object fields that are not defined on the
+    /// input object type should be ignored while coercing variable values,
+    /// instead of producing a GraphQL request error.
+    /// </para>
+    /// <para>
+    /// The default is <c>false</c>.
+    /// </para>
+    /// </summary>
+    public bool IgnoreAdditionalInputFields
     {
         get;
         set
@@ -161,6 +217,9 @@ public sealed class FusionRequestOptions : ICloneable
             DefaultErrorHandlingMode = DefaultErrorHandlingMode,
             AllowErrorHandlingModeOverride = AllowErrorHandlingModeOverride,
             AllowOperationPlanRequests = AllowOperationPlanRequests,
+            MaxAllowedIncludeConditions = MaxAllowedIncludeConditions,
+            MaxAllowedDeferConditions = MaxAllowedDeferConditions,
+            IgnoreAdditionalInputFields = IgnoreAdditionalInputFields,
             PersistedOperations = PersistedOperations,
             IncludeExceptionDetails = IncludeExceptionDetails
         };
@@ -169,7 +228,9 @@ public sealed class FusionRequestOptions : ICloneable
     object ICloneable.Clone() => Clone();
 
     internal void MakeReadOnly()
-        => _isReadOnly = true;
+    {
+        _isReadOnly = true;
+    }
 
     private void ExpectMutableOptions()
     {

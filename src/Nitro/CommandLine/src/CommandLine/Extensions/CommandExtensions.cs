@@ -14,7 +14,7 @@ internal static class CommandExtensions
     {
         command.SetAction(async (parseResult, cancellationToken) =>
         {
-            var services = CommandExecutionContext.s_services.Value!;
+            var services = CommandExecutionContext.Services;
             var console = services.GetRequiredService<INitroConsole>();
             var context = services.GetRequiredService<NitroClientContext>();
 

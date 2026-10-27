@@ -1,53 +1,6 @@
-using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Tui.Theming;
 
 namespace ChilliCream.Nitro.CommandLine.Tui.Board;
-
-/// <summary>
-/// A computed membership test a column applies on top of its declarative
-/// filter, for semantics that <see cref="TaskFilter"/> cannot express alone.
-/// </summary>
-internal enum ColumnComputedFilter
-{
-    /// <summary>
-    /// No computed test; the declarative filter alone decides membership.
-    /// </summary>
-    None,
-
-    /// <summary>
-    /// Open, unblocked, and not deferred into the future.
-    /// </summary>
-    Ready,
-
-    /// <summary>
-    /// Not closed or tombstoned, and blocked by an unresolved dependency.
-    /// </summary>
-    Blocked,
-
-    /// <summary>
-    /// Deferred: either its status is deferred, or its defer date is in the
-    /// future.
-    /// </summary>
-    Deferred
-}
-
-/// <summary>
-/// How a column orders the tasks it loads.
-/// </summary>
-internal enum BoardColumnSort
-{
-    /// <summary>
-    /// Priority ascending, then created date ascending, then id ascending,
-    /// matching the list task command's default order.
-    /// </summary>
-    Default,
-
-    /// <summary>
-    /// Closed date descending (falling back to updated date), then id
-    /// ascending.
-    /// </summary>
-    RecentFirst
-}
 
 /// <summary>
 /// A named board column: a declarative task filter plus how the matching

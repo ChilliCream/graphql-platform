@@ -408,11 +408,23 @@
   <data name="LogEntryHelper_InvalidProjectedFieldSharing" xml:space="preserve">
     <value>The default field '{0}' on type '{1}' is contributed by unrelated interfaces {2}; every contributing @interfaceObject declaration must be marked @shareable.</value>
   </data>
+  <data name="LogEntryHelper_InvalidDefaultListSizeSettingRange" xml:space="preserve">
+    <value>The 'defaultListSize' composition setting must be a non-negative integer no larger than 2147483647 ({0}).</value>
+  </data>
+  <data name="LogEntryHelper_InvalidDefaultListSizeSettingType" xml:space="preserve">
+    <value>The 'defaultListSize' composition setting must be an integer ({0}).</value>
+  </data>
   <data name="LogEntryHelper_InvalidGraphQL" xml:space="preserve">
     <value>Invalid GraphQL in source schema. Exception message: {0}.</value>
   </data>
   <data name="LogEntryHelper_InvalidGraphQLInExtensions" xml:space="preserve">
     <value>Invalid GraphQL in source schema extensions. Exception message: {0}.</value>
+  </data>
+  <data name="LogEntryHelper_InvalidListSizeArgumentNegativeValue" xml:space="preserve">
+    <value>The argument '{0}' of the @listSize directive on field '{1}' in schema '{2}' must not be negative ({3}).</value>
+  </data>
+  <data name="LogEntryHelper_InvalidListSizeArgumentType" xml:space="preserve">
+    <value>The argument '{0}' of the @listSize directive on field '{1}' in schema '{2}' has an invalid value ({3}).</value>
   </data>
   <data name="LogEntryHelper_InvalidShareableUsage" xml:space="preserve">
     <value>The field '{0}' in schema '{1}' must not be marked as shareable.</value>
@@ -555,6 +567,9 @@
   <data name="LogEntryHelper_TypeKindMismatch" xml:space="preserve">
     <value>The type '{0}' has a different kind in schema '{1}' ({2}) than it does in schema '{3}' ({4}).</value>
   </data>
+  <data name="LogEntryHelper_UnreachableSourceField" xml:space="preserve">
+    <value>The field '{0}' in schema '{1}' cannot be resolved, because the type '{2}' is not reachable from the root types of schema '{1}' and no other schema resolves the field.</value>
+  </data>
   <data name="LookupMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @lookup directive is used within a source schema to specify output fields that can be used by the distributed GraphQL executor to resolve an entity by a stable key.</value>
   </data>
@@ -579,14 +594,17 @@
   <data name="RequiresMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @requires directive expresses that a field depends on the given selection of fields from the same entity, resolved by another source schema.</value>
   </data>
-  <data name="RequireInvalidFieldsRule_RequiredFieldMustNotBeDefinedInSameSchema" xml:space="preserve">
-    <value>The required field '{0}' must not be defined in schema '{1}'.</value>
+  <data name="RequireInvalidFieldsRule_RequiredFieldServedByRequiringSchema" xml:space="preserve">
+    <value>The required field '{0}' must not be served by the requiring source schema '{1}'.</value>
   </data>
   <data name="RequirementsValidator_CycleDetected" xml:space="preserve">
     <value>Cycle detected in requirement: {0} -&gt; {1}.</value>
   </data>
   <data name="RequirementsValidator_FieldDoesNotExistOnType" xml:space="preserve">
     <value>The field '{0}' does not exist on the type '{1}'.</value>
+  </data>
+  <data name="RequirementsValidator_NoLookupForRequiringField" xml:space="preserve">
+    <value>The field '{0}.{1}' in schema '{2}' requires data from another schema, but schema '{2}' has no lookup for type '{0}' that could resolve the field once the required data has been fetched.</value>
   </data>
   <data name="RequirementsValidator_NoLookupsFoundForType" xml:space="preserve">
     <value>No lookups found for type '{0}' in schema '{1}'.</value>
@@ -629,6 +647,9 @@
   </data>
   <data name="SatisfiabilityValidator_NodeTypeHasNoNodeLookup" xml:space="preserve">
     <value>Type '{0}' implements the 'Node' interface, but no source schema provides a non-internal 'Query.node&lt;Node&gt;' lookup field for this type.</value>
+  </data>
+  <data name="SatisfiabilityValidator_NoLookupForRequiringField" xml:space="preserve">
+    <value>The field '{0}.{1}' in schema '{2}' requires data from another schema, but schema '{2}' has no lookup for type '{0}' that could resolve the field once the required data has been fetched.</value>
   </data>
   <data name="SatisfiabilityValidator_NoLookupsFoundForType" xml:space="preserve">
     <value>No lookups found for type '{0}' in schema '{1}'.</value>
