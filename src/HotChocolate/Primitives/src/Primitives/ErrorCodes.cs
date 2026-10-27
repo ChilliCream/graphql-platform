@@ -428,6 +428,11 @@ public static class ErrorCodes
         /// A fragment spread refers to a fragment that is not defined in the document.
         /// </summary>
         public const string FragmentDoesNotExist = "HC0120";
+
+        /// <summary>
+        /// The maximum allowed fragment visits were exceeded.
+        /// </summary>
+        public const string MaxFragmentVisitsOverflow = "HC0137";
     }
 
     /// <summary>

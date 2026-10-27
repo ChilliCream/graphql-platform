@@ -59,7 +59,7 @@ builder
 
 ## Fragment Visits
 
-Each time a visitor enters a fragment spread counts as one visit. Queries with deeply nested or repeated fragment spreads can cause exponential visitor work. Hot Chocolate caps the total number of fragment visits per operation at **1,000** by default:
+Each time a visitor enters a fragment spread counts as one visit. Queries with deeply nested or repeated fragment spreads can cause exponential visitor work. An operation that exceeds the limit is rejected with the error code `HC0137`. Hot Chocolate caps the total number of fragment visits per operation at **1,000** by default:
 
 ```csharp
 builder
