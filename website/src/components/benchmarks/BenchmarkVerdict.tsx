@@ -2,13 +2,14 @@ import {
   COMPOSITION_GROUPS,
   formatNumber,
   orderedScenarios,
+  releasedGateways,
   SCENARIO_INFO,
   scenarioVerdict,
   type ScenarioVerdict,
 } from "@/src/components/benchmarks/benchmarkView";
 import { Link } from "@/src/design-system/Link";
 import {
-  BENCHMARK_FUSION_DOCS_URL,
+  BENCHMARK_FUSION_URL,
   benchmarkVariants,
   decisiveFeatures,
   formatPlatformTag,
@@ -18,6 +19,7 @@ import {
   type BenchmarkCompletedVariantResult,
   type BenchmarkReport,
   type BenchmarkVariantResult,
+  type Composition,
 } from "@/src/helpers/benchmarkReport";
 import { CrownIcon } from "@/src/icons/CrownIcon";
 
@@ -40,14 +42,16 @@ type Overall =
 const formatPercent = (value: number) =>
   `${(value * 100).toFixed(1).replace(/\.0$/, "")}%`;
 
-/** Returns the sentence for one scenario, or for a scenario without any result free of failed requests. */
-function scenarioSentence(verdict: NamedVerdict | undefined) {
+/** Returns the sentence for one scenario, or for a scenario without any result free of failed requests. `sole` is set when the scenario has no other router. */
+function scenarioSentence(verdict: NamedVerdict | undefined, sole: boolean) {
   if (!verdict) {
     return "No router finished this scenario without failed requests.";
   }
   const { leader, runnerUp, lead, tied } = verdict;
   if (!runnerUp) {
-    return `${leader.name} is the only router without failed requests, at ${formatNumber(leader.rps)} requests per second.`;
+    return sole
+      ? `${leader.name} served ${formatNumber(leader.rps)} requests per second.`
+      : `${leader.name} is the only router without failed requests, at ${formatNumber(leader.rps)} requests per second.`;
   }
   if (tied) {
     return `${leader.name} and ${runnerUp.name} are tied within the run variance, at ${formatNumber(leader.rps)} and ${formatNumber(runnerUp.rps)} requests per second.`;
@@ -55,19 +59,24 @@ function scenarioSentence(verdict: NamedVerdict | undefined) {
   return `${leader.name} is the fastest at ${formatNumber(leader.rps)} requests per second, ${formatPercent(lead)} ahead of ${runnerUp.name} at ${formatNumber(runnerUp.rps)}.`;
 }
 
-/** Returns the sentence that summarizes every scenario of a run. */
-function summarySentence(overall: Overall, run: number) {
+/** Returns the sentence that summarizes every scenario of one composition, limited to the scenarios with successful results when `incomplete` is set. */
+function summarySentence(
+  overall: Overall,
+  composition: string,
+  incomplete: boolean,
+) {
+  const scope = incomplete ? " in every scenario with successful results" : "";
   switch (overall.kind) {
     case "leads":
-      return `${overall.name} is the fastest router in every scenario of run ${run}.`;
+      return `${overall.name} is the fastest ${composition} router${scope}.`;
     case "leadsOrTies":
-      return `${overall.name} is the fastest router, or tied for fastest, in every scenario of run ${run}.`;
+      return `${overall.name} is the fastest ${composition} router, or tied for fastest${scope}.`;
     case "tied":
-      return `${overall.name} are tied for fastest in every scenario of run ${run}.`;
+      return `${overall.name} are tied as the fastest ${composition} routers${scope}.`;
     case "none":
-      return `No single router is the fastest in every scenario of run ${run}.`;
+      return `No single ${composition} router is the fastest in every scenario${incomplete ? " with successful results" : ""}.`;
     case "empty":
-      return `No scenario of run ${run} has results without failed requests.`;
+      return `No ${composition} router finished a scenario without failed requests.`;
   }
 }
 
@@ -106,9 +115,17 @@ function routerName(
   return `${label(entry)} (${details.join(", ")})`;
 }
 
+/** How a summary sentence refers to a runner-up whose gateway has never had a stable release. */
+const UNRELEASED_RUNNER_UP = "the next fastest router";
+
+/** How a summary row refers to a runner-up whose gateway has never had a stable release. */
+const UNRELEASED_RUNNER_UP_SHORT = "the runner\u2011up";
+
+/** Names the routers of a verdict, referring to a runner-up without a stable release by {@link UNRELEASED_RUNNER_UP}. */
 function nameVerdict(
   verdict: ScenarioVerdict | undefined,
   variants: ReadonlyMap<string, BenchmarkCatalogEntry>,
+  released: ReadonlySet<string>,
 ): NamedVerdict | undefined {
   if (!verdict) {
     return undefined;
@@ -122,7 +139,14 @@ function nameVerdict(
   });
   return {
     leader: named(verdict.leader, verdict.runnerUp),
-    runnerUp: verdict.runnerUp && named(verdict.runnerUp, verdict.leader),
+    runnerUp:
+      verdict.runnerUp &&
+      (released.has(variants.get(verdict.runnerUp.variant)!.gateway.id)
+        ? named(verdict.runnerUp, verdict.leader)
+        : {
+            name: UNRELEASED_RUNNER_UP,
+            rps: verdict.runnerUp.throughput.medianRps,
+          }),
     lead: verdict.lead,
     tied: verdict.tied,
   };
@@ -171,7 +195,7 @@ function overallOf(
 function linkFusion(text: string) {
   return text.split(/\b(Fusion)\b/).map((part, index) =>
     part === "Fusion" ? (
-      <Link key={index} href={BENCHMARK_FUSION_DOCS_URL}>
+      <Link key={index} href={BENCHMARK_FUSION_URL}>
         {part}
       </Link>
     ) : (
@@ -182,20 +206,22 @@ function linkFusion(text: string) {
 
 interface BenchmarkVerdictSummaryProps {
   readonly id: string;
+  /** A report that contains only the results of `composition`. */
   readonly report: BenchmarkReport;
-  readonly stableOnly: boolean;
+  readonly composition: Composition;
 }
 
 /** A written summary of every scenario: one overall sentence and one sentence per scenario. */
 export function BenchmarkVerdictSummary({
   id,
   report,
-  stableOnly,
+  composition,
 }: BenchmarkVerdictSummaryProps) {
   const variants = benchmarkVariants(report);
+  const released = releasedGateways(variants);
   const scenarios = orderedScenarios(report).map((scenario) => ({
     scenario,
-    verdict: scenarioVerdict(scenario, variants, stableOnly),
+    verdict: scenarioVerdict(scenario, variants),
   }));
   if (scenarios.length === 0) {
     return null;
@@ -204,22 +230,46 @@ export function BenchmarkVerdictSummary({
     scenarios.map(({ verdict }) => verdict),
     variants,
   );
+  const gatewayIds = new Set(
+    report.scenarios.flatMap((scenario) =>
+      scenario.results.flatMap((result) =>
+        result.variants.map((row) => variants.get(row.variant)!.gateway.id),
+      ),
+    ),
+  );
+  const sole =
+    gatewayIds.size === 1
+      ? report.gateways.find((gateway) => gatewayIds.has(gateway.id))
+      : undefined;
+  const compositionName = COMPOSITION_GROUPS.find(
+    (group) => group.id === composition,
+  )!.shortName;
 
-  const incomplete = scenarios.some((item) => item.verdict === undefined);
-  const summary = incomplete
-    ? summarySentence(overall, report.run.number).replace(
-        "in every scenario",
-        "in every scenario with successful results",
-      )
-    : summarySentence(overall, report.run.number);
-  const lines = scenarios.map(({ scenario, verdict }) => ({
-    id: scenario.id,
-    name: SCENARIO_INFO[scenario.id].name,
-    text: scenarioSentence(nameVerdict(verdict, variants)),
-    verdict,
-    gateway: verdict && variants.get(verdict.leader.variant)!.gateway,
-    rival: verdict?.runnerUp && variants.get(verdict.runnerUp.variant)!.gateway,
-  }));
+  const summary = sole
+    ? `${sole.name} is the only ${compositionName} router in this benchmark.`
+    : summarySentence(
+        overall,
+        compositionName,
+        scenarios.some((item) => item.verdict === undefined),
+      );
+  const lines = scenarios.map(({ scenario, verdict }) => {
+    const rival =
+      verdict?.runnerUp && variants.get(verdict.runnerUp.variant)!.gateway;
+    return {
+      id: scenario.id,
+      name: SCENARIO_INFO[scenario.id].name,
+      text: scenarioSentence(
+        nameVerdict(verdict, variants, released),
+        sole !== undefined,
+      ),
+      verdict,
+      gateway: verdict && variants.get(verdict.leader.variant)!.gateway,
+      rival,
+      rivalName:
+        rival &&
+        (released.has(rival.id) ? rival.name : UNRELEASED_RUNNER_UP_SHORT),
+    };
+  });
   const commonWinner =
     lines.length > 0 &&
     lines.every(
@@ -231,17 +281,19 @@ export function BenchmarkVerdictSummary({
   const body = (
     <>
       <p className="text-cc-heading text-body mt-2">
-        {commonWinner && (
+        {commonWinner && !sole && (
           <CrownIcon className="text-cc-accent mr-1.5 inline size-4 align-[-2px]" />
         )}
         {linkFusion(summary)}
       </p>
-      <dl className="mt-3 space-y-2 text-sm">
+      <dl
+        className={`mt-3 space-y-2 text-sm sm:grid sm:space-y-0 sm:gap-x-4 sm:gap-y-2 ${commonWinner ? "sm:grid-cols-[auto_auto_minmax(0,1fr)]" : "sm:grid-cols-[auto_auto_auto_minmax(0,1fr)]"}`}
+      >
         {lines.map((line) => (
           <div
             key={line.id}
             title={line.text}
-            className={`grid grid-cols-[8rem_1fr] gap-x-4 gap-y-1 ${commonWinner ? "sm:grid-cols-[9rem_9rem_1fr]" : "sm:grid-cols-[9rem_10rem_9rem_1fr]"}`}
+            className="grid grid-cols-[7rem_1fr] gap-x-3 gap-y-1 sm:col-span-full sm:grid-cols-subgrid sm:whitespace-nowrap"
           >
             <dt className="text-cc-heading font-semibold">{line.name}</dt>
             {!commonWinner && (
@@ -273,19 +325,13 @@ export function BenchmarkVerdictSummary({
                   {formatNumber(line.verdict.leader.throughput.medianRps)}{" "}
                   <span className="text-cc-ink-dim">requests/s</span>
                 </dd>
-                <dd className="text-cc-ink-dim col-start-2 sm:col-start-auto">
-                  {line.verdict.tied
-                    ? "Tied within run variance"
-                    : line.rival
-                      ? `${formatPercent(line.verdict.lead)} faster`
-                      : "Only successful router"}
-                  {line.rival && (
-                    <>
-                      {` ${line.verdict.tied ? "with" : "than"} `}
-                      {line.rival.name}
-                    </>
-                  )}
-                </dd>
+                {line.rival && (
+                  <dd className="text-cc-ink-dim col-start-2 sm:col-start-auto sm:truncate">
+                    {line.verdict.tied
+                      ? `Tied with ${line.rivalName}`
+                      : `${formatPercent(line.verdict.lead)} faster than ${line.rivalName}`}
+                  </dd>
+                )}
               </>
             ) : commonWinner ? (
               <dd className="text-cc-ink-dim col-start-2">

@@ -25,14 +25,14 @@ public sealed class HttpQueryMiddleware : MiddlewareBase
     public async Task InvokeAsync(HttpContext context)
     {
         if (HttpMethods.IsQuery(context.Request.Method)
-            && GetOptions(context).EnableQueryRequests
+            && GetOptions(context) is { EnableQueryRequests: true } options
             && context.ParseContentType() is RequestContentType.Json)
         {
             var session = await Executor.GetOrCreateSessionAsync(context.RequestAborted);
 
             using (session.DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpQuery))
             {
-                await HandleRequestAsync(context, session);
+                await HandleRequestAsync(context, session, options);
             }
 
             return;
@@ -43,7 +43,10 @@ public sealed class HttpQueryMiddleware : MiddlewareBase
         await NextAsync(context);
     }
 
-    private static async Task HandleRequestAsync(HttpContext context, ExecutorSession session)
+    private static async Task HandleRequestAsync(
+        HttpContext context,
+        ExecutorSession session,
+        GraphQLServerOptions options)
     {
         HttpStatusCode? statusCode;
         IExecutionResult? result;
@@ -81,18 +84,6 @@ public sealed class HttpQueryMiddleware : MiddlewareBase
             goto HANDLE_RESULT;
         }
 
-        // a QUERY request carries exactly one variable set, so a variable batch is refused.
-        if (MiddlewareHelper.IsVariableBatch(parserResult.Request!))
-        {
-            var refused = MiddlewareHelper.CreateBatchingRefusedResult(
-                ErrorHelper.VariableBatchingNotSupportedForQuery(),
-                context,
-                session);
-            statusCode = refused.StatusCode;
-            result = refused.Error;
-            goto HANDLE_RESULT;
-        }
-
         // before we can execute the request we need to determine the request flags.
         var requestFlags =
             MiddlewareHelper.DetermineHttpQueryRequestFlags(validationResult.RequestFlags);
@@ -101,6 +92,7 @@ public sealed class HttpQueryMiddleware : MiddlewareBase
         var executionResult = await MiddlewareHelper.ExecuteRequestAsync(
             parserResult.Request!,
             requestFlags,
+            options,
             context,
             session);
 

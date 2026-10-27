@@ -171,6 +171,7 @@ public class VariableBatchingTests : FusionTestBase
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 122
                 -------------------------->
                 Status Code: {{{expectedStatusCode}}}
                 -------------------------->
@@ -226,12 +227,263 @@ public class VariableBatchingTests : FusionTestBase
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 53
                 -------------------------->
                 Status Code: InternalServerError
                 -------------------------->
                 {"errors":[{"message":"Unexpected Execution Error"}]}
                 """);
     }
+
+    [Fact]
+    public async Task Execute_Should_WriteBothIndexes_When_RequestBatchHoldsVariableBatch()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema(
+            "A",
+            r => r.AddQueryType<SourceSchema.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("A", serverA)
+            ],
+            configureGatewayBuilder: b => b
+                .ModifyServerOptions(o => o.Batching = AllowedBatching.All),
+            includeOperationPlan: false);
+
+        using var client = gateway.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            new Uri("http://localhost:5000/graphql"));
+        request.Content = new StringContent(
+            """
+            [
+              {
+                "query": "query($input: String!) { field(input: $input) }",
+                "variables": [{ "input": "second" }, { "input": "first" }]
+              },
+              {
+                "query": "query($input: String!) { field(input: $input) }",
+                "variables": { "input": "first" }
+              }
+            ]
+            """,
+            Encoding.UTF8,
+            "application/json");
+        request.Headers.Add("Accept", "application/jsonl");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        body
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+            .Select(line => JsonSerializer.Deserialize<JsonElement>(line))
+            .OrderBy(result => GetIndex(result, "requestIndex"))
+            .ThenBy(result => GetIndex(result, "variableIndex"))
+            .Select(result => (object?)result)
+            .MatchInlineSnapshots(
+            [
+                """
+                {
+                  "requestIndex": 0,
+                  "variableIndex": 0,
+                  "data": {
+                    "field": "second"
+                  }
+                }
+                """,
+                """
+                {
+                  "requestIndex": 0,
+                  "variableIndex": 1,
+                  "data": {
+                    "field": "first"
+                  }
+                }
+                """,
+                """
+                {
+                  "requestIndex": 1,
+                  "data": {
+                    "field": "first"
+                  }
+                }
+                """
+            ]);
+    }
+
+    [Fact]
+    public async Task Execute_Should_WriteVariableIndex_When_VariablesIsArray()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema(
+            "A",
+            r => r.AddQueryType<SourceSchema.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("A", serverA)
+            ],
+            includeOperationPlan: false);
+
+        using var client = gateway.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            new Uri("http://localhost:5000/graphql"));
+        request.Content = new StringContent(
+            """
+            {
+              "query": "query($input: String!) { field(input: $input) }",
+              "variables": [{ "input": "second" }, { "input": "first" }]
+            }
+            """,
+            Encoding.UTF8,
+            "application/json");
+        request.Headers.Add("Accept", "application/jsonl");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        body
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+            .Select(line => JsonSerializer.Deserialize<JsonElement>(line))
+            .OrderBy(result => GetIndex(result, "variableIndex"))
+            .Select(result => (object?)result)
+            .MatchInlineSnapshots(
+            [
+                """
+                {
+                  "variableIndex": 0,
+                  "data": {
+                    "field": "second"
+                  }
+                }
+                """,
+                """
+                {
+                  "variableIndex": 1,
+                  "data": {
+                    "field": "first"
+                  }
+                }
+                """
+            ]);
+    }
+
+    [Fact]
+    public async Task Get_Should_RefuseVariableBatch_When_BatchingIsDisabled()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema(
+            "A",
+            r => r.AddQueryType<SourceSchema.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("A", serverA)
+            ],
+            configureGatewayBuilder: b => b
+                .ModifyServerOptions(o => o.Batching = AllowedBatching.None));
+
+        using var client = gateway.CreateClient();
+
+        // act
+        using var response = await client.GetAsync(
+            "http://localhost:5000/graphql?query="
+            + Uri.EscapeDataString("query($input: String!) { field(input: $input) }")
+            + "&variables="
+            + Uri.EscapeDataString("""[{ "input": "first" }, { "input": "second" }]"""),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Vary: Accept
+                Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 82
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {"errors":[{"message":"Invalid GraphQL Request.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
+
+    [Fact]
+    public async Task Query_Should_ProduceAResultPerVariableSet_When_VariablesIsArray()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema(
+            "A",
+            r => r.AddQueryType<SourceSchema.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("A", serverA)
+            ],
+            configureGatewayBuilder: b => b
+                .ModifyServerOptions(o => o.EnableQueryRequests = true),
+            includeOperationPlan: false);
+
+        using var client = gateway.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            new HttpMethod("QUERY"),
+            new Uri("http://localhost:5000/graphql"));
+        request.Content = new StringContent(
+            """
+            {
+              "query": "query($input: String!) { field(input: $input) }",
+              "variables": [{ "input": "first" }, { "input": "second" }]
+            }
+            """,
+            Encoding.UTF8,
+            "application/json");
+        request.Headers.Add("Accept", "application/jsonl");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(OK, response.StatusCode);
+        body
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+            .Select(line => JsonSerializer.Deserialize<JsonElement>(line))
+            .OrderBy(result => GetIndex(result, "variableIndex"))
+            .Select(result => (object?)result)
+            .MatchInlineSnapshots(
+            [
+                """
+                {
+                  "variableIndex": 0,
+                  "data": {
+                    "field": "first"
+                  }
+                }
+                """,
+                """
+                {
+                  "variableIndex": 1,
+                  "data": {
+                    "field": "second"
+                  }
+                }
+                """
+            ]);
+    }
+
+    private static int GetIndex(JsonElement result, string name)
+        => result.TryGetProperty(name, out var index) ? index.GetInt32() : -1;
 
     public static class SourceSchema
     {

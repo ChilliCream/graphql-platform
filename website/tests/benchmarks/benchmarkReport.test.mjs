@@ -519,7 +519,7 @@ test("names and links unknown gateways from the report", () => {
       return [variantName(entry), gatewayLink(entry.gateway)];
     }),
     [
-      ["Fusion", "/docs/fusion"],
+      ["Fusion", "/products/fusion"],
       ["New Router Preview", "https://github.com/example/new-router"],
       ["Unsafe Router", undefined],
     ],
@@ -678,11 +678,7 @@ test("uses explicit variant labels and preview metadata", () => {
       return {
         id,
         name: variantName(entry),
-        preview: isPreview(
-          entry.variant.version,
-          entry.variant.platform,
-          entry.variant.preview,
-        ),
+        preview: isPreview(entry.variant),
       };
     }),
     [

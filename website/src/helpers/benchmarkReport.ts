@@ -1,7 +1,7 @@
 export const BENCHMARK_REPOSITORY =
   "https://github.com/ChilliCream/graphql-federation-benchmarks";
 
-export const BENCHMARK_FUSION_DOCS_URL = "/docs/fusion";
+export const BENCHMARK_FUSION_URL = "/products/fusion";
 
 const RUNTIME_TAGS: Readonly<Record<string, string>> = {
   "Node.js": "Node",
@@ -674,30 +674,19 @@ export function variantName({
     : name;
 }
 
-/** Returns the link for a gateway: the Fusion docs for Fusion, otherwise its HTTPS repository URL, or undefined. */
+/** Returns the link for a gateway: the Fusion product page for Fusion, otherwise its HTTPS repository URL, or undefined. */
 export function gatewayLink(gateway: BenchmarkGateway): string | undefined {
   if (gateway.id === "fusion") {
-    return BENCHMARK_FUSION_DOCS_URL;
+    return BENCHMARK_FUSION_URL;
   }
   return gateway.repositoryUrl?.startsWith("https://")
     ? gateway.repositoryUrl
     : undefined;
 }
 
-const PRERELEASE = /^\d+(\.\d+)*-/;
-
-/** Returns the explicit preview flag, or infers preview status from the gateway and runtime versions when absent. */
-export function isPreview(
-  version: string | null,
-  platform: BenchmarkPlatform,
-  preview: boolean | undefined,
-): boolean {
-  return (
-    preview ??
-    ((version !== null && PRERELEASE.test(version)) ||
-      (platform.runtime?.version !== undefined &&
-        PRERELEASE.test(platform.runtime.version)))
-  );
+/** Returns whether a variant is a preview release. Only the report's explicit flag marks one. */
+export function isPreview(variant: Pick<BenchmarkVariant, "preview">): boolean {
+  return variant.preview === true;
 }
 
 /** Formats a platform as its runtime name and major version (major and minor for 0.x and 1.x), or its language when it has no runtime. */
