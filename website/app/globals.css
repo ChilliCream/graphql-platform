@@ -59,6 +59,7 @@
   --color-cc-control-bg: transparent;
   --color-cc-selected-description: rgb(22 185 228 / 0.8);
   --color-cc-control-border: rgba(245, 241, 234, 0.12);
+  --color-cc-placeholder: rgb(161 163 175 / 0.5);
 
   /* Secondary brand CTA (the "Launch" button). */
   --color-cc-cta: oklch(51.8% 0.253 323.949);
@@ -226,19 +227,20 @@
     --color-cc-heading: #0b0f1a;
     --color-cc-ink: #334155;
     --color-cc-prose: #334155;
-    --color-cc-ink-dim: #526079;
-    --color-cc-ink-faint: rgba(15, 23, 42, 0.16);
-    --color-cc-hover: rgba(15, 23, 42, 0.05);
-    --color-cc-bg: #f7f8fc;
-    --color-cc-card-bg: #fff;
-    --color-cc-card-border: #cbd5e1;
-    --color-cc-card-border-hover: #526079;
+    --color-cc-ink-dim: #4a566c;
+    --color-cc-ink-faint: rgba(15, 23, 42, 0.18);
+    --color-cc-hover: rgba(15, 23, 42, 0.07);
+    --color-cc-bg: #f5f1ea;
+    --color-cc-card-bg: #fdfbf7;
+    --color-cc-card-border: #c9bda8;
+    --color-cc-card-border-hover: #4a566c;
     --color-cc-accent: #075e75;
     --color-cc-accent-hover: #07556b;
     --color-cc-solid-hover: #243449;
-    --color-cc-control-bg: #fff;
+    --color-cc-control-bg: #fdfbf7;
     --color-cc-selected-description: #075e75;
-    --color-cc-control-border: #7c8ba1;
+    --color-cc-control-border: #857a68;
+    --color-cc-placeholder: #6b6455;
     --color-cc-cta: #86198f;
     --color-cc-cta-hover: #701a75;
     --color-cc-note: #075985;
@@ -247,15 +249,15 @@
     --color-cc-warning: #854d0e;
     --color-cc-danger: #b42335;
     --color-cc-info: #5b21b6;
-    --color-cc-surface: #fff;
-    --color-cc-code-bg: #f1f5f9;
-    --color-cc-code-header: #e2e8f0;
+    --color-cc-surface: #fdfbf7;
+    --color-cc-code-bg: #ebe4d6;
+    --color-cc-code-header: #e0d7c5;
     --color-cc-electric: #1d4ed8;
     --color-cc-amber: #854d0e;
     --color-cc-nav-text: #334155;
-    --color-cc-nav-label: #526079;
+    --color-cc-nav-label: #4a566c;
     --cc-dark-surface: none;
-    --cc-highlight: rgba(15, 23, 42, 0.08);
+    --cc-highlight: rgba(15, 23, 42, 0.12);
     --cc-step-1: #0f6651;
     --cc-step-1-text: #0f6651;
     --cc-step-2: #854d0e;
@@ -264,26 +266,26 @@
     --cc-step-3-text: #075985;
     --cc-step-4: #5b21b6;
     --cc-step-4-text: #5b21b6;
-    --cc-scrollbar: #7c8ba1;
-    --cc-scrollbar-thumb: #7c8ba1;
-    --cc-scrollbar-hover: #526079;
+    --cc-scrollbar: #857a68;
+    --cc-scrollbar-thumb: #857a68;
+    --cc-scrollbar-hover: #4a566c;
     --cc-search-soft: rgb(8 107 131 / 0.1);
     --cc-search-scrim: rgb(15 23 42 / 0.45);
     --cc-search-shadow: 0 12px 32px 0 rgb(15 23 42 / 0.18);
-    --cc-search-field: #f1f5f9;
-    --cc-search-field-focus: #fff;
+    --cc-search-field: #ebe4d6;
+    --cc-search-field-focus: #fdfbf7;
     --cc-search-hit: #334155;
-    --cc-search-hit-bg: #fff;
-    --cc-search-key: #e2e8f0;
+    --cc-search-hit-bg: #fdfbf7;
+    --cc-search-key: #e0d7c5;
     --cc-search-key-shadow: inset 0 2px 4px rgb(15 23 42 / 0.15);
     --cc-search-footer-shadow:
-      0 -1px 0 0 #cbd5e1, 0 -3px 6px 0 rgb(15 23 42 / 0.05);
-    --cc-search-selected: #e2e8f0;
-    --cc-search-border: #7c8ba1;
-    --cc-search-control-border: #7c8ba1;
-    --cc-search-chip: #e2e8f0;
-    --cc-search-code: #f1f5f9;
-    --cc-search-muted: #526079;
+      0 -1px 0 0 #c9bda8, 0 -3px 6px 0 rgb(15 23 42 / 0.05);
+    --cc-search-selected: #e8e0d0;
+    --cc-search-border: #857a68;
+    --cc-search-control-border: #857a68;
+    --cc-search-chip: rgb(7 94 117 / 0.14);
+    --cc-search-code: #ebe4d6;
+    --cc-search-muted: #4a566c;
     --cc-search-error: #b42335;
     --cc-search-error-soft: rgb(180 35 53 / 0.08);
     --cc-search-error-text: #b42335;
@@ -296,19 +298,20 @@
       --color-cc-heading: #0b0f1a;
       --color-cc-ink: #334155;
       --color-cc-prose: #334155;
-      --color-cc-ink-dim: #526079;
-      --color-cc-ink-faint: rgba(15, 23, 42, 0.16);
-      --color-cc-hover: rgba(15, 23, 42, 0.05);
-      --color-cc-bg: #f7f8fc;
-      --color-cc-card-bg: #fff;
-      --color-cc-card-border: #cbd5e1;
-      --color-cc-card-border-hover: #526079;
+      --color-cc-ink-dim: #4a566c;
+      --color-cc-ink-faint: rgba(15, 23, 42, 0.18);
+      --color-cc-hover: rgba(15, 23, 42, 0.07);
+      --color-cc-bg: #f5f1ea;
+      --color-cc-card-bg: #fdfbf7;
+      --color-cc-card-border: #c9bda8;
+      --color-cc-card-border-hover: #4a566c;
       --color-cc-accent: #075e75;
       --color-cc-accent-hover: #07556b;
       --color-cc-solid-hover: #243449;
-      --color-cc-control-bg: #fff;
+      --color-cc-control-bg: #fdfbf7;
       --color-cc-selected-description: #075e75;
-      --color-cc-control-border: #7c8ba1;
+      --color-cc-control-border: #857a68;
+      --color-cc-placeholder: #6b6455;
       --color-cc-cta: #86198f;
       --color-cc-cta-hover: #701a75;
       --color-cc-note: #075985;
@@ -317,15 +320,15 @@
       --color-cc-warning: #854d0e;
       --color-cc-danger: #b42335;
       --color-cc-info: #5b21b6;
-      --color-cc-surface: #fff;
-      --color-cc-code-bg: #f1f5f9;
-      --color-cc-code-header: #e2e8f0;
+      --color-cc-surface: #fdfbf7;
+      --color-cc-code-bg: #ebe4d6;
+      --color-cc-code-header: #e0d7c5;
       --color-cc-electric: #1d4ed8;
       --color-cc-amber: #854d0e;
       --color-cc-nav-text: #334155;
-      --color-cc-nav-label: #526079;
+      --color-cc-nav-label: #4a566c;
       --cc-dark-surface: none;
-      --cc-highlight: rgba(15, 23, 42, 0.08);
+      --cc-highlight: rgba(15, 23, 42, 0.12);
       --cc-step-1: #0f6651;
       --cc-step-1-text: #0f6651;
       --cc-step-2: #854d0e;
@@ -334,26 +337,26 @@
       --cc-step-3-text: #075985;
       --cc-step-4: #5b21b6;
       --cc-step-4-text: #5b21b6;
-      --cc-scrollbar: #7c8ba1;
-      --cc-scrollbar-thumb: #7c8ba1;
-      --cc-scrollbar-hover: #526079;
+      --cc-scrollbar: #857a68;
+      --cc-scrollbar-thumb: #857a68;
+      --cc-scrollbar-hover: #4a566c;
       --cc-search-soft: rgb(8 107 131 / 0.1);
       --cc-search-scrim: rgb(15 23 42 / 0.45);
       --cc-search-shadow: 0 12px 32px 0 rgb(15 23 42 / 0.18);
-      --cc-search-field: #f1f5f9;
-      --cc-search-field-focus: #fff;
+      --cc-search-field: #ebe4d6;
+      --cc-search-field-focus: #fdfbf7;
       --cc-search-hit: #334155;
-      --cc-search-hit-bg: #fff;
-      --cc-search-key: #e2e8f0;
+      --cc-search-hit-bg: #fdfbf7;
+      --cc-search-key: #e0d7c5;
       --cc-search-key-shadow: inset 0 2px 4px rgb(15 23 42 / 0.15);
       --cc-search-footer-shadow:
-        0 -1px 0 0 #cbd5e1, 0 -3px 6px 0 rgb(15 23 42 / 0.05);
-      --cc-search-selected: #e2e8f0;
-      --cc-search-border: #7c8ba1;
-      --cc-search-control-border: #7c8ba1;
-      --cc-search-chip: #e2e8f0;
-      --cc-search-code: #f1f5f9;
-      --cc-search-muted: #526079;
+        0 -1px 0 0 #c9bda8, 0 -3px 6px 0 rgb(15 23 42 / 0.05);
+      --cc-search-selected: #e8e0d0;
+      --cc-search-border: #857a68;
+      --cc-search-control-border: #857a68;
+      --cc-search-chip: rgb(7 94 117 / 0.14);
+      --cc-search-code: #ebe4d6;
+      --cc-search-muted: #4a566c;
       --cc-search-error: #b42335;
       --cc-search-error-soft: rgb(180 35 53 / 0.08);
       --cc-search-error-text: #b42335;
@@ -393,6 +396,18 @@
       auto,
       auto;
     background-attachment: fixed;
+  }
+
+  :root[data-theme="light"] :focus-visible {
+    outline: 2px solid var(--color-cc-accent);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme]) :focus-visible {
+      outline: 2px solid var(--color-cc-accent);
+      outline-offset: 3px;
+    }
   }
 }
 
@@ -477,11 +492,6 @@ html[data-smooth-scroll="true"]:has(:target) {
 }
 ::-webkit-scrollbar-thumb:hover {
   background-color: var(--cc-scrollbar-hover);
-}
-
-:focus-visible {
-  outline: 2px solid var(--color-cc-accent);
-  outline-offset: 3px;
 }
 
 /* Algolia DocSearch colors follow the resolved site palette. The
@@ -680,7 +690,8 @@ svg[role="graphics-document"][id^="mermaid-"] {
     --color-cc-info: #5b21b6;
     --color-cc-solid-hover: #243449;
     --color-cc-control-bg: #fff;
-    --color-cc-control-border: #7c8ba1;
+    --color-cc-control-border: #857a68;
+    --color-cc-placeholder: #6b6455;
     --color-cc-ink: #111827;
     --color-cc-prose: #1f2937;
     --color-cc-ink-dim: #4b5563;

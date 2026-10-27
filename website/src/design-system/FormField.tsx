@@ -8,7 +8,7 @@ export const controlBaseClasses =
 export function controlBorderClasses(hasError: boolean) {
   return hasError
     ? "text-cc-danger placeholder:text-cc-danger border-cc-danger focus:border-cc-danger focus:ring-cc-danger/30"
-    : "text-cc-ink placeholder:text-cc-ink-dim border-cc-control-border hover:border-cc-card-border-hover focus:border-cc-accent focus:ring-cc-accent/30";
+    : "text-cc-ink placeholder:text-cc-placeholder border-cc-control-border hover:border-cc-card-border-hover focus:border-cc-accent focus:ring-cc-accent/30";
 }
 
 interface FormFieldProps {

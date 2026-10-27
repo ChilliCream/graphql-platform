@@ -281,7 +281,7 @@ const meta = {
       expect(getComputedStyle(canvas.getByRole("main")).backgroundImage).toBe(
         "none",
       );
-      expect(root.getPropertyValue("--color-cc-bg").trim()).toBe("#f7f8fc");
+      expect(root.getPropertyValue("--color-cc-bg").trim()).toBe("#f5f1ea");
       for (const element of canvasElement.querySelectorAll(
         "[data-contrast], a, label, [role=tab], .text-cc-danger, .DocSearch-Hit-title, .DocSearch-Hit-path, .DocSearch-Commands li, .DocSearch-Help, .DocSearch-Dropdown p, .font-bold, button:not(:disabled)",
       )) {
@@ -290,6 +290,10 @@ const meta = {
           `${element.textContent} contrast`,
         ).toBeGreaterThanOrEqual(4.5);
       }
+      const card = canvas.getByRole("heading", {
+        name: "Theme-safe controls",
+      }).parentElement!;
+      expect(contrast(card, "borderTopColor")).toBeGreaterThanOrEqual(1.5);
       const outline = canvas.getByRole("button", { name: "Learn more" });
       expect(contrast(outline, "borderTopColor")).toBeGreaterThanOrEqual(3);
       const search = canvas.getByRole("textbox", {
@@ -301,6 +305,19 @@ const meta = {
         contrast(search.closest("form")!, "borderBottomColor"),
       ).toBeGreaterThanOrEqual(3);
       const email = canvas.getByRole("textbox", { name: "Email" });
+      const placeholderLuminance = luminance(
+        composite(
+          rgba(getComputedStyle(email, "::placeholder").color),
+          rgba(getComputedStyle(email).backgroundColor),
+        ),
+      );
+      const fieldLuminance = luminance(
+        rgba(getComputedStyle(email).backgroundColor),
+      );
+      expect(
+        (Math.max(placeholderLuminance, fieldLuminance) + 0.05) /
+          (Math.min(placeholderLuminance, fieldLuminance) + 0.05),
+      ).toBeGreaterThanOrEqual(4.5);
       expect(contrast(email, "borderTopColor")).toBeGreaterThanOrEqual(3);
       email.focus();
       expect(email).toHaveFocus();
