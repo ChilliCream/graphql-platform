@@ -407,7 +407,7 @@ public sealed class PostgresOutboxConnectionLifetimeTests(PostgresFixture fixtur
     public sealed class ConnectionLifetimeDbContext(DbContextOptions<ConnectionLifetimeDbContext> options)
         : DbContext(options)
     {
-        public DbSet<ApplicationWrite> Writes => Set<ApplicationWrite>();
+        public DbSet<ApplicationWrite> Writes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

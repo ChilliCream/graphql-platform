@@ -1,33 +1,44 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { BenchmarkColumnHint } from "@/src/components/benchmarks/BenchmarkColumnHint";
-import { FilterIcon } from "@/src/icons/FilterIcon";
 import type { BenchmarkFilters as Filters } from "@/src/components/benchmarks/benchmarkFilters";
+
+/** The height of the sticky site header in pixels, which the popover must not open behind. */
+const HEADER_HEIGHT = 72;
+
+/** The space between the trigger and the popover in pixels. */
+const POPOVER_GAP = 8;
 
 const PREVIEWS = {
   label: "Include previews",
-  hint: "Shows preview releases, such as nightly builds, prerelease versions and variants on a prerelease runtime, alongside stable releases.",
-};
-
-const BEST_VERSION = {
-  label: "Best version only",
-  hint: "Shows only the fastest preview and the fastest non-preview variant of each gateway in each table and hides its other variants.",
+  hint: "Shows preview releases, such as nightly builds and prerelease versions, alongside stable releases.",
 };
 
 interface BenchmarkFilterBarProps {
   readonly technologies: readonly string[];
   readonly filters: Filters;
   readonly onChange: (filters: Filters) => void;
+  readonly className?: string;
+  readonly triggerClassName: string;
+  /** The content of the button that opens the filters. */
+  readonly children: ReactNode;
 }
 
+/** The technology and preview filters: a popover on wide screens and a bottom sheet on narrow screens, opened by a trigger the caller styles. */
 export function BenchmarkFilterBar({
   technologies,
   filters,
   onChange,
+  className = "",
+  triggerClassName,
+  children,
 }: BenchmarkFilterBarProps) {
+  const titleId = useId();
   const dialog = useRef<HTMLDialogElement>(null);
   const menu = useRef<HTMLDetailsElement>(null);
+  const popover = useRef<HTMLDivElement>(null);
+  const [above, setAbove] = useState(false);
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(filters);
 
@@ -94,19 +105,32 @@ export function BenchmarkFilterBar({
   );
 
   return (
-    <div
-      data-benchmark-controls
-      className="pointer-events-auto relative shrink-0 self-start"
-    >
-      <details ref={menu} className="hidden md:block">
+    <div data-benchmark-controls className={`relative ${className}`}>
+      <details
+        ref={menu}
+        className="hidden h-full md:block"
+        onToggle={(event) => {
+          const details = event.currentTarget;
+          if (!details.open || !popover.current) {
+            return;
+          }
+          const trigger = details.getBoundingClientRect();
+          const height = popover.current.offsetHeight + POPOVER_GAP;
+          setAbove(
+            trigger.bottom + height > window.innerHeight &&
+              trigger.top - height >= HEADER_HEIGHT,
+          );
+        }}
+      >
         <summary
-          aria-label="Filters"
-          title="Filters"
-          className="text-cc-ink-dim bg-cc-bg/90 border-cc-card-border hover:text-cc-heading focus-visible:outline-cc-accent flex size-11 cursor-pointer list-none items-center justify-center rounded-full border shadow-sm focus-visible:outline-2 [&::-webkit-details-marker]:hidden"
+          className={`cursor-pointer list-none [&::-webkit-details-marker]:hidden ${triggerClassName}`}
         >
-          <FilterIcon className="size-4 shrink-0" />
+          {children}
         </summary>
-        <div className="border-cc-card-border bg-cc-bg absolute top-full right-0 z-10 mt-2 w-72 rounded-lg border p-5 shadow-xl">
+        <div
+          ref={popover}
+          className={`border-cc-card-border bg-cc-bg absolute right-0 z-10 w-72 rounded-lg border p-5 shadow-xl ${above ? "bottom-full mb-2" : "top-full mt-2"}`}
+        >
           {choices(filters, onChange)}
           <div className="border-cc-card-border mt-4 border-t pt-3">
             <FilterSwitch
@@ -117,22 +141,12 @@ export function BenchmarkFilterBar({
                 onChange({ ...filters, showPreviews: checked })
               }
             />
-            <FilterSwitch
-              {...BEST_VERSION}
-              checked={filters.bestVersionOnly}
-              size="size-4"
-              onChange={(checked) =>
-                onChange({ ...filters, bestVersionOnly: checked })
-              }
-            />
           </div>
         </div>
       </details>
       <button
         type="button"
-        aria-label="Filters"
-        title="Filters"
-        className="text-cc-ink-dim bg-cc-bg/90 border-cc-card-border hover:text-cc-heading focus-visible:outline-cc-accent flex size-11 cursor-pointer items-center justify-center rounded-full border shadow-sm focus-visible:outline-2 md:hidden"
+        className={`cursor-pointer md:hidden ${triggerClassName}`}
         aria-haspopup="dialog"
         onClick={() => {
           setDraft(filters);
@@ -140,11 +154,11 @@ export function BenchmarkFilterBar({
           setOpen(true);
         }}
       >
-        <FilterIcon className="size-4 shrink-0" />
+        {children}
       </button>
       <dialog
         ref={dialog}
-        aria-labelledby="benchmark-filter-title"
+        aria-labelledby={titleId}
         className="border-cc-card-border bg-cc-bg text-cc-heading backdrop:bg-cc-bg/80 fixed inset-x-0 top-auto bottom-0 m-0 max-h-[85dvh] w-full max-w-none overflow-y-auto rounded-t-2xl border p-0"
         onClose={() => setOpen(false)}
         onClick={(event) => {
@@ -157,10 +171,7 @@ export function BenchmarkFilterBar({
         }}
       >
         <div className="px-5 pt-5">
-          <h2
-            id="benchmark-filter-title"
-            className="text-h6 mb-5 font-semibold"
-          >
+          <h2 id={titleId} className="text-h6 mb-5 font-semibold">
             Filter results
           </h2>
           {choices(draft, setDraft)}
@@ -172,17 +183,6 @@ export function BenchmarkFilterBar({
               size="size-5"
               onChange={(checked) =>
                 setDraft({ ...draft, showPreviews: checked })
-              }
-            />
-          </fieldset>
-          <fieldset className="border-cc-card-border mt-5 border-t pt-5">
-            <legend className="sr-only">Variants</legend>
-            <FilterSwitch
-              {...BEST_VERSION}
-              checked={draft.bestVersionOnly}
-              size="size-5"
-              onChange={(checked) =>
-                setDraft({ ...draft, bestVersionOnly: checked })
               }
             />
           </fieldset>

@@ -223,6 +223,7 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
             Vary: Accept
             abc: def
             Content-Type: application/graphql-response+json; charset=utf-8
+            Content-Length: 34
             -------------------------->
             Status Code: OK
             -------------------------->
@@ -810,6 +811,7 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 24
                 -------------------------->
                 Status Code: OK
                 -------------------------->
@@ -846,6 +848,7 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 24
                 -------------------------->
                 Status Code: OK
                 -------------------------->
@@ -887,6 +890,7 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 31
                 -------------------------->
                 Status Code: OK
                 -------------------------->

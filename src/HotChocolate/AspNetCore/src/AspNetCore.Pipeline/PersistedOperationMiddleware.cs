@@ -285,6 +285,7 @@ internal static class PersistedOperationMiddleware
                 await MiddlewareHelper.ExecuteRequestAsync(
                     request,
                     requestFlags,
+                    options,
                     context,
                     executorSession);
             statusCode = executionResult.StatusCode;
@@ -393,6 +394,7 @@ HANDLE_RESULT:
                 await MiddlewareHelper.ExecuteRequestAsync(
                     request,
                     requestFlags,
+                    options,
                     context,
                     executorSession);
             statusCode = kind is HttpRequestKind.HttpQuery

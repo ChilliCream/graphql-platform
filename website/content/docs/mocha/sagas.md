@@ -517,7 +517,7 @@ using Mocha.Sagas.EfCore;
 
 public class CatalogDbContext : DbContext
 {
-    public DbSet<SagaState> SagaStates => Set<SagaState>();
+    public DbSet<SagaState> SagaStates { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

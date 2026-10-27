@@ -1,23 +1,32 @@
-import type { ComponentType, SVGProps } from "react";
 import { GITHUB_REPO_URL } from "@/src/helpers/github";
 import { BlogIcon } from "@/src/icons/Blog";
+import { FUSION_ARTWORK, Fusion } from "@/src/icons/Fusion";
 import { GitHubIcon } from "@/src/icons/GitHub";
+import { HOT_CHOCOLATE_ARTWORK, HotChocolate } from "@/src/icons/HotChocolate";
 import { LinkedInIcon } from "@/src/icons/LinkedIn";
-import { RobotIcon } from "@/src/icons/RobotIcon";
-import { SlackIcon } from "@/src/icons/Slack";
-import { VideoIcon } from "@/src/icons/Video";
-import { XIcon } from "@/src/icons/X";
-import { YouTubeIcon } from "@/src/icons/YouTube";
+import { MOCHA_ARTWORK, Mocha } from "@/src/icons/Mocha";
 import {
   BuildingIcon,
   CloudIcon,
   HandshakeAngleIcon,
   NewspaperIcon,
-  RocketIcon,
   ServerIcon,
   SparklesIcon,
   WavePulseIcon,
 } from "@/src/icons/NavIcons";
+import { NITRO_ARTWORK, Nitro } from "@/src/icons/Nitro";
+import type { ProductArtworkSize } from "@/src/icons/productArtwork";
+import { RobotIcon } from "@/src/icons/RobotIcon";
+import { SKILLS_ARTWORK, Skills } from "@/src/icons/Skills";
+import { SlackIcon } from "@/src/icons/Slack";
+import {
+  STRAWBERRY_SHAKE_ARTWORK,
+  StrawberryShake,
+} from "@/src/icons/StrawberryShake";
+import { VideoIcon } from "@/src/icons/Video";
+import { XIcon } from "@/src/icons/X";
+import { YouTubeIcon } from "@/src/icons/YouTube";
+import type { ComponentType, SVGProps } from "react";
 
 export const TOOLS = {
   blog: "/blog",
@@ -40,6 +49,12 @@ export interface SubLink {
   label: string;
   description?: string;
   icon?: Icon;
+  /**
+   * Intrinsic size of the icon artwork in sheet units (e.g. `NITRO_ARTWORK`).
+   * Set it on product icons: the menu then sizes them all with one scale
+   * factor, bottom-aligned, instead of forcing them into a square box.
+   */
+  iconSize?: ProductArtworkSize;
 }
 
 export interface SubGroup {
@@ -98,13 +113,15 @@ export const NAV_ITEMS: NavItem[] = [
             href: "/products/nitro",
             label: "Nitro",
             description: "Observability, governance, and delivery.",
-            icon: RocketIcon,
+            icon: Nitro,
+            iconSize: NITRO_ARTWORK,
           },
           {
             href: "/products/mocha",
             label: "Mocha",
             description: "Messaging for .NET.",
-            icon: RocketIcon,
+            icon: Mocha,
+            iconSize: MOCHA_ARTWORK,
           },
         ],
       },
@@ -153,17 +170,39 @@ export const NAV_ITEMS: NavItem[] = [
           {
             href: "/docs/hotchocolate",
             label: "Hot Chocolate",
-            icon: RocketIcon,
+            icon: HotChocolate,
+            iconSize: HOT_CHOCOLATE_ARTWORK,
           },
           {
             href: "/docs/strawberryshake",
             label: "Strawberry Shake",
-            icon: RocketIcon,
+            icon: StrawberryShake,
+            iconSize: STRAWBERRY_SHAKE_ARTWORK,
           },
-          { href: "/docs/mocha", label: "Mocha", icon: RocketIcon },
-          { href: "/docs/fusion", label: "Fusion", icon: RocketIcon },
-          { href: "/docs/nitro", label: "Nitro", icon: RocketIcon },
-          { href: "/docs/skills", label: "Skills", icon: RocketIcon },
+          {
+            href: "/docs/mocha",
+            label: "Mocha",
+            icon: Mocha,
+            iconSize: MOCHA_ARTWORK,
+          },
+          {
+            href: "/docs/fusion",
+            label: "Fusion",
+            icon: Fusion,
+            iconSize: FUSION_ARTWORK,
+          },
+          {
+            href: "/docs/nitro",
+            label: "Nitro",
+            icon: Nitro,
+            iconSize: NITRO_ARTWORK,
+          },
+          {
+            href: "/docs/skills",
+            label: "Skills",
+            icon: Skills,
+            iconSize: SKILLS_ARTWORK,
+          },
         ],
       },
       {

@@ -320,7 +320,7 @@ type Query {
 
 Both variants describe the same composite key. The first maps each argument explicitly. The second maps the input object fields in one selection map.
 
-> The FieldSelectionMap syntax from the Composite Schemas specification supports more advanced argument-to-field mappings for lookups. For the full grammar and examples, see the [Composite Schemas specification](https://graphql.github.io/composite-schemas-spec/draft/#sec-Appendix-A-Specification-of-FieldSelectionMap-Scalar).
+> The FieldSelectionMap syntax from the GraphQL Federation specification supports more advanced argument-to-field mappings for lookups. For the full grammar and examples, see the [GraphQL Federation specification](https://graphql.github.io/graphql-federation-spec/draft/#sec-Appendix-A-Specification-of-FieldSelectionMap-Scalar).
 
 # Explicit Key Declaration
 

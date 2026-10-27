@@ -165,11 +165,7 @@ public abstract class OpenApiTestBase : IAsyncLifetime
 
     protected virtual ValueTask InitializeAsync(TestServerSession serverSession) => ValueTask.CompletedTask;
 
-    public ValueTask DisposeAsync()
-    {
-        _testServerSession.Dispose();
-        return ValueTask.CompletedTask;
-    }
+    public ValueTask DisposeAsync() => _testServerSession.DisposeAsync();
 
     protected abstract void ConfigureStorage(
         IServiceCollection services,
