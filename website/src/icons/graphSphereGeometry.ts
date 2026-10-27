@@ -4,6 +4,12 @@ interface Vec3 {
   readonly z: number;
 }
 
+export interface GraphGeometry {
+  readonly vertices: readonly Vec3[];
+  readonly edges: readonly (readonly [number, number])[];
+  readonly radiusPx: number;
+}
+
 function normalize(v: Vec3): Vec3 {
   const len = Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
   return { x: v.x / len, y: v.y / len, z: v.z / len };
@@ -69,7 +75,9 @@ function buildGeodesic(): {
   function midIndex(i: number, j: number): number {
     const key = i < j ? `${i}-${j}` : `${j}-${i}`;
     const existing = midpoints.get(key);
-    if (existing !== undefined) return existing;
+    if (existing !== undefined) {
+      return existing;
+    }
     const idx = vertices.length;
     vertices.push(midpoint(vertices[i], vertices[j]));
     midpoints.set(key, idx);
@@ -78,7 +86,9 @@ function buildGeodesic(): {
 
   function addEdge(i: number, j: number): void {
     const key = i < j ? `${i}-${j}` : `${j}-${i}`;
-    if (!edgeSet.has(key)) edgeSet.set(key, i < j ? [i, j] : [j, i]);
+    if (!edgeSet.has(key)) {
+      edgeSet.set(key, i < j ? [i, j] : [j, i]);
+    }
   }
 
   for (const [a, b, c] of BASE_FACES) {
@@ -120,7 +130,7 @@ function tilt(v: Vec3): Vec3 {
   z = z1;
   x1 = x * Math.cos(TILT_Z) - y * Math.sin(TILT_Z);
   y1 = x * Math.sin(TILT_Z) + y * Math.cos(TILT_Z);
-  return { x: x1, y: y1, z: z1 };
+  return { x: x1, y: y1, z };
 }
 
 function rotateY(v: Vec3, theta: number): Vec3 {
@@ -148,14 +158,96 @@ function depthT(z: number): number {
   return (1 - z) / 2;
 }
 
-interface Projected {
+export interface ProjectedVertex {
   readonly x: number;
   readonly y: number;
   readonly t: number;
 }
 
-export function projectVertex(index: number, theta: number): Projected {
-  const rotated = tilt(rotateY(SPHERE_VERTICES[index], theta));
+export const SPHERE_GRAPH: GraphGeometry = {
+  vertices: SPHERE_VERTICES,
+  edges: SPHERE_EDGES,
+  radiusPx: SPHERE_RADIUS_PX,
+};
+
+/** A fixed asymmetric faceted network for the Federation closing CTA. */
+export const FACETED_GRAPH: GraphGeometry = {
+  vertices: [
+    { x: -0.91, y: -0.18, z: -0.28 },
+    { x: -0.7, y: 0.05, z: 0.48 },
+    { x: -0.62, y: 0.37, z: -0.16 },
+    { x: -0.26, y: 0.78, z: 0.07 },
+    { x: -0.06, y: 0.44, z: 0.54 },
+    { x: 0.25, y: 0.69, z: -0.32 },
+    { x: 0.56, y: 0.53, z: 0.41 },
+    { x: 0.8, y: 0.31, z: -0.16 },
+    { x: 0.55, y: 0.02, z: 0.51 },
+    { x: 0.74, y: -0.28, z: 0.11 },
+    { x: 0.09, y: -0.43, z: -0.26 },
+    { x: -0.29, y: -0.31, z: 0.5 },
+    { x: -0.72, y: -0.48, z: -0.46 },
+    { x: -0.11, y: 0.15, z: -0.55 },
+    { x: 0.31, y: 0.22, z: -0.53 },
+    { x: -0.39, y: 0.12, z: 0.07 },
+  ],
+  edges: [
+    [0, 1],
+    [0, 12],
+    [0, 15],
+    [1, 2],
+    [1, 4],
+    [1, 11],
+    [1, 15],
+    [2, 3],
+    [2, 4],
+    [2, 13],
+    [2, 15],
+    [3, 4],
+    [3, 5],
+    [3, 13],
+    [4, 5],
+    [4, 6],
+    [4, 15],
+    [5, 6],
+    [5, 7],
+    [5, 13],
+    [6, 7],
+    [6, 8],
+    [6, 14],
+    [7, 8],
+    [7, 9],
+    [7, 14],
+    [8, 9],
+    [8, 10],
+    [8, 11],
+    [8, 14],
+    [9, 10],
+    [9, 14],
+    [10, 11],
+    [10, 12],
+    [10, 14],
+    [11, 12],
+    [11, 15],
+    [12, 15],
+    [13, 14],
+    [13, 15],
+    [14, 15],
+  ],
+  radiusPx: 145,
+};
+
+export type GraphVariant = "sphere" | "faceted";
+
+export function graphForVariant(variant: GraphVariant): GraphGeometry {
+  return variant === "faceted" ? FACETED_GRAPH : SPHERE_GRAPH;
+}
+
+export function projectVertex(
+  graph: GraphGeometry,
+  index: number,
+  theta: number,
+): ProjectedVertex {
+  const rotated = tilt(rotateY(graph.vertices[index], theta));
   const scale = scaleAtZ(rotated.z);
   return {
     x: CENTER + rotated.x * scale,
@@ -177,7 +269,9 @@ function buildIcosahedronEdges(): readonly (readonly [number, number])[] {
       [c, a],
     ] as const) {
       const key = i < j ? `${i}-${j}` : `${j}-${i}`;
-      if (!edgeSet.has(key)) edgeSet.set(key, i < j ? [i, j] : [j, i]);
+      if (!edgeSet.has(key)) {
+        edgeSet.set(key, i < j ? [i, j] : [j, i]);
+      }
     }
   }
   return [...edgeSet.values()];
@@ -192,7 +286,7 @@ export function projectIcosahedronVertex(
   center: number,
   camK: number,
   camDist: number,
-): Projected {
+): ProjectedVertex {
   const rotated = tilt(BASE_VERTICES[index]);
   const scale = camK / (camDist + rotated.z);
   return {
