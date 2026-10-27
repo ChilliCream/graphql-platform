@@ -1,3 +1,4 @@
+using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types.Relay;
@@ -38,5 +39,55 @@ public class NodeIdSerializerTests
 
         // assert
         Assert.Equal("Rm9vCmkzMg==", serializedId);
+    }
+
+    [Fact]
+    public async Task Execute_Should_ResolveGuidNode_When_IdIsInNewFormatAndOutputNewIdFormatIsFalse()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddDefaultNodeIdSerializer(outputNewIdFormat: false)
+            .AddGlobalObjectIdentification()
+            .AddQueryType<GuidNodeQuery>()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              node(id: "Q2hlY2tvdXQ6W62PD8vZn0ahZXCGdyiVDg==") {
+                id
+              }
+              echoCheckoutId(id: "Q2hlY2tvdXQ6W62PD8vZn0ahZXCGdyiVDg==")
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "node": {
+                  "id": "Q2hlY2tvdXQKZzBmOGZhZDViZDljYjQ2OWZhMTY1NzA4Njc3Mjg5NTBl"
+                },
+                "echoCheckoutId": "0f8fad5b-d9cb-469f-a165-70867728950e"
+              }
+            }
+            """);
+    }
+
+    public class GuidNodeQuery
+    {
+        [NodeResolver]
+        public Checkout GetCheckoutById(Guid id) => new(id);
+
+        public Guid EchoCheckoutId([ID(nameof(Checkout))] Guid id) => id;
+    }
+
+    public sealed class Checkout(Guid id)
+    {
+        public Guid Id { get; } = id;
     }
 }
