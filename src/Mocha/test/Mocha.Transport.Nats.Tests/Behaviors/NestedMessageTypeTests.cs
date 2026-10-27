@@ -5,8 +5,9 @@ using Mocha.Transport.Nats.Tests.Helpers;
 
 namespace Mocha.Transport.Nats.Tests.Behaviors;
 
-// Nested types sharing a name used to collapse onto one identity, and so onto one subject (#10466).
-// On NATS that would put both handlers' consumers on the same subject and cross-deliver.
+/// <summary>
+/// Verifies that nested message types sharing a name get their own subjects and consumers.
+/// </summary>
 [Collection(JetStreamCollection.Name)]
 public sealed class NestedMessageTypeTests(JetStreamFixture fixture)
 {

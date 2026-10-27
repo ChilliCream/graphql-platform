@@ -46,7 +46,7 @@ public class NatsMessageEnvelopeTests
 
         // act
         var headers = NatsMessageHeadersWriter.Instance.Write(envelope);
-        var parsed = NatsMessageEnvelopeParser.Instance.Parse(headers, envelope.Body, deliveryCount: 1);
+        var parsed = NatsMessageEnvelopeParser.Instance.Parse(headers, envelope.Body, deliveryCount: 1, storedAt: null);
 
         // assert
         new Snapshot()
@@ -82,7 +82,7 @@ public class NatsMessageEnvelopeTests
 
         // act
         var headers = NatsMessageHeadersWriter.Instance.Write(envelope);
-        var parsed = NatsMessageEnvelopeParser.Instance.Parse(headers, envelope.Body, deliveryCount: 3);
+        var parsed = NatsMessageEnvelopeParser.Instance.Parse(headers, envelope.Body, deliveryCount: 3, storedAt: null);
 
         // assert
         Assert.Equal(3, parsed.DeliveryCount);
@@ -130,7 +130,7 @@ public class NatsMessageEnvelopeTests
 
         // act
         var headers = NatsMessageHeadersWriter.Instance.Write(envelope);
-        var parsed = NatsMessageEnvelopeParser.Instance.Parse(headers, envelope.Body, deliveryCount: 0);
+        var parsed = NatsMessageEnvelopeParser.Instance.Parse(headers, envelope.Body, deliveryCount: 0, storedAt: null);
 
         // assert
         var parsedHeaders = Assert.IsType<Headers>(parsed.Headers);
@@ -148,7 +148,7 @@ public class NatsMessageEnvelopeTests
 
         // act
         var headers = NatsMessageHeadersWriter.Instance.Write(envelope);
-        var parsed = NatsMessageEnvelopeParser.Instance.Parse(headers, envelope.Body, deliveryCount: 0);
+        var parsed = NatsMessageEnvelopeParser.Instance.Parse(headers, envelope.Body, deliveryCount: 0, storedAt: null);
 
         // assert
         Assert.Null(parsed.MessageId);

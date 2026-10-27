@@ -24,14 +24,15 @@ internal sealed class NatsMessageEnvelopeParser
     /// The JetStream redelivery count taken from the message metadata, not from a header.
     /// </param>
     /// <param name="storedAt">
-    /// When JetStream stored the message, used as the send time when the sender set none.
+    /// When JetStream stored the message, used as the send time when the sender set none, or
+    /// <see langword="null"/> for a message that did not come from a stream.
     /// </param>
     /// <returns>A fully populated message envelope ready for the receive middleware pipeline.</returns>
     public MessageEnvelope Parse(
         NatsHeaders? headers,
         ReadOnlyMemory<byte> body,
         int deliveryCount,
-        DateTimeOffset? storedAt = null)
+        DateTimeOffset? storedAt)
     {
         return new MessageEnvelope
         {

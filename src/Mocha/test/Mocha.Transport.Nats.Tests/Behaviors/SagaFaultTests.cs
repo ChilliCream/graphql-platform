@@ -11,13 +11,13 @@ public sealed class SagaFaultTests(JetStreamFixture fixture)
 {
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
 
+    private static readonly TaskCompletionSource<NotAcknowledgedEvent> s_faultObserved =
+        new(TaskCreationOptions.RunContinuationsAsynchronously);
+
     [Fact]
     public async Task Saga_Should_ReceiveFault_When_ItsSentRequestFailsTerminally()
     {
         // arrange
-        // The fault reply crosses the transport twice: the request goes out over JetStream, and the
-        // fault comes back to the saga's reply subject over core NATS, correlated by the saga
-        // header. Without it the saga would wait in its send state until it timed out.
         await using var scope = await fixture.CreateScopeAsync();
         var handlerFaulted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         await using var bus = await new ServiceCollection()
@@ -36,10 +36,10 @@ public sealed class SagaFaultTests(JetStreamFixture fixture)
 
         // act
         await messageBus.PublishAsync(new StartFault(), TestContext.Current.CancellationToken);
+        await handlerFaulted.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
 
         // assert
-        await handlerFaulted.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
-        var fault = await FaultSaga.Observed.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        var fault = await s_faultObserved.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
         Assert.Equal(ErrorCodes.Exception, fault.ErrorCode);
     }
 
@@ -47,9 +47,6 @@ public sealed class SagaFaultTests(JetStreamFixture fixture)
 
     public sealed class FaultSaga : Saga<FaultState>
     {
-        public static TaskCompletionSource<NotAcknowledgedEvent> Observed { get; } =
-            new(TaskCreationOptions.RunContinuationsAsynchronously);
-
         protected override void Configure(ISagaDescriptor<FaultState> descriptor)
         {
             descriptor
@@ -62,7 +59,7 @@ public sealed class SagaFaultTests(JetStreamFixture fixture)
             descriptor
                 .During("AwaitingResponse")
                 .OnFault()
-                .Then((_, fault) => Observed.TrySetResult(fault))
+                .Then((_, fault) => s_faultObserved.TrySetResult(fault))
                 .TransitionTo("Failed");
 
             descriptor.Finally("Failed");
