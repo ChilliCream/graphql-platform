@@ -132,7 +132,7 @@ internal sealed class NatsReceiveEndpointDescriptor
 
         if (backoff.Length == 0)
         {
-            throw new ArgumentException("At least one delay is required.", nameof(backoff));
+            throw ThrowHelper.BackoffRequiresDelay(nameof(backoff));
         }
 
         Configuration.Backoff = [.. backoff];
@@ -219,19 +219,14 @@ internal sealed class NatsReceiveEndpointDescriptor
 
         if (!address.IsAbsoluteUri)
         {
-            throw new ArgumentException(
-                "The endpoint address must be an absolute URI.",
-                nameof(address));
+            throw ThrowHelper.EndpointAddressNotAbsolute(nameof(address));
         }
 
         // Rejected here rather than at start-up: an address the transport cannot turn into a subject
         // would otherwise be dropped silently and faulted messages would go nowhere.
         if (!NatsDestinations.TryResolveExplicit(NatsTransportConfiguration.DefaultSchema, address, out _))
         {
-            throw new ArgumentException(
-                $"'{address}' does not resolve to a NATS subject. Use 'nats:s/<subject>' or "
-                + "'subject:<subject>'.",
-                nameof(address));
+            throw ThrowHelper.EndpointAddressNotASubject(address, nameof(address));
         }
 
         return address;

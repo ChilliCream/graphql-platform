@@ -27,7 +27,7 @@ public sealed class NatsDispatchEndpoint(NatsMessagingTransport transport)
     {
         if (configuration.Subject is null)
         {
-            throw new InvalidOperationException("Subject is required.");
+            throw ThrowHelper.SubjectRequired();
         }
     }
 
@@ -40,7 +40,7 @@ public sealed class NatsDispatchEndpoint(NatsMessagingTransport transport)
 
         Subject =
             topology.Subjects.FirstOrDefault(s => s.Subject == configuration.Subject)
-            ?? throw new InvalidOperationException($"Subject '{configuration.Subject}' not found.");
+            ?? throw ThrowHelper.SubjectNotFound(configuration.Subject);
 
         Destination = Subject;
 
@@ -54,7 +54,7 @@ public sealed class NatsDispatchEndpoint(NatsMessagingTransport transport)
     {
         if (context.Envelope is not { } envelope)
         {
-            throw new InvalidOperationException("Envelope is not set.");
+            throw ThrowHelper.EnvelopeNotSet();
         }
 
         var headers = NatsMessageHeadersWriter.Instance.Write(envelope);
@@ -82,7 +82,7 @@ public sealed class NatsDispatchEndpoint(NatsMessagingTransport transport)
     {
         if (context.Envelope is not { } envelope)
         {
-            throw new InvalidOperationException("Envelope is not set.");
+            throw ThrowHelper.EnvelopeNotSet();
         }
 
         var headers = NatsMessageHeadersWriter.Instance.Write(envelope);
@@ -126,11 +126,7 @@ public sealed class NatsDispatchEndpoint(NatsMessagingTransport transport)
 
         if (!transport.SchedulingEnabled)
         {
-            throw new InvalidOperationException(
-                $"A message scheduled for {scheduledTime:O} was dispatched to subject "
-                + $"'{Subject.Subject}', but scheduling is not enabled on this transport. Call "
-                + "EnableScheduling() so the stream allows schedules and captures the scheduling "
-                + "subject.");
+            throw ThrowHelper.SchedulingNotEnabled(scheduledTime, Subject.Subject);
         }
 
         headers.Add(NatsScheduling.ScheduleHeader, NatsScheduling.ToScheduleValue(scheduledTime));
@@ -143,8 +139,7 @@ public sealed class NatsDispatchEndpoint(NatsMessagingTransport transport)
     {
         if (!supported)
         {
-            throw new InvalidOperationException(
-                $"This message requires {feature}, which needs NATS server {minimumVersion} or later.");
+            throw ThrowHelper.ServerVersionRequired(feature, minimumVersion);
         }
     }
 
@@ -176,11 +171,7 @@ public sealed class NatsDispatchEndpoint(NatsMessagingTransport transport)
         }
         catch (NatsException exception)
         {
-            throw new InvalidOperationException(
-                $"Publishing to subject '{subject}' failed. A JetStream publish waits for an "
-                + "acknowledgement from the stream capturing the subject, so this also happens when "
-                + "no stream captures it or the server has JetStream disabled.",
-                exception);
+            throw ThrowHelper.PublishFailed(subject, exception);
         }
 
         // Not IsSuccess(), which also reports duplicates as failures. A duplicate means the stream
@@ -188,9 +179,9 @@ public sealed class NatsDispatchEndpoint(NatsMessagingTransport transport)
         // what it set out to; treating it as an error would make retrying a publish throw.
         if (ack.Error is { } error)
         {
-            throw new InvalidOperationException(
-                $"The stream rejected a message published to subject '{subject}': "
-                + $"{error.Description ?? error.Code.ToString(CultureInfo.InvariantCulture)}.");
+            throw ThrowHelper.PublishRejected(
+                subject,
+                error.Description ?? error.Code.ToString(CultureInfo.InvariantCulture));
         }
     }
 
@@ -215,7 +206,7 @@ public sealed class NatsDispatchEndpoint(NatsMessagingTransport transport)
     {
         if (envelope.DestinationAddress is not { } destinationAddress)
         {
-            throw new InvalidOperationException("Destination address is not set on the reply.");
+            throw ThrowHelper.ReplyDestinationNotSet();
         }
 
         if (Uri.TryCreate(destinationAddress, UriKind.Absolute, out var address)

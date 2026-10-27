@@ -371,7 +371,8 @@ public sealed class NatsMessagingTransport : MessagingTransport
             }
             catch (NatsJSApiException exception) when (IsSubjectOverlap(exception))
             {
-                throw new InvalidOperationException(
+                throw ThrowHelper.StreamSubjectsOverlap(
+                    stream.Name,
                     await DescribeSubjectConflictAsync(stream, exception, cancellationToken),
                     exception);
             }
@@ -382,13 +383,13 @@ public sealed class NatsMessagingTransport : MessagingTransport
         => exception.Error.ErrCode == SubjectOverlapErrorCode;
 
     /// <summary>
-    /// Builds a message naming which of a declared stream's subjects are already owned elsewhere, and
-    /// by which stream.
+    /// Describes which of a declared stream's subjects are already owned elsewhere, and by which
+    /// stream.
     /// </summary>
     /// <param name="stream">The stream that could not be provisioned.</param>
     /// <param name="exception">The overlap error the server returned.</param>
     /// <param name="cancellationToken">A token to cancel the lookup.</param>
-    /// <returns>The message.</returns>
+    /// <returns>The description of the conflicting subjects.</returns>
     private async ValueTask<string> DescribeSubjectConflictAsync(
         NatsStream stream,
         NatsJSApiException exception,
@@ -407,15 +408,9 @@ public sealed class NatsMessagingTransport : MessagingTransport
             }
         }
 
-        var detail = conflicts.Count > 0
+        return conflicts.Count > 0
             ? string.Join("; ", conflicts)
             : exception.Error.Description ?? "the server reported overlapping subjects";
-
-        return $"Stream '{stream.Name}' cannot be provisioned because its subjects overlap a stream "
-            + $"that already exists: {detail}. JetStream requires every stream's subjects to be "
-            + "disjoint. Either remove the overlapping subject from this declaration, delete the "
-            + "stream that owns it, or drop the declaration and let the transport bind to the "
-            + "existing stream.";
     }
 
     private async ValueTask ProvisionConsumersAsync(CancellationToken cancellationToken)
@@ -440,16 +435,20 @@ public sealed class NatsMessagingTransport : MessagingTransport
     {
         if (stream.AllowMsgTtl && !Capabilities.SupportsMessageTtl)
         {
-            throw new InvalidOperationException(
-                $"Stream '{stream.Name}' enables per-message TTL, which requires NATS server 2.11 "
-                + $"or later, but the server reports {Capabilities.Version}.");
+            throw ThrowHelper.StreamRequiresServerVersion(
+                stream.Name,
+                "per-message TTL",
+                "2.11",
+                Capabilities.Version);
         }
 
         if (stream.AllowMsgSchedules && !Capabilities.SupportsMessageSchedules)
         {
-            throw new InvalidOperationException(
-                $"Stream '{stream.Name}' enables message schedules, which requires NATS server 2.12 "
-                + $"or later, but the server reports {Capabilities.Version}.");
+            throw ThrowHelper.StreamRequiresServerVersion(
+                stream.Name,
+                "message schedules",
+                "2.12",
+                Capabilities.Version);
         }
     }
 

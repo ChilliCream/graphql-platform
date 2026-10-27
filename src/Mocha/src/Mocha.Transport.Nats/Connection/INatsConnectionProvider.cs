@@ -80,7 +80,7 @@ public sealed class NatsConnectionProvider : INatsConnectionProvider
 
         if (!Uri.TryCreate(first, UriKind.Absolute, out var uri))
         {
-            throw new InvalidOperationException($"'{url}' is not a valid NATS server URL.");
+            throw ThrowHelper.InvalidServerUrl(url);
         }
 
         return (uri.Host, uri.Port < 0 ? DefaultPort : uri.Port);

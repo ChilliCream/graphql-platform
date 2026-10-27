@@ -166,7 +166,7 @@ public sealed class NatsRoutingStrategy : RoutingStrategy<NatsMessagingTransport
 
         if (natsConfiguration.ConsumerName is null)
         {
-            throw new InvalidOperationException("Consumer name is required.");
+            throw ThrowHelper.ConsumerNameRequired();
         }
 
         if (endpoint.Kind is ReceiveEndpointKind.Reply)

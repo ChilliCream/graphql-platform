@@ -47,7 +47,7 @@ internal static class NatsDestinations
         {
             OutboundRouteKind.Send or OutboundRouteKind.Publish
                 => naming.GetPublishEndpointName(messageType.RuntimeType),
-            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
+            _ => throw ThrowHelper.UnsupportedRouteKind(kind)
         };
 
     /// <summary>

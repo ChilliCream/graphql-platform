@@ -84,9 +84,7 @@ internal static class NatsStreamResolver
     {
         if (consumer.FilterSubjects.Length == 0)
         {
-            throw new InvalidOperationException(
-                $"Consumer '{consumer.Name}' has no subjects, so its stream cannot be resolved. "
-                + "Declare the stream explicitly with FromStream.");
+            throw ThrowHelper.ConsumerHasNoSubjects(consumer.Name);
         }
 
         string? resolved = null;
@@ -105,10 +103,7 @@ internal static class NatsStreamResolver
 
             if (!string.Equals(resolved, streamName, StringComparison.Ordinal))
             {
-                throw new InvalidOperationException(
-                    $"Consumer '{consumer.Name}' subscribes to subjects captured by different "
-                    + $"streams ('{resolved}' and '{streamName}'). A consumer can only read from a "
-                    + "single stream, so split the handler or declare the stream with FromStream.");
+                throw ThrowHelper.ConsumerSpansStreams(consumer.Name, resolved, streamName);
             }
         }
 
@@ -211,11 +206,9 @@ internal static class NatsStreamResolver
 
         if (matches.Count == 0)
         {
-            throw new InvalidOperationException($"No stream captures subject '{subject}', {context}.");
+            throw ThrowHelper.NoStreamCapturesSubject(subject, context);
         }
 
-        throw new InvalidOperationException(
-            $"Subject '{subject}' is captured by {matches.Count} streams "
-            + $"({string.Join(", ", matches)}), {context}.");
+        throw ThrowHelper.SubjectCapturedByManyStreams(subject, matches, context);
     }
 }

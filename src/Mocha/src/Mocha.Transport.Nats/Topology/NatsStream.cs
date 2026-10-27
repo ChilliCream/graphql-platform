@@ -48,13 +48,11 @@ public sealed class NatsStream : TopologyResource<NatsStreamConfiguration>, INat
     /// <inheritdoc />
     protected override void OnInitialize(NatsStreamConfiguration configuration)
     {
-        Name = configuration.Name ?? throw new InvalidOperationException("Stream name is required.");
+        Name = configuration.Name ?? throw ThrowHelper.StreamNameRequired();
 
         if (!NatsNaming.IsValidName(Name))
         {
-            throw new InvalidOperationException(
-                $"'{Name}' is not a valid JetStream stream name. Stream names cannot contain "
-                + "'.', '*', '>', whitespace or path separators.");
+            throw ThrowHelper.InvalidStreamName(Name);
         }
 
         Subjects = [.. configuration.Subjects ?? []];

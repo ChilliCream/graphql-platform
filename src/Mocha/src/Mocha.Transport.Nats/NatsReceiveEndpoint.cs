@@ -42,7 +42,7 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
     {
         if (configuration.ConsumerName is null)
         {
-            throw new InvalidOperationException("Consumer name is required.");
+            throw ThrowHelper.ConsumerNameRequired();
         }
 
         _maxConcurrency = Math.Clamp(
@@ -59,13 +59,13 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
         if (Kind is ReceiveEndpointKind.Reply)
         {
             _replySubject = configuration.FilterSubjects.FirstOrDefault()
-                ?? throw new InvalidOperationException("The reply endpoint has no subject.");
+                ?? throw ThrowHelper.ReplyEndpointHasNoSubject();
 
             Address = new Uri($"{Transport.Schema}:{NatsAddress.SubjectSegment}/{_replySubject}");
 
             Source = ((NatsMessagingTopology)Transport.Topology)
                 .Subjects.FirstOrDefault(s => s.Subject == _replySubject)
-                ?? throw new InvalidOperationException($"Reply subject '{_replySubject}' not found.");
+                ?? throw ThrowHelper.ReplySubjectNotFound(_replySubject);
 
             return;
         }
@@ -74,7 +74,7 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
 
         Consumer =
             topology.Consumers.FirstOrDefault(c => c.Name == configuration.ConsumerName)
-            ?? throw new InvalidOperationException($"Consumer '{configuration.ConsumerName}' not found.");
+            ?? throw ThrowHelper.ConsumerNotFound(configuration.ConsumerName);
 
         Source = Consumer;
     }

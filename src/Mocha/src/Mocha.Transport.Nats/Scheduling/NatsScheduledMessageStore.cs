@@ -30,18 +30,17 @@ internal sealed class NatsScheduledMessageStore(NatsMessagingTransport transport
     {
         if (context.Endpoint is not NatsDispatchEndpoint endpoint)
         {
-            throw new InvalidOperationException(
-                "The NATS scheduled message store requires a NATS dispatch endpoint.");
+            throw ThrowHelper.ScheduledStoreRequiresNatsEndpoint();
         }
 
         if (context.Envelope is not { } envelope)
         {
-            throw new InvalidOperationException("Envelope is not set.");
+            throw ThrowHelper.EnvelopeNotSet();
         }
 
         if (envelope.ScheduledTime is null)
         {
-            throw new InvalidOperationException("Scheduled time is not set on the envelope.");
+            throw ThrowHelper.ScheduledTimeNotSet();
         }
 
         // The subject is the handle: it holds exactly this one scheduled message, so removing it

@@ -88,9 +88,7 @@ internal sealed class NatsMessageHeadersWriter
         {
             if (character is ':' || char.IsWhiteSpace(character) || char.IsControl(character))
             {
-                throw new InvalidOperationException(
-                    $"Header '{key}' cannot be sent over NATS. Header keys cannot contain ':', "
-                    + "whitespace or control characters.");
+                throw ThrowHelper.InvalidHeaderKey(key);
             }
         }
 

@@ -75,13 +75,11 @@ public sealed class NatsConsumer : TopologyResource<NatsConsumerConfiguration>, 
     /// <inheritdoc />
     protected override void OnInitialize(NatsConsumerConfiguration configuration)
     {
-        Name = configuration.Name ?? throw new InvalidOperationException("Consumer name is required.");
+        Name = configuration.Name ?? throw ThrowHelper.ConsumerNameRequired();
 
         if (!NatsNaming.IsValidName(Name))
         {
-            throw new InvalidOperationException(
-                $"'{Name}' is not a valid JetStream consumer name. Durable names cannot contain "
-                + "'.', '*', '>', whitespace or path separators.");
+            throw ThrowHelper.InvalidConsumerName(Name);
         }
 
         FilterSubjects = [.. SubjectMatcher.Collapse(configuration.FilterSubjects ?? [])];
@@ -177,9 +175,7 @@ public sealed class NatsConsumer : TopologyResource<NatsConsumerConfiguration>, 
     {
         if (StreamName is null)
         {
-            throw new InvalidOperationException(
-                $"The stream for consumer '{Name}' has not been resolved. Either declare the stream "
-                + "explicitly or ensure a stream capturing its subjects exists.");
+            throw ThrowHelper.ConsumerStreamNotResolved(Name);
         }
 
         await context.CreateOrUpdateConsumerAsync(StreamName, _config, cancellationToken);
