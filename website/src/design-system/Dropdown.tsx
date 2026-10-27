@@ -35,7 +35,7 @@ export function Dropdown({
           aria-labelledby={label ? labelId : undefined}
           className={[
             "flex w-full cursor-pointer list-none items-center gap-2 select-none",
-            "border-cc-card-border rounded-md border bg-white/5 px-3 py-2.5",
+            "border-cc-control-border bg-cc-control-bg rounded-md border px-3 py-2.5",
             "text-cc-ink text-left text-sm transition-colors",
             // Hover affordance only while closed, so it can't override the
             // accent border below (group-open has lower specificity in v4).
@@ -104,7 +104,7 @@ export function DropdownItem({
       <div className="text-sm font-medium">{children}</div>
       {description && (
         <div
-          className={`text-xs ${active ? "text-cc-accent/80" : "text-cc-ink-dim"}`}
+          className={`text-xs ${active ? "text-cc-selected-description" : "text-cc-ink-dim"}`}
         >
           {description}
         </div>

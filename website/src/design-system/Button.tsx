@@ -19,12 +19,12 @@ export type ButtonProps = {
 const BASE_CLASSES =
   "inline-flex cursor-pointer items-center justify-center rounded-full px-7 py-3 text-sm font-medium no-underline transition-colors disabled:cursor-not-allowed disabled:opacity-60";
 
-// Filled pill: light surface with the dark page color as the label.
-const SOLID_CLASSES = "bg-cc-heading text-cc-surface hover:bg-cc-white";
+// Filled pill with an inverse label in either scheme.
+const SOLID_CLASSES = "bg-cc-heading text-cc-surface hover:bg-cc-solid-hover";
 
 // Outlined pill: hairline border that brightens on hover.
 const OUTLINE_CLASSES =
-  "border border-cc-card-border text-cc-ink hover:border-cc-card-border-hover";
+  "border border-cc-control-border text-cc-ink hover:border-cc-card-border-hover";
 
 function renderButton(variantClasses: string, props: ButtonProps) {
   const { children, href, className, type = "button", disabled } = props;
