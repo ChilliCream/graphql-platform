@@ -110,6 +110,25 @@ public static class CursorKeySerializerHelperTests
     }
 
     [Fact]
+    public static void TryFormat_Should_IgnoreColon_When_ColonIsBehindWrittenBytes()
+    {
+        // arrange
+        object key = "testvalue";
+        Span<byte> buffer = "xxxxxxxxxxxxxxx:"u8.ToArray();
+
+        // act
+        var success = CursorKeySerializerHelper.TryFormat(
+            key,
+            s_serializer,
+            buffer,
+            out var written);
+
+        // assert
+        Assert.True(success);
+        Assert.Equal(9, written);
+    }
+
+    [Fact]
     public static void TryFormat_StringWithColons_EscapesAndFormatsCorrectly()
     {
         // arrange
