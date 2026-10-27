@@ -48,7 +48,7 @@ export function FusionCta() {
         aside={
           <GraphSphere
             variant="faceted"
-            className="mx-auto aspect-square w-full max-w-[380px]"
+            className="mx-auto aspect-square w-full max-w-[440px]"
           />
         }
       />

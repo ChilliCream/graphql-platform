@@ -64,6 +64,7 @@ function ctaStory(width: CtaWidth): Story {
       );
       expect(graphs).toHaveLength(1);
       expect(graphs[0]).toHaveAttribute("aria-hidden", "true");
+      expect(graphs[0].querySelectorAll(":scope > g")).toHaveLength(42);
     },
   };
 }
