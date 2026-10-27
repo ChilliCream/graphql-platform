@@ -461,7 +461,8 @@ public sealed partial class CompositeResultDocument : IDisposable
             // introspection field). Its concrete type comes from the enclosing selection set,
             // which the merge has already specialized to the runtime type.
             var typeName = _operation.GetSelectionSetById(row.Location).Type.Name;
-            return Utf8StringCache.GetJsonPropertyName(typeName).AsSpan(..^1);
+            var token = Utf8StringCache.GetJsonPropertyName(typeName);
+            return token.AsSpan(0, token.Length - Utf8StringCache.JsonPropertyNamePadding - 1);
         }
 
         throw new NotSupportedException();
