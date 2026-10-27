@@ -32,6 +32,9 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
 
     private readonly HttpClient _http;
     private readonly bool _disposeInnerClient;
+#if FUSION
+    private readonly HttpMessageInvoker? _invoker;
+#endif
 
     /// <summary>
     /// Initializes a new instance of <see cref="DefaultGraphQLHttpClient"/>.
@@ -66,6 +69,30 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         : this(httpClient, disposeInnerClient: true)
     {
     }
+
+#if FUSION
+    /// <summary>
+    /// Initializes a new instance of <see cref="DefaultGraphQLHttpClient"/> that sends requests with a
+    /// deadline straight to <paramref name="handler"/> and all other requests through <paramref name="httpClient"/>.
+    /// </summary>
+    /// <param name="httpClient">
+    /// The HTTP client that sends requests without a deadline. It is disposed with this instance
+    /// and must have no configuration other than its base address.
+    /// </param>
+    /// <param name="handler">
+    /// The message handler of <paramref name="httpClient"/>. It is not disposed with this instance.
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="httpClient"/> or <paramref name="handler"/> is <see langword="null"/>.
+    /// </exception>
+    internal DefaultGraphQLHttpClient(HttpClient httpClient, HttpMessageHandler handler)
+        : this(httpClient, disposeInnerClient: true)
+    {
+        ArgumentNullException.ThrowIfNull(handler);
+
+        _invoker = new HttpMessageInvoker(handler, disposeHandler: false);
+    }
+#endif
 
     /// <summary>
     /// Sends the GraphQL request to the specified GraphQL request <see cref="Uri"/>.
@@ -125,9 +152,23 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         requestMessage.Version = _http.DefaultRequestVersion;
         requestMessage.VersionPolicy = _http.DefaultVersionPolicy;
 
+#if FUSION
+        HttpResponseMessage responseMessage;
+
+        // A request with a deadline skips the timeout and cancellation setup of the HTTP client.
+        if (_invoker is not null && request.HasDeadline && requestMessage.RequestUri is { IsAbsoluteUri: true })
+        {
+            responseMessage = await _invoker.SendAsync(requestMessage, ct).ConfigureAwait(false);
+        }
+        else
+        {
+            responseMessage = await _http.SendAsync(requestMessage, ResponseHeadersRead, ct).ConfigureAwait(false);
+        }
+#else
         var responseMessage = await _http
             .SendAsync(requestMessage, ResponseHeadersRead, ct)
             .ConfigureAwait(false);
+#endif
 
 #if FUSION
         if (request.State is { } receivedState)
@@ -632,6 +673,9 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         if (disposing && _disposeInnerClient)
         {
             _http.Dispose();
+#if FUSION
+            _invoker?.Dispose();
+#endif
         }
     }
 }
