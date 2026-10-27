@@ -28,7 +28,7 @@ internal sealed class DocumentCacheMiddleware
         _hashProvider = documentHashProvider;
     }
 
-    public async ValueTask InvokeAsync(RequestContext context)
+    public ValueTask InvokeAsync(RequestContext context)
     {
         var documentInfo = context.OperationDocumentInfo;
         var request = context.Request;
@@ -77,10 +77,19 @@ internal sealed class DocumentCacheMiddleware
             }
         }
 
+        if (!addToCache)
+        {
+            return _next(context);
+        }
+
+        return InvokeAndAddToCacheAsync(context, documentInfo);
+    }
+
+    private async ValueTask InvokeAndAddToCacheAsync(RequestContext context, OperationDocumentInfo documentInfo)
+    {
         await _next(context).ConfigureAwait(false);
 
-        if (addToCache
-            && !OperationDocumentId.IsNullOrEmpty(documentInfo.Id)
+        if (!OperationDocumentId.IsNullOrEmpty(documentInfo.Id)
             && documentInfo.Document != null
             && documentInfo.IsValidated)
         {
