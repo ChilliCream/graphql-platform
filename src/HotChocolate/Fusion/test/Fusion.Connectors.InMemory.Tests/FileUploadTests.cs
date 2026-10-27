@@ -5,23 +5,21 @@ using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using OperationRequest = HotChocolate.Transport.OperationRequest;
 
 namespace HotChocolate.Fusion;
 
-public sealed class FileUploadTests : IDisposable
+public sealed class FileUploadTests
 {
-    private TestServer? _server;
-
     [Fact]
     public async Task Upload_Single_File()
     {
         // arrange
-        _server = await CreateServerAsync();
-        using var client = GraphQLHttpClient.Create(_server.CreateClient());
+        await using var app = StartApp();
+        using var client = GraphQLHttpClient.Create(app.GetTestClient());
 
         var stream = new MemoryStream("abc"u8.ToArray());
 
@@ -102,8 +100,8 @@ public sealed class FileUploadTests : IDisposable
     public async Task Upload_Single_File_In_Input_Object()
     {
         // arrange
-        _server = await CreateServerAsync();
-        using var client = GraphQLHttpClient.Create(_server.CreateClient());
+        await using var app = StartApp();
+        using var client = GraphQLHttpClient.Create(app.GetTestClient());
 
         var stream = new MemoryStream("abc"u8.ToArray());
 
@@ -143,8 +141,8 @@ public sealed class FileUploadTests : IDisposable
     public async Task Upload_Single_File_In_Input_Object_Inline()
     {
         // arrange
-        _server = await CreateServerAsync();
-        using var client = GraphQLHttpClient.Create(_server.CreateClient());
+        await using var app = StartApp();
+        using var client = GraphQLHttpClient.Create(app.GetTestClient());
 
         var stream = new MemoryStream("abc"u8.ToArray());
 
@@ -181,8 +179,8 @@ public sealed class FileUploadTests : IDisposable
     public async Task Upload_List_Of_Files()
     {
         // arrange
-        _server = await CreateServerAsync();
-        using var client = GraphQLHttpClient.Create(_server.CreateClient());
+        await using var app = StartApp();
+        using var client = GraphQLHttpClient.Create(app.GetTestClient());
 
         var stream1 = new MemoryStream("abc"u8.ToArray());
         var stream2 = new MemoryStream("def"u8.ToArray());
@@ -224,8 +222,8 @@ public sealed class FileUploadTests : IDisposable
     public async Task Upload_List_Of_Files_In_Input_Object()
     {
         // arrange
-        _server = await CreateServerAsync();
-        using var client = GraphQLHttpClient.Create(_server.CreateClient());
+        await using var app = StartApp();
+        using var client = GraphQLHttpClient.Create(app.GetTestClient());
 
         var stream1 = new MemoryStream("abc"u8.ToArray());
         var stream2 = new MemoryStream("abc"u8.ToArray());
@@ -270,8 +268,8 @@ public sealed class FileUploadTests : IDisposable
     public async Task Upload_List_Of_Files_In_Input_Object_Inline()
     {
         // arrange
-        _server = await CreateServerAsync();
-        using var client = GraphQLHttpClient.Create(_server.CreateClient());
+        await using var app = StartApp();
+        using var client = GraphQLHttpClient.Create(app.GetTestClient());
 
         var stream1 = new MemoryStream("abc"u8.ToArray());
         var stream2 = new MemoryStream("def"u8.ToArray());
@@ -309,34 +307,28 @@ public sealed class FileUploadTests : IDisposable
         body.MatchMarkdownSnapshot();
     }
 
-    private static Task<TestServer> CreateServerAsync()
+    private static WebApplication StartApp()
     {
-        var builder = new WebHostBuilder()
-            .ConfigureServices(services =>
-            {
-                services.AddRouting();
+        var builder = WebApplication.CreateSlimBuilder();
+        builder.WebHost.UseTestServer();
+        builder.Services.AddRouting();
 
-                services.AddGraphQLServer("uploads")
-                    .AddQueryType<UploadSchema.Query>()
-                    .AddUploadType()
-                    .ModifyCostOptions(o => o.DefaultListSize = 1)
-                    .AddSourceSchemaDefaults();
+        builder.Services
+            .AddGraphQLServer("uploads")
+            .AddQueryType<UploadSchema.Query>()
+            .AddUploadType()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
+            .AddSourceSchemaDefaults();
 
-                services.AddGraphQLGatewayServer()
-                    .AddInMemorySchema("uploads");
-            })
-            .Configure(app =>
-            {
-                app.UseRouting();
-                app.UseEndpoints(endpoints => endpoints.MapGraphQL());
-            });
+        builder.Services
+            .AddGraphQLGatewayServer()
+            .AddInMemorySchema("uploads");
 
-        return Task.FromResult(new TestServer(builder));
-    }
+        var app = builder.Build();
+        app.MapGraphQL();
+        app.Start();
 
-    public void Dispose()
-    {
-        _server?.Dispose();
+        return app;
     }
 
     private static class UploadSchema

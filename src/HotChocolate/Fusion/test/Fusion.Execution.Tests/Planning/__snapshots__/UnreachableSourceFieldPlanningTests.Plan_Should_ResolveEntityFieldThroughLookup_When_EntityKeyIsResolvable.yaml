@@ -1,0 +1,51 @@
+operation:
+  - document: |
+      {
+        products {
+          id
+          id @fusion__requirement
+          name
+          reviewCount
+        }
+        topReviewer
+      }
+    hash: 123456789101112
+    searchSpace: 2
+    expandedNodes: 5
+nodes:
+  - id: 1
+    type: Operation
+    schema: A
+    operation: |
+      query Op_123456789101112_1 {
+        topReviewer
+      }
+  - id: 2
+    type: Operation
+    schema: B
+    operation: |
+      query Op_123456789101112_2 {
+        products {
+          id
+          name
+        }
+      }
+  - id: 3
+    type: ApolloOperation
+    schema: A
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Product {
+            reviewCount
+          }
+        }
+      }
+    source: $._entities
+    target: $.products
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 2

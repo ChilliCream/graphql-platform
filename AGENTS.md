@@ -6,6 +6,10 @@ This file provides guidance to coding agents when working with this repository.
 
 - Do not add `Co-authored-by` trailers or other co-author attribution for agents.
 
+## Commit Messages
+
+- Wrap every `@`-prefixed token in backticks, so GitHub does not turn it into a mention. This covers directive names, package scopes, and user handles: ``Fix pruning of list-wrapped `@require` input types``.
+
 ## Pull Requests
 
 - Start a bug fix PR title with `Fix`: `Fix the gateway ignoring subgraph timeouts`. The title becomes the squash commit subject and the release note entry.

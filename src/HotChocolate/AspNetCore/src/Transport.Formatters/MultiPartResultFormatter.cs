@@ -81,7 +81,7 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
         bool useIncrementalRfc1,
         CancellationToken ct = default)
     {
-        using var writer = ChunkedPipeBufferWriter.Rent(pipe);
+        using var writer = ChunkedPipeBufferWriter.Rent(pipe, growPipeSpans: false);
         OperationResultFormatterContext? formatContext = null;
         try
         {
@@ -115,7 +115,7 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
         bool useIncrementalRfc1,
         CancellationToken ct = default)
     {
-        using var writer = ChunkedPipeBufferWriter.Rent(pipe);
+        using var writer = ChunkedPipeBufferWriter.Rent(pipe, growPipeSpans: true);
         foreach (var result in resultBatch.Results)
         {
             switch (result)
@@ -166,7 +166,7 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
         bool useIncrementalRfc1,
         CancellationToken ct = default)
     {
-        using var writer = ChunkedPipeBufferWriter.Rent(pipe);
+        using var writer = ChunkedPipeBufferWriter.Rent(pipe, growPipeSpans: true);
         await WriteResponseStreamAsync(responseStream, writer, useIncrementalRfc1, ct).ConfigureAwait(false);
     }
 

@@ -175,4 +175,13 @@ internal static class ThrowHelper
             paramName,
             transportVersion,
             string.Format(ThrowHelper_Formatter_TransportVersionNotSupported, transportVersion));
+
+    public static ArgumentOutOfRangeException ResponseBodyBuffer_AdvanceNegative(int bytes)
+        => new(nameof(bytes), bytes, ThrowHelper_ResponseBodyBuffer_AdvanceNegative);
+
+    public static InvalidOperationException ResponseBodyBuffer_AdvancePastBuffer()
+        => new(ThrowHelper_ResponseBodyBuffer_AdvancePastBuffer);
+
+    public static InvalidOperationException ResponseBodyBuffer_WriterCompleted()
+        => new(ThrowHelper_ResponseBodyBuffer_WriterCompleted);
 }

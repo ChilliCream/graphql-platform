@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace HotChocolate.Adapters.OpenApi;
 
@@ -30,23 +30,19 @@ public class OpenApiIntegrationTests : OpenApiIntegrationTestBase
               }
             }
             """);
-        var builder = new WebHostBuilder()
-            .ConfigureServices(services =>
-            {
-                services.AddRouting();
-                services.AddGraphQLServer("NamedSchema")
-                    .AddOpenApi()
-                    .AddOpenApiDefinitionStorage(storage)
-                    .AddBasicServer();
-                services.AddOpenApi(options => options.AddGraphQLTransformer());
-            })
-            .Configure(app =>
-            {
-                app.UseRouting();
-                app.UseEndpoints(endpoints => endpoints.MapOpenApi());
-            });
-        using var server = new TestServer(builder);
-        var client = server.CreateClient();
+        var webAppBuilder = WebApplication.CreateSlimBuilder();
+        webAppBuilder.WebHost.UseTestServer();
+        webAppBuilder.Services.AddRouting();
+        webAppBuilder.Services
+            .AddGraphQLServer("NamedSchema")
+            .AddOpenApi()
+            .AddOpenApiDefinitionStorage(storage)
+            .AddBasicServer();
+        webAppBuilder.Services.AddOpenApi(options => options.AddGraphQLTransformer());
+        await using var webApp = webAppBuilder.Build();
+        webApp.MapOpenApi();
+        webApp.Start();
+        var client = webApp.GetTestClient();
 
         // act
         var document = await GetOpenApiDocumentAsync(client);

@@ -1,11 +1,38 @@
 import { BenchmarkCpuMap } from "@/src/components/benchmarks/BenchmarkCpuMap";
-import { benchmarkFacts } from "@/src/components/benchmarks/benchmarkView";
+import {
+  SECTION_HEADING,
+  SUBSECTION_HEADING,
+} from "@/src/components/benchmarks/benchmarkHeadings";
+import {
+  benchmarkFacts,
+  formatDate,
+} from "@/src/components/benchmarks/benchmarkView";
 import { Link } from "@/src/design-system/Link";
-import type { BenchmarkReport } from "@/src/helpers/benchmarkReport";
+import type {
+  BenchmarkHistory,
+  BenchmarkReport,
+} from "@/src/helpers/benchmarkReport";
 
 interface BenchmarkTestSetupProps {
   readonly report: BenchmarkReport;
+  readonly history: BenchmarkHistory;
 }
+
+const NUMBER_WORDS = [
+  "zero",
+  "one",
+  "two",
+  "three",
+  "four",
+  "five",
+  "six",
+  "seven",
+  "eight",
+  "nine",
+];
+
+/** Spells out numbers below ten, as in running text. */
+const countText = (count: number) => NUMBER_WORDS[count] ?? String(count);
 
 interface ProcedureStep {
   readonly title: string;
@@ -15,8 +42,17 @@ interface ProcedureStep {
 type SpecRow = readonly [label: string, value: string];
 
 /** The "Test conditions" section: the procedure and the test machine in one panel, with the publisher note below. */
-export function BenchmarkTestSetup({ report }: BenchmarkTestSetupProps) {
+export function BenchmarkTestSetup({
+  report,
+  history,
+}: BenchmarkTestSetupProps) {
   const facts = benchmarkFacts(report);
+  const firstRun = history.scenarios
+    .flatMap((scenario) => scenario.variants)
+    .flatMap((variant) => variant.results)
+    .map((result) => result.run.completedAt ?? result.run.startedAt)
+    .filter((value): value is string => typeof value === "string")
+    .toSorted((a, b) => Date.parse(a) - Date.parse(b))[0];
   const warmups = facts.warmupRuns ?? 1;
   const runs = facts.measuredRuns;
 
@@ -58,16 +94,13 @@ export function BenchmarkTestSetup({ report }: BenchmarkTestSetupProps) {
       aria-labelledby={`benchmark-setup-heading`}
       className="mt-24 sm:mt-28"
     >
-      <h2
-        id={`benchmark-setup-heading`}
-        className="font-heading text-h5 sm:text-h4 text-cc-heading font-semibold"
-      >
+      <h2 id={`benchmark-setup-heading`} className={SECTION_HEADING}>
         Test conditions
       </h2>
       <div className="border-cc-card-border mt-6 rounded-lg border">
         <div className="divide-cc-card-border grid divide-y lg:grid-cols-2 lg:divide-x lg:divide-y-0">
           <div className="flex flex-col px-5 py-6 lg:pr-8">
-            <h3 className="text-cc-heading text-sm font-semibold">Procedure</h3>
+            <h3 className={SUBSECTION_HEADING}>Procedure</h3>
             <p className="text-caption text-cc-prose mt-1">
               Every scenario runs these steps in order, one router at a time.
             </p>
@@ -117,12 +150,13 @@ export function BenchmarkTestSetup({ report }: BenchmarkTestSetupProps) {
       </div>
       <p className="text-caption text-cc-ink-dim mt-4">
         Published by ChilliCream, the team behind{" "}
-        <Link href={facts.links.fusionDocs}>Fusion</Link>, using a{" "}
-        <Link href={facts.links.repository}>harness</Link> based on{" "}
+        <Link href={facts.links.fusionDocs}>Fusion</Link>. Built on{" "}
         <Link href={facts.links.guild}>
           The Guild&apos;s gateway benchmarks
-        </Link>
-        .
+        </Link>{" "}
+        and <Link href={facts.links.repository}>run daily</Link> on{" "}
+        {countText(report.gateways.length)} routers
+        {firstRun ? ` since ${formatDate(firstRun)}` : ""}.
       </p>
     </section>
   );
@@ -138,7 +172,7 @@ interface SpecGroupProps {
 function SpecGroup({ id, title, rows, className = "" }: SpecGroupProps) {
   return (
     <div className={className}>
-      <h3 id={id} className="text-cc-heading text-sm font-semibold">
+      <h3 id={id} className={SUBSECTION_HEADING}>
         {title}
       </h3>
       <dl
