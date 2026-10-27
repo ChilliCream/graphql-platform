@@ -54,8 +54,7 @@ public class ConcurrencyLimiterTests(JetStreamFixture fixture)
     public async Task Handler_Should_RunConcurrently_When_EndpointAllowsIt()
     {
         // arrange
-        // The counterpart to the test above: without a limiter, MaxConcurrency is what bounds handling,
-        // so a peak of one would mean the receive loop is serial regardless of configuration.
+        // Without a limiter, MaxConcurrency bounds handling.
         var tracker = new ConcurrencyTracker();
         var recorder = new MessageRecorder();
         const int messageCount = 20;

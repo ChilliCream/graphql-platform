@@ -13,8 +13,6 @@ public class PublishDeduplicationTests(JetStreamFixture fixture)
     public async Task PublishAsync_Should_DeliverBoth_When_PublishDeduplicationIsDefault()
     {
         // arrange
-        // The default has to leave the header off. With it on, the stream drops the second publish
-        // and acknowledges it as stored, so a deliberate republish disappears without an error.
         var recorder = new MessageRecorder();
 
         await using var scope = await fixture.CreateScopeAsync();

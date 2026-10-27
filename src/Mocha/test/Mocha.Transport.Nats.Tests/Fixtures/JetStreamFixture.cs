@@ -43,8 +43,7 @@ public sealed partial class JetStreamFixture : IAsyncLifetime
         _connection = new NatsConnection(new NatsOpts
         {
             Url = _resource.NatsConnectionString,
-            // Matches what the transport asks of a production connection: never drop a message
-            // rather than applying back pressure.
+            // Applies back pressure instead of dropping messages, as in production.
             SubPendingChannelFullMode = System.Threading.Channels.BoundedChannelFullMode.Wait
         });
 

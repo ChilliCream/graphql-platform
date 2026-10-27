@@ -47,8 +47,6 @@ public class MultiTransportTests(JetStreamFixture fixture)
                 "The handler did not receive the event.");
 
             // assert
-            // The default transport should own the route, so the message must have gone through
-            // JetStream rather than quietly falling back to the in-process transport.
             var stream = Assert.Single(((NatsMessagingTopology)nats.Topology).Streams);
 
             var info = await fixture.JetStream.GetStreamAsync(
@@ -68,9 +66,7 @@ public class MultiTransportTests(JetStreamFixture fixture)
     public async Task IsDefaultTransport_Should_NotClaimHandlers_When_AnotherTransportIsRegisteredFirst()
     {
         // arrange
-        // IsDefaultTransport only picks the fallback for an unrouted address. Convention-bound
-        // handlers are claimed by whichever transport discovers them first, which is the one
-        // registered first, so registering NATS last leaves it with nothing to publish and no stream.
+        // Convention-bound handlers are claimed by the transport registered first.
         var cancellationToken = TestContext.Current.CancellationToken;
 
         var builder = Host.CreateApplicationBuilder();

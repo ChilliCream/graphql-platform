@@ -16,8 +16,7 @@ public class ReconnectionTests(JetStreamFixture fixture)
     public async Task ConsumeLoop_Should_ResumeReceiving_When_TheConnectionIsReset()
     {
         // arrange
-        // A dedicated connection, because this test deliberately resets it and doing that to the
-        // shared fixture connection disturbs every other test's subscriptions.
+        // A dedicated connection, so resetting it does not disturb the other tests.
         var cancellationToken = TestContext.Current.CancellationToken;
         var recorder = new MessageRecorder();
 
@@ -48,9 +47,6 @@ public class ReconnectionTests(JetStreamFixture fixture)
             Assert.True(await recorder.WaitAsync(s_timeout), "The first heartbeat never arrived.");
 
             // act
-            // NATS.Net owns reconnection, which is why this transport has no connection manager of
-            // its own. Forcing a reconnect proves the consume loop survives it rather than silently
-            // stopping and leaving the service alive but deaf.
             await connection.ReconnectAsync();
 
             await bus.PublishAsync(new Heartbeat(2), cancellationToken);

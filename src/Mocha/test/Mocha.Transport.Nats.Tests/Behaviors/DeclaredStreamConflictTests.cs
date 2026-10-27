@@ -14,8 +14,6 @@ public class DeclaredStreamConflictTests(JetStreamFixture fixture)
     public async Task StartAsync_Should_Throw_When_ADeclaredStreamsSubjectsAreOwnedElsewhere()
     {
         // arrange
-        // A convention stream yields when something already owns its subjects. A declared one must
-        // not, since discarding it defers a configuration mistake to a much later publish failure.
         var cancellationToken = TestContext.Current.CancellationToken;
 
         await fixture.JetStream.CreateOrUpdateStreamAsync(
@@ -52,8 +50,6 @@ public class DeclaredStreamConflictTests(JetStreamFixture fixture)
             async () => await host.StartAsync(cancellationToken));
 
         // assert
-        // The message has to name the stream that owns the subject, since that is the one piece of
-        // information needed to resolve it.
         Assert.Equal(
             "Stream 'CONFLICT_DECLARED' cannot be provisioned because its subjects overlap a stream "
             + "that already exists: 'mocha.conflict.contracts.>' is already captured by stream "
@@ -67,9 +63,7 @@ public class DeclaredStreamConflictTests(JetStreamFixture fixture)
     public async Task ProvisionAsync_Should_DropRedundantSubjects_When_AWildcardCoversAnExistingOne()
     {
         // arrange
-        // An older stream of the same name holding a narrower subject. Unioning naively would leave
-        // both the narrow subject and the wildcard that covers it, which the server rejects as an
-        // overlap inside the one stream.
+        // An older stream of the same name holds a subject the new wildcard covers.
         var cancellationToken = TestContext.Current.CancellationToken;
         var recorder = new MessageRecorder();
 

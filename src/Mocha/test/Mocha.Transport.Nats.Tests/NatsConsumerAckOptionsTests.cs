@@ -8,7 +8,6 @@ public class NatsConsumerAckOptionsTests
     public void Initialize_Should_LeaveAckProgressOff_When_NoIntervalIsDeclared()
     {
         // arrange
-        // Reporting progress costs a background task per in-flight message, so it is opt-in.
         var configuration = new NatsConsumerConfiguration { Name = "order-service_order-created" };
 
         // act
@@ -41,8 +40,6 @@ public class NatsConsumerAckOptionsTests
     public void Initialize_Should_UseJetStreamsOwnCeiling_When_NoMaxAckPendingIsDeclared()
     {
         // arrange
-        // MaxAckPending is the server-side ceiling shared by every instance reading the durable, so
-        // it is deliberately not derived from one instance's MaxConcurrency.
         var configuration = new NatsConsumerConfiguration { Name = "order-service_order-created" };
 
         // act

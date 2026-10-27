@@ -16,9 +16,6 @@ public class StreamSubjectRetentionTests(JetStreamFixture fixture)
     public async Task ProvisionAsync_Should_KeepSubjectsItDoesNotKnowAbout_When_UpdatingAConventionStream()
     {
         // arrange
-        // A convention stream is shared, so its subject list is the union of what every bound service
-        // publishes. Updating it must not strip a peer's subject, whose publishes would then start
-        // timing out.
         var cancellationToken = TestContext.Current.CancellationToken;
         var recorder = new MessageRecorder();
 
@@ -65,8 +62,7 @@ public class StreamSubjectRetentionTests(JetStreamFixture fixture)
                 ],
                 (stream.Info.Config.Subjects ?? []).Order(StringComparer.Ordinal));
 
-            // The owner chose memory storage. Adding a subject must not rewrite that, and the server
-            // rejects an update that tries to.
+            // The server rejects an update that changes the owner's storage.
             Assert.Equal(StreamConfigStorage.Memory, stream.Info.Config.Storage);
         }
         finally

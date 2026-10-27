@@ -14,8 +14,7 @@ public class SagaTimeoutScopingTests(JetStreamFixture fixture)
     public async Task Endpoint_Should_ScopeTheSagaTimeout_When_TwoServicesHostSagas()
     {
         // arrange
-        // Only Subscribe routes are host-scoped, so every saga-hosting service derives the same bare
-        // 'saga-timed-out' endpoint. Declaring it under that name folds in and scopes it per service.
+        // Every saga-hosting service derives the same bare 'saga-timed-out' endpoint.
         var cancellationToken = TestContext.Current.CancellationToken;
 
         using var alpha = BuildHost("alpha-service");
@@ -80,8 +79,7 @@ public class SagaTimeoutScopingTests(JetStreamFixture fixture)
         {
             nats.StreamName(serviceName);
 
-            // Named exactly as the framework derives it, so this configures that endpoint rather
-            // than adding a second one.
+            // Named exactly as the framework derives it, so this configures that endpoint.
             nats.Endpoint("saga-timed-out")
                 .ConsumerName($"{serviceName}_saga-timed-out")
                 .FaultEndpoint(new Uri($"nats:s/{serviceName}.saga-timed-out_error"))

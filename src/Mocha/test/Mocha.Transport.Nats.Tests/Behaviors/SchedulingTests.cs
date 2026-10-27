@@ -13,9 +13,6 @@ public class SchedulingTests(JetStreamFixture fixture)
     public async Task SchedulePublishAsync_Should_DeliverBoth_When_TwoMessagesTargetOneSubject()
     {
         // arrange
-        // JetStream holds at most one schedule per subject, so every scheduled message needs its own
-        // scheduling subject. Sharing one, as a subject derived only from the target does, makes the
-        // second schedule replace the first and the first message is never delivered.
         var recorder = new MessageRecorder();
         await using var scope = await fixture.CreateScopeAsync();
         await using var bus = await new ServiceCollection()

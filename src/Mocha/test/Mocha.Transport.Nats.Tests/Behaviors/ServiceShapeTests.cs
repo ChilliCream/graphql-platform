@@ -13,8 +13,7 @@ public class ServiceShapeTests(JetStreamFixture fixture)
     public async Task DeclareStream_Should_AbsorbConventionSubjects_When_ItSharesTheDerivedName()
     {
         // arrange
-        // A declared stream under the name the service name derives, so the convention stream for the
-        // remaining handlers collides with it and its subjects have to be folded in rather than lost.
+        // A stream declared under the name the service name derives.
         var cancellationToken = TestContext.Current.CancellationToken;
         var recorder = new MessageRecorder();
 
@@ -65,8 +64,7 @@ public class ServiceShapeTests(JetStreamFixture fixture)
                 .Single()
                 .Topology;
 
-            // One stream, every consumer bound to it, and the declared subjects kept alongside the
-            // fault subjects the other handlers contribute.
+            // One stream, every consumer bound to it, the declared and fault subjects together.
             Snapshot.Create()
                 .Add(Describe(topology))
                 .MatchMarkdown();

@@ -15,9 +15,7 @@ public class ExpiryTests(JetStreamFixture fixture)
     public async Task PublishAsync_Should_ExpireTheMessage_When_AnExpirationTimeIsGiven()
     {
         // arrange
-        // Nothing consumes this stream, so the message stays put until the server expires it. The
-        // transport's job is to turn ExpirationTime into the Nats-TTL header; the server's job is to
-        // honour it.
+        // Nothing consumes this stream, so the message stays until the server expires it.
         var cancellationToken = TestContext.Current.CancellationToken;
 
         Assert.SkipUnless(

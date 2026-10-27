@@ -16,9 +16,7 @@ public class AckProgressTests(JetStreamFixture fixture)
     public async Task AckProgressEvery_Should_PreventRedelivery_When_TheHandlerOutlivesAckWait()
     {
         // arrange
-        // The handler runs for well over AckWait. Without progress reporting the deadline would
-        // expire mid-handler and JetStream would deliver the message again, so a single delivery is
-        // what proves NatsAcknowledgementMiddleware is extending it.
+        // The handler outlives AckWait, so a single delivery shows the deadline was extended.
         var cancellationToken = TestContext.Current.CancellationToken;
         var recorder = new MessageRecorder();
 

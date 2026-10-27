@@ -13,8 +13,7 @@ public class NatsMessageEnvelopeTests
         var headers = new Headers();
         headers.Set("x-tenant", "acme");
 
-        // A repeated header, which is what an inbound message with several values under one key
-        // parses back into. Included here so the round trip covers republishing one.
+        // A repeated header, as an inbound message with several values under one key parses into.
         headers.Set("x-forwarded-for", new[] { "10.0.0.1", "10.0.0.2" });
 
         return new MessageEnvelope
@@ -68,9 +67,6 @@ public class NatsMessageEnvelopeTests
         Assert.True(headers.TryGetLastValue(NatsMessageHeaders.MessageId, out var messageId));
         Assert.Equal(envelope.MessageId, messageId);
 
-        // The dedup key is written by the dispatch endpoint, which qualifies it by destination
-        // subject. Writing the bare identifier here would make any republish inside one stream
-        // look like a duplicate.
         Assert.False(headers.ContainsKey(NatsMessageHeaders.DeduplicationKey));
     }
 
@@ -162,8 +158,7 @@ public class NatsMessageEnvelopeTests
     public void Write_Should_FlattenLineBreaks_When_AValueSpansLines()
     {
         // arrange
-        // Mocha's fault middleware puts a stack trace in a header, and NATS rejects a value
-        // containing a line break.
+        // NATS rejects a header value containing a line break.
         var headers = new Headers();
         headers.Set("fault-stack-trace", "at Handler.HandleAsync()\r\n   at Pipeline.InvokeAsync()");
 
@@ -210,8 +205,7 @@ public class NatsMessageEnvelopeTests
     public void Write_Should_Throw_When_AHeaderKeyWouldCorruptFraming(string key)
     {
         // arrange
-        // NATS.Net does not validate keys, so an unchecked key here desynchronises the header block
-        // for everything else on the connection.
+        // NATS.Net does not validate header keys.
         var headers = new Headers();
         headers.Set(key, "value");
 
@@ -239,8 +233,6 @@ public class NatsMessageEnvelopeTests
         var envelope = CreateEnvelope();
 
         // act
-        // NATS.Net 3.0 no longer makes headers read-only after publishing, so sharing one instance
-        // across concurrent publishes would be unsafe.
         var first = NatsMessageHeadersWriter.Instance.Write(envelope);
         var second = NatsMessageHeadersWriter.Instance.Write(envelope);
 

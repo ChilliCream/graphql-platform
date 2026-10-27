@@ -14,8 +14,6 @@ public class ExplicitBindingTests(JetStreamFixture fixture)
     public async Task DiscoverTopology_Should_ClaimNothing_When_TheTransportBindsExplicitly()
     {
         // arrange
-        // Explicit binding hands topology ownership to the caller, so the transport must not derive a
-        // convention stream from the routes the way it does under implicit binding.
         await using var scope = await fixture.CreateScopeAsync();
         await using var bus = await new ServiceCollection()
             .AddSingleton(fixture.Connection)
@@ -27,8 +25,7 @@ public class ExplicitBindingTests(JetStreamFixture fixture)
                 nats.StreamName(scope.StreamName);
                 nats.BindExplicitly();
 
-                // Declared, so the caller owns it. Under explicit binding it has to capture the fault
-                // and skipped subjects too, since no convention stream is there to pick them up.
+                // Under explicit binding the declared stream captures the fault and skipped subjects too.
                 nats.DeclareStream("OWNED")
                     .Subject("mocha.test-helpers.>")
                     .Subject("mocha.transport.nats.tests.owned-ep_error")
@@ -56,9 +53,7 @@ public class ExplicitBindingTests(JetStreamFixture fixture)
     public async Task DiscoverTopology_Should_DeriveNoFilterSubjects_When_OneEndpointBindsExplicitly()
     {
         // arrange
-        // The per-endpoint override governs what that endpoint binds, matching RabbitMQ, whose dispatch
-        // side reads only the transport's mode. So the publish subject is still claimed here; what
-        // changes is that the endpoint stops deriving a filter subject from its handler's route.
+        // The publish subject is still claimed; only the endpoint stops deriving a filter subject.
         await using var scope = await fixture.CreateScopeAsync();
         await using var bus = await new ServiceCollection()
             .AddSingleton(fixture.Connection)
@@ -76,8 +71,6 @@ public class ExplicitBindingTests(JetStreamFixture fixture)
             .BuildTestBusAsync();
 
         // assert
-        // Only what Subject() named. Under implicit binding the handler's own OrderCreated subject
-        // would have been derived and added alongside it.
         var consumer = Assert.Single(bus.Topology.Consumers, c => c.Name == "owned-ep");
 
         Assert.Equal(["mocha.test-helpers.explicit-only"], consumer.FilterSubjects);
@@ -152,7 +145,6 @@ public class ExplicitBindingTests(JetStreamFixture fixture)
     public async Task Endpoint_Should_ConfigureItsConsumer_When_GivenAckSettings()
     {
         // arrange
-        // These used to be reachable only through DeclareConsumer, which needs the derived durable name.
         await using var scope = await fixture.CreateScopeAsync();
         await using var bus = await new ServiceCollection()
             .AddSingleton(fixture.Connection)
@@ -191,8 +183,6 @@ public class ExplicitBindingTests(JetStreamFixture fixture)
     public async Task Consumer_Should_StartAtTheEnd_When_NoDeliveryPolicyIsDeclared()
     {
         // arrange
-        // Streams are shared and retain independently of any consumer, so the default has to match a
-        // newly bound RabbitMQ queue and skip what was published before the consumer existed.
         await using var scope = await fixture.CreateScopeAsync();
         await using var bus = await new ServiceCollection()
             .AddSingleton(fixture.Connection)

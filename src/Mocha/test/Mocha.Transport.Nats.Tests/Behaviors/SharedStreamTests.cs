@@ -17,9 +17,7 @@ public class SharedStreamTests(JetStreamFixture fixture)
     public async Task StartAsync_Should_BindToTheOwningStream_When_AnotherServiceAlreadyCapturesTheSubject()
     {
         // arrange
-        // Convention subjects come from the message type, so both services derive the same subject,
-        // and JetStream requires stream subjects to be disjoint. The second service has to bind to
-        // the stream that already owns the subject rather than declaring a competing one.
+        // Both services derive the same subject from the message type.
         var billing = new MessageRecorder();
         var analytics = new MessageRecorder();
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -56,8 +54,7 @@ public class SharedStreamTests(JetStreamFixture fixture)
     public async Task StartAsync_Should_ReuseTheExistingStream_When_ItWasProvisionedOutsideTheTransport()
     {
         // arrange
-        // Ops-managed topology: the stream exists before any service starts, which is the documented
-        // production path.
+        // The stream exists before any service starts.
         var cancellationToken = TestContext.Current.CancellationToken;
         var recorder = new MessageRecorder();
 
@@ -94,9 +91,7 @@ public class SharedStreamTests(JetStreamFixture fixture)
     public async Task StartAsync_Should_StillCoverItsOwnSubjects_When_ItDeclaresAnotherServicesStream()
     {
         // arrange
-        // The documented recipe for removing the start-up ordering dependency: a subscriber declares
-        // the stream it consumes from. That must not leave the subscriber's own published subjects
-        // uncaptured, which previously failed start-up outright.
+        // The subscriber declares the stream it consumes from.
         var cancellationToken = TestContext.Current.CancellationToken;
         var recorder = new MessageRecorder();
 

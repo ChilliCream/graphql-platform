@@ -17,8 +17,7 @@ public class CustomHeaderTests(JetStreamFixture fixture)
     public async Task PublishAsync_Should_PropagateHeaders_When_CustomHeadersSet()
     {
         // arrange
-        // Includes a repeated header, which NATS carries as several values under one key and which the
-        // writer previously collapsed to the array's type name.
+        // Includes a repeated header, which NATS carries as several values under one key.
         var cancellationToken = TestContext.Current.CancellationToken;
         var capture = new HeaderCapture();
 

@@ -36,8 +36,6 @@ public class NatsSubjectVerificationTests
     public async Task VerifySubjectsAsync_Should_Throw_When_NoStreamCapturesAnErrorSubject()
     {
         // arrange
-        // Publishing to an uncaptured subject does not fail fast on JetStream, it times out, so this
-        // has to be caught while starting.
         var topology = TestTopology.Create();
 
         topology.AddStream(new NatsStreamConfiguration
@@ -56,8 +54,12 @@ public class NatsSubjectVerificationTests
                 CancellationToken.None));
 
         // assert
-        Assert.Contains("order-created_error", exception.Message, StringComparison.Ordinal);
-        Assert.Contains("times out waiting", exception.Message, StringComparison.Ordinal);
+        Assert.Equal(
+            "No stream captures subject 'order-created_error', which this service publishes to. Add "
+            + "it to a stream's subjects, or declare the stream that should capture it. Publishing "
+            + "to an uncaptured subject does not fail immediately, it times out waiting for an "
+            + "acknowledgement.",
+            exception.Message);
     }
 
     [Fact]

@@ -11,8 +11,7 @@ public class NatsNamingTests
         string expected)
     {
         // act and assert
-        // Note that "order-service" and "order.service" collide, so two services can derive one
-        // stream name.
+        // "order-service" and "order.service" derive the same stream name.
         Assert.Equal(expected, NatsNaming.ToStreamName(serviceName));
     }
 

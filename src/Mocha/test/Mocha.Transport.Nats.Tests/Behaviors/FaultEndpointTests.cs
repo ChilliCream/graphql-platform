@@ -13,9 +13,6 @@ public class FaultEndpointTests(JetStreamFixture fixture)
     public async Task FaultEndpoint_Should_ReplaceTheDerivedSubjects_When_AddressesAreGiven()
     {
         // arrange
-        // Fault and skipped subjects are derived from the endpoint name, which for some endpoints the
-        // framework names after a shared message type with no service scoping. Overriding the
-        // addresses is what lets two services keep their fault traffic apart.
         var cancellationToken = TestContext.Current.CancellationToken;
 
         var builder = Host.CreateApplicationBuilder();

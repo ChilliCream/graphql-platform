@@ -42,8 +42,7 @@ public class SubjectMatcherTests
     public void Collapse_Should_DropASubject_When_AnotherAlreadyCoversIt()
     {
         // arrange
-        // The transport derives a subject per message type and the caller may filter a wildcard over
-        // the same family, and JetStream rejects a set holding both.
+        // JetStream rejects a subject set holding both a subject and a wildcard covering it.
         string[] subjects = ["contracts.orders.cancel-order", "contracts.orders.>"];
 
         // act
@@ -97,8 +96,7 @@ public class SubjectMatcherTests
     public void Collapse_Should_KeepBoth_When_TwoWildcardsOverlapWithoutCovering()
     {
         // arrange
-        // Neither covers the other, though both capture contracts.orders.cancel-order. Only a covering
-        // subject is collapsed; the server rejects this combination naming the overlap.
+        // Only a covering subject is collapsed.
         string[] subjects = ["contracts.*.cancel-order", "contracts.orders.>"];
 
         // act

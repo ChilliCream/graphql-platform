@@ -49,9 +49,7 @@ public class EndToEndTests(JetStreamFixture fixture)
     public async Task PublishAsync_Should_RedeliverUntilItSucceeds_When_TheHandlerFailsOnce()
     {
         // arrange
-        // Redelivery has to be asked for. The default policy dead-letters a failing message rather
-        // than returning it to the transport, so without the retry policy the handler is never called
-        // again.
+        // The retry policy returns a failed message to the transport; the default dead-letters it.
         var cancellationToken = TestContext.Current.CancellationToken;
         var counter = new InvocationCounter();
         var recorder = new MessageRecorder();
@@ -113,8 +111,7 @@ public class EndToEndTests(JetStreamFixture fixture)
             Assert.Equal(stream.Name, provisioned.Info.Config.Name);
             Assert.All(topology.Consumers, c => Assert.Equal(stream.Name, c.StreamName));
 
-            // A reply inbox captured in a stream would persist every response, so core subjects must
-            // stay out of it.
+            // Core subjects stay out of the stream.
             Assert.Equal(
                 [],
                 topology.Subjects

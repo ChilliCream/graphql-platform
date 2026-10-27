@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Events;
 using Mocha.Transport.Nats.Tests.Fixtures;
@@ -12,6 +13,8 @@ namespace Mocha.Transport.Nats.Tests.Behaviors;
 public class FaultHandlingTests(JetStreamFixture fixture)
 {
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
+
+    private static readonly JsonSerializerOptions s_json = new(JsonSerializerDefaults.Web);
 
     [Fact]
     public async Task RequestAsync_Should_ThrowRemoteError_When_HandlerThrows()
@@ -37,15 +40,16 @@ public class FaultHandlingTests(JetStreamFixture fixture)
                 CancellationToken.None));
 
         // assert
-        Assert.Contains("InvalidOperationException", exception.Message);
+        Assert.Equal(
+            "Remote error occurred: Exception - The message faulted with an exception of type "
+            + "System.InvalidOperationException",
+            exception.Message);
     }
 
     [Fact]
     public async Task PublishAsync_Should_NotAffectOtherHandlers_When_OneHandlerThrows()
     {
         // arrange
-        // Each handler gets its own durable, so one failing must not stall the others. This is the
-        // shape of a service that handles several message types on one bus.
         var throwingRecorder = new MessageRecorder();
         var normalRecorder = new MessageRecorder();
         await using var scope = await fixture.CreateScopeAsync();
@@ -78,8 +82,6 @@ public class FaultHandlingTests(JetStreamFixture fixture)
     public async Task SendAsync_Should_LandOnTheErrorSubject_When_TheHandlerAlwaysFails()
     {
         // arrange
-        // Send and Publish converge on one subject, so the faulted copy has to reach the error subject
-        // from either entry point.
         var recorder = new MessageRecorder();
         await using var scope = await fixture.CreateScopeAsync();
         await using var bus = await new ServiceCollection()
@@ -105,12 +107,10 @@ public class FaultHandlingTests(JetStreamFixture fixture)
         Assert.True(await recorder.WaitAsync(s_timeout), "The handler never ran.");
 
         // assert
+        // The faulted copy keeps the original payload.
         var body = await WaitForSubjectBodyAsync(stream.Name, errorSubject, s_timeout);
-
-        Assert.NotNull(body);
-
-        // The faulted copy keeps the original payload, so the error subject is replayable.
-        Assert.Contains("ORD-SEND-FAIL", body);
+        var order = JsonSerializer.Deserialize<OrderCreated>(body ?? "null", s_json);
+        Assert.Equal("ORD-SEND-FAIL", order?.OrderId);
     }
 
     private async Task<string?> WaitForSubjectBodyAsync(
