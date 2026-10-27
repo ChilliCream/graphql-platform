@@ -14,7 +14,7 @@ public class OperationPlanCacheMiddlewareTests : FusionTestBase
         var cacheDiagnostics = new CountingCacheDiagnostics();
         var listener = new PlanCacheListener();
         var planSetOnEntry = new List<bool>();
-        var executor = await new ServiceCollection()
+        await using var services = new ServiceCollection()
             .AddHttpClient()
             .AddGraphQLGateway()
             .ModifyOptions(o => o.OperationExecutionPlanCacheDiagnostics = cacheDiagnostics)
@@ -35,12 +35,15 @@ public class OperationPlanCacheMiddlewareTests : FusionTestBase
                     }
                     """))
             .Services
-            .BuildServiceProvider()
-            .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+            .BuildServiceProvider();
+        var executor = await services.GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        await executor.ExecuteAsync("{ __typename }", TestContext.Current.CancellationToken);
-        var result = await executor.ExecuteAsync("{ __typename }", TestContext.Current.CancellationToken);
+        await using var warmupResult = await executor.ExecuteAsync(
+            "{ __typename }",
+            TestContext.Current.CancellationToken);
+        await using var result = await executor.ExecuteAsync("{ __typename }", TestContext.Current.CancellationToken);
 
         // assert
         Snapshot.Create()

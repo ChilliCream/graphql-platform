@@ -14,7 +14,7 @@ public class DocumentCacheMiddlewareTests : FusionTestBase
         var listener = new DocumentCacheListener();
         var documentInfos = new List<object>();
         OperationDocumentId documentId = default;
-        var executor = await new ServiceCollection()
+        await using var services = new ServiceCollection()
             .AddHttpClient()
             .AddGraphQLGateway()
             .AddDiagnosticEventListener(_ => listener)
@@ -49,13 +49,16 @@ public class DocumentCacheMiddlewareTests : FusionTestBase
                     }
                     """))
             .Services
-            .BuildServiceProvider()
-            .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+            .BuildServiceProvider();
+        var executor = await services.GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        await executor.ExecuteAsync("{ __typename }", TestContext.Current.CancellationToken);
+        await using var warmupResult = await executor.ExecuteAsync(
+            "{ __typename }",
+            TestContext.Current.CancellationToken);
         using var request = OperationRequestBuilder.New().SetDocumentId(documentId).Build();
-        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+        await using var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Snapshot.Create()
