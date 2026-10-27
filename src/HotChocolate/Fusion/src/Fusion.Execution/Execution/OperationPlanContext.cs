@@ -178,6 +178,12 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     public bool CollectTelemetry => _collectTelemetry;
 
     /// <summary>
+    /// Gets or sets whether the execution token is canceled within <see cref="ExecutionDeadline.MaxTimeout"/>
+    /// of the start of any source schema request that this execution sends.
+    /// </summary>
+    internal bool HasExecutionDeadline { get; set; }
+
+    /// <summary>
     /// Gets the feature collection associated with the current request.
     /// </summary>
     public IFeatureCollection Features => RequestContext.Features;
