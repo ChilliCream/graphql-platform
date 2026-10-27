@@ -62,6 +62,11 @@ an explicit snapshot-update argument is supplied. Review screenshot diffs before
 accepting updates: the shared renderer prevents OS, font and browser drift, but
 does not add missing baselines or fix unintended UI changes.
 
+Stories tagged `visual-reduced-motion` capture their authored static state with
+`prefers-reduced-motion: reduce` applied before navigation; untagged stories keep
+the default media preference. InsightsWindow and ProtectWindow opt in to capture
+complete telemetry and static publish verdicts.
+
 ## Authoring Markdown Content
 
 Docs live in `content/docs/<product>/...` as Markdown (`.md`) files and are
