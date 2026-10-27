@@ -229,7 +229,7 @@ public sealed partial class SourceResultDocument
         /// <summary>
         /// Gets the read-only rows written so far. The builder must not be written to afterwards.
         /// </summary>
-        internal readonly ParsedMetaDb Freeze()
+        internal readonly ReadOnlyMetaDb Freeze()
 #if DEBUG
             => new(_chunks, _cursor);
 #else
@@ -285,19 +285,19 @@ public sealed partial class SourceResultDocument
     /// <summary>
     /// The read-only rows of a parsed document.
     /// </summary>
-    internal readonly struct ParsedMetaDb
+    internal readonly struct ReadOnlyMetaDb
     {
         private readonly MemorySegment[] _chunks;
 #if DEBUG
         private readonly Cursor _end;
 
-        public ParsedMetaDb(MemorySegment[] chunks, Cursor end)
+        public ReadOnlyMetaDb(MemorySegment[] chunks, Cursor end)
         {
             _chunks = chunks;
             _end = end;
         }
 #else
-        public ParsedMetaDb(MemorySegment[] chunks)
+        public ReadOnlyMetaDb(MemorySegment[] chunks)
         {
             _chunks = chunks;
         }

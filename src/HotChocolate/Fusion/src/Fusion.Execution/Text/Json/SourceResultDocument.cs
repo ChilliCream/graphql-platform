@@ -12,7 +12,7 @@ namespace HotChocolate.Fusion.Text.Json;
 public sealed partial class SourceResultDocument : IDisposable
 {
     private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
-    private ParsedMetaDb _parsedData;
+    private ReadOnlyMetaDb _parsedData;
 
     // the packed value of the cursor directly after the last parsed row
     private readonly uint _parsedDataEnd;
