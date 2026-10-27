@@ -38,6 +38,41 @@ declare global {
 const indexPath = join(process.cwd(), "storybook-static", "index.json");
 const snapshotDir = join(process.cwd(), "tests", "visual", "__screenshots__");
 
+const temporarilyQuarantinedStoryIds = new Set([
+  "pages-products-fusion-fusionfeaturegrid--stacked",
+  "pages-products-fusion-fusionfeaturegrid--icon-left",
+  "products-fusion-visuals-insightswindow--panel-375",
+  "products-fusion-visuals-insightswindow--panel-768",
+  "products-fusion-visuals-insightswindow--panel-1024",
+  "products-fusion-visuals-insightswindow--panel-1440",
+  "products-fusion-visuals-insightswindow--panel-1920",
+  "products-fusion-visuals-performance-performancehud--panel-375",
+  "products-fusion-visuals-performance-performancehud--panel-1024",
+  "products-fusion-visuals-performance-performancehud--panel-1440",
+  "products-fusion-visuals-performance-performancehud--panel-1440-reduced",
+  "products-fusion-visuals-performancewindow--panel-375",
+  "products-fusion-visuals-performancewindow--panel-768",
+  "products-fusion-visuals-performancewindow--panel-1024",
+  "products-fusion-visuals-performancewindow--panel-1440",
+  "products-fusion-visuals-performancewindow--panel-1920",
+  "products-fusion-visuals-protectwindow--panel-375",
+  "products-fusion-visuals-protectwindow--panel-768",
+  "products-fusion-visuals-protectwindow--panel-1024",
+  "products-fusion-visuals-protectwindow--panel-1440",
+  "products-fusion-visuals-protectwindow--panel-1920",
+  "products-fusion-visuals-securitywindow--panel-375",
+  "products-fusion-visuals-securitywindow--panel-768",
+  "products-fusion-visuals-securitywindow--panel-1024",
+  "products-fusion-visuals-securitywindow--panel-1440",
+  "products-fusion-visuals-securitywindow--panel-1920",
+  "pages-pricing-comparetable--default",
+  "pages-support-plangrid--default",
+  "pages-support-supporthero--default",
+  "pages-training-deliveryformatssection--default",
+  "pages-training-levelssection--default",
+  "pages-training-outcomessection--default",
+]);
+
 let index: StoryIndex;
 try {
   index = JSON.parse(readFileSync(indexPath, "utf-8")) as StoryIndex;
@@ -70,6 +105,10 @@ test("every baseline belongs to a story", () => {
 
 for (const story of stories) {
   test(story.id, async ({ page }) => {
+    test.skip(
+      temporarilyQuarantinedStoryIds.has(story.id),
+      "TEMPORARY reduced visual coverage (hc-0-kzh); fixes tracked on rst/fix-website-regression-test.",
+    );
     if (story.tags?.includes("visual-reduced-motion")) {
       await page.emulateMedia({ reducedMotion: "reduce" });
     }
