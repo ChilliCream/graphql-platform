@@ -216,7 +216,7 @@ public sealed class NatsRoutingStrategy : RoutingStrategy<NatsMessagingTransport
         Topology.AddConsumer(new NatsConsumerConfiguration
         {
             InactiveThreshold = natsConfiguration.IsTemporary
-                ? NatsConsumer.DefaultTemporaryInactiveThreshold
+                ? natsConfiguration.TemporaryInactiveThreshold ?? NatsConsumer.DefaultTemporaryInactiveThreshold
                 : null,
             Name = natsConfiguration.ConsumerName,
             StreamName = natsConfiguration.StreamName,
@@ -270,10 +270,9 @@ public sealed class NatsRoutingStrategy : RoutingStrategy<NatsMessagingTransport
         if (Topology.Consumers.FirstOrDefault(c => c.Name == configuration.ConsumerName)
             is { Origin: TopologyOrigin.Declared, IsTemporary: false })
         {
-            throw new InvalidOperationException(
-                $"Consumer '{configuration.ConsumerName}' is explicitly declared without an inactive "
-                + $"threshold, which conflicts with receive endpoint '{configuration.Name}' being "
-                + "marked Temporary(). Remove the declaration or Temporary() from the endpoint.");
+            throw ThrowHelper.TemporaryEndpointConsumerDeclaredPersistent(
+                configuration.Name,
+                configuration.ConsumerName!);
         }
     }
 

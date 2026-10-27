@@ -57,4 +57,11 @@ public sealed class NatsReceiveEndpointConfiguration : ReceiveEndpointConfigurat
     /// Gets or sets where the consumer starts reading when it is created.
     /// </summary>
     public ConsumerConfigDeliverPolicy? DeliverPolicy { get; set; }
+
+    /// <summary>
+    /// Gets or sets how long a temporary endpoint's consumer may go unread before the server deletes
+    /// it. When <see langword="null"/> and <see cref="ReceiveEndpointConfiguration.IsTemporary"/> is
+    /// set, <see cref="NatsConsumer.DefaultTemporaryInactiveThreshold"/> applies.
+    /// </summary>
+    public TimeSpan? TemporaryInactiveThreshold { get; set; }
 }

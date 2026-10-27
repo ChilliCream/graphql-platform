@@ -447,6 +447,20 @@ if (scheduled.Token is { } token)
 
 Cancellation reports `false` once the message has been released to its target, and for a token that was already cancelled. In both cases there is no schedule left to withdraw.
 
+# Temporary receive endpoints
+
+Call `Temporary()` on a receive endpoint descriptor to scope its consumer to the lifetime of the consuming process:
+
+```csharp
+nats.Endpoint("order-notifications")
+    .Handler<OrderCreatedHandler>()
+    .Temporary();
+```
+
+The consumer is deleted when the endpoint stops gracefully. A process that ends without stopping leaves the consumer to the server, which deletes it once nothing has read it for its inactive threshold, ten seconds by default. Use `Temporary(TimeSpan inactiveThreshold)` for a different threshold. Mocha throws `ArgumentOutOfRangeException` for a value that is not greater than zero.
+
+If the endpoint's consumer is already declared through `DeclareConsumer(...)` without an inactive threshold, startup fails with an explicit error instead of silently discarding the `Temporary()` configuration.
+
 # Failure handling
 
 A handler that fails is negatively acknowledged and redelivered according to the consumer's `MaxDeliver` and `Backoff`. Once Mocha's resilience policy gives up, the message is republished to the endpoint's error subject, which the transport verifies is captured by a stream at start-up.

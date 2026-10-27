@@ -121,8 +121,6 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
             {
                 if (restarting)
                 {
-                    // A temporary consumer may have been deleted by the server while nothing read
-                    // it, so it is recreated rather than looked up.
                     if (consumer.IsTemporary)
                     {
                         await consumer.ProvisionAsync(transport.JetStream, token);
@@ -214,11 +212,39 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
             }
         }
 
+        if (Consumer is { IsTemporary: true, StreamName: { } streamName } consumer
+            && transport.ShouldProvision(consumer))
+        {
+            await DeleteTemporaryConsumerAsync(streamName, consumer.Name, cancellationToken);
+        }
+
         _stopping.Dispose();
         _stopping = null;
         _aborting?.Dispose();
         _aborting = null;
         _consumeLoop = null;
+    }
+
+    /// <summary>
+    /// Deletes a temporary endpoint's consumer, leaving it to the server's inactive threshold when
+    /// the deletion fails.
+    /// </summary>
+    private async Task DeleteTemporaryConsumerAsync(
+        string streamName,
+        string consumerName,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await transport.JetStream.DeleteConsumerAsync(streamName, consumerName, cancellationToken);
+        }
+        catch (NatsJSApiException exception) when (exception.Error.Code == 404)
+        {
+        }
+        catch (Exception exception)
+        {
+            _logger.TemporaryConsumerCleanupFailed(exception, consumerName);
+        }
     }
 
     /// <summary>

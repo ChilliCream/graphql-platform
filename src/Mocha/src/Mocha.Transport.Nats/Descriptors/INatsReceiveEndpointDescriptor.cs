@@ -31,10 +31,18 @@ public interface INatsReceiveEndpointDescriptor
 
     /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.Temporary" />
     /// <remarks>
-    /// The durable consumer is given an inactive threshold, so the server deletes it once no
-    /// instance has read from it for <see cref="NatsConsumer.DefaultTemporaryInactiveThreshold"/>.
+    /// The consumer is deleted when the endpoint stops gracefully, and otherwise by the server once
+    /// nothing has read it for <see cref="NatsConsumer.DefaultTemporaryInactiveThreshold"/>.
     /// </remarks>
     new INatsReceiveEndpointDescriptor Temporary();
+
+    /// <summary>
+    /// Marks this receive endpoint as temporary, with the inactive threshold after which the server
+    /// deletes its consumer when the endpoint did not stop gracefully.
+    /// </summary>
+    /// <param name="inactiveThreshold">The inactive threshold. Must be greater than zero.</param>
+    /// <returns>The descriptor for method chaining.</returns>
+    INatsReceiveEndpointDescriptor Temporary(TimeSpan inactiveThreshold);
 
     /// <summary>
     /// Reads from a specific stream instead of resolving the owning stream at start-up.

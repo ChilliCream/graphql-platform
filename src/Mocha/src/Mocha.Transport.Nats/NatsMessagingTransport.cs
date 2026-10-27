@@ -429,7 +429,11 @@ public sealed class NatsMessagingTransport : MessagingTransport
         }
     }
 
-    private bool ShouldProvision(INatsResource resource)
+    /// <summary>
+    /// Gets a value indicating whether the transport creates and removes <paramref name="resource"/>.
+    /// </summary>
+    /// <param name="resource">The stream or consumer.</param>
+    internal bool ShouldProvision(INatsResource resource)
         => resource.AutoProvision ?? _topology.AutoProvision;
 
     private void AssertStreamSupported(NatsStream stream)
