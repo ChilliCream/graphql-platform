@@ -23,13 +23,13 @@ Open your preferred terminal and select a directory where you want to add the co
 
 1. Create a dotnet tool-manifest.
 
-```bash
+```shell
 dotnet new tool-manifest
 ```
 
 2. Install the Strawberry Shake tools.
 
-```bash
+```shell
 dotnet tool install StrawberryShake.Tools --local
 ```
 
@@ -39,19 +39,19 @@ Next, we will create our Blazor project so that we have a little playground.
 
 1. First, a new solution called `Demo.sln`.
 
-```bash
+```shell
 dotnet new sln --name Demo
 ```
 
 2. Create a new Blazor for WebAssembly application.
 
-```bash
+```shell
 dotnet new blazorwasm --name Demo
 ```
 
 3. Add the project to the solution `Demo.sln`.
 
-```bash
+```shell
 dotnet sln add ./Demo
 ```
 
@@ -61,13 +61,13 @@ Strawberry Shake supports multiple GraphQL transport protocols. In this example 
 
 1. Add the `StrawberryShake.Blazor` package to your project.
 
-```bash
+```shell
 dotnet add Demo package StrawberryShake.Blazor
 ```
 
 # Step 4: Add a GraphQL client to your project using the CLI tools
 
-To add a client to your project, you need to run `dotnet graphql init {{ServerUrl}} --clientName {{ClientName}}`.
+To add a client to your project, you need to run `#!shell dotnet graphql init {{ServerUrl}} --clientName {{ClientName}}`.
 
 In this tutorial we will use our ChilliCream demo project to create a list of cryptocurrencies that we will add to our Blazor application.
 
@@ -75,7 +75,7 @@ In this tutorial we will use our ChilliCream demo project to create a list of cr
 
 1. Add the crypto client to your Blazor application.
 
-```bash
+```shell
 dotnet graphql init https://demo.chillicream.com/graphql/ --clientName CryptoClient --Path ./Demo
 ```
 
@@ -109,7 +109,7 @@ Now that everything is in place let us write our first query to ask for a list o
 
 3. Choose your favorite IDE and the solution. If your are using VSCode do the following:
 
-```bash
+```shell
 code ./Demo
 ```
 
@@ -132,7 +132,7 @@ query GetAssets {
 
 5. Compile your project.
 
-```bash
+```shell
 dotnet build
 ```
 
@@ -237,7 +237,7 @@ In this section we will integrate the Razor component and print a simple list on
 </UseGetAssets>
 ```
 
-5. Start the Blazor application with `dotnet watch --project ./Demo` and see if your code works.
+5. Start the Blazor application with `#!shell dotnet watch --project ./Demo` and see if your code works.
 
 ![Started Blazor application in Microsoft Edge](../../../../public/images/strawberryshake-docs/berry_asset_list.png)
 

@@ -137,6 +137,7 @@ public sealed class IgnoredObjectFieldIntegrationTests(PostgreSqlResource resour
 
         services
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddCustomTypes()
             .AddGlobalObjectIdentification()
             .AddPagingArguments()

@@ -10,8 +10,10 @@ using HotChocolate.Adapters.Mcp.Storage;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using ModelContextProtocol;
@@ -21,7 +23,7 @@ using ModelContextProtocol.Server;
 
 namespace HotChocolate.Adapters.Mcp;
 
-public abstract class IntegrationTestBase
+public abstract class IntegrationTestBase : IAsyncDisposable
 {
     [Fact]
     public async Task ListPrompts_Valid_ReturnsPrompts()
@@ -1601,12 +1603,44 @@ public abstract class IntegrationTestBase
         Assert.Equal(TimeSpan.FromSeconds(10), options.InitializationTimeout);
     }
 
+    [Fact]
+    public async Task AddMcp_Should_NotDisposeRootLoggerFactory_When_SchemaServicesAreDisposed()
+    {
+        // arrange
+        var server = await CreateTestServerAsync(new TestMcpStorage());
+        var loggerFactory = server.Services.GetRequiredService<ILoggerFactory>();
+        var executor = await server.Services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        var schemaLoggerFactory = executor.Schema.Services.GetRequiredService<ILoggerFactory>();
+
+        // act
+        await ((IAsyncDisposable)executor.Schema.Services).DisposeAsync();
+
+        // assert
+        Assert.Same(loggerFactory, schemaLoggerFactory);
+        Assert.Null(Record.Exception(() => loggerFactory.CreateLogger("Test")));
+    }
+
     protected abstract Task<TestServer> CreateTestServerAsync(
         IMcpStorage storage,
         ITypeDefinition[]? additionalTypes = null,
         McpDiagnosticEventListener? diagnosticEventListener = null,
         Action<McpServerOptions>? configureMcpServerOptions = null,
         Action<IMcpServerBuilder>? configureMcpServer = null);
+
+    protected void StopAndDisposeAfterTest(WebApplication app) => _ownedApps.Add(app);
+
+    public async ValueTask DisposeAsync()
+    {
+        for (var i = _ownedApps.Count - 1; i >= 0; i--)
+        {
+            await _ownedApps[i].StopAsync();
+            await _ownedApps[i].DisposeAsync();
+        }
+
+        _ownedApps.Clear();
+        GC.SuppressFinalize(this);
+    }
 
     protected static async Task<McpClient> CreateMcpClientAsync(
         HttpClient httpClient,
@@ -1636,6 +1670,8 @@ public abstract class IntegrationTestBase
     protected const string TokenIssuer = "test-issuer";
     protected const string TokenAudience = "test-audience";
     protected static readonly SymmetricSecurityKey TokenKey = new("test-secret-key-at-least-32-bytes"u8.ToArray());
+
+    private readonly List<WebApplication> _ownedApps = [];
 
     private static readonly string[] s_list = ["test"];
 

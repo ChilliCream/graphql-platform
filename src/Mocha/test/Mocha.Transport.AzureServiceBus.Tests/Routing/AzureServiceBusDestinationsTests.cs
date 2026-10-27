@@ -15,7 +15,7 @@ public class AzureServiceBusDestinationsTests
 
         var resolution = AzureServiceBusDestinations.Resolve(
             AzureServiceBusTransportConfiguration.DefaultSchema,
-            LocalNamespace,
+            s_localNamespace,
             runtime.Naming,
             route);
 
@@ -34,7 +34,7 @@ public class AzureServiceBusDestinationsTests
 
         var resolution = AzureServiceBusDestinations.Resolve(
             AzureServiceBusTransportConfiguration.DefaultSchema,
-            LocalNamespace,
+            s_localNamespace,
             runtime.Naming,
             route);
 
@@ -54,7 +54,7 @@ public class AzureServiceBusDestinationsTests
 
         var resolution = AzureServiceBusDestinations.Resolve(
             AzureServiceBusTransportConfiguration.DefaultSchema,
-            LocalNamespace,
+            s_localNamespace,
             runtime.Naming,
             route);
 
@@ -74,7 +74,7 @@ public class AzureServiceBusDestinationsTests
 
         var resolution = AzureServiceBusDestinations.Resolve(
             AzureServiceBusTransportConfiguration.DefaultSchema,
-            LocalNamespace,
+            s_localNamespace,
             runtime.Naming,
             route);
 
@@ -164,7 +164,7 @@ public class AzureServiceBusDestinationsTests
         // act
         var resolution = AzureServiceBusDestinations.Resolve(
             AzureServiceBusTransportConfiguration.DefaultSchema,
-            LocalNamespace,
+            s_localNamespace,
             runtime.Naming,
             route);
 
@@ -186,7 +186,7 @@ public class AzureServiceBusDestinationsTests
         // act
         var resolution = AzureServiceBusDestinations.Resolve(
             AzureServiceBusTransportConfiguration.DefaultSchema,
-            LocalNamespace,
+            s_localNamespace,
             runtime.Naming,
             route);
 
@@ -290,7 +290,7 @@ public class AzureServiceBusDestinationsTests
         // act
         var resolution = AzureServiceBusDestinations.Resolve(
             AzureServiceBusTransportConfiguration.DefaultSchema,
-            LocalNamespace,
+            s_localNamespace,
             runtime.Naming,
             route);
 
@@ -313,7 +313,7 @@ public class AzureServiceBusDestinationsTests
         // act
         var resolution = AzureServiceBusDestinations.Resolve(
             AzureServiceBusTransportConfiguration.DefaultSchema,
-            LocalNamespace,
+            s_localNamespace,
             runtime.Naming,
             route);
 
@@ -406,5 +406,5 @@ public class AzureServiceBusDestinationsTests
     private const string DummyConnectionString =
         "Endpoint=sb://localhost/;SharedAccessKeyName=test;SharedAccessKey=test";
 
-    private static readonly Uri LocalNamespace = new("azuresb://localhost/");
+    private static readonly Uri s_localNamespace = new("azuresb://localhost/");
 }

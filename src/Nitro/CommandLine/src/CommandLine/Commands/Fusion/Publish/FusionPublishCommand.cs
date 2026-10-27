@@ -4,7 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
-using ChilliCream.Nitro.CommandLine.Commands.Fusion.Publish;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
@@ -296,6 +295,7 @@ internal sealed class FusionPublishCommand : Command
             Func<Task<Stream>> prepareArchive)
         {
             string? requestId = null;
+            var published = false;
             if (legacyArchiveFile is not null)
             {
                 requestId = await FusionConfigurationPublishingState.GetRequestId(fileSystem, cancellationToken);
@@ -379,9 +379,6 @@ internal sealed class FusionPublishCommand : Command
                     }
                     else if (!force)
                     {
-                        // Write directly instead of throwing so the release-slot fallback
-                        // in the outer catch is not triggered — the publish hasn't actually
-                        // reserved any remote state that needs tearing down here.
                         console.Error.WriteErrorLine("Fusion configuration failed validation.");
                         return ExitCodes.Error;
                     }
@@ -410,15 +407,16 @@ internal sealed class FusionPublishCommand : Command
                 if (uploaded)
                 {
                     activity.Success($"Published configuration '{tag}' to '{stageName}'.");
+                    published = true;
 
                     return ExitCodes.Success;
                 }
 
                 return ExitCodes.Error;
             }
-            catch
+            finally
             {
-                if (!string.IsNullOrEmpty(requestId))
+                if (!published && !string.IsNullOrEmpty(requestId))
                 {
                     try
                     {
@@ -455,8 +453,6 @@ internal sealed class FusionPublishCommand : Command
                         console.Error.WriteErrorLine("This is the error that caused the publishing process to fail in the first place:");
                     }
                 }
-
-                throw;
             }
         }
     }

@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Mocha.Features;
 using Mocha.Threading;
 using Mocha.Transport.Postgres.Features;
 
@@ -118,14 +117,24 @@ public sealed class PostgresReceiveEndpoint(PostgresMessagingTransport transport
                         continue;
                     }
 
-                    await Parallel.ForEachAsync(
-                        batch.Messages,
-                        new ParallelOptions
+                    try
+                    {
+                        await Parallel.ForEachAsync(
+                            batch.Messages,
+                            new ParallelOptions
+                            {
+                                MaxDegreeOfParallelism = _maxConcurrency,
+                                CancellationToken = cancellationToken
+                            },
+                            (message, ct) => new ValueTask(ProcessMessageAsync(message, logger, ct)));
+                    }
+                    finally
+                    {
+                        if (cancellationToken.IsCancellationRequested)
                         {
-                            MaxDegreeOfParallelism = _maxConcurrency,
-                            CancellationToken = cancellationToken
-                        },
-                        (message, ct) => new ValueTask(ProcessMessageAsync(message, logger, ct)));
+                            await ReleaseLeasedMessagesAsync(batch, logger);
+                        }
+                    }
 
                     // If we got a full batch, there may be more messages
                     hasMore = batch.Count >= _maxBatchSize;
@@ -190,27 +199,68 @@ public sealed class PostgresReceiveEndpoint(PostgresMessagingTransport transport
                 },
                 message,
                 cancellationToken);
-
-            await transport.MessageStore.DeleteMessageAsync(
-                message.TransportMessageId,
-                cancellationToken);
+        }
+        catch (Exception) when (cancellationToken.IsCancellationRequested)
+        {
+            // The stop interrupted the handler. The message keeps its lease here and is released
+            // together with the rest of the batch, which also undoes its delivery count bump.
+            return;
         }
         catch (Exception ex)
         {
-            logger.MessageProcessingFailed(ex, message.TransportMessageId);
+            await ReleaseFailedMessageAsync(message, ex, logger);
+            return;
+        }
 
-            try
-            {
-                var errorInfo = ErrorInfo.From(ex);
-                await transport.MessageStore.ReleaseMessageAsync(
-                    message.TransportMessageId,
-                    errorInfo,
-                    cancellationToken);
-            }
-            catch (Exception releaseEx)
-            {
-                logger.MessageReleaseFailed(releaseEx, message.TransportMessageId);
-            }
+        try
+        {
+            // The message was handled, so it is deleted even when the endpoint is stopping.
+            await transport.MessageStore.DeleteMessageAsync(
+                message.TransportMessageId,
+                CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            await ReleaseFailedMessageAsync(message, ex, logger);
+        }
+    }
+
+    private async Task ReleaseFailedMessageAsync(PostgresMessageItem message, Exception exception, ILogger logger)
+    {
+        logger.MessageProcessingFailed(exception, message.TransportMessageId);
+
+        try
+        {
+            var errorInfo = ErrorInfo.From(exception);
+            await transport.MessageStore.ReleaseMessageAsync(
+                message.TransportMessageId,
+                errorInfo,
+                CancellationToken.None);
+        }
+        catch (Exception releaseEx)
+        {
+            logger.MessageReleaseFailed(releaseEx, message.TransportMessageId);
+        }
+    }
+
+    private async Task ReleaseLeasedMessagesAsync(PostgresMessageBatch batch, ILogger logger)
+    {
+        var transportMessageIds = new Guid[batch.Count];
+        for (var i = 0; i < transportMessageIds.Length; i++)
+        {
+            transportMessageIds[i] = batch.Messages[i].TransportMessageId;
+        }
+
+        try
+        {
+            await transport.MessageStore.ReleaseLeasedMessagesAsync(
+                transportMessageIds,
+                _consumerId,
+                CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            logger.LeasedMessagesReleaseFailed(ex, Queue.Name);
         }
     }
 
@@ -301,6 +351,9 @@ internal static partial class Logs
 
     [LoggerMessage(LogLevel.Error, "Error releasing message {TransportMessageId}.")]
     public static partial void MessageReleaseFailed(this ILogger logger, Exception exception, Guid transportMessageId);
+
+    [LoggerMessage(LogLevel.Error, "Error releasing the leased messages of queue {QueueName} while stopping.")]
+    public static partial void LeasedMessagesReleaseFailed(this ILogger logger, Exception exception, string queueName);
 
     [LoggerMessage(LogLevel.Warning, "Database is unreachable for queue {QueueName}, waiting for connectivity to resume.")]
     public static partial void WaitingForDatabase(this ILogger logger, string queueName);

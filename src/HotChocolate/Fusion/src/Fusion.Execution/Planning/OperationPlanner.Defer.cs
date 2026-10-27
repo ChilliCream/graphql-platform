@@ -1,12 +1,12 @@
 using System.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
-using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Planning.Partitioners;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Rewriters;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using ThrowHelper = HotChocolate.Fusion.Execution.ThrowHelper;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -20,7 +20,7 @@ public sealed partial class OperationPlanner
         string id,
         DeferSplitResult splitResult,
         PlanContextGraph contextGraph,
-        bool emitPlannerEvents,
+        PlanningBudget budget,
         CancellationToken cancellationToken)
     {
         if (splitResult.IncrementalPlanDescriptors.IsEmpty)
@@ -54,7 +54,7 @@ public sealed partial class OperationPlanner
                 id,
                 descriptor,
                 i,
-                emitPlannerEvents,
+                budget,
                 cancellationToken);
 
             var rewrittenIncrementalPlan = ApplyDeferRequirementsToParent(
@@ -146,7 +146,8 @@ public sealed partial class OperationPlanner
             var (rootNodes, allNodes) = BuildDeferredExecutionNodes(
                 registeredInternalOp,
                 finalSteps,
-                finalSteps.NextId());
+                finalSteps.NextId(),
+                cancellationToken);
 
             var compiledOp = AddTypeNameToAbstractSelections(
                 registeredInternalOp,
@@ -188,7 +189,7 @@ public sealed partial class OperationPlanner
         string operationId,
         IncrementalPlanDescriptor descriptor,
         int incrementalPlanId,
-        bool emitPlannerEvents,
+        PlanningBudget budget,
         CancellationToken cancellationToken)
     {
         var deferredOperation = descriptor.Operation;
@@ -220,6 +221,7 @@ public sealed partial class OperationPlanner
             SelectionSet selectionSet;
             (node, selectionSet) = CreateQueryPlanBase(deferredOperation, "defer", index);
 
+            // Nothing to fetch: the deferred operation selects no field that needs a source.
             if (node.Backlog.IsEmpty)
             {
                 return new DeferIncrementalPlanResult([], null);
@@ -275,6 +277,7 @@ public sealed partial class OperationPlanner
                 SelectionSet mutationSelectionSet;
                 (node, mutationSelectionSet) = CreateMutationPlanBase(deferredOperation, "defer", index);
 
+                // Nothing to fetch: the deferred operation selects no field that needs a source.
                 if (node.Backlog.IsEmpty)
                 {
                     return new DeferIncrementalPlanResult([], null);
@@ -318,7 +321,7 @@ public sealed partial class OperationPlanner
             possiblePlans.Enqueue(node);
         }
 
-        var plan = Plan(operationId + "#defer_" + incrementalPlanId, possiblePlans, emitPlannerEvents, cancellationToken);
+        var plan = Plan(operationId + "#defer_" + incrementalPlanId, possiblePlans, budget, cancellationToken);
 
         if (!plan.HasValue)
         {
@@ -331,7 +334,7 @@ public sealed partial class OperationPlanner
                 throw new DeferredMutationLookupRequiredException(descriptor.Path, mutationAnchorType.Name);
             }
 
-            return new DeferIncrementalPlanResult([], null);
+            throw ThrowHelper.DeferredPlanNotFound(descriptor.Path);
         }
 
         return new DeferIncrementalPlanResult(
@@ -351,7 +354,11 @@ public sealed partial class OperationPlanner
         var remainingCost = PlannerCostEstimator.EstimateRemainingCost(
             _options,
             currentMaxDepth: 0,
+#if NET10_0_OR_GREATER
+            [],
+#else
             ImmutableDictionary<int, int>.Empty,
+#endif
             backlog.Cost);
 
         return new PlanNode
@@ -399,24 +406,31 @@ public sealed partial class OperationPlanner
     {
         nodeField = null!;
 
-        if (path.Length != 1
-            || path[0].Kind != SelectionPathSegmentKind.Field
-            || !_schema.QueryType.Fields.TryGetField(
-                path[0].Name,
-                allowInaccessibleFields: true,
-                out var field)
-            || field is not { Name: "node", Type: IInterfaceTypeDefinition { Name: "Node" } })
+        if (path.Length != 1 || path[0].Kind != SelectionPathSegmentKind.Field)
         {
             return false;
         }
 
+        // A path segment carries the response name, so the AST field is resolved by
+        // alias (or name when there is no alias) before its schema field is checked.
+        var responseName = path[0].Name;
+
         foreach (var selection in operation.SelectionSet.Selections)
         {
             if (selection is FieldNode candidate
-                && (candidate.Alias?.Value == path[0].Name || candidate.Name.Value == path[0].Name))
+                && (candidate.Alias?.Value ?? candidate.Name.Value) == responseName)
             {
-                nodeField = candidate;
-                return true;
+                if (_schema.QueryType.Fields.TryGetField(
+                    candidate.Name.Value,
+                    allowInaccessibleFields: true,
+                    out var field)
+                    && field is { Name: "node", Type: IInterfaceTypeDefinition { Name: "Node" } })
+                {
+                    nodeField = candidate;
+                    return true;
+                }
+
+                return false;
             }
         }
 
@@ -566,11 +580,19 @@ public sealed partial class OperationPlanner
                         schemaHint,
                         resolver,
                         scopeState,
-                        out var parentStepId))
+                        out var parentStepId,
+                        out var isPartiallyResolvable))
                     {
                         lifted.Add(new LiftedDeferRequirement(requirement, downstreamStepId, parentStepId));
                         resolved = true;
                         break;
+                    }
+
+                    // A partially hostable requirement lifts nothing, so the incremental plan
+                    // stays self-contained.
+                    if (isPartiallyResolvable)
+                    {
+                        return incrementalPlanSteps;
                     }
 
                     // When no existing parent-scope step can supply the
@@ -604,6 +626,13 @@ public sealed partial class OperationPlanner
 
                 if (!resolved)
                 {
+                    // A requirement whose map names no single root field has no provider the
+                    // scope walker can lift, so the incremental plan stays self-contained.
+                    if ((requirement.InternalAlias ?? ExtractRootFieldName(requirement.Map.ToString())) is null)
+                    {
+                        return incrementalPlanSteps;
+                    }
+
                     throw CreateUnsatisfiableDeferRequirementException(
                         producers[0],
                         requirement,
@@ -663,7 +692,8 @@ public sealed partial class OperationPlanner
                         candidateSchema!,
                         resolver,
                         scopeState,
-                        out var parentStepId))
+                        out var parentStepId,
+                        out _))
                     {
                         resolvedParentStepId = parentStepId;
                         break;
@@ -711,10 +741,11 @@ public sealed partial class OperationPlanner
             lifted,
             droppedStepIds);
 
-        // Record the parent-scope requirements on the descriptor.
+        // Record the parent-scope requirements on the descriptor. A step without a
+        // parent dependency is served entirely by other steps in this incremental plan.
         foreach (var step in rewrittenIncrementalPlan)
         {
-            if (step is not OperationPlanStep operationStep)
+            if (step is not OperationPlanStep operationStep || operationStep.ParentDependencies.IsEmpty)
             {
                 continue;
             }
@@ -1187,16 +1218,19 @@ public sealed partial class OperationPlanner
     /// Mirrors the inline onto the parent's internal operation so the
     /// compiled parent Operation carries the field (the runtime composite
     /// result document relies on that field being preserved during result
-    /// merging).
+    /// merging). Nothing is injected and <paramref name="isPartiallyResolvable"/> is set
+    /// when the step can host only part of the requirement.
     /// </summary>
     private bool TryInlineDeferRequirementInScope(
         OperationRequirement requirement,
         string schemaName,
         ValueSelectionToSelectionSetRewriter resolver,
         ScopeState scopeState,
-        out int parentStepId)
+        out int parentStepId,
+        out bool isPartiallyResolvable)
     {
         parentStepId = 0;
+        isPartiallyResolvable = false;
 
         for (var i = 0; i < scopeState.Steps.Count; i++)
         {
@@ -1243,6 +1277,8 @@ public sealed partial class OperationPlanner
 
             var dependentsBeforeInline = parentStep.Dependents;
 
+            RegisterRequirementSelectionSets(injectionSelections, stepIndex);
+
             if (!TryInlineSelectionSetIntoStep(
                 parentStep,
                 targetId,
@@ -1253,9 +1289,16 @@ public sealed partial class OperationPlanner
                 stepIndex,
                 new RequirementAliasContext([], RequirementAliasRegistry.Empty),
                 out var updatedParentStep,
-                out _))
+                out var unresolvable,
+                out var fieldsWithRequirements))
             {
                 continue;
+            }
+
+            if (!unresolvable.IsEmpty || !fieldsWithRequirements.IsEmpty)
+            {
+                isPartiallyResolvable = true;
+                return false;
             }
 
             updatedParentStep = updatedParentStep with
@@ -1499,7 +1542,8 @@ public sealed partial class OperationPlanner
     /// <summary>
     /// Finds every step in <paramref name="incrementalPlanSteps"/> that targets either
     /// <paramref name="anchorPath"/> or the operation root and whose every selected field
-    /// is consumed as a requirement by one of its dependents.
+    /// is consumed as a requirement at or above <paramref name="anchorPath"/> by one of
+    /// its dependents.
     /// </summary>
     private static ImmutableArray<OperationPlanStep> FindDeferRequirementProducers(
         ImmutableList<PlanStep> incrementalPlanSteps,
@@ -1513,7 +1557,7 @@ public sealed partial class OperationPlanner
                 && operationStep.SchemaName is not null
                 && !operationStep.Dependents.IsEmpty
                 && (operationStep.Target.Equals(anchorPath) || operationStep.Target.IsRoot)
-                && IsPureRequirementProducer(operationStep, incrementalPlanSteps))
+                && IsPureRequirementProducer(operationStep, incrementalPlanSteps, anchorPath))
             {
                 producers.Add(operationStep);
             }
@@ -1524,12 +1568,13 @@ public sealed partial class OperationPlanner
 
     /// <summary>
     /// Determines whether every field <paramref name="step"/> selects is consumed as a
-    /// requirement by one of its dependents, meaning the step carries no output of its
-    /// own beyond what those dependents need from it.
+    /// requirement at or above <paramref name="anchorPath"/> by one of its dependents,
+    /// meaning the step carries no output of its own beyond what the enclosing scope can supply.
     /// </summary>
     private static bool IsPureRequirementProducer(
         OperationPlanStep step,
-        ImmutableList<PlanStep> incrementalPlanSteps)
+        ImmutableList<PlanStep> incrementalPlanSteps,
+        SelectionPath anchorPath)
     {
         var ownFields = new HashSet<string>(StringComparer.Ordinal);
         CollectLeafFieldNames(step.Definition.SelectionSet, ownFields);
@@ -1549,6 +1594,13 @@ public sealed partial class OperationPlanner
 
             foreach (var (_, requirement) in dependentStep.Requirements)
             {
+                // A requirement below the anchor reads a value this step fetches as
+                // deferred output, which the enclosing scope does not reach.
+                if (!requirement.Path.IsParentOfOrSame(anchorPath))
+                {
+                    continue;
+                }
+
                 var fieldName = requirement.InternalAlias ?? ExtractRootFieldName(requirement.Map.ToString());
 
                 if (fieldName is not null)
@@ -2132,7 +2184,8 @@ public sealed partial class OperationPlanner
     private (ImmutableArray<ExecutionNode> RootNodes, ImmutableArray<ExecutionNode> AllNodes) BuildDeferredExecutionNodes(
         OperationDefinitionNode deferredOperation,
         ImmutableList<PlanStep> planSteps,
-        int nextNodeId)
+        int nextNodeId,
+        CancellationToken cancellationToken)
     {
         if (planSteps.Count == 0)
         {
@@ -2144,8 +2197,14 @@ public sealed partial class OperationPlanner
 
         planSteps = TransformPlanSteps(planSteps, deferredOperation);
         IndexDependencies(planSteps, ctx);
-        BuildExecutionNodes(planSteps, ctx, _schema, hasVariables, CancellationToken.None);
-        MergeAndBatchOperations(ctx, _options.EnableRequestGrouping, _options.MergePolicy, _schema);
+        BuildExecutionNodes(planSteps, ctx, _schema, hasVariables, cancellationToken);
+        MergeAndBatchOperations(
+            ctx,
+            _options.EnableRequestGrouping,
+            _options.MergePolicy,
+            splitForEntityReuse: false,
+            serialScopes: null,
+            _schema);
         WireExecutionDependencies(ctx);
 
         var rootNodes = planSteps

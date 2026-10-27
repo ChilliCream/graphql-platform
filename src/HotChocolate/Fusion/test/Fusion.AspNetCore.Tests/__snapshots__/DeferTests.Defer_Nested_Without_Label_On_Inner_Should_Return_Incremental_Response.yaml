@@ -19,7 +19,7 @@ stableResponseStream: |
     "initial": {
       "data": {
         "user": {
-          "name": "User: VXNlcjox"
+          "name": "User: VXNlcjoyMDkyMTcyNjc2"
         }
       }
     },
@@ -39,8 +39,8 @@ stableResponseStream: |
           "user"
         ],
         "data": {
-          "address": "User: VXNlcjox",
-          "email": "User: VXNlcjox"
+          "address": "User: VXNlcjoyMDkyMTcyNjc2",
+          "email": "User: VXNlcjoyMDkyMTcyNjc2"
         }
       }
     ],
@@ -52,9 +52,9 @@ stableResponseStream: |
     "final": {
       "data": {
         "user": {
-          "address": "User: VXNlcjox",
-          "email": "User: VXNlcjox",
-          "name": "User: VXNlcjox"
+          "address": "User: VXNlcjoyMDkyMTcyNjc2",
+          "email": "User: VXNlcjoyMDkyMTcyNjc2",
+          "name": "User: VXNlcjoyMDkyMTcyNjc2"
         }
       }
     }
@@ -90,8 +90,8 @@ sourceSchemas:
               {
                 "data": {
                   "user": {
-                    "name": "User: VXNlcjox",
-                    "id": "VXNlcjox"
+                    "name": "User: VXNlcjoyMDkyMTcyNjc2",
+                    "id": "VXNlcjoyMDkyMTcyNjc2"
                   }
                 }
               }
@@ -122,7 +122,7 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_1_id": "VXNlcjox"
+              "__fusion_1_id": "VXNlcjoyMDkyMTcyNjc2"
             }
         response:
           results:
@@ -130,8 +130,8 @@ sourceSchemas:
               {
                 "data": {
                   "userById": {
-                    "email": "User: VXNlcjox",
-                    "address": "User: VXNlcjox"
+                    "email": "User: VXNlcjoyMDkyMTcyNjc2",
+                    "address": "User: VXNlcjoyMDkyMTcyNjc2"
                   }
                 }
               }
@@ -144,7 +144,7 @@ operationPlan:
             id @fusion__requirement
           }
         }
-      hash: f58e5f87c8862b9cc4c515a1fb51b598
+      hash: f6075aa413d4eefa27d177c2912714f7
       searchSpace: 1
       expandedNodes: 1
   nodes:

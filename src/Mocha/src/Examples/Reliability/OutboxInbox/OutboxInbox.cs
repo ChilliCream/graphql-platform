@@ -53,13 +53,16 @@ builder.Services
 
 var app = builder.Build();
 
-app.MapGet("/orders", async (IMessageBus bus) =>
+app.MapGet("/orders", async (AppDbContext db, IMessageBus bus, CancellationToken cancellationToken) =>
 {
     var orderId = Guid.NewGuid();
+    await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
 
     await bus.PublishAsync(
         new OrderPlaced(orderId, "Mechanical Keyboard", 149.99m),
-        CancellationToken.None);
+        cancellationToken);
+
+    await transaction.CommitAsync(cancellationToken);
 
     return Results.Ok(new { OrderId = orderId, Status = "Published" });
 });
@@ -77,13 +80,13 @@ public sealed record InvoiceCreated(Guid InvoiceId, Guid OrderId, decimal Amount
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
     // Outbox table - required for the transactional outbox
-    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+    public DbSet<OutboxMessage> OutboxMessages { get; set; }
 
     // Inbox table - required for idempotent message consumption
-    public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
+    public DbSet<InboxMessage> InboxMessages { get; set; }
 
     // Your business data
-    public DbSet<Order> Orders => Set<Order>();
+    public DbSet<Order> Orders { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

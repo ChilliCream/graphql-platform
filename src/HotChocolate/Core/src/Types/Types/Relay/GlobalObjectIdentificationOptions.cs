@@ -8,11 +8,13 @@ namespace HotChocolate.Types.Relay;
 public sealed class GlobalObjectIdentificationOptions
 {
     /// <summary>
-    /// Gets or sets whether the Node interface and the `Query.node` field are registered with the schema.
-    /// When enabled, adds the Node interface and a <c>node(id: ID!): Node</c> field to Query.
+    /// Gets or sets whether the Node interface is registered with the schema.
+    /// This is the master switch: <c>false</c> disables the Node interface, both the
+    /// <c>node</c> and <c>nodes</c> root fields, and <c>[NodeResolver]</c> inference.
+    /// <see cref="AddNodeField"/> and <see cref="AddNodesField"/> only take effect when this is <c>true</c>.
     /// </summary>
     /// <value>
-    /// <c>true</c> to register the Node interface and node field; otherwise, <c>false</c>.
+    /// <c>true</c> to register the Node interface; otherwise, <c>false</c>.
     /// Default is <c>true</c>.
     /// </value>
     public bool RegisterNodeInterface { get; set; } = true;
@@ -39,9 +41,20 @@ public sealed class GlobalObjectIdentificationOptions
     public int MaxAllowedNodeBatchSize { get; set; } = 50;
 
     /// <summary>
+    /// Gets or sets whether the singular <c>node(id: ID!): Node</c> field is added to the Query type.
+    /// Takes effect only when <see cref="RegisterNodeInterface"/> is <c>true</c>.
+    /// </summary>
+    /// <value>
+    /// <c>true</c> to add the node field to Query; otherwise, <c>false</c>.
+    /// Default is <c>true</c>.
+    /// </value>
+    public bool AddNodeField { get; set; } = true;
+
+    /// <summary>
     /// Gets or sets whether a plural <c>nodes(ids: [ID!]!): [Node]!</c> field is added to the Query type.
     /// The nodes field allows clients to efficiently fetch multiple objects by their global IDs
     /// in a single request, which is useful for client-side caching and batching scenarios.
+    /// Takes effect only when <see cref="RegisterNodeInterface"/> is <c>true</c>.
     /// </summary>
     /// <value>
     /// <c>true</c> to add the nodes field to Query; otherwise, <c>false</c>.

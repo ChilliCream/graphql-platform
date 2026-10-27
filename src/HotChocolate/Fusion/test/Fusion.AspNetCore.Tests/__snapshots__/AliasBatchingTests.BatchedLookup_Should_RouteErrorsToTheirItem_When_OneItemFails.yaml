@@ -107,7 +107,7 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query Op_628dc6ef_Batch_dda46b4e68aa25aa(
+            query Op_628dc6ef_Batch_8f925989b0c80cc4(
               $_0___fusion_1_id: ID!
               $_1___fusion_1_id: ID!
             ) {
@@ -170,7 +170,7 @@ operationPlan:
             id @fusion__requirement
           }
         }
-      hash: 628dc6ef7d5d2f822ed92d1d65e89e99
+      hash: 0a682d7e6883b20ce322c8af6579b910
       searchSpace: 1
       expandedNodes: 2
   nodes:

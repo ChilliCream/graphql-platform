@@ -217,6 +217,12 @@ public sealed class GraphQLHttpRequest
     /// When set, this is used instead of the typed <see cref="Accept"/> array.
     /// </summary>
     public string? AcceptHeaderValue { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether the cancellation token sent with this request is canceled within the default
+    /// <see cref="HttpClient.Timeout"/> of its start.
+    /// </summary>
+    internal bool HasDeadline { get; set; }
 #endif
 
     /// <summary>
@@ -269,14 +275,19 @@ public sealed class GraphQLHttpRequest
 
     /// <summary>
     /// application/graphql-response+json
-    /// application/json
+    /// application/json;q=0.9
     /// text/event-stream
     /// application/graphql-response+jsonl
     /// </summary>
+    /// <remarks>
+    /// The GraphQL over HTTP specification recommends that a client which does not know whether
+    /// the server supports <c>application/graphql-response+json</c> weighs <c>application/json</c>
+    /// below it, so that a server supporting both answers with the former.
+    /// </remarks>
     public static ImmutableArray<MediaTypeWithQualityHeaderValue> DefaultAcceptContentTypes { get; } =
     [
         new(ContentType.GraphQL),
-        new(ContentType.Json),
+        new(ContentType.Json, 0.9),
         new(ContentType.EventStream),
         new(ContentType.GraphQLJsonLine)
     ];

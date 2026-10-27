@@ -14,13 +14,13 @@ response:
       "data": {
         "trendingMedia": [
           {
-            "isbn": "Book: TWVkaWE6MQ=="
+            "isbn": "Book: TWVkaWE6MzYwMDExMzk5Mg=="
           },
           {
-            "isbn": "Book: TWVkaWE6Mg=="
+            "isbn": "Book: TWVkaWE6Mzg1ODYyNDc0NA=="
           },
           {
-            "isbn": "Book: TWVkaWE6Mw=="
+            "isbn": "Book: TWVkaWE6MTQ5MDg3Nzcy"
           }
         ]
       }
@@ -67,13 +67,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "TWVkaWE6MQ=="
+                "__fusion_1_id": "TWVkaWE6MzYwMDExMzk5Mg=="
               },
               {
-                "__fusion_1_id": "TWVkaWE6Mg=="
+                "__fusion_1_id": "TWVkaWE6Mzg1ODYyNDc0NA=="
               },
               {
-                "__fusion_1_id": "TWVkaWE6Mw=="
+                "__fusion_1_id": "TWVkaWE6MTQ5MDg3Nzcy"
               }
             ]
         response:
@@ -84,7 +84,7 @@ sourceSchemas:
                 "data": {
                   "mediaById": {
                     "__typename": "Book",
-                    "isbn": "Book: TWVkaWE6MQ=="
+                    "isbn": "Book: TWVkaWE6MzYwMDExMzk5Mg=="
                   }
                 }
               }
@@ -93,7 +93,7 @@ sourceSchemas:
                 "data": {
                   "mediaById": {
                     "__typename": "Book",
-                    "isbn": "Book: TWVkaWE6Mg=="
+                    "isbn": "Book: TWVkaWE6Mzg1ODYyNDc0NA=="
                   }
                 }
               }
@@ -102,7 +102,7 @@ sourceSchemas:
                 "data": {
                   "mediaById": {
                     "__typename": "Book",
-                    "isbn": "Book: TWVkaWE6Mw=="
+                    "isbn": "Book: TWVkaWE6MTQ5MDg3Nzcy"
                   }
                 }
               }
@@ -137,13 +137,13 @@ sourceSchemas:
                 "data": {
                   "trendingMedia": [
                     {
-                      "id": "TWVkaWE6MQ=="
+                      "id": "TWVkaWE6MzYwMDExMzk5Mg=="
                     },
                     {
-                      "id": "TWVkaWE6Mg=="
+                      "id": "TWVkaWE6Mzg1ODYyNDc0NA=="
                     },
                     {
-                      "id": "TWVkaWE6Mw=="
+                      "id": "TWVkaWE6MTQ5MDg3Nzcy"
                     }
                   ]
                 }
@@ -161,7 +161,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: ac84cf0c3518213271a745d56f4ba095
+      hash: 0365b60d165d5d23badbcfa7b702f3c8
       searchSpace: 1
       expandedNodes: 2
   nodes:

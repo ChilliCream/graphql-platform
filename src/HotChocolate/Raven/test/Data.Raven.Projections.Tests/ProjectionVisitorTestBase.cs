@@ -61,6 +61,8 @@ public class ProjectionVisitorTestBase : IAsyncLifetime
             .AddSingleton(documentStore)
             .AddGraphQLServer();
 
+        builder.ModifyCostOptions(o => o.DefaultListSize = 1);
+
         if (objectType is not null)
         {
             builder.AddType(objectType);

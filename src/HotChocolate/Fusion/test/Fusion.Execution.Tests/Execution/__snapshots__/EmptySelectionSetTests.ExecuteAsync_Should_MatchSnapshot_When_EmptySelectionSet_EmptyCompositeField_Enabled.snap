@@ -4,8 +4,4 @@
   }
 }
 --- source requests ---
-query Op_f416b500_1 {
-  me {
-    __typename
-  }
-}
+query Op_f416b500_1 { me { __typename } }

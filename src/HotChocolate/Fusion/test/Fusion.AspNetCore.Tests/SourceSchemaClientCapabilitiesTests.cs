@@ -597,23 +597,6 @@ public class SourceSchemaClientCapabilitiesTests : FusionTestBase
 
     #endregion
 
-    private static string GenerateRandomString(int kiloBytes)
-    {
-        var targetBytes = kiloBytes * 1024;
-        var charsNeeded = targetBytes / 2;
-        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-        var random = new Random(0);
-        var stringBuilder = new StringBuilder(charsNeeded);
-
-        for (var i = 0; i < charsNeeded; i++)
-        {
-            stringBuilder.Append(chars[random.Next(chars.Length)]);
-        }
-
-        return stringBuilder.ToString();
-    }
-
     public static class SourceSchema1
     {
         public class Query

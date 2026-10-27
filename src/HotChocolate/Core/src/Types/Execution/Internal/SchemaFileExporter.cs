@@ -18,11 +18,16 @@ internal static class SchemaFileExporter
         string schemaFileName,
         IRequestExecutor executor,
         bool rewriteToSemanticNonNull,
+        GraphQLSpecVersion? specVersion,
         CancellationToken cancellationToken)
     {
         var sdl = SchemaFormatter.FormatAsString(
             executor.Schema,
-            new SchemaFormatterOptions { RewriteToSemanticNonNull = rewriteToSemanticNonNull });
+            new SchemaFormatterOptions
+            {
+                RewriteToSemanticNonNull = rewriteToSemanticNonNull,
+                SpecVersion = specVersion
+            });
 
         if (Directory.Exists(schemaFileName))
         {

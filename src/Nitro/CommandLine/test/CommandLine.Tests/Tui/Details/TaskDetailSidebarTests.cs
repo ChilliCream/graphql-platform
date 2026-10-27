@@ -15,9 +15,7 @@ public sealed partial class TaskDetailSidebarTests
         // act
         var lines = TaskDetailSidebar.Build(task, [], []).Select(StripMarkupTags);
 
-        // assert: only the always-present status/priority/type/created/updated
-        // lines remain, none of the optional fields; the state and dates
-        // groups are separated by a blank line.
+        // assert
         Assert.Equal(
             [
                 "○ open",
@@ -48,8 +46,7 @@ public sealed partial class TaskDetailSidebarTests
         // act
         var lines = TaskDetailSidebar.Build(task, ["backend"], ["t-0:not closed"]).Select(StripMarkupTags);
 
-        // assert: state, dates/people, labels, and blocked-by are separated
-        // by a blank line.
+        // assert
         Assert.Equal(
             [
                 "✓ closed",

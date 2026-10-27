@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Security.Cryptography;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
+using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -10,7 +11,7 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// Represents a GraphQL operation execution plan in Hot Chocolate Fusion, containing
 /// the structured nodes and metadata required for distributed query execution.
 /// </summary>
-public sealed record OperationPlan : IOperationPlan
+public sealed partial record OperationPlan : IOperationPlan
 {
     private static readonly JsonOperationPlanFormatter s_formatter = new();
     private readonly ExecutionNode?[] _nodesById = [];
@@ -33,6 +34,7 @@ public sealed record OperationPlan : IOperationPlan
         ExpandedNodes = expandedNodes;
         DeliveryGroups = deliveryGroups;
         IncrementalPlans = incrementalPlans;
+        _deliveryPaths = CreateDeliveryPaths(incrementalPlans, deliveryGroups.Length);
         _nodesById = CreateNodeLookup(
             allNodes,
             out var usesDynamicSchemaNames,
@@ -40,6 +42,11 @@ public sealed record OperationPlan : IOperationPlan
         MaxNodeId = _nodesById.Length > 0 ? _nodesById.Length - 1 : 0;
         UsesDynamicSchemaNames = usesDynamicSchemaNames;
         UsesBatchNodes = usesBatchNodes;
+
+        if (EntityReuseCandidateMap.Create(this) is { } entityReuseCandidateMap)
+        {
+            operation.Features.Set(entityReuseCandidateMap);
+        }
     }
 
     /// <summary>
@@ -174,6 +181,7 @@ public sealed record OperationPlan : IOperationPlan
     /// <exception cref="ArgumentException">Thrown when <paramref name="id"/> is null or empty.</exception>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="operation"/> is null.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when node collections are invalid.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when a delivery path cannot be resolved.</exception>
     public static OperationPlan Create(
         string id,
         Operation operation,
@@ -214,6 +222,7 @@ public sealed record OperationPlan : IOperationPlan
     /// <returns>A new <see cref="OperationPlan"/> instance with a content-based identifier.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="operation"/> is null.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when node collections are invalid.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when a delivery path cannot be resolved.</exception>
     public static OperationPlan Create(
         Operation operation,
         ImmutableArray<ExecutionNode> rootNodes,

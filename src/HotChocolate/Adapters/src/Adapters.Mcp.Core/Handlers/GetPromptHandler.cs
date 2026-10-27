@@ -17,7 +17,7 @@ internal static partial class GetPromptHandler
     {
         var registry = schemaServices.GetRequiredService<McpFeatureRegistry>();
 
-        if (!registry.TryGetPrompt(context.Params!.Name, out var prompt))
+        if (!registry.TryGetPrompt(context.Params.Name, out var prompt))
         {
             throw new McpProtocolException(
                 string.Format(GetPromptHandler_PromptNotFound, context.Params.Name),
@@ -25,7 +25,7 @@ internal static partial class GetPromptHandler
             {
                 Data =
                 {
-                    { "name", context.Params!.Name }
+                    { "name", context.Params.Name }
                 }
             };
         }

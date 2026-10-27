@@ -28,7 +28,7 @@ using Xunit.Sdk;
 
 namespace HotChocolate.Fusion;
 
-public abstract partial class FusionTestBase : IDisposable
+public abstract partial class FusionTestBase : IAsyncDisposable
 {
     private readonly TestServerSession _testServerSession = new();
     private bool _disposed;
@@ -40,12 +40,17 @@ public abstract partial class FusionTestBase : IDisposable
         Action<IFusionGatewayBuilder>? configureGatewayBuilder = null,
         [StringSyntax("json")] string? gatewaySettings = null,
         string? environmentName = "Development",
+        string? gatewayName = null,
         bool disableDefaultSecurity = false,
-        bool enableGlobalObjectIdentification = true)
+        bool enableGlobalObjectIdentification = true,
+        int? defaultListSize = 1,
+        bool includeOperationPlan = true,
+        Action<SchemaComposerOptions>? configureComposerOptions = null)
     {
         var sourceSchemas = new List<SourceSchemaText>();
         var gatewayServices = new ServiceCollection();
         var gatewayBuilder = gatewayServices.AddGraphQLGatewayServer(
+            gatewayName,
             disableDefaultSecurity: disableDefaultSecurity);
         var interactions = new ConcurrentDictionary<string, ConcurrentDictionary<int, SourceSchemaInteraction>>();
         // Interactions are keyed by an atomically-incremented int, but looked up
@@ -139,9 +144,11 @@ public abstract partial class FusionTestBase : IDisposable
         {
             Merger =
             {
-                EnableGlobalObjectIdentification = enableGlobalObjectIdentification
+                EnableGlobalObjectIdentification = enableGlobalObjectIdentification,
+                DefaultListSize = defaultListSize
             }
         };
+        configureComposerOptions?.Invoke(composerOptions);
         var composer = new SchemaComposer(sourceSchemas, composerOptions, compositionLog);
         var result = composer.Compose();
 
@@ -167,7 +174,12 @@ public abstract partial class FusionTestBase : IDisposable
         }
 
         gatewayBuilder.AddInMemoryConfiguration(result.Value.ToSyntaxNode(), settings);
-        gatewayBuilder.AddHttpRequestInterceptor<OperationPlanHttpRequestInterceptor>();
+
+        if (includeOperationPlan)
+        {
+            gatewayBuilder.AddHttpRequestInterceptor<OperationPlanHttpRequestInterceptor>();
+        }
+
         gatewayBuilder.ModifyRequestOptions(o =>
         {
             o.CollectOperationPlanTelemetry = false;
@@ -181,7 +193,7 @@ public abstract partial class FusionTestBase : IDisposable
             {
                 app.UseWebSockets();
                 app.UseRouting();
-                app.UseEndpoints(endpoint => endpoint.MapGraphQL());
+                app.UseEndpoints(endpoint => endpoint.MapGraphQL(schemaName: gatewayName));
             };
 
         var gatewayTestServer = _testServerSession.CreateServer(
@@ -253,7 +265,7 @@ public abstract partial class FusionTestBase : IDisposable
         }
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         if (_disposed)
         {
@@ -261,16 +273,8 @@ public abstract partial class FusionTestBase : IDisposable
         }
 
         _disposed = true;
-        Dispose(true);
+        await _testServerSession.DisposeAsync();
         GC.SuppressFinalize(this);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            _testServerSession.Dispose();
-        }
     }
 
     protected class Gateway : IDisposable

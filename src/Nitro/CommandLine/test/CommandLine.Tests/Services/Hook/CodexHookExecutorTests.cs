@@ -3,12 +3,8 @@ using ChilliCream.Nitro.CommandLine.Services.Hook;
 namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 
 /// <summary>
-/// Exercises <see cref="CodexHookExecutor"/>'s fail-open envelope directly
-/// against <see cref="StringReader"/>/<see cref="StringWriter"/>, mirroring
-/// <c>ClaudeHookExecutorTests</c>: the suppression short-circuit, every
-/// failure path resolving to the neutral <c>{}</c> response, and successful
-/// translation into the wire shape, using the S1 spike's captured Codex
-/// payload fixtures.
+/// Tests <see cref="CodexHookExecutor"/> payload parsing, response serialization,
+/// suppression, and neutral responses to malformed input, handler failure, and timeout.
 /// </summary>
 public sealed class CodexHookExecutorTests
 {

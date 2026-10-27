@@ -75,7 +75,7 @@ sourceSchemas:
                     {
                       "__typename": "Discussion",
                       "viewerCanVote": true,
-                      "id": "RGlzY3Vzc2lvbjox"
+                      "id": "RGlzY3Vzc2lvbjoxMDQ0MjI3Njk3"
                     },
                     {
                       "__typename": "Comment",
@@ -84,7 +84,7 @@ sourceSchemas:
                     {
                       "__typename": "Discussion",
                       "viewerCanVote": true,
-                      "id": "RGlzY3Vzc2lvbjoz"
+                      "id": "RGlzY3Vzc2lvbjozMzkzMDAzNzcz"
                     }
                   ]
                 }
@@ -115,10 +115,10 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "RGlzY3Vzc2lvbjox"
+                "__fusion_1_id": "RGlzY3Vzc2lvbjoxMDQ0MjI3Njk3"
               },
               {
-                "__fusion_1_id": "RGlzY3Vzc2lvbjoz"
+                "__fusion_1_id": "RGlzY3Vzc2lvbjozMzkzMDAzNzcz"
               }
             ]
         response:
@@ -154,7 +154,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: c8aa487a6cc92cc880c0ef61f2ea7166
+      hash: 020a06360a4abb0005a56a4c2e989e40
       searchSpace: 1
       expandedNodes: 2
   nodes:

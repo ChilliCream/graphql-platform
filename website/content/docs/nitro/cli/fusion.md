@@ -10,6 +10,8 @@ The `nitro fusion` commands manage [Fusion](../../fusion/index.md) configuration
 
 # `nitro fusion upload`
 
+Nitro: 10.6.0
+
 Upload a source schema for a later composition. The schema is stored on the Nitro backend under the given API and tag and can be referenced by name from a subsequent `nitro fusion publish` call (via `--source-schema`).
 
 ```shell
@@ -43,7 +45,7 @@ nitro fusion upload \
 
 # `nitro fusion publish`
 
-Since: 16.6.0, Nitro: 10.3.0
+Since: 16.6.0, Nitro: 10.6.0
 
 Publish a Fusion configuration to a stage.
 
@@ -113,6 +115,8 @@ nitro fusion publish \
 A multi-step publish is driven by a single request ID. `begin` allocates a deployment slot and prints a request ID, every following step references that ID (either explicitly via `--request-id` or implicitly via local state that the CLI caches between commands in the same job). The standard order is `begin` → `start` → `validate` → `commit`. `cancel` releases the slot at any time before `commit`.
 
 ## `nitro fusion publish begin`
+
+Nitro: 10.6.0
 
 Begin a Fusion configuration publish by requesting a deployment slot for a stage. The returned request ID identifies the publish for every subsequent step.
 
@@ -185,6 +189,8 @@ nitro fusion publish cancel --request-id "<request-id>"
 | `--request-id <request-id>` | `NITRO_REQUEST_ID` | Request ID returned by `begin`. Falls back to the cached ID from the previous step in the same shell. |
 
 # `nitro fusion validate`
+
+Nitro: 10.6.0
 
 Validate a Fusion configuration against a stage. Composes the supplied source schemas (or uses a pre-composed archive) and runs the same checks as `publish` without requesting a deployment slot.
 
@@ -299,7 +305,7 @@ Local schema files do not use `--source-schema-settings-file`. For a local file,
 
 For remote sources, repeat `--source-schema-url` and `--source-schema-settings-file` the same number of times. Nitro pairs them by occurrence: the first URL uses the first settings file, the second URL uses the second settings file, and so on. Keep each pair adjacent so the relationship remains visible in scripts.
 
-The paired settings file selects the acquisition protocol. An absent `apolloFederationSupport` marker makes Nitro GET raw SDL from the exact URL. Exact `"1.0"` and `"2.0"` markers make Nitro POST an Apollo `_service { sdl }` query. See [Getting the Subgraph Schema](../../fusion/connectors/apollofederation.md#getting-the-subgraph-schema) for the settings shape and protocol details.
+The paired settings file selects the acquisition protocol. An absent `apolloFederationSupport` marker makes Nitro GET raw SDL from the exact URL. Exact `"1.0"` and `"2.0"` markers make Nitro POST an Apollo `#!graphql _service { sdl }` query. See [Getting the Subgraph Schema](../../fusion/connectors/apollofederation.md#getting-the-subgraph-schema) for the settings shape and protocol details.
 
 ## Examples
 
@@ -383,17 +389,18 @@ nitro fusion settings set <SETTING_NAME> <SETTING_VALUE> \
 
 ## Available Settings
 
-| Setting                                  | Values                                 | Description                                                         |
-| ---------------------------------------- | -------------------------------------- | ------------------------------------------------------------------- |
-| `allow-non-resolvable-interface-objects` | `true`, `false`                        | Allow Apollo interface objects without a resolvable key.            |
-| `cache-control-merge-behavior`           | `ignore`, `include`, `include-private` | Choose how `@cacheControl` directives are merged.                   |
-| `enum-values-merge-behavior`             | `auto`, `strict`, `union`              | Choose how enum values are merged across source schemas.            |
-| `exclude-by-tag`                         | Comma-separated tags                   | Exclude fields and types by tag.                                    |
-| `global-object-identification`           | `true`, `false`                        | Enable global object identification through `Query.node`.           |
-| `include-satisfiability-paths`           | `true`, `false`                        | Include paths in satisfiability diagnostics.                        |
-| `node-resolution`                        | `gateway`, `source-schema`             | Choose who resolves `Query.node` identifiers.                       |
-| `shareable-field-runtime-type-routing`   | `source-local`, `common-runtime-types` | Choose routing for type-conditioned selections on shareable fields. |
-| `tag-merge-behavior`                     | `ignore`, `include`, `include-private` | Choose how `@tag` directives are merged.                            |
+| Setting                                  | Values                                   | Description                                                         |
+| ---------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------- |
+| `allow-non-resolvable-interface-objects` | `true`, `false`                          | Allow Apollo interface objects without a resolvable key.            |
+| `cache-control-merge-behavior`           | `ignore`, `include`, `include-private`   | Choose how `@cacheControl` directives are merged.                   |
+| `default-list-size`                      | Non-negative integer, or `null` to unset | Assumed size for lists without applicable `@listSize` metadata.     |
+| `enum-values-merge-behavior`             | `auto`, `strict`, `union`                | Choose how enum values are merged across source schemas.            |
+| `exclude-by-tag`                         | Comma-separated tags                     | Exclude fields and types by tag.                                    |
+| `global-object-identification`           | `true`, `false`                          | Enable global object identification through `Query.node`.           |
+| `include-satisfiability-paths`           | `true`, `false`                          | Include paths in satisfiability diagnostics.                        |
+| `node-resolution`                        | `gateway`, `source-schema`               | Choose who resolves `Query.node` identifiers.                       |
+| `shareable-field-runtime-type-routing`   | `source-local`, `common-runtime-types`   | Choose routing for type-conditioned selections on shareable fields. |
+| `tag-merge-behavior`                     | `ignore`, `include`, `include-private`   | Choose how `@tag` directives are merged.                            |
 
 ## Examples
 
@@ -451,11 +458,11 @@ Both `--url` and `--dev-url` accept `{{VARIABLE_NAME}}` placeholders, which comp
 
 `--schema-type` describes the specification implemented by the source schema.
 
-| Type                  | What it declares                                                                                           |
-| --------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `graphql-federation`  | GraphQL Federation semantics from the Composite Schemas Specification. This is the default used by Fusion. |
-| `apollo-federation-1` | Apollo Federation v1 semantics through `extensions.chillicream.apolloFederationSupport.version`.           |
-| `apollo-federation-2` | Apollo Federation v2 semantics through `extensions.chillicream.apolloFederationSupport.version`.           |
+| Type                  | What it declares                                                                                            |
+| --------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `graphql-federation`  | GraphQL Federation semantics from the GraphQL Federation specification. This is the default used by Fusion. |
+| `apollo-federation-1` | Apollo Federation v1 semantics through `extensions.chillicream.apolloFederationSupport.version`.            |
+| `apollo-federation-2` | Apollo Federation v2 semantics through `extensions.chillicream.apolloFederationSupport.version`.            |
 
 Selecting an Apollo Federation type writes the corresponding `1.0` or `2.0` marker. Selecting `graphql-federation` removes that marker. Schema-type changes do not modify transport capabilities.
 

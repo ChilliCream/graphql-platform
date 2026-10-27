@@ -1,0 +1,54 @@
+schema {
+  query: Query
+}
+
+type Query {
+  topProducts(first: Int! = 5): [Product!]!
+  product(upc: ID!): Product @lookup
+}
+
+type Product @key(fields: "upc") {
+  upc: String!
+  name: String!
+  price: Long!
+  weight: Long!
+}
+
+enum ScalarSerializationType {
+  STRING
+  BOOLEAN
+  INT
+  FLOAT
+  OBJECT
+  LIST
+}
+
+scalar FieldSelectionSet
+
+"The `Long` scalar type represents a signed 64-bit integer."
+scalar Long
+  @serializeAs(type: INT)
+  @specifiedBy(url: "https://scalars.graphql.org/chillicream/long.html")
+
+"""
+The @key directive is used to designate an entity's unique key,
+which identifies how to uniquely reference an instance of
+an entity across different source schemas.
+"""
+directive @key("The field selection set syntax." fields: FieldSelectionSet!) repeatable on
+  | OBJECT
+  | INTERFACE
+
+"""
+The @lookup directive is used within a source schema to specify output fields
+that can be used by the distributed GraphQL executor to resolve an entity by
+a stable key.
+"""
+directive @lookup on FIELD_DEFINITION
+
+directive @serializeAs(
+  "The primitive type a scalar is serialized to."
+  type: [ScalarSerializationType!]!
+  "The ECMA-262 regex pattern that the serialized scalar value conforms to."
+  pattern: String
+) on SCALAR

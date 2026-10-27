@@ -34,9 +34,15 @@ public sealed class GraphQLServerOptions
     public bool EnableGetRequests { get; set; } = true;
 
     /// <summary>
-    /// Defines if GraphQL HTTP GET requests are allowed.
+    /// Defines whether a GraphQL HTTP GET request must carry the <c>GraphQL-Preflight</c> header
+    /// or an <c>application/json</c> <c>Content-Type</c> to be executed.
     /// </summary>
     public bool EnforceGetRequestsPreflightHeader { get; set; }
+
+    /// <summary>
+    /// Defines if GraphQL HTTP QUERY requests are allowed.
+    /// </summary>
+    public bool EnableQueryRequests { get; set; }
 
     /// <summary>
     /// Defines if GraphQL HTTP Multipart requests are allowed.
@@ -61,9 +67,9 @@ public sealed class GraphQLServerOptions
     public bool EnableSchemaRequests { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets which types of batching are allowed.
+    /// Gets or sets which types of batching are allowed. Defaults to variable batching only.
     /// </summary>
-    public AllowedBatching Batching { get; set; } = AllowedBatching.None;
+    public AllowedBatching Batching { get; set; } = AllowedBatching.VariableBatching;
 
     /// <summary>
     /// Gets or sets the maximum number of operations allowed in a single batch.
@@ -91,6 +97,7 @@ public sealed class GraphQLServerOptions
             EnableSchemaFileSupport = EnableSchemaFileSupport,
             EnableGetRequests = EnableGetRequests,
             EnforceGetRequestsPreflightHeader = EnforceGetRequestsPreflightHeader,
+            EnableQueryRequests = EnableQueryRequests,
             EnableMultipartRequests = EnableMultipartRequests,
             EnforceMultipartRequestsPreflightHeader = EnforceMultipartRequestsPreflightHeader,
             EnforceNullVariableValuesForMultipartFileUpload = EnforceNullVariableValuesForMultipartFileUpload,

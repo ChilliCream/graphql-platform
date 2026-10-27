@@ -139,6 +139,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
                     sp.GetRequiredService<IDocumentHashProvider>(),
                     maxAllowedRequestSize,
                     sp.GetRequiredService<ParserOptions>()));
+            s.TryAddSingleton(new HttpRequestLimits(maxAllowedRequestSize));
 
             s.TryAddSingleton<IServerDiagnosticEvents>(sp =>
             {
@@ -159,6 +160,9 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
                     .Get(schemaName);
                 return new ExecutionConcurrencyGate(serverOptions.MaxConcurrentExecutions);
             });
+
+            s.TryAddSingleton(
+                static sp => new ExecutorSession(sp.GetRequiredService<IRequestExecutor>()));
         });
 
         builder.Services.TryAddEnumerable(

@@ -112,6 +112,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.EnableStream"/>
     public bool EnableStream { get; set; }
 
+    /// <inheritdoc cref="IReadOnlySchemaOptions.EnableCovariantFieldMerging"/>
+    public bool EnableCovariantFieldMerging { get; set; }
+
     /// <inheritdoc cref="IReadOnlySchemaOptions.EnableEmptySelectionSets"/>
     public bool EnableEmptySelectionSets { get; set; }
 
@@ -244,6 +247,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
             EnableFlagEnums = options.EnableFlagEnums,
             EnableDefer = options.EnableDefer,
             EnableStream = options.EnableStream,
+            EnableCovariantFieldMerging = options.EnableCovariantFieldMerging,
             EnableEmptySelectionSets = options.EnableEmptySelectionSets,
             DefaultFieldBindingFlags = options.DefaultFieldBindingFlags,
             StripLeadingIFromInterface = options.StripLeadingIFromInterface,

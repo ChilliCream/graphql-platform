@@ -8,13 +8,25 @@ namespace HotChocolate.Adapters.Mcp;
 internal sealed class McpFeatureRegistry
 {
     private FrozenDictionary<string, (Prompt, ImmutableArray<PromptMessage>)> _prompts
+#if NET11_0_OR_GREATER
+        = [];
+#else
         = FrozenDictionary<string, (Prompt, ImmutableArray<PromptMessage>)>.Empty;
+#endif
 
     private FrozenDictionary<string, OperationTool> _tools
+#if NET11_0_OR_GREATER
+        = [];
+#else
         = FrozenDictionary<string, OperationTool>.Empty;
+#endif
 
     private FrozenDictionary<string, OperationTool> _toolsByMcpAppViewResourceUri
+#if NET11_0_OR_GREATER
+        = [];
+#else
         = FrozenDictionary<string, OperationTool>.Empty;
+#endif
 
     public void UpdatePrompts(ImmutableDictionary<string, (Prompt, ImmutableArray<PromptMessage>)> prompts)
     {

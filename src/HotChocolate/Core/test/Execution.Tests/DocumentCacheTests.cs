@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -94,5 +95,48 @@ public class DocumentCacheTests
         // assert
         Assert.NotSame(executorB, executorA);
         Assert.NotSame(documentCacheB, documentCacheA);
+    }
+
+    [Fact]
+    public async Task AddGraphQL_Should_NotDisposeDocumentCache_When_SchemaServicesAreDisposed()
+    {
+        // arrange
+        var documentCache = new DisposableDocumentCache();
+        var services = new ServiceCollection();
+        services.AddKeyedSingleton<IDocumentCache>(ISchemaDefinition.DefaultName, documentCache);
+        services
+            .AddGraphQL()
+            .AddQueryType(d => d.Field("foo").Resolve(""));
+        var executor = await services.BuildServiceProvider().GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        var schemaDocumentCache = executor.Schema.Services.GetRequiredService<IDocumentCache>();
+
+        // act
+        await ((IAsyncDisposable)executor.Schema.Services).DisposeAsync();
+
+        // assert
+        Assert.Same(documentCache, schemaDocumentCache);
+        Assert.False(documentCache.IsDisposed);
+    }
+
+    private sealed class DisposableDocumentCache : IDocumentCache, IDisposable
+    {
+        public bool IsDisposed { get; private set; }
+
+        public int Capacity => 0;
+
+        public int Count => 0;
+
+        public bool TryGetDocument(string documentId, [NotNullWhen(true)] out CachedDocument? document)
+        {
+            document = null;
+            return false;
+        }
+
+        public void TryAddDocument(string documentId, CachedDocument document)
+        {
+        }
+
+        public void Dispose() => IsDisposed = true;
     }
 }

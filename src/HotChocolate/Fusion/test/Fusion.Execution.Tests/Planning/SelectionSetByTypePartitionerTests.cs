@@ -332,6 +332,226 @@ public class SelectionSetByTypePartitionerTests : FusionTestBase
             """);
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Partition_Should_PruneNonNodeMember_When_UnionFragmentIsInNodeSelectionSet(
+        bool includeSharedSelections)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                node(id: ID!): Node @lookup
+                contributors: [CommunityContributor!]!
+            }
+
+            interface Node { id: ID! }
+            union CommunityContributor = User | FormerUser
+
+            type User implements Node { id: ID! name: String }
+            type FormerUser { name: String }
+            """);
+
+        var sharedSelections = includeSharedSelections ? "id" : "";
+        var doc = Utf8GraphQLParser.Parse(
+            $$"""
+            {
+                node(id: "test-id") {
+                    {{sharedSelections}}
+                    ... on CommunityContributor {
+                        ... on User { name }
+                        ... on FormerUser { name }
+                    }
+                }
+            }
+            """);
+
+        // act
+        var result = Partition(schema, doc);
+
+        // assert
+        MatchInlineSnapshot(
+            result,
+            includeSharedSelections
+                ? """
+                Shared: {
+                  id
+                }
+
+                User: {
+                  id
+                  name
+                }
+                """
+                : """
+                Shared: null
+
+                User: {
+                  name
+                }
+                """);
+    }
+
+    [Fact]
+    public void Partition_Should_PruneNodeImplementor_When_EnclosingUnionExcludesIt()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                node(id: ID!): Node @lookup
+                contributors: [CommunityContributor!]!
+            }
+
+            interface Node { id: ID! }
+            union CommunityContributor = User | FormerUser
+
+            type User implements Node { id: ID! name: String }
+            type OtherUser implements Node { id: ID! name: String }
+            type FormerUser { name: String }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                node(id: "test-id") {
+                    id
+                    ... on CommunityContributor {
+                        ... on Node {
+                            ... on User { name }
+                            ... on OtherUser { name }
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        var result = Partition(schema, doc);
+
+        // assert
+        MatchInlineSnapshot(
+            result,
+            """
+            Shared: {
+              id
+            }
+
+            User: {
+              id
+              name
+            }
+            """);
+    }
+
+    [Fact]
+    public void Partition_Should_PreserveDirectives_When_PruningNonNodeUnionMember()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                node(id: ID!): Node @lookup
+                contributors: [CommunityContributor!]!
+            }
+
+            interface Node { id: ID! }
+            union CommunityContributor = User | FormerUser
+
+            type User implements Node { id: ID! name: String }
+            type FormerUser { name: String }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!, $include: Boolean!) {
+                node(id: "test-id") {
+                    id
+                    ... on CommunityContributor @skip(if: $skip) {
+                        ... on User @include(if: $include) { name }
+                        ... on FormerUser { name }
+                    }
+                }
+            }
+            """);
+
+        // act
+        var result = Partition(schema, doc);
+
+        // assert
+        MatchInlineSnapshot(
+            result,
+            """
+            Shared: {
+              id
+            }
+
+            User: {
+              id
+              ... @skip(if: $skip) {
+                ... @include(if: $include) {
+                  name
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Partition_Should_PruneNonNodeMember_When_InterfaceSelectionsAreWithinConcreteUnionMember()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                node(id: ID!): Node @lookup
+                contributors: [CommunityContributor!]!
+            }
+
+            interface Node { id: ID! }
+            interface Contributor { name: String }
+            union CommunityContributor = User | FormerUser
+
+            type User implements Node & Contributor { id: ID! name: String }
+            type FormerUser implements Contributor { name: String }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                node(id: "test-id") {
+                    id
+                    ... on CommunityContributor {
+                        ... on User {
+                            ... on Contributor { name }
+                        }
+                        ... on FormerUser {
+                            ... on Contributor { name }
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        var result = Partition(schema, doc);
+
+        // assert
+        MatchInlineSnapshot(
+            result,
+            """
+            Shared: {
+              id
+            }
+
+            User: {
+              id
+              name
+            }
+            """);
+    }
+
     [Fact]
     public void Concrete_Type_Selections_Within_Interface()
     {

@@ -14,19 +14,19 @@ response:
       "data": {
         "anotherUsers": [
           {
-            "id": "Tm9kZVdpdGhOYW1lOjE=",
-            "name": "User: Tm9kZVdpdGhOYW1lOjE=",
-            "username": "NodeWithName: Tm9kZVdpdGhOYW1lOjM="
+            "id": "Tm9kZVdpdGhOYW1lOjE1MTExNjMxNjg=",
+            "name": "User: Tm9kZVdpdGhOYW1lOjE1MTExNjMxNjg=",
+            "username": "NodeWithName: Tm9kZVdpdGhOYW1lOjM2MjY4MDM4MjU="
           },
           {
-            "id": "Tm9kZVdpdGhOYW1lOjI=",
-            "name": "User: Tm9kZVdpdGhOYW1lOjI=",
-            "username": "NodeWithName: Tm9kZVdpdGhOYW1lOjI="
+            "id": "Tm9kZVdpdGhOYW1lOjI3MzI5MjUzNTA=",
+            "name": "User: Tm9kZVdpdGhOYW1lOjI3MzI5MjUzNTA=",
+            "username": "NodeWithName: Tm9kZVdpdGhOYW1lOjM4ODU5OTQ1NTg="
           },
           {
-            "id": "Tm9kZVdpdGhOYW1lOjM=",
-            "name": "User: Tm9kZVdpdGhOYW1lOjM=",
-            "username": "NodeWithName: Tm9kZVdpdGhOYW1lOjE="
+            "id": "Tm9kZVdpdGhOYW1lOjE2NTc0MzcyNTk=",
+            "name": "User: Tm9kZVdpdGhOYW1lOjE2NTc0MzcyNTk=",
+            "username": "NodeWithName: Tm9kZVdpdGhOYW1lOjM2MjgwNzU0NA=="
           }
         ]
       }
@@ -68,13 +68,13 @@ sourceSchemas:
               variables: |
                 [
                   {
-                    "__fusion_3_id": "Tm9kZVdpdGhOYW1lOjE="
+                    "__fusion_3_id": "Tm9kZVdpdGhOYW1lOjE1MTExNjMxNjg="
                   },
                   {
-                    "__fusion_3_id": "Tm9kZVdpdGhOYW1lOjI="
+                    "__fusion_3_id": "Tm9kZVdpdGhOYW1lOjI3MzI5MjUzNTA="
                   },
                   {
-                    "__fusion_3_id": "Tm9kZVdpdGhOYW1lOjM="
+                    "__fusion_3_id": "Tm9kZVdpdGhOYW1lOjE2NTc0MzcyNTk="
                   }
                 ]
             - document: |
@@ -87,13 +87,13 @@ sourceSchemas:
               variables: |
                 [
                   {
-                    "__fusion_4_id": "Tm9kZVdpdGhOYW1lOjE="
+                    "__fusion_4_id": "Tm9kZVdpdGhOYW1lOjE1MTExNjMxNjg="
                   },
                   {
-                    "__fusion_4_id": "Tm9kZVdpdGhOYW1lOjI="
+                    "__fusion_4_id": "Tm9kZVdpdGhOYW1lOjI3MzI5MjUzNTA="
                   },
                   {
-                    "__fusion_4_id": "Tm9kZVdpdGhOYW1lOjM="
+                    "__fusion_4_id": "Tm9kZVdpdGhOYW1lOjE2NTc0MzcyNTk="
                   }
                 ]
         response:
@@ -104,7 +104,7 @@ sourceSchemas:
                 "data": {
                   "nodeById": {
                     "__typename": "User",
-                    "id": "Tm9kZVdpdGhOYW1lOjI="
+                    "id": "Tm9kZVdpdGhOYW1lOjI3MzI5MjUzNTA="
                   }
                 }
               }
@@ -113,7 +113,7 @@ sourceSchemas:
                 "data": {
                   "nodeById": {
                     "__typename": "User",
-                    "id": "Tm9kZVdpdGhOYW1lOjM="
+                    "id": "Tm9kZVdpdGhOYW1lOjE2NTc0MzcyNTk="
                   }
                 }
               }
@@ -122,7 +122,7 @@ sourceSchemas:
                 "data": {
                   "nodeById": {
                     "__typename": "User",
-                    "name": "User: Tm9kZVdpdGhOYW1lOjM="
+                    "name": "User: Tm9kZVdpdGhOYW1lOjE2NTc0MzcyNTk="
                   }
                 }
               }
@@ -131,7 +131,7 @@ sourceSchemas:
                 "data": {
                   "nodeById": {
                     "__typename": "User",
-                    "id": "Tm9kZVdpdGhOYW1lOjE="
+                    "id": "Tm9kZVdpdGhOYW1lOjE1MTExNjMxNjg="
                   }
                 }
               }
@@ -140,7 +140,7 @@ sourceSchemas:
                 "data": {
                   "nodeById": {
                     "__typename": "User",
-                    "name": "User: Tm9kZVdpdGhOYW1lOjE="
+                    "name": "User: Tm9kZVdpdGhOYW1lOjE1MTExNjMxNjg="
                   }
                 }
               }
@@ -149,7 +149,7 @@ sourceSchemas:
                 "data": {
                   "nodeById": {
                     "__typename": "User",
-                    "name": "User: Tm9kZVdpdGhOYW1lOjI="
+                    "name": "User: Tm9kZVdpdGhOYW1lOjI3MzI5MjUzNTA="
                   }
                 }
               }
@@ -185,13 +185,13 @@ sourceSchemas:
                 "data": {
                   "anotherUsers": [
                     {
-                      "id": "Tm9kZVdpdGhOYW1lOjE="
+                      "id": "Tm9kZVdpdGhOYW1lOjE1MTExNjMxNjg="
                     },
                     {
-                      "id": "Tm9kZVdpdGhOYW1lOjI="
+                      "id": "Tm9kZVdpdGhOYW1lOjI3MzI5MjUzNTA="
                     },
                     {
-                      "id": "Tm9kZVdpdGhOYW1lOjM="
+                      "id": "Tm9kZVdpdGhOYW1lOjE2NTc0MzcyNTk="
                     }
                   ]
                 }
@@ -207,16 +207,16 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_name": "User: Tm9kZVdpdGhOYW1lOjE=",
-                "__fusion_2_id": "Tm9kZVdpdGhOYW1lOjE="
+                "__fusion_1_name": "User: Tm9kZVdpdGhOYW1lOjE1MTExNjMxNjg=",
+                "__fusion_2_id": "Tm9kZVdpdGhOYW1lOjE1MTExNjMxNjg="
               },
               {
-                "__fusion_1_name": "User: Tm9kZVdpdGhOYW1lOjI=",
-                "__fusion_2_id": "Tm9kZVdpdGhOYW1lOjI="
+                "__fusion_1_name": "User: Tm9kZVdpdGhOYW1lOjI3MzI5MjUzNTA=",
+                "__fusion_2_id": "Tm9kZVdpdGhOYW1lOjI3MzI5MjUzNTA="
               },
               {
-                "__fusion_1_name": "User: Tm9kZVdpdGhOYW1lOjM=",
-                "__fusion_2_id": "Tm9kZVdpdGhOYW1lOjM="
+                "__fusion_1_name": "User: Tm9kZVdpdGhOYW1lOjE2NTc0MzcyNTk=",
+                "__fusion_2_id": "Tm9kZVdpdGhOYW1lOjE2NTc0MzcyNTk="
               }
             ]
         response:
@@ -226,7 +226,7 @@ sourceSchemas:
               {
                 "data": {
                   "nodeByKey": {
-                    "username": "NodeWithName: Tm9kZVdpdGhOYW1lOjM="
+                    "username": "NodeWithName: Tm9kZVdpdGhOYW1lOjM2MjY4MDM4MjU="
                   }
                 }
               }
@@ -234,7 +234,7 @@ sourceSchemas:
               {
                 "data": {
                   "nodeByKey": {
-                    "username": "NodeWithName: Tm9kZVdpdGhOYW1lOjI="
+                    "username": "NodeWithName: Tm9kZVdpdGhOYW1lOjM4ODU5OTQ1NTg="
                   }
                 }
               }
@@ -242,7 +242,7 @@ sourceSchemas:
               {
                 "data": {
                   "nodeByKey": {
-                    "username": "NodeWithName: Tm9kZVdpdGhOYW1lOjE="
+                    "username": "NodeWithName: Tm9kZVdpdGhOYW1lOjM2MjgwNzU0NA=="
                   }
                 }
               }
@@ -260,7 +260,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: def11e8ef61b4f475c70501ad6f43705
+      hash: e85b72131304a72502c93163f9022ab9
       searchSpace: 2
       expandedNodes: 7
   nodes:

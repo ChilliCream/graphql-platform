@@ -7,7 +7,6 @@ using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.GraphQLOverWebSocket;
 using HotChocolate.Tests;
-using HotChocolate.Transport;
 using HotChocolate.Transport.Sockets.Client;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -95,7 +94,7 @@ public class WebSocketClientProtocolTests(TestServerFactory serverFactory, ITest
     [Fact]
     public Task Subscribe_Should_Throw_When_Socket_Aborted_Without_Close_Frame()
     {
-        return TryTest(async ct =>
+        return RunTest(async ct =>
         {
             // arrange
             var subscriptionRequest = new OperationRequest(
@@ -130,7 +129,7 @@ public class WebSocketClientProtocolTests(TestServerFactory serverFactory, ITest
     [Fact]
     public Task ReadResultsAsync_Should_Complete_When_Execute_Token_Is_Canceled()
     {
-        return TryTest(async ct =>
+        return RunTest(async ct =>
         {
             // arrange
             var subscriptionRequest = new OperationRequest(
@@ -170,7 +169,7 @@ public class WebSocketClientProtocolTests(TestServerFactory serverFactory, ITest
     [Fact]
     public Task ReadResultsAsync_Should_Throw_SocketClosedException_When_Server_Closes_Connection()
     {
-        return TryTest(async ct =>
+        return RunTest(async ct =>
         {
             // arrange
             var subscriptionRequest = new OperationRequest(
@@ -200,7 +199,7 @@ public class WebSocketClientProtocolTests(TestServerFactory serverFactory, ITest
     [Fact]
     public Task ReadResultsAsync_Should_Throw_SocketClosedException_When_Server_Closes_Connection_After_Next_Messages()
     {
-        return TryTest(async ct =>
+        return RunTest(async ct =>
         {
             // arrange
             var subscriptionRequest = new OperationRequest(
@@ -233,7 +232,7 @@ public class WebSocketClientProtocolTests(TestServerFactory serverFactory, ITest
     [Fact]
     public Task ReadResultsAsync_Should_Throw_SocketClosedException_When_Connection_Is_Lost_Without_Close_Frame()
     {
-        return TryTest(async ct =>
+        return RunTest(async ct =>
         {
             // arrange
             var subscriptionRequest = new OperationRequest(
@@ -277,7 +276,7 @@ public class WebSocketClientProtocolTests(TestServerFactory serverFactory, ITest
     [Fact]
     public Task DisposeAsync_Should_Complete_Stream_Cleanly()
     {
-        return TryTest(async ct =>
+        return RunTest(async ct =>
         {
             // arrange
             var subscriptionRequest = new OperationRequest(
@@ -319,7 +318,7 @@ public class WebSocketClientProtocolTests(TestServerFactory serverFactory, ITest
     [Fact]
     public Task ReadResultsAsync_Should_Throw_SocketClosedException_When_Server_Sends_Structurally_Invalid_Message()
     {
-        return TryTest(async ct =>
+        return RunTest(async ct =>
         {
             // arrange
             var subscriptionRequest = new OperationRequest(
@@ -353,7 +352,7 @@ public class WebSocketClientProtocolTests(TestServerFactory serverFactory, ITest
     [Fact]
     public Task ReadResultsAsync_Should_Throw_SocketClosedException_When_Server_Sends_Unknown_Message_Type()
     {
-        return TryTest(async ct =>
+        return RunTest(async ct =>
         {
             // arrange
             var subscriptionRequest = new OperationRequest(
@@ -387,7 +386,7 @@ public class WebSocketClientProtocolTests(TestServerFactory serverFactory, ITest
     [Fact]
     public Task ReadResultsAsync_Should_Yield_Result_When_Next_Message_Type_Follows_Payload()
     {
-        return TryTest(async ct =>
+        return RunTest(async ct =>
         {
             // arrange
             var subscriptionRequest = new OperationRequest(
@@ -431,7 +430,7 @@ public class WebSocketClientProtocolTests(TestServerFactory serverFactory, ITest
     {
         var snapshot = new Snapshot();
 
-        return TryTest(async ct =>
+        return RunTest(async ct =>
         {
             // arrange
             var subscriptionRequest = new OperationRequest(
@@ -463,7 +462,7 @@ public class WebSocketClientProtocolTests(TestServerFactory serverFactory, ITest
     {
         var snapshot = new Snapshot();
 
-        return TryTest(async ct =>
+        return RunTest(async ct =>
         {
             // arrange
             var subscriptionRequest = new OperationRequest(
@@ -492,7 +491,7 @@ public class WebSocketClientProtocolTests(TestServerFactory serverFactory, ITest
 
     [Fact]
     public Task Send_Connect_With_Auth_Accept()
-        => TryTest(async ct =>
+        => RunTest(async ct =>
         {
             // arrange
             var interceptor = new AuthInterceptor();
@@ -516,7 +515,7 @@ public class WebSocketClientProtocolTests(TestServerFactory serverFactory, ITest
 
     [Fact]
     public Task Send_Connect_With_Auth_Reject()
-        => TryTest(async ct =>
+        => RunTest(async ct =>
         {
             // arrange
             var interceptor = new AuthInterceptor();
@@ -539,7 +538,7 @@ public class WebSocketClientProtocolTests(TestServerFactory serverFactory, ITest
     [Fact]
     public Task ConnectAsync_Should_TearDown_Socket_When_Handshake_Is_Canceled()
     {
-        return TryTest(async ct =>
+        return RunTest(async ct =>
         {
             // arrange
             // the server accepts the socket but never sends a connection_ack, so the client's

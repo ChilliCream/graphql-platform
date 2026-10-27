@@ -111,6 +111,7 @@ public class DataExtensionsTests
     public ValueTask<IRequestExecutor> CreateExecutorAsync() => new ServiceCollection()
         .AddSingleton(CreateDocumentStore())
         .AddGraphQLServer()
+        .ModifyCostOptions(o => o.DefaultListSize = 1)
         .AddRavenFiltering()
         .AddRavenProjections()
         .AddRavenSorting()

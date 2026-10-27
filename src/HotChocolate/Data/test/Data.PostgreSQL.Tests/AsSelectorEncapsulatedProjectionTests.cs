@@ -109,6 +109,7 @@ public sealed partial class AsSelectorEncapsulatedProjectionTests(PostgreSqlReso
             .AddScoped<EncapsulatedStoreService>()
             .AddSingleton<EncapsulatedSelectorCapture>()
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryContext()
             .AddQueryType(descriptor =>
             {
@@ -295,9 +296,9 @@ public sealed partial class AsSelectorEncapsulatedProjectionTests(PostgreSqlReso
     private sealed class EncapsulatedStoreContext(DbContextOptions<EncapsulatedStoreContext> options)
         : DbContext(options)
     {
-        public DbSet<EncapsulatedStore> EncapsulatedStores => Set<EncapsulatedStore>();
+        public DbSet<EncapsulatedStore> EncapsulatedStores { get; set; }
 
-        public DbSet<MixedCtorStore> MixedCtorStores => Set<MixedCtorStore>();
+        public DbSet<MixedCtorStore> MixedCtorStores { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

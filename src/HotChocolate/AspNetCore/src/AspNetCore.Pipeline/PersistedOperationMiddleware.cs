@@ -1,6 +1,4 @@
-#if !NET9_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
-#endif
 using System.Net;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Utilities;
@@ -18,6 +16,13 @@ namespace HotChocolate.AspNetCore;
 #endif
 internal static class PersistedOperationMiddleware
 {
+    // See https://github.com/dotnet/aspnetcore/issues/69972
+    [SuppressMessage(
+        "Usage",
+        "ASP0022:Route conflict detected between route handlers",
+        Justification =
+            "Routing prefers an endpoint with HTTP method metadata over a method-agnostic "
+            + "endpoint on the same route pattern.")]
     internal static void MapPersistedOperationMiddleware(
         this RouteGroupBuilder groupBuilder,
         IServiceProvider services,
@@ -26,6 +31,10 @@ internal static class PersistedOperationMiddleware
     {
         var executorProxy = HttpRequestExecutorProxy.Create(services, schemaName);
         var serverOptions = services.GetRequiredService<IOptionsMonitor<GraphQLServerOptions>>().Get(schemaName);
+        var negotiation = MiddlewareFactory.CreateHttpContentNegotiationMiddleware(path: null);
+
+        ((IEndpointConventionBuilder)groupBuilder).Add(
+            endpoint => endpoint.RequestDelegate = negotiation(endpoint.RequestDelegate!));
 
         groupBuilder.MapGet(
             "/{operationId}",
@@ -94,9 +103,11 @@ internal static class PersistedOperationMiddleware
                         return;
                     }
 
-                    await ExecutePostRequestAsync(
+                    await ExecuteBodyRequestAsync(
                         context,
                         executorProxy,
+                        serverOptions,
+                        HttpRequestKind.HttpPost,
                         operationId,
                         operationName: null,
                         requireOperationName);
@@ -124,13 +135,93 @@ internal static class PersistedOperationMiddleware
                         return;
                     }
 
-                    await ExecutePostRequestAsync(
+                    await ExecuteBodyRequestAsync(
                         context,
                         executorProxy,
+                        serverOptions,
+                        HttpRequestKind.HttpPost,
                         operationId,
                         operationName,
                         requireOperationName);
                 });
+
+        if (serverOptions.EnableQueryRequests)
+        {
+            groupBuilder.MapMethods(
+                "/{operationId}",
+                [HttpMethods.Query],
+                async context =>
+                {
+                    var operationId = context.Request.RouteValues["operationId"] as string;
+
+                    if (string.IsNullOrEmpty(operationId))
+                    {
+                        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                        await context.Response.WriteAsync(
+                            "Missing operationId",
+                            context.RequestAborted);
+                        return;
+                    }
+
+                    await ExecuteBodyRequestAsync(
+                        context,
+                        executorProxy,
+                        serverOptions,
+                        HttpRequestKind.HttpQuery,
+                        operationId,
+                        operationName: null,
+                        requireOperationName);
+                });
+
+            groupBuilder.MapMethods(
+                "/{operationId}/{operationName}",
+                [HttpMethods.Query],
+                async context =>
+                {
+                    var operationId = context.Request.RouteValues["operationId"] as string;
+                    var operationName = context.Request.RouteValues["operationName"] as string;
+
+                    if (string.IsNullOrEmpty(operationId))
+                    {
+                        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                        await context.Response.WriteAsync(
+                            "Missing operationId",
+                            context.RequestAborted);
+                        return;
+                    }
+
+                    if (string.IsNullOrEmpty(operationName))
+                    {
+                        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                        await context.Response.WriteAsync(
+                            "Missing operationName",
+                            context.RequestAborted);
+                        return;
+                    }
+
+                    await ExecuteBodyRequestAsync(
+                        context,
+                        executorProxy,
+                        serverOptions,
+                        HttpRequestKind.HttpQuery,
+                        operationId,
+                        operationName,
+                        requireOperationName);
+                });
+        }
+
+        var allow = serverOptions.EnableQueryRequests
+            ? "GET, OPTIONS, POST, QUERY"
+            : "GET, OPTIONS, POST";
+
+        // every other method on these patterns is answered as on the GraphQL endpoint.
+        groupBuilder.Map(
+            "/{operationId}",
+            context => HandleUnmappedMethodAsync(context, executorProxy, allow, serverOptions));
+
+        groupBuilder.Map(
+            "/{operationId}/{operationName}",
+            context => HandleUnmappedMethodAsync(context, executorProxy, allow, serverOptions));
     }
 
     private static async Task ExecuteGetRequestAsync(
@@ -177,7 +268,7 @@ internal static class PersistedOperationMiddleware
 
             if (!parserResult.IsValid)
             {
-                statusCode = parserResult.StatusCode.Value;
+                statusCode = parserResult.StatusCode;
                 result = parserResult.Error;
                 goto HANDLE_RESULT;
             }
@@ -194,6 +285,7 @@ internal static class PersistedOperationMiddleware
                 await MiddlewareHelper.ExecuteRequestAsync(
                     request,
                     requestFlags,
+                    options,
                     context,
                     executorSession);
             statusCode = executionResult.StatusCode;
@@ -209,9 +301,11 @@ HANDLE_RESULT:
         }
     }
 
-    private static async Task ExecutePostRequestAsync(
+    private static async Task ExecuteBodyRequestAsync(
         HttpContext context,
         HttpRequestExecutorProxy executorProxy,
+        GraphQLServerOptions options,
+        HttpRequestKind kind,
         string operationId,
         string? operationName,
         bool requireOperationName)
@@ -221,9 +315,25 @@ HANDLE_RESULT:
         var ct = context.RequestAborted;
         var executorSession = await executorProxy.GetOrCreateSessionAsync(ct);
 
-        using (executorSession.DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpPost))
+        // first, we refuse a request whose body is not JSON.
+        if (context.ParseContentType() is not RequestContentType.Json)
         {
-            // first, we validate the accept-headers.
+            if (executorSession.ReportsUnsupportedMethodOrMediaType)
+            {
+                context.Response.StatusCode = StatusCodes.Status415UnsupportedMediaType;
+                context.Response.Headers.SetAcceptQuery(options);
+            }
+            else
+            {
+                context.Response.StatusCode = StatusCodes.Status404NotFound;
+            }
+
+            return;
+        }
+
+        using (executorSession.DiagnosticEvents.ExecuteHttpRequest(context, kind))
+        {
+            // next, we validate the accept-headers.
             var validationResult = MiddlewareHelper.ValidateAcceptContentType(context, executorSession);
 
             var acceptMediaTypes = validationResult.AcceptMediaTypes;
@@ -253,19 +363,43 @@ HANDLE_RESULT:
 
             if (!parserResult.IsValid)
             {
-                statusCode = parserResult.StatusCode.Value;
+                statusCode = parserResult.StatusCode;
                 result = parserResult.Error;
                 goto HANDLE_RESULT;
+            }
+
+            var request = parserResult.Request!;
+            var requestFlags = validationResult.RequestFlags;
+
+            if (kind is HttpRequestKind.HttpQuery)
+            {
+                // a QUERY request carries exactly one variable set, so a variable batch is
+                // refused.
+                if (MiddlewareHelper.IsVariableBatch(request))
+                {
+                    var refused = MiddlewareHelper.CreateBatchingRefusedResult(
+                        ErrorHelper.VariableBatchingNotSupportedForQuery(),
+                        context,
+                        executorSession);
+                    statusCode = refused.StatusCode;
+                    result = refused.Error;
+                    goto HANDLE_RESULT;
+                }
+
+                requestFlags = MiddlewareHelper.DetermineHttpQueryRequestFlags(requestFlags);
             }
 
             // after successfully parsing the request, we now will attempt to execute the request.
             var executionResult =
                 await MiddlewareHelper.ExecuteRequestAsync(
-                    parserResult.Request!,
-                    validationResult.RequestFlags,
+                    request,
+                    requestFlags,
+                    options,
                     context,
                     executorSession);
-            statusCode = executionResult.StatusCode;
+            statusCode = kind is HttpRequestKind.HttpQuery
+                ? MiddlewareHelper.DetermineHttpQueryStatusCode(executionResult)
+                : executionResult.StatusCode;
             result = executionResult.Result;
 
 HANDLE_RESULT:
@@ -276,5 +410,28 @@ HANDLE_RESULT:
                 context,
                 executorSession);
         }
+    }
+
+    private static async Task HandleUnmappedMethodAsync(
+        HttpContext context,
+        HttpRequestExecutorProxy executorProxy,
+        string allow,
+        GraphQLServerOptions options)
+    {
+        var executorSession = await executorProxy.GetOrCreateSessionAsync(context.RequestAborted);
+
+        if (!executorSession.ReportsUnsupportedMethodOrMediaType)
+        {
+            context.Response.StatusCode = StatusCodes.Status404NotFound;
+            return;
+        }
+
+        // RFC 9110, section 9.3.7: OPTIONS asks for the methods the target resource supports,
+        // and section 15.5.6 requires a 405 to list them.
+        context.Response.StatusCode = HttpMethods.IsOptions(context.Request.Method)
+            ? StatusCodes.Status204NoContent
+            : StatusCodes.Status405MethodNotAllowed;
+        context.Response.Headers.Allow = allow;
+        context.Response.Headers.SetAcceptQuery(options);
     }
 }

@@ -10,4 +10,6 @@ public sealed record SourceGitHubMetadata(
     string RunNumber,
     string RunId,
     string? JobId,
-    Uri RepositoryUrl);
+    Uri RepositoryUrl,
+    string? Ref,
+    int? PullRequestNumber);

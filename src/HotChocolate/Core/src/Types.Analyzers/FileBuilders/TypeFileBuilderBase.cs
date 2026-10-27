@@ -1285,7 +1285,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         else
                         {
                             Writer.WriteIndentedLine(
-                                "var args{0} = contexts[0].Service<{1}>(\"{2}\");",
+                                "var args{0} = contexts[0].Service<{1}>({2});",
                                 i,
                                 ToFullyQualifiedString(parameter.Type, resolverMethod, typeLookup),
                                 parameter.Key);

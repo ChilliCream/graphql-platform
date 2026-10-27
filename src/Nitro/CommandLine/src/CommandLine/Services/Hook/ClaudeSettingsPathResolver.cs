@@ -1,5 +1,9 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
+/// <summary>
+/// Resolves <c>~/.claude/settings.json</c> for user scope or
+/// <c>&lt;checkout-root&gt;/.claude/settings.json</c> for project scope.
+/// </summary>
 internal sealed class ClaudeSettingsPathResolver(IFileSystem fileSystem) : IClaudeSettingsPathResolver
 {
     public string Resolve(string scope) => scope switch
@@ -8,12 +12,14 @@ internal sealed class ClaudeSettingsPathResolver(IFileSystem fileSystem) : IClau
         _ => Path.Combine(ResolveUserHome(), ".claude", "settings.json")
     };
 
+    public IReadOnlyList<string> ResolveForCurrentDirectory()
+        => Workspace.AgentWorkspace.FindLocation(fileSystem, fileSystem.GetCurrentDirectory()) is not null
+            ? [Resolve(HookInstallScopes.User), Resolve(HookInstallScopes.Project)]
+            : [Resolve(HookInstallScopes.User)];
+
     /// <summary>
-    /// The checkout root that contains the current directory (the directory
-    /// whose <c>.nitro</c> or <c>.git</c> entry resolved the workspace), not
-    /// the workspace directory itself: Claude Code's project-scope config
-    /// lives at <c>&lt;checkout-root&gt;/.claude/settings.json</c>, so a
-    /// linked worktree gets its own settings, not the main checkout's.
+    /// Returns the checkout directory containing the current directory, or throws
+    /// <see cref="ExitException"/> when no agent workspace is found.
     /// </summary>
     private string ResolveProjectRoot()
         => Workspace.AgentWorkspace.FindLocation(fileSystem, fileSystem.GetCurrentDirectory())

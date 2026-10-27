@@ -85,7 +85,7 @@ internal static class NitroAccessToken
 
         var payload = token.AsSpan(payloadStart, secondSeparator - payloadStart);
         var padding = (4 - payload.Length % 4) % 4;
-        Span<char> base64 = payload.Length + padding <= 1024
+        var base64 = payload.Length + padding <= 1024
             ? stackalloc char[payload.Length + padding]
             : new char[payload.Length + padding];
 
@@ -102,7 +102,7 @@ internal static class NitroAccessToken
         base64[payload.Length..].Fill('=');
 
         var decodedLength = (base64.Length * 3 + 3) / 4;
-        Span<byte> decoded = decodedLength <= 1024
+        var decoded = decodedLength <= 1024
             ? stackalloc byte[decodedLength]
             : new byte[decodedLength];
 

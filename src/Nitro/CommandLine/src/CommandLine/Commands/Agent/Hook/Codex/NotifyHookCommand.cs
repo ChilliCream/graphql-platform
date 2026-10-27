@@ -5,15 +5,9 @@ using ChilliCream.Nitro.CommandLine.Services.Hook;
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Hook.Codex;
 
 /// <summary>
-/// Adapts Codex CLI's <c>notify</c> mechanism: the idle-turn gate. Queues one
-/// ledger-claimed unread-mail digest into the thread via <c>codex queue --thread</c>,
-/// then execs any foreign <c>notify</c> program this
-/// install wrapped, preserving argv/stdin/cwd and finishing with the
-/// foreign program's own exit code (install-flow contract: "ours execs it
-/// after our work... if our handler fails, the foreign program still
-/// runs"). Not wired through <c>CodexHookCommandExtensions</c>: this reads
-/// its payload from argv, not stdin, and its exit code carries meaning,
-/// unlike every other command in this tree.
+/// Handles an argv-based Codex notify payload and attempts to run any wrapped
+/// foreign notify program afterward. Returns the foreign exit code when available,
+/// or zero otherwise.
 /// </summary>
 internal sealed class NotifyHookCommand : Command
 {
@@ -38,7 +32,7 @@ internal sealed class NotifyHookCommand : Command
         var payloadJson = parseResult.GetRequiredValue(Opt<NotifyPayloadArgument>.Instance);
         return await CodexNotifyExecutor.RunAsync(
             environmentVariables,
-            (payload, ct) => handler.HandleNotifyAsync(payload, false, ct),
+            handler.HandleNotifyAsync,
             ct => ExecForeignAsync(sidecarStore, pathResolver, foreignRunner, payloadJson, ct),
             payloadJson,
             cancellationToken);

@@ -1,28 +1,27 @@
 namespace HotChocolate.Fusion.Planning;
 
 /// <summary>
-/// Controls how aggressively structurally-identical operations are merged
-/// to reduce the number of downstream requests.
+/// Controls whether structurally identical lookups merge across target paths and dependency depths.
 /// </summary>
 public enum OperationMergePolicy
 {
     /// <summary>
-    /// Merge only when canonical signature matches and the operations share the
-    /// same dependency depth. This avoids any risk of over-serialization by
-    /// ensuring merged operations were already at equivalent execution levels.
+    /// Keeps structurally identical lookups as separate operations.
     /// </summary>
-    Conservative = 0,
+    None = 0,
 
     /// <summary>
-    /// Merge when canonical signature matches and cycle-safe, but reject merges
-    /// where the depth difference between candidates exceeds a single level.
-    /// This provides a middle ground between request reduction and serialization risk.
+    /// Merges structurally identical lookups at the same dependency depth.
     /// </summary>
-    Balanced = 1,
+    Conservative = 1,
 
     /// <summary>
-    /// Merge whenever canonical signature matches and cycle-safe, regardless of
-    /// depth or dependency differences. This maximizes request-count reduction.
+    /// Merges structurally identical lookups whose dependency depths differ by at most one level.
     /// </summary>
-    Aggressive = 2
+    Balanced = 2,
+
+    /// <summary>
+    /// Merges structurally identical lookups regardless of their dependency depths.
+    /// </summary>
+    Aggressive = 3
 }

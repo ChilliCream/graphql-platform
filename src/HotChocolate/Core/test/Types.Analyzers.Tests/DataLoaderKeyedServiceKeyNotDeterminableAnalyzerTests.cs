@@ -1,6 +1,4 @@
-using System.Collections.Immutable;
 using HotChocolate.Types.Analyzers;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
@@ -21,7 +19,7 @@ public class DataLoaderKeyedServiceKeyNotDeterminableAnalyzerTests
             }
             """,
             "MetadataAttributes");
-        var compilation = (CSharpCompilation)TestHelper.CreateCompilation(
+        var compilation = TestHelper.CreateCompilation(
             """
             using System.Collections.Generic;
             using System.Threading.Tasks;
@@ -39,8 +37,7 @@ public class DataLoaderKeyedServiceKeyNotDeterminableAnalyzerTests
 
         // act
         var diagnostics = await compilation
-            .WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(
-                new DataLoaderKeyedServiceKeyNotDeterminableAnalyzer()))
+            .WithAnalyzers([new DataLoaderKeyedServiceKeyNotDeterminableAnalyzer()])
             .GetAnalyzerDiagnosticsAsync(TestContext.Current.CancellationToken);
 
         // assert
@@ -82,8 +79,7 @@ public class DataLoaderKeyedServiceKeyNotDeterminableAnalyzerTests
 
         // act
         var diagnostics = await compilation
-            .WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(
-                new DataLoaderKeyedServiceKeyNotDeterminableAnalyzer()))
+            .WithAnalyzers([new DataLoaderKeyedServiceKeyNotDeterminableAnalyzer()])
             .GetAnalyzerDiagnosticsAsync(TestContext.Current.CancellationToken);
 
         // assert

@@ -152,6 +152,7 @@ public sealed class Issue8252UnionProjectionTests(PostgreSqlResource resource)
         var services = new ServiceCollection()
             .AddDbContext<Issue8252Context>(c => c.UseNpgsql(connectionString))
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Issue8252Query>()
             .AddUnionType<PostContent>()
             .AddType<TextContent>()
@@ -220,7 +221,7 @@ public sealed class Issue8252UnionProjectionTests(PostgreSqlResource resource)
 
     public sealed class Issue8252Context(DbContextOptions<Issue8252Context> options) : DbContext(options)
     {
-        public DbSet<PostContent> Content => Set<PostContent>();
+        public DbSet<PostContent> Content { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

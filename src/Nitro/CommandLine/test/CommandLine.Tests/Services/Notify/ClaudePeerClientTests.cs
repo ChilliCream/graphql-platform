@@ -2,11 +2,13 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 public sealed class ClaudePeerClientTests : IDisposable
 {
+    private const string Harness = AgentSessionHarness.ClaudeCode;
     private const int Pid = 4242;
     private const string SessionId = "session-1";
     private const string ProcStart = "44276735";
@@ -23,7 +25,7 @@ public sealed class ClaudePeerClientTests : IDisposable
         _sessionDirectory = Path.Combine(_tempRoot.FullName, "sessions");
         Directory.CreateDirectory(_sessionDirectory);
         _socketPath = Path.Combine(_tempRoot.FullName, "peer.sock");
-        _client = new ClaudePeerClient(_sessionDirectory);
+        _client = new ClaudePeerClient(_sessionDirectory, Path.Combine(_tempRoot.FullName, "venti-peers"));
     }
 
     public void Dispose() => _tempRoot.Delete(recursive: true);
@@ -83,7 +85,7 @@ public sealed class ClaudePeerClientTests : IDisposable
         await WriteRegistryAsync(protocol: 2, cancellationToken);
 
         // act
-        var outcome = await _client.SendAsync(SessionId, "hello", cancellationToken);
+        var outcome = await _client.SendAsync(Harness, SessionId, "hello", cancellationToken);
 
         // assert
         Assert.Equal(ClaudePeerSendOutcome.Unsupported, outcome);
@@ -98,7 +100,7 @@ public sealed class ClaudePeerClientTests : IDisposable
         await WriteKeyAsync("different-generation", cancellationToken);
 
         // act
-        var outcome = await _client.SendAsync(SessionId, "hello", cancellationToken);
+        var outcome = await _client.SendAsync(Harness, SessionId, "hello", cancellationToken);
 
         // assert
         Assert.Equal(ClaudePeerSendOutcome.InvalidAuth, outcome);
@@ -116,7 +118,7 @@ public sealed class ClaudePeerClientTests : IDisposable
         }
 
         // act
-        var outcome = await _client.SendAsync(SessionId, "hello", cancellationToken);
+        var outcome = await _client.SendAsync(Harness, SessionId, "hello", cancellationToken);
 
         // assert
         Assert.Equal(ClaudePeerSendOutcome.EndpointGone, outcome);
@@ -130,7 +132,7 @@ public sealed class ClaudePeerClientTests : IDisposable
         await WriteRegistryAsync(protocol: 1, cancellationToken);
 
         // act
-        var outcome = await _client.SendAsync("different-session", "hello", cancellationToken);
+        var outcome = await _client.SendAsync(Harness, "different-session", "hello", cancellationToken);
 
         // assert
         Assert.Equal(ClaudePeerSendOutcome.EndpointGone, outcome);
@@ -139,12 +141,8 @@ public sealed class ClaudePeerClientTests : IDisposable
     [Fact]
     public async Task SendAsync_Should_ReturnAccessDenied_When_ConnectFailsWithSocketAccessDenied()
     {
-        // arrange: a real access-denied-shaped SocketException raised from the
-        // connect call itself (an unsearchable parent directory), not parsed
-        // from any exception text. Skipped where this OS trick cannot
-        // reproduce a real EACCES: Windows has no matching mechanism, and a
-        // process running as root bypasses the directory permission check
-        // entirely, which is checked independently of the outcome under test.
+        // arrange
+        // A real EACCES-shaped SocketException from an unsearchable parent directory.
         if (OperatingSystem.IsWindows())
         {
             Assert.Skip("Unix directory-permission denial has no Windows equivalent.");
@@ -163,7 +161,7 @@ public sealed class ClaudePeerClientTests : IDisposable
         try
         {
             // act
-            var outcome = await _client.SendAsync(SessionId, "hello", cancellationToken);
+            var outcome = await _client.SendAsync(Harness, SessionId, "hello", cancellationToken);
 
             // assert
             Assert.Equal(ClaudePeerSendOutcome.AccessDenied, outcome);
@@ -183,11 +181,89 @@ public sealed class ClaudePeerClientTests : IDisposable
             Path.Combine(_sessionDirectory, $"{Pid}.json"), "{ not json", cancellationToken);
 
         // act
-        var outcome = await _client.SendAsync(SessionId, "hello", cancellationToken);
+        var outcome = await _client.SendAsync(Harness, SessionId, "hello", cancellationToken);
 
-        // assert: JsonDocument.Parse throws the derived JsonReaderException,
-        // whose runtime type name is what ends up in Detail.
+        // assert
         Assert.Equal(ClaudePeerSendOutcome.TransportError("JsonReaderException"), outcome);
+    }
+
+    [Theory]
+    [InlineData("[]")]
+    [InlineData("1")]
+    public async Task SendAsync_Should_ReturnEndpointGone_When_RegistryRootIsNotAnObject(string json)
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await WriteRegistryJsonAsync(json, cancellationToken);
+
+        // act
+        var outcome = await _client.SendAsync(Harness, SessionId, "hello", cancellationToken);
+
+        // assert
+        Assert.Equal(ClaudePeerSendOutcome.EndpointGone, outcome);
+    }
+
+    [Fact]
+    public async Task SendAsync_Should_ReturnEndpointGone_When_RegistryPidIsNotANumber()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var json = JsonSerializer.Serialize(new
+        {
+            pid = "4242",
+            sessionId = SessionId,
+            kind = "interactive",
+            procStart = ProcStart,
+            peerProtocol = 1,
+            messagingSocketPath = _socketPath
+        });
+        await WriteRegistryJsonAsync(json, cancellationToken);
+
+        // act
+        var outcome = await _client.SendAsync(Harness, SessionId, "hello", cancellationToken);
+
+        // assert
+        Assert.Equal(ClaudePeerSendOutcome.EndpointGone, outcome);
+    }
+
+    [Fact]
+    public async Task SendAsync_Should_ReturnUnsupported_When_RegistryProtocolIsNotANumber()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var json = JsonSerializer.Serialize(new
+        {
+            pid = Pid,
+            sessionId = SessionId,
+            kind = "interactive",
+            procStart = ProcStart,
+            peerProtocol = "1",
+            messagingSocketPath = _socketPath
+        });
+        await WriteRegistryJsonAsync(json, cancellationToken);
+
+        // act
+        var outcome = await _client.SendAsync(Harness, SessionId, "hello", cancellationToken);
+
+        // assert
+        Assert.Equal(ClaudePeerSendOutcome.Unsupported, outcome);
+    }
+
+    [Theory]
+    [InlineData("[]")]
+    [InlineData("1")]
+    public async Task SendAsync_Should_ReturnInvalidAuth_When_KeyRootIsNotAnObject(string json)
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await WriteRegistryAsync(protocol: 1, cancellationToken);
+        await WriteKeyJsonAsync(json, cancellationToken);
+
+        // act
+        var outcome = await _client.SendAsync(Harness, SessionId, "hello", cancellationToken);
+
+        // assert
+        Assert.Equal(ClaudePeerSendOutcome.InvalidAuth, outcome);
     }
 
     private async Task<(ClaudePeerSendOutcome Outcome, IReadOnlyList<JsonDocument> Frames)>
@@ -195,7 +271,7 @@ public sealed class ClaudePeerClientTests : IDisposable
     {
         using var listener = CreateListener();
         var acceptTask = listener.AcceptAsync(cancellationToken).AsTask();
-        var sendTask = _client.SendAsync(SessionId, message, cancellationToken);
+        var sendTask = _client.SendAsync(Harness, SessionId, message, cancellationToken);
         using var peer = await acceptTask;
         await using var buffer = new MemoryStream();
         var chunk = new byte[1024];
@@ -221,10 +297,8 @@ public sealed class ClaudePeerClientTests : IDisposable
     }
 
     /// <summary>
-    /// Strips the execute bit from <paramref name="socketPath"/>'s parent
-    /// directory, which turns a Unix-domain <c>connect(2)</c> against a path
-    /// beneath it into a real <c>EACCES</c> the OS reports as
-    /// <see cref="SocketError.AccessDenied"/>, not a fabricated exception.
+    /// Removes search permission from <paramref name="socketPath"/>'s parent directory
+    /// on Unix systems. Does nothing on Windows.
     /// </summary>
     private static void MakeParentUnsearchable(string socketPath)
     {
@@ -245,7 +319,7 @@ public sealed class ClaudePeerClientTests : IDisposable
             return;
         }
 
-        var parent = Path.GetDirectoryName(socketPath)!;
+        var parent = Path.GetDirectoryName(socketPath);
 
         if (Directory.Exists(parent))
         {
@@ -276,14 +350,22 @@ public sealed class ClaudePeerClientTests : IDisposable
             messagingSocketPath = endpointOverride ?? _socketPath
         });
 
-        return File.WriteAllTextAsync(
-            Path.Combine(_sessionDirectory, $"{Pid}.json"), json, cancellationToken);
+        return WriteRegistryJsonAsync(json, cancellationToken);
     }
+
+    private Task WriteRegistryJsonAsync(string json, CancellationToken cancellationToken)
+        => File.WriteAllTextAsync(
+            Path.Combine(_sessionDirectory, $"{Pid}.json"), json, cancellationToken);
 
     private async Task WriteKeyAsync(string procStart, CancellationToken cancellationToken)
     {
-        var path = Path.Combine(_sessionDirectory, $"{Pid}.test.key");
         var json = JsonSerializer.Serialize(new { peerToken = PeerToken, procStart });
+        await WriteKeyJsonAsync(json, cancellationToken);
+    }
+
+    private async Task WriteKeyJsonAsync(string json, CancellationToken cancellationToken)
+    {
+        var path = Path.Combine(_sessionDirectory, $"{Pid}.test.key");
         await File.WriteAllTextAsync(path, json, cancellationToken);
 
         if (!OperatingSystem.IsWindows())

@@ -1,6 +1,5 @@
 using System.Buffers;
 using System.Threading.Channels;
-using HotChocolate.Fusion.Subscriptions;
 using Microsoft.Extensions.Options;
 
 namespace HotChocolate.Fusion.Subscriptions.AzureEventHubs;

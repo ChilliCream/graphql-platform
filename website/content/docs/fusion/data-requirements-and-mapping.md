@@ -31,7 +31,7 @@ type Query {
 }
 ```
 
-The `@require(field: "weight")` directive on the `weight` argument tells the gateway: "Before calling this resolver, fetch `weight` from whichever subgraph can provide it and pass it in as the `weight` argument."
+The `#!sdl @require(field: "weight")` directive on the `weight` argument tells the gateway: "Before calling this resolver, fetch `weight` from whichever subgraph can provide it and pass it in as the `weight` argument."
 
 **C# resolver**
 
@@ -47,7 +47,7 @@ public static partial class ProductNode
 }
 ```
 
-The `[Require]` attribute maps to `@require(field: "weight")` in the exported schema. Because the C# argument name `weight` matches the entity field name, the field path is inferred automatically.
+The `[Require]` attribute maps to `#!sdl @require(field: "weight")` in the exported schema. Because the C# argument name `weight` matches the entity field name, the field path is inferred automatically.
 
 When the names differ, provide the field path explicitly:
 
@@ -121,6 +121,8 @@ The FieldSelectionMap inside `@require` tells the gateway how to populate the `P
 - `length: dimensions.length` maps the input field `length` from the nested entity path `dimensions.length`. The same applies to `width` and `height`.
 
 The fields referenced in the map do not all have to come from the same subgraph. The gateway resolves each field from whichever subgraph owns it. Your resolver declares what data it needs, not which services to call.
+
+Every field at the first level of the map must come from a subgraph other than the requiring one. A field that the requiring subgraph declares `@external` does not count as coming from it. Nested fields may come from the requiring subgraph. In `length: dimensions.length`, `dimensions` is at the first level and `length` is nested.
 
 **C# resolver**
 
@@ -252,7 +254,7 @@ type Product {
 }
 ```
 
-The path `seller.addresses[countryCode]` means: navigate to `seller.addresses` (a list), then select `countryCode` from each element. If the seller has three addresses with country codes `"US"`, `"DE"`, and `"US"`, the resolver receives `["US", "DE", "US"]` as the `countryCodes` argument.
+The path `seller.addresses[countryCode]` means: navigate to `seller.addresses` (a list), then select `countryCode` from each element. If the seller has three addresses with country codes `"US"`, `"DE"`, and `"US"`, the resolver receives `#!json ["US", "DE", "US"]` as the `countryCodes` argument.
 
 # Declaring Contextually Available Fields
 
@@ -260,7 +262,7 @@ Use `@provides` on a field that returns an entity to tell the gateway that certa
 
 ## When Contextual Availability Helps
 
-Consider a Reviews subgraph where the `author` field returns a `User` entity. The `User` type and its `username` field are owned by the Accounts subgraph. Normally the gateway would need to call the Accounts subgraph to fetch `username`. But the Reviews subgraph already has the author's username available when resolving `Review.author`. By annotating the `author` field with `@provides(fields: "username")`, the subgraph tells the gateway: "When you resolve `author` through the `Review` entity on my subgraph, I can also give you `username`."
+Consider a Reviews subgraph where the `author` field returns a `User` entity. The `User` type and its `username` field are owned by the Accounts subgraph. Normally the gateway would need to call the Accounts subgraph to fetch `username`. But the Reviews subgraph already has the author's username available when resolving `Review.author`. By annotating the `author` field with `#!sdl @provides(fields: "username")`, the subgraph tells the gateway: "When you resolve `author` through the `Review` entity on my subgraph, I can also give you `username`."
 
 This is different from `@shareable`, which declares that a subgraph can always resolve a field. `@provides` is conditional: the data is only available when coming through a specific field path.
 
@@ -284,7 +286,7 @@ type Query {
 }
 ```
 
-The `@provides(fields: "username")` on `author` tells the gateway that when it resolves `author` from the Reviews subgraph, it can also get `username` without a separate call to the Accounts subgraph.
+The `#!sdl @provides(fields: "username")` on `author` tells the gateway that when it resolves `author` from the Reviews subgraph, it can also get `username` without a separate call to the Accounts subgraph.
 
 The `@external` on `username` declares that this field is owned by another subgraph (Accounts), but the Reviews subgraph can provide it in the context of `Review.author`.
 
@@ -373,7 +375,7 @@ countryCodes: [String!]! @require(field: "seller.addresses[countryCode]")
 dims: [ProductDimensionInput!]! @require(field: "dimensions[{ weight, height }]")
 ```
 
-> For the full FieldSelectionMap grammar, see the [Composite Schemas specification](https://graphql.github.io/composite-schemas-spec/draft/#sec-Appendix-A-Specification-of-FieldSelectionMap-Scalar).
+> For the full FieldSelectionMap grammar, see the [GraphQL Federation specification](https://graphql.github.io/graphql-federation-spec/draft/#sec-Appendix-A-Specification-of-FieldSelectionMap-Scalar).
 
 # Troubleshooting
 
@@ -385,6 +387,24 @@ which does not exist on type "Product".
 ```
 
 The field path in `@require(field: "...")` points to a field that does not exist on the entity type after composition. Check that the field name matches exactly (GraphQL field names, not C# property names) and that the owning subgraph is included in composition.
+
+## `REQUIRE_INVALID_FIELDS`: Required field served by the requiring schema
+
+```text
+The @require directive on argument 'Product.shippingEstimate(weight:)' in schema 'Shipping' specifies an invalid field selection against the composed schema.
+- The required field 'Product.weight' must not be served by the requiring source schema 'Shipping'.
+```
+
+The requiring subgraph serves a field at the first level of the `@require` map. Declare the field `@external` in the requiring subgraph and let another subgraph serve it, or move the requiring field to a subgraph that does not serve the first-level field.
+
+```graphql
+# Shipping subgraph
+type Product {
+  id: ID!
+  weight: Float! @external
+  shippingEstimate(zip: String!, weight: Float! @require(field: "weight")): Int!
+}
+```
 
 ## `PROVIDES_INVALID_FIELDS`: Invalid field selection in `@provides`
 

@@ -24,6 +24,11 @@ internal sealed record MailMessageResult
     /// </summary>
     public required bool MessageStored { get; init; }
 
+    /// <summary>
+    /// Names dropped from a reply-all because the agent is unknown or was deleted.
+    /// </summary>
+    public IReadOnlyList<string> Skipped { get; init; } = [];
+
     public static MailMessageResult Create(MailMessage message) => new()
     {
         Id = message.Id,
@@ -42,6 +47,7 @@ internal sealed record MailMessageResult
             .ToArray(),
         Subject = message.Subject,
         CreatedAt = message.CreatedAt,
-        MessageStored = true
+        MessageStored = true,
+        Skipped = message.Skipped
     };
 }

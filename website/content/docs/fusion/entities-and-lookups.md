@@ -320,7 +320,7 @@ type Query {
 
 Both variants describe the same composite key. The first maps each argument explicitly. The second maps the input object fields in one selection map.
 
-> The FieldSelectionMap syntax from the Composite Schemas specification supports more advanced argument-to-field mappings for lookups. For the full grammar and examples, see the [Composite Schemas specification](https://graphql.github.io/composite-schemas-spec/draft/#sec-Appendix-A-Specification-of-FieldSelectionMap-Scalar).
+> The FieldSelectionMap syntax from the GraphQL Federation specification supports more advanced argument-to-field mappings for lookups. For the full grammar and examples, see the [GraphQL Federation specification](https://graphql.github.io/graphql-federation-spec/draft/#sec-Appendix-A-Specification-of-FieldSelectionMap-Scalar).
 
 # Explicit Key Declaration
 
@@ -346,13 +346,13 @@ type Product @key(fields: "id") {
 public sealed record Product([property: ID<Product>] int Id);
 ```
 
-The `@key(fields: "id")` directive explicitly declares that `Product` is identified by the `id` field. This is useful when key identity should be declared explicitly instead of inferred from lookup arguments.
+The `#!sdl @key(fields: "id")` directive explicitly declares that `Product` is identified by the `id` field. This is useful when key identity should be declared explicitly instead of inferred from lookup arguments.
 
 `@key` declares identity. It does not replace lookup paths. If a subgraph contributes fields and needs to be entered during planning, it still needs a compatible lookup route.
 
 The `fields` value uses GraphQL field names, not C# member names.
 
-Key fields may supply constant arguments to select a specific variant of a field. For example, `@key(fields: "id(scope: LOCAL)")` selects the `id` field with the constant argument `scope: LOCAL`. Argument values must be constant literals (no variables), must match the field's declared argument definitions, and all required arguments must be supplied.
+Key fields may supply constant arguments to select a specific variant of a field. For example, `#!sdl @key(fields: "id(scope: LOCAL)")` selects the `id` field with the constant argument `scope: LOCAL`. Argument values must be constant literals (no variables), must match the field's declared argument definitions, and all required arguments must be supplied.
 
 An entity can have multiple keys. Each `@key` directive on a type represents one key.
 

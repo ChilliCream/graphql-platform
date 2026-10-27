@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
-using Mocha.Features;
 using Mocha.Inbox;
 using Mocha.Middlewares;
 

@@ -1,5 +1,8 @@
 using System.Text;
 using System.Text.Json;
+#if !NET9_0_OR_GREATER
+using System.Text.Json.Nodes;
+#endif
 using ChilliCream.Nitro.Adapters.Mcp.Extensions;
 using ChilliCream.Nitro.Adapters.Mcp.Serialization;
 using HotChocolate.Adapters.Mcp.Storage;
@@ -112,14 +115,28 @@ public class McpFeatureCollectionArchiveTests : IDisposable
 
             var prompt = await readArchive.TryGetPromptAsync("GetUsersPrompt", TestContext.Current.CancellationToken);
             Assert.NotNull(prompt);
+#if NET9_0_OR_GREATER
             Assert.True(JsonElement.DeepEquals(promptSettings.RootElement, prompt.Settings.RootElement));
+#else
+            Assert.True(
+                JsonNode.DeepEquals(
+                    JsonNode.Parse(promptSettings.RootElement.GetRawText()),
+                    JsonNode.Parse(prompt.Settings.RootElement.GetRawText())));
+#endif
             prompt.Dispose();
 
             using var tool = await readArchive.TryGetToolAsync("GetUsers", TestContext.Current.CancellationToken);
             Assert.NotNull(tool);
             Assert.Equal(operation, tool.Document.ToArray());
             Assert.NotNull(tool.Settings);
+#if NET9_0_OR_GREATER
             Assert.True(JsonElement.DeepEquals(toolSettings.RootElement, tool.Settings.RootElement));
+#else
+            Assert.True(
+                JsonNode.DeepEquals(
+                    JsonNode.Parse(toolSettings.RootElement.GetRawText()),
+                    JsonNode.Parse(tool.Settings.RootElement.GetRawText())));
+#endif
             Assert.Equal(viewHtml, tool.ViewHtml?.ToArray());
         }
     }
@@ -157,12 +174,26 @@ public class McpFeatureCollectionArchiveTests : IDisposable
         {
             var prompt1 = await readArchive.TryGetPromptAsync(name1, TestContext.Current.CancellationToken);
             Assert.NotNull(prompt1);
+#if NET9_0_OR_GREATER
             Assert.True(JsonElement.DeepEquals(settings1.RootElement, prompt1.Settings.RootElement));
+#else
+            Assert.True(
+                JsonNode.DeepEquals(
+                    JsonNode.Parse(settings1.RootElement.GetRawText()),
+                    JsonNode.Parse(prompt1.Settings.RootElement.GetRawText())));
+#endif
             prompt1.Dispose();
 
             var prompt2 = await readArchive.TryGetPromptAsync(name2, TestContext.Current.CancellationToken);
             Assert.NotNull(prompt2);
+#if NET9_0_OR_GREATER
             Assert.True(JsonElement.DeepEquals(settings2.RootElement, prompt2.Settings.RootElement));
+#else
+            Assert.True(
+                JsonNode.DeepEquals(
+                    JsonNode.Parse(settings2.RootElement.GetRawText()),
+                    JsonNode.Parse(prompt2.Settings.RootElement.GetRawText())));
+#endif
             prompt2.Dispose();
         }
     }
@@ -500,7 +531,14 @@ public class McpFeatureCollectionArchiveTests : IDisposable
         var prompt = await archive.TryGetPromptAsync("GetUserPrompt", TestContext.Current.CancellationToken);
 
         Assert.NotNull(prompt);
+#if NET9_0_OR_GREATER
         Assert.True(JsonElement.DeepEquals(prompt.Settings.RootElement, prompt.Settings.RootElement));
+#else
+        Assert.True(
+            JsonNode.DeepEquals(
+                JsonNode.Parse(prompt.Settings.RootElement.GetRawText()),
+                JsonNode.Parse(prompt.Settings.RootElement.GetRawText())));
+#endif
 
         // assert - Tools
         using var tool = await archive.TryGetToolAsync("GetUser", TestContext.Current.CancellationToken);

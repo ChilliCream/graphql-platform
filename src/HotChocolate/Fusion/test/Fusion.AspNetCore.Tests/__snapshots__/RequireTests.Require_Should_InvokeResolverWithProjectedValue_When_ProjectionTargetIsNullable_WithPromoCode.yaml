@@ -104,34 +104,21 @@ sourceSchemas:
       }
     interactions:
       - request:
-          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
-          kind: OperationBatch
-          items:
-            - document: |
-                query Op_640ade6c_3($__fusion_3_id: ID!) {
-                  cartById(id: $__fusion_3_id) {
-                    promoCode {
-                      discountPercent
-                      isExpired
-                    }
-                  }
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_640ade6c_3($__fusion_3_id: ID!) {
+              cartById(id: $__fusion_3_id) {
+                promoCode {
+                  discountPercent
+                  isExpired
                 }
-              variables: |
-                {
-                  "__fusion_3_id": "1"
-                }
-            - document: |
-                query Op_640ade6c_4($__fusion_4_id: ID!) {
-                  cartById(id: $__fusion_4_id) {
-                    id
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_4_id": "1"
-                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_3_id": "1"
+            }
         response:
-          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -141,14 +128,6 @@ sourceSchemas:
                       "discountPercent": 10,
                       "isExpired": false
                     }
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "cartById": {
-                    "id": "1"
                   }
                 }
               }
@@ -165,7 +144,7 @@ operationPlan:
             }
           }
         }
-      hash: 640ade6c01c355dbd76d8d5ea9fdade4
+      hash: 9261f7a756b59b96b97a4d74eb74185d
       searchSpace: 2
       expandedNodes: 6
   nodes:
@@ -200,7 +179,8 @@ operationPlan:
           selectionMap: >-
             id
       dependencies:
-        - id: 5
+        - id: 1
+        - id: 3
     - id: 3
       type: Operation
       schema: promotions
@@ -215,27 +195,8 @@ operationPlan:
         }
       source: $.cartById
       target: $.cartById
-      batchingGroupId: 5
       requirements:
         - name: __fusion_3_id
-          selectionMap: >-
-            id
-      dependencies:
-        - id: 1
-    - id: 4
-      type: Operation
-      schema: promotions
-      operation: |
-        query Op_640ade6c_4($__fusion_4_id: ID!) {
-          cartById(id: $__fusion_4_id) {
-            id
-          }
-        }
-      source: $.cartById
-      target: $.cartById
-      batchingGroupId: 5
-      requirements:
-        - name: __fusion_4_id
           selectionMap: >-
             id
       dependencies:

@@ -43,6 +43,7 @@ public abstract class VisitorTestBase : IAsyncLifetime
         var builder = new ServiceCollection()
             .AddSingleton(documentStore)
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddRavenFiltering()
             .AddRavenPagingProviders()
             .AddQueryType(

@@ -4,7 +4,6 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
-using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Language;
@@ -409,6 +408,7 @@ internal static class FusionGatewayBuilder
         }
 
         options.Merger.NodeResolution = nodeResolution;
+        options.Merger.DefaultListSize = 1;
 
         var composer = new SchemaComposer(sourceSchemas, options, compositionLog);
 

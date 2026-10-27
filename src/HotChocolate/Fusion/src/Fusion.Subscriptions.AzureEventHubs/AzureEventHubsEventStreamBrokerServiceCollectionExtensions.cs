@@ -110,7 +110,11 @@ public static class AzureEventHubsEventStreamBrokerServiceCollectionExtensions
         services.TryAddKeyedSingleton<IEventStreamBrokerProvider>(
             key,
             static (sp, k) => new AzureEventHubsEventStreamBrokerProvider(
+#if NET11_0_OR_GREATER
+                (string)k,
+#else
                 (string)k!,
+#endif
                 sp.GetRequiredService<IOptionsMonitor<AzureEventHubsEventStreamOptions>>()));
 
         return services;

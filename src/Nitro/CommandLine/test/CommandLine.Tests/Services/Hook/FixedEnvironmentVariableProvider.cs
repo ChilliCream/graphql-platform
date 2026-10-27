@@ -3,9 +3,8 @@ using ChilliCream.Nitro.CommandLine.Services;
 namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 
 /// <summary>
-/// An in-memory <see cref="IEnvironmentVariableProvider"/> for tests that
-/// need to control specific variables (<c>NITRO_HOOK_SUPPRESS</c>,
-/// <c>NITRO_HOOK_SUPPRESS</c>) without touching the real process environment.
+/// An in-memory <see cref="IEnvironmentVariableProvider"/> that returns null
+/// for unset variables and leaves the process environment unchanged.
 /// </summary>
 internal sealed class FixedEnvironmentVariableProvider : IEnvironmentVariableProvider
 {

@@ -20,7 +20,7 @@ response:
         },
         "viewer": {
           "subType": {
-            "subgraphB": "SubType: U3ViVHlwZToy"
+            "subgraphB": "SubType: U3ViVHlwZTo4MjQyMjA4MzY="
           }
         }
       }
@@ -102,7 +102,7 @@ sourceSchemas:
                 "data": {
                   "viewer": {
                     "subType": {
-                      "subgraphB": "SubType: U3ViVHlwZToy"
+                      "subgraphB": "SubType: U3ViVHlwZTo4MjQyMjA4MzY="
                     }
                   }
                 }
@@ -121,7 +121,7 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: f3bb7334daafefafae0b10d44f0d19bc
+      hash: 2706d1a4cd87db759cecc20719875fdd
       searchSpace: 2
       expandedNodes: 2
   nodes:

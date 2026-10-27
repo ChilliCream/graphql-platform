@@ -332,6 +332,11 @@ public sealed class RabbitMQMessagingTransportDescriptor
         target.ReceivePipelineModifiers.AddRange(configuration.ReceivePipelineModifiers);
         CopyFaultEndpointFeature(configuration, target);
         CopySkippedEndpointFeature(configuration, target);
+
+        foreach (var configure in configuration.ConfigureReceiveEndpoint)
+        {
+            configure(endpoint);
+        }
     }
 
     private static void CopyFaultEndpointFeature(

@@ -120,6 +120,7 @@ public sealed class AsSelectorRecordProjectionTests(PostgreSqlResource resource)
             .AddScoped<RecordStoreService>()
             .AddSingleton<RecordSelectorCapture>()
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryContext()
             .AddGlobalObjectIdentification()
             .AddQueryType(
@@ -221,7 +222,7 @@ public sealed class AsSelectorRecordProjectionTests(PostgreSqlResource resource)
     private sealed class RecordStoreContext(DbContextOptions<RecordStoreContext> options)
         : DbContext(options)
     {
-        public DbSet<StoreRecord> Stores => Set<StoreRecord>();
+        public DbSet<StoreRecord> Stores { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
             => modelBuilder.Entity<StoreRecord>().HasKey(t => t.Id);

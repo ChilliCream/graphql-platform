@@ -26,6 +26,17 @@ public class GraphQLException : Exception
     /// <summary>
     /// Initializes a new instance of the <see cref="GraphQLException"/> class.
     /// </summary>
+    /// <param name="error">The error.</param>
+    /// <param name="innerException">The inner exception.</param>
+    public GraphQLException(IError error, Exception innerException)
+        : base(error.Message, innerException)
+    {
+        Errors = [error];
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GraphQLException"/> class.
+    /// </summary>
     /// <param name="errors">The errors.</param>
     public GraphQLException(params IError[] errors)
     {

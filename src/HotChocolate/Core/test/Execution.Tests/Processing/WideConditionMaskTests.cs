@@ -239,7 +239,7 @@ public class WideConditionMaskTests
         var variables = new Moq.Mock<IVariableValueCollection>();
         var value = conditionValue ? BooleanValueNode.True : BooleanValueNode.False;
         variables
-            .Setup(t => t.TryGetValue<BooleanValueNode>(Moq.It.IsAny<string>(), out value))
+            .Setup(t => t.TryGetValue(Moq.It.IsAny<string>(), out value))
             .Returns(true);
 
         Assert.True(operation.RootSelectionSet.TryGetSelection("f0", out var selection));

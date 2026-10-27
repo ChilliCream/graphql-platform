@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using HotChocolate.Types.Analyzers;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -29,8 +28,7 @@ public class DataLoaderKeyedServiceOnConstructorParameterAnalyzerTests
 
         // act
         var diagnostics = await compilation
-            .WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(
-                new DataLoaderKeyedServiceOnConstructorParameterAnalyzer()))
+            .WithAnalyzers([new DataLoaderKeyedServiceOnConstructorParameterAnalyzer()])
             .GetAnalyzerDiagnosticsAsync(TestContext.Current.CancellationToken);
 
         // assert
@@ -61,8 +59,7 @@ public class DataLoaderKeyedServiceOnConstructorParameterAnalyzerTests
 
         // act
         var diagnostics = await compilation
-            .WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(
-                new DataLoaderKeyedServiceOnConstructorParameterAnalyzer()))
+            .WithAnalyzers([new DataLoaderKeyedServiceOnConstructorParameterAnalyzer()])
             .GetAnalyzerDiagnosticsAsync(TestContext.Current.CancellationToken);
 
         // assert
@@ -96,8 +93,7 @@ public class DataLoaderKeyedServiceOnConstructorParameterAnalyzerTests
 
         // act
         var diagnostics = await compilation
-            .WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(
-                new DataLoaderKeyedServiceOnConstructorParameterAnalyzer()))
+            .WithAnalyzers([new DataLoaderKeyedServiceOnConstructorParameterAnalyzer()])
             .GetAnalyzerDiagnosticsAsync(TestContext.Current.CancellationToken);
 
         // assert

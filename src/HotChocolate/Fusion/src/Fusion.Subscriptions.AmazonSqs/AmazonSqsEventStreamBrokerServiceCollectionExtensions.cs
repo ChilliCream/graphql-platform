@@ -110,7 +110,11 @@ public static class AmazonSqsEventStreamBrokerServiceCollectionExtensions
         services.TryAddKeyedSingleton<IEventStreamBrokerProvider>(
             key,
             static (sp, k) => new AmazonSqsEventStreamBrokerProvider(
+#if NET11_0_OR_GREATER
+                (string)k,
+#else
                 (string)k!,
+#endif
                 sp.GetRequiredService<IOptionsMonitor<AmazonSqsEventStreamOptions>>()));
 
         return services;

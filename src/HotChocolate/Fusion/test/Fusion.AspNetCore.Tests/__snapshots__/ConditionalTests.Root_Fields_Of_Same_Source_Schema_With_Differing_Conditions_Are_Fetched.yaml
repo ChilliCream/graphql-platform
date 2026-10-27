@@ -55,7 +55,7 @@ operationPlan:
           b @include(if: $f)
         }
       name: testQuery
-      hash: fa4aa4b6d801840073f6253112147541
+      hash: 5c21c2feb636fa4c2310f6d01de222eb
       searchSpace: 1
       expandedNodes: 1
   nodes:

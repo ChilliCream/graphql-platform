@@ -99,7 +99,7 @@ internal class CollectionSegmentType : ObjectType, IPageType
             Names.Items,
             CollectionSegmentType_Items_Description,
             pureResolver: GetItems)
-        { Flags = CoreFieldFlags.CollectionSegmentItemsField });
+        { Flags = CoreFieldFlags.ParallelExecutable | CoreFieldFlags.CollectionSegmentItemsField });
 
         if (withTotalCount)
         {
@@ -108,7 +108,7 @@ internal class CollectionSegmentType : ObjectType, IPageType
                 type: TypeReference.Parse($"{ScalarNames.Int}!"),
                 pureResolver: GetTotalCount)
             {
-                Flags = CoreFieldFlags.TotalCount
+                Flags = CoreFieldFlags.ParallelExecutable | CoreFieldFlags.TotalCount
             });
         }
 

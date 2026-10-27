@@ -13,6 +13,6 @@ internal sealed class SessionStartHookCommand : Command
 
         this.SetCodexHookAction(
             "SessionStart",
-            (handler, payload, ct) => handler.HandleSessionStartAsync(payload, false, ct));
+            (handler, payload, ct) => handler.HandleSessionStartAsync(payload, ct));
     }
 }

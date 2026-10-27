@@ -47,6 +47,8 @@ internal sealed class ListSizeDirective(
             {
                 ListValueNode listValueNode when listValueNode.Items.All(v => v is StringValueNode)
                     => listValueNode.Items.Cast<StringValueNode>().Select(v => v.Value).ToImmutableArray(),
+                // GraphQL coerces a single value in a list position to a one-element list.
+                StringValueNode stringValueNode => [stringValueNode.Value],
                 NullValueNode => [],
                 _ => throw new InvalidOperationException(ListSizeDirective_SlicingArgumentsArgument_Invalid)
             };
@@ -58,6 +60,8 @@ internal sealed class ListSizeDirective(
             {
                 ListValueNode listValueNode when listValueNode.Items.All(v => v is StringValueNode)
                     => listValueNode.Items.Cast<StringValueNode>().Select(v => v.Value).ToImmutableArray(),
+                // GraphQL coerces a single value in a list position to a one-element list.
+                StringValueNode stringValueNode => [stringValueNode.Value],
                 NullValueNode => [],
                 _ => throw new InvalidOperationException(ListSizeDirective_SizedFieldsArgument_Invalid)
             };

@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
-using ChilliCream.Nitro.CommandLine.Tui.Input;
 using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 
 namespace ChilliCream.Nitro.CommandLine.Tui.Details;

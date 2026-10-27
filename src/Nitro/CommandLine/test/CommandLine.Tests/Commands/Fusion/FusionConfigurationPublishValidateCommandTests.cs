@@ -157,14 +157,14 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
     public async Task Subscription_ValidationFailed_ReturnsError()
     {
         // arrange
-        var errorMock = new Mock<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_1>(MockBehavior.Strict);
+        var errorMock = new Mock<IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors>(MockBehavior.Strict);
         errorMock.As<IUnexpectedProcessingError>()
             .SetupGet(x => x.Message)
             .Returns("Something went wrong.");
 
         var failedEvent = new Mock<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_FusionConfigurationValidationFailed>(MockBehavior.Strict);
         failedEvent.SetupGet(x => x.Errors).Returns(
-            new IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_1[]
+            new IOnFusionConfigurationValidationUpdated_OnFusionConfigurationValidationUpdate_Errors[]
             {
                 errorMock.Object
             });

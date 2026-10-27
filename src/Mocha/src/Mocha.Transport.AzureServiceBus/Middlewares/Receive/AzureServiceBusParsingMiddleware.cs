@@ -1,4 +1,3 @@
-using Mocha.Features;
 using Mocha.Middlewares;
 using Mocha.Transport.AzureServiceBus.Features;
 

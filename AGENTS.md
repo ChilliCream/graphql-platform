@@ -6,18 +6,31 @@ This file provides guidance to coding agents when working with this repository.
 
 - Do not add `Co-authored-by` trailers or other co-author attribution for agents.
 
+## Commit Messages
+
+- Wrap every `@`-prefixed token in backticks, so GitHub does not turn it into a mention. This covers directive names, package scopes, and user handles: ``Fix pruning of list-wrapped `@require` input types``.
+
+## Pull Requests
+
+- Start a bug fix PR title with `Fix`: `Fix the gateway ignoring subgraph timeouts`. The title becomes the squash commit subject and the release note entry.
+- Area prefixes are optional. Write them in title case (`[Fusion]`, not `[fusion]`), and put `Fix` after one: `[Fusion] Fix the gateway ignoring subgraph timeouts`.
+
 ## Build
 
 ### Website
 
-Use `yarn` instead of `npm`.
+Use `npm`.
 
 ```bash
 cd website
-yarn
+npm ci
 ```
 
+npm 11 before 11.21.1 and npm 12 before 12.2.1 write `allowScripts` entries from `npm install-scripts approve` that npm cannot match under the linked install strategy ([npm/cli#9939](https://github.com/npm/cli/issues/9939)), so on those versions add approvals by hand as `"<package>@<version>": true`.
+
 ### C# Source Code
+
+Builds report IDE code-style violations (`IDE*`) as build errors, the same as CI does. Fix every reported style error.
 
 Build the full solution:
 
@@ -30,6 +43,10 @@ Each area has its own solution file, so you can build or test a subset directly:
 ```bash
 dotnet test src/HotChocolate/Fusion
 ```
+
+## Updating .NET
+
+When a change edits `TargetFrameworks` in `src/Directory.Build.props` or the SDK version in `global.json`, work through [docs/updating-dotnet.md](docs/updating-dotnet.md) before handoff.
 
 ## Code Quality
 
@@ -86,6 +103,25 @@ This is framework code, performance matters. Aim for zero allocations on hot pat
 
 If you need to search for packages on nuget.org, use the `dotnet` CLI, e.g. `dotnet package search HotChocolate`.
 
+### Profiling
+
+The dev container has `dotnet-trace`, `dotnet-counters`, `dotnet-gcdump`, `dotnet-dump`, `dotnet-symbol`, `dottrace` and `dotmemory` installed. Versions are pinned in `.devcontainer/dockerfile`, and `docs/profiling.md` has the full commands and caveats. The tools attach to a running process in the same container. Write outputs to `perf/<label>-<git-short-sha>/`, which is gitignored.
+
+```bash
+OUT=perf/<label>-$(git rev-parse --short HEAD); mkdir -p "$OUT"
+dotnet-trace ps
+dotnet-trace collect -p <pid> --duration 00:00:00:30 --format speedscope -o "$OUT/cpu.nettrace"
+dotnet-trace report "$OUT/cpu.nettrace" topN -n 25 --inclusive
+dotnet-trace collect -p <pid> --profile gc-verbose --duration 00:00:00:15 -o "$OUT/alloc.nettrace"
+dotnet-gcdump collect -p <pid> -o "$OUT/heap.gcdump" && dotnet-gcdump report "$OUT/heap.gcdump" > "$OUT/heap-report.txt"
+dotnet-counters collect -p <pid> --format json -o "$OUT/counters.json" --duration 00:00:00:20 --counters System.Runtime,Microsoft.AspNetCore.Hosting,System.Net.Http
+```
+
+- Profile Release builds. Debug builds distort time and allocations.
+- Sampling gives time, not call counts. Call counts need dotTrace Tracing mode, which only `dottrace start` offers; `dottrace attach` is limited to Sampling and Timeline.
+- On Linux, EventPipe samples measure thread time. Ignore idle thread pool frames such as `LowLevelLifoSemaphore.WaitForSignal` and `WaitHandle.WaitOneNoCheck`.
+- `.dtp` (dotTrace) and `.dmw` (dotMemory) snapshots are for Rider on the host. Use the `dotnet-trace` and `dotnet-gcdump` outputs for analysis inside the container.
+
 ### Nitro persisted operations (Fusion Aspire)
 
 After adding or editing any `.graphql` document under `src/HotChocolate/Fusion/src/Fusion.Aspire/Nitro/Operations`, regenerate the `.sha256` sidecars and verify them:
@@ -124,3 +160,18 @@ When you add a value to `ExecutionNodeType`, map it in two places:
 - `GraphQL.Operation.Step.KindValues` in `src/HotChocolate/Diagnostics/src/Diagnostics.Core/SemanticConventions.cs`, if the kind needs a new constant. Tag values are snake_case.
 
 `KindValues` supplies the `graphql.operation.step.kind` tag on the step span. An unmapped type does not fail execution. `ExecutePlanNodeSpan.Start` falls back to an untagged span, so the node silently loses its kind in traces. The guard test `StepSpan_Should_MapEveryExecutionNodeTypeToAKindValue` in `src/HotChocolate/Fusion/test/Fusion.Diagnostics.Tests/FusionActivityExecutionDiagnosticListenerTests.cs` fails until the mapping exists.
+
+#### Operation planner version
+
+`OperationPlanner.Version` identifies planning behavior and is independent of the package version. Bump the minor version when an existing operation can plan differently, the major version when consumers must react to a new plan structure. Refactors, performance work and fixes that cannot change a plan do not bump it.
+
+#### Operation plan JSON format
+
+`JsonOperationPlanFormatter` in `src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Nodes/Serialization/JsonOperationPlanFormatter.cs` writes the plan document that tooling consumes. Its shape is published as a JSON schema, so any change to the emitted JSON is a two part change:
+
+1. Bump `JsonOperationPlanFormatter.FormatVersion`. It is written as the root `version` property and is the discriminator consumers pin against. Additive optional properties bump the minor version, anything that changes or removes an existing property bumps the major version.
+2. Add the matching variant to `website/public/schemas/fusion/operation-plan.json`, published at `https://chillicream.com/schemas/fusion/operation-plan.json`. Add a `#/$defs/<version>_plan` entry and the `allOf` branch that selects it for that root `version`, and list the new version in the root `version` enum. Every other definition is unprefixed and shared across versions. When a version changes one of them, fork only that definition to `<version>_<name>` and point the new plan at the fork, so a released version keeps validating exactly what it validated before.
+
+The root `version` enum and the `allOf` branch that selects `v1_0_0_plan` are the pattern to copy: a new version adds one enum entry, one branch and one plan definition.
+
+The internal `Format(IBufferWriter<byte>, Operation, ImmutableArray<ExecutionNode>)` overload feeds the SHA-256 that becomes `OperationPlan.Id`. It deliberately omits the `version` property, so leave it alone unless you intend to change every plan id.

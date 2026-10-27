@@ -71,7 +71,7 @@ public class FeatureCollectionTests
     public void GetOrSet_Should_RejectNewFeature_When_CollectionIsReadOnly(bool emptySingleton)
     {
         // arrange
-        IFeatureCollection features = emptySingleton
+        var features = emptySingleton
             ? FeatureCollection.Empty
             : new ReadOnlyFeatureCollection(new FeatureCollection());
 

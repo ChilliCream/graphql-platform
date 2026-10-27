@@ -1,7 +1,6 @@
 using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Mocha.Features;
 using Mocha.Transport.AzureServiceBus.Features;
 
 namespace Mocha.Transport.AzureServiceBus;
@@ -198,12 +197,20 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
     }
 
     /// <summary>
-    /// Handles an error reported by either Azure Service Bus processor. Transient errors are logged
-    /// as warnings and other errors as failures. Processor retry and connection recovery remain the
+    /// Handles an error reported by either Azure Service Bus processor. A handler cancelled because
+    /// the processor is stopping is expected and not logged. Transient errors are logged as warnings
+    /// and other errors as failures. Processor retry and connection recovery remain the
     /// responsibility of the Azure Service Bus SDK.
     /// </summary>
     private Task OnProcessorError(ProcessErrorEventArgs args)
     {
+        // The SDK reports a handler that threw because the processor is stopping. The pipeline has
+        // already abandoned the message, or the SDK abandons it after this handler returns.
+        if (args.Exception is OperationCanceledException && args.CancellationToken.IsCancellationRequested)
+        {
+            return Task.CompletedTask;
+        }
+
         // Transient/recoverable conditions are surfaced as warnings; only unknown faults escalate to error.
         if (IsTransientProcessorError(args.Exception))
         {

@@ -1,10 +1,10 @@
-using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using HotChocolate.Execution.Internal;
 using HotChocolate.Execution.Options;
+using HotChocolate.Execution.Pipeline;
 using HotChocolate.Features;
-using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
@@ -14,11 +14,9 @@ namespace HotChocolate.Execution.Processing;
 
 public sealed partial class OperationCompiler
 {
-    private static readonly ArrayPool<object> s_objectArrayPool = ArrayPool<object>.Shared;
     private readonly Schema _schema;
     private readonly ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> _fieldsPool;
     private readonly OperationCompilerOptimizers _optimizers;
-    private readonly InlineFragmentOperationRewriter _documentRewriter;
     private readonly InputParser _inputValueParser;
     private readonly int _maxAllowedIncludeConditions;
     private readonly int _maxAllowedDeferConditions;
@@ -37,10 +35,6 @@ public sealed partial class OperationCompiler
         _schema = schema;
         _inputValueParser = inputValueParser;
         _fieldsPool = fieldsPool;
-        _documentRewriter = new InlineFragmentOperationRewriter(
-            schema,
-            removeStaticallyExcludedSelections: true,
-            includeTypeNameToEmptySelectionSets: false);
         _optimizers = optimizers;
         _maxAllowedIncludeConditions = maxAllowedIncludeConditions;
         _maxAllowedDeferConditions = maxAllowedDeferConditions;
@@ -68,7 +62,13 @@ public sealed partial class OperationCompiler
         DocumentNode document,
         Schema schema,
         IFeatureProvider? context = null)
-        => new OperationCompiler(
+    {
+        ArgumentNullException.ThrowIfNull(schema);
+
+        // A standalone compilation does not need a document cache.
+        var normalizedDocument = OperationDocumentNormalizer.NormalizeDocument(schema, document, operationName);
+
+        return new OperationCompiler(
             schema,
             new InputParser(),
             new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
@@ -76,8 +76,18 @@ public sealed partial class OperationCompiler
             new OperationCompilerOptimizers(),
             RequestExecutorOptions.DefaultMaxAllowedConditions,
             RequestExecutorOptions.DefaultMaxAllowedConditions)
-            .Compile(id, hash, operationName, document, context ?? EmptyFeatureProvider.Instance);
+            .Compile(id, hash, operationName, normalizedDocument, context ?? EmptyFeatureProvider.Instance);
+    }
 
+    /// <summary>
+    /// Compiles an operation from a document with fragments inlined and statically excluded
+    /// selections removed by an <see cref="IOperationDocumentNormalizer"/>.
+    /// </summary>
+    /// <param name="id">A unique identifier for the operation.</param>
+    /// <param name="hash">The document hash.</param>
+    /// <param name="operationName">The name of the operation to compile.</param>
+    /// <param name="document">The already normalized document.</param>
+    /// <param name="context">The request's feature provider.</param>
     public Operation Compile(
         string id,
         string hash,
@@ -90,18 +100,28 @@ public sealed partial class OperationCompiler
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ArgumentNullException.ThrowIfNull(document);
 
-        // Before we can plan an operation, we must de-fragmentize it and remove static include conditions.
-        var result = _documentRewriter.RewriteDocument(document, operationName);
-        document = result.Document;
         var operationDefinition = document.GetOperation(operationName);
 
+        // Normalization records incremental parts in a marker, avoiding another selection scan.
+        var hasIncrementalParts = HasIncrementalPartsMarker(operationDefinition.Directives);
+
+        return CompileOperation(id, hash, document, operationDefinition, hasIncrementalParts);
+    }
+
+    private Operation CompileOperation(
+        string id,
+        string hash,
+        DocumentNode document,
+        OperationDefinitionNode operationDefinition,
+        bool hasIncrementalParts)
+    {
         var includeConditions = new IncludeConditionCollection(_maxAllowedIncludeConditions);
         var deferConditions = new DeferConditionCollection(_maxAllowedDeferConditions);
         IncludeConditionVisitor.Instance.Visit(operationDefinition, includeConditions);
         DeferConditionVisitor.Instance.Visit(operationDefinition, deferConditions);
         var fields = _fieldsPool.Get();
 
-        var compilationContext = new CompilationContext(s_objectArrayPool.Rent(128));
+        var compilationContext = new CompilationContext(new object[128]);
 
         try
         {
@@ -151,7 +171,7 @@ public sealed partial class OperationCompiler
                 compilationContext.Features,
                 lastId,
                 compilationContext.ElementsById,
-                hasIncrementalParts: result.HasIncrementalParts);
+                hasIncrementalParts: hasIncrementalParts);
 
             selectionSet.Complete(operation);
 
@@ -692,6 +712,19 @@ public sealed partial class OperationCompiler
         }
     }
 
+    private static bool HasIncrementalPartsMarker(IReadOnlyList<DirectiveNode> directives)
+    {
+        for (var i = 0; i < directives.Count; i++)
+        {
+            if (directives[i].Name.Value.Equals(InternalDirectiveNames.HasIncrementalParts, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private bool DoesTypeApply(NamedTypeNode? typeCondition, IObjectTypeDefinition typeContext)
     {
         if (typeCondition is null)
@@ -845,10 +878,8 @@ public sealed partial class OperationCompiler
         {
             if (id >= _elementsById.Length)
             {
-                var newArray = s_objectArrayPool.Rent(_elementsById.Length * 2);
-                _elementsById.AsSpan().CopyTo(newArray);
-                s_objectArrayPool.Return(_elementsById);
-                _elementsById = newArray;
+                // Existing readers may continue using the previous array.
+                Array.Resize(ref _elementsById, Math.Max(_elementsById.Length * 2, id + 1));
             }
 
             _elementsById[id] = element;

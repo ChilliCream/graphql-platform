@@ -155,9 +155,9 @@ The default GraphQL connector assumes a subgraph that implements both protocol e
 
 The connector kind only sets the starting value, so partial settings mix with it per flag:
 
-- `{ "requestBatching": true }` on an Apollo Federation subgraph yields request batching **and** alias batching, and request batching is then preferred for distinct operations.
-- `{ "aliasBatching": false }` on an Apollo Federation subgraph yields no batching at all.
-- `{ "variableBatching": false, "requestBatching": false }` on an Apollo Federation subgraph still leaves alias batching on. Declare `"aliasBatching": false` as well to turn batching off completely.
+- `#!json { "requestBatching": true }` on an Apollo Federation subgraph yields request batching **and** alias batching, and request batching is then preferred for distinct operations.
+- `#!json { "aliasBatching": false }` on an Apollo Federation subgraph yields no batching at all.
+- `#!json { "variableBatching": false, "requestBatching": false }` on an Apollo Federation subgraph still leaves alias batching on. Declare `"aliasBatching": false` as well to turn batching off completely.
 
 > [!NOTE]
 > The settings template a Hot Chocolate subgraph exports declares all three flags explicitly, so a gateway that uses it does not fall back to the defaults. `variableBatching` and `requestBatching` mirror the batching the subgraph's server options allow, which `AddSourceSchemaDefaults()` turns on, and `aliasBatching` is always `true`.

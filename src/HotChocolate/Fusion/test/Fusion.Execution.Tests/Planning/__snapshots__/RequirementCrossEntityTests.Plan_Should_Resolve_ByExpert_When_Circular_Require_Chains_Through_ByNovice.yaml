@@ -13,7 +13,7 @@ operation:
       }
     hash: 123456789101112
     searchSpace: 2
-    expandedNodes: 10
+    expandedNodes: 11
 nodes:
   - id: 1
     type: Operation
@@ -43,11 +43,11 @@ nodes:
         selectionMap: >-
           id
     dependencies:
+      - id: 1
       - id: 4
-      - id: 8
   - id: 4
     type: Operation
-    schema: b
+    schema: c
     operation: |
       query Op_123456789101112_4(
         $__fusion_4_yearsOfExperience: Int!
@@ -69,29 +69,13 @@ nodes:
     dependencies:
       - id: 1
       - id: 5
+      - id: 6
   - id: 5
-    type: Operation
-    schema: a
-    operation: |
-      query Op_123456789101112_5($__fusion_6_id: ID!) {
-        authorById(id: $__fusion_6_id) {
-          yearsOfExperience
-        }
-      }
-    source: $.authorById
-    target: $.feed.author
-    requirements:
-      - name: __fusion_6_id
-        selectionMap: >-
-          id
-    dependencies:
-      - id: 8
-  - id: 6
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_6($__fusion_7_id: ID!) {
-        postById(id: $__fusion_7_id) {
+      query Op_123456789101112_5($__fusion_6_id: ID!) {
+        postById(id: $__fusion_6_id) {
           author {
             id
           }
@@ -99,28 +83,26 @@ nodes:
       }
     source: $.postById
     target: $.feed
-    batchingGroupId: 8
+    requirements:
+      - name: __fusion_6_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 6
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_6($__fusion_7_id: ID!) {
+        authorById(id: $__fusion_7_id) {
+          yearsOfExperience
+        }
+      }
+    source: $.authorById
+    target: $.feed.author
     requirements:
       - name: __fusion_7_id
         selectionMap: >-
           id
     dependencies:
-      - id: 1
-  - id: 7
-    type: Operation
-    schema: b
-    operation: |
-      query Op_123456789101112_7($__fusion_8_id: ID!) {
-        postById(id: $__fusion_8_id) {
-          id
-        }
-      }
-    source: $.postById
-    target: $.feed
-    batchingGroupId: 8
-    requirements:
-      - name: __fusion_8_id
-        selectionMap: >-
-          id
-    dependencies:
-      - id: 1
+      - id: 5

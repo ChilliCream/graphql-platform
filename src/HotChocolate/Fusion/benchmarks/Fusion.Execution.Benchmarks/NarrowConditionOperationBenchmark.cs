@@ -1,12 +1,8 @@
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Toolchains.InProcess.Emit;
-using HotChocolate.Fusion;
-using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -54,8 +50,6 @@ public class NarrowConditionOperationBenchmark
     public Operation Compile_Narrow_BaselineCopy()
         => _compiler.Compile("benchmark", "benchmark", "benchmark", _operationDefinition);
 
-
-
     private static async Task<OperationCompiler> CreateCompilerAsync()
     {
         var services = new ServiceCollection();
@@ -76,8 +70,6 @@ public class NarrowConditionOperationBenchmark
         var executor = await services.BuildGatewayAsync();
         return executor.Schema.Services.GetRequiredService<OperationCompiler>();
     }
-
-
 
     private static string CreateDocument()
     {

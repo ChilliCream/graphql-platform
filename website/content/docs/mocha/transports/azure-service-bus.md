@@ -11,7 +11,7 @@ By the end of this section, you will have a Mocha bus connected to Azure Service
 
 ## Install the package
 
-```bash
+```shell
 dotnet add package Mocha.Transport.AzureServiceBus
 ```
 
@@ -90,7 +90,7 @@ builder
 
 Install Aspire's Azure Service Bus client integration in each service:
 
-```bash
+```shell
 dotnet add package Aspire.Azure.Messaging.ServiceBus
 ```
 
@@ -578,7 +578,7 @@ builder.Services
 
 `UseNativeDeadLetterForwarding()` sets `ForwardDeadLetteredMessagesTo` to the endpoint's configured Azure Service Bus fault queue. By convention this is `{queueName}_error`, but a custom fault endpoint is respected. Messages in the broker dead-letter queue are forwarded into the same fault queue used by one-way handler exceptions, so operators have one place to look.
 
-If you have already configured `ForwardDeadLetteredMessagesTo("custom-target")` on the same queue, the transport surfaces a configuration conflict at provisioning - it will not silently override your choice.
+If you have already configured `#!csharp ForwardDeadLetteredMessagesTo("custom-target")` on the same queue, the transport surfaces a configuration conflict at provisioning - it will not silently override your choice.
 
 # Next steps
 

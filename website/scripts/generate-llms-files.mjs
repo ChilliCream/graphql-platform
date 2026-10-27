@@ -38,7 +38,10 @@ const STRIP_FROM_CONTENT = [
   "[data-llms-ignore]",
   ".heading-anchor",
 ];
-const REDUNDANT_ARCHIVE_PATH = /^\/blog\/(?:\d+|tags\/[^/]+(?:\/\d+)?)$/;
+const REDUNDANT_ARCHIVE_PATH =
+  /^\/(?:blog\/(?:\d+|tags\/[^/]+(?:\/\d+)?)|comparison\/\d+)$/;
+/** A comparison article, as opposed to the index or its pagination pages. */
+export const COMPARISON_ARTICLE_PATH = /^\/comparison\/(?!\d+$)[^/]+$/;
 const LEGACY_CANONICAL_PATH = /^\/docs\/skillz(?:\/|$)/;
 
 const markdownConverter = new NodeHtmlMarkdown({
@@ -78,7 +81,8 @@ function isDetailArticle(url) {
   const pathname = new URL(url).pathname;
   return (
     pathname.startsWith("/docs/") ||
-    /^\/blog\/\d{4}-\d{2}-\d{2}-/.test(pathname)
+    datedContent(pathname) !== null ||
+    COMPARISON_ARTICLE_PATH.test(pathname)
   );
 }
 
@@ -297,6 +301,13 @@ async function readPage(url) {
       .querySelector('meta[name="description"]')
       ?.getAttribute("content") ?? "",
   );
+  const datasets = document
+    .querySelectorAll('link[rel="alternate"][type="application/json"]')
+    .map((link) => ({
+      title: cleanInlineText(link.getAttribute("title") ?? ""),
+      url: new URL(link.getAttribute("href") ?? "", url).href,
+    }))
+    .filter((dataset) => dataset.title !== "");
   const renderedMarkdown = normalizeMarkdown(
     markdownConverter.translate(root.innerHTML),
   );
@@ -307,6 +318,7 @@ async function readPage(url) {
 
   const page = {
     body,
+    datasets,
     description,
     markdownUrl: markdownUrl(url),
     title,
@@ -332,8 +344,10 @@ function productForPage(page) {
   return segments[0] === "docs" && segments.length > 1 ? segments[1] : null;
 }
 
-function blogDate(pathname) {
-  return pathname.match(/^\/blog\/(\d{4}-\d{2}-\d{2})-/)?.[1] ?? "";
+/** The section and publish date of a dated blog post or video page. */
+function datedContent(pathname) {
+  const match = pathname.match(/^\/(blog|videos)\/(\d{4}-\d{2}-\d{2})-/);
+  return match ? { section: match[1], date: match[2] } : null;
 }
 
 function comparePages(left, right) {
@@ -343,12 +357,15 @@ function comparePages(left, right) {
   if (leftPath === "/") return -1;
   if (rightPath === "/") return 1;
 
-  const leftBlogDate = blogDate(leftPath);
-  const rightBlogDate = blogDate(rightPath);
-  if (leftBlogDate || rightBlogDate) {
-    if (!leftBlogDate) return -1;
-    if (!rightBlogDate) return 1;
-    return rightBlogDate.localeCompare(leftBlogDate);
+  const leftDated = datedContent(leftPath);
+  const rightDated = datedContent(rightPath);
+  if (leftDated || rightDated) {
+    if (!leftDated) return -1;
+    if (!rightDated) return 1;
+    if (leftDated.section !== rightDated.section) {
+      return leftDated.section.localeCompare(rightDated.section);
+    }
+    return rightDated.date.localeCompare(leftDated.date);
   }
 
   const leftProduct = productForPage(left);
@@ -366,6 +383,29 @@ function comparePages(left, right) {
 function pageListItem(page) {
   const description = page.description ? `: ${page.description}` : "";
   return `- [${escapeLinkLabel(page.title)}](${page.markdownUrl})${description}`;
+}
+
+function formatFileSize(bytes) {
+  return bytes < 1024 * 1024
+    ? `${Math.ceil(bytes / 1024)} KiB`
+    : `${(bytes / 1024 / 1024).toFixed(1)} MiB`;
+}
+
+async function datasetListItem(dataset) {
+  const pathname = decodeURIComponent(new URL(dataset.url).pathname);
+  const { size } = await fs.stat(path.join(OUTPUT_ROOT, pathname.slice(1)));
+  return `- [${escapeLinkLabel(dataset.title)}](${dataset.url}): JSON data, ${formatFileSize(size)}.`;
+}
+
+async function benchmarkListItems(pages) {
+  const items = [];
+  for (const page of pages) {
+    items.push(pageListItem(page));
+    for (const dataset of page.datasets) {
+      items.push(await datasetListItem(dataset));
+    }
+  }
+  return items;
 }
 
 function catalog(title, summary, sections, details = []) {
@@ -428,6 +468,8 @@ function scopeLinks(origin) {
     `- [Complete site context](${origin}/llms-full.txt): All substantive public site content in one large compatibility export.`,
     `- [Documentation context](${origin}/docs/llms-full.txt): All product documentation.`,
     `- [Blog context](${origin}/blog/llms-full.txt): All public ChilliCream blog posts.`,
+    `- [Comparison context](${origin}/comparison/llms-full.txt): All public ChilliCream comparison articles.`,
+    `- [Videos context](${origin}/videos/llms-full.txt): All ChilliCream TV video pages.`,
   ];
 }
 
@@ -470,6 +512,9 @@ export async function generateLlmsFiles() {
   const origin = new URL(pages[0].url).origin;
   const docs = pagesUnder(pages, "/docs");
   const blog = pagesUnder(pages, "/blog");
+  const comparison = pagesUnder(pages, "/comparison");
+  const videos = pagesUnder(pages, "/videos");
+  const benchmarks = pagesUnder(pages, "/benchmarks");
   const products = pagesUnder(pages, "/products");
   const platform = pagesUnder(pages, "/platform");
   const services = [
@@ -481,9 +526,17 @@ export async function generateLlmsFiles() {
     return pathname.startsWith("/legal/") || pathname.startsWith("/licensing/");
   });
   const usedByScopes = new Set(
-    [...docs, ...blog, ...products, ...platform, ...services, ...legal].map(
-      (page) => page.url,
-    ),
+    [
+      ...docs,
+      ...blog,
+      ...comparison,
+      ...videos,
+      ...benchmarks,
+      ...products,
+      ...platform,
+      ...services,
+      ...legal,
+    ].map((page) => page.url),
   );
   const startHere = pages.filter((page) => !usedByScopes.has(page.url));
 
@@ -501,6 +554,18 @@ export async function generateLlmsFiles() {
       "ChilliCream blog",
       "Announcements, technical deep dives, and guides from the ChilliCream team, newest first.",
       blog,
+    ),
+    writeScopedFiles(
+      "comparison",
+      "ChilliCream comparisons",
+      "Side-by-side comparisons of GraphQL Federation with the other ways teams get data out of more than one service, and when each is the better fit.",
+      comparison,
+    ),
+    writeScopedFiles(
+      "videos",
+      "ChilliCream videos",
+      "ChilliCream TV episodes on Hot Chocolate, DataLoader, and GraphQL in .NET, newest first, each linking to its example source code.",
+      videos,
     ),
     writeScopedFiles(
       "products",
@@ -566,6 +631,7 @@ export async function generateLlmsFiles() {
           `- [Services catalog](${origin}/services/llms.txt): Training, advisory, support, and help pages.`,
         ],
       },
+      { title: "Benchmarks", items: await benchmarkListItems(benchmarks) },
       {
         title: "Documentation",
         items: [
@@ -586,6 +652,18 @@ export async function generateLlmsFiles() {
         title: "Blog",
         items: [
           `- [Blog catalog](${origin}/blog/llms.txt): Every public blog post, newest first.`,
+        ],
+      },
+      {
+        title: "Comparisons",
+        items: [
+          `- [Comparison catalog](${origin}/comparison/llms.txt): Every public comparison article.`,
+        ],
+      },
+      {
+        title: "Videos",
+        items: [
+          `- [Videos catalog](${origin}/videos/llms.txt): Every ChilliCream TV video page, newest first.`,
         ],
       },
       {

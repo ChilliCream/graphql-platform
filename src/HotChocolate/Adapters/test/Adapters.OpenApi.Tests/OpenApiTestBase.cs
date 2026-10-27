@@ -165,11 +165,7 @@ public abstract class OpenApiTestBase : IAsyncLifetime
 
     protected virtual ValueTask InitializeAsync(TestServerSession serverSession) => ValueTask.CompletedTask;
 
-    public ValueTask DisposeAsync()
-    {
-        _testServerSession.Dispose();
-        return ValueTask.CompletedTask;
-    }
+    public ValueTask DisposeAsync() => _testServerSession.DisposeAsync();
 
     protected abstract void ConfigureStorage(
         IServiceCollection services,
@@ -254,6 +250,7 @@ public abstract class OpenApiTestBase : IAsyncLifetime
                 services
                     .AddGraphQLServer()
                     .AddSourceSchemaDefaults()
+                    .ModifyCostOptions(o => o.DefaultListSize = 1)
                     .AddBasicServer();
             },
             app =>

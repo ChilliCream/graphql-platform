@@ -53,83 +53,46 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         var schemaName = SchemaName;
         var operation = _operations[0];
 
-        var variables = CreateVariableValueSets(context, operation);
+        var variables = CreateVariableValueSets(context, operation, out var reusedCount);
 
         if (variables.Length == 0
             && (operation.Requirements.Length > 0
                 || operation.ForwardedVariables.Length > 0))
         {
-            return ExecutionStatus.Skipped;
+            // When every entity was taken from the result, the node completed its work.
+            return reusedCount > 0 ? ExecutionStatus.Success : ExecutionStatus.Skipped;
         }
 
         context.TrackVariableValueSets(this, variables);
 
-        var request = new SourceSchemaClientRequest
-        {
-            Node = this,
-            SchemaName = schemaName,
-            OperationType = operation.SourceText.Type,
-            OperationSourceText = operation.SourceText,
-            Variables = variables,
-            RequiresFileUpload = operation.RequiresFileUpload,
-            OperationDocument = operation.Document,
-            LookupTypeName = operation.LookupTypeName,
-            ForwardedVariables = operation.GetForwardedVariablesArray()
-        };
-
-        var hasSomeErrors = false;
+        var sink = new SingleOperationResultSink(this, context, schemaName, operation, variables, cancellationToken);
 
         try
         {
-            var client = context.GetClient(schemaName, operation.SourceText.Type);
+            var operationType = operation.SourceText.Type;
+            var client = context.GetClient(schemaName, operationType);
 
-            await foreach (var result in client.ExecuteAsync(context, request, cancellationToken).ConfigureAwait(false))
+            if (client is HttpSourceSchemaClient httpClient
+                && httpClient.CanExecuteBuffered(operationType, operation.RequiresFileUpload, variables.Length))
             {
-                var hasErrors = result.Errors is not null;
-                if (hasErrors)
+                await httpClient
+                    .ExecuteBufferedAsync(
+                        context,
+                        CreateRequest(schemaName, operation, variables),
+                        sink,
+                        cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                await foreach (var result in client
+                    .ExecuteAsync(context, CreateRequest(schemaName, operation, variables), cancellationToken)
+                    .ConfigureAwait(false))
                 {
-                    hasSomeErrors = true;
-                }
-
-                var pendingMerge = default(PendingMerge);
-                var hasPendingMerge = false;
-
-                try
-                {
-                    pendingMerge = PendingMerge.Single(
-                        this,
-                        schemaName,
-                        operation.Source,
-                        operation.ResultSelectionSet,
-                        variables,
-                        result,
-                        hasErrors);
-                    hasPendingMerge = true;
-                    context.EnqueuePendingMerge(pendingMerge);
-                }
-                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-                {
-                    if (hasPendingMerge)
+                    if (!sink.OnResult(0, result))
                     {
-                        pendingMerge.DisposeUnmerged();
+                        break;
                     }
-
-                    return ExecutionStatus.Failed;
-                }
-                catch (Exception exception)
-                {
-                    if (hasPendingMerge)
-                    {
-                        pendingMerge.DisposeUnmerged();
-                    }
-                    else
-                    {
-                        result.Dispose();
-                    }
-
-                    diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
-                    context.AddErrors(exception, variables, operation.ResultSelectionSet);
-                    return ExecutionStatus.Failed;
                 }
             }
         }
@@ -144,8 +107,30 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
             return ExecutionStatus.Failed;
         }
 
-        return hasSomeErrors ? ExecutionStatus.PartialSuccess : ExecutionStatus.Success;
+        if (sink.IsFailed)
+        {
+            return ExecutionStatus.Failed;
+        }
+
+        return sink.HasSomeErrors ? ExecutionStatus.PartialSuccess : ExecutionStatus.Success;
     }
+
+    private SourceSchemaClientRequest CreateRequest(
+        string schemaName,
+        OperationDefinition operation,
+        ImmutableArray<VariableValues> variables)
+        => new()
+        {
+            Node = this,
+            SchemaName = schemaName,
+            OperationType = operation.SourceText.Type,
+            OperationSourceText = operation.SourceText,
+            Variables = variables,
+            RequiresFileUpload = operation.RequiresFileUpload,
+            OperationDocument = operation.Document,
+            LookupTypeName = operation.LookupTypeName,
+            ForwardedVariables = operation.GetForwardedVariablesArray()
+        };
 
     private async ValueTask<ExecutionStatus> ExecuteBatchAsync(
         OperationPlanContext context,
@@ -167,11 +152,13 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                 schemaName,
                 requestBuilder,
                 operationByIndex,
-                variablesByIndex);
+                variablesByIndex,
+                out var hasReusedEntities);
 
             if (operationCount == 0)
             {
-                return ExecutionStatus.Skipped;
+                // When every entity was taken from the result, the node completed its work.
+                return hasReusedEntities ? ExecutionStatus.Success : ExecutionStatus.Skipped;
             }
 
             var requests = requestBuilder.DrainToImmutable();
@@ -181,65 +168,41 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
             // the executor loop so downstream nodes can consume the data after completion.
             var client = context.GetClient(schemaName, requests[0].OperationType);
             receivedResults.AsSpan(0, operationCount).Clear();
-            var overallStatus = ExecutionStatus.Success;
 
-            await foreach (var batchResult in client.ExecuteBatchAsync(context, requests, cancellationToken)
-                .ConfigureAwait(false))
+            var sink = new BatchResultSink(
+                this,
+                context,
+                schemaName,
+                operationByIndex,
+                variablesByIndex,
+                receivedResults,
+                cancellationToken);
+
+            if (client is HttpSourceSchemaClient httpClient && httpClient.CanExecuteBatchBuffered(requests))
             {
-                var requestIndex = batchResult.RequestIndex;
-                var op = operationByIndex[requestIndex];
-                var result = batchResult.Result;
-                var hasErrors = result.Errors is not null;
-
-                receivedResults[requestIndex] = true;
-
-                var pendingMerge = default(PendingMerge);
-                var hasPendingMerge = false;
-
-                try
+                await httpClient
+                    .ExecuteBatchBufferedAsync(context, requests, sink, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                await foreach (var batchResult in client
+                    .ExecuteBatchAsync(context, requests, cancellationToken)
+                    .ConfigureAwait(false))
                 {
-                    pendingMerge = PendingMerge.Single(
-                        this,
-                        schemaName,
-                        op.Source,
-                        op.ResultSelectionSet,
-                        variablesByIndex[requestIndex],
-                        result,
-                        hasErrors);
-                    hasPendingMerge = true;
-                    context.EnqueuePendingMerge(pendingMerge);
-                }
-                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-                {
-                    if (hasPendingMerge)
+                    if (!sink.OnResult(batchResult.RequestIndex, batchResult.Result))
                     {
-                        pendingMerge.DisposeUnmerged();
+                        break;
                     }
-
-                    return ExecutionStatus.Failed;
-                }
-                catch (Exception exception)
-                {
-                    if (hasPendingMerge)
-                    {
-                        pendingMerge.DisposeUnmerged();
-                    }
-                    else
-                    {
-                        result.Dispose();
-                    }
-
-                    diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
-                    context.AddErrors(exception, variablesByIndex[requestIndex], op.ResultSelectionSet);
-                    overallStatus = ExecutionStatus.Failed;
-                    continue;
-                }
-
-                if (hasErrors && overallStatus == ExecutionStatus.Success)
-                {
-                    overallStatus = ExecutionStatus.PartialSuccess;
                 }
             }
+
+            if (sink.IsCanceled)
+            {
+                return ExecutionStatus.Failed;
+            }
+
+            var overallStatus = sink.Status;
 
             // Verify that the downstream service returned a result for every
             // operation in the batch. A missing result means the service did
@@ -315,9 +278,11 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         string schemaName,
         ImmutableArray<SourceSchemaClientRequest>.Builder requestBuilder,
         OperationDefinition[] operationByIndex,
-        ImmutableArray<VariableValues>[] variablesByIndex)
+        ImmutableArray<VariableValues>[] variablesByIndex,
+        out bool hasReusedEntities)
     {
         var operationCount = 0;
+        hasReusedEntities = false;
 
         foreach (var operation in _operations)
         {
@@ -333,13 +298,23 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                 continue;
             }
 
-            var variables = CreateVariableValueSets(context, operation);
+            var variables = CreateVariableValueSets(context, operation, out var reusedCount);
+
+            if (reusedCount > 0)
+            {
+                hasReusedEntities = true;
+            }
 
             if (variables.Length == 0
                 && (operation.Requirements.Length > 0
                     || operation.ForwardedVariables.Length > 0))
             {
-                context.TrackSkippedDefinition(this, operation);
+                // An operation whose entities were all taken from the result is not skipped.
+                if (reusedCount == 0)
+                {
+                    context.TrackSkippedDefinition(this, operation);
+                }
+
                 continue;
             }
 
@@ -473,6 +448,41 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
 
     private static ImmutableArray<VariableValues> CreateVariableValueSets(
         OperationPlanContext context,
+        OperationDefinition operation,
+        out int reusedCount)
+    {
+        reusedCount = 0;
+
+        if (context.GetEntityReuseCandidates(operation.Id) is not { } candidates)
+        {
+            return CreateVariableValueSets(context, operation);
+        }
+
+        if (operation is SingleOperationDefinition single)
+        {
+            return context.CreateVariableValueSets(
+                [single.Target],
+                single.ForwardedVariables,
+                single.Requirements,
+                candidates,
+                out reusedCount);
+        }
+
+        if (operation is BatchOperationDefinition batch)
+        {
+            return context.CreateVariableValueSets(
+                batch.Targets,
+                batch.ForwardedVariables,
+                batch.Requirements,
+                candidates,
+                out reusedCount);
+        }
+
+        return CreateVariableValueSets(context, operation);
+    }
+
+    private static ImmutableArray<VariableValues> CreateVariableValueSets(
+        OperationPlanContext context,
         OperationDefinition operation)
         => operation switch
         {
@@ -489,4 +499,165 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
             _ => throw new InvalidOperationException(
                 $"Unknown operation definition type: {operation.GetType().Name}")
         };
+
+    /// <summary>
+    /// Queues the merge of each result of a single operation as it arrives and stops reading at the
+    /// first result that cannot be queued.
+    /// </summary>
+    private sealed class SingleOperationResultSink(
+        OperationBatchExecutionNode node,
+        OperationPlanContext context,
+        string schemaName,
+        OperationDefinition operation,
+        ImmutableArray<VariableValues> variables,
+        CancellationToken cancellationToken)
+        : ISourceSchemaResultSink
+    {
+        /// <summary>
+        /// Gets whether any received result carries errors.
+        /// </summary>
+        public bool HasSomeErrors { get; private set; }
+
+        /// <summary>
+        /// Gets whether a result could not be queued, which fails the node.
+        /// </summary>
+        public bool IsFailed { get; private set; }
+
+        public bool OnResult(int requestIndex, SourceSchemaResult result)
+        {
+            var hasErrors = result.Errors is not null;
+            if (hasErrors)
+            {
+                HasSomeErrors = true;
+            }
+
+            var pendingMerge = default(PendingMerge);
+            var hasPendingMerge = false;
+
+            try
+            {
+                pendingMerge = PendingMerge.Single(
+                    node,
+                    schemaName,
+                    operation.Source,
+                    operation.ResultSelectionSet,
+                    variables,
+                    result,
+                    hasErrors);
+                hasPendingMerge = true;
+                context.EnqueuePendingMerge(pendingMerge);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                if (hasPendingMerge)
+                {
+                    pendingMerge.DisposeUnmerged();
+                }
+
+                IsFailed = true;
+                return false;
+            }
+            catch (Exception exception)
+            {
+                if (hasPendingMerge)
+                {
+                    pendingMerge.DisposeUnmerged();
+                }
+                else
+                {
+                    result.Dispose();
+                }
+
+                context.DiagnosticEvents.SourceSchemaStoreError(context, node, schemaName, exception);
+                context.AddErrors(exception, variables, operation.ResultSelectionSet);
+                IsFailed = true;
+                return false;
+            }
+
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// Queues the merge of each result of a batch as it arrives and records which operations
+    /// received a result. A result that cannot be queued fails its operation but not the batch.
+    /// </summary>
+    private sealed class BatchResultSink(
+        OperationBatchExecutionNode node,
+        OperationPlanContext context,
+        string schemaName,
+        OperationDefinition[] operationByIndex,
+        ImmutableArray<VariableValues>[] variablesByIndex,
+        bool[] receivedResults,
+        CancellationToken cancellationToken)
+        : ISourceSchemaResultSink
+    {
+        /// <summary>
+        /// Gets the status of the batch from the results received so far.
+        /// </summary>
+        public ExecutionStatus Status { get; private set; } = ExecutionStatus.Success;
+
+        /// <summary>
+        /// Gets whether queueing a result was canceled, which stops reading the batch.
+        /// </summary>
+        public bool IsCanceled { get; private set; }
+
+        public bool OnResult(int requestIndex, SourceSchemaResult result)
+        {
+            var op = operationByIndex[requestIndex];
+            var hasErrors = result.Errors is not null;
+
+            receivedResults[requestIndex] = true;
+
+            var pendingMerge = default(PendingMerge);
+            var hasPendingMerge = false;
+
+            try
+            {
+                pendingMerge = PendingMerge.Single(
+                    node,
+                    schemaName,
+                    op.Source,
+                    op.ResultSelectionSet,
+                    variablesByIndex[requestIndex],
+                    result,
+                    hasErrors);
+                hasPendingMerge = true;
+                context.EnqueuePendingMerge(pendingMerge);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                if (hasPendingMerge)
+                {
+                    pendingMerge.DisposeUnmerged();
+                }
+
+                IsCanceled = true;
+                return false;
+            }
+            catch (Exception exception)
+            {
+                if (hasPendingMerge)
+                {
+                    pendingMerge.DisposeUnmerged();
+                }
+                else
+                {
+                    result.Dispose();
+                }
+
+                context.DiagnosticEvents.SourceSchemaStoreError(context, node, schemaName, exception);
+                context.AddErrors(exception, variablesByIndex[requestIndex], op.ResultSelectionSet);
+                Status = ExecutionStatus.Failed;
+                return true;
+            }
+
+            if (hasErrors && Status == ExecutionStatus.Success)
+            {
+                Status = ExecutionStatus.PartialSuccess;
+            }
+
+            return true;
+        }
+    }
 }

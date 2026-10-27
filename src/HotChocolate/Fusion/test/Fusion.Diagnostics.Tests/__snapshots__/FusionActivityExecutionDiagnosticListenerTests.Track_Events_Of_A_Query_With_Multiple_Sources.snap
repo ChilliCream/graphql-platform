@@ -133,7 +133,7 @@
                 },
                 {
                   "Key": "graphql.operation.step.plan.id",
-                  "Value": "c65b858b9af88e768303fcf545289c618cb4731b94d8f3be2038585c2a8d9a43"
+                  "Value": "4d4fb49387b75fd970390ce78869ce77b72c96ebae776827f75a9c52be05282e"
                 },
                 {
                   "Key": "graphql.source_schema.name",
@@ -145,7 +145,7 @@
                 },
                 {
                   "Key": "graphql.source_schema.operation.hash",
-                  "Value": "sha256:b6db85f78e867baa06bf8b4f45ed381a2b6bc9f7abd15948f0bfff0967fbc308"
+                  "Value": "sha256:67dd281c9729deafb7a934023c9d3c0a43168c29d7dd0100c2803bad2b8d2ab6"
                 }
               ],
               "event": [],
@@ -252,7 +252,7 @@
                 },
                 {
                   "Key": "graphql.operation.step.plan.id",
-                  "Value": "c65b858b9af88e768303fcf545289c618cb4731b94d8f3be2038585c2a8d9a43"
+                  "Value": "4d4fb49387b75fd970390ce78869ce77b72c96ebae776827f75a9c52be05282e"
                 },
                 {
                   "Key": "graphql.source_schema.name",
@@ -264,7 +264,7 @@
                 },
                 {
                   "Key": "graphql.source_schema.operation.hash",
-                  "Value": "sha256:1fa50769ad5084334414d5ceb8029c7787ded48ac5cc01dac775b0b814348e88"
+                  "Value": "sha256:7636d0de97bfcef7cc99da30ecfb8f0906747e77f141a337ec1140a2d977b937"
                 }
               ],
               "event": [],
@@ -344,6 +344,27 @@
               ]
             }
           ]
+        },
+        {
+          "OperationName": "GraphQL Complexity Analysis",
+          "DisplayName": "GraphQL Complexity Analysis",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:073bf7696c078e52587c88890ef21bbe"
+            },
+            {
+              "Key": "graphql.operation.fieldCost",
+              "Value": 0.0
+            },
+            {
+              "Key": "graphql.operation.typeCost",
+              "Value": 1.0
+            }
+          ],
+          "event": []
         }
       ]
     }

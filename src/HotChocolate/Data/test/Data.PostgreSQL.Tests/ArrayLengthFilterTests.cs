@@ -19,6 +19,7 @@ public sealed class ArrayLengthFilterTests(PostgreSqlResource resource)
         await using var services = new ServiceCollection()
             .AddDbContext<CardReaderContext>(c => c.UseNpgsql(connectionString))
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddType<CardReaderFilterInputType>()
             .AddFiltering()
@@ -89,6 +90,6 @@ public sealed class ArrayLengthFilterTests(PostgreSqlResource resource)
     public sealed class CardReaderContext(DbContextOptions<CardReaderContext> options)
         : DbContext(options)
     {
-        public DbSet<CardReader> CardReaders => Set<CardReader>();
+        public DbSet<CardReader> CardReaders { get; set; }
     }
 }

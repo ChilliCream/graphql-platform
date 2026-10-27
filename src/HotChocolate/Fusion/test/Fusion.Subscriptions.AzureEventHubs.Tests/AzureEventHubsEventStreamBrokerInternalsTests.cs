@@ -2,7 +2,6 @@ using System.Text;
 using System.Threading.Channels;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Consumer;
-using HotChocolate.Fusion.Subscriptions;
 
 namespace HotChocolate.Fusion.Subscriptions.AzureEventHubs;
 

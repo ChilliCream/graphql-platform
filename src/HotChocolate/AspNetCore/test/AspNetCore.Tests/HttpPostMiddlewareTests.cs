@@ -1,4 +1,6 @@
+#if !NET11_0_OR_GREATER
 using System.Net.Http.Json;
+#endif
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Tests.Utilities;
@@ -218,8 +220,10 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
         result.MatchInlineSnapshot(
             """
             Headers:
+            Vary: Accept
             abc: def
             Content-Type: application/graphql-response+json; charset=utf-8
+            Content-Length: 34
             -------------------------->
             Status Code: OK
             -------------------------->
@@ -805,7 +809,9 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 24
                 -------------------------->
                 Status Code: OK
                 -------------------------->
@@ -840,7 +846,9 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 24
                 -------------------------->
                 Status Code: OK
                 -------------------------->
@@ -880,7 +888,9 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
             .MatchInline(
                 """
                 Headers:
+                Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 31
                 -------------------------->
                 Status Code: OK
                 -------------------------->

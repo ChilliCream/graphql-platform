@@ -9,9 +9,7 @@ internal sealed class MemoryJournalIdArgument : Argument<string?>
         Description = "The journal entry ID. Omit to list unpromoted candidates";
         Arity = ArgumentArity.ZeroOrOne;
 
-        // Rejects anything that is not a well-formed id up front, so a
-        // value like "../../x" can never reach a Path.Combine call that
-        // builds a journal file path from it.
+        // Rejects anything that is not a well-formed id.
         Validators.Add(result =>
         {
             var id = result.GetValue(this);

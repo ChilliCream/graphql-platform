@@ -1,7 +1,9 @@
 using System.Text.Json;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Properties;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -21,6 +23,19 @@ internal static class ThrowHelper
         => new(string.Format(
             FusionExecutionResources.OperationPlan_IncrementalPlanParentNotFound,
             path));
+
+    public static InvalidOperationException DeferredPlanNotFound(SelectionPath path)
+        => new($"No plan was found for the @defer fragment at path '{path}'.");
+
+    public static InvalidOperationException LookupTargetPathsReleased()
+        => new("The paths of lookup targets can only be created while their result document is in use.");
+
+    public static OperationPlannerGuardrailException PlanningGuardrailExceeded(
+        string operationId,
+        OperationPlannerGuardrailReason reason,
+        long limit,
+        long observed)
+        => new(operationId, reason, limit, observed);
 
     public static InvalidOperationException MissingBatchResult(int operationId)
         => new(string.Format(
@@ -50,8 +65,64 @@ internal static class ThrowHelper
             FusionExecutionResources.HttpSourceSchemaClient_VariableIndexOutOfRange,
             variableIndex));
 
+    public static InvalidOperationException InvalidVariableIndex(int variableIndex, int nodeId)
+        => new(string.Format(
+            FusionExecutionResources.HttpSourceSchemaClient_InvalidVariableIndex,
+            variableIndex,
+            nodeId));
+
+    public static InvalidOperationException MissingBatchRequestIndex()
+        => new("Expected requestIndex in batch response but it was missing.");
+
+    public static InvalidOperationException FlattenedRequestIndexOutOfRange(int flattenedIndex)
+        => new($"Flattened index {flattenedIndex} is out of range.");
+
     public static ArgumentException InvalidClientConfiguration(Type expected, Type actual)
         => new($"Expected client configuration of type '{expected.Name}' but received '{actual.Name}'.");
+
+    public static InvalidOperationException ClientConfigurationNotFound(string schemaName, OperationType operationType)
+        => new($"No client configuration found for schema '{schemaName}' and operation type {operationType}.");
+
+    public static InvalidOperationException CostOptionsAreReadOnly()
+        => new("The cost options are read-only.");
+
+    public static InvalidOperationException OperationDocumentNotAvailable()
+        => new("The operation document is not available in the context.");
+
+    public static KeyNotFoundException DeliveryGroupNotFound(int deliveryGroupId)
+        => new($"The delivery group with the ID '{deliveryGroupId}' was not found.");
+
+    public static InvalidOperationException DeliveryPathSegmentNotFound(string segmentName)
+        => new($"Could not resolve selection path segment '{segmentName}'.");
+
+    public static InvalidOperationException DeliveryPathSelectionSetMissing(string segmentName)
+        => new($"Selection path segment '{segmentName}' has no selection set.");
+
+    public static InvalidOperationException OperationPlanTaskCompletedWithoutResult()
+        => new("The operation plan task completed without a result.");
+
+    public static InvalidOperationException ApolloLookupOperationMissing(int stepId)
+        => new($"The original Apollo lookup operation for execution step {stepId} is missing.");
+
+    public static InvalidOperationException ApolloEntityFetchProducedMultipleResults()
+        => new("Apollo entity fetches must produce a single source schema result.");
+
+    public static InvalidOperationException UnknownOperationDefinition(Type definitionType)
+        => new($"Unknown operation definition type: {definitionType.Name}");
+
+    public static NotSupportedException ValueCompletionTypeNotSupported(IType type)
+        => new($"The type {type} is not supported.");
+
+    public static NotSupportedException ValueCompletionDepthNotAllowed(int depth)
+        => new($"The depth {depth} is not allowed.");
+
+    public static ArgumentOutOfRangeException InvalidCostOptionValue(
+        string optionName,
+        double value)
+        => new(
+            optionName,
+            value,
+            "The value must be a non-negative finite number or positive infinity.");
 
     public static InvalidOperationException InvalidTargetValueKind(
         SelectionPath selectionPath,
@@ -191,6 +262,23 @@ internal static class ThrowHelper
                 .SetCode(ErrorCodes.Validation.FragmentDoesNotExist)
                 .SetExtension("fragment", fragmentSpread.Name.Value)
                 .AddLocation(fragmentSpread)
+                .Build());
+    }
+
+    public static GraphQLException MutationFieldHasTooManyConditionVariants(
+        FieldNode fieldNode,
+        int maxConditions)
+    {
+        var responseName = fieldNode.Alias?.Value ?? fieldNode.Name.Value;
+
+        return new(
+            ErrorBuilder.New()
+                .SetMessage(
+                    FusionExecutionResources.DocumentRewriter_MutationFieldHasTooManyConditionVariants,
+                    responseName,
+                    maxConditions)
+                .SetExtension("responseName", responseName)
+                .AddLocation(fieldNode)
                 .Build());
     }
 }

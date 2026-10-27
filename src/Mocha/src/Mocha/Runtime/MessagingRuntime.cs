@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Runtime.ExceptionServices;
 using Microsoft.Extensions.Primitives;
 using Mocha.Middlewares;
 
@@ -36,6 +37,9 @@ public sealed class MessagingRuntime(
     IEndpointRouter endpointRouter,
     IFeatureCollection features) : IMessagingRuntime, IAsyncDisposable
 {
+    private bool _stopped;
+    private bool _disposed;
+
     /// <inheritdoc />
     public IServiceProvider Services => services;
 
@@ -122,8 +126,14 @@ public sealed class MessagingRuntime(
     /// Starts all registered transports and their receive endpoints, enabling message consumption.
     /// </summary>
     /// <param name="cancellationToken">A token to cancel the startup sequence.</param>
+    /// <exception cref="InvalidOperationException">Thrown if the runtime has been stopped.</exception>
     public async ValueTask StartAsync(CancellationToken cancellationToken)
     {
+        if (_stopped)
+        {
+            throw ThrowHelper.RuntimeStopped();
+        }
+
         if (IsStarted)
         {
             return;
@@ -137,14 +147,91 @@ public sealed class MessagingRuntime(
         IsStarted = true;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Stops the started transports so their receive endpoints stop consuming messages. A stopped
+    /// runtime cannot be started again, and a transport that fails to stop does not prevent the
+    /// others from stopping; the first failure is rethrown.
+    /// </summary>
+    /// <param name="cancellationToken">A token to cancel the shutdown operations.</param>
+    public async ValueTask StopAsync(CancellationToken cancellationToken)
+    {
+        _stopped = true;
+        ExceptionDispatchInfo? failure = null;
+
+        foreach (var transport in transports)
+        {
+            if (!transport.IsStarted)
+            {
+                continue;
+            }
+
+            try
+            {
+                await transport.StopAsync(this, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                failure ??= ExceptionDispatchInfo.Capture(ex);
+            }
+        }
+
+        IsStarted = false;
+        failure?.Throw();
+    }
+
+    /// <summary>
+    /// Stops the runtime if it is still running, then disposes the consumers and transports. A failing
+    /// step does not prevent the remaining steps from running; the first failure is rethrown, except
+    /// for a stop failure after the runtime was already stopped, which that stop has reported.
+    /// </summary>
     public async ValueTask DisposeAsync()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+        var wasStopped = _stopped;
+        ExceptionDispatchInfo? failure = null;
+
+        try
+        {
+            await StopAsync(CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            if (!wasStopped)
+            {
+                failure = ExceptionDispatchInfo.Capture(ex);
+            }
+        }
+
         foreach (var consumer in consumers)
         {
-            await consumer.DisposeAsync();
+            try
+            {
+                await consumer.DisposeAsync();
+            }
+            catch (Exception ex)
+            {
+                failure ??= ExceptionDispatchInfo.Capture(ex);
+            }
+        }
+
+        foreach (var transport in transports)
+        {
+            try
+            {
+                await transport.DisposeAsync();
+            }
+            catch (Exception ex)
+            {
+                failure ??= ExceptionDispatchInfo.Capture(ex);
+            }
         }
 
         _changeTokenSource?.Dispose();
+        failure?.Throw();
     }
 }

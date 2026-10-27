@@ -4,8 +4,4 @@
   }
 }
 --- source requests ---
-query Op_8c492971_1 {
-  me {
-    __typename
-  }
-}
+query Op_8c492971_1 { me { __typename } }

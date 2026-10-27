@@ -1187,6 +1187,24 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The &apos;defaultListSize&apos; composition setting must be a non-negative integer no larger than 2147483647 ({0})..
+        /// </summary>
+        internal static string LogEntryHelper_InvalidDefaultListSizeSettingRange {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InvalidDefaultListSizeSettingRange", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The &apos;defaultListSize&apos; composition setting must be an integer ({0})..
+        /// </summary>
+        internal static string LogEntryHelper_InvalidDefaultListSizeSettingType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InvalidDefaultListSizeSettingType", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Invalid GraphQL in source schema. Exception message: {0}..
         /// </summary>
         internal static string LogEntryHelper_InvalidGraphQL {
@@ -1201,6 +1219,24 @@ namespace HotChocolate.Fusion.Properties {
         internal static string LogEntryHelper_InvalidGraphQLInExtensions {
             get {
                 return ResourceManager.GetString("LogEntryHelper_InvalidGraphQLInExtensions", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The argument &apos;{0}&apos; of the @listSize directive on field &apos;{1}&apos; in schema &apos;{2}&apos; must not be negative ({3})..
+        /// </summary>
+        internal static string LogEntryHelper_InvalidListSizeArgumentNegativeValue {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InvalidListSizeArgumentNegativeValue", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The argument &apos;{0}&apos; of the @listSize directive on field &apos;{1}&apos; in schema &apos;{2}&apos; has an invalid value ({3})..
+        /// </summary>
+        internal static string LogEntryHelper_InvalidListSizeArgumentType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InvalidListSizeArgumentType", resourceCulture);
             }
         }
 
@@ -1628,6 +1664,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; in schema &apos;{1}&apos; cannot be resolved, because the type &apos;{2}&apos; is not reachable from the root types of schema &apos;{1}&apos; and no other schema resolves the field..
+        /// </summary>
+        internal static string LogEntryHelper_UnreachableSourceField {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_UnreachableSourceField", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The @lookup directive is used within a source schema to specify output fields that can be used by the distributed GraphQL executor to resolve an entity by a stable key..
         /// </summary>
         internal static string LookupMutableDirectiveDefinition_Description {
@@ -1700,11 +1745,11 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to The required field &apos;{0}&apos; must not be defined in schema &apos;{1}&apos;..
+        ///   Looks up a localized string similar to The required field &apos;{0}&apos; must not be served by the requiring source schema &apos;{1}&apos;..
         /// </summary>
-        internal static string RequireInvalidFieldsRule_RequiredFieldMustNotBeDefinedInSameSchema {
+        internal static string RequireInvalidFieldsRule_RequiredFieldServedByRequiringSchema {
             get {
-                return ResourceManager.GetString("RequireInvalidFieldsRule_RequiredFieldMustNotBeDefinedInSameSchema", resourceCulture);
+                return ResourceManager.GetString("RequireInvalidFieldsRule_RequiredFieldServedByRequiringSchema", resourceCulture);
             }
         }
 

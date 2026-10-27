@@ -31,6 +31,9 @@ public class PostgreSqlResource : ContainerResource<PostgreSqlContainer>
         await using var command = connection.CreateCommand();
         command.CommandText = sql;
         await command.ExecuteNonQueryAsync();
+
+        // The synchronous overload is the only one present in every Npgsql version consumers load.
+        connection.ReloadTypes();
     }
 
     protected override PostgreSqlContainer Build()

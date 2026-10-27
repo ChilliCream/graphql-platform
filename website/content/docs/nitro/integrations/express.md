@@ -10,7 +10,7 @@ You can either use a CDN hosted version of the app or a self-hosted version usin
 
 First, you need to install this package and the required peer dependencies in your project:
 
-```bash
+```shell
 npm install @chillicream/nitro-express-middleware --save-dev
 # or
 yarn add @chillicream/nitro-express-middleware --dev

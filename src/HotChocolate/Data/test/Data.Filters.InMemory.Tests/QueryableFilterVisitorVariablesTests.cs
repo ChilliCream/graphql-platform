@@ -10,6 +10,12 @@ public class QueryableFilterVisitorVariablesTests(SchemaCache cache) : IClassFix
         new Foo { Bar = false }
     ];
 
+    private static readonly FooNullable[] s_fooNullableEntities =
+    [
+        new FooNullable { Bar = true },
+        new FooNullable { Bar = null }
+    ];
+
     [Fact]
     public async Task Create_BooleanEqual_Expression()
     {
@@ -237,6 +243,37 @@ public class QueryableFilterVisitorVariablesTests(SchemaCache cache) : IClassFix
               }
             }
             """);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_ApplyNoCondition_When_VariableIsOmitted()
+    {
+        // arrange
+        var tester = cache.CreateSchema<Foo, FooFilterInput>(s_fooEntities);
+        var nullableTester =
+            cache.CreateSchema<FooNullable, FooNullableFilterInput>(s_fooNullableEntities);
+        const string query =
+            "query Test($where: Boolean){ root(where: {bar: { eq: $where}}){ bar}}";
+
+        // act
+        var res1 = await tester.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(query)
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        var res2 = await nullableTester.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(query)
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await Snapshot
+            .Create()
+            .Add(res1, "non-null field")
+            .Add(res2, "nullable field")
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     private static Dictionary<string, object?> CreateOrFilter(int itemCount)

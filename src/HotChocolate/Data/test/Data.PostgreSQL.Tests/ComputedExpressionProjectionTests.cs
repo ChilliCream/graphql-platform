@@ -19,6 +19,7 @@ public sealed class ComputedExpressionProjectionTests(PostgreSqlResource resourc
         await using var services = new ServiceCollection()
             .AddDbContext<ExpressionPersonContext>(c => c.UseNpgsql(connectionString))
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddType<ExpressionPersonType>()
             .AddProjections()
@@ -96,6 +97,6 @@ public sealed class ComputedExpressionProjectionTests(PostgreSqlResource resourc
     public sealed class ExpressionPersonContext(DbContextOptions<ExpressionPersonContext> options)
         : DbContext(options)
     {
-        public DbSet<ExpressionPerson> People => Set<ExpressionPerson>();
+        public DbSet<ExpressionPerson> People { get; set; }
     }
 }

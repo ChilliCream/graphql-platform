@@ -1,7 +1,7 @@
-#if !NET9_0_OR_GREATER
-#endif
 using ChilliCream.Nitro.CommandLine.Commands.Clients.List;
+#if !NET9_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
+#endif
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
 

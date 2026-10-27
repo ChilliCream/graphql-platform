@@ -210,7 +210,7 @@ public class DependencyInjectionTests
                 .AddKeyedSingleton<KeyedService>("keyed")
                 .AddGraphQL()
                 .AddQueryType<KeyedDataLoaderQuery>()
-                .AddDataLoader<KeyedDataLoader>(serviceProvider =>
+                .AddDataLoader(serviceProvider =>
                 {
                     var serviceInspector = serviceProvider.GetRequiredService<IServiceProviderIsService>();
                     var keyedServiceInspector =
