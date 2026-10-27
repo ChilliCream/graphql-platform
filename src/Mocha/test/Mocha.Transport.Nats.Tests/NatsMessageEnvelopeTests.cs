@@ -46,7 +46,7 @@ public class NatsMessageEnvelopeTests
 
         // act
         var headers = NatsMessageHeadersWriter.Instance.Write(envelope);
-        var parsed = NatsMessageEnvelopeParser.Instance.Parse(headers, envelope.Body, deliveryCount: 1);
+        var parsed = NatsMessageEnvelopeParser.Instance.Parse(headers, envelope.Body, deliveryCount: 1, storedAt: null);
 
         // assert
         new Snapshot()
@@ -82,10 +82,44 @@ public class NatsMessageEnvelopeTests
 
         // act
         var headers = NatsMessageHeadersWriter.Instance.Write(envelope);
-        var parsed = NatsMessageEnvelopeParser.Instance.Parse(headers, envelope.Body, deliveryCount: 3);
+        var parsed = NatsMessageEnvelopeParser.Instance.Parse(headers, envelope.Body, deliveryCount: 3, storedAt: null);
 
         // assert
         Assert.Equal(3, parsed.DeliveryCount);
+    }
+
+    [Fact]
+    public void Parse_Should_UseTheStoredTime_When_TheSenderSetNoSentAt()
+    {
+        // arrange
+        var envelope = new MessageEnvelope
+        {
+            MessageId = "message-1",
+            Body = Encoding.UTF8.GetBytes("{}")
+        };
+        var storedAt = new DateTimeOffset(2026, 10, 26, 9, 30, 0, TimeSpan.Zero);
+
+        // act
+        var headers = NatsMessageHeadersWriter.Instance.Write(envelope);
+        var parsed = NatsMessageEnvelopeParser.Instance.Parse(headers, envelope.Body, 1, storedAt);
+
+        // assert
+        Assert.Equal(storedAt, parsed.SentAt);
+    }
+
+    [Fact]
+    public void Parse_Should_PreferTheSendersSentAt_When_BothAreKnown()
+    {
+        // arrange
+        var envelope = CreateEnvelope();
+        var storedAt = envelope.SentAt!.Value.AddSeconds(2);
+
+        // act
+        var headers = NatsMessageHeadersWriter.Instance.Write(envelope);
+        var parsed = NatsMessageEnvelopeParser.Instance.Parse(headers, envelope.Body, 1, storedAt);
+
+        // assert
+        Assert.Equal(envelope.SentAt, parsed.SentAt);
     }
 
     [Fact]
@@ -96,7 +130,7 @@ public class NatsMessageEnvelopeTests
 
         // act
         var headers = NatsMessageHeadersWriter.Instance.Write(envelope);
-        var parsed = NatsMessageEnvelopeParser.Instance.Parse(headers, envelope.Body, deliveryCount: 0);
+        var parsed = NatsMessageEnvelopeParser.Instance.Parse(headers, envelope.Body, deliveryCount: 0, storedAt: null);
 
         // assert
         var parsedHeaders = Assert.IsType<Headers>(parsed.Headers);
@@ -114,7 +148,7 @@ public class NatsMessageEnvelopeTests
 
         // act
         var headers = NatsMessageHeadersWriter.Instance.Write(envelope);
-        var parsed = NatsMessageEnvelopeParser.Instance.Parse(headers, envelope.Body, deliveryCount: 0);
+        var parsed = NatsMessageEnvelopeParser.Instance.Parse(headers, envelope.Body, deliveryCount: 0, storedAt: null);
 
         // assert
         Assert.Null(parsed.MessageId);
