@@ -1,7 +1,7 @@
 import type { ScenarioId } from "@/src/helpers/benchmarkReport";
 
 export const BENCHMARK_PAGE = {
-  title: "GraphQL Federation Router Benchmark",
+  title: "GraphQL Federation Benchmark",
   path: "/benchmarks/graphql-federation",
 } as const;
 

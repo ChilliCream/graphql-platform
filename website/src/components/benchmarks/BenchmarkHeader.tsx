@@ -17,7 +17,7 @@ export function BenchmarkHeader({ report }: BenchmarkHeaderProps) {
   return (
     <header className="pt-10 sm:pt-16">
       <h1 className="font-heading text-h4 sm:text-h3 lg:text-h2 text-cc-heading font-semibold">
-        GraphQL Federation Router Benchmark
+        GraphQL Federation Benchmark
       </h1>
       <div className="mt-5 grid gap-8 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-end lg:gap-16">
         <p className="text-h6 text-cc-prose max-w-3xl font-normal">
