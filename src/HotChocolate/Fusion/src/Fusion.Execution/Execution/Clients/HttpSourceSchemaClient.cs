@@ -539,7 +539,8 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
 
         httpRequest.OperationKind = GetOperationKindHint(originalRequest.OperationType);
         httpRequest.HasDeadline =
-            context.HasExecutionDeadline && originalRequest.OperationType is not OperationType.Subscription;
+            context.HasExecutionDeadline
+                && originalRequest.OperationType is not OperationType.Subscription;
         return httpRequest;
     }
 
