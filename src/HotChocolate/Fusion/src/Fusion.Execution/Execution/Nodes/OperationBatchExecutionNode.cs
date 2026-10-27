@@ -76,7 +76,11 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                 && httpClient.CanExecuteBuffered(operationType, operation.RequiresFileUpload, variables.Length))
             {
                 await httpClient
-                    .ExecuteBufferedAsync(context, CreateRequest(schemaName, operation, variables), sink, cancellationToken)
+                    .ExecuteBufferedAsync(
+                        context,
+                        CreateRequest(schemaName, operation, variables),
+                        sink,
+                        cancellationToken)
                     .ConfigureAwait(false);
             }
             else

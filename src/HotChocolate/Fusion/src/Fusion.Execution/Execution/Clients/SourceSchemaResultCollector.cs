@@ -3,9 +3,9 @@ using System.Buffers;
 namespace HotChocolate.Fusion.Execution.Clients;
 
 /// <summary>
-/// Collects every result of a source schema request. A single result is held without renting a buffer.
+/// Collects the results of a source schema request in the order they arrive.
 /// </summary>
-/// <param name="initialCapacity">The size of the buffer rented once a second result arrives.</param>
+/// <param name="initialCapacity">The number of results expected when a request returns more than one.</param>
 internal sealed class SourceSchemaResultCollector(int initialCapacity) : ISourceSchemaResultSink
 {
     private SourceSchemaResult? _single;

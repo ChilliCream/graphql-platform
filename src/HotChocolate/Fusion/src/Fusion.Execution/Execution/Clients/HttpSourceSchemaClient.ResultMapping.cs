@@ -263,8 +263,7 @@ public sealed partial class HttpSourceSchemaClient
         }
 
         /// <summary>
-        /// Starts mapping the next document of the response. The results it maps to are then
-        /// taken with <see cref="TryGetNext"/>.
+        /// Sets the response document whose results <see cref="TryGetNext"/> returns.
         /// </summary>
         public void Begin(SourceResultDocument document)
         {
@@ -287,14 +286,19 @@ public sealed partial class HttpSourceSchemaClient
                         throw ThrowHelper.MissingBatchRequestIndex();
                     }
 
-                    ResolveFlattenedIndex(_requests, flatRequestIndex.GetInt32(), out _requestIndex, out _variableIndex);
+                    ResolveFlattenedIndex(
+                        _requests,
+                        flatRequestIndex.GetInt32(),
+                        out _requestIndex,
+                        out _variableIndex);
                 }
                 else
                 {
                     _requestIndex = _currentRequestIndex;
                     _variableIndex = _currentVariableIndex;
 
-                    if (++_currentVariableIndex >= Math.Max(1, _requests.ItemRef(_currentRequestIndex).Variables.Length))
+                    if (++_currentVariableIndex
+                        >= Math.Max(1, _requests.ItemRef(_currentRequestIndex).Variables.Length))
                     {
                         _currentRequestIndex++;
                         _currentVariableIndex = 0;

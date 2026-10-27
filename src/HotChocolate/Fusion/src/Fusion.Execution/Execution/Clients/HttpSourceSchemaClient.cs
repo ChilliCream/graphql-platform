@@ -393,7 +393,8 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
         switch (originalRequest.Variables.Length)
         {
             case 0:
-                httpRequest = new GraphQLHttpRequest(CreateSingleRequest(context, in originalRequest, _onError, ref buffer))
+                httpRequest = new GraphQLHttpRequest(
+                    CreateSingleRequest(context, in originalRequest, _onError, ref buffer))
                 {
                     Uri = _configuration.BaseAddress,
                     AcceptHeaderValue = defaultAcceptHeader
@@ -401,7 +402,8 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
                 break;
 
             case 1:
-                httpRequest = new GraphQLHttpRequest(CreateSingleRequest(context, in originalRequest, _onError, ref buffer))
+                httpRequest = new GraphQLHttpRequest(
+                    CreateSingleRequest(context, in originalRequest, _onError, ref buffer))
                 {
                     Uri = _configuration.BaseAddress,
                     AcceptHeaderValue = defaultAcceptHeader,
@@ -413,7 +415,8 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
                 if (!originalRequest.RequiresFileUpload && _supportsVariableBatching)
                 {
                     httpRequest =
-                        new GraphQLHttpRequest(CreateVariableBatchRequest(operationSourceText, in originalRequest, _onError))
+                        new GraphQLHttpRequest(
+                            CreateVariableBatchRequest(operationSourceText, in originalRequest, _onError))
                         {
                             Uri = _configuration.BaseAddress,
                             AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue
@@ -422,7 +425,8 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
                 else
                 {
                     httpRequest =
-                        new GraphQLHttpRequest(CreateOperationBatchRequest(context, in originalRequest, _onError, ref buffer))
+                        new GraphQLHttpRequest(
+                            CreateOperationBatchRequest(context, in originalRequest, _onError, ref buffer))
                         {
                             Uri = _configuration.BaseAddress,
                             AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue,
