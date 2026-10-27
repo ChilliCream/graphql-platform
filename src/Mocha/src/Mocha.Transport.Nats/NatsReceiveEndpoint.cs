@@ -160,8 +160,7 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
     }
 
     /// <summary>
-    /// Stops pulling and starts draining against the transport-wide deadline, ahead of the endpoint
-    /// itself being stopped.
+    /// Stops pulling and starts draining, ahead of the endpoint itself being stopped.
     /// </summary>
     /// <param name="deadline">When handlers still running are cancelled.</param>
     internal void BeginStop(DateTimeOffset deadline)
@@ -180,22 +179,16 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
             return;
         }
 
-        var deadline = _drainDeadline ?? TimeProvider.System.GetUtcNow() + transport.DrainTimeout;
+        var deadline = _drainDeadline ?? transport.GetDrainDeadline();
         _drainDeadline = null;
 
         await _stopping.CancelAsync();
 
         if (_consumeLoop is not null)
         {
-            var remaining = deadline - TimeProvider.System.GetUtcNow();
-
             try
             {
-                // Whichever comes first, the drain deadline or the caller's token: in-flight work
-                // gets a chance to finish, but never holds shutdown open behind a slow handler.
-                await _consumeLoop.WaitAsync(
-                    remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero,
-                    cancellationToken);
+                await _consumeLoop.WaitAsync(transport.GetRemaining(deadline), cancellationToken);
             }
             catch (Exception exception) when (exception is TimeoutException or OperationCanceledException)
             {
@@ -310,12 +303,9 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
     }
 
     /// <summary>
-    /// Releases a message whose handling was aborted, so it is redelivered now rather than once its
-    /// acknowledgement deadline expires.
+    /// Negatively acknowledges a message whose handling was aborted, so it is redelivered at once.
     /// </summary>
     /// <param name="message">The aborted message.</param>
-    // Covers the messages the pipeline never reached, which no acknowledgement middleware settled. A
-    // second NAK for a message the middleware already released is ignored by the server.
     private async ValueTask ReleaseAsync(INatsJSMsg<ReadOnlyMemory<byte>> message)
     {
         try
@@ -365,8 +355,6 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
                     }
                     catch (Exception) when (processing.IsCancellationRequested)
                     {
-                        // Aborted: one cancelled handler must not end the loop, or the messages
-                        // buffered behind it would wait out their acknowledgement deadline.
                         await release(message);
                     }
                 });

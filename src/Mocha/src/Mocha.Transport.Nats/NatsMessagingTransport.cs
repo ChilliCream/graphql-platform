@@ -22,6 +22,7 @@ public sealed class NatsMessagingTransport : MessagingTransport
     private readonly Action<INatsMessagingTransportDescriptor> _configure;
     private NatsMessagingTopology _topology = null!;
     private ILogger _logger = null!;
+    private TimeProvider _timeProvider = TimeProvider.System;
     private string _streamName = NatsTransportConfiguration.DefaultName;
 
     /// <summary>
@@ -53,6 +54,7 @@ public sealed class NatsMessagingTransport : MessagingTransport
         var services = context.Services.GetApplicationServices();
 
         _logger = services.GetRequiredService<ILogger<NatsMessagingTransport>>();
+        _timeProvider = context.Services.GetTimeProvider();
 
         Connection =
             configuration.ConnectionProvider?.Invoke(context.Services)
@@ -176,15 +178,12 @@ public sealed class NatsMessagingTransport : MessagingTransport
     public TimeSpan DrainTimeout { get; private set; } = NatsTransportConfiguration.DefaultDrainTimeout;
 
     /// <summary>
-    /// Stops every receive endpoint pulling at once, so that they drain side by side against one
-    /// deadline rather than one after another.
+    /// Stops every receive endpoint pulling, with one drain deadline shared by all of them.
     /// </summary>
     /// <param name="cancellationToken">A token that ends the drain early.</param>
-    // The base class stops endpoints sequentially; without this the drain timeout would apply per
-    // endpoint and shutdown would grow with the number of endpoints.
     protected override ValueTask OnBeforeStopAsync(CancellationToken cancellationToken)
     {
-        var deadline = TimeProvider.System.GetUtcNow() + DrainTimeout;
+        var deadline = GetDrainDeadline();
 
         foreach (var endpoint in ReceiveEndpoints)
         {
@@ -195,6 +194,22 @@ public sealed class NatsMessagingTransport : MessagingTransport
         }
 
         return ValueTask.CompletedTask;
+    }
+
+    /// <summary>
+    /// Gets the point in time at which a drain that starts now cancels the handlers still running.
+    /// </summary>
+    internal DateTimeOffset GetDrainDeadline() => _timeProvider.GetUtcNow() + DrainTimeout;
+
+    /// <summary>
+    /// Gets the time remaining until <paramref name="deadline"/>, never less than zero.
+    /// </summary>
+    /// <param name="deadline">The drain deadline.</param>
+    internal TimeSpan GetRemaining(DateTimeOffset deadline)
+    {
+        var remaining = deadline - _timeProvider.GetUtcNow();
+
+        return remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero;
     }
 
     /// <summary>

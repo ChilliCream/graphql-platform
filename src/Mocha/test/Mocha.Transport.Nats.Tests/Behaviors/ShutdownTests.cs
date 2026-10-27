@@ -1,90 +1,110 @@
 using System.Diagnostics;
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.Nats.Tests.Fixtures;
 using Mocha.Transport.Nats.Tests.Helpers;
+using NATS.Client.JetStream.Models;
 
 namespace Mocha.Transport.Nats.Tests.Behaviors;
 
 [Collection(JetStreamCollection.Name)]
 public sealed class ShutdownTests(JetStreamFixture fixture)
 {
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
+
     [Fact]
-    public async Task StopAsync_Should_CancelHandlerAndReleaseMessage_When_DrainTimeoutPasses()
+    public async Task StopAsync_Should_CancelTheHandler_When_TheDrainTimeoutPasses()
     {
         // arrange
         await using var scope = await fixture.CreateScopeAsync();
         var gate = new HandlerGate();
-        var bus = await BuildBusAsync(scope, gate, TimeSpan.FromSeconds(1), "shutdown");
+        await using var bus = await BuildBusAsync(scope, gate, TimeSpan.FromSeconds(1), "shutdown");
         await PublishAsync(bus);
-        await gate.Started.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+        await gate.Started.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
 
         // act
-        // CancellationToken.None: the drain timeout alone has to bound the stop, as the host's
-        // DisposeAsync path passes no token.
-        await bus.Runtime.StopAsync(CancellationToken.None).AsTask()
-            .WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+        await StopAsync(bus, CancellationToken.None);
 
         // assert
         Assert.True(gate.Cancelled);
         Assert.False(bus.Runtime.IsStarted);
-        await bus.DisposeAsync();
-
-        // Released rather than left to wait out AckWait (30 seconds): a fresh instance on the same
-        // durable consumer gets it straight away.
-        var counter = new InvocationCounter();
-        await using var next = await BuildCountingBusAsync(scope, counter, "shutdown");
-        Assert.True(
-            await WaitForAtLeastAsync(counter, 1, TimeSpan.FromSeconds(10)),
-            "The aborted message was not redelivered promptly.");
     }
 
     [Fact]
-    public async Task StopAsync_Should_LetHandlerFinish_When_ItCompletesWithinTheDrainTimeout()
+    public async Task StopAsync_Should_ReleaseTheAbortedMessage_When_TheDrainTimeoutPasses()
+    {
+        // arrange
+        await using var scope = await fixture.CreateScopeAsync();
+        var gate = new HandlerGate();
+        var bus = await BuildBusAsync(scope, gate, TimeSpan.FromSeconds(1), "release");
+        await PublishAsync(bus);
+        await gate.Started.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        var redelivery = new RedeliveryProbe();
+
+        // act
+        await StopAsync(bus, CancellationToken.None);
+        await bus.DisposeAsync();
+        await using var next = await BuildProbeBusAsync(scope, redelivery, "release");
+        var redelivered = await redelivery.WaitAsync(s_timeout);
+
+        // assert
+        Assert.True(redelivered);
+    }
+
+    [Fact]
+    public async Task StopAsync_Should_AcknowledgeTheMessage_When_TheHandlerFinishesWithinTheDrainTimeout()
     {
         // arrange
         await using var scope = await fixture.CreateScopeAsync();
         var gate = new HandlerGate { Duration = TimeSpan.FromMilliseconds(500) };
-        var bus = await BuildBusAsync(scope, gate, TimeSpan.FromSeconds(10), "drain");
+        await using var bus = await BuildBusAsync(scope, gate, TimeSpan.FromSeconds(10), "drain");
         await PublishAsync(bus);
-        await gate.Started.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+        await gate.Started.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
 
         // act
-        await bus.Runtime.StopAsync(CancellationToken.None).AsTask()
-            .WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+        await StopAsync(bus, CancellationToken.None);
+        var consumer = await WaitForAcknowledgedAsync(bus, "drain");
 
         // assert
-        Assert.True(gate.Completed);
-        Assert.False(gate.Cancelled);
-        await bus.DisposeAsync();
-
-        // Acknowledged, so nothing comes back to the next instance.
-        var counter = new InvocationCounter();
-        await using var next = await BuildCountingBusAsync(scope, counter, "drain");
-        await Task.Delay(TimeSpan.FromSeconds(3), TestContext.Current.CancellationToken);
-        Assert.Equal(0, counter.Count);
+        new
+        {
+            gate.Completed,
+            gate.Cancelled,
+            Delivered = consumer.Delivered.StreamSeq,
+            Acknowledged = consumer.AckFloor.StreamSeq,
+            consumer.NumAckPending
+        }.MatchInlineSnapshot(
+            """
+            {
+              "Completed": true,
+              "Cancelled": false,
+              "Delivered": 1,
+              "Acknowledged": 1,
+              "NumAckPending": 0
+            }
+            """);
     }
 
     [Fact]
-    public async Task StopAsync_Should_CancelHandler_When_TheCallersTokenFiresBeforeTheDrainTimeout()
+    public async Task StopAsync_Should_CancelTheHandler_When_TheCallersTokenFiresBeforeTheDrainTimeout()
     {
         // arrange
         await using var scope = await fixture.CreateScopeAsync();
         var gate = new HandlerGate();
         await using var bus = await BuildBusAsync(scope, gate, TimeSpan.FromMinutes(5), "early");
         await PublishAsync(bus);
-        await gate.Started.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+        await gate.Started.Task.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
         using var stop = new CancellationTokenSource(TimeSpan.FromMilliseconds(300));
 
         // act
-        await bus.Runtime.StopAsync(stop.Token).AsTask()
-            .WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+        await StopAsync(bus, stop.Token);
 
         // assert
         Assert.True(gate.Cancelled);
     }
 
     [Fact]
-    public async Task StopAsync_Should_DrainEndpointsTogether_When_SeveralHaveHandlersRunning()
+    public async Task StopAsync_Should_ShareOneDeadline_When_SeveralEndpointsHaveHandlersRunning()
     {
         // arrange
         await using var scope = await fixture.CreateScopeAsync();
@@ -100,28 +120,23 @@ public sealed class ShutdownTests(JetStreamFixture fixture)
             .AddNats(nats =>
             {
                 nats.StreamName(scope.StreamName);
-                nats.DrainTimeout(TimeSpan.FromSeconds(2));
+                nats.DrainTimeout(TimeSpan.FromSeconds(3));
                 nats.Endpoint("first").Handler<FirstBlockingHandler>();
                 nats.Endpoint("second").Handler<SecondBlockingHandler>();
             })
             .BuildTestBusAsync();
         await PublishAsync(bus);
         await Task.WhenAll(first.Started.Task, second.Started.Task)
-            .WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+            .WaitAsync(s_timeout, TestContext.Current.CancellationToken);
         var stopwatch = Stopwatch.StartNew();
 
         // act
-        await bus.Runtime.StopAsync(CancellationToken.None).AsTask()
-            .WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+        await StopAsync(bus, CancellationToken.None);
 
         // assert
-        // One deadline for the transport: endpoints stopped one after another would take twice the
-        // drain timeout.
         Assert.True(first.Cancelled);
         Assert.True(second.Cancelled);
-        Assert.True(
-            stopwatch.Elapsed < TimeSpan.FromSeconds(3.5),
-            $"Stopping took {stopwatch.Elapsed}, expected roughly one drain timeout.");
+        Assert.InRange(stopwatch.Elapsed, TimeSpan.Zero, TimeSpan.FromSeconds(5));
     }
 
     private async Task<TestBus> BuildBusAsync(
@@ -142,47 +157,52 @@ public sealed class ShutdownTests(JetStreamFixture fixture)
             })
             .BuildTestBusAsync();
 
-    private async Task<TestBus> BuildCountingBusAsync(
+    private async Task<TestBus> BuildProbeBusAsync(
         JetStreamScope scope,
-        InvocationCounter counter,
+        RedeliveryProbe probe,
         string endpoint)
         => await new ServiceCollection()
             .AddSingleton(fixture.Connection)
-            .AddSingleton(counter)
+            .AddSingleton(probe)
             .AddMessageBus()
-            .AddEventHandler<CountingHandler>()
+            .AddEventHandler<ProbeHandler>()
             .AddNats(nats =>
             {
                 nats.StreamName(scope.StreamName);
-                nats.Endpoint(endpoint).Handler<CountingHandler>();
+                nats.Endpoint(endpoint).Handler<ProbeHandler>();
             })
             .BuildTestBusAsync();
+
+    private async Task<ConsumerInfo> WaitForAcknowledgedAsync(TestBus bus, string endpoint)
+    {
+        var consumer = bus.Topology.Consumers.Single(c => c.Name == endpoint);
+        var deadline = DateTimeOffset.UtcNow + s_timeout;
+
+        while (true)
+        {
+            var info = (await fixture.JetStream.GetConsumerAsync(
+                consumer.StreamName!,
+                consumer.Name,
+                TestContext.Current.CancellationToken)).Info;
+
+            if (info.NumAckPending == 0 || DateTimeOffset.UtcNow > deadline)
+            {
+                return info;
+            }
+
+            await Task.Delay(TimeSpan.FromMilliseconds(100), TestContext.Current.CancellationToken);
+        }
+    }
+
+    private static async Task StopAsync(TestBus bus, CancellationToken cancellationToken)
+        => await bus.Runtime.StopAsync(cancellationToken).AsTask()
+            .WaitAsync(s_timeout, TestContext.Current.CancellationToken);
 
     private static async Task PublishAsync(TestBus bus)
     {
         var messageBus = bus.CreateBus(out var busScope);
         using var _ = busScope;
         await messageBus.PublishAsync(new ShutdownEvent(), TestContext.Current.CancellationToken);
-    }
-
-    private static async Task<bool> WaitForAtLeastAsync(
-        InvocationCounter counter,
-        int expected,
-        TimeSpan timeout)
-    {
-        var deadline = DateTimeOffset.UtcNow.Add(timeout);
-
-        while (DateTimeOffset.UtcNow < deadline)
-        {
-            if (counter.Count >= expected)
-            {
-                return true;
-            }
-
-            await Task.Delay(TimeSpan.FromMilliseconds(100), CancellationToken.None);
-        }
-
-        return counter.Count >= expected;
     }
 
     public sealed class ShutdownEvent;
@@ -213,6 +233,26 @@ public sealed class ShutdownTests(JetStreamFixture fixture)
         }
     }
 
+    public sealed class RedeliveryProbe
+    {
+        private readonly TaskCompletionSource _received = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public void Received() => _received.TrySetResult();
+
+        public async Task<bool> WaitAsync(TimeSpan timeout)
+        {
+            try
+            {
+                await _received.Task.WaitAsync(timeout, TestContext.Current.CancellationToken);
+                return true;
+            }
+            catch (TimeoutException)
+            {
+                return false;
+            }
+        }
+    }
+
     public sealed class BlockingHandler(HandlerGate gate) : IEventHandler<ShutdownEvent>
     {
         public ValueTask HandleAsync(ShutdownEvent message, CancellationToken cancellationToken)
@@ -233,11 +273,11 @@ public sealed class ShutdownTests(JetStreamFixture fixture)
             => gate.RunAsync(cancellationToken);
     }
 
-    public sealed class CountingHandler(InvocationCounter counter) : IEventHandler<ShutdownEvent>
+    public sealed class ProbeHandler(RedeliveryProbe probe) : IEventHandler<ShutdownEvent>
     {
         public ValueTask HandleAsync(ShutdownEvent message, CancellationToken cancellationToken)
         {
-            counter.Increment();
+            probe.Received();
             return ValueTask.CompletedTask;
         }
     }
