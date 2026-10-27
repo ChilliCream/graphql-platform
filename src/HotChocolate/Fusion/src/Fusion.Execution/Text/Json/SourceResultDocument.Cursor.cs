@@ -108,6 +108,12 @@ public sealed partial class SourceResultDocument
             return From(chunkIndex, byteOffset / DbRowSize);
         }
 
+        /// <summary>
+        /// Creates a cursor from its packed <see cref="Value"/>.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Cursor FromValue(uint value) => new(value);
+
         public uint Value => _value;
 
         public int Chunk

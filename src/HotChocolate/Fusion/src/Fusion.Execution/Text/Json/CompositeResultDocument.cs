@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -10,8 +11,10 @@ namespace HotChocolate.Fusion.Text.Json;
 
 public sealed partial class CompositeResultDocument : IDisposable
 {
+    private const int InitialSourceCapacity = 32;
     private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
-    private readonly List<SourceResultDocument> _sources = [];
+    private SourceResultDocument[] _sources = [];
+    private int _sourceCount;
     private readonly Operation _operation;
     private readonly ulong _includeFlags;
     private readonly ulong _deferFlags;
@@ -663,12 +666,11 @@ public sealed partial class CompositeResultDocument : IDisposable
 
         if (parent.Id == -1)
         {
-            Debug.Assert(!_sources.Contains(parent), "The source document is marked as unbound but is already registered.");
-            parent.Id = _sources.Count;
-            _sources.Add(parent);
+            Debug.Assert(!IsSourceRegistered(parent), "The source document is marked as unbound but is already registered.");
+            RegisterSource(parent);
         }
 
-        Debug.Assert(_sources.Contains(parent), "Expected the source document of the source element to be registered.");
+        Debug.Assert(IsSourceRegistered(parent), "Expected the source document of the source element to be registered.");
 
         var tokenType = sourceRow.TokenType.ToElementTokenType();
         TrackValueReplacement(target.Cursor);
@@ -843,6 +845,41 @@ public sealed partial class CompositeResultDocument : IDisposable
         return ((selection.Id - selectionSet.Id - 1) * 2) + 2;
     }
 
+    private void RegisterSource(SourceResultDocument source)
+    {
+        var count = _sourceCount;
+
+        if (count == _sources.Length)
+        {
+            GrowSources();
+        }
+
+        source.Id = count;
+        _sources[count] = source;
+        _sourceCount = count + 1;
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private void GrowSources()
+    {
+        ObjectDisposedException.ThrowIf(_disposed == 1, this);
+
+        var current = _sources;
+        var grown = ArrayPool<SourceResultDocument>.Shared.Rent(
+            current.Length == 0 ? InitialSourceCapacity : current.Length * 2);
+
+        if (current.Length > 0)
+        {
+            current.AsSpan(0, _sourceCount).CopyTo(grown);
+            ArrayPool<SourceResultDocument>.Shared.Return(current, clearArray: true);
+        }
+
+        _sources = grown;
+    }
+
+    private bool IsSourceRegistered(SourceResultDocument source)
+        => Array.IndexOf(_sources, source, 0, _sourceCount) >= 0;
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void TrackValueReplacement(Cursor target)
     {
@@ -880,5 +917,14 @@ public sealed partial class CompositeResultDocument : IDisposable
         }
 
         _metaDb.Dispose();
+
+        var sources = _sources;
+        _sources = [];
+        _sourceCount = 0;
+
+        if (sources.Length > 0)
+        {
+            ArrayPool<SourceResultDocument>.Shared.Return(sources, clearArray: true);
+        }
     }
 }
