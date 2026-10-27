@@ -23,6 +23,7 @@ internal static class SourceSchemaTransitionHelper
     /// Validates whether a transition to <paramref name="transitionToSchemaName"/>
     /// is possible for <paramref name="type"/>.
     /// </summary>
+    /// <param name="schema">The merged schema.</param>
     /// <param name="lookupCache">The lookup directive cache for the current validation run.</param>
     /// <param name="type">
     /// The type we need to be holding in <paramref name="transitionToSchemaName"/>
@@ -39,9 +40,10 @@ internal static class SourceSchemaTransitionHelper
     /// Callback that validates a candidate lookup's key requirements. It is
     /// invoked with the context type whose lookup is being attempted (either
     /// <paramref name="type"/> for a direct lookup, or an ancestor's type for a
-    /// parent entity call) and the path item that anchors the validation
-    /// context. Caller-owned so each validator can supply its own state
-    /// (cycle detection, excluded schema, etc.).
+    /// parent entity call) and the path from the path item that anchors the
+    /// validation context toward the root, which is empty at a root type.
+    /// Caller-owned so each validator can supply its own state (cycle
+    /// detection, excluded schema, etc.).
     /// </param>
     /// <param name="noLookupsFoundForTypeMessageFormat">
     /// Format string used when no lookup or path-based transition exists. The
@@ -64,12 +66,13 @@ internal static class SourceSchemaTransitionHelper
     /// was tried, plus a "no lookups" error if no lookup was available at all.
     /// </returns>
     public static ImmutableArray<SatisfiabilityError> ValidateSourceSchemaTransition(
+        MutableSchemaDefinition schema,
         FusionLookupDirectiveCache lookupCache,
         MutableObjectTypeDefinition type,
         string transitionToSchemaName,
         IReadOnlyList<SatisfiabilityPathItem> pathFromLeaf,
         Func<MutableObjectTypeDefinition,
-            SatisfiabilityPathItem?,
+            IReadOnlyList<SatisfiabilityPathItem>,
             SelectionSetNode,
             ImmutableArray<SatisfiabilityError>> validateLookupRequirements,
         string noLookupsFoundForTypeMessageFormat,
@@ -77,7 +80,6 @@ internal static class SourceSchemaTransitionHelper
         MutableOutputFieldDefinition? queryViewerField)
     {
         var errors = new List<SatisfiabilityError>();
-        var leafPathItem = pathFromLeaf.Count > 0 ? pathFromLeaf[0] : null;
 
         var lookupDirectives =
             lookupCache.GetPossibleFusionLookupDirectives(type, transitionToSchemaName);
@@ -88,7 +90,7 @@ internal static class SourceSchemaTransitionHelper
         // Direct lookup on `type` in the target schema.
         foreach (var lookupDirective in lookupDirectives)
         {
-            if (TryLookup(lookupDirective, type, leafPathItem, directLookupErrors))
+            if (TryLookup(lookupDirective, type, parentIndex: 0, directLookupErrors))
             {
                 satisfiable = true;
                 break;
@@ -115,35 +117,52 @@ internal static class SourceSchemaTransitionHelper
         // condition below when no lookup-based option succeeded.
         //
         // Known limitation: we do not explicitly replay the suffix fields
-        // through the normal field-access rules (@require, @partial,
-        // @provides). The main satisfiability loop covers most cases
-        // implicitly by visiting every reachable type on its access path
-        // and running those checks there. The gap is when this parent-call
-        // enables a (type, schema) combination that the forward-from-Query
-        // traversal does not otherwise reach (e.g. a target schema whose only
-        // entry point for the ancestor type is the @lookup itself, which is
-        // @inaccessible and skipped by the main loop).
+        // through the @require rules. The main satisfiability loop covers
+        // most cases implicitly by visiting every reachable type on its access
+        // path and running those checks there. The gap is when this
+        // parent-call enables a (type, schema) combination that the
+        // forward-from-Query traversal does not otherwise reach (e.g. a target
+        // schema whose only entry point for the ancestor type is the @lookup
+        // itself, which is @inaccessible and skipped by the main loop).
         var pathIsTraversable = true;
+        var hasPartialField = false;
 
         for (var i = 0; i < pathFromLeaf.Count; i++)
         {
             var ancestor = pathFromLeaf[i];
+            var existsInSchema = ancestor.Field.ExistsInSchema(transitionToSchemaName);
+            var isPartial = existsInSchema && ancestor.Field.IsPartial(transitionToSchemaName);
+
+            // The suffix below a viewer field that the target schema does not serve is
+            // re-traversed from Query.viewer in the target schema.
+            if ((!existsInSchema || isPartial)
+                && queryViewerField is not null
+                && ancestor.Field.IsViewerFieldFor(queryViewerField)
+                && queryViewerField.ExistsInSchema(transitionToSchemaName)
+                && (!hasPartialField
+                    || ServesSuffix(
+                        i - 1,
+                        queryViewerField.Type.AsTypeDefinition(),
+                        GetProvidedSelectionSet(queryViewerField, transitionToSchemaName))))
+            {
+                return [];
+            }
 
             // The ancestor's field must also exist in the target schema so the
             // suffix can be re-traversed. If it does not, deeper ancestors are
             // also blocked by the same missing field and we can stop here.
-            if (!ancestor.Field.ExistsInSchema(transitionToSchemaName))
+            if (!existsInSchema)
             {
-                // The suffix below a viewer field is re-traversed from Query.viewer in the target schema.
-                if (queryViewerField is not null
-                    && ancestor.Field.IsViewerFieldFor(queryViewerField)
-                    && queryViewerField.ExistsInSchema(transitionToSchemaName))
-                {
-                    return [];
-                }
-
                 pathIsTraversable = false;
                 break;
+            }
+
+            // A partial (@external) field is only served when the field above it
+            // provides it, so the ancestor cannot be re-fetched through its lookup.
+            if (isPartial)
+            {
+                hasPartialField = true;
+                continue;
             }
 
             // Path items are always constructed with object declaring types,
@@ -157,30 +176,33 @@ internal static class SourceSchemaTransitionHelper
             var ancestorLookups =
                 lookupCache.GetPossibleFusionLookupDirectives(ancestorObjectType, transitionToSchemaName);
 
-            if (ancestorLookups.Count == 0)
+            // A partial field below the ancestor must be provided on the suffix
+            // that the ancestor's lookup starts.
+            if (ancestorLookups.Count == 0
+                || (hasPartialField && !ServesSuffix(i, parentFieldType: null, parentProvides: null)))
             {
                 continue;
             }
 
-            // The "prefix leaf" is the path item we held right before the
-            // ancestor was accessed (the position at which we were holding
-            // ancestor.Type and from which the ancestor's lookup must be
+            // The path above the ancestor starts at the path item we held right
+            // before the ancestor was accessed (the position at which we were
+            // holding ancestor.Type and from which the ancestor's lookup must be
             // satisfiable).
-            var prefixLeaf = i + 1 < pathFromLeaf.Count ? pathFromLeaf[i + 1] : null;
-
             foreach (var ancestorLookup in ancestorLookups)
             {
-                if (TryLookup(ancestorLookup, ancestorObjectType, prefixLeaf, errors))
+                if (TryLookup(ancestorLookup, ancestorObjectType, parentIndex: i + 1, errors))
                 {
                     return [];
                 }
             }
         }
 
-        // One-to-one path fallback: every field on the path exists in the
+        // One-to-one path fallback: every field on the path is served by the
         // target schema, so the same traversal applies there without any
         // entity call.
-        if (pathIsTraversable)
+        if (pathIsTraversable
+            && (!hasPartialField
+                || ServesSuffix(pathFromLeaf.Count - 1, parentFieldType: null, parentProvides: null)))
         {
             return [];
         }
@@ -201,10 +223,40 @@ internal static class SourceSchemaTransitionHelper
 
         return [.. errors];
 
+        // Determines whether the target schema serves the path items from startIndex down to the
+        // leaf when it re-traverses them below a field of parentFieldType that provides parentProvides.
+        bool ServesSuffix(
+            int startIndex,
+            ITypeDefinition? parentFieldType,
+            SelectionSetNode? parentProvides)
+        {
+            for (var j = startIndex; j >= 0; j--)
+            {
+                var item = pathFromLeaf[j];
+
+                if (!ServesOnRetraversal(
+                    schema,
+                    item.Field,
+                    item.Type,
+                    transitionToSchemaName,
+                    parentFieldType,
+                    parentProvides,
+                    GetProvidedSelectionSet(item.Field, transitionToSchemaName),
+                    out parentProvides))
+                {
+                    return false;
+                }
+
+                parentFieldType = item.FieldType;
+            }
+
+            return true;
+        }
+
         bool TryLookup(
             IDirective lookupDirective,
             MutableObjectTypeDefinition contextType,
-            SatisfiabilityPathItem? parentPathItem,
+            int parentIndex,
             List<SatisfiabilityError> sink)
         {
             var lookupKeyArg = (string)lookupDirective.Arguments["key"].Value!;
@@ -214,8 +266,11 @@ internal static class SourceSchemaTransitionHelper
             var lookupRequirements = ParseSelectionSet($"{{ {lookupKeyArg} }}");
             var lookupFieldName = ParseFieldDefinition(lookupFieldArg).Name.Value;
 
+            IReadOnlyList<SatisfiabilityPathItem> pathFromParent =
+                parentIndex < pathFromLeaf.Count ? [.. pathFromLeaf.Skip(parentIndex)] : [];
+
             var requirementErrors =
-                validateLookupRequirements(contextType, parentPathItem, lookupRequirements);
+                validateLookupRequirements(contextType, pathFromParent, lookupRequirements);
 
             if (requirementErrors.IsEmpty)
             {
@@ -237,5 +292,95 @@ internal static class SourceSchemaTransitionHelper
 
             return false;
         }
+    }
+
+    /// <summary>
+    /// Determines whether <paramref name="schemaName"/> serves <paramref name="field"/> of
+    /// <paramref name="declaringType"/> when it re-traverses the path below a field of
+    /// <paramref name="parentFieldType"/> that provides <paramref name="parentProvides"/>.
+    /// A partial (@external) field is only served when <paramref name="parentProvides"/> selects it.
+    /// </summary>
+    /// <param name="schema">The merged schema.</param>
+    /// <param name="field">The re-traversed field.</param>
+    /// <param name="declaringType">The type declaring <paramref name="field"/>.</param>
+    /// <param name="schemaName">The schema re-traversing the path.</param>
+    /// <param name="parentFieldType">
+    /// The type <paramref name="parentProvides"/> is selected on, or <c>null</c> if it is <c>null</c>.
+    /// </param>
+    /// <param name="parentProvides">
+    /// The selection set the schema provides above <paramref name="field"/>, or <c>null</c> if it provides none.
+    /// </param>
+    /// <param name="fieldProvides">
+    /// The @provides selection set of <paramref name="field"/> in the schema, or <c>null</c> if it has none.
+    /// </param>
+    /// <param name="providedSelectionSet">
+    /// The selection set the schema provides below <paramref name="field"/>, or <c>null</c> if it provides none.
+    /// </param>
+    /// <returns><c>true</c> if the schema serves the field; otherwise, <c>false</c>.</returns>
+    public static bool ServesOnRetraversal(
+        MutableSchemaDefinition schema,
+        MutableOutputFieldDefinition field,
+        MutableComplexTypeDefinition declaringType,
+        string schemaName,
+        ITypeDefinition? parentFieldType,
+        SelectionSetNode? parentProvides,
+        SelectionSetNode? fieldProvides,
+        out SelectionSetNode? providedSelectionSet)
+    {
+        providedSelectionSet = null;
+
+        if (!field.ExistsInSchema(schemaName))
+        {
+            return false;
+        }
+
+        SelectionSetNode? selectedByParent = null;
+        var isProvided =
+            parentProvides is not null
+            && parentFieldType is not null
+            && SatisfiabilityPathItemExtensions.TryGetFieldSelectionSet(
+                schema,
+                parentProvides,
+                parentFieldType,
+                field,
+                declaringType,
+                out selectedByParent);
+
+        if (!isProvided && field.IsPartial(schemaName))
+        {
+            return false;
+        }
+
+        providedSelectionSet = CombineSelectionSets(selectedByParent, fieldProvides);
+        return true;
+    }
+
+    /// <summary>
+    /// Gets the @provides selection set of <paramref name="field"/> in <paramref name="schemaName"/>,
+    /// or <c>null</c> if it has none.
+    /// </summary>
+    public static SelectionSetNode? GetProvidedSelectionSet(
+        MutableOutputFieldDefinition field,
+        string schemaName)
+        => field.GetFusionFieldProvides(schemaName) is { } provides
+            ? ParseSelectionSet($"{{ {provides} }}")
+            : null;
+
+    /// <summary>
+    /// Gets a selection set with the selections of both selection sets, either of which may be <c>null</c>.
+    /// </summary>
+    public static SelectionSetNode? CombineSelectionSets(SelectionSetNode? left, SelectionSetNode? right)
+    {
+        if (left is null)
+        {
+            return right;
+        }
+
+        if (right is null)
+        {
+            return left;
+        }
+
+        return new SelectionSetNode([.. left.Selections, .. right.Selections]);
     }
 }

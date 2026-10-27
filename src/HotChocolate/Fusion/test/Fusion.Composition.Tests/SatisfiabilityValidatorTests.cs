@@ -3187,6 +3187,7 @@ public sealed class SatisfiabilityValidatorTests
     public void RequiresCircular()
     {
         // arrange
+        // B serves Post.author, which the requirement of Post.byNovice selects at its first level.
         var merger = new SourceSchemaMerger(
             CreateSchemaDefinitions(
             [
@@ -3240,7 +3241,27 @@ public sealed class SatisfiabilityValidatorTests
         var result = satisfiabilityValidator.Validate();
 
         // assert
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsFailure);
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'Post.byNovice'.
+              Unable to satisfy the requirement '{ author { yearsOfExperience } }' on field 'B:Post.byNovice<Boolean>'.
+                Unable to satisfy the requirement 'author { yearsOfExperience }'.
+                  Unable to access the required field 'Post.author'.
+                    No other schemas contain the field 'Post.author'.
+            """,
+            """
+            Unable to access the field 'Post.byExpert'.
+              Unable to satisfy the requirement '{ byNovice }' on field 'A:Post.byExpert<Boolean>'.
+                Unable to satisfy the requirement 'byNovice'.
+                  Unable to access the required field 'Post.byNovice'.
+                    Unable to satisfy the requirement '{ author { yearsOfExperience } }' on field 'B:Post.byNovice<Boolean>'.
+                      Unable to satisfy the requirement 'author { yearsOfExperience }'.
+                        Unable to access the required field 'Post.author'.
+                          No other schemas contain the field 'Post.author'.
+            """
+        ]);
     }
 
     [Fact]
@@ -3408,6 +3429,7 @@ public sealed class SatisfiabilityValidatorTests
     public void RequiresWithArgument()
     {
         // arrange
+        // D serves Post.comments, which the requirement of Post.author selects at its first level.
         var merger = new SourceSchemaMerger(
             CreateSchemaDefinitions(
             [
@@ -3511,7 +3533,17 @@ public sealed class SatisfiabilityValidatorTests
         var result = satisfiabilityValidator.Validate();
 
         // assert
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsFailure);
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'Post.author'.
+              Unable to satisfy the requirement '{ comments(limit: 3) { authorId } }' on field 'D:Post.author<Author>'.
+                Unable to satisfy the requirement 'comments(limit: 3) { authorId }'.
+                  Unable to access the required field 'Post.comments'.
+                    No other schemas contain the field 'Post.comments'.
+            """
+        ]);
     }
 
     [Fact]
@@ -5155,8 +5187,8 @@ public sealed class SatisfiabilityValidatorTests
     public void Validate_Should_Fail_When_RequiringSchemaHasNoLookupToResolveFieldAfterRequirement()
     {
         // arrange
-        // the Product key comes from A itself, so A must be re-entered at CartItem once B has
-        // delivered discountedPrice, but A declares no lookup for CartItem.
+        // the CartItem key comes from A itself, so A must be re-entered at CartItem once B has
+        // delivered product and discountedPrice, but A declares no lookup for CartItem.
         var merger = new SourceSchemaMerger(
             CreateSchemaDefinitions(
             [
@@ -5164,7 +5196,6 @@ public sealed class SatisfiabilityValidatorTests
                 # Schema A
                 type Query {
                     cart: Cart
-                    productById(id: ID! @is(field: "id")): Product @lookup @internal
                 }
 
                 type Cart {
@@ -5174,18 +5205,18 @@ public sealed class SatisfiabilityValidatorTests
 
                 type CartItem {
                     id: ID!
-                    product: Product!
                     unitPrice(price: Float! @require(field: "product.discountedPrice")): Float!
-                }
-
-                type Product @key(fields: "id") {
-                    id: ID!
                 }
                 """,
                 """
                 # Schema B
                 type Query {
-                    productById(id: ID! @is(field: "id")): Product @lookup @internal
+                    cartItemById(id: ID! @is(field: "id")): CartItem @lookup @internal
+                }
+
+                type CartItem {
+                    id: ID!
+                    product: Product!
                 }
 
                 type Product @key(fields: "id") {
@@ -5228,7 +5259,6 @@ public sealed class SatisfiabilityValidatorTests
                 type Query {
                     cart: Cart
                     cartItemBySku(sku: String!): CartItem @lookup @internal
-                    productById(id: ID! @is(field: "id")): Product @lookup @internal
                 }
 
                 type Cart {
@@ -5238,18 +5268,18 @@ public sealed class SatisfiabilityValidatorTests
 
                 type CartItem {
                     id: ID!
-                    product: Product!
                     unitPrice(price: Float! @require(field: "product.discountedPrice")): Float!
-                }
-
-                type Product @key(fields: "id") {
-                    id: ID!
                 }
                 """,
                 """
                 # Schema B
                 type Query {
-                    productById(id: ID! @is(field: "id")): Product @lookup @internal
+                    cartItemById(id: ID! @is(field: "id")): CartItem @lookup @internal
+                }
+
+                type CartItem {
+                    id: ID!
+                    product: Product!
                 }
 
                 type Product @key(fields: "id") {
@@ -5298,7 +5328,8 @@ public sealed class SatisfiabilityValidatorTests
     public void Validate_Should_Succeed_When_RequiringSchemaHasLookupToResolveFieldAfterRequirement()
     {
         // arrange
-        // A declares a CartItem lookup, so the gateway can re-enter A with the fetched discountedPrice.
+        // A declares a CartItem lookup, so the gateway can re-enter A with the discountedPrice that B
+        // delivers for the product of the item.
         var merger = new SourceSchemaMerger(
             CreateSchemaDefinitions(
             [
@@ -5307,7 +5338,6 @@ public sealed class SatisfiabilityValidatorTests
                 type Query {
                     cart: Cart
                     cartItemById(id: ID! @is(field: "id")): CartItem @lookup @internal
-                    productById(id: ID! @is(field: "id")): Product @lookup @internal
                 }
 
                 type Cart {
@@ -5317,18 +5347,18 @@ public sealed class SatisfiabilityValidatorTests
 
                 type CartItem {
                     id: ID!
-                    product: Product!
                     unitPrice(price: Float! @require(field: "product.discountedPrice")): Float!
-                }
-
-                type Product @key(fields: "id") {
-                    id: ID!
                 }
                 """,
                 """
                 # Schema B
                 type Query {
-                    productById(id: ID! @is(field: "id")): Product @lookup @internal
+                    cartItemById(id: ID! @is(field: "id")): CartItem @lookup @internal
+                }
+
+                type CartItem {
+                    id: ID!
+                    product: Product!
                 }
 
                 type Product @key(fields: "id") {
@@ -5391,6 +5421,46 @@ public sealed class SatisfiabilityValidatorTests
 
         // assert
         Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_RequirementTransitionNeedsKeyFromRequiringSchemaWithoutLookup()
+    {
+        // arrange
+        var sdl = CreateRequirementKeyFromRequiringSchemaSchemas(requiringSchemaFirst: false);
+
+        // act
+        var (result, log) = ValidateSatisfiability(sdl);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'Item.label' on path 'B:Query.items<Item>'.
+              Unable to satisfy the requirement '{ code }' on field 'B:Item.label<String>'.
+                The field 'Item.label' in schema 'B' requires data from another schema, but schema 'B' has no lookup for type 'Item' that could resolve the field once the required data has been fetched.
+            """);
+    }
+
+    [Fact]
+    public void Validate_Should_Fail_When_RequirementTransitionNeedsKeyFromRequiringSchemaWithoutLookupAndRequiringSchemaIsFirst()
+    {
+        // arrange
+        var sdl = CreateRequirementKeyFromRequiringSchemaSchemas(requiringSchemaFirst: true);
+
+        // act
+        var (result, log) = ValidateSatisfiability(sdl);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'Item.label' on path 'A:Query.items<Item>'.
+              Unable to satisfy the requirement '{ code }' on field 'A:Item.label<String>'.
+                The field 'Item.label' in schema 'A' requires data from another schema, but schema 'A' has no lookup for type 'Item' that could resolve the field once the required data has been fetched.
+            """);
     }
 
     [Fact]
@@ -5803,6 +5873,37 @@ public sealed class SatisfiabilityValidatorTests
         var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
 
         return (satisfiabilityValidator.Validate(), log);
+    }
+
+    private static string[] CreateRequirementKeyFromRequiringSchemaSchemas(bool requiringSchemaFirst)
+    {
+        const string lookupSchema =
+            """
+            type Query {
+                itemById(id: ID!): Item @lookup @internal
+            }
+
+            type Item {
+                id: ID!
+                code: String!
+            }
+            """;
+
+        const string requiringSchema =
+            """
+            type Query {
+                items: [Item]
+            }
+
+            type Item {
+                id: ID!
+                label(code: String! @require(field: "code")): String!
+            }
+            """;
+
+        return requiringSchemaFirst
+            ? [requiringSchema, lookupSchema]
+            : [lookupSchema, requiringSchema];
     }
 
     private static string[] CreateRepeatedFieldSchemas(bool sharedRootFieldFirst)

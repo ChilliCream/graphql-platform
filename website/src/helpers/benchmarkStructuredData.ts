@@ -4,10 +4,12 @@ import {
 } from "@/src/components/benchmarks/benchmarkRoutes";
 import {
   orderedScenarios,
+  releasedGateways,
   SCENARIO_INFO,
 } from "@/src/components/benchmarks/benchmarkView";
 import {
   BENCHMARK_REPOSITORY,
+  benchmarkVariants,
   type BenchmarkHistory,
   type BenchmarkReport,
 } from "@/src/helpers/benchmarkReport";
@@ -57,9 +59,12 @@ export function createBenchmarkDatasetNode(
     .filter((value): value is string => typeof value === "string")
     .toSorted((a, b) => Date.parse(a) - Date.parse(b));
   const completedAt = report.run.completedAt ?? report.run.startedAt;
-  const gateways = new Intl.ListFormat("en", { type: "conjunction" }).format(
-    report.gateways.map((gateway) => gateway.name),
-  );
+  const released = releasedGateways(benchmarkVariants(report));
+  const named = report.gateways.filter((gateway) => released.has(gateway.id));
+  const gateways = new Intl.ListFormat("en", { type: "conjunction" }).format([
+    ...named.map((gateway) => gateway.name),
+    ...(named.length < report.gateways.length ? ["others"] : []),
+  ]);
   const scenarios = new Intl.ListFormat("en", { type: "conjunction" }).format(
     orderedScenarios(report).map((scenario) => SCENARIO_INFO[scenario.id].name),
   );

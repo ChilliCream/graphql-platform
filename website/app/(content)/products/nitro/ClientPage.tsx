@@ -5,7 +5,6 @@ import {
   motion,
   useInView,
   useMotionValue,
-  useReducedMotion,
   useTransform,
   type MotionValue,
 } from "motion/react";
@@ -13,6 +12,7 @@ import dynamic from "next/dynamic";
 import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useId, useRef } from "react";
 
+import { ClassificationCard } from "@/src/components/ClassificationCard";
 import { MockWindowChrome } from "@/src/components/MockWindowChrome";
 import { NitroDownload } from "@/src/components/nitro/NitroDownload";
 import { RisingParticles } from "@/src/components/nitro/RisingParticles";
@@ -23,6 +23,7 @@ import { Eyebrow } from "@/src/design-system/Eyebrow";
 import { NitroReel } from "@/src/nitro";
 import { areaFromLine, smoothLinePath, type Pt } from "@/src/nitro/lib/scale";
 import type { Client, InsightRow, Trace } from "@/src/nitro/lib/data/types";
+import { useReducedMotionPreference } from "@/src/nitro/lib/motion";
 
 const ControlPlaneConsole = dynamic(() =>
   import("@/src/components/nitro/ControlPlaneConsole").then(
@@ -911,7 +912,7 @@ const TRACE: Trace = {
 
 function useBentoProgress() {
   const ref = useRef<HTMLDivElement>(null);
-  const reduced = useReducedMotion() ?? false;
+  const reduced = useReducedMotionPreference();
   const inView = useInView(ref, { amount: 0.25 });
   const progress = useMotionValue(reduced ? 1 : 0);
 
@@ -946,7 +947,7 @@ function ErrorRateSpark({ progress, active }: ErrorRateSparkProps) {
   const PAD = 6;
   const stroke = "#f0786a";
   const gid = useId().replace(/:/g, "");
-  const reduced = useReducedMotion() ?? false;
+  const reduced = useReducedMotionPreference();
 
   const n = ERROR_CURVE.length;
   const dMin = Math.min(...ERROR_CURVE);
@@ -1218,86 +1219,6 @@ function SignalsBento() {
   );
 }
 
-type ChangeKind = "safe" | "dangerous" | "breaking";
-
-const KIND_STYLE: Record<
-  ChangeKind,
-  { readonly label: string; readonly className: string }
-> = {
-  safe: {
-    label: "SAFE",
-    className: "text-cc-success border-cc-success/40 bg-cc-success/[0.08]",
-  },
-  dangerous: {
-    label: "DANGEROUS",
-    className: "text-cc-warning border-cc-warning/40 bg-cc-warning/[0.08]",
-  },
-  breaking: {
-    label: "BREAKING",
-    className: "text-cc-danger border-cc-danger/40 bg-cc-danger/[0.08]",
-  },
-};
-
-interface KindPillProps {
-  readonly kind: ChangeKind;
-}
-
-function KindPill({ kind }: KindPillProps) {
-  const s = KIND_STYLE[kind];
-  return (
-    <span
-      className={[
-        "rounded border px-1.5 py-0.5 font-mono text-[10px] tracking-[0.12em]",
-        s.className,
-      ].join(" ")}
-    >
-      {s.label}
-    </span>
-  );
-}
-
-const SCHEMA_CHANGES: readonly {
-  readonly field: string;
-  readonly kind: ChangeKind;
-}[] = [
-  { field: "+ Order.deliveryEstimate: DateTime", kind: "safe" },
-  { field: "~ Product.price: Float → Money", kind: "dangerous" },
-  { field: "- Order.total: Float", kind: "breaking" },
-];
-
-function ClassificationCard() {
-  return (
-    <Card className="mt-1">
-      <div className="relative z-10 flex h-full flex-col">
-        <div className="flex items-center justify-between px-4 py-3">
-          <span className="text-cc-ink-dim text-caption font-mono tracking-[0.16em] uppercase">
-            orders-api · v14
-          </span>
-          <span className="text-cc-danger text-caption font-mono">
-            publish blocked
-          </span>
-        </div>
-        <div className="divide-cc-card-border border-cc-card-border divide-y border-t">
-          {SCHEMA_CHANGES.map((c) => (
-            <div
-              key={c.field}
-              className="flex items-center justify-between gap-3 px-4 py-2.5"
-            >
-              <code className="text-cc-ink truncate font-mono text-xs">
-                {c.field}
-              </code>
-              <KindPill kind={c.kind} />
-            </div>
-          ))}
-        </div>
-        <div className="text-cc-ink-dim border-cc-card-border border-t px-4 py-2.5 font-mono text-[11px]">
-          1 safe · 1 dangerous · 1 breaking
-        </div>
-      </div>
-    </Card>
-  );
-}
-
 interface CheckRow {
   readonly label: string;
   readonly detail: string;
@@ -1430,7 +1351,7 @@ interface HeroProps {
 
 function Hero({ reduced }: HeroProps) {
   return (
-    <section className="relative left-1/2 isolate -mt-8 w-screen -translate-x-1/2 overflow-hidden">
+    <section className="relative left-1/2 isolate -mt-26 w-screen -translate-x-1/2 overflow-hidden">
       <HeroAurora reduced={reduced} />
 
       <div className="relative z-10 mx-auto max-w-7xl px-5 pt-24 pb-16 sm:px-12 sm:pt-30">
@@ -1605,7 +1526,7 @@ function PageAtmosphere() {
 }
 
 export function ClientPage() {
-  const reduced = useReducedMotion() ?? false;
+  const reduced = useReducedMotionPreference();
 
   return (
     <div className="relative isolate">
@@ -1689,7 +1610,22 @@ export function ClientPage() {
         title="Know the impact before you merge."
         body="Nitro compares schema changes with published clients and gives teams a clear signal on what is safe, risky, or breaking."
         visual={<NitroSchema className="w-full" />}
-        aside={<ClassificationCard />}
+        aside={
+          <ClassificationCard
+            title="orders-api"
+            version="v14"
+            verdict="publish blocked"
+            changes={[
+              {
+                kind: "safe",
+                text: "+ Order.deliveryEstimate: DateTime",
+              },
+              { kind: "dangerous", text: "~ Product.price: Float → Money" },
+              { kind: "breaking", text: "- Order.total: Float" },
+            ]}
+            footer="1 safe · 1 dangerous · 1 breaking"
+          />
+        }
       />
 
       <DeliveryBand />

@@ -42,6 +42,9 @@ response:
             },
             {
               "__typename": "__Directive"
+            },
+            {
+              "__typename": "__Directive"
             }
           ],
           "types": [
