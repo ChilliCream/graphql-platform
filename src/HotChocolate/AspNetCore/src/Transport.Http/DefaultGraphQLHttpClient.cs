@@ -206,7 +206,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
 
         if (method == GraphQLHttpMethod.Query)
         {
-            if (request.Body is not OperationRequest)
+            if (request.Body is not (OperationRequest or VariableBatchRequest))
             {
                 throw new InvalidOperationException(
                     HttpResources.DefaultGraphQLHttpClient_QueryBatchNotAllowed);

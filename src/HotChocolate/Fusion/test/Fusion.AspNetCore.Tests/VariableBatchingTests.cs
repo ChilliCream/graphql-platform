@@ -418,6 +418,70 @@ public class VariableBatchingTests : FusionTestBase
                 """);
     }
 
+    [Fact]
+    public async Task Query_Should_ProduceAResultPerVariableSet_When_VariablesIsArray()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema(
+            "A",
+            r => r.AddQueryType<SourceSchema.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("A", serverA)
+            ],
+            configureGatewayBuilder: b => b
+                .ModifyServerOptions(o => o.EnableQueryRequests = true),
+            includeOperationPlan: false);
+
+        using var client = gateway.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            new HttpMethod("QUERY"),
+            new Uri("http://localhost:5000/graphql"));
+        request.Content = new StringContent(
+            """
+            {
+              "query": "query($input: String!) { field(input: $input) }",
+              "variables": [{ "input": "first" }, { "input": "second" }]
+            }
+            """,
+            Encoding.UTF8,
+            "application/json");
+        request.Headers.Add("Accept", "application/jsonl");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(OK, response.StatusCode);
+        body
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+            .Select(line => JsonSerializer.Deserialize<JsonElement>(line))
+            .OrderBy(result => GetIndex(result, "variableIndex"))
+            .Select(result => (object?)result)
+            .MatchInlineSnapshots(
+            [
+                """
+                {
+                  "variableIndex": 0,
+                  "data": {
+                    "field": "first"
+                  }
+                }
+                """,
+                """
+                {
+                  "variableIndex": 1,
+                  "data": {
+                    "field": "second"
+                  }
+                }
+                """
+            ]);
+    }
+
     private static int GetIndex(JsonElement result, string name)
         => result.TryGetProperty(name, out var index) ? index.GetInt32() : -1;
 

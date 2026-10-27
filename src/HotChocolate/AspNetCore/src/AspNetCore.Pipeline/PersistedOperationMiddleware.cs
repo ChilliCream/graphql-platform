@@ -373,19 +373,6 @@ HANDLE_RESULT:
 
             if (kind is HttpRequestKind.HttpQuery)
             {
-                // a QUERY request carries exactly one variable set, so a variable batch is
-                // refused.
-                if (MiddlewareHelper.IsVariableBatch(request))
-                {
-                    var refused = MiddlewareHelper.CreateBatchingRefusedResult(
-                        ErrorHelper.VariableBatchingNotSupportedForQuery(),
-                        context,
-                        executorSession);
-                    statusCode = refused.StatusCode;
-                    result = refused.Error;
-                    goto HANDLE_RESULT;
-                }
-
                 requestFlags = MiddlewareHelper.DetermineHttpQueryRequestFlags(requestFlags);
             }
 
