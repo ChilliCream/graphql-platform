@@ -22,6 +22,7 @@ public sealed class NatsMessagingTransport : MessagingTransport
     private readonly Action<INatsMessagingTransportDescriptor> _configure;
     private NatsMessagingTopology _topology = null!;
     private ILogger _logger = null!;
+    private TimeProvider _timeProvider = TimeProvider.System;
     private string _streamName = NatsTransportConfiguration.DefaultName;
 
     /// <summary>
@@ -53,6 +54,7 @@ public sealed class NatsMessagingTransport : MessagingTransport
         var services = context.Services.GetApplicationServices();
 
         _logger = services.GetRequiredService<ILogger<NatsMessagingTransport>>();
+        _timeProvider = context.Services.GetTimeProvider();
 
         Connection =
             configuration.ConnectionProvider?.Invoke(context.Services)
@@ -67,6 +69,7 @@ public sealed class NatsMessagingTransport : MessagingTransport
 
         SchedulingEnabled = configuration.EnableScheduling;
         PublishDeduplicationEnabled = configuration.EnablePublishDeduplication;
+        DrainTimeout = configuration.DrainTimeout ?? NatsTransportConfiguration.DefaultDrainTimeout;
 
         WarnOnLossySubscriptionDefaults();
 
@@ -168,6 +171,46 @@ public sealed class NatsMessagingTransport : MessagingTransport
     /// Gets a value indicating whether a publish carries the header JetStream deduplicates on.
     /// </summary>
     public bool PublishDeduplicationEnabled { get; private set; }
+
+    /// <summary>
+    /// Gets how long a stopping transport lets in-flight handlers finish before cancelling them.
+    /// </summary>
+    public TimeSpan DrainTimeout { get; private set; } = NatsTransportConfiguration.DefaultDrainTimeout;
+
+    /// <summary>
+    /// Stops every receive endpoint pulling, with one drain deadline shared by all of them.
+    /// </summary>
+    /// <param name="cancellationToken">A token that ends the drain early.</param>
+    protected override ValueTask OnBeforeStopAsync(CancellationToken cancellationToken)
+    {
+        var deadline = GetDrainDeadline();
+
+        foreach (var endpoint in ReceiveEndpoints)
+        {
+            if (endpoint is NatsReceiveEndpoint natsEndpoint)
+            {
+                natsEndpoint.BeginStop(deadline);
+            }
+        }
+
+        return ValueTask.CompletedTask;
+    }
+
+    /// <summary>
+    /// Gets the point in time at which a drain that starts now cancels the handlers still running.
+    /// </summary>
+    internal DateTimeOffset GetDrainDeadline() => _timeProvider.GetUtcNow() + DrainTimeout;
+
+    /// <summary>
+    /// Gets the time remaining until <paramref name="deadline"/>, never less than zero.
+    /// </summary>
+    /// <param name="deadline">The drain deadline.</param>
+    internal TimeSpan GetRemaining(DateTimeOffset deadline)
+    {
+        var remaining = deadline - _timeProvider.GetUtcNow();
+
+        return remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero;
+    }
 
     /// <summary>
     /// Provisions streams, binds each consumer to the stream capturing its subjects, and then

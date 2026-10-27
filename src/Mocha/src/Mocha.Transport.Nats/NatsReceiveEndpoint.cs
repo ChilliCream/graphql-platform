@@ -23,6 +23,7 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
 
     private CancellationTokenSource? _stopping;
     private CancellationTokenSource? _aborting;
+    private DateTimeOffset? _drainDeadline;
     private Task? _consumeLoop;
     private ILogger _logger = null!;
     private string? _replySubject;
@@ -158,6 +159,16 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
         }
     }
 
+    /// <summary>
+    /// Stops pulling and starts draining, ahead of the endpoint itself being stopped.
+    /// </summary>
+    /// <param name="deadline">When handlers still running are cancelled.</param>
+    internal void BeginStop(DateTimeOffset deadline)
+    {
+        _drainDeadline ??= deadline;
+        _stopping?.Cancel();
+    }
+
     /// <inheritdoc />
     protected override async ValueTask OnStopAsync(
         IMessagingRuntimeContext context,
@@ -168,17 +179,18 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
             return;
         }
 
+        var deadline = _drainDeadline ?? transport.GetDrainDeadline();
+        _drainDeadline = null;
+
         await _stopping.CancelAsync();
 
         if (_consumeLoop is not null)
         {
             try
             {
-                // Bounded by the host's shutdown token: draining should finish in-flight work, not
-                // hold shutdown open indefinitely behind a slow handler.
-                await _consumeLoop.WaitAsync(cancellationToken);
+                await _consumeLoop.WaitAsync(transport.GetRemaining(deadline), cancellationToken);
             }
-            catch (OperationCanceledException)
+            catch (Exception exception) when (exception is TimeoutException or OperationCanceledException)
             {
                 await AbortAsync();
             }
@@ -236,6 +248,7 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
         await ForEachAsync(
             messages,
             stopping,
+            processing,
             message => ExecuteAsync(
                 static (context, state) =>
                 {
@@ -244,7 +257,8 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
                     feature.Body = state.Data;
                 },
                 message,
-                processing));
+                processing),
+            static _ => ValueTask.CompletedTask);
     }
 
     private static int DeliveryCountOf(INatsJSMsg<ReadOnlyMemory<byte>> message)
@@ -272,6 +286,7 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
         await ForEachAsync(
             consumer.ConsumeAsync(s_deserializer, options, stopping),
             stopping,
+            processing,
             message => ExecuteAsync(
                 static (context, state) =>
                 {
@@ -283,7 +298,24 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
                     feature.AckProgressInterval = state.AckProgressInterval;
                 },
                 (Message: message, AckProgressInterval: ackProgressInterval),
-                processing));
+                processing),
+            ReleaseAsync);
+    }
+
+    /// <summary>
+    /// Negatively acknowledges a message whose handling was aborted, so it is redelivered at once.
+    /// </summary>
+    /// <param name="message">The aborted message.</param>
+    private async ValueTask ReleaseAsync(INatsJSMsg<ReadOnlyMemory<byte>> message)
+    {
+        try
+        {
+            await message.NakAsync(cancellationToken: CancellationToken.None);
+        }
+        catch (Exception exception)
+        {
+            _logger.ReleaseFailed(exception, Name);
+        }
     }
 
     /// <summary>
@@ -303,7 +335,9 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
     private async Task ForEachAsync<T>(
         IAsyncEnumerable<T> source,
         CancellationToken stopping,
-        Func<T, ValueTask> handle)
+        CancellationToken processing,
+        Func<T, ValueTask> handle,
+        Func<T, ValueTask> release)
     {
         try
         {
@@ -313,7 +347,17 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
             await Parallel.ForEachAsync(
                 source,
                 new ParallelOptions { MaxDegreeOfParallelism = _maxConcurrency },
-                async (message, _) => await handle(message));
+                async (message, _) =>
+                {
+                    try
+                    {
+                        await handle(message);
+                    }
+                    catch (Exception) when (processing.IsCancellationRequested)
+                    {
+                        await release(message);
+                    }
+                });
         }
         catch (OperationCanceledException) when (stopping.IsCancellationRequested)
         {

@@ -41,7 +41,8 @@ internal sealed class NatsAcknowledgementMiddleware
         {
             await next(context);
 
-            await message.AckAsync(cancellationToken: cancellationToken);
+            // A completed handler is acknowledged even when shutdown aborts the pipeline.
+            await message.AckAsync(cancellationToken: CancellationToken.None);
         }
         catch
         {

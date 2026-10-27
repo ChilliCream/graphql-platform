@@ -89,6 +89,18 @@ public interface INatsMessagingTransportDescriptor
     INatsMessagingTransportDescriptor EnablePublishDeduplication(bool enable = true);
 
     /// <summary>
+    /// Sets how long a stopping transport lets in-flight handlers finish before cancelling them,
+    /// five seconds by default.
+    /// </summary>
+    /// <param name="timeout">The drain timeout. <see cref="TimeSpan.Zero"/> cancels handlers as soon
+    /// as the transport stops.</param>
+    /// <returns>The descriptor for method chaining.</returns>
+    /// <remarks>
+    /// Messages a cancelled handler was working on are released for immediate redelivery.
+    /// </remarks>
+    INatsMessagingTransportDescriptor DrainTimeout(TimeSpan timeout);
+
+    /// <summary>
     /// Controls whether streams and consumers are provisioned during start-up.
     /// </summary>
     /// <param name="autoProvision">Whether to provision topology.</param>

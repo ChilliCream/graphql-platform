@@ -455,7 +455,15 @@ If a consume loop fails outright, for example because its consumer was deleted o
 
 # Shutdown
 
-Stopping drains rather than aborting: no new messages are pulled, but everything already buffered is handled and acknowledged, bounded by the host shutdown timeout. Handlers only observe cancellation once that timeout expires, and their messages are then released for redelivery.
+Stopping drains rather than aborting: no new messages are pulled, and the handlers already running get until the drain timeout to finish. The timeout is five seconds by default, and one deadline covers every endpoint of the transport.
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddNats(nats => nats.DrainTimeout(TimeSpan.FromSeconds(10)));
+```
+
+A handler still running when the drain timeout passes, or when the host's shutdown token fires first, observes cancellation. Its message, and every message buffered behind it, is negatively acknowledged so that another instance receives it immediately.
 
 # Next steps
 

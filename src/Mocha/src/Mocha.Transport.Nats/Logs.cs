@@ -65,4 +65,11 @@ internal static partial class Logs
         "Negatively acknowledging a failed message did not reach the server, so it is redelivered "
         + "once its acknowledgement deadline expires rather than immediately.")]
     public static partial void SettlementFailed(this ILogger logger, Exception exception);
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "Releasing a message whose handling endpoint '{EndpointName}' aborted on shutdown did not "
+        + "reach the server, so it is redelivered once its acknowledgement deadline expires rather "
+        + "than immediately.")]
+    public static partial void ReleaseFailed(this ILogger logger, Exception exception, string endpointName);
 }

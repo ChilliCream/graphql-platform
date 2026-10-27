@@ -69,6 +69,22 @@ public sealed class NatsTransportConfiguration : MessagingTransportConfiguration
     public bool EnablePublishDeduplication { get; set; }
 
     /// <summary>
+    /// The default for <see cref="DrainTimeout"/>.
+    /// </summary>
+    public static readonly TimeSpan DefaultDrainTimeout = TimeSpan.FromSeconds(5);
+
+    /// <summary>
+    /// Gets or sets how long a stopping transport lets in-flight handlers finish before cancelling
+    /// them. When <see langword="null"/>, <see cref="DefaultDrainTimeout"/> applies.
+    /// </summary>
+    /// <remarks>
+    /// One deadline covers every endpoint of the transport. A handler still running when it passes,
+    /// or when the caller's stop token fires first, is cancelled and its message released for
+    /// redelivery.
+    /// </remarks>
+    public TimeSpan? DrainTimeout { get; set; }
+
+    /// <summary>
     /// Gets or sets the bus-level defaults applied to streams and consumers created by conventions.
     /// </summary>
     public NatsBusDefaults Defaults { get; set; } = new();
