@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import { runInNewContext } from "node:vm";
 import type {
@@ -32,7 +33,7 @@ function environment(saved: string | null, dark: boolean) {
   };
   const document = {
     documentElement: {
-      dataset: { theme: "light" },
+      dataset: {} as { theme?: string },
       style: { colorScheme: "" },
     },
     querySelector(selector: string) {
@@ -84,6 +85,37 @@ function start(env: ReturnType<typeof environment>, bootstrap: boolean) {
     env.document as unknown as Document,
   );
 }
+
+test("root layout leaves the server-rendered theme unresolved", async () => {
+  // arrange
+  const layout = await readFile(
+    new URL("../../app/layout.tsx", import.meta.url),
+    "utf8",
+  );
+
+  // act
+  const root = layout.match(/<html\b[^>]*>/)?.[0] ?? "";
+
+  // assert
+  assert.match(root, /^<html\b/);
+  assert.doesNotMatch(root, /data-theme|\bstyle=|colorScheme/);
+});
+
+test("head bootstrap resolves an attribute-absent root", () => {
+  // arrange
+  const env = environment("dark", false);
+
+  // act
+  const store = start(env, true);
+
+  // assert
+  assert.equal(store.getSnapshot().resolvedTheme, "dark");
+  assert.deepEqual(env.appearance(), {
+    theme: "dark",
+    colorScheme: "dark",
+    themeColor: "#0b0f1a",
+  });
+});
 
 for (const bootstrap of [false, true]) {
   const implementation = bootstrap ? "head bootstrap" : "client runtime";

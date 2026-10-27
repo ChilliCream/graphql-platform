@@ -73,7 +73,6 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${josefinSans.variable} font-sans`}
-      data-theme="light"
       suppressHydrationWarning
     >
       <head>
