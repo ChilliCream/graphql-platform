@@ -1,5 +1,4 @@
 using System.Text.Json;
-using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
@@ -172,21 +171,10 @@ public class RequestReplyTests
             .GetInt32();
 
         // assert
-        new
-        {
-            Durable = replyQueue.GetProperty("durable").GetBoolean(),
-            AutoDelete = replyQueue.GetProperty("auto_delete").GetBoolean(),
-            Exclusive = replyQueue.GetProperty("exclusive").GetBoolean(),
-            Expires = expires
-        }.MatchInlineSnapshot(
-            """
-            {
-              "Durable": true,
-              "AutoDelete": true,
-              "Exclusive": false,
-              "Expires": 1800000
-            }
-            """);
+        Assert.True(replyQueue.GetProperty("durable").GetBoolean());
+        Assert.False(replyQueue.GetProperty("exclusive").GetBoolean());
+        Assert.True(replyQueue.GetProperty("auto_delete").GetBoolean());
+        Assert.Equal(1800000, expires);
     }
 
     public sealed class ProcessPaymentHandler(MessageRecorder recorder) : IEventRequestHandler<ProcessPayment>

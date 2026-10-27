@@ -8,7 +8,6 @@
     <DefineConstants>$(DefineConstants);RABBITMQ_3</DefineConstants>
   </PropertyGroup>
 
-  <!-- Runs the tests of Mocha.Transport.RabbitMQ.Tests against RabbitMQ 3. -->
   <ItemGroup>
     <Compile
       Include="..\Mocha.Transport.RabbitMQ.Tests\**\*.cs"

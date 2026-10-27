@@ -1,4 +1,3 @@
-using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
@@ -20,17 +19,10 @@ public class RabbitMQReplyQueueTests
         var queue = topology.Queues.Single(q => q.Name.StartsWith("response-", StringComparison.Ordinal));
 
         // assert
-        new { queue.Durable, queue.Exclusive, queue.AutoDelete, queue.Arguments }.MatchInlineSnapshot(
-            """
-            {
-              "Durable": true,
-              "Exclusive": false,
-              "AutoDelete": true,
-              "Arguments": {
-                "x-expires": 1800000
-              }
-            }
-            """);
+        Assert.True(queue.Durable);
+        Assert.False(queue.Exclusive);
+        Assert.True(queue.AutoDelete);
+        Assert.Equal(1800000, queue.Arguments["x-expires"]);
     }
 
     [Fact]
@@ -50,17 +42,11 @@ public class RabbitMQReplyQueueTests
         var queue = topology.Queues.Single(q => q.Name.StartsWith("response-", StringComparison.Ordinal));
 
         // assert
-        new { queue.Durable, queue.Exclusive, queue.AutoDelete, queue.Arguments }.MatchInlineSnapshot(
-            """
-            {
-              "Durable": true,
-              "Exclusive": false,
-              "AutoDelete": true,
-              "Arguments": {
-                "x-expires": 1800000
-              }
-            }
-            """);
+        Assert.True(queue.Durable);
+        Assert.False(queue.Exclusive);
+        Assert.True(queue.AutoDelete);
+        Assert.Equal(["x-expires"], queue.Arguments.Keys);
+        Assert.Equal(1800000, queue.Arguments["x-expires"]);
     }
 
     private static MessagingRuntime CreateRuntime(Action<IRabbitMQMessagingTransportDescriptor> configureTransport)
