@@ -413,7 +413,9 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
 
         try
         {
-            s_utf8.GetBytes(sourceText, span);
+            var written = s_utf8.GetBytes(sourceText, span);
+            span = span[..written];
+
             var requestParser = new Utf8GraphQLRequestParser(
                 _parserOptions,
                 _documentCache,
@@ -433,6 +435,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         {
             if (rented is not null)
             {
+                span.Clear();
                 ArrayPool<byte>.Shared.Return(rented);
             }
         }
