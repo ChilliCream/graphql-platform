@@ -1,12 +1,18 @@
 import assert from "node:assert/strict";
 import { spawn, spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { once } from "node:events";
 import {
+  chownSync,
   copyFileSync,
+  lstatSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  readdirSync,
+  readlinkSync,
   rmSync,
+  symlinkSync,
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
@@ -18,6 +24,8 @@ const source = path.join(website, "scripts");
 const packageJson = JSON.parse(
   readFileSync(path.join(website, "package.json")),
 );
+const callerGid = process.getgid?.();
+const secondaryGid = process.getgroups?.().find((group) => group !== callerGid);
 
 function fixture(t) {
   const scratch = path.join(website, "test-results");
@@ -26,11 +34,21 @@ function fixture(t) {
   t.after(() => rmSync(root, { recursive: true, force: true }));
   const app = path.join(root, "website");
   const bin = path.join(root, "bin");
+  const mocha = path.join(root, "src/Mocha/src/mocha-visualizer");
+  const volumes = path.join(root, "volumes");
   mkdirSync(path.join(app, "scripts"), { recursive: true });
   mkdirSync(path.join(app, "node_modules/@playwright/test"), {
     recursive: true,
   });
+  mkdirSync(path.join(app, "node_modules/.store/vite"), { recursive: true });
+  mkdirSync(path.join(app, "node_modules/.bin"), { recursive: true });
+  mkdirSync(path.join(app, "tests/visual/__screenshots__"), {
+    recursive: true,
+  });
+  mkdirSync(path.join(app, "storybook-static"), { recursive: true });
+  mkdirSync(path.join(mocha, "dist"), { recursive: true });
   mkdirSync(bin);
+  mkdirSync(volumes);
   for (const name of ["visual-tests-docker.mjs", "visual-tests.Dockerfile"]) {
     copyFileSync(path.join(source, name), path.join(app, "scripts", name));
   }
@@ -55,16 +73,125 @@ function fixture(t) {
     path.join(app, ".npmrc"),
     "install-strategy=linked\nstrict-allow-scripts=true\n",
   );
+  writeFileSync(path.join(app, "playwright.config.ts"), "export default {};\n");
+  writeFileSync(path.join(app, "tsconfig.json"), "{}\n");
+  writeFileSync(
+    path.join(app, "tests/visual/storybook.spec.ts"),
+    "export {};\n",
+  );
+  writeFileSync(
+    path.join(app, "tests/visual/__screenshots__/existing.png"),
+    "baseline",
+  );
+  writeFileSync(path.join(app, "storybook-static/index.json"), "{}\n");
+  writeFileSync(path.join(mocha, "package.json"), '{"name":"local-mocha"}\n');
+  writeFileSync(path.join(mocha, "README.md"), "Local Mocha package.\n");
+  writeFileSync(path.join(mocha, "dist/index.js"), "export {};\n");
+  writeFileSync(path.join(app, "node_modules/.store/sentinel"), "host only");
+  writeFileSync(path.join(app, "node_modules/.store/vite/package.json"), "{}");
+  writeFileSync(
+    path.join(app, "node_modules/.store/vite/native-host.node"),
+    "host",
+  );
+  writeFileSync(
+    path.join(app, "node_modules/.store/vite/bin.js"),
+    "#!/usr/bin/env node\n",
+  );
+  symlinkSync(".store/vite", path.join(app, "node_modules/vite"));
+  symlinkSync("../vite/bin.js", path.join(app, "node_modules/.bin/vite"));
+
   const log = path.join(root, "docker.jsonl");
+  const audit = path.join(root, "stage-audit.json");
+  writeFileSync(log, "");
   writeFileSync(
     path.join(bin, "docker"),
     `#!/usr/bin/env node
+const { createHash } = require("node:crypto");
 const fs = require("node:fs");
+const path = require("node:path");
 const args = process.argv.slice(2);
-fs.appendFileSync(process.env.FAKE_DOCKER_LOG, JSON.stringify({args, CI: process.env.CI}) + "\\n");
-const stage = args[0] === "run" ? (args[args.indexOf("--name") + 1].endsWith("-ownership") ? "ownership" : "tests") : args[0];
+const option = (name) => args[args.indexOf(name) + 1];
+const options = (name) => args.flatMap((arg, index) => arg === name ? [args[index + 1]] : []);
+const environment = (name) => options("--env").find((value) => value.startsWith(name + "="))?.slice(name.length + 1);
+const mounts = () => options("--mount").map((mount) => Object.fromEntries(mount.split(",").map((part) => {
+  const [key, ...values] = part.split("=");
+  return [key, values.length ? values.join("=") : true];
+})));
+const volumePath = (name) => path.join(process.env.FAKE_DOCKER_VOLUMES, name);
+const hash = (file) => createHash("sha256").update(fs.readFileSync(file)).digest("hex");
+const stage = args[0] === "run"
+  ? (option("--name").endsWith("-ownership") ? "ownership" : option("--name").endsWith("-staging") ? "staging" : "tests")
+  : args[0];
+fs.appendFileSync(process.env.FAKE_DOCKER_LOG, JSON.stringify({ args, CI: process.env.CI, stage }) + "\\n");
 if (args[0] === "image") console.log("sha256:verified-adapter");
-if (process.env.FAKE_DOCKER_FAIL === stage) process.exit(Number(process.env.FAKE_DOCKER_EXIT || 9));
+if (args[0] === "volume" && args[1] === "create") fs.mkdirSync(volumePath(args.at(-1)), { recursive: true });
+if (args[0] === "volume" && args[1] === "rm") fs.rmSync(volumePath(args[2]), { recursive: true, force: true });
+if (process.env.FAKE_DOCKER_FAIL === stage && stage !== "tests") process.exit(Number(process.env.FAKE_DOCKER_EXIT || 9));
+if (stage === "staging") {
+  const input = mounts().find(({ target }) => target === "/input");
+  const repo = mounts().find(({ target }) => target === "/repo");
+  const inputs = JSON.parse(environment("VISUAL_STAGE_INPUTS"));
+  const hashes = JSON.parse(environment("VISUAL_STAGE_HASHES"));
+  const repoPath = volumePath(repo.source);
+  for (const { source, destination } of inputs) {
+    const stagedSource = path.join(input.source, source.slice("/input/".length));
+    const stagedDestination = path.join(repoPath, destination.slice("/repo/".length));
+    fs.mkdirSync(path.dirname(stagedDestination), { recursive: true });
+    fs.cpSync(stagedSource, stagedDestination, { preserveTimestamps: true, recursive: true, verbatimSymlinks: true });
+  }
+  if (process.env.FAKE_DOCKER_CORRUPT_STAGE) {
+    fs.appendFileSync(path.join(repoPath, "website/package.json"), "changed");
+  }
+  const failures = Object.entries(hashes).filter(([destination, expected]) =>
+    hash(path.join(repoPath, destination.slice("/repo/".length))) !== expected,
+  );
+  fs.writeFileSync(process.env.FAKE_DOCKER_STAGE_AUDIT, JSON.stringify({
+    inputs,
+    hashes,
+    failures,
+    hostDependencySentinel: fs.existsSync(path.join(input.source, "website/node_modules/.store/sentinel")),
+    stagedDependencySentinel: fs.existsSync(path.join(repoPath, "website/node_modules/.store/sentinel")),
+    stagedFiles: [
+      "website/package.json",
+      "website/package-lock.json",
+      "website/.npmrc",
+      "website/playwright.config.ts",
+      "website/tsconfig.json",
+      "website/tests/visual/storybook.spec.ts",
+      "website/storybook-static/index.json",
+      "src/Mocha/src/mocha-visualizer/package.json",
+      "src/Mocha/src/mocha-visualizer/README.md",
+      "src/Mocha/src/mocha-visualizer/dist/index.js",
+    ].map((file) => [file, hash(path.join(repoPath, file))]),
+  }));
+  if (failures.length) {
+    console.error("Staged visual test input hash mismatch: " + failures[0][0]);
+    process.exit(Number(process.env.FAKE_DOCKER_EXIT || 31));
+  }
+}
+if (stage === "tests") {
+  const output = mounts().find(({ target }) => target === "/repo/website/test-results");
+  const testArgs = args.slice(args.indexOf("visual-tests") + 1);
+  const outputIndex = testArgs.findIndex((arg) => arg === "--output" || arg.startsWith("--output="));
+  const requestedOutput = outputIndex === -1 ? undefined : testArgs[outputIndex] === "--output" ? testArgs[outputIndex + 1] : testArgs[outputIndex].slice("--output=".length);
+  const outputDirectory = requestedOutput?.startsWith("test-results/")
+    ? path.join(output.source, requestedOutput.slice("test-results/".length))
+    : output.source;
+  fs.mkdirSync(outputDirectory, { recursive: true });
+  const outputFile = path.join(outputDirectory, "docker-output.txt");
+  fs.writeFileSync(outputFile, "output");
+  if (process.env.FAKE_DOCKER_OUTPUT_GID) {
+    fs.chownSync(outputFile, process.getuid(), Number(process.env.FAKE_DOCKER_OUTPUT_GID));
+  }
+  if (process.env.FAKE_DOCKER_OUTPUT_LINK_TARGET) {
+    const outputLink = path.join(outputDirectory, "docker-output-link");
+    fs.symlinkSync(process.env.FAKE_DOCKER_OUTPUT_LINK_TARGET, outputLink);
+    if (process.env.FAKE_DOCKER_OUTPUT_GID) {
+      fs.lchownSync(outputLink, process.getuid(), Number(process.env.FAKE_DOCKER_OUTPUT_GID));
+    }
+  }
+  if (process.env.FAKE_DOCKER_FAIL === stage) process.exit(Number(process.env.FAKE_DOCKER_EXIT || 9));
+}
 if (process.env.FAKE_DOCKER_HOLD === stage) {
   console.log("FAKE_DOCKER_HOLD=" + stage);
   setInterval(() => {}, 1000);
@@ -77,6 +204,8 @@ if (process.env.FAKE_DOCKER_HOLD === stage) {
     ...process.env,
     PATH: `${bin}${path.delimiter}${process.env.PATH}`,
     FAKE_DOCKER_LOG: log,
+    FAKE_DOCKER_STAGE_AUDIT: audit,
+    FAKE_DOCKER_VOLUMES: volumes,
     CI: "",
     GITHUB_RUN_ID: "",
     GITHUB_RUN_ATTEMPT: "",
@@ -87,11 +216,13 @@ if (process.env.FAKE_DOCKER_HOLD === stage) {
     app,
     runner,
     env,
-    calls: () =>
-      readFileSync(log, "utf8")
-        .trim()
-        .split("\n")
-        .map((line) => JSON.parse(line)),
+    calls: () => {
+      const contents = readFileSync(log, "utf8").trim();
+      return contents
+        ? contents.split("\n").map((line) => JSON.parse(line))
+        : [];
+    },
+    stageAudit: () => JSON.parse(readFileSync(audit, "utf8")),
     run: (args = [], extra = {}) =>
       spawnSync(process.execPath, [runner, ...args], {
         cwd: app,
@@ -106,10 +237,62 @@ function option(args, name) {
 }
 
 function options(args, name) {
-  return args.flatMap((arg, i) => (arg === name ? [args[i + 1]] : []));
+  return args.flatMap((arg, index) => (arg === name ? [args[index + 1]] : []));
 }
 
-test("canonical Docker argv isolates dependencies, preserves caller ownership and forwards arguments intact", (t) => {
+function mounts(args) {
+  return options(args, "--mount").map((mount) =>
+    Object.fromEntries(
+      mount.split(",").map((part) => {
+        const [key, ...values] = part.split("=");
+        return [key, values.length ? values.join("=") : true];
+      }),
+    ),
+  );
+}
+
+function runForStage(calls, stage) {
+  return calls.findLast(({ args }) =>
+    option(args, "--name").endsWith(`-${stage}`),
+  ).args;
+}
+
+function inventory(directory) {
+  const entries = [];
+  const visit = (current, relative) => {
+    const info = lstatSync(current);
+    const metadata = {
+      relative,
+      mode: info.mode,
+      size: info.size,
+      uid: info.uid,
+      gid: info.gid,
+      mtimeMs: info.mtimeMs,
+      type: info.isSymbolicLink()
+        ? "symlink"
+        : info.isDirectory()
+          ? "directory"
+          : "file",
+    };
+    if (info.isSymbolicLink()) {
+      metadata.target = readlinkSync(current);
+    } else if (info.isFile()) {
+      metadata.hash = createHash("sha256")
+        .update(readFileSync(current))
+        .digest("hex");
+    }
+    entries.push(metadata);
+    if (info.isDirectory()) {
+      for (const entry of readdirSync(current).sort()) {
+        visit(path.join(current, entry), path.join(relative, entry));
+      }
+    }
+  };
+  visit(directory, ".");
+  return entries;
+}
+
+test("canonical Docker argv stages a finite read-only input and isolates the Linux worktree", (t) => {
   // arrange
   const f = fixture(t);
   const args = [
@@ -118,6 +301,7 @@ test("canonical Docker argv isolates dependencies, preserves caller ownership an
     "--workers=2",
     "--update-snapshots=missing",
   ];
+  const hostDependenciesBefore = inventory(path.join(f.app, "node_modules"));
 
   // act
   const result = f.run(args, {
@@ -128,10 +312,13 @@ test("canonical Docker argv isolates dependencies, preserves caller ownership an
     E2E_PLATFORM: "linux/arm64",
   });
   const calls = f.calls();
-  const build = calls.find(({ args }) => args[0] === "build").args;
-  const runs = calls.filter(({ args }) => args[0] === "run");
-  const bootstrap = runs[0].args;
-  const render = runs[1].args;
+  const build = calls.find(
+    ({ args: dockerArgs }) => dockerArgs[0] === "build",
+  ).args;
+  const ownership = runForStage(calls, "ownership");
+  const staging = runForStage(calls, "staging");
+  const render = runForStage(calls, "tests");
+  const stageAudit = f.stageAudit();
 
   // assert
   assert.equal(result.status, 0, result.stderr);
@@ -154,55 +341,117 @@ test("canonical Docker argv isolates dependencies, preserves caller ownership an
     "WEBSITE_VISUAL_DOCKER=playwright-1.62.1-noble-amd64",
   ]);
   assert.deepEqual(
-    runs.map(({ args, CI }) => ({
-      platform: option(args, "--platform"),
-      user: option(args, "--user"),
-      CI,
+    [ownership, staging, render].map((dockerArgs) => ({
+      platform: option(dockerArgs, "--platform"),
+      user: option(dockerArgs, "--user"),
     })),
     [
-      { platform: "linux/amd64", user: "0:0", CI: "1" },
+      { platform: "linux/amd64", user: "0:0" },
       {
         platform: "linux/amd64",
         user: process.getuid
           ? `${process.getuid()}:${process.getgid()}`
           : "0:0",
-        CI: "1",
+      },
+      {
+        platform: "linux/amd64",
+        user: process.getuid
+          ? `${process.getuid()}:${process.getgid()}`
+          : "0:0",
       },
     ],
   );
-  const mounts = options(render, "--mount");
-  const modules = mounts[0].split(",")[1].slice("source=".length);
-  const cache = mounts[1].split(",")[1].slice("source=".length);
-  assert.deepEqual(options(render, "--volume"), [`${f.root}:/repo`]);
-  assert.match(modules, /^website-visual-.+-modules$/);
+  const ownershipMounts = mounts(ownership);
+  const worktree = ownershipMounts[0].source;
+  const cache = ownershipMounts[1].source;
+  assert.match(worktree, /^website-visual-.+-worktree$/);
   assert.match(cache, /^website-visual-.+-cache$/);
-  assert.deepEqual(mounts, [
-    `type=volume,source=${modules},target=/repo/website/node_modules,volume-nocopy`,
-    `type=volume,source=${cache},target=/npm-cache,volume-nocopy`,
+  assert.deepEqual(ownershipMounts, [
+    {
+      type: "volume",
+      source: worktree,
+      target: "/repo",
+      "volume-nocopy": true,
+    },
+    {
+      type: "volume",
+      source: cache,
+      target: "/npm-cache",
+      "volume-nocopy": true,
+    },
   ]);
-  assert.deepEqual(options(bootstrap, "--volume"), [
-    `${modules}:/modules`,
-    `${cache}:/cache`,
+  assert.deepEqual(mounts(staging), [
+    { type: "bind", source: f.root, target: "/input", readonly: true },
+    {
+      type: "volume",
+      source: worktree,
+      target: "/repo",
+      "volume-nocopy": true,
+    },
   ]);
-  assert.deepEqual(options(render, "--label"), [
-    `website-visual-workspace=${f.root}`,
-    "website-visual-run=42-2-website-tests",
+  assert.deepEqual(mounts(render), [
+    {
+      type: "volume",
+      source: worktree,
+      target: "/repo",
+      "volume-nocopy": true,
+    },
+    {
+      type: "volume",
+      source: cache,
+      target: "/npm-cache",
+      "volume-nocopy": true,
+    },
+    {
+      type: "bind",
+      source: path.join(f.app, "test-results"),
+      target: "/repo/website/test-results",
+    },
+    {
+      type: "bind",
+      source: path.join(f.app, "playwright-report"),
+      target: "/repo/website/playwright-report",
+    },
+    {
+      type: "bind",
+      source: path.join(f.app, "tests/visual/__screenshots__"),
+      target: "/repo/website/tests/visual/__screenshots__",
+    },
   ]);
-  assert.equal(option(render, "--workdir"), "/repo/website");
+  assert.deepEqual(options(render, "--volume"), []);
   assert.deepEqual(
-    render
-      .slice(render.indexOf("sha256:verified-adapter"), -args.length)
-      .slice(0, 3),
-    ["sha256:verified-adapter", "bash", "-c"],
+    options(staging, "--env")
+      .find((value) => value.startsWith("VISUAL_STAGE_INPUTS="))
+      .slice("VISUAL_STAGE_INPUTS=".length),
+    JSON.stringify(stageAudit.inputs),
   );
-  const shell = render[render.indexOf("-c") + 1];
-  assert.match(shell, /npm ci --no-audit --no-fund/);
-  assert.match(
-    shell,
-    /exec node node_modules\/@playwright\/test\/cli\.js test --update-snapshots=none "\$@"/,
+  assert.equal(stageAudit.hostDependencySentinel, true);
+  assert.equal(stageAudit.stagedDependencySentinel, false);
+  assert.deepEqual(
+    stageAudit.inputs.map(({ source: input }) => input),
+    [
+      "/input/website/package.json",
+      "/input/website/package-lock.json",
+      "/input/website/.npmrc",
+      "/input/website/playwright.config.ts",
+      "/input/website/tsconfig.json",
+      "/input/website/tests/visual",
+      "/input/website/storybook-static",
+      "/input/src/Mocha/src/mocha-visualizer/package.json",
+      "/input/src/Mocha/src/mocha-visualizer/README.md",
+      "/input/src/Mocha/src/mocha-visualizer/dist",
+    ],
   );
-  assert.equal(shell.includes(args[1]), false);
-  assert.deepEqual(calls.at(-1).args, ["volume", "rm", modules]);
+  assert.deepEqual(stageAudit.failures, []);
+  assert.equal(stageAudit.stagedFiles.length, 10);
+  const output = lstatSync(path.join(f.app, "test-results/docker-output.txt"));
+  assert.equal(output.uid, process.getuid?.() ?? 0);
+  assert.equal(output.gid, process.getgid?.() ?? 0);
+  assert.deepEqual(
+    hostDependenciesBefore,
+    inventory(path.join(f.app, "node_modules")),
+  );
+  assert.deepEqual(calls.at(-1).args, ["volume", "rm", worktree]);
   assert.equal(render.includes("--publish"), false);
   assert.match(
     readFileSync(path.join(f.app, "scripts/visual-tests.Dockerfile"), "utf8"),
@@ -210,7 +459,143 @@ test("canonical Docker argv isolates dependencies, preserves caller ownership an
   );
 });
 
-test("different workspaces and successive invocations never share mutable modules", (t) => {
+test("custom output paths retain argv and stay inside explicit artifact roots", (t) => {
+  // arrange
+  const f = fixture(t);
+  const args = [
+    "--output",
+    "test-results/custom path",
+    "--grep",
+    "Button|Card",
+  ];
+
+  // act
+  const result = f.run(args);
+  const render = runForStage(f.calls(), "tests");
+
+  // assert
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(render.slice(-args.length), args);
+  assert.equal(mounts(render).filter(({ type }) => type === "bind").length, 3);
+  assert.equal(
+    mounts(render).some(({ source: mountSource }) => mountSource === f.root),
+    false,
+  );
+});
+
+test(
+  "changed custom output files regain caller ownership without traversing output symlinks",
+  { skip: secondaryGid === undefined },
+  (t) => {
+    // arrange
+    const f = fixture(t);
+    const callerUid = process.getuid?.() ?? 0;
+    const baseline = path.join(
+      f.app,
+      "tests/visual/__screenshots__/existing.png",
+    );
+    const outside = path.join(f.root, "outside-output-target.txt");
+    writeFileSync(outside, "outside");
+    chownSync(baseline, callerUid, secondaryGid);
+    chownSync(outside, callerUid, secondaryGid);
+    const baselineBefore = lstatSync(baseline);
+
+    // act
+    const result = f.run(["--output=test-results/custom-output"], {
+      FAKE_DOCKER_OUTPUT_GID: `${secondaryGid}`,
+      FAKE_DOCKER_OUTPUT_LINK_TARGET: outside,
+    });
+    const output = lstatSync(
+      path.join(f.app, "test-results/custom-output/docker-output.txt"),
+    );
+    const outputLink = lstatSync(
+      path.join(f.app, "test-results/custom-output/docker-output-link"),
+    );
+    const baselineAfter = lstatSync(baseline);
+
+    // assert
+    assert.equal(result.status, 0, result.stderr);
+    assert.deepEqual(
+      { uid: output.uid, gid: output.gid },
+      { uid: callerUid, gid: callerGid },
+    );
+    assert.deepEqual(
+      { uid: outputLink.uid, gid: outputLink.gid },
+      { uid: callerUid, gid: callerGid },
+    );
+    assert.equal(lstatSync(outside).gid, secondaryGid);
+    assert.deepEqual(
+      { gid: baselineAfter.gid, ctimeMs: baselineAfter.ctimeMs },
+      { gid: baselineBefore.gid, ctimeMs: baselineBefore.ctimeMs },
+    );
+  },
+);
+
+test(
+  "output ownership normalization preserves the Docker failure status",
+  { skip: secondaryGid === undefined },
+  (t) => {
+    // arrange
+    const f = fixture(t);
+
+    // act
+    const result = f.run([], {
+      FAKE_DOCKER_EXIT: "23",
+      FAKE_DOCKER_FAIL: "tests",
+      FAKE_DOCKER_OUTPUT_GID: `${secondaryGid}`,
+    });
+
+    // assert
+    assert.equal(result.status, 23, result.stderr);
+    assert.match(result.stderr, /Docker run failed/);
+    assert.equal(
+      lstatSync(path.join(f.app, "test-results/docker-output.txt")).gid,
+      callerGid,
+    );
+  },
+);
+
+for (const args of [
+  ["--output", "../outside"],
+  ["--output=/tmp/outside"],
+  ["--output", "unmanaged-output"],
+  ["--output"],
+]) {
+  test(`unsafe output path ${JSON.stringify(args)} fails before Docker`, (t) => {
+    // arrange
+    const f = fixture(t);
+
+    // act
+    const result = f.run(args);
+
+    // assert
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /--output|Unsupported Playwright/);
+    assert.deepEqual(f.calls(), []);
+  });
+}
+
+test("stage hash mismatch is terminal before installation and cleans the owned worktree", (t) => {
+  // arrange
+  const f = fixture(t);
+
+  // act
+  const result = f.run([], { FAKE_DOCKER_CORRUPT_STAGE: "1" });
+  const calls = f.calls();
+  const worktree = mounts(runForStage(calls, "ownership"))[0].source;
+
+  // assert
+  assert.equal(result.status, 31, result.stderr);
+  assert.match(result.stderr, /Staged visual test input hash mismatch/);
+  assert.equal(
+    calls.some(({ stage }) => stage === "tests"),
+    false,
+  );
+  assert.equal(f.stageAudit().failures.length, 1);
+  assert.deepEqual(calls.at(-1).args, ["volume", "rm", worktree]);
+});
+
+test("different workspaces and successive invocations never share mutable worktrees", (t) => {
   // arrange
   const first = fixture(t);
   const second = fixture(t);
@@ -223,12 +608,17 @@ test("different workspaces and successive invocations never share mutable module
       ({ args }) =>
         args[0] === "volume" &&
         args[1] === "create" &&
-        args.at(-1).endsWith("-modules"),
+        args.at(-1).endsWith("-worktree"),
     )
     .map(({ args }) => args.at(-1));
   const secondVolume = second
     .calls()
-    .find(({ args }) => args[0] === "volume")
+    .find(
+      ({ args }) =>
+        args[0] === "volume" &&
+        args[1] === "create" &&
+        args.at(-1).endsWith("-worktree"),
+    )
     .args.at(-1);
 
   // assert
@@ -255,11 +645,14 @@ for (const dependency of ["package", "lockfile", "installed"]) {
       target,
       readFileSync(target, "utf8").replaceAll("1.62.1", "1.63.0"),
     );
+
     // act
     const result = f.run();
+
     // assert
     assert.equal(result.status, 1);
     assert.match(result.stderr, /Playwright image is pinned to 1\.62\.1/);
+    assert.deepEqual(f.calls(), []);
   });
 }
 
@@ -269,6 +662,7 @@ test("unavailable daemon fails with actionable guidance and no host fallback", (
 
   // act
   const result = f.run([], { FAKE_DOCKER_FAIL: "info" });
+
   // assert
   assert.equal(result.status, 1);
   assert.match(result.stderr, /Install\/start Docker Desktop/);
@@ -285,6 +679,7 @@ test("missing Docker executable fails with actionable guidance", (t) => {
 
   // act
   const result = f.run([], { PATH: "" });
+
   // assert
   assert.equal(result.status, 1);
   assert.match(
@@ -293,8 +688,8 @@ test("missing Docker executable fails with actionable guidance", (t) => {
   );
 });
 
-for (const stage of ["build", "ownership", "tests"]) {
-  test(`${stage} failure preserves Docker exit status and cleans only owned modules`, (t) => {
+for (const stage of ["build", "ownership", "staging", "tests"]) {
+  test(`${stage} failure preserves Docker exit status and cleans only the owned worktree`, (t) => {
     // arrange
     const f = fixture(t);
 
@@ -303,6 +698,7 @@ for (const stage of ["build", "ownership", "tests"]) {
       FAKE_DOCKER_FAIL: stage,
       FAKE_DOCKER_EXIT: "23",
     });
+
     // assert
     assert.equal(result.status, 23);
     const removals = f
@@ -310,14 +706,18 @@ for (const stage of ["build", "ownership", "tests"]) {
       .filter(({ args }) => args[0] === "volume" && args[1] === "rm");
     assert.equal(removals.length, stage === "build" ? 0 : 1);
     if (removals.length) {
-      assert.match(removals[0].args[2], /^website-visual-.+-modules$/);
+      assert.match(removals[0].args[2], /^website-visual-.+-worktree$/);
     }
+    assert.equal(
+      f.calls().some(({ stage: current }) => current === "tests"),
+      stage === "tests",
+    );
   });
 }
 
-for (const stage of ["ownership", "tests"]) {
+for (const stage of ["ownership", "staging", "tests"]) {
   test(
-    `SIGTERM during ${stage} removes only the invocation container and module volume`,
+    `SIGTERM during ${stage} removes only the invocation container and worktree volume`,
     { timeout: 15000 },
     async (t) => {
       // arrange
@@ -345,14 +745,15 @@ for (const stage of ["ownership", "tests"]) {
       }
       const [code] = await closed;
       const calls = f.calls();
-      const run = calls.findLast(({ args }) => args[0] === "run").args;
+      const run = runForStage(calls, stage);
+
       // assert
       assert.equal(code, 143);
       assert.deepEqual(
         calls.filter(({ args }) => args[0] === "rm").map(({ args }) => args),
         [["rm", "--force", option(run, "--name")]],
       );
-      assert.match(calls.at(-1).args[2], /^website-visual-.+-modules$/);
+      assert.match(calls.at(-1).args[2], /^website-visual-.+-worktree$/);
       assert.equal(calls.at(-1).args[1], "rm");
     },
   );
@@ -372,6 +773,7 @@ test("both public npm entry points invoke the Docker runner, including updates",
       },
     }),
   );
+
   for (const name of ["test:visual", "test:visual:update"]) {
     // act
     const result = spawnSync(
@@ -379,9 +781,10 @@ test("both public npm entry points invoke the Docker runner, including updates",
       ["run", name, "--", "--grep", "literal spaces|regex.*"],
       { cwd: f.app, env: f.env, encoding: "utf8" },
     );
+
     // assert
     assert.equal(result.status, 0, result.stderr);
-    const render = f.calls().findLast(({ args }) => args[0] === "run").args;
+    const render = runForStage(f.calls(), "tests");
     assert.deepEqual(render.slice(render.indexOf("visual-tests") + 1), [
       ...(name.endsWith(":update") ? ["--update-snapshots"] : []),
       "--grep",
@@ -405,6 +808,7 @@ test("direct host Playwright is rejected by the real configuration before discov
       encoding: "utf8",
     },
   );
+
   // assert
   assert.equal(result.status, 1);
   assert.match(

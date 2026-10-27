@@ -41,19 +41,26 @@ satisfy the repository's npm contract. A Playwright dependency upgrade must also
 update and verify the image digest, runner version and configuration guard.
 The runner logs the image, platform, Node, npm, Playwright and Chromium versions.
 
-Each invocation installs Linux dependencies into its own temporary Docker
-volume, never into host `node_modules`, and removes that volume on completion or
-interruption. A workspace/runtime/lockfile-specific npm cache volume persists
-between invocations. Files written into the checkout use the caller's UID/GID;
-Docker Desktop handles ownership on Windows. The repository root is mounted so
-npm can install the local Mocha visualizer dependency.
+Each invocation stages a finite, read-only set of inputs into an owned Linux
+worktree volume before installing dependencies. The host checkout, including its
+`node_modules`, is never mounted during installation or capture. Staged inputs
+are the website package/configuration, visual tests, built Storybook, and the
+local Mocha visualizer package files needed by its `file:` dependency. The
+worktree volume is removed on completion or interruption; the
+workspace/runtime/lockfile-specific npm cache volume persists between invocations.
 
-Baselines live in `tests/visual/__screenshots__`, test artifacts in `test-results`,
-and CI HTML reports in `playwright-report`. Ordinary comparisons do not update
-baselines, including missing images, unless an explicit snapshot-update argument
-is supplied. Review screenshot diffs before accepting updates: the shared renderer
-prevents OS, font and browser drift, but does not add missing baselines or fix
-unintended UI changes.
+The test container has writable host mounts only for baselines in
+`tests/visual/__screenshots__`, test artifacts in `test-results`, and CI HTML
+reports in `playwright-report`. Those directories are created as the caller, so
+written files retain the caller's UID/GID; Docker Desktop handles ownership on
+Windows. Playwright `--output` paths must be relative paths within `test-results`
+or `playwright-report`, which preserves artifacts without exposing another
+checkout path for writes.
+
+Ordinary comparisons do not update baselines, including missing images, unless
+an explicit snapshot-update argument is supplied. Review screenshot diffs before
+accepting updates: the shared renderer prevents OS, font and browser drift, but
+does not add missing baselines or fix unintended UI changes.
 
 ## Authoring Markdown Content
 
