@@ -95,6 +95,18 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
     internal bool IsSealed => Volatile.Read(ref _phase) == Sealed;
 
     /// <summary>
+    /// Runs <paramref name="action"/> while concurrent page rollover and disposal are blocked.
+    /// </summary>
+    /// <param name="action">The action to run.</param>
+    internal void RunWhileHoldingLock(Action action)
+    {
+        lock (_lock)
+        {
+            action();
+        }
+    }
+
+    /// <summary>
     /// Rents a slab of <paramref name="size"/> bytes carved from the arena's current page.
     /// </summary>
     /// <remarks>
@@ -175,22 +187,33 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
             }
 
             // slow path: the current page is full (or none exists yet); roll to a new page.
-            RollOver(pageIndex);
+            var isLive = TryRollOver(pageIndex);
+
+#if NET8_0_OR_GREATER
+            ObjectDisposedException.ThrowIf(!isLive, this);
+#else
+            if (!isLive)
+            {
+                throw new ObjectDisposedException(nameof(MemoryArena));
+            }
+#endif
         }
     }
 
-    private void RollOver(int observedPageIndex)
+    private bool TryRollOver(int observedPageIndex)
     {
         // Rent the page outside the lock: allocation must never happen while the lock is held.
         var page = JsonMemory.Rent(JsonMemoryKind.Arena);
         var published = false;
+        bool isLive;
 
         lock (_lock)
         {
+            isLive = Volatile.Read(ref _phase) != Disposed;
+
             // Only roll if no other thread has already advanced past the page we observed.
             // The page index changes only here under the lock, so this comparison is stable.
-            if (Volatile.Read(ref _phase) != Disposed
-                && (int)(Volatile.Read(ref _state) >> 32) == observedPageIndex)
+            if (isLive && (int)(Volatile.Read(ref _state) >> 32) == observedPageIndex)
             {
                 var newIndex = observedPageIndex + 1;
 
@@ -218,6 +241,8 @@ internal sealed class MemoryArena : IMemoryArena, IDisposable
             // We lost the rollover race or the arena was disposed; hand the page back.
             JsonMemory.Return(JsonMemoryKind.Arena, page);
         }
+
+        return isLive;
     }
 
     /// <summary>

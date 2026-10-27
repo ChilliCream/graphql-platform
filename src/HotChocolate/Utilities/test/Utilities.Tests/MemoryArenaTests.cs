@@ -333,4 +333,46 @@ public class MemoryArenaTests
 
         Assert.False(overlaps);
     }
+
+    [Fact]
+    public void Rent_Should_Throw_When_ArenaIsDisposedDuringRollover()
+    {
+        // arrange
+        var arena = new MemoryArena();
+        Exception? failure = null;
+        var rental = new Thread(() =>
+        {
+            try
+            {
+                arena.Rent(1);
+            }
+            catch (Exception ex)
+            {
+                failure = ex;
+            }
+        })
+        {
+            IsBackground = true
+        };
+
+        // act
+        arena.RunWhileHoldingLock(() =>
+        {
+            rental.Start();
+
+            // the rental is blocked on the arena lock once it has passed the disposal check.
+            var blocked = SpinWait.SpinUntil(
+                () => rental.ThreadState.HasFlag(ThreadState.WaitSleepJoin),
+                TimeSpan.FromSeconds(30));
+            Assert.True(blocked);
+
+            arena.Dispose();
+        });
+
+        var completed = rental.Join(TimeSpan.FromSeconds(30));
+
+        // assert
+        Assert.True(completed);
+        Assert.IsType<ObjectDisposedException>(failure);
+    }
 }
