@@ -7,7 +7,7 @@ import {
   BEZEL_WIDTH,
   CX,
   CY,
-  ELECTRIC,
+  BEZEL,
   DISC_CORE,
   DISC_RIM,
   FACE_CORE,
@@ -42,7 +42,7 @@ export function DialFace({ faceRadius }: DialFaceProps) {
         cy={CY}
         r={BEZEL_R}
         fill="none"
-        stroke={ELECTRIC}
+        stroke={BEZEL}
         strokeWidth={BEZEL_WIDTH}
         filter={`url(#bezel-${id})`}
       />
@@ -51,7 +51,7 @@ export function DialFace({ faceRadius }: DialFaceProps) {
         cy={CY}
         r={BEZEL_R}
         fill="none"
-        stroke={ELECTRIC}
+        stroke={BEZEL}
         strokeWidth={BEZEL_WIDTH}
       />
       <circle
@@ -59,7 +59,7 @@ export function DialFace({ faceRadius }: DialFaceProps) {
         cy={CY}
         r={faceRadius}
         fill={`url(#face-${id})`}
-        stroke={ELECTRIC}
+        stroke={BEZEL}
         strokeWidth={1.5}
       />
     </>
