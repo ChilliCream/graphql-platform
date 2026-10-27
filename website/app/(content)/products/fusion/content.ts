@@ -80,7 +80,7 @@ export const SECTIONS: readonly CopySection[] = [
     title: "Centralized API security",
     paragraphs: [],
     bullets: [
-      "Enforce policies centrally at the gateway before requests reach your services.",
+      "Enforce policies centrally at the router before requests reach your services.",
       "Safelist trusted GraphQL operations to reduce unexpected workloads and make API behavior more predictable.",
       "Integrate directly with Open Policy Agent (OPA) for centralized, policy-based authorization.",
       "Plug in custom policy providers when your organization needs its own authorization or governance logic.",
@@ -126,7 +126,7 @@ export const FEATURED_CONTENT: readonly BlogTeaserData[] = [
   },
   {
     href: "/docs/fusion/connectors/apollofederation",
-    title: "Switch your gateway, keep your graph",
+    title: "Switch your router, keep your graph",
     description:
       "Move from Apollo Router, Hive Gateway, or Cosmo to Fusion while keeping the subgraphs and schemas you already have.",
     category: "Guide",
@@ -136,7 +136,7 @@ export const FEATURED_CONTENT: readonly BlogTeaserData[] = [
     href: "/blog/2026-07-12-fusion-16-5",
     title: "The Gateway for Everyone",
     description:
-      "Learn why Fusion supports both GraphQL Federation and Apollo Federation, and how it brings GraphQL, REST, and gRPC into one gateway.",
+      "Learn why Fusion supports both GraphQL Federation and Apollo Federation, and how it brings GraphQL, REST, and gRPC into one router.",
     category: "Blog",
     featuredImage: null,
   },
@@ -146,7 +146,7 @@ export const CLOSING_BAND = {
   id: "get-started",
   title: "Bring your APIs together with Fusion",
   description:
-    "Connect GraphQL, REST, and gRPC APIs behind one high-performance gateway and evolve your graph without locking your teams into a single federation ecosystem.",
+    "Connect GraphQL, REST, and gRPC APIs behind one high-performance router and evolve your graph without locking your teams into a single federation ecosystem.",
   buttons: HERO.buttons,
 } as const satisfies {
   readonly id: string;
@@ -184,7 +184,7 @@ export const FEATURES: readonly Feature[] = [
   {
     title: "Centralize API security",
     description:
-      "Enforce policies at the gateway, integrate with Open Policy Agent or custom policy providers, and keep unauthorized traffic away from your services.",
+      "Enforce policies at the router, integrate with Open Policy Agent or custom policy providers, and keep unauthorized traffic away from your services.",
   },
   {
     title: "See what happens in production",
