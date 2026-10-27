@@ -8,6 +8,9 @@ namespace HotChocolate.Execution.Pipeline;
 
 internal sealed class DocumentCacheMiddleware
 {
+    private static readonly Encoding s_utf8 = Encoding.UTF8;
+    private static readonly ArrayPool<byte> s_pool = ArrayPool<byte>.Shared;
+
     private readonly RequestDelegate _next;
     private readonly ICoreExecutionDiagnosticEvents _diagnosticEvents;
     private readonly IDocumentCache _documentCache;
@@ -95,16 +98,16 @@ internal sealed class DocumentCacheMiddleware
 
     private OperationDocumentHash ComputeHash(string sourceText)
     {
-        var buffer = ArrayPool<byte>.Shared.Rent(Encoding.UTF8.GetMaxByteCount(sourceText.Length));
+        var buffer = s_pool.Rent(s_utf8.GetMaxByteCount(sourceText.Length));
 
         try
         {
-            var written = Encoding.UTF8.GetBytes(sourceText, buffer);
+            var written = s_utf8.GetBytes(sourceText, buffer);
             return _hashProvider.ComputeHash(buffer.AsSpan(0, written));
         }
         finally
         {
-            ArrayPool<byte>.Shared.Return(buffer);
+            s_pool.Return(buffer);
         }
     }
 
