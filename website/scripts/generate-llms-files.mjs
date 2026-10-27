@@ -38,7 +38,10 @@ const STRIP_FROM_CONTENT = [
   "[data-llms-ignore]",
   ".heading-anchor",
 ];
-const REDUNDANT_ARCHIVE_PATH = /^\/blog\/(?:\d+|tags\/[^/]+(?:\/\d+)?)$/;
+const REDUNDANT_ARCHIVE_PATH =
+  /^\/(?:blog\/(?:\d+|tags\/[^/]+(?:\/\d+)?)|comparison\/\d+)$/;
+/** A comparison article, as opposed to the index or its pagination pages. */
+export const COMPARISON_ARTICLE_PATH = /^\/comparison\/(?!\d+$)[^/]+$/;
 const LEGACY_CANONICAL_PATH = /^\/docs\/skillz(?:\/|$)/;
 
 const markdownConverter = new NodeHtmlMarkdown({
@@ -76,7 +79,11 @@ function stripBuildOnlyHtml(html) {
 
 function isDetailArticle(url) {
   const pathname = new URL(url).pathname;
-  return pathname.startsWith("/docs/") || datedContent(pathname) !== null;
+  return (
+    pathname.startsWith("/docs/") ||
+    datedContent(pathname) !== null ||
+    COMPARISON_ARTICLE_PATH.test(pathname)
+  );
 }
 
 function contentRootFor(document, url) {
@@ -461,6 +468,7 @@ function scopeLinks(origin) {
     `- [Complete site context](${origin}/llms-full.txt): All substantive public site content in one large compatibility export.`,
     `- [Documentation context](${origin}/docs/llms-full.txt): All product documentation.`,
     `- [Blog context](${origin}/blog/llms-full.txt): All public ChilliCream blog posts.`,
+    `- [Comparison context](${origin}/comparison/llms-full.txt): All public ChilliCream comparison articles.`,
     `- [Videos context](${origin}/videos/llms-full.txt): All ChilliCream TV video pages.`,
   ];
 }
@@ -504,6 +512,7 @@ export async function generateLlmsFiles() {
   const origin = new URL(pages[0].url).origin;
   const docs = pagesUnder(pages, "/docs");
   const blog = pagesUnder(pages, "/blog");
+  const comparison = pagesUnder(pages, "/comparison");
   const videos = pagesUnder(pages, "/videos");
   const benchmarks = pagesUnder(pages, "/benchmarks");
   const products = pagesUnder(pages, "/products");
@@ -520,6 +529,7 @@ export async function generateLlmsFiles() {
     [
       ...docs,
       ...blog,
+      ...comparison,
       ...videos,
       ...benchmarks,
       ...products,
@@ -544,6 +554,12 @@ export async function generateLlmsFiles() {
       "ChilliCream blog",
       "Announcements, technical deep dives, and guides from the ChilliCream team, newest first.",
       blog,
+    ),
+    writeScopedFiles(
+      "comparison",
+      "ChilliCream comparisons",
+      "Side-by-side comparisons of GraphQL Federation with the other ways teams get data out of more than one service, and when each is the better fit.",
+      comparison,
     ),
     writeScopedFiles(
       "videos",
@@ -636,6 +652,12 @@ export async function generateLlmsFiles() {
         title: "Blog",
         items: [
           `- [Blog catalog](${origin}/blog/llms.txt): Every public blog post, newest first.`,
+        ],
+      },
+      {
+        title: "Comparisons",
+        items: [
+          `- [Comparison catalog](${origin}/comparison/llms.txt): Every public comparison article.`,
         ],
       },
       {

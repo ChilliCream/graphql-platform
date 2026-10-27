@@ -73,6 +73,20 @@ await validateRedirect(
   "/docs/skills/getting-started",
 );
 
+for (const pathname of [
+  "/comparison/graphql-federation-vs-graphql-monolith",
+  "/platform/graphql-federation/vs-graphql-monolith",
+]) {
+  await validateRedirect(
+    pathname,
+    "/comparison/graphql-federation-vs-monolith",
+  );
+  await validateRedirect(
+    `${pathname}/`,
+    "/comparison/graphql-federation-vs-monolith",
+  );
+}
+
 if (errors.length > 0) {
   console.error(`Structured-data validation failed (${errors.length} errors):`);
   for (const error of errors) {
@@ -81,7 +95,7 @@ if (errors.length > 0) {
   process.exitCode = 1;
 } else {
   console.log(
-    `Validated ${checked.length} indexable pages, ${noindexArchiveQueue.length} noindex tag archives, robots.txt, sitemap.xml, the web manifest, the noindex flow page, and three permanent redirects.`,
+    `Validated ${checked.length} indexable pages, ${noindexArchiveQueue.length} noindex tag archives, robots.txt, sitemap.xml, the web manifest, the noindex flow page, and seven permanent redirects.`,
   );
 }
 

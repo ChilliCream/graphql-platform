@@ -43,7 +43,8 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
             .AddObjectType<TestSchema.Dog>()
             .AddMcp()
             .AddMcpStorage(storage);
-        await using var webApp = webAppBuilder.Build();
+        var webApp = webAppBuilder.Build();
+        StopAndDisposeAfterTest(webApp);
         webApp.MapGraphQLMcp();
         webApp.Start();
         var mcpClient = await CreateMcpClientAsync(webApp.GetTestClient());
@@ -80,7 +81,8 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
         webAppBuilder.Services
             .AddOptions<McpSetup>("NamedSchema")
             .PostConfigure(setup => setup.StorageFactory = _ => storage);
-        await using var webApp = webAppBuilder.Build();
+        var webApp = webAppBuilder.Build();
+        StopAndDisposeAfterTest(webApp);
         webApp.MapGraphQLMcp();
         webApp.Start();
         var mcpClient = await CreateMcpClientAsync(webApp.GetTestClient());
@@ -103,6 +105,7 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
             .AddGraphQL()
             .AddQueryType<TestSchema.Query>();
         var webApp = webAppBuilder.Build();
+        StopAndDisposeAfterTest(webApp);
 
         // act
         var exception = Assert.Throws<InvalidOperationException>(() => webApp.MapGraphQLMcp());
@@ -134,6 +137,7 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
             .AddMcp()
             .AddMcpStorage(new TestMcpStorage());
         var webApp = webAppBuilder.Build();
+        StopAndDisposeAfterTest(webApp);
 
         // act
         webApp.MapGraphQLMcp();
@@ -163,7 +167,8 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
             .AddTypeModule(_ => typeModule)
             .AddMcp()
             .AddMcpStorage(storage);
-        await using var webApp = webAppBuilder.Build();
+        var webApp = webAppBuilder.Build();
+        StopAndDisposeAfterTest(webApp);
         webApp.MapGraphQLMcp();
         webApp.Start();
         var mcpClient1 = await CreateMcpClientAsync(webApp.GetTestClient());
@@ -266,6 +271,7 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
         }
 
         var app = webAppBuilder.Build();
+        StopAndDisposeAfterTest(app);
         app.UseRouting();
         app.UseAuthentication();
         app.MapGraphQLMcp();

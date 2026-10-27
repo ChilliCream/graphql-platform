@@ -171,6 +171,7 @@ public class VariableBatchingTests : FusionTestBase
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 122
                 -------------------------->
                 Status Code: {{{expectedStatusCode}}}
                 -------------------------->
@@ -226,10 +227,53 @@ public class VariableBatchingTests : FusionTestBase
                 Headers:
                 Vary: Accept
                 Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 53
                 -------------------------->
                 Status Code: InternalServerError
                 -------------------------->
                 {"errors":[{"message":"Unexpected Execution Error"}]}
+                """);
+    }
+
+    [Fact]
+    public async Task Get_Should_RefuseVariableBatch_When_BatchingIsDisabled()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema(
+            "A",
+            r => r.AddQueryType<SourceSchema.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("A", serverA)
+            ],
+            configureGatewayBuilder: b => b
+                .ModifyServerOptions(o => o.Batching = AllowedBatching.None));
+
+        using var client = gateway.CreateClient();
+
+        // act
+        using var response = await client.GetAsync(
+            "http://localhost:5000/graphql?query="
+            + Uri.EscapeDataString("query($input: String!) { field(input: $input) }")
+            + "&variables="
+            + Uri.EscapeDataString("""[{ "input": "first" }, { "input": "second" }]"""),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Vary: Accept
+                Content-Type: application/graphql-response+json; charset=utf-8
+                Content-Length: 82
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {"errors":[{"message":"Invalid GraphQL Request.","extensions":{"code":"HC0009"}}]}
                 """);
     }
 

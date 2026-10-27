@@ -197,6 +197,59 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task ParentRequires_Should_ProjectRequiredProperty_When_FieldIsPaged()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<PagedParentRequiresQuery>()
+            .AddTypeExtension<PagedParentRequiresItemExtensions>()
+            .AddProjections()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              items {
+                nodes {
+                  nameLength
+                }
+                edges {
+                  node {
+                    nameLength
+                  }
+                }
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "items": {
+                  "nodes": [
+                    {
+                      "nameLength": 3
+                    }
+                  ],
+                  "edges": [
+                    {
+                      "node": {
+                        "nameLength": 3
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task Projection_Should_NotBreakProjections_When_ExtensionsListRequested()
     {
         // arrange
@@ -1162,6 +1215,37 @@ public sealed class NestedParentRequiresQuery
             {
                 Id = 1,
                 Details = new NestedParentRequiresDetails { Code = "stored" }
+            }
+        }.AsQueryable();
+}
+
+public sealed class PagedParentRequiresItem
+{
+    public int Id { get; set; }
+
+    public string Name { get; set; } = string.Empty;
+}
+
+[ExtendObjectType<PagedParentRequiresItem>]
+public sealed class PagedParentRequiresItemExtensions
+{
+    public int GetNameLength(
+        [Parent(requires: nameof(PagedParentRequiresItem.Name))]
+        PagedParentRequiresItem item)
+        => item.Name.Length;
+}
+
+public sealed class PagedParentRequiresQuery
+{
+    [UsePaging]
+    [UseProjection]
+    public IQueryable<PagedParentRequiresItem> GetItems()
+        => new[]
+        {
+            new PagedParentRequiresItem
+            {
+                Id = 1,
+                Name = "abc"
             }
         }.AsQueryable();
 }

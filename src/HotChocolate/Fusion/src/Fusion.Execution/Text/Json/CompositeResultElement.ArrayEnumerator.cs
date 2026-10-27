@@ -26,6 +26,19 @@ public readonly partial struct CompositeResultElement
             _cursor = _start;
         }
 
+        internal ArrayEnumerator(
+            CompositeResultDocument document,
+            CompositeResultDocument.Cursor start,
+            int length)
+        {
+            Debug.Assert(document._metaDb.GetElementTokenType(start) is ElementTokenType.StartArray);
+
+            _document = document;
+            _start = start;
+            _end = start + (length + 1);
+            _cursor = start;
+        }
+
         /// <inheritdoc />
         public CompositeResultElement Current
         {

@@ -476,6 +476,40 @@ internal readonly ref struct SourceResultElementSnapshot
     /// </exception>
     public SourceResultElement.ObjectEnumerator EnumerateObject() => Element.EnumerateObject();
 
+    /// <summary>
+    /// Returns an enumerator over the properties of the current JSON object that exposes
+    /// each property value as a snapshot.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">
+    /// The current value is not a JSON object.
+    /// </exception>
+    internal SourcePropertySnapshotEnumerator EnumeratePropertySnapshots()
+    {
+        if (_row.TokenType is not JsonTokenType.StartObject)
+        {
+            throw ThrowHelper.SourceElementIsNotAnObject();
+        }
+
+        return new SourcePropertySnapshotEnumerator(_parent, _cursor, _row);
+    }
+
+    /// <summary>
+    /// Returns an enumerator over the elements of the current JSON array that exposes
+    /// each element as a snapshot.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">
+    /// The current value is not a JSON array.
+    /// </exception>
+    internal SourceElementSnapshotEnumerator EnumerateElementSnapshots()
+    {
+        if (_row.TokenType is not JsonTokenType.StartArray)
+        {
+            throw ThrowHelper.SourceElementIsNotAnArray(_row.TokenType);
+        }
+
+        return new SourceElementSnapshotEnumerator(_parent, _cursor, _row);
+    }
+
     /// <inheritdoc />
     public override string ToString()
     {

@@ -31,6 +31,10 @@ internal static partial class OperationPlanExecutor
         {
             context.Initialize(requestContext, variables, operationPlan, executionCts);
 
+            // The engine token is linked to the request token, so it shares the request deadline.
+            context.HasExecutionDeadline =
+                requestContext.Features.Get<ExecutionDeadline>()?.Covers(cancellationToken) is true;
+
             context.Begin();
 
             switch (operationPlan.Operation.Definition.Operation)
