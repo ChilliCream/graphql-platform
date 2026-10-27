@@ -2,6 +2,7 @@ using HotChocolate.Fusion.Suites.RequiresWithArgument.A;
 using HotChocolate.Fusion.Suites.RequiresWithArgument.B;
 using HotChocolate.Fusion.Suites.RequiresWithArgument.C;
 using HotChocolate.Fusion.Suites.RequiresWithArgument.D;
+using Xunit.Sdk;
 
 namespace HotChocolate.Fusion.Suites;
 
@@ -19,6 +20,19 @@ public sealed class RequiresWithArgumentTests
     [Theory]
     [MemberData(nameof(Cases))]
     [Trait("Category", "OfficialV2")]
-    public Task OfficialCase_Should_MatchExpectedResult_When_Executed(string caseId)
-        => RunOfficialV2CaseAsync(caseId);
+    public async Task OfficialCase_Should_FailComposition_When_RequiringSubgraphServesRequiredParent(
+        string caseId)
+    {
+        // act
+        // d serves Post.comments and requires comments(limit: 3) { authorId }, which composition rejects
+        var exception = await Assert.ThrowsAsync<XunitException>(() => RunOfficialV2CaseAsync(caseId));
+
+        // assert
+        exception.Message.ReplaceLineEndings("\n").MatchInlineSnapshot(
+            """
+            Post-merge validation failed.
+            The @require directive on argument 'Post.author(comments:)' in schema 'd' specifies an invalid field selection against the composed schema.
+             - errors: The required field 'Post.comments' must not be served by the requiring source schema 'd'.
+            """);
+    }
 }

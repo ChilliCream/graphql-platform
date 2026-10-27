@@ -739,6 +739,61 @@ public class CompositeResultDocumentTests : FusionTestBase
             Encoding.UTF8.GetString(buffer.WrittenSpan));
     }
 
+    [Fact]
+    public void WriteDataTo_Should_WriteMinimizedJson_When_NamesAndValuesHaveMixedLengths()
+    {
+        // arrange
+        var schema = ComposeShoppingSchema();
+
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                users {
+                    nodes {
+                        short: name
+                        aliasThatIsLongerThanThirtyTwoBytes: name
+                        name
+                    }
+                }
+            }
+            """);
+
+        using var document = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+        var operation = document.Data.Operation;
+
+        var users = document.Data.GetProperty("users");
+        users.SetObjectValue(operation.GetSelectionSet(users.AssertSelection()));
+
+        var nodes = users.GetProperty("nodes");
+        var nodesSelectionSet = operation.GetSelectionSet(nodes.AssertSelection());
+        nodes.SetArrayValue(2);
+
+        // the value of c ends where the source data ends
+        var payload = """{"a":"short","b":"a value that is longer than thirty-two bytes","c":"end"}"""u8.ToArray();
+        var source = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), payload, payload.Length);
+
+        foreach (var element in nodes.EnumerateArray())
+        {
+            element.SetObjectValue(nodesSelectionSet);
+            element.GetProperty("short").SetLeafValue(source.Root.GetProperty("a"));
+            element.GetProperty("aliasThatIsLongerThanThirtyTwoBytes").SetLeafValue(source.Root.GetProperty("b"));
+            element.GetProperty("name").SetLeafValue(source.Root.GetProperty("c"));
+        }
+
+        using var buffer = new PooledArrayWriter();
+        var writer = new JsonWriter(buffer, new JsonWriterOptions { SkipValidation = true });
+
+        // act
+        document.WriteDataTo(writer);
+
+        // assert
+        Encoding.UTF8.GetString(buffer.WrittenSpan).MatchInlineSnapshot(
+            """
+            {"users":{"nodes":[{"short":"short","aliasThatIsLongerThanThirtyTwoBytes":"a value that is longer than thirty-two bytes","name":"end"},{"short":"short","aliasThatIsLongerThanThirtyTwoBytes":"a value that is longer than thirty-two bytes","name":"end"}]}}
+            """);
+    }
+
     [Theory]
     [InlineData(false, "{\"productBySlug\":{\"id\":[null,true,false]}}")]
     [InlineData(

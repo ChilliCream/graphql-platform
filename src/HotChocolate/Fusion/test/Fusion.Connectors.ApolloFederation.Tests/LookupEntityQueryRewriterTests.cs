@@ -157,7 +157,7 @@ public class LookupEntityQueryRewriterTests
         }
 
         type Bar implements IBar {
-          y: String @shareable
+          y: String @external
           x(y: String @require(field: "y")): Int
         }
         """;

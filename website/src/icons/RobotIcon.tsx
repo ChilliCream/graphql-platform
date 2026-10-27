@@ -8,7 +8,7 @@ interface RobotIconProps {
 export function RobotIcon({ className, style }: RobotIconProps) {
   return (
     <svg
-      viewBox="793 6028 94 94"
+      viewBox="812 6043.5 56 63"
       fill="none"
       aria-hidden="true"
       className={className}

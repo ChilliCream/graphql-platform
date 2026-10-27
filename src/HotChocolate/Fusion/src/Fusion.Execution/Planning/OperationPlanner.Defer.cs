@@ -2203,6 +2203,7 @@ public sealed partial class OperationPlanner
             _options.EnableRequestGrouping,
             _options.MergePolicy,
             splitForEntityReuse: false,
+            serialScopes: null,
             _schema);
         WireExecutionDependencies(ctx);
 

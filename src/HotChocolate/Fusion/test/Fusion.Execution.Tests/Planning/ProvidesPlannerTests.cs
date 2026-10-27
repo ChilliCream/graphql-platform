@@ -214,6 +214,244 @@ public class ProvidesPlannerTests : FusionTestBase
         MatchSnapshot(plan);
     }
 
+    [Fact]
+    public void PlanOperation_Should_FetchSharedRootFieldFromBothSchemas_When_ProvidedEntityLacksSelectedField()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            schema {
+              query: Query
+            }
+
+            type Query {
+              topOrders: [Order] @shareable @provides(fields: "customer { id }")
+            }
+
+            type Order {
+              id: ID! @shareable
+              customer: Customer @external
+            }
+
+            type Customer {
+              id: ID! @external
+              name: String
+            }
+            """,
+            """
+            # name: b
+            schema {
+              query: Query
+            }
+
+            type Query {
+              topOrders: [Order] @shareable
+            }
+
+            type Order {
+              id: ID! @shareable
+              customer: Customer
+            }
+
+            type Customer {
+              id: ID! @shareable
+              email: String
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              topOrders {
+                customer {
+                  name
+                  email
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchInline(
+            plan,
+            """
+            operation:
+              - document: |
+                  {
+                    topOrders {
+                      customer {
+                        name
+                        email
+                      }
+                    }
+                  }
+                hash: 123456789101112
+                searchSpace: 2
+                expandedNodes: 2
+            nodes:
+              - id: 1
+                type: Operation
+                schema: a
+                operation: |
+                  query Op_123456789101112_1 {
+                    topOrders {
+                      customer {
+                        name
+                      }
+                    }
+                  }
+              - id: 2
+                type: Operation
+                schema: b
+                operation: |
+                  query Op_123456789101112_2 {
+                    topOrders {
+                      customer {
+                        email
+                      }
+                    }
+                  }
+            """);
+    }
+
+    [Fact]
+    public void PlanOperation_Should_ReenterEntityForProvidedField_When_FieldBelowIsExternalInReenteredSchema()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            schema {
+              query: Query
+            }
+
+            type Query {
+              orderById(id: ID!): Order @lookup @internal
+            }
+
+            type Order {
+              id: ID! @shareable
+              item: Item @shareable @provides(fields: "customer { id }")
+            }
+
+            type Item {
+              customer: Customer @external
+            }
+
+            type Customer {
+              id: ID! @external
+              name: String
+            }
+            """,
+            """
+            # name: b
+            schema {
+              query: Query
+            }
+
+            type Query {
+              orders: [Order]
+            }
+
+            type Order {
+              id: ID! @shareable
+              item: Item @shareable
+            }
+
+            type Item {
+              customer: Customer @shareable
+            }
+
+            type Customer {
+              id: ID! @shareable
+              email: String
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              orders {
+                item {
+                  customer {
+                    name
+                    email
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void PlanOperation_Should_ReadRequirementAlongSharedPath_When_OtherSchemaSharesWholePath()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            schema {
+              query: Query
+            }
+
+            type Query {
+              wrapper: Wrapper @shareable
+            }
+
+            type Wrapper {
+              entity: Entity @shareable
+            }
+
+            type Entity {
+              id: ID @shareable
+              name(age: Int @require(field: "age")): String
+            }
+            """,
+            """
+            # name: b
+            schema {
+              query: Query
+            }
+
+            type Query {
+              wrapper: Wrapper @shareable
+            }
+
+            type Wrapper {
+              entity: Entity @shareable
+            }
+
+            type Entity {
+              id: ID @shareable
+              age: Int
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              wrapper {
+                entity {
+                  name
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
     private static FusionSchemaDefinition CreatePartialProvidesSchema()
     {
         return ComposeSchema(
@@ -479,8 +717,22 @@ public class ProvidesPlannerTests : FusionTestBase
 
             type Item @key(fields: "sku") {
               sku: String!
-              weight: Int
               shippingCost(weight: Int @require(field: "weight")): Float
+            }
+            """,
+            """
+            # name: inventory
+            schema {
+              query: Query
+            }
+
+            type Query {
+              itemBySku(sku: String! @is(field: "sku")): Item @lookup @internal
+            }
+
+            type Item @key(fields: "sku") {
+              sku: String!
+              weight: Int
             }
             """);
     }

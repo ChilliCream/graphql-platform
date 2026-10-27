@@ -1,0 +1,85 @@
+operation:
+  - document: |
+      {
+        products {
+          id
+          id @fusion__requirement
+          estimate
+          store {
+            name
+            id @fusion__requirement
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 2
+    expandedNodes: 6
+nodes:
+  - id: 1
+    type: Operation
+    schema: req
+    operation: |
+      query Op_123456789101112_1 {
+        products {
+          id
+        }
+      }
+  - id: 2
+    type: ApolloOperation
+    schema: alt
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Product {
+            estimate
+          }
+        }
+      }
+    source: $._entities
+    target: $.products
+    requirements:
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 3
+    type: ApolloOperation
+    schema: sup
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Product {
+            store {
+              id
+            }
+          }
+        }
+      }
+    source: $._entities
+    target: $.products
+    requirements:
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 4
+    type: ApolloOperation
+    schema: req
+    operation: |
+      query($representations: [_Any!]!) {
+        _entities(representations: $representations) {
+          ... on Store {
+            name
+          }
+        }
+      }
+    source: $._entities
+    target: $.products.store
+    requirements:
+      - name: __fusion_4_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 3

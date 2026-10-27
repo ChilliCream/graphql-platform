@@ -162,9 +162,22 @@ internal sealed partial class FetchResultStore
         // clear collect target arrays to unroot CompositeResultDocument references;
         // if they grew too large during a burst, swap them for smaller ones.
         TrimOrClearBuffer(ref _collectTargetA, maxCollectTargetRetainLength);
-        TrimOrClearBuffer(ref _collectTargetB, maxCollectTargetRetainLength);
         TrimOrClearBuffer(ref _collectTargetCombined, maxCollectTargetRetainLength);
         TrimOrClearBuffer(ref _collectProducerCombined, maxCollectTargetRetainLength);
+
+        // forget the kept target cursors to unroot the result document and the plan;
+        // drop the cursor buffers if a wide result made them grow.
+        _collectMemoNodes.AsSpan(0, _collectMemoNodeCount).Clear();
+        _collectMemoNodeCount = 0;
+        _collectMemoCursorCount = 0;
+        _collectMemoDocument = null;
+        TrimCursorBuffer(ref _collectCursorsA, maxCollectTargetRetainLength);
+        TrimCursorBuffer(ref _collectCursorsB, maxCollectTargetRetainLength);
+
+        if (_collectMemoCursors.Length > maxCollectTargetRetainLength * 4)
+        {
+            ReturnPooled(ref _collectMemoCursors);
+        }
 
         // clear the entity reuse buffers to unroot the result document and the plan;
         // drop them if a wide lookup made them grow.
@@ -210,6 +223,15 @@ internal sealed partial class FetchResultStore
         else
         {
             buffer.AsSpan().Clear();
+        }
+    }
+
+    private static void TrimCursorBuffer(ref int[] buffer, int maxRetainLength)
+    {
+        if (buffer.Length > maxRetainLength)
+        {
+            ArrayPool<int>.Shared.Return(buffer);
+            buffer = ArrayPool<int>.Shared.Rent(64);
         }
     }
 

@@ -18,109 +18,125 @@ operation:
         }
       }
     hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 13
+    searchSpace: 8
+    expandedNodes: 24
 nodes:
   - id: 2
     type: Operation
-    schema: cart
+    schema: checkout
     operation: |
       query Op_123456789101112_2(
-        $__fusion_1_lines: [CartLineInput]
-        $__fusion_2_id: ID!
+        $__fusion_1_id: ID!
+        $__fusion_2_lines: [CartLineInput]
       ) {
-        cartById(id: $__fusion_2_id) {
-          subtotal(lines: $__fusion_1_lines)
+        cartById(id: $__fusion_1_id) {
+          subtotal(lines: $__fusion_2_lines)
         }
       }
     source: $.cartById
     target: $.viewer.cart
     requirements:
-      - name: __fusion_1_lines
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+      - name: __fusion_2_lines
         selectionMap: >-
           items(first: 50).nodes[{
             unitPrice: product.discountedPrice
           }]
-      - name: __fusion_2_id
-        selectionMap: >-
-          id
     dependencies:
       - id: 3
-      - id: 5
-      - id: 9
+      - id: 4
+      - id: 8
   - id: 3
     type: Operation
-    schema: cart
+    schema: promotions
     operation: |
       query Op_123456789101112_3($__fusion_3_id: ID!) {
-        cartById(id: $__fusion_3_id) {
-          items(first: 50) {
-            nodes {
-              product {
-                id
-              }
-            }
-          }
+        productById(id: $__fusion_3_id) {
+          id
         }
       }
-    source: $.cartById
-    target: $.viewer.cart
+    source: $.productById
+    target: $.viewer.cart.items.nodes.product
     requirements:
       - name: __fusion_3_id
         selectionMap: >-
           id
     dependencies:
-      - id: 9
-  - id: 5
+      - id: 8
+  - id: 4
     type: Operation
     schema: promotions
     operation: |
-      query Op_123456789101112_5($__fusion_5_price: Float!, $__fusion_6_id: ID!) {
-        productById(id: $__fusion_6_id) {
-          discountedPrice(price: $__fusion_5_price)
+      query Op_123456789101112_4($__fusion_4_price: Float!, $__fusion_5_id: ID!) {
+        productById(id: $__fusion_5_id) {
+          discountedPrice(price: $__fusion_4_price)
         }
       }
     source: $.productById
     target: $.viewer.cart.items.nodes.product
     requirements:
-      - name: __fusion_5_price
+      - name: __fusion_4_price
         selectionMap: >-
           price
+      - name: __fusion_5_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 3
+      - id: 5
+  - id: 5
+    type: Operation
+    schema: products
+    operation: |
+      query Op_123456789101112_5($__fusion_6_id: ID!) {
+        productById(id: $__fusion_6_id) {
+          price
+        }
+      }
+    source: $.productById
+    target: $.viewer.cart.items.nodes.product
+    requirements:
       - name: __fusion_6_id
         selectionMap: >-
           id
     dependencies:
       - id: 3
-      - id: 6
-  - id: 6
+  - id: 1
     type: Operation
-    schema: products
+    schema: cart
     operation: |
-      query Op_123456789101112_6($__fusion_7_id: ID!) {
-        productById(id: $__fusion_7_id) {
-          price
+      query Op_123456789101112_1 {
+        viewer {
+          cart {
+            id
+            items(first: 50) {
+              nodes {
+                product {
+                  __typename
+                }
+              }
+            }
+          }
         }
       }
-    source: $.productById
-    target: $.viewer.cart.items.nodes.product
-    requirements:
-      - name: __fusion_7_id
-        selectionMap: >-
-          id
-    dependencies:
-      - id: 3
+    batchingGroupId: 8
   - id: 7
-    type: OperationBatch
+    type: Operation
     schema: cart
     operation: |
       query Op_123456789101112_7 {
         viewer {
           cart {
-            id
+            items(first: 50) {
+              nodes {
+                product {
+                  id
+                }
+              }
+            }
           }
         }
       }
-    targets:
-      - $
-      - $
-    batchingGroupId: 9
+    batchingGroupId: 8

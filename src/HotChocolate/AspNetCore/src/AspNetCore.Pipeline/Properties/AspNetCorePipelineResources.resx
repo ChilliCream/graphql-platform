@@ -150,6 +150,15 @@
   <data name="ThrowHelper_Formatter_TransportVersionNotSupported" xml:space="preserve">
     <value>The specified HTTP transport version `{0}` is not supported.</value>
   </data>
+  <data name="ThrowHelper_ResponseBodyBuffer_AdvanceNegative" xml:space="preserve">
+    <value>The number of bytes to advance must not be negative.</value>
+  </data>
+  <data name="ThrowHelper_ResponseBodyBuffer_AdvancePastBuffer" xml:space="preserve">
+    <value>Cannot advance past the end of the buffer.</value>
+  </data>
+  <data name="ThrowHelper_ResponseBodyBuffer_WriterCompleted" xml:space="preserve">
+    <value>Writing is not allowed after the writer was completed.</value>
+  </data>
   <data name="ErrorHelper_InvalidAcceptMediaType" xml:space="preserve">
     <value>Unable to parse the accept header value `{0}`.</value>
   </data>

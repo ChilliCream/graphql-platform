@@ -51,42 +51,40 @@ internal class FusionRunCommand : Command
 
         port ??= GetRandomUnusedPort();
 
-        // Type or member is obsolete
-#pragma warning disable ASPDEPR008
-        var host = new WebHostBuilder()
-            .UseKestrel()
-            .UseUrls(new UriBuilder("http", "localhost", port.Value).ToString())
-            .ConfigureServices(services =>
+        var builder = WebApplication.CreateEmptyBuilder(
+            new WebApplicationOptions
             {
-                services
-                    .AddCors()
-                    .AddHeaderPropagation(c =>
-                    {
-                        c.Headers.Add("GraphQL-Preflight");
-                        c.Headers.Add("Authorization");
-                    });
+                EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
+            });
+        builder.WebHost.UseKestrelCore();
+        builder.WebHost.UseUrls(new UriBuilder("http", "localhost", port.Value).ToString());
 
-                services
-                    .AddHttpClient("fusion")
-                    .AddHeaderPropagation();
-
-                services.AddRouting()
-                    .AddGraphQLGatewayServer()
-                    .AddFileSystemConfiguration(archiveFilePath)
-                    .ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = true)
-                    .ModifyServerOptions(o => o.Tool.ServeMode = App.ServeMode.Insider);
-            })
-            .Configure(app =>
+        builder.Services
+            .AddCors()
+            .AddHeaderPropagation(c =>
             {
-                app.UseRouting();
-                app.UseHeaderPropagation();
-                app.UseCors(c => c.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
-                app.UseEndpoints(e => e.MapGraphQL());
-            })
-            .Build();
-#pragma warning restore ASPDEPR008
+                c.Headers.Add("GraphQL-Preflight");
+                c.Headers.Add("Authorization");
+            });
 
-        var lifetime = host.Services.GetRequiredService<IHostApplicationLifetime>();
+        builder.Services
+            .AddHttpClient("fusion")
+            .AddHeaderPropagation();
+
+        builder.Services
+            .AddRouting()
+            .AddGraphQLGatewayServer()
+            .AddFileSystemConfiguration(archiveFilePath)
+            .ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = true)
+            .ModifyServerOptions(o => o.Tool.ServeMode = App.ServeMode.Insider);
+
+        var app = builder.Build();
+        app.UseRouting();
+        app.UseHeaderPropagation();
+        app.UseCors(c => c.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
+        app.MapGraphQL();
+
+        var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
 
         lifetime.ApplicationStarted.Register(() =>
         {
@@ -119,7 +117,7 @@ internal class FusionRunCommand : Command
             }
         });
 
-        await host.RunAsync(cancellationToken);
+        await app.RunAsync(cancellationToken);
 
         return ExitCodes.Success;
     }
