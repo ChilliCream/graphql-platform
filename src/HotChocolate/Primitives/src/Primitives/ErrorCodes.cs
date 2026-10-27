@@ -433,6 +433,11 @@ public static class ErrorCodes
         /// The maximum allowed fragment visits were exceeded.
         /// </summary>
         public const string MaxFragmentVisitsOverflow = "HC0137";
+
+        /// <summary>
+        /// The maximum allowed selection set depth was exceeded.
+        /// </summary>
+        public const string MaxSelectionSetDepthOverflow = "HC0138";
     }
 
     /// <summary>
