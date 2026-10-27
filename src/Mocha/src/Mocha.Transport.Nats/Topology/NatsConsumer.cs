@@ -42,7 +42,7 @@ public sealed class NatsConsumer : TopologyResource<NatsConsumerConfiguration>, 
     /// <summary>
     /// How long a temporary endpoint's consumer may go unread before the server deletes it.
     /// </summary>
-    public static readonly TimeSpan DefaultTemporaryInactiveThreshold = TimeSpan.FromSeconds(10);
+    public static readonly TimeSpan DefaultTemporaryInactiveThreshold = TimeSpan.FromMinutes(5);
 
     /// <summary>
     /// Gets how long this consumer may go unread before the server deletes it, or
