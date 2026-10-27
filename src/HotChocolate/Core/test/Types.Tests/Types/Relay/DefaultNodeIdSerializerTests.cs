@@ -630,6 +630,7 @@ public class DefaultNodeIdSerializerTests
         var serializer = CreateSerializer(new GuidNodeIdValueSerializer(compress: false), outputNewIdFormat: false);
 
         // act
+        // new format ID: Foo:<16 raw guid bytes>
         var id = serializer.Parse("Rm9vOhR74hr2jA1EmkYJCQpK9vM=", runtimeType);
 
         // assert
@@ -646,6 +647,7 @@ public class DefaultNodeIdSerializerTests
         var serializer = CreateSerializer(new GuidNodeIdValueSerializer(compress: true));
 
         // act
+        // legacy format ID: Foo\ng<32 hex chars>
         var id = serializer.Parse("Rm9vCmcxYWUyN2IxNDhjZjY0NDBkOWE0NjA5MDkwYTRhZjZmMw==", runtimeType);
 
         // assert
@@ -662,6 +664,7 @@ public class DefaultNodeIdSerializerTests
         var serializer = CreateSerializer(new GuidNodeIdValueSerializer(compress: false), outputNewIdFormat: false);
 
         // act
+        // new format ID: Foo:<16 raw guid bytes>
         var id = serializer.Parse("Rm9vOhR74hr2jA1EmkYJCQpK9vM=", lookup.Object);
 
         // assert

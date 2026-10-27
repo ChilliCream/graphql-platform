@@ -53,6 +53,7 @@ public class NodeIdSerializerTests
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
+        // new format ID: Checkout:<16 raw guid bytes>
         var result = await executor.ExecuteAsync(
             """
             {
@@ -65,6 +66,7 @@ public class NodeIdSerializerTests
             TestContext.Current.CancellationToken);
 
         // assert
+        // the node id is returned in the legacy format: Checkout\ng<32 hex chars>
         result.ToJson().MatchInlineSnapshot(
             """
             {

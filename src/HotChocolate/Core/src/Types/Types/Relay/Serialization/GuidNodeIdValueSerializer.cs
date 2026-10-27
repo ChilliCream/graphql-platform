@@ -4,13 +4,6 @@ using System.Runtime.InteropServices;
 
 namespace HotChocolate.Types.Relay;
 
-/// <summary>
-/// Serializes <see cref="Guid"/> node id values.
-/// Parsing accepts both the compressed (16 raw bytes) and the hex (<c>N</c> format) representation.
-/// </summary>
-/// <param name="compress">
-/// Defines whether <see cref="Format"/> writes the compressed representation instead of the hex representation.
-/// </param>
 internal sealed class GuidNodeIdValueSerializer(bool compress = true) : INodeIdValueSerializer
 {
     public bool IsSupported(Type type) => type == typeof(Guid) || type == typeof(Guid?);
