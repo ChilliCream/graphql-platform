@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 #endif
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Tests.Utilities;
@@ -562,7 +563,7 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
     }
 
     [Fact]
-    public async Task Query_Should_ReturnBadRequest_When_VariablesIsArray()
+    public async Task Query_Should_ExecuteEachVariableSet_When_VariablesIsArray()
     {
         // arrange
         var server = CreateStarWarsServer(
@@ -579,10 +580,57 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
             """{ "variables": [{ "if": true }, { "if": false }] }""",
             Encoding.UTF8,
             "application/json");
+        request.Headers.Add("Accept", "application/jsonl");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("no-cache", response.Headers.CacheControl?.ToString());
+        Assert.Collection(
+            body
+                .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                .OrderBy(line => JsonNode.Parse(line)!["variableIndex"]!.GetValue<int>()),
+            line => Assert.Equal("""{"variableIndex":0,"data":{"hero":{}}}""", line),
+            line => Assert.Equal(
+                """{"variableIndex":1,"data":{"hero":{"name":"R2-D2"}}}""",
+                line));
+    }
+
+    [Fact]
+    public async Task Query_Should_RefuseVariableBatch_When_BatchingIsDisabled()
+    {
+        // arrange
+        var listener = new RecordingListener();
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddDiagnosticEventListener(_ => listener)
+                .ModifyServerOptions(
+                    o =>
+                    {
+                        o.EnableQueryRequests = true;
+                        o.Batching = AllowedBatching.None;
+                    }));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            s_queryMethod,
+            "http://localhost:5000/graphql/persisted/abc123");
+        request.Content = new StringContent(
+            """{ "variables": [{ "if": true }, { "if": false }] }""",
+            Encoding.UTF8,
+            "application/json");
 
         using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
+        var diagnosticError = Assert.Single(listener.Errors);
+        Assert.Equal(
+            "Variable batching is disabled. Enable it with GraphQLServerOptions.Batching.",
+            diagnosticError.Message);
         Snapshot
             .Create()
             .Add(response)
