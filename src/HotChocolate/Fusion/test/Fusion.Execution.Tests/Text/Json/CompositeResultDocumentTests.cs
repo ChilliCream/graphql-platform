@@ -688,6 +688,58 @@ public class CompositeResultDocumentTests : FusionTestBase
     }
 
     [Fact]
+    public void WriteTo_Should_WriteEverySourceValue_When_SourceDocumentsExceedInitialCapacity()
+    {
+        // arrange
+        const int count = 40;
+        var schema = ComposeShoppingSchema();
+
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+                users {
+                    nodes {
+                        name
+                    }
+                }
+            }
+            """);
+
+        using var compositeResult = new CompositeResultDocument(CommonTestExtensions.CreateArena(), plan.Operation, 0);
+        var operation = compositeResult.Data.Operation;
+
+        var users = compositeResult.Data.GetProperty("users");
+        users.SetObjectValue(operation.GetSelectionSet(users.AssertSelection()));
+
+        var nodes = users.GetProperty("nodes");
+        var nodesSelectionSet = operation.GetSelectionSet(nodes.AssertSelection());
+        nodes.SetArrayValue(count);
+
+        // every name comes from its own source document
+        var index = 0;
+
+        foreach (var element in nodes.EnumerateArray())
+        {
+            var payload = Encoding.UTF8.GetBytes($$"""{"name":"name-{{index++}}"}""");
+            var source = SourceResultDocument.Parse(CommonTestExtensions.CreateArena(), payload, payload.Length);
+            element.SetObjectValue(nodesSelectionSet);
+            element.GetProperty("name").SetLeafValue(source.Root.GetProperty("name"));
+        }
+
+        using var buffer = new PooledArrayWriter();
+
+        // act
+        compositeResult.Data.WriteTo(buffer);
+
+        // assert
+        var names = Enumerable.Range(0, count).Select(static i => $$"""{"name":"name-{{i}}"}""");
+        Assert.Equal(
+            $$$"""{"users":{"nodes":[{{{string.Join(",", names)}}}]}}""",
+            Encoding.UTF8.GetString(buffer.WrittenSpan));
+    }
+
+    [Fact]
     public void WriteDataTo_Should_WriteMinimizedJson_When_NamesAndValuesHaveMixedLengths()
     {
         // arrange

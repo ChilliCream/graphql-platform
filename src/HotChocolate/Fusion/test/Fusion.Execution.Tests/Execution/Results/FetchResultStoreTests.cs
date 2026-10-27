@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 #if !NET9_0_OR_GREATER
@@ -1830,6 +1831,318 @@ public sealed class FetchResultStoreTests : FusionTestBase
                 {"first":10,"__fusion_1_id":"2"}
                 """
             ]);
+    }
+
+    [Fact]
+    public void CreateVariableValueSetsFromSnapshot_Should_ReuseValueSetArray_When_StoreIsCleanedAndReused()
+    {
+        // arrange
+        using var arena = new MemoryArena();
+        using var source = CreateSnapshotStore(arena);
+        using var target = CreateSnapshotStore(arena);
+
+        var first = CreateVariableValues(source, Path(1), Field("__fusion_1_id", new StringValueNode("1")));
+        var second = CreateVariableValues(source, Path(2), Field("__fusion_1_id", new StringValueNode("2")));
+
+        var firstRequest = target.CreateVariableValueSetsFromSnapshot(
+            [first, second],
+            ImportedKeys("__fusion_1_id"),
+            [],
+            [Requirement("__fusion_1_id")]);
+        var firstRequestArray = ImmutableCollectionsMarshal.AsArray(firstRequest);
+
+        target.Clean(maxCollectTargetRetainLength: 256, maxDictionaryRetainCapacity: 256);
+        using var nextArena = new MemoryArena();
+        InitializeSnapshotStore(target, nextArena);
+
+        // act
+        var secondRequest = target.CreateVariableValueSetsFromSnapshot(
+            [second, first],
+            ImportedKeys("__fusion_1_id"),
+            [],
+            [Requirement("__fusion_1_id")]);
+
+        // assert
+        Assert.Same(firstRequestArray, ImmutableCollectionsMarshal.AsArray(secondRequest));
+        Normalize(secondRequest).MatchInlineSnapshot(
+            """
+            path=[2]; additional=[]; values={"__fusion_1_id":"2"}
+            path=[1]; additional=[]; values={"__fusion_1_id":"1"}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSetsFromSnapshot_Should_ReturnDistinctArrays_When_StoreIsNotCleanedBetweenCalls()
+    {
+        // arrange
+        using var arena = new MemoryArena();
+        using var source = CreateSnapshotStore(arena);
+        using var target = CreateSnapshotStore(arena);
+
+        var first = CreateVariableValues(source, Path(1), Field("__fusion_1_id", new StringValueNode("1")));
+        var second = CreateVariableValues(source, Path(2), Field("__fusion_1_id", new StringValueNode("2")));
+
+        // act
+        var firstCall = target.CreateVariableValueSetsFromSnapshot(
+            [first, second],
+            ImportedKeys("__fusion_1_id"),
+            [],
+            [Requirement("__fusion_1_id")]);
+        var secondCall = target.CreateVariableValueSetsFromSnapshot(
+            [second, first],
+            ImportedKeys("__fusion_1_id"),
+            [],
+            [Requirement("__fusion_1_id")]);
+
+        // assert
+        Assert.NotSame(
+            ImmutableCollectionsMarshal.AsArray(firstCall),
+            ImmutableCollectionsMarshal.AsArray(secondCall));
+        new[] { Normalize(firstCall), Normalize(secondCall) }.MatchInlineSnapshots(
+            [
+                """
+                path=[1]; additional=[]; values={"__fusion_1_id":"1"}
+                path=[2]; additional=[]; values={"__fusion_1_id":"2"}
+                """,
+                """
+                path=[2]; additional=[]; values={"__fusion_1_id":"2"}
+                path=[1]; additional=[]; values={"__fusion_1_id":"1"}
+                """
+            ]);
+    }
+
+    [Fact]
+    public void Reset_Should_ReuseEventValueSetArray_When_NextEventCreatesValueSets()
+    {
+        // arrange
+        using var arena = new MemoryArena();
+        using var source = CreateSnapshotStore(arena);
+        using var target = CreateSnapshotStore(arena);
+
+        var first = CreateVariableValues(source, Path(1), Field("__fusion_1_id", new StringValueNode("1")));
+        var second = CreateVariableValues(source, Path(2), Field("__fusion_1_id", new StringValueNode("2")));
+
+        // the value sets of the subscription setup stay valid for every event
+        var setup = target.CreateVariableValueSetsFromSnapshot(
+            [first, second],
+            ImportedKeys("__fusion_1_id"),
+            [],
+            [Requirement("__fusion_1_id")]);
+
+        target.Reset(new MemoryArena());
+        var firstEvent = target.CreateVariableValueSetsFromSnapshot(
+            [first, second],
+            ImportedKeys("__fusion_1_id"),
+            [],
+            [Requirement("__fusion_1_id")]);
+        var firstEventArray = ImmutableCollectionsMarshal.AsArray(firstEvent);
+
+        // the first event completes and hands its memory to its result
+        var eventMemory = target.MemoryOwners.ToArray();
+        target.MemoryOwners.Clear();
+        Array.ForEach(eventMemory, static memory => memory.Dispose());
+
+        // act
+        target.Reset(new MemoryArena());
+        var secondEvent = target.CreateVariableValueSetsFromSnapshot(
+            [second, first],
+            ImportedKeys("__fusion_1_id"),
+            [],
+            [Requirement("__fusion_1_id")]);
+
+        // assert
+        Assert.Same(firstEventArray, ImmutableCollectionsMarshal.AsArray(secondEvent));
+        Assert.NotSame(ImmutableCollectionsMarshal.AsArray(setup), firstEventArray);
+        new[] { Normalize(setup), Normalize(secondEvent) }.MatchInlineSnapshots(
+            [
+                """
+                path=[1]; additional=[]; values={"__fusion_1_id":"1"}
+                path=[2]; additional=[]; values={"__fusion_1_id":"2"}
+                """,
+                """
+                path=[2]; additional=[]; values={"__fusion_1_id":"2"}
+                path=[1]; additional=[]; values={"__fusion_1_id":"1"}
+                """
+            ]);
+    }
+
+    [Fact]
+    public void Clean_Should_ClearAndDropValueSetArray_When_ArrayExceedsRetainedEntryLimit()
+    {
+        // arrange
+        const int entryCount = 257;
+        using var arena = new MemoryArena();
+        using var source = CreateSnapshotStore(arena);
+        using var target = CreateSnapshotStore(arena);
+
+        var entries = new VariableValues[entryCount];
+
+        for (var i = 0; i < entries.Length; i++)
+        {
+            entries[i] = CreateVariableValues(
+                source,
+                Path(i + 1),
+                Field("__fusion_1_id", new StringValueNode($"value-{i}")));
+        }
+
+        var firstRequest = target.CreateVariableValueSetsFromSnapshot(
+            [.. entries],
+            ImportedKeys("__fusion_1_id"),
+            [],
+            [Requirement("__fusion_1_id")]);
+        var firstRequestArray = ImmutableCollectionsMarshal.AsArray(firstRequest)!;
+
+        // act
+        target.Clean(maxCollectTargetRetainLength: 256, maxDictionaryRetainCapacity: 256);
+        using var nextArena = new MemoryArena();
+        InitializeSnapshotStore(target, nextArena);
+        var secondRequest = target.CreateVariableValueSetsFromSnapshot(
+            [.. entries],
+            ImportedKeys("__fusion_1_id"),
+            [],
+            [Requirement("__fusion_1_id")]);
+
+        // assert
+        Assert.Equal(new VariableValues[entryCount], firstRequestArray);
+        Assert.NotSame(firstRequestArray, ImmutableCollectionsMarshal.AsArray(secondRequest));
+        Assert.Equal(entryCount, secondRequest.Length);
+    }
+
+    [Fact]
+    public void Clean_Should_TrimReturnedValueSetArrays_When_EveryLeasedArrayWasReturned()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              foos: [Foo]
+              bars: [Foo]
+            }
+
+            type Foo {
+              key: String
+              name: String
+            }
+            """);
+        var plan = PlanOperation(schema, "{ foos { key name } bars { key name } }");
+        var node = (OperationExecutionNode)plan.RootNodes.Single();
+        var requirement = Requirement(schema, "__fusion_1_key", "key", new NamedTypeNode("String"));
+        var foos = SelectionPath.Root.AppendField("foos");
+        var bars = SelectionPath.Root.AppendField("bars");
+        var candidates = new EntityReuseCandidateList([bars], ["name"], ["key"], []);
+
+        // every foo has a bar with the same key, so the lookup for the foos returns both of its
+        // value set arrays, which hold 300 entries together
+        var foosJson = string.Join(",", Enumerable.Range(0, 100).Select(i => $$"""{"key":"{{i}}","name":"foo"}"""));
+        var barsJson = string.Join(",", Enumerable.Range(0, 200).Select(i => $$"""{"key":"{{i}}","name":"bar"}"""));
+        var payload = Encoding.UTF8.GetBytes($$$"""{"data":{"foos":[{{{foosJson}}}],"bars":[{{{barsJson}}}]}}""");
+
+        using var sourceArena = new MemoryArena();
+        using var firstArena = new MemoryArena();
+        using var secondArena = new MemoryArena();
+        using var thirdArena = new MemoryArena();
+        using var store = new FetchResultStore();
+
+        // the first request retains the array that the producers of the lookup rent next
+        Initialize(firstArena);
+        var producerArray = ImmutableCollectionsMarshal.AsArray(store.CreateVariableValueSets(bars, [], [requirement]));
+        store.Clean(maxCollectTargetRetainLength: 256, maxDictionaryRetainCapacity: 256);
+
+        Initialize(secondArena);
+        var remaining = store.CreateVariableValueSets([foos], [], [requirement], candidates, out var reusedCount);
+
+        // act
+        store.Clean(maxCollectTargetRetainLength: 256, maxDictionaryRetainCapacity: 256);
+        Initialize(thirdArena);
+        var nextProducers = store.CreateVariableValueSets(bars, [], [requirement]);
+
+        // assert
+        Assert.Empty(remaining);
+        Assert.Equal(100, reusedCount);
+        Assert.NotSame(producerArray, ImmutableCollectionsMarshal.AsArray(nextProducers));
+        Assert.Equal(200, nextProducers.Length);
+
+        void Initialize(MemoryArena resultArena)
+        {
+            store.Initialize(
+                resultArena,
+                schema,
+                DefaultErrorHandler.Default,
+                plan.Operation,
+                ErrorHandlingMode.Propagate,
+                includeFlags: default,
+                deferFlags: default,
+                pathSegmentLocalPoolCapacity: 16);
+
+            var document = SourceResultDocument.Parse(sourceArena, payload, payload.Length);
+            store.AddPartialResults(
+                SelectionPath.Root,
+                [new SourceSchemaResult(CompactPath.Root, document)],
+                node.ResultSelectionSet,
+                containsErrors: false);
+        }
+    }
+
+    [Fact]
+    public void Initialize_Should_ApplyErrorHandlingMode_When_StoreIsReusedAfterClean()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              sibling: String
+              tags: [String!]
+            }
+            """);
+        var plan = PlanOperation(schema, "{ sibling tags }");
+        var node = Assert.IsType<OperationExecutionNode>(Assert.Single(plan.RootNodes));
+
+        using var firstArena = new MemoryArena();
+        using var secondArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = new FetchResultStore();
+
+        // act
+        var propagated = Complete(firstArena, ErrorHandlingMode.Propagate);
+        store.Clean(maxCollectTargetRetainLength: 256, maxDictionaryRetainCapacity: 256);
+        var nulled = Complete(secondArena, ErrorHandlingMode.Null);
+
+        // assert
+        new[] { propagated, nulled }.MatchInlineSnapshots(
+            [
+                """
+                {"sibling":"ok","tags":null}
+                """,
+                """
+                {"sibling":"ok","tags":["a",null]}
+                """
+            ]);
+
+        string Complete(MemoryArena resultArena, ErrorHandlingMode errorHandlingMode)
+        {
+            store.Initialize(
+                resultArena,
+                schema,
+                DefaultErrorHandler.Default,
+                plan.Operation,
+                errorHandlingMode,
+                includeFlags: default,
+                deferFlags: default,
+                pathSegmentLocalPoolCapacity: 16);
+
+            var payload = """{"data":{"sibling":"ok","tags":["a",null]}}"""u8.ToArray();
+            var document = SourceResultDocument.Parse(sourceArena, payload, payload.Length);
+            Assert.True(
+                store.AddPartialResults(
+                    SelectionPath.Root,
+                    [new SourceSchemaResult(CompactPath.Root, document)],
+                    node.ResultSelectionSet,
+                    containsErrors: false));
+
+            return RenderData(store);
+        }
     }
 
     [Fact]
