@@ -8,7 +8,11 @@ namespace Mocha.Transport.RabbitMQ.Tests.Helpers;
 
 public sealed class RabbitMQFixture : IAsyncLifetime
 {
+#if RABBITMQ_3
+    private readonly RabbitMQResource _resource = new() { Image = "rabbitmq:3.13" };
+#else
     private readonly RabbitMQResource _resource = new();
+#endif
 
     public async ValueTask InitializeAsync()
     {

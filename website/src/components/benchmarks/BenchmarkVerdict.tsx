@@ -9,7 +9,7 @@ import {
 } from "@/src/components/benchmarks/benchmarkView";
 import { Link } from "@/src/design-system/Link";
 import {
-  BENCHMARK_FUSION_DOCS_URL,
+  BENCHMARK_FUSION_URL,
   benchmarkVariants,
   decisiveFeatures,
   formatPlatformTag,
@@ -195,7 +195,7 @@ function overallOf(
 function linkFusion(text: string) {
   return text.split(/\b(Fusion)\b/).map((part, index) =>
     part === "Fusion" ? (
-      <Link key={index} href={BENCHMARK_FUSION_DOCS_URL}>
+      <Link key={index} href={BENCHMARK_FUSION_URL}>
         {part}
       </Link>
     ) : (

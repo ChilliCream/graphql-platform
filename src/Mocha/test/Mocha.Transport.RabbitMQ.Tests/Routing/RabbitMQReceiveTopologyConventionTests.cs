@@ -136,11 +136,11 @@ public class RabbitMQReceiveTopologyConventionTests
     }
 
     [Fact]
-    public void DiscoverTopology_Should_MaterializeNonDurableAutoDeleteQueue_When_RouteIsReply()
+    public void DiscoverTopology_Should_MaterializeDurableAutoDeleteQueueWithExpiry_When_RouteIsReply()
     {
         // arrange
         // The generated reply endpoint sets IsTemporary, and the reply queue must go through the
-        // same non-durable, auto-delete lifecycle path as any other temporary endpoint.
+        // same durable, auto-delete plus queue expiry lifecycle path as any other temporary endpoint.
         var services = new ServiceCollection();
         services.AddInMemorySagas();
         var builder = services.AddMessageBus();
@@ -162,8 +162,10 @@ public class RabbitMQReceiveTopologyConventionTests
         var queue = topology.Queues.Single(q => q.Name == replyEndpoint.Queue.Name);
 
         // assert
-        Assert.False(queue.Durable);
+        Assert.True(queue.Durable);
+        Assert.False(queue.Exclusive);
         Assert.True(queue.AutoDelete);
+        Assert.Equal(1800000, queue.Arguments["x-expires"]);
     }
 
     [Fact]

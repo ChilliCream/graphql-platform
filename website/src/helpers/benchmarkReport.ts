@@ -1,7 +1,7 @@
 export const BENCHMARK_REPOSITORY =
   "https://github.com/ChilliCream/graphql-federation-benchmarks";
 
-export const BENCHMARK_FUSION_DOCS_URL = "/docs/fusion";
+export const BENCHMARK_FUSION_URL = "/products/fusion";
 
 const RUNTIME_TAGS: Readonly<Record<string, string>> = {
   "Node.js": "Node",
@@ -674,10 +674,10 @@ export function variantName({
     : name;
 }
 
-/** Returns the link for a gateway: the Fusion docs for Fusion, otherwise its HTTPS repository URL, or undefined. */
+/** Returns the link for a gateway: the Fusion product page for Fusion, otherwise its HTTPS repository URL, or undefined. */
 export function gatewayLink(gateway: BenchmarkGateway): string | undefined {
   if (gateway.id === "fusion") {
-    return BENCHMARK_FUSION_DOCS_URL;
+    return BENCHMARK_FUSION_URL;
   }
   return gateway.repositoryUrl?.startsWith("https://")
     ? gateway.repositoryUrl

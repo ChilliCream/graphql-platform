@@ -465,15 +465,10 @@ internal static class MiddlewareHelper
         return executionResult.StatusCode;
     }
 
-    /// <summary>
-    /// Whether the request carries a list of variable sets, which makes it a variable batch.
-    /// </summary>
-    public static bool IsVariableBatch(GraphQLRequest request)
-        => request.Variables is { RootElement.ValueKind: JsonValueKind.Array };
-
     public static async Task<ExecuteRequestResult> ExecuteRequestAsync(
         GraphQLRequest request,
         RequestFlags flags,
+        GraphQLServerOptions options,
         HttpContext context,
         ExecutorSession executorSession)
     {
@@ -481,19 +476,7 @@ internal static class MiddlewareHelper
 
         try
         {
-            executorSession.DiagnosticEvents.StartSingleRequest(context, request);
-
-            var requestBuilder = OperationRequestBuilder.From(request);
-            requestBuilder.SetFlags(flags);
-
-            await executorSession.OnCreateAsync(
-                context,
-                requestBuilder,
-                context.RequestAborted);
-
-            var result = await executorSession.ExecuteAsync(
-                requestBuilder.Build(),
-                context.RequestAborted);
+            var result = await executorSession.ExecuteSingleAsync(context, request, flags, options);
 
             return new ExecuteRequestResult(result);
         }
