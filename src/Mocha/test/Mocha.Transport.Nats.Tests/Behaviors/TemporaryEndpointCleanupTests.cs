@@ -55,6 +55,51 @@ public sealed class TemporaryEndpointCleanupTests(JetStreamFixture fixture)
     }
 
     [Fact]
+    public async Task StopAsync_Should_KeepTheConsumer_When_AnotherInstanceIsStillReading()
+    {
+        // arrange
+        await using var scope = await fixture.CreateScopeAsync();
+        await using var first = await BuildBusAsync(
+            scope,
+            new MessageRecorder(),
+            endpoint => endpoint.Temporary(TimeSpan.FromMinutes(5)));
+        await using var second = await BuildBusAsync(
+            scope,
+            new MessageRecorder(),
+            endpoint => endpoint.Temporary(TimeSpan.FromMinutes(5)));
+        var consumer = Assert.Single(first.Topology.Consumers, c => c.Name == EndpointName);
+        var subject = Assert.Single(consumer.FilterSubjects);
+        await WaitForPullRequestsAsync(consumer.StreamName!, expected: 2);
+
+        // act
+        await first.Runtime.StopAsync(TestContext.Current.CancellationToken);
+        var afterFirstStop = await InspectResourcesAsync(
+            consumer.StreamName!,
+            subject,
+            TestContext.Current.CancellationToken);
+        await second.Runtime.StopAsync(TestContext.Current.CancellationToken);
+        var afterLastStop = await InspectResourcesAsync(
+            consumer.StreamName!,
+            subject,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        new { AfterFirstStop = afterFirstStop, AfterLastStop = afterLastStop }.MatchInlineSnapshot(
+            """
+            {
+              "AfterFirstStop": {
+                "QueueExists": true,
+                "BindingExists": true
+              },
+              "AfterLastStop": {
+                "QueueExists": false,
+                "BindingExists": false
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task Temporary_Should_SetTheDefaultInactiveThreshold_When_NoneIsGiven()
     {
         // arrange
@@ -142,6 +187,26 @@ public sealed class TemporaryEndpointCleanupTests(JetStreamFixture fixture)
                 configureEndpoint(nats.Endpoint(EndpointName).Handler<OrderCreatedHandler>());
             })
             .BuildTestBusAsync();
+
+    private async Task WaitForPullRequestsAsync(string streamName, int expected)
+    {
+        var deadline = DateTimeOffset.UtcNow + TimeSpan.FromSeconds(10);
+
+        while (DateTimeOffset.UtcNow < deadline)
+        {
+            var consumer = await fixture.JetStream.GetConsumerAsync(
+                streamName,
+                EndpointName,
+                TestContext.Current.CancellationToken);
+
+            if (consumer.Info.NumWaiting >= expected)
+            {
+                return;
+            }
+
+            await Task.Delay(TimeSpan.FromMilliseconds(100), TestContext.Current.CancellationToken);
+        }
+    }
 
     private async Task<TimeSpan?> GetServerInactiveThresholdAsync(TestBus bus)
     {

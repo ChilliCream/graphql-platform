@@ -457,7 +457,7 @@ nats.Endpoint("order-notifications")
     .Temporary();
 ```
 
-The consumer is deleted when the endpoint stops gracefully. A process that ends without stopping leaves the consumer to the server, which deletes it once nothing has read it for its inactive threshold, ten seconds by default. Use `Temporary(TimeSpan inactiveThreshold)` for a different threshold. Mocha throws `ArgumentOutOfRangeException` for a value that is not greater than zero.
+Instances that run the same temporary endpoint share its consumer. When an endpoint stops gracefully, it deletes the consumer unless another instance is still reading from it. A consumer left in place, by an instance still reading or by a process that ended without stopping, is deleted by the server once nothing has read it for its inactive threshold, ten seconds by default. Use `Temporary(TimeSpan inactiveThreshold)` for a different threshold. Mocha throws `ArgumentOutOfRangeException` for a value that is not greater than zero.
 
 If the endpoint's consumer is already declared through `DeclareConsumer(...)` without an inactive threshold, startup fails with an explicit error instead of silently discarding the `Temporary()` configuration.
 

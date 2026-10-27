@@ -226,8 +226,8 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
     }
 
     /// <summary>
-    /// Deletes a temporary endpoint's consumer, leaving it to the server's inactive threshold when
-    /// the deletion fails.
+    /// Deletes a temporary endpoint's consumer unless another client is still pulling from it. A
+    /// consumer left in place is deleted by the server once its inactive threshold passes.
     /// </summary>
     private async Task DeleteTemporaryConsumerAsync(
         string streamName,
@@ -236,6 +236,13 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
     {
         try
         {
+            var info = await transport.JetStream.GetConsumerAsync(streamName, consumerName, cancellationToken);
+
+            if (info.Info.NumWaiting > 0)
+            {
+                return;
+            }
+
             await transport.JetStream.DeleteConsumerAsync(streamName, consumerName, cancellationToken);
         }
         catch (NatsJSApiException exception) when (exception.Error.Code == 404)

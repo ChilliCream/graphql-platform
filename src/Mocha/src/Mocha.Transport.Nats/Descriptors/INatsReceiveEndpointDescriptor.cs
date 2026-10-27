@@ -31,8 +31,8 @@ public interface INatsReceiveEndpointDescriptor
 
     /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.Temporary" />
     /// <remarks>
-    /// The consumer is deleted when the endpoint stops gracefully, and otherwise by the server once
-    /// nothing has read it for <see cref="NatsConsumer.DefaultTemporaryInactiveThreshold"/>.
+    /// The consumer is deleted when the last instance reading it stops gracefully, and otherwise by
+    /// the server once nothing has read it for <see cref="NatsConsumer.DefaultTemporaryInactiveThreshold"/>.
     /// </remarks>
     new INatsReceiveEndpointDescriptor Temporary();
 
