@@ -54,6 +54,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     private int _disposed;
     private int _activeNodeSlotCount;
     private int _nodeSlotCapacity;
+    private int _variableIndex;
     private MemoryArena? _memory;
     private readonly FixedMemoryArenaSource _memorySource = new();
 #pragma warning disable IDE0370 // Remove unnecessary suppression
@@ -922,7 +923,11 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
                 resultDocument.Data.IsNullOrInvalidated || resultDocument.Data.IsNullMarker,
                 resultDocument,
                 retainMemoryForDefer ? null : resultDocument),
-            _resultStore.Errors?.ToImmutableList());
+            _resultStore.Errors?.ToImmutableList())
+        {
+            RequestIndex = RequestContext.RequestIndex > -1 ? RequestContext.RequestIndex : null,
+            VariableIndex = _variableIndex > -1 ? _variableIndex : null
+        };
 
         if (!retainMemoryForDefer)
         {

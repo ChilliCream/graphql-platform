@@ -95,6 +95,7 @@ internal sealed class OperationExecutionMiddleware
                         tasks[i] = OperationPlanExecutor.ExecuteAsync(
                             context,
                             variableValues[i],
+                            variableIndex: i,
                             operationPlan,
                             cancellationToken);
                     }
@@ -133,6 +134,7 @@ internal sealed class OperationExecutionMiddleware
                     context.Result = await OperationPlanExecutor.ExecuteAsync(
                         context,
                         context.VariableValues[0],
+                        variableIndex: -1,
                         operationPlan,
                         cancellationToken);
                 }
