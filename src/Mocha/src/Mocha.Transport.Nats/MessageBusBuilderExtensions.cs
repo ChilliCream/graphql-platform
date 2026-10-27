@@ -30,7 +30,8 @@ public static class MessageBusBuilderExtensions
             new ScheduledMessageStoreRegistration(
                 transport,
                 NatsScheduledMessageStore.TokenPrefix,
-                _ => new NatsScheduledMessageStore(transport)));
+                _ => new NatsScheduledMessageStore(transport),
+                () => transport.SchedulingEnabled));
 
         return busBuilder;
     }

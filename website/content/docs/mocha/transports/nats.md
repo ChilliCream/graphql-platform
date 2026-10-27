@@ -428,6 +428,15 @@ JetStream holds scheduled messages itself, so the transport does not run a sched
 
 Enabling scheduling turns on per-message TTL and message schedules on the stream, and captures a scheduling namespace alongside each subject.
 
+Without `EnableScheduling()`, a scheduled message goes to the `UsePostgresScheduling()` fallback store when one is registered, and otherwise throws `NotSupportedException`:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddEntityFramework<AppDbContext>(persistence => persistence.UsePostgresScheduling())
+    .AddNats(nats => nats.StreamName("order-service"));
+```
+
 Each scheduled message gets its own subject inside that namespace, so the stream captures it as a filter such as `contracts.orders.order-created._schedule.>`. A subject holds at most one schedule, so messages sharing a scheduling subject would replace one another and only the last would ever be delivered.
 
 `MessageEnvelope.ScheduledTime` maps to a message schedule, requiring server 2.12, and `DeliverBy` maps to a per-message TTL, requiring server 2.11. Dispatching either to a server too old to support it fails with an explicit error rather than silently.

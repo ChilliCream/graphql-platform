@@ -6,9 +6,9 @@ using NATS.Client.JetStream.Models;
 namespace Mocha.Transport.Nats;
 
 /// <summary>
-/// Hands scheduled messages to JetStream rather than storing them.
+/// Hands scheduled messages to JetStream rather than storing them. Used only while the transport has
+/// scheduling enabled; otherwise a scheduled send goes to the fallback store, if one is registered.
 /// </summary>
-// Registered because the dispatch pipeline refuses a scheduled send for a transport without a store.
 internal sealed class NatsScheduledMessageStore(NatsMessagingTransport transport) : IScheduledMessageStore
 {
     /// <summary>
