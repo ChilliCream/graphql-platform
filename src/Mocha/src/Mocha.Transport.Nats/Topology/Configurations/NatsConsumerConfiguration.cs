@@ -70,4 +70,10 @@ public sealed class NatsConsumerConfiguration : TopologyConfiguration<NatsMessag
     /// Gets or sets a value indicating whether the consumer is provisioned during topology setup.
     /// </summary>
     public bool? AutoProvision { get; set; }
+
+    /// <summary>
+    /// Gets or sets how long the consumer may go unread before the server deletes it, or
+    /// <see langword="null"/> for a consumer that persists.
+    /// </summary>
+    public TimeSpan? InactiveThreshold { get; set; }
 }

@@ -114,9 +114,25 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
             streamName,
             consumer.Name,
             cancellationToken);
+        var restarting = false;
 
         _consumeLoop = RunAsync(
-            token => ConsumeAsync(jsConsumer, token, _aborting.Token),
+            async token =>
+            {
+                if (restarting)
+                {
+                    if (consumer.IsTemporary)
+                    {
+                        await consumer.ProvisionAsync(transport.JetStream, token);
+                    }
+
+                    jsConsumer = await transport.JetStream.GetConsumerAsync(streamName, consumer.Name, token);
+                }
+
+                restarting = true;
+
+                await ConsumeAsync(jsConsumer, token, _aborting.Token);
+            },
             _stopping.Token);
     }
 
@@ -196,11 +212,46 @@ public sealed class NatsReceiveEndpoint(NatsMessagingTransport transport)
             }
         }
 
+        if (Consumer is { IsTemporary: true, StreamName: { } streamName } consumer
+            && transport.ShouldProvision(consumer))
+        {
+            await DeleteTemporaryConsumerAsync(streamName, consumer.Name, cancellationToken);
+        }
+
         _stopping.Dispose();
         _stopping = null;
         _aborting?.Dispose();
         _aborting = null;
         _consumeLoop = null;
+    }
+
+    /// <summary>
+    /// Deletes a temporary endpoint's consumer unless another client is still pulling from it. A
+    /// consumer left in place is deleted by the server once its inactive threshold passes.
+    /// </summary>
+    private async Task DeleteTemporaryConsumerAsync(
+        string streamName,
+        string consumerName,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var info = await transport.JetStream.GetConsumerAsync(streamName, consumerName, cancellationToken);
+
+            if (info.Info.NumWaiting > 0)
+            {
+                return;
+            }
+
+            await transport.JetStream.DeleteConsumerAsync(streamName, consumerName, cancellationToken);
+        }
+        catch (NatsJSApiException exception) when (exception.Error.Code == 404)
+        {
+        }
+        catch (Exception exception)
+        {
+            _logger.TemporaryConsumerCleanupFailed(exception, consumerName);
+        }
     }
 
     /// <summary>

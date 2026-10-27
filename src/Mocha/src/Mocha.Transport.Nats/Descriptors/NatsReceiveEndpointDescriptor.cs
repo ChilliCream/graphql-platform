@@ -70,6 +70,21 @@ internal sealed class NatsReceiveEndpointDescriptor
         return this;
     }
 
+    public new INatsReceiveEndpointDescriptor Temporary()
+    {
+        base.Temporary();
+        return this;
+    }
+
+    public INatsReceiveEndpointDescriptor Temporary(TimeSpan inactiveThreshold)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(inactiveThreshold, TimeSpan.Zero);
+
+        base.Temporary();
+        Configuration.TemporaryInactiveThreshold = inactiveThreshold;
+        return this;
+    }
+
     public new INatsReceiveEndpointDescriptor UseReceive(
         ReceiveMiddlewareConfiguration configuration,
         string? before = null,

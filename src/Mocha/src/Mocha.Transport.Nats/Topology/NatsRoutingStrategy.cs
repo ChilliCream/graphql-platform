@@ -206,10 +206,18 @@ public sealed class NatsRoutingStrategy : RoutingStrategy<NatsMessagingTransport
         EnsureFaultSubject(natsConfiguration.Features.Get<ReceiveFaultEndpointFeature>()?.Address);
         EnsureFaultSubject(natsConfiguration.Features.Get<ReceiveSkippedEndpointFeature>()?.Address);
 
+        if (natsConfiguration.IsTemporary)
+        {
+            EnsureNoPersistentConsumerConflict(natsConfiguration);
+        }
+
         // MaxConcurrency is deliberately not mapped onto MaxAckPending: one bounds this process, the
         // other is the ceiling shared by every instance reading the durable.
         Topology.AddConsumer(new NatsConsumerConfiguration
         {
+            InactiveThreshold = natsConfiguration.IsTemporary
+                ? natsConfiguration.TemporaryInactiveThreshold ?? NatsConsumer.DefaultTemporaryInactiveThreshold
+                : null,
             Name = natsConfiguration.ConsumerName,
             StreamName = natsConfiguration.StreamName,
             FilterSubjects = natsConfiguration.FilterSubjects,
@@ -256,6 +264,17 @@ public sealed class NatsRoutingStrategy : RoutingStrategy<NatsMessagingTransport
     /// </summary>
     private MessagingBindMode ResolveBindMode(NatsReceiveEndpointConfiguration configuration)
         => configuration.BindMode ?? Transport.BindMode;
+
+    private void EnsureNoPersistentConsumerConflict(NatsReceiveEndpointConfiguration configuration)
+    {
+        if (Topology.Consumers.FirstOrDefault(c => c.Name == configuration.ConsumerName)
+            is { Origin: TopologyOrigin.Declared, IsTemporary: false })
+        {
+            throw ThrowHelper.TemporaryEndpointConsumerDeclaredPersistent(
+                configuration.Name,
+                configuration.ConsumerName!);
+        }
+    }
 
     private void EnsureFaultSubject(Uri? address)
     {

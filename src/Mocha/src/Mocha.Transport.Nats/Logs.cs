@@ -72,4 +72,13 @@ internal static partial class Logs
         + "reach the server, so it is redelivered once its acknowledgement deadline expires rather "
         + "than immediately.")]
     public static partial void ReleaseFailed(this ILogger logger, Exception exception, string endpointName);
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "Deleting temporary consumer '{ConsumerName}' failed, so the server deletes it once its "
+        + "inactive threshold passes.")]
+    public static partial void TemporaryConsumerCleanupFailed(
+        this ILogger logger,
+        Exception exception,
+        string consumerName);
 }
