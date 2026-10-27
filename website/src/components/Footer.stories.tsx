@@ -30,11 +30,11 @@ export const Default: Story = {
         .getAllByRole("link")
         .map((link) => [link.textContent, link.getAttribute("href")]),
     ).toEqual([
-      ["GraphQL Federation", "/platform/graphql-federation"],
       ["Analytics", "/platform/analytics"],
       ["Release Safety", "/platform/release-safety"],
-      ["Ecosystem", "/platform/ecosystem"],
       ["Agentic Development", "/platform/agentic-coding"],
+      ["GraphQL Federation", "/platform/graphql-federation"],
+      ["Ecosystem", "/platform/ecosystem"],
       ["Nitro", "/products/nitro"],
       ["Fusion", "/products/fusion"],
       ["Mocha", "/products/mocha"],
