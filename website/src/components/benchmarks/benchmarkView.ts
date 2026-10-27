@@ -1,6 +1,6 @@
 import {
   BENCHMARK_REPOSITORY,
-  BENCHMARK_FUSION_DOCS_URL,
+  BENCHMARK_FUSION_URL,
   benchmarkRunId,
   benchmarkVariants,
   formatPlatform,
@@ -517,7 +517,7 @@ export interface BenchmarkFacts {
     readonly readme: string;
     readonly issues: string;
     readonly guild: string;
-    readonly fusionDocs: string;
+    readonly fusion: string;
   };
 }
 
@@ -562,7 +562,7 @@ export function benchmarkFacts(report: BenchmarkReport): BenchmarkFacts {
       readme: `${source}/README.md`,
       issues: `${BENCHMARK_REPOSITORY}/issues`,
       guild: "https://github.com/graphql-hive/graphql-gateways-benchmark",
-      fusionDocs: BENCHMARK_FUSION_DOCS_URL,
+      fusion: BENCHMARK_FUSION_URL,
     },
   };
 }
