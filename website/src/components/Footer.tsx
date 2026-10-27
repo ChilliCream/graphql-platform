@@ -71,6 +71,7 @@ export default function Footer() {
                 Agentic Development
               </NavLink>
               <NavLink href="/products/nitro">Nitro</NavLink>
+              <NavLink href="/products/fusion">Fusion</NavLink>
               <NavLink href="/products/mocha">Mocha</NavLink>
             </LinkColumn>
             <LinkColumn title="Services">
