@@ -128,7 +128,7 @@ export const NAV_ITEMS: NavItem[] = [
           {
             href: "/products/fusion",
             label: "Fusion",
-            description: "The gateway for GraphQL Federation.",
+            description: "The router for GraphQL Federation.",
             icon: Fusion,
             iconSize: FUSION_ARTWORK,
           },
