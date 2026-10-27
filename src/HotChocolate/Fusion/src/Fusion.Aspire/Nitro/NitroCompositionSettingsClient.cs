@@ -97,14 +97,27 @@ internal sealed class NitroCompositionSettingsClient(GraphQLHttpClient client)
                 CacheControlMergeBehavior = ReadDirectiveMergeBehavior(
                     settings,
                     "cacheControlMergeBehavior"),
+                DefaultListSize = ReadDefaultListSize(settings, "defaultListSize"),
                 EnableGlobalObjectIdentification = ReadBoolean(
                     settings,
                     "enableGlobalObjectIdentification"),
+                EnumValuesMergeBehavior = ReadEnumValuesMergeBehavior(
+                    settings,
+                    "enumValuesMergeBehavior"),
                 NodeResolution = ReadNodeResolution(settings, "nodeResolution"),
                 RemoveUnreferencedDefinitions = ReadBoolean(
                     settings,
                     "removeUnreferencedDefinitions"),
                 TagMergeBehavior = ReadDirectiveMergeBehavior(settings, "tagMergeBehavior")
+            },
+            ApolloFederationCompatibility = new CompositionSettings.ApolloFederationCompatibilitySettings
+            {
+                AllowNonResolvableInterfaceObjects = ReadBoolean(
+                    settings,
+                    "allowNonResolvableInterfaceObjects"),
+                ShareableFieldRuntimeTypeRouting = ReadShareableFieldRuntimeTypeRouting(
+                    settings,
+                    "shareableFieldRuntimeTypeRouting")
             }
         };
     }
@@ -124,6 +137,22 @@ internal sealed class NitroCompositionSettingsClient(GraphQLHttpClient client)
             _ => throw new InvalidDataException(
                 $"Nitro returned an invalid value for '{propertyName}'.")
         };
+    }
+
+    private static int? ReadDefaultListSize(JsonElement parent, string propertyName)
+    {
+        if (!parent.TryGetProperty(propertyName, out var value)
+            || value.ValueKind is JsonValueKind.Null)
+        {
+            return null;
+        }
+
+        return value.ValueKind is JsonValueKind.Number
+            && value.TryGetInt32(out var size)
+            && size >= 0
+                ? size
+                : throw new InvalidDataException(
+                    $"Nitro returned an invalid value for '{propertyName}'.");
     }
 
     private static HashSet<string>? ReadStringSet(JsonElement parent, string propertyName)
@@ -166,6 +195,37 @@ internal sealed class NitroCompositionSettingsClient(GraphQLHttpClient client)
             "IGNORE" => DirectiveMergeBehavior.Ignore,
             "INCLUDE" => DirectiveMergeBehavior.Include,
             "INCLUDE_PRIVATE" => DirectiveMergeBehavior.IncludePrivate,
+            _ => throw new InvalidDataException(
+                $"Nitro returned an invalid value for '{propertyName}'.")
+        };
+    }
+
+    private static EnumValuesMergeBehavior? ReadEnumValuesMergeBehavior(
+        JsonElement parent,
+        string propertyName)
+    {
+        var value = ReadEnum(parent, propertyName);
+        return value switch
+        {
+            null => null,
+            "AUTO" => EnumValuesMergeBehavior.Auto,
+            "STRICT" => EnumValuesMergeBehavior.Strict,
+            "UNION" => EnumValuesMergeBehavior.Union,
+            _ => throw new InvalidDataException(
+                $"Nitro returned an invalid value for '{propertyName}'.")
+        };
+    }
+
+    private static ShareableFieldRuntimeTypeRouting? ReadShareableFieldRuntimeTypeRouting(
+        JsonElement parent,
+        string propertyName)
+    {
+        var value = ReadEnum(parent, propertyName);
+        return value switch
+        {
+            null => null,
+            "SOURCE_LOCAL" => ShareableFieldRuntimeTypeRouting.SourceLocal,
+            "COMMON_RUNTIME_TYPES" => ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes,
             _ => throw new InvalidDataException(
                 $"Nitro returned an invalid value for '{propertyName}'.")
         };
