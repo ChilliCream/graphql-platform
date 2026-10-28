@@ -94,6 +94,27 @@ public sealed class ValidationOptions
 
     /// <summary>
     /// <para>
+    /// The maximum depth to which the selection sets of an operation can be nested
+    /// when its fragment spreads are followed.
+    /// </para>
+    /// <para>Default: <c>200</c></para>
+    /// </summary>
+    public int MaxAllowedSelectionSetDepth
+    {
+        get;
+        set
+        {
+            if (value < 1)
+            {
+                value = 200;
+            }
+
+            field = value;
+        }
+    } = 200;
+
+    /// <summary>
+    /// <para>
     /// The maximum number of field-merge comparisons allowed during
     /// overlapping-fields-can-be-merged validation. This prevents
     /// adversarial queries with deeply nested inline fragments from
