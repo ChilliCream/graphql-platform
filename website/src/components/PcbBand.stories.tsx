@@ -52,3 +52,26 @@ export const CompactPadding: Story = {
 export const Light: Story = {
   beforeEach: lightAppearance,
 };
+
+const narrowArgs = {
+  className: "pb-16 w-full! left-0! translate-x-0!",
+};
+
+const narrowDecorator: NonNullable<Story["decorators"]> = [
+  (Story) => (
+    <div style={{ width: 375 }}>
+      <Story />
+    </div>
+  ),
+];
+
+export const LightNarrow: Story = {
+  beforeEach: lightAppearance,
+  args: narrowArgs,
+  decorators: narrowDecorator,
+};
+
+export const DarkNarrow: Story = {
+  args: narrowArgs,
+  decorators: narrowDecorator,
+};
