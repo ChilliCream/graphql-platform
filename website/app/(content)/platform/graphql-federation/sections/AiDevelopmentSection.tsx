@@ -5,7 +5,7 @@ export function AiDevelopmentSection() {
   return (
     <Section id="ai-driven-development">
       <div className="grid items-center gap-10 lg:grid-cols-12 lg:gap-16">
-        <div className="min-w-0 lg:order-2 lg:col-span-5">
+        <div className="min-w-0 lg:order-2 lg:col-span-7">
           <h2 className="font-heading text-cc-heading text-h4 sm:text-h3 font-semibold text-balance">
             GraphQL Federation for{" "}
             <span className="whitespace-nowrap">AI-driven</span> development
@@ -38,7 +38,7 @@ export function AiDevelopmentSection() {
             </p>
           </div>
         </div>
-        <div className="min-w-0 lg:order-1 lg:col-span-7">
+        <div className="min-w-0 lg:order-1 lg:col-span-5">
           <LayeredCompositionGraphic />
         </div>
       </div>
