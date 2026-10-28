@@ -322,6 +322,11 @@ public static class ErrorCodes
         /// The maximum allowed coordinate cycle depth was exceeded.
         /// </summary>
         public const string MaxCoordinateCycleDepthOverflow = "HC0087";
+
+        /// <summary>
+        /// The maximum allowed selection set depth was exceeded.
+        /// </summary>
+        public const string MaxSelectionSetDepthOverflow = "HC0138";
     }
 
     /// <summary>

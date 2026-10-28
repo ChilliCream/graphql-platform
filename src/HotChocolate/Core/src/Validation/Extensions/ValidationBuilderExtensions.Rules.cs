@@ -386,4 +386,13 @@ public static partial class HotChocolateValidationBuilderExtensions
     public static IValidationBuilder RemoveMaxAllowedFieldCycleDepthRule(
         this IValidationBuilder builder)
         => builder.TryRemoveValidationVisitor<MaxAllowedFieldCycleDepthVisitor>();
+
+    /// <summary>
+    /// Adds a validation rule that restricts how deep the selection sets of a GraphQL operation
+    /// can be nested when its fragment spreads are followed.
+    /// </summary>
+    public static IValidationBuilder AddSelectionSetDepthRule(
+        this IValidationBuilder builder)
+        => builder.TryAddValidationRule(
+            (_, o) => new SelectionSetDepthRule(o.MaxAllowedSelectionSetDepth));
 }
