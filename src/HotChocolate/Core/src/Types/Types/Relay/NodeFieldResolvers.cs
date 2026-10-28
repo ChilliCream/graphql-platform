@@ -78,73 +78,88 @@ internal static class NodeFieldResolvers
             var tasks = ArrayPool<Task<object?>>.Shared.Rent(list.Items.Count);
             var result = new object?[list.Items.Count];
             var ct = context.RequestAborted;
+            var started = 0;
 
-            for (var i = 0; i < list.Items.Count; i++)
+            try
             {
-                ct.ThrowIfCancellationRequested();
-
-                var nodeId = (StringValueNode)list.Items[i];
-                var deserializedId = serializer.Parse(nodeId.Value, context.Schema);
-                var typeName = deserializedId.TypeName;
-
-                // if the type has a registered node resolver we will execute it.
-                if (schema.TryGetType<ObjectType>(typeName, out var type) &&
-                    type.ContextData.TryGetValue(NodeResolver, out var o) &&
-                    o is NodeResolverInfo nodeResolverInfo)
+                for (var i = 0; i < list.Items.Count; i++)
                 {
-                    var nodeContext = context.Clone();
+                    ct.ThrowIfCancellationRequested();
 
-                    SetLocalContext(nodeContext, nodeId, deserializedId, type);
-                    TryReplaceArguments(nodeContext, nodeResolverInfo, Ids, nodeId);
+                    var nodeId = (StringValueNode)list.Items[i];
+                    var deserializedId = serializer.Parse(nodeId.Value, context.Schema);
+                    var typeName = deserializedId.TypeName;
 
-                    tasks[i] = ExecutePipelineAsync(nodeContext, nodeResolverInfo);
-                }
-                else
-                {
-                    tasks[i] = _nullTask;
-
-                    context.ReportError(
-                        ErrorHelper.Relay_NoNodeResolver(
-                            typeName,
-                            context.Path,
-                            context.Selection.SyntaxNodes));
-                }
-            }
-
-            for (var i = 0; i < list.Items.Count; i++)
-            {
-                ct.ThrowIfCancellationRequested();
-
-                var task = tasks[i];
-
-                if (task.IsCompleted)
-                {
-                    if (task.Exception is null)
+                    // if the type has a registered node resolver we will execute it.
+                    if (schema.TryGetType<ObjectType>(typeName, out var type) &&
+                        type.ContextData.TryGetValue(NodeResolver, out var o) &&
+                        o is NodeResolverInfo nodeResolverInfo)
                     {
-                        result[i] = task.Result;
+                        var nodeContext = context.Clone();
+
+                        SetLocalContext(nodeContext, nodeId, deserializedId, type);
+                        TryReplaceArguments(nodeContext, nodeResolverInfo, Ids, nodeId);
+
+                        tasks[i] = ExecutePipelineAsync(nodeContext, nodeResolverInfo);
                     }
                     else
                     {
-                        result[i] = null;
-                        ReportError(context, i, task.Exception);
-                    }
-                }
-                else
-                {
-                    try
-                    {
-                        result[i] = await task;
-                    }
-                    catch (Exception ex)
-                    {
-                        result[i] = null;
-                        ReportError(context, i, ex);
-                    }
-                }
-            }
+                        tasks[i] = _nullTask;
 
-            context.Result = result;
-            ArrayPool<Task<object?>>.Shared.Return(tasks, true);
+                        context.ReportError(
+                            ErrorHelper.Relay_NoNodeResolver(
+                                typeName,
+                                context.Path,
+                                context.Selection.SyntaxNodes));
+                    }
+
+                    started++;
+                }
+
+                for (var i = 0; i < list.Items.Count; i++)
+                {
+                    ct.ThrowIfCancellationRequested();
+
+                    var task = tasks[i];
+
+                    if (task.IsCompleted)
+                    {
+                        if (task.Exception is null)
+                        {
+                            result[i] = task.Result;
+                        }
+                        else
+                        {
+                            result[i] = null;
+                            ReportError(context, i, task.Exception);
+                        }
+                    }
+                    else
+                    {
+                        try
+                        {
+                            result[i] = await task;
+                        }
+                        catch (Exception ex)
+                        {
+                            result[i] = null;
+                            ReportError(context, i, ex);
+                        }
+                    }
+                }
+
+                context.Result = result;
+            }
+            finally
+            {
+                // wait for all started node resolvers before completing the field.
+                for (var i = 0; i < started; i++)
+                {
+                    await ((Task)tasks[i]).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+                }
+
+                ArrayPool<Task<object?>>.Shared.Return(tasks, true);
+            }
         }
         else
         {
