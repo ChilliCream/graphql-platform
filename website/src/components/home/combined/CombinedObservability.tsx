@@ -20,10 +20,10 @@ const MONO =
 
 type Status = "firing" | "investigating" | "healthy";
 
-const STATUS_HEX: Record<Status, string> = {
-  firing: "#f0786a",
-  investigating: "#fbbf24",
-  healthy: "#34d399",
+const STATUS_COLOR: Record<Status, string> = {
+  firing: "var(--color-cc-status-firing)",
+  investigating: "var(--color-cc-status-investigating)",
+  healthy: "var(--color-cc-status-healthy)",
 };
 
 const STATUS_TEXT: Record<Status, string> = {
@@ -132,7 +132,7 @@ function ImpactFacet() {
               }`}
               style={
                 pinned
-                  ? { boxShadow: `inset 2px 0 0 ${STATUS_HEX.firing}` }
+                  ? { boxShadow: `inset 2px 0 0 ${STATUS_COLOR.firing}` }
                   : undefined
               }
             >
@@ -563,7 +563,7 @@ interface StatusDotProps {
 }
 
 function StatusDot({ status }: StatusDotProps) {
-  const color = STATUS_HEX[status];
+  const color = STATUS_COLOR[status];
   return (
     <svg
       width={12}
@@ -576,7 +576,7 @@ function StatusDot({ status }: StatusDotProps) {
         cx={7}
         cy={7}
         r={5}
-        fill={`${color}22`}
+        fill={`color-mix(in srgb, ${color} 13.333%, transparent)`}
         stroke={color}
         strokeWidth={1}
       />
@@ -619,7 +619,7 @@ function ImpactBar({ status, impact }: ImpactBarProps) {
         width={impact}
         height={5}
         rx={2.5}
-        fill={STATUS_HEX[status]}
+        fill={STATUS_COLOR[status]}
       />
     </svg>
   );

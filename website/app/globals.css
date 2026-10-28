@@ -791,6 +791,9 @@ svg[role="graphics-document"][id^="mermaid-"] {
     --color-cc-warning: #854d0e;
     --color-cc-danger: #b42335;
     --color-cc-info: #5b21b6;
+    --color-cc-status-firing: #b8392b;
+    --color-cc-status-investigating: #854d0e;
+    --color-cc-status-healthy: #0f6651;
     --color-cc-solid-hover: #243449;
     --color-cc-control-bg: #fff;
     --color-cc-control-border: #857a68;
