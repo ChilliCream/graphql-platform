@@ -18,7 +18,7 @@ export const PRODUCTS: readonly Product[] = [
   {
     slug: "fusion",
     title: "Fusion",
-    description: "GraphQL Federation Gateway",
+    description: "GraphQL Federation Router",
   },
   {
     slug: "strawberryshake",
