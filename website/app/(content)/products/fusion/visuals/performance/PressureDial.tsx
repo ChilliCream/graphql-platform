@@ -12,10 +12,9 @@ import {
   CLUSTER,
   CX,
   CY,
-  ELECTRIC,
-  ELECTRIC_BRIGHT,
-  ELECTRIC_DIM,
-  ELECTRIC_TEXT,
+  ACCENT,
+  ACCENT_BRIGHT,
+  TRACK,
   VB,
   type Arc,
 } from "./hud";
@@ -78,7 +77,7 @@ function RimArc({ arc, color, offset, glowId }: RimArcProps) {
       <path
         d={d}
         fill="none"
-        stroke={ELECTRIC_DIM}
+        stroke={TRACK}
         strokeWidth={ARC_WIDTH}
         strokeLinecap="butt"
       />
@@ -115,10 +114,10 @@ function PressureArcs({
 }: PressureArcsProps) {
   return (
     <>
-      <RimArc arc={cpu} color={ELECTRIC} offset={cpuOffset} glowId={glowId} />
+      <RimArc arc={cpu} color={ACCENT} offset={cpuOffset} glowId={glowId} />
       <RimArc
         arc={mem}
-        color={ELECTRIC_BRIGHT}
+        color={ACCENT_BRIGHT}
         offset={memOffset}
         glowId={glowId}
       />
@@ -168,11 +167,11 @@ function CoreBar({ index, cores }: CoreBarProps) {
   return (
     <div
       className="relative h-full flex-1"
-      style={{ background: ELECTRIC_DIM, borderRadius: 1 }}
+      style={{ background: TRACK, borderRadius: 1 }}
     >
       <motion.div
         className="absolute inset-x-0 bottom-0"
-        style={{ height, background: ELECTRIC, borderRadius: 1 }}
+        style={{ height, background: ACCENT, borderRadius: 1 }}
       />
     </div>
   );
@@ -240,7 +239,7 @@ export function PressureDial({ telemetry }: PressureDialProps) {
             ...SHIFT_VARS,
           }}
         >
-          <ReadRow label="cpu" value={cpuLabel} color={ELECTRIC_TEXT} />
+          <ReadRow label="cpu" value={cpuLabel} color={ACCENT} />
           <div
             className="flex items-end"
             style={{
@@ -254,14 +253,14 @@ export function PressureDial({ telemetry }: PressureDialProps) {
             ))}
           </div>
           <div style={{ height: 2 }} />
-          <ReadRow label="mem" value={memLabel} color={ELECTRIC_BRIGHT} />
+          <ReadRow label="mem" value={memLabel} color={ACCENT_BRIGHT} />
           <div
             className="overflow-hidden"
             style={{
               width: CONTENT_WIDTH,
               height: 5,
               borderRadius: 999,
-              background: ELECTRIC_DIM,
+              background: TRACK,
             }}
           >
             <motion.div
@@ -269,7 +268,7 @@ export function PressureDial({ telemetry }: PressureDialProps) {
                 width: memWidth,
                 height: "100%",
                 borderRadius: 999,
-                background: ELECTRIC_BRIGHT,
+                background: ACCENT_BRIGHT,
               }}
             />
           </div>
